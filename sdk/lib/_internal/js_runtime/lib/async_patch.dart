@@ -26,8 +26,6 @@ void _trySetStackTrace(Object error, StackTrace stackTrace) {
   }
 }
 
-typedef _ScheduleImmediateFn = void Function(void Function());
-
 @patch
 class _AsyncRun {
   @patch
@@ -36,33 +34,78 @@ class _AsyncRun {
   }
 
   // Lazily initialized.
-  static final _ScheduleImmediateFn _scheduleImmediateClosure =
+  static final Function _scheduleImmediateClosure =
       _initializeScheduleImmediate();
 
-  static _ScheduleImmediateFn _initializeScheduleImmediate() {
+  static Function _initializeScheduleImmediate() {
     requiresPreamble();
     if (JS('', 'self.scheduleImmediate') != null) {
       return _scheduleImmediateJsOverride;
     }
+    if (JS('', 'self.MutationObserver') != null &&
+        JS('', 'self.document') != null) {
+      // Use mutationObservers.
+      var div = JS('', 'self.document.createElement("div")');
+      var span = JS('', 'self.document.createElement("span")');
+      void Function()? storedCallback;
 
-    if (JS('', 'typeof self.queueMicrotask == "function"')) {
-      return _scheduleImmediateWithQueueMicrotask;
+      internalCallback(_) {
+        var f = storedCallback;
+        storedCallback = null;
+        f!();
+      }
+
+      var observer = JS(
+        '',
+        'new self.MutationObserver(#)',
+        convertDartClosureToJS(internalCallback, 1),
+      );
+      JS('', '#.observe(#, { childList: true })', observer, div);
+
+      return (void callback()) {
+        assert(storedCallback == null);
+        storedCallback = callback;
+        // Because of a broken shadow-dom polyfill we have to change the
+        // children instead a cheap property.
+        JS(
+          '',
+          '#.firstChild ? #.removeChild(#): #.appendChild(#)',
+          div,
+          div,
+          span,
+          div,
+          span,
+        );
+      };
+    } else if (JS('', 'self.setImmediate') != null) {
+      return _scheduleImmediateWithSetImmediate;
     }
-
-    // The fallback is not quite right as it uses the macro task queue.
+    // TODO(20055): We should use DOM promises when available.
     return _scheduleImmediateWithTimer;
   }
 
   static void _scheduleImmediateJsOverride(void callback()) {
-    JS('', 'self.scheduleImmediate(#)', convertDartClosureToJS(callback, 0));
+    internalCallback() {
+      callback();
+    }
+
+    JS(
+      'void',
+      'self.scheduleImmediate(#)',
+      convertDartClosureToJS(internalCallback, 0),
+    );
   }
 
-  /// `queueMicrotask` is available in all supported browsers in
-  /// [windows](https://developer.mozilla.org/en-US/docs/Web/API/Window/queueMicrotask#browser_compatibility)
-  /// and
-  /// [workers](https://developer.mozilla.org/en-US/docs/Web/API/WorkerGlobalScope/queueMicrotask#browser_compatibility).
-  static void _scheduleImmediateWithQueueMicrotask(void callback()) {
-    JS('', 'self.queueMicrotask(#)', convertDartClosureToJS(callback, 0));
+  static void _scheduleImmediateWithSetImmediate(void callback()) {
+    internalCallback() {
+      callback();
+    }
+
+    JS(
+      'void',
+      'self.setImmediate(#)',
+      convertDartClosureToJS(internalCallback, 0),
+    );
   }
 
   static void _scheduleImmediateWithTimer(void callback()) {
