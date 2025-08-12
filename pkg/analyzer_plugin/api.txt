@@ -2007,7 +2007,10 @@ dart:core:
   int (referenced)
 dart:isolate:
   SendPort (referenced)
+package:_fe_analyzer_shared/src/base/diagnostic_message.dart:
+  DiagnosticMessage@2 (referenced)
 package:_fe_analyzer_shared/src/base/errors.dart:
+  Diagnostic (referenced)
   DiagnosticSeverity (referenced)
   DiagnosticType (referenced)
 package:_fe_analyzer_shared/src/base/syntactic_entity.dart:
@@ -2039,9 +2042,6 @@ package:analyzer/dart/element/type_provider.dart:
   TypeProvider (referenced)
 package:analyzer/dart/element/type_system.dart:
   TypeSystem (referenced)
-package:analyzer/diagnostic/diagnostic.dart:
-  Diagnostic (referenced)
-  DiagnosticMessage@2 (referenced)
 package:analyzer/file_system/file_system.dart:
   ResourceProvider (referenced)
 package:analyzer/file_system/overlay_file_system.dart:

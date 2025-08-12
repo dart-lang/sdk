@@ -79,9 +79,8 @@ dart:core:
   bool (referenced)
   int (referenced)
 package:_fe_analyzer_shared/src/base/errors.dart:
-  DiagnosticCode (referenced)
-package:analyzer/diagnostic/diagnostic.dart:
   Diagnostic (referenced)
+  DiagnosticCode (referenced)
 package:analyzer/file_system/file_system.dart:
   File (referenced)
   Folder (referenced)

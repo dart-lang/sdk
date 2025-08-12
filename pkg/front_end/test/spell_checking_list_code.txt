@@ -117,6 +117,7 @@ augmented
 augmenting
 augments
 author
+authoritative
 auto
 automagically
 automatic
@@ -276,6 +277,7 @@ class's
 clause's
 clazz
 cli
+clickable
 client's
 clil
 clock
@@ -328,6 +330,7 @@ concatenate
 concept
 conceptual
 concerned
+concerning
 conciser
 conclusions
 concurrently
@@ -575,6 +578,7 @@ emitting
 emptied
 en
 encapsulation
+encompasses
 end'ed
 end's
 endpoint
@@ -884,6 +888,7 @@ influences
 informative
 infos
 infrastructure
+ing
 inhabit
 inhabits
 inhibit
@@ -965,6 +970,7 @@ jensj
 jit
 jmesserly
 job
+john
 johnniwinther
 js
 jsframevalues
@@ -1044,6 +1050,7 @@ ll
 llub
 lm
 loadable
+locatable
 locationd
 logged
 logically
@@ -1354,6 +1361,7 @@ preparation
 prepares
 preprocess
 presented
+presenting
 pressure
 presubmit
 presumably
@@ -1915,6 +1923,7 @@ till
 timeout
 timer
 timestamp
+timestamped
 timestamps
 timings
 tiny
@@ -2001,6 +2010,7 @@ underestimate
 undergo
 undergoes
 undermine
+understanding
 undo
 undoable
 unduly
@@ -2150,6 +2160,7 @@ winds
 wire
 wise
 wiser
+wish
 wishes
 witness
 witnesses
