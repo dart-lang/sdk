@@ -58,6 +58,8 @@ import 'package:analyzer/src/utilities/extensions/object.dart';
 import 'package:collection/collection.dart';
 import 'package:pub_semver/pub_semver.dart';
 
+part 'element.g.dart';
+
 // TODO(fshcheglov): Remove after third_party/pkg/dartdoc stops using it.
 // https://github.com/dart-lang/dartdoc/issues/4066
 @Deprecated('Use VariableFragmentImpl instead')
@@ -607,7 +609,10 @@ class ClassElementImpl extends InterfaceElementImpl implements ClassElement {
 }
 
 /// An [InterfaceFragmentImpl] which is a class.
-class ClassFragmentImpl extends InterfaceFragmentImpl implements ClassFragment {
+@GenerateFragmentImpl(modifiers: _ClassFragmentImplModifiers.values)
+class ClassFragmentImpl extends InterfaceFragmentImpl
+    with _ClassFragmentImplMixin
+    implements ClassFragment {
   @override
   late final ClassElementImpl element;
 
@@ -615,78 +620,14 @@ class ClassFragmentImpl extends InterfaceFragmentImpl implements ClassFragment {
   /// given [offset] in the file that contains the declaration of this element.
   ClassFragmentImpl({required super.name});
 
-  bool get hasExtendsClause {
-    return hasModifier(Modifier.HAS_EXTENDS_CLAUSE);
-  }
-
-  set hasExtendsClause(bool value) {
-    setModifier(Modifier.HAS_EXTENDS_CLAUSE, value);
-  }
-
   bool get hasGenerativeConstConstructor {
+    _ClassFragmentImplModifiers.hasExtendsClause;
     return constructors.any((c) => !c.isFactory && c.isConst);
-  }
-
-  bool get isAbstract {
-    return hasModifier(Modifier.ABSTRACT);
-  }
-
-  set isAbstract(bool isAbstract) {
-    setModifier(Modifier.ABSTRACT, isAbstract);
-  }
-
-  bool get isBase {
-    return hasModifier(Modifier.BASE);
-  }
-
-  set isBase(bool isBase) {
-    setModifier(Modifier.BASE, isBase);
   }
 
   bool get isConstructable => !isSealed && !isAbstract;
 
   bool get isExhaustive => isSealed;
-
-  bool get isFinal {
-    return hasModifier(Modifier.FINAL);
-  }
-
-  set isFinal(bool isFinal) {
-    setModifier(Modifier.FINAL, isFinal);
-  }
-
-  bool get isInterface {
-    return hasModifier(Modifier.INTERFACE);
-  }
-
-  set isInterface(bool isInterface) {
-    setModifier(Modifier.INTERFACE, isInterface);
-  }
-
-  bool get isMixinApplication {
-    return hasModifier(Modifier.MIXIN_APPLICATION);
-  }
-
-  /// Set whether this class is a mixin application.
-  set isMixinApplication(bool isMixinApplication) {
-    setModifier(Modifier.MIXIN_APPLICATION, isMixinApplication);
-  }
-
-  bool get isMixinClass {
-    return hasModifier(Modifier.MIXIN_CLASS);
-  }
-
-  set isMixinClass(bool isMixinClass) {
-    setModifier(Modifier.MIXIN_CLASS, isMixinClass);
-  }
-
-  bool get isSealed {
-    return hasModifier(Modifier.SEALED);
-  }
-
-  set isSealed(bool isSealed) {
-    setModifier(Modifier.SEALED, isSealed);
-  }
 
   bool get isValidMixin {
     var supertype = this.supertype;
@@ -924,7 +865,9 @@ class ConstructorElementImpl extends ExecutableElementImpl
 }
 
 /// A concrete implementation of a [ConstructorFragment].
+@GenerateFragmentImpl(modifiers: _ConstructorFragmentImplModifiers.values)
 class ConstructorFragmentImpl extends ExecutableFragmentImpl
+    with _ConstructorFragmentImplMixin
     implements ConstructorFragment {
   late final ConstructorElementImpl element;
 
@@ -997,16 +940,6 @@ class ConstructorFragmentImpl extends ExecutableFragmentImpl
   InterfaceFragmentImpl get enclosingFragment =>
       super.enclosingFragment as InterfaceFragmentImpl;
 
-  /// Whether the constructor is a const constructor.
-  bool get isConst {
-    return hasModifier(Modifier.CONST);
-  }
-
-  /// Set whether this constructor represents a 'const' constructor.
-  set isConst(bool isConst) {
-    setModifier(Modifier.CONST, isConst);
-  }
-
   /// Whether the constructor can be used as a default constructor - unnamed,
   /// and has no required parameters.
   bool get isDefaultConstructor {
@@ -1022,16 +955,6 @@ class ConstructorFragmentImpl extends ExecutableFragmentImpl
     }
     // OK, can be used as default constructor
     return true;
-  }
-
-  /// Whether the constructor represents a factory constructor.
-  bool get isFactory {
-    return hasModifier(Modifier.FACTORY);
-  }
-
-  /// Set whether this constructor represents a factory method.
-  set isFactory(bool isFactory) {
-    setModifier(Modifier.FACTORY, isFactory);
   }
 
   /// Whether the constructor represents a generative constructor.
@@ -2383,12 +2306,12 @@ abstract class ExecutableFragmentImpl extends FragmentImpl
   /// Whether the executable element did not have an explicit return type
   /// specified for it in the original source.
   bool get hasImplicitReturnType {
-    return hasModifier(Modifier.IMPLICIT_TYPE);
+    return hasModifier(Modifier.HAS_IMPLICIT_TYPE);
   }
 
   /// Set whether this executable element has an implicit return type.
   set hasImplicitReturnType(bool hasImplicitReturnType) {
-    setModifier(Modifier.IMPLICIT_TYPE, hasImplicitReturnType);
+    setModifier(Modifier.HAS_IMPLICIT_TYPE, hasImplicitReturnType);
   }
 
   bool get invokesSuperSelf {
@@ -3001,14 +2924,6 @@ class FieldFragmentImpl extends PropertyInducingFragmentImpl
     setModifier(Modifier.NO_ENCLOSING_TYPE_PARAMETER_REFERENCE, !value);
   }
 
-  /// Whether the field is abstract.
-  ///
-  /// Executable fields are abstract if they are declared with the `abstract`
-  /// keyword.
-  bool get isAbstract {
-    return hasModifier(Modifier.ABSTRACT);
-  }
-
   /// Whether the field was explicitly marked as being covariant.
   bool get isCovariant {
     return hasModifier(Modifier.COVARIANT);
@@ -3026,11 +2941,6 @@ class FieldFragmentImpl extends PropertyInducingFragmentImpl
 
   set isEnumConstant(bool isEnumConstant) {
     setModifier(Modifier.ENUM_CONSTANT, isEnumConstant);
-  }
-
-  /// Whether the field was explicitly marked as being external.
-  bool get isExternal {
-    return hasModifier(Modifier.EXTERNAL);
   }
 
   /// Whether the field can be type promoted.
@@ -3741,6 +3651,18 @@ abstract class FunctionTypedFragmentImpl implements FragmentImpl {
   /// This does not include type parameters that are declared by any enclosing
   /// elements.
   List<TypeParameterFragmentImpl> get typeParameters;
+}
+
+class GenerateFragmentImpl {
+  /// Modifiers to generate in the annotated class.
+  ///
+  /// Should be a companion enum to reuse Dart syntax, and allow attaching
+  /// optional documentation comments. Theoretically it could be a type
+  /// literal, but then each enum constant is marked as unused, so we
+  /// use `_MyModifiersEnum.values` instead.
+  final List<Enum> modifiers;
+
+  const GenerateFragmentImpl({required this.modifiers});
 }
 
 /// The element used for a generic function type.
@@ -7947,7 +7869,7 @@ enum Modifier {
   /// Indicates that the associated element did not have an explicit type
   /// associated with it. If the element is an [ExecutableElement], then the
   /// type being referred to is the return type.
-  IMPLICIT_TYPE,
+  HAS_IMPLICIT_TYPE,
 
   /// Indicates that the modifier 'interface' was applied to the element.
   INTERFACE,
@@ -9545,10 +9467,6 @@ class TopLevelVariableFragmentImpl extends PropertyInducingFragmentImpl
   @override
   TopLevelVariableFragmentImpl get declaration => this;
 
-  bool get isExternal {
-    return hasModifier(Modifier.EXTERNAL);
-  }
-
   @override
   bool get isStatic => true;
 
@@ -10361,7 +10279,9 @@ abstract class VariableElementImpl extends ElementImpl
   }
 }
 
+@GenerateFragmentImpl(modifiers: _VariableFragmentImplModifiers.values)
 abstract class VariableFragmentImpl extends FragmentImpl
+    with _VariableFragmentImplMixin
     implements VariableFragment {
   /// If this element represents a constant variable, and it has an initializer,
   /// a copy of the initializer for the constant.  Otherwise `null`.
@@ -10385,81 +10305,9 @@ abstract class VariableFragmentImpl extends FragmentImpl
   @override
   VariableElementImpl get element;
 
-  /// Whether the variable element did not have an explicit type specified
-  /// for it.
-  bool get hasImplicitType {
-    return hasModifier(Modifier.IMPLICIT_TYPE);
-  }
-
-  /// Set whether this variable element has an implicit type.
-  set hasImplicitType(bool hasImplicitType) {
-    setModifier(Modifier.IMPLICIT_TYPE, hasImplicitType);
-  }
-
   // TODO(scheglov): remove this
   ExpressionImpl? get initializer {
     return constantInitializer;
-  }
-
-  /// Set whether this variable is abstract.
-  set isAbstract(bool isAbstract) {
-    setModifier(Modifier.ABSTRACT, isAbstract);
-  }
-
-  /// Whether the variable was declared with the 'const' modifier.
-  bool get isConst {
-    return hasModifier(Modifier.CONST);
-  }
-
-  /// Set whether this variable is const.
-  set isConst(bool isConst) {
-    setModifier(Modifier.CONST, isConst);
-  }
-
-  /// Set whether this variable is external.
-  set isExternal(bool isExternal) {
-    setModifier(Modifier.EXTERNAL, isExternal);
-  }
-
-  /// Whether the variable was declared with the 'final' modifier.
-  ///
-  /// Variables that are declared with the 'const' modifier will return `false`
-  /// even though they are implicitly final.
-  bool get isFinal {
-    return hasModifier(Modifier.FINAL);
-  }
-
-  /// Set whether this variable is final.
-  set isFinal(bool isFinal) {
-    setModifier(Modifier.FINAL, isFinal);
-  }
-
-  /// Whether the variable uses late evaluation semantics.
-  ///
-  /// This will always return `false` unless the experiment 'non-nullable' is
-  /// enabled.
-  bool get isLate {
-    return hasModifier(Modifier.LATE);
-  }
-
-  /// Set whether this variable is late.
-  set isLate(bool isLate) {
-    setModifier(Modifier.LATE, isLate);
-  }
-
-  /// Whether the element is a static variable, as per section 8 of the Dart
-  /// Language Specification:
-  ///
-  /// > A static variable is a variable that is not associated with a particular
-  /// > instance, but rather with an entire library or class. Static variables
-  /// > include library variables and class variables. Class variables are
-  /// > variables whose declaration is immediately nested inside a class
-  /// > declaration and includes the modifier static. A library variable is
-  /// > implicitly static.
-  bool get isStatic => hasModifier(Modifier.STATIC);
-
-  set isStatic(bool isStatic) {
-    setModifier(Modifier.STATIC, isStatic);
   }
 
   @override
@@ -10478,6 +10326,19 @@ abstract class VariableFragmentImpl extends FragmentImpl
     throw StateError('($runtimeType) $this');
   }
 }
+
+enum _ClassFragmentImplModifiers {
+  hasExtendsClause,
+  isAbstract,
+  isBase,
+  isFinal,
+  isInterface,
+  isMixinApplication,
+  isMixinClass,
+  isSealed,
+}
+
+enum _ConstructorFragmentImplModifiers { isConst, isFactory }
 
 /// Instances of [List]s that are used as "not yet computed" values, they
 /// must be not `null`, and not identical to `const <T>[]`.
@@ -10507,4 +10368,31 @@ class _Sentinel {
 
   static final List<LibraryExportImpl> libraryExport = List.unmodifiable([]);
   static final List<LibraryImportImpl> libraryImport = List.unmodifiable([]);
+}
+
+enum _VariableFragmentImplModifiers {
+  /// Whether the variable element did not have an explicit type specified
+  /// for it.
+  hasImplicitType,
+  isAbstract,
+  isConst,
+  isExternal,
+
+  /// Whether the variable was declared with the 'final' modifier.
+  ///
+  /// Variables that are declared with the 'const' modifier will return `false`
+  /// even though they are implicitly final.
+  isFinal,
+  isLate,
+
+  /// Whether the element is a static variable, as per section 8 of the Dart
+  /// Language Specification:
+  ///
+  /// > A static variable is a variable that is not associated with a particular
+  /// > instance, but rather with an entire library or class. Static variables
+  /// > include library variables and class variables. Class variables are
+  /// > variables whose declaration is immediately nested inside a class
+  /// > declaration and includes the modifier static. A library variable is
+  /// > implicitly static.
+  isStatic,
 }
