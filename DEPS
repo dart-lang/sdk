@@ -131,13 +131,13 @@ vars = {
   ### /third_party/pkg dependencies
   # 'tools/rev_sdk_deps.dart' will rev pkg dependencies to their latest; put an
   # EOL comment after a dependency to instead pin at the current revision.
-  "ai_rev": "72a9283b421e5ee85c089822ddf6735aade849da",
+  "ai_rev": "6b4b2bce4ee9204f35ba9f7109ba92a24f7049e0",
   "core_rev": "b59ecf4ceebe6153e1c0166b7c9a7fdd9458a89d",
   "dartdoc_rev": "82b48b53128a474221269a05a947bae28e2d7ac6",
-  "ecosystem_rev": "4543c38a67919958539dec8366d8c9414179741f",
+  "ecosystem_rev": "68ff911b19e1abf00ff43b2b37bd16b1af01e088",
   "flute_rev": "d5adc4d6439572db5da71a9261b9bf0c7c96daa4",
-  "http_rev": "afda3102b7ed5467f435b9ad4a29a1032f195156",
-  "i18n_rev": "25cdb1b44b18544e0c988cc1734adc4810a65099",
+  "http_rev": "6656f15e88e68f6cafa2a7bbffa37fd6ac2dd33a",
+  "i18n_rev": "c28ad5ea314394b3d89796a9201f2264e753a079",
   "leak_tracker_rev": "f5620600a5ce1c44f65ddaa02001e200b096e14c", # rolled manually
   "material_color_utilities_rev": "799b6ba2f3f1c28c67cc7e0b4f18e0c7d7f3c03e",
   "native_rev": "16ae2d8619e23fc2bd83fbff087a26ac032a1145", # rolled manually while native assets are experimental
@@ -149,7 +149,7 @@ vars = {
   "test_rev": "5aef9719ad9b598260c062b2a90a50d2f50a78f3", # https://dart-review.googlesource.com/c/sdk/+/444360
   "tools_rev": "1b52e89e0b4ef70e004383c1cf781ad4182f380b",
   "vector_math_rev": "3939545edc38ed657381381d33acde02c49ff827",
-  "web_rev": "f3c960f57cd88afad6e20d80ed453d722d3610b7",
+  "web_rev": "72cdd84cd34feaf777787890d183724108a8344a",
   "webdev_rev": "94c172cc862d0c39c72158c6537f1e20b4432e0e",
   "webdriver_rev": "595649d890f69b9d05a596426ca93681b1921132",
   "webkit_inspection_protocol_rev": "effa75205516757795683d527c3dea9546eb0c32",
