@@ -28,7 +28,10 @@ List<GeneratedContent> allTargetsForPackage(String pkgName) => [
       includedPaths: [join(pkgRoot, pkgName)],
       resourceProvider: provider,
     );
-    var context = collection.contexts.first;
+    // Use `.single` to make sure that `collection` just contains a single
+    // context. This ensures that `publicApi.build` will see all the files in
+    // the package.
+    var context = collection.contexts.single;
     var publicApi = ApiDescription(pkgName);
     var stringBuffer = StringBuffer();
     _printNodes(stringBuffer, await publicApi.build(context));

@@ -27,7 +27,7 @@ export 'snapshot_graph.dart'
         HeapSnapshotObjectNoData,
         HeapSnapshotObjectNullData;
 
-const String vmServiceVersion = '4.19.0';
+const String vmServiceVersion = '4.20.0';
 
 /// @optional
 const String optional = 'optional';
@@ -1835,13 +1835,13 @@ class VmService {
   Future<Success> streamCancel(String streamId) =>
       _call('streamCancel', {'streamId': streamId});
 
-  /// The `streamCpuSamplesWithUserTag` RPC allows for clients to specify which
-  /// CPU samples collected by the profiler should be sent over the `Profiler`
-  /// stream. When called, the VM will stream `CpuSamples` events containing
-  /// `CpuSample`'s collected while a user tag contained in `userTags` was
-  /// active.
+  /// The `streamCpuSamplesWithUserTag` RPC is deprecated and calling it will
+  /// cause no effect. The RPC will return a `Success` object when called with
+  /// any `string[]` as the `userTags` argument, and will return an [RPCError]
+  /// when called with any other `userTags` argument.
   ///
   /// See [Success].
+  @Deprecated('This method is deprecated and calling it will cause no effect')
   Future<Success> streamCpuSamplesWithUserTag(List<String> userTags) =>
       _call('streamCpuSamplesWithUserTag', {'userTags': userTags});
 

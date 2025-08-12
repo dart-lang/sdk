@@ -196,4 +196,11 @@ class StringExtensionTest {
     expect('01234'.removeSuffix('012345'), isNull);
     expect('01234'.removeSuffix('5'), isNull);
   }
+
+  void test_toScreamingSnake() {
+    expect('camelCase'.toScreamingSnake(), 'CAMEL_CASE');
+    expect('HTTPRequest'.toScreamingSnake(), 'HTTP_REQUEST');
+    expect('myURLId2Parser'.toScreamingSnake(), 'MY_URL_ID_2_PARSER');
+    expect('_privateField'.toScreamingSnake(), '_PRIVATE_FIELD');
+  }
 }

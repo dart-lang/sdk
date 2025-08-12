@@ -176,6 +176,7 @@ class UserTagIsolatesVisitor : public IsolateVisitor {
 };
 #endif  // !PRODUCT
 
+// TODO(derekxu16): This function is now dead code and should be cleaned up.
 DEFINE_NATIVE_ENTRY(VMService_AddUserTagsToStreamableSampleList, 0, 1) {
 #ifndef PRODUCT
   GET_NON_NULL_NATIVE_ARGUMENT(GrowableObjectArray, user_tags,
@@ -192,6 +193,7 @@ DEFINE_NATIVE_ENTRY(VMService_AddUserTagsToStreamableSampleList, 0, 1) {
   return Object::null();
 }
 
+// TODO(derekxu16): This function is now dead code and should be cleaned up.
 DEFINE_NATIVE_ENTRY(VMService_RemoveUserTagsFromStreamableSampleList, 0, 1) {
 #ifndef PRODUCT
   GET_NON_NULL_NATIVE_ARGUMENT(GrowableObjectArray, user_tags,

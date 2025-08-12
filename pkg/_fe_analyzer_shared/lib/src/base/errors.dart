@@ -5,8 +5,31 @@
 import 'dart:math';
 
 import 'package:_fe_analyzer_shared/src/base/analyzer_public_api.dart';
+import 'package:_fe_analyzer_shared/src/base/diagnostic_message.dart';
+import 'package:_fe_analyzer_shared/src/base/source.dart';
 
 import 'customized_codes.dart';
+
+/// Inserts the given [arguments] into [pattern].
+///
+///     format('Hello, {0}!', ['John']) = 'Hello, John!'
+///     format('{0} are you {1}ing?', ['How', 'do']) = 'How are you doing?'
+///     format('{0} are you {1}ing?', ['What', 'read']) =
+///         'What are you reading?'
+String formatList(String pattern, List<Object?>? arguments) {
+  if (arguments == null || arguments.isEmpty) {
+    assert(
+      !pattern.contains(new RegExp(r'\{(\d+)\}')),
+      'Message requires arguments, but none were provided.',
+    );
+    return pattern;
+  }
+  return pattern.replaceAllMapped(new RegExp(r'\{(\d+)\}'), (match) {
+    String indexStr = match.group(1)!;
+    int index = int.parse(indexStr);
+    return arguments[index].toString();
+  });
+}
 
 /// A diagnostic code associated with an `AnalysisError`.
 ///
@@ -24,6 +47,202 @@ typedef ErrorSeverity = DiagnosticSeverity;
 @AnalyzerPublicApi(message: 'exported by package:analyzer/error/error.dart')
 @Deprecated("Use 'DiagnosticType' instead.")
 typedef ErrorType = DiagnosticType;
+
+/// A diagnostic, as defined by the [Diagnostic Design Guidelines][guidelines]:
+///
+/// > An indication of a specific problem at a specific location within the
+/// > source code being processed by a development tool.
+///
+/// Clients may not extend, implement or mix-in this class.
+///
+/// [guidelines]: https://github.com/dart-lang/sdk/blob/main/pkg/analyzer/doc/implementation/diagnostics.md
+@AnalyzerPublicApi(
+  message: 'Exported by package:analyzer/diagnostic/diagnostic.dart',
+)
+class Diagnostic {
+  /// The diagnostic code associated with the diagnostic.
+  final DiagnosticCode diagnosticCode;
+
+  /// A list of messages that provide context for understanding the problem
+  /// being reported. The list will be empty if there are no such messages.
+  final List<DiagnosticMessage> contextMessages;
+
+  /// Data associated with this diagnostic, specific for [diagnosticCode].
+  @Deprecated('Use an expando instead')
+  final Object? data;
+
+  /// A description of how to fix the problem, or `null` if there is no such
+  /// description.
+  final String? correctionMessage;
+
+  /// A message describing what is wrong and why.
+  final DiagnosticMessage problemMessage;
+
+  /// The source in which the diagnostic occurred, or `null` if unknown.
+  final Source source;
+
+  Diagnostic.forValues({
+    required this.source,
+    required int offset,
+    required int length,
+    DiagnosticCode? diagnosticCode,
+    @Deprecated("Pass a value for 'diagnosticCode' instead")
+    DiagnosticCode? errorCode,
+    required String message,
+    this.correctionMessage,
+    this.contextMessages = const [],
+    @Deprecated('Use an expando instead') this.data,
+  }) : diagnosticCode = _useNonNullCodeBetween(diagnosticCode, errorCode),
+       problemMessage = new DiagnosticMessageImpl(
+         filePath: source.fullName,
+         length: length,
+         message: message,
+         offset: offset,
+         url: null,
+       );
+
+  /// Initialize a newly created diagnostic.
+  ///
+  /// The diagnostic is associated with the given [source] and is located at the
+  /// given [offset] with the given [length]. The diagnostic will have the given
+  /// [errorCode] and the list of [arguments] will be used to complete the
+  /// message and correction. If any [contextMessages] are provided, they will
+  /// be recorded with the diagnostic.
+  factory Diagnostic.tmp({
+    required Source source,
+    required int offset,
+    required int length,
+    DiagnosticCode? diagnosticCode,
+    @Deprecated("Pass a value for 'diagnosticCode' instead")
+    DiagnosticCode? errorCode,
+    List<Object?> arguments = const [],
+    List<DiagnosticMessage> contextMessages = const [],
+    @Deprecated('Use an expando instead') Object? data,
+  }) {
+    DiagnosticCode code = _useNonNullCodeBetween(diagnosticCode, errorCode);
+    assert(
+      arguments.length == code.numParameters,
+      'Message $code requires ${code.numParameters} '
+      'argument${code.numParameters == 1 ? '' : 's'}, but '
+      '${arguments.length} '
+      'argument${arguments.length == 1 ? ' was' : 's were'} '
+      'provided',
+    );
+    String message = formatList(code.problemMessage, arguments);
+    String? correctionTemplate = code.correctionMessage;
+    String? correctionMessage;
+    if (correctionTemplate != null) {
+      correctionMessage = formatList(correctionTemplate, arguments);
+    }
+
+    return new Diagnostic.forValues(
+      source: source,
+      offset: offset,
+      length: length,
+      diagnosticCode: code,
+      message: message,
+      correctionMessage: correctionMessage,
+      contextMessages: contextMessages,
+      // ignore: deprecated_member_use_from_same_package
+      data: data,
+    );
+  }
+
+  /// The template used to create the correction to be displayed for this
+  /// diagnostic, or `null` if there is no correction information for this
+  /// error. The correction should indicate how the user can fix the error.
+  @Deprecated("Use 'correctionMessage' instead.")
+  String? get correction => correctionMessage;
+
+  @Deprecated("Use 'diagnosticCode' instead")
+  DiagnosticCode get errorCode => diagnosticCode;
+
+  @override
+  int get hashCode {
+    int hashCode = offset;
+    hashCode ^= message.hashCode;
+    hashCode ^= source.hashCode;
+    return hashCode;
+  }
+
+  /// The number of characters from the offset to the end of the source which
+  /// encompasses the compilation error.
+  int get length => problemMessage.length;
+
+  /// The message to be displayed for this diagnostic.
+  ///
+  /// The message indicates what is wrong and why it is wrong.
+  String get message => problemMessage.messageText(includeUrl: true);
+
+  /// The character offset from the beginning of the source (zero based) where
+  /// the diagnostic occurred.
+  int get offset => problemMessage.offset;
+
+  Severity get severity {
+    switch (diagnosticCode.severity) {
+      case DiagnosticSeverity.ERROR:
+        return Severity.error;
+      case DiagnosticSeverity.WARNING:
+        return Severity.warning;
+      case DiagnosticSeverity.INFO:
+        return Severity.info;
+      default:
+        throw new StateError('Invalid severity: ${diagnosticCode.severity}');
+    }
+  }
+
+  @override
+  bool operator ==(Object other) {
+    if (identical(other, this)) {
+      return true;
+    }
+    // prepare the other Diagnostic.
+    if (other is Diagnostic) {
+      // Quick checks.
+      if (!identical(diagnosticCode, other.diagnosticCode)) {
+        return false;
+      }
+      if (offset != other.offset || length != other.length) {
+        return false;
+      }
+      // Deep checks.
+      if (message != other.message) {
+        return false;
+      }
+      if (source != other.source) {
+        return false;
+      }
+      return true;
+    }
+    return false;
+  }
+
+  @override
+  String toString() {
+    StringBuffer buffer = new StringBuffer();
+    buffer.write(source.fullName);
+    buffer.write("(");
+    buffer.write(offset);
+    buffer.write("..");
+    buffer.write(offset + length - 1);
+    buffer.write("): ");
+    buffer.write(message);
+    return buffer.toString();
+  }
+
+  /// The non-`null` [DiagnosticCode] value between the two parameters.
+  static DiagnosticCode _useNonNullCodeBetween(
+    DiagnosticCode? diagnosticCode,
+    DiagnosticCode? errorCode,
+  ) {
+    if ((diagnosticCode == null) == (errorCode == null)) {
+      throw new ArgumentError(
+        "Exactly one of 'diagnosticCode' and 'errorCode' may be passed",
+      );
+    }
+    return diagnosticCode ?? errorCode!;
+  }
+}
 
 /// An error code associated with an `AnalysisError`.
 ///

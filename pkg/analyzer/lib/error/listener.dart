@@ -247,7 +247,7 @@ class DiagnosticReporter {
       diagnosticCode: diagnosticCode,
       arguments: arguments ?? const [],
       contextMessages: contextMessages,
-      // ignore: deprecated_member_use_from_same_package
+      // ignore: deprecated_member_use
       data: data,
     );
     reportError(diagnostic);
