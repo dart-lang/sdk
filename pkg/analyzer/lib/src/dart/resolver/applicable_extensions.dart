@@ -134,15 +134,8 @@ extension ExtensionsExtensions on Iterable<ExtensionElement> {
     var result = <_NotInstantiatedExtensionWithMember>[];
     for (var extension in this) {
       if (baseName.name == '[]') {
-        ExecutableElement? getter;
-        ExecutableElement? setter;
-        for (var method in extension.methods) {
-          if (method.name == '[]') {
-            getter = method;
-          } else if (method.name == '[]=') {
-            setter = method;
-          }
-        }
+        var getter = extension.getMethod('[]');
+        var setter = extension.getMethod('[]=');
         if (getter != null || setter != null) {
           result.add(
             _NotInstantiatedExtensionWithMember(
@@ -155,12 +148,9 @@ extension ExtensionsExtensions on Iterable<ExtensionElement> {
           );
         }
       } else {
-        for (var field in extension.fields) {
-          if (field.isStatic) {
-            continue;
-          }
-          var fieldName = Name.forElement(field);
-          if (fieldName == baseName) {
+        var field = extension.getField(baseName.name);
+        if (field != null && !field.isStatic) {
+          if (Name.forElement(field) == baseName) {
             result.add(
               _NotInstantiatedExtensionWithMember(
                 // TODO(paulberry): eliminate this cast by changing the
@@ -170,15 +160,12 @@ extension ExtensionsExtensions on Iterable<ExtensionElement> {
                 setter: field.setter,
               ),
             );
-            break;
           }
         }
-        for (var method in extension.methods) {
-          if (method.isStatic) {
-            continue;
-          }
-          var methodName = Name.forElement(method);
-          if (methodName == baseName) {
+
+        var method = extension.getMethod(baseName.name);
+        if (method != null && !method.isStatic) {
+          if (Name.forElement(method) == baseName) {
             result.add(
               _NotInstantiatedExtensionWithMember(
                 // TODO(paulberry): eliminate this cast by changing the
@@ -187,7 +174,6 @@ extension ExtensionsExtensions on Iterable<ExtensionElement> {
                 getter: method,
               ),
             );
-            break;
           }
         }
       }
