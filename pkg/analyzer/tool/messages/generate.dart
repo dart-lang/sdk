@@ -340,7 +340,7 @@ class _SyntacticErrorGenerator {
     var messageToName = <String, String>{};
     for (var entry in analyzerMessages['ParserErrorCode']!.entries) {
       String message = entry.value.problemMessage.replaceAll(
-        RegExp(r'\{\d+\}'),
+        placeholderPattern,
         '',
       );
       messageToName[message] = entry.key;

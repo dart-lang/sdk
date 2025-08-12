@@ -50,8 +50,8 @@ class CompileTimeErrorCode extends DiagnosticCode {
       );
 
   /// Parameters:
-  /// 0: the display name for the kind of the found abstract member
-  /// 1: the name of the member
+  /// String p0: the display name for the kind of the found abstract member
+  /// String p1: the name of the member
   static const CompileTimeErrorCode ABSTRACT_SUPER_MEMBER_REFERENCE =
       CompileTimeErrorCode(
         'ABSTRACT_SUPER_MEMBER_REFERENCE',
@@ -60,9 +60,9 @@ class CompileTimeErrorCode extends DiagnosticCode {
       );
 
   /// Parameters:
-  /// 0: the name of the ambiguous element
-  /// 1: the name of the first library in which the type is found
-  /// 2: the name of the second library in which the type is found
+  /// String p0: the name of the ambiguous element
+  /// Uri p1: the name of the first library in which the type is found
+  /// Uri p2: the name of the second library in which the type is found
   static const CompileTimeErrorCode AMBIGUOUS_EXPORT = CompileTimeErrorCode(
     'AMBIGUOUS_EXPORT',
     "The name '{0}' is defined in the libraries '{1}' and '{2}'.",
@@ -73,8 +73,8 @@ class CompileTimeErrorCode extends DiagnosticCode {
   );
 
   /// Parameters:
-  /// 0: the name of the member
-  /// 1: the names of the declaring extensions
+  /// String p0: the name of the member
+  /// String p1: the names of the declaring extensions
   static const CompileTimeErrorCode
   AMBIGUOUS_EXTENSION_MEMBER_ACCESS_THREE_OR_MORE = CompileTimeErrorCode(
     'AMBIGUOUS_EXTENSION_MEMBER_ACCESS',
@@ -87,9 +87,9 @@ class CompileTimeErrorCode extends DiagnosticCode {
   );
 
   /// Parameters:
-  /// 0: the name of the member
-  /// 1: the name of the first declaring extension
-  /// 2: the names of the second declaring extension
+  /// String p0: the name of the member
+  /// Element p1: the name of the first declaring extension
+  /// Element p2: the names of the second declaring extension
   static const CompileTimeErrorCode
   AMBIGUOUS_EXTENSION_MEMBER_ACCESS_TWO = CompileTimeErrorCode(
     'AMBIGUOUS_EXTENSION_MEMBER_ACCESS',
@@ -103,8 +103,8 @@ class CompileTimeErrorCode extends DiagnosticCode {
   );
 
   /// Parameters:
-  /// 0: the name of the ambiguous type
-  /// 1: the names of the libraries that the type is found
+  /// String p0: the name of the ambiguous type
+  /// String p1: the names of the libraries that the type is found
   static const CompileTimeErrorCode AMBIGUOUS_IMPORT = CompileTimeErrorCode(
     'AMBIGUOUS_IMPORT',
     "The name '{0}' is defined in the libraries {1}.",
@@ -140,9 +140,10 @@ class CompileTimeErrorCode extends DiagnosticCode {
   );
 
   /// Parameters:
-  /// 0: the name of the actual argument type
-  /// 1: the name of the expected type
-  /// 2: additional information, if any, when problem is associated with records
+  /// Type p0: the name of the actual argument type
+  /// Type p1: the name of the expected type
+  /// String p2: additional information, if any, when problem is associated with
+  ///            records
   static const CompileTimeErrorCode
   ARGUMENT_TYPE_NOT_ASSIGNABLE = CompileTimeErrorCode(
     'ARGUMENT_TYPE_NOT_ASSIGNABLE',
@@ -170,7 +171,7 @@ class CompileTimeErrorCode extends DiagnosticCode {
   );
 
   /// Parameters:
-  /// 0: the name of the final variable
+  /// String p0: the name of the final variable
   static const CompileTimeErrorCode ASSIGNMENT_TO_FINAL = CompileTimeErrorCode(
     'ASSIGNMENT_TO_FINAL',
     "'{0}' can't be used as a setter because it's final.",
@@ -180,7 +181,7 @@ class CompileTimeErrorCode extends DiagnosticCode {
   );
 
   /// Parameters:
-  /// 0: the name of the variable
+  /// String p0: the name of the variable
   static const CompileTimeErrorCode ASSIGNMENT_TO_FINAL_LOCAL =
       CompileTimeErrorCode(
         'ASSIGNMENT_TO_FINAL_LOCAL',
@@ -190,8 +191,8 @@ class CompileTimeErrorCode extends DiagnosticCode {
       );
 
   /// Parameters:
-  /// 0: the name of the reference
-  /// 1: the name of the class
+  /// String p0: the name of the reference
+  /// String p1: the name of the class
   static const CompileTimeErrorCode
   ASSIGNMENT_TO_FINAL_NO_SETTER = CompileTimeErrorCode(
     'ASSIGNMENT_TO_FINAL_NO_SETTER',
@@ -248,7 +249,7 @@ class CompileTimeErrorCode extends DiagnosticCode {
   );
 
   /// Parameters:
-  /// 0: the lexeme of the modifier.
+  /// Object p0: the lexeme of the modifier.
   static const CompileTimeErrorCode AUGMENTATION_MODIFIER_EXTRA =
       CompileTimeErrorCode(
         'AUGMENTATION_MODIFIER_EXTRA',
@@ -259,7 +260,7 @@ class CompileTimeErrorCode extends DiagnosticCode {
       );
 
   /// Parameters:
-  /// 0: the lexeme of the modifier.
+  /// Object p0: the lexeme of the modifier.
   static const CompileTimeErrorCode
   AUGMENTATION_MODIFIER_MISSING = CompileTimeErrorCode(
     'AUGMENTATION_MODIFIER_MISSING',
@@ -269,8 +270,8 @@ class CompileTimeErrorCode extends DiagnosticCode {
   );
 
   /// Parameters:
-  /// 0: the name of the declaration kind.
-  /// 1: the name of the augmentation kind.
+  /// Object p0: the name of the declaration kind.
+  /// Object p1: the name of the augmentation kind.
   static const CompileTimeErrorCode AUGMENTATION_OF_DIFFERENT_DECLARATION_KIND =
       CompileTimeErrorCode(
         'AUGMENTATION_OF_DIFFERENT_DECLARATION_KIND',
@@ -339,7 +340,7 @@ class CompileTimeErrorCode extends DiagnosticCode {
   );
 
   /// Parameters:
-  /// 0: the lexeme of the operator.
+  /// Object p0: the lexeme of the operator.
   static const CompileTimeErrorCode AUGMENTED_EXPRESSION_NOT_OPERATOR =
       CompileTimeErrorCode(
         'AUGMENTED_EXPRESSION_NOT_OPERATOR',
@@ -385,7 +386,7 @@ class CompileTimeErrorCode extends DiagnosticCode {
   );
 
   /// Parameters:
-  /// 0: the name of the base class being implemented
+  /// String p0: the name of the base class being implemented
   static const CompileTimeErrorCode
   BASE_CLASS_IMPLEMENTED_OUTSIDE_OF_LIBRARY = CompileTimeErrorCode(
     'INVALID_USE_OF_TYPE_OUTSIDE_LIBRARY',
@@ -396,7 +397,7 @@ class CompileTimeErrorCode extends DiagnosticCode {
   );
 
   /// Parameters:
-  /// 0: the name of the base mixin being implemented
+  /// String p0: the name of the base mixin being implemented
   static const CompileTimeErrorCode
   BASE_MIXIN_IMPLEMENTED_OUTSIDE_OF_LIBRARY = CompileTimeErrorCode(
     'INVALID_USE_OF_TYPE_OUTSIDE_LIBRARY',
@@ -407,7 +408,7 @@ class CompileTimeErrorCode extends DiagnosticCode {
   );
 
   /// Parameters:
-  /// 0: the name of the return type
+  /// Type p0: the name of the return type
   static const CompileTimeErrorCode
   BODY_MIGHT_COMPLETE_NORMALLY = CompileTimeErrorCode(
     'BODY_MIGHT_COMPLETE_NORMALLY',
@@ -427,7 +428,7 @@ class CompileTimeErrorCode extends DiagnosticCode {
       );
 
   /// Parameters:
-  /// 0: the built-in identifier that is being used
+  /// String p0: the built-in identifier that is being used
   static const CompileTimeErrorCode BUILT_IN_IDENTIFIER_AS_EXTENSION_NAME =
       CompileTimeErrorCode(
         'BUILT_IN_IDENTIFIER_IN_DECLARATION',
@@ -438,7 +439,7 @@ class CompileTimeErrorCode extends DiagnosticCode {
       );
 
   /// Parameters:
-  /// 0: the built-in identifier that is being used
+  /// String p0: the built-in identifier that is being used
   static const CompileTimeErrorCode
   BUILT_IN_IDENTIFIER_AS_EXTENSION_TYPE_NAME = CompileTimeErrorCode(
     'BUILT_IN_IDENTIFIER_IN_DECLARATION',
@@ -449,7 +450,7 @@ class CompileTimeErrorCode extends DiagnosticCode {
   );
 
   /// Parameters:
-  /// 0: the built-in identifier that is being used
+  /// String p0: the built-in identifier that is being used
   static const CompileTimeErrorCode BUILT_IN_IDENTIFIER_AS_PREFIX_NAME =
       CompileTimeErrorCode(
         'BUILT_IN_IDENTIFIER_IN_DECLARATION',
@@ -460,7 +461,7 @@ class CompileTimeErrorCode extends DiagnosticCode {
       );
 
   /// Parameters:
-  /// 0: the built-in identifier that is being used
+  /// String p0: the built-in identifier that is being used
   static const CompileTimeErrorCode BUILT_IN_IDENTIFIER_AS_TYPE =
       CompileTimeErrorCode(
         'BUILT_IN_IDENTIFIER_AS_TYPE',
@@ -470,7 +471,7 @@ class CompileTimeErrorCode extends DiagnosticCode {
       );
 
   /// Parameters:
-  /// 0: the built-in identifier that is being used
+  /// String p0: the built-in identifier that is being used
   static const CompileTimeErrorCode BUILT_IN_IDENTIFIER_AS_TYPEDEF_NAME =
       CompileTimeErrorCode(
         'BUILT_IN_IDENTIFIER_IN_DECLARATION',
@@ -481,7 +482,7 @@ class CompileTimeErrorCode extends DiagnosticCode {
       );
 
   /// Parameters:
-  /// 0: the built-in identifier that is being used
+  /// String p0: the built-in identifier that is being used
   static const CompileTimeErrorCode BUILT_IN_IDENTIFIER_AS_TYPE_NAME =
       CompileTimeErrorCode(
         'BUILT_IN_IDENTIFIER_IN_DECLARATION',
@@ -492,7 +493,7 @@ class CompileTimeErrorCode extends DiagnosticCode {
       );
 
   /// Parameters:
-  /// 0: the built-in identifier that is being used
+  /// String p0: the built-in identifier that is being used
   static const CompileTimeErrorCode BUILT_IN_IDENTIFIER_AS_TYPE_PARAMETER_NAME =
       CompileTimeErrorCode(
         'BUILT_IN_IDENTIFIER_IN_DECLARATION',
@@ -504,7 +505,7 @@ class CompileTimeErrorCode extends DiagnosticCode {
       );
 
   /// Parameters:
-  /// 0: the this of the switch case expression
+  /// Type p0: the this of the switch case expression
   static const CompileTimeErrorCode
   CASE_EXPRESSION_TYPE_IMPLEMENTS_EQUALS = CompileTimeErrorCode(
     'CASE_EXPRESSION_TYPE_IMPLEMENTS_EQUALS',
@@ -513,8 +514,8 @@ class CompileTimeErrorCode extends DiagnosticCode {
   );
 
   /// Parameters:
-  /// 0: the type of the case expression
-  /// 1: the type of the switch expression
+  /// Type p0: the type of the case expression
+  /// Type p1: the type of the switch expression
   static const CompileTimeErrorCode
   CASE_EXPRESSION_TYPE_IS_NOT_SWITCH_EXPRESSION_SUBTYPE = CompileTimeErrorCode(
     'CASE_EXPRESSION_TYPE_IS_NOT_SWITCH_EXPRESSION_SUBTYPE',
@@ -524,7 +525,7 @@ class CompileTimeErrorCode extends DiagnosticCode {
   );
 
   /// Parameters:
-  /// 0: the name of the type
+  /// String p0: the name of the type
   static const CompileTimeErrorCode CAST_TO_NON_TYPE = CompileTimeErrorCode(
     'CAST_TO_NON_TYPE',
     "The name '{0}' isn't a type, so it can't be used in an 'as' expression.",
@@ -535,7 +536,7 @@ class CompileTimeErrorCode extends DiagnosticCode {
   );
 
   /// Parameters:
-  /// 0: the name of the member
+  /// String p0: the name of the member
   static const CompileTimeErrorCode
   CLASS_INSTANTIATION_ACCESS_TO_INSTANCE_MEMBER = CompileTimeErrorCode(
     'CLASS_INSTANTIATION_ACCESS_TO_MEMBER',
@@ -546,7 +547,7 @@ class CompileTimeErrorCode extends DiagnosticCode {
   );
 
   /// Parameters:
-  /// 0: the name of the member
+  /// String p0: the name of the member
   static const CompileTimeErrorCode
   CLASS_INSTANTIATION_ACCESS_TO_STATIC_MEMBER = CompileTimeErrorCode(
     'CLASS_INSTANTIATION_ACCESS_TO_MEMBER',
@@ -558,8 +559,8 @@ class CompileTimeErrorCode extends DiagnosticCode {
   );
 
   /// Parameters:
-  /// 0: the name of the class
-  /// 1: the name of the member
+  /// String p0: the name of the class
+  /// String p1: the name of the member
   static const CompileTimeErrorCode
   CLASS_INSTANTIATION_ACCESS_TO_UNKNOWN_MEMBER = CompileTimeErrorCode(
     'CLASS_INSTANTIATION_ACCESS_TO_MEMBER',
@@ -571,7 +572,7 @@ class CompileTimeErrorCode extends DiagnosticCode {
   );
 
   /// Parameters:
-  /// 0: the name of the class being used as a mixin
+  /// String p0: the name of the class being used as a mixin
   static const CompileTimeErrorCode CLASS_USED_AS_MIXIN = CompileTimeErrorCode(
     'CLASS_USED_AS_MIXIN',
     "The class '{0}' can't be used as a mixin because it's neither a mixin "
@@ -590,8 +591,8 @@ class CompileTimeErrorCode extends DiagnosticCode {
       );
 
   /// Parameters:
-  /// 0: the name of the abstract method
-  /// 1: the name of the enclosing class
+  /// String p0: the name of the abstract method
+  /// String p1: the name of the enclosing class
   static const CompileTimeErrorCode CONCRETE_CLASS_WITH_ABSTRACT_MEMBER =
       CompileTimeErrorCode(
         'CONCRETE_CLASS_WITH_ABSTRACT_MEMBER',
@@ -602,7 +603,7 @@ class CompileTimeErrorCode extends DiagnosticCode {
       );
 
   /// Parameters:
-  /// 0: the name of the constructor and field
+  /// String p0: the name of the constructor and field
   static const CompileTimeErrorCode
   CONFLICTING_CONSTRUCTOR_AND_STATIC_FIELD = CompileTimeErrorCode(
     'CONFLICTING_CONSTRUCTOR_AND_STATIC_MEMBER',
@@ -614,7 +615,7 @@ class CompileTimeErrorCode extends DiagnosticCode {
   );
 
   /// Parameters:
-  /// 0: the name of the constructor and getter
+  /// String p0: the name of the constructor and getter
   static const CompileTimeErrorCode CONFLICTING_CONSTRUCTOR_AND_STATIC_GETTER =
       CompileTimeErrorCode(
         'CONFLICTING_CONSTRUCTOR_AND_STATIC_MEMBER',
@@ -626,7 +627,7 @@ class CompileTimeErrorCode extends DiagnosticCode {
       );
 
   /// Parameters:
-  /// 0: the name of the constructor
+  /// String p0: the name of the constructor
   static const CompileTimeErrorCode CONFLICTING_CONSTRUCTOR_AND_STATIC_METHOD =
       CompileTimeErrorCode(
         'CONFLICTING_CONSTRUCTOR_AND_STATIC_MEMBER',
@@ -638,7 +639,7 @@ class CompileTimeErrorCode extends DiagnosticCode {
       );
 
   /// Parameters:
-  /// 0: the name of the constructor and setter
+  /// String p0: the name of the constructor and setter
   static const CompileTimeErrorCode CONFLICTING_CONSTRUCTOR_AND_STATIC_SETTER =
       CompileTimeErrorCode(
         'CONFLICTING_CONSTRUCTOR_AND_STATIC_MEMBER',
@@ -654,10 +655,10 @@ class CompileTimeErrorCode extends DiagnosticCode {
   /// method named `n`.
   ///
   /// Parameters:
-  /// 0: the name of the class defining the conflicting field
-  /// 1: the name of the conflicting field
-  /// 2: the name of the class defining the method with which the field
-  ///    conflicts
+  /// String p0: the name of the class defining the conflicting field
+  /// String p1: the name of the conflicting field
+  /// String p2: the name of the class defining the method with which the field
+  ///            conflicts
   static const CompileTimeErrorCode
   CONFLICTING_FIELD_AND_METHOD = CompileTimeErrorCode(
     'CONFLICTING_FIELD_AND_METHOD',
@@ -669,11 +670,11 @@ class CompileTimeErrorCode extends DiagnosticCode {
   );
 
   /// Parameters:
-  /// 0: the name of the kind of the element implementing the conflicting
-  ///    interface
-  /// 1: the name of the element implementing the conflicting interface
-  /// 2: the first conflicting type
-  /// 3: the second conflicting type
+  /// String p0: the name of the kind of the element implementing the
+  ///            conflicting interface
+  /// String p1: the name of the element implementing the conflicting interface
+  /// String p2: the first conflicting type
+  /// String p3: the second conflicting type
   static const CompileTimeErrorCode CONFLICTING_GENERIC_INTERFACES =
       CompileTimeErrorCode(
         'CONFLICTING_GENERIC_INTERFACES',
@@ -687,9 +688,10 @@ class CompileTimeErrorCode extends DiagnosticCode {
   /// instance setter with basename `n`.
   ///
   /// Parameters:
-  /// 0: the name of the enclosing element kind - class, extension type, etc
-  /// 1: the name of the enclosing element
-  /// 2: the name of the conflicting method / setter
+  /// String p0: the name of the enclosing element kind - class, extension type,
+  ///            etc
+  /// String p1: the name of the enclosing element
+  /// String p2: the name of the conflicting method / setter
   static const CompileTimeErrorCode CONFLICTING_INHERITED_METHOD_AND_SETTER =
       CompileTimeErrorCode(
         'CONFLICTING_INHERITED_METHOD_AND_SETTER',
@@ -701,10 +703,10 @@ class CompileTimeErrorCode extends DiagnosticCode {
   /// with basename `n`.
   ///
   /// Parameters:
-  /// 0: the name of the class defining the conflicting method
-  /// 1: the name of the conflicting method
-  /// 2: the name of the class defining the field with which the method
-  ///    conflicts
+  /// String p0: the name of the class defining the conflicting method
+  /// String p1: the name of the conflicting method
+  /// String p2: the name of the class defining the field with which the method
+  ///            conflicts
   static const CompileTimeErrorCode
   CONFLICTING_METHOD_AND_FIELD = CompileTimeErrorCode(
     'CONFLICTING_METHOD_AND_FIELD',
@@ -720,10 +722,10 @@ class CompileTimeErrorCode extends DiagnosticCode {
   /// instance member with basename `n`.
   ///
   /// Parameters:
-  /// 0: the name of the class defining the conflicting member
-  /// 1: the name of the conflicting static member
-  /// 2: the name of the class defining the field with which the method
-  ///    conflicts
+  /// String p0: the name of the class defining the conflicting member
+  /// String p1: the name of the conflicting static member
+  /// String p2: the name of the class defining the field with which the method
+  ///            conflicts
   static const CompileTimeErrorCode CONFLICTING_STATIC_AND_INSTANCE =
       CompileTimeErrorCode(
         'CONFLICTING_STATIC_AND_INSTANCE',
@@ -734,7 +736,7 @@ class CompileTimeErrorCode extends DiagnosticCode {
       );
 
   /// Parameters:
-  /// 0: the name of the type parameter
+  /// String p0: the name of the type parameter
   static const CompileTimeErrorCode
   CONFLICTING_TYPE_VARIABLE_AND_CLASS = CompileTimeErrorCode(
     'CONFLICTING_TYPE_VARIABLE_AND_CONTAINER',
@@ -746,7 +748,7 @@ class CompileTimeErrorCode extends DiagnosticCode {
   );
 
   /// Parameters:
-  /// 0: the name of the type parameter
+  /// String p0: the name of the type parameter
   static const CompileTimeErrorCode
   CONFLICTING_TYPE_VARIABLE_AND_ENUM = CompileTimeErrorCode(
     'CONFLICTING_TYPE_VARIABLE_AND_CONTAINER',
@@ -758,7 +760,7 @@ class CompileTimeErrorCode extends DiagnosticCode {
   );
 
   /// Parameters:
-  /// 0: the name of the type parameter
+  /// String p0: the name of the type parameter
   static const CompileTimeErrorCode
   CONFLICTING_TYPE_VARIABLE_AND_EXTENSION = CompileTimeErrorCode(
     'CONFLICTING_TYPE_VARIABLE_AND_CONTAINER',
@@ -771,7 +773,7 @@ class CompileTimeErrorCode extends DiagnosticCode {
   );
 
   /// Parameters:
-  /// 0: the name of the type parameter
+  /// String p0: the name of the type parameter
   static const CompileTimeErrorCode
   CONFLICTING_TYPE_VARIABLE_AND_EXTENSION_TYPE = CompileTimeErrorCode(
     'CONFLICTING_TYPE_VARIABLE_AND_CONTAINER',
@@ -784,7 +786,7 @@ class CompileTimeErrorCode extends DiagnosticCode {
   );
 
   /// Parameters:
-  /// 0: the name of the type parameter
+  /// String p0: the name of the type parameter
   static const CompileTimeErrorCode
   CONFLICTING_TYPE_VARIABLE_AND_MEMBER_CLASS = CompileTimeErrorCode(
     'CONFLICTING_TYPE_VARIABLE_AND_MEMBER',
@@ -796,7 +798,7 @@ class CompileTimeErrorCode extends DiagnosticCode {
   );
 
   /// Parameters:
-  /// 0: the name of the type parameter
+  /// String p0: the name of the type parameter
   static const CompileTimeErrorCode
   CONFLICTING_TYPE_VARIABLE_AND_MEMBER_ENUM = CompileTimeErrorCode(
     'CONFLICTING_TYPE_VARIABLE_AND_MEMBER',
@@ -808,7 +810,7 @@ class CompileTimeErrorCode extends DiagnosticCode {
   );
 
   /// Parameters:
-  /// 0: the name of the type parameter
+  /// String p0: the name of the type parameter
   static const CompileTimeErrorCode
   CONFLICTING_TYPE_VARIABLE_AND_MEMBER_EXTENSION = CompileTimeErrorCode(
     'CONFLICTING_TYPE_VARIABLE_AND_MEMBER',
@@ -820,7 +822,7 @@ class CompileTimeErrorCode extends DiagnosticCode {
   );
 
   /// Parameters:
-  /// 0: the name of the type parameter
+  /// String p0: the name of the type parameter
   static const CompileTimeErrorCode
   CONFLICTING_TYPE_VARIABLE_AND_MEMBER_EXTENSION_TYPE = CompileTimeErrorCode(
     'CONFLICTING_TYPE_VARIABLE_AND_MEMBER',
@@ -832,7 +834,7 @@ class CompileTimeErrorCode extends DiagnosticCode {
   );
 
   /// Parameters:
-  /// 0: the name of the type parameter
+  /// String p0: the name of the type parameter
   static const CompileTimeErrorCode
   CONFLICTING_TYPE_VARIABLE_AND_MEMBER_MIXIN = CompileTimeErrorCode(
     'CONFLICTING_TYPE_VARIABLE_AND_MEMBER',
@@ -844,7 +846,7 @@ class CompileTimeErrorCode extends DiagnosticCode {
   );
 
   /// Parameters:
-  /// 0: the name of the type parameter
+  /// String p0: the name of the type parameter
   static const CompileTimeErrorCode
   CONFLICTING_TYPE_VARIABLE_AND_MIXIN = CompileTimeErrorCode(
     'CONFLICTING_TYPE_VARIABLE_AND_CONTAINER',
@@ -881,9 +883,9 @@ class CompileTimeErrorCode extends DiagnosticCode {
   /// object results in an uncaught exception being thrown.
   ///
   /// Parameters:
-  /// 0: the type of the runtime value of the argument
-  /// 1: the name of the field
-  /// 2: the type of the field
+  /// Object p0: the type of the runtime value of the argument
+  /// Object p1: the name of the field
+  /// Object p2: the type of the field
   static const CompileTimeErrorCode
   CONST_CONSTRUCTOR_FIELD_TYPE_MISMATCH = CompileTimeErrorCode(
     'CONST_CONSTRUCTOR_FIELD_TYPE_MISMATCH',
@@ -893,8 +895,8 @@ class CompileTimeErrorCode extends DiagnosticCode {
   );
 
   /// Parameters:
-  /// 0: the type of the runtime value of the argument
-  /// 1: the static type of the parameter
+  /// String p0: the type of the runtime value of the argument
+  /// String p1: the static type of the parameter
   static const CompileTimeErrorCode
   CONST_CONSTRUCTOR_PARAM_TYPE_MISMATCH = CompileTimeErrorCode(
     'CONST_CONSTRUCTOR_PARAM_TYPE_MISMATCH',
@@ -917,7 +919,7 @@ class CompileTimeErrorCode extends DiagnosticCode {
   );
 
   /// Parameters:
-  /// 0: the name of the field
+  /// String p0: the name of the field
   static const CompileTimeErrorCode
   CONST_CONSTRUCTOR_WITH_FIELD_INITIALIZED_BY_NON_CONST = CompileTimeErrorCode(
     'CONST_CONSTRUCTOR_WITH_FIELD_INITIALIZED_BY_NON_CONST',
@@ -940,7 +942,7 @@ class CompileTimeErrorCode extends DiagnosticCode {
   /// also a const constructor.
   ///
   /// Parameters:
-  /// 0: the name of the instance field.
+  /// String p0: the name of the instance field.
   static const CompileTimeErrorCode
   CONST_CONSTRUCTOR_WITH_MIXIN_WITH_FIELD = CompileTimeErrorCode(
     'CONST_CONSTRUCTOR_WITH_MIXIN_WITH_FIELD',
@@ -962,7 +964,7 @@ class CompileTimeErrorCode extends DiagnosticCode {
   /// also a const constructor.
   ///
   /// Parameters:
-  /// 0: the names of the instance fields.
+  /// String p0: the names of the instance fields.
   static const CompileTimeErrorCode
   CONST_CONSTRUCTOR_WITH_MIXIN_WITH_FIELDS = CompileTimeErrorCode(
     'CONST_CONSTRUCTOR_WITH_MIXIN_WITH_FIELD',
@@ -975,7 +977,7 @@ class CompileTimeErrorCode extends DiagnosticCode {
   );
 
   /// Parameters:
-  /// 0: the name of the superclass
+  /// String p0: the name of the superclass
   static const CompileTimeErrorCode
   CONST_CONSTRUCTOR_WITH_NON_CONST_SUPER = CompileTimeErrorCode(
     'CONST_CONSTRUCTOR_WITH_NON_CONST_SUPER',
@@ -1016,7 +1018,7 @@ class CompileTimeErrorCode extends DiagnosticCode {
       );
 
   /// Parameters:
-  /// 0: the message of the assertion
+  /// Object p0: the message of the assertion
   static const CompileTimeErrorCode CONST_EVAL_ASSERTION_FAILURE_WITH_MESSAGE =
       CompileTimeErrorCode(
         'CONST_EVAL_ASSERTION_FAILURE_WITH_MESSAGE',
@@ -1065,8 +1067,8 @@ class CompileTimeErrorCode extends DiagnosticCode {
       );
 
   /// Parameters:
-  /// 0: the name of the property being accessed
-  /// 1: the type with the property being accessed
+  /// String p0: the name of the property being accessed
+  /// String p1: the type with the property being accessed
   static const CompileTimeErrorCode CONST_EVAL_PROPERTY_ACCESS =
       CompileTimeErrorCode(
         'CONST_EVAL_PROPERTY_ACCESS',
@@ -1174,8 +1176,8 @@ class CompileTimeErrorCode extends DiagnosticCode {
   );
 
   /// Parameters:
-  /// 0: the name of the type of the initializer expression
-  /// 1: the name of the type of the field
+  /// Type p0: the name of the type of the initializer expression
+  /// Type p1: the name of the type of the field
   static const CompileTimeErrorCode
   CONST_FIELD_INITIALIZER_NOT_ASSIGNABLE = CompileTimeErrorCode(
     'FIELD_INITIALIZER_NOT_ASSIGNABLE',
@@ -1219,7 +1221,7 @@ class CompileTimeErrorCode extends DiagnosticCode {
   );
 
   /// Parameters:
-  /// 0: the type of the entry's key
+  /// Type p0: the type of the entry's key
   static const CompileTimeErrorCode
   CONST_MAP_KEY_NOT_PRIMITIVE_EQUALITY = CompileTimeErrorCode(
     'CONST_MAP_KEY_NOT_PRIMITIVE_EQUALITY',
@@ -1232,7 +1234,7 @@ class CompileTimeErrorCode extends DiagnosticCode {
   );
 
   /// Parameters:
-  /// 0: the name of the uninitialized final variable
+  /// String p0: the name of the uninitialized final variable
   static const CompileTimeErrorCode CONST_NOT_INITIALIZED =
       CompileTimeErrorCode(
         'CONST_NOT_INITIALIZED',
@@ -1242,7 +1244,7 @@ class CompileTimeErrorCode extends DiagnosticCode {
       );
 
   /// Parameters:
-  /// 0: the type of the element
+  /// Type p0: the type of the element
   static const CompileTimeErrorCode
   CONST_SET_ELEMENT_NOT_PRIMITIVE_EQUALITY = CompileTimeErrorCode(
     'CONST_SET_ELEMENT_NOT_PRIMITIVE_EQUALITY',
@@ -1298,7 +1300,7 @@ class CompileTimeErrorCode extends DiagnosticCode {
   );
 
   /// Parameters:
-  /// 0: the name of the non-type element
+  /// String p0: the name of the non-type element
   static const CompileTimeErrorCode CONST_WITH_NON_TYPE = CompileTimeErrorCode(
     'CREATION_WITH_NON_TYPE',
     "The name '{0}' isn't a class.",
@@ -1346,8 +1348,8 @@ class CompileTimeErrorCode extends DiagnosticCode {
   /// a constant constructor declared by the type <i>T</i>.
   ///
   /// Parameters:
-  /// 0: the name of the type
-  /// 1: the name of the requested constant constructor
+  /// Object p0: the name of the type
+  /// String p1: the name of the requested constant constructor
   static const CompileTimeErrorCode CONST_WITH_UNDEFINED_CONSTRUCTOR =
       CompileTimeErrorCode(
         'CONST_WITH_UNDEFINED_CONSTRUCTOR',
@@ -1359,7 +1361,7 @@ class CompileTimeErrorCode extends DiagnosticCode {
   /// a constant constructor declared by the type <i>T</i>.
   ///
   /// Parameters:
-  /// 0: the name of the type
+  /// String p0: the name of the type
   static const CompileTimeErrorCode CONST_WITH_UNDEFINED_CONSTRUCTOR_DEFAULT =
       CompileTimeErrorCode(
         'CONST_WITH_UNDEFINED_CONSTRUCTOR_DEFAULT',
@@ -1377,8 +1379,8 @@ class CompileTimeErrorCode extends DiagnosticCode {
   );
 
   /// Parameters:
-  /// 0: the name of the type parameter
-  /// 1: detail text explaining why the type could not be inferred
+  /// String p0: the name of the type parameter
+  /// String p1: detail text explaining why the type could not be inferred
   static const CompileTimeErrorCode COULD_NOT_INFER = CompileTimeErrorCode(
     'COULD_NOT_INFER',
     "Couldn't infer type parameter '{0}'.{1}",
@@ -1416,7 +1418,7 @@ class CompileTimeErrorCode extends DiagnosticCode {
       );
 
   /// Parameters:
-  /// 0: the name of the variable that is invalid
+  /// String p0: the name of the variable that is invalid
   static const CompileTimeErrorCode DEFINITELY_UNASSIGNED_LATE_LOCAL_VARIABLE =
       CompileTimeErrorCode(
         'DEFINITELY_UNASSIGNED_LATE_LOCAL_VARIABLE',
@@ -1448,8 +1450,9 @@ class CompileTimeErrorCode extends DiagnosticCode {
       );
 
   /// Parameters:
-  /// 0: the name of the static getter
-  /// 1: the name of the enclosing type where the getter is being looked for
+  /// String p0: the name of the static getter
+  /// String p1: the name of the enclosing type where the getter is being looked
+  ///            for
   static const CompileTimeErrorCode
   DOT_SHORTHAND_UNDEFINED_GETTER = CompileTimeErrorCode(
     'DOT_SHORTHAND_UNDEFINED_MEMBER',
@@ -1462,9 +1465,9 @@ class CompileTimeErrorCode extends DiagnosticCode {
   );
 
   /// Parameters:
-  /// 0: the name of the static method or constructor
-  /// 1: the name of the enclosing type where the method or constructor is being
-  ///    looked for
+  /// String p0: the name of the static method or constructor
+  /// String p1: the name of the enclosing type where the method or constructor
+  ///            is being looked for
   static const CompileTimeErrorCode
   DOT_SHORTHAND_UNDEFINED_INVOCATION = CompileTimeErrorCode(
     'DOT_SHORTHAND_UNDEFINED_MEMBER',
@@ -1488,7 +1491,7 @@ class CompileTimeErrorCode extends DiagnosticCode {
       );
 
   /// Parameters:
-  /// 0: the name of the duplicate entity
+  /// String p0: the name of the duplicate entity
   static const CompileTimeErrorCode DUPLICATE_CONSTRUCTOR_NAME =
       CompileTimeErrorCode(
         'DUPLICATE_CONSTRUCTOR',
@@ -1499,7 +1502,7 @@ class CompileTimeErrorCode extends DiagnosticCode {
       );
 
   /// Parameters:
-  /// 0: the name of the duplicate entity
+  /// Object p0: the name of the duplicate entity
   static const CompileTimeErrorCode DUPLICATE_DEFINITION = CompileTimeErrorCode(
     'DUPLICATE_DEFINITION',
     "The name '{0}' is already defined.",
@@ -1508,7 +1511,7 @@ class CompileTimeErrorCode extends DiagnosticCode {
   );
 
   /// Parameters:
-  /// 0: the name of the field
+  /// Object p0: the name of the field
   static const CompileTimeErrorCode
   DUPLICATE_FIELD_FORMAL_PARAMETER = CompileTimeErrorCode(
     'DUPLICATE_FIELD_FORMAL_PARAMETER',
@@ -1520,7 +1523,7 @@ class CompileTimeErrorCode extends DiagnosticCode {
   );
 
   /// Parameters:
-  /// 0: the duplicated name
+  /// Object p0: the duplicated name
   static const CompileTimeErrorCode DUPLICATE_FIELD_NAME = CompileTimeErrorCode(
     'DUPLICATE_FIELD_NAME',
     "The field name '{0}' is already used in this record.",
@@ -1529,7 +1532,7 @@ class CompileTimeErrorCode extends DiagnosticCode {
   );
 
   /// Parameters:
-  /// 0: the name of the parameter that was duplicated
+  /// String p0: the name of the parameter that was duplicated
   static const CompileTimeErrorCode DUPLICATE_NAMED_ARGUMENT =
       CompileTimeErrorCode(
         'DUPLICATE_NAMED_ARGUMENT',
@@ -1541,7 +1544,7 @@ class CompileTimeErrorCode extends DiagnosticCode {
       );
 
   /// Parameters:
-  /// 0: the URI of the duplicate part
+  /// Uri p0: the URI of the duplicate part
   static const CompileTimeErrorCode DUPLICATE_PART = CompileTimeErrorCode(
     'DUPLICATE_PART',
     "The library already contains a part with the URI '{0}'.",
@@ -1551,7 +1554,7 @@ class CompileTimeErrorCode extends DiagnosticCode {
   );
 
   /// Parameters:
-  /// 0: the name of the variable
+  /// Object p0: the name of the variable
   static const CompileTimeErrorCode DUPLICATE_PATTERN_ASSIGNMENT_VARIABLE =
       CompileTimeErrorCode(
         'DUPLICATE_PATTERN_ASSIGNMENT_VARIABLE',
@@ -1561,7 +1564,7 @@ class CompileTimeErrorCode extends DiagnosticCode {
       );
 
   /// Parameters:
-  /// 0: the name of the field
+  /// Object p0: the name of the field
   static const CompileTimeErrorCode DUPLICATE_PATTERN_FIELD =
       CompileTimeErrorCode(
         'DUPLICATE_PATTERN_FIELD',
@@ -1580,7 +1583,7 @@ class CompileTimeErrorCode extends DiagnosticCode {
       );
 
   /// Parameters:
-  /// 0: the name of the variable
+  /// Object p0: the name of the variable
   static const CompileTimeErrorCode DUPLICATE_VARIABLE_PATTERN =
       CompileTimeErrorCode(
         'DUPLICATE_VARIABLE_PATTERN',
@@ -1640,8 +1643,8 @@ class CompileTimeErrorCode extends DiagnosticCode {
       );
 
   /// Parameters:
-  /// 0: the name of the abstract method
-  /// 1: the name of the enclosing enum
+  /// String p0: the name of the abstract method
+  /// String p1: the name of the enclosing enum
   static const CompileTimeErrorCode ENUM_WITH_ABSTRACT_MEMBER =
       CompileTimeErrorCode(
         'ENUM_WITH_ABSTRACT_MEMBER',
@@ -1687,7 +1690,7 @@ class CompileTimeErrorCode extends DiagnosticCode {
       );
 
   /// Parameters:
-  /// 0: the number of provided type arguments
+  /// int p0: the number of provided type arguments
   static const CompileTimeErrorCode EXPECTED_ONE_LIST_PATTERN_TYPE_ARGUMENTS =
       CompileTimeErrorCode(
         'EXPECTED_ONE_LIST_PATTERN_TYPE_ARGUMENTS',
@@ -1697,7 +1700,7 @@ class CompileTimeErrorCode extends DiagnosticCode {
       );
 
   /// Parameters:
-  /// 0: the number of provided type arguments
+  /// int p0: the number of provided type arguments
   static const CompileTimeErrorCode EXPECTED_ONE_LIST_TYPE_ARGUMENTS =
       CompileTimeErrorCode(
         'EXPECTED_ONE_LIST_TYPE_ARGUMENTS',
@@ -1707,7 +1710,7 @@ class CompileTimeErrorCode extends DiagnosticCode {
       );
 
   /// Parameters:
-  /// 0: the number of provided type arguments
+  /// int p0: the number of provided type arguments
   static const CompileTimeErrorCode EXPECTED_ONE_SET_TYPE_ARGUMENTS =
       CompileTimeErrorCode(
         'EXPECTED_ONE_SET_TYPE_ARGUMENTS',
@@ -1717,7 +1720,7 @@ class CompileTimeErrorCode extends DiagnosticCode {
       );
 
   /// Parameters:
-  /// 0: the number of provided type arguments
+  /// int p0: the number of provided type arguments
   static const CompileTimeErrorCode EXPECTED_TWO_MAP_PATTERN_TYPE_ARGUMENTS =
       CompileTimeErrorCode(
         'EXPECTED_TWO_MAP_PATTERN_TYPE_ARGUMENTS',
@@ -1727,7 +1730,7 @@ class CompileTimeErrorCode extends DiagnosticCode {
       );
 
   /// Parameters:
-  /// 0: the number of provided type arguments
+  /// int p0: the number of provided type arguments
   static const CompileTimeErrorCode EXPECTED_TWO_MAP_TYPE_ARGUMENTS =
       CompileTimeErrorCode(
         'EXPECTED_TWO_MAP_TYPE_ARGUMENTS',
@@ -1737,7 +1740,7 @@ class CompileTimeErrorCode extends DiagnosticCode {
       );
 
   /// Parameters:
-  /// 0: the URI pointing to a library
+  /// String p0: the URI pointing to a library
   static const CompileTimeErrorCode EXPORT_INTERNAL_LIBRARY =
       CompileTimeErrorCode(
         'EXPORT_INTERNAL_LIBRARY',
@@ -1746,7 +1749,7 @@ class CompileTimeErrorCode extends DiagnosticCode {
       );
 
   /// Parameters:
-  /// 0: the URI pointing to a non-library declaration
+  /// String p0: the URI pointing to a non-library declaration
   static const CompileTimeErrorCode EXPORT_OF_NON_LIBRARY =
       CompileTimeErrorCode(
         'EXPORT_OF_NON_LIBRARY',
@@ -1778,7 +1781,7 @@ class CompileTimeErrorCode extends DiagnosticCode {
       );
 
   /// Parameters:
-  /// 0: the name of the disallowed type
+  /// Type p0: the name of the disallowed type
   static const CompileTimeErrorCode EXTENDS_DISALLOWED_CLASS =
       CompileTimeErrorCode(
         'SUBTYPE_OF_DISALLOWED_TYPE',
@@ -1815,7 +1818,7 @@ class CompileTimeErrorCode extends DiagnosticCode {
   );
 
   /// Parameters:
-  /// 0: the name of the extension
+  /// String p0: the name of the extension
   static const CompileTimeErrorCode EXTENSION_AS_EXPRESSION =
       CompileTimeErrorCode(
         'EXTENSION_AS_EXPRESSION',
@@ -1825,7 +1828,7 @@ class CompileTimeErrorCode extends DiagnosticCode {
       );
 
   /// Parameters:
-  /// 0: the name of the conflicting static member
+  /// String p0: the name of the conflicting static member
   static const CompileTimeErrorCode
   EXTENSION_CONFLICTING_STATIC_AND_INSTANCE = CompileTimeErrorCode(
     'EXTENSION_CONFLICTING_STATIC_AND_INSTANCE',
@@ -1866,8 +1869,8 @@ class CompileTimeErrorCode extends DiagnosticCode {
       );
 
   /// Parameters:
-  /// 0: the type of the argument
-  /// 1: the extended type
+  /// Type p0: the type of the argument
+  /// Type p1: the extended type
   static const CompileTimeErrorCode
   EXTENSION_OVERRIDE_ARGUMENT_NOT_ASSIGNABLE = CompileTimeErrorCode(
     'EXTENSION_OVERRIDE_ARGUMENT_NOT_ASSIGNABLE',
@@ -1933,7 +1936,7 @@ class CompileTimeErrorCode extends DiagnosticCode {
       );
 
   /// Parameters:
-  /// 0: the display string of the disallowed type
+  /// Type p0: the display string of the disallowed type
   static const CompileTimeErrorCode
   EXTENSION_TYPE_IMPLEMENTS_DISALLOWED_TYPE = CompileTimeErrorCode(
     'EXTENSION_TYPE_IMPLEMENTS_DISALLOWED_TYPE',
@@ -1954,8 +1957,8 @@ class CompileTimeErrorCode extends DiagnosticCode {
   );
 
   /// Parameters:
-  /// 0: the implemented not extension type
-  /// 1: the ultimate representation type
+  /// Type p0: the implemented not extension type
+  /// Type p1: the ultimate representation type
   static const CompileTimeErrorCode
   EXTENSION_TYPE_IMPLEMENTS_NOT_SUPERTYPE = CompileTimeErrorCode(
     'EXTENSION_TYPE_IMPLEMENTS_NOT_SUPERTYPE',
@@ -1966,10 +1969,10 @@ class CompileTimeErrorCode extends DiagnosticCode {
   );
 
   /// Parameters:
-  /// 0: the representation type of the implemented extension type
-  /// 1: the name of the implemented extension type
-  /// 2: the representation type of the this extension type
-  /// 3: the name of the this extension type
+  /// Type p0: the representation type of the implemented extension type
+  /// String p1: the name of the implemented extension type
+  /// Type p2: the representation type of the this extension type
+  /// String p3: the name of the this extension type
   static const CompileTimeErrorCode
   EXTENSION_TYPE_IMPLEMENTS_REPRESENTATION_NOT_SUPERTYPE = CompileTimeErrorCode(
     'EXTENSION_TYPE_IMPLEMENTS_REPRESENTATION_NOT_SUPERTYPE',
@@ -1981,8 +1984,8 @@ class CompileTimeErrorCode extends DiagnosticCode {
   );
 
   /// Parameters:
-  /// 0: the name of the extension type
-  /// 1: the name of the conflicting member
+  /// String p0: the name of the extension type
+  /// String p1: the name of the conflicting member
   static const CompileTimeErrorCode
   EXTENSION_TYPE_INHERITED_MEMBER_CONFLICT = CompileTimeErrorCode(
     'EXTENSION_TYPE_INHERITED_MEMBER_CONFLICT',
@@ -2012,8 +2015,8 @@ class CompileTimeErrorCode extends DiagnosticCode {
       );
 
   /// Parameters:
-  /// 0: the name of the abstract method
-  /// 1: the name of the enclosing extension type
+  /// String p0: the name of the abstract method
+  /// String p1: the name of the enclosing extension type
   static const CompileTimeErrorCode EXTENSION_TYPE_WITH_ABSTRACT_MEMBER =
       CompileTimeErrorCode(
         'EXTENSION_TYPE_WITH_ABSTRACT_MEMBER',
@@ -2057,8 +2060,8 @@ class CompileTimeErrorCode extends DiagnosticCode {
       );
 
   /// Parameters:
-  /// 0: the maximum number of positional arguments
-  /// 1: the actual number of positional arguments given
+  /// int p0: the maximum number of positional arguments
+  /// int p1: the actual number of positional arguments given
   static const CompileTimeErrorCode EXTRA_POSITIONAL_ARGUMENTS =
       CompileTimeErrorCode(
         'EXTRA_POSITIONAL_ARGUMENTS',
@@ -2068,8 +2071,8 @@ class CompileTimeErrorCode extends DiagnosticCode {
       );
 
   /// Parameters:
-  /// 0: the maximum number of positional arguments
-  /// 1: the actual number of positional arguments given
+  /// int p0: the maximum number of positional arguments
+  /// int p1: the actual number of positional arguments given
   static const CompileTimeErrorCode
   EXTRA_POSITIONAL_ARGUMENTS_COULD_BE_NAMED = CompileTimeErrorCode(
     'EXTRA_POSITIONAL_ARGUMENTS_COULD_BE_NAMED',
@@ -2081,7 +2084,7 @@ class CompileTimeErrorCode extends DiagnosticCode {
   );
 
   /// Parameters:
-  /// 0: the name of the field being initialized multiple times
+  /// String p0: the name of the field being initialized multiple times
   static const CompileTimeErrorCode FIELD_INITIALIZED_BY_MULTIPLE_INITIALIZERS =
       CompileTimeErrorCode(
         'FIELD_INITIALIZED_BY_MULTIPLE_INITIALIZERS',
@@ -2120,8 +2123,8 @@ class CompileTimeErrorCode extends DiagnosticCode {
       );
 
   /// Parameters:
-  /// 0: the name of the type of the initializer expression
-  /// 1: the name of the type of the field
+  /// Type p0: the name of the type of the initializer expression
+  /// Type p1: the name of the type of the field
   static const CompileTimeErrorCode FIELD_INITIALIZER_NOT_ASSIGNABLE =
       CompileTimeErrorCode(
         'FIELD_INITIALIZER_NOT_ASSIGNABLE',
@@ -2149,8 +2152,8 @@ class CompileTimeErrorCode extends DiagnosticCode {
   );
 
   /// Parameters:
-  /// 0: the name of the type of the field formal parameter
-  /// 1: the name of the type of the field
+  /// Type p0: the name of the type of the field formal parameter
+  /// Type p1: the name of the type of the field
   static const CompileTimeErrorCode FIELD_INITIALIZING_FORMAL_NOT_ASSIGNABLE =
       CompileTimeErrorCode(
         'FIELD_INITIALIZING_FORMAL_NOT_ASSIGNABLE',
@@ -2162,7 +2165,7 @@ class CompileTimeErrorCode extends DiagnosticCode {
       );
 
   /// Parameters:
-  /// 0: the name of the final class being extended.
+  /// String p0: the name of the final class being extended.
   static const CompileTimeErrorCode
   FINAL_CLASS_EXTENDED_OUTSIDE_OF_LIBRARY = CompileTimeErrorCode(
     'INVALID_USE_OF_TYPE_OUTSIDE_LIBRARY',
@@ -2173,7 +2176,7 @@ class CompileTimeErrorCode extends DiagnosticCode {
   );
 
   /// Parameters:
-  /// 0: the name of the final class being implemented.
+  /// String p0: the name of the final class being implemented.
   static const CompileTimeErrorCode
   FINAL_CLASS_IMPLEMENTED_OUTSIDE_OF_LIBRARY = CompileTimeErrorCode(
     'INVALID_USE_OF_TYPE_OUTSIDE_LIBRARY',
@@ -2184,8 +2187,8 @@ class CompileTimeErrorCode extends DiagnosticCode {
   );
 
   /// Parameters:
-  /// 0: the name of the final class being used as a mixin superclass
-  ///    constraint.
+  /// String p0: the name of the final class being used as a mixin superclass
+  ///            constraint.
   static const CompileTimeErrorCode
   FINAL_CLASS_USED_AS_MIXIN_CONSTRAINT_OUTSIDE_OF_LIBRARY = CompileTimeErrorCode(
     'INVALID_USE_OF_TYPE_OUTSIDE_LIBRARY',
@@ -2196,7 +2199,7 @@ class CompileTimeErrorCode extends DiagnosticCode {
   );
 
   /// Parameters:
-  /// 0: the name of the field in question
+  /// String p0: the name of the field in question
   static const CompileTimeErrorCode
   FINAL_INITIALIZED_IN_DECLARATION_AND_CONSTRUCTOR = CompileTimeErrorCode(
     'FINAL_INITIALIZED_IN_DECLARATION_AND_CONSTRUCTOR',
@@ -2207,7 +2210,7 @@ class CompileTimeErrorCode extends DiagnosticCode {
   );
 
   /// Parameters:
-  /// 0: the name of the uninitialized final variable
+  /// String p0: the name of the uninitialized final variable
   static const CompileTimeErrorCode FINAL_NOT_INITIALIZED =
       CompileTimeErrorCode(
         'FINAL_NOT_INITIALIZED',
@@ -2217,7 +2220,7 @@ class CompileTimeErrorCode extends DiagnosticCode {
       );
 
   /// Parameters:
-  /// 0: the name of the uninitialized final variable
+  /// String p0: the name of the uninitialized final variable
   static const CompileTimeErrorCode FINAL_NOT_INITIALIZED_CONSTRUCTOR_1 =
       CompileTimeErrorCode(
         'FINAL_NOT_INITIALIZED_CONSTRUCTOR',
@@ -2228,8 +2231,8 @@ class CompileTimeErrorCode extends DiagnosticCode {
       );
 
   /// Parameters:
-  /// 0: the name of the uninitialized final variable
-  /// 1: the name of the uninitialized final variable
+  /// String p0: the name of the uninitialized final variable
+  /// String p1: the name of the uninitialized final variable
   static const CompileTimeErrorCode FINAL_NOT_INITIALIZED_CONSTRUCTOR_2 =
       CompileTimeErrorCode(
         'FINAL_NOT_INITIALIZED_CONSTRUCTOR',
@@ -2240,9 +2243,10 @@ class CompileTimeErrorCode extends DiagnosticCode {
       );
 
   /// Parameters:
-  /// 0: the name of the uninitialized final variable
-  /// 1: the name of the uninitialized final variable
-  /// 2: the number of additional not initialized variables that aren't listed
+  /// String p0: the name of the uninitialized final variable
+  /// String p1: the name of the uninitialized final variable
+  /// int p2: the number of additional not initialized variables that aren't
+  ///         listed
   static const CompileTimeErrorCode
   FINAL_NOT_INITIALIZED_CONSTRUCTOR_3_PLUS = CompileTimeErrorCode(
     'FINAL_NOT_INITIALIZED_CONSTRUCTOR',
@@ -2254,9 +2258,10 @@ class CompileTimeErrorCode extends DiagnosticCode {
   );
 
   /// Parameters:
-  /// 0: the type of the iterable expression.
-  /// 1: the sequence type -- Iterable for `for` or Stream for `await for`.
-  /// 2: the loop variable type.
+  /// Type p0: the type of the iterable expression.
+  /// String p1: the sequence type -- Iterable for `for` or Stream for `await
+  ///            for`.
+  /// Type p2: the loop variable type.
   static const CompileTimeErrorCode
   FOR_IN_OF_INVALID_ELEMENT_TYPE = CompileTimeErrorCode(
     'FOR_IN_OF_INVALID_ELEMENT_TYPE',
@@ -2266,8 +2271,9 @@ class CompileTimeErrorCode extends DiagnosticCode {
   );
 
   /// Parameters:
-  /// 0: the type of the iterable expression.
-  /// 1: the sequence type -- Iterable for `for` or Stream for `await for`.
+  /// Type p0: the type of the iterable expression.
+  /// String p1: the sequence type -- Iterable for `for` or Stream for `await
+  ///            for`.
   static const CompileTimeErrorCode FOR_IN_OF_INVALID_TYPE =
       CompileTimeErrorCode(
         'FOR_IN_OF_INVALID_TYPE',
@@ -2325,10 +2331,10 @@ class CompileTimeErrorCode extends DiagnosticCode {
   );
 
   /// Parameters:
-  /// 0: the name of the getter
-  /// 1: the type of the getter
-  /// 2: the type of the setter
-  /// 3: the name of the setter
+  /// Object p0: the name of the getter
+  /// Object p1: the type of the getter
+  /// Object p2: the type of the setter
+  /// Object p3: the name of the setter
   static const CompileTimeErrorCode
   GETTER_NOT_ASSIGNABLE_SETTER_TYPES = CompileTimeErrorCode(
     'GETTER_NOT_ASSIGNABLE_SETTER_TYPES',
@@ -2338,10 +2344,10 @@ class CompileTimeErrorCode extends DiagnosticCode {
   );
 
   /// Parameters:
-  /// 0: the name of the getter
-  /// 1: the type of the getter
-  /// 2: the type of the setter
-  /// 3: the name of the setter
+  /// Object p0: the name of the getter
+  /// Object p1: the type of the getter
+  /// Object p2: the type of the setter
+  /// Object p3: the name of the setter
   static const CompileTimeErrorCode GETTER_NOT_SUBTYPE_SETTER_TYPES =
       CompileTimeErrorCode(
         'GETTER_NOT_SUBTYPE_SETTER_TYPES',
@@ -2386,7 +2392,7 @@ class CompileTimeErrorCode extends DiagnosticCode {
   );
 
   /// Parameters:
-  /// 0: the name of member that cannot be declared
+  /// String p0: the name of member that cannot be declared
   static const CompileTimeErrorCode
   ILLEGAL_CONCRETE_ENUM_MEMBER_DECLARATION = CompileTimeErrorCode(
     'ILLEGAL_CONCRETE_ENUM_MEMBER',
@@ -2398,8 +2404,8 @@ class CompileTimeErrorCode extends DiagnosticCode {
   );
 
   /// Parameters:
-  /// 0: the name of member that cannot be inherited
-  /// 1: the name of the class that declares the member
+  /// String p0: the name of member that cannot be inherited
+  /// String p1: the name of the class that declares the member
   static const CompileTimeErrorCode
   ILLEGAL_CONCRETE_ENUM_MEMBER_INHERITANCE = CompileTimeErrorCode(
     'ILLEGAL_CONCRETE_ENUM_MEMBER',
@@ -2422,7 +2428,7 @@ class CompileTimeErrorCode extends DiagnosticCode {
       );
 
   /// Parameters:
-  /// 0: the name of the class that declares 'values'
+  /// String p0: the name of the class that declares 'values'
   static const CompileTimeErrorCode ILLEGAL_ENUM_VALUES_INHERITANCE =
       CompileTimeErrorCode(
         'ILLEGAL_ENUM_VALUES',
@@ -2434,7 +2440,7 @@ class CompileTimeErrorCode extends DiagnosticCode {
       );
 
   /// Parameters:
-  /// 0: the required language version
+  /// String p0: the required language version
   static const CompileTimeErrorCode
   ILLEGAL_LANGUAGE_VERSION_OVERRIDE = CompileTimeErrorCode(
     'ILLEGAL_LANGUAGE_VERSION_OVERRIDE',
@@ -2468,7 +2474,7 @@ class CompileTimeErrorCode extends DiagnosticCode {
       );
 
   /// Parameters:
-  /// 0: the name of the disallowed type
+  /// Type p0: the name of the disallowed type
   static const CompileTimeErrorCode
   IMPLEMENTS_DISALLOWED_CLASS = CompileTimeErrorCode(
     'SUBTYPE_OF_DISALLOWED_TYPE',
@@ -2490,7 +2496,7 @@ class CompileTimeErrorCode extends DiagnosticCode {
   );
 
   /// Parameters:
-  /// 0: the name of the interface that is implemented more than once
+  /// String p0: the name of the interface that is implemented more than once
   static const CompileTimeErrorCode IMPLEMENTS_REPEATED = CompileTimeErrorCode(
     'IMPLEMENTS_REPEATED',
     "'{0}' can only be implemented once.",
@@ -2499,8 +2505,8 @@ class CompileTimeErrorCode extends DiagnosticCode {
   );
 
   /// Parameters:
-  /// 0: the name of the class that appears in both "extends" and "implements"
-  ///    clauses
+  /// Element p0: the name of the class that appears in both "extends" and
+  ///             "implements" clauses
   static const CompileTimeErrorCode IMPLEMENTS_SUPER_CLASS =
       CompileTimeErrorCode(
         'IMPLEMENTS_SUPER_CLASS',
@@ -2520,7 +2526,7 @@ class CompileTimeErrorCode extends DiagnosticCode {
   );
 
   /// Parameters:
-  /// 0: the name of the superclass
+  /// Type p0: the name of the superclass
   static const CompileTimeErrorCode
   IMPLICIT_SUPER_INITIALIZER_MISSING_ARGUMENTS = CompileTimeErrorCode(
     'IMPLICIT_SUPER_INITIALIZER_MISSING_ARGUMENTS',
@@ -2532,7 +2538,7 @@ class CompileTimeErrorCode extends DiagnosticCode {
   );
 
   /// Parameters:
-  /// 0: the name of the instance member
+  /// String p0: the name of the instance member
   static const CompileTimeErrorCode
   IMPLICIT_THIS_REFERENCE_IN_INITIALIZER = CompileTimeErrorCode(
     'IMPLICIT_THIS_REFERENCE_IN_INITIALIZER',
@@ -2544,7 +2550,7 @@ class CompileTimeErrorCode extends DiagnosticCode {
   );
 
   /// Parameters:
-  /// 0: the URI pointing to a library
+  /// String p0: the URI pointing to a library
   static const CompileTimeErrorCode IMPORT_INTERNAL_LIBRARY =
       CompileTimeErrorCode(
         'IMPORT_INTERNAL_LIBRARY',
@@ -2553,7 +2559,7 @@ class CompileTimeErrorCode extends DiagnosticCode {
       );
 
   /// Parameters:
-  /// 0: the URI pointing to a non-library declaration
+  /// String p0: the URI pointing to a non-library declaration
   static const CompileTimeErrorCode IMPORT_OF_NON_LIBRARY =
       CompileTimeErrorCode(
         'IMPORT_OF_NON_LIBRARY',
@@ -2568,8 +2574,8 @@ class CompileTimeErrorCode extends DiagnosticCode {
   /// <i>1 &lt;= k &lt;= n</i>.
   ///
   /// Parameters:
-  /// 0: the expression source code that is the unexpected type
-  /// 1: the name of the expected type
+  /// Object p0: the expression source code that is the unexpected type
+  /// Object p1: the name of the expected type
   static const CompileTimeErrorCode INCONSISTENT_CASE_EXPRESSION_TYPES =
       CompileTimeErrorCode(
         'INCONSISTENT_CASE_EXPRESSION_TYPES',
@@ -2577,8 +2583,8 @@ class CompileTimeErrorCode extends DiagnosticCode {
       );
 
   /// Parameters:
-  /// 0: the name of the instance member with inconsistent inheritance.
-  /// 1: the list of all inherited signatures for this member.
+  /// String p0: the name of the instance member with inconsistent inheritance.
+  /// String p1: the list of all inherited signatures for this member.
   static const CompileTimeErrorCode
   INCONSISTENT_INHERITANCE = CompileTimeErrorCode(
     'INCONSISTENT_INHERITANCE',
@@ -2596,9 +2602,11 @@ class CompileTimeErrorCode extends DiagnosticCode {
   /// is a getter and `m'` is a method.
   ///
   /// Parameters:
-  /// 0: the name of the instance member with inconsistent inheritance.
-  /// 1: the name of the superinterface that declares the name as a getter.
-  /// 2: the name of the superinterface that declares the name as a method.
+  /// String p0: the name of the instance member with inconsistent inheritance.
+  /// String p1: the name of the superinterface that declares the name as a
+  ///            getter.
+  /// String p2: the name of the superinterface that declares the name as a
+  ///            method.
   static const CompileTimeErrorCode INCONSISTENT_INHERITANCE_GETTER_AND_METHOD =
       CompileTimeErrorCode(
         'INCONSISTENT_INHERITANCE_GETTER_AND_METHOD',
@@ -2619,7 +2627,7 @@ class CompileTimeErrorCode extends DiagnosticCode {
       );
 
   /// Parameters:
-  /// 0: the name of the pattern variable
+  /// String p0: the name of the pattern variable
   static const CompileTimeErrorCode
   INCONSISTENT_PATTERN_VARIABLE_LOGICAL_OR = CompileTimeErrorCode(
     'INCONSISTENT_PATTERN_VARIABLE_LOGICAL_OR',
@@ -2632,8 +2640,8 @@ class CompileTimeErrorCode extends DiagnosticCode {
   );
 
   /// Parameters:
-  /// 0: the name of the initializing formal that is not an instance variable in
-  ///    the immediately enclosing class
+  /// String p0: the name of the initializing formal that is not an instance
+  ///            variable in the immediately enclosing class
   static const CompileTimeErrorCode INITIALIZER_FOR_NON_EXISTENT_FIELD =
       CompileTimeErrorCode(
         'INITIALIZER_FOR_NON_EXISTENT_FIELD',
@@ -2645,8 +2653,8 @@ class CompileTimeErrorCode extends DiagnosticCode {
       );
 
   /// Parameters:
-  /// 0: the name of the initializing formal that is a static variable in the
-  ///    immediately enclosing class
+  /// String p0: the name of the initializing formal that is a static variable
+  ///            in the immediately enclosing class
   static const CompileTimeErrorCode
   INITIALIZER_FOR_STATIC_FIELD = CompileTimeErrorCode(
     'INITIALIZER_FOR_STATIC_FIELD',
@@ -2657,8 +2665,8 @@ class CompileTimeErrorCode extends DiagnosticCode {
   );
 
   /// Parameters:
-  /// 0: the name of the initializing formal that is not an instance variable in
-  ///    the immediately enclosing class
+  /// String p0: the name of the initializing formal that is not an instance
+  ///            variable in the immediately enclosing class
   static const CompileTimeErrorCode INITIALIZING_FORMAL_FOR_NON_EXISTENT_FIELD =
       CompileTimeErrorCode(
         'INITIALIZING_FORMAL_FOR_NON_EXISTENT_FIELD',
@@ -2670,11 +2678,12 @@ class CompileTimeErrorCode extends DiagnosticCode {
       );
 
   /// Parameters:
-  /// 0: the name of the static member
-  /// 1: the kind of the static member (field, getter, setter, or method)
-  /// 2: the name of the static member's enclosing element
-  /// 3: the kind of the static member's enclosing element (class, mixin, or
-  ///    extension)
+  /// String p0: the name of the static member
+  /// String p1: the kind of the static member (field, getter, setter, or
+  ///            method)
+  /// String p2: the name of the static member's enclosing element
+  /// String p3: the kind of the static member's enclosing element (class,
+  ///            mixin, or extension)
   static const CompileTimeErrorCode INSTANCE_ACCESS_TO_STATIC_MEMBER =
       CompileTimeErrorCode(
         'INSTANCE_ACCESS_TO_STATIC_MEMBER',
@@ -2684,8 +2693,9 @@ class CompileTimeErrorCode extends DiagnosticCode {
       );
 
   /// Parameters:
-  /// 0: the name of the static member
-  /// 1: the kind of the static member (field, getter, setter, or method)
+  /// Object p0: the name of the static member
+  /// Object p1: the kind of the static member (field, getter, setter, or
+  ///            method)
   static const CompileTimeErrorCode
   INSTANCE_ACCESS_TO_STATIC_MEMBER_OF_UNNAMED_EXTENSION = CompileTimeErrorCode(
     'INSTANCE_ACCESS_TO_STATIC_MEMBER',
@@ -2741,8 +2751,8 @@ class CompileTimeErrorCode extends DiagnosticCode {
   );
 
   /// Parameters:
-  /// 0: the lexeme of the integer
-  /// 1: the closest valid double
+  /// String p0: the lexeme of the integer
+  /// String p1: the closest valid double
   static const CompileTimeErrorCode
   INTEGER_LITERAL_IMPRECISE_AS_DOUBLE = CompileTimeErrorCode(
     'INTEGER_LITERAL_IMPRECISE_AS_DOUBLE',
@@ -2755,7 +2765,7 @@ class CompileTimeErrorCode extends DiagnosticCode {
   );
 
   /// Parameters:
-  /// 0: the value of the literal
+  /// String p0: the value of the literal
   static const CompileTimeErrorCode
   INTEGER_LITERAL_OUT_OF_RANGE = CompileTimeErrorCode(
     'INTEGER_LITERAL_OUT_OF_RANGE',
@@ -2767,7 +2777,7 @@ class CompileTimeErrorCode extends DiagnosticCode {
   );
 
   /// Parameters:
-  /// 0: the name of the interface class being extended.
+  /// String p0: the name of the interface class being extended.
   static const CompileTimeErrorCode
   INTERFACE_CLASS_EXTENDED_OUTSIDE_OF_LIBRARY = CompileTimeErrorCode(
     'INVALID_USE_OF_TYPE_OUTSIDE_LIBRARY',
@@ -2809,8 +2819,8 @@ class CompileTimeErrorCode extends DiagnosticCode {
       );
 
   /// Parameters:
-  /// 0: the name of the right hand side type
-  /// 1: the name of the left hand side type
+  /// Type p0: the name of the right hand side type
+  /// Type p1: the name of the left hand side type
   static const CompileTimeErrorCode INVALID_ASSIGNMENT = CompileTimeErrorCode(
     'INVALID_ASSIGNMENT',
     "A value of type '{0}' can't be assigned to a variable of type '{1}'.",
@@ -2823,9 +2833,9 @@ class CompileTimeErrorCode extends DiagnosticCode {
   /// This error is only reported in libraries which are not null safe.
   ///
   /// Parameters:
-  /// 0: the name of the function
-  /// 1: the type of the function
-  /// 2: the expected function type
+  /// Object p0: the name of the function
+  /// Object p1: the type of the function
+  /// Object p2: the expected function type
   static const CompileTimeErrorCode
   INVALID_CAST_FUNCTION = CompileTimeErrorCode(
     'INVALID_CAST_FUNCTION',
@@ -2836,8 +2846,8 @@ class CompileTimeErrorCode extends DiagnosticCode {
   /// This error is only reported in libraries which are not null safe.
   ///
   /// Parameters:
-  /// 0: the type of the torn-off function expression
-  /// 1: the expected function type
+  /// Object p0: the type of the torn-off function expression
+  /// Object p1: the expected function type
   static const CompileTimeErrorCode
   INVALID_CAST_FUNCTION_EXPR = CompileTimeErrorCode(
     'INVALID_CAST_FUNCTION_EXPR',
@@ -2849,9 +2859,9 @@ class CompileTimeErrorCode extends DiagnosticCode {
   /// This error is only reported in libraries which are not null safe.
   ///
   /// Parameters:
-  /// 0: the lexeme of the literal
-  /// 1: the type of the literal
-  /// 2: the expected type
+  /// Object p0: the lexeme of the literal
+  /// Object p1: the type of the literal
+  /// Object p2: the expected type
   static const CompileTimeErrorCode INVALID_CAST_LITERAL = CompileTimeErrorCode(
     'INVALID_CAST_LITERAL',
     "The literal '{0}' with type '{1}' isn't of expected type '{2}'.",
@@ -2860,8 +2870,8 @@ class CompileTimeErrorCode extends DiagnosticCode {
   /// This error is only reported in libraries which are not null safe.
   ///
   /// Parameters:
-  /// 0: the type of the list literal
-  /// 1: the expected type
+  /// Object p0: the type of the list literal
+  /// Object p1: the expected type
   static const CompileTimeErrorCode
   INVALID_CAST_LITERAL_LIST = CompileTimeErrorCode(
     'INVALID_CAST_LITERAL_LIST',
@@ -2873,8 +2883,8 @@ class CompileTimeErrorCode extends DiagnosticCode {
   /// This error is only reported in libraries which are not null safe.
   ///
   /// Parameters:
-  /// 0: the type of the map literal
-  /// 1: the expected type
+  /// Object p0: the type of the map literal
+  /// Object p1: the expected type
   static const CompileTimeErrorCode
   INVALID_CAST_LITERAL_MAP = CompileTimeErrorCode(
     'INVALID_CAST_LITERAL_MAP',
@@ -2886,8 +2896,8 @@ class CompileTimeErrorCode extends DiagnosticCode {
   /// This error is only reported in libraries which are not null safe.
   ///
   /// Parameters:
-  /// 0: the type of the set literal
-  /// 1: the expected type
+  /// Object p0: the type of the set literal
+  /// Object p1: the expected type
   static const CompileTimeErrorCode
   INVALID_CAST_LITERAL_SET = CompileTimeErrorCode(
     'INVALID_CAST_LITERAL_SET',
@@ -2899,9 +2909,9 @@ class CompileTimeErrorCode extends DiagnosticCode {
   /// This error is only reported in libraries which are not null safe.
   ///
   /// Parameters:
-  /// 0: the name of the torn-off method
-  /// 1: the type of the torn-off method
-  /// 2: the expected function type
+  /// Object p0: the name of the torn-off method
+  /// Object p1: the type of the torn-off method
+  /// Object p2: the expected function type
   static const CompileTimeErrorCode INVALID_CAST_METHOD = CompileTimeErrorCode(
     'INVALID_CAST_METHOD',
     "The method tear-off '{0}' has type '{1}' that isn't of expected type "
@@ -2912,8 +2922,8 @@ class CompileTimeErrorCode extends DiagnosticCode {
   /// This error is only reported in libraries which are not null safe.
   ///
   /// Parameters:
-  /// 0: the type of the instantiated object
-  /// 1: the expected type
+  /// Object p0: the type of the instantiated object
+  /// Object p1: the expected type
   static const CompileTimeErrorCode INVALID_CAST_NEW_EXPR =
       CompileTimeErrorCode(
         'INVALID_CAST_NEW_EXPR',
@@ -2986,11 +2996,11 @@ class CompileTimeErrorCode extends DiagnosticCode {
   /// [CompileTimeErrorCode.INVALID_OVERRIDE].
   ///
   /// Parameters:
-  /// 0: the name of the declared member that is not a valid override.
-  /// 1: the name of the interface that declares the member.
-  /// 2: the type of the declared member in the interface.
-  /// 3: the name of the interface with the overridden member.
-  /// 4: the type of the overridden member.
+  /// Object p0: the name of the declared member that is not a valid override.
+  /// Object p1: the name of the interface that declares the member.
+  /// Object p2: the type of the declared member in the interface.
+  /// Object p3: the name of the interface with the overridden member.
+  /// Object p4: the type of the overridden member.
   static const CompileTimeErrorCode INVALID_IMPLEMENTATION_OVERRIDE =
       CompileTimeErrorCode(
         'INVALID_IMPLEMENTATION_OVERRIDE',
@@ -3003,11 +3013,11 @@ class CompileTimeErrorCode extends DiagnosticCode {
   /// [CompileTimeErrorCode.INVALID_OVERRIDE].
   ///
   /// Parameters:
-  /// 0: the name of the declared setter that is not a valid override.
-  /// 1: the name of the interface that declares the setter.
-  /// 2: the type of the declared setter in the interface.
-  /// 3: the name of the interface with the overridden setter.
-  /// 4: the type of the overridden setter.
+  /// Object p0: the name of the declared setter that is not a valid override.
+  /// Object p1: the name of the interface that declares the setter.
+  /// Object p2: the type of the declared setter in the interface.
+  /// Object p3: the name of the interface with the overridden setter.
+  /// Object p4: the type of the overridden setter.
   static const CompileTimeErrorCode INVALID_IMPLEMENTATION_OVERRIDE_SETTER =
       CompileTimeErrorCode(
         'INVALID_IMPLEMENTATION_OVERRIDE',
@@ -3030,7 +3040,7 @@ class CompileTimeErrorCode extends DiagnosticCode {
   );
 
   /// Parameters:
-  /// 0: the invalid modifier
+  /// String p0: the invalid modifier
   static const CompileTimeErrorCode INVALID_MODIFIER_ON_CONSTRUCTOR =
       CompileTimeErrorCode(
         'INVALID_MODIFIER_ON_CONSTRUCTOR',
@@ -3049,11 +3059,11 @@ class CompileTimeErrorCode extends DiagnosticCode {
       );
 
   /// Parameters:
-  /// 0: the name of the declared member that is not a valid override.
-  /// 1: the name of the interface that declares the member.
-  /// 2: the type of the declared member in the interface.
-  /// 3: the name of the interface with the overridden member.
-  /// 4: the type of the overridden member.
+  /// String p0: the name of the declared member that is not a valid override.
+  /// String p1: the name of the interface that declares the member.
+  /// Type p2: the type of the declared member in the interface.
+  /// String p3: the name of the interface with the overridden member.
+  /// Type p4: the type of the overridden member.
   static const CompileTimeErrorCode INVALID_OVERRIDE = CompileTimeErrorCode(
     'INVALID_OVERRIDE',
     "'{1}.{0}' ('{2}') isn't a valid override of '{3}.{0}' ('{4}').",
@@ -3061,11 +3071,11 @@ class CompileTimeErrorCode extends DiagnosticCode {
   );
 
   /// Parameters:
-  /// 0: the name of the declared setter that is not a valid override.
-  /// 1: the name of the interface that declares the setter.
-  /// 2: the type of the declared setter in the interface.
-  /// 3: the name of the interface with the overridden setter.
-  /// 4: the type of the overridden setter.
+  /// Object p0: the name of the declared setter that is not a valid override.
+  /// Object p1: the name of the interface that declares the setter.
+  /// Object p2: the type of the declared setter in the interface.
+  /// Object p3: the name of the interface with the overridden setter.
+  /// Object p4: the type of the overridden setter.
   static const CompileTimeErrorCode
   INVALID_OVERRIDE_SETTER = CompileTimeErrorCode(
     'INVALID_OVERRIDE',
@@ -3104,7 +3114,7 @@ class CompileTimeErrorCode extends DiagnosticCode {
   );
 
   /// Parameters:
-  /// 0: the name of the type parameter
+  /// Object p0: the name of the type parameter
   static const CompileTimeErrorCode INVALID_TYPE_ARGUMENT_IN_CONST_LIST =
       CompileTimeErrorCode(
         'INVALID_TYPE_ARGUMENT_IN_CONST_LITERAL',
@@ -3117,7 +3127,7 @@ class CompileTimeErrorCode extends DiagnosticCode {
       );
 
   /// Parameters:
-  /// 0: the name of the type parameter
+  /// Object p0: the name of the type parameter
   static const CompileTimeErrorCode
   INVALID_TYPE_ARGUMENT_IN_CONST_MAP = CompileTimeErrorCode(
     'INVALID_TYPE_ARGUMENT_IN_CONST_LITERAL',
@@ -3130,7 +3140,7 @@ class CompileTimeErrorCode extends DiagnosticCode {
   );
 
   /// Parameters:
-  /// 0: the name of the type parameter
+  /// String p0: the name of the type parameter
   static const CompileTimeErrorCode
   INVALID_TYPE_ARGUMENT_IN_CONST_SET = CompileTimeErrorCode(
     'INVALID_TYPE_ARGUMENT_IN_CONST_LITERAL',
@@ -3143,7 +3153,7 @@ class CompileTimeErrorCode extends DiagnosticCode {
   );
 
   /// Parameters:
-  /// 0: the URI that is invalid
+  /// String p0: the URI that is invalid
   static const CompileTimeErrorCode INVALID_URI = CompileTimeErrorCode(
     'INVALID_URI',
     "Invalid URI syntax: '{0}'.",
@@ -3171,7 +3181,7 @@ class CompileTimeErrorCode extends DiagnosticCode {
       );
 
   /// Parameters:
-  /// 0: the name of the extension
+  /// String p0: the name of the extension
   static const CompileTimeErrorCode
   INVOCATION_OF_EXTENSION_WITHOUT_CALL = CompileTimeErrorCode(
     'INVOCATION_OF_EXTENSION_WITHOUT_CALL',
@@ -3181,7 +3191,7 @@ class CompileTimeErrorCode extends DiagnosticCode {
   );
 
   /// Parameters:
-  /// 0: the name of the identifier that is not a function type
+  /// String p0: the name of the identifier that is not a function type
   static const CompileTimeErrorCode
   INVOCATION_OF_NON_FUNCTION = CompileTimeErrorCode(
     'INVOCATION_OF_NON_FUNCTION',
@@ -3201,7 +3211,7 @@ class CompileTimeErrorCode extends DiagnosticCode {
   );
 
   /// Parameters:
-  /// 0: the name of the unresolvable label
+  /// String p0: the name of the unresolvable label
   static const CompileTimeErrorCode LABEL_IN_OUTER_SCOPE = CompileTimeErrorCode(
     'LABEL_IN_OUTER_SCOPE',
     "Can't reference label '{0}' declared in an outer method.",
@@ -3209,7 +3219,7 @@ class CompileTimeErrorCode extends DiagnosticCode {
   );
 
   /// Parameters:
-  /// 0: the name of the unresolvable label
+  /// String p0: the name of the unresolvable label
   static const CompileTimeErrorCode LABEL_UNDEFINED = CompileTimeErrorCode(
     'LABEL_UNDEFINED',
     "Can't reference an undefined label '{0}'.",
@@ -3242,8 +3252,8 @@ class CompileTimeErrorCode extends DiagnosticCode {
       );
 
   /// Parameters:
-  /// 0: the actual type of the list element
-  /// 1: the expected type of the list element
+  /// Type p0: the actual type of the list element
+  /// Type p1: the expected type of the list element
   static const CompileTimeErrorCode LIST_ELEMENT_TYPE_NOT_ASSIGNABLE =
       CompileTimeErrorCode(
         'LIST_ELEMENT_TYPE_NOT_ASSIGNABLE',
@@ -3252,8 +3262,8 @@ class CompileTimeErrorCode extends DiagnosticCode {
       );
 
   /// Parameters:
-  /// 0: the actual type of the list element
-  /// 1: the expected type of the list element
+  /// Type p0: the actual type of the list element
+  /// Type p1: the expected type of the list element
   static const CompileTimeErrorCode
   LIST_ELEMENT_TYPE_NOT_ASSIGNABLE_NULLABILITY = CompileTimeErrorCode(
     'LIST_ELEMENT_TYPE_NOT_ASSIGNABLE',
@@ -3313,8 +3323,8 @@ class CompileTimeErrorCode extends DiagnosticCode {
   );
 
   /// Parameters:
-  /// 0: the type of the expression being used as a key
-  /// 1: the type of keys declared for the map
+  /// Type p0: the type of the expression being used as a key
+  /// Type p1: the type of keys declared for the map
   static const CompileTimeErrorCode MAP_KEY_TYPE_NOT_ASSIGNABLE =
       CompileTimeErrorCode(
         'MAP_KEY_TYPE_NOT_ASSIGNABLE',
@@ -3323,8 +3333,8 @@ class CompileTimeErrorCode extends DiagnosticCode {
       );
 
   /// Parameters:
-  /// 0: the type of the expression being used as a key
-  /// 1: the type of keys declared for the map
+  /// Type p0: the type of the expression being used as a key
+  /// Type p1: the type of keys declared for the map
   static const CompileTimeErrorCode MAP_KEY_TYPE_NOT_ASSIGNABLE_NULLABILITY =
       CompileTimeErrorCode(
         'MAP_KEY_TYPE_NOT_ASSIGNABLE',
@@ -3334,8 +3344,8 @@ class CompileTimeErrorCode extends DiagnosticCode {
       );
 
   /// Parameters:
-  /// 0: the type of the expression being used as a value
-  /// 1: the type of values declared for the map
+  /// Type p0: the type of the expression being used as a value
+  /// Type p1: the type of values declared for the map
   static const CompileTimeErrorCode MAP_VALUE_TYPE_NOT_ASSIGNABLE =
       CompileTimeErrorCode(
         'MAP_VALUE_TYPE_NOT_ASSIGNABLE',
@@ -3344,8 +3354,8 @@ class CompileTimeErrorCode extends DiagnosticCode {
       );
 
   /// Parameters:
-  /// 0: the type of the expression being used as a value
-  /// 1: the type of values declared for the map
+  /// Type p0: the type of the expression being used as a value
+  /// Type p1: the type of values declared for the map
   static const CompileTimeErrorCode MAP_VALUE_TYPE_NOT_ASSIGNABLE_NULLABILITY =
       CompileTimeErrorCode(
         'MAP_VALUE_TYPE_NOT_ASSIGNABLE',
@@ -3391,7 +3401,7 @@ class CompileTimeErrorCode extends DiagnosticCode {
       );
 
   /// Parameters:
-  /// 0: the name of the library
+  /// Object p0: the name of the library
   static const CompileTimeErrorCode MISSING_DART_LIBRARY = CompileTimeErrorCode(
     'MISSING_DART_LIBRARY',
     "Required library '{0}' is missing.",
@@ -3400,7 +3410,7 @@ class CompileTimeErrorCode extends DiagnosticCode {
   );
 
   /// Parameters:
-  /// 0: the name of the parameter
+  /// String p0: the name of the parameter
   static const CompileTimeErrorCode
   MISSING_DEFAULT_VALUE_FOR_PARAMETER = CompileTimeErrorCode(
     'MISSING_DEFAULT_VALUE_FOR_PARAMETER',
@@ -3413,7 +3423,7 @@ class CompileTimeErrorCode extends DiagnosticCode {
   );
 
   /// Parameters:
-  /// 0: the name of the parameter
+  /// String p0: the name of the parameter
   static const CompileTimeErrorCode
   MISSING_DEFAULT_VALUE_FOR_PARAMETER_POSITIONAL = CompileTimeErrorCode(
     'MISSING_DEFAULT_VALUE_FOR_PARAMETER',
@@ -3448,7 +3458,7 @@ class CompileTimeErrorCode extends DiagnosticCode {
       );
 
   /// Parameters:
-  /// 0: the name of the parameter
+  /// String p0: the name of the parameter
   static const CompileTimeErrorCode MISSING_REQUIRED_ARGUMENT =
       CompileTimeErrorCode(
         'MISSING_REQUIRED_ARGUMENT',
@@ -3459,7 +3469,7 @@ class CompileTimeErrorCode extends DiagnosticCode {
       );
 
   /// Parameters:
-  /// 0: the name of the variable pattern
+  /// String p0: the name of the variable pattern
   static const CompileTimeErrorCode MISSING_VARIABLE_PATTERN =
       CompileTimeErrorCode(
         'MISSING_VARIABLE_PATTERN',
@@ -3470,7 +3480,8 @@ class CompileTimeErrorCode extends DiagnosticCode {
       );
 
   /// Parameters:
-  /// 0: the name of the class that appears in both "extends" and "with" clauses
+  /// Element p0: the name of the class that appears in both "extends" and
+  ///             "with" clauses
   static const CompileTimeErrorCode MIXINS_SUPER_CLASS = CompileTimeErrorCode(
     'IMPLEMENTS_SUPER_CLASS',
     "'{0}' can't be used in both the 'extends' and 'with' clauses.",
@@ -3480,9 +3491,10 @@ class CompileTimeErrorCode extends DiagnosticCode {
   );
 
   /// Parameters:
-  /// 0: the name of the super-invoked member
-  /// 1: the display name of the type of the super-invoked member in the mixin
-  /// 2: the display name of the type of the concrete member in the class
+  /// String p0: the name of the super-invoked member
+  /// Type p1: the display name of the type of the super-invoked member in the
+  ///          mixin
+  /// Type p2: the display name of the type of the concrete member in the class
   static const CompileTimeErrorCode
   MIXIN_APPLICATION_CONCRETE_SUPER_INVOKED_MEMBER_TYPE = CompileTimeErrorCode(
     'MIXIN_APPLICATION_CONCRETE_SUPER_INVOKED_MEMBER_TYPE',
@@ -3492,9 +3504,9 @@ class CompileTimeErrorCode extends DiagnosticCode {
   );
 
   /// Parameters:
-  /// 0: the display name of the mixin
-  /// 1: the display name of the superclass
-  /// 2: the display name of the type that is not implemented
+  /// Type p0: the display name of the mixin
+  /// Type p1: the display name of the superclass
+  /// Type p2: the display name of the type that is not implemented
   static const CompileTimeErrorCode
   MIXIN_APPLICATION_NOT_IMPLEMENTED_INTERFACE = CompileTimeErrorCode(
     'MIXIN_APPLICATION_NOT_IMPLEMENTED_INTERFACE',
@@ -3504,7 +3516,8 @@ class CompileTimeErrorCode extends DiagnosticCode {
   );
 
   /// Parameters:
-  /// 0: the display name of the member without a concrete implementation
+  /// String p0: the display name of the member without a concrete
+  ///            implementation
   static const CompileTimeErrorCode
   MIXIN_APPLICATION_NO_CONCRETE_SUPER_INVOKED_MEMBER = CompileTimeErrorCode(
     'MIXIN_APPLICATION_NO_CONCRETE_SUPER_INVOKED_MEMBER',
@@ -3514,7 +3527,8 @@ class CompileTimeErrorCode extends DiagnosticCode {
   );
 
   /// Parameters:
-  /// 0: the display name of the setter without a concrete implementation
+  /// String p0: the display name of the setter without a concrete
+  ///            implementation
   static const CompileTimeErrorCode
   MIXIN_APPLICATION_NO_CONCRETE_SUPER_INVOKED_SETTER = CompileTimeErrorCode(
     'MIXIN_APPLICATION_NO_CONCRETE_SUPER_INVOKED_MEMBER',
@@ -3525,7 +3539,7 @@ class CompileTimeErrorCode extends DiagnosticCode {
   );
 
   /// Parameters:
-  /// 0: the name of the mixin class that is invalid
+  /// String p0: the name of the mixin class that is invalid
   static const CompileTimeErrorCode MIXIN_CLASS_DECLARATION_EXTENDS_NOT_OBJECT =
       CompileTimeErrorCode(
         'MIXIN_CLASS_DECLARATION_EXTENDS_NOT_OBJECT',
@@ -3538,7 +3552,7 @@ class CompileTimeErrorCode extends DiagnosticCode {
       );
 
   /// Parameters:
-  /// 0: the name of the mixin that is invalid
+  /// String p0: the name of the mixin that is invalid
   static const CompileTimeErrorCode MIXIN_CLASS_DECLARES_CONSTRUCTOR =
       CompileTimeErrorCode(
         'MIXIN_CLASS_DECLARES_CONSTRUCTOR',
@@ -3557,7 +3571,7 @@ class CompileTimeErrorCode extends DiagnosticCode {
   );
 
   /// Parameters:
-  /// 0: the name of the mixin that is invalid
+  /// String p0: the name of the mixin that is invalid
   static const CompileTimeErrorCode
   MIXIN_INHERITS_FROM_NOT_OBJECT = CompileTimeErrorCode(
     'MIXIN_INHERITS_FROM_NOT_OBJECT',
@@ -3574,7 +3588,7 @@ class CompileTimeErrorCode extends DiagnosticCode {
   );
 
   /// Parameters:
-  /// 0: the name of the disallowed type
+  /// Type p0: the name of the disallowed type
   static const CompileTimeErrorCode MIXIN_OF_DISALLOWED_CLASS =
       CompileTimeErrorCode(
         'SUBTYPE_OF_DISALLOWED_TYPE',
@@ -3613,8 +3627,8 @@ class CompileTimeErrorCode extends DiagnosticCode {
   );
 
   /// Parameters:
-  /// 0: the name of the mixin that is not 'base'
-  /// 1: the name of the 'base' supertype
+  /// String p0: the name of the mixin that is not 'base'
+  /// String p1: the name of the 'base' supertype
   static const CompileTimeErrorCode MIXIN_SUBTYPE_OF_BASE_IS_NOT_BASE =
       CompileTimeErrorCode(
         'SUBTYPE_OF_BASE_OR_FINAL_IS_NOT_BASE_FINAL_OR_SEALED',
@@ -3624,8 +3638,8 @@ class CompileTimeErrorCode extends DiagnosticCode {
       );
 
   /// Parameters:
-  /// 0: the name of the mixin that is not 'final'
-  /// 1: the name of the 'final' supertype
+  /// String p0: the name of the mixin that is not 'final'
+  /// String p1: the name of the 'final' supertype
   static const CompileTimeErrorCode
   MIXIN_SUBTYPE_OF_FINAL_IS_NOT_BASE = CompileTimeErrorCode(
     'SUBTYPE_OF_BASE_OR_FINAL_IS_NOT_BASE_FINAL_OR_SEALED',
@@ -3644,7 +3658,7 @@ class CompileTimeErrorCode extends DiagnosticCode {
   );
 
   /// Parameters:
-  /// 0: the name of the disallowed type
+  /// Type p0: the name of the disallowed type
   static const CompileTimeErrorCode
   MIXIN_SUPER_CLASS_CONSTRAINT_DISALLOWED_CLASS = CompileTimeErrorCode(
     'SUBTYPE_OF_DISALLOWED_TYPE',
@@ -3694,7 +3708,7 @@ class CompileTimeErrorCode extends DiagnosticCode {
       );
 
   /// Parameters:
-  /// 0: the name of the non-type element
+  /// String p0: the name of the non-type element
   static const CompileTimeErrorCode NEW_WITH_NON_TYPE = CompileTimeErrorCode(
     'CREATION_WITH_NON_TYPE',
     "The name '{0}' isn't a class.",
@@ -3717,8 +3731,8 @@ class CompileTimeErrorCode extends DiagnosticCode {
   /// declare a constructor with the same name as the declaration of <i>T</i>.
   ///
   /// Parameters:
-  /// 0: the name of the class being instantiated
-  /// 1: the name of the constructor
+  /// String p0: the name of the class being instantiated
+  /// String p1: the name of the constructor
   static const CompileTimeErrorCode
   NEW_WITH_UNDEFINED_CONSTRUCTOR = CompileTimeErrorCode(
     'NEW_WITH_UNDEFINED_CONSTRUCTOR',
@@ -3729,7 +3743,7 @@ class CompileTimeErrorCode extends DiagnosticCode {
   );
 
   /// Parameters:
-  /// 0: the name of the class being instantiated
+  /// String p0: the name of the class being instantiated
   static const CompileTimeErrorCode NEW_WITH_UNDEFINED_CONSTRUCTOR_DEFAULT =
       CompileTimeErrorCode(
         'NEW_WITH_UNDEFINED_CONSTRUCTOR_DEFAULT',
@@ -3740,11 +3754,11 @@ class CompileTimeErrorCode extends DiagnosticCode {
       );
 
   /// Parameters:
-  /// 0: the name of the first member
-  /// 1: the name of the second member
-  /// 2: the name of the third member
-  /// 3: the name of the fourth member
-  /// 4: the number of additional missing members that aren't listed
+  /// String p0: the name of the first member
+  /// String p1: the name of the second member
+  /// String p2: the name of the third member
+  /// String p3: the name of the fourth member
+  /// int p4: the number of additional missing members that aren't listed
   static const CompileTimeErrorCode
   NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_FIVE_PLUS = CompileTimeErrorCode(
     'NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER',
@@ -3757,10 +3771,10 @@ class CompileTimeErrorCode extends DiagnosticCode {
   );
 
   /// Parameters:
-  /// 0: the name of the first member
-  /// 1: the name of the second member
-  /// 2: the name of the third member
-  /// 3: the name of the fourth member
+  /// String p0: the name of the first member
+  /// String p1: the name of the second member
+  /// String p2: the name of the third member
+  /// String p3: the name of the fourth member
   static const CompileTimeErrorCode
   NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_FOUR = CompileTimeErrorCode(
     'NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER',
@@ -3772,7 +3786,7 @@ class CompileTimeErrorCode extends DiagnosticCode {
   );
 
   /// Parameters:
-  /// 0: the name of the member
+  /// String p0: the name of the member
   static const CompileTimeErrorCode
   NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_ONE = CompileTimeErrorCode(
     'NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER',
@@ -3784,9 +3798,9 @@ class CompileTimeErrorCode extends DiagnosticCode {
   );
 
   /// Parameters:
-  /// 0: the name of the first member
-  /// 1: the name of the second member
-  /// 2: the name of the third member
+  /// String p0: the name of the first member
+  /// String p1: the name of the second member
+  /// String p2: the name of the third member
   static const CompileTimeErrorCode
   NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_THREE = CompileTimeErrorCode(
     'NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER',
@@ -3798,8 +3812,8 @@ class CompileTimeErrorCode extends DiagnosticCode {
   );
 
   /// Parameters:
-  /// 0: the name of the first member
-  /// 1: the name of the second member
+  /// String p0: the name of the first member
+  /// String p1: the name of the second member
   static const CompileTimeErrorCode
   NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_TWO = CompileTimeErrorCode(
     'NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER',
@@ -3836,7 +3850,7 @@ class CompileTimeErrorCode extends DiagnosticCode {
       );
 
   /// Parameters:
-  /// 0: the lexeme of the logical operator
+  /// String p0: the lexeme of the logical operator
   static const CompileTimeErrorCode NON_BOOL_OPERAND = CompileTimeErrorCode(
     'NON_BOOL_OPERAND',
     "The operands of the operator '{0}' must be assignable to 'bool'.",
@@ -4051,9 +4065,9 @@ class CompileTimeErrorCode extends DiagnosticCode {
       );
 
   /// Parameters:
-  /// 0: the type of the switch scrutinee
-  /// 1: the witness pattern for the unmatched value
-  /// 2: the suggested pattern for the unmatched value
+  /// Type p0: the type of the switch scrutinee
+  /// String p1: the witness pattern for the unmatched value
+  /// String p2: the suggested pattern for the unmatched value
   static const CompileTimeErrorCode
   NON_EXHAUSTIVE_SWITCH_EXPRESSION = CompileTimeErrorCode(
     'NON_EXHAUSTIVE_SWITCH_EXPRESSION',
@@ -4065,9 +4079,9 @@ class CompileTimeErrorCode extends DiagnosticCode {
   );
 
   /// Parameters:
-  /// 0: the type of the switch scrutinee
-  /// 1: the witness pattern for the unmatched value
-  /// 2: the suggested pattern for the unmatched value
+  /// Type p0: the type of the switch scrutinee
+  /// String p1: the witness pattern for the unmatched value
+  /// String p2: the suggested pattern for the unmatched value
   static const CompileTimeErrorCode
   NON_EXHAUSTIVE_SWITCH_STATEMENT = CompileTimeErrorCode(
     'NON_EXHAUSTIVE_SWITCH_STATEMENT',
@@ -4087,7 +4101,7 @@ class CompileTimeErrorCode extends DiagnosticCode {
       );
 
   /// Parameters:
-  /// 0: the non-generative constructor
+  /// Element p0: the non-generative constructor
   static const CompileTimeErrorCode
   NON_GENERATIVE_CONSTRUCTOR = CompileTimeErrorCode(
     'NON_GENERATIVE_CONSTRUCTOR',
@@ -4099,9 +4113,9 @@ class CompileTimeErrorCode extends DiagnosticCode {
   );
 
   /// Parameters:
-  /// 0: the name of the superclass
-  /// 1: the name of the current class
-  /// 2: the implicitly called factory constructor of the superclass
+  /// String p0: the name of the superclass
+  /// String p1: the name of the current class
+  /// Element p2: the implicitly called factory constructor of the superclass
   static const CompileTimeErrorCode
   NON_GENERATIVE_IMPLICIT_CONSTRUCTOR = CompileTimeErrorCode(
     'NON_GENERATIVE_IMPLICIT_CONSTRUCTOR',
@@ -4123,7 +4137,7 @@ class CompileTimeErrorCode extends DiagnosticCode {
   );
 
   /// Parameters:
-  /// 0: the name appearing where a type is expected
+  /// String p0: the name appearing where a type is expected
   static const CompileTimeErrorCode
   NON_TYPE_AS_TYPE_ARGUMENT = CompileTimeErrorCode(
     'NON_TYPE_AS_TYPE_ARGUMENT',
@@ -4136,7 +4150,7 @@ class CompileTimeErrorCode extends DiagnosticCode {
   );
 
   /// Parameters:
-  /// 0: the name of the non-type element
+  /// String p0: the name of the non-type element
   static const CompileTimeErrorCode NON_TYPE_IN_CATCH_CLAUSE =
       CompileTimeErrorCode(
         'NON_TYPE_IN_CATCH_CLAUSE',
@@ -4167,7 +4181,7 @@ class CompileTimeErrorCode extends DiagnosticCode {
       );
 
   /// Parameters:
-  /// 0: the name of the variable that is invalid
+  /// String p0: the name of the variable that is invalid
   static const CompileTimeErrorCode
   NOT_ASSIGNED_POTENTIALLY_NON_NULLABLE_LOCAL_VARIABLE = CompileTimeErrorCode(
     'NOT_ASSIGNED_POTENTIALLY_NON_NULLABLE_LOCAL_VARIABLE',
@@ -4180,7 +4194,7 @@ class CompileTimeErrorCode extends DiagnosticCode {
   );
 
   /// Parameters:
-  /// 0: the name that is not a type
+  /// String p0: the name that is not a type
   static const CompileTimeErrorCode NOT_A_TYPE = CompileTimeErrorCode(
     'NOT_A_TYPE',
     "{0} isn't a type.",
@@ -4189,7 +4203,7 @@ class CompileTimeErrorCode extends DiagnosticCode {
   );
 
   /// Parameters:
-  /// 0: the name of the operator that is not a binary operator.
+  /// String p0: the name of the operator that is not a binary operator.
   static const CompileTimeErrorCode NOT_BINARY_OPERATOR = CompileTimeErrorCode(
     'NOT_BINARY_OPERATOR',
     "'{0}' isn't a binary operator.",
@@ -4197,9 +4211,9 @@ class CompileTimeErrorCode extends DiagnosticCode {
   );
 
   /// Parameters:
-  /// 0: the expected number of required arguments
-  /// 1: the actual number of positional arguments given
-  /// 2: name of the function or method
+  /// int p0: the expected number of required arguments
+  /// int p1: the actual number of positional arguments given
+  /// String p2: name of the function or method
   static const CompileTimeErrorCode
   NOT_ENOUGH_POSITIONAL_ARGUMENTS_NAME_PLURAL = CompileTimeErrorCode(
     'NOT_ENOUGH_POSITIONAL_ARGUMENTS',
@@ -4210,7 +4224,7 @@ class CompileTimeErrorCode extends DiagnosticCode {
   );
 
   /// Parameters:
-  /// 0: name of the function or method
+  /// String p0: name of the function or method
   static const CompileTimeErrorCode
   NOT_ENOUGH_POSITIONAL_ARGUMENTS_NAME_SINGULAR = CompileTimeErrorCode(
     'NOT_ENOUGH_POSITIONAL_ARGUMENTS',
@@ -4221,8 +4235,8 @@ class CompileTimeErrorCode extends DiagnosticCode {
   );
 
   /// Parameters:
-  /// 0: the expected number of required arguments
-  /// 1: the actual number of positional arguments given
+  /// int p0: the expected number of required arguments
+  /// int p1: the actual number of positional arguments given
   static const CompileTimeErrorCode NOT_ENOUGH_POSITIONAL_ARGUMENTS_PLURAL =
       CompileTimeErrorCode(
         'NOT_ENOUGH_POSITIONAL_ARGUMENTS',
@@ -4243,7 +4257,7 @@ class CompileTimeErrorCode extends DiagnosticCode {
       );
 
   /// Parameters:
-  /// 0: the name of the field that is not initialized
+  /// String p0: the name of the field that is not initialized
   static const CompileTimeErrorCode
   NOT_INITIALIZED_NON_NULLABLE_INSTANCE_FIELD = CompileTimeErrorCode(
     'NOT_INITIALIZED_NON_NULLABLE_INSTANCE_FIELD',
@@ -4255,7 +4269,7 @@ class CompileTimeErrorCode extends DiagnosticCode {
   );
 
   /// Parameters:
-  /// 0: the name of the field that is not initialized
+  /// String p0: the name of the field that is not initialized
   static const CompileTimeErrorCode
   NOT_INITIALIZED_NON_NULLABLE_INSTANCE_FIELD_CONSTRUCTOR = CompileTimeErrorCode(
     'NOT_INITIALIZED_NON_NULLABLE_INSTANCE_FIELD',
@@ -4268,7 +4282,7 @@ class CompileTimeErrorCode extends DiagnosticCode {
   );
 
   /// Parameters:
-  /// 0: the name of the variable that is invalid
+  /// String p0: the name of the variable that is invalid
   static const CompileTimeErrorCode NOT_INITIALIZED_NON_NULLABLE_VARIABLE =
       CompileTimeErrorCode(
         'NOT_INITIALIZED_NON_NULLABLE_VARIABLE',
@@ -4317,8 +4331,8 @@ class CompileTimeErrorCode extends DiagnosticCode {
       );
 
   /// Parameters:
-  /// 0: the name of the class where override error was detected
-  /// 1: the list of candidate signatures which cannot be combined
+  /// String p0: the name of the class where override error was detected
+  /// String p1: the list of candidate signatures which cannot be combined
   static const CompileTimeErrorCode
   NO_COMBINED_SUPER_SIGNATURE = CompileTimeErrorCode(
     'NO_COMBINED_SUPER_SIGNATURE',
@@ -4330,8 +4344,8 @@ class CompileTimeErrorCode extends DiagnosticCode {
   );
 
   /// Parameters:
-  /// 0: the name of the superclass that does not define an implicitly invoked
-  ///    constructor
+  /// Object p0: the name of the superclass that does not define an implicitly
+  ///            invoked constructor
   static const CompileTimeErrorCode NO_DEFAULT_SUPER_CONSTRUCTOR_EXPLICIT =
       CompileTimeErrorCode(
         'NO_DEFAULT_SUPER_CONSTRUCTOR',
@@ -4343,10 +4357,10 @@ class CompileTimeErrorCode extends DiagnosticCode {
       );
 
   /// Parameters:
-  /// 0: the name of the superclass that does not define an implicitly invoked
-  ///    constructor
-  /// 1: the name of the subclass that does not contain any explicit
-  ///    constructors
+  /// Type p0: the name of the superclass that does not define an implicitly
+  ///          invoked constructor
+  /// String p1: the name of the subclass that does not contain any explicit
+  ///            constructors
   static const CompileTimeErrorCode
   NO_DEFAULT_SUPER_CONSTRUCTOR_IMPLICIT = CompileTimeErrorCode(
     'NO_DEFAULT_SUPER_CONSTRUCTOR',
@@ -4358,8 +4372,8 @@ class CompileTimeErrorCode extends DiagnosticCode {
   );
 
   /// Parameters:
-  /// 0: the name of the subclass
-  /// 1: the name of the superclass
+  /// String p0: the name of the subclass
+  /// String p1: the name of the superclass
   static const CompileTimeErrorCode
   NO_GENERATIVE_CONSTRUCTORS_IN_SUPERCLASS = CompileTimeErrorCode(
     'NO_GENERATIVE_CONSTRUCTORS_IN_SUPERCLASS',
@@ -4430,7 +4444,7 @@ class CompileTimeErrorCode extends DiagnosticCode {
       );
 
   /// Parameters:
-  /// 0: the name of the interface that is implemented more than once
+  /// String p0: the name of the interface that is implemented more than once
   static const CompileTimeErrorCode ON_REPEATED = CompileTimeErrorCode(
     'ON_REPEATED',
     "The type '{0}' can be included in the superclass constraints only once.",
@@ -4449,8 +4463,9 @@ class CompileTimeErrorCode extends DiagnosticCode {
       );
 
   /// Parameters:
-  /// 0: the name of expected library name
-  /// 1: the non-matching actual library name from the "part of" declaration
+  /// String p0: the name of expected library name
+  /// String p1: the non-matching actual library name from the "part of"
+  ///            declaration
   static const CompileTimeErrorCode
   PART_OF_DIFFERENT_LIBRARY = CompileTimeErrorCode(
     'PART_OF_DIFFERENT_LIBRARY',
@@ -4462,7 +4477,7 @@ class CompileTimeErrorCode extends DiagnosticCode {
   );
 
   /// Parameters:
-  /// 0: the URI pointing to a non-library declaration
+  /// String p0: the URI pointing to a non-library declaration
   static const CompileTimeErrorCode PART_OF_NON_PART = CompileTimeErrorCode(
     'PART_OF_NON_PART',
     "The included part '{0}' must have a part-of directive.",
@@ -4471,7 +4486,8 @@ class CompileTimeErrorCode extends DiagnosticCode {
   );
 
   /// Parameters:
-  /// 0: the non-matching actual library name from the "part of" declaration
+  /// String p0: the non-matching actual library name from the "part of"
+  ///            declaration
   static const CompileTimeErrorCode
   PART_OF_UNNAMED_LIBRARY = CompileTimeErrorCode(
     'PART_OF_UNNAMED_LIBRARY',
@@ -4503,8 +4519,8 @@ class CompileTimeErrorCode extends DiagnosticCode {
       );
 
   /// Parameters:
-  /// 0: the matched type
-  /// 1: the required type
+  /// Type p0: the matched type
+  /// Type p1: the required type
   static const CompileTimeErrorCode
   PATTERN_TYPE_MISMATCH_IN_IRREFUTABLE_CONTEXT = CompileTimeErrorCode(
     'PATTERN_TYPE_MISMATCH_IN_IRREFUTABLE_CONTEXT',
@@ -4527,7 +4543,7 @@ class CompileTimeErrorCode extends DiagnosticCode {
       );
 
   /// Parameters:
-  /// 0: the name of the pattern variable
+  /// String p0: the name of the pattern variable
   static const CompileTimeErrorCode
   PATTERN_VARIABLE_SHARED_CASE_SCOPE_DIFFERENT_FINALITY_OR_TYPE =
       CompileTimeErrorCode(
@@ -4543,7 +4559,7 @@ class CompileTimeErrorCode extends DiagnosticCode {
       );
 
   /// Parameters:
-  /// 0: the name of the pattern variable
+  /// String p0: the name of the pattern variable
   static const CompileTimeErrorCode
   PATTERN_VARIABLE_SHARED_CASE_SCOPE_HAS_LABEL = CompileTimeErrorCode(
     'INVALID_PATTERN_VARIABLE_IN_SHARED_CASE_SCOPE',
@@ -4557,7 +4573,7 @@ class CompileTimeErrorCode extends DiagnosticCode {
   );
 
   /// Parameters:
-  /// 0: the name of the pattern variable
+  /// String p0: the name of the pattern variable
   static const CompileTimeErrorCode
   PATTERN_VARIABLE_SHARED_CASE_SCOPE_NOT_ALL_CASES = CompileTimeErrorCode(
     'INVALID_PATTERN_VARIABLE_IN_SHARED_CASE_SCOPE',
@@ -4593,7 +4609,7 @@ class CompileTimeErrorCode extends DiagnosticCode {
       );
 
   /// Parameters:
-  /// 0: the name of the prefix
+  /// Object p0: the name of the prefix
   static const CompileTimeErrorCode
   PREFIX_COLLIDES_WITH_TOP_LEVEL_MEMBER = CompileTimeErrorCode(
     'PREFIX_COLLIDES_WITH_TOP_LEVEL_MEMBER',
@@ -4605,7 +4621,7 @@ class CompileTimeErrorCode extends DiagnosticCode {
   );
 
   /// Parameters:
-  /// 0: the name of the prefix
+  /// String p0: the name of the prefix
   static const CompileTimeErrorCode
   PREFIX_IDENTIFIER_NOT_FOLLOWED_BY_DOT = CompileTimeErrorCode(
     'PREFIX_IDENTIFIER_NOT_FOLLOWED_BY_DOT',
@@ -4617,7 +4633,7 @@ class CompileTimeErrorCode extends DiagnosticCode {
   );
 
   /// Parameters:
-  /// 0: the prefix being shadowed
+  /// String p0: the prefix being shadowed
   static const CompileTimeErrorCode PREFIX_SHADOWED_BY_LOCAL_DECLARATION =
       CompileTimeErrorCode(
         'PREFIX_SHADOWED_BY_LOCAL_DECLARATION',
@@ -4629,9 +4645,9 @@ class CompileTimeErrorCode extends DiagnosticCode {
       );
 
   /// Parameters:
-  /// 0: the private name that collides
-  /// 1: the name of the first mixin
-  /// 2: the name of the second mixin
+  /// String p0: the private name that collides
+  /// String p1: the name of the first mixin
+  /// String p2: the name of the second mixin
   static const CompileTimeErrorCode
   PRIVATE_COLLISION_IN_MIXIN_APPLICATION = CompileTimeErrorCode(
     'PRIVATE_COLLISION_IN_MIXIN_APPLICATION',
@@ -4650,7 +4666,7 @@ class CompileTimeErrorCode extends DiagnosticCode {
       );
 
   /// Parameters:
-  /// 0: the name of the setter
+  /// String p0: the name of the setter
   static const CompileTimeErrorCode PRIVATE_SETTER = CompileTimeErrorCode(
     'PRIVATE_SETTER',
     "The setter '{0}' is private and can't be accessed outside the library "
@@ -4660,7 +4676,7 @@ class CompileTimeErrorCode extends DiagnosticCode {
   );
 
   /// Parameters:
-  /// 0: the name of the variable
+  /// String p0: the name of the variable
   static const CompileTimeErrorCode READ_POTENTIALLY_UNASSIGNED_FINAL =
       CompileTimeErrorCode(
         'READ_POTENTIALLY_UNASSIGNED_FINAL',
@@ -4726,8 +4742,8 @@ class CompileTimeErrorCode extends DiagnosticCode {
   );
 
   /// Parameters:
-  /// 0: the name of the class that implements itself recursively
-  /// 1: a string representation of the implements loop
+  /// String p0: the name of the class that implements itself recursively
+  /// String p1: a string representation of the implements loop
   static const CompileTimeErrorCode RECURSIVE_INTERFACE_INHERITANCE =
       CompileTimeErrorCode(
         'RECURSIVE_INTERFACE_INHERITANCE',
@@ -4745,7 +4761,7 @@ class CompileTimeErrorCode extends DiagnosticCode {
   /// superclass of itself.
   ///
   /// Parameters:
-  /// 0: the name of the class that implements itself recursively
+  /// String p0: the name of the class that implements itself recursively
   static const CompileTimeErrorCode RECURSIVE_INTERFACE_INHERITANCE_EXTENDS =
       CompileTimeErrorCode(
         'RECURSIVE_INTERFACE_INHERITANCE',
@@ -4764,7 +4780,7 @@ class CompileTimeErrorCode extends DiagnosticCode {
   /// superclass of itself.
   ///
   /// Parameters:
-  /// 0: the name of the class that implements itself recursively
+  /// String p0: the name of the class that implements itself recursively
   static const CompileTimeErrorCode RECURSIVE_INTERFACE_INHERITANCE_IMPLEMENTS =
       CompileTimeErrorCode(
         'RECURSIVE_INTERFACE_INHERITANCE',
@@ -4774,7 +4790,7 @@ class CompileTimeErrorCode extends DiagnosticCode {
       );
 
   /// Parameters:
-  /// 0: the name of the mixin that constraints itself recursively
+  /// String p0: the name of the mixin that constraints itself recursively
   static const CompileTimeErrorCode RECURSIVE_INTERFACE_INHERITANCE_ON =
       CompileTimeErrorCode(
         'RECURSIVE_INTERFACE_INHERITANCE',
@@ -4793,7 +4809,7 @@ class CompileTimeErrorCode extends DiagnosticCode {
   /// superclass of itself.
   ///
   /// Parameters:
-  /// 0: the name of the class that implements itself recursively
+  /// String p0: the name of the class that implements itself recursively
   static const CompileTimeErrorCode RECURSIVE_INTERFACE_INHERITANCE_WITH =
       CompileTimeErrorCode(
         'RECURSIVE_INTERFACE_INHERITANCE',
@@ -4803,8 +4819,8 @@ class CompileTimeErrorCode extends DiagnosticCode {
       );
 
   /// Parameters:
-  /// 0: the name of the constructor
-  /// 1: the name of the class
+  /// String p0: the name of the constructor
+  /// String p1: the name of the class
   static const CompileTimeErrorCode REDIRECT_GENERATIVE_TO_MISSING_CONSTRUCTOR =
       CompileTimeErrorCode(
         'REDIRECT_GENERATIVE_TO_MISSING_CONSTRUCTOR',
@@ -4825,9 +4841,9 @@ class CompileTimeErrorCode extends DiagnosticCode {
   );
 
   /// Parameters:
-  /// 0: the name of the redirecting constructor
-  /// 1: the name of the abstract class defining the constructor being
-  ///    redirected to
+  /// String p0: the name of the redirecting constructor
+  /// String p1: the name of the abstract class defining the constructor being
+  ///            redirected to
   static const CompileTimeErrorCode
   REDIRECT_TO_ABSTRACT_CLASS_CONSTRUCTOR = CompileTimeErrorCode(
     'REDIRECT_TO_ABSTRACT_CLASS_CONSTRUCTOR',
@@ -4838,8 +4854,8 @@ class CompileTimeErrorCode extends DiagnosticCode {
   );
 
   /// Parameters:
-  /// 0: the name of the redirected constructor
-  /// 1: the name of the redirecting constructor
+  /// Type p0: the name of the redirected constructor
+  /// Type p1: the name of the redirecting constructor
   static const CompileTimeErrorCode
   REDIRECT_TO_INVALID_FUNCTION_TYPE = CompileTimeErrorCode(
     'REDIRECT_TO_INVALID_FUNCTION_TYPE',
@@ -4849,8 +4865,8 @@ class CompileTimeErrorCode extends DiagnosticCode {
   );
 
   /// Parameters:
-  /// 0: the name of the redirected constructor's return type
-  /// 1: the name of the redirecting constructor's return type
+  /// Type p0: the name of the redirected constructor's return type
+  /// Type p1: the name of the redirecting constructor's return type
   static const CompileTimeErrorCode
   REDIRECT_TO_INVALID_RETURN_TYPE = CompileTimeErrorCode(
     'REDIRECT_TO_INVALID_RETURN_TYPE',
@@ -4861,8 +4877,8 @@ class CompileTimeErrorCode extends DiagnosticCode {
   );
 
   /// Parameters:
-  /// 0: the name of the constructor
-  /// 1: the name of the class containing the constructor
+  /// String p0: the name of the constructor
+  /// Type p1: the name of the class containing the constructor
   static const CompileTimeErrorCode
   REDIRECT_TO_MISSING_CONSTRUCTOR = CompileTimeErrorCode(
     'REDIRECT_TO_MISSING_CONSTRUCTOR',
@@ -4874,7 +4890,7 @@ class CompileTimeErrorCode extends DiagnosticCode {
   );
 
   /// Parameters:
-  /// 0: the name of the non-type referenced in the redirect
+  /// String p0: the name of the non-type referenced in the redirect
   static const CompileTimeErrorCode REDIRECT_TO_NON_CLASS =
       CompileTimeErrorCode(
         'REDIRECT_TO_NON_CLASS',
@@ -4905,7 +4921,7 @@ class CompileTimeErrorCode extends DiagnosticCode {
   );
 
   /// Parameters:
-  /// 0: the name of the variable
+  /// Object p0: the name of the variable
   static const CompileTimeErrorCode
   REFERENCED_BEFORE_DECLARATION = CompileTimeErrorCode(
     'REFERENCED_BEFORE_DECLARATION',
@@ -4929,9 +4945,9 @@ class CompileTimeErrorCode extends DiagnosticCode {
   );
 
   /// Parameters:
-  /// 0: the operand type
-  /// 1: the parameter type of the invoked operator
-  /// 2: the name of the invoked operator
+  /// Type p0: the operand type
+  /// Type p1: the parameter type of the invoked operator
+  /// String p2: the name of the invoked operator
   static const CompileTimeErrorCode
   RELATIONAL_PATTERN_OPERAND_TYPE_NOT_ASSIGNABLE = CompileTimeErrorCode(
     'RELATIONAL_PATTERN_OPERAND_TYPE_NOT_ASSIGNABLE',
@@ -4994,8 +5010,8 @@ class CompileTimeErrorCode extends DiagnosticCode {
   );
 
   /// Parameters:
-  /// 0: the return type as declared in the return statement
-  /// 1: the expected return type as defined by the method
+  /// Type p0: the return type as declared in the return statement
+  /// Type p1: the expected return type as defined by the method
   static const CompileTimeErrorCode RETURN_OF_INVALID_TYPE_FROM_CLOSURE =
       CompileTimeErrorCode(
         'RETURN_OF_INVALID_TYPE_FROM_CLOSURE',
@@ -5005,9 +5021,9 @@ class CompileTimeErrorCode extends DiagnosticCode {
       );
 
   /// Parameters:
-  /// 0: the return type as declared in the return statement
-  /// 1: the expected return type as defined by the enclosing class
-  /// 2: the name of the constructor
+  /// Type p0: the return type as declared in the return statement
+  /// Type p1: the expected return type as defined by the enclosing class
+  /// String p2: the name of the constructor
   static const CompileTimeErrorCode RETURN_OF_INVALID_TYPE_FROM_CONSTRUCTOR =
       CompileTimeErrorCode(
         'RETURN_OF_INVALID_TYPE',
@@ -5018,9 +5034,9 @@ class CompileTimeErrorCode extends DiagnosticCode {
       );
 
   /// Parameters:
-  /// 0: the return type as declared in the return statement
-  /// 1: the expected return type as defined by the method
-  /// 2: the name of the method
+  /// Type p0: the return type as declared in the return statement
+  /// Type p1: the expected return type as defined by the method
+  /// String p2: the name of the method
   static const CompileTimeErrorCode
   RETURN_OF_INVALID_TYPE_FROM_FUNCTION = CompileTimeErrorCode(
     'RETURN_OF_INVALID_TYPE',
@@ -5031,9 +5047,9 @@ class CompileTimeErrorCode extends DiagnosticCode {
   );
 
   /// Parameters:
-  /// 0: the type of the expression in the return statement
-  /// 1: the expected return type as defined by the method
-  /// 2: the name of the method
+  /// Type p0: the type of the expression in the return statement
+  /// Type p1: the expected return type as defined by the method
+  /// String p2: the name of the method
   static const CompileTimeErrorCode
   RETURN_OF_INVALID_TYPE_FROM_METHOD = CompileTimeErrorCode(
     'RETURN_OF_INVALID_TYPE',
@@ -5051,7 +5067,8 @@ class CompileTimeErrorCode extends DiagnosticCode {
   );
 
   /// Parameters:
-  /// 0: the name of the sealed class being extended, implemented, or mixed in
+  /// String p0: the name of the sealed class being extended, implemented, or
+  ///            mixed in
   static const CompileTimeErrorCode
   SEALED_CLASS_SUBTYPE_OUTSIDE_OF_LIBRARY = CompileTimeErrorCode(
     'INVALID_USE_OF_TYPE_OUTSIDE_LIBRARY',
@@ -5075,8 +5092,8 @@ class CompileTimeErrorCode extends DiagnosticCode {
   );
 
   /// Parameters:
-  /// 0: the actual type of the set element
-  /// 1: the expected type of the set element
+  /// Type p0: the actual type of the set element
+  /// Type p1: the expected type of the set element
   static const CompileTimeErrorCode SET_ELEMENT_TYPE_NOT_ASSIGNABLE =
       CompileTimeErrorCode(
         'SET_ELEMENT_TYPE_NOT_ASSIGNABLE',
@@ -5085,8 +5102,8 @@ class CompileTimeErrorCode extends DiagnosticCode {
       );
 
   /// Parameters:
-  /// 0: the actual type of the set element
-  /// 1: the expected type of the set element
+  /// Type p0: the actual type of the set element
+  /// Type p1: the expected type of the set element
   static const CompileTimeErrorCode
   SET_ELEMENT_TYPE_NOT_ASSIGNABLE_NULLABILITY = CompileTimeErrorCode(
     'SET_ELEMENT_TYPE_NOT_ASSIGNABLE',
@@ -5114,7 +5131,7 @@ class CompileTimeErrorCode extends DiagnosticCode {
       );
 
   /// Parameters:
-  /// 0: the name of the instance member
+  /// String p0: the name of the instance member
   static const CompileTimeErrorCode STATIC_ACCESS_TO_INSTANCE_MEMBER =
       CompileTimeErrorCode(
         'STATIC_ACCESS_TO_INSTANCE_MEMBER',
@@ -5123,8 +5140,9 @@ class CompileTimeErrorCode extends DiagnosticCode {
       );
 
   /// Parameters:
-  /// 0: the name of the subtype that is not 'base', 'final', or 'sealed'
-  /// 1: the name of the 'base' supertype
+  /// String p0: the name of the subtype that is not 'base', 'final', or
+  ///            'sealed'
+  /// String p1: the name of the 'base' supertype
   static const CompileTimeErrorCode
   SUBTYPE_OF_BASE_IS_NOT_BASE_FINAL_OR_SEALED = CompileTimeErrorCode(
     'SUBTYPE_OF_BASE_OR_FINAL_IS_NOT_BASE_FINAL_OR_SEALED',
@@ -5135,8 +5153,9 @@ class CompileTimeErrorCode extends DiagnosticCode {
   );
 
   /// Parameters:
-  /// 0: the name of the subtype that is not 'base', 'final', or 'sealed'
-  /// 1: the name of the 'final' supertype
+  /// String p0: the name of the subtype that is not 'base', 'final', or
+  ///            'sealed'
+  /// String p1: the name of the 'final' supertype
   static const CompileTimeErrorCode
   SUBTYPE_OF_FINAL_IS_NOT_BASE_FINAL_OR_SEALED = CompileTimeErrorCode(
     'SUBTYPE_OF_BASE_OR_FINAL_IS_NOT_BASE_FINAL_OR_SEALED',
@@ -5147,8 +5166,8 @@ class CompileTimeErrorCode extends DiagnosticCode {
   );
 
   /// Parameters:
-  /// 0: the type of super-parameter
-  /// 1: the type of associated super-constructor parameter
+  /// Type p0: the type of super-parameter
+  /// Type p1: the type of associated super-constructor parameter
   static const CompileTimeErrorCode
   SUPER_FORMAL_PARAMETER_TYPE_IS_NOT_SUBTYPE_OF_ASSOCIATED = CompileTimeErrorCode(
     'SUPER_FORMAL_PARAMETER_TYPE_IS_NOT_SUBTYPE_OF_ASSOCIATED',
@@ -5193,7 +5212,7 @@ class CompileTimeErrorCode extends DiagnosticCode {
       );
 
   /// Parameters:
-  /// 0: the superinitializer
+  /// String p0: the superinitializer
   static const CompileTimeErrorCode SUPER_INVOCATION_NOT_LAST =
       CompileTimeErrorCode(
         'SUPER_INVOCATION_NOT_LAST',
@@ -5264,7 +5283,7 @@ class CompileTimeErrorCode extends DiagnosticCode {
   );
 
   /// Parameters:
-  /// 0: the type that can't be thrown
+  /// Type p0: the type that can't be thrown
   static const CompileTimeErrorCode
   THROW_OF_INVALID_TYPE = CompileTimeErrorCode(
     'THROW_OF_INVALID_TYPE',
@@ -5273,8 +5292,8 @@ class CompileTimeErrorCode extends DiagnosticCode {
   );
 
   /// Parameters:
-  /// 0: the element whose type could not be inferred.
-  /// 1: The [TopLevelInferenceError]'s arguments that led to the cycle.
+  /// String p0: the element whose type could not be inferred.
+  /// String p1: The [TopLevelInferenceError]'s arguments that led to the cycle.
   static const CompileTimeErrorCode TOP_LEVEL_CYCLE = CompileTimeErrorCode(
     'TOP_LEVEL_CYCLE',
     "The type of '{0}' can't be inferred because it depends on itself through "
@@ -5295,8 +5314,8 @@ class CompileTimeErrorCode extends DiagnosticCode {
   );
 
   /// Parameters:
-  /// 0: the name of the type that is deferred and being used in a type
-  ///    annotation
+  /// String p0: the name of the type that is deferred and being used in a type
+  ///            annotation
   static const CompileTimeErrorCode TYPE_ANNOTATION_DEFERRED_CLASS =
       CompileTimeErrorCode(
         'TYPE_ANNOTATION_DEFERRED_CLASS',
@@ -5309,10 +5328,10 @@ class CompileTimeErrorCode extends DiagnosticCode {
       );
 
   /// Parameters:
-  /// 0: the name of the type used in the instance creation that should be
-  ///    limited by the bound as specified in the class declaration
-  /// 1: the name of the type parameter
-  /// 2: the substituted bound of the type parameter
+  /// Type p0: the name of the type used in the instance creation that should be
+  ///          limited by the bound as specified in the class declaration
+  /// String p1: the name of the type parameter
+  /// Type p2: the substituted bound of the type parameter
   static const CompileTimeErrorCode TYPE_ARGUMENT_NOT_MATCHING_BOUNDS =
       CompileTimeErrorCode(
         'TYPE_ARGUMENT_NOT_MATCHING_BOUNDS',
@@ -5336,8 +5355,8 @@ class CompileTimeErrorCode extends DiagnosticCode {
   /// See [CompileTimeErrorCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS].
   ///
   /// Parameters:
-  /// 0: the name of the type parameter
-  /// 1: the name of the bounding type
+  /// String p0: the name of the type parameter
+  /// Type p1: the name of the bounding type
   static const CompileTimeErrorCode TYPE_PARAMETER_SUPERTYPE_OF_ITS_BOUND =
       CompileTimeErrorCode(
         'TYPE_PARAMETER_SUPERTYPE_OF_ITS_BOUND',
@@ -5348,7 +5367,7 @@ class CompileTimeErrorCode extends DiagnosticCode {
       );
 
   /// Parameters:
-  /// 0: the name of the type
+  /// String p0: the name of the type
   static const CompileTimeErrorCode TYPE_TEST_WITH_NON_TYPE =
       CompileTimeErrorCode(
         'TYPE_TEST_WITH_NON_TYPE',
@@ -5358,7 +5377,7 @@ class CompileTimeErrorCode extends DiagnosticCode {
       );
 
   /// Parameters:
-  /// 0: the name of the type
+  /// String p0: the name of the type
   static const CompileTimeErrorCode
   TYPE_TEST_WITH_UNDEFINED_NAME = CompileTimeErrorCode(
     'TYPE_TEST_WITH_UNDEFINED_NAME',
@@ -5380,7 +5399,7 @@ class CompileTimeErrorCode extends DiagnosticCode {
   );
 
   /// Parameters:
-  /// 0: the name of the method
+  /// String p0: the name of the method
   static const CompileTimeErrorCode
   UNCHECKED_METHOD_INVOCATION_OF_NULLABLE_VALUE = CompileTimeErrorCode(
     'UNCHECKED_USE_OF_NULLABLE_VALUE',
@@ -5394,7 +5413,7 @@ class CompileTimeErrorCode extends DiagnosticCode {
   );
 
   /// Parameters:
-  /// 0: the name of the operator
+  /// String p0: the name of the operator
   static const CompileTimeErrorCode
   UNCHECKED_OPERATOR_INVOCATION_OF_NULLABLE_VALUE = CompileTimeErrorCode(
     'UNCHECKED_USE_OF_NULLABLE_VALUE',
@@ -5406,7 +5425,7 @@ class CompileTimeErrorCode extends DiagnosticCode {
   );
 
   /// Parameters:
-  /// 0: the name of the property
+  /// String p0: the name of the property
   static const CompileTimeErrorCode
   UNCHECKED_PROPERTY_ACCESS_OF_NULLABLE_VALUE = CompileTimeErrorCode(
     'UNCHECKED_USE_OF_NULLABLE_VALUE',
@@ -5468,7 +5487,7 @@ class CompileTimeErrorCode extends DiagnosticCode {
   );
 
   /// Parameters:
-  /// 0: the name of the annotation
+  /// String p0: the name of the annotation
   static const CompileTimeErrorCode UNDEFINED_ANNOTATION = CompileTimeErrorCode(
     'UNDEFINED_ANNOTATION',
     "Undefined name '{0}' used as an annotation.",
@@ -5479,7 +5498,7 @@ class CompileTimeErrorCode extends DiagnosticCode {
   );
 
   /// Parameters:
-  /// 0: the name of the undefined class
+  /// String p0: the name of the undefined class
   static const CompileTimeErrorCode UNDEFINED_CLASS = CompileTimeErrorCode(
     'UNDEFINED_CLASS',
     "Undefined class '{0}'.",
@@ -5494,7 +5513,7 @@ class CompileTimeErrorCode extends DiagnosticCode {
   /// "boolean" instead of "bool" in order to improve the correction message.
   ///
   /// Parameters:
-  /// 0: the name of the undefined class
+  /// String p0: the name of the undefined class
   static const CompileTimeErrorCode UNDEFINED_CLASS_BOOLEAN =
       CompileTimeErrorCode(
         'UNDEFINED_CLASS',
@@ -5506,8 +5525,9 @@ class CompileTimeErrorCode extends DiagnosticCode {
       );
 
   /// Parameters:
-  /// 0: the name of the superclass that does not define the invoked constructor
-  /// 1: the name of the constructor being invoked
+  /// Type p0: the name of the superclass that does not define the invoked
+  ///          constructor
+  /// String p1: the name of the constructor being invoked
   static const CompileTimeErrorCode UNDEFINED_CONSTRUCTOR_IN_INITIALIZER =
       CompileTimeErrorCode(
         'UNDEFINED_CONSTRUCTOR_IN_INITIALIZER',
@@ -5519,7 +5539,8 @@ class CompileTimeErrorCode extends DiagnosticCode {
       );
 
   /// Parameters:
-  /// 0: the name of the superclass that does not define the invoked constructor
+  /// Object p0: the name of the superclass that does not define the invoked
+  ///            constructor
   static const CompileTimeErrorCode
   UNDEFINED_CONSTRUCTOR_IN_INITIALIZER_DEFAULT = CompileTimeErrorCode(
     'UNDEFINED_CONSTRUCTOR_IN_INITIALIZER',
@@ -5532,8 +5553,8 @@ class CompileTimeErrorCode extends DiagnosticCode {
   );
 
   /// Parameters:
-  /// 0: the name of the enum value that is not defined
-  /// 1: the name of the enum used to access the constant
+  /// String p0: the name of the enum value that is not defined
+  /// String p1: the name of the enum used to access the constant
   static const CompileTimeErrorCode UNDEFINED_ENUM_CONSTANT =
       CompileTimeErrorCode(
         'UNDEFINED_ENUM_CONSTANT',
@@ -5545,7 +5566,7 @@ class CompileTimeErrorCode extends DiagnosticCode {
       );
 
   /// Parameters:
-  /// 0: the name of the constructor that is undefined
+  /// String p0: the name of the constructor that is undefined
   static const CompileTimeErrorCode
   UNDEFINED_ENUM_CONSTRUCTOR_NAMED = CompileTimeErrorCode(
     'UNDEFINED_ENUM_CONSTRUCTOR',
@@ -5570,8 +5591,8 @@ class CompileTimeErrorCode extends DiagnosticCode {
       );
 
   /// Parameters:
-  /// 0: the name of the getter that is undefined
-  /// 1: the name of the extension that was explicitly specified
+  /// String p0: the name of the getter that is undefined
+  /// String p1: the name of the extension that was explicitly specified
   static const CompileTimeErrorCode UNDEFINED_EXTENSION_GETTER =
       CompileTimeErrorCode(
         'UNDEFINED_EXTENSION_GETTER',
@@ -5583,8 +5604,8 @@ class CompileTimeErrorCode extends DiagnosticCode {
       );
 
   /// Parameters:
-  /// 0: the name of the method that is undefined
-  /// 1: the name of the extension that was explicitly specified
+  /// String p0: the name of the method that is undefined
+  /// String p1: the name of the extension that was explicitly specified
   static const CompileTimeErrorCode UNDEFINED_EXTENSION_METHOD =
       CompileTimeErrorCode(
         'UNDEFINED_EXTENSION_METHOD',
@@ -5596,8 +5617,8 @@ class CompileTimeErrorCode extends DiagnosticCode {
       );
 
   /// Parameters:
-  /// 0: the name of the operator that is undefined
-  /// 1: the name of the extension that was explicitly specified
+  /// String p0: the name of the operator that is undefined
+  /// String p1: the name of the extension that was explicitly specified
   static const CompileTimeErrorCode UNDEFINED_EXTENSION_OPERATOR =
       CompileTimeErrorCode(
         'UNDEFINED_EXTENSION_OPERATOR',
@@ -5607,8 +5628,8 @@ class CompileTimeErrorCode extends DiagnosticCode {
       );
 
   /// Parameters:
-  /// 0: the name of the setter that is undefined
-  /// 1: the name of the extension that was explicitly specified
+  /// String p0: the name of the setter that is undefined
+  /// String p1: the name of the extension that was explicitly specified
   static const CompileTimeErrorCode UNDEFINED_EXTENSION_SETTER =
       CompileTimeErrorCode(
         'UNDEFINED_EXTENSION_SETTER',
@@ -5620,7 +5641,7 @@ class CompileTimeErrorCode extends DiagnosticCode {
       );
 
   /// Parameters:
-  /// 0: the name of the method that is undefined
+  /// String p0: the name of the method that is undefined
   static const CompileTimeErrorCode UNDEFINED_FUNCTION = CompileTimeErrorCode(
     'UNDEFINED_FUNCTION',
     "The function '{0}' isn't defined.",
@@ -5632,8 +5653,9 @@ class CompileTimeErrorCode extends DiagnosticCode {
   );
 
   /// Parameters:
-  /// 0: the name of the getter
-  /// 1: the name of the enclosing type where the getter is being looked for
+  /// String p0: the name of the getter
+  /// Object p1: the name of the enclosing type where the getter is being looked
+  ///            for
   static const CompileTimeErrorCode UNDEFINED_GETTER = CompileTimeErrorCode(
     'UNDEFINED_GETTER',
     "The getter '{0}' isn't defined for the type '{1}'.",
@@ -5645,8 +5667,8 @@ class CompileTimeErrorCode extends DiagnosticCode {
   );
 
   /// Parameters:
-  /// 0: the name of the getter
-  /// 1: the name of the function type alias
+  /// String p0: the name of the getter
+  /// String p1: the name of the function type alias
   static const CompileTimeErrorCode UNDEFINED_GETTER_ON_FUNCTION_TYPE =
       CompileTimeErrorCode(
         'UNDEFINED_GETTER',
@@ -5659,7 +5681,7 @@ class CompileTimeErrorCode extends DiagnosticCode {
       );
 
   /// Parameters:
-  /// 0: the name of the identifier
+  /// String p0: the name of the identifier
   static const CompileTimeErrorCode UNDEFINED_IDENTIFIER = CompileTimeErrorCode(
     'UNDEFINED_IDENTIFIER',
     "Undefined name '{0}'.",
@@ -5681,8 +5703,8 @@ class CompileTimeErrorCode extends DiagnosticCode {
   );
 
   /// Parameters:
-  /// 0: the name of the method that is undefined
-  /// 1: the resolved type name that the method lookup is happening on
+  /// String p0: the name of the method that is undefined
+  /// Object p1: the resolved type name that the method lookup is happening on
   static const CompileTimeErrorCode UNDEFINED_METHOD = CompileTimeErrorCode(
     'UNDEFINED_METHOD',
     "The method '{0}' isn't defined for the type '{1}'.",
@@ -5693,8 +5715,8 @@ class CompileTimeErrorCode extends DiagnosticCode {
   );
 
   /// Parameters:
-  /// 0: the name of the method
-  /// 1: the name of the function type alias
+  /// String p0: the name of the method
+  /// String p1: the name of the function type alias
   static const CompileTimeErrorCode UNDEFINED_METHOD_ON_FUNCTION_TYPE =
       CompileTimeErrorCode(
         'UNDEFINED_METHOD',
@@ -5707,7 +5729,7 @@ class CompileTimeErrorCode extends DiagnosticCode {
       );
 
   /// Parameters:
-  /// 0: the name of the requested named parameter
+  /// String p0: the name of the requested named parameter
   static const CompileTimeErrorCode UNDEFINED_NAMED_PARAMETER =
       CompileTimeErrorCode(
         'UNDEFINED_NAMED_PARAMETER',
@@ -5719,8 +5741,9 @@ class CompileTimeErrorCode extends DiagnosticCode {
       );
 
   /// Parameters:
-  /// 0: the name of the operator
-  /// 1: the name of the enclosing type where the operator is being looked for
+  /// String p0: the name of the operator
+  /// Type p1: the name of the enclosing type where the operator is being looked
+  ///          for
   static const CompileTimeErrorCode UNDEFINED_OPERATOR = CompileTimeErrorCode(
     'UNDEFINED_OPERATOR',
     "The operator '{0}' isn't defined for the type '{1}'.",
@@ -5729,8 +5752,8 @@ class CompileTimeErrorCode extends DiagnosticCode {
   );
 
   /// Parameters:
-  /// 0: the name of the reference
-  /// 1: the name of the prefix
+  /// String p0: the name of the reference
+  /// String p1: the name of the prefix
   static const CompileTimeErrorCode
   UNDEFINED_PREFIXED_NAME = CompileTimeErrorCode(
     'UNDEFINED_PREFIXED_NAME',
@@ -5743,8 +5766,9 @@ class CompileTimeErrorCode extends DiagnosticCode {
   );
 
   /// Parameters:
-  /// 0: the name of the setter
-  /// 1: the name of the enclosing type where the setter is being looked for
+  /// String p0: the name of the setter
+  /// Type p1: the name of the enclosing type where the setter is being looked
+  ///          for
   static const CompileTimeErrorCode UNDEFINED_SETTER = CompileTimeErrorCode(
     'UNDEFINED_SETTER',
     "The setter '{0}' isn't defined for the type '{1}'.",
@@ -5756,8 +5780,8 @@ class CompileTimeErrorCode extends DiagnosticCode {
   );
 
   /// Parameters:
-  /// 0: the name of the setter
-  /// 1: the name of the function type alias
+  /// String p0: the name of the setter
+  /// String p1: the name of the function type alias
   static const CompileTimeErrorCode UNDEFINED_SETTER_ON_FUNCTION_TYPE =
       CompileTimeErrorCode(
         'UNDEFINED_SETTER',
@@ -5770,8 +5794,9 @@ class CompileTimeErrorCode extends DiagnosticCode {
       );
 
   /// Parameters:
-  /// 0: the name of the getter
-  /// 1: the name of the enclosing type where the getter is being looked for
+  /// String p0: the name of the getter
+  /// Type p1: the name of the enclosing type where the getter is being looked
+  ///          for
   static const CompileTimeErrorCode UNDEFINED_SUPER_GETTER =
       CompileTimeErrorCode(
         'UNDEFINED_SUPER_MEMBER',
@@ -5784,8 +5809,8 @@ class CompileTimeErrorCode extends DiagnosticCode {
       );
 
   /// Parameters:
-  /// 0: the name of the method that is undefined
-  /// 1: the resolved type name that the method lookup is happening on
+  /// String p0: the name of the method that is undefined
+  /// String p1: the resolved type name that the method lookup is happening on
   static const CompileTimeErrorCode UNDEFINED_SUPER_METHOD =
       CompileTimeErrorCode(
         'UNDEFINED_SUPER_MEMBER',
@@ -5798,8 +5823,9 @@ class CompileTimeErrorCode extends DiagnosticCode {
       );
 
   /// Parameters:
-  /// 0: the name of the operator
-  /// 1: the name of the enclosing type where the operator is being looked for
+  /// String p0: the name of the operator
+  /// Type p1: the name of the enclosing type where the operator is being looked
+  ///          for
   static const CompileTimeErrorCode UNDEFINED_SUPER_OPERATOR =
       CompileTimeErrorCode(
         'UNDEFINED_SUPER_MEMBER',
@@ -5810,8 +5836,9 @@ class CompileTimeErrorCode extends DiagnosticCode {
       );
 
   /// Parameters:
-  /// 0: the name of the setter
-  /// 1: the name of the enclosing type where the setter is being looked for
+  /// String p0: the name of the setter
+  /// Type p1: the name of the enclosing type where the setter is being looked
+  ///          for
   static const CompileTimeErrorCode UNDEFINED_SUPER_SETTER =
       CompileTimeErrorCode(
         'UNDEFINED_SUPER_MEMBER',
@@ -5828,7 +5855,7 @@ class CompileTimeErrorCode extends DiagnosticCode {
   /// provide a more informative error message.
   ///
   /// Parameters:
-  /// 0: the name of the defining type
+  /// String p0: the name of the defining type
   static const CompileTimeErrorCode
   UNQUALIFIED_REFERENCE_TO_NON_LOCAL_STATIC_MEMBER = CompileTimeErrorCode(
     'UNQUALIFIED_REFERENCE_TO_NON_LOCAL_STATIC_MEMBER',
@@ -5839,7 +5866,7 @@ class CompileTimeErrorCode extends DiagnosticCode {
   );
 
   /// Parameters:
-  /// 0: the name of the defining type
+  /// String p0: the name of the defining type
   static const CompileTimeErrorCode
   UNQUALIFIED_REFERENCE_TO_STATIC_MEMBER_OF_EXTENDED_TYPE = CompileTimeErrorCode(
     'UNQUALIFIED_REFERENCE_TO_STATIC_MEMBER_OF_EXTENDED_TYPE',
@@ -5850,7 +5877,7 @@ class CompileTimeErrorCode extends DiagnosticCode {
   );
 
   /// Parameters:
-  /// 0: the URI pointing to a nonexistent file
+  /// String p0: the URI pointing to a nonexistent file
   static const CompileTimeErrorCode URI_DOES_NOT_EXIST = CompileTimeErrorCode(
     'URI_DOES_NOT_EXIST',
     "Target of URI doesn't exist: '{0}'.",
@@ -5861,7 +5888,7 @@ class CompileTimeErrorCode extends DiagnosticCode {
   );
 
   /// Parameters:
-  /// 0: the URI pointing to a nonexistent file
+  /// String p0: the URI pointing to a nonexistent file
   static const CompileTimeErrorCode
   URI_HAS_NOT_BEEN_GENERATED = CompileTimeErrorCode(
     'URI_HAS_NOT_BEEN_GENERATED',
@@ -5910,8 +5937,8 @@ class CompileTimeErrorCode extends DiagnosticCode {
       );
 
   /// Parameters:
-  /// 0: the type of the object being assigned.
-  /// 1: the type of the variable being assigned to
+  /// Object p0: the type of the object being assigned.
+  /// Object p1: the type of the variable being assigned to
   static const CompileTimeErrorCode VARIABLE_TYPE_MISMATCH =
       CompileTimeErrorCode(
         'VARIABLE_TYPE_MISMATCH',
@@ -5932,11 +5959,11 @@ class CompileTimeErrorCode extends DiagnosticCode {
   /// `T`.
   ///
   /// Parameters:
-  /// 0: the name of the type parameter
-  /// 1: the variance modifier defined for {0}
-  /// 2: the variance position of the type parameter {0} in the superinterface
-  ///    {3}
-  /// 3: the name of the superinterface
+  /// Object p0: the name of the type parameter
+  /// Object p1: the variance modifier defined for {0}
+  /// Object p2: the variance position of the type parameter {0} in the
+  ///            superinterface {3}
+  /// Object p3: the name of the superinterface
   static const CompileTimeErrorCode
   WRONG_EXPLICIT_TYPE_PARAMETER_VARIANCE_IN_SUPERINTERFACE = CompileTimeErrorCode(
     'WRONG_EXPLICIT_TYPE_PARAMETER_VARIANCE_IN_SUPERINTERFACE',
@@ -5948,9 +5975,9 @@ class CompileTimeErrorCode extends DiagnosticCode {
   );
 
   /// Parameters:
-  /// 0: the name of the declared operator
-  /// 1: the number of parameters expected
-  /// 2: the number of parameters found in the operator declaration
+  /// String p0: the name of the declared operator
+  /// int p1: the number of parameters expected
+  /// int p2: the number of parameters found in the operator declaration
   static const CompileTimeErrorCode WRONG_NUMBER_OF_PARAMETERS_FOR_OPERATOR =
       CompileTimeErrorCode(
         'WRONG_NUMBER_OF_PARAMETERS_FOR_OPERATOR',
@@ -5962,7 +5989,7 @@ class CompileTimeErrorCode extends DiagnosticCode {
   /// user-declared operator - is not 0 or 1.
   ///
   /// Parameters:
-  /// 0: the number of parameters found in the operator declaration
+  /// int p0: the number of parameters found in the operator declaration
   static const CompileTimeErrorCode
   WRONG_NUMBER_OF_PARAMETERS_FOR_OPERATOR_MINUS = CompileTimeErrorCode(
     'WRONG_NUMBER_OF_PARAMETERS_FOR_OPERATOR',
@@ -5972,9 +5999,9 @@ class CompileTimeErrorCode extends DiagnosticCode {
   );
 
   /// Parameters:
-  /// 0: the name of the type being referenced (<i>G</i>)
-  /// 1: the number of type parameters that were declared
-  /// 2: the number of type arguments provided
+  /// Object p0: the name of the type being referenced (<i>G</i>)
+  /// int p1: the number of type parameters that were declared
+  /// int p2: the number of type arguments provided
   static const CompileTimeErrorCode WRONG_NUMBER_OF_TYPE_ARGUMENTS =
       CompileTimeErrorCode(
         'WRONG_NUMBER_OF_TYPE_ARGUMENTS',
@@ -5987,8 +6014,8 @@ class CompileTimeErrorCode extends DiagnosticCode {
       );
 
   /// Parameters:
-  /// 0: the number of type parameters that were declared
-  /// 1: the number of type arguments provided
+  /// int p0: the number of type parameters that were declared
+  /// int p1: the number of type arguments provided
   static const CompileTimeErrorCode
   WRONG_NUMBER_OF_TYPE_ARGUMENTS_ANONYMOUS_FUNCTION = CompileTimeErrorCode(
     'WRONG_NUMBER_OF_TYPE_ARGUMENTS_FUNCTION',
@@ -6001,8 +6028,8 @@ class CompileTimeErrorCode extends DiagnosticCode {
   );
 
   /// Parameters:
-  /// 0: the name of the class being instantiated
-  /// 1: the name of the constructor being invoked
+  /// String p0: the name of the class being instantiated
+  /// String p1: the name of the constructor being invoked
   static const CompileTimeErrorCode WRONG_NUMBER_OF_TYPE_ARGUMENTS_CONSTRUCTOR =
       CompileTimeErrorCode(
         'WRONG_NUMBER_OF_TYPE_ARGUMENTS_CONSTRUCTOR',
@@ -6012,8 +6039,8 @@ class CompileTimeErrorCode extends DiagnosticCode {
       );
 
   /// Parameters:
-  /// 0: the name of the class being instantiated
-  /// 1: the name of the constructor being invoked
+  /// String p0: the name of the class being instantiated
+  /// String p1: the name of the constructor being invoked
   static const CompileTimeErrorCode
   WRONG_NUMBER_OF_TYPE_ARGUMENTS_DOT_SHORTHAND_CONSTRUCTOR = CompileTimeErrorCode(
     'WRONG_NUMBER_OF_TYPE_ARGUMENTS_CONSTRUCTOR',
@@ -6026,8 +6053,8 @@ class CompileTimeErrorCode extends DiagnosticCode {
   );
 
   /// Parameters:
-  /// 0: the number of type parameters that were declared
-  /// 1: the number of type arguments provided
+  /// int p0: the number of type parameters that were declared
+  /// int p1: the number of type arguments provided
   static const CompileTimeErrorCode WRONG_NUMBER_OF_TYPE_ARGUMENTS_ENUM =
       CompileTimeErrorCode(
         'WRONG_NUMBER_OF_TYPE_ARGUMENTS_ENUM',
@@ -6038,9 +6065,9 @@ class CompileTimeErrorCode extends DiagnosticCode {
       );
 
   /// Parameters:
-  /// 0: the name of the extension being referenced
-  /// 1: the number of type parameters that were declared
-  /// 2: the number of type arguments provided
+  /// String p0: the name of the extension being referenced
+  /// int p1: the number of type parameters that were declared
+  /// int p2: the number of type arguments provided
   static const CompileTimeErrorCode
   WRONG_NUMBER_OF_TYPE_ARGUMENTS_EXTENSION = CompileTimeErrorCode(
     'WRONG_NUMBER_OF_TYPE_ARGUMENTS_EXTENSION',
@@ -6051,9 +6078,9 @@ class CompileTimeErrorCode extends DiagnosticCode {
   );
 
   /// Parameters:
-  /// 0: the name of the function being referenced
-  /// 1: the number of type parameters that were declared
-  /// 2: the number of type arguments provided
+  /// String p0: the name of the function being referenced
+  /// int p1: the number of type parameters that were declared
+  /// int p2: the number of type arguments provided
   static const CompileTimeErrorCode WRONG_NUMBER_OF_TYPE_ARGUMENTS_FUNCTION =
       CompileTimeErrorCode(
         'WRONG_NUMBER_OF_TYPE_ARGUMENTS_FUNCTION',
@@ -6065,9 +6092,9 @@ class CompileTimeErrorCode extends DiagnosticCode {
       );
 
   /// Parameters:
-  /// 0: the name of the method being referenced (<i>G</i>)
-  /// 1: the number of type parameters that were declared
-  /// 2: the number of type arguments provided
+  /// Type p0: the name of the method being referenced (<i>G</i>)
+  /// int p1: the number of type parameters that were declared
+  /// int p2: the number of type arguments provided
   static const CompileTimeErrorCode WRONG_NUMBER_OF_TYPE_ARGUMENTS_METHOD =
       CompileTimeErrorCode(
         'WRONG_NUMBER_OF_TYPE_ARGUMENTS_METHOD',
@@ -6082,8 +6109,8 @@ class CompileTimeErrorCode extends DiagnosticCode {
   /// error if `X` occurs contravariantly or invariantly in `T`.
   ///
   /// Parameters:
-  /// 0: the name of the type parameter
-  /// 1: the name of the super interface
+  /// String p0: the name of the type parameter
+  /// Type p1: the name of the super interface
   static const CompileTimeErrorCode
   WRONG_TYPE_PARAMETER_VARIANCE_IN_SUPERINTERFACE = CompileTimeErrorCode(
     'WRONG_TYPE_PARAMETER_VARIANCE_IN_SUPERINTERFACE',
@@ -6107,9 +6134,9 @@ class CompileTimeErrorCode extends DiagnosticCode {
   /// annotation of a covariant formal parameter.
   ///
   /// Parameters:
-  /// 0: the variance modifier defined for {0}
-  /// 1: the name of the type parameter
-  /// 2: the variance position that the type parameter {1} is in
+  /// Object p0: the variance modifier defined for {0}
+  /// Object p1: the name of the type parameter
+  /// Object p2: the variance position that the type parameter {1} is in
   static const CompileTimeErrorCode
   WRONG_TYPE_PARAMETER_VARIANCE_POSITION = CompileTimeErrorCode(
     'WRONG_TYPE_PARAMETER_VARIANCE_POSITION',
@@ -6133,8 +6160,8 @@ class CompileTimeErrorCode extends DiagnosticCode {
   );
 
   /// Parameters:
-  /// 0: the type of the expression after `yield*`
-  /// 1: the return type of the function containing the `yield*`
+  /// Type p0: the type of the expression after `yield*`
+  /// Type p1: the return type of the function containing the `yield*`
   static const CompileTimeErrorCode
   YIELD_EACH_OF_INVALID_TYPE = CompileTimeErrorCode(
     'YIELD_OF_INVALID_TYPE',
@@ -6159,8 +6186,8 @@ class CompileTimeErrorCode extends DiagnosticCode {
   );
 
   /// Parameters:
-  /// 0: the type of the expression after `yield`
-  /// 1: the return type of the function containing the `yield`
+  /// Type p0: the type of the expression after `yield`
+  /// Type p1: the return type of the function containing the `yield`
   static const CompileTimeErrorCode YIELD_OF_INVALID_TYPE =
       CompileTimeErrorCode(
         'YIELD_OF_INVALID_TYPE',
@@ -6230,8 +6257,9 @@ class StaticWarningCode extends DiagnosticCode {
       );
 
   /// Parameters:
-  /// 0: the null-aware operator that is invalid
-  /// 1: the non-null-aware operator that can replace the invalid operator
+  /// String p0: the null-aware operator that is invalid
+  /// String p1: the non-null-aware operator that can replace the invalid
+  ///            operator
   static const StaticWarningCode INVALID_NULL_AWARE_OPERATOR =
       StaticWarningCode(
         'INVALID_NULL_AWARE_OPERATOR',
@@ -6242,8 +6270,9 @@ class StaticWarningCode extends DiagnosticCode {
       );
 
   /// Parameters:
-  /// 0: the null-aware operator that is invalid
-  /// 1: the non-null-aware operator that can replace the invalid operator
+  /// Object p0: the null-aware operator that is invalid
+  /// Object p1: the non-null-aware operator that can replace the invalid
+  ///            operator
   static const StaticWarningCode
   INVALID_NULL_AWARE_OPERATOR_AFTER_SHORT_CIRCUIT = StaticWarningCode(
     'INVALID_NULL_AWARE_OPERATOR',
@@ -6255,7 +6284,7 @@ class StaticWarningCode extends DiagnosticCode {
   );
 
   /// Parameters:
-  /// 0: the name of the constant that is missing
+  /// String p0: the name of the constant that is missing
   static const StaticWarningCode MISSING_ENUM_CONSTANT_IN_SWITCH =
       StaticWarningCode(
         'MISSING_ENUM_CONSTANT_IN_SWITCH',
@@ -6320,8 +6349,8 @@ class StaticWarningCode extends DiagnosticCode {
 
 class WarningCode extends DiagnosticCode {
   /// Parameters:
-  /// 0: the name of the actual argument type
-  /// 1: the name of the expected function return type
+  /// Type p0: the name of the actual argument type
+  /// Type p1: the name of the expected function return type
   static const WarningCode ARGUMENT_TYPE_NOT_ASSIGNABLE_TO_ERROR_HANDLER =
       WarningCode(
         'ARGUMENT_TYPE_NOT_ASSIGNABLE_TO_ERROR_HANDLER',
@@ -6333,7 +6362,7 @@ class WarningCode extends DiagnosticCode {
   /// Users should not assign values marked `@doNotStore`.
   ///
   /// Parameters:
-  /// 0: the name of the field or variable
+  /// String p0: the name of the field or variable
   static const WarningCode ASSIGNMENT_OF_DO_NOT_STORE = WarningCode(
     'ASSIGNMENT_OF_DO_NOT_STORE',
     "'{0}' is marked 'doNotStore' and shouldn't be assigned to a field or "
@@ -6343,7 +6372,7 @@ class WarningCode extends DiagnosticCode {
   );
 
   /// Parameters:
-  /// 0: the return type as derived by the type of the [Future].
+  /// Type p0: the return type as derived by the type of the [Future].
   static const WarningCode
   BODY_MIGHT_COMPLETE_NORMALLY_CATCH_ERROR = WarningCode(
     'BODY_MIGHT_COMPLETE_NORMALLY_CATCH_ERROR',
@@ -6354,7 +6383,7 @@ class WarningCode extends DiagnosticCode {
   );
 
   /// Parameters:
-  /// 0: the name of the declared return type
+  /// Type p0: the name of the declared return type
   static const WarningCode BODY_MIGHT_COMPLETE_NORMALLY_NULLABLE = WarningCode(
     'BODY_MIGHT_COMPLETE_NORMALLY_NULLABLE',
     "This function has a nullable return type of '{0}', but ends without "
@@ -6366,7 +6395,7 @@ class WarningCode extends DiagnosticCode {
   );
 
   /// Parameters:
-  /// 0: the name of the unassigned variable
+  /// String p0: the name of the unassigned variable
   static const WarningCode CAST_FROM_NULLABLE_ALWAYS_FAILS = WarningCode(
     'CAST_FROM_NULLABLE_ALWAYS_FAILS',
     "This cast will always throw an exception because the nullable local "
@@ -6386,8 +6415,8 @@ class WarningCode extends DiagnosticCode {
   );
 
   /// Parameters:
-  /// 0: the matched value type
-  /// 1: the constant value type
+  /// Type p0: the matched value type
+  /// Type p1: the constant value type
   static const WarningCode
   CONSTANT_PATTERN_NEVER_MATCHES_VALUE_TYPE = WarningCode(
     'CONSTANT_PATTERN_NEVER_MATCHES_VALUE_TYPE',
@@ -6443,8 +6472,8 @@ class WarningCode extends DiagnosticCode {
   /// `A` was already caught.
   ///
   /// Parameters:
-  /// 0: name of the subtype
-  /// 1: name of the supertype
+  /// Type p0: name of the subtype
+  /// Type p1: name of the supertype
   static const WarningCode DEAD_CODE_ON_CATCH_SUBTYPE = WarningCode(
     'DEAD_CODE_ON_CATCH_SUBTYPE',
     "Dead code: This on-catch block won't be executed because '{0}' is a "
@@ -6456,7 +6485,7 @@ class WarningCode extends DiagnosticCode {
   );
 
   /// Parameters:
-  /// 0: the name of the element
+  /// String p0: the name of the element
   static const WarningCode DEPRECATED_EXPORT_USE = WarningCode(
     'DEPRECATED_EXPORT_USE',
     "The ability to import '{0}' indirectly is deprecated.",
@@ -6465,7 +6494,7 @@ class WarningCode extends DiagnosticCode {
   );
 
   /// Parameters:
-  /// 0: the name of the member
+  /// Object p0: the name of the member
   static const WarningCode DEPRECATED_EXTEND = WarningCode(
     'DEPRECATED_EXTEND',
     "Extending '{0}' is deprecated.",
@@ -6482,7 +6511,7 @@ class WarningCode extends DiagnosticCode {
   );
 
   /// Parameters:
-  /// 0: the name of the member
+  /// Object p0: the name of the member
   static const WarningCode DEPRECATED_IMPLEMENT = WarningCode(
     'DEPRECATED_IMPLEMENT',
     "Implementing '{0}' is deprecated.",
@@ -6516,7 +6545,7 @@ class WarningCode extends DiagnosticCode {
   );
 
   /// Parameters:
-  /// 0: the name of the member
+  /// Object p0: the name of the member
   static const WarningCode DEPRECATED_SUBCLASS = WarningCode(
     'DEPRECATED_SUBCLASS',
     "Subclassing '{0}' is deprecated.",
@@ -6526,8 +6555,8 @@ class WarningCode extends DiagnosticCode {
   );
 
   /// Parameters:
-  /// 0: the name of the doc directive argument
-  /// 1: the expected format
+  /// String p0: the name of the doc directive argument
+  /// String p1: the expected format
   static const WarningCode DOC_DIRECTIVE_ARGUMENT_WRONG_FORMAT = WarningCode(
     'DOC_DIRECTIVE_ARGUMENT_WRONG_FORMAT',
     "The '{0}' argument must be formatted as {1}.",
@@ -6535,9 +6564,9 @@ class WarningCode extends DiagnosticCode {
   );
 
   /// Parameters:
-  /// 0: the name of the doc directive
-  /// 1: the actual number of arguments
-  /// 2: the expected number of arguments
+  /// String p0: the name of the doc directive
+  /// int p1: the actual number of arguments
+  /// int p2: the expected number of arguments
   static const WarningCode DOC_DIRECTIVE_HAS_EXTRA_ARGUMENTS = WarningCode(
     'DOC_DIRECTIVE_HAS_EXTRA_ARGUMENTS',
     "The '{0}' directive has '{1}' arguments, but only '{2}' are expected.",
@@ -6545,8 +6574,8 @@ class WarningCode extends DiagnosticCode {
   );
 
   /// Parameters:
-  /// 0: the name of the doc directive
-  /// 1: the name of the unexpected argument
+  /// String p0: the name of the doc directive
+  /// String p1: the name of the unexpected argument
   static const WarningCode DOC_DIRECTIVE_HAS_UNEXPECTED_NAMED_ARGUMENT =
       WarningCode(
         'DOC_DIRECTIVE_HAS_UNEXPECTED_NAMED_ARGUMENT',
@@ -6562,7 +6591,7 @@ class WarningCode extends DiagnosticCode {
   );
 
   /// Parameters:
-  /// 0: the name of the corresponding doc directive tag
+  /// String p0: the name of the corresponding doc directive tag
   static const WarningCode DOC_DIRECTIVE_MISSING_CLOSING_TAG = WarningCode(
     'DOC_DIRECTIVE_MISSING_CLOSING_TAG',
     "Doc directive is missing a closing tag.",
@@ -6571,8 +6600,8 @@ class WarningCode extends DiagnosticCode {
   );
 
   /// Parameters:
-  /// 0: the name of the doc directive
-  /// 1: the name of the missing argument
+  /// String p0: the name of the doc directive
+  /// String p1: the name of the missing argument
   static const WarningCode DOC_DIRECTIVE_MISSING_ONE_ARGUMENT = WarningCode(
     'DOC_DIRECTIVE_MISSING_ARGUMENT',
     "The '{0}' directive is missing a '{1}' argument.",
@@ -6581,7 +6610,7 @@ class WarningCode extends DiagnosticCode {
   );
 
   /// Parameters:
-  /// 0: the name of the corresponding doc directive tag
+  /// String p0: the name of the corresponding doc directive tag
   static const WarningCode DOC_DIRECTIVE_MISSING_OPENING_TAG = WarningCode(
     'DOC_DIRECTIVE_MISSING_OPENING_TAG',
     "Doc directive is missing an opening tag.",
@@ -6590,10 +6619,10 @@ class WarningCode extends DiagnosticCode {
   );
 
   /// Parameters:
-  /// 0: the name of the doc directive
-  /// 1: the name of the first missing argument
-  /// 2: the name of the second missing argument
-  /// 3: the name of the third missing argument
+  /// String p0: the name of the doc directive
+  /// String p1: the name of the first missing argument
+  /// String p2: the name of the second missing argument
+  /// String p3: the name of the third missing argument
   static const WarningCode DOC_DIRECTIVE_MISSING_THREE_ARGUMENTS = WarningCode(
     'DOC_DIRECTIVE_MISSING_ARGUMENT',
     "The '{0}' directive is missing a '{1}', a '{2}', and a '{3}' argument.",
@@ -6603,9 +6632,9 @@ class WarningCode extends DiagnosticCode {
   );
 
   /// Parameters:
-  /// 0: the name of the doc directive
-  /// 1: the name of the first missing argument
-  /// 2: the name of the second missing argument
+  /// String p0: the name of the doc directive
+  /// String p1: the name of the first missing argument
+  /// String p2: the name of the second missing argument
   static const WarningCode DOC_DIRECTIVE_MISSING_TWO_ARGUMENTS = WarningCode(
     'DOC_DIRECTIVE_MISSING_ARGUMENT',
     "The '{0}' directive is missing a '{1}' and a '{2}' argument.",
@@ -6615,7 +6644,7 @@ class WarningCode extends DiagnosticCode {
   );
 
   /// Parameters:
-  /// 0: the name of the unknown doc directive.
+  /// String p0: the name of the unknown doc directive.
   static const WarningCode DOC_DIRECTIVE_UNKNOWN = WarningCode(
     'DOC_DIRECTIVE_UNKNOWN',
     "Doc directive '{0}' is unknown.",
@@ -6674,7 +6703,7 @@ class WarningCode extends DiagnosticCode {
   );
 
   /// Parameters:
-  /// 0: the name of the diagnostic being ignored
+  /// String p0: the name of the diagnostic being ignored
   static const WarningCode DUPLICATE_IGNORE = WarningCode(
     'DUPLICATE_IGNORE',
     "The diagnostic '{0}' doesn't need to be ignored here because it's already "
@@ -6724,7 +6753,7 @@ class WarningCode extends DiagnosticCode {
   /// inferred via the context type, or have type arguments.
   ///
   /// Parameters:
-  /// 0: the name of the collection
+  /// String p0: the name of the collection
   static const WarningCode INFERENCE_FAILURE_ON_COLLECTION_LITERAL =
       WarningCode(
         'INFERENCE_FAILURE_ON_COLLECTION_LITERAL',
@@ -6736,7 +6765,7 @@ class WarningCode extends DiagnosticCode {
   /// inferred via the context type, or have type arguments.
   ///
   /// Parameters:
-  /// 0: the name of the function
+  /// String p0: the name of the function
   static const WarningCode INFERENCE_FAILURE_ON_FUNCTION_INVOCATION =
       WarningCode(
         'INFERENCE_FAILURE_ON_FUNCTION_INVOCATION',
@@ -6751,7 +6780,7 @@ class WarningCode extends DiagnosticCode {
   /// https://github.com/dart-lang/language/blob/master/resources/type-system/strict-inference.md
   ///
   /// Parameters:
-  /// 0: the name of the function or method
+  /// String p0: the name of the function or method
   static const WarningCode INFERENCE_FAILURE_ON_FUNCTION_RETURN_TYPE =
       WarningCode(
         'INFERENCE_FAILURE_ON_FUNCTION_RETURN_TYPE',
@@ -6763,7 +6792,7 @@ class WarningCode extends DiagnosticCode {
   /// inferred via the context type, or have type arguments.
   ///
   /// Parameters:
-  /// 0: the name of the type
+  /// String p0: the name of the type
   static const WarningCode INFERENCE_FAILURE_ON_GENERIC_INVOCATION =
       WarningCode(
         'INFERENCE_FAILURE_ON_GENERIC_INVOCATION',
@@ -6777,7 +6806,7 @@ class WarningCode extends DiagnosticCode {
   /// arguments.
   ///
   /// Parameters:
-  /// 0: the name of the constructor
+  /// String p0: the name of the constructor
   static const WarningCode INFERENCE_FAILURE_ON_INSTANCE_CREATION = WarningCode(
     'INFERENCE_FAILURE_ON_INSTANCE_CREATION',
     "The type argument(s) of the constructor '{0}' can't be inferred.",
@@ -6788,7 +6817,7 @@ class WarningCode extends DiagnosticCode {
   /// declared with a specific type.
   ///
   /// Parameters:
-  /// 0: the name of the variable
+  /// String p0: the name of the variable
   static const WarningCode
   INFERENCE_FAILURE_ON_UNINITIALIZED_VARIABLE = WarningCode(
     'INFERENCE_FAILURE_ON_UNINITIALIZED_VARIABLE',
@@ -6800,7 +6829,7 @@ class WarningCode extends DiagnosticCode {
   /// declared with a specific type, or inherit a type.
   ///
   /// Parameters:
-  /// 0: the name of the parameter
+  /// String p0: the name of the parameter
   static const WarningCode INFERENCE_FAILURE_ON_UNTYPED_PARAMETER = WarningCode(
     'INFERENCE_FAILURE_ON_UNTYPED_PARAMETER',
     "The type of {0} can't be inferred; a type must be explicitly provided.",
@@ -6808,8 +6837,8 @@ class WarningCode extends DiagnosticCode {
   );
 
   /// Parameters:
-  /// 0: the name of the annotation
-  /// 1: the list of valid targets
+  /// String p0: the name of the annotation
+  /// String p1: the list of valid targets
   static const WarningCode INVALID_ANNOTATION_TARGET = WarningCode(
     'INVALID_ANNOTATION_TARGET',
     "The annotation '{0}' can only be used on {1}.",
@@ -6850,7 +6879,7 @@ class WarningCode extends DiagnosticCode {
   );
 
   /// Parameters:
-  /// 0: the name of the element
+  /// String p0: the name of the element
   static const WarningCode INVALID_EXPORT_OF_INTERNAL_ELEMENT = WarningCode(
     'INVALID_EXPORT_OF_INTERNAL_ELEMENT',
     "The member '{0}' can't be exported as a part of a package's public API.",
@@ -6859,9 +6888,9 @@ class WarningCode extends DiagnosticCode {
   );
 
   /// Parameters:
-  /// 0: the name of the internal element
-  /// 1: the name of the exported element that indirectly exposes the internal
-  ///    element
+  /// String p0: the name of the internal element
+  /// String p1: the name of the exported element that indirectly exposes the
+  ///            internal element
   static const WarningCode
   INVALID_EXPORT_OF_INTERNAL_ELEMENT_INDIRECTLY = WarningCode(
     'INVALID_EXPORT_OF_INTERNAL_ELEMENT_INDIRECTLY',
@@ -6872,7 +6901,7 @@ class WarningCode extends DiagnosticCode {
   );
 
   /// Parameters:
-  /// 0: The name of the method
+  /// String p0: The name of the method
   static const WarningCode INVALID_FACTORY_METHOD_DECL = WarningCode(
     'INVALID_FACTORY_METHOD_DECL',
     "Factory method '{0}' must have a return type.",
@@ -6880,7 +6909,7 @@ class WarningCode extends DiagnosticCode {
   );
 
   /// Parameters:
-  /// 0: the name of the method
+  /// String p0: the name of the method
   static const WarningCode INVALID_FACTORY_METHOD_IMPL = WarningCode(
     'INVALID_FACTORY_METHOD_IMPL',
     "Factory method '{0}' doesn't return a newly allocated object.",
@@ -6921,8 +6950,8 @@ class WarningCode extends DiagnosticCode {
   );
 
   /// Parameters:
-  /// 0: the latest major version
-  /// 1: the latest minor version
+  /// Object p0: the latest major version
+  /// Object p1: the latest minor version
   static const WarningCode
   INVALID_LANGUAGE_VERSION_OVERRIDE_GREATER = WarningCode(
     'INVALID_LANGUAGE_VERSION_OVERRIDE',
@@ -7033,8 +7062,8 @@ class WarningCode extends DiagnosticCode {
   /// `@nonVirtual` is overridden in a subclass.
   ///
   /// Parameters:
-  /// 0: the name of the member
-  /// 1: the name of the defining class
+  /// String p0: the name of the member
+  /// String p1: the name of the defining class
   static const WarningCode INVALID_OVERRIDE_OF_NON_VIRTUAL_MEMBER = WarningCode(
     'INVALID_OVERRIDE_OF_NON_VIRTUAL_MEMBER',
     "The member '{0}' is declared non-virtual in '{1}' and can't be overridden "
@@ -7058,7 +7087,7 @@ class WarningCode extends DiagnosticCode {
   /// parameter with a default value.
   ///
   /// Parameters:
-  /// 0: the name of the member
+  /// String p0: the name of the member
   static const WarningCode INVALID_REQUIRED_NAMED_PARAM = WarningCode(
     'INVALID_REQUIRED_NAMED_PARAM',
     "The type parameter '{0}' is annotated with @required but only named "
@@ -7070,7 +7099,7 @@ class WarningCode extends DiagnosticCode {
   /// positional parameter.
   ///
   /// Parameters:
-  /// 0: the name of the member
+  /// String p0: the name of the member
   static const WarningCode
   INVALID_REQUIRED_OPTIONAL_POSITIONAL_PARAM = WarningCode(
     'INVALID_REQUIRED_OPTIONAL_POSITIONAL_PARAM',
@@ -7083,7 +7112,7 @@ class WarningCode extends DiagnosticCode {
   /// non-optional positional parameter.
   ///
   /// Parameters:
-  /// 0: the name of the member
+  /// String p0: the name of the member
   static const WarningCode INVALID_REQUIRED_POSITIONAL_PARAM = WarningCode(
     'INVALID_REQUIRED_POSITIONAL_PARAM',
     "Redundant use of the annotation @required on the required positional "
@@ -7092,7 +7121,7 @@ class WarningCode extends DiagnosticCode {
   );
 
   /// Parameters:
-  /// 0: the name of the member
+  /// String p0: the name of the member
   static const WarningCode INVALID_USE_OF_DO_NOT_SUBMIT_MEMBER = WarningCode(
     'INVALID_USE_OF_DO_NOT_SUBMIT_MEMBER',
     "Uses of '{0}' should not be submitted to source control.",
@@ -7101,7 +7130,7 @@ class WarningCode extends DiagnosticCode {
   );
 
   /// Parameters:
-  /// 0: the name of the member
+  /// String p0: the name of the member
   static const WarningCode INVALID_USE_OF_INTERNAL_MEMBER = WarningCode(
     'INVALID_USE_OF_INTERNAL_MEMBER',
     "The member '{0}' can only be used within its package.",
@@ -7112,8 +7141,8 @@ class WarningCode extends DiagnosticCode {
   /// `@protected` is used outside of an instance member of a subclass.
   ///
   /// Parameters:
-  /// 0: the name of the member
-  /// 1: the name of the defining class
+  /// String p0: the name of the member
+  /// String p1: the name of the defining class
   static const WarningCode INVALID_USE_OF_PROTECTED_MEMBER = WarningCode(
     'INVALID_USE_OF_PROTECTED_MEMBER',
     "The member '{0}' can only be used within instance members of subclasses "
@@ -7122,7 +7151,7 @@ class WarningCode extends DiagnosticCode {
   );
 
   /// Parameters:
-  /// 0: the name of the member
+  /// String p0: the name of the member
   static const WarningCode INVALID_USE_OF_VISIBLE_FOR_OVERRIDING_MEMBER =
       WarningCode(
         'INVALID_USE_OF_VISIBLE_FOR_OVERRIDING_MEMBER',
@@ -7134,8 +7163,8 @@ class WarningCode extends DiagnosticCode {
   /// `@visibleForTemplate` is used outside of a "template" Dart file.
   ///
   /// Parameters:
-  /// 0: the name of the member
-  /// 1: the name of the defining class
+  /// String p0: the name of the member
+  /// Uri p1: the name of the defining class
   static const WarningCode INVALID_USE_OF_VISIBLE_FOR_TEMPLATE_MEMBER =
       WarningCode(
         'INVALID_USE_OF_VISIBLE_FOR_TEMPLATE_MEMBER',
@@ -7146,8 +7175,8 @@ class WarningCode extends DiagnosticCode {
   /// `@visibleForTesting` is used outside the defining library, or a test.
   ///
   /// Parameters:
-  /// 0: the name of the member
-  /// 1: the name of the defining class
+  /// String p0: the name of the member
+  /// Uri p1: the name of the defining class
   static const WarningCode INVALID_USE_OF_VISIBLE_FOR_TESTING_MEMBER =
       WarningCode(
         'INVALID_USE_OF_VISIBLE_FOR_TESTING_MEMBER',
@@ -7159,8 +7188,8 @@ class WarningCode extends DiagnosticCode {
   /// annotated with `@visibleForTemplate` or `@visibleForTesting`.
   ///
   /// Parameters:
-  /// 0: the name of the member
-  /// 1: the name of the annotation
+  /// String p0: the name of the member
+  /// String p1: the name of the annotation
   static const WarningCode INVALID_VISIBILITY_ANNOTATION = WarningCode(
     'INVALID_VISIBILITY_ANNOTATION',
     "The member '{0}' is annotated with '{1}', but this annotation is only "
@@ -7196,8 +7225,8 @@ class WarningCode extends DiagnosticCode {
   );
 
   /// Parameters:
-  /// 0: the name of the private symbol
-  /// 1: the name of the proposed public symbol equivalent
+  /// String p0: the name of the private symbol
+  /// String p1: the name of the proposed public symbol equivalent
   static const WarningCode
   INVALID_WIDGET_PREVIEW_PRIVATE_ARGUMENT = WarningCode(
     'INVALID_WIDGET_PREVIEW_PRIVATE_ARGUMENT',
@@ -7208,7 +7237,7 @@ class WarningCode extends DiagnosticCode {
   );
 
   /// Parameters:
-  /// 0: the name of the member
+  /// String p0: the name of the member
   static const WarningCode MISSING_OVERRIDE_OF_MUST_BE_OVERRIDDEN_ONE =
       WarningCode(
         'MISSING_OVERRIDE_OF_MUST_BE_OVERRIDDEN',
@@ -7219,9 +7248,9 @@ class WarningCode extends DiagnosticCode {
       );
 
   /// Parameters:
-  /// 0: the name of the first member
-  /// 1: the name of the second member
-  /// 2: the number of additional missing members that aren't listed
+  /// String p0: the name of the first member
+  /// String p1: the name of the second member
+  /// String p2: the number of additional missing members that aren't listed
   static const WarningCode MISSING_OVERRIDE_OF_MUST_BE_OVERRIDDEN_THREE_PLUS =
       WarningCode(
         'MISSING_OVERRIDE_OF_MUST_BE_OVERRIDDEN',
@@ -7232,8 +7261,8 @@ class WarningCode extends DiagnosticCode {
       );
 
   /// Parameters:
-  /// 0: the name of the first member
-  /// 1: the name of the second member
+  /// String p0: the name of the first member
+  /// String p1: the name of the second member
   static const WarningCode MISSING_OVERRIDE_OF_MUST_BE_OVERRIDDEN_TWO =
       WarningCode(
         'MISSING_OVERRIDE_OF_MUST_BE_OVERRIDDEN',
@@ -7247,7 +7276,7 @@ class WarningCode extends DiagnosticCode {
   /// a required parameter is missing.
   ///
   /// Parameters:
-  /// 0: the name of the parameter
+  /// String p0: the name of the parameter
   static const WarningCode MISSING_REQUIRED_PARAM = WarningCode(
     'MISSING_REQUIRED_PARAM',
     "The parameter '{0}' is required.",
@@ -7258,8 +7287,8 @@ class WarningCode extends DiagnosticCode {
   /// a required parameter is missing.
   ///
   /// Parameters:
-  /// 0: the name of the parameter
-  /// 1: message details
+  /// String p0: the name of the parameter
+  /// String p1: message details
   static const WarningCode MISSING_REQUIRED_PARAM_WITH_DETAILS = WarningCode(
     'MISSING_REQUIRED_PARAM',
     "The parameter '{0}' is required. {1}.",
@@ -7271,7 +7300,7 @@ class WarningCode extends DiagnosticCode {
   /// a superclass constraint of a mixin.
   ///
   /// Parameters:
-  /// 0: the name of the sealed class
+  /// String p0: the name of the sealed class
   static const WarningCode MIXIN_ON_SEALED_CLASS = WarningCode(
     'MIXIN_ON_SEALED_CLASS',
     "The class '{0}' shouldn't be used as a mixin constraint because it is "
@@ -7296,7 +7325,7 @@ class WarningCode extends DiagnosticCode {
   /// `@immutable` but that are not immutable.
   ///
   /// Parameters:
-  /// 0: the name of the class
+  /// String p0: the name of the class
   static const WarningCode MUST_BE_IMMUTABLE = WarningCode(
     'MUST_BE_IMMUTABLE',
     "This class (or a class that this class inherits from) is marked as "
@@ -7306,7 +7335,7 @@ class WarningCode extends DiagnosticCode {
   );
 
   /// Parameters:
-  /// 0: the name of the class declaring the overridden method
+  /// String p0: the name of the class declaring the overridden method
   static const WarningCode MUST_CALL_SUPER = WarningCode(
     'MUST_CALL_SUPER',
     "This method overrides a method annotated as '@mustCallSuper' in '{0}', "
@@ -7315,7 +7344,7 @@ class WarningCode extends DiagnosticCode {
   );
 
   /// Parameters:
-  /// 0: the name of the argument
+  /// String p0: the name of the argument
   static const WarningCode NON_CONST_ARGUMENT_FOR_CONST_PARAMETER = WarningCode(
     'NON_CONST_ARGUMENT_FOR_CONST_PARAMETER',
     "Argument '{0}' must be a constant.",
@@ -7327,7 +7356,7 @@ class WarningCode extends DiagnosticCode {
   /// annotated with `@literal`.
   ///
   /// Parameters:
-  /// 0: the name of the class defining the annotated constructor
+  /// String p0: the name of the class defining the annotated constructor
   static const WarningCode NON_CONST_CALL_TO_LITERAL_CONSTRUCTOR = WarningCode(
     'NON_CONST_CALL_TO_LITERAL_CONSTRUCTOR',
     "This instance creation must be 'const', because the {0} constructor is "
@@ -7340,7 +7369,7 @@ class WarningCode extends DiagnosticCode {
   /// using a constructor annotated with `@literal`.
   ///
   /// Parameters:
-  /// 0: the name of the class defining the annotated constructor
+  /// String p0: the name of the class defining the annotated constructor
   static const WarningCode
   NON_CONST_CALL_TO_LITERAL_CONSTRUCTOR_USING_NEW = WarningCode(
     'NON_CONST_CALL_TO_LITERAL_CONSTRUCTOR',
@@ -7369,8 +7398,8 @@ class WarningCode extends DiagnosticCode {
   );
 
   /// Parameters:
-  /// 0: the name of the method being invoked
-  /// 1: the type argument associated with the method
+  /// String p0: the name of the method being invoked
+  /// String p1: the type argument associated with the method
   static const WarningCode NULL_ARGUMENT_TO_NON_NULL_TYPE = WarningCode(
     'NULL_ARGUMENT_TO_NON_NULL_TYPE',
     "'{0}' shouldn't be called with a 'null' argument for the non-nullable "
@@ -7440,8 +7469,8 @@ class WarningCode extends DiagnosticCode {
   );
 
   /// Parameters:
-  /// 0: the matched value type
-  /// 1: the required pattern type
+  /// Type p0: the matched value type
+  /// Type p1: the required pattern type
   static const WarningCode PATTERN_NEVER_MATCHES_VALUE_TYPE = WarningCode(
     'PATTERN_NEVER_MATCHES_VALUE_TYPE',
     "The matched value type '{0}' can never match the required type '{1}'.",
@@ -7470,7 +7499,7 @@ class WarningCode extends DiagnosticCode {
   /// An error code indicating the use of a redeclare annotation on a member that does not redeclare.
   ///
   /// Parameters:
-  /// 0: the kind of member
+  /// String p0: the kind of member
   static const WarningCode REDECLARE_ON_NON_REDECLARING_MEMBER = WarningCode(
     'REDECLARE_ON_NON_REDECLARING_MEMBER',
     "The {0} doesn't redeclare a {0} declared in a superinterface.",
@@ -7483,8 +7512,8 @@ class WarningCode extends DiagnosticCode {
   /// An error code indicating use of a removed lint rule.
   ///
   /// Parameters:
-  /// 0: the rule name
-  /// 1: the SDK version in which the lint was removed
+  /// Object p0: the rule name
+  /// Object p1: the SDK version in which the lint was removed
   static const WarningCode REMOVED_LINT_USE = WarningCode(
     'REMOVED_LINT_USE',
     "'{0}' was removed in Dart '{1}'",
@@ -7494,9 +7523,9 @@ class WarningCode extends DiagnosticCode {
   /// An error code indicating use of a removed lint rule.
   ///
   /// Parameters:
-  /// 0: the rule name
-  /// 1: the SDK version in which the lint was removed
-  /// 2: the name of a replacing lint
+  /// Object p0: the rule name
+  /// Object p1: the SDK version in which the lint was removed
+  /// Object p2: the name of a replacing lint
   static const WarningCode REPLACED_LINT_USE = WarningCode(
     'REPLACED_LINT_USE',
     "'{0}' was replaced by '{2}' in Dart '{1}'.",
@@ -7504,8 +7533,8 @@ class WarningCode extends DiagnosticCode {
   );
 
   /// Parameters:
-  /// 0: the name of the annotated function being invoked
-  /// 1: the name of the function containing the return
+  /// String p0: the name of the annotated function being invoked
+  /// String p1: the name of the function containing the return
   static const WarningCode RETURN_OF_DO_NOT_STORE = WarningCode(
     'RETURN_OF_DO_NOT_STORE',
     "'{0}' is annotated with 'doNotStore' and shouldn't be returned unless "
@@ -7515,8 +7544,8 @@ class WarningCode extends DiagnosticCode {
   );
 
   /// Parameters:
-  /// 0: the return type as declared in the return statement
-  /// 1: the expected return type as defined by the type of the Future
+  /// Type p0: the return type as declared in the return statement
+  /// Type p1: the expected return type as defined by the type of the Future
   static const WarningCode
   RETURN_OF_INVALID_TYPE_FROM_CATCH_ERROR = WarningCode(
     'INVALID_RETURN_TYPE_FOR_CATCH_ERROR',
@@ -7527,8 +7556,8 @@ class WarningCode extends DiagnosticCode {
   );
 
   /// Parameters:
-  /// 0: the return type of the function
-  /// 1: the expected return type as defined by the type of the Future
+  /// Type p0: the return type of the function
+  /// Type p1: the expected return type as defined by the type of the Future
   static const WarningCode RETURN_TYPE_INVALID_FOR_CATCH_ERROR = WarningCode(
     'INVALID_RETURN_TYPE_FOR_CATCH_ERROR',
     "The return type '{0}' isn't assignable to '{1}', as required by "
@@ -7563,8 +7592,8 @@ class WarningCode extends DiagnosticCode {
   );
 
   /// Parameters:
-  /// 0: the version specified in the `@Since()` annotation
-  /// 1: the SDK version constraints
+  /// String p0: the version specified in the `@Since()` annotation
+  /// String p1: the SDK version constraints
   static const WarningCode SDK_VERSION_SINCE = WarningCode(
     'SDK_VERSION_SINCE',
     "This API is available since SDK {0}, but constraints '{1}' don't "
@@ -7578,7 +7607,7 @@ class WarningCode extends DiagnosticCode {
   /// type arguments; instead, each type argument is instantiated to its bound.
   ///
   /// Parameters:
-  /// 0: the name of the generic type
+  /// Type p0: the name of the generic type
   static const WarningCode STRICT_RAW_TYPE = WarningCode(
     'STRICT_RAW_TYPE',
     "The generic type '{0}' should have explicit type arguments but doesn't.",
@@ -7586,7 +7615,7 @@ class WarningCode extends DiagnosticCode {
   );
 
   /// Parameters:
-  /// 0: the name of the sealed class
+  /// String p0: the name of the sealed class
   static const WarningCode SUBTYPE_OF_SEALED_CLASS = WarningCode(
     'SUBTYPE_OF_SEALED_CLASS',
     "The class '{0}' shouldn't be extended, mixed in, or implemented because "
@@ -7598,7 +7627,7 @@ class WarningCode extends DiagnosticCode {
   );
 
   /// Parameters:
-  /// 0: the unicode sequence of the code point.
+  /// String p0: the unicode sequence of the code point.
   static const WarningCode TEXT_DIRECTION_CODE_POINT_IN_COMMENT = WarningCode(
     'TEXT_DIRECTION_CODE_POINT_IN_COMMENT',
     "The Unicode code point 'U+{0}' changes the appearance of text from how "
@@ -7610,7 +7639,7 @@ class WarningCode extends DiagnosticCode {
   );
 
   /// Parameters:
-  /// 0: the unicode sequence of the code point.
+  /// String p0: the unicode sequence of the code point.
   static const WarningCode TEXT_DIRECTION_CODE_POINT_IN_LITERAL = WarningCode(
     'TEXT_DIRECTION_CODE_POINT_IN_LITERAL',
     "The Unicode code point 'U+{0}' changes the appearance of text from how "
@@ -7640,8 +7669,8 @@ class WarningCode extends DiagnosticCode {
   );
 
   /// Parameters:
-  /// 0: the name of the library being imported
-  /// 1: the name in the hide clause that isn't defined in the library
+  /// String p0: the name of the library being imported
+  /// String p1: the name in the hide clause that isn't defined in the library
   static const WarningCode UNDEFINED_HIDDEN_NAME = WarningCode(
     'UNDEFINED_HIDDEN_NAME',
     "The library '{0}' doesn't export a member with the hidden name '{1}'.",
@@ -7650,8 +7679,8 @@ class WarningCode extends DiagnosticCode {
   );
 
   /// Parameters:
-  /// 0: the name of the undefined parameter
-  /// 1: the name of the targeted member
+  /// String p0: the name of the undefined parameter
+  /// String p1: the name of the targeted member
   static const WarningCode UNDEFINED_REFERENCED_PARAMETER = WarningCode(
     'UNDEFINED_REFERENCED_PARAMETER',
     "The parameter '{0}' isn't defined by '{1}'.",
@@ -7659,8 +7688,8 @@ class WarningCode extends DiagnosticCode {
   );
 
   /// Parameters:
-  /// 0: the name of the library being imported
-  /// 1: the name in the show clause that isn't defined in the library
+  /// String p0: the name of the library being imported
+  /// String p1: the name in the show clause that isn't defined in the library
   static const WarningCode UNDEFINED_SHOWN_NAME = WarningCode(
     'UNDEFINED_SHOWN_NAME',
     "The library '{0}' doesn't export a member with the shown name '{1}'.",
@@ -7669,7 +7698,7 @@ class WarningCode extends DiagnosticCode {
   );
 
   /// Parameters:
-  /// 0: the name of the non-diagnostic being ignored
+  /// Object p0: the name of the non-diagnostic being ignored
   static const WarningCode UNIGNORABLE_IGNORE = WarningCode(
     'UNIGNORABLE_IGNORE',
     "The diagnostic '{0}' can't be ignored.",
@@ -7771,7 +7800,7 @@ class WarningCode extends DiagnosticCode {
       );
 
   /// Parameters:
-  /// 0: the name of the type
+  /// String p0: the name of the type
   static const WarningCode UNNECESSARY_QUESTION_MARK = WarningCode(
     'UNNECESSARY_QUESTION_MARK',
     "The '?' is unnecessary because '{0}' is nullable without it.",
@@ -7835,7 +7864,7 @@ class WarningCode extends DiagnosticCode {
   );
 
   /// Parameters:
-  /// 0: the name of the exception variable
+  /// Object p0: the name of the exception variable
   static const WarningCode UNUSED_CATCH_CLAUSE = WarningCode(
     'UNUSED_CATCH_CLAUSE',
     "The exception variable '{0}' isn't used, so the 'catch' clause can be "
@@ -7845,7 +7874,7 @@ class WarningCode extends DiagnosticCode {
   );
 
   /// Parameters:
-  /// 0: the name of the stack trace variable
+  /// Object p0: the name of the stack trace variable
   static const WarningCode UNUSED_CATCH_STACK = WarningCode(
     'UNUSED_CATCH_STACK',
     "The stack trace variable '{0}' isn't used and can be removed.",
@@ -7854,7 +7883,7 @@ class WarningCode extends DiagnosticCode {
   );
 
   /// Parameters:
-  /// 0: the name that is declared but not referenced
+  /// Object p0: the name that is declared but not referenced
   static const WarningCode UNUSED_ELEMENT = WarningCode(
     'UNUSED_ELEMENT',
     "The declaration '{0}' isn't referenced.",
@@ -7863,7 +7892,7 @@ class WarningCode extends DiagnosticCode {
   );
 
   /// Parameters:
-  /// 0: the name of the parameter that is declared but not used
+  /// Object p0: the name of the parameter that is declared but not used
   static const WarningCode UNUSED_ELEMENT_PARAMETER = WarningCode(
     'UNUSED_ELEMENT_PARAMETER',
     "A value for optional parameter '{0}' isn't ever given.",
@@ -7872,7 +7901,7 @@ class WarningCode extends DiagnosticCode {
   );
 
   /// Parameters:
-  /// 0: the name of the unused field
+  /// Object p0: the name of the unused field
   static const WarningCode UNUSED_FIELD = WarningCode(
     'UNUSED_FIELD',
     "The value of the field '{0}' isn't used.",
@@ -7881,7 +7910,7 @@ class WarningCode extends DiagnosticCode {
   );
 
   /// Parameters:
-  /// 0: the content of the unused import's URI
+  /// String p0: the content of the unused import's URI
   static const WarningCode UNUSED_IMPORT = WarningCode(
     'UNUSED_IMPORT',
     "Unused import: '{0}'.",
@@ -7890,7 +7919,7 @@ class WarningCode extends DiagnosticCode {
   );
 
   /// Parameters:
-  /// 0: the label that isn't used
+  /// String p0: the label that isn't used
   static const WarningCode UNUSED_LABEL = WarningCode(
     'UNUSED_LABEL',
     "The label '{0}' isn't used.",
@@ -7901,7 +7930,7 @@ class WarningCode extends DiagnosticCode {
   );
 
   /// Parameters:
-  /// 0: the name of the unused variable
+  /// Object p0: the name of the unused variable
   static const WarningCode UNUSED_LOCAL_VARIABLE = WarningCode(
     'UNUSED_LOCAL_VARIABLE',
     "The value of the local variable '{0}' isn't used.",
@@ -7910,7 +7939,7 @@ class WarningCode extends DiagnosticCode {
   );
 
   /// Parameters:
-  /// 0: the name of the annotated method, property or function
+  /// String p0: the name of the annotated method, property or function
   static const WarningCode UNUSED_RESULT = WarningCode(
     'UNUSED_RESULT',
     "The value of '{0}' should be used.",
@@ -7925,8 +7954,8 @@ class WarningCode extends DiagnosticCode {
   /// or returned by a function).
   ///
   /// Parameters:
-  /// 0: the name of the annotated method, property or function
-  /// 1: message details
+  /// Object p0: the name of the annotated method, property or function
+  /// Object p1: message details
   static const WarningCode UNUSED_RESULT_WITH_MESSAGE = WarningCode(
     'UNUSED_RESULT',
     "'{0}' should be used. {1}.",
@@ -7938,7 +7967,7 @@ class WarningCode extends DiagnosticCode {
   );
 
   /// Parameters:
-  /// 0: the name that is shown but not used
+  /// String p0: the name that is shown but not used
   static const WarningCode UNUSED_SHOWN_NAME = WarningCode(
     'UNUSED_SHOWN_NAME',
     "The name {0} is shown, but isn't used.",
@@ -7947,7 +7976,7 @@ class WarningCode extends DiagnosticCode {
   );
 
   /// Parameters:
-  /// 0: the URI pointing to a nonexistent file
+  /// String p0: the URI pointing to a nonexistent file
   static const WarningCode URI_DOES_NOT_EXIST_IN_DOC_IMPORT = WarningCode(
     'URI_DOES_NOT_EXIST_IN_DOC_IMPORT',
     "Target of URI doesn't exist: '{0}'.",

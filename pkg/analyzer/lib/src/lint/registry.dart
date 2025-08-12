@@ -4,9 +4,9 @@
 
 import 'dart:collection';
 
+import 'package:analyzer/src/analysis_rule/rule_context.dart';
 import 'package:analyzer/src/dart/error/lint_codes.dart';
 import 'package:analyzer/src/lint/config.dart';
-import 'package:analyzer/src/lint/linter.dart';
 
 /// Registry of lint rules and warning rules.
 class Registry with IterableMixin<AbstractAnalysisRule> {

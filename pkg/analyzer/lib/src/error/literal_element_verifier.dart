@@ -257,10 +257,11 @@ class LiteralElementVerifier {
     );
 
     if (iterableType == null) {
-      return _diagnosticReporter.atNode(
+      _diagnosticReporter.atNode(
         expression,
         CompileTimeErrorCode.NOT_ITERABLE_SPREAD,
       );
+      return;
     }
 
     var iterableElementType = iterableType.typeArguments[0];
@@ -357,10 +358,11 @@ class LiteralElementVerifier {
     var mapType = expressionType.asInstanceOf(typeProvider.mapElement);
 
     if (mapType == null) {
-      return _diagnosticReporter.atNode(
+      _diagnosticReporter.atNode(
         expression,
         CompileTimeErrorCode.NOT_MAP_SPREAD,
       );
+      return;
     }
 
     var keyType = mapType.typeArguments[0];

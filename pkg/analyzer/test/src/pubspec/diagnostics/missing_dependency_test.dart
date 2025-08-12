@@ -34,7 +34,7 @@ class MissingDependencyTest with ResourceProviderMixin {
     List<String> removeDevDeps = const [],
   }) {
     var error = _runValidator(content, usedDeps, usedDevDeps).first;
-    var data = error.data as MissingDependencyData;
+    var data = MissingDependencyData.byDiagnostic[error]!;
     expect(error.diagnosticCode, PubspecWarningCode.MISSING_DEPENDENCY);
     expect(data.addDeps, addDeps);
     expect(data.addDevDeps, addDevDeps);

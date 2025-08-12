@@ -284,6 +284,12 @@ struct RunInSafepointAndRWCodeArgs {
   std::function<void()>* callback;
 };
 
+struct UnsafeSetSharedToArgs {
+  void* library_name_handle;
+  void* field_name_handle;
+  void* value_handle;
+};
+
 DART_EXPORT void* Dart_ExecuteInternalCommand(const char* command, void* arg) {
   if (strcmp(command, "gc-on-nth-allocation") == 0) {
     Thread* const thread = Thread::Current();
@@ -340,6 +346,30 @@ DART_EXPORT void* Dart_ExecuteInternalCommand(const char* command, void* arg) {
     Thread::ExitIsolateGroupAsHelper(kBypassSafepoint);
     return nullptr;
 
+  } else if (strcmp(command, "unsafe-set-shared-to") == 0) {
+    const UnsafeSetSharedToArgs* const args =
+        reinterpret_cast<UnsafeSetSharedToArgs*>(arg);
+    DARTSCOPE(Thread::Current());
+    const String& library_name = Api::UnwrapStringHandle(
+        T->zone(), reinterpret_cast<Dart_Handle>(args->library_name_handle));
+    const String& field_name = Api::UnwrapStringHandle(
+        T->zone(), reinterpret_cast<Dart_Handle>(args->field_name_handle));
+    const Instance& value = Api::UnwrapInstanceHandle(
+        T->zone(), reinterpret_cast<Dart_Handle>(args->value_handle));
+    const Library& library =
+        Library::Handle(T->zone(), Library::LookupLibrary(T, library_name));
+    ASSERT(!library.IsNull());
+    Field& field =
+        Field::Handle(T->zone(), library.LookupFieldAllowPrivate(field_name));
+    ASSERT(!field.IsNull());
+    if (field.is_shared()) {
+      SafepointReadRwLocker ml(T, T->isolate_group()->program_lock());
+      T->isolate_group()->shared_field_table()->SetAt(field.field_id(),
+                                                      value.ptr());
+    } else {
+      field.SetStaticValue(value);
+    }
+    return nullptr;
   } else {
     UNREACHABLE();
   }

@@ -59,7 +59,7 @@ class FfiCode extends DiagnosticCode {
   );
 
   /// Parameters:
-  /// 0: the value of the invalid mapping
+  /// String p0: the value of the invalid mapping
   static const FfiCode ABI_SPECIFIC_INTEGER_MAPPING_UNSUPPORTED = FfiCode(
     'ABI_SPECIFIC_INTEGER_MAPPING_UNSUPPORTED',
     "Invalid mapping to '{0}'; only mappings to 'Int8', 'Int16', 'Int32', "
@@ -97,7 +97,7 @@ class FfiCode extends DiagnosticCode {
   );
 
   /// Parameters:
-  /// 0: the name of the argument
+  /// String p0: the name of the argument
   static const FfiCode ARGUMENT_MUST_BE_A_CONSTANT = FfiCode(
     'ARGUMENT_MUST_BE_A_CONSTANT',
     "Argument '{0}' must be a constant.",
@@ -115,7 +115,7 @@ class FfiCode extends DiagnosticCode {
   );
 
   /// Parameters:
-  /// 0: the name of the struct or union class
+  /// String p0: the name of the struct or union class
   static const FfiCode COMPOUND_IMPLEMENTS_FINALIZABLE = FfiCode(
     'COMPOUND_IMPLEMENTS_FINALIZABLE',
     "The class '{0}' can't implement Finalizable.",
@@ -134,8 +134,8 @@ class FfiCode extends DiagnosticCode {
   );
 
   /// Parameters:
-  /// 0: the name of the subclass
-  /// 1: the name of the superclass
+  /// String p0: the name of the subclass
+  /// String p1: the name of the superclass
   static const FfiCode EMPTY_STRUCT = FfiCode(
     'EMPTY_STRUCT',
     "The class '{0}' can't be empty because it's a subclass of '{1}'.",
@@ -194,8 +194,8 @@ class FfiCode extends DiagnosticCode {
   );
 
   /// Parameters:
-  /// 0: the expected number of parameters
-  /// 1: the actual number of parameters
+  /// int p0: the expected number of parameters
+  /// int p1: the actual number of parameters
   static const FfiCode FFI_NATIVE_UNEXPECTED_NUMBER_OF_PARAMETERS = FfiCode(
     'FFI_NATIVE_UNEXPECTED_NUMBER_OF_PARAMETERS',
     "Unexpected number of Native annotation parameters. Expected {0} but has "
@@ -205,8 +205,8 @@ class FfiCode extends DiagnosticCode {
   );
 
   /// Parameters:
-  /// 0: the expected number of parameters
-  /// 1: the actual number of parameters
+  /// int p0: the expected number of parameters
+  /// int p1: the actual number of parameters
   static const FfiCode
   FFI_NATIVE_UNEXPECTED_NUMBER_OF_PARAMETERS_WITH_RECEIVER = FfiCode(
     'FFI_NATIVE_UNEXPECTED_NUMBER_OF_PARAMETERS_WITH_RECEIVER',
@@ -228,7 +228,7 @@ class FfiCode extends DiagnosticCode {
   );
 
   /// Parameters:
-  /// 0: the name of the struct class
+  /// String p0: the name of the struct class
   static const FfiCode GENERIC_STRUCT_SUBCLASS = FfiCode(
     'GENERIC_STRUCT_SUBCLASS',
     "The class '{0}' can't extend 'Struct' or 'Union' because '{0}' is "
@@ -238,7 +238,7 @@ class FfiCode extends DiagnosticCode {
   );
 
   /// Parameters:
-  /// 0: the name of the method
+  /// String p0: the name of the method
   static const FfiCode INVALID_EXCEPTION_VALUE = FfiCode(
     'INVALID_EXCEPTION_VALUE',
     "The method {0} can't have an exceptional return value (the second "
@@ -249,7 +249,7 @@ class FfiCode extends DiagnosticCode {
   );
 
   /// Parameters:
-  /// 0: the type of the field
+  /// String p0: the type of the field
   static const FfiCode INVALID_FIELD_TYPE_IN_STRUCT = FfiCode(
     'INVALID_FIELD_TYPE_IN_STRUCT',
     "Fields in struct classes can't have the type '{0}'. They can only be "
@@ -288,8 +288,8 @@ class FfiCode extends DiagnosticCode {
   );
 
   /// Parameters:
-  /// 0: the type that is missing a native type annotation
-  /// 1: the superclass which is extended by this field's class
+  /// Type p0: the type that is missing a native type annotation
+  /// String p1: the superclass which is extended by this field's class
   static const FfiCode MISSING_ANNOTATION_ON_STRUCT_FIELD = FfiCode(
     'MISSING_ANNOTATION_ON_STRUCT_FIELD',
     "Fields of type '{0}' in a subclass of '{1}' must have an annotation "
@@ -299,7 +299,7 @@ class FfiCode extends DiagnosticCode {
   );
 
   /// Parameters:
-  /// 0: the name of the method
+  /// String p0: the name of the method
   static const FfiCode MISSING_EXCEPTION_VALUE = FfiCode(
     'MISSING_EXCEPTION_VALUE',
     "The method {0} must have an exceptional return value (the second "
@@ -329,8 +329,9 @@ class FfiCode extends DiagnosticCode {
   );
 
   /// Parameters:
-  /// 0: the type that should be a valid dart:ffi native type.
-  /// 1: the name of the function whose invocation depends on this relationship
+  /// Object p0: the type that should be a valid dart:ffi native type.
+  /// String p1: the name of the function whose invocation depends on this
+  ///            relationship
   static const FfiCode MUST_BE_A_NATIVE_FUNCTION_TYPE = FfiCode(
     'MUST_BE_A_NATIVE_FUNCTION_TYPE',
     "The type '{0}' given to '{1}' must be a valid 'dart:ffi' native function "
@@ -341,9 +342,10 @@ class FfiCode extends DiagnosticCode {
   );
 
   /// Parameters:
-  /// 0: the type that should be a subtype
-  /// 1: the supertype that the subtype is compared to
-  /// 2: the name of the function whose invocation depends on this relationship
+  /// Type p0: the type that should be a subtype
+  /// Type p1: the supertype that the subtype is compared to
+  /// String p2: the name of the function whose invocation depends on this
+  ///            relationship
   static const FfiCode MUST_BE_A_SUBTYPE = FfiCode(
     'MUST_BE_A_SUBTYPE',
     "The type '{0}' must be a subtype of '{1}' for '{2}'.",
@@ -352,7 +354,7 @@ class FfiCode extends DiagnosticCode {
   );
 
   /// Parameters:
-  /// 0: the return type that should be 'void'.
+  /// Type p0: the return type that should be 'void'.
   static const FfiCode MUST_RETURN_VOID = FfiCode(
     'MUST_RETURN_VOID',
     "The return type of the function passed to 'NativeCallable.listener' must "
@@ -362,7 +364,7 @@ class FfiCode extends DiagnosticCode {
   );
 
   /// Parameters:
-  /// 0: The invalid type.
+  /// Type p0: The invalid type.
   static const FfiCode NATIVE_FIELD_INVALID_TYPE = FfiCode(
     'NATIVE_FIELD_INVALID_TYPE',
     "'{0}' is an unsupported type for native fields. Native fields only "
@@ -412,7 +414,8 @@ class FfiCode extends DiagnosticCode {
   );
 
   /// Parameters:
-  /// 0: the name of the function, method, or constructor having type arguments
+  /// String p0: the name of the function, method, or constructor having type
+  ///            arguments
   static const FfiCode NON_CONSTANT_TYPE_ARGUMENT = FfiCode(
     'NON_CONSTANT_TYPE_ARGUMENT',
     "The type arguments to '{0}' must be known at compile time, so they can't "
@@ -422,7 +425,7 @@ class FfiCode extends DiagnosticCode {
   );
 
   /// Parameters:
-  /// 0: the type that should be a valid dart:ffi native type.
+  /// Type p0: the type that should be a valid dart:ffi native type.
   static const FfiCode NON_NATIVE_FUNCTION_TYPE_ARGUMENT_TO_POINTER = FfiCode(
     'NON_NATIVE_FUNCTION_TYPE_ARGUMENT_TO_POINTER',
     "Can't invoke 'asFunction' because the function signature '{0}' for the "
@@ -442,8 +445,8 @@ class FfiCode extends DiagnosticCode {
   );
 
   /// Parameters:
-  /// 0: the name of the field
-  /// 1: the type of the field
+  /// String p0: the name of the field
+  /// Type p1: the type of the field
   static const FfiCode NON_SIZED_TYPE_ARGUMENT = FfiCode(
     'NON_SIZED_TYPE_ARGUMENT',
     "The type '{1}' isn't a valid type argument for '{0}'. The type argument "
@@ -481,8 +484,8 @@ class FfiCode extends DiagnosticCode {
   );
 
   /// Parameters:
-  /// 0: the name of the subclass
-  /// 1: the name of the class being extended, implemented, or mixed in
+  /// String p0: the name of the subclass
+  /// String p1: the name of the class being extended, implemented, or mixed in
   static const FfiCode SUBTYPE_OF_STRUCT_CLASS_IN_EXTENDS = FfiCode(
     'SUBTYPE_OF_STRUCT_CLASS',
     "The class '{0}' can't extend '{1}' because '{1}' is a subtype of "
@@ -494,8 +497,8 @@ class FfiCode extends DiagnosticCode {
   );
 
   /// Parameters:
-  /// 0: the name of the subclass
-  /// 1: the name of the class being extended, implemented, or mixed in
+  /// String p0: the name of the subclass
+  /// String p1: the name of the class being extended, implemented, or mixed in
   static const FfiCode SUBTYPE_OF_STRUCT_CLASS_IN_IMPLEMENTS = FfiCode(
     'SUBTYPE_OF_STRUCT_CLASS',
     "The class '{0}' can't implement '{1}' because '{1}' is a subtype of "
@@ -507,8 +510,8 @@ class FfiCode extends DiagnosticCode {
   );
 
   /// Parameters:
-  /// 0: the name of the subclass
-  /// 1: the name of the class being extended, implemented, or mixed in
+  /// String p0: the name of the subclass
+  /// String p1: the name of the class being extended, implemented, or mixed in
   static const FfiCode SUBTYPE_OF_STRUCT_CLASS_IN_WITH = FfiCode(
     'SUBTYPE_OF_STRUCT_CLASS',
     "The class '{0}' can't mix in '{1}' because '{1}' is a subtype of "

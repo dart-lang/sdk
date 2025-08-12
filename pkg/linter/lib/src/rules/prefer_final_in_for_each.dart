@@ -2,7 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/analysis_rule/analysis_rule.dart';
 import 'package:analyzer/analysis_rule/rule_context.dart';
+import 'package:analyzer/analysis_rule/rule_visitor_registry.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/error/error.dart';
@@ -27,7 +29,10 @@ class PreferFinalInForEach extends MultiAnalysisRule {
   List<String> get incompatibleRules => const [LintNames.unnecessary_final];
 
   @override
-  void registerNodeProcessors(NodeLintRegistry registry, RuleContext context) {
+  void registerNodeProcessors(
+    RuleVisitorRegistry registry,
+    RuleContext context,
+  ) {
     var visitor = _Visitor(this);
     registry.addForEachPartsWithDeclaration(this, visitor);
     registry.addForEachPartsWithPattern(this, visitor);

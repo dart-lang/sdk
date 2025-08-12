@@ -146,19 +146,26 @@ final String linterPkgPath = normalize(join(pkg_root.packageRoot, 'linter'));
 final Map<String, Map<String, AnalyzerErrorCodeInfo>> lintMessages =
     _loadLintMessages();
 
-/// Pattern used by the front end to identify placeholders in error message
-/// strings.
+/// Pattern formerly used by the analyzer to identify placeholders in error
+/// message strings.
+///
+/// (This pattern is still used internally by the analyzer implementation, but
+/// it is no longer supported in `messages.yaml`.)
+final RegExp oldPlaceholderPattern = RegExp(r'\{\d+\}');
+
+/// Pattern for placeholders in error message strings.
 // TODO(paulberry): share this regexp (and the code for interpreting
 // it) between the CFE and analyzer.
-final RegExp _placeholderPattern = RegExp(
+final RegExp placeholderPattern = RegExp(
   '#([-a-zA-Z0-9_]+)(?:%([0-9]*).([0-9]+))?',
 );
 
-/// Convert a CFE template string (which uses placeholders like `#string`) to
-/// an analyzer template string (which uses placeholders like `{0}`).
+/// Convert a template string (which uses placeholders matching
+/// [placeholderPattern]) to an analyzer internal template string (which uses
+/// placeholders like `{0}`).
 String convertTemplate(Map<String, int> placeholderToIndexMap, String entry) {
   return entry.replaceAllMapped(
-    _placeholderPattern,
+    placeholderPattern,
     (match) => '{${placeholderToIndexMap[match.group(0)!]}}',
   );
 }
@@ -357,7 +364,9 @@ class AnalyzerErrorCodeInfo extends ErrorCodeInfo {
     required super.problemMessage,
     super.removedIn,
     super.sharedName,
-  });
+  }) {
+    _check();
+  }
 
   factory AnalyzerErrorCodeInfo.fromYaml(Map<Object?, Object?> yaml) {
     if (yaml['aliasFor'] case var aliasFor?) {
@@ -367,7 +376,13 @@ class AnalyzerErrorCodeInfo extends ErrorCodeInfo {
     }
   }
 
-  AnalyzerErrorCodeInfo._fromYaml(super.yaml) : super.fromYaml();
+  AnalyzerErrorCodeInfo._fromYaml(super.yaml) : super.fromYaml() {
+    _check();
+  }
+
+  void _check() {
+    if (parameters == null) throw StateError('Missing `parameters` entry.');
+  }
 }
 
 /// Data tables mapping between CFE errors and their corresponding automatically
@@ -544,6 +559,13 @@ abstract class ErrorCodeInfo {
   /// [previousName] to its current name (or [sharedName]).
   final String? previousName;
 
+  /// A list of [ErrorCodeParameter] objects describing the parameters for this
+  /// error code, obtained from the `parameters` entry in the yaml file.
+  ///
+  /// If `null`, then there is no `parameters` entry, meaning the error code
+  /// hasn't been translated from the old placeholder format yet.
+  final List<ErrorCodeParameter>? parameters;
+
   ErrorCodeInfo({
     this.comment,
     this.documentation,
@@ -555,7 +577,22 @@ abstract class ErrorCodeInfo {
     this.deprecatedMessage,
     this.previousName,
     this.removedIn,
-  });
+    this.parameters,
+  }) {
+    for (var MapEntry(:key, :value)
+        in {
+          'problemMessage': problemMessage,
+          'correctionMessage': correctionMessage,
+        }.entries) {
+      if (value == null) continue;
+      if (value.contains(oldPlaceholderPattern)) {
+        throw StateError(
+          '$key is ${json.encode(value)}, which contains an old-style analyzer '
+          'placeholder pattern. Please convert to #NAME format.',
+        );
+      }
+    }
+  }
 
   /// Decodes an [ErrorCodeInfo] object from its YAML representation.
   ErrorCodeInfo.fromYaml(Map<Object?, Object?> yaml)
@@ -571,6 +608,7 @@ abstract class ErrorCodeInfo {
         sharedName: yaml['sharedName'] as String?,
         removedIn: yaml['removedIn'] as String?,
         previousName: yaml['previousName'] as String?,
+        parameters: _decodeParameters(yaml['parameters']),
       );
 
   /// If this error is no longer reported and
@@ -580,21 +618,33 @@ abstract class ErrorCodeInfo {
   /// Given a messages.yaml entry, come up with a mapping from placeholder
   /// patterns in its message strings to their corresponding indices.
   Map<String, int> computePlaceholderToIndexMap() {
-    var mapping = <String, int>{};
-    for (var value in [problemMessage, correctionMessage]) {
-      if (value is! String) continue;
-      for (Match match in _placeholderPattern.allMatches(value)) {
-        // CFE supports a bunch of formatting options that analyzer doesn't;
-        // make sure none of those are used.
-        if (match.group(0) != '#${match.group(1)}') {
-          throw 'Template string ${json.encode(value)} contains unsupported '
-              'placeholder pattern ${json.encode(match.group(0))}';
-        }
+    if (parameters case var parameters?) {
+      // Parameters were explicitly specified, so the mapping is determined by
+      // the order in which they were specified.
+      return {
+        for (var (index, parameter) in parameters.indexed)
+          '#${parameter.name}': index,
+      };
+    } else {
+      // Parameters are not explicitly specified, so it's necessary to invent a
+      // mapping by searching the problemMessage and correctionMessage for
+      // placeholders.
+      var mapping = <String, int>{};
+      for (var value in [problemMessage, correctionMessage]) {
+        if (value is! String) continue;
+        for (Match match in placeholderPattern.allMatches(value)) {
+          // CFE supports a bunch of formatting options that analyzer doesn't;
+          // make sure none of those are used.
+          if (match.group(0) != '#${match.group(1)}') {
+            throw 'Template string ${json.encode(value)} contains unsupported '
+                'placeholder pattern ${json.encode(match.group(0))}';
+          }
 
-        mapping[match.group(0)!] ??= mapping.length;
+          mapping[match.group(0)!] ??= mapping.length;
+        }
       }
+      return mapping;
     }
-    return mapping;
   }
 
   /// Generates a dart declaration for this error code, suitable for inclusion
@@ -644,12 +694,40 @@ abstract class ErrorCodeInfo {
 
   /// Generates doc comments for this error code.
   String toAnalyzerComments({String indent = ''}) {
+    // Start with the comment specified in `messages.yaml`.
     var out = StringBuffer();
-    var comment = this.comment;
-    if (comment != null) {
-      for (var line in comment.split('\n')) {
-        out.writeln('$indent///${line.isEmpty ? '' : ' '}$line');
-      }
+    List<String> commentLines = switch (comment) {
+      null || '' => [],
+      var c => c.split('\n'),
+    };
+
+    // Add a `Parameters:` section to the bottom of the comment if appropriate.
+    switch (parameters) {
+      case []:
+        if (commentLines.isNotEmpty) commentLines.add('');
+        commentLines.add('No parameters.');
+      case var parameters?:
+        if (commentLines.isNotEmpty) commentLines.add('');
+        commentLines.add('Parameters:');
+        for (var p in parameters) {
+          var prefix = '${p.type} ${p.name}: ';
+          var extraIndent = ' ' * prefix.length;
+          var firstLineWidth = 80 - 4 - indent.length;
+          var lines = _splitText(
+            '$prefix${p.comment}',
+            maxWidth: firstLineWidth - prefix.length,
+            firstLineWidth: firstLineWidth,
+          );
+          commentLines.add(lines[0]);
+          for (var line in lines.skip(1)) {
+            commentLines.add('$extraIndent$line');
+          }
+        }
+    }
+
+    // Indent the result and prefix with `///`.
+    for (var line in commentLines) {
+      out.writeln('$indent///${line.isEmpty ? '' : ' '}$line');
     }
     return out.toString();
   }
@@ -672,6 +750,45 @@ abstract class ErrorCodeInfo {
     // But we also need to escape `$`.
     return jsonEncoded.replaceAll(r'$', r'\$');
   }
+
+  static List<ErrorCodeParameter>? _decodeParameters(Object? yaml) {
+    if (yaml == null) return null;
+    if (yaml == 'none') return const [];
+    yaml as Map<Object?, Object?>;
+    var result = <ErrorCodeParameter>[];
+    for (var MapEntry(:key, :value) in yaml.entries) {
+      switch ((key as String).split(' ')) {
+        case [var type, var name]:
+          result.add(
+            ErrorCodeParameter(
+              type: type,
+              name: name,
+              comment: value as String,
+            ),
+          );
+        default:
+          throw StateError(
+            'Malformed parameter key (should be `TYPE NAME`): '
+            '${json.encode(key)}',
+          );
+      }
+    }
+    return result;
+  }
+}
+
+/// In-memory representation of a single key/value pair from the `parameters`
+/// map for an error code.
+class ErrorCodeParameter {
+  final String type;
+  final String name;
+  final String comment;
+
+  ErrorCodeParameter({
+    required this.type,
+    required this.name,
+    required this.comment,
+  });
 }
 
 /// In-memory representation of error code information obtained from the front

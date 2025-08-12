@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/analysis_rule/rule_context.dart';
+import 'package:analyzer/analysis_rule/rule_visitor_registry.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/error/error.dart';
@@ -20,7 +21,10 @@ class AvoidPrint extends LintRule {
   DiagnosticCode get diagnosticCode => LinterLintCode.avoid_print;
 
   @override
-  void registerNodeProcessors(NodeLintRegistry registry, RuleContext context) {
+  void registerNodeProcessors(
+    RuleVisitorRegistry registry,
+    RuleContext context,
+  ) {
     var visitor = _Visitor(this);
     registry.addMethodInvocation(this, visitor);
   }

@@ -1115,7 +1115,7 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
               correctionData.add(correctionDataBuffer.parts);
             }
           }
-          _diagnosticReporter.atToken(
+          var diagnostic = _diagnosticReporter.atToken(
             switchKeyword,
             isSwitchExpression
                 ? CompileTimeErrorCode.NON_EXHAUSTIVE_SWITCH_EXPRESSION
@@ -1125,8 +1125,10 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
               errorBuffer.toString(),
               correctionTextBuffer.toString(),
             ],
-            data: correctionData.isNotEmpty ? correctionData : null,
           );
+          if (correctionData.isNotEmpty) {
+            MissingPatternPart.byDiagnostic[diagnostic] = correctionData;
+          }
         }
       } else {
         if (defaultNode != null && mustBeExhaustive) {

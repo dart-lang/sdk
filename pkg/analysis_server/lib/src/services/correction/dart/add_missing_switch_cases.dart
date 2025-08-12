@@ -32,8 +32,8 @@ class AddMissingSwitchCases extends ResolvedCorrectionProducer {
       return;
     }
 
-    var patternPartsList = diagnostic.data;
-    if (patternPartsList is! List<List<MissingPatternPart>>) {
+    var patternPartsList = MissingPatternPart.byDiagnostic[diagnostic];
+    if (patternPartsList == null) {
       return;
     }
 

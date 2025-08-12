@@ -5,9 +5,9 @@
 import 'package:analyzer/analysis_rule/rule_visitor_registry.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/exception/exception.dart';
+import 'package:analyzer/src/analysis_rule/rule_context.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/lint/analysis_rule_timers.dart';
-import 'package:analyzer/src/lint/linter.dart';
 
 part 'linter_visitor.g.dart';
 

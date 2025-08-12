@@ -31,10 +31,12 @@ class AnalysisOptionsErrorCode extends DiagnosticCode {
   /// file.
   ///
   /// Parameters:
-  /// 0: the path of the file containing the error
-  /// 1: the starting offset of the text in the file that contains the error
-  /// 2: the ending offset of the text in the file that contains the error
-  /// 3: the error message
+  /// Object p0: the path of the file containing the error
+  /// Object p1: the starting offset of the text in the file that contains the
+  ///            error
+  /// Object p2: the ending offset of the text in the file that contains the
+  ///            error
+  /// Object p3: the error message
   static const AnalysisOptionsErrorCode INCLUDED_FILE_PARSE_ERROR =
       AnalysisOptionsErrorCode(
         'INCLUDED_FILE_PARSE_ERROR',
@@ -44,7 +46,7 @@ class AnalysisOptionsErrorCode extends DiagnosticCode {
   /// An error code indicating that there is a syntactic error in the file.
   ///
   /// Parameters:
-  /// 0: the error message from the parse error
+  /// Object p0: the error message from the parse error
   static const AnalysisOptionsErrorCode PARSE_ERROR = AnalysisOptionsErrorCode(
     'PARSE_ERROR',
     "{0}",
@@ -75,7 +77,7 @@ class AnalysisOptionsWarningCode extends DiagnosticCode {
   /// An error code indicating that the given option is deprecated.
   ///
   /// Parameters:
-  /// 0: the option name
+  /// Object p0: the option name
   static const AnalysisOptionsWarningCode ANALYSIS_OPTION_DEPRECATED =
       AnalysisOptionsWarningCode(
         'ANALYSIS_OPTION_DEPRECATED',
@@ -85,8 +87,8 @@ class AnalysisOptionsWarningCode extends DiagnosticCode {
   /// An error code indicating that the given option is deprecated.
   ///
   /// Parameters:
-  /// 0: the option name
-  /// 1: the replacement option name
+  /// Object p0: the option name
+  /// Object p1: the replacement option name
   static const AnalysisOptionsWarningCode
   ANALYSIS_OPTION_DEPRECATED_WITH_REPLACEMENT = AnalysisOptionsWarningCode(
     'ANALYSIS_OPTION_DEPRECATED',
@@ -98,7 +100,7 @@ class AnalysisOptionsWarningCode extends DiagnosticCode {
   /// A hint code indicating reference to a deprecated lint.
   ///
   /// Parameters:
-  /// 0: the rule name
+  /// String p0: the rule name
   static const AnalysisOptionsWarningCode DEPRECATED_LINT =
       AnalysisOptionsWarningCode(
         'DEPRECATED_LINT',
@@ -109,8 +111,8 @@ class AnalysisOptionsWarningCode extends DiagnosticCode {
   /// A hint code indicating reference to a deprecated lint.
   ///
   /// Parameters:
-  /// 0: the deprecated lint name
-  /// 1: the replacing rule name
+  /// String p0: the deprecated lint name
+  /// String p1: the replacing rule name
   static const AnalysisOptionsWarningCode DEPRECATED_LINT_WITH_REPLACEMENT =
       AnalysisOptionsWarningCode(
         'DEPRECATED_LINT_WITH_REPLACEMENT',
@@ -121,7 +123,7 @@ class AnalysisOptionsWarningCode extends DiagnosticCode {
   /// Duplicate rules.
   ///
   /// Parameters:
-  /// 0: the rule name
+  /// String p0: the rule name
   static const AnalysisOptionsWarningCode
   DUPLICATE_RULE = AnalysisOptionsWarningCode(
     'DUPLICATE_RULE',
@@ -132,10 +134,12 @@ class AnalysisOptionsWarningCode extends DiagnosticCode {
   /// An error code indicating a specified include file has a warning.
   ///
   /// Parameters:
-  /// 0: the path of the file containing the warnings
-  /// 1: the starting offset of the text in the file that contains the warning
-  /// 2: the ending offset of the text in the file that contains the warning
-  /// 3: the warning message
+  /// Object p0: the path of the file containing the warnings
+  /// Object p1: the starting offset of the text in the file that contains the
+  ///            warning
+  /// Object p2: the ending offset of the text in the file that contains the
+  ///            warning
+  /// Object p3: the warning message
   static const AnalysisOptionsWarningCode INCLUDED_FILE_WARNING =
       AnalysisOptionsWarningCode(
         'INCLUDED_FILE_WARNING',
@@ -145,9 +149,9 @@ class AnalysisOptionsWarningCode extends DiagnosticCode {
   /// An error code indicating a specified include file could not be found.
   ///
   /// Parameters:
-  /// 0: the URI of the file to be included
-  /// 1: the path of the file containing the include directive
-  /// 2: the path of the context being analyzed
+  /// Object p0: the URI of the file to be included
+  /// Object p1: the path of the file containing the include directive
+  /// Object p2: the path of the context being analyzed
   static const AnalysisOptionsWarningCode INCLUDE_FILE_NOT_FOUND =
       AnalysisOptionsWarningCode(
         'INCLUDE_FILE_NOT_FOUND',
@@ -157,8 +161,8 @@ class AnalysisOptionsWarningCode extends DiagnosticCode {
   /// An error code indicating an incompatible rule.
   ///
   /// Parameters:
-  /// 0: the rule name
-  /// 1: the incompatible rule
+  /// String p0: the rule name
+  /// String p1: the incompatible rule
   static const AnalysisOptionsWarningCode INCOMPATIBLE_LINT =
       AnalysisOptionsWarningCode(
         'INCOMPATIBLE_LINT',
@@ -170,8 +174,8 @@ class AnalysisOptionsWarningCode extends DiagnosticCode {
   /// value for an option and a detail message is provided.
   ///
   /// Parameters:
-  /// 0: the option name
-  /// 1: the detail message
+  /// String p0: the option name
+  /// String p1: the detail message
   static const AnalysisOptionsWarningCode INVALID_OPTION =
       AnalysisOptionsWarningCode(
         'INVALID_OPTION',
@@ -181,7 +185,7 @@ class AnalysisOptionsWarningCode extends DiagnosticCode {
   /// An error code indicating an invalid format for an options file section.
   ///
   /// Parameters:
-  /// 0: the section name
+  /// String p0: the section name
   static const AnalysisOptionsWarningCode INVALID_SECTION_FORMAT =
       AnalysisOptionsWarningCode(
         'INVALID_SECTION_FORMAT',
@@ -191,7 +195,7 @@ class AnalysisOptionsWarningCode extends DiagnosticCode {
   /// An error code indicating multiple plugins have been specified as enabled.
   ///
   /// Parameters:
-  /// 0: the name of the first plugin
+  /// String p0: the name of the first plugin
   static const AnalysisOptionsWarningCode MULTIPLE_PLUGINS =
       AnalysisOptionsWarningCode(
         'MULTIPLE_PLUGINS',
@@ -202,8 +206,8 @@ class AnalysisOptionsWarningCode extends DiagnosticCode {
   /// An error code indicating a specified include file includes itself recursively.
   ///
   /// Parameters:
-  /// 0: the URI of the file to be included
-  /// 1: the path of the file containing the include directive
+  /// Object p0: the URI of the file to be included
+  /// Object p1: the path of the file containing the include directive
   static const AnalysisOptionsWarningCode RECURSIVE_INCLUDE_FILE =
       AnalysisOptionsWarningCode(
         'RECURSIVE_INCLUDE_FILE',
@@ -215,8 +219,8 @@ class AnalysisOptionsWarningCode extends DiagnosticCode {
   /// An error code indicating a removed lint rule.
   ///
   /// Parameters:
-  /// 0: the rule name
-  /// 1: the SDK version in which the lint was removed
+  /// String p0: the rule name
+  /// String p1: the SDK version in which the lint was removed
   static const AnalysisOptionsWarningCode REMOVED_LINT =
       AnalysisOptionsWarningCode(
         'REMOVED_LINT',
@@ -227,9 +231,9 @@ class AnalysisOptionsWarningCode extends DiagnosticCode {
   /// An error code indicating a removed lint rule.
   ///
   /// Parameters:
-  /// 0: the rule name
-  /// 1: the SDK version in which the lint was removed
-  /// 2: the name of a replacing lint
+  /// String p0: the rule name
+  /// String p1: the SDK version in which the lint was removed
+  /// String p2: the name of a replacing lint
   static const AnalysisOptionsWarningCode REPLACED_LINT =
       AnalysisOptionsWarningCode(
         'REPLACED_LINT',
@@ -240,7 +244,7 @@ class AnalysisOptionsWarningCode extends DiagnosticCode {
   /// An error code indicating an undefined lint rule.
   ///
   /// Parameters:
-  /// 0: the rule name
+  /// String p0: the rule name
   static const AnalysisOptionsWarningCode UNDEFINED_LINT =
       AnalysisOptionsWarningCode(
         'UNDEFINED_LINT',
@@ -252,7 +256,7 @@ class AnalysisOptionsWarningCode extends DiagnosticCode {
   /// specify an error filter.
   ///
   /// Parameters:
-  /// 0: the unrecognized error code
+  /// String p0: the unrecognized error code
   static const AnalysisOptionsWarningCode UNRECOGNIZED_ERROR_CODE =
       AnalysisOptionsWarningCode(
         'UNRECOGNIZED_ERROR_CODE',
@@ -263,8 +267,8 @@ class AnalysisOptionsWarningCode extends DiagnosticCode {
   /// unsupported option and legal options are provided.
   ///
   /// Parameters:
-  /// 0: the plugin name
-  /// 1: the unsupported option key
+  /// String p0: the plugin name
+  /// String p1: the unsupported option key
   static const AnalysisOptionsWarningCode UNSUPPORTED_OPTION_WITHOUT_VALUES =
       AnalysisOptionsWarningCode(
         'UNSUPPORTED_OPTION_WITHOUT_VALUES',
@@ -275,9 +279,9 @@ class AnalysisOptionsWarningCode extends DiagnosticCode {
   /// unsupported option where there is just one legal value.
   ///
   /// Parameters:
-  /// 0: the section name
-  /// 1: the unsupported option key
-  /// 2: the legal value
+  /// String p0: the section name
+  /// String p1: the unsupported option key
+  /// String p2: the legal value
   static const AnalysisOptionsWarningCode
   UNSUPPORTED_OPTION_WITH_LEGAL_VALUE = AnalysisOptionsWarningCode(
     'UNSUPPORTED_OPTION_WITH_LEGAL_VALUE',
@@ -289,9 +293,9 @@ class AnalysisOptionsWarningCode extends DiagnosticCode {
   /// unsupported option and legal options are provided.
   ///
   /// Parameters:
-  /// 0: the section name
-  /// 1: the unsupported option key
-  /// 2: legal values
+  /// String p0: the section name
+  /// String p1: the unsupported option key
+  /// String p2: legal values
   static const AnalysisOptionsWarningCode UNSUPPORTED_OPTION_WITH_LEGAL_VALUES =
       AnalysisOptionsWarningCode(
         'UNSUPPORTED_OPTION_WITH_LEGAL_VALUES',
@@ -303,9 +307,9 @@ class AnalysisOptionsWarningCode extends DiagnosticCode {
   /// unsupported value.
   ///
   /// Parameters:
-  /// 0: the option name
-  /// 1: the unsupported value
-  /// 2: legal values
+  /// String p0: the option name
+  /// int p1: the unsupported value
+  /// String p2: legal values
   static const AnalysisOptionsWarningCode UNSUPPORTED_VALUE =
       AnalysisOptionsWarningCode(
         'UNSUPPORTED_VALUE',

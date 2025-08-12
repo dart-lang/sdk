@@ -24,6 +24,7 @@ class Diagnostic {
   final List<DiagnosticMessage> contextMessages;
 
   /// Data associated with this diagnostic, specific for [diagnosticCode].
+  @Deprecated('Use an expando instead')
   final Object? data;
 
   /// A description of how to fix the problem, or `null` if there is no such
@@ -46,7 +47,7 @@ class Diagnostic {
     required String message,
     this.correctionMessage,
     this.contextMessages = const [],
-    this.data,
+    @Deprecated('Use an expando instead') this.data,
   }) : diagnosticCode = _useNonNullCodeBetween(diagnosticCode, errorCode),
        problemMessage = DiagnosticMessageImpl(
          filePath: source.fullName,
@@ -72,7 +73,7 @@ class Diagnostic {
     DiagnosticCode? errorCode,
     List<Object?> arguments = const [],
     List<DiagnosticMessage> contextMessages = const [],
-    Object? data,
+    @Deprecated('Use an expando instead') Object? data,
   }) {
     var code = _useNonNullCodeBetween(diagnosticCode, errorCode);
     assert(
@@ -98,6 +99,7 @@ class Diagnostic {
       message: message,
       correctionMessage: correctionMessage,
       contextMessages: contextMessages,
+      // ignore: deprecated_member_use_from_same_package
       data: data,
     );
   }

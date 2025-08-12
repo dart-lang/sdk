@@ -3,6 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/src/lint/linter.dart';
+import 'package:analyzer/src/analysis_rule/rule_context.dart';
 
 part 'rule_visitor_registry.g.dart';

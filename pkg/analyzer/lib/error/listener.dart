@@ -96,47 +96,54 @@ class DiagnosticReporter {
   /// Reports a diagnostic with the given [diagnosticCode] and [arguments].
   ///
   /// The location of the diagnostic will be the name of the [node].
-  void atConstructorDeclaration(
+  ///
+  /// The reported [Diagnostic] is returned so that the caller may attach
+  /// additional information to it (for example, using an expando).
+  Diagnostic atConstructorDeclaration(
     ConstructorDeclaration node,
     DiagnosticCode diagnosticCode, {
     List<Object>? arguments,
     List<DiagnosticMessage>? contextMessages,
-    Object? data,
+    @Deprecated('Use an expando instead') Object? data,
   }) {
     // TODO(brianwilkerson): Consider extending this method to take any
     //  declaration and compute the correct range for the name of that
     //  declaration. This might make it easier to be consistent.
     if (node.name case var nameToken?) {
       var offset = node.returnType.offset;
-      atOffset(
+      return atOffset(
         offset: offset,
         length: nameToken.end - offset,
         diagnosticCode: diagnosticCode,
         arguments: arguments,
       );
     } else {
-      atNode(node.returnType, diagnosticCode, arguments: arguments);
+      return atNode(node.returnType, diagnosticCode, arguments: arguments);
     }
   }
 
   /// Reports a diagnostic with the given [diagnosticCode] and [arguments].
   ///
   /// The [element] is used to compute the location of the diagnostic.
+  ///
+  /// The reported [Diagnostic] is returned so that the caller may attach
+  /// additional information to it (for example, using an expando).
   @experimental
-  void atElement2(
+  Diagnostic atElement2(
     Element element,
     DiagnosticCode diagnosticCode, {
     List<Object>? arguments,
     List<DiagnosticMessage>? contextMessages,
-    Object? data,
+    @Deprecated('Use an expando instead') Object? data,
   }) {
     var nonSynthetic = element.nonSynthetic;
-    atOffset(
+    return atOffset(
       diagnosticCode: diagnosticCode,
       offset: nonSynthetic.firstFragment.nameOffset ?? -1,
       length: nonSynthetic.name?.length ?? 0,
       arguments: arguments,
       contextMessages: contextMessages,
+      // ignore: deprecated_member_use_from_same_package
       data: data,
     );
   }
@@ -144,19 +151,23 @@ class DiagnosticReporter {
   /// Reports a diagnostic with the given [diagnosticCode] and [arguments].
   ///
   /// The [entity] is used to compute the location of the diagnostic.
-  void atEntity(
+  ///
+  /// The reported [Diagnostic] is returned so that the caller may attach
+  /// additional information to it (for example, using an expando).
+  Diagnostic atEntity(
     SyntacticEntity entity,
     DiagnosticCode diagnosticCode, {
     List<Object>? arguments,
     List<DiagnosticMessage>? contextMessages,
-    Object? data,
+    @Deprecated('Use an expando instead') Object? data,
   }) {
-    atOffset(
+    return atOffset(
       diagnosticCode: diagnosticCode,
       offset: entity.offset,
       length: entity.length,
       arguments: arguments,
       contextMessages: contextMessages,
+      // ignore: deprecated_member_use_from_same_package
       data: data,
     );
   }
@@ -164,19 +175,23 @@ class DiagnosticReporter {
   /// Reports a diagnostic with the given [diagnosticCode] and [arguments].
   ///
   /// The [node] is used to compute the location of the diagnostic.
-  void atNode(
+  ///
+  /// The reported [Diagnostic] is returned so that the caller may attach
+  /// additional information to it (for example, using an expando).
+  Diagnostic atNode(
     AstNode node,
     DiagnosticCode diagnosticCode, {
     List<Object>? arguments,
     List<DiagnosticMessage>? contextMessages,
-    Object? data,
+    @Deprecated('Use an expando instead') Object? data,
   }) {
-    atOffset(
+    return atOffset(
       diagnosticCode: diagnosticCode,
       offset: node.offset,
       length: node.length,
       arguments: arguments,
       contextMessages: contextMessages,
+      // ignore: deprecated_member_use_from_same_package
       data: data,
     );
   }
@@ -186,18 +201,18 @@ class DiagnosticReporter {
   ///
   /// The location of the diagnostic is specified by the given [offset] and
   /// [length].
-  void atOffset({
+  ///
+  /// The reported [Diagnostic] is returned so that the caller may attach
+  /// additional information to it (for example, using an expando).
+  Diagnostic atOffset({
     required int offset,
     required int length,
     @Deprecated("Use 'diagnosticCode' instead") DiagnosticCode? errorCode,
     DiagnosticCode? diagnosticCode,
     List<Object>? arguments,
     List<DiagnosticMessage>? contextMessages,
-    Object? data,
+    @Deprecated('Use an expando instead') Object? data,
   }) {
-    if (lockLevel != 0) {
-      return;
-    }
     if ((errorCode == null && diagnosticCode == null) ||
         (errorCode != null && diagnosticCode != null)) {
       throw ArgumentError(
@@ -225,35 +240,40 @@ class DiagnosticReporter {
 
     contextMessages ??= [];
     contextMessages.addAll(convertTypeNames(arguments));
-    _diagnosticListener.onDiagnostic(
-      Diagnostic.tmp(
-        source: _source,
-        offset: offset,
-        length: length,
-        diagnosticCode: diagnosticCode,
-        arguments: arguments ?? const [],
-        contextMessages: contextMessages,
-        data: data,
-      ),
+    var diagnostic = Diagnostic.tmp(
+      source: _source,
+      offset: offset,
+      length: length,
+      diagnosticCode: diagnosticCode,
+      arguments: arguments ?? const [],
+      contextMessages: contextMessages,
+      // ignore: deprecated_member_use_from_same_package
+      data: data,
     );
+    reportError(diagnostic);
+    return diagnostic;
   }
 
   /// Reports a diagnostic with the given [diagnosticCode] and [arguments].
   ///
   /// The [span] is used to compute the location of the diagnostic.
-  void atSourceSpan(
+  ///
+  /// The reported [Diagnostic] is returned so that the caller may attach
+  /// additional information to it (for example, using an expando).
+  Diagnostic atSourceSpan(
     SourceSpan span,
     DiagnosticCode diagnosticCode, {
     List<Object>? arguments,
     List<DiagnosticMessage>? contextMessages,
-    Object? data,
+    @Deprecated('Use an expando instead') Object? data,
   }) {
-    atOffset(
+    return atOffset(
       diagnosticCode: diagnosticCode,
       offset: span.start.offset,
       length: span.length,
       arguments: arguments,
       contextMessages: contextMessages,
+      // ignore: deprecated_member_use_from_same_package
       data: data,
     );
   }
@@ -261,25 +281,32 @@ class DiagnosticReporter {
   /// Reports a diagnostic with the given [diagnosticCode] and [arguments].
   ///
   /// The [token] is used to compute the location of the diagnostic.
-  void atToken(
+  ///
+  /// The reported [Diagnostic] is returned so that the caller may attach
+  /// additional information to it (for example, using an expando).
+  Diagnostic atToken(
     Token token,
     DiagnosticCode diagnosticCode, {
     List<Object>? arguments,
     List<DiagnosticMessage>? contextMessages,
-    Object? data,
+    @Deprecated('Use an expando instead') Object? data,
   }) {
-    atOffset(
+    return atOffset(
       diagnosticCode: diagnosticCode,
       offset: token.offset,
       length: token.length,
       arguments: arguments,
       contextMessages: contextMessages,
+      // ignore: deprecated_member_use_from_same_package
       data: data,
     );
   }
 
   /// Report the given [diagnostic].
   void reportError(Diagnostic diagnostic) {
+    if (lockLevel != 0) {
+      return;
+    }
     _diagnosticListener.onDiagnostic(diagnostic);
   }
 }

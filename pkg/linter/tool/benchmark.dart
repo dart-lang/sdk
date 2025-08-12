@@ -6,10 +6,10 @@ import 'dart:async';
 import 'dart:io';
 import 'dart:math' as math;
 
+import 'package:analyzer/analysis_rule/analysis_rule.dart';
 import 'package:analyzer/src/lint/analysis_rule_timers.dart';
 import 'package:analyzer/src/lint/config.dart';
 import 'package:analyzer/src/lint/io.dart';
-import 'package:analyzer/src/lint/linter.dart';
 import 'package:analyzer/src/lint/registry.dart';
 import 'package:analyzer/src/util/file_paths.dart' as file_paths;
 import 'package:args/args.dart';
