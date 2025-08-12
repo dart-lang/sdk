@@ -55,7 +55,7 @@ class AstWriter extends UnifyingAstVisitor<void> with TreeWriter {
     } else if (node is ConstructorName) {
       properties['element'] = node.element;
     } else if (node is DeclaredIdentifier) {
-      properties['element'] = node.declaredElement;
+      properties['element'] = node.declaredFragment?.element;
       properties['keyword'] = node.keyword;
     } else if (node is ExportDirective) {
       properties['library export'] = node.libraryExport;

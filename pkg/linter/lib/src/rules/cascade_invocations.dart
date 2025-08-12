@@ -29,7 +29,7 @@ Element? _getElementFromVariableDeclarationStatement(
       // In such a case, we should not return any cascadable element here.
       return null;
     }
-    return variable.declaredElement ?? variable.declaredFragment?.element;
+    return variable.declaredFragment?.element;
   }
   return null;
 }

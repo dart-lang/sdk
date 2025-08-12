@@ -1262,7 +1262,7 @@ parent3: ${node.parent?.parent?.parent}
     if (pattern is AssignedVariablePattern) {
       element = pattern.element;
     } else if (pattern is DeclaredVariablePattern) {
-      element = pattern.declaredElement;
+      element = pattern.declaredFragment?.element;
       // } else if (pattern is RecordPattern) {
       //   pattern.fields.map((e) => _requiredTypeOfPattern(e.pattern)).toList();
     } else if (pattern is ListPattern) {

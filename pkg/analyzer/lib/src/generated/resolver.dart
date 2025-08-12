@@ -4083,9 +4083,9 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
         // TODO(paulberry): try to remove these casts by changing `node` to a
         // `TryStatementImpl`
         flow.tryCatchStatement_catchBegin(
-          catchClause.exceptionParameter?.declaredElement
+          catchClause.exceptionParameter?.declaredFragment?.element
               as PromotableElementImpl?,
-          catchClause.stackTraceParameter?.declaredElement
+          catchClause.stackTraceParameter?.declaredFragment?.element
               as PromotableElementImpl?,
         );
         catchClause.accept(this);
@@ -4151,7 +4151,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
       var declaredType = parent.type;
       var initializerStaticType = initializer.typeOrThrow;
       flowAnalysis.flow?.initialize(
-        node.declaredElement as PromotableElementImpl,
+        node.declaredFragment?.element as PromotableElementImpl,
         SharedTypeView(initializerStaticType),
         initializer,
         isFinal: parent.isFinal,
@@ -4904,10 +4904,10 @@ class ScopeResolverVisitor extends UnifyingAstVisitor<void> {
       Scope outerScope = nameScope;
       try {
         nameScope = LocalScope(nameScope);
-        _define(exception.declaredElement!);
+        _define(exception.declaredFragment!.element);
         var stackTrace = node.stackTraceParameter;
         if (stackTrace != null) {
-          _define(stackTrace.declaredElement!);
+          _define(stackTrace.declaredFragment!.element);
         }
         super.visitCatchClause(node);
       } finally {
@@ -5601,7 +5601,7 @@ class ScopeResolverVisitor extends UnifyingAstVisitor<void> {
     super.visitVariableDeclaration(node);
 
     if (node.parent!.parent is ForParts) {
-      _define(node.declaredElement!);
+      _define(node.declaredFragment!.element);
     }
   }
 

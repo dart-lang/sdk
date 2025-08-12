@@ -860,7 +860,7 @@ package:analyzer/dart/ast/ast.dart:
     rightParenthesis (getter: Token?)
     stackTraceParameter (getter: CatchClauseParameter?)
   CatchClauseParameter (class extends AstNode):
-    declaredElement (getter: LocalVariableElement?, experimental)
+    declaredElement (getter: LocalVariableElement?, deprecated, experimental)
     declaredElement2 (getter: LocalVariableElement?, deprecated, experimental)
     declaredFragment (getter: LocalVariableFragment?, experimental)
     name (getter: Token)
@@ -994,7 +994,7 @@ package:analyzer/dart/ast/ast.dart:
   Declaration (class extends Object implements AnnotatedNode):
     declaredFragment (getter: Fragment?, experimental)
   DeclaredIdentifier (class extends Object implements Declaration):
-    declaredElement (getter: LocalVariableElement?, experimental)
+    declaredElement (getter: LocalVariableElement?, deprecated, experimental)
     declaredElement2 (getter: LocalVariableElement?, deprecated, experimental)
     declaredFragment (getter: LocalVariableFragment?)
     isConst (getter: bool)
@@ -1003,7 +1003,7 @@ package:analyzer/dart/ast/ast.dart:
     name (getter: Token)
     type (getter: TypeAnnotation?)
   DeclaredVariablePattern (class extends Object implements VariablePattern, sealed (immediate subtypes: DeclaredVariablePatternImpl)):
-    declaredElement (getter: BindPatternVariableElement?, experimental)
+    declaredElement (getter: BindPatternVariableElement?, deprecated, experimental)
     declaredElement2 (getter: BindPatternVariableElement?, deprecated, experimental)
     declaredFragment (getter: BindPatternVariableFragment?)
     keyword (getter: Token?)
@@ -1742,7 +1742,7 @@ package:analyzer/dart/ast/ast.dart:
   UriBasedDirective (class extends Object implements Directive, sealed (immediate subtypes: NamespaceDirective, PartDirective, UriBasedDirectiveImpl)):
     uri (getter: StringLiteral)
   VariableDeclaration (class extends Object implements Declaration):
-    declaredElement (getter: LocalVariableElement?, experimental)
+    declaredElement (getter: LocalVariableElement?, deprecated, experimental)
     declaredElement2 (getter: LocalVariableElement?, deprecated, experimental)
     declaredFragment (getter: VariableFragment?, experimental)
     equals (getter: Token?)

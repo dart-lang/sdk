@@ -61,14 +61,14 @@ class GatherUsedLocalElementsVisitor extends RecursiveAstVisitor<void> {
     var exceptionParameter = node.exceptionParameter;
     var stackTraceParameter = node.stackTraceParameter;
     if (exceptionParameter != null) {
-      var element = exceptionParameter.declaredElement;
+      var element = exceptionParameter.declaredFragment?.element;
       usedElements.addCatchException(element);
       if (stackTraceParameter != null || node.onKeyword == null) {
         usedElements.addElement(element);
       }
     }
     if (stackTraceParameter != null) {
-      var element = stackTraceParameter.declaredElement;
+      var element = stackTraceParameter.declaredFragment?.element;
       usedElements.addCatchStackTrace(element);
     }
     super.visitCatchClause(node);
@@ -521,7 +521,7 @@ class UnusedLocalElementsVerifier extends RecursiveAstVisitor<void> {
 
   @override
   void visitCatchClauseParameter(CatchClauseParameter node) {
-    _visitLocalVariableElement(node.declaredElement!);
+    _visitLocalVariableElement(node.declaredFragment!.element);
     super.visitCatchClauseParameter(node);
   }
 
@@ -553,7 +553,7 @@ class UnusedLocalElementsVerifier extends RecursiveAstVisitor<void> {
   void visitDeclaredVariablePattern(
     covariant DeclaredVariablePatternImpl node,
   ) {
-    var declaredElement = node.declaredElement!;
+    var declaredElement = node.declaredFragment!.element;
     if (!declaredElement.isDuplicate) {
       var patternVariableElements = _patternVariableElements;
       if (patternVariableElements != null) {
@@ -618,7 +618,7 @@ class UnusedLocalElementsVerifier extends RecursiveAstVisitor<void> {
   void visitForPartsWithDeclarations(ForPartsWithDeclarations node) {
     for (var variable in node.variables.variables) {
       _visitLocalVariableElement(
-        variable.declaredElement as LocalVariableElement,
+        variable.declaredFragment!.element as LocalVariableElement,
       );
     }
 
@@ -748,7 +748,7 @@ class UnusedLocalElementsVerifier extends RecursiveAstVisitor<void> {
   void visitVariableDeclarationStatement(VariableDeclarationStatement node) {
     for (var variable in node.variables.variables) {
       _visitLocalVariableElement(
-        variable.declaredElement as LocalVariableElement,
+        variable.declaredFragment!.element as LocalVariableElement,
       );
     }
 

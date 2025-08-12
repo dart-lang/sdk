@@ -141,7 +141,7 @@ class _Visitor extends SimpleAstVisitor<void> {
   @override
   void visitCatchClause(CatchClause node) {
     if (node.onKeyword != null) return;
-    var caughtException = node.exceptionParameter?.declaredElement;
+    var caughtException = node.exceptionParameter?.declaredFragment?.element;
     if (caughtException == null) return;
 
     var validUseVisitor = _ValidUseVisitor(caughtException);

@@ -4,6 +4,7 @@
 
 import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analysis_server/src/services/correction/util.dart';
+import 'package:analysis_server/src/utilities/extensions/object.dart';
 import 'package:analysis_server_plugin/edit/correction_utils.dart';
 import 'package:analysis_server_plugin/edit/dart/correction_producer.dart';
 import 'package:analyzer/dart/element/element.dart';
@@ -286,10 +287,10 @@ class RemoveUnusedLocalVariable extends ResolvedCorrectionProducer {
   LocalVariableElement? _localVariableElement() {
     var node = this.node;
     if (node is DeclaredVariablePattern) {
-      return node.declaredElement;
+      return node.declaredFragment?.element;
     } else if (node is VariableDeclaration) {
       if (node.name == token) {
-        return node.declaredElement;
+        return node.declaredFragment?.element.ifTypeOrNull();
       }
     }
     return null;

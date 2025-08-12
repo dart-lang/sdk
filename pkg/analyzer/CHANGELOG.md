@@ -1,3 +1,13 @@
+## 8.2.0-dev
+* Deprecate `CatchClauseParameter.declaredElement` and `CatchClauseParameter.declaredElement2`.
+  Use `CatchClauseParameter.declaredFragment` instead.
+* Deprecate `DeclaredIdentifier.declaredElement` and `DeclaredIdentifier.declaredElement2`.
+  Use `DeclaredIdentifier.declaredFragment` instead.
+* Deprecate `DeclaredVariablePattern.declaredElement` and `DeclaredVariablePattern.declaredElement2`.
+  Use `DeclaredVariablePattern.declaredFragment` instead.
+* Deprecate `VariableDeclaration.declaredElement` and `VariableDeclaration.declaredElement2`.
+  Use `VariableDeclaration.declaredFragment` instead.
+
 ## 8.1.1
 * Fix for `EnumSet` usage when compiled to JavaScript.
 

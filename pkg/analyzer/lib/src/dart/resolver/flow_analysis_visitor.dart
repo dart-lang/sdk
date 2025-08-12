@@ -346,7 +346,9 @@ class FlowAnalysisHelper {
       var variables = node.variables;
       for (var i = 0; i < variables.length; ++i) {
         var variable = variables[i];
-        var declaredElement = variable.declaredElement!;
+        var declaredFragment =
+            variable.declaredFragment as LocalVariableFragmentImpl;
+        var declaredElement = declaredFragment.element;
         flow!.declare(
           declaredElement,
           SharedTypeView(declaredElement.type),
@@ -1003,7 +1005,7 @@ class _AssignedVariablesVisitor extends RecursiveAstVisitor<void> {
       node.stackTraceParameter,
     ]) {
       if (identifier != null) {
-        assignedVariables.declare(identifier.declaredElement!);
+        assignedVariables.declare(identifier.declaredFragment!.element);
       }
     }
     super.visitCatchClause(node);
@@ -1194,7 +1196,8 @@ class _AssignedVariablesVisitor extends RecursiveAstVisitor<void> {
         grandParent is FieldDeclaration) {
       throw StateError('Should not visit top level declarations');
     }
-    var declaredElement = node.declaredElement as PromotableElementImpl;
+    var declaredElement =
+        node.declaredFragment?.element as PromotableElementImpl;
     assignedVariables.declare(declaredElement);
     if (declaredElement.isLate && node.initializer != null) {
       assignedVariables.beginNode();
@@ -1247,7 +1250,7 @@ class _AssignedVariablesVisitor extends RecursiveAstVisitor<void> {
           assignedVariables.write(element);
         }
       } else if (forLoopParts is ForEachPartsWithDeclarationImpl) {
-        var variable = forLoopParts.loopVariable.declaredElement!;
+        var variable = forLoopParts.loopVariable.declaredFragment!.element;
         assignedVariables.declare(variable);
       } else if (forLoopParts is ForEachPartsWithPatternImpl) {
         for (var variable in forLoopParts.variables) {

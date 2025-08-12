@@ -70,7 +70,7 @@ DartType? getExpectedType(PostfixExpression node) {
   }
   // in variable declaration
   if (parent is VariableDeclaration) {
-    var element = parent.declaredFragment?.element ?? parent.declaredElement;
+    var element = parent.declaredFragment?.element;
     return element?.type;
   }
   // as right member of binary operator

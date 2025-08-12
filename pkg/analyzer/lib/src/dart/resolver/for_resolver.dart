@@ -190,7 +190,7 @@ class ForResolver {
     }
 
     if (loopVariable != null) {
-      var declaredElement = loopVariable.declaredElement!;
+      var declaredElement = loopVariable.declaredFragment!.element;
       _resolver.flowAnalysis.flow?.declare(
         declaredElement,
         SharedTypeView(declaredElement.type),

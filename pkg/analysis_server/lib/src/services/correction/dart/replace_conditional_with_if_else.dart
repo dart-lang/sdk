@@ -117,7 +117,7 @@ class ReplaceConditionalWithIfElse extends ResolvedCorrectionProducer {
           var variable = conditional.parent as VariableDeclaration;
           var variableList = variable.parent as VariableDeclarationList;
           if (variableList.type == null) {
-            var type = variable.declaredElement!.type;
+            var type = variable.declaredFragment!.element.type;
             var keyword = variableList.keyword;
             if (keyword != null && keyword.keyword == Keyword.VAR) {
               builder.addReplacement(range.token(keyword), (builder) {
