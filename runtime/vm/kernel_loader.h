@@ -186,8 +186,7 @@ class KernelLoader : public ValueObject {
 
   // Returns the function which will evaluate the expression, or a failure
   // object if there was an error.
-  ObjectPtr LoadExpressionEvaluationFunction(const String& library_url,
-                                             const String& klass);
+  ObjectPtr LoadExpressionEvaluationFunction(const Class& real_class);
 
   // Finds all libraries that have been modified in this incremental
   // version of the kernel program file.

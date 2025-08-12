@@ -5228,10 +5228,22 @@ ObjectPtr Class::Invoke(const String& function_name,
 #if !defined(DART_PRECOMPILED_RUNTIME)
 
 static ObjectPtr LoadExpressionEvaluationFunction(
-    Zone* zone,
+    Thread* thread,
     const ExternalTypedData& kernel_buffer,
-    const String& library_url,
-    const String& klass) {
+    const Class& klass) {
+  Zone* zone = thread->zone();
+#if defined(DART_DYNAMIC_MODULES)
+  if (Dart_IsBytecode(
+          reinterpret_cast<const uint8_t*>(kernel_buffer.DataAddr(0)),
+          kernel_buffer.LengthInBytes())) {
+    SafepointWriteRwLocker ml(thread, thread->isolate_group()->program_lock());
+    bytecode::BytecodeLoader loader(thread, kernel_buffer);
+    loader.SetExpressionEvaluationRealClass(klass);
+    loader.LoadBytecode();
+    return loader.GetExpressionEvaluationFunction();
+  }
+#endif  // defined(DART_DYNAMIC_MODULES)
+
   std::unique_ptr<kernel::Program> kernel_pgm =
       kernel::Program::ReadFromTypedData(kernel_buffer);
 
@@ -5244,7 +5256,7 @@ static ObjectPtr LoadExpressionEvaluationFunction(
   {
     kernel::KernelLoader loader(kernel_pgm.get(),
                                 /*uri_to_source_table=*/nullptr);
-    result = loader.LoadExpressionEvaluationFunction(library_url, klass);
+    result = loader.LoadExpressionEvaluationFunction(klass);
     kernel_pgm.reset();
   }
   if (result.IsError()) return result.ptr();
@@ -5334,7 +5346,7 @@ ObjectPtr Instance::EvaluateCompiledExpression(
     const Array& type_definitions,
     const Array& arguments,
     const TypeArguments& type_arguments) {
-  auto zone = Thread::Current()->zone();
+  Zone* zone = thread->zone();
 #if defined(DART_PRECOMPILED_RUNTIME)
   const auto& error_str = String::Handle(
       zone,
@@ -5348,14 +5360,8 @@ ObjectPtr Instance::EvaluateCompiledExpression(
     return UnhandledException::New(exception, StackTrace::null_instance());
   }
 
-  const auto& url = String::Handle(zone, library.url());
-  const auto& klass_name = klass.IsTopLevel()
-                               ? String::null_string()
-                               : String::Handle(zone, klass.UserVisibleName());
-
   const auto& result = Object::Handle(
-      zone,
-      LoadExpressionEvaluationFunction(zone, kernel_buffer, url, klass_name));
+      zone, LoadExpressionEvaluationFunction(thread, kernel_buffer, klass));
   if (result.IsError()) return result.ptr();
 
   const auto& eval_function = Function::Cast(result);
