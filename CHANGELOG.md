@@ -26,6 +26,7 @@
 
 - **Breaking Change** [#56468][]: Marked `IOOverrides` as an `abstract base`
   class.
+- Added ability to override behavior of `exit(...)` to `IOOverrides`.
 
 [#56468]: https://github.com/dart-lang/sdk/issues/56468
 
