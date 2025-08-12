@@ -999,6 +999,12 @@ ObjectPtr BytecodeReaderHelper::ReadObjectContents(uint32_t header) {
       String& uri = String::CheckedHandle(Z, ReadObject());
       LibraryPtr library = Library::LookupLibrary(thread_, uri);
       if (library == Library::null()) {
+        // Expression evaluation libraries are not registered with the VM:
+        // The expression evaluation functions should be GC-able as soon as
+        // they are not reachable anymore and we never look them up by name.
+        if (uri.ptr() == Symbols::EvalSourceUri().ptr()) {
+          return thread_->bytecode_loader()->GetExpressionEvaluationLibrary();
+        }
         FATAL("Unable to find library %s", uri.ToCString());
       }
       return library;
@@ -1014,8 +1020,16 @@ ObjectPtr BytecodeReaderHelper::ReadObjectContents(uint32_t header) {
         }
         return cls;
       }
-      ClassPtr cls = library.LookupClassAllowPrivate(class_name);
+      ClassPtr cls = library.LookupClass(class_name);
       if (cls == Class::null()) {
+        // Expression evaluation class is not added to its library.
+        // Any reference to the expression evaluation class should be replaced
+        // with a real class.
+        if (library.url() == Symbols::EvalSourceUri().ptr()) {
+          ASSERT(thread_->bytecode_loader()->GetExpressionEvaluationLibrary() ==
+                 library.ptr());
+          return thread_->bytecode_loader()->GetExpressionEvaluationRealClass();
+        }
         FATAL("Unable to find class %s in %s", class_name.ToCString(),
               library.ToCString());
       }
@@ -1981,6 +1995,9 @@ void BytecodeReaderHelper::ReadFunctionDeclarations(const Class& cls) {
         (flags & kIsAbstractFlag) != 0, (flags & kIsExternalFlag) != 0,
         is_native, script_class, position);
 
+    const bool is_expression_evaluation =
+        (name.ptr() == Symbols::DebugProcedureName().ptr());
+
     // Declare function scope as types (type parameters) in function
     // signature may back-reference to the function being declared.
     // At this moment, owner class is not fully loaded yet and it won't be
@@ -2034,7 +2051,15 @@ void BytecodeReaderHelper::ReadFunctionDeclarations(const Class& cls) {
 
     intptr_t param_index = 0;
     if (!is_static) {
-      type = cls.DeclarationType();
+      if (is_expression_evaluation) {
+        // Do not reference enclosing class as expression evaluation
+        // method logically belongs to another (real) class.
+        // Enclosing class is not registered and doesn't have
+        // a valid cid, so it can't be used in a type.
+        type = AbstractType::dynamic_type().ptr();
+      } else {
+        type = cls.DeclarationType();
+      }
       signature.SetParameterTypeAt(param_index, type);
       NOT_IN_PRECOMPILED(
           function.SetParameterNameAt(param_index, Symbols::This()));
@@ -2085,7 +2110,22 @@ void BytecodeReaderHelper::ReadFunctionDeclarations(const Class& cls) {
     }
 
     if ((flags & kHasAnnotationsFlag) != 0) {
+      ASSERT(!is_expression_evaluation);
       ReadAnnotations(cls, function, has_pragma);
+    }
+
+    if (is_expression_evaluation) {
+      ASSERT(!function.is_abstract());
+      BytecodeLoader* loader = thread_->bytecode_loader();
+      ASSERT(loader != nullptr);
+      loader->SetExpressionEvaluationFunction(function);
+      // Read bytecode of expression evaluation function within FunctionScope.
+      // Replace class of the function in scope as we're going to look for
+      // expression evaluation function in a real class.
+      if (!cls.IsTopLevel()) {
+        scoped_function_class_ = loader->GetExpressionEvaluationRealClass();
+      }
+      ReadCode(function, loader->GetOffset(function));
     }
 
     functions_->SetAt(function_index_++, function);
@@ -2244,7 +2284,8 @@ void BytecodeReaderHelper::ReadClassDeclaration(const Class& cls) {
 
 void BytecodeReaderHelper::ReadLibraryDeclaration(
     const Library& library,
-    const GrowableObjectArray& pending_classes) {
+    const GrowableObjectArray& pending_classes,
+    bool register_classes) {
   // Library flags, must be in sync with LibraryDeclaration constants in
   // pkg/dart2bytecode/lib/declarations.dart.
   // const int kUsesDartMirrorsFlag = 1 << 0;
@@ -2278,14 +2319,16 @@ void BytecodeReaderHelper::ReadLibraryDeclaration(
     if (i == 0) {
       ASSERT(name.ptr() == Symbols::Empty().ptr());
       cls = Class::New(library, Symbols::TopLevel(), script,
-                       TokenPosition::kNoSource, /*register_class=*/true);
+                       TokenPosition::kNoSource, register_classes);
       cls.set_is_declared_in_bytecode(true);
       library.set_toplevel_class(cls);
     } else {
       cls = Class::New(library, name, script, TokenPosition::kNoSource,
-                       /*register_class=*/true);
+                       register_classes);
       cls.set_is_declared_in_bytecode(true);
-      library.AddClass(cls);
+      if (register_classes) {
+        library.AddClass(cls);
+      }
     }
 
     BytecodeLoader* loader = thread_->bytecode_loader();
@@ -2327,12 +2370,18 @@ void BytecodeReaderHelper::ReadLibraryDeclarations(
     const intptr_t library_offset =
         bytecode_component_->GetLibrariesOffset() + reader_.ReadUInt();
 
+    bool register_classes = true;
     library = Library::New(uri);
-    library.Register(thread_);
+    if (uri.ptr() == Symbols::EvalSourceUri().ptr()) {
+      thread_->bytecode_loader()->SetExpressionEvaluationLibrary(library);
+      register_classes = false;
+    } else {
+      library.Register(thread_);
+    }
     ASSERT(!library.Loaded());
 
     AlternativeReadingScope alt(&reader_, library_offset);
-    ReadLibraryDeclaration(library, pending_classes);
+    ReadLibraryDeclaration(library, pending_classes, register_classes);
   }
 
   if (load_code) {
