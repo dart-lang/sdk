@@ -139,16 +139,6 @@ class DartDevelopmentServiceClient {
       return RPCResponses.success;
     });
 
-    _clientPeer.registerMethod('streamCpuSamplesWithUserTag',
-        (parameters) async {
-      final userTags = parameters['userTags'].asList.cast<String>();
-      profilerUserTagFilters.clear();
-      profilerUserTagFilters.addAll(userTags);
-
-      await dds.streamManager.updateUserTagSubscriptions(userTags);
-      return RPCResponses.success;
-    });
-
     _clientPeer.registerMethod('registerService', (parameters) async {
       final serviceId = parameters['service'].asString;
       final alias = parameters['alias'].asString;
@@ -413,7 +403,6 @@ class DartDevelopmentServiceClient {
   final List<({String serviceIdZoneId, String isolateId})>
       createdServiceIdZones = [];
 
-  final Set<String> profilerUserTagFilters = {};
   final json_rpc.Peer _vmServicePeer;
   late json_rpc.Peer _clientPeer;
   final DdsHostedAdapter adapter = DdsHostedAdapter();
