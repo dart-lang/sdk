@@ -1752,7 +1752,7 @@ class _LocalReferencesVisitor extends RecursiveAstVisitor<void> {
   }
 
   void _addResult(SyntacticEntity entity, SearchResultKind kind) {
-    bool isQualified = entity is AstNode ? entity.parent is Label : false;
+    bool isQualified = entity is AstNode && entity.parent is Label;
     var enclosingFragment = _getEnclosingFragment(
       enclosingLibraryFragment,
       entity.offset,

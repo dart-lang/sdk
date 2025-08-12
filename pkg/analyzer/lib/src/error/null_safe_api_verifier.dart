@@ -50,7 +50,7 @@ class NullSafeApiVerifier {
 
     var targetClass = targetType.element;
 
-    if (targetClass.library.isDartAsync == true &&
+    if (targetClass.library.isDartAsync &&
         targetClass.name == 'Completer' &&
         node.methodName.name == 'complete') {
       _checkTypes(
