@@ -4,6 +4,13 @@
 
 // Read the ../README.md file for the recognized syntax.
 
+// This file uses some SCREAMING_CAPS diagnostic names that are private to the
+// analyzer package. Those names will soon be deprecated since the analyzer will
+// switch to using camelCase diagnostic names. This "ignore" comment will
+// prevent a bot failure when the deprecation happens. TODO(paulberry): clean
+// this up.
+// ignore_for_file: deprecated_member_use
+
 import 'dart:collection';
 import 'dart:io';
 
