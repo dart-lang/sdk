@@ -7,10 +7,7 @@ import 'dart:math';
 
 import 'package:analyzer/diagnostic/diagnostic.dart';
 import 'package:analyzer/source/line_info.dart';
-import 'package:linter/src/test_utilities/analysis_error_info.dart';
-
-String pluralize(String word, int count) =>
-    "$count ${count == 1 ? word : '${word}s'}";
+import 'package:analyzer/src/utilities/extensions/string.dart';
 
 String _getLineContents(int lineNumber, Diagnostic diagnostic) {
   var path = diagnostic.source.fullName;
@@ -32,11 +29,11 @@ String _getLineContents(int lineNumber, Diagnostic diagnostic) {
 
 class ReportFormatter {
   final StringSink out;
-  final Iterable<DiagnosticInfo> errors;
+  final Iterable<Diagnostic> diagnostics;
 
-  int errorCount = 0;
+  int diagnosticCount = 0;
 
-  ReportFormatter(this.errors, this.out);
+  ReportFormatter(this.diagnostics, this.out);
 
   /// Override to influence diagnostic sorting.
   int compare(Diagnostic diagnostic1, Diagnostic diagnostic2) {
@@ -88,8 +85,9 @@ class ReportFormatter {
     out.writeln(result);
   }
 
-  void _writeLint(Diagnostic diagnostic, LineInfo lineInfo) {
+  void _writeLint(Diagnostic diagnostic) {
     var offset = diagnostic.offset;
+    var lineInfo = LineInfo.fromContent(diagnostic.source.contents.data);
     var location = lineInfo.getLocation(offset);
     var line = location.lineNumber;
     var column = location.columnNumber;
@@ -98,17 +96,18 @@ class ReportFormatter {
   }
 
   void _writeLints() {
-    for (var info in errors) {
-      for (var e in (info.diagnostics.toList()..sort(compare))) {
-        ++errorCount;
-        _writeLint(e, info.lineInfo);
-      }
+    for (var e in (diagnostics.toList()..sort(compare))) {
+      ++diagnosticCount;
+      _writeLint(e);
     }
+
     out.writeln();
   }
 
   void _writeSummary() {
-    var summary = 'files analyzed, ${pluralize("issue", errorCount)} found.';
+    var summary =
+        'files analyzed, '
+        '$diagnosticCount ${"issue".pluralized(diagnosticCount)} found.';
     out.writeln(summary);
   }
 }

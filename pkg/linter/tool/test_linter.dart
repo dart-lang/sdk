@@ -11,7 +11,6 @@ import 'package:analyzer/source/file_source.dart';
 import 'package:analyzer/source/source.dart';
 import 'package:analyzer/src/lint/pub.dart';
 import 'package:analyzer/src/util/file_paths.dart' as file_paths;
-import 'package:linter/src/test_utilities/analysis_error_info.dart';
 import 'package:path/path.dart' as path;
 
 import 'lint_driver.dart';
@@ -32,7 +31,7 @@ class TestLinter implements DiagnosticListener {
   path.Context get _pathContext =>
       file_system.PhysicalResourceProvider.INSTANCE.pathContext;
 
-  Future<List<DiagnosticInfo>> lintFiles(List<File> files) async {
+  Future<List<Diagnostic>> lintFiles(List<File> files) async {
     var lintDriver = LintDriver(options);
     var errors = await lintDriver.analyze(
       files.where((f) => f.path.endsWith('.dart')),

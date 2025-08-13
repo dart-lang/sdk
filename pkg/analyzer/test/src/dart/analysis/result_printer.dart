@@ -49,6 +49,7 @@ class BundleRequirementsPrinter {
       _writeInstanceItems(requirements);
       _writeInterfaceItems(requirements);
       _writeExportRequirements(requirements);
+      _writeOpaqueApiUses(requirements);
     });
   }
 
@@ -215,6 +216,23 @@ class BundleRequirementsPrinter {
     } else {
       sink.writelnWithIndent('${entry.key}: <null>');
     }
+  }
+
+  void _writeOpaqueApiUses(RequirementsManifest requirements) {
+    var usages = requirements.opaqueApiUses.sortedBy((e) {
+      return '${e.targetRuntimeType}.${e.methodName}';
+    });
+    sink.writeElements('opaqueApiUses', usages, (usage) {
+      sink.writelnWithIndent('${usage.targetRuntimeType}.${usage.methodName}');
+      sink.withIndent(() {
+        if (usage.targetElementLibraryUri case var libraryUri?) {
+          sink.writelnWithIndent('targetElementLibraryUri: $libraryUri');
+        }
+        if (usage.targetElementName case var elementName?) {
+          sink.writelnWithIndent('targetElementName: $elementName');
+        }
+      });
+    });
   }
 
   void _writeTopLevels(RequirementsManifest requirements) {
@@ -568,6 +586,21 @@ class DriverEventsPrinter {
       case TopLevelNotInterface():
         // TODO(scheglov): Handle this case.
         throw UnimplementedError();
+      case OpaqueApiUseFailure():
+        var sortedUses = failure.uses.sortedBy((e) {
+          return '${e.targetRuntimeType}.${e.methodName}';
+        });
+        sink.writeElements('opaqueApiUseFailure', sortedUses, (use) {
+          sink.writelnWithIndent('${use.targetRuntimeType}.${use.methodName}');
+          sink.withIndent(() {
+            if (use.targetElementLibraryUri case var libraryUri?) {
+              sink.writelnWithIndent('targetElementLibraryUri: $libraryUri');
+            }
+            if (use.targetElementName case var elementName?) {
+              sink.writelnWithIndent('targetElementName: $elementName');
+            }
+          });
+        });
     }
   }
 

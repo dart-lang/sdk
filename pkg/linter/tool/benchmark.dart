@@ -7,6 +7,7 @@ import 'dart:io';
 import 'dart:math' as math;
 
 import 'package:analyzer/analysis_rule/analysis_rule.dart';
+import 'package:analyzer/diagnostic/diagnostic.dart';
 import 'package:analyzer/src/lint/analysis_rule_timers.dart';
 import 'package:analyzer/src/lint/config.dart';
 import 'package:analyzer/src/lint/io.dart';
@@ -15,7 +16,6 @@ import 'package:analyzer/src/util/file_paths.dart' as file_paths;
 import 'package:args/args.dart';
 import 'package:linter/src/extensions.dart';
 import 'package:linter/src/rules.dart';
-import 'package:linter/src/test_utilities/analysis_error_info.dart';
 import 'package:path/path.dart' as path;
 import 'package:yaml/yaml.dart';
 
@@ -212,13 +212,10 @@ Future<void> writeBenchmarks(
   out.writeTimings(stats, 0);
 }
 
-int _maxSeverity(List<DiagnosticInfo> infos) {
-  var filteredErrors = infos.expand((i) => i.diagnostics);
-  return filteredErrors.fold(
-    0,
-    (value, e) => math.max(value, e.diagnosticCode.severity.ordinal),
-  );
-}
+int _maxSeverity(List<Diagnostic> diagnostics) => diagnostics.fold(
+  0,
+  (value, e) => math.max(value, e.diagnosticCode.severity.ordinal),
+);
 
 class Stat implements Comparable<Stat> {
   final String name;

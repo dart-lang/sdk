@@ -346,6 +346,44 @@ class LibraryExportRequirements {
   }
 }
 
+/// Information about an API usage that is not supported by fine-grained
+/// dependencies. If such API is used, we have to decide that the requirements
+/// are not satisfied, because we don't know for sure.
+class OpaqueApiUse {
+  final String targetRuntimeType;
+  final String methodName;
+  final Uri? targetElementLibraryUri;
+  final String? targetElementName;
+
+  OpaqueApiUse({
+    required this.targetRuntimeType,
+    required this.methodName,
+    this.targetElementLibraryUri,
+    this.targetElementName,
+  });
+
+  factory OpaqueApiUse.read(SummaryDataReader reader) {
+    return OpaqueApiUse(
+      targetRuntimeType: reader.readStringUtf8(),
+      methodName: reader.readStringUtf8(),
+      targetElementLibraryUri: reader.readOptionalObject(
+        () => reader.readUri(),
+      ),
+      targetElementName: reader.readOptionalStringUtf8(),
+    );
+  }
+
+  void write(BufferedSink sink) {
+    sink.writeStringUtf8(targetRuntimeType);
+    sink.writeStringUtf8(methodName);
+    sink.writeOptionalObject(
+      targetElementLibraryUri,
+      (uri) => sink.writeUri(uri),
+    );
+    sink.writeOptionalStringUtf8(targetElementName);
+  }
+}
+
 class RequirementsManifest {
   /// LibraryUri => TopName => ID
   final Map<Uri, Map<LookupName, ManifestItemId?>> topLevels = {};
@@ -357,6 +395,11 @@ class RequirementsManifest {
   final Map<Uri, Map<LookupName, InterfaceItemRequirements>> interfaces = {};
 
   final List<LibraryExportRequirements> exportRequirements = [];
+
+  /// If this list is not empty, [isSatisfied] returns `false`.
+  final List<OpaqueApiUse> opaqueApiUses = [];
+
+  final Set<Uri> _excludedLibraries = {};
 
   int _recordingLockLevel = 0;
 
@@ -400,7 +443,15 @@ class RequirementsManifest {
       reader.readTypedList(() => LibraryExportRequirements.read(reader)),
     );
 
+    result.opaqueApiUses.addAll(
+      reader.readTypedList(() => OpaqueApiUse.read(reader)),
+    );
+
     return result;
+  }
+
+  void addExcludedLibraries(Iterable<Uri> libraries) {
+    _excludedLibraries.addAll(libraries);
   }
 
   /// Adds requirements to exports from libraries.
@@ -447,6 +498,10 @@ class RequirementsManifest {
     required LinkedElementFactory elementFactory,
     required Map<Uri, LibraryManifest> libraryManifests,
   }) {
+    if (opaqueApiUses.isNotEmpty) {
+      return OpaqueApiUseFailure(uses: opaqueApiUses);
+    }
+
     for (var libraryEntry in topLevels.entries) {
       var libraryUri = libraryEntry.key;
 
@@ -724,10 +779,6 @@ class RequirementsManifest {
     // TODO(scheglov): implement.
   }
 
-  void record_disable(Object target, String method) {
-    // TODO(scheglov): implement.
-  }
-
   /// Record that [id] was looked up in the import prefix scope that
   /// imports [importedLibraries].
   void record_importPrefixScope_lookup({
@@ -986,6 +1037,40 @@ class RequirementsManifest {
     }
   }
 
+  void recordOpaqueApiUse(Object target, String method) {
+    if (_recordingLockLevel != 0) {
+      return;
+    }
+
+    Uri? targetElementLibraryUri;
+    String? targetElementName;
+    if (target case ElementImpl targetElement) {
+      targetElementLibraryUri = targetElement.library?.uri;
+      targetElementName = targetElement.name;
+      if (_excludedLibraries.contains(targetElementLibraryUri)) {
+        return;
+      }
+    }
+
+    untracked(
+      reason: 'We are recording failure',
+      operation: () {
+        // TODO(scheglov): remove after adding all tracking
+        // print('[${target.runtimeType}.$method]');
+        // print(StackTrace.current);
+
+        opaqueApiUses.add(
+          OpaqueApiUse(
+            targetRuntimeType: target.runtimeType.toString(),
+            methodName: method,
+            targetElementName: targetElementName,
+            targetElementLibraryUri: targetElementLibraryUri,
+          ),
+        );
+      },
+    );
+  }
+
   /// This method is invoked after linking of a library cycle, to exclude
   /// requirements to the libraries of this same library cycle. We already
   /// link these libraries together, so only requirements to the previous
@@ -1041,6 +1126,8 @@ class RequirementsManifest {
       exportRequirements,
       (requirement) => requirement.write(sink),
     );
+
+    sink.writeList(opaqueApiUses, (usage) => usage.write(sink));
   }
 
   void _addExports(LibraryElementImpl libraryElement) {
@@ -1219,10 +1306,26 @@ class _InterfaceItemWithRequirements {
 }
 
 extension RequirementsManifestExtension on RequirementsManifest? {
-  T withoutRecording<T>({
-    required String reason,
-    required T Function() operation,
-  }) {
+  /// Executes the given [operation] without recording dependencies, because
+  /// the dependency has already been recorded at a higher level of
+  /// granularity.
+  T alreadyRecorded<T>(T Function() operation) {
+    return untracked(
+      reason: 'The dependency has already been recorded',
+      operation: operation,
+    );
+  }
+
+  /// Executes the given [operation] without recording dependencies.
+  ///
+  /// This is used for getters on elements that are considered part of the
+  /// element's identity. Since a change to such a getter implies a change to
+  /// the element's identity, separate dependency tracking is not necessary.
+  T includedInId<T>(T Function() operation) {
+    return untracked(reason: 'Included in ID', operation: operation);
+  }
+
+  T untracked<T>({required String reason, required T Function() operation}) {
     var self = this;
     if (self == null) {
       return operation();
