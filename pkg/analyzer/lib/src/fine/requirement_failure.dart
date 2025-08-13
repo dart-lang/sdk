@@ -4,6 +4,7 @@
 
 import 'package:analyzer/src/fine/lookup_name.dart';
 import 'package:analyzer/src/fine/manifest_id.dart';
+import 'package:analyzer/src/fine/requirements.dart';
 
 final class ExportCountMismatch extends ExportFailure {
   final Uri fragmentUri;
@@ -217,6 +218,17 @@ class LibraryMissing extends RequirementFailure {
   @override
   String toString() {
     return 'LibraryMissing(uri: $uri)';
+  }
+}
+
+final class OpaqueApiUseFailure extends RequirementFailure {
+  final List<OpaqueApiUse> uses;
+
+  OpaqueApiUseFailure({required this.uses});
+
+  @override
+  String toString() {
+    return 'OpaqueApiUseFailure(uses: $uses)';
   }
 }
 

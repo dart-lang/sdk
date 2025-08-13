@@ -92,31 +92,33 @@ class _Finder {
         return;
       }
 
-      var typeNode = linker.getLinkingNode2(element.firstFragment);
-      if (typeNode != null) {
-        if (typeNode == self) {
-          hasSelfReference = true;
-          return;
-        }
-        if (typeNode is ClassDeclaration) {
-          if (visited.add(typeNode)) {
-            _typeParameterList(typeNode.typeParameters);
+      if (linker.isLinkingElement(element)) {
+        var typeNode = linker.getLinkingNode2(element.firstFragment);
+        if (typeNode != null) {
+          if (typeNode == self) {
+            hasSelfReference = true;
+            return;
           }
-        } else if (typeNode is ClassTypeAlias) {
-          if (visited.add(typeNode)) {
-            _typeParameterList(typeNode.typeParameters);
-          }
-        } else if (typeNode is FunctionTypeAlias) {
-          if (visited.add(typeNode)) {
-            functionTypeAlias(typeNode);
-          }
-        } else if (typeNode is GenericTypeAlias) {
-          if (visited.add(typeNode)) {
-            genericTypeAlias(typeNode);
-          }
-        } else if (typeNode is MixinDeclaration) {
-          if (visited.add(typeNode)) {
-            _typeParameterList(typeNode.typeParameters);
+          if (typeNode is ClassDeclaration) {
+            if (visited.add(typeNode)) {
+              _typeParameterList(typeNode.typeParameters);
+            }
+          } else if (typeNode is ClassTypeAlias) {
+            if (visited.add(typeNode)) {
+              _typeParameterList(typeNode.typeParameters);
+            }
+          } else if (typeNode is FunctionTypeAlias) {
+            if (visited.add(typeNode)) {
+              functionTypeAlias(typeNode);
+            }
+          } else if (typeNode is GenericTypeAlias) {
+            if (visited.add(typeNode)) {
+              genericTypeAlias(typeNode);
+            }
+          } else if (typeNode is MixinDeclaration) {
+            if (visited.add(typeNode)) {
+              _typeParameterList(typeNode.typeParameters);
+            }
           }
         }
       }

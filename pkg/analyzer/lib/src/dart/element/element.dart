@@ -206,14 +206,14 @@ class ClassElementImpl extends InterfaceElementImpl implements ClassElement {
   @override
   @trackedDirectlyDisable
   ClassFragmentImpl get firstFragment {
-    globalResultRequirements?.record_disable(this, 'firstFragment');
+    globalResultRequirements?.recordOpaqueApiUse(this, 'firstFragment');
     return _firstFragment;
   }
 
   @override
   @trackedDirectlyDisable
   List<ClassFragmentImpl> get fragments {
-    globalResultRequirements?.record_disable(this, 'fragments');
+    globalResultRequirements?.recordOpaqueApiUse(this, 'fragments');
     return [
       for (
         ClassFragmentImpl? fragment = firstFragment;
@@ -389,7 +389,11 @@ class ClassElementImpl extends InterfaceElementImpl implements ClassElement {
 
   @override
   @trackedIncludedIntoId
-  bool get isMixinApplication => firstFragment.isMixinApplication;
+  bool get isMixinApplication {
+    return globalResultRequirements.includedInId(() {
+      return firstFragment.isMixinApplication;
+    });
+  }
 
   @override
   @trackedIncludedIntoId
@@ -421,7 +425,7 @@ class ClassElementImpl extends InterfaceElementImpl implements ClassElement {
   @override
   @trackedDirectlyDisable
   T? accept<T>(ElementVisitor2<T> visitor) {
-    globalResultRequirements?.record_disable(this, 'accept2');
+    globalResultRequirements?.recordOpaqueApiUse(this, 'accept2');
     return visitor.visitClassElement(this);
   }
 
@@ -1786,8 +1790,11 @@ abstract class ElementImpl implements Element {
   bool get isPublic => !isPrivate;
 
   @override
+  @trackedIncludedIntoId
   LibraryElementImpl? get library {
-    return firstFragment.libraryFragment?.element as LibraryElementImpl?;
+    return globalResultRequirements.includedInId(() {
+      return firstFragment.libraryFragment?.element as LibraryElementImpl?;
+    });
   }
 
   @override
@@ -4026,7 +4033,12 @@ abstract class InstanceElementImpl extends ElementImpl
   }
 
   @override
-  String get displayName => firstFragment.displayName;
+  @trackedIncludedIntoId
+  String get displayName {
+    return globalResultRequirements.includedInId(() {
+      return firstFragment.displayName;
+    });
+  }
 
   @override
   String? get documentationComment => firstFragment.documentationComment;
@@ -4078,10 +4090,20 @@ abstract class InstanceElementImpl extends ElementImpl
   bool get isPublic => firstFragment.isPublic;
 
   @override
-  bool get isSimplyBounded => firstFragment.isSimplyBounded;
+  @trackedIncludedIntoId
+  bool get isSimplyBounded {
+    return globalResultRequirements.includedInId(() {
+      return firstFragment.isSimplyBounded;
+    });
+  }
 
   @override
-  bool get isSynthetic => firstFragment.isSynthetic;
+  @trackedIncludedIntoId
+  bool get isSynthetic {
+    return globalResultRequirements.includedInId(() {
+      return firstFragment.isSynthetic;
+    });
+  }
 
   @override
   LibraryElementImpl get library => super.library!;
@@ -4091,7 +4113,12 @@ abstract class InstanceElementImpl extends ElementImpl
   LibraryElementImpl get library2 => library;
 
   @override
-  MetadataImpl get metadata => firstFragment.metadata;
+  @trackedIncludedIntoId
+  MetadataImpl get metadata {
+    return globalResultRequirements.includedInId(() {
+      return firstFragment.metadata;
+    });
+  }
 
   @Deprecated('Use metadata instead')
   @override
@@ -4114,7 +4141,12 @@ abstract class InstanceElementImpl extends ElementImpl
   List<MethodElementImpl> get methods2 => methods;
 
   @override
-  String? get name => firstFragment.name;
+  @trackedIncludedIntoId
+  String? get name {
+    return globalResultRequirements.includedInId(() {
+      return firstFragment.name;
+    });
+  }
 
   @Deprecated('Use name instead')
   @override
@@ -4142,8 +4174,14 @@ abstract class InstanceElementImpl extends ElementImpl
   List<SetterElementImpl> get setters2 => setters;
 
   @override
-  List<TypeParameterElementImpl> get typeParameters =>
-      firstFragment.typeParameters.map((fragment) => fragment.element).toList();
+  @trackedIncludedIntoId
+  List<TypeParameterElementImpl> get typeParameters {
+    return globalResultRequirements.includedInId(() {
+      return firstFragment.typeParameters
+          .map((fragment) => fragment.element)
+          .toList();
+    });
+  }
 
   @Deprecated('Use typeParameters instead')
   @override
@@ -4180,15 +4218,9 @@ abstract class InstanceElementImpl extends ElementImpl
       name: name,
     );
 
-    return globalResultRequirements.withoutRecording(
-      reason: r'''
-The result depends only on the requested field, which we have already
-recorded above.
-''',
-      operation: () {
-        return fields.firstWhereOrNull((e) => e.name == name);
-      },
-    );
+    return globalResultRequirements.alreadyRecorded(() {
+      return fields.firstWhereOrNull((e) => e.name == name);
+    });
   }
 
   @Deprecated('Use getField instead')
@@ -4203,15 +4235,9 @@ recorded above.
       name: name,
     );
 
-    return globalResultRequirements.withoutRecording(
-      reason: r'''
-The result depends only on the requested getter, which we have already
-recorded above.
-''',
-      operation: () {
-        return getters.firstWhereOrNull((e) => e.name == name);
-      },
-    );
+    return globalResultRequirements.alreadyRecorded(() {
+      return getters.firstWhereOrNull((e) => e.name == name);
+    });
   }
 
   @Deprecated('Use getGetter instead')
@@ -4226,15 +4252,9 @@ recorded above.
       name: name,
     );
 
-    return globalResultRequirements.withoutRecording(
-      reason: r'''
-The result depends only on the requested method, which we have already
-recorded above.
-''',
-      operation: () {
-        return methods.firstWhereOrNull((e) => e.lookupName == name);
-      },
-    );
+    return globalResultRequirements.alreadyRecorded(() {
+      return methods.firstWhereOrNull((e) => e.lookupName == name);
+    });
   }
 
   @Deprecated('Use getMethod instead')
@@ -4249,15 +4269,9 @@ recorded above.
       name: name,
     );
 
-    return globalResultRequirements.withoutRecording(
-      reason: r'''
-The result depends only on the requested setter, which we have already
-recorded above.
-''',
-      operation: () {
-        return setters.firstWhereOrNull((e) => e.name == name);
-      },
-    );
+    return globalResultRequirements.alreadyRecorded(() {
+      return setters.firstWhereOrNull((e) => e.name == name);
+    });
   }
 
   @Deprecated('Use getSetter instead')
@@ -4393,7 +4407,7 @@ recorded above.
           yield getter as InternalPropertyAccessorElement;
         }
       }
-      var supertype = element.firstFragment.supertype;
+      var supertype = element.supertype;
       supertype as InterfaceTypeImpl?;
       element = supertype?.element;
     }
@@ -4417,7 +4431,7 @@ recorded above.
           yield method as InternalMethodElement;
         }
       }
-      var supertype = element.firstFragment.supertype;
+      var supertype = element.supertype;
       supertype as InterfaceTypeImpl?;
       element = supertype?.element;
     }
@@ -4443,7 +4457,7 @@ recorded above.
           yield setter as InternalPropertyAccessorElement;
         }
       }
-      var supertype = element.firstFragment.supertype;
+      var supertype = element.supertype;
       supertype as InterfaceTypeImpl?;
       element = supertype?.element;
     }
@@ -4709,8 +4723,11 @@ abstract class InterfaceElementImpl extends InstanceElementImpl
           .map;
 
   @override
+  @trackedIncludedIntoId
   List<InterfaceTypeImpl> get interfaces {
-    return firstFragment.interfaces;
+    return globalResultRequirements.includedInId(() {
+      return firstFragment.interfaces;
+    });
   }
 
   /// Return `true` if this class represents the class '_Enum' defined in the
@@ -4726,12 +4743,20 @@ abstract class InterfaceElementImpl extends InstanceElementImpl
   }
 
   @override
+  @trackedIncludedIntoId
   List<InterfaceTypeImpl> get mixins {
-    return firstFragment.mixins;
+    return globalResultRequirements.includedInId(() {
+      return firstFragment.mixins;
+    });
   }
 
   @override
-  InterfaceTypeImpl? get supertype => firstFragment.supertype;
+  @trackedIncludedIntoId
+  InterfaceTypeImpl? get supertype {
+    return globalResultRequirements.includedInId(() {
+      return firstFragment.supertype;
+    });
+  }
 
   @override
   InterfaceTypeImpl get thisType {
@@ -4794,15 +4819,9 @@ abstract class InterfaceElementImpl extends InstanceElementImpl
       name: name,
     );
 
-    return globalResultRequirements.withoutRecording(
-      reason: r'''
-The result depends only on the requested constructor, which we have already
-recorded above.
-''',
-      operation: () {
-        return constructors.firstWhereOrNull((e) => e.name == name);
-      },
-    );
+    return globalResultRequirements.alreadyRecorded(() {
+      return constructors.firstWhereOrNull((e) => e.name == name);
+    });
   }
 
   @Deprecated('Use getNamedConstructor instead')
@@ -4945,6 +4964,7 @@ recorded above.
   /// This method should be used only for error recovery during analysis,
   /// when instance access to a static class member, defined in this class,
   /// or a superclass.
+  @trackedIndirectly
   InternalGetterElement? lookupStaticGetter(
     String name,
     LibraryElement library,
@@ -4961,6 +4981,7 @@ recorded above.
   /// This method should be used only for error recovery during analysis,
   /// when instance access to a static class member, defined in this class,
   /// or a superclass.
+  @trackedIndirectly
   InternalMethodElement? lookupStaticMethod(
     String name,
     LibraryElement library,
@@ -4975,6 +4996,7 @@ recorded above.
   /// This method should be used only for error recovery during analysis,
   /// when instance access to a static class member, defined in this class,
   /// or a superclass.
+  @trackedIndirectly
   InternalSetterElement? lookupStaticSetter(
     String name,
     LibraryElement library,
