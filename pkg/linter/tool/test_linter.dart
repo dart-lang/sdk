@@ -14,10 +14,11 @@ import 'package:analyzer/instrumentation/instrumentation.dart';
 import 'package:analyzer/source/file_source.dart';
 import 'package:analyzer/src/dart/analysis/analysis_context_collection.dart';
 import 'package:analyzer/src/generated/engine.dart' show AnalysisEngine;
-import 'package:analyzer/src/lint/io.dart';
 import 'package:analyzer/src/lint/pub.dart';
 import 'package:analyzer/src/util/file_paths.dart' as file_paths;
 import 'package:path/path.dart' as path;
+
+import 'util/io.dart';
 
 class TestLinter implements DiagnosticListener {
   final errors = <Diagnostic>[];

@@ -3,13 +3,12 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/src/lint/registry.dart';
+import 'package:linter/src/rules.dart';
 import 'package:test/test.dart';
-
-import 'util/test_utils.dart';
 
 void main() {
   group('rule doc format', () {
-    setUpSharedTestEnvironment();
+    registerLintRules();
     var rules = Registry.ruleRegistry.rules;
 
     test('(setup)', () {

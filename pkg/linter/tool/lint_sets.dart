@@ -6,8 +6,9 @@ import 'dart:async';
 
 import 'package:analyzer/src/lint/config.dart';
 import 'package:http/http.dart' as http;
-import 'package:linter/src/utils.dart';
 import 'package:yaml/yaml.dart';
+
+import 'util/io.dart';
 
 Future<List<String>> get dartCoreLints =>
     _fetchRulesFromGitHub('/dart-lang/core/main/pkgs/lints/lib/core.yaml');

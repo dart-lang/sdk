@@ -5,8 +5,6 @@
 import 'package:linter/src/utils.dart';
 import 'package:test/test.dart';
 
-import 'util/test_utils.dart';
-
 void main() {
   group('isDartFileName', () {
     testEach(['foo.dart'], isDartFileName, isTrue);
@@ -164,4 +162,10 @@ void main() {
     var bad = ['a', '1', 'z'].map((c) => c.codeUnitAt(0));
     testEach(bad, isUpperCase, isFalse);
   });
+}
+
+void testEach<T>(Iterable<T> values, bool Function(T s) f, Matcher m) {
+  for (var s in values) {
+    test('"$s"', () => expect(f(s), m));
+  }
 }
