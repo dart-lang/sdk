@@ -8,7 +8,7 @@
 /// annotated, as follows:
 ///
 /// Public getters and fields must be annotated with one of:
-///   [trackedIncludedIntoId]
+///   [trackedIncludedInId]
 ///   [trackedDirectly]
 ///   [trackedIndirectly]
 ///
@@ -19,23 +19,12 @@ const elementClass = _ElementClass();
 
 /// Annotation for methods that must record the fact of the invocation.
 ///
-/// In contrast to [trackedIncludedIntoId], the result of the method is not
+/// In contrast to [trackedIncludedInId], the result of the method is not
 /// reflected in the ID of the target class, so we need to record this
 /// requirement separately.
 ///
 /// Examples: `getMethod(name)`, `getNamedConstructor(name)`.
 const trackedDirectly = _TrackedDirectly();
-
-/// Annotation for methods that are too invasive, and if invoked for anything
-/// other than the current library, disable fine-grained dependencies
-/// optimizations. So, the result will be re-computed if just anything in
-/// its transitive closure of imported libraries changed.
-///
-/// Examples: `fragments`, `visitChildren()`.
-///
-/// We must make sure that the analyzer itself does not use such APIs.
-/// We should try to fix any popular lint rules that use such APIs.
-const trackedDirectlyDisable = _TrackedDirectlyDisable();
 
 /// As [trackedDirectly], but for methods that are expensive.
 ///
@@ -49,6 +38,17 @@ const trackedDirectlyDisable = _TrackedDirectlyDisable();
 /// We should try to fix any popular lint rules that use such APIs.
 const trackedDirectlyExpensive = _TrackedDirectlyExpensive();
 
+/// Annotation for methods that are too invasive, and if invoked for anything
+/// other than the current library, disable fine-grained dependencies
+/// optimizations. So, the result will be re-computed if just anything in
+/// its transitive closure of imported libraries changed.
+///
+/// Examples: `fragments`, `visitChildren()`.
+///
+/// We must make sure that the analyzer itself does not use such APIs.
+/// We should try to fix any popular lint rules that use such APIs.
+const trackedDirectlyOpaque = _TrackedDirectlyOpaque();
+
 /// Annotation for getters that don't require recording.
 ///
 /// The library manifest builder must compare the value of the getter with
@@ -56,7 +56,7 @@ const trackedDirectlyExpensive = _TrackedDirectlyExpensive();
 /// value is different.
 ///
 /// Examples: `isAbstract`, `interfaces`, `returnType`.
-const trackedIncludedIntoId = _TrackedIncludedIntoId();
+const trackedIncludedInId = _TrackedIncludedInId();
 
 /// Annotation for methods that don't require recording.
 ///
@@ -73,16 +73,16 @@ final class _TrackedDirectly extends _TrackedKind {
   const _TrackedDirectly();
 }
 
-final class _TrackedDirectlyDisable extends _TrackedDirectly {
-  const _TrackedDirectlyDisable();
-}
-
 final class _TrackedDirectlyExpensive extends _TrackedDirectly {
   const _TrackedDirectlyExpensive();
 }
 
-final class _TrackedIncludedIntoId extends _TrackedKind {
-  const _TrackedIncludedIntoId();
+final class _TrackedDirectlyOpaque extends _TrackedDirectly {
+  const _TrackedDirectlyOpaque();
+}
+
+final class _TrackedIncludedInId extends _TrackedKind {
+  const _TrackedIncludedInId();
 }
 
 final class _TrackedIndirectly extends _TrackedKind {

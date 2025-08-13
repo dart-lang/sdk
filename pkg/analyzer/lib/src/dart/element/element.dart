@@ -132,7 +132,7 @@ class BindPatternVariableFragmentImpl extends PatternVariableFragmentImpl
 @elementClass
 class ClassElementImpl extends InterfaceElementImpl implements ClassElement {
   @override
-  @trackedIncludedIntoId
+  @trackedIncludedInId
   final Reference reference;
 
   final ClassFragmentImpl _firstFragment;
@@ -204,14 +204,14 @@ class ClassElementImpl extends InterfaceElementImpl implements ClassElement {
   }
 
   @override
-  @trackedDirectlyDisable
+  @trackedDirectlyOpaque
   ClassFragmentImpl get firstFragment {
     globalResultRequirements?.recordOpaqueApiUse(this, 'firstFragment');
     return _firstFragment;
   }
 
   @override
-  @trackedDirectlyDisable
+  @trackedDirectlyOpaque
   List<ClassFragmentImpl> get fragments {
     globalResultRequirements?.recordOpaqueApiUse(this, 'fragments');
     return [
@@ -266,7 +266,7 @@ class ClassElementImpl extends InterfaceElementImpl implements ClassElement {
   }
 
   @override
-  @trackedIncludedIntoId
+  @trackedIncludedInId
   bool get isAbstract {
     return hasModifier(Modifier.ABSTRACT);
   }
@@ -276,7 +276,7 @@ class ClassElementImpl extends InterfaceElementImpl implements ClassElement {
   }
 
   @override
-  @trackedIncludedIntoId
+  @trackedIncludedInId
   bool get isBase {
     return hasModifier(Modifier.BASE);
   }
@@ -286,11 +286,11 @@ class ClassElementImpl extends InterfaceElementImpl implements ClassElement {
   }
 
   @override
-  @trackedIncludedIntoId
+  @trackedIncludedInId
   bool get isConstructable => firstFragment.isConstructable;
 
   @override
-  @trackedIncludedIntoId
+  @trackedIncludedInId
   bool get isDartCoreEnum {
     return name == 'Enum' && library.isDartCore;
   }
@@ -302,12 +302,12 @@ class ClassElementImpl extends InterfaceElementImpl implements ClassElement {
   }
 
   @override
-  @trackedIncludedIntoId
+  @trackedIncludedInId
   bool get isDartCoreObject {
     return name == 'Object' && library.isDartCore;
   }
 
-  @trackedIncludedIntoId
+  @trackedIncludedInId
   bool get isDartCoreRecord {
     return name == 'Record' && library.isDartCore;
   }
@@ -350,14 +350,14 @@ class ClassElementImpl extends InterfaceElementImpl implements ClassElement {
   }
 
   @override
-  @trackedIncludedIntoId
+  @trackedIncludedInId
   bool get isExhaustive => firstFragment.isExhaustive;
 
   @override
   bool get isExtendableOutside => !isInterface && !isFinal && !isSealed;
 
   @override
-  @trackedIncludedIntoId
+  @trackedIncludedInId
   bool get isFinal {
     return hasModifier(Modifier.FINAL);
   }
@@ -370,7 +370,7 @@ class ClassElementImpl extends InterfaceElementImpl implements ClassElement {
   bool get isImplementableOutside => !isBase && !isFinal && !isSealed;
 
   @override
-  @trackedIncludedIntoId
+  @trackedIncludedInId
   bool get isInterface {
     return hasModifier(Modifier.INTERFACE);
   }
@@ -388,7 +388,7 @@ class ClassElementImpl extends InterfaceElementImpl implements ClassElement {
   }
 
   @override
-  @trackedIncludedIntoId
+  @trackedIncludedInId
   bool get isMixinApplication {
     return globalResultRequirements.includedInId(() {
       return firstFragment.isMixinApplication;
@@ -396,7 +396,7 @@ class ClassElementImpl extends InterfaceElementImpl implements ClassElement {
   }
 
   @override
-  @trackedIncludedIntoId
+  @trackedIncludedInId
   bool get isMixinClass {
     return hasModifier(Modifier.MIXIN_CLASS);
   }
@@ -406,7 +406,7 @@ class ClassElementImpl extends InterfaceElementImpl implements ClassElement {
   }
 
   @override
-  @trackedIncludedIntoId
+  @trackedIncludedInId
   bool get isSealed {
     return hasModifier(Modifier.SEALED);
   }
@@ -416,14 +416,14 @@ class ClassElementImpl extends InterfaceElementImpl implements ClassElement {
   }
 
   @override
-  @trackedIncludedIntoId
+  @trackedIncludedInId
   bool get isValidMixin => firstFragment.isValidMixin;
 
   @override
   ElementKind get kind => ElementKind.CLASS;
 
   @override
-  @trackedDirectlyDisable
+  @trackedDirectlyOpaque
   T? accept<T>(ElementVisitor2<T> visitor) {
     globalResultRequirements?.recordOpaqueApiUse(this, 'accept2');
     return visitor.visitClassElement(this);
@@ -431,7 +431,7 @@ class ClassElementImpl extends InterfaceElementImpl implements ClassElement {
 
   @Deprecated('Use accept instead')
   @override
-  @trackedDirectlyDisable
+  @trackedDirectlyOpaque
   T? accept2<T>(ElementVisitor2<T> visitor) {
     return accept(visitor);
   }
@@ -1790,7 +1790,7 @@ abstract class ElementImpl implements Element {
   bool get isPublic => !isPrivate;
 
   @override
-  @trackedIncludedIntoId
+  @trackedIncludedInId
   LibraryElementImpl? get library {
     return globalResultRequirements.includedInId(() {
       return firstFragment.libraryFragment?.element as LibraryElementImpl?;
@@ -4033,7 +4033,7 @@ abstract class InstanceElementImpl extends ElementImpl
   }
 
   @override
-  @trackedIncludedIntoId
+  @trackedIncludedInId
   String get displayName {
     return globalResultRequirements.includedInId(() {
       return firstFragment.displayName;
@@ -4090,7 +4090,7 @@ abstract class InstanceElementImpl extends ElementImpl
   bool get isPublic => firstFragment.isPublic;
 
   @override
-  @trackedIncludedIntoId
+  @trackedIncludedInId
   bool get isSimplyBounded {
     return globalResultRequirements.includedInId(() {
       return firstFragment.isSimplyBounded;
@@ -4098,7 +4098,7 @@ abstract class InstanceElementImpl extends ElementImpl
   }
 
   @override
-  @trackedIncludedIntoId
+  @trackedIncludedInId
   bool get isSynthetic {
     return globalResultRequirements.includedInId(() {
       return firstFragment.isSynthetic;
@@ -4113,7 +4113,7 @@ abstract class InstanceElementImpl extends ElementImpl
   LibraryElementImpl get library2 => library;
 
   @override
-  @trackedIncludedIntoId
+  @trackedIncludedInId
   MetadataImpl get metadata {
     return globalResultRequirements.includedInId(() {
       return firstFragment.metadata;
@@ -4141,7 +4141,7 @@ abstract class InstanceElementImpl extends ElementImpl
   List<MethodElementImpl> get methods2 => methods;
 
   @override
-  @trackedIncludedIntoId
+  @trackedIncludedInId
   String? get name {
     return globalResultRequirements.includedInId(() {
       return firstFragment.name;
@@ -4174,7 +4174,7 @@ abstract class InstanceElementImpl extends ElementImpl
   List<SetterElementImpl> get setters2 => setters;
 
   @override
-  @trackedIncludedIntoId
+  @trackedIncludedInId
   List<TypeParameterElementImpl> get typeParameters {
     return globalResultRequirements.includedInId(() {
       return firstFragment.typeParameters
@@ -4723,7 +4723,7 @@ abstract class InterfaceElementImpl extends InstanceElementImpl
           .map;
 
   @override
-  @trackedIncludedIntoId
+  @trackedIncludedInId
   List<InterfaceTypeImpl> get interfaces {
     return globalResultRequirements.includedInId(() {
       return firstFragment.interfaces;
@@ -4743,7 +4743,7 @@ abstract class InterfaceElementImpl extends InstanceElementImpl
   }
 
   @override
-  @trackedIncludedIntoId
+  @trackedIncludedInId
   List<InterfaceTypeImpl> get mixins {
     return globalResultRequirements.includedInId(() {
       return firstFragment.mixins;
@@ -4751,7 +4751,7 @@ abstract class InterfaceElementImpl extends InstanceElementImpl
   }
 
   @override
-  @trackedIncludedIntoId
+  @trackedIncludedInId
   InterfaceTypeImpl? get supertype {
     return globalResultRequirements.includedInId(() {
       return firstFragment.supertype;
