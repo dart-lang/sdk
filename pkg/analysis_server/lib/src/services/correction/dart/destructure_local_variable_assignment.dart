@@ -33,7 +33,7 @@ class DestructureLocalVariableAssignment extends ResolvedCorrectionProducer {
   Future<void> compute(ChangeBuilder builder) async {
     var node = this.node;
     if (node is! VariableDeclaration) return;
-    var element = node.declaredElement;
+    var element = node.declaredFragment?.element;
     if (element == null) return;
     var type = element.type;
     switch (type) {
@@ -51,8 +51,8 @@ class DestructureLocalVariableAssignment extends ResolvedCorrectionProducer {
   ) async {
     // TODO(pq): share reference checking w/ record computation
 
-    var variableElement = node.declaredElement;
-    if (variableElement == null) return;
+    var variableElement = node.declaredFragment?.element;
+    if (variableElement is! LocalVariableElement) return;
 
     var function = node.thisOrAncestorOfType<FunctionBody>();
     if (function == null) return;

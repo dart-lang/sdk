@@ -463,7 +463,7 @@ class BinaryExpressionResolver {
     var leftOperand = node.leftOperand;
 
     TypeImpl leftType;
-     if (leftOperand is ExtensionOverrideImpl) {
+    if (leftOperand is ExtensionOverrideImpl) {
       leftType = leftOperand.extendedType!;
     } else {
       leftType = leftOperand.typeOrThrow;

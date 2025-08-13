@@ -43,7 +43,7 @@ class _DeclaredVariableVisitor extends RecursiveAstVisitor<void> {
 
   @override
   void visitDeclaredVariablePattern(DeclaredVariablePattern node) {
-    var element = node.declaredElement;
+    var element = node.declaredFragment?.element;
     if (element != null) {
       declaredElements.add(element);
     }
@@ -57,7 +57,7 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   bool isPotentiallyMutated(AstNode pattern, FunctionBody function) {
     if (pattern is DeclaredVariablePattern) {
-      var element = pattern.declaredElement;
+      var element = pattern.declaredFragment?.element;
       if (element == null || function.isPotentiallyMutatedInScope(element)) {
         return true;
       }
@@ -132,7 +132,7 @@ class _Visitor extends SimpleAstVisitor<void> {
       if (variable.equals == null || variable.initializer == null) {
         return;
       }
-      var declaredElement = variable.declaredElement;
+      var declaredElement = variable.declaredFragment?.element;
       if (declaredElement != null &&
           (declaredElement.isWildcardVariable ||
               function.isPotentiallyMutatedInScope(declaredElement))) {

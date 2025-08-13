@@ -375,12 +375,13 @@ class _DartNavigationComputerVisitor extends RecursiveAstVisitor<void> {
 
   @override
   void visitDeclaredVariablePattern(DeclaredVariablePattern node) {
-    if (node.declaredElement case BindPatternVariableElement(:var join?)) {
+    var declaredElement = node.declaredFragment?.element;
+    if (declaredElement case BindPatternVariableElement(:var join?)) {
       for (var variable in join.variables) {
         computer._addRegionForElement(node.name, variable);
       }
     } else {
-      computer._addRegionForElement(node.name, node.declaredElement);
+      computer._addRegionForElement(node.name, declaredElement);
     }
     super.visitDeclaredVariablePattern(node);
   }

@@ -695,7 +695,7 @@ class ConstantVisitor extends UnifyingAstVisitor<Constant> {
       }
       return _dartObjectComputer.lazyOr(node, leftResult, computeRightOperand);
     } else if (operatorType == TokenType.QUESTION_QUESTION) {
-      if (leftResult.isNull != true) {
+      if (!leftResult.isNull) {
         var error = _reportNotPotentialConstants(node.rightOperand);
         if (error is InvalidConstant) {
           return error;

@@ -2750,13 +2750,14 @@ abstract final class CatchClauseParameter extends AstNode {
   /// The declared element.
   ///
   /// Returns `null` if the AST hasn't been resolved.
+  @Deprecated('Use declaredFragment instead')
   @experimental
   LocalVariableElement? get declaredElement;
 
   /// The declared element.
   ///
   /// Returns `null` if the AST hasn't been resolved.
-  @Deprecated('Use declaredElement instead')
+  @Deprecated('Use declaredFragment instead')
   @experimental
   LocalVariableElement? get declaredElement2;
 
@@ -2789,12 +2790,13 @@ final class CatchClauseParameterImpl extends AstNodeImpl
     return name;
   }
 
+  @Deprecated('Use declaredFragment instead')
   @override
   LocalVariableElementImpl? get declaredElement {
     return declaredFragment?.element;
   }
 
-  @Deprecated('Use declaredElement instead')
+  @Deprecated('Use declaredFragment instead')
   @override
   LocalVariableElementImpl? get declaredElement2 {
     return declaredElement;
@@ -5650,6 +5652,7 @@ abstract final class DeclaredIdentifier implements Declaration {
   ///
   /// Returns `null` if either this node corresponds to a list of declarations
   /// or if the AST structure hasn't been resolved.
+  @Deprecated('Use declaredFragment instead')
   @experimental
   LocalVariableElement? get declaredElement;
 
@@ -5657,7 +5660,7 @@ abstract final class DeclaredIdentifier implements Declaration {
   ///
   /// Returns `null` if either this node corresponds to a list of declarations
   /// or if the AST structure hasn't been resolved.
-  @Deprecated('Use declaredElement instead')
+  @Deprecated('Use declaredFragment instead')
   @experimental
   LocalVariableElement? get declaredElement2;
 
@@ -5719,13 +5722,14 @@ final class DeclaredIdentifierImpl extends DeclarationImpl
     _becomeParentOf(type);
   }
 
+  @Deprecated('Use declaredFragment instead')
   @experimental
   @override
   LocalVariableElementImpl? get declaredElement {
     return declaredFragment?.element;
   }
 
-  @Deprecated('Use declaredElement instead')
+  @Deprecated('Use declaredFragment instead')
   @experimental
   @override
   LocalVariableElementImpl? get declaredElement2 {
@@ -5808,13 +5812,14 @@ sealed class DeclaredVariablePattern implements VariablePattern {
   /// The element declared by this declaration.
   ///
   /// Returns `null` if the AST structure hasn't been resolved.
+  @Deprecated('Use declaredFragment instead')
   @experimental
   BindPatternVariableElement? get declaredElement;
 
   /// The element declared by this declaration.
   ///
   /// Returns `null` if the AST structure hasn't been resolved.
-  @Deprecated('Use declaredElement instead')
+  @Deprecated('Use declaredFragment instead')
   @experimental
   BindPatternVariableElement? get declaredElement2;
 
@@ -5871,13 +5876,14 @@ final class DeclaredVariablePatternImpl extends VariablePatternImpl
     return name;
   }
 
+  @Deprecated('Use declaredFragment instead')
   @experimental
   @override
   BindPatternVariableElementImpl? get declaredElement {
     return declaredFragment?.element;
   }
 
-  @Deprecated('Use declaredElement instead')
+  @Deprecated('Use declaredFragment instead')
   @experimental
   @override
   BindPatternVariableElementImpl? get declaredElement2 {
@@ -5939,14 +5945,15 @@ final class DeclaredVariablePatternImpl extends VariablePatternImpl
     SharedMatchContext context,
   ) {
     inferenceLogWriter?.enterPattern(this);
+    var declaredElement = declaredFragment!.element;
     var result = resolverVisitor.analyzeDeclaredVariablePattern(
       context,
       this,
-      declaredElement!,
-      declaredFragment!.name ?? '',
+      declaredElement,
+      declaredElement.name ?? '',
       type?.typeOrThrow.wrapSharedTypeView(),
     );
-    declaredElement!.type = result.staticType.unwrapTypeView();
+    declaredElement.type = result.staticType.unwrapTypeView();
 
     resolverVisitor.checkPatternNeverMatchesValueType(
       context: context,
@@ -24788,6 +24795,7 @@ abstract final class VariableDeclaration implements Declaration {
   ///
   /// Returns `null` if the AST structure hasn't been resolved or if this node
   /// represents the declaration of a top-level variable or a field.
+  @Deprecated('Use declaredFragment instead')
   @experimental
   LocalVariableElement? get declaredElement;
 
@@ -24795,7 +24803,7 @@ abstract final class VariableDeclaration implements Declaration {
   ///
   /// Returns `null` if the AST structure hasn't been resolved or if this node
   /// represents the declaration of a top-level variable or a field.
-  @Deprecated('Use declaredElement instead')
+  @Deprecated('Use declaredFragment instead')
   @experimental
   LocalVariableElement? get declaredElement2;
 
@@ -24871,13 +24879,14 @@ final class VariableDeclarationImpl extends DeclarationImpl
     _becomeParentOf(initializer);
   }
 
+  @Deprecated('Use declaredFragment instead')
   @experimental
   @override
   LocalVariableElementImpl? get declaredElement {
     return declaredFragment?.element.ifTypeOrNull<LocalVariableElementImpl>();
   }
 
-  @Deprecated('Use declaredElement instead')
+  @Deprecated('Use declaredFragment instead')
   @experimental
   @override
   LocalVariableElementImpl? get declaredElement2 {

@@ -1,3 +1,15 @@
+## 8.2.0-dev
+* Deprecate `Diagnostic.data`. Instead, please use an expando to attach data to
+  the `Diagnostic` object.
+* Deprecate `CatchClauseParameter.declaredElement` and `CatchClauseParameter.declaredElement2`.
+  Use `CatchClauseParameter.declaredFragment` instead.
+* Deprecate `DeclaredIdentifier.declaredElement` and `DeclaredIdentifier.declaredElement2`.
+  Use `DeclaredIdentifier.declaredFragment` instead.
+* Deprecate `DeclaredVariablePattern.declaredElement` and `DeclaredVariablePattern.declaredElement2`.
+  Use `DeclaredVariablePattern.declaredFragment` instead.
+* Deprecate `VariableDeclaration.declaredElement` and `VariableDeclaration.declaredElement2`.
+  Use `VariableDeclaration.declaredFragment` instead.
+
 ## 8.1.1
 * Fix for `EnumSet` usage when compiled to JavaScript.
 
@@ -22,8 +34,6 @@
 * Deprecate `ClassElement.isImplementableIn`; use `isImplementableOutside` instead.
 * Deprecate `ClassElement.isMixableIn`; use `isMixableOutside` instead.
 * Deprecate `MixinElement.isImplementableIn`; use `isImplementableOutside` instead.
-* Deprecate `Diagnostic.data`. Instead, please use an expando to attach data to
-  the `Diagnostic` object.
 
 ## 8.0.0
 * Remove deprecated element model V1.

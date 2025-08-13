@@ -141,13 +141,13 @@ class FindElement2 extends _FindElementBase {
     unit.accept(
       FunctionAstVisitor(
         catchClauseParameter: (node) {
-          updateResult(node.declaredElement!);
+          updateResult(node.declaredFragment!.element);
         },
         declaredIdentifier: (node) {
-          updateResult(node.declaredElement!);
+          updateResult(node.declaredFragment!.element);
         },
         declaredVariablePattern: (node) {
-          updateResult(node.declaredElement!);
+          updateResult(node.declaredFragment!.element);
         },
         variableDeclaration: (node) {
           updateResult(node.declaredFragment!.element);

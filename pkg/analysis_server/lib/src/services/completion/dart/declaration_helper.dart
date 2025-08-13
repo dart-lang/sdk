@@ -2500,12 +2500,12 @@ class DeclarationHelper {
   }
 
   void _visitCatchClause(CatchClause node) {
-    var exceptionElement = node.exceptionParameter?.declaredElement;
+    var exceptionElement = node.exceptionParameter?.declaredFragment?.element;
     if (exceptionElement != null) {
       _suggestVariable(exceptionElement);
     }
 
-    var stackTraceElement = node.stackTraceParameter?.declaredElement;
+    var stackTraceElement = node.stackTraceParameter?.declaredFragment?.element;
     if (stackTraceElement != null) {
       _suggestVariable(stackTraceElement);
     }
@@ -2532,7 +2532,7 @@ class DeclarationHelper {
   }
 
   void _visitDeclaredVariablePattern(DeclaredVariablePattern pattern) {
-    var declaredElement = pattern.declaredElement;
+    var declaredElement = pattern.declaredFragment?.element;
     if (declaredElement != null) {
       _suggestVariable(declaredElement);
     }
@@ -2540,7 +2540,7 @@ class DeclarationHelper {
 
   void _visitForLoopParts(ForLoopParts node) {
     if (node is ForEachPartsWithDeclaration) {
-      var declaredElement = node.loopVariable.declaredElement;
+      var declaredElement = node.loopVariable.declaredFragment?.element;
       if (declaredElement != null) {
         _suggestVariable(declaredElement);
       }
@@ -2549,7 +2549,7 @@ class DeclarationHelper {
     } else if (node is ForPartsWithDeclarations) {
       var variables = node.variables;
       for (var variable in variables.variables) {
-        var declaredElement = variable.declaredElement;
+        var declaredElement = variable.declaredFragment?.element;
         if (declaredElement is LocalVariableElement) {
           _suggestVariable(declaredElement);
         }
@@ -2660,8 +2660,8 @@ class DeclarationHelper {
           var variables = statement.variables;
           for (var variable in variables.variables) {
             if (variable.end < offset) {
-              var declaredElement = variable.declaredElement;
-              if (declaredElement != null) {
+              var declaredElement = variable.declaredFragment?.element;
+              if (declaredElement is LocalVariableElement) {
                 _suggestVariable(declaredElement);
               }
             }
@@ -2741,8 +2741,8 @@ class DeclarationHelper {
     if (child is VariableDeclaration) {
       var index = variables.indexOf(child);
       for (var i = index - 1; i >= 0; i--) {
-        var element = variables[i].declaredElement;
-        if (element != null) {
+        var element = variables[i].declaredFragment?.element;
+        if (element is LocalVariableElement) {
           _suggestVariable(element);
         }
       }

@@ -50,7 +50,7 @@ class _Visitor extends SimpleAstVisitor<void> {
     if (loopVariable.isFinal) return;
 
     var function = node.thisOrAncestorOfType<FunctionBody>();
-    var loopVariableElement = loopVariable.declaredElement;
+    var loopVariableElement = loopVariable.declaredFragment?.element;
     if (function != null &&
         loopVariableElement != null &&
         !function.isPotentiallyMutatedInScope(loopVariableElement)) {
@@ -108,7 +108,7 @@ class _Visitor extends SimpleAstVisitor<void> {
 extension on FunctionBody {
   bool potentiallyMutates(Object pattern) {
     if (pattern is! DeclaredVariablePattern) return true;
-    var element = pattern.declaredElement;
+    var element = pattern.declaredFragment?.element;
     if (element == null) return true;
     return isPotentiallyMutatedInScope(element.baseElement);
   }

@@ -147,10 +147,11 @@ class DartUnitOccurrencesComputerVisitor extends GeneralizingAstVisitor<void> {
 
   @override
   void visitDeclaredVariablePattern(DeclaredVariablePattern node) {
-    if (node.declaredElement case BindPatternVariableElement(:var join?)) {
+    var declaredElement = node.declaredFragment!.element;
+    if (declaredElement case BindPatternVariableElement(:var join?)) {
       _addOccurrence(join.baseElement, node.name);
     } else {
-      _addOccurrence(node.declaredElement!, node.name);
+      _addOccurrence(declaredElement, node.name);
     }
 
     super.visitDeclaredVariablePattern(node);

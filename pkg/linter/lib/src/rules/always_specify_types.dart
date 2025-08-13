@@ -71,7 +71,7 @@ class _Visitor extends SimpleAstVisitor<void> {
   void visitDeclaredIdentifier(DeclaredIdentifier node) {
     var keyword = node.keyword;
     if (node.type == null && keyword != null) {
-      var element = node.declaredElement;
+      var element = node.declaredFragment?.element;
       if (element is VariableElement) {
         if (keyword.keyword == Keyword.VAR) {
           rule.reportAtToken(

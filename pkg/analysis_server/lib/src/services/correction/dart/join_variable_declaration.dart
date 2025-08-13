@@ -85,7 +85,7 @@ class JoinVariableDeclaration extends ResolvedCorrectionProducer {
     // The declared variable must be the one that is assigned.
     // There must be no initializer.
     var declaredVariable = declaredVariables.single;
-    if (declaredVariable.declaredElement != left.element ||
+    if (declaredVariable.declaredFragment?.element != left.element ||
         declaredVariable.initializer != null) {
       return;
     }
@@ -149,7 +149,7 @@ class JoinVariableDeclaration extends ResolvedCorrectionProducer {
     }
 
     // The assignment should write into the declared variable.
-    if (assignment.writeElement != declaredVariable.declaredElement) {
+    if (assignment.writeElement != declaredVariable.declaredFragment?.element) {
       return;
     }
 

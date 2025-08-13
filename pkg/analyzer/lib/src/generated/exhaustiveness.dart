@@ -568,7 +568,7 @@ class PatternConverter with SpaceCreator<DartPattern, TypeImpl> {
       return createVariableSpace(
         path,
         contextType,
-        pattern.declaredElement!.type,
+        pattern.declaredFragment!.element.type,
         nonNull: nonNull,
       );
     } else if (pattern is ObjectPattern) {

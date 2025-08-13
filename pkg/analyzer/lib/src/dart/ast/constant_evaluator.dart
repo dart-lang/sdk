@@ -244,7 +244,7 @@ class ConstantEvaluator extends GeneralizingAstVisitor<Object> {
   }
 
   @override
-  Object? visitBooleanLiteral(BooleanLiteral node) => node.value ? true : false;
+  Object? visitBooleanLiteral(BooleanLiteral node) => node.value;
 
   @override
   Object? visitDoubleLiteral(DoubleLiteral node) => node.value;

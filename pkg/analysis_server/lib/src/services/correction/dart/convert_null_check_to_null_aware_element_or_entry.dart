@@ -105,7 +105,8 @@ class ConvertNullCheckToNullAwareElementOrEntry
               ((node.caseClause?.guardedPattern.pattern as NullCheckPattern)
                           .pattern
                       as DeclaredVariablePattern)
-                  .declaredElement;
+                  .declaredFragment
+                  ?.element;
           if (caseVariable == thenElement.key.canonicalElement) {
             // In case the key is promoted, replace everything before ':' with
             // the expression before 'case', prefixed by '?'.

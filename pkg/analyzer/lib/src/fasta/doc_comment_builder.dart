@@ -929,9 +929,7 @@ final class _BlockDocDirectiveBuilder {
   /// Whether this doc directive's opening tag is the opposing tag for [tag].
   bool matches(DocDirectiveTag tag) {
     var openingTag = this.openingTag;
-    return openingTag == null
-        ? false
-        : openingTag.type.opposingName == tag.type.name;
+    return openingTag != null && openingTag.type.opposingName == tag.type.name;
   }
 
   void push(DocDirective docDirective) => innerDocDirectives.add(docDirective);

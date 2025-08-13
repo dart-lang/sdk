@@ -50,7 +50,7 @@ class _Visitor extends SimpleAstVisitor<void> {
           rule.reportAtNode(node);
         }
       } else {
-        var declaredElement = node.declaredElement;
+        var declaredElement = node.declaredFragment?.element;
         if (declaredElement != null &&
             !function.isPotentiallyMutatedInScope(declaredElement)) {
           rule.reportAtNode(node);

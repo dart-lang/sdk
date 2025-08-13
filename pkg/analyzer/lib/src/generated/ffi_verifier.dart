@@ -1376,9 +1376,8 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
     } else if (nativeReturnType == _PrimitiveDartType.bool) {
       return dartType.isDartCoreBool;
     } else if (nativeReturnType == _PrimitiveDartType.void_) {
-      return direction == _FfiTypeCheckDirection.dartToNative
-          ? true
-          : dartType is VoidType;
+      return direction == _FfiTypeCheckDirection.dartToNative ||
+          dartType is VoidType;
     } else if (dartType is VoidType) {
       // Don't allow other native subtypes if the Dart return type is void.
       return nativeReturnType == _PrimitiveDartType.void_;

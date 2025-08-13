@@ -122,7 +122,7 @@ class AddNullCheck extends ResolvedCorrectionProducer {
       toType = parent.realTarget.typeOrThrow;
     } else if (parent is ForEachPartsWithDeclaration) {
       toType = typeProvider.iterableType(
-        parent.loopVariable.declaredElement!.type,
+        parent.loopVariable.declaredFragment!.element.type,
       );
     } else if (parent is ForEachPartsWithIdentifier) {
       toType = typeProvider.iterableType(parent.identifier.typeOrThrow);

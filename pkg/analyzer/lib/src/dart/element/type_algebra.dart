@@ -369,7 +369,7 @@ abstract class _TypeSubstitutor
   int useCounter = 0;
 
   _TypeSubstitutor(this.outer) {
-    covariantContext = outer == null ? true : outer!.covariantContext;
+    covariantContext = outer == null || outer!.covariantContext;
   }
 
   void bumpCountersUntil(_TypeSubstitutor target) {

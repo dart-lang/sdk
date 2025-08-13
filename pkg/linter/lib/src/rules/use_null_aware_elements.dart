@@ -59,10 +59,10 @@ class _Visitor extends SimpleAstVisitor<void> {
           nullCheckTarget = leftOperand.canonicalElement;
         }
       } else if (node.caseClause?.guardedPattern.pattern case NullCheckPattern(
-        pattern: DeclaredVariablePattern(:var declaredElement),
+        pattern: DeclaredVariablePattern(:var declaredFragment),
       )) {
         // Case of pattern null checks of the form `if (x case var y?) y`.
-        nullCheckTarget = declaredElement;
+        nullCheckTarget = declaredFragment?.element;
       }
 
       if (nullCheckTarget is PromotableElementImpl) {

@@ -129,7 +129,7 @@ class _UseStringBufferVisitor extends SimpleAstVisitor<void> {
   @override
   void visitVariableDeclarationStatement(VariableDeclarationStatement node) {
     for (var variable in node.variables.variables) {
-      localElements.add(variable.declaredElement);
+      localElements.add(variable.declaredFragment?.element);
     }
   }
 }

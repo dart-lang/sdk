@@ -53,7 +53,7 @@ class _PreferForEachVisitor extends SimpleAstVisitor<void> {
   void visitForStatement(ForStatement node) {
     var loopParts = node.forLoopParts;
     if (loopParts is ForEachPartsWithDeclaration) {
-      var element = loopParts.loopVariable.declaredElement;
+      var element = loopParts.loopVariable.declaredFragment?.element;
       if (element != null) {
         forEachStatement = node;
         this.element = element;
