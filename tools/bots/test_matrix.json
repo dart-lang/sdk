@@ -1422,7 +1422,7 @@
             "standalone"
           ],
           "fileset": "vm",
-          "shards": 1
+          "shards": 2
         },
         {
           "name": "vm tests (aot)",
@@ -1430,7 +1430,9 @@
             "-nvm-aot-${sanitizer}-${system}-${mode}-${arch}",
             "ffi",
             "standalone"
-          ]
+          ],
+          "fileset": "vm",
+          "shards": 2
         }
       ]
     },
@@ -1723,7 +1725,7 @@
             "-nvm-${system}-${mode}-${arch}"
           ],
           "fileset": "vm",
-          "shards": 4
+          "shards": 6
         }
       ]
     },
@@ -1750,7 +1752,7 @@
             "-nvm-aot-${system}-${mode}-${arch}"
           ],
           "fileset": "vm",
-          "shards": 4
+          "shards": 6
         }
       ]
     },
