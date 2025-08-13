@@ -577,6 +577,7 @@ class ObjectPointerVisitor;
   V(vm_notify_debugger_on_exception, "vm:notify-debugger-on-exception")        \
   V(vm_prefer_inline, "vm:prefer-inline")                                      \
   V(vm_recognized, "vm:recognized")                                            \
+  V(vm_shared, "vm:shared")                                                    \
   V(vm_testing_print_flow_graph, "vm:testing:print-flow-graph")                \
   V(vm_trace_entrypoints, "vm:testing.unsafe.trace-entrypoints-fn")            \
   V(vm_unsafe_no_interrupts, "vm:unsafe:no-interrupts")                        \

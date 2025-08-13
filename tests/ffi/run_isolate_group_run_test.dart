@@ -54,6 +54,7 @@ String string_foo = "";
 SendPort? sp;
 
 StringMethodTearoffTest() {
+  @pragma('vm:shared')
   final stringTearoff = "abc".toString;
   IsolateGroup.runSync(() {
     stringTearoff;

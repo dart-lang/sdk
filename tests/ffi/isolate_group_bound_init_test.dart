@@ -62,8 +62,10 @@ testInitStrings() async {
   for (int i = 0; i < nWorkers; i++) {
     Isolate.spawn(
       (sendPort) {
+        @pragma('vm:shared')
+        final sp = sendPort;
         IsolateGroup.runSync(() {
-          sendPort.send(shared_late_final_string);
+          sp.send(shared_late_final_string);
         });
       },
       rp.sendPort,
@@ -100,9 +102,11 @@ testInitThrows() async {
   for (int i = 0; i < nWorkers; i++) {
     Isolate.spawn(
       (sendPort) {
+        @pragma('vm:shared')
+        final sp = sendPort;
         IsolateGroup.runSync(() {
           try {
-            sendPort.send(shared_late_final_throw);
+            sp.send(shared_late_final_throw);
           } catch (e) {
             Expect.equals("165", e);
             rethrow;

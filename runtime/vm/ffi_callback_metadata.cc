@@ -398,6 +398,16 @@ void FfiCallbackMetadata::EnsureOnlyTriviallyImmutableValuesInClosure(
     for (intptr_t i = 0; i < context.num_variables(); i++) {
       ValidateTriviallyImmutabilityOfAnObject(zone, &obj, context.At(i));
     }
+
+    if (!function.does_close_over_only_final_and_shared_vars()) {
+      const String& error = String::Handle(
+          zone,
+          String::New(
+              "Only final and 'vm:shared' variables can be captured by isolate "
+              "group callbacks."));
+      Exceptions::ThrowArgumentError(error);
+      UNREACHABLE();
+    }
   }
 }
 

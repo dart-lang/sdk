@@ -1521,7 +1521,10 @@ class UntaggedClosureData : public UntaggedObject {
   using PackedAwaiterLinkIndex = BitField<decltype(packed_fields_),
                                           uint8_t,
                                           PackedAwaiterLinkDepth::kNextBit>;
-
+  using DoesCloseOverOnlySharedFields =
+      BitField<decltype(packed_fields_),
+               bool,
+               PackedAwaiterLinkIndex::kNextBit>;
   friend class Function;
   friend class UnitDeserializationRoots;
 };
@@ -2470,7 +2473,8 @@ class UntaggedContext : public UntaggedObject {
   V(Late)                                                                      \
   V(Nullable)                                                                  \
   V(Invisible)                                                                 \
-  V(AwaiterLink)
+  V(AwaiterLink)                                                               \
+  V(Shared)
 
 class UntaggedContextScope : public UntaggedObject {
   RAW_HEAP_OBJECT_IMPLEMENTATION(ContextScope);
