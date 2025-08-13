@@ -10,11 +10,11 @@ import 'package:analyzer/src/lint/registry.dart';
 import 'package:args/args.dart';
 import 'package:collection/collection.dart';
 import 'package:linter/src/rules.dart';
-import 'package:linter/src/utils.dart';
 import 'package:pub_semver/pub_semver.dart';
 import 'package:yaml/yaml.dart';
 
 import 'messages_info.dart';
+import 'util/io.dart';
 import 'util/path_utils.dart';
 
 /// Generates a list of built-in lint rules in JSON suitable for

@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/ast/token.dart';
-import 'package:analyzer/src/lint/io.dart'; // ignore: implementation_imports
 
 // A camel case string here is defined as:
 // * An arbitrary number of optional leading `_`s or `$`s,
@@ -87,12 +86,6 @@ bool isValidPackageName(String id) =>
     _lowerCaseUnderScoreWithLeadingUnderscores.hasMatch(id) &&
     _isIdentifier(id) &&
     !_isReservedWord(id);
-
-/// Write the given [object] to the console.
-/// Uses the shared [outSink] for redirecting in tests.
-void printToConsole(Object? object) {
-  outSink.writeln(object);
-}
 
 bool _isCamelCase(String name) => _camelCasePattern.hasMatch(name);
 

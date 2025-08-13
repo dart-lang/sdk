@@ -2,8 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:io';
+
 import 'package:analyzer/analysis_rule/rule_state.dart';
-import 'package:analyzer/src/lint/io.dart';
 import 'package:collection/collection.dart';
 import 'package:pub_semver/pub_semver.dart';
 import 'package:yaml/yaml.dart';
@@ -39,7 +40,7 @@ const _stateNames = {
 };
 
 final Map<String, RuleInfo> messagesRuleInfo = () {
-  var messagesYaml = loadYamlNode(readFile(_messagesYamlPath));
+  var messagesYaml = loadYamlNode(File(_messagesYamlPath).readAsStringSync());
   if (messagesYaml is! YamlMap) {
     throw StateError("The '$_messagesFileName' file is not a YAML map.");
   }

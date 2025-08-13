@@ -10,7 +10,6 @@ import 'package:analyzer/analysis_rule/analysis_rule.dart';
 import 'package:analyzer/diagnostic/diagnostic.dart';
 import 'package:analyzer/src/lint/analysis_rule_timers.dart';
 import 'package:analyzer/src/lint/config.dart';
-import 'package:analyzer/src/lint/io.dart';
 import 'package:analyzer/src/lint/registry.dart';
 import 'package:analyzer/src/util/file_paths.dart' as file_paths;
 import 'package:args/args.dart';
@@ -20,8 +19,8 @@ import 'package:path/path.dart' as path;
 import 'package:yaml/yaml.dart';
 
 import 'lint_sets.dart';
-import 'linter_options.dart';
 import 'test_linter.dart';
+import 'util/io.dart';
 
 /// Benchmarks lint rules.
 Future<void> main(List<String> args) async {
@@ -62,16 +61,20 @@ Iterable<File> collectFiles(String entityPath) {
   return files;
 }
 
-Future<void> lintFiles(TestLinter linter, List<File> filesToLint) async {
+Future<void> lintFiles(
+  List<File> filesToLint, {
+  required List<AbstractAnalysisRule> rules,
+  required String? dartSdkPath,
+}) async {
   // Setup an error watcher to track whether an error was logged to stderr so
   // we can set the exit code accordingly.
   var errorWatcher = _ErrorWatchingSink(errorSink);
   errorSink = errorWatcher;
-  var errors = await linter.lintFiles(filesToLint);
+  var diagnostics = await TestLinter(rules, dartSdkPath).lintFiles(filesToLint);
   if (errorWatcher.encounteredError) {
     exitCode = loggedAnalyzerErrorExitCode;
-  } else if (errors.isNotEmpty) {
-    exitCode = _maxSeverity(errors);
+  } else if (diagnostics.isNotEmpty) {
+    exitCode = _maxSeverity(diagnostics);
   }
 }
 
@@ -116,7 +119,7 @@ Future<void> runLinter(List<String> args) async {
     return;
   }
 
-  if (options['help'] as bool) {
+  if (options.flag('help')) {
     printUsage(parser, outSink);
     return;
   }
@@ -132,25 +135,21 @@ Future<void> runLinter(List<String> args) async {
     return;
   }
 
-  var configFile = options['config'];
-  var ruleNames = options['rules'];
-  var customSdk = options.option('dart-sdk');
+  var configFile = options.option('config');
+  var ruleNames = options.multiOption('rules');
+  var dartSdkPath = options.option('dart-sdk');
 
-  LinterOptions linterOptions;
-  if (configFile is String) {
-    var optionsContent = readFile(configFile);
+  List<AbstractAnalysisRule> rules;
+  if (configFile != null) {
+    var optionsContent = File(configFile).readAsStringSync();
     var options = loadYamlNode(optionsContent) as YamlMap;
     var ruleConfigs = parseLinterSection(options)!.values;
-    var enabledRules = Registry.ruleRegistry.where(
-      (rule) => !ruleConfigs.any((rc) => rc.disables(rule.name)),
-    );
-
-    linterOptions = LinterOptions(
-      enabledRules: enabledRules,
-      dartSdkPath: customSdk,
-    );
-  } else if (ruleNames is Iterable<String> && ruleNames.isNotEmpty) {
-    var rules = <AbstractAnalysisRule>[];
+    rules =
+        Registry.ruleRegistry
+            .where((rule) => !ruleConfigs.any((rc) => rc.disables(rule.name)))
+            .toList();
+  } else if (ruleNames.isNotEmpty) {
+    rules = <AbstractAnalysisRule>[];
     for (var ruleName in ruleNames) {
       var rule = Registry.ruleRegistry[ruleName];
       if (rule == null) {
@@ -159,9 +158,8 @@ Future<void> runLinter(List<String> args) async {
       }
       rules.add(rule);
     }
-    linterOptions = LinterOptions(enabledRules: rules, dartSdkPath: customSdk);
   } else {
-    linterOptions = LinterOptions(dartSdkPath: customSdk);
+    rules = Registry.ruleRegistry.toList();
   }
 
   var filesToLint = [
@@ -171,17 +169,23 @@ Future<void> runLinter(List<String> args) async {
       ).map((file) => file.path.toAbsoluteNormalizedPath()).map(File.new),
   ];
 
-  await writeBenchmarks(outSink, filesToLint, linterOptions);
+  await writeBenchmarks(
+    outSink,
+    filesToLint,
+    rules: rules,
+    dartSdkPath: dartSdkPath,
+  );
 }
 
 Future<void> writeBenchmarks(
   StringSink out,
-  List<File> filesToLint,
-  LinterOptions linterOptions,
-) async {
+  List<File> filesToLint, {
+  required List<AbstractAnalysisRule> rules,
+  required String? dartSdkPath,
+}) async {
   var timings = <String, int>{};
   for (var i = 0; i < benchmarkRuns; ++i) {
-    await lintFiles(TestLinter(linterOptions), filesToLint);
+    await lintFiles(filesToLint, rules: rules, dartSdkPath: dartSdkPath);
     analysisRuleTimers.timers.forEach((n, t) {
       var timing = t.elapsedMilliseconds;
       var previous = timings[n];
@@ -195,18 +199,13 @@ Future<void> writeBenchmarks(
 
   var stats =
       timings.keys.map((t) {
-        var sets = <String>[];
-        if (coreRuleset.contains(t)) {
-          sets.add('core');
-        }
-        if (recommendedRuleset.contains(t)) {
-          sets.add('recommended');
-        }
-        if (flutterRuleset.contains(t)) {
-          sets.add('flutter');
-        }
+        var rulesets = [
+          if (coreRuleset.contains(t)) 'core',
+          if (recommendedRuleset.contains(t)) 'recommended',
+          if (flutterRuleset.contains(t)) 'flutter',
+        ];
 
-        var details = sets.isEmpty ? '' : " [${sets.join(', ')}]";
+        var details = rulesets.isEmpty ? '' : " [${rulesets.join(', ')}]";
         return Stat('$t$details', timings[t] ?? 0);
       }).toList();
   out.writeTimings(stats, 0);
@@ -260,6 +259,7 @@ extension on String {
       path.split(this).any((part) => part.startsWith('.'));
 
   /// Whether this path is a Dart file or a Pubspec file.
+  // TODO(srawlins): This should include analysis options files as well.
   bool get isLintable =>
       endsWith('.dart') || path.basename(this) == file_paths.pubspecYaml;
 }

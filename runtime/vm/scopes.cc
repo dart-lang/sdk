@@ -462,6 +462,8 @@ ContextScopePtr LocalScope::PreserveOuterScope(
 
   LocalVariable* awaiter_link = nullptr;
 
+  bool does_capture_only_final_and_shared_vars = true;
+
   // Create a descriptor for each referenced captured variable of enclosing
   // functions to preserve its name and its context allocation information.
   int captured_idx = 0;
@@ -500,6 +502,13 @@ ContextScopePtr LocalScope::PreserveOuterScope(
       if (is_awaiter_link) {
         awaiter_link = variable;
       }
+
+      bool is_shared = variable->ComputeIfShared(library);
+      context_scope.SetIsSharedAt(captured_idx, is_shared);
+      if (!is_shared && !variable->is_final()) {
+        does_capture_only_final_and_shared_vars = false;
+      }
+
       captured_idx++;
     }
   }
@@ -523,6 +532,11 @@ ContextScopePtr LocalScope::PreserveOuterScope(
     }
   }
 
+  if (!function.IsNull()) {
+    function.set_does_close_over_only_final_and_shared_vars(
+        does_capture_only_final_and_shared_vars);
+  }
+
   return context_scope.ptr();
 }
 
@@ -542,6 +556,7 @@ LocalScope* LocalScope::RestoreOuterScope(const ContextScope& context_scope) {
         String::ZoneHandle(context_scope.NameAt(i)), static_type,
         context_scope.KernelOffsetAt(i), inferred_type);
     variable->set_is_awaiter_link(context_scope.IsAwaiterLinkAt(i));
+    variable->set_is_shared(context_scope.IsSharedAt(i));
     variable->set_is_captured();
     variable->set_index(VariableIndex(context_scope.ContextIndexAt(i)));
     if (context_scope.IsFinalAt(i)) {
@@ -691,6 +706,19 @@ bool LocalVariable::ComputeIfIsAwaiterLink(const Library& library) {
         FindPragmaInMetadata(T, metadata, Symbols::vm_awaiter_link()));
   }
   return is_awaiter_link_ == IsAwaiterLink::kLink;
+}
+
+bool LocalVariable::ComputeIfShared(const Library& library) {
+  if (is_shared_ == IsShared::kUnknown) {
+    RELEASE_ASSERT(annotations_offset_ != kNoKernelOffset);
+    Thread* T = Thread::Current();
+    Zone* Z = T->zone();
+    const auto& metadata = Object::Handle(
+        Z, kernel::EvaluateMetadata(library, annotations_offset_,
+                                    /* is_annotations_offset = */ true));
+    set_is_shared(FindPragmaInMetadata(T, metadata, Symbols::vm_shared()));
+  }
+  return is_shared_ == IsShared::kShared;
 }
 
 bool LocalVariable::Equals(const LocalVariable& other) const {
