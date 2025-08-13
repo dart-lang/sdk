@@ -5,13 +5,13 @@
 import 'dart:io' as io;
 
 import 'package:analyzer/dart/analysis/results.dart';
+import 'package:analyzer/diagnostic/diagnostic.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/file_system/physical_file_system.dart' as file_system;
 import 'package:analyzer/instrumentation/instrumentation.dart';
 import 'package:analyzer/src/dart/analysis/analysis_context_collection.dart';
 import 'package:analyzer/src/generated/engine.dart' show AnalysisEngine;
 import 'package:analyzer/src/lint/io.dart';
-import 'package:linter/src/test_utilities/analysis_error_info.dart';
 
 import 'linter_options.dart';
 
@@ -27,7 +27,7 @@ class LintDriver {
   ResourceProvider get _resourceProvider =>
       file_system.PhysicalResourceProvider.INSTANCE;
 
-  Future<List<DiagnosticInfo>> analyze(Iterable<io.File> files) async {
+  Future<List<Diagnostic>> analyze(Iterable<io.File> files) async {
     AnalysisEngine.instance.instrumentationService = _StdInstrumentation();
 
     var filesPaths =
@@ -49,14 +49,12 @@ class LintDriver {
 
     _filesAnalyzed.addAll(filesPaths);
 
-    var result = <DiagnosticInfo>[];
+    var result = <Diagnostic>[];
     for (var path in _filesAnalyzed) {
       var analysisSession = contextCollection.contextFor(path).currentSession;
       var errorsResult = await analysisSession.getErrors(path);
       if (errorsResult is ErrorsResult) {
-        result.add(
-          DiagnosticInfo(errorsResult.diagnostics, errorsResult.lineInfo),
-        );
+        result.addAll(errorsResult.diagnostics);
       }
     }
     return result;

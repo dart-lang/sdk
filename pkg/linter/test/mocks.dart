@@ -6,8 +6,6 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:analyzer/error/error.dart';
-import 'package:analyzer/src/generated/engine.dart';
-import 'package:analyzer/src/generated/source.dart';
 
 class MockDiagnosticType implements DiagnosticType {
   @override
@@ -62,22 +60,6 @@ class MockIOSink implements IOSink {
 
   @override
   void writeln([Object? obj = '']) {}
-}
-
-class MockSource extends BasicSource {
-  @override
-  final String fullName;
-
-  MockSource(this.fullName) : super(Uri.file(fullName));
-
-  @override
-  TimestampedData<String> get contents => TimestampedData<String>(0, '');
-
-  @override
-  bool exists() => false;
-
-  @override
-  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
 
 class TestDiagnosticCode extends DiagnosticCode {
