@@ -16,6 +16,8 @@ import 'package:yaml_edit/yaml_edit.dart';
 
 import '../utils.dart';
 
+export 'package:hooks_runner/src/utils/run_process.dart' show RunProcessResult;
+
 extension UriExtension on Uri {
   Uri get parent {
     return File(toFilePath()).parent.uri;
@@ -34,7 +36,15 @@ Future<void> inTempDir(Future<void> Function(Uri tempUri) fun) async {
   } finally {
     if (!Platform.environment.containsKey(keepTempKey) ||
         Platform.environment[keepTempKey]!.isEmpty) {
-      await tempDir.delete(recursive: true);
+      try {
+        await tempDir.delete(recursive: true);
+      } on PathAccessException {
+        if (Platform.isWindows) {
+          // Don't fail on files being in use.
+        } else {
+          rethrow;
+        }
+      }
     }
   }
 }
@@ -310,12 +320,14 @@ Future<run_process.RunProcessResult> runDart({
   Uri? workingDirectory,
   required Logger? logger,
   bool expectExitCodeZero = true,
+  Map<String, String>? environment,
 }) async {
   final result = await runProcess(
     executable: dartExecutable,
     arguments: arguments,
     workingDirectory: workingDirectory,
     logger: logger,
+    environment: environment,
   );
   if (expectExitCodeZero) {
     if (result.exitCode != 0) {

@@ -79,6 +79,11 @@ void help() {
           '''
 Available commands:
 
+Global
+  install               Install or upgrade a Dart CLI tool for global use.
+  installed             List globally installed Dart CLI tools.
+  uninstall             Remove a globally installed Dart CLI tool.
+
 Project
   build                 Build a Dart application including native assets.
   compile               Compile Dart to various formats.
