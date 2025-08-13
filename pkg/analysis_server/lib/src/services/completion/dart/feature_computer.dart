@@ -854,6 +854,11 @@ class _ContextTypeVisitor extends SimpleAstVisitor<DartType> {
   }
 
   @override
+  DartType? visitInstanceCreationExpression(InstanceCreationExpression node) {
+    return _visitParent(node);
+  }
+
+  @override
   DartType? visitIsExpression(IsExpression node) {
     if (node.isOperator.end < offset) {
       return node.expression.staticType;

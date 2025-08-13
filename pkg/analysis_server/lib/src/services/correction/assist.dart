@@ -111,6 +111,11 @@ abstract final class DartAssistKind {
     DartAssistKindPriority.default_,
     'Convert to use a URI',
   );
+  static const convertToDotShorthand = AssistKind(
+    'dart.assist.convert.ToDotShorthand',
+    DartAssistKindPriority.default_,
+    'Convert to dot shorthand',
+  );
   static const convertToDoubleQuotedString = AssistKind(
     'dart.assist.convert.toDoubleQuotedString',
     DartAssistKindPriority.default_,
