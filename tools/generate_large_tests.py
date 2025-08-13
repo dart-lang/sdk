@@ -30,14 +30,19 @@ def checked_in_sdk_executable():
 
 
 def generate_tests(tools_dir, tests_dir):
+    # Remove all previously existing tests in case the corresponding generator
+    # is deleted or renamed.
+    for file in os.listdir(tests_dir):
+        if file.endswith('_test.dart'):
+            os.remove(os.path.join(tests_dir, file))
+
+    # Create each xyz_test.dart as the output of xyz_generator.dart.
     for file in os.listdir(tests_dir):
         if not file.endswith('_generator.dart'):
             continue
 
         gen_file = os.path.join(tests_dir, file)
         test_file = gen_file.replace('_generator.dart', '_test.dart')
-        if os.path.exists(test_file):
-            os.remove(test_file)
         process = subprocess.run([
             checked_in_sdk_executable(),
             '--packages=%s' %
@@ -46,8 +51,15 @@ def generate_tests(tools_dir, tests_dir):
         ],
                                  capture_output=True)
         if process.returncode != 0:
+            print("%s failed" % os.path.join(tests_dir, file))
+            print(process.stdout)
+            print(process.stderr)
             sys.exit(process.returncode)
         f = open(test_file, 'wb')
+        f.write(b'// GENERATED FILE: DO NOT EDIT\n')
+        f.write(('// Edit %s instead and re-run `gclient runhooks`\n' %
+                 file).encode('utf-8'))
+        f.write(b'\n')
         f.write(process.stdout)
         f.close()
 
@@ -55,7 +67,7 @@ def generate_tests(tools_dir, tests_dir):
 def Main():
     tools_dir = os.path.dirname(os.path.realpath(__file__))
     vm_tests_dir = os.path.join(tools_dir, '..', 'runtime', 'tests', 'vm',
-                                'dart')
+                                'dart', 'generated')
     generate_tests(tools_dir, vm_tests_dir)
 
 
