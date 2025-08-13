@@ -132,6 +132,8 @@ String trimEnd(String s, String? suffix) {
 extension FileSystemEntityExtension on FileSystemEntity {
   String get name => p.basename(path);
 
+  String get basenameWithoutExtension => p.basenameWithoutExtension(path);
+
   bool get isDartFile => this is File && p.extension(path) == '.dart';
 }
 

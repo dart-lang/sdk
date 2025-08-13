@@ -224,6 +224,8 @@ dependency_overrides:
     path: third_party/pkg/protobuf/protoc_plugin
   pub:
     path: third_party/pkg/pub
+  pub_formats:
+    path: third_party/pkg/native/pkgs/pub_formats
   pub_semver:
     path: third_party/pkg/tools/pkgs/pub_semver
   regression_tests:

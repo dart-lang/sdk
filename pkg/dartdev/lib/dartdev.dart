@@ -27,10 +27,13 @@ import 'src/commands/devtools.dart';
 import 'src/commands/doc.dart';
 import 'src/commands/fix.dart';
 import 'src/commands/info.dart';
+import 'src/commands/install.dart';
+import 'src/commands/installed.dart';
 import 'src/commands/language_server.dart';
 import 'src/commands/run.dart';
 import 'src/commands/test.dart';
 import 'src/commands/tooling_daemon.dart';
+import 'src/commands/uninstall.dart';
 import 'src/core.dart';
 import 'src/experiments.dart';
 import 'src/unified_analytics.dart';
@@ -135,6 +138,11 @@ class DartdevRunner extends CommandRunner<int> {
       nativeAssetsExperimentEnabled: nativeAssetsExperimentEnabled,
     ));
     addCommand(ToolingDaemonCommand(verbose: verbose));
+    if (nativeAssetsExperimentEnabled) {
+      addCommand(InstallCommand(verbose: verbose));
+      addCommand(InstalledCommand(verbose: verbose));
+      addCommand(UninstallCommand(verbose: verbose));
+    }
   }
 
   @visibleForTesting
