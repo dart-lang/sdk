@@ -23909,7 +23909,7 @@ WarningCode:
     documentation: |-
       #### Description
 
-      The analyzer produces this diagnostic when a class which is annotated with
+      The analyzer produces this diagnostic when a class annotated with
       `@Deprecated.extend` is used in the `extends` clause of a class
       declaration.
 
@@ -23984,12 +23984,12 @@ WarningCode:
     documentation: |-
       #### Description
 
-      The analyzer produces this diagnostic when a class which is annotated with
+      The analyzer produces this diagnostic when a class annotated with
       `@Deprecated.implement` is used in the `implements` clause of a class or
       enum declaration. This annotation indicates that the ability for classes
       to implement the annotated class is deprecated, and will soon be removed,
-      perhaps
-      by marking the annotated class with `interface`, `final`, or `sealed`.
+      perhaps by marking the annotated class with `interface`, `final`, or
+      `sealed`.
 
       #### Example
 
@@ -24024,6 +24024,43 @@ WarningCode:
     problemMessage: "Implementing 'Function' has no effect."
     correctionMessage: "Try removing 'Function' from the 'implements' clause."
     hasPublishedDocs: true
+  DEPRECATED_INSTANTIATE:
+    parameters:
+      Object p0: the name of the member
+    problemMessage: "Instantiating '#p0' is deprecated."
+    correctionMessage: Try instantiating a non-abstract class.
+    hasPublishedDocs: false
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when a class annotated with
+      `@Deprecated.instantiate` is instantiated. This annotation indicates that
+      the ability to instantiate the class is deprecated, and will soon be removed,
+      perhaps by marking the annotated class with `abstract`, or `sealed`.
+
+      #### Example
+
+      If the library `p` defines a class annotated with
+      `@Deprecated.instantiate`:
+
+      ```dart
+      %uri="package:p/p.dart"
+      @Deprecated.instantiate()
+      class C {}
+      ```
+
+      Then, the following code, when in a library other than `p`, produces this
+      diagnostic:
+
+      ```dart
+      import 'package:p/p.dart';
+
+      var c = [!C!]();
+      ```
+
+      #### Common fixes
+
+      Follow any directions found in the `Deprecation.instantiate` annotation.
   DEPRECATED_MIXIN_FUNCTION:
     parameters: none
     sharedName: DEPRECATED_SUBTYPE_OF_FUNCTION
@@ -24093,7 +24130,7 @@ WarningCode:
     documentation: |-
       #### Description
 
-      The analyzer produces this diagnostic when a class which is annotated with
+      The analyzer produces this diagnostic when a class annotated with
       `@Deprecated.subclass` is used in the `extends` clause of a class
       declaration, or the `implements` clause of a class or enum declaration.
 
@@ -24797,6 +24834,36 @@ WarningCode:
 
       ```dart
       @[!Deprecated.implement!]()
+      sealed class C {}
+      ```
+
+      #### Common fixes
+
+      Remove the annotation:
+
+      ```dart
+      sealed class C {}
+      ```
+  INVALID_DEPRECATED_INSTANTIATE_ANNOTATION:
+    parameters: none
+    problemMessage: "The annotation '@Deprecated.instantiate' can only be applied to classes."
+    correctionMessage: Try removing the '@Deprecated.instantiate' annotation.
+    hasPublishedDocs: false
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when anything other than an
+      instantiable class is annotated with Deprecated.instantiate. An
+      instantiable class is one not declared with the `abstract` or `sealed`
+      keywords, and with at least one public, generative constructor.
+
+      #### Example
+
+      The following code produces this diagnostic because the annotation is on a
+      sealed class:
+
+      ```dart
+      @[!Deprecated.instantiate!]()
       sealed class C {}
       ```
 
