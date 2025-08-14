@@ -1332,6 +1332,29 @@ DART_EXPORT void CallFunctionOnNewThreadBlocking(int64_t response_id,
   thread.join();
 }
 
+struct RepeatingThread {
+  std::thread thread;
+  std::atomic<bool> run;
+};
+
+DART_EXPORT void* CallFunctionOnNewThreadRepeatedly(void (*fn)(int64_t)) {
+  RepeatingThread* repeater = new RepeatingThread();
+  repeater->run.store(true);
+  repeater->thread = std::thread([fn, repeater]() {
+    for (int64_t i = 0; repeater->run.load(); ++i) {
+      fn(i);
+    }
+  });
+  return repeater;
+}
+
+DART_EXPORT void CallFunctionOnNewThreadStop(void* ptr) {
+  RepeatingThread* repeater = reinterpret_cast<RepeatingThread*>(ptr);
+  repeater->run.store(false);
+  repeater->thread.join();
+  delete repeater;
+}
+
 #if defined(__linux__)
 struct Data {
   void (*fn)(int64_t, int32_t);
