@@ -712,6 +712,7 @@ class DartDev {
     // the result from execution of dartdev.
     {
       MonitorLocker locker(monitor_);
+      exited_ = true;
       locker.Notify();
     }
   }
@@ -779,7 +780,7 @@ class DartDev {
     // proceed.
     {
       MonitorLocker locker(monitor_);
-      while (result_ == DartDev_Result_Unknown) {
+      while (!exited_) {
         locker.Wait();
       }
     }
@@ -940,6 +941,7 @@ class DartDev {
   }
 
   static Monitor* monitor_;
+  static bool exited_;
   static DartDev_Result result_;
   static char* script_name_;
   static char* package_config_override_;
@@ -949,6 +951,7 @@ class DartDev {
 };
 
 Monitor* DartDev::monitor_ = new Monitor();
+bool DartDev::exited_ = false;
 DartDev::DartDev_Result DartDev::result_ = DartDev::DartDev_Result_Unknown;
 char* DartDev::script_name_ = nullptr;
 char* DartDev::package_config_override_ = nullptr;
