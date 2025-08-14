@@ -109,7 +109,122 @@ class ConvertNullCheckToNullAwareElementOrEntryTest
   @override
   String get lintCode => LintNames.use_null_aware_elements;
 
-  Future<void> test_nullCheck_list() async {
+  Future<void> test_nullCheck_getter_list() async {
+    await resolveTestCode('''
+abstract class A {
+  int? get x;
+  List<int> f() {
+    return [
+      if (x != null) x!,
+    ];
+  }
+}
+''');
+    await assertHasFix('''
+abstract class A {
+  int? get x;
+  List<int> f() {
+    return [
+      ?x,
+    ];
+  }
+}
+''');
+  }
+
+  Future<void> test_nullCheck_getter_mapKey() async {
+    await resolveTestCode('''
+abstract class A {
+  int? get x;
+  Map<int, String> f() {
+    return {
+      if (x != null) x!: "",
+    };
+  }
+}
+''');
+    await assertHasFix('''
+abstract class A {
+  int? get x;
+  Map<int, String> f() {
+    return {
+      ?x: "",
+    };
+  }
+}
+''');
+  }
+
+  Future<void> test_nullCheck_getter_mapKeyAndValue() async {
+    await resolveTestCode('''
+abstract class A {
+  int? get x;
+  Map<int, int> f() {
+    return {
+      if (x != null) x!: x!,
+    };
+  }
+}
+''');
+    await assertHasFix('''
+abstract class A {
+  int? get x;
+  Map<int, int> f() {
+    return {
+      ?x: x!,
+    };
+  }
+}
+''');
+  }
+
+  Future<void> test_nullCheck_getter_mapValue() async {
+    await resolveTestCode('''
+abstract class A {
+  int? get x;
+  Map<String, int> f() {
+    return {
+      if (x != null) "key1": x!,
+    };
+  }
+}
+''');
+    await assertHasFix('''
+abstract class A {
+  int? get x;
+  Map<String, int> f() {
+    return {
+      "key1": ?x,
+    };
+  }
+}
+''');
+  }
+
+  Future<void> test_nullCheck_getter_set() async {
+    await resolveTestCode('''
+abstract class A {
+  int? get x;
+  Set<int> f() {
+    return {
+      if (x != null) x!,
+    };
+  }
+}
+''');
+    await assertHasFix('''
+abstract class A {
+  int? get x;
+  Set<int> f() {
+    return {
+      ?x,
+    };
+  }
+}
+''');
+  }
+
+  Future<void> test_nullCheck_promotable_list() async {
     await resolveTestCode('''
 List<int> f(int? x) {
   return [
@@ -126,7 +241,7 @@ List<int> f(int? x) {
 ''');
   }
 
-  Future<void> test_nullCheck_mapKey() async {
+  Future<void> test_nullCheck_promotable_mapKey() async {
     await resolveTestCode('''
 Map<int, String> f(int? x) {
   return {
@@ -143,7 +258,7 @@ Map<int, String> f(int? x) {
 ''');
   }
 
-  Future<void> test_nullCheck_mapKeyAndValue() async {
+  Future<void> test_nullCheck_promotable_mapKeyAndValue() async {
     await resolveTestCode('''
 Map<int, int> f(int? x) {
   return {
@@ -160,7 +275,7 @@ Map<int, int> f(int? x) {
 ''');
   }
 
-  Future<void> test_nullCheck_mapValue() async {
+  Future<void> test_nullCheck_promotable_mapValue() async {
     await resolveTestCode('''
 Map<String, int> f(int? x) {
   return {
@@ -177,7 +292,7 @@ Map<String, int> f(int? x) {
 ''');
   }
 
-  Future<void> test_nullCheck_set() async {
+  Future<void> test_nullCheck_promotable_set() async {
     await resolveTestCode('''
 Set<int> f(int? x) {
   return {
