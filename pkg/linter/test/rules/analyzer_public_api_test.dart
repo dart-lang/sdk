@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/utilities/package_config_file_builder.dart';
+import 'package:linter/src/lint_codes.dart';
 import 'package:linter/src/rules/analyzer_public_api.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -16,14 +17,16 @@ void main() {
 
 @reflectiveTest
 class AnalyzerPublicApiTest extends LintRuleTest {
-  static String get badPartDirective => AnalyzerPublicApi.badPartDirective.name;
+  static String get badPartDirective =>
+      LinterLintCode.analyzerPublicApiBadPartDirective.name;
 
-  static String get badType => AnalyzerPublicApi.badType.name;
+  static String get badType => LinterLintCode.analyzerPublicApiBadType.name;
 
   static String get exportsNonPublicName =>
-      AnalyzerPublicApi.exportsNonPublicName.name;
+      LinterLintCode.analyzerPublicApiExportsNonPublicName.name;
 
-  static String get implInPublicApi => AnalyzerPublicApi.implInPublicApi.name;
+  static String get implInPublicApi =>
+      LinterLintCode.analyzerPublicApiImplInPublicApi.name;
 
   String get libFile => '$testPackageRootPath/lib/file.dart';
 

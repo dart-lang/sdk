@@ -103,6 +103,85 @@ class LinterLintCode extends LintCode {
     hasPublishedDocs: true,
   );
 
+  /// Lint issued if a file in the analyzer public API contains a `part`
+  /// directive that points to a file that's not in the analyzer public API.
+  ///
+  /// The rationale for this lint is that if such a `part` directive were to
+  /// exist, it would cause all the members of the part file to become part of
+  /// the analyzer's public API, even though they don't appear to be public API.
+  ///
+  /// Note that the analyzer doesn't make very much use of `part` directives,
+  /// but it may do so in the future once augmentations and enhanced parts are
+  /// supported.
+  ///
+  /// No parameters.
+  static const LintCode analyzerPublicApiBadPartDirective = LinterLintCode(
+    LintNames.analyzer_public_api_bad_part_directive,
+    "Part directives in the analyzer public API should point to files in the "
+    "analyzer public API.",
+  );
+
+  /// Lint issued if a method, function, getter, or setter in the analyzer
+  /// public API makes use of a type that's not part of the analyzer public API,
+  /// or if a non-public type appears in an `extends`, `implements`, `with`, or
+  /// `on` clause.
+  ///
+  /// The reason this is a problem is that it makes it possible for analyzer
+  /// clients to implicitly reference analyzer internal types. This can happen
+  /// in many ways; here are some examples:
+  ///
+  /// - If `C` is a public API class that implements `B`, and `B` is a private
+  ///   class with a getter called `x`, then a client can access `B.x` via `C`.
+  ///
+  /// - If `f` has return type `T`, and `T` is a private class with a getter
+  ///   called `x`, then a client can access `T.x` via `f().x`.
+  ///
+  /// - If `f` has type `void Function(T)`, and `T` is a private class with a
+  ///   getter called `x`, then a client can access `T.x` via
+  ///   `var g = f; g = (t) { print(t.x); }`.
+  ///
+  /// This lint can be suppressed either with an `ignore` comment, or by marking
+  /// the referenced type with `@AnalyzerPublicApi(...)`. The advantage of
+  /// marking the referenced type with `@AnalyzerPublicApi(...)` is that it
+  /// causes the members of referenced type to be checked by this lint.
+  ///
+  /// Parameters:
+  /// String types: list of types, separated by `, `
+  static const LintCode analyzerPublicApiBadType = LinterLintCode(
+    LintNames.analyzer_public_api_bad_type,
+    "Element makes use of type(s) which is not part of the analyzer public "
+    "API: {0}.",
+  );
+
+  /// Lint issued if a file in the analyzer public API contains an `export`
+  /// directive that exports a name that's not part of the analyzer public API.
+  ///
+  /// This lint can be suppressed either with an `ignore` comment, or by marking
+  /// the exported declaration with `@AnalyzerPublicApi(...)`. The advantage of
+  /// marking the exported declaration with `@AnalyzerPublicApi(...)` is that it
+  /// causes the members of the exported declaration to be checked by this lint.
+  ///
+  /// Parameters:
+  /// String elements: List of elements, separated by `, `
+  static const LintCode analyzerPublicApiExportsNonPublicName = LinterLintCode(
+    LintNames.analyzer_public_api_exports_non_public_name,
+    "Export directive exports element(s) that are not part of the analyzer "
+    "public API: {0}.",
+  );
+
+  /// Lint issued if a top level declaration in the analyzer public API has a
+  /// name ending in `Impl`.
+  ///
+  /// Such declarations are not meant to be members of the analyzer public API,
+  /// so if they are either declared outside of `package:analyzer/src`, or
+  /// marked with `@AnalyzerPublicApi(...)`, that is almost certainly a mistake.
+  ///
+  /// No parameters.
+  static const LintCode analyzerPublicApiImplInPublicApi = LinterLintCode(
+    LintNames.analyzer_public_api_impl_in_public_api,
+    "Declarations in the analyzer public API should not end in \"Impl\".",
+  );
+
   /// Parameters:
   /// Object p0: undocumented
   static const LintCode annotateOverrides = LinterLintCode(
@@ -1127,6 +1206,23 @@ class LinterLintCode extends LintCode {
     LintNames.no_self_assignments,
     "The variable or property is being assigned to itself.",
     correctionMessage: "Try removing the assignment that has no direct effect.",
+  );
+
+  /// No parameters.
+  static const LintCode noSoloTests = LinterLintCode(
+    LintNames.no_solo_tests,
+    "Don't commit soloed tests.",
+    correctionMessage:
+        "Try removing the 'soloTest' annotation or 'solo_' prefix.",
+    hasPublishedDocs: true,
+  );
+
+  /// No parameters.
+  static const LintCode noTrailingSpaces = LinterLintCode(
+    LintNames.no_trailing_spaces,
+    "Don't create string literals with trailing spaces in tests.",
+    correctionMessage: "Try removing the trailing spaces.",
+    hasPublishedDocs: true,
   );
 
   /// No parameters.
@@ -2409,6 +2505,15 @@ class LinterLintCode extends LintCode {
     LintNames.valid_regexps,
     "Invalid regular expression syntax.",
     correctionMessage: "Try correcting the regular expression.",
+    hasPublishedDocs: true,
+  );
+
+  /// No parameters.
+  static const LintCode visitRegisteredNodes = LinterLintCode(
+    LintNames.visit_registered_nodes,
+    "Declare 'visit' methods for all registered node types.",
+    correctionMessage:
+        "Try declaring a 'visit' method for all registered node types.",
     hasPublishedDocs: true,
   );
 

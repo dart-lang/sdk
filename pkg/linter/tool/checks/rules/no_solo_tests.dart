@@ -10,18 +10,11 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:linter/src/analyzer.dart';
 
-const _desc = r"Don't commit soloed tests.";
-
 class NoSoloTests extends LintRule {
-  static const LintCode code = LintCode(
-    'no_solo_tests',
-    _desc,
-    correctionMessage:
-        "Try removing the 'soloTest' annotation or 'solo_' prefix.",
-    hasPublishedDocs: true,
-  );
+  static const LintCode code = LinterLintCode.noSoloTests;
 
-  NoSoloTests() : super(name: 'no_solo_tests', description: _desc);
+  NoSoloTests()
+    : super(name: 'no_solo_tests', description: "Don't commit soloed tests.");
 
   @override
   DiagnosticCode get diagnosticCode => code;
