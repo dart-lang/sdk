@@ -64,7 +64,7 @@ import '../api_prototype/incremental_kernel_generator.dart'
         IncrementalKernelGenerator,
         isLegalIdentifier;
 import '../api_prototype/lowering_predicates.dart'
-    show isExtensionThisName, syntheticThisName;
+    show isExtensionThisName, syntheticThisName, hasUnnamedExtensionNamePrefix;
 import '../api_prototype/memory_file_system.dart' show MemoryFileSystem;
 import '../builder/builder.dart' show Builder;
 import '../builder/compilation_unit.dart'
@@ -1707,6 +1707,19 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
           String afterDot = methodName.substring(indexOfDot + 1);
           Builder? builder =
               libraryBuilder.libraryNameSpace.lookup(beforeDot)?.getable;
+
+          if (builder == null && hasUnnamedExtensionNamePrefix(beforeDot)) {
+            // If the name looks like an unnamed extension, try to find if we
+            // can find such a builder.
+            ExtensionBuilder? foundExtensionBuilder;
+            libraryBuilder.libraryNameSpace
+                .forEachLocalExtension((ExtensionBuilder extension) {
+              if (extension.name == beforeDot) {
+                foundExtensionBuilder = extension;
+              }
+            });
+            builder = foundExtensionBuilder;
+          }
           extensionName = beforeDot;
           if (builder is ExtensionBuilder) {
             extension = builder.extension;
