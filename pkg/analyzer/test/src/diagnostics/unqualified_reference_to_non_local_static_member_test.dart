@@ -35,6 +35,23 @@ class B extends A {
     );
   }
 
+  test_getter_invoke() async {
+    await assertErrorsInCode(
+      '''
+class A {
+  static void Function() get a => () {};
+}
+
+class B extends A {
+  void b() {
+    a();
+  }
+}
+''',
+      [error(_errorCode, 91, 1)],
+    );
+  }
+
   test_getter_invokeTarget() async {
     await assertErrorsInCode(
       r'''
@@ -65,6 +82,22 @@ class B extends A {
 }
 ''',
       [error(_errorCode, 73, 1)],
+    );
+  }
+
+  test_methodTearoff_noTypeArguments() async {
+    await assertErrorsInCode(
+      '''
+class A {
+  static void a() {}
+}
+class B extends A {
+  void b() {
+    a;
+  }
+}
+''',
+      [error(_errorCode, 70, 1)],
     );
   }
 

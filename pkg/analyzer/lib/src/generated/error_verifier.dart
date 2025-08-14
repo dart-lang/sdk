@@ -5611,9 +5611,11 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     if (element is ExecutableElement && !element.isStatic) {
       return;
     }
-    if (element is MethodElement) {
+    if (name.parent case MethodInvocation(
+      :var methodName,
+    ) when name == methodName) {
       // Invalid methods are reported in
-      // [MethodInvocationResolver._resolveReceiverNull].
+      // [MethodInvocationResolver._reportInstanceAccessToStaticMember].
       return;
     }
     if (_enclosingExtension != null) {
