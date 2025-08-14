@@ -693,6 +693,13 @@ bool isExtensionThisName(String? name) {
 }
 
 // Coverage-ignore(suite): Not run.
+bool hasUnnamedExtensionNamePrefix(String? name) {
+  if (name == null) return false;
+  if (name.startsWith(NameScheme.unnamedExtensionNamePrefix)) return true;
+  return false;
+}
+
+// Coverage-ignore(suite): Not run.
 /// Return `true` if [node] is the synthetic parameter holding the `this` value
 /// in the encoding of extension type instance members and constructors.
 bool isExtensionTypeThis(VariableDeclaration node) {

@@ -664,6 +664,7 @@ fairly
 falsity
 fangorn
 fasta
+faulty
 favored
 favoring
 fc

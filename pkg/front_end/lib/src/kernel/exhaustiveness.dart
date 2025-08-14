@@ -807,7 +807,6 @@ class ExhaustiveDartTypeVisitor implements DartTypeVisitor1<bool, CoreTypes> {
   }
 
   @override
-  // Coverage-ignore(suite): Not run.
   bool visitNullType(NullType type, CoreTypes coreTypes) {
     return true;
   }
@@ -857,11 +856,11 @@ class TypeParameterReplacer extends ReplacementVisitor {
   const TypeParameterReplacer();
 
   @override
-  // Coverage-ignore(suite): Not run.
   DartType? visitTypeParameterType(TypeParameterType node, Variance variance) {
     DartType replacement = super.visitTypeParameterType(node, variance) ?? node;
     if (replacement is TypeParameterType) {
       if (variance == Variance.contravariant) {
+        // Coverage-ignore-block(suite): Not run.
         return _replaceTypeParameterTypes(
             const NeverType.nonNullable(), variance);
       } else {

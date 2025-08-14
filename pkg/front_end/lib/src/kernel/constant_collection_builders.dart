@@ -167,7 +167,6 @@ class SetConstantBuilder extends _ListOrSetConstantBuilder<SetLiteral> {
         return evaluator.createEvaluationErrorConstant(context,
             codeConstEvalElementNotPrimitiveEquality.withArguments(constant));
       } else {
-        // Coverage-ignore-block(suite): Not run.
         return evaluator.createEvaluationErrorConstant(context,
             codeConstEvalElementImplementsEqual.withArguments(constant));
       }

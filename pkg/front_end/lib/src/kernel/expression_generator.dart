@@ -2811,7 +2811,6 @@ class LoadLibraryGenerator extends Generator {
       {bool isTypeArgumentsInForest = false}) {
     if (_forest.argumentsPositional(arguments).length > 0 ||
         _forest.argumentsNamed(arguments).length > 0) {
-      // Coverage-ignore-block(suite): Not run.
       _helper.addProblemErrorIfConst(
           codeLoadLibraryTakesNoArguments, offset, 'loadLibrary'.length);
     }
@@ -3848,7 +3847,6 @@ class DuplicateDeclarationGenerator extends ErroneousExpressionGenerator {
   }
 
   @override
-  // Coverage-ignore(suite): Not run.
   Expression invokeConstructor(
       List<TypeBuilder>? typeArguments,
       String name,
@@ -4226,7 +4224,6 @@ class PrefixUseGenerator extends Generator {
   @override
   Generator qualifiedLookup(Token nameToken) {
     if (_helper.constantContext != ConstantContext.none && prefix.deferred) {
-      // Coverage-ignore-block(suite): Not run.
       _helper.addProblem(
           codeCantUseDeferredPrefixAsConstant.withArguments(token),
           fileOffset,
@@ -4525,7 +4522,6 @@ class ParserErrorGenerator extends Generator {
   }
 
   @override
-  // Coverage-ignore(suite): Not run.
   Expression doInvocation(
       int offset, List<TypeBuilder>? typeArguments, Arguments arguments,
       {bool isTypeArgumentsInForest = false}) {

@@ -1228,7 +1228,6 @@ sealed class _ConstructorPreBuilder<T extends _ConstructorDeclaration>
       _Declaration nonConstructorDeclaration) {
     // Check conflict with non-constructor.
     if (nonConstructorDeclaration.isStatic) {
-      // Coverage-ignore-block(suite): Not run.
       // Examples:
       //
       //    class A {
@@ -1492,7 +1491,6 @@ class _FactoryConstructorDeclaration extends _ConstructorDeclaration
         super(_DeclarationKind.Factory);
 
   @override
-  // Coverage-ignore(suite): Not run.
   void reportConstructorConflict(ProblemReporting problemReporting,
       _Declaration nonConstructorDeclaration) {
     // Example:
@@ -1585,7 +1583,6 @@ class _GenerativeConstructorDeclaration extends _ConstructorDeclaration
         super(_DeclarationKind.Constructor);
 
   @override
-  // Coverage-ignore(suite): Not run.
   void reportConstructorConflict(ProblemReporting problemReporting,
       _Declaration nonConstructorDeclaration) {
     // Example:

@@ -561,7 +561,6 @@ class SourceCompilationUnitImpl implements SourceCompilationUnit {
             libraryNameSpaceBuilder: _libraryNameSpaceBuilder);
     _problemReporting.registerLibrary(libraryBuilder.library);
     if (isPart) {
-      // Coverage-ignore-block(suite): Not run.
       // This is a part with no enclosing library.
       addProblem(codePartOrphan, 0, 1, fileUri);
       _clearPartsAndReportExporters();
@@ -803,11 +802,8 @@ class SourceCompilationUnitImpl implements SourceCompilationUnit {
     // Language versions have to match. Except if (at least) one of them is
     // invalid in which case we've already gotten an error about this.
     if (parentCompilationUnit.languageVersion != part.languageVersion &&
-        // Coverage-ignore(suite): Not run.
         parentCompilationUnit.languageVersion.valid &&
-        // Coverage-ignore(suite): Not run.
         part.languageVersion.valid) {
-      // Coverage-ignore-block(suite): Not run.
       // This is an error, but the part is not removed from the list of
       // parts, so that metadata annotations can be associated with it.
       List<LocatedMessage> context = <LocatedMessage>[];
@@ -819,6 +815,7 @@ class SourceCompilationUnitImpl implements SourceCompilationUnit {
       }
 
       if (part.isPatch) {
+        // Coverage-ignore-block(suite): Not run.
         if (part.languageVersion.isExplicit) {
           // Patches are implicitly include, so if we have an explicit language
           // version, then point to this instead of the top of the file.
@@ -883,7 +880,6 @@ class SourceCompilationUnitImpl implements SourceCompilationUnit {
     assert(_libraryBuilder != null, "Library has not be set.");
     _compilationUnitData.parts.clear();
     if (exporters.isNotEmpty) {
-      // Coverage-ignore-block(suite): Not run.
       List<LocatedMessage> context = <LocatedMessage>[
         codePartExportContext.withLocation(fileUri, -1, 1),
       ];
@@ -983,7 +979,6 @@ class SourceCompilationUnitImpl implements SourceCompilationUnit {
         !forPatchLibrary;
     for (Import import in _compilationUnitData.imports) {
       if (import.importedCompilationUnit?.isPart ?? false) {
-        // Coverage-ignore-block(suite): Not run.
         addProblem(
             codePartOfInLibrary
                 .withArguments(import.importedCompilationUnit!.fileUri),

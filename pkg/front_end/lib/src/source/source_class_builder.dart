@@ -922,11 +922,8 @@ class SourceClassBuilder extends ClassBuilderImpl
               noLength,
               this.fileUri);
         } else if (interface.cls.name == "FutureOr" &&
-            // Coverage-ignore(suite): Not run.
             interface.cls.enclosingLibrary.importUri.isScheme("dart") &&
-            // Coverage-ignore(suite): Not run.
             interface.cls.enclosingLibrary.importUri.path == "async") {
-          // Coverage-ignore-block(suite): Not run.
           libraryBuilder.addProblem(
               codeImplementsFutureOr, this.fileOffset, noLength, this.fileUri);
         } else if (implemented.contains(interface)) {
@@ -1026,7 +1023,6 @@ class SourceClassBuilder extends ClassBuilderImpl
               variance.keyword,
               supertype.typeName!.name);
         } else {
-          // Coverage-ignore-block(suite): Not run.
           message =
               codeInvalidTypeParameterInSupertypeWithVariance.withArguments(
                   typeParameters![i].variance.keyword,

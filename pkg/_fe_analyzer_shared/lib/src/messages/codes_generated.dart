@@ -93,7 +93,7 @@ const MessageCode codeAbstractFinalBaseClass = const MessageCode(
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode codeAbstractFinalInterfaceClass = const MessageCode(
   "AbstractFinalInterfaceClass",
-  index: 177,
+  index: 50,
   problemMessage:
       r"""An 'abstract' class can't be declared as both 'final' and 'interface'.""",
   correctionMessage:
@@ -156,25 +156,6 @@ const MessageCode codeAbstractStaticField = const MessageCode(
   problemMessage: r"""Static fields can't be declared 'abstract'.""",
   correctionMessage: r"""Try removing the 'abstract' or 'static' keyword.""",
 );
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(String name)> codeAccessError =
-    const Template<Message Function(String name)>(
-      "AccessError",
-      problemMessageTemplate: r"""Access error: '#name'.""",
-      withArguments: _withArgumentsAccessError,
-    );
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsAccessError(String name) {
-  if (name.isEmpty) throw 'No name provided';
-  name = demangleMixinApplicationName(name);
-  return new Message(
-    codeAccessError,
-    problemMessage: """Access error: '${name}'.""",
-    arguments: {'name': name},
-  );
-}
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode codeAmbiguousExtensionCause = const MessageCode(
@@ -240,12 +221,6 @@ Message _withArgumentsAsciiControlCharacter(int codePoint) {
 const MessageCode codeAssertAsExpression = const MessageCode(
   "AssertAsExpression",
   problemMessage: r"""`assert` can't be used as an expression.""",
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeAssertExtraneousArgument = const MessageCode(
-  "AssertExtraneousArgument",
-  problemMessage: r"""`assert` can't have more than two arguments.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -1267,6 +1242,7 @@ const MessageCode codeConstEvalCircularity = const MessageCode(
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode codeConstEvalContext = const MessageCode(
   "ConstEvalContext",
+  severity: CfeSeverity.context,
   problemMessage: r"""While analyzing:""",
 );
 
@@ -2839,30 +2815,6 @@ const MessageCode codeEnumAbstractMember = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(String name)>
-codeEnumConstantSameNameAsEnclosing = const Template<
-  Message Function(String name)
->(
-  "EnumConstantSameNameAsEnclosing",
-  problemMessageTemplate:
-      r"""Name of enum constant '#name' can't be the same as the enum's own name.""",
-  withArguments: _withArgumentsEnumConstantSameNameAsEnclosing,
-  analyzerCodes: <String>["ENUM_CONSTANT_WITH_ENUM_NAME"],
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsEnumConstantSameNameAsEnclosing(String name) {
-  if (name.isEmpty) throw 'No name provided';
-  name = demangleMixinApplicationName(name);
-  return new Message(
-    codeEnumConstantSameNameAsEnclosing,
-    problemMessage:
-        """Name of enum constant '${name}' can't be the same as the enum's own name.""",
-    arguments: {'name': name},
-  );
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode codeEnumConstructorSuperInitializer = const MessageCode(
   "EnumConstructorSuperInitializer",
   problemMessage: r"""Enum constructors can't contain super-initializers.""",
@@ -2907,13 +2859,6 @@ const MessageCode codeEnumDeclarationEmpty = const MessageCode(
   "EnumDeclarationEmpty",
   analyzerCodes: <String>["EMPTY_ENUM_BODY"],
   problemMessage: r"""An enum declaration can't be empty.""",
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeEnumDeclaresConstFactory = const MessageCode(
-  "EnumDeclaresConstFactory",
-  problemMessage: r"""Enums can't declare const factory constructors.""",
-  correctionMessage: r"""Try removing the factory constructor declaration.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -3123,14 +3068,6 @@ const MessageCode codeExpectedAnInitializer = const MessageCode(
   "ExpectedAnInitializer",
   index: 36,
   problemMessage: r"""Expected an initializer.""",
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeExpectedBlock = const MessageCode(
-  "ExpectedBlock",
-  analyzerCodes: <String>["EXPECTED_TOKEN"],
-  problemMessage: r"""Expected a block.""",
-  correctionMessage: r"""Try adding {}.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -3396,12 +3333,6 @@ const MessageCode codeExpectedNamedArgument = const MessageCode(
 const MessageCode codeExpectedOneExpression = const MessageCode(
   "ExpectedOneExpression",
   problemMessage: r"""Expected one expression, but found additional input.""",
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeExpectedOpenParens = const MessageCode(
-  "ExpectedOpenParens",
-  problemMessage: r"""Expected '('.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -3862,22 +3793,9 @@ const MessageCode codeExtendsDeferredClass = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeExtendsFutureOr = const MessageCode(
-  "ExtendsFutureOr",
-  problemMessage:
-      r"""The type 'FutureOr' can't be used in an 'extends' clause.""",
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode codeExtendsNever = const MessageCode(
   "ExtendsNever",
   problemMessage: r"""The type 'Never' can't be used in an 'extends' clause.""",
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeExtendsVoid = const MessageCode(
-  "ExtendsVoid",
-  problemMessage: r"""The type 'void' can't be used in an 'extends' clause.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -4111,19 +4029,10 @@ const MessageCode codeExternalClass = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeExternalConstructorWithBody = const MessageCode(
-  "ExternalConstructorWithBody",
-  index: 87,
-  problemMessage: r"""External constructors can't have a body.""",
-  correctionMessage:
-      r"""Try removing the body of the constructor, or removing the keyword 'external'.""",
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode
 codeExternalConstructorWithFieldInitializers = const MessageCode(
   "ExternalConstructorWithFieldInitializers",
-  index: 178,
+  index: 87,
   problemMessage: r"""An external constructor can't initialize fields.""",
   correctionMessage:
       r"""Try removing the field initializers, or removing the keyword 'external'.""",
@@ -4159,15 +4068,6 @@ const MessageCode codeExternalFactoryWithBody = const MessageCode(
   problemMessage: r"""External factories can't have a body.""",
   correctionMessage:
       r"""Try removing the body of the factory, or removing the keyword 'external'.""",
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeExternalField = const MessageCode(
-  "ExternalField",
-  index: 50,
-  problemMessage: r"""Fields can't be declared to be 'external'.""",
-  correctionMessage:
-      r"""Try removing the keyword 'external', or replacing the field by an external getter and/or setter.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -6020,13 +5920,6 @@ Message _withArgumentsImplementsSuperClass(String name) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeImplementsVoid = const MessageCode(
-  "ImplementsVoid",
-  problemMessage:
-      r"""The type 'void' can't be used in an 'implements' clause.""",
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<Message Function(String name, String name2, String name3)>
 codeImplicitMixinOverride = const Template<
   Message Function(String name, String name2, String name3)
@@ -7082,13 +6975,6 @@ Message _withArgumentsInvalidBreakTarget(String name) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeInvalidCatchArguments = const MessageCode(
-  "InvalidCatchArguments",
-  analyzerCodes: <String>["INVALID_CATCH_ARGUMENTS"],
-  problemMessage: r"""Invalid catch arguments.""",
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode codeInvalidCodePoint = const MessageCode(
   "InvalidCodePoint",
   analyzerCodes: <String>["INVALID_CODE_POINT"],
@@ -7321,31 +7207,6 @@ const MessageCode codeInvalidInsideUnaryPattern = const MessageCode(
       r"""This pattern cannot appear inside a unary pattern (cast pattern, null check pattern, or null assert pattern) without parentheses.""",
   correctionMessage:
       r"""Try combining into a single pattern if possible, or enclose the inner pattern in parentheses.""",
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(String string)>
-codeInvalidMacroApplicationTarget =
-    const Template<Message Function(String string)>(
-      "InvalidMacroApplicationTarget",
-      problemMessageTemplate: r"""The macro can only be applied to #string.""",
-      withArguments: _withArgumentsInvalidMacroApplicationTarget,
-    );
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsInvalidMacroApplicationTarget(String string) {
-  if (string.isEmpty) throw 'No string provided';
-  return new Message(
-    codeInvalidMacroApplicationTarget,
-    problemMessage: """The macro can only be applied to ${string}.""",
-    arguments: {'string': string},
-  );
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeInvalidNnbdDillLibrary = const MessageCode(
-  "InvalidNnbdDillLibrary",
-  problemMessage: r"""Trying to use library with invalid null safety.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -8888,56 +8749,6 @@ Message _withArgumentsLocalVariableUsedBeforeDeclaredContext(String name) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(String name)>
-codeMacroClassNotDeclaredMacro = const Template<Message Function(String name)>(
-  "MacroClassNotDeclaredMacro",
-  problemMessageTemplate:
-      r"""Non-abstract class '#name' implements 'Macro' but isn't declared as a macro class.""",
-  correctionMessageTemplate: r"""Try adding the 'macro' class modifier.""",
-  withArguments: _withArgumentsMacroClassNotDeclaredMacro,
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsMacroClassNotDeclaredMacro(String name) {
-  if (name.isEmpty) throw 'No name provided';
-  name = demangleMixinApplicationName(name);
-  return new Message(
-    codeMacroClassNotDeclaredMacro,
-    problemMessage:
-        """Non-abstract class '${name}' implements 'Macro' but isn't declared as a macro class.""",
-    correctionMessage: """Try adding the 'macro' class modifier.""",
-    arguments: {'name': name},
-  );
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(String name)>
-codeMacroDefinitionApplicationSameLibraryCycle = const Template<
-  Message Function(String name)
->(
-  "MacroDefinitionApplicationSameLibraryCycle",
-  problemMessageTemplate:
-      r"""The macro '#name' can't be applied in the same library cycle where it is defined.""",
-  correctionMessageTemplate:
-      r"""Try moving it to a different library that does not import the one where it is applied.""",
-  withArguments: _withArgumentsMacroDefinitionApplicationSameLibraryCycle,
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsMacroDefinitionApplicationSameLibraryCycle(String name) {
-  if (name.isEmpty) throw 'No name provided';
-  name = demangleMixinApplicationName(name);
-  return new Message(
-    codeMacroDefinitionApplicationSameLibraryCycle,
-    problemMessage:
-        """The macro '${name}' can't be applied in the same library cycle where it is defined.""",
-    correctionMessage:
-        """Try moving it to a different library that does not import the one where it is applied.""",
-    arguments: {'name': name},
-  );
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode codeMainNotFunctionDeclaration = const MessageCode(
   "MainNotFunctionDeclaration",
   problemMessage: r"""The 'main' declaration must be a function declaration.""",
@@ -8976,13 +8787,6 @@ const MessageCode codeMainTooManyRequiredParametersExported = const MessageCode(
   "MainTooManyRequiredParametersExported",
   problemMessage:
       r"""The exported 'main' method must have at most 2 required parameters.""",
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeMapLiteralTypeArgumentMismatch = const MessageCode(
-  "MapLiteralTypeArgumentMismatch",
-  analyzerCodes: <String>["EXPECTED_TWO_MAP_TYPE_ARGUMENTS"],
-  problemMessage: r"""A map literal requires exactly two type arguments.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -9210,12 +9014,6 @@ Message _withArgumentsMethodNotFound(String name) {
     arguments: {'name': name},
   );
 }
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeMissingArgumentList = const MessageCode(
-  "MissingArgumentList",
-  problemMessage: r"""Constructor invocations must have an argument list.""",
-);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode codeMissingAssignableSelector = const MessageCode(
@@ -9933,35 +9731,6 @@ const MessageCode codeNoAugmentSuperWriteTarget = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(Token token)>
-codeNoFormals = const Template<Message Function(Token token)>(
-  "NoFormals",
-  problemMessageTemplate: r"""A function should have formal parameters.""",
-  correctionMessageTemplate:
-      r"""Try adding '()' after '#lexeme', or add 'get' before '#lexeme' to declare a getter.""",
-  withArguments: _withArgumentsNoFormals,
-  analyzerCodes: <String>["MISSING_FUNCTION_PARAMETERS"],
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsNoFormals(Token token) {
-  String lexeme = token.lexeme;
-  return new Message(
-    codeNoFormals,
-    problemMessage: """A function should have formal parameters.""",
-    correctionMessage:
-        """Try adding '()' after '${lexeme}', or add 'get' before '${lexeme}' to declare a getter.""",
-    arguments: {'lexeme': token},
-  );
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeNoMacroApplicationTarget = const MessageCode(
-  "NoMacroApplicationTarget",
-  problemMessage: r"""The macro can not be applied to this declaration.""",
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<Message Function(String name)> codeNoSuchNamedParameter =
     const Template<Message Function(String name)>(
       "NoSuchNamedParameter",
@@ -10039,160 +9808,12 @@ Message _withArgumentsNonAsciiWhitespace(int codePoint) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(String name)>
-codeNonAugmentationClassConflict = const Template<
-  Message Function(String name)
->(
-  "NonAugmentationClassConflict",
-  problemMessageTemplate:
-      r"""Class '#name' conflicts with an existing class of the same name in the augmented library.""",
-  correctionMessageTemplate:
-      r"""Try changing the name of the class or adding an 'augment' modifier.""",
-  withArguments: _withArgumentsNonAugmentationClassConflict,
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsNonAugmentationClassConflict(String name) {
-  if (name.isEmpty) throw 'No name provided';
-  name = demangleMixinApplicationName(name);
-  return new Message(
-    codeNonAugmentationClassConflict,
-    problemMessage:
-        """Class '${name}' conflicts with an existing class of the same name in the augmented library.""",
-    correctionMessage:
-        """Try changing the name of the class or adding an 'augment' modifier.""",
-    arguments: {'name': name},
-  );
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeNonAugmentationClassConflictCause = const MessageCode(
-  "NonAugmentationClassConflictCause",
-  severity: CfeSeverity.context,
-  problemMessage: r"""This is the existing class.""",
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(String name)>
-codeNonAugmentationClassMemberConflict = const Template<
-  Message Function(String name)
->(
-  "NonAugmentationClassMemberConflict",
-  problemMessageTemplate:
-      r"""Member '#name' conflicts with an existing member of the same name in the augmented class.""",
-  correctionMessageTemplate:
-      r"""Try changing the name of the member or adding an 'augment' modifier.""",
-  withArguments: _withArgumentsNonAugmentationClassMemberConflict,
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsNonAugmentationClassMemberConflict(String name) {
-  if (name.isEmpty) throw 'No name provided';
-  name = demangleMixinApplicationName(name);
-  return new Message(
-    codeNonAugmentationClassMemberConflict,
-    problemMessage:
-        """Member '${name}' conflicts with an existing member of the same name in the augmented class.""",
-    correctionMessage:
-        """Try changing the name of the member or adding an 'augment' modifier.""",
-    arguments: {'name': name},
-  );
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(String name)>
-codeNonAugmentationConstructorConflict = const Template<
-  Message Function(String name)
->(
-  "NonAugmentationConstructorConflict",
-  problemMessageTemplate:
-      r"""Constructor '#name' conflicts with an existing constructor of the same name in the augmented class.""",
-  correctionMessageTemplate:
-      r"""Try changing the name of the constructor or adding an 'augment' modifier.""",
-  withArguments: _withArgumentsNonAugmentationConstructorConflict,
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsNonAugmentationConstructorConflict(String name) {
-  if (name.isEmpty) throw 'No name provided';
-  name = demangleMixinApplicationName(name);
-  return new Message(
-    codeNonAugmentationConstructorConflict,
-    problemMessage:
-        """Constructor '${name}' conflicts with an existing constructor of the same name in the augmented class.""",
-    correctionMessage:
-        """Try changing the name of the constructor or adding an 'augment' modifier.""",
-    arguments: {'name': name},
-  );
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeNonAugmentationConstructorConflictCause =
-    const MessageCode(
-      "NonAugmentationConstructorConflictCause",
-      severity: CfeSeverity.context,
-      problemMessage: r"""This is the existing constructor.""",
-    );
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode codeNonAugmentationDeclarationConflictCause =
     const MessageCode(
       "NonAugmentationDeclarationConflictCause",
       severity: CfeSeverity.context,
       problemMessage: r"""This is the existing declaration.""",
     );
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(String name)>
-codeNonAugmentationLibraryConflict = const Template<
-  Message Function(String name)
->(
-  "NonAugmentationLibraryConflict",
-  problemMessageTemplate:
-      r"""Declaration '#name' conflicts with an existing declaration of the same name in the augmented library.""",
-  correctionMessageTemplate: r"""Try changing the name of the declaration.""",
-  withArguments: _withArgumentsNonAugmentationLibraryConflict,
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsNonAugmentationLibraryConflict(String name) {
-  if (name.isEmpty) throw 'No name provided';
-  name = demangleMixinApplicationName(name);
-  return new Message(
-    codeNonAugmentationLibraryConflict,
-    problemMessage:
-        """Declaration '${name}' conflicts with an existing declaration of the same name in the augmented library.""",
-    correctionMessage: """Try changing the name of the declaration.""",
-    arguments: {'name': name},
-  );
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(String name)>
-codeNonAugmentationLibraryMemberConflict = const Template<
-  Message Function(String name)
->(
-  "NonAugmentationLibraryMemberConflict",
-  problemMessageTemplate:
-      r"""Member '#name' conflicts with an existing member of the same name in the augmented library.""",
-  correctionMessageTemplate:
-      r"""Try changing the name of the member or adding an 'augment' modifier.""",
-  withArguments: _withArgumentsNonAugmentationLibraryMemberConflict,
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsNonAugmentationLibraryMemberConflict(String name) {
-  if (name.isEmpty) throw 'No name provided';
-  name = demangleMixinApplicationName(name);
-  return new Message(
-    codeNonAugmentationLibraryMemberConflict,
-    problemMessage:
-        """Member '${name}' conflicts with an existing member of the same name in the augmented library.""",
-    correctionMessage:
-        """Try changing the name of the member or adding an 'augment' modifier.""",
-    arguments: {'name': name},
-  );
-}
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode codeNonAugmentationMemberConflictCause = const MessageCode(
@@ -10282,131 +9903,6 @@ const MessageCode codeNonPartOfDirectiveInPart = const MessageCode(
   correctionMessage:
       r"""Try removing the other directives, or moving them to the library for which this is a part.""",
 );
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(String name)>
-codeNonPatchClassConflict = const Template<Message Function(String name)>(
-  "NonPatchClassConflict",
-  problemMessageTemplate:
-      r"""Class '#name' conflicts with an existing class of the same name in the origin library.""",
-  correctionMessageTemplate:
-      r"""Try changing the name of the class or adding an '@patch' annotation.""",
-  withArguments: _withArgumentsNonPatchClassConflict,
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsNonPatchClassConflict(String name) {
-  if (name.isEmpty) throw 'No name provided';
-  name = demangleMixinApplicationName(name);
-  return new Message(
-    codeNonPatchClassConflict,
-    problemMessage:
-        """Class '${name}' conflicts with an existing class of the same name in the origin library.""",
-    correctionMessage:
-        """Try changing the name of the class or adding an '@patch' annotation.""",
-    arguments: {'name': name},
-  );
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(String name)>
-codeNonPatchClassMemberConflict = const Template<Message Function(String name)>(
-  "NonPatchClassMemberConflict",
-  problemMessageTemplate:
-      r"""Member '#name' conflicts with an existing member of the same name in the origin class.""",
-  correctionMessageTemplate:
-      r"""Try changing the name of the member or adding an '@patch' annotation.""",
-  withArguments: _withArgumentsNonPatchClassMemberConflict,
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsNonPatchClassMemberConflict(String name) {
-  if (name.isEmpty) throw 'No name provided';
-  name = demangleMixinApplicationName(name);
-  return new Message(
-    codeNonPatchClassMemberConflict,
-    problemMessage:
-        """Member '${name}' conflicts with an existing member of the same name in the origin class.""",
-    correctionMessage:
-        """Try changing the name of the member or adding an '@patch' annotation.""",
-    arguments: {'name': name},
-  );
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(String name)>
-codeNonPatchConstructorConflict = const Template<Message Function(String name)>(
-  "NonPatchConstructorConflict",
-  problemMessageTemplate:
-      r"""Constructor '#name' conflicts with an existing constructor of the same name in the origin class.""",
-  correctionMessageTemplate:
-      r"""Try changing the name of the constructor or adding an '@patch' annotation.""",
-  withArguments: _withArgumentsNonPatchConstructorConflict,
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsNonPatchConstructorConflict(String name) {
-  if (name.isEmpty) throw 'No name provided';
-  name = demangleMixinApplicationName(name);
-  return new Message(
-    codeNonPatchConstructorConflict,
-    problemMessage:
-        """Constructor '${name}' conflicts with an existing constructor of the same name in the origin class.""",
-    correctionMessage:
-        """Try changing the name of the constructor or adding an '@patch' annotation.""",
-    arguments: {'name': name},
-  );
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(String name)>
-codeNonPatchLibraryConflict = const Template<Message Function(String name)>(
-  "NonPatchLibraryConflict",
-  problemMessageTemplate:
-      r"""Declaration '#name' conflicts with an existing declaration of the same name in the origin library.""",
-  correctionMessageTemplate: r"""Try changing the name of the declaration.""",
-  withArguments: _withArgumentsNonPatchLibraryConflict,
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsNonPatchLibraryConflict(String name) {
-  if (name.isEmpty) throw 'No name provided';
-  name = demangleMixinApplicationName(name);
-  return new Message(
-    codeNonPatchLibraryConflict,
-    problemMessage:
-        """Declaration '${name}' conflicts with an existing declaration of the same name in the origin library.""",
-    correctionMessage: """Try changing the name of the declaration.""",
-    arguments: {'name': name},
-  );
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(String name)>
-codeNonPatchLibraryMemberConflict = const Template<
-  Message Function(String name)
->(
-  "NonPatchLibraryMemberConflict",
-  problemMessageTemplate:
-      r"""Member '#name' conflicts with an existing member of the same name in the origin library.""",
-  correctionMessageTemplate:
-      r"""Try changing the name of the member or adding an '@patch' annotation.""",
-  withArguments: _withArgumentsNonPatchLibraryMemberConflict,
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsNonPatchLibraryMemberConflict(String name) {
-  if (name.isEmpty) throw 'No name provided';
-  name = demangleMixinApplicationName(name);
-  return new Message(
-    codeNonPatchLibraryMemberConflict,
-    problemMessage:
-        """Member '${name}' conflicts with an existing member of the same name in the origin library.""",
-    correctionMessage:
-        """Try changing the name of the member or adding an '@patch' annotation.""",
-    arguments: {'name': name},
-  );
-}
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode codeNonPositiveArrayDimensions = const MessageCode(
@@ -11314,12 +10810,6 @@ const MessageCode codePatchClassTypeParametersMismatch = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codePatchDeclarationMismatch = const MessageCode(
-  "PatchDeclarationMismatch",
-  problemMessage: r"""This patch doesn't match origin declaration.""",
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode codePatchDeclarationOrigin = const MessageCode(
   "PatchDeclarationOrigin",
   severity: CfeSeverity.context,
@@ -11365,14 +10855,6 @@ Message _withArgumentsPatchInjectionFailed(String name, Uri uri_) {
     arguments: {'name': name, 'uri': uri_},
   );
 }
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codePatchNonExternal = const MessageCode(
-  "PatchNonExternal",
-  problemMessage:
-      r"""Can't apply this patch as its origin declaration isn't external.""",
-  correctionMessage: r"""Try adding 'external' to the origin declaration.""",
-);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<Message Function(String name)>
@@ -11689,12 +11171,6 @@ const MessageCode codeReturnFromVoidFunction = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeReturnTypeFunctionExpression = const MessageCode(
-  "ReturnTypeFunctionExpression",
-  problemMessage: r"""A function expression can't have a return type.""",
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode codeReturnWithoutExpressionAsync = const MessageCode(
   "ReturnWithoutExpressionAsync",
   problemMessage:
@@ -11820,12 +11296,6 @@ const MessageCode codeSealedMixinClass = const MessageCode(
   index: 144,
   problemMessage: r"""A mixin class can't be declared 'sealed'.""",
   correctionMessage: r"""Try removing the 'sealed' keyword.""",
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeSetLiteralTooManyTypeArguments = const MessageCode(
-  "SetLiteralTooManyTypeArguments",
-  problemMessage: r"""A set literal requires exactly one type argument.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -12093,13 +11563,6 @@ const MessageCode codeStaticTearOffFromInstantiatedClass = const MessageCode(
       r"""Cannot access static member on an instantiated generic class.""",
   correctionMessage:
       r"""Try removing the type arguments or placing them after the member name.""",
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeStrongWithWeakDillLibrary = const MessageCode(
-  "StrongWithWeakDillLibrary",
-  problemMessage:
-      r"""Loaded library is compiled with unsound null safety and cannot be used in compilation for sound null safety.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -12384,29 +11847,6 @@ Message _withArgumentsSuperclassHasNoSetter(String name) {
   return new Message(
     codeSuperclassHasNoSetter,
     problemMessage: """Superclass has no setter named '${name}'.""",
-    arguments: {'name': name},
-  );
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(String name)>
-codeSuperclassMethodArgumentMismatch = const Template<
-  Message Function(String name)
->(
-  "SuperclassMethodArgumentMismatch",
-  problemMessageTemplate:
-      r"""Superclass doesn't have a method named '#name' with matching arguments.""",
-  withArguments: _withArgumentsSuperclassMethodArgumentMismatch,
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsSuperclassMethodArgumentMismatch(String name) {
-  if (name.isEmpty) throw 'No name provided';
-  name = demangleMixinApplicationName(name);
-  return new Message(
-    codeSuperclassMethodArgumentMismatch,
-    problemMessage:
-        """Superclass doesn't have a method named '${name}' with matching arguments.""",
     arguments: {'name': name},
   );
 }
@@ -12878,27 +12318,6 @@ const MessageCode codeUnexpectedDollarInString = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(Token token)>
-codeUnexpectedModifierInNonNnbd = const Template<Message Function(Token token)>(
-  "UnexpectedModifierInNonNnbd",
-  problemMessageTemplate:
-      r"""The modifier '#lexeme' is only available in null safe libraries.""",
-  withArguments: _withArgumentsUnexpectedModifierInNonNnbd,
-  analyzerCodes: <String>["UNEXPECTED_TOKEN"],
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsUnexpectedModifierInNonNnbd(Token token) {
-  String lexeme = token.lexeme;
-  return new Message(
-    codeUnexpectedModifierInNonNnbd,
-    problemMessage:
-        """The modifier '${lexeme}' is only available in null safe libraries.""",
-    arguments: {'lexeme': token},
-  );
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode codeUnexpectedSeparatorInNumber = const MessageCode(
   "UnexpectedSeparatorInNumber",
   analyzerCodes: <String>["UNEXPECTED_SEPARATOR_IN_NUMBER"],
@@ -12941,27 +12360,6 @@ const MessageCode codeUnexpectedTokens = const MessageCode(
   index: 123,
   problemMessage: r"""Unexpected tokens.""",
 );
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(String name)>
-codeUnhandledMacroApplication = const Template<Message Function(String name)>(
-  "UnhandledMacroApplication",
-  problemMessageTemplate:
-      r"""This macro application didn't apply correctly due to an unhandled #name.""",
-  withArguments: _withArgumentsUnhandledMacroApplication,
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsUnhandledMacroApplication(String name) {
-  if (name.isEmpty) throw 'No name provided';
-  name = demangleMixinApplicationName(name);
-  return new Message(
-    codeUnhandledMacroApplication,
-    problemMessage:
-        """This macro application didn't apply correctly due to an unhandled ${name}.""",
-    arguments: {'name': name},
-  );
-}
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<Message Function(String name)>
@@ -13148,31 +12546,6 @@ Message _withArgumentsUnmatchedPatchClassMember(String name) {
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<Message Function(String name)>
-codeUnmatchedPatchConstructor = const Template<Message Function(String name)>(
-  "UnmatchedPatchConstructor",
-  problemMessageTemplate:
-      r"""Patch constructor '#name' doesn't match a constructor in the origin class.""",
-  correctionMessageTemplate:
-      r"""Try changing the name to an existing constructor or removing the '@patch' annotation.""",
-  withArguments: _withArgumentsUnmatchedPatchConstructor,
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsUnmatchedPatchConstructor(String name) {
-  if (name.isEmpty) throw 'No name provided';
-  name = demangleMixinApplicationName(name);
-  return new Message(
-    codeUnmatchedPatchConstructor,
-    problemMessage:
-        """Patch constructor '${name}' doesn't match a constructor in the origin class.""",
-    correctionMessage:
-        """Try changing the name to an existing constructor or removing the '@patch' annotation.""",
-    arguments: {'name': name},
-  );
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(String name)>
 codeUnmatchedPatchDeclaration = const Template<Message Function(String name)>(
   "UnmatchedPatchDeclaration",
   problemMessageTemplate:
@@ -13296,12 +12669,6 @@ const MessageCode codeUnsupportedDartExt = const MessageCode(
   problemMessage: r"""Dart native extensions are no longer supported.""",
   correctionMessage:
       r"""Migrate to using FFI instead (https://dart.dev/guides/libraries/c-interop)""",
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeUnsupportedMacroApplication = const MessageCode(
-  "UnsupportedMacroApplication",
-  problemMessage: r"""This macro application didn't apply correctly.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -13534,13 +12901,6 @@ const MessageCode codeWeakReferenceTargetNotStaticTearoff = const MessageCode(
   "WeakReferenceTargetNotStaticTearoff",
   problemMessage:
       r"""The target of weak reference should be a tearoff of a static method.""",
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeWeakWithStrongDillLibrary = const MessageCode(
-  "WeakWithStrongDillLibrary",
-  problemMessage:
-      r"""Loaded library is compiled with sound null safety and cannot be used in compilation for unsound null safety.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.

@@ -324,7 +324,6 @@ class ConstantsTransformer extends RemovingTransformer {
 
       if (StaticWeakReferences.isAnnotatedWithWeakReferencePragma(
           parent, typeEnvironment.coreTypes)) {
-        // Coverage-ignore-block(suite): Not run.
         StaticWeakReferences.validateWeakReferenceDeclaration(
             parent, constantEvaluator.errorReporter);
       }
@@ -2060,7 +2059,6 @@ class ConstantsTransformer extends RemovingTransformer {
     // arguments are already constant evaluated.
     if (StaticWeakReferences.isAnnotatedWithWeakReferencePragma(
         node.target, typeEnvironment.coreTypes)) {
-      // Coverage-ignore-block(suite): Not run.
       StaticWeakReferences.validateWeakReferenceUse(
           node, constantEvaluator.errorReporter);
     }
@@ -3532,13 +3530,13 @@ class ConstantEvaluator implements ExpressionVisitor<Constant> {
                 left, left.getType(staticTypeContext)));
       }
     } else {
-      // Coverage-ignore-block(suite): Not run.
       if (left is NullConstant ||
           left is BoolConstant ||
           left is IntConstant ||
           left is DoubleConstant ||
           left is StringConstant ||
           right is NullConstant) {
+        // Coverage-ignore-block(suite): Not run.
         // [DoubleConstant] uses [identical] to determine equality, so we need
         // to take the special cases into account.
         return doubleSpecialCases(left, right) ??
@@ -4573,12 +4571,12 @@ class ConstantEvaluator implements ExpressionVisitor<Constant> {
   @override
   Constant visitNullCheck(NullCheck node) {
     if (enableConstFunctions) {
-      // Coverage-ignore-block(suite): Not run.
       final Constant constant = _evaluateSubexpression(node.operand);
       if (constant is AbortConstant) return constant;
       if (constant is NullConstant) {
         return createEvaluationErrorConstant(node, codeConstEvalNonNull);
       }
+      // Coverage-ignore(suite): Not run.
       if (shouldBeUnevaluated) {
         return unevaluated(node, new NullCheck(_wrap(constant)));
       }

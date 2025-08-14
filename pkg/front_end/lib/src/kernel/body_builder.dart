@@ -5594,7 +5594,6 @@ class BodyBuilder extends StackListenerImpl
           const FixedNullableList<FormalParameterBuilder>()
               .popNonNullable(stack, count, dummyFormalParameterBuilder);
       if (parameters == null) {
-        // Coverage-ignore-block(suite): Not run.
         push(new ParserRecovery(offsetForToken(beginToken)));
       } else {
         push(parameters);
@@ -6558,7 +6557,7 @@ class BodyBuilder extends StackListenerImpl
       TypeDeclarationBuilder? typeDeclarationBuilder,
       Token nameToken,
       Token nameLastToken,
-      Arguments? arguments,
+      Arguments arguments,
       String name,
       List<TypeBuilder>? typeArguments,
       int charOffset,
@@ -6566,11 +6565,6 @@ class BodyBuilder extends StackListenerImpl
       {bool isTypeArgumentsInForest = false,
       TypeDeclarationBuilder? typeAliasBuilder,
       required UnresolvedKind unresolvedKind}) {
-    if (arguments == null) {
-      // Coverage-ignore-block(suite): Not run.
-      return buildProblem(
-          cfe.codeMissingArgumentList, nameToken.charOffset, nameToken.length);
-    }
     if (name.isNotEmpty && arguments.types.isNotEmpty) {
       // TODO(ahe): Point to the type arguments instead.
       addProblem(cfe.codeConstructorWithTypeArguments, nameToken.charOffset,

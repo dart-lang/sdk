@@ -135,7 +135,6 @@ PlainAndColorizedString formatNoSourceLine(
       _colorizeMessageText(severity, messageTextPlain);
 
   if (message.uri != null) {
-    // Coverage-ignore-block(suite): Not run.
     String path = relativizeUri(Uri.base, message.uri!, isWindows);
     return new PlainAndColorizedString(
       formatErrorMessage(null, null, length, path, messageTextPlain),

@@ -9877,17 +9877,14 @@ class TypeParameterElementImpl extends ElementImpl
   @override
   final String? name;
 
-  TypeParameterElementImpl({required this.firstFragment, required this.name}) {
-    TypeParameterFragmentImpl? fragment = firstFragment;
-    while (fragment != null) {
-      fragment.element = this;
-      fragment = fragment.nextFragment;
-    }
+  TypeParameterElementImpl({required this.firstFragment})
+    : name = firstFragment.name {
+    firstFragment.element = this;
   }
 
   factory TypeParameterElementImpl.synthetic({required String name}) {
     var fragment = TypeParameterFragmentImpl.synthetic(name: name);
-    return TypeParameterElementImpl(firstFragment: fragment, name: name);
+    return TypeParameterElementImpl(firstFragment: fragment);
   }
 
   @override
@@ -10078,10 +10075,7 @@ class TypeParameterFragmentImpl extends FragmentImpl
     }
     // As a side-effect of creating the element, all of the fragments in the
     // chain will have their `_element` set to the newly created element.
-    return TypeParameterElementImpl(
-      firstFragment: firstFragment,
-      name: firstFragment.name,
-    );
+    return TypeParameterElementImpl(firstFragment: firstFragment);
   }
 
   set element(TypeParameterElementImpl element) {

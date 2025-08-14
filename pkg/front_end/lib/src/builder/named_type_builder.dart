@@ -588,11 +588,11 @@ abstract class NamedTypeBuilderImpl extends NamedTypeBuilder {
         DartType type = build(library, typeUse);
         if (type is InterfaceType) {
           return new Supertype(type.classNode, type.typeArguments);
+        } else if (type is FutureOrType) {
+          return new Supertype(declaration.cls, [type.typeArgument]);
         }
         // Coverage-ignore(suite): Not run.
-        else if (type is FutureOrType) {
-          return new Supertype(declaration.cls, [type.typeArgument]);
-        } else if (type is NullType) {
+        else if (type is NullType) {
           return new Supertype(declaration.cls, []);
         }
       case TypeAliasBuilder():

@@ -61,6 +61,15 @@ Future<void> _run(Directory coverageTmpDir, List<String> arguments) async {
     "pkg/front_end/test/parser_suite.dart",
     "--coverage=${coverageTmpDir.path}/",
   ]));
+  futures.add(Process.run(Platform.resolvedExecutable, [
+    "--enable-asserts",
+    "--deterministic",
+    "pkg/front_end/test/messages_suite.dart",
+    "--coverage=${coverageTmpDir.path}/",
+    // Skip spelling as it uses git which isn't supported with how this is run
+    // on the try bots.
+    "-DskipSpellCheck=true",
+  ]));
 
   // Wait for isolates to terminate and clean up.
   Iterable<ProcessResult> runResults = await Future.wait(futures);

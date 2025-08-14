@@ -6938,7 +6938,11 @@ class Parser {
   ) {
     // Attempt recovery.
     _recoverAtPrecedenceLevel = false;
-    assert(_tokenRecoveryReplacements.containsKey(token.next!.lexeme));
+    if (!_tokenRecoveryReplacements.containsKey(token.next!.lexeme)) {
+      // This shouldn't happen. But if it does we don't want to crash.
+      assert(false, "Faulty logic for _recoverAtPrecedenceLevel");
+      return false;
+    }
     List<TokenType> replacements =
         _tokenRecoveryReplacements[token.next!.lexeme]!;
     for (int i = 0; i < replacements.length; i++) {
@@ -7002,6 +7006,7 @@ class Parser {
 
       // Undo all changes and reset.
       _currentlyRecovering = false;
+      _recoverAtPrecedenceLevel = false;
       undoableTokenStreamRewriter.undo();
       listener = originalListener;
       cachedRewriter = originalRewriter;
@@ -7076,7 +7081,8 @@ class Parser {
     } else if (identical(type, TokenType.IDENTIFIER)) {
       // An identifier at this point is not right. So some recovery is going to
       // happen soon. The question is, if we can do a better recovery here.
-      if (!_currentlyRecovering &&
+      if (!forPattern &&
+          !_currentlyRecovering &&
           _tokenRecoveryReplacements.containsKey(token.lexeme)) {
         _recoverAtPrecedenceLevel = true;
       }
