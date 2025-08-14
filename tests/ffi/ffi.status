@@ -61,6 +61,7 @@ isolate_group_bound_callback_test: Skip # gen_snapshot requires experimental-sha
 isolate_group_bound_captured_local_test: Skip # gen_snapshot requires experimental-shared-data flag
 isolate_group_bound_init_test: Skip # gen_snapshot requires experimental-shared-data flag
 isolate_group_bound_send_test: Skip # gen_snapshot requires experimental-shared-data flag
+many_listener_callbacks_test/*: Skip # Test harness doesn't support multitest with Fuchsia
 native_assets/*: Skip # Source not available in the emulator
 run_isolate_group_run_test: Skip # gen_snapshot requires experimental-shared-data flag
 static_checks/*: SkipByDesign # Expecting compile time failures in multi tests doesn't work on the Fuchsia test runner.
