@@ -5,6 +5,7 @@
 import 'package:analyzer/diagnostic/diagnostic.dart';
 import 'package:analyzer/file_system/physical_file_system.dart';
 import 'package:analyzer/source/file_source.dart';
+import 'package:analyzer_testing/utilities/extensions/resource_provider.dart';
 import 'package:test/test.dart';
 import 'package:test_descriptor/test_descriptor.dart' as d;
 
@@ -33,7 +34,9 @@ var y = 22;
 var z = 33;
 '''),
       ]).create();
-      sourcePath = '${d.sandbox}/project/foo.dart';
+      sourcePath = PhysicalResourceProvider.INSTANCE.convertPath(
+        '${d.sandbox}/project/foo.dart',
+      );
       var file = PhysicalResourceProvider.INSTANCE.getFile(sourcePath);
       var source = FileSource(file);
 
