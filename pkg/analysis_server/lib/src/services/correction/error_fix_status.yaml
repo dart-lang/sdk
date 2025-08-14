@@ -2794,10 +2794,6 @@ ParserErrorCode.EXTENSION_TYPE_WITH:
   status: needsEvaluation
 ParserErrorCode.EXTERNAL_CLASS:
   status: hasFix
-ParserErrorCode.EXTERNAL_CONSTRUCTOR_WITH_BODY:
-  status: needsFix
-  notes: |-
-    Remove the `external` keyword.
 ParserErrorCode.EXTERNAL_CONSTRUCTOR_WITH_FIELD_INITIALIZERS:
   status: needsFix
   notes: |-
@@ -2816,10 +2812,6 @@ ParserErrorCode.EXTERNAL_FACTORY_WITH_BODY:
   status: needsFix
   notes: |-
     Remove the `external` keyword, or remove the body of the factory.
-ParserErrorCode.EXTERNAL_FIELD:
-  status: needsFix
-  notes: |-
-    Remove the `external` keyword.
 ParserErrorCode.EXTERNAL_GETTER_WITH_BODY:
   status: needsFix
   notes: |-

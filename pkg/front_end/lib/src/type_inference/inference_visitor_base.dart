@@ -229,7 +229,6 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
   ) {
     List<LocatedMessage>? context;
     if (whyNotPromoted != null && whyNotPromoted.isNotEmpty) {
-      // Coverage-ignore-block(suite): Not run.
       _WhyNotPromotedVisitor whyNotPromotedVisitor = new _WhyNotPromotedVisitor(
         this,
       );
@@ -240,6 +239,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
           whyNotPromotedVisitor,
         );
         if (dataForTesting != null) {
+          // Coverage-ignore-block(suite): Not run.
           String nonPromotionReasonText = entry.value.shortName;
           List<String> args = <String>[];
           if (whyNotPromotedVisitor.propertyReference != null) {
@@ -4999,7 +4999,6 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
             ? getWhyNotPromotedContext(
                 whyNotPromoted(),
                 read,
-                // Coverage-ignore(suite): Not run.
                 (type) => !type.isPotentiallyNullable,
               )
             : null,
@@ -5288,7 +5287,6 @@ FunctionType replaceReturnType(FunctionType functionType, DartType returnType) {
   );
 }
 
-// Coverage-ignore(suite): Not run.
 class _WhyNotPromotedVisitor
     implements
         NonPromotionReasonVisitor<List<LocatedMessage>, Node,
@@ -5305,6 +5303,7 @@ class _WhyNotPromotedVisitor
   ) {
     TreeNode node = reason.node as TreeNode;
     if (inferrer.dataForTesting != null) {
+      // Coverage-ignore-block(suite): Not run.
       inferrer.dataForTesting!.flowAnalysisResult
           .nonPromotionReasonTargets[node] = reason.shortName;
     }
@@ -5323,6 +5322,7 @@ class _WhyNotPromotedVisitor
     FieldNonPromotabilityInfo? fieldNonPromotabilityInfo =
         inferrer.libraryBuilder.fieldNonPromotabilityInfo;
     if (fieldNonPromotabilityInfo == null) {
+      // Coverage-ignore-block(suite): Not run.
       assert(
         false,
         "Missing field non-promotability info for "
@@ -5411,10 +5411,12 @@ class _WhyNotPromotedVisitor
             .withLocation(member.fileUri, member.fileOffset, noLength),
       ];
       if (!reason.fieldPromotionEnabled) {
+        // Coverage-ignore-block(suite): Not run.
         _addFieldPromotionUnavailableMessage(reason, messages);
       }
       return messages;
     } else {
+      // Coverage-ignore-block(suite): Not run.
       assert(
         member == null,
         'Unrecognized property member: ${member.runtimeType}',

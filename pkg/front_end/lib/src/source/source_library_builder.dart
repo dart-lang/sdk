@@ -1131,7 +1131,6 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     for (SourceCompilationUnit part in parts) {
       for (TypeParameterBuilder builder
           in part.collectUnboundTypeParameters()) {
-        // Coverage-ignore-block(suite): Not run.
         typeParameterBuilders[builder] = this;
       }
     }
@@ -1259,7 +1258,6 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
             }
           } else {
             if (issueInferred) {
-              // Coverage-ignore-block(suite): Not run.
               message =
                   codeIncorrectTypeArgumentInstantiationInferred.withArguments(
                       argument,
@@ -1887,7 +1885,6 @@ class LanguageVersion {
 
   bool get isExplicit => true;
 
-  // Coverage-ignore(suite): Not run.
   bool get valid => true;
 
   @override
@@ -1954,7 +1951,6 @@ class ImplicitLanguageVersion implements LanguageVersion {
   ImplicitLanguageVersion(this.version);
 
   @override
-  // Coverage-ignore(suite): Not run.
   bool get valid => true;
 
   @override

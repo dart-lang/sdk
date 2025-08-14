@@ -9597,7 +9597,6 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       } else {
         if (isUnassigned) {
           if (variable.isFinal) {
-            // Coverage-ignore-block(suite): Not run.
             return new ExpressionInferenceResult(
                 resultType,
                 helper.wrapInProblem(

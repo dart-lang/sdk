@@ -131,7 +131,7 @@ abstract class ExpressionGeneratorHelper implements InferenceHelper {
       TypeDeclarationBuilder type,
       Token nameToken,
       Token nameLastToken,
-      Arguments? arguments,
+      Arguments arguments,
       String name,
       List<TypeBuilder>? typeArguments,
       int charOffset,

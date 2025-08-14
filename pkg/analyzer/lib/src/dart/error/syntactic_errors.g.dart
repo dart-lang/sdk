@@ -77,7 +77,7 @@ final fastaAnalyzerErrorCodes = <DiagnosticCode?>[
   ParserErrorCode.invalidSuperInInitializer,
   ParserErrorCode.experimentNotEnabled,
   ParserErrorCode.externalMethodWithBody,
-  ParserErrorCode.externalField,
+  ParserErrorCode.abstractFinalInterfaceClass,
   ParserErrorCode.abstractClassMember,
   ParserErrorCode.breakOutsideOfLoop,
   ParserErrorCode.classInClass,
@@ -114,7 +114,7 @@ final fastaAnalyzerErrorCodes = <DiagnosticCode?>[
   ParserErrorCode.catchSyntax,
   ParserErrorCode.externalFactoryRedirection,
   ParserErrorCode.externalFactoryWithBody,
-  ParserErrorCode.externalConstructorWithBody,
+  ParserErrorCode.externalConstructorWithFieldInitializers,
   ParserErrorCode.fieldInitializedOutsideDeclaringClass,
   ParserErrorCode.varAndType,
   ParserErrorCode.invalidInitializer,
@@ -204,8 +204,6 @@ final fastaAnalyzerErrorCodes = <DiagnosticCode?>[
   ParserErrorCode.extraneousModifierInExtensionType,
   ParserErrorCode.extraneousModifierInPrimaryConstructor,
   ParserErrorCode.abstractFinalBaseClass,
-  ParserErrorCode.abstractFinalInterfaceClass,
-  ParserErrorCode.externalConstructorWithFieldInitializers,
 ];
 
 class ParserErrorCode extends DiagnosticCode {
@@ -789,14 +787,6 @@ class ParserErrorCode extends DiagnosticCode {
     correctionMessage: "Try removing the keyword 'external'.",
   );
 
-  static const ParserErrorCode externalConstructorWithBody = ParserErrorCode(
-    'EXTERNAL_CONSTRUCTOR_WITH_BODY',
-    "External constructors can't have a body.",
-    correctionMessage:
-        "Try removing the body of the constructor, or removing the keyword "
-        "'external'.",
-  );
-
   static const ParserErrorCode externalConstructorWithFieldInitializers =
       ParserErrorCode(
         'EXTERNAL_CONSTRUCTOR_WITH_FIELD_INITIALIZERS',
@@ -830,14 +820,6 @@ class ParserErrorCode extends DiagnosticCode {
     correctionMessage:
         "Try removing the body of the factory, or removing the keyword "
         "'external'.",
-  );
-
-  static const ParserErrorCode externalField = ParserErrorCode(
-    'EXTERNAL_FIELD',
-    "Fields can't be declared to be 'external'.",
-    correctionMessage:
-        "Try removing the keyword 'external', or replacing the field by an "
-        "external getter and/or setter.",
   );
 
   /// No parameters.

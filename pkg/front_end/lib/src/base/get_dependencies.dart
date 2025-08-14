@@ -17,6 +17,7 @@ import 'compiler_context.dart' show CompilerContext;
 import 'file_system_dependency_tracker.dart';
 import 'uri_translator.dart' show UriTranslator;
 
+// Coverage-ignore(suite): Not run.
 Future<List<Uri>> getDependencies(Uri script,
     {Uri? sdk,
     Uri? packages,

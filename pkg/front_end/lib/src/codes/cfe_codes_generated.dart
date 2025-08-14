@@ -338,32 +338,6 @@ Message _withArgumentsConstEvalEqualsOperandNotPrimitiveEquality(
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(DartType _type)>
-    codeConstEvalFreeTypeParameter =
-    const Template<Message Function(DartType _type)>(
-  "ConstEvalFreeTypeParameter",
-  problemMessageTemplate:
-      r"""The type '#type' is not a constant because it depends on a type parameter, only instantiated types are allowed.""",
-  withArguments: _withArgumentsConstEvalFreeTypeParameter,
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsConstEvalFreeTypeParameter(DartType _type) {
-  TypeLabeler labeler = new TypeLabeler();
-  List<Object> typeParts = labeler.labelType(_type);
-  String type = typeParts.join();
-  return new Message(
-    codeConstEvalFreeTypeParameter,
-    problemMessage:
-        """The type '${type}' is not a constant because it depends on a type parameter, only instantiated types are allowed.""" +
-            labeler.originMessages,
-    arguments: {
-      'type': _type,
-    },
-  );
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
         Message Function(String stringOKEmpty, Constant _constant,
             DartType _type, DartType _type2)>
@@ -3685,37 +3659,6 @@ Message _withArgumentsSupertypeIsNullableAliased(String name, DartType _type) {
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<Message Function(DartType _type, DartType _type2)>
-    codeSwitchExpressionNotAssignable =
-    const Template<Message Function(DartType _type, DartType _type2)>(
-  "SwitchExpressionNotAssignable",
-  problemMessageTemplate:
-      r"""Type '#type' of the switch expression isn't assignable to the type '#type2' of this case expression.""",
-  withArguments: _withArgumentsSwitchExpressionNotAssignable,
-  analyzerCodes: <String>["SWITCH_EXPRESSION_NOT_ASSIGNABLE"],
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsSwitchExpressionNotAssignable(
-    DartType _type, DartType _type2) {
-  TypeLabeler labeler = new TypeLabeler();
-  List<Object> typeParts = labeler.labelType(_type);
-  List<Object> type2Parts = labeler.labelType(_type2);
-  String type = typeParts.join();
-  String type2 = type2Parts.join();
-  return new Message(
-    codeSwitchExpressionNotAssignable,
-    problemMessage:
-        """Type '${type}' of the switch expression isn't assignable to the type '${type2}' of this case expression.""" +
-            labeler.originMessages,
-    arguments: {
-      'type': _type,
-      'type2': _type2,
-    },
-  );
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(DartType _type, DartType _type2)>
     codeSwitchExpressionNotSubtype =
     const Template<Message Function(DartType _type, DartType _type2)>(
   "SwitchExpressionNotSubtype",
@@ -3765,138 +3708,6 @@ Message _withArgumentsThrowingNotAssignableToObjectError(DartType _type) {
         """Can't throw a value of '${type}' since it is neither dynamic nor non-nullable.""" +
             labeler.originMessages,
     arguments: {
-      'type': _type,
-    },
-  );
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(String name, DartType _type)>
-    codeUndefinedExtensionGetter =
-    const Template<Message Function(String name, DartType _type)>(
-  "UndefinedExtensionGetter",
-  problemMessageTemplate:
-      r"""The getter '#name' isn't defined for the extension '#type'.""",
-  correctionMessageTemplate:
-      r"""Try correcting the name to the name of an existing getter, or defining a getter or field named '#name'.""",
-  withArguments: _withArgumentsUndefinedExtensionGetter,
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsUndefinedExtensionGetter(String name, DartType _type) {
-  if (name.isEmpty) throw 'No name provided';
-  name = demangleMixinApplicationName(name);
-  TypeLabeler labeler = new TypeLabeler();
-  List<Object> typeParts = labeler.labelType(_type);
-  String type = typeParts.join();
-  return new Message(
-    codeUndefinedExtensionGetter,
-    problemMessage:
-        """The getter '${name}' isn't defined for the extension '${type}'.""" +
-            labeler.originMessages,
-    correctionMessage:
-        """Try correcting the name to the name of an existing getter, or defining a getter or field named '${name}'.""",
-    arguments: {
-      'name': name,
-      'type': _type,
-    },
-  );
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(String name, DartType _type)>
-    codeUndefinedExtensionMethod =
-    const Template<Message Function(String name, DartType _type)>(
-  "UndefinedExtensionMethod",
-  problemMessageTemplate:
-      r"""The method '#name' isn't defined for the extension '#type'.""",
-  correctionMessageTemplate:
-      r"""Try correcting the name to the name of an existing method, or defining a method name '#name'.""",
-  withArguments: _withArgumentsUndefinedExtensionMethod,
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsUndefinedExtensionMethod(String name, DartType _type) {
-  if (name.isEmpty) throw 'No name provided';
-  name = demangleMixinApplicationName(name);
-  TypeLabeler labeler = new TypeLabeler();
-  List<Object> typeParts = labeler.labelType(_type);
-  String type = typeParts.join();
-  return new Message(
-    codeUndefinedExtensionMethod,
-    problemMessage:
-        """The method '${name}' isn't defined for the extension '${type}'.""" +
-            labeler.originMessages,
-    correctionMessage:
-        """Try correcting the name to the name of an existing method, or defining a method name '${name}'.""",
-    arguments: {
-      'name': name,
-      'type': _type,
-    },
-  );
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(String name, DartType _type)>
-    codeUndefinedExtensionOperator =
-    const Template<Message Function(String name, DartType _type)>(
-  "UndefinedExtensionOperator",
-  problemMessageTemplate:
-      r"""The operator '#name' isn't defined for the extension '#type'.""",
-  correctionMessageTemplate:
-      r"""Try correcting the operator to an existing operator, or defining a '#name' operator.""",
-  withArguments: _withArgumentsUndefinedExtensionOperator,
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsUndefinedExtensionOperator(String name, DartType _type) {
-  if (name.isEmpty) throw 'No name provided';
-  name = demangleMixinApplicationName(name);
-  TypeLabeler labeler = new TypeLabeler();
-  List<Object> typeParts = labeler.labelType(_type);
-  String type = typeParts.join();
-  return new Message(
-    codeUndefinedExtensionOperator,
-    problemMessage:
-        """The operator '${name}' isn't defined for the extension '${type}'.""" +
-            labeler.originMessages,
-    correctionMessage:
-        """Try correcting the operator to an existing operator, or defining a '${name}' operator.""",
-    arguments: {
-      'name': name,
-      'type': _type,
-    },
-  );
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(String name, DartType _type)>
-    codeUndefinedExtensionSetter =
-    const Template<Message Function(String name, DartType _type)>(
-  "UndefinedExtensionSetter",
-  problemMessageTemplate:
-      r"""The setter '#name' isn't defined for the extension '#type'.""",
-  correctionMessageTemplate:
-      r"""Try correcting the name to the name of an existing setter, or defining a setter or field named '#name'.""",
-  withArguments: _withArgumentsUndefinedExtensionSetter,
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsUndefinedExtensionSetter(String name, DartType _type) {
-  if (name.isEmpty) throw 'No name provided';
-  name = demangleMixinApplicationName(name);
-  TypeLabeler labeler = new TypeLabeler();
-  List<Object> typeParts = labeler.labelType(_type);
-  String type = typeParts.join();
-  return new Message(
-    codeUndefinedExtensionSetter,
-    problemMessage:
-        """The setter '${name}' isn't defined for the extension '${type}'.""" +
-            labeler.originMessages,
-    correctionMessage:
-        """Try correcting the name to the name of an existing setter, or defining a setter or field named '${name}'.""",
-    arguments: {
-      'name': name,
       'type': _type,
     },
   );

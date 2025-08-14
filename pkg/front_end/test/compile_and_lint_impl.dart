@@ -236,7 +236,7 @@ mixin BodyBuilderTestMixin on BodyBuilder {
       TypeDeclarationBuilder? type,
       Token nameToken,
       Token nameLastToken,
-      Arguments? arguments,
+      Arguments arguments,
       String name,
       List<TypeBuilder>? typeArguments,
       int charOffset,

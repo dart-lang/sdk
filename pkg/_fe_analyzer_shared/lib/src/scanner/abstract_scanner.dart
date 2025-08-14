@@ -1202,7 +1202,6 @@ abstract class AbstractScanner implements Scanner {
     }
 
     if (next == $BACKSLASH) {
-      // Coverage-ignore-block(suite): Not run.
       // Hit when parsing doc comments in the analyzer.
       appendPrecedenceToken(TokenType.BACKSLASH);
       return advance();

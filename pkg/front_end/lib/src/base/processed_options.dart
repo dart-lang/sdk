@@ -129,7 +129,6 @@ class ProcessedOptions {
   Uint8List? _sdkSummaryBytes;
   bool _triedLoadingSdkSummary = false;
 
-  // Coverage-ignore(suite): Not run.
   /// Get the bytes of the SDK outline, if any.
   Future<Uint8List?> loadSdkSummaryBytes() async {
     if (_sdkSummaryBytes == null && !_triedLoadingSdkSummary) {
@@ -330,7 +329,6 @@ class ProcessedOptions {
   /// be a fixed string, otherwise the toString of [error] will be returned.
   String osErrorMessage(Object? error) {
     if (_raw.omitOsMessageForTesting) return '<os-message>';
-    // Coverage-ignore(suite): Not run.
     return '$error';
   }
 
@@ -479,7 +477,6 @@ class ProcessedOptions {
   // TODO(sigmund): move, this doesn't feel like an "option".
   Future<Component?> loadSdkSummary(CanonicalName? nameRoot) async {
     if (_sdkSummaryComponent == null) {
-      // Coverage-ignore-block(suite): Not run.
       if (sdkSummary == null) return null;
       Uint8List? bytes = await loadSdkSummaryBytes();
       if (bytes != null && bytes.isNotEmpty) {
@@ -519,7 +516,6 @@ class ProcessedOptions {
     return _additionalDillComponents!;
   }
 
-  // Coverage-ignore(suite): Not run.
   /// Helper to load a .dill file from [uri] using the existing [nameRoot].
   Component loadComponent(Uint8List bytes, CanonicalName? nameRoot,
       {bool? alwaysCreateNewNamedNodes, Uri? fileUri}) {
@@ -682,16 +678,17 @@ class ProcessedOptions {
     }
 
     try {
-      void Function(Object error) onError =
-          // Coverage-ignore(suite): Not run.
-          (Object error) {
+      void Function(Object error) onError = (Object error) {
         if (error is FormatException) {
           reportNoSourceLine(
-              codePackagesFileFormat
-                  .withArguments(error.message)
-                  .withLocation(requestedUri, error.offset ?? -1, noLength),
+              codePackagesFileFormat.withArguments(error.message).withLocation(
+                  requestedUri,
+                  error.offset ?? // Coverage-ignore(suite): Not run.
+                      -1,
+                  noLength),
               CfeSeverity.error);
         } else {
+          // Coverage-ignore-block(suite): Not run.
           reportWithoutLocation(
               codeCantReadFile.withArguments(
                   requestedUri, osErrorMessage(error)),
@@ -883,11 +880,12 @@ class ProcessedOptions {
     return '$sb';
   }
 
-  // Coverage-ignore(suite): Not run.
   Future<Uint8List?> _readAsBytes(FileSystemEntity file) async {
     try {
       return await file.readAsBytes();
-    } on FileSystemException catch (error) {
+    }
+    // Coverage-ignore(suite): Not run.
+    on FileSystemException catch (error) {
       reportWithoutLocation(
           codeCantReadFile.withArguments(
               error.uri, osErrorMessage(error.message)),
@@ -914,7 +912,6 @@ class ProcessedOptions {
 
   HooksForTesting? get hooksForTesting => _raw.hooksForTesting;
 
-  // Coverage-ignore(suite): Not run.
   bool equivalent(ProcessedOptions other,
       {bool ignoreOnDiagnostic = true,
       bool ignoreVerbose = true,

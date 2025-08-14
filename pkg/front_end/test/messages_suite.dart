@@ -7,7 +7,10 @@ import 'dart:io' show File, Platform;
 import "dart:typed_data" show Uint8List;
 
 import 'package:_fe_analyzer_shared/src/messages/diagnostic_message.dart'
-    show CfeDiagnosticMessage, getMessageCodeObject;
+    show
+        CfeDiagnosticMessage,
+        getMessageCodeObject,
+        getMessageRelatedInformation;
 import 'package:_fe_analyzer_shared/src/messages/severity.dart'
     show CfeSeverity, severityEnumValues;
 import 'package:front_end/src/api_prototype/compiler_options.dart'
@@ -20,18 +23,44 @@ import 'package:front_end/src/base/command_line_reporting.dart'
     as command_line_reporting;
 import 'package:front_end/src/base/hybrid_file_system.dart'
     show HybridFileSystem;
+import 'package:front_end/src/base/messages.dart';
 import 'package:front_end/src/compute_platform_binaries_location.dart'
     show computePlatformBinariesLocation;
 import 'package:kernel/ast.dart' show Location, Source;
 import "package:kernel/target/targets.dart" show TargetFlags;
 import "package:testing/testing.dart"
-    show Chain, ChainContext, Expectation, Result, Step, TestDescription;
+    show
+        Chain,
+        ChainContext,
+        Expectation,
+        Result,
+        Step,
+        TestDescription,
+        ExpectationSet;
 import "package:vm/modular/target/vm.dart" show VmTarget;
 import "package:yaml/yaml.dart" show YamlList, YamlMap, YamlNode, loadYamlNode;
 
 import "../tool/entry_points.dart" show BatchCompiler;
 import 'spell_checking_utils.dart' as spell;
 import 'utils/suite_utils.dart' show internalMain;
+
+enum KnownExpectation {
+  missingAnalyzerCode,
+  missingExample,
+  unknownKey,
+  badValue,
+  unknownSeverity,
+  unnecessarySeverity,
+  spellingError,
+  missingExternalFile,
+  noMessageReported,
+  hasCorrectButAlsoOthers,
+  hasTooManyCorrect,
+  hasTooManyCorrectAndAlsoOthers,
+  hasOnlyUnrelatedMessages;
+
+  Expectation expectation(ChainContext context) => context.expectationSet[name];
+}
 
 class MessageTestDescription extends TestDescription {
   @override
@@ -46,7 +75,7 @@ class MessageTestDescription extends TestDescription {
 
   final Example? example;
 
-  final String? problem;
+  final ({String message, KnownExpectation expectation})? problem;
 
   MessageTestDescription(this.uri, this.shortName, this.name, this.data,
       this.example, this.problem);
@@ -65,9 +94,19 @@ class MessageTestSuite extends ChainContext {
 
   final bool fastOnly;
   final bool interactive;
+  final bool skipSpellCheck;
 
   final Map<String, List<String>?> reportedWordsAndAlternatives = {};
   final Set<String> reportedWordsDenylisted = {};
+
+  @override
+  final ExpectationSet expectationSet = new ExpectationSet.fromJsonList([
+    for (KnownExpectation expectation in KnownExpectation.values)
+      {
+        "name": expectation.name,
+        "group": "Fail",
+      }
+  ]);
 
   @override
   Future<void> postRun() {
@@ -88,7 +127,7 @@ class MessageTestSuite extends ChainContext {
     return new Future.value();
   }
 
-  MessageTestSuite(this.fastOnly, this.interactive)
+  MessageTestSuite(this.fastOnly, this.interactive, this.skipSpellCheck)
       : fileSystem = new MemoryFileSystem(Uri.parse("org-dartlang-cfe:///")),
         compiler = new BatchCompiler(null);
 
@@ -119,7 +158,9 @@ class MessageTestSuite extends ChainContext {
       if (message is String) continue;
 
       List<String> unknownKeys = <String>[];
-      bool exampleAllowMoreCodes = false;
+      bool exampleAllowOtherCodes = false;
+      bool exampleAllowMultipleReports = false;
+      bool includeErrorContext = false;
       List<Example> examples = <Example>[];
       String? externalTest;
       bool frontendInternal = false;
@@ -180,6 +221,7 @@ class MessageTestSuite extends ChainContext {
         // "backslash n".
         switch (key) {
           case "problemMessage":
+            if (skipSpellCheck) continue;
             spell.SpellingResult spellingResult = spell.spellcheckString(
                 node.span.text.replaceAll(r"\n", "\n\n"),
                 dictionaries: const [
@@ -199,6 +241,7 @@ class MessageTestSuite extends ChainContext {
             break;
 
           case "correctionMessage":
+            if (skipSpellCheck) continue;
             spell.SpellingResult spellingResult = spell.spellcheckString(
                 node.span.text.replaceAll(r"\n", "\n\n"),
                 dictionaries: const [
@@ -242,8 +285,30 @@ class MessageTestSuite extends ChainContext {
             }
             break;
 
-          case "exampleAllowMoreCodes":
-            exampleAllowMoreCodes = value;
+          case "exampleAllowOtherCodes":
+            if (value is! bool) {
+              throw new ArgumentError(
+                  'exampleAllowOtherCodes should be a bool: '
+                  '"$value" (${node.span.start.toolString}).');
+            }
+            exampleAllowOtherCodes = value;
+            break;
+
+          case "exampleAllowMultipleReports":
+            if (value is! bool) {
+              throw new ArgumentError(
+                  'exampleAllowMultipleReports should be a bool: '
+                  '"$value" (${node.span.start.toolString}).');
+            }
+            exampleAllowMultipleReports = value;
+            break;
+
+          case "includeErrorContext":
+            if (value is! bool) {
+              throw new ArgumentError('includeErrorContext should be a bool: '
+                  '"$value" (${node.span.start.toolString}).');
+            }
+            includeErrorContext = value;
             break;
 
           case "bytes":
@@ -349,19 +414,32 @@ class MessageTestSuite extends ChainContext {
         }
       }
 
-      if (exampleAllowMoreCodes) {
+      if (exampleAllowOtherCodes) {
         // Update all examples.
         for (Example example in examples) {
-          example.allowMoreCodes = exampleAllowMoreCodes;
+          example.allowOtherCodes = exampleAllowOtherCodes;
         }
       }
+      if (exampleAllowMultipleReports) {
+        // Update all examples.
+        for (Example example in examples) {
+          example.allowMultipleReports = exampleAllowMultipleReports;
+        }
+      }
+      if (includeErrorContext) {
+        // Update all examples.
+        for (Example example in examples) {
+          example.includeErrorContext = includeErrorContext;
+        }
+      }
+
       for (Example example in examples) {
         example.experimentalFlags =
             experimentalFlags ?? defaultExperimentalFlags;
       }
 
-      MessageTestDescription createDescription(
-          String subName, Example? example, String? problem,
+      MessageTestDescription createDescription(String subName, Example? example,
+          ({String message, KnownExpectation expectation})? problem,
           {location}) {
         String shortName = "$name/$subName";
         if (problem != null) {
@@ -369,7 +447,10 @@ class MessageTestSuite extends ChainContext {
           location ??= message.span.start;
           int line = location.line + 1;
           int column = location.column;
-          problem = "$filename:$line:$column: error:\n$problem";
+          problem = (
+            message: "$filename:$line:$column: error:\n${problem.message}",
+            expectation: problem.expectation
+          );
         }
         return new MessageTestDescription(uri.resolve("#$shortName"), shortName,
             name, messageNode, example, problem);
@@ -381,10 +462,24 @@ class MessageTestSuite extends ChainContext {
         }
         // "Wrap" example as a part.
         for (Example example in examples) {
+          Script originalMainScript = example.scripts[example.mainFilename]!;
+          String? originalSource = originalMainScript.sourceWithoutPreamble;
+          if (originalSource != null &&
+              (originalSource.contains("import ") ||
+                  originalSource.contains("part ") ||
+                  originalSource.contains("export ") ||
+                  originalSource.contains("library "))) {
+            continue;
+          }
           result.add(createDescription(
               "part_wrapped_${example.name}",
-              new PartWrapExample("part_wrapped_${example.name}", name,
-                  exampleAllowMoreCodes, example),
+              new PartWrapExample(
+                  "part_wrapped_${example.name}",
+                  name,
+                  exampleAllowOtherCodes,
+                  exampleAllowMultipleReports,
+                  includeErrorContext,
+                  example),
               null));
         }
       }
@@ -393,22 +488,32 @@ class MessageTestSuite extends ChainContext {
           "knownKeys",
           null,
           unknownKeys.isNotEmpty
-              ? "Unknown keys: ${unknownKeys.join(' ')}."
+              ? (
+                  expectation: KnownExpectation.unknownKey,
+                  message: "Unknown keys: ${unknownKeys.join(' ')}.",
+                )
               : null));
 
       result.add(createDescription(
           'hasPublishedDocs',
           null,
           badHasPublishedDocsValue.isNotEmpty
-              ? "Bad hasPublishedDocs value (only 'true' supported) in:"
-                  " ${badHasPublishedDocsValue.join(', ')}"
+              ? (
+                  expectation: KnownExpectation.badValue,
+                  message:
+                      "Bad hasPublishedDocs value (only 'true' supported) in:"
+                      " ${badHasPublishedDocsValue.join(', ')}"
+                )
               : null));
 
       result.add(createDescription(
           "severity",
           null,
           badSeverity != null
-              ? "Unknown severity: '${badSeverity.value}'."
+              ? (
+                  expectation: KnownExpectation.unknownSeverity,
+                  message: "Unknown severity: '${badSeverity.value}'."
+                )
               : null,
           location: badSeverity?.span.start));
 
@@ -416,7 +521,11 @@ class MessageTestSuite extends ChainContext {
           "unnecessarySeverity",
           null,
           unnecessarySeverity != null
-              ? "The 'ERROR' severity is the default and not necessary."
+              ? (
+                  expectation: KnownExpectation.unnecessarySeverity,
+                  message:
+                      "The 'ERROR' severity is the default and not necessary."
+                )
               : null,
           location: unnecessarySeverity?.span.start));
 
@@ -424,7 +533,10 @@ class MessageTestSuite extends ChainContext {
           "spelling",
           null,
           spellingMessages != null
-              ? spellingMessages.join("\n") + spellingPostMessage
+              ? (
+                  expectation: KnownExpectation.spellingError,
+                  message: spellingMessages.join("\n") + spellingPostMessage
+                )
               : null));
 
       bool exampleAndAnalyzerCodeRequired = severity != CfeSeverity.context &&
@@ -438,8 +550,11 @@ class MessageTestSuite extends ChainContext {
                   externalTest != null &&
                   !(new File.fromUri(suite.root.resolve(externalTest))
                       .existsSync())
-              ? "Given external example for $name points to a nonexisting file "
-                  "(${suite.root.resolve(externalTest)})."
+              ? (
+                  expectation: KnownExpectation.missingExternalFile,
+                  message: "Given external example for $name points to a "
+                      "nonexisting file  (${suite.root.resolve(externalTest)})."
+                )
               : null));
 
       result.add(createDescription(
@@ -448,7 +563,11 @@ class MessageTestSuite extends ChainContext {
           exampleAndAnalyzerCodeRequired &&
                   examples.isEmpty &&
                   externalTest == null
-              ? "No example for $name, please add at least one example."
+              ? (
+                  expectation: KnownExpectation.missingExample,
+                  message:
+                      "No example for $name, please add at least one example.",
+                )
               : null));
 
       result.add(createDescription(
@@ -457,11 +576,14 @@ class MessageTestSuite extends ChainContext {
           exampleAndAnalyzerCodeRequired &&
                   !frontendInternal &&
                   analyzerCodes == null
-              ? "No analyzer code for $name."
-                  "\nTry running"
-                  " <BUILDDIR>/dart-sdk/bin/dartanalyzer --format=machine"
-                  " on an example to find the code."
-                  " The code is printed just before the file name."
+              ? (
+                  expectation: KnownExpectation.missingAnalyzerCode,
+                  message: "No analyzer code for $name."
+                      "\nTry running"
+                      " <BUILDDIR>/dart-sdk/bin/dart analyzer --format=machine"
+                      " on an example to find the code."
+                      " The code is printed just before the file name."
+                )
               : null));
     }
     return Future.value(result);
@@ -496,7 +618,9 @@ abstract class Example {
 
   final String expectedCode;
 
-  bool allowMoreCodes = false;
+  bool allowOtherCodes = false;
+  bool allowMultipleReports = false;
+  bool includeErrorContext = false;
 
   Map<ExperimentalFlag, bool>? experimentalFlags;
 
@@ -615,7 +739,6 @@ class ScriptExample extends Example {
       Map<String, Script> scriptFiles = <String, Script>{};
       script.forEach((fileName, value) {
         scriptFiles[fileName] = new Script.fromSource(value);
-        print("$fileName => $value\n\n======\n\n");
       });
       return scriptFiles;
     } else {
@@ -627,9 +750,16 @@ class ScriptExample extends Example {
 class PartWrapExample extends Example {
   final Example example;
   @override
-  final bool allowMoreCodes;
+  final bool allowOtherCodes;
 
-  PartWrapExample(String name, String code, this.allowMoreCodes, this.example)
+  @override
+  final bool allowMultipleReports;
+
+  @override
+  final bool includeErrorContext;
+
+  PartWrapExample(String name, String code, this.allowOtherCodes,
+      this.allowMultipleReports, this.includeErrorContext, this.example)
       : super(name, code) {
     experimentalFlags = example.experimentalFlags;
   }
@@ -698,7 +828,10 @@ class Validate
   Future<Result<Example?>> run(
       MessageTestDescription description, MessageTestSuite suite) {
     if (description.problem != null) {
-      return new Future.value(fail(null, description.problem));
+      return new Future.value(new Result(
+          null,
+          description.problem!.expectation.expectation(suite),
+          description.problem!.message));
     } else {
       return new Future.value(pass(description.example));
     }
@@ -734,7 +867,7 @@ class Compile extends Step<Example?, Null, MessageTestSuite> {
     }
 
     print("Compiling $main");
-    List<CfeDiagnosticMessage> messages = <CfeDiagnosticMessage>[];
+    List<CfeDiagnosticMessage> rawMessages = <CfeDiagnosticMessage>[];
 
     await suite.compiler.batchCompile(
         new CompilerOptions()
@@ -744,52 +877,101 @@ class Compile extends Step<Example?, Null, MessageTestSuite> {
           ..target = new VmTarget(new TargetFlags())
           ..fileSystem = new HybridFileSystem(suite.fileSystem)
           ..packagesFileUri = packageConfigUri
-          ..onDiagnostic = messages.add
+          ..onDiagnostic = rawMessages.add
           ..environmentDefines = const {}
           ..omitPlatform = true,
         main,
         output);
 
     List<CfeDiagnosticMessage> unexpectedMessages = <CfeDiagnosticMessage>[];
-    if (example.allowMoreCodes) {
-      List<CfeDiagnosticMessage> messagesFiltered = <CfeDiagnosticMessage>[];
-      for (CfeDiagnosticMessage message in messages) {
-        if (getMessageCodeObject(message)!.name == example.expectedCode) {
-          messagesFiltered.add(message);
-        }
-      }
-      messages = messagesFiltered;
-    }
-    for (CfeDiagnosticMessage message in messages) {
-      if (getMessageCodeObject(message)!.name != example.expectedCode) {
+    List<CfeDiagnosticMessage> expectedMessages = <CfeDiagnosticMessage>[];
+    for (CfeDiagnosticMessage message in rawMessages) {
+      if (getMessageCodeObject(message)!.name == example.expectedCode) {
+        expectedMessages.add(message);
+      } else {
         unexpectedMessages.add(message);
       }
+      // Include contexts if asked.
+      if (example.includeErrorContext) {
+        for (CfeDiagnosticMessage context
+            in getMessageRelatedInformation(message) ??
+                const <CfeDiagnosticMessage>[]) {
+          if (getMessageCodeObject(context)!.name == example.expectedCode) {
+            expectedMessages.add(context);
+          } else {
+            unexpectedMessages.add(context);
+          }
+        }
+      }
+    }
+    if (example.allowOtherCodes) {
+      unexpectedMessages = [];
+    }
+    if (example.allowMultipleReports) {
+      List<CfeDiagnosticMessage> removeDuplicateCodes(
+          List<CfeDiagnosticMessage> messages) {
+        Set<String> seenCodes = {};
+        List<CfeDiagnosticMessage> result = [];
+        for (CfeDiagnosticMessage message in messages) {
+          if (seenCodes.add(getMessageCodeObject(message)!.name)) {
+            result.add(message);
+          }
+        }
+        return result;
+      }
+
+      expectedMessages = removeDuplicateCodes(expectedMessages);
+      unexpectedMessages = removeDuplicateCodes(unexpectedMessages);
     }
     if (unexpectedMessages.isEmpty) {
-      switch (messages.length) {
+      switch (expectedMessages.length) {
         case 0:
-          return fail(
+          return new Result(
               null,
+              KnownExpectation.noMessageReported.expectation(suite),
               suite.formatProblems("No message reported in ${example.name}:",
-                  example, messages));
+                  example, expectedMessages));
         case 1:
           return pass(null);
         default:
-          return fail(
+          return new Result(
               null,
+              KnownExpectation.hasTooManyCorrect.expectation(suite),
               suite.formatProblems(
-                  "Message reported multiple times in ${example.name}:",
+                  "Correct message reported multiple times in ${example.name}. "
+                  "Maybe add `exampleAllowMultipleReports: true`.",
                   example,
-                  messages));
+                  expectedMessages));
       }
+    } else if (expectedMessages.isEmpty) {
+      // Has unexpected messages and no expected message.
+      return new Result(
+          null,
+          KnownExpectation.hasOnlyUnrelatedMessages.expectation(suite),
+          suite.formatProblems("Got only unrelated codes in ${example.name}:",
+              example, unexpectedMessages));
+    } else if (expectedMessages.length == 1) {
+      // Has unexpected messages and 1 expected message.
+      return new Result(
+          null,
+          KnownExpectation.hasCorrectButAlsoOthers.expectation(suite),
+          suite.formatProblems(
+              "Got correct code, but also others in ${example.name}. "
+              "Maybe add `exampleAllowOtherCodes: true`.",
+              example,
+              [...expectedMessages, ...unexpectedMessages]));
+    } else {
+      // Has unexpected messages and more than 1 unexpected message.
+      return new Result(
+          null,
+          KnownExpectation.hasTooManyCorrectAndAlsoOthers.expectation(suite),
+          suite.formatProblems(
+              "Has too many correct codes and other codes in ${example.name}. "
+              "Maybe add `exampleAllowOtherCodes: true` and "
+              "`exampleAllowMultipleReports: true`.",
+              example,
+              [...expectedMessages, ...unexpectedMessages]));
     }
-    return fail(
-        null,
-        suite.formatProblems(
-            "Too many or unexpected messages (${messages.length}) reported "
-            "in ${example.name}:",
-            example,
-            messages));
   }
 }
 
@@ -797,7 +979,9 @@ Future<MessageTestSuite> createContext(
     Chain suite, Map<String, String> environment) {
   final bool fastOnly = environment["fastOnly"] == "true";
   final bool interactive = environment["interactive"] == "true";
-  return new Future.value(new MessageTestSuite(fastOnly, interactive));
+  final bool skipSpellCheck = environment["skipSpellCheck"] == "true";
+  return new Future.value(
+      new MessageTestSuite(fastOnly, interactive, skipSpellCheck));
 }
 
 String relativize(Uri uri) {

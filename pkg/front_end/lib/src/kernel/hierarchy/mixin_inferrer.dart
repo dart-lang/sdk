@@ -102,7 +102,6 @@ class BuilderMixinInferrer {
       Supertype? supertype =
           asInstantiationOf(baseType, mixinSupertype.classNode);
       if (supertype == null) {
-        // Coverage-ignore-block(suite): Not run.
         reportProblem(
             codeMixinInferenceNoMatchingClass.withArguments(mixinClass.name,
                 baseType.classNode.name, mixinSupertype.asInterfaceType),
@@ -179,11 +178,12 @@ class BuilderMixinInferrer {
     return new Supertype(superclass, arguments);
   }
 
-  // Coverage-ignore(suite): Not run.
   void reportProblem(Message message, Class kernelClass) {
     int length = classBuilder.isMixinApplication
         ? 1
-        : classBuilder.fullNameForErrors.length;
+        :
+        // Coverage-ignore(suite): Not run.
+        classBuilder.fullNameForErrors.length;
     classBuilder.libraryBuilder.addProblem(
         message, classBuilder.fileOffset, length, classBuilder.fileUri);
   }

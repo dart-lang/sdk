@@ -534,7 +534,6 @@ class DietListener extends StackListenerImpl {
   }
 
   @override
-  // Coverage-ignore(suite): Not run.
   void handleInvalidOperatorName(Token operatorKeyword, Token token) {
     debugEvent("InvalidOperatorName");
     push(new SimpleIdentifier(token));
@@ -714,7 +713,6 @@ class DietListener extends StackListenerImpl {
   }
 
   @override
-  // Coverage-ignore(suite): Not run.
   void handleNativeFunctionBodyIgnored(Token nativeToken, Token semicolon) {
     debugEvent("NativeFunctionBodyIgnored");
   }

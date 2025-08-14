@@ -824,7 +824,6 @@ class OutlineBuilder extends StackListenerImpl {
   }
 
   @override
-  // Coverage-ignore(suite): Not run.
   void handleInvalidOperatorName(Token operatorKeyword, Token token) {
     debugEvent("handleInvalidOperatorName");
     push(new SimpleIdentifier(token));
@@ -1829,7 +1828,6 @@ class OutlineBuilder extends StackListenerImpl {
   }
 
   @override
-  // Coverage-ignore(suite): Not run.
   void handleNativeFunctionBodyIgnored(Token nativeToken, Token semicolon) {
     debugEvent("NativeFunctionBodyIgnored");
   }
@@ -2191,7 +2189,6 @@ class OutlineBuilder extends StackListenerImpl {
         returnType = null;
       }
     } else {
-      // Coverage-ignore-block(suite): Not run.
       if (isConst) {
         // TODO(danrubel): consider removing this
         // because it is an error to have a const method.
@@ -3261,7 +3258,6 @@ class OutlineBuilder extends StackListenerImpl {
       /* metadata = */ ValueKinds.MetadataListOrNull,
     ]));
     if (externalToken != null && lateToken != null) {
-      // Coverage-ignore-block(suite): Not run.
       handleRecoverableError(
           codeExternalLateField, externalToken, externalToken);
       externalToken = null;
@@ -3316,9 +3312,7 @@ class OutlineBuilder extends StackListenerImpl {
       handleRecoverableError(
           codeAbstractLateField, abstractToken, abstractToken);
       abstractToken = null;
-    }
-    // Coverage-ignore(suite): Not run.
-    else if (externalToken != null && lateToken != null) {
+    } else if (externalToken != null && lateToken != null) {
       handleRecoverableError(
           codeExternalLateField, externalToken, externalToken);
       externalToken = null;
@@ -3452,7 +3446,6 @@ class OutlineBuilder extends StackListenerImpl {
         typeParameters[index].bound = bound;
         if (variance != null) {
           if (!libraryFeatures.variance.isEnabled) {
-            // Coverage-ignore-block(suite): Not run.
             reportVarianceModifierNotEnabled(variance);
           }
           typeParameters[index].variance =
@@ -3735,7 +3728,6 @@ class OutlineBuilder extends StackListenerImpl {
   void handleConstFactory(Token constKeyword) {
     debugEvent("ConstFactory");
     if (!libraryFeatures.constFunctions.isEnabled) {
-      // Coverage-ignore-block(suite): Not run.
       handleRecoverableError(codeConstFactory, constKeyword, constKeyword);
     }
   }

@@ -288,7 +288,6 @@ class SourceLoader extends Loader {
   CompilationUnit? lookupCompilationUnit(Uri importUri) =>
       _compilationUnits[importUri];
 
-  // Coverage-ignore(suite): Not run.
   CompilationUnit? lookupCompilationUnitByFileUri(Uri fileUri) {
     // TODO(johnniwinther): Store compilation units in a map by file URI?
     for (CompilationUnit compilationUnit in _compilationUnits.values) {
@@ -517,7 +516,6 @@ class SourceLoader extends Loader {
       if (packageForLanguageVersion.languageVersion != null) {
         if (packageForLanguageVersion.languageVersion
             is package_config.InvalidLanguageVersion) {
-          // Coverage-ignore-block(suite): Not run.
           packageLanguageVersionProblem =
               codeLanguageVersionInvalidInDotPackages;
           packageLanguageVersion = new InvalidLanguageVersion(
@@ -1363,7 +1361,6 @@ severity: $severity
           roots.add(part.partOfLibrary!.importUri);
         }
       } else {
-        // Coverage-ignore-block(suite): Not run.
         SourceLibraryBuilder sourceLibraryBuilder = part.createLibrary();
         sourceLibraries.add(sourceLibraryBuilder);
         _loadedLibraryBuilders[uri] = sourceLibraryBuilder;
@@ -1730,7 +1727,6 @@ severity: $severity
     for (int i = 0; i < directSupertypes.length; i++) {
       TypeDeclarationBuilder? supertype = directSupertypes[i];
       if (supertype is SourceEnumBuilder) {
-        // Coverage-ignore-block(suite): Not run.
         classBuilder.libraryBuilder.addProblem(
             codeExtendingEnum.withArguments(supertype.name),
             classBuilder.fileOffset,

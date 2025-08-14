@@ -441,7 +441,6 @@ class FactoryEncoding implements InferredTypeListener {
 
     // Ensure that constant factories only have constant targets/bodies.
     if (_fragment.modifiers.isConst && !target.isConst) {
-      // Coverage-ignore-block(suite): Not run.
       libraryBuilder.addProblem(codeConstFactoryRedirectionToNonConst,
           _fragment.fullNameOffset, noLength, _fragment.fileUri);
     }

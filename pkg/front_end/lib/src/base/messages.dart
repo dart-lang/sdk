@@ -61,7 +61,6 @@ class LibraryProblemReporting implements ProblemReporting {
       List<LocatedMessage>? context,
       CfeSeverity? severity,
       bool problemOnLibrary = false}) {
-    // Coverage-ignore(suite): Not run.
     fileUri ??= _fileUri;
 
     FormattedMessage? formattedMessage = _loader.addProblem(

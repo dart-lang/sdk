@@ -50,11 +50,11 @@ class StaticWeakReferences {
     return false;
   }
 
-  // Coverage-ignore(suite): Not run.
   static void validateWeakReferenceUse(
       StaticInvocation node, ErrorReporter errorReporter) {
     final Arguments arguments = node.arguments;
     if (arguments.positional.length != 1 || arguments.named.isNotEmpty) {
+      // Coverage-ignore-block(suite): Not run.
       errorReporter.report(codeWeakReferenceNotOneArgument.withLocation(
           node.location!.file, node.fileOffset, 1));
       return;
@@ -67,7 +67,9 @@ class StaticWeakReferences {
         if (target.isStatic) {
           final FunctionNode function = target.function;
           if (function.positionalParameters.isNotEmpty ||
+              // Coverage-ignore(suite): Not run.
               function.namedParameters.isNotEmpty ||
+              // Coverage-ignore(suite): Not run.
               function.typeParameters.isNotEmpty) {
             errorReporter.report(codeWeakReferenceTargetHasParameters
                 .withLocation(node.location!.file, node.fileOffset, 1));
@@ -80,7 +82,6 @@ class StaticWeakReferences {
         node.location!.file, node.fileOffset, 1));
   }
 
-  // Coverage-ignore(suite): Not run.
   static void validateWeakReferenceDeclaration(
       Annotatable node, ErrorReporter errorReporter) {
     if (node is! Procedure ||

@@ -4,8 +4,10 @@
 
 import "dart:io";
 
+// Coverage-ignore(suite): Not run.
 int _perfPid = -1;
 
+// Coverage-ignore(suite): Not run.
 /// Helper for creating a perf snapshot when running via perf or magic-trace.
 ///
 /// The linux `perf` tool (and the magic-trace tool which wraps the perf tool
@@ -148,6 +150,7 @@ void linuxAndIntelSpecificPerf({bool onlyInitialize = false}) {
   print("Notice: Send snapshot signal to perf.");
 }
 
+// Coverage-ignore(suite): Not run.
 int? _getParentPid(int pid) {
   File f = new File("/proc/${pid}/status");
   if (!f.existsSync()) return null;
@@ -160,6 +163,7 @@ int? _getParentPid(int pid) {
   return null;
 }
 
+// Coverage-ignore(suite): Not run.
 List<String>? _getPidCommandLine(int pid) {
   File f = new File("/proc/$pid/cmdline");
   if (!f.existsSync()) return null;

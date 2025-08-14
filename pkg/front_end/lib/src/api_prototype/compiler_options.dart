@@ -283,7 +283,6 @@ class CompilerOptions {
             experimentReleasedVersionForTesting);
   }
 
-  // Coverage-ignore(suite): Not run.
   bool equivalent(CompilerOptions other,
       {bool ignoreOnDiagnostic = true,
       bool ignoreVerbose = true,
@@ -294,9 +293,11 @@ class CompilerOptions {
       return false;
     }
     if (!ignoreOnDiagnostic) {
+      // Coverage-ignore-block(suite): Not run.
       if (onDiagnostic != other.onDiagnostic) return false;
     }
     if (packagesFileUri != other.packagesFileUri) return false;
+    // Coverage-ignore-block(suite): Not run.
     if (!equalLists(additionalDills, other.additionalDills)) return false;
     if (sdkSummary != other.sdkSummary) return false;
     if (dynamicInterfaceSpecificationUri !=
