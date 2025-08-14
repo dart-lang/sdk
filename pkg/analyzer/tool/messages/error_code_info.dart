@@ -87,6 +87,17 @@ const List<ErrorClassInfo> errorClasses = [
     type: 'STATIC_WARNING',
     severity: 'WARNING',
   ),
+  ErrorClassInfo(
+    file: transformSetErrorCodeFile,
+    name: 'TransformSetErrorCode',
+    type: 'COMPILE_TIME_ERROR',
+    severity: 'ERROR',
+    includeInDiagnosticCodeValues: false,
+    comment: '''
+An error code representing a problem in a file containing an encoding of a
+transform set.
+''',
+  ),
 ];
 
 const ffiCodesFile = GeneratedErrorCodeFile(
@@ -125,6 +136,16 @@ const scannerErrorFile = GeneratedErrorCodeFile(
 const syntacticErrorsFile = GeneratedErrorCodeFile(
   path: 'analyzer/lib/src/dart/error/syntactic_errors.g.dart',
   preferredImportUri: 'package:analyzer/src/dart/error/syntactic_errors.dart',
+);
+
+const transformSetErrorCodeFile = GeneratedErrorCodeFile(
+  path:
+      'analysis_server/lib/src/services/correction/fix/data_driven/'
+      'transform_set_error_code.g.dart',
+  preferredImportUri:
+      'package:analysis_server/src/services/correction/fix/data_driven/'
+      'transform_set_error_code.dart',
+  shouldIgnorePreferSingleQuotes: true,
 );
 
 /// Decoded messages from the analyzer's `messages.yaml` file.
