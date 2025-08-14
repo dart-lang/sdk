@@ -125,7 +125,6 @@ class ExportChecker {
         cls.name.length,
         cls.location?.file,
       );
-      exportStatus[cls.reference] = ExportStatus.exportError;
     }
 
     _collectOverrides(cls);

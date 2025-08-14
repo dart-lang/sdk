@@ -3713,6 +3713,12 @@ class MiniAstOperations
     // TODO(paulberry): Implement leastClosureOfSchema in mini ast.
     throw UnimplementedError();
   }
+
+  @override
+  bool isBoundOmitted(SharedTypeParameter typeParameter) {
+    // TODO(paulberry): Implement isBoundOmitted in mini ast.
+    throw UnimplementedError();
+  }
 }
 
 /// Representation of an expression or statement in the pseudo-Dart language

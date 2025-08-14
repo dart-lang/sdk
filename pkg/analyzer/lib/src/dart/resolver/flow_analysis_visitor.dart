@@ -637,6 +637,11 @@ class TypeSystemOperations
   }
 
   @override
+  bool isBoundOmitted(SharedTypeParameter typeParameter) {
+    return typeParameter.boundShared == null;
+  }
+
+  @override
   bool isDartCoreFunctionInternal(TypeImpl type) {
     return type.nullabilitySuffix == NullabilitySuffix.none &&
         type.isDartCoreFunction;

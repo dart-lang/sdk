@@ -530,12 +530,16 @@ class GenericInferrer {
         }
       } else {
         inferredTypes[i] =
-            _inferTypeParameterFromAll(
+            _typeSystemOperations.inferTypeParameterFromAll(
+                  previouslyInferredType,
                   constraint,
-                  extendsClause,
+                  extendsClause?.upper.unwrapTypeSchemaView(),
                   isContravariant: typeParam.variance.isContravariant,
                   typeParameterToInfer: typeParam,
-                  inferencePhaseConstraints: inferencePhaseConstraints,
+                  constraints: inferencePhaseConstraints,
+                  dataForTesting: null,
+                  inferenceUsingBoundsIsEnabled: inferenceUsingBoundsIsEnabled,
+                  typeParametersToInfer: _typeFormals,
                 )
                 as TypeImpl;
       }
@@ -601,49 +605,6 @@ class GenericInferrer {
 
     return '\n\n$intro\n$unsatisfied$satisfied\n\n'
         'Consider passing explicit type argument(s) to the generic.\n\n';
-  }
-
-  SharedType _inferTypeParameterFromAll(
-    MergedTypeConstraint constraint,
-    MergedTypeConstraint? extendsClause, {
-    required bool isContravariant,
-    required TypeParameterElementImpl typeParameterToInfer,
-    required Map<TypeParameterElementImpl, MergedTypeConstraint>
-    inferencePhaseConstraints,
-  }) {
-    if (extendsClause != null) {
-      MergedTypeConstraint? boundConstraint;
-      if (inferenceUsingBoundsIsEnabled) {
-        if (!identical(
-          constraint.lower.unwrapTypeSchemaView(),
-          UnknownInferredType.instance,
-        )) {
-          boundConstraint = _typeSystemOperations.mergeInConstraintsFromBound(
-            typeParameterToInfer: typeParameterToInfer,
-            typeParametersToInfer: _typeFormals.cast<SharedTypeParameterView>(),
-            lower: constraint.lower.unwrapTypeSchemaView(),
-            inferencePhaseConstraints: inferencePhaseConstraints,
-            dataForTesting: dataForTesting,
-            inferenceUsingBoundsIsEnabled: inferenceUsingBoundsIsEnabled,
-          );
-        }
-      }
-
-      constraint = _squashConstraints([
-        constraint,
-        extendsClause,
-        if (boundConstraint != null &&
-            !boundConstraint.isEmpty(_typeSystemOperations))
-          boundConstraint,
-      ]);
-    }
-
-    var choice = _typeSystemOperations.chooseTypeFromConstraint(
-      constraint,
-      grounded: true,
-      isContravariant: isContravariant,
-    );
-    return choice;
   }
 
   SharedType _inferTypeParameterFromContext(

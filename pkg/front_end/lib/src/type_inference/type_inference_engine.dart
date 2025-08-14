@@ -1055,6 +1055,23 @@ class OperationsCfe
         schema.unwrapTypeSchemaView(),
         coreTypes: typeEnvironment.coreTypes));
   }
+
+  @override
+  bool isBoundOmitted(covariant StructuralParameter structuralParameter) {
+    // If the bound was omitted by the programmer, the Kernel representation for
+    // the parameter will look similar to the following:
+    //
+    //     T extends Object = dynamic
+    //
+    // Note that it's not possible to receive [Object] as [TypeParameter.bound]
+    // and `dynamic` as [TypeParameter.defaultType] from the front end in any
+    // other way.
+    DartType bound = structuralParameter.bound;
+    return bound is InterfaceType &&
+        identical(bound.classReference,
+            typeEnvironment.coreTypes.objectClass.reference) &&
+        structuralParameter.defaultType is DynamicType;
+  }
 }
 
 /// Type inference results used for testing.
