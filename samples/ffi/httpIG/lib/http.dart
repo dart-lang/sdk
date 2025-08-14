@@ -12,7 +12,7 @@ import 'package:ffi/ffi.dart';
 
 import 'dylib_utils.dart';
 
-Function (Pointer<Utf8>) createGetSender(SendPort sendPort) {
+Function (Pointer<Utf8>) createGetSender(final SendPort sendPort) {
   return (Pointer<Utf8> responsePointer) {
     final typedList = responsePointer.cast<Uint8>().asTypedList(
           responsePointer.length,
@@ -57,7 +57,7 @@ Future<String> httpGet(String uri) async {
 @pragma('vm:shared')
 late int counter;
 
-Function (Pointer<Utf8>) createServeSender(SendPort sendPort) {
+Function (Pointer<Utf8>) createServeSender(final SendPort sendPort) {
   return (Pointer<Utf8> requestPointer) {
     counter++;
     final typedList = requestPointer.cast<Uint8>().asTypedList(

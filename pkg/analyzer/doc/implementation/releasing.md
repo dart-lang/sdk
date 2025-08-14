@@ -36,7 +36,7 @@ pub. The policy is to just call _every_ new release of the
 `_fe_analyzer_shared` package a breaking release. The `_fe_analyzer_shared`
 package must be released each time the `analyzer` package is released, with a
 major version bump. The version of the `analyzer` package being released must
-then depend on exactly that new version of the `_fe_analyzer_shared` package.
+then depend on _exactly_ that new version of the `_fe_analyzer_shared` package.
 (Technically a caret dependency, like `_fe_analyzer_shared: ^82.0.0` would
 work, but it doesn't really make sense given that we only version the
 `_fe_analyzer_shared` package with major version releases.)
@@ -65,9 +65,8 @@ released.
 The versioning of the `analyzer_plugin` package can follow basic semantic
 versioning based on its own API.
 
-TODO: Should we also have an "exact version dependency" policy for the
-`analyzer_plugin` package's dependency on the `analyzer` package? I believe so,
-given the "freely use private implementation" situation.
+The `analyzer_plugin` package must depend on the `analyzer` package with an
+_exact_ version constraint.
 
 ## The `analyzer_testing` and `analyzer` packages
 
@@ -79,9 +78,8 @@ the `analyzer` package is released.
 The versioning of the `analyzer_testing` package can follow basic semantic
 versioning based on its own API.
 
-TODO: Should we also have an "exact version dependency" policy for the
-`analyzer_testing` package's dependency on the `analyzer` package? I believe
-so, given the "freely use private implementation" situation.
+The `analyzer_testing` package must depend on the `analyzer` package with an
+_exact_ version constraint.
 
 ## The `analysis_server_plugin` and `analyzer` packages
 
@@ -93,9 +91,9 @@ released whenever the `analyzer` package is released.
 The versioning of the `analysis_server_plugin` package can follow basic
 semantic versioning based on its own API.
 
-TODO: Should we also have an "exact version dependency" policy for the
-`analysis_server_plugin` package's dependency on the `analyzer` package? I
-believe so, given the "freely use private implementation" situation.
+The `analysis_server_plugin` package must depend on the `analyzer` package with
+an _exact_ version constraint. It must also depend on the `analyzer_plugin`
+package with an _exact_ version constraint.
 
 [_fe_analyzer_shared source]: https://github.com/dart-lang/sdk/tree/main/pkg/_fe_analyzer_shared
 [_fe_analyzer_shared pub package]: https://pub.dev/packages/_fe_analyzer_shared

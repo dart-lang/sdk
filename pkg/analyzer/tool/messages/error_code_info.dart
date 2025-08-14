@@ -34,6 +34,13 @@ const List<ErrorClassInfo> errorClasses = [
     file: codesFile,
     name: 'CompileTimeErrorCode',
     type: 'COMPILE_TIME_ERROR',
+    deprecatedSnakeCaseNames: {
+      'IMPORT_INTERNAL_LIBRARY', // Referenced by `verify_docs.dart`.
+      'INSTANCE_ACCESS_TO_STATIC_MEMBER', // Referenced by `messages.yaml`.
+      'INVALID_OVERRIDE', // Referenced by `messages.yaml`.
+      'TYPE_ARGUMENT_NOT_MATCHING_BOUNDS', // Referenced by `messages.yaml`.
+      'UNDEFINED_CLASS', // Referenced by `messages.yaml`.
+    },
   ),
   ErrorClassInfo(
     file: scannerErrorFile,
@@ -51,19 +58,35 @@ const List<ErrorClassInfo> errorClasses = [
     name: 'WarningCode',
     type: 'STATIC_WARNING',
     severity: 'WARNING',
+    deprecatedSnakeCaseNames: {
+      'UNUSED_ELEMENT', // Referenced by `verify_docs.dart`.
+      'UNUSED_IMPORT', // Referenced by `verify_docs.dart`.
+      'UNUSED_LOCAL_VARIABLE', // Referenced by `verify_docs.dart`.
+    },
   ),
   ErrorClassInfo(
     file: ffiCodesFile,
     name: 'FfiCode',
     type: 'COMPILE_TIME_ERROR',
   ),
-  ErrorClassInfo(file: hintCodesFile, name: 'HintCode', type: 'HINT'),
+  ErrorClassInfo(
+    file: hintCodesFile,
+    name: 'HintCode',
+    type: 'HINT',
+    deprecatedSnakeCaseNames: {
+      'UNNECESSARY_IMPORT', // Referenced by `verify_docs.dart`.
+    },
+  ),
   ErrorClassInfo(
     file: syntacticErrorsFile,
     name: 'ParserErrorCode',
     type: 'SYNTACTIC_ERROR',
     severity: 'ERROR',
     includeCfeMessages: true,
+    deprecatedSnakeCaseNames: {
+      'EXPERIMENT_NOT_ENABLED', // Referenced by `messages.yaml`.
+      'UNEXPECTED_TOKEN', // Referenced by `package:dart_style`.
+    },
   ),
   ErrorClassInfo(
     file: manifestWarningCodeFile,
@@ -492,6 +515,11 @@ class ErrorClassInfo {
   /// The type of errors in this class.
   final String type;
 
+  /// The names of any errors which are relied upon by analyzer clients, and
+  /// therefore will need their "snake case" form preserved (with a deprecation
+  /// notice) after migration to camel case error codes.
+  final Set<String> deprecatedSnakeCaseNames;
+
   const ErrorClassInfo({
     this.extraImports = const [],
     required this.file,
@@ -500,6 +528,7 @@ class ErrorClassInfo {
     this.severity,
     this.superclass = 'DiagnosticCode',
     required this.type,
+    this.deprecatedSnakeCaseNames = const {},
   });
 
   /// Generates the code to compute the severity of errors of this class.

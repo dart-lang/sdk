@@ -160,6 +160,33 @@ extension StringExtension on String {
     }
   }
 
+  /// Converts `SCREAMING_SNAKE_CASE` or `snake_case` to `camelCase`.
+  String toCamelCase() {
+    var parts = toLowerCase().split('_');
+    var buffer = StringBuffer();
+    var i = 0;
+    // Preserve initial '_'s
+    while (i < parts.length - 1 && parts[i].isEmpty) {
+      buffer.write('_');
+      ++i;
+    }
+    if (i < parts.length) {
+      // Convert first word to lower case
+      buffer.write(parts[i].toLowerCase());
+      ++i;
+      // Convert remaining words to initial upper case
+      while (i < parts.length) {
+        var part = parts[i];
+        if (part.isNotEmpty) {
+          buffer.write(part[0].toUpperCase());
+          buffer.write(part.substring(1));
+        }
+        ++i;
+      }
+    }
+    return buffer.toString();
+  }
+
   /// Converts `camelCase` / `PascalCase` to `SCREAMING_SNAKE_CASE`.
   /// Examples:
   ///  - camelCase        -> CAMEL_CASE

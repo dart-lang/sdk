@@ -197,6 +197,18 @@ class StringExtensionTest {
     expect('01234'.removeSuffix('5'), isNull);
   }
 
+  void test_toCamelCase() {
+    expect('CAMEL_CASE'.toCamelCase(), 'camelCase');
+    expect('alreadyCamel_case'.toCamelCase(), 'alreadycamelCase');
+    expect('FOO_123_BAR'.toCamelCase(), 'foo123Bar');
+    expect('FOO'.toCamelCase(), 'foo');
+    expect('___'.toCamelCase(), '___');
+    expect(''.toCamelCase(), '');
+    expect('_FOO_BAR'.toCamelCase(), '_fooBar');
+    expect('FOO__BAR'.toCamelCase(), 'fooBar');
+    expect('FOO_BAR_'.toCamelCase(), 'fooBar');
+  }
+
   void test_toScreamingSnake() {
     expect('camelCase'.toScreamingSnake(), 'CAMEL_CASE');
     expect('HTTPRequest'.toScreamingSnake(), 'HTTP_REQUEST');

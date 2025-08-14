@@ -58,6 +58,7 @@ function_callbacks_structs_by_value_generated_test/*: Skip # Test harness doesn'
 function_callbacks_structs_by_value_native_callable_generated_test/*: Skip # Test harness doesn't support multitest with Fuchsia
 function_callbacks_subtype_test/*: Skip # Test harness doesn't support multitest with Fuchsia
 isolate_group_bound_callback_test: Skip # gen_snapshot requires experimental-shared-data flag
+isolate_group_bound_captured_local_test: Skip # gen_snapshot requires experimental-shared-data flag
 isolate_group_bound_init_test: Skip # gen_snapshot requires experimental-shared-data flag
 isolate_group_bound_send_test: Skip # gen_snapshot requires experimental-shared-data flag
 native_assets/*: Skip # Source not available in the emulator
