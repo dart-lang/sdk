@@ -188,7 +188,7 @@ class LibraryReader {
       );
       reader.currentLibraryFragment = unitElement;
 
-      _libraryElement.metadata = reader._readMetadata(unitElement: unitElement);
+      _libraryElement.metadata = reader._readMetadata();
 
       _libraryElement.entryPoint =
           reader.readElement() as TopLevelFunctionElementImpl?;
@@ -729,7 +729,7 @@ class LibraryReader {
     List<FormalParameterFragmentImpl> parameters,
   ) {
     for (var parameter in parameters) {
-      parameter.metadata = reader._readMetadata(unitElement: unitElement);
+      parameter.metadata = reader._readMetadata();
       _readTypeParameters2(unitElement, reader, parameter.typeParameters);
       _readFormalParameters2(unitElement, reader, parameter.formalParameters);
       parameter.element.inheritsCovariant = reader.readBool();
@@ -758,8 +758,8 @@ class LibraryReader {
     T fragment,
     ResolutionReader reader,
   ) {
-    var libraryFragment = fragment.libraryFragment as LibraryFragmentImpl;
-    fragment.metadata = reader._readMetadata(unitElement: libraryFragment);
+    // TODO(scheglov): inline it
+    fragment.metadata = reader._readMetadata();
   }
 
   String? _readFragmentName() {
@@ -1335,7 +1335,7 @@ class LibraryReader {
   ) {
     reader._addTypeParameters(typeParameters);
     for (var typeParameter in typeParameters) {
-      typeParameter.metadata = reader._readMetadata(unitElement: unitElement);
+      typeParameter.metadata = reader._readMetadata();
       typeParameter.element.bound = reader.readType();
       typeParameter.element.defaultType = reader.readType();
     }
@@ -1363,7 +1363,7 @@ class LibraryReader {
       reader.currentLibraryFragment = unitElement;
 
       for (var import in unitElement.libraryImports) {
-        import.metadata = reader._readMetadata(unitElement: unitElement);
+        import.metadata = reader._readMetadata();
         var uri = import.uri;
         if (uri is DirectiveUriWithLibraryImpl) {
           uri.library = reader.libraryOfUri(uri.source.uri);
@@ -1371,7 +1371,7 @@ class LibraryReader {
       }
 
       for (var export in unitElement.libraryExports) {
-        export.metadata = reader._readMetadata(unitElement: unitElement);
+        export.metadata = reader._readMetadata();
         var uri = export.uri;
         if (uri is DirectiveUriWithLibraryImpl) {
           uri.library = reader.libraryOfUri(uri.source.uri);
@@ -1379,7 +1379,7 @@ class LibraryReader {
       }
 
       for (var part in unitElement.parts) {
-        part.metadata = reader._readMetadata(unitElement: unitElement);
+        part.metadata = reader._readMetadata();
       }
     });
 
@@ -1546,7 +1546,7 @@ class ResolutionReader {
   }
 
   MetadataImpl readMetadata() {
-    return _readMetadata(unitElement: currentLibraryFragment);
+    return _readMetadata();
   }
 
   List<T> readNodeList<T>() {
@@ -1794,7 +1794,7 @@ class ResolutionReader {
       // TODO(scheglov): reuse for formal parameters
       _localElements.length -= typeParameters.length;
       if (unitElement != null) {
-        element.metadata = _readMetadata(unitElement: unitElement);
+        element.metadata = _readMetadata();
       }
       return element;
     });
@@ -1831,11 +1831,10 @@ class ResolutionReader {
     return readTypedList(_readInterfaceType);
   }
 
-  MetadataImpl _readMetadata({required LibraryFragmentImpl unitElement}) {
-    currentLibraryFragment = unitElement;
+  MetadataImpl _readMetadata() {
     var annotations = readTypedList(() {
       var ast = _readRequiredNode() as AnnotationImpl;
-      return ElementAnnotationImpl(unitElement, ast);
+      return ElementAnnotationImpl(currentLibraryFragment, ast);
     });
 
     return MetadataImpl(annotations);
@@ -1905,7 +1904,7 @@ class ResolutionReader {
     for (var typeParameter in typeParameters) {
       typeParameter.element.bound = readType();
       if (unitElement != null) {
-        typeParameter.metadata = _readMetadata(unitElement: unitElement);
+        typeParameter.metadata = _readMetadata();
       }
     }
     return typeParameters;
