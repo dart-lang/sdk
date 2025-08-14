@@ -1,3 +1,12 @@
+## 3.9.1
+
+This is a patch release that:
+
+- Fixes an issue in DevTools when users click 'Clear' on the Network Screen.
+  The terminal can be spammed with assertion errors (#442260).
+
+[#442260]: https://dart-review.googlesource.com/c/sdk/+/442260
+
 ## 3.9.0
 
 **Released on:** 2025-08-13
