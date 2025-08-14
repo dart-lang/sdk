@@ -87,15 +87,20 @@ class _AnalyzerErrorGenerator {
 
 // While transitioning `HintCodes` to `WarningCodes`, we refer to deprecated
 // codes here.
-// ignore_for_file: deprecated_member_use_from_same_package
-// 
-// Generated comments don't quite align with flutter style.
-// ignore_for_file: flutter_style_todos
 ''');
 
   _AnalyzerErrorGenerator(this.file, this.errorClasses, this.generatedCodes);
 
   void generate() {
+    out.writeln('// ignore_for_file: deprecated_member_use_from_same_package');
+    if (file.shouldIgnorePreferSingleQuotes) {
+      out.writeln('// ignore_for_file: prefer_single_quotes');
+    }
+    out.write('''
+// 
+// Generated comments don't quite align with flutter style.
+// ignore_for_file: flutter_style_todos
+''');
     out.writeln();
     out.write('''
 /// @docImport 'package:analyzer/src/dart/error/syntactic_errors.g.dart';
@@ -132,6 +137,11 @@ library;
     for (var errorClass
         in errorClasses.toList()..sort((a, b) => a.name.compareTo(b.name))) {
       out.writeln();
+      if (errorClass.comment.isNotEmpty) {
+        errorClass.comment.trimRight().split('\n').forEach((line) {
+          out.writeln('/// $line');
+        });
+      }
       out.write('class ${errorClass.name} extends ${errorClass.superclass} {');
       var entries = [
         ...analyzerMessages[errorClass.name]!.entries,
@@ -155,7 +165,9 @@ library;
             );
             out.writeln('${errorCodeInfo.aliasFor};');
           } else {
-            generatedCodes.add((errorClass.name, errorName));
+            if (errorClass.includeInDiagnosticCodeValues) {
+              generatedCodes.add((errorClass.name, errorName));
+            }
             var constantName = errorName.toCamelCase();
             out.writeln('  static const ${errorClass.name} $constantName =');
             out.writeln(

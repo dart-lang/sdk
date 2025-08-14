@@ -507,6 +507,15 @@ class ErrorClassInfo {
   /// notice) after migration to camel case error codes.
   final Set<String> deprecatedSnakeCaseNames;
 
+  /// If `true` (the default), error codes of this class will be included in the
+  /// automatically-generated `diagnosticCodeValues` list.
+  final bool includeInDiagnosticCodeValues;
+
+  /// Documentation comment to generate for the error class.
+  ///
+  /// If no documentation comment is needed, this should be the empty string.
+  final String comment;
+
   const ErrorClassInfo({
     this.extraImports = const [],
     required this.file,
@@ -516,6 +525,8 @@ class ErrorClassInfo {
     this.superclass = 'DiagnosticCode',
     required this.type,
     this.deprecatedSnakeCaseNames = const {},
+    this.includeInDiagnosticCodeValues = true,
+    this.comment = '',
   });
 
   /// Generates the code to compute the severity of errors of this class.
@@ -868,9 +879,12 @@ class GeneratedErrorCodeFile {
   /// constructor invocations.
   final bool shouldUseExplicitConst;
 
+  final bool shouldIgnorePreferSingleQuotes;
+
   const GeneratedErrorCodeFile({
     required this.path,
     required this.preferredImportUri,
     this.shouldUseExplicitConst = false,
+    this.shouldIgnorePreferSingleQuotes = false,
   });
 }
