@@ -35,14 +35,6 @@ const linterLintCodeInfo = ErrorClassInfo(
   type: 'LINT',
 );
 
-/// Whether the error constants that should be generated should use camel-case
-/// names.
-///
-/// This is a temporary flag to allow the codebase to be transitioned to using
-/// camel-case error constants. TODO(paulberry): once the transition is
-/// complete, remove this constant.
-const _useLowerCamelCaseNames = true;
-
 GeneratedFile get generatedCodesFile =>
     GeneratedFile(generatedCodesPath, (pkgRoot) async {
       var out = StringBuffer('''
@@ -78,8 +70,7 @@ class LinterLintCode extends LintCode {
         if (codeInfo.deprecatedMessage case var deprecatedMessage?) {
           out.writeln('  @Deprecated("$deprecatedMessage")');
         }
-        var constantName =
-            _useLowerCamelCaseNames ? errorName.toCamelCase() : errorName;
+        var constantName = errorName.toCamelCase();
         out.writeln('  static const LintCode $constantName =');
         out.writeln(
           codeInfo.toAnalyzerCode(
@@ -92,8 +83,7 @@ class LinterLintCode extends LintCode {
         out.writeln();
       }
 
-      var removedLintName =
-          _useLowerCamelCaseNames ? 'removedLint' : 'removed_lint';
+      var removedLintName = 'removedLint';
       out.writeln('''
   /// A lint code that removed lints can specify as their `lintCode`.
   ///
