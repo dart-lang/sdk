@@ -348,7 +348,6 @@ class TopMergeHelper {
         bBound = bSubstitution.substituteType(bBound);
         var newBound = topMerge(aBound, bBound);
         newParameters[i].bound = newBound;
-        newParameters[i].firstFragment.bound = newBound;
       } else {
         return null;
       }

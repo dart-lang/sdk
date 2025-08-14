@@ -7,6 +7,7 @@ import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/member.dart';
+import 'package:analyzer/src/dart/element/type.dart';
 import 'package:meta/meta.dart';
 
 class MockLibraryImportElement implements Element {
@@ -413,8 +414,9 @@ extension TypeAliasElementImplExtension on TypeAliasFragmentImpl {
 extension TypeParameterElement2Extension on TypeParameterElement {
   TypeParameterElementImpl freshCopy() {
     var fragment = TypeParameterFragmentImpl(name: name);
-    fragment.bound = bound;
-    return TypeParameterElementImpl(firstFragment: fragment);
+    var element = TypeParameterElementImpl(firstFragment: fragment);
+    element.bound = bound as TypeImpl?;
+    return element;
   }
 }
 

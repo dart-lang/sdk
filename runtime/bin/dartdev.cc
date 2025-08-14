@@ -658,7 +658,11 @@ class DartDev {
     // Copy in VM options if any.
     // Copy in any vm options that need to be passed to the execed process.
     for (intptr_t i = 0; i < num_vm_options; ++i) {
+#if defined(DART_HOST_OS_WINDOWS)
+      argv_[i + idx] = StringUtilsWin::ArgumentEscape(vm_options[i]);
+#else
       argv_[i + idx] = Utils::StrDup(vm_options[i]);
+#endif
     }
     idx += num_vm_options;
     {

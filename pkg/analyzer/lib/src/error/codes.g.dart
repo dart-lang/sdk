@@ -2542,10 +2542,6 @@ class CompileTimeErrorCode extends DiagnosticCode {
         hasPublishedDocs: true,
       );
 
-  @Deprecated("Please use importInternalLibrary")
-  static const CompileTimeErrorCode IMPORT_INTERNAL_LIBRARY =
-      importInternalLibrary;
-
   /// Parameters:
   /// String p0: the URI pointing to a non-library declaration
   static const CompileTimeErrorCode importOfNonLibrary = CompileTimeErrorCode(
@@ -7834,9 +7830,6 @@ class WarningCode extends DiagnosticCode {
     hasPublishedDocs: true,
   );
 
-  @Deprecated("Please use unusedElement")
-  static const WarningCode UNUSED_ELEMENT = unusedElement;
-
   /// Parameters:
   /// Object p0: the name of the parameter that is declared but not used
   static const WarningCode unusedElementParameter = WarningCode(
@@ -7864,9 +7857,6 @@ class WarningCode extends DiagnosticCode {
     hasPublishedDocs: true,
   );
 
-  @Deprecated("Please use unusedImport")
-  static const WarningCode UNUSED_IMPORT = unusedImport;
-
   /// Parameters:
   /// String p0: the label that isn't used
   static const WarningCode unusedLabel = WarningCode(
@@ -7886,9 +7876,6 @@ class WarningCode extends DiagnosticCode {
     correctionMessage: "Try removing the variable or using it.",
     hasPublishedDocs: true,
   );
-
-  @Deprecated("Please use unusedLocalVariable")
-  static const WarningCode UNUSED_LOCAL_VARIABLE = unusedLocalVariable;
 
   /// Parameters:
   /// String p0: the name of the annotated method, property or function

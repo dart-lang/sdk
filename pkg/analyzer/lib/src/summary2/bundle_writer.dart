@@ -757,12 +757,12 @@ class BundleWriter {
     });
   }
 
-  void _writeTypeParameterElement(TypeParameterFragmentImpl element) {
-    _writeFragmentName(element);
-    _sink.writeByte(_encodeVariance(element).index);
-    _resolutionSink._writeMetadata(element.metadata);
-    _resolutionSink.writeType(element.bound);
-    _resolutionSink.writeType(element.defaultType);
+  void _writeTypeParameterElement(TypeParameterFragmentImpl fragment) {
+    _writeFragmentName(fragment);
+    _sink.writeByte(_encodeVariance(fragment.element).index);
+    _resolutionSink._writeMetadata(fragment.metadata);
+    _resolutionSink.writeType(fragment.element.bound);
+    _resolutionSink.writeType(fragment.element.defaultType);
   }
 
   /// Add [typeParameters] to the indexing scope, so make them available
@@ -822,7 +822,7 @@ class BundleWriter {
   }
 
   static TypeParameterVarianceTag _encodeVariance(
-    TypeParameterFragmentImpl element,
+    TypeParameterElementImpl element,
   ) {
     if (element.isLegacyCovariant) {
       return TypeParameterVarianceTag.legacy;
@@ -1110,7 +1110,7 @@ class ResolutionSink extends _SummaryDataWriter {
     localElements.withElements(typeParameters, () {
       writeList(typeParameterFragments, _writeFragmentName);
       for (var typeParameter in typeParameterFragments) {
-        writeType(typeParameter.bound);
+        writeType(typeParameter.element.bound);
         if (withAnnotations) {
           _writeMetadata(typeParameter.metadata);
         }

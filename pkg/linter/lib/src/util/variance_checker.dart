@@ -73,10 +73,11 @@ abstract class VarianceChecker {
               Variance parameterVariance;
               var parameterFragment =
                   parameter.firstFragment as TypeParameterFragmentImpl;
-              if (parameterFragment.isLegacyCovariant ||
-                  parameterFragment.variance.isCovariant) {
+              var parameterElement = parameterFragment.element;
+              if (parameterElement.isLegacyCovariant ||
+                  parameterElement.variance.isCovariant) {
                 parameterVariance = variance;
-              } else if (parameterFragment.variance.isContravariant) {
+              } else if (parameterElement.variance.isContravariant) {
                 parameterVariance = variance.inverse;
               } else {
                 parameterVariance = Variance.inout;

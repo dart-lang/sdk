@@ -5611,9 +5611,11 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     if (element is ExecutableElement && !element.isStatic) {
       return;
     }
-    if (element is MethodElement) {
+    if (name.parent case MethodInvocation(
+      :var methodName,
+    ) when name == methodName) {
       // Invalid methods are reported in
-      // [MethodInvocationResolver._resolveReceiverNull].
+      // [MethodInvocationResolver._reportInstanceAccessToStaticMember].
       return;
     }
     if (_enclosingExtension != null) {
@@ -5757,7 +5759,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
 
   void _checkForWrongTypeParameterVarianceInField(FieldDeclarationImpl node) {
     if (_enclosingClass != null) {
-      for (var typeParameter in _enclosingClass!.asElement.typeParameters) {
+      for (var typeParameter in _enclosingClass!.typeParameters) {
         if (!typeParameter.isLegacyCovariant) {
           var fields = node.fields;
           var fieldFragment = fields.variables.first.declaredFragment!;
@@ -5793,7 +5795,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       return;
     }
 
-    for (var typeParameter in _enclosingClass!.asElement.typeParameters) {
+    for (var typeParameter in _enclosingClass!.typeParameters) {
       if (typeParameter.isLegacyCovariant) {
         continue;
       }
@@ -5853,7 +5855,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   void _checkForWrongTypeParameterVarianceInSuperinterfaces() {
     void checkOne(DartType? superInterface) {
       if (superInterface != null) {
-        for (var typeParameter in _enclosingClass!.asElement.typeParameters) {
+        for (var typeParameter in _enclosingClass!.typeParameters) {
           var superVariance = typeParameter.computeVarianceInType(
             superInterface,
           );
@@ -5869,7 +5871,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
           if (!superVariance.greaterThanOrEqual(typeParameter.variance)) {
             if (!typeParameter.isLegacyCovariant) {
               diagnosticReporter.atElement2(
-                typeParameter.asElement2,
+                typeParameter,
                 CompileTimeErrorCode
                     .wrongExplicitTypeParameterVarianceInSuperinterface,
                 arguments: [
@@ -5881,7 +5883,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
               );
             } else {
               diagnosticReporter.atElement2(
-                typeParameter.asElement2,
+                typeParameter,
                 CompileTimeErrorCode.wrongTypeParameterVarianceInSuperinterface,
                 arguments: [typeParameter.name ?? '', superInterface],
               );
@@ -5916,7 +5918,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   /// only components that allow explicit variance modifiers.
   void _checkForWrongVariancePosition(
     Variance variance,
-    TypeParameterFragmentImpl typeParameter,
+    TypeParameterElementImpl typeParameter,
     SyntacticEntity errorTarget,
   ) {
     if (!variance.greaterThanOrEqual(typeParameter.variance)) {

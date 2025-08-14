@@ -195,11 +195,11 @@ class DefaultTypesBuilder {
     if (parameterList == null) return;
 
     for (var parameter in parameterList.typeParameters) {
-      var element = parameter.declaredFragment!;
-      var defaultType = element.defaultType;
+      var fragment = parameter.declaredFragment!;
+      var defaultType = fragment.element.defaultType;
       if (defaultType is TypeBuilder) {
         var builtType = defaultType.build();
-        element.defaultType = builtType;
+        fragment.element.defaultType = builtType;
       }
     }
   }
@@ -267,8 +267,8 @@ class DefaultTypesBuilder {
 
     // Set computed TypeBuilder(s) as default types.
     for (var i = 0; i < length; i++) {
-      var element = nodes[i].declaredFragment!;
-      element.defaultType = bounds[i];
+      var fragment = nodes[i].declaredFragment!;
+      fragment.element.defaultType = bounds[i];
     }
   }
 

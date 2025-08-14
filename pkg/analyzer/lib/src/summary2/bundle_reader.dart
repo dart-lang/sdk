@@ -1322,9 +1322,9 @@ class LibraryReader {
       var fragmentName = _readFragmentName();
       var varianceEncoding = _reader.readByte();
       var variance = _decodeVariance(varianceEncoding);
-      var element = TypeParameterFragmentImpl(name: fragmentName);
-      element.variance = variance;
-      return element;
+      var fragment = TypeParameterFragmentImpl(name: fragmentName);
+      fragment.element.variance = variance;
+      return fragment;
     });
   }
 
@@ -1336,8 +1336,8 @@ class LibraryReader {
     reader._addTypeParameters(typeParameters);
     for (var typeParameter in typeParameters) {
       typeParameter.metadata = reader._readMetadata(unitElement: unitElement);
-      typeParameter.bound = reader.readType();
-      typeParameter.defaultType = reader.readType();
+      typeParameter.element.bound = reader.readType();
+      typeParameter.element.defaultType = reader.readType();
     }
   }
 
@@ -1903,7 +1903,7 @@ class ResolutionReader {
     });
 
     for (var typeParameter in typeParameters) {
-      typeParameter.bound = readType();
+      typeParameter.element.bound = readType();
       if (unitElement != null) {
         typeParameter.metadata = _readMetadata(unitElement: unitElement);
       }
