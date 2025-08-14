@@ -21,8 +21,8 @@ class UndefinedClassBooleanTest extends PubPackageResolutionTest {
 f() { boolean v; }
 ''',
       [
-        error(CompileTimeErrorCode.UNDEFINED_CLASS_BOOLEAN, 6, 7),
-        error(WarningCode.UNUSED_LOCAL_VARIABLE, 14, 1),
+        error(CompileTimeErrorCode.undefinedClassBoolean, 6, 7),
+        error(WarningCode.unusedLocalVariable, 14, 1),
       ],
     );
   }

@@ -392,7 +392,7 @@ void g() {
       errorFilter:
           (diagnostic) =>
               diagnostic.diagnosticCode ==
-              CompileTimeErrorCode.INVALID_ASSIGNMENT,
+              CompileTimeErrorCode.invalidAssignment,
     );
   }
 
@@ -406,7 +406,7 @@ void g(int i) {
     await assertNoFix(
       errorFilter: (error) {
         return error.diagnosticCode ==
-            CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE;
+            CompileTimeErrorCode.argumentTypeNotAssignable;
       },
     );
   }
@@ -449,7 +449,7 @@ void g(int i, int? x) {
 ''',
       errorFilter: (error) {
         return error.diagnosticCode ==
-            CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE;
+            CompileTimeErrorCode.argumentTypeNotAssignable;
       },
     );
   }
@@ -464,7 +464,7 @@ void g(int i, int x) {
     await assertNoFix(
       errorFilter: (error) {
         return error.diagnosticCode ==
-            CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE;
+            CompileTimeErrorCode.argumentTypeNotAssignable;
       },
     );
   }
@@ -479,7 +479,7 @@ void g(int i, int? x) {
     await assertNoFix(
       errorFilter: (error) {
         return error.diagnosticCode ==
-            CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE;
+            CompileTimeErrorCode.argumentTypeNotAssignable;
       },
     );
   }
@@ -571,7 +571,7 @@ void f (List<int>? args) {
       errorFilter:
           (diagnostic) =>
               diagnostic.diagnosticCode !=
-              CompileTimeErrorCode.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE,
+              CompileTimeErrorCode.listElementTypeNotAssignable,
     );
   }
 
@@ -622,7 +622,7 @@ f(List<String>? args) {
       errorFilter:
           (diagnostic) =>
               diagnostic.diagnosticCode !=
-              CompileTimeErrorCode.YIELD_EACH_OF_INVALID_TYPE,
+              CompileTimeErrorCode.yieldEachOfInvalidType,
     );
   }
 
@@ -645,8 +645,7 @@ g() {
       errorFilter:
           (diagnostic) =>
               diagnostic.diagnosticCode ==
-              CompileTimeErrorCode
-                  .UNCHECKED_USE_OF_NULLABLE_VALUE_IN_YIELD_EACH,
+              CompileTimeErrorCode.uncheckedUseOfNullableValueInYieldEach,
     );
   }
 
@@ -669,7 +668,7 @@ class C {
       errorFilter:
           (diagnostic) =>
               diagnostic.diagnosticCode !=
-              CompileTimeErrorCode.YIELD_EACH_OF_INVALID_TYPE,
+              CompileTimeErrorCode.yieldEachOfInvalidType,
     );
   }
 
@@ -688,7 +687,7 @@ Iterable<String> f(List<String>? args) sync* {
       errorFilter:
           (diagnostic) =>
               diagnostic.diagnosticCode !=
-              CompileTimeErrorCode.YIELD_EACH_OF_INVALID_TYPE,
+              CompileTimeErrorCode.yieldEachOfInvalidType,
     );
   }
 }

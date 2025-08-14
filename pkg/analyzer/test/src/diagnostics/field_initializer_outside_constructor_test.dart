@@ -23,13 +23,7 @@ class A {
   dynamic field = ({this.field}) {};
 }
 ''',
-      [
-        error(
-          CompileTimeErrorCode.FIELD_INITIALIZER_OUTSIDE_CONSTRUCTOR,
-          30,
-          10,
-        ),
-      ],
+      [error(CompileTimeErrorCode.fieldInitializerOutsideConstructor, 30, 10)],
     );
   }
 
@@ -41,13 +35,7 @@ class A {
   m([this.x = 0]) {}
 }
 ''',
-      [
-        error(
-          CompileTimeErrorCode.FIELD_INITIALIZER_OUTSIDE_CONSTRUCTOR,
-          28,
-          6,
-        ),
-      ],
+      [error(CompileTimeErrorCode.fieldInitializerOutsideConstructor, 28, 6)],
     );
   }
 
@@ -61,12 +49,8 @@ class A {
 }
 ''',
       [
-        error(
-          CompileTimeErrorCode.FIELD_INITIALIZER_OUTSIDE_CONSTRUCTOR,
-          35,
-          12,
-        ),
-        error(ParserErrorCode.FIELD_INITIALIZER_OUTSIDE_CONSTRUCTOR, 39, 4),
+        error(CompileTimeErrorCode.fieldInitializerOutsideConstructor, 35, 12),
+        error(ParserErrorCode.fieldInitializerOutsideConstructor, 39, 4),
       ],
     );
   }
@@ -79,13 +63,7 @@ class A {
   A(int p(this.x));
 }
 ''',
-      [
-        error(
-          CompileTimeErrorCode.FIELD_INITIALIZER_OUTSIDE_CONSTRUCTOR,
-          30,
-          6,
-        ),
-      ],
+      [error(CompileTimeErrorCode.fieldInitializerOutsideConstructor, 30, 6)],
     );
   }
 
@@ -99,12 +77,8 @@ class A {
 }
 ''',
       [
-        error(ParserErrorCode.FIELD_INITIALIZER_OUTSIDE_CONSTRUCTOR, 24, 4),
-        error(
-          CompileTimeErrorCode.FIELD_INITIALIZER_OUTSIDE_CONSTRUCTOR,
-          24,
-          6,
-        ),
+        error(ParserErrorCode.fieldInitializerOutsideConstructor, 24, 4),
+        error(CompileTimeErrorCode.fieldInitializerOutsideConstructor, 24, 6),
       ],
     );
   }
@@ -114,7 +88,7 @@ class A {
       r'''
 f(this.x(y)) {}
 ''',
-      [error(CompileTimeErrorCode.FIELD_INITIALIZER_OUTSIDE_CONSTRUCTOR, 2, 9)],
+      [error(CompileTimeErrorCode.fieldInitializerOutsideConstructor, 2, 9)],
     );
   }
 }

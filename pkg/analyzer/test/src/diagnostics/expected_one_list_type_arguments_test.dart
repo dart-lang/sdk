@@ -29,7 +29,7 @@ main() {
 main() {
   <int, int>[];
 }''',
-      [error(CompileTimeErrorCode.EXPECTED_ONE_LIST_TYPE_ARGUMENTS, 11, 10)],
+      [error(CompileTimeErrorCode.expectedOneListTypeArguments, 11, 10)],
     );
   }
 }

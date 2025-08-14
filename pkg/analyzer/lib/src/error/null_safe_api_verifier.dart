@@ -83,7 +83,7 @@ class NullSafeApiVerifier {
     if (argumentIsNull) {
       _diagnosticReporter.atNode(
         argument ?? node,
-        WarningCode.NULL_ARGUMENT_TO_NON_NULL_TYPE,
+        WarningCode.nullArgumentToNonNullType,
         arguments: [memberName, type.getDisplayString()],
       );
     }

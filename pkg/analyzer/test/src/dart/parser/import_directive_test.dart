@@ -21,7 +21,7 @@ part 'a.dart';
 import 'b.dart';
 ''');
     parseResult.assertErrors([
-      error(ParserErrorCode.IMPORT_DIRECTIVE_AFTER_PART_DIRECTIVE, 15, 6),
+      error(ParserErrorCode.importDirectiveAfterPartDirective, 15, 6),
     ]);
 
     var node = parseResult.findNode.singleImportDirective;
@@ -107,7 +107,7 @@ part of 'a.dart';
 import 'b.dart';
 ''');
     parseResult.assertErrors([
-      error(ParserErrorCode.NON_PART_OF_DIRECTIVE_IN_PART, 33, 6),
+      error(ParserErrorCode.nonPartOfDirectiveInPart, 33, 6),
     ]);
 
     var node = parseResult.findNode.singleImportDirective;
@@ -127,7 +127,7 @@ import 'b.dart';
 part of 'a.dart';
 ''');
     parseResult.assertErrors([
-      error(ParserErrorCode.NON_PART_OF_DIRECTIVE_IN_PART, 32, 4),
+      error(ParserErrorCode.nonPartOfDirectiveInPart, 32, 4),
     ]);
 
     var node = parseResult.findNode.singleImportDirective;
@@ -144,7 +144,7 @@ ImportDirective
     var parseResult = parseStringWithErrors(r'''
 import 'a.dart'
 ''');
-    parseResult.assertErrors([error(ParserErrorCode.EXPECTED_TOKEN, 7, 8)]);
+    parseResult.assertErrors([error(ParserErrorCode.expectedToken, 7, 8)]);
 
     var node = parseResult.findNode.singleImportDirective;
     assertParsedNodeText(node, r'''
@@ -161,7 +161,7 @@ ImportDirective
 import ;
 ''');
     parseResult.assertErrors([
-      error(ParserErrorCode.EXPECTED_STRING_LITERAL, 7, 1),
+      error(ParserErrorCode.expectedStringLiteral, 7, 1),
     ]);
 
     var node = parseResult.findNode.singleImportDirective;
@@ -179,8 +179,8 @@ ImportDirective
 import
 ''');
     parseResult.assertErrors([
-      error(ParserErrorCode.EXPECTED_TOKEN, 0, 6),
-      error(ParserErrorCode.EXPECTED_STRING_LITERAL, 7, 0),
+      error(ParserErrorCode.expectedToken, 0, 6),
+      error(ParserErrorCode.expectedStringLiteral, 7, 0),
     ]);
 
     var node = parseResult.findNode.singleImportDirective;

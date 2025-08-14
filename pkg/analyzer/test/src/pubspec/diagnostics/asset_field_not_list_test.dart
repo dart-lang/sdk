@@ -22,7 +22,7 @@ name: sample
 flutter:
   assets:
 ''',
-      [PubspecWarningCode.ASSET_FIELD_NOT_LIST],
+      [PubspecWarningCode.assetFieldNotList],
     );
   }
 
@@ -33,7 +33,7 @@ name: sample
 flutter:
   assets: assets/my_icon.png
 ''',
-      [PubspecWarningCode.ASSET_FIELD_NOT_LIST],
+      [PubspecWarningCode.assetFieldNotList],
     );
   }
 

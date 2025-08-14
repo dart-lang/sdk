@@ -22,7 +22,7 @@ class A<T> {
   static T? foo;
 }
 ''',
-      [error(CompileTimeErrorCode.TYPE_PARAMETER_REFERENCED_BY_STATIC, 22, 1)],
+      [error(CompileTimeErrorCode.typeParameterReferencedByStatic, 22, 1)],
     );
   }
 
@@ -33,7 +33,7 @@ class A<T> {
   static T? get foo => null;
 }
 ''',
-      [error(CompileTimeErrorCode.TYPE_PARAMETER_REFERENCED_BY_STATIC, 22, 1)],
+      [error(CompileTimeErrorCode.typeParameterReferencedByStatic, 22, 1)],
     );
   }
 
@@ -47,7 +47,7 @@ class A<T> {
   }
 }
 ''',
-      [error(CompileTimeErrorCode.TYPE_PARAMETER_REFERENCED_BY_STATIC, 70, 1)],
+      [error(CompileTimeErrorCode.typeParameterReferencedByStatic, 70, 1)],
     );
   }
 
@@ -60,7 +60,7 @@ class A<T> {
   }
 }
 ''',
-      [error(CompileTimeErrorCode.TYPE_PARAMETER_REFERENCED_BY_STATIC, 49, 1)],
+      [error(CompileTimeErrorCode.typeParameterReferencedByStatic, 49, 1)],
     );
   }
 
@@ -71,7 +71,7 @@ class A<T> {
   static foo(T a) {}
 }
 ''',
-      [error(CompileTimeErrorCode.TYPE_PARAMETER_REFERENCED_BY_STATIC, 26, 1)],
+      [error(CompileTimeErrorCode.typeParameterReferencedByStatic, 26, 1)],
     );
   }
 
@@ -84,7 +84,7 @@ class A<T> {
   }
 }
 ''',
-      [error(CompileTimeErrorCode.TYPE_PARAMETER_REFERENCED_BY_STATIC, 22, 1)],
+      [error(CompileTimeErrorCode.typeParameterReferencedByStatic, 22, 1)],
     );
   }
 
@@ -95,7 +95,7 @@ class A<T> {
   static set foo(T _) {}
 }
 ''',
-      [error(CompileTimeErrorCode.TYPE_PARAMETER_REFERENCED_BY_STATIC, 30, 1)],
+      [error(CompileTimeErrorCode.typeParameterReferencedByStatic, 30, 1)],
     );
   }
 
@@ -108,7 +108,7 @@ class A<T> {
   }
 }
 ''',
-      [error(CompileTimeErrorCode.TYPE_PARAMETER_REFERENCED_BY_STATIC, 34, 1)],
+      [error(CompileTimeErrorCode.typeParameterReferencedByStatic, 34, 1)],
     );
   }
 
@@ -119,7 +119,7 @@ extension E<T> on int {
   static T? foo;
 }
 ''',
-      [error(CompileTimeErrorCode.TYPE_PARAMETER_REFERENCED_BY_STATIC, 33, 1)],
+      [error(CompileTimeErrorCode.typeParameterReferencedByStatic, 33, 1)],
     );
   }
 
@@ -130,7 +130,7 @@ extension E<T> on int {
   static T foo() => throw 0;
 }
 ''',
-      [error(CompileTimeErrorCode.TYPE_PARAMETER_REFERENCED_BY_STATIC, 33, 1)],
+      [error(CompileTimeErrorCode.typeParameterReferencedByStatic, 33, 1)],
     );
   }
 
@@ -141,7 +141,7 @@ mixin A<T> {
   static T? foo;
 }
 ''',
-      [error(CompileTimeErrorCode.TYPE_PARAMETER_REFERENCED_BY_STATIC, 22, 1)],
+      [error(CompileTimeErrorCode.typeParameterReferencedByStatic, 22, 1)],
     );
   }
 }

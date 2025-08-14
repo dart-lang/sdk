@@ -23,8 +23,8 @@ void f(int x) {
 }
 ''',
       [
-        error(WarningCode.UNUSED_LOCAL_VARIABLE, 33, 1),
-        error(StaticWarningCode.UNNECESSARY_NULL_CHECK_PATTERN, 34, 1),
+        error(WarningCode.unusedLocalVariable, 33, 1),
+        error(StaticWarningCode.unnecessaryNullCheckPattern, 34, 1),
       ],
     );
   }
@@ -36,7 +36,7 @@ void f(int? x) {
   if (x case var a?) {}
 }
 ''',
-      [error(WarningCode.UNUSED_LOCAL_VARIABLE, 34, 1)],
+      [error(WarningCode.unusedLocalVariable, 34, 1)],
     );
   }
 
@@ -51,8 +51,8 @@ void f() {
 }
 ''',
       [
-        error(CompileTimeErrorCode.UNDEFINED_CLASS, 0, 11),
-        error(CompileTimeErrorCode.UNDEFINED_FUNCTION, 26, 11),
+        error(CompileTimeErrorCode.undefinedClass, 0, 11),
+        error(CompileTimeErrorCode.undefinedFunction, 26, 11),
       ],
     );
   }
@@ -67,7 +67,7 @@ void f() {
   }
 }
 ''',
-      [error(CompileTimeErrorCode.UNDEFINED_CLASS, 0, 11)],
+      [error(CompileTimeErrorCode.undefinedClass, 0, 11)],
     );
   }
 
@@ -81,8 +81,8 @@ class A<T extends num> {
 }
 ''',
       [
-        error(WarningCode.UNUSED_LOCAL_VARIABLE, 60, 1),
-        error(StaticWarningCode.UNNECESSARY_NULL_CHECK_PATTERN, 61, 1),
+        error(WarningCode.unusedLocalVariable, 60, 1),
+        error(StaticWarningCode.unnecessaryNullCheckPattern, 61, 1),
       ],
     );
   }
@@ -96,7 +96,7 @@ class A<T> {
   }
 }
 ''',
-      [error(WarningCode.UNUSED_LOCAL_VARIABLE, 48, 1)],
+      [error(WarningCode.unusedLocalVariable, 48, 1)],
     );
   }
 }

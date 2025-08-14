@@ -25,7 +25,7 @@ class B extends A {
   void foo() {}
 }
 ''',
-      [error(WarningCode.OVERRIDE_ON_NON_OVERRIDING_METHOD, 51, 3)],
+      [error(WarningCode.overrideOnNonOverridingMethod, 51, 3)],
     );
   }
 
@@ -117,7 +117,7 @@ enum E {
   void foo() {}
 }
 ''',
-      [error(WarningCode.OVERRIDE_ON_NON_OVERRIDING_METHOD, 33, 3)],
+      [error(WarningCode.overrideOnNonOverridingMethod, 33, 3)],
     );
   }
 
@@ -129,7 +129,7 @@ extension E on int {
   void foo() {}
 }
 ''',
-      [error(WarningCode.OVERRIDE_ON_NON_OVERRIDING_METHOD, 40, 3)],
+      [error(WarningCode.overrideOnNonOverridingMethod, 40, 3)],
     );
   }
 
@@ -143,7 +143,7 @@ mixin M on A {
   void foo() {}
 }
 ''',
-      [error(WarningCode.OVERRIDE_ON_NON_OVERRIDING_METHOD, 46, 3)],
+      [error(WarningCode.overrideOnNonOverridingMethod, 46, 3)],
     );
   }
 

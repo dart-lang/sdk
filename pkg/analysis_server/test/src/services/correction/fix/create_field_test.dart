@@ -278,7 +278,7 @@ A f() {
 ''',
       errorFilter: (e) {
         return e.diagnosticCode ==
-            CompileTimeErrorCode.DOT_SHORTHAND_UNDEFINED_GETTER;
+            CompileTimeErrorCode.dotShorthandUndefinedGetter;
       },
     );
   }
@@ -301,7 +301,7 @@ A f() {
 ''',
       errorFilter: (e) {
         return e.diagnosticCode ==
-            CompileTimeErrorCode.DOT_SHORTHAND_UNDEFINED_GETTER;
+            CompileTimeErrorCode.dotShorthandUndefinedGetter;
       },
     );
   }

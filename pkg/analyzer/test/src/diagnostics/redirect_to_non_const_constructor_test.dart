@@ -23,7 +23,7 @@ class A {
   const factory A.b() = A.a;
 }
 ''',
-      [error(CompileTimeErrorCode.REDIRECT_TO_MISSING_CONSTRUCTOR, 34, 3)],
+      [error(CompileTimeErrorCode.redirectToMissingConstructor, 34, 3)],
     );
   }
 
@@ -67,7 +67,7 @@ class A {
   const factory A.b() = A.a;
 }
 ''',
-      [error(CompileTimeErrorCode.REDIRECT_TO_NON_CONST_CONSTRUCTOR, 43, 3)],
+      [error(CompileTimeErrorCode.redirectToNonConstConstructor, 43, 3)],
     );
   }
 
@@ -79,7 +79,7 @@ class A {
   const A.b() : this.a();
 }
 ''',
-      [error(CompileTimeErrorCode.REDIRECT_TO_NON_CONST_CONSTRUCTOR, 40, 1)],
+      [error(CompileTimeErrorCode.redirectToNonConstConstructor, 40, 1)],
     );
   }
 
@@ -91,7 +91,7 @@ class A {
   const A.named() : this();
 }
 ''',
-      [error(CompileTimeErrorCode.REDIRECT_TO_NON_CONST_CONSTRUCTOR, 37, 4)],
+      [error(CompileTimeErrorCode.redirectToNonConstConstructor, 37, 4)],
     );
   }
 
@@ -105,7 +105,7 @@ class A {
 ''',
       [
         error(
-          CompileTimeErrorCode.REDIRECT_GENERATIVE_TO_MISSING_CONSTRUCTOR,
+          CompileTimeErrorCode.redirectGenerativeToMissingConstructor,
           26,
           8,
         ),

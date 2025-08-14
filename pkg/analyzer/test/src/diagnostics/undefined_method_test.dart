@@ -26,7 +26,7 @@ main() {
 ''',
       [
         error(
-          CompileTimeErrorCode.UNDEFINED_METHOD,
+          CompileTimeErrorCode.undefinedMethod,
           76,
           8,
           messageContains: ["type 'bool'"],
@@ -60,7 +60,7 @@ f(B b) {
   b.a();
 }
 ''',
-      [error(CompileTimeErrorCode.UNDEFINED_METHOD, 33, 1)],
+      [error(CompileTimeErrorCode.undefinedMethod, 33, 1)],
     );
   }
 
@@ -80,7 +80,7 @@ f(C c) {
   c.a();
 }
 ''',
-      [error(CompileTimeErrorCode.UNDEFINED_METHOD, 33, 1)],
+      [error(CompileTimeErrorCode.undefinedMethod, 33, 1)],
     );
   }
 
@@ -99,7 +99,7 @@ extension E on C {
 }
 
 ''',
-      [error(CompileTimeErrorCode.UNDEFINED_METHOD, 27, 3)],
+      [error(CompileTimeErrorCode.undefinedMethod, 27, 3)],
     );
   }
 
@@ -118,7 +118,7 @@ extension E on C {
 
 set foo(int x) {}
 ''',
-      [error(CompileTimeErrorCode.UNDEFINED_METHOD, 27, 3)],
+      [error(CompileTimeErrorCode.undefinedMethod, 27, 3)],
     );
   }
 
@@ -149,7 +149,7 @@ extension E on Type {
   void foo() {}
 }
 ''',
-      [error(CompileTimeErrorCode.UNDEFINED_METHOD_ON_FUNCTION_TYPE, 58, 3)],
+      [error(CompileTimeErrorCode.undefinedMethodOnFunctionType, 58, 3)],
     );
   }
 
@@ -197,7 +197,7 @@ class C {
   }
 }
 ''',
-      [error(CompileTimeErrorCode.UNDEFINED_METHOD, 85, 1)],
+      [error(CompileTimeErrorCode.undefinedMethod, 85, 1)],
     );
   }
 
@@ -218,7 +218,7 @@ extension E2 on C {
   }
 }
 ''',
-      [error(CompileTimeErrorCode.UNDEFINED_METHOD, 123, 3)],
+      [error(CompileTimeErrorCode.undefinedMethod, 123, 3)],
     );
   }
 
@@ -231,7 +231,7 @@ class C {
   }
 }
 ''',
-      [error(CompileTimeErrorCode.UNDEFINED_METHOD, 22, 3)],
+      [error(CompileTimeErrorCode.undefinedMethod, 22, 3)],
     );
   }
 
@@ -243,7 +243,7 @@ f(C c) {
   c..abs();
 }
 ''',
-      [error(CompileTimeErrorCode.UNDEFINED_METHOD, 25, 3)],
+      [error(CompileTimeErrorCode.undefinedMethod, 25, 3)],
     );
   }
 
@@ -253,7 +253,7 @@ f(C c) {
 enum E { A }
 f() => E.abs();
 ''',
-      [error(CompileTimeErrorCode.UNDEFINED_METHOD, 22, 3)],
+      [error(CompileTimeErrorCode.undefinedMethod, 22, 3)],
     );
   }
 
@@ -265,7 +265,7 @@ f(M m) {
   m.abs();
 }
 ''',
-      [error(CompileTimeErrorCode.UNDEFINED_METHOD, 24, 3)],
+      [error(CompileTimeErrorCode.undefinedMethod, 24, 3)],
     );
   }
 
@@ -277,7 +277,7 @@ f(M m) {
   m..abs();
 }
 ''',
-      [error(CompileTimeErrorCode.UNDEFINED_METHOD, 25, 3)],
+      [error(CompileTimeErrorCode.undefinedMethod, 25, 3)],
     );
   }
 
@@ -289,7 +289,7 @@ class A {
 }
 f() { A?.m(); }
 ''',
-      [error(StaticWarningCode.INVALID_NULL_AWARE_OPERATOR, 40, 2)],
+      [error(StaticWarningCode.invalidNullAwareOperator, 40, 2)],
     );
   }
 
@@ -306,7 +306,7 @@ f(C c) {
   c.a();
 }
 ''',
-      [error(CompileTimeErrorCode.UNDEFINED_METHOD, 68, 1)],
+      [error(CompileTimeErrorCode.undefinedMethod, 68, 1)],
     );
   }
 
@@ -326,7 +326,7 @@ void main() {
   B.named();
 }
 ''',
-      [error(CompileTimeErrorCode.UNDEFINED_METHOD, 96, 5)],
+      [error(CompileTimeErrorCode.undefinedMethod, 96, 5)],
     );
   }
 
@@ -339,7 +339,7 @@ void f() {
   A.foo();
 }
 ''',
-      [error(CompileTimeErrorCode.UNDEFINED_METHOD, 45, 3)],
+      [error(CompileTimeErrorCode.undefinedMethod, 45, 3)],
     );
   }
 
@@ -352,7 +352,7 @@ void f() {
   A.foo();
 }
 ''',
-      [error(CompileTimeErrorCode.UNDEFINED_METHOD, 39, 3)],
+      [error(CompileTimeErrorCode.undefinedMethod, 39, 3)],
     );
   }
 
@@ -369,7 +369,7 @@ f(C c) {
   c.c();
 }
 ''',
-      [error(CompileTimeErrorCode.UNDEFINED_METHOD, 61, 1)],
+      [error(CompileTimeErrorCode.undefinedMethod, 61, 1)],
     );
   }
 }

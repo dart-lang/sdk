@@ -25,7 +25,7 @@ final class C extends Struct {
   external Array<Array<Array<Uint8>>> a0;
 }
 ''',
-      [error(FfiCode.SIZE_ANNOTATION_DIMENSIONS, 53, 12)],
+      [error(FfiCode.sizeAnnotationDimensions, 53, 12)],
     );
   }
 
@@ -39,7 +39,7 @@ final class C extends Struct {
   external Array<Array<Uint8>> a0;
 }
 ''',
-      [error(FfiCode.SIZE_ANNOTATION_DIMENSIONS, 53, 15)],
+      [error(FfiCode.sizeAnnotationDimensions, 53, 15)],
     );
   }
 
@@ -53,7 +53,7 @@ final class C extends Struct {
   external Array<Array<Array<Uint8>>> a0;
 }
 ''',
-      [error(FfiCode.SIZE_ANNOTATION_DIMENSIONS, 53, 20)],
+      [error(FfiCode.sizeAnnotationDimensions, 53, 20)],
     );
   }
 

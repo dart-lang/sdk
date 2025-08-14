@@ -22,7 +22,7 @@ void f(x, int a) {
   if (x case {a: 0}) {}
 }
 ''',
-      [error(CompileTimeErrorCode.NON_CONSTANT_MAP_PATTERN_KEY, 33, 1)],
+      [error(CompileTimeErrorCode.nonConstantMapPatternKey, 33, 1)],
     );
   }
 
@@ -37,7 +37,7 @@ class A {
   const A();
 }
 ''',
-      [error(CompileTimeErrorCode.NON_CONSTANT_MAP_PATTERN_KEY, 26, 3)],
+      [error(CompileTimeErrorCode.nonConstantMapPatternKey, 26, 3)],
     );
   }
 

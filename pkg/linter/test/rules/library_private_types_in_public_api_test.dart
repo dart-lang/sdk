@@ -139,11 +139,7 @@ extension type E(Object o) {
 ''',
       [
         // No lint.
-        error(
-          CompileTimeErrorCode.EXTENSION_TYPE_DECLARES_INSTANCE_FIELD,
-          47,
-          1,
-        ),
+        error(CompileTimeErrorCode.extensionTypeDeclaresInstanceField, 47, 1),
       ],
     );
   }

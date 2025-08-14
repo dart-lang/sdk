@@ -37,7 +37,7 @@ class AnalysisOptionsErrorCode extends DiagnosticCode {
   /// Object p2: the ending offset of the text in the file that contains the
   ///            error
   /// Object p3: the error message
-  static const AnalysisOptionsErrorCode INCLUDED_FILE_PARSE_ERROR =
+  static const AnalysisOptionsErrorCode includedFileParseError =
       AnalysisOptionsErrorCode(
         'INCLUDED_FILE_PARSE_ERROR',
         "{3} in {0}({1}..{2})",
@@ -47,7 +47,7 @@ class AnalysisOptionsErrorCode extends DiagnosticCode {
   ///
   /// Parameters:
   /// Object p0: the error message from the parse error
-  static const AnalysisOptionsErrorCode PARSE_ERROR = AnalysisOptionsErrorCode(
+  static const AnalysisOptionsErrorCode parseError = AnalysisOptionsErrorCode(
     'PARSE_ERROR',
     "{0}",
   );
@@ -78,7 +78,7 @@ class AnalysisOptionsWarningCode extends DiagnosticCode {
   ///
   /// Parameters:
   /// Object p0: the option name
-  static const AnalysisOptionsWarningCode ANALYSIS_OPTION_DEPRECATED =
+  static const AnalysisOptionsWarningCode analysisOptionDeprecated =
       AnalysisOptionsWarningCode(
         'ANALYSIS_OPTION_DEPRECATED',
         "The option '{0}' is no longer supported.",
@@ -90,7 +90,7 @@ class AnalysisOptionsWarningCode extends DiagnosticCode {
   /// Object p0: the option name
   /// Object p1: the replacement option name
   static const AnalysisOptionsWarningCode
-  ANALYSIS_OPTION_DEPRECATED_WITH_REPLACEMENT = AnalysisOptionsWarningCode(
+  analysisOptionDeprecatedWithReplacement = AnalysisOptionsWarningCode(
     'ANALYSIS_OPTION_DEPRECATED',
     "The option '{0}' is no longer supported.",
     correctionMessage: "Try using the new '{1}' option.",
@@ -101,7 +101,7 @@ class AnalysisOptionsWarningCode extends DiagnosticCode {
   ///
   /// Parameters:
   /// String p0: the rule name
-  static const AnalysisOptionsWarningCode DEPRECATED_LINT =
+  static const AnalysisOptionsWarningCode deprecatedLint =
       AnalysisOptionsWarningCode(
         'DEPRECATED_LINT',
         "'{0}' is a deprecated lint rule and should not be used.",
@@ -113,7 +113,7 @@ class AnalysisOptionsWarningCode extends DiagnosticCode {
   /// Parameters:
   /// String p0: the deprecated lint name
   /// String p1: the replacing rule name
-  static const AnalysisOptionsWarningCode DEPRECATED_LINT_WITH_REPLACEMENT =
+  static const AnalysisOptionsWarningCode deprecatedLintWithReplacement =
       AnalysisOptionsWarningCode(
         'DEPRECATED_LINT_WITH_REPLACEMENT',
         "'{0}' is deprecated and should be replaced by '{1}'.",
@@ -125,7 +125,7 @@ class AnalysisOptionsWarningCode extends DiagnosticCode {
   /// Parameters:
   /// String p0: the rule name
   static const AnalysisOptionsWarningCode
-  DUPLICATE_RULE = AnalysisOptionsWarningCode(
+  duplicateRule = AnalysisOptionsWarningCode(
     'DUPLICATE_RULE',
     "The rule {0} is already specified and doesn't need to be specified again.",
     correctionMessage: "Try removing all but one specification of the rule.",
@@ -140,7 +140,7 @@ class AnalysisOptionsWarningCode extends DiagnosticCode {
   /// Object p2: the ending offset of the text in the file that contains the
   ///            warning
   /// Object p3: the warning message
-  static const AnalysisOptionsWarningCode INCLUDED_FILE_WARNING =
+  static const AnalysisOptionsWarningCode includedFileWarning =
       AnalysisOptionsWarningCode(
         'INCLUDED_FILE_WARNING',
         "Warning in the included options file {0}({1}..{2}): {3}",
@@ -152,7 +152,7 @@ class AnalysisOptionsWarningCode extends DiagnosticCode {
   /// Object p0: the URI of the file to be included
   /// Object p1: the path of the file containing the include directive
   /// Object p2: the path of the context being analyzed
-  static const AnalysisOptionsWarningCode INCLUDE_FILE_NOT_FOUND =
+  static const AnalysisOptionsWarningCode includeFileNotFound =
       AnalysisOptionsWarningCode(
         'INCLUDE_FILE_NOT_FOUND',
         "The include file '{0}' in '{1}' can't be found when analyzing '{2}'.",
@@ -163,7 +163,7 @@ class AnalysisOptionsWarningCode extends DiagnosticCode {
   /// Parameters:
   /// String p0: the rule name
   /// String p1: the incompatible rule
-  static const AnalysisOptionsWarningCode INCOMPATIBLE_LINT =
+  static const AnalysisOptionsWarningCode incompatibleLint =
       AnalysisOptionsWarningCode(
         'INCOMPATIBLE_LINT',
         "The rule '{0}' is incompatible with the rule '{1}'.",
@@ -176,7 +176,7 @@ class AnalysisOptionsWarningCode extends DiagnosticCode {
   /// Parameters:
   /// String p0: the option name
   /// String p1: the detail message
-  static const AnalysisOptionsWarningCode INVALID_OPTION =
+  static const AnalysisOptionsWarningCode invalidOption =
       AnalysisOptionsWarningCode(
         'INVALID_OPTION',
         "Invalid option specified for '{0}': {1}",
@@ -186,7 +186,7 @@ class AnalysisOptionsWarningCode extends DiagnosticCode {
   ///
   /// Parameters:
   /// String p0: the section name
-  static const AnalysisOptionsWarningCode INVALID_SECTION_FORMAT =
+  static const AnalysisOptionsWarningCode invalidSectionFormat =
       AnalysisOptionsWarningCode(
         'INVALID_SECTION_FORMAT',
         "Invalid format for the '{0}' section.",
@@ -196,7 +196,7 @@ class AnalysisOptionsWarningCode extends DiagnosticCode {
   ///
   /// Parameters:
   /// String p0: the name of the first plugin
-  static const AnalysisOptionsWarningCode MULTIPLE_PLUGINS =
+  static const AnalysisOptionsWarningCode multiplePlugins =
       AnalysisOptionsWarningCode(
         'MULTIPLE_PLUGINS',
         "Multiple plugins can't be enabled.",
@@ -208,7 +208,7 @@ class AnalysisOptionsWarningCode extends DiagnosticCode {
   /// Parameters:
   /// Object p0: the URI of the file to be included
   /// Object p1: the path of the file containing the include directive
-  static const AnalysisOptionsWarningCode RECURSIVE_INCLUDE_FILE =
+  static const AnalysisOptionsWarningCode recursiveIncludeFile =
       AnalysisOptionsWarningCode(
         'RECURSIVE_INCLUDE_FILE',
         "The include file '{0}' in '{1}' includes itself recursively.",
@@ -221,7 +221,7 @@ class AnalysisOptionsWarningCode extends DiagnosticCode {
   /// Parameters:
   /// String p0: the rule name
   /// String p1: the SDK version in which the lint was removed
-  static const AnalysisOptionsWarningCode REMOVED_LINT =
+  static const AnalysisOptionsWarningCode removedLint =
       AnalysisOptionsWarningCode(
         'REMOVED_LINT',
         "'{0}' was removed in Dart '{1}'",
@@ -234,7 +234,7 @@ class AnalysisOptionsWarningCode extends DiagnosticCode {
   /// String p0: the rule name
   /// String p1: the SDK version in which the lint was removed
   /// String p2: the name of a replacing lint
-  static const AnalysisOptionsWarningCode REPLACED_LINT =
+  static const AnalysisOptionsWarningCode replacedLint =
       AnalysisOptionsWarningCode(
         'REPLACED_LINT',
         "'{0}' was replaced by '{2}' in Dart '{1}'.",
@@ -245,7 +245,7 @@ class AnalysisOptionsWarningCode extends DiagnosticCode {
   ///
   /// Parameters:
   /// String p0: the rule name
-  static const AnalysisOptionsWarningCode UNDEFINED_LINT =
+  static const AnalysisOptionsWarningCode undefinedLint =
       AnalysisOptionsWarningCode(
         'UNDEFINED_LINT',
         "'{0}' is not a recognized lint rule.",
@@ -257,7 +257,7 @@ class AnalysisOptionsWarningCode extends DiagnosticCode {
   ///
   /// Parameters:
   /// String p0: the unrecognized error code
-  static const AnalysisOptionsWarningCode UNRECOGNIZED_ERROR_CODE =
+  static const AnalysisOptionsWarningCode unrecognizedErrorCode =
       AnalysisOptionsWarningCode(
         'UNRECOGNIZED_ERROR_CODE',
         "'{0}' isn't a recognized error code.",
@@ -269,7 +269,7 @@ class AnalysisOptionsWarningCode extends DiagnosticCode {
   /// Parameters:
   /// String p0: the plugin name
   /// String p1: the unsupported option key
-  static const AnalysisOptionsWarningCode UNSUPPORTED_OPTION_WITHOUT_VALUES =
+  static const AnalysisOptionsWarningCode unsupportedOptionWithoutValues =
       AnalysisOptionsWarningCode(
         'UNSUPPORTED_OPTION_WITHOUT_VALUES',
         "The option '{1}' isn't supported by '{0}'.",
@@ -283,7 +283,7 @@ class AnalysisOptionsWarningCode extends DiagnosticCode {
   /// String p1: the unsupported option key
   /// String p2: the legal value
   static const AnalysisOptionsWarningCode
-  UNSUPPORTED_OPTION_WITH_LEGAL_VALUE = AnalysisOptionsWarningCode(
+  unsupportedOptionWithLegalValue = AnalysisOptionsWarningCode(
     'UNSUPPORTED_OPTION_WITH_LEGAL_VALUE',
     "The option '{1}' isn't supported by '{0}'. Try using the only supported "
         "option: '{2}'.",
@@ -296,7 +296,7 @@ class AnalysisOptionsWarningCode extends DiagnosticCode {
   /// String p0: the section name
   /// String p1: the unsupported option key
   /// String p2: legal values
-  static const AnalysisOptionsWarningCode UNSUPPORTED_OPTION_WITH_LEGAL_VALUES =
+  static const AnalysisOptionsWarningCode unsupportedOptionWithLegalValues =
       AnalysisOptionsWarningCode(
         'UNSUPPORTED_OPTION_WITH_LEGAL_VALUES',
         "The option '{1}' isn't supported by '{0}'.",
@@ -310,7 +310,7 @@ class AnalysisOptionsWarningCode extends DiagnosticCode {
   /// String p0: the option name
   /// int p1: the unsupported value
   /// String p2: legal values
-  static const AnalysisOptionsWarningCode UNSUPPORTED_VALUE =
+  static const AnalysisOptionsWarningCode unsupportedValue =
       AnalysisOptionsWarningCode(
         'UNSUPPORTED_VALUE',
         "The value '{1}' isn't supported by '{0}'.",

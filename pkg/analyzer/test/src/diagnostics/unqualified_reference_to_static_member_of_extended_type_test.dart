@@ -18,7 +18,7 @@ class UnqualifiedReferenceToStaticMemberOfExtendedTypeTest
     extends PubPackageResolutionTest {
   CompileTimeErrorCode get _errorCode {
     return CompileTimeErrorCode
-        .UNQUALIFIED_REFERENCE_TO_STATIC_MEMBER_OF_EXTENDED_TYPE;
+        .unqualifiedReferenceToStaticMemberOfExtendedType;
   }
 
   test_getter() async {

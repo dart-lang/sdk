@@ -34,7 +34,7 @@ f() {
   E(0).foo = 1;
 }
 ''',
-      [error(CompileTimeErrorCode.UNDEFINED_EXTENSION_SETTER, 35, 3)],
+      [error(CompileTimeErrorCode.undefinedExtensionSetter, 35, 3)],
     );
   }
 
@@ -48,7 +48,7 @@ f() {
   E(0).foo = 1;
 }
 ''',
-      [error(CompileTimeErrorCode.UNDEFINED_EXTENSION_SETTER, 56, 3)],
+      [error(CompileTimeErrorCode.undefinedExtensionSetter, 56, 3)],
     );
   }
 
@@ -62,7 +62,7 @@ f() {
   E(0).foo += 1;
 }
 ''',
-      [error(CompileTimeErrorCode.UNDEFINED_EXTENSION_SETTER, 56, 3)],
+      [error(CompileTimeErrorCode.undefinedExtensionSetter, 56, 3)],
     );
   }
 
@@ -82,7 +82,7 @@ f(C c) {
   Ext(c).id++;
 }
 ''',
-      [error(CompileTimeErrorCode.UNDEFINED_EXTENSION_SETTER, 117, 2)],
+      [error(CompileTimeErrorCode.undefinedExtensionSetter, 117, 2)],
     );
   }
 
@@ -94,7 +94,7 @@ void f() {
   E.foo = 3;
 }
 ''',
-      [error(CompileTimeErrorCode.UNDEFINED_EXTENSION_SETTER, 37, 3)],
+      [error(CompileTimeErrorCode.undefinedExtensionSetter, 37, 3)],
     );
   }
 }

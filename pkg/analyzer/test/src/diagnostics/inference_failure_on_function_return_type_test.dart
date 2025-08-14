@@ -34,7 +34,7 @@ class C {
   get f => 7;
 }
 ''',
-      [error(WarningCode.INFERENCE_FAILURE_ON_FUNCTION_RETURN_TYPE, 16, 1)],
+      [error(WarningCode.inferenceFailureOnFunctionReturnType, 16, 1)],
     );
   }
 
@@ -45,7 +45,7 @@ class C {
   f() => 7;
 }
 ''',
-      [error(WarningCode.INFERENCE_FAILURE_ON_FUNCTION_RETURN_TYPE, 12, 1)],
+      [error(WarningCode.inferenceFailureOnFunctionReturnType, 12, 1)],
     );
   }
 
@@ -96,7 +96,7 @@ class C {
   operator +(int x) => print(x);
 }
 ''',
-      [error(WarningCode.INFERENCE_FAILURE_ON_FUNCTION_RETURN_TYPE, 21, 1)],
+      [error(WarningCode.inferenceFailureOnFunctionReturnType, 21, 1)],
     );
   }
 
@@ -115,7 +115,7 @@ class C {
   static f() => 7;
 }
 ''',
-      [error(WarningCode.INFERENCE_FAILURE_ON_FUNCTION_RETURN_TYPE, 19, 1)],
+      [error(WarningCode.inferenceFailureOnFunctionReturnType, 19, 1)],
     );
   }
 
@@ -136,7 +136,7 @@ extension E on List {
   }
 }
 ''',
-      [error(WarningCode.INFERENCE_FAILURE_ON_FUNCTION_RETURN_TYPE, 24, 1)],
+      [error(WarningCode.inferenceFailureOnFunctionReturnType, 24, 1)],
     );
   }
 
@@ -147,7 +147,7 @@ void f(callback()) {
   callback();
 }
 ''',
-      [error(WarningCode.INFERENCE_FAILURE_ON_FUNCTION_RETURN_TYPE, 7, 10)],
+      [error(WarningCode.inferenceFailureOnFunctionReturnType, 7, 10)],
     );
   }
 
@@ -158,7 +158,7 @@ void f(void callback(callback2())) {
   callback(() => print('hey'));
 }
 ''',
-      [error(WarningCode.INFERENCE_FAILURE_ON_FUNCTION_RETURN_TYPE, 21, 11)],
+      [error(WarningCode.inferenceFailureOnFunctionReturnType, 21, 11)],
     );
   }
 
@@ -177,7 +177,7 @@ Function(int) f = (int n) {
   print(n);
 };
 ''',
-      [error(WarningCode.INFERENCE_FAILURE_ON_FUNCTION_RETURN_TYPE, 0, 13)],
+      [error(WarningCode.inferenceFailureOnFunctionReturnType, 0, 13)],
     );
   }
 
@@ -198,7 +198,7 @@ class C {
   }
 }
 ''',
-      [error(WarningCode.UNUSED_ELEMENT, 27, 1)],
+      [error(WarningCode.unusedElement, 27, 1)],
     );
   }
 
@@ -209,7 +209,7 @@ mixin C {
   f() => 7;
 }
 ''',
-      [error(WarningCode.INFERENCE_FAILURE_ON_FUNCTION_RETURN_TYPE, 12, 1)],
+      [error(WarningCode.inferenceFailureOnFunctionReturnType, 12, 1)],
     );
   }
 
@@ -224,7 +224,7 @@ set f(int x) => print(x);
       r'''
 f() => 7;
 ''',
-      [error(WarningCode.INFERENCE_FAILURE_ON_FUNCTION_RETURN_TYPE, 0, 1)],
+      [error(WarningCode.inferenceFailureOnFunctionReturnType, 0, 1)],
     );
   }
 
@@ -235,7 +235,7 @@ f() {
   return 7;
 }
 ''',
-      [error(WarningCode.INFERENCE_FAILURE_ON_FUNCTION_RETURN_TYPE, 0, 1)],
+      [error(WarningCode.inferenceFailureOnFunctionReturnType, 0, 1)],
     );
   }
 
@@ -246,7 +246,7 @@ f() {
   return 7;
 }
 ''',
-      [error(WarningCode.INFERENCE_FAILURE_ON_FUNCTION_RETURN_TYPE, 0, 1)],
+      [error(WarningCode.inferenceFailureOnFunctionReturnType, 0, 1)],
     );
   }
 
@@ -261,7 +261,7 @@ dynamic f() => 7;
       r'''
 typedef Callback(int i);
 ''',
-      [error(WarningCode.INFERENCE_FAILURE_ON_FUNCTION_RETURN_TYPE, 0, 24)],
+      [error(WarningCode.inferenceFailureOnFunctionReturnType, 0, 24)],
     );
   }
 
@@ -276,7 +276,7 @@ typedef void Callback(int i);
       r'''
 typedef Callback = Function(int i);
 ''',
-      [error(WarningCode.INFERENCE_FAILURE_ON_FUNCTION_RETURN_TYPE, 0, 35)],
+      [error(WarningCode.inferenceFailureOnFunctionReturnType, 0, 35)],
     );
   }
 

@@ -66,7 +66,7 @@ class WidgetPreviewVerifier {
     if (!isValidApplication) {
       _diagnosticReporter.atNode(
         node.name,
-        WarningCode.INVALID_WIDGET_PREVIEW_APPLICATION,
+        WarningCode.invalidWidgetPreviewApplication,
       );
     }
 
@@ -232,7 +232,7 @@ class _InvalidWidgetPreviewArgumentDetectorVisitor extends RecursiveAstVisitor {
     if (Identifier.isPrivateName(node.name)) {
       errorReporter.atNode(
         rootArgument!,
-        WarningCode.INVALID_WIDGET_PREVIEW_PRIVATE_ARGUMENT,
+        WarningCode.invalidWidgetPreviewPrivateArgument,
         arguments: [node.name, node.name.replaceFirst(RegExp('_*'), '')],
       );
     }

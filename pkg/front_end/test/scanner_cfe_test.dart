@@ -232,7 +232,7 @@ class ScannerTest_Cfe extends ScannerTestBase {
     expect(token.next!.isEof, isTrue);
     expect(listener.errors, hasLength(1));
     TestError error = listener.errors[0];
-    expect(error.diagnosticCode, ScannerErrorCode.MISSING_DIGIT);
+    expect(error.diagnosticCode, ScannerErrorCode.missingDigit);
     expect(error.offset, source.length - 1);
   }
 
@@ -260,8 +260,8 @@ class ScannerTest_Cfe extends ScannerTestBase {
     expect(openBrace.endToken, same(closeBrace));
     expect(openParen2.endToken, same(closeParen2));
     listener.assertErrors([
-      new TestError(6, ScannerErrorCode.EXPECTED_TOKEN, [')']),
-      new TestError(7, ScannerErrorCode.EXPECTED_TOKEN, [')']),
+      new TestError(6, ScannerErrorCode.expectedToken, [')']),
+      new TestError(7, ScannerErrorCode.expectedToken, [')']),
     ]);
   }
 
@@ -304,9 +304,9 @@ class ScannerTest_Cfe extends ScannerTestBase {
     expect(openBracket.endToken, same(closeBracket));
     expect(openParen.endToken, same(closeParen));
     listener.assertErrors([
-      new TestError(3, ScannerErrorCode.EXPECTED_TOKEN, ['}']),
-      new TestError(3, ScannerErrorCode.EXPECTED_TOKEN, [']']),
-      new TestError(3, ScannerErrorCode.EXPECTED_TOKEN, [')']),
+      new TestError(3, ScannerErrorCode.expectedToken, ['}']),
+      new TestError(3, ScannerErrorCode.expectedToken, [']']),
+      new TestError(3, ScannerErrorCode.expectedToken, [')']),
     ]);
   }
 }

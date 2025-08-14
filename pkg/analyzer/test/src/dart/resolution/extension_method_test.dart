@@ -50,9 +50,9 @@ extension E {
 }
 ''',
       [
-        error(ParserErrorCode.EXPECTED_TOKEN, 10, 1),
-        error(ParserErrorCode.EXPECTED_TYPE_NAME, 12, 1),
-        error(ParserErrorCode.EXTENSION_DECLARES_CONSTRUCTOR, 16, 1),
+        error(ParserErrorCode.expectedToken, 10, 1),
+        error(ParserErrorCode.expectedTypeName, 12, 1),
+        error(ParserErrorCode.extensionDeclaresConstructor, 16, 1),
       ],
     );
   }
@@ -65,9 +65,9 @@ extension E {
 }
 ''',
       [
-        error(ParserErrorCode.EXPECTED_TOKEN, 10, 1),
-        error(ParserErrorCode.EXPECTED_TYPE_NAME, 12, 1),
-        error(ParserErrorCode.EXTENSION_DECLARES_CONSTRUCTOR, 16, 7),
+        error(ParserErrorCode.expectedToken, 10, 1),
+        error(ParserErrorCode.expectedTypeName, 12, 1),
+        error(ParserErrorCode.extensionDeclaresConstructor, 16, 7),
       ],
     );
   }
@@ -172,7 +172,7 @@ f(C c) {
   c.a;
 }
 ''',
-      [error(CompileTimeErrorCode.UNDEFINED_GETTER, 40, 1)],
+      [error(CompileTimeErrorCode.undefinedGetter, 40, 1)],
     );
   }
 
@@ -191,7 +191,7 @@ f(C c) {
   c.a;
 }
 ''',
-      [error(CompileTimeErrorCode.UNDEFINED_GETTER, 40, 1)],
+      [error(CompileTimeErrorCode.undefinedGetter, 40, 1)],
     );
   }
 
@@ -210,7 +210,7 @@ f(C c) {
   c._a;
 }
 ''',
-      [error(CompileTimeErrorCode.UNDEFINED_GETTER, 33, 2)],
+      [error(CompileTimeErrorCode.undefinedGetter, 33, 2)],
     );
   }
 
@@ -297,7 +297,7 @@ f(C c) {
   c.a;
 }
 ''',
-      [error(WarningCode.UNUSED_LOCAL_VARIABLE, 38, 1)],
+      [error(WarningCode.unusedLocalVariable, 38, 1)],
     );
     var access = findNode.prefixed('c.a');
     assertResolvedNodeText(access, r'''
@@ -328,7 +328,7 @@ f(C c) {
   c.a;
 }
 ''',
-      [error(WarningCode.UNUSED_LOCAL_VARIABLE, 68, 1)],
+      [error(WarningCode.unusedLocalVariable, 68, 1)],
     );
     var access = findNode.prefixed('c.a');
     assertResolvedNodeText(access, r'''
@@ -1004,7 +1004,7 @@ f(Never a) {
   a.foo;
 }
 ''',
-      [error(WarningCode.DEAD_CODE, 63, 4)],
+      [error(WarningCode.deadCode, 63, 4)],
     );
     var access = findNode.prefixed('a.foo');
     assertResolvedNodeText(access, r'''
@@ -1434,8 +1434,8 @@ f(Never a) {
 }
 ''',
       [
-        error(WarningCode.RECEIVER_OF_TYPE_NEVER, 57, 1),
-        error(WarningCode.DEAD_CODE, 62, 3),
+        error(WarningCode.receiverOfTypeNever, 57, 1),
+        error(WarningCode.deadCode, 62, 3),
       ],
     );
 
@@ -1850,8 +1850,8 @@ extension on Object {}
 var a = b + c;
 ''',
       [
-        error(CompileTimeErrorCode.UNDEFINED_IDENTIFIER, 31, 1),
-        error(CompileTimeErrorCode.UNDEFINED_IDENTIFIER, 35, 1),
+        error(CompileTimeErrorCode.undefinedIdentifier, 31, 1),
+        error(CompileTimeErrorCode.undefinedIdentifier, 35, 1),
       ],
     );
   }
@@ -3088,7 +3088,7 @@ extension E2 on int {
   }
 }
 ''',
-      [error(CompileTimeErrorCode.ASSIGNMENT_TO_FINAL_NO_SETTER, 104, 3)],
+      [error(CompileTimeErrorCode.assignmentToFinalNoSetter, 104, 3)],
     );
     var assignment = findNode.assignment('foo = 0');
     assertResolvedNodeText(assignment, r'''
@@ -3499,7 +3499,7 @@ extension E2 on int {
   }
 }
 ''',
-      [error(CompileTimeErrorCode.UNDEFINED_IDENTIFIER, 104, 3)],
+      [error(CompileTimeErrorCode.undefinedIdentifier, 104, 3)],
     );
     var node = findNode.simple('foo;');
     assertResolvedNodeText(node, r'''

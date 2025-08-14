@@ -92,7 +92,7 @@ import 'a.dart';
 class B extends A {
   set _foo(String _) {}
 }
-''', _filterGetterSetterTypeErrors([error(WarningCode.UNUSED_ELEMENT, 44, 4)]));
+''', _filterGetterSetterTypeErrors([error(WarningCode.unusedElement, 44, 4)]));
   }
 
   test_class_instance_private_interfaces() async {
@@ -143,7 +143,7 @@ import 'a.dart';
 class B extends A {
   int get _foo => 0;
 }
-''', _filterGetterSetterTypeErrors([error(WarningCode.UNUSED_ELEMENT, 48, 4)]));
+''', _filterGetterSetterTypeErrors([error(WarningCode.unusedElement, 48, 4)]));
   }
 
   test_class_instance_sameClass() async {
@@ -415,8 +415,7 @@ set foo(String v) {}
   ) {
     if (experiments.contains(Feature.getter_setter_error.enableString)) {
       return expectedErrors.whereNot((error) {
-        return error.code ==
-            CompileTimeErrorCode.GETTER_NOT_SUBTYPE_SETTER_TYPES;
+        return error.code == CompileTimeErrorCode.getterNotSubtypeSetterTypes;
       }).toList();
     } else {
       return expectedErrors;

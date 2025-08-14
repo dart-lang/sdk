@@ -21,9 +21,9 @@ class SwitchStatementTest extends PartialCodeTest {
           'keyword',
           'switch',
           [
-            ParserErrorCode.MISSING_IDENTIFIER,
-            ParserErrorCode.EXPECTED_SWITCH_STATEMENT_BODY,
-            ParserErrorCode.EXPECTED_TOKEN,
+            ParserErrorCode.missingIdentifier,
+            ParserErrorCode.expectedSwitchStatementBody,
+            ParserErrorCode.expectedToken,
           ],
           "switch (_s_) {}",
           failing: ['block'],
@@ -32,9 +32,9 @@ class SwitchStatementTest extends PartialCodeTest {
           'leftParen',
           'switch (',
           [
-            ParserErrorCode.MISSING_IDENTIFIER,
-            ParserErrorCode.EXPECTED_SWITCH_STATEMENT_BODY,
-            ScannerErrorCode.EXPECTED_TOKEN,
+            ParserErrorCode.missingIdentifier,
+            ParserErrorCode.expectedSwitchStatementBody,
+            ScannerErrorCode.expectedToken,
           ],
           "switch (_s_) {}",
           failing: [
@@ -51,8 +51,8 @@ class SwitchStatementTest extends PartialCodeTest {
           'expression',
           'switch (a',
           [
-            ParserErrorCode.EXPECTED_SWITCH_STATEMENT_BODY,
-            ScannerErrorCode.EXPECTED_TOKEN,
+            ParserErrorCode.expectedSwitchStatementBody,
+            ScannerErrorCode.expectedToken,
           ],
           "switch (a) {}",
           failing: ['block'],
@@ -60,14 +60,14 @@ class SwitchStatementTest extends PartialCodeTest {
         TestDescriptor(
           'rightParen',
           'switch (a)',
-          [ParserErrorCode.EXPECTED_SWITCH_STATEMENT_BODY],
+          [ParserErrorCode.expectedSwitchStatementBody],
           "switch (a) {}",
           failing: ['block'],
         ),
         TestDescriptor(
           'leftBrace',
           'switch (a) {',
-          [ScannerErrorCode.EXPECTED_TOKEN],
+          [ScannerErrorCode.expectedToken],
           "switch (a) {}",
           failing: allExceptEof,
         ),

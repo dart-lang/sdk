@@ -35,7 +35,7 @@ void f() {
   A;
 }
 ''',
-      [error(WarningCode.DEPRECATED_EXPORT_USE, 31, 1)],
+      [error(WarningCode.deprecatedExportUse, 31, 1)],
     );
   }
 
@@ -59,7 +59,7 @@ void f() {
   prefix.A;
 }
 ''',
-      [error(WarningCode.DEPRECATED_EXPORT_USE, 48, 1)],
+      [error(WarningCode.deprecatedExportUse, 48, 1)],
     );
   }
 
@@ -81,7 +81,7 @@ import 'b.dart';
 
 void f(A a) {}
 ''',
-      [error(WarningCode.DEPRECATED_EXPORT_USE, 25, 1)],
+      [error(WarningCode.deprecatedExportUse, 25, 1)],
     );
   }
 
@@ -103,7 +103,7 @@ import 'b.dart' as prefix;
 
 void f(prefix.A a) {}
 ''',
-      [error(WarningCode.DEPRECATED_EXPORT_USE, 42, 1)],
+      [error(WarningCode.deprecatedExportUse, 42, 1)],
     );
   }
 
@@ -125,7 +125,7 @@ import 'b.dart' show A;
 
 void f(A a) {}
 ''',
-      [error(WarningCode.DEPRECATED_EXPORT_USE, 32, 1)],
+      [error(WarningCode.deprecatedExportUse, 32, 1)],
     );
   }
 
@@ -149,7 +149,7 @@ void f() {
   foo();
 }
 ''',
-      [error(WarningCode.DEPRECATED_EXPORT_USE, 31, 3)],
+      [error(WarningCode.deprecatedExportUse, 31, 3)],
     );
   }
 
@@ -173,7 +173,7 @@ void f() {
   prefix.foo();
 }
 ''',
-      [error(WarningCode.DEPRECATED_EXPORT_USE, 48, 3)],
+      [error(WarningCode.deprecatedExportUse, 48, 3)],
     );
   }
 
@@ -200,7 +200,7 @@ void f() {
   foo;
 }
 ''',
-      [error(WarningCode.DEPRECATED_EXPORT_USE, 31, 3)],
+      [error(WarningCode.deprecatedExportUse, 31, 3)],
     );
   }
 
@@ -227,7 +227,7 @@ void f() {
   prefix.foo;
 }
 ''',
-      [error(WarningCode.DEPRECATED_EXPORT_USE, 48, 3)],
+      [error(WarningCode.deprecatedExportUse, 48, 3)],
     );
   }
 
@@ -261,7 +261,7 @@ void f() {
   foo();
 }
 ''',
-      [error(WarningCode.DEPRECATED_EXPORT_USE, 31, 3)],
+      [error(WarningCode.deprecatedExportUse, 31, 3)],
     );
   }
 
@@ -288,7 +288,7 @@ void f() {
   foo = 0;
 }
 ''',
-      [error(WarningCode.DEPRECATED_EXPORT_USE, 31, 3)],
+      [error(WarningCode.deprecatedExportUse, 31, 3)],
     );
   }
 
@@ -315,7 +315,7 @@ void f() {
   prefix.foo = 0;
 }
 ''',
-      [error(WarningCode.DEPRECATED_EXPORT_USE, 48, 3)],
+      [error(WarningCode.deprecatedExportUse, 48, 3)],
     );
   }
 
@@ -339,7 +339,7 @@ void f() {
   foo;
 }
 ''',
-      [error(WarningCode.DEPRECATED_EXPORT_USE, 31, 3)],
+      [error(WarningCode.deprecatedExportUse, 31, 3)],
     );
   }
 

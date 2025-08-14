@@ -21,8 +21,8 @@ class ConstEvalTypeBoolTest extends PubPackageResolutionTest {
 const c = true && '';
 ''',
       [
-        error(CompileTimeErrorCode.CONST_EVAL_TYPE_BOOL, 10, 10),
-        error(CompileTimeErrorCode.NON_BOOL_OPERAND, 18, 2),
+        error(CompileTimeErrorCode.constEvalTypeBool, 10, 10),
+        error(CompileTimeErrorCode.nonBoolOperand, 18, 2),
       ],
     );
   }
@@ -33,8 +33,8 @@ const c = true && '';
 const c = (true || 0);
 ''',
       [
-        error(WarningCode.DEAD_CODE, 16, 4),
-        error(CompileTimeErrorCode.NON_BOOL_OPERAND, 19, 1),
+        error(WarningCode.deadCode, 16, 4),
+        error(CompileTimeErrorCode.nonBoolOperand, 19, 1),
       ],
     );
   }
@@ -45,8 +45,8 @@ const c = (true || 0);
 const c = false || '';
 ''',
       [
-        error(CompileTimeErrorCode.CONST_EVAL_TYPE_BOOL, 10, 11),
-        error(CompileTimeErrorCode.NON_BOOL_OPERAND, 19, 2),
+        error(CompileTimeErrorCode.constEvalTypeBool, 10, 11),
+        error(CompileTimeErrorCode.nonBoolOperand, 19, 2),
       ],
     );
   }
@@ -59,8 +59,8 @@ const c = false || '';
 const int i = (1 ? 'alpha' : 'beta').length;
 ''',
       [
-        error(CompileTimeErrorCode.NON_BOOL_CONDITION, 15, 1),
-        error(CompileTimeErrorCode.CONST_EVAL_TYPE_BOOL, 15, 1),
+        error(CompileTimeErrorCode.nonBoolCondition, 15, 1),
+        error(CompileTimeErrorCode.constEvalTypeBool, 15, 1),
       ],
     );
   }

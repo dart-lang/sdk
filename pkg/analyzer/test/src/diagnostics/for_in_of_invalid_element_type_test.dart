@@ -34,7 +34,7 @@ f(Stream<String> stream) async {
   }
 }
 ''',
-      [error(CompileTimeErrorCode.FOR_IN_OF_INVALID_ELEMENT_TYPE, 55, 6)],
+      [error(CompileTimeErrorCode.forInOfInvalidElementType, 55, 6)],
     );
   }
 
@@ -48,7 +48,7 @@ f(Stream<String> stream) async {
   }
 }
 ''',
-      [error(CompileTimeErrorCode.FOR_IN_OF_INVALID_ELEMENT_TYPE, 60, 6)],
+      [error(CompileTimeErrorCode.forInOfInvalidElementType, 60, 6)],
     );
   }
 
@@ -63,7 +63,7 @@ class Foo<T extends Iterable<int>> {
   }
 }
 ''',
-      [error(CompileTimeErrorCode.FOR_IN_OF_INVALID_ELEMENT_TYPE, 86, 8)],
+      [error(CompileTimeErrorCode.forInOfInvalidElementType, 86, 8)],
     );
   }
 
@@ -133,7 +133,7 @@ f() {
   }
 }
 ''',
-      [error(CompileTimeErrorCode.FOR_IN_OF_INVALID_ELEMENT_TYPE, 22, 10)],
+      [error(CompileTimeErrorCode.forInOfInvalidElementType, 22, 10)],
     );
   }
 
@@ -147,7 +147,7 @@ f() {
   }
 }
 ''',
-      [error(CompileTimeErrorCode.FOR_IN_OF_INVALID_ELEMENT_TYPE, 27, 10)],
+      [error(CompileTimeErrorCode.forInOfInvalidElementType, 27, 10)],
     );
   }
 
@@ -192,7 +192,7 @@ void foo(Iterable<C> iterable) {
   }
 }
 ''',
-      [error(CompileTimeErrorCode.FOR_IN_OF_INVALID_ELEMENT_TYPE, 106, 8)],
+      [error(CompileTimeErrorCode.forInOfInvalidElementType, 106, 8)],
     );
   }
 }

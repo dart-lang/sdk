@@ -24,7 +24,7 @@ final class C extends Struct {
   external Pointer<Int8> x;
 }
 ''',
-      [error(FfiCode.ANNOTATION_ON_POINTER_FIELD, 52, 9)],
+      [error(FfiCode.annotationOnPointerField, 52, 9)],
     );
   }
 
@@ -37,7 +37,7 @@ final class C extends Struct {
   external Pointer<Float> x;
 }
 ''',
-      [error(FfiCode.ANNOTATION_ON_POINTER_FIELD, 52, 8)],
+      [error(FfiCode.annotationOnPointerField, 52, 8)],
     );
   }
 }

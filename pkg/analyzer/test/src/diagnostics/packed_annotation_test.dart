@@ -27,7 +27,7 @@ final class C extends Struct {
   external Pointer<Uint8> notEmpty;
 }
 ''',
-      [error(FfiCode.PACKED_ANNOTATION, 31, 10)],
+      [error(FfiCode.packedAnnotation, 31, 10)],
     );
   }
 
@@ -43,9 +43,9 @@ final class C extends Struct {
 }
 ''',
       [
-        error(FfiCode.PACKED_ANNOTATION_ALIGNMENT, 20, 9),
+        error(FfiCode.packedAnnotationAlignment, 20, 9),
         error(
-          CompileTimeErrorCode.NOT_ENOUGH_POSITIONAL_ARGUMENTS_NAME_SINGULAR,
+          CompileTimeErrorCode.notEnoughPositionalArgumentsNameSingular,
           28,
           1,
         ),

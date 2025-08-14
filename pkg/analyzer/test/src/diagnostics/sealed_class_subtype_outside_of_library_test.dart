@@ -32,13 +32,7 @@ sealed class Foo {}
 import 'foo.dart';
 class Bar extends Foo {}
 ''',
-      [
-        error(
-          CompileTimeErrorCode.SEALED_CLASS_SUBTYPE_OUTSIDE_OF_LIBRARY,
-          37,
-          3,
-        ),
-      ],
+      [error(CompileTimeErrorCode.sealedClassSubtypeOutsideOfLibrary, 37, 3)],
     );
   }
 
@@ -53,13 +47,7 @@ typedef FooTypedef = Foo;
 import 'foo.dart';
 class Bar extends FooTypedef {}
 ''',
-      [
-        error(
-          CompileTimeErrorCode.SEALED_CLASS_SUBTYPE_OUTSIDE_OF_LIBRARY,
-          37,
-          10,
-        ),
-      ],
+      [error(CompileTimeErrorCode.sealedClassSubtypeOutsideOfLibrary, 37, 10)],
     );
   }
 
@@ -74,13 +62,7 @@ import 'foo.dart';
 typedef FooTypedef = Foo;
 class Bar extends FooTypedef {}
 ''',
-      [
-        error(
-          CompileTimeErrorCode.SEALED_CLASS_SUBTYPE_OUTSIDE_OF_LIBRARY,
-          63,
-          10,
-        ),
-      ],
+      [error(CompileTimeErrorCode.sealedClassSubtypeOutsideOfLibrary, 63, 10)],
     );
   }
 
@@ -113,13 +95,7 @@ sealed class Foo {}
 import 'foo.dart';
 class Bar implements Foo {}
 ''',
-      [
-        error(
-          CompileTimeErrorCode.SEALED_CLASS_SUBTYPE_OUTSIDE_OF_LIBRARY,
-          40,
-          3,
-        ),
-      ],
+      [error(CompileTimeErrorCode.sealedClassSubtypeOutsideOfLibrary, 40, 3)],
     );
   }
 
@@ -133,13 +109,7 @@ sealed class Foo {}
 import 'foo.dart';
 mixin Bar implements Foo {}
 ''',
-      [
-        error(
-          CompileTimeErrorCode.SEALED_CLASS_SUBTYPE_OUTSIDE_OF_LIBRARY,
-          40,
-          3,
-        ),
-      ],
+      [error(CompileTimeErrorCode.sealedClassSubtypeOutsideOfLibrary, 40, 3)],
     );
   }
 
@@ -154,13 +124,7 @@ typedef FooTypedef = Foo;
 import 'foo.dart';
 class Bar implements FooTypedef {}
 ''',
-      [
-        error(
-          CompileTimeErrorCode.SEALED_CLASS_SUBTYPE_OUTSIDE_OF_LIBRARY,
-          40,
-          10,
-        ),
-      ],
+      [error(CompileTimeErrorCode.sealedClassSubtypeOutsideOfLibrary, 40, 10)],
     );
   }
 
@@ -175,13 +139,7 @@ import 'foo.dart';
 typedef FooTypedef = Foo;
 class Bar implements FooTypedef {}
 ''',
-      [
-        error(
-          CompileTimeErrorCode.SEALED_CLASS_SUBTYPE_OUTSIDE_OF_LIBRARY,
-          66,
-          10,
-        ),
-      ],
+      [error(CompileTimeErrorCode.sealedClassSubtypeOutsideOfLibrary, 66, 10)],
     );
   }
 
@@ -208,13 +166,7 @@ sealed class B extends Foo {}
 import 'foo.dart';
 base class Bar extends B {}
 ''',
-      [
-        error(
-          CompileTimeErrorCode.SEALED_CLASS_SUBTYPE_OUTSIDE_OF_LIBRARY,
-          42,
-          1,
-        ),
-      ],
+      [error(CompileTimeErrorCode.sealedClassSubtypeOutsideOfLibrary, 42, 1)],
     );
   }
 
@@ -229,13 +181,7 @@ sealed class B extends Foo {}
 import 'foo.dart';
 final class Bar extends B {}
 ''',
-      [
-        error(
-          CompileTimeErrorCode.SEALED_CLASS_SUBTYPE_OUTSIDE_OF_LIBRARY,
-          43,
-          1,
-        ),
-      ],
+      [error(CompileTimeErrorCode.sealedClassSubtypeOutsideOfLibrary, 43, 1)],
     );
   }
 
@@ -250,13 +196,7 @@ sealed class B extends Foo {}
 import 'foo.dart';
 final class Bar implements B {}
 ''',
-      [
-        error(
-          CompileTimeErrorCode.SEALED_CLASS_SUBTYPE_OUTSIDE_OF_LIBRARY,
-          46,
-          1,
-        ),
-      ],
+      [error(CompileTimeErrorCode.sealedClassSubtypeOutsideOfLibrary, 46, 1)],
     );
   }
 
@@ -271,13 +211,7 @@ sealed class B extends Foo {}
 import 'foo.dart';
 class Bar extends B {}
 ''',
-      [
-        error(
-          CompileTimeErrorCode.SEALED_CLASS_SUBTYPE_OUTSIDE_OF_LIBRARY,
-          37,
-          1,
-        ),
-      ],
+      [error(CompileTimeErrorCode.sealedClassSubtypeOutsideOfLibrary, 37, 1)],
     );
   }
 
@@ -306,13 +240,7 @@ sealed class A {}
 import 'a.dart';
 mixin B on A {}
 ''',
-      [
-        error(
-          CompileTimeErrorCode.SEALED_CLASS_SUBTYPE_OUTSIDE_OF_LIBRARY,
-          28,
-          1,
-        ),
-      ],
+      [error(CompileTimeErrorCode.sealedClassSubtypeOutsideOfLibrary, 28, 1)],
     );
   }
 
@@ -328,16 +256,8 @@ import 'a.dart';
 mixin C on A, B {}
 ''',
       [
-        error(
-          CompileTimeErrorCode.SEALED_CLASS_SUBTYPE_OUTSIDE_OF_LIBRARY,
-          28,
-          1,
-        ),
-        error(
-          CompileTimeErrorCode.SEALED_CLASS_SUBTYPE_OUTSIDE_OF_LIBRARY,
-          31,
-          1,
-        ),
+        error(CompileTimeErrorCode.sealedClassSubtypeOutsideOfLibrary, 28, 1),
+        error(CompileTimeErrorCode.sealedClassSubtypeOutsideOfLibrary, 31, 1),
       ],
     );
   }

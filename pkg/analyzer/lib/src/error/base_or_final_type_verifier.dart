@@ -28,9 +28,9 @@ class BaseOrFinalTypeVerifier {
   /// final, or sealed and that base elements are not implemented outside of its
   /// library. Otherwise, an error is reported on that element.
   ///
-  /// See [CompileTimeErrorCode.SUBTYPE_OF_BASE_IS_NOT_BASE_FINAL_OR_SEALED],
-  /// [CompileTimeErrorCode.SUBTYPE_OF_FINAL_IS_NOT_BASE_FINAL_OR_SEALED],
-  /// [CompileTimeErrorCode.BASE_CLASS_IMPLEMENTED_OUTSIDE_OF_LIBRARY].
+  /// See [CompileTimeErrorCode.subtypeOfBaseIsNotBaseFinalOrSealed],
+  /// [CompileTimeErrorCode.subtypeOfFinalIsNotBaseFinalOrSealed],
+  /// [CompileTimeErrorCode.baseClassImplementedOutsideOfLibrary].
   void checkElement(
     InterfaceElementImpl element,
     ImplementsClause? implementsClause,
@@ -239,9 +239,8 @@ class BaseOrFinalTypeVerifier {
       if (baseOrFinalSuperElement.isBase) {
         var errorCode =
             baseOrFinalSuperElement is MixinElement
-                ? CompileTimeErrorCode.BASE_MIXIN_IMPLEMENTED_OUTSIDE_OF_LIBRARY
-                : CompileTimeErrorCode
-                    .BASE_CLASS_IMPLEMENTED_OUTSIDE_OF_LIBRARY;
+                ? CompileTimeErrorCode.baseMixinImplementedOutsideOfLibrary
+                : CompileTimeErrorCode.baseClassImplementedOutsideOfLibrary;
         _diagnosticReporter.atNode(
           implementsNamedType,
           errorCode,
@@ -276,9 +275,8 @@ class BaseOrFinalTypeVerifier {
         }
         var errorCode =
             element is MixinElement
-                ? CompileTimeErrorCode.MIXIN_SUBTYPE_OF_FINAL_IS_NOT_BASE
-                : CompileTimeErrorCode
-                    .SUBTYPE_OF_FINAL_IS_NOT_BASE_FINAL_OR_SEALED;
+                ? CompileTimeErrorCode.mixinSubtypeOfFinalIsNotBase
+                : CompileTimeErrorCode.subtypeOfFinalIsNotBaseFinalOrSealed;
         _diagnosticReporter.atElement2(
           element,
           errorCode,
@@ -289,9 +287,8 @@ class BaseOrFinalTypeVerifier {
       } else if (baseOrFinalSuperElement.isBase) {
         var errorCode =
             element is MixinElement
-                ? CompileTimeErrorCode.MIXIN_SUBTYPE_OF_BASE_IS_NOT_BASE
-                : CompileTimeErrorCode
-                    .SUBTYPE_OF_BASE_IS_NOT_BASE_FINAL_OR_SEALED;
+                ? CompileTimeErrorCode.mixinSubtypeOfBaseIsNotBase
+                : CompileTimeErrorCode.subtypeOfBaseIsNotBaseFinalOrSealed;
         _diagnosticReporter.atElement2(
           element,
           errorCode,

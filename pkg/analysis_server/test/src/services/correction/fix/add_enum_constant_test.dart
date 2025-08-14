@@ -300,7 +300,7 @@ void f() {
 }
 ''',
       errorFilter: (e) {
-        return e.diagnosticCode == CompileTimeErrorCode.UNDEFINED_ENUM_CONSTANT;
+        return e.diagnosticCode == CompileTimeErrorCode.undefinedEnumConstant;
       },
     );
   }
@@ -323,7 +323,7 @@ E e() {
 ''',
       errorFilter: (e) {
         return e.diagnosticCode ==
-            CompileTimeErrorCode.DOT_SHORTHAND_UNDEFINED_GETTER;
+            CompileTimeErrorCode.dotShorthandUndefinedGetter;
       },
     );
   }

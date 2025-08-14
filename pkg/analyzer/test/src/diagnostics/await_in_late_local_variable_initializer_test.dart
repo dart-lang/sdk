@@ -16,7 +16,7 @@ main() {
 @reflectiveTest
 class AwaitInLateLocalVariableInitializerTest extends PubPackageResolutionTest {
   static const _errorCode =
-      CompileTimeErrorCode.AWAIT_IN_LATE_LOCAL_VARIABLE_INITIALIZER;
+      CompileTimeErrorCode.awaitInLateLocalVariableInitializer;
 
   test_closure_late_await() async {
     await assertErrorsInCode(

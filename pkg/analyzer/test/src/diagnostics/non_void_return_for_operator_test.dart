@@ -21,7 +21,7 @@ class NonVoidReturnForOperatorTest extends PubPackageResolutionTest {
 class A {
   int operator []=(a, b) { return a; }
 }''',
-      [error(CompileTimeErrorCode.NON_VOID_RETURN_FOR_OPERATOR, 12, 3)],
+      [error(CompileTimeErrorCode.nonVoidReturnForOperator, 12, 3)],
     );
   }
 

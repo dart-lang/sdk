@@ -25,7 +25,7 @@ main() {
   v;
 }
 ''',
-      [error(CompileTimeErrorCode.LATE_FINAL_LOCAL_ALREADY_ASSIGNED, 40, 1)],
+      [error(CompileTimeErrorCode.lateFinalLocalAlreadyAssigned, 40, 1)],
     );
   }
 
@@ -39,7 +39,7 @@ main() {
   v;
 }
 ''',
-      [error(CompileTimeErrorCode.LATE_FINAL_LOCAL_ALREADY_ASSIGNED, 40, 1)],
+      [error(CompileTimeErrorCode.lateFinalLocalAlreadyAssigned, 40, 1)],
     );
   }
 
@@ -52,7 +52,7 @@ main() {
   v;
 }
 ''',
-      [error(CompileTimeErrorCode.LATE_FINAL_LOCAL_ALREADY_ASSIGNED, 35, 1)],
+      [error(CompileTimeErrorCode.lateFinalLocalAlreadyAssigned, 35, 1)],
     );
   }
 
@@ -76,7 +76,7 @@ f() {
   }
 }
 ''',
-      [error(CompileTimeErrorCode.LATE_FINAL_LOCAL_ALREADY_ASSIGNED, 33, 1)],
+      [error(CompileTimeErrorCode.lateFinalLocalAlreadyAssigned, 33, 1)],
     );
   }
 
@@ -89,7 +89,7 @@ main() {
   v;
 }
 ''',
-      [error(CompileTimeErrorCode.LATE_FINAL_LOCAL_ALREADY_ASSIGNED, 35, 1)],
+      [error(CompileTimeErrorCode.lateFinalLocalAlreadyAssigned, 35, 1)],
     );
   }
 
@@ -102,7 +102,7 @@ main() {
   v;
 }
 ''',
-      [error(StaticWarningCode.UNNECESSARY_NON_NULL_ASSERTION, 36, 1)],
+      [error(StaticWarningCode.unnecessaryNonNullAssertion, 36, 1)],
     );
   }
 
@@ -115,7 +115,7 @@ main() {
   v;
 }
 ''',
-      [error(CompileTimeErrorCode.LATE_FINAL_LOCAL_ALREADY_ASSIGNED, 37, 1)],
+      [error(CompileTimeErrorCode.lateFinalLocalAlreadyAssigned, 37, 1)],
     );
   }
 

@@ -30,10 +30,7 @@ class PartOfDirectivesTest extends PartialCodeTest {
       TestDescriptor(
         'keyword',
         'part of',
-        [
-          ParserErrorCode.EXPECTED_STRING_LITERAL,
-          ParserErrorCode.EXPECTED_TOKEN,
-        ],
+        [ParserErrorCode.expectedStringLiteral, ParserErrorCode.expectedToken],
         'part of "";',
         failing: ['mixin'],
       ),
@@ -44,7 +41,7 @@ class PartOfDirectivesTest extends PartialCodeTest {
         TestDescriptor(
           'keyword',
           'part of',
-          [ParserErrorCode.MISSING_IDENTIFIER, ParserErrorCode.EXPECTED_TOKEN],
+          [ParserErrorCode.missingIdentifier, ParserErrorCode.expectedToken],
           'part of _s_;',
           failing: ['functionNonVoid', 'getter'],
         ),
@@ -56,25 +53,25 @@ class PartOfDirectivesTest extends PartialCodeTest {
       TestDescriptor(
         'name',
         'part of lib',
-        [ParserErrorCode.EXPECTED_TOKEN],
+        [ParserErrorCode.expectedToken],
         'library lib;',
         allFailing: true,
       ),
       TestDescriptor(
         'nameDot',
         'part of lib.',
-        [ParserErrorCode.MISSING_IDENTIFIER, ParserErrorCode.EXPECTED_TOKEN],
+        [ParserErrorCode.missingIdentifier, ParserErrorCode.expectedToken],
         'part of lib._s_;',
         failing: ['functionNonVoid', 'getter'],
       ),
       TestDescriptor('nameDotName', 'part of lib.a', [
-        ParserErrorCode.EXPECTED_TOKEN,
+        ParserErrorCode.expectedToken,
       ], 'part of lib.a;'),
       TestDescriptor('emptyUri', "part of ''", [
-        ParserErrorCode.EXPECTED_TOKEN,
+        ParserErrorCode.expectedToken,
       ], "part of '';"),
       TestDescriptor('uri', "part of 'a.dart'", [
-        ParserErrorCode.EXPECTED_TOKEN,
+        ParserErrorCode.expectedToken,
       ], "part of 'a.dart';"),
     ], PartialCodeTest.declarationSuffixes);
   }

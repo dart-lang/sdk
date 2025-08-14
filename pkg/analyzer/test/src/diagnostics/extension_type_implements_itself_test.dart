@@ -22,8 +22,8 @@ extension type A(int it) implements B {}
 extension type B(int it) implements A {}
 ''',
       [
-        error(CompileTimeErrorCode.EXTENSION_TYPE_IMPLEMENTS_ITSELF, 15, 1),
-        error(CompileTimeErrorCode.EXTENSION_TYPE_IMPLEMENTS_ITSELF, 56, 1),
+        error(CompileTimeErrorCode.extensionTypeImplementsItself, 15, 1),
+        error(CompileTimeErrorCode.extensionTypeImplementsItself, 56, 1),
       ],
     );
   }
@@ -33,7 +33,7 @@ extension type B(int it) implements A {}
       '''
 extension type A(int it) implements A {}
 ''',
-      [error(CompileTimeErrorCode.EXTENSION_TYPE_IMPLEMENTS_ITSELF, 15, 1)],
+      [error(CompileTimeErrorCode.extensionTypeImplementsItself, 15, 1)],
     );
   }
 }

@@ -28,7 +28,7 @@ extension E on Type {
   set foo(int value) {}
 }
 ''',
-      [error(CompileTimeErrorCode.UNDEFINED_SETTER_ON_FUNCTION_TYPE, 58, 3)],
+      [error(CompileTimeErrorCode.undefinedSetterOnFunctionType, 58, 3)],
     );
   }
 
@@ -66,7 +66,7 @@ f(T e1) { e1.m = 0; }
 ''',
       [
         error(
-          CompileTimeErrorCode.UNDEFINED_SETTER,
+          CompileTimeErrorCode.undefinedSetter,
           24,
           1,
           messageContains: ["the type 'T'"],
@@ -82,7 +82,7 @@ mixin M {
   f() { this.m = 0; }
 }
 ''',
-      [error(CompileTimeErrorCode.UNDEFINED_SETTER, 23, 1)],
+      [error(CompileTimeErrorCode.undefinedSetter, 23, 1)],
     );
   }
 
@@ -99,7 +99,7 @@ f(var a) {
   }
 }
 ''',
-      [error(CompileTimeErrorCode.UNDEFINED_SETTER, 80, 1)],
+      [error(CompileTimeErrorCode.undefinedSetter, 80, 1)],
     );
   }
 
@@ -113,7 +113,7 @@ f(var a) {
   }
 }
 ''',
-      [error(CompileTimeErrorCode.UNDEFINED_SETTER, 43, 1)],
+      [error(CompileTimeErrorCode.undefinedSetter, 43, 1)],
     );
   }
 
@@ -126,7 +126,7 @@ f(C? c) {
   c..new = 1;
 }
 ''',
-      [error(CompileTimeErrorCode.UNDEFINED_SETTER, 27, 3)],
+      [error(CompileTimeErrorCode.undefinedSetter, 27, 3)],
     );
   }
 
@@ -137,7 +137,7 @@ f(dynamic d) {
   d.new = 1;
 }
 ''',
-      [error(CompileTimeErrorCode.UNDEFINED_SETTER, 19, 3)],
+      [error(CompileTimeErrorCode.undefinedSetter, 19, 3)],
     );
   }
 
@@ -150,7 +150,7 @@ f(C c) {
   c.new = 1;
 }
 ''',
-      [error(CompileTimeErrorCode.UNDEFINED_SETTER, 25, 3)],
+      [error(CompileTimeErrorCode.undefinedSetter, 25, 3)],
     );
   }
 
@@ -163,7 +163,7 @@ f() {
   C.new = 1;
 }
 ''',
-      [error(CompileTimeErrorCode.UNDEFINED_SETTER, 22, 3)],
+      [error(CompileTimeErrorCode.undefinedSetter, 22, 3)],
     );
   }
 
@@ -176,7 +176,7 @@ f(C? c) {
   c?.new = 1;
 }
 ''',
-      [error(CompileTimeErrorCode.UNDEFINED_SETTER, 27, 3)],
+      [error(CompileTimeErrorCode.undefinedSetter, 27, 3)],
     );
   }
 
@@ -187,7 +187,7 @@ f<T>(T t) {
   t.new = 1;
 }
 ''',
-      [error(CompileTimeErrorCode.UNDEFINED_SETTER, 16, 3)],
+      [error(CompileTimeErrorCode.undefinedSetter, 16, 3)],
     );
   }
 
@@ -232,7 +232,7 @@ class A {
 }
 f() { A?.x = 1; }
 ''',
-      [error(StaticWarningCode.INVALID_NULL_AWARE_OPERATOR, 35, 2)],
+      [error(StaticWarningCode.invalidNullAwareOperator, 35, 2)],
     );
   }
 
@@ -248,7 +248,7 @@ f(var p) {
 }''',
       [
         error(
-          CompileTimeErrorCode.UNDEFINED_SETTER,
+          CompileTimeErrorCode.undefinedSetter,
           75,
           1,
           messageContains: ["type 'C'"],
@@ -270,7 +270,7 @@ f(C c) {
   c.a = 2;
 }
 ''',
-      [error(CompileTimeErrorCode.UNDEFINED_SETTER, 72, 1)],
+      [error(CompileTimeErrorCode.undefinedSetter, 72, 1)],
     );
 
     assertResolvedNodeText(findNode.assignment('a ='), r'''
@@ -307,7 +307,7 @@ AssignmentExpression
 class A {}
 f() { A.B = 0;}
 ''',
-      [error(CompileTimeErrorCode.UNDEFINED_SETTER, 19, 1)],
+      [error(CompileTimeErrorCode.undefinedSetter, 19, 1)],
     );
   }
 
@@ -321,7 +321,7 @@ main() {
   T..foo = 42;
 }
 ''',
-      [error(CompileTimeErrorCode.UNDEFINED_SETTER, 54, 3)],
+      [error(CompileTimeErrorCode.undefinedSetter, 54, 3)],
     );
   }
 
@@ -336,7 +336,7 @@ f(C c) {
   c.a = 1;
 }
 ''',
-      [error(CompileTimeErrorCode.UNDEFINED_SETTER, 46, 1)],
+      [error(CompileTimeErrorCode.undefinedSetter, 46, 1)],
     );
   }
 }

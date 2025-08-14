@@ -605,7 +605,7 @@ class GenericFunctionInferenceTest extends AbstractTypeSystemTest {
     if (expectError) {
       expect(
         listener.diagnostics.map((e) => e.diagnosticCode).toList(),
-        [CompileTimeErrorCode.COULD_NOT_INFER],
+        [CompileTimeErrorCode.couldNotInfer],
         reason: 'expected exactly 1 could not infer error.',
       );
     } else {

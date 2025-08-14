@@ -53,8 +53,8 @@ late A a;
 late B b;
 ''',
       [
-        error(CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE, 6, 1),
-        error(CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE, 27, 1),
+        error(CompileTimeErrorCode.recursiveInterfaceInheritance, 6, 1),
+        error(CompileTimeErrorCode.recursiveInterfaceInheritance, 27, 1),
       ],
     );
     var aType = findElement2.topVar('a').type;
@@ -82,11 +82,11 @@ late A a;
 late B b;
 ''',
       [
-        error(CompileTimeErrorCode.CONFLICTING_GENERIC_INTERFACES, 99, 1),
-        error(CompileTimeErrorCode.CONFLICTING_GENERIC_INTERFACES, 99, 1),
-        error(CompileTimeErrorCode.IMPLEMENTS_SUPER_CLASS, 133, 12),
-        error(CompileTimeErrorCode.CONFLICTING_GENERIC_INTERFACES, 195, 1),
-        error(CompileTimeErrorCode.IMPLEMENTS_SUPER_CLASS, 228, 11),
+        error(CompileTimeErrorCode.conflictingGenericInterfaces, 99, 1),
+        error(CompileTimeErrorCode.conflictingGenericInterfaces, 99, 1),
+        error(CompileTimeErrorCode.implementsSuperClass, 133, 12),
+        error(CompileTimeErrorCode.conflictingGenericInterfaces, 195, 1),
+        error(CompileTimeErrorCode.implementsSuperClass, 228, 11),
       ],
     );
     InterfaceType intType = typeProvider.intType;
@@ -112,10 +112,10 @@ late A a;
 late B b;
 ''',
       [
-        error(CompileTimeErrorCode.CONFLICTING_GENERIC_INTERFACES, 15, 1),
-        error(CompileTimeErrorCode.IMPLEMENTS_SUPER_CLASS, 48, 11),
-        error(CompileTimeErrorCode.CONFLICTING_GENERIC_INTERFACES, 109, 1),
-        error(CompileTimeErrorCode.IMPLEMENTS_SUPER_CLASS, 142, 11),
+        error(CompileTimeErrorCode.conflictingGenericInterfaces, 15, 1),
+        error(CompileTimeErrorCode.implementsSuperClass, 48, 11),
+        error(CompileTimeErrorCode.conflictingGenericInterfaces, 109, 1),
+        error(CompileTimeErrorCode.implementsSuperClass, 142, 11),
       ],
     );
     InterfaceType intType = typeProvider.intType;
@@ -163,16 +163,16 @@ late A a;
 late B b;
 ''',
       [
-        error(CompileTimeErrorCode.INCONSISTENT_INHERITANCE, 15, 1),
-        error(CompileTimeErrorCode.INCONSISTENT_INHERITANCE, 15, 1),
-        error(CompileTimeErrorCode.INCONSISTENT_INHERITANCE, 15, 1),
-        error(CompileTimeErrorCode.CONFLICTING_GENERIC_INTERFACES, 15, 1),
-        error(CompileTimeErrorCode.IMPLEMENTS_SUPER_CLASS, 48, 14),
-        error(CompileTimeErrorCode.INCONSISTENT_INHERITANCE, 112, 1),
-        error(CompileTimeErrorCode.INCONSISTENT_INHERITANCE, 112, 1),
-        error(CompileTimeErrorCode.CONFLICTING_GENERIC_INTERFACES, 112, 1),
-        error(CompileTimeErrorCode.INCONSISTENT_INHERITANCE, 112, 1),
-        error(CompileTimeErrorCode.IMPLEMENTS_SUPER_CLASS, 148, 11),
+        error(CompileTimeErrorCode.inconsistentInheritance, 15, 1),
+        error(CompileTimeErrorCode.inconsistentInheritance, 15, 1),
+        error(CompileTimeErrorCode.inconsistentInheritance, 15, 1),
+        error(CompileTimeErrorCode.conflictingGenericInterfaces, 15, 1),
+        error(CompileTimeErrorCode.implementsSuperClass, 48, 14),
+        error(CompileTimeErrorCode.inconsistentInheritance, 112, 1),
+        error(CompileTimeErrorCode.inconsistentInheritance, 112, 1),
+        error(CompileTimeErrorCode.conflictingGenericInterfaces, 112, 1),
+        error(CompileTimeErrorCode.inconsistentInheritance, 112, 1),
+        error(CompileTimeErrorCode.implementsSuperClass, 148, 11),
       ],
     );
     var aType = findElement2.topVar('a').type;

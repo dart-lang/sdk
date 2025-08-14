@@ -22,7 +22,7 @@ class A {
   external final int x = 0;
 }
 ''',
-      [error(CompileTimeErrorCode.EXTERNAL_FIELD_INITIALIZER, 31, 1)],
+      [error(CompileTimeErrorCode.externalFieldInitializer, 31, 1)],
     );
   }
 
@@ -41,7 +41,7 @@ class A {
   external int x = 0;
 }
 ''',
-      [error(CompileTimeErrorCode.EXTERNAL_FIELD_INITIALIZER, 25, 1)],
+      [error(CompileTimeErrorCode.externalFieldInitializer, 25, 1)],
     );
   }
 
@@ -60,7 +60,7 @@ class A {
   external static final int x = 0;
 }
 ''',
-      [error(CompileTimeErrorCode.EXTERNAL_FIELD_INITIALIZER, 38, 1)],
+      [error(CompileTimeErrorCode.externalFieldInitializer, 38, 1)],
     );
   }
 
@@ -79,7 +79,7 @@ class A {
   external static int x = 0;
 }
 ''',
-      [error(CompileTimeErrorCode.EXTERNAL_FIELD_INITIALIZER, 32, 1)],
+      [error(CompileTimeErrorCode.externalFieldInitializer, 32, 1)],
     );
   }
 

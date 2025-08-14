@@ -76,7 +76,7 @@ class LinterRuleOptionsValidator extends OptionsValidator {
       if (rule == null) {
         reporter.atSourceSpan(
           node.span,
-          AnalysisOptionsWarningCode.UNDEFINED_LINT,
+          AnalysisOptionsWarningCode.undefinedLint,
           arguments: [value],
         );
         return;
@@ -87,13 +87,13 @@ class LinterRuleOptionsValidator extends OptionsValidator {
         if (incompatibleRule != null) {
           reporter.atSourceSpan(
             node.span,
-            AnalysisOptionsWarningCode.INCOMPATIBLE_LINT,
+            AnalysisOptionsWarningCode.incompatibleLint,
             arguments: [value, incompatibleRule],
           );
         } else if (!seenRules.add(rule.name)) {
           reporter.atSourceSpan(
             node.span,
-            AnalysisOptionsWarningCode.DUPLICATE_RULE,
+            AnalysisOptionsWarningCode.duplicateRule,
             arguments: [value],
           );
         }
@@ -107,13 +107,13 @@ class LinterRuleOptionsValidator extends OptionsValidator {
           if (replacedBy != null) {
             reporter.atSourceSpan(
               node.span,
-              AnalysisOptionsWarningCode.DEPRECATED_LINT_WITH_REPLACEMENT,
+              AnalysisOptionsWarningCode.deprecatedLintWithReplacement,
               arguments: [value, replacedBy],
             );
           } else {
             reporter.atSourceSpan(
               node.span,
-              AnalysisOptionsWarningCode.DEPRECATED_LINT,
+              AnalysisOptionsWarningCode.deprecatedLint,
               arguments: [value],
             );
           }
@@ -123,13 +123,13 @@ class LinterRuleOptionsValidator extends OptionsValidator {
           if (replacedBy != null) {
             reporter.atSourceSpan(
               node.span,
-              AnalysisOptionsWarningCode.REPLACED_LINT,
+              AnalysisOptionsWarningCode.replacedLint,
               arguments: [value, since, replacedBy],
             );
           } else {
             reporter.atSourceSpan(
               node.span,
-              AnalysisOptionsWarningCode.REMOVED_LINT,
+              AnalysisOptionsWarningCode.removedLint,
               arguments: [value, since],
             );
           }

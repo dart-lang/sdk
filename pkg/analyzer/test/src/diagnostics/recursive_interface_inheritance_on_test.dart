@@ -20,7 +20,7 @@ class RecursiveInterfaceInheritanceOnTest extends PubPackageResolutionTest {
       r'''
 mixin A on A {}
 ''',
-      [error(CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE_ON, 6, 1)],
+      [error(CompileTimeErrorCode.recursiveInterfaceInheritanceOn, 6, 1)],
     );
   }
 
@@ -31,7 +31,7 @@ mixin A on A {}
 mixin A {}
 augment mixin A on A {}
 ''',
-      [error(CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE_ON, 6, 1)],
+      [error(CompileTimeErrorCode.recursiveInterfaceInheritanceOn, 6, 1)],
     );
   }
 
@@ -42,8 +42,8 @@ mixin A on B {}
 mixin B on A {}
 ''',
       [
-        error(CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE, 6, 1),
-        error(CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE, 22, 1),
+        error(CompileTimeErrorCode.recursiveInterfaceInheritance, 6, 1),
+        error(CompileTimeErrorCode.recursiveInterfaceInheritance, 22, 1),
       ],
     );
   }

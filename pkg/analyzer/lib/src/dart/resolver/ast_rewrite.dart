@@ -435,7 +435,7 @@ class AstRewriter {
     if (typeArguments != null) {
       _diagnosticReporter.atNode(
         typeArguments,
-        CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_CONSTRUCTOR,
+        CompileTimeErrorCode.wrongNumberOfTypeArgumentsConstructor,
         arguments: [typeNameIdentifier.toString(), constructorIdentifier.name],
       );
     }
@@ -602,7 +602,7 @@ class AstRewriter {
     if (typeArguments != null) {
       _diagnosticReporter.atNode(
         typeArguments,
-        CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_CONSTRUCTOR,
+        CompileTimeErrorCode.wrongNumberOfTypeArgumentsConstructor,
         arguments: [typeIdentifier.name, constructorIdentifier.name],
       );
     }

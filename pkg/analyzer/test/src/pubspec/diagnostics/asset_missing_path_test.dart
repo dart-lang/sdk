@@ -36,7 +36,7 @@ flutter:
     - flavors:
         - premium
 ''',
-      [PubspecWarningCode.ASSET_MISSING_PATH],
+      [PubspecWarningCode.assetMissingPath],
     );
   }
 }

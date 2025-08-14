@@ -41,8 +41,7 @@ abstract class X extends B with M {}
 ''',
       [
         error(
-          CompileTimeErrorCode
-              .MIXIN_APPLICATION_CONCRETE_SUPER_INVOKED_MEMBER_TYPE,
+          CompileTimeErrorCode.mixinApplicationConcreteSuperInvokedMemberType,
           227,
           1,
         ),
@@ -92,8 +91,7 @@ enum E with M1, M2, M3 {
 ''',
       [
         error(
-          CompileTimeErrorCode
-              .MIXIN_APPLICATION_CONCRETE_SUPER_INVOKED_MEMBER_TYPE,
+          CompileTimeErrorCode.mixinApplicationConcreteSuperInvokedMemberType,
           183,
           2,
         ),

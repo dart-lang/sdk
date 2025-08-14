@@ -32,13 +32,7 @@ final class Foo {}
 import 'foo.dart';
 final class Bar extends Foo {}
 ''',
-      [
-        error(
-          CompileTimeErrorCode.FINAL_CLASS_EXTENDED_OUTSIDE_OF_LIBRARY,
-          43,
-          3,
-        ),
-      ],
+      [error(CompileTimeErrorCode.finalClassExtendedOutsideOfLibrary, 43, 3)],
     );
   }
 
@@ -77,13 +71,7 @@ typedef FooTypedef = Foo;
 import 'foo.dart';
 final class Bar extends FooTypedef {}
 ''',
-      [
-        error(
-          CompileTimeErrorCode.FINAL_CLASS_EXTENDED_OUTSIDE_OF_LIBRARY,
-          43,
-          10,
-        ),
-      ],
+      [error(CompileTimeErrorCode.finalClassExtendedOutsideOfLibrary, 43, 10)],
     );
   }
 
@@ -98,13 +86,7 @@ import 'foo.dart';
 typedef FooTypedef = Foo;
 final class Bar extends FooTypedef {}
 ''',
-      [
-        error(
-          CompileTimeErrorCode.FINAL_CLASS_EXTENDED_OUTSIDE_OF_LIBRARY,
-          69,
-          10,
-        ),
-      ],
+      [error(CompileTimeErrorCode.finalClassExtendedOutsideOfLibrary, 69, 10)],
     );
   }
 }

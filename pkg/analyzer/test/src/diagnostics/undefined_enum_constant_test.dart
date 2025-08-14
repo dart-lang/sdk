@@ -32,7 +32,7 @@ E e() {
   return E.TWO;
 }
 ''',
-      [error(CompileTimeErrorCode.UNDEFINED_ENUM_CONSTANT, 34, 3)],
+      [error(CompileTimeErrorCode.undefinedEnumConstant, 34, 3)],
     );
   }
 }

@@ -35,7 +35,7 @@ void f() {}
 // @dart = 2.9
 int a = 0;
 ''',
-      [error(CompileTimeErrorCode.ILLEGAL_LANGUAGE_VERSION_OVERRIDE, 0, 14)],
+      [error(CompileTimeErrorCode.illegalLanguageVersionOverride, 0, 14)],
     );
   }
 

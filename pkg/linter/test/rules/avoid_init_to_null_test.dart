@@ -129,7 +129,7 @@ class X {
 ''',
       [
         // No lint
-        error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 20, 4),
+        error(CompileTimeErrorCode.invalidAssignment, 20, 4),
       ],
     );
   }
@@ -143,7 +143,7 @@ class X {
 ''',
       [
         // No lint
-        error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 23, 4),
+        error(CompileTimeErrorCode.invalidAssignment, 23, 4),
       ],
     );
   }
@@ -158,7 +158,7 @@ class X {
 ''',
       [
         // No lint
-        error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 33, 4),
+        error(CompileTimeErrorCode.invalidAssignment, 33, 4),
       ],
     );
   }
@@ -170,7 +170,7 @@ int i = null;
 ''',
       [
         // No lint
-        error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 8, 4),
+        error(CompileTimeErrorCode.invalidAssignment, 8, 4),
       ],
     );
   }

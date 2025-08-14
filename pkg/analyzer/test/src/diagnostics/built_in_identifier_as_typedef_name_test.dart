@@ -23,7 +23,7 @@ class A {}
 mixin B {}
 class as = A with B;
 ''',
-      [error(CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_TYPEDEF_NAME, 28, 2)],
+      [error(CompileTimeErrorCode.builtInIdentifierAsTypedefName, 28, 2)],
     );
   }
 
@@ -33,8 +33,8 @@ class as = A with B;
 typedef void as();
 ''',
       [
-        error(ParserErrorCode.EXPECTED_IDENTIFIER_BUT_GOT_KEYWORD, 13, 2),
-        error(CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_TYPEDEF_NAME, 13, 2),
+        error(ParserErrorCode.expectedIdentifierButGotKeyword, 13, 2),
+        error(CompileTimeErrorCode.builtInIdentifierAsTypedefName, 13, 2),
       ],
     );
   }
@@ -45,8 +45,8 @@ typedef void as();
 typedef void as();
 ''',
       [
-        error(ParserErrorCode.EXPECTED_IDENTIFIER_BUT_GOT_KEYWORD, 13, 2),
-        error(CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_TYPEDEF_NAME, 13, 2),
+        error(ParserErrorCode.expectedIdentifierButGotKeyword, 13, 2),
+        error(CompileTimeErrorCode.builtInIdentifierAsTypedefName, 13, 2),
       ],
     );
   }
@@ -57,8 +57,8 @@ typedef void as();
 typedef as = void Function();
 ''',
       [
-        error(CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_TYPEDEF_NAME, 8, 2),
-        error(ParserErrorCode.EXPECTED_IDENTIFIER_BUT_GOT_KEYWORD, 8, 2),
+        error(CompileTimeErrorCode.builtInIdentifierAsTypedefName, 8, 2),
+        error(ParserErrorCode.expectedIdentifierButGotKeyword, 8, 2),
       ],
     );
   }
@@ -69,8 +69,8 @@ typedef as = void Function();
 typedef as = List<int>;
 ''',
       [
-        error(CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_TYPEDEF_NAME, 8, 2),
-        error(ParserErrorCode.EXPECTED_IDENTIFIER_BUT_GOT_KEYWORD, 8, 2),
+        error(CompileTimeErrorCode.builtInIdentifierAsTypedefName, 8, 2),
+        error(ParserErrorCode.expectedIdentifierButGotKeyword, 8, 2),
       ],
     );
   }
@@ -81,8 +81,8 @@ typedef as = List<int>;
 typedef Function = List<int>;
 ''',
       [
-        error(CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_TYPEDEF_NAME, 8, 8),
-        error(ParserErrorCode.EXPECTED_IDENTIFIER_BUT_GOT_KEYWORD, 8, 8),
+        error(CompileTimeErrorCode.builtInIdentifierAsTypedefName, 8, 8),
+        error(ParserErrorCode.expectedIdentifierButGotKeyword, 8, 8),
       ],
     );
   }

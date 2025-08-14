@@ -134,7 +134,7 @@ void f(int a) {
   }
 }
 ''',
-      [error(WarningCode.PATTERN_NEVER_MATCHES_VALUE_TYPE, 49, 4)],
+      [error(WarningCode.patternNeverMatchesValueType, 49, 4)],
     );
   }
 

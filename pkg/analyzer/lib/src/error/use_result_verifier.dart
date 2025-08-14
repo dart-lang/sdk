@@ -110,13 +110,13 @@ class UseResultVerifier {
     if (message == null || message.isEmpty) {
       _diagnosticReporter.atNode(
         toAnnotate,
-        WarningCode.UNUSED_RESULT,
+        WarningCode.unusedResult,
         arguments: [displayName],
       );
     } else {
       _diagnosticReporter.atNode(
         toAnnotate,
-        WarningCode.UNUSED_RESULT_WITH_MESSAGE,
+        WarningCode.unusedResultWithMessage,
         arguments: [displayName, message],
       );
     }

@@ -19,7 +19,7 @@ class PartOfDirectiveParserTest extends ParserDiagnosticsTest {
     var parseResult = parseStringWithErrors(r'''
 part of my.library;
 ''');
-    parseResult.assertErrors([error(ParserErrorCode.PART_OF_NAME, 8, 10)]);
+    parseResult.assertErrors([error(ParserErrorCode.partOfName, 8, 10)]);
 
     var node = parseResult.findNode.singlePartOfDirective;
     assertParsedNodeText(node, r'''

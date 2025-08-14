@@ -40,7 +40,7 @@ class YieldStatementResolver {
   /// it returns 'void'. Or, in rare cases, when other types of expressions are
   /// void, such as identifiers.
   ///
-  /// See [CompileTimeErrorCode.USE_OF_VOID_RESULT].
+  /// See [CompileTimeErrorCode.useOfVoidResult].
   ///
   // TODO(scheglov): This is duplicate
   // TODO(scheglov): Also in [BoolExpressionVerifier]
@@ -52,12 +52,12 @@ class YieldStatementResolver {
     if (expression is MethodInvocation) {
       _diagnosticReporter.atNode(
         expression.methodName,
-        CompileTimeErrorCode.USE_OF_VOID_RESULT,
+        CompileTimeErrorCode.useOfVoidResult,
       );
     } else {
       _diagnosticReporter.atNode(
         expression,
-        CompileTimeErrorCode.USE_OF_VOID_RESULT,
+        CompileTimeErrorCode.useOfVoidResult,
       );
     }
 
@@ -95,7 +95,7 @@ class YieldStatementResolver {
         )) {
           _diagnosticReporter.atNode(
             expression,
-            CompileTimeErrorCode.YIELD_EACH_OF_INVALID_TYPE,
+            CompileTimeErrorCode.yieldEachOfInvalidType,
             arguments: [impliedReturnType, imposedReturnType],
           );
           return;
@@ -115,7 +115,7 @@ class YieldStatementResolver {
           )) {
             _diagnosticReporter.atNode(
               expression,
-              CompileTimeErrorCode.YIELD_OF_INVALID_TYPE,
+              CompileTimeErrorCode.yieldOfInvalidType,
               arguments: [expressionType, imposedValueType],
             );
             return;
@@ -142,7 +142,7 @@ class YieldStatementResolver {
       )) {
         _diagnosticReporter.atNode(
           expression,
-          CompileTimeErrorCode.YIELD_EACH_OF_INVALID_TYPE,
+          CompileTimeErrorCode.yieldEachOfInvalidType,
           arguments: [impliedReturnType, requiredReturnType],
         );
       }
@@ -180,7 +180,7 @@ class YieldStatementResolver {
 
     if (node.star != null) {
       _resolver.nullableDereferenceVerifier.expression(
-        CompileTimeErrorCode.UNCHECKED_USE_OF_NULLABLE_VALUE_IN_YIELD_EACH,
+        CompileTimeErrorCode.uncheckedUseOfNullableValueInYieldEach,
         node.expression,
       );
     }
@@ -205,8 +205,8 @@ class YieldStatementResolver {
     _diagnosticReporter.atNode(
       node,
       node.star != null
-          ? CompileTimeErrorCode.YIELD_EACH_IN_NON_GENERATOR
-          : CompileTimeErrorCode.YIELD_IN_NON_GENERATOR,
+          ? CompileTimeErrorCode.yieldEachInNonGenerator
+          : CompileTimeErrorCode.yieldInNonGenerator,
     );
 
     _checkForUseOfVoidResult(node.expression);

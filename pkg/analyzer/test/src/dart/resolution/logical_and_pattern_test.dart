@@ -82,8 +82,8 @@ void f() {
 }
 ''',
       [
-        error(WarningCode.UNUSED_LOCAL_VARIABLE, 18, 1),
-        error(WarningCode.UNUSED_LOCAL_VARIABLE, 23, 1),
+        error(WarningCode.unusedLocalVariable, 18, 1),
+        error(WarningCode.unusedLocalVariable, 23, 1),
       ],
     );
     var node = findNode.singlePatternVariableDeclarationStatement;

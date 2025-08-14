@@ -71,7 +71,7 @@ void f(int x) {
   !x;
 }
 ''',
-      [error(CompileTimeErrorCode.NON_BOOL_NEGATION_EXPRESSION, 19, 1)],
+      [error(CompileTimeErrorCode.nonBoolNegationExpression, 19, 1)],
     );
 
     var node = findNode.prefix('!x');
@@ -100,7 +100,7 @@ void f(A? a) {
 ''',
       [
         error(
-          CompileTimeErrorCode.UNCHECKED_USE_OF_NULLABLE_VALUE_AS_CONDITION,
+          CompileTimeErrorCode.uncheckedUseOfNullableValueAsCondition,
           55,
           6,
         ),
@@ -136,8 +136,8 @@ class A {
 }
 ''',
       [
-        error(ParserErrorCode.MISSING_ASSIGNABLE_SELECTOR, 28, 5),
-        error(CompileTimeErrorCode.NON_BOOL_NEGATION_EXPRESSION, 28, 5),
+        error(ParserErrorCode.missingAssignableSelector, 28, 5),
+        error(CompileTimeErrorCode.nonBoolNegationExpression, 28, 5),
       ],
     );
 
@@ -160,7 +160,7 @@ void f(int x) {
   ++ ++ x;
 }
 ''',
-      [error(ParserErrorCode.MISSING_ASSIGNABLE_SELECTOR, 24, 1)],
+      [error(ParserErrorCode.missingAssignableSelector, 24, 1)],
     );
 
     var node = findNode.prefix('++ ++ x');
@@ -197,7 +197,7 @@ void f(A a) {
   ++a;
 }
 ''',
-      [error(CompileTimeErrorCode.UNDEFINED_OPERATOR, 28, 2)],
+      [error(CompileTimeErrorCode.undefinedOperator, 28, 2)],
     );
 
     var node = findNode.prefix('++a');
@@ -338,7 +338,7 @@ void f() {
   ++x;
 }
 ''',
-      [error(CompileTimeErrorCode.UNDEFINED_IDENTIFIER, 15, 1)],
+      [error(CompileTimeErrorCode.undefinedIdentifier, 15, 1)],
     );
 
     var node = findNode.prefix('++x');
@@ -446,7 +446,7 @@ augment class A {
   }
 }
 ''',
-      [error(CompileTimeErrorCode.AUGMENTED_EXPRESSION_NOT_OPERATOR, 65, 9)],
+      [error(CompileTimeErrorCode.augmentedExpressionNotOperator, 65, 9)],
     );
 
     var node = findNode.singlePrefixExpression;
@@ -484,7 +484,7 @@ augment class A {
   }
 }
 ''',
-      [error(CompileTimeErrorCode.AUGMENTED_EXPRESSION_IS_SETTER, 69, 9)],
+      [error(CompileTimeErrorCode.augmentedExpressionIsSetter, 69, 9)],
     );
 
     var node = findNode.singlePrefixExpression;
@@ -570,7 +570,7 @@ void f(A? a) {
 ''',
       [
         error(
-          CompileTimeErrorCode.UNCHECKED_METHOD_INVOCATION_OF_NULLABLE_VALUE,
+          CompileTimeErrorCode.uncheckedMethodInvocationOfNullableValue,
           50,
           1,
         ),
@@ -660,7 +660,7 @@ void f(C c) {
   ++Ext(c);
 }
 ''',
-      [error(ParserErrorCode.MISSING_ASSIGNABLE_SELECTOR, 103, 1)],
+      [error(ParserErrorCode.missingAssignableSelector, 103, 1)],
     );
 
     var node = findNode.prefix('++Ext');
@@ -697,7 +697,7 @@ void f() {
   ++int;
 }
 ''',
-      [error(CompileTimeErrorCode.ASSIGNMENT_TO_TYPE, 15, 3)],
+      [error(CompileTimeErrorCode.assignmentToType, 15, 3)],
     );
 
     var node = findNode.prefix('++int');
@@ -1057,7 +1057,7 @@ void f<T extends num>(T x) {
   ++x;
 }
 ''',
-      [error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 31, 3)],
+      [error(CompileTimeErrorCode.invalidAssignment, 31, 3)],
     );
 
     var node = findNode.prefix('++x');
@@ -1203,7 +1203,7 @@ class A {
   }
 }
 ''',
-      [error(ParserErrorCode.MISSING_ASSIGNABLE_SELECTOR, 29, 5)],
+      [error(ParserErrorCode.missingAssignableSelector, 29, 5)],
     );
 
     var node = findNode.singlePrefixExpression;
@@ -1231,7 +1231,7 @@ void f(Object? x) {
   };
 }
 ''',
-      [error(ParserErrorCode.MISSING_ASSIGNABLE_SELECTOR, 51, 1)],
+      [error(ParserErrorCode.missingAssignableSelector, 51, 1)],
     );
 
     var node = findNode.prefix('++switch');
@@ -1316,7 +1316,7 @@ augment class A {
   }
 }
 ''',
-      [error(CompileTimeErrorCode.AUGMENTED_EXPRESSION_NOT_OPERATOR, 77, 9)],
+      [error(CompileTimeErrorCode.augmentedExpressionNotOperator, 77, 9)],
     );
 
     var node = findNode.singlePrefixExpression;
@@ -1347,7 +1347,7 @@ void f(A? a) {
 ''',
       [
         error(
-          CompileTimeErrorCode.UNCHECKED_METHOD_INVOCATION_OF_NULLABLE_VALUE,
+          CompileTimeErrorCode.uncheckedMethodInvocationOfNullableValue,
           50,
           1,
         ),

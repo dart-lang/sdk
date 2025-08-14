@@ -56,7 +56,7 @@ class ReplacedLintUseTest extends PubPackageResolutionTest
 
 void f() { }
 ''',
-      [error(WarningCode.REPLACED_LINT_USE, 20, 12)],
+      [error(WarningCode.replacedLintUse, 20, 12)],
     );
   }
 
@@ -70,7 +70,7 @@ void f() { }
 // ignore: removed_lint
 void f() { }
 ''',
-      [error(WarningCode.REPLACED_LINT_USE, 11, 12)],
+      [error(WarningCode.replacedLintUse, 11, 12)],
     );
   }
 }

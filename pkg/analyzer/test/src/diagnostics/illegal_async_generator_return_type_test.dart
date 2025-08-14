@@ -20,7 +20,7 @@ class IllegalAsyncGeneratorReturnTypeTest extends PubPackageResolutionTest {
       '''
 int f() async* {}
 ''',
-      [error(CompileTimeErrorCode.ILLEGAL_ASYNC_GENERATOR_RETURN_TYPE, 0, 3)],
+      [error(CompileTimeErrorCode.illegalAsyncGeneratorReturnType, 0, 3)],
     );
   }
 
@@ -36,7 +36,7 @@ Stream<void> f() async* {}
 abstract class SubStream<T> implements Stream<T> {}
 SubStream<int> f() async* {}
 ''',
-      [error(CompileTimeErrorCode.ILLEGAL_ASYNC_GENERATOR_RETURN_TYPE, 52, 14)],
+      [error(CompileTimeErrorCode.illegalAsyncGeneratorReturnType, 52, 14)],
     );
   }
 
@@ -45,7 +45,7 @@ SubStream<int> f() async* {}
       '''
 void f() async* {}
 ''',
-      [error(CompileTimeErrorCode.ILLEGAL_ASYNC_GENERATOR_RETURN_TYPE, 0, 4)],
+      [error(CompileTimeErrorCode.illegalAsyncGeneratorReturnType, 0, 4)],
     );
   }
 
@@ -56,7 +56,7 @@ class C {
   int f() async* {}
 }
 ''',
-      [error(CompileTimeErrorCode.ILLEGAL_ASYNC_GENERATOR_RETURN_TYPE, 12, 3)],
+      [error(CompileTimeErrorCode.illegalAsyncGeneratorReturnType, 12, 3)],
     );
   }
 
@@ -68,7 +68,7 @@ class C {
   SubStream<int> f() async* {}
 }
 ''',
-      [error(CompileTimeErrorCode.ILLEGAL_ASYNC_GENERATOR_RETURN_TYPE, 64, 14)],
+      [error(CompileTimeErrorCode.illegalAsyncGeneratorReturnType, 64, 14)],
     );
   }
 
@@ -79,7 +79,7 @@ class C {
   void f() async* {}
 }
 ''',
-      [error(CompileTimeErrorCode.ILLEGAL_ASYNC_GENERATOR_RETURN_TYPE, 12, 4)],
+      [error(CompileTimeErrorCode.illegalAsyncGeneratorReturnType, 12, 4)],
     );
   }
 }

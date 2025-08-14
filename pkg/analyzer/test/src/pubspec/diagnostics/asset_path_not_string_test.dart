@@ -23,7 +23,7 @@ flutter:
   assets:
     - path: [one, two, three]
 ''',
-      [PubspecWarningCode.ASSET_PATH_NOT_STRING],
+      [PubspecWarningCode.assetPathNotString],
     );
   }
 

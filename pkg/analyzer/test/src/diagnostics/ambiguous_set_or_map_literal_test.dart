@@ -87,7 +87,7 @@ f(Map<int, int> map, Set<int> set) {
   return {...set, ...map};
 }
 ''',
-      [error(CompileTimeErrorCode.AMBIGUOUS_SET_OR_MAP_LITERAL_BOTH, 46, 16)],
+      [error(CompileTimeErrorCode.ambiguousSetOrMapLiteralBoth, 46, 16)],
     );
   }
 
@@ -98,7 +98,7 @@ f(Map<int?, int> map, Set<int?> set) {
   return {...set, ...map};
 }
 ''',
-      [error(CompileTimeErrorCode.AMBIGUOUS_SET_OR_MAP_LITERAL_BOTH, 48, 16)],
+      [error(CompileTimeErrorCode.ambiguousSetOrMapLiteralBoth, 48, 16)],
     );
   }
 }
@@ -111,7 +111,7 @@ class AmbiguousSetOrMapLiteralEitherTest extends PubPackageResolutionTest {
       '''
 union(a, b) => !{...a, ...b};
 ''',
-      [error(CompileTimeErrorCode.AMBIGUOUS_SET_OR_MAP_LITERAL_EITHER, 16, 12)],
+      [error(CompileTimeErrorCode.ambiguousSetOrMapLiteralEither, 16, 12)],
     );
   }
 
@@ -122,7 +122,7 @@ var map;
 var set;
 var c = {...set, ...map};
 ''',
-      [error(CompileTimeErrorCode.AMBIGUOUS_SET_OR_MAP_LITERAL_EITHER, 26, 16)],
+      [error(CompileTimeErrorCode.ambiguousSetOrMapLiteralEither, 26, 16)],
     );
   }
 }

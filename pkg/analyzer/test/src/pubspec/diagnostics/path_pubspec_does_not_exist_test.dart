@@ -24,7 +24,7 @@ dependencies:
   foo:
     path: /foo
 ''',
-      [PubspecWarningCode.PATH_PUBSPEC_DOES_NOT_EXIST],
+      [PubspecWarningCode.pathPubspecDoesNotExist],
     );
   }
 

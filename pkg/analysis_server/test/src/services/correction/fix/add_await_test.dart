@@ -163,7 +163,7 @@ void f() async {
 }
 ''',
       errorFilter:
-          (error) => error.diagnosticCode != ParserErrorCode.EXPECTED_TOKEN,
+          (error) => error.diagnosticCode != ParserErrorCode.expectedToken,
     );
   }
 
@@ -327,7 +327,7 @@ Future<void> baz() async {
 ''',
       errorFilter:
           (error) =>
-              error.diagnosticCode == CompileTimeErrorCode.INVALID_ASSIGNMENT,
+              error.diagnosticCode == CompileTimeErrorCode.invalidAssignment,
     );
   }
 
@@ -342,7 +342,7 @@ void baz() {
     await assertNoFix(
       errorFilter:
           (error) =>
-              error.diagnosticCode == CompileTimeErrorCode.INVALID_ASSIGNMENT,
+              error.diagnosticCode == CompileTimeErrorCode.invalidAssignment,
     );
   }
 
@@ -364,7 +364,7 @@ Future<void> baz() async {
 ''',
       errorFilter:
           (error) =>
-              error.diagnosticCode == CompileTimeErrorCode.INVALID_ASSIGNMENT,
+              error.diagnosticCode == CompileTimeErrorCode.invalidAssignment,
     );
   }
 }

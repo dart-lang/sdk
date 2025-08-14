@@ -17,7 +17,7 @@ main() {
 class DefinitelyUnassignedLateLocalVariableTest
     extends PubPackageResolutionTest {
   CompileTimeErrorCode get _errorCode {
-    return CompileTimeErrorCode.DEFINITELY_UNASSIGNED_LATE_LOCAL_VARIABLE;
+    return CompileTimeErrorCode.definitelyUnassignedLateLocalVariable;
   }
 
   test_definitelyAssigned_after_compoundAssignment() async {
@@ -104,10 +104,7 @@ void f() {
   v += 1;
 }
 ''',
-      [
-        error(WarningCode.UNUSED_LOCAL_VARIABLE, 22, 1),
-        error(_errorCode, 27, 1),
-      ],
+      [error(WarningCode.unusedLocalVariable, 22, 1), error(_errorCode, 27, 1)],
     );
   }
 
@@ -119,7 +116,7 @@ void f() {
   v = 0;
 }
 ''',
-      [error(WarningCode.UNUSED_LOCAL_VARIABLE, 22, 1)],
+      [error(WarningCode.unusedLocalVariable, 22, 1)],
     );
   }
 
@@ -143,10 +140,7 @@ void f() {
   ++v;
 }
 ''',
-      [
-        error(WarningCode.UNUSED_LOCAL_VARIABLE, 22, 1),
-        error(_errorCode, 29, 1),
-      ],
+      [error(WarningCode.unusedLocalVariable, 22, 1), error(_errorCode, 29, 1)],
     );
   }
 
@@ -170,10 +164,7 @@ void f() {
   v++;
 }
 ''',
-      [
-        error(WarningCode.UNUSED_LOCAL_VARIABLE, 22, 1),
-        error(_errorCode, 27, 1),
-      ],
+      [error(WarningCode.unusedLocalVariable, 22, 1), error(_errorCode, 27, 1)],
     );
   }
 }

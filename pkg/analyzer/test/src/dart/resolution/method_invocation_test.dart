@@ -31,7 +31,7 @@ class A {
 
 void g(Object a) {}
 ''',
-      [error(ParserErrorCode.MISSING_ASSIGNABLE_SELECTOR, 29, 5)],
+      [error(ParserErrorCode.missingAssignableSelector, 29, 5)],
     );
 
     var node = findNode.singleMethodInvocation;
@@ -63,8 +63,8 @@ void f() {
 void g(int a, int b) {}
 ''',
       [
-        error(ParserErrorCode.MISSING_IDENTIFIER, 15, 1),
-        error(ParserErrorCode.MISSING_IDENTIFIER, 16, 1),
+        error(ParserErrorCode.missingIdentifier, 15, 1),
+        error(ParserErrorCode.missingIdentifier, 16, 1),
       ],
     );
 
@@ -217,7 +217,7 @@ g(double a) {
 }
 h(int x) {}
 ''',
-      [error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 45, 17)],
+      [error(CompileTimeErrorCode.argumentTypeNotAssignable, 45, 17)],
     );
 
     var node = findNode.methodInvocation('h(a');
@@ -495,7 +495,7 @@ g(int a) {
 }
 h(double x) {}
 ''',
-      [error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 42, 17)],
+      [error(CompileTimeErrorCode.argumentTypeNotAssignable, 42, 17)],
     );
 
     var node = findNode.methodInvocation('h(a');
@@ -1114,7 +1114,7 @@ f(int a, Never b, int c) {
   a.clamp(b, c);
 }
 ''',
-      [error(WarningCode.DEAD_CODE, 40, 3)],
+      [error(WarningCode.deadCode, 40, 3)],
     );
 
     var node = findNode.methodInvocation('clamp');
@@ -1156,8 +1156,8 @@ f(Never a, int b, int c) {
 }
 ''',
       [
-        error(WarningCode.RECEIVER_OF_TYPE_NEVER, 29, 1),
-        error(WarningCode.DEAD_CODE, 36, 7),
+        error(WarningCode.receiverOfTypeNever, 29, 1),
+        error(WarningCode.deadCode, 36, 7),
       ],
     );
 
@@ -1204,7 +1204,7 @@ g(A a) {
 }
 h(int x) {}
 ''',
-      [error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 94, 17)],
+      [error(CompileTimeErrorCode.argumentTypeNotAssignable, 94, 17)],
     );
 
     var node = findNode.methodInvocation('h(a');
@@ -1650,7 +1650,7 @@ main() {
   foo(0);
 }
 ''',
-      [error(CompileTimeErrorCode.AMBIGUOUS_IMPORT, 46, 3)],
+      [error(CompileTimeErrorCode.ambiguousImport, 46, 3)],
     );
 
     var node = findNode.methodInvocation('foo(0)');
@@ -1692,7 +1692,7 @@ main() {
   p.foo(0);
 }
 ''',
-      [error(CompileTimeErrorCode.AMBIGUOUS_IMPORT, 58, 3)],
+      [error(CompileTimeErrorCode.ambiguousImport, 58, 3)],
     );
 
     var node = findNode.methodInvocation('foo(0)');
@@ -1733,7 +1733,7 @@ void f(A a) {
   a.foo(0);
 }
 ''',
-      [error(CompileTimeErrorCode.INSTANCE_ACCESS_TO_STATIC_MEMBER, 59, 3)],
+      [error(CompileTimeErrorCode.instanceAccessToStaticMember, 59, 3)],
     );
 
     var node = findNode.methodInvocation('a.foo(0)');
@@ -1772,13 +1772,7 @@ void f(C c) {
   c();
 }
 ''',
-      [
-        error(
-          CompileTimeErrorCode.INVOCATION_OF_NON_FUNCTION_EXPRESSION,
-          69,
-          1,
-        ),
-      ],
+      [error(CompileTimeErrorCode.invocationOfNonFunctionExpression, 69, 1)],
     );
 
     var node = findNode.functionExpressionInvocation('c();');
@@ -1962,13 +1956,7 @@ main(Object foo) {
   foo();
 }
 ''',
-      [
-        error(
-          CompileTimeErrorCode.INVOCATION_OF_NON_FUNCTION_EXPRESSION,
-          21,
-          3,
-        ),
-      ],
+      [error(CompileTimeErrorCode.invocationOfNonFunctionExpression, 21, 3)],
     );
 
     var node = findNode.functionExpressionInvocation('foo();');
@@ -2021,13 +2009,7 @@ main() {
   C.foo();
 }
 ''',
-      [
-        error(
-          CompileTimeErrorCode.INVOCATION_OF_NON_FUNCTION_EXPRESSION,
-          46,
-          5,
-        ),
-      ],
+      [error(CompileTimeErrorCode.invocationOfNonFunctionExpression, 46, 5)],
     );
 
     var node = findNode.functionExpressionInvocation('foo();');
@@ -2064,13 +2046,7 @@ class C {
   }
 }
 ''',
-      [
-        error(
-          CompileTimeErrorCode.INVOCATION_OF_NON_FUNCTION_EXPRESSION,
-          48,
-          3,
-        ),
-      ],
+      [error(CompileTimeErrorCode.invocationOfNonFunctionExpression, 48, 3)],
     );
 
     var node = findNode.functionExpressionInvocation('foo();');
@@ -2102,13 +2078,7 @@ class B extends A {
   }
 }
 ''',
-      [
-        error(
-          CompileTimeErrorCode.INVOCATION_OF_NON_FUNCTION_EXPRESSION,
-          68,
-          9,
-        ),
-      ],
+      [error(CompileTimeErrorCode.invocationOfNonFunctionExpression, 68, 9)],
     );
 
     var node = findNode.functionExpressionInvocation('foo();');
@@ -2146,13 +2116,7 @@ main() {
   prefix?.foo();
 }
 ''',
-      [
-        error(
-          CompileTimeErrorCode.PREFIX_IDENTIFIER_NOT_FOLLOWED_BY_DOT,
-          39,
-          6,
-        ),
-      ],
+      [error(CompileTimeErrorCode.prefixIdentifierNotFollowedByDot, 39, 6)],
     );
 
     var node = findNode.methodInvocation('foo();');
@@ -2184,13 +2148,7 @@ main() {
   math?.loadLibrary();
 }
 ''',
-      [
-        error(
-          CompileTimeErrorCode.PREFIX_IDENTIFIER_NOT_FOLLOWED_BY_DOT,
-          49,
-          4,
-        ),
-      ],
+      [error(CompileTimeErrorCode.prefixIdentifierNotFollowedByDot, 49, 4)],
     );
 
     var node = findNode.methodInvocation('loadLibrary()');
@@ -2222,13 +2180,7 @@ main() {
   foo();
 }
 ''',
-      [
-        error(
-          CompileTimeErrorCode.PREFIX_IDENTIFIER_NOT_FOLLOWED_BY_DOT,
-          39,
-          3,
-        ),
-      ],
+      [error(CompileTimeErrorCode.prefixIdentifierNotFollowedByDot, 39, 3)],
     );
 
     var node = findNode.methodInvocation('foo()');
@@ -2253,7 +2205,7 @@ main() {
   foo(0);
 }
 ''',
-      [error(CompileTimeErrorCode.UNDEFINED_FUNCTION, 11, 3)],
+      [error(CompileTimeErrorCode.undefinedFunction, 11, 3)],
     );
 
     var node = findNode.methodInvocation('foo(0)');
@@ -2285,7 +2237,7 @@ main() {
   math.foo(0);
 }
 ''',
-      [error(CompileTimeErrorCode.UNDEFINED_FUNCTION, 45, 3)],
+      [error(CompileTimeErrorCode.undefinedFunction, 45, 3)],
     );
 
     var node = findNode.methodInvocation('foo(0);');
@@ -2320,7 +2272,7 @@ main() {
   bar.foo(0);
 }
 ''',
-      [error(CompileTimeErrorCode.UNDEFINED_IDENTIFIER, 11, 3)],
+      [error(CompileTimeErrorCode.undefinedIdentifier, 11, 3)],
     );
 
     var node = findNode.methodInvocation('foo(0);');
@@ -2356,7 +2308,7 @@ main() {
   C.foo(0);
 }
 ''',
-      [error(CompileTimeErrorCode.UNDEFINED_METHOD, 24, 3)],
+      [error(CompileTimeErrorCode.undefinedMethod, 24, 3)],
     );
 
     var node = findNode.methodInvocation('foo(0);');
@@ -2394,7 +2346,7 @@ main() {
   C.foo(x);
 }
 ''',
-      [error(CompileTimeErrorCode.UNDEFINED_METHOD, 36, 3)],
+      [error(CompileTimeErrorCode.undefinedMethod, 36, 3)],
     );
 
     var node = findNode.methodInvocation('foo(x);');
@@ -2436,7 +2388,7 @@ main() {
   C.foo(0);
 }
 ''',
-      [error(CompileTimeErrorCode.UNDEFINED_METHOD, 76, 3)],
+      [error(CompileTimeErrorCode.undefinedMethod, 76, 3)],
     );
 
     var node = findNode.methodInvocation('foo(0);');
@@ -2473,7 +2425,7 @@ main() {
   C.foo<int>();
 }
 ''',
-      [error(CompileTimeErrorCode.UNDEFINED_METHOD, 25, 3)],
+      [error(CompileTimeErrorCode.undefinedMethod, 25, 3)],
     );
 
     var node = findNode.methodInvocation('foo<int>();');
@@ -2513,7 +2465,7 @@ class C<T> {
   static main() => C.T();
 }
 ''',
-      [error(CompileTimeErrorCode.UNDEFINED_METHOD, 34, 1)],
+      [error(CompileTimeErrorCode.undefinedMethod, 34, 1)],
     );
 
     var node = findNode.methodInvocation('C.T();');
@@ -2543,7 +2495,7 @@ main() {
   42.foo(0);
 }
 ''',
-      [error(CompileTimeErrorCode.UNDEFINED_METHOD, 14, 3)],
+      [error(CompileTimeErrorCode.undefinedMethod, 14, 3)],
     );
 
     var node = findNode.methodInvocation('foo(0);');
@@ -2578,7 +2530,7 @@ main() {
   v.foo(0);
 }
 ''',
-      [error(CompileTimeErrorCode.UNDEFINED_METHOD, 30, 3)],
+      [error(CompileTimeErrorCode.undefinedMethod, 30, 3)],
     );
 
     var node = findNode.methodInvocation('foo(0);');
@@ -2615,7 +2567,7 @@ class C {
   }
 }
 ''',
-      [error(CompileTimeErrorCode.UNDEFINED_METHOD, 25, 3)],
+      [error(CompileTimeErrorCode.undefinedMethod, 25, 3)],
     );
 
     var node = findNode.methodInvocation('foo(0);');
@@ -2645,7 +2597,7 @@ main() {
   null.foo();
 }
 ''',
-      [error(CompileTimeErrorCode.INVALID_USE_OF_NULL_VALUE, 16, 3)],
+      [error(CompileTimeErrorCode.invalidUseOfNullValue, 16, 3)],
     );
 
     var node = findNode.methodInvocation('foo();');
@@ -2674,7 +2626,7 @@ main(Object o) {
   o.call();
 }
 ''',
-      [error(CompileTimeErrorCode.UNDEFINED_METHOD, 21, 4)],
+      [error(CompileTimeErrorCode.undefinedMethod, 21, 4)],
     );
   }
 
@@ -2694,7 +2646,7 @@ class B extends A {
   }
 }
 ''',
-      [error(CompileTimeErrorCode.UNDEFINED_METHOD, 53, 4)],
+      [error(CompileTimeErrorCode.undefinedMethod, 53, 4)],
     );
 
     var node = findNode.methodInvocation('_foo(0);');
@@ -2728,7 +2680,7 @@ main() {
   C..foo();
 }
 ''',
-      [error(CompileTimeErrorCode.UNDEFINED_METHOD, 50, 3)],
+      [error(CompileTimeErrorCode.undefinedMethod, 50, 3)],
     );
   }
 
@@ -2741,8 +2693,8 @@ main() {
 }
 ''',
       [
-        error(StaticWarningCode.INVALID_NULL_AWARE_OPERATOR, 23, 2),
-        error(CompileTimeErrorCode.UNDEFINED_METHOD, 25, 8),
+        error(StaticWarningCode.invalidNullAwareOperator, 23, 2),
+        error(CompileTimeErrorCode.undefinedMethod, 25, 8),
       ],
     );
   }
@@ -2762,11 +2714,11 @@ class B extends A {
 ''',
       [
         error(
-          CompileTimeErrorCode.UNQUALIFIED_REFERENCE_TO_NON_LOCAL_STATIC_MEMBER,
+          CompileTimeErrorCode.unqualifiedReferenceToNonLocalStaticMember,
           71,
           3,
         ),
-        error(CompileTimeErrorCode.EXTRA_POSITIONAL_ARGUMENTS, 75, 1),
+        error(CompileTimeErrorCode.extraPositionalArguments, 75, 1),
       ],
     );
 
@@ -2803,7 +2755,7 @@ main() {
   p.bar(2);
 }
 ''',
-      [error(CompileTimeErrorCode.URI_DOES_NOT_EXIST, 7, 14)],
+      [error(CompileTimeErrorCode.uriDoesNotExist, 7, 14)],
     );
 
     var node = findNode.methodInvocation('foo(1);');
@@ -2844,7 +2796,7 @@ main() {
   bar(2);
 }
 ''',
-      [error(CompileTimeErrorCode.URI_DOES_NOT_EXIST, 7, 14)],
+      [error(CompileTimeErrorCode.uriDoesNotExist, 7, 14)],
     );
 
     var node = findNode.methodInvocation('foo(1);');
@@ -2879,7 +2831,7 @@ void f(C<void> c) {
   c.foo();
 }
 ''',
-      [error(CompileTimeErrorCode.USE_OF_VOID_RESULT, 61, 5)],
+      [error(CompileTimeErrorCode.useOfVoidResult, 61, 5)],
     );
 
     var node = findNode.functionExpressionInvocation('foo();');
@@ -2915,7 +2867,7 @@ main() {
   foo();
 }
 ''',
-      [error(CompileTimeErrorCode.USE_OF_VOID_RESULT, 23, 3)],
+      [error(CompileTimeErrorCode.useOfVoidResult, 23, 3)],
     );
 
     var node = findNode.functionExpressionInvocation('foo();');
@@ -2943,7 +2895,7 @@ main() {
   foo()();
 }
 ''',
-      [error(CompileTimeErrorCode.USE_OF_VOID_RESULT, 26, 3)],
+      [error(CompileTimeErrorCode.useOfVoidResult, 26, 3)],
     );
 
     var node = findNode.methodInvocation('foo()()');
@@ -2970,7 +2922,7 @@ main() {
   foo();
 }
 ''',
-      [error(CompileTimeErrorCode.USE_OF_VOID_RESULT, 22, 3)],
+      [error(CompileTimeErrorCode.useOfVoidResult, 22, 3)],
     );
 
     var node = findNode.functionExpressionInvocation('foo();');
@@ -2997,7 +2949,7 @@ main() {
   foo.toString();
 }
 ''',
-      [error(CompileTimeErrorCode.USE_OF_VOID_RESULT, 23, 3)],
+      [error(CompileTimeErrorCode.useOfVoidResult, 23, 3)],
     );
 
     var node = findNode.methodInvocation('toString()');
@@ -3028,7 +2980,7 @@ main() {
   foo..toString();
 }
 ''',
-      [error(CompileTimeErrorCode.USE_OF_VOID_RESULT, 23, 3)],
+      [error(CompileTimeErrorCode.useOfVoidResult, 23, 3)],
     );
 
     var node = findNode.methodInvocation('toString()');
@@ -3055,7 +3007,7 @@ main() {
   foo?.toString();
 }
 ''',
-      [error(CompileTimeErrorCode.USE_OF_VOID_RESULT, 23, 3)],
+      [error(CompileTimeErrorCode.useOfVoidResult, 23, 3)],
     );
 
     var node = findNode.methodInvocation('toString()');
@@ -3087,13 +3039,7 @@ main() {
   foo<int>();
 }
 ''',
-      [
-        error(
-          CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_METHOD,
-          29,
-          5,
-        ),
-      ],
+      [error(CompileTimeErrorCode.wrongNumberOfTypeArgumentsMethod, 29, 5)],
     );
 
     var node = findNode.methodInvocation('foo<int>()');
@@ -3128,13 +3074,7 @@ main() {
   foo<int>();
 }
 ''',
-      [
-        error(
-          CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_METHOD,
-          67,
-          5,
-        ),
-      ],
+      [error(CompileTimeErrorCode.wrongNumberOfTypeArgumentsMethod, 67, 5)],
     );
 
     var node = findNode.methodInvocation('foo<int>()');
@@ -3455,7 +3395,7 @@ main() {
   math.loadLibrary();
 }
 ''',
-      [error(WarningCode.UNUSED_IMPORT, 7, 11)],
+      [error(WarningCode.unusedImport, 7, 11)],
     );
 
     var node = findNode.methodInvocation('loadLibrary()');
@@ -3488,8 +3428,8 @@ main() {
 }
 ''',
       [
-        error(WarningCode.UNUSED_IMPORT, 7, 11),
-        error(CompileTimeErrorCode.EXTRA_POSITIONAL_ARGUMENTS, 66, 5),
+        error(WarningCode.unusedImport, 7, 11),
+        error(CompileTimeErrorCode.extraPositionalArguments, 66, 5),
       ],
     );
 
@@ -4309,7 +4249,7 @@ void f(Function? foo) {
 ''',
       [
         error(
-          CompileTimeErrorCode.UNCHECKED_METHOD_INVOCATION_OF_NULLABLE_VALUE,
+          CompileTimeErrorCode.uncheckedMethodInvocationOfNullableValue,
           30,
           4,
         ),
@@ -4645,7 +4585,7 @@ void f(A? a) {
 ''',
       [
         error(
-          CompileTimeErrorCode.UNCHECKED_METHOD_INVOCATION_OF_NULLABLE_VALUE,
+          CompileTimeErrorCode.uncheckedMethodInvocationOfNullableValue,
           67,
           3,
         ),
@@ -4753,7 +4693,7 @@ void f(X x) {
   x.foo();
 }
 ''',
-      [error(CompileTimeErrorCode.UNDEFINED_METHOD, 109, 3)],
+      [error(CompileTimeErrorCode.undefinedMethod, 109, 3)],
     );
 
     var node = findNode.singleMethodInvocation;
@@ -5092,7 +5032,7 @@ void f(A? a) {
 ''',
       [
         error(
-          CompileTimeErrorCode.UNCHECKED_METHOD_INVOCATION_OF_NULLABLE_VALUE,
+          CompileTimeErrorCode.uncheckedMethodInvocationOfNullableValue,
           48,
           3,
         ),
@@ -5136,7 +5076,7 @@ void f(A? a) {
 ''',
       [
         error(
-          CompileTimeErrorCode.UNCHECKED_METHOD_INVOCATION_OF_NULLABLE_VALUE,
+          CompileTimeErrorCode.uncheckedMethodInvocationOfNullableValue,
           86,
           3,
         ),
@@ -5242,7 +5182,7 @@ void f(A? a) {
 ''',
       [
         error(
-          CompileTimeErrorCode.UNCHECKED_METHOD_INVOCATION_OF_NULLABLE_VALUE,
+          CompileTimeErrorCode.uncheckedMethodInvocationOfNullableValue,
           31,
           3,
         ),
@@ -5284,7 +5224,7 @@ void f(A? a) {
 ''',
       [
         error(
-          CompileTimeErrorCode.UNCHECKED_METHOD_INVOCATION_OF_NULLABLE_VALUE,
+          CompileTimeErrorCode.uncheckedMethodInvocationOfNullableValue,
           69,
           3,
         ),
@@ -5528,7 +5468,7 @@ void f((int, String)? r) {
 ''',
       [
         error(
-          CompileTimeErrorCode.UNCHECKED_METHOD_INVOCATION_OF_NULLABLE_VALUE,
+          CompileTimeErrorCode.uncheckedMethodInvocationOfNullableValue,
           86,
           3,
         ),
@@ -6003,13 +5943,7 @@ class A {
   }
 }
 ''',
-      [
-        error(
-          CompileTimeErrorCode.INVOCATION_OF_NON_FUNCTION_EXPRESSION,
-          45,
-          3,
-        ),
-      ],
+      [error(CompileTimeErrorCode.invocationOfNonFunctionExpression, 45, 3)],
     );
 
     var node = findNode.functionExpressionInvocation('foo(0)');
@@ -6136,7 +6070,7 @@ void f() {
   foo(p: 0, p: a);
 }
 ''',
-      [error(CompileTimeErrorCode.DUPLICATE_NAMED_ARGUMENT, 60, 1)],
+      [error(CompileTimeErrorCode.duplicateNamedArgument, 60, 1)],
     );
 
     var node = findNode.singleMethodInvocation;
@@ -6187,13 +6121,7 @@ void f() {
   foo(0);
 }
 ''',
-      [
-        error(
-          CompileTimeErrorCode.INVOCATION_OF_NON_FUNCTION_EXPRESSION,
-          29,
-          3,
-        ),
-      ],
+      [error(CompileTimeErrorCode.invocationOfNonFunctionExpression, 29, 3)],
     );
 
     var node = findNode.functionExpressionInvocation('foo(0)');
@@ -6435,7 +6363,7 @@ class A {
 const a = 0;
 const b = A.foo(a);
 ''',
-      [error(CompileTimeErrorCode.CONST_EVAL_METHOD_INVOCATION, 66, 8)],
+      [error(CompileTimeErrorCode.constEvalMethodInvocation, 66, 8)],
     );
 
     var node = findNode.singleMethodInvocation;
@@ -6470,7 +6398,7 @@ MethodInvocation
 const a = 0;
 const b = 'abc'.codeUnitAt(a);
 ''',
-      [error(CompileTimeErrorCode.CONST_EVAL_METHOD_INVOCATION, 23, 19)],
+      [error(CompileTimeErrorCode.constEvalMethodInvocation, 23, 19)],
     );
 
     var node = findNode.singleMethodInvocation;
@@ -6984,13 +6912,7 @@ main() {
   math();
 }
 ''',
-      [
-        error(
-          CompileTimeErrorCode.PREFIX_IDENTIFIER_NOT_FOLLOWED_BY_DOT,
-          40,
-          4,
-        ),
-      ],
+      [error(CompileTimeErrorCode.prefixIdentifierNotFollowedByDot, 40, 4)],
     );
 
     var node = findNode.methodInvocation('math()');
@@ -7682,7 +7604,7 @@ g(int a) {
 }
 h(int x) {}
 ''',
-      [error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 98, 19)],
+      [error(CompileTimeErrorCode.argumentTypeNotAssignable, 98, 19)],
     );
 
     var node = findNode.methodInvocation('f()');
@@ -7848,7 +7770,7 @@ g(A a) {
 }
 h(int x) {}
 ''',
-      [error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 105, 19)],
+      [error(CompileTimeErrorCode.argumentTypeNotAssignable, 105, 19)],
     );
 
     var node = findNode.methodInvocation('f()');
@@ -7882,7 +7804,7 @@ g(A a) {
 }
 h(int x) {}
 ''',
-      [error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 105, 16)],
+      [error(CompileTimeErrorCode.argumentTypeNotAssignable, 105, 16)],
     );
 
     var node = findNode.methodInvocation('f()');
@@ -8063,7 +7985,7 @@ class B extends A {
   }
 }
 ''',
-      [error(CompileTimeErrorCode.UNDEFINED_SUPER_METHOD, 62, 3)],
+      [error(CompileTimeErrorCode.undefinedSuperMethod, 62, 3)],
     );
 
     var node = findNode.methodInvocation('foo(0);');
@@ -8100,7 +8022,7 @@ enum E {
   }
 }
 ''',
-      [error(CompileTimeErrorCode.UNDEFINED_SUPER_METHOD, 37, 3)],
+      [error(CompileTimeErrorCode.undefinedSuperMethod, 37, 3)],
     );
 
     var node = findNode.methodInvocation('foo(0);');
@@ -8138,7 +8060,7 @@ mixin M on A {
   }
 }
 ''',
-      [error(CompileTimeErrorCode.UNDEFINED_SUPER_METHOD, 52, 3)],
+      [error(CompileTimeErrorCode.undefinedSuperMethod, 52, 3)],
     );
 
     var node = findNode.methodInvocation('foo(0);');
@@ -8176,8 +8098,8 @@ class A {
 }
 ''',
       [
-        error(ParserErrorCode.MISSING_ASSIGNMENT_IN_INITIALIZER, 18, 1),
-        error(CompileTimeErrorCode.INITIALIZER_FOR_NON_EXISTENT_FIELD, 18, 13),
+        error(ParserErrorCode.missingAssignmentInInitializer, 18, 1),
+        error(CompileTimeErrorCode.initializerForNonExistentField, 18, 13),
       ],
     );
 
@@ -8271,7 +8193,7 @@ main() {
   bool v = foo(0);
 }
 ''',
-      [error(WarningCode.UNUSED_LOCAL_VARIABLE, 52, 1)],
+      [error(WarningCode.unusedLocalVariable, 52, 1)],
     );
 
     var node = findNode.methodInvocation('foo(0)');
@@ -8402,7 +8324,7 @@ main() {
   foo<bool>();
 }
 ''',
-      [error(CompileTimeErrorCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS, 45, 4)],
+      [error(CompileTimeErrorCode.typeArgumentNotMatchingBounds, 45, 4)],
     );
 
     var node = findNode.methodInvocation('foo<bool>();');
@@ -8439,13 +8361,7 @@ main() {
   foo<int, double>();
 }
 ''',
-      [
-        error(
-          CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_METHOD,
-          32,
-          13,
-        ),
-      ],
+      [error(CompileTimeErrorCode.wrongNumberOfTypeArgumentsMethod, 32, 13)],
     );
 
     var node = findNode.methodInvocation('foo<int, double>();');

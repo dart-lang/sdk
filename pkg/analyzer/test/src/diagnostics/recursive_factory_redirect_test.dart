@@ -22,7 +22,7 @@ class A {
   factory A() = A;
 }
 ''',
-      [error(CompileTimeErrorCode.RECURSIVE_FACTORY_REDIRECT, 26, 1)],
+      [error(CompileTimeErrorCode.recursiveFactoryRedirect, 26, 1)],
     );
   }
 
@@ -39,7 +39,7 @@ main() {
   const C<int>();
 }
 ''',
-      [error(CompileTimeErrorCode.RECURSIVE_FACTORY_REDIRECT, 35, 7)],
+      [error(CompileTimeErrorCode.recursiveFactoryRedirect, 35, 7)],
     );
   }
 
@@ -57,12 +57,12 @@ class C<T> implements A<T> {
 }
 ''',
       [
-        error(CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE, 6, 1),
-        error(CompileTimeErrorCode.RECURSIVE_FACTORY_REDIRECT, 45, 1),
-        error(CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE, 56, 1),
-        error(CompileTimeErrorCode.RECURSIVE_FACTORY_REDIRECT, 95, 1),
-        error(CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE, 106, 1),
-        error(CompileTimeErrorCode.RECURSIVE_FACTORY_REDIRECT, 145, 1),
+        error(CompileTimeErrorCode.recursiveInterfaceInheritance, 6, 1),
+        error(CompileTimeErrorCode.recursiveFactoryRedirect, 45, 1),
+        error(CompileTimeErrorCode.recursiveInterfaceInheritance, 56, 1),
+        error(CompileTimeErrorCode.recursiveFactoryRedirect, 95, 1),
+        error(CompileTimeErrorCode.recursiveInterfaceInheritance, 106, 1),
+        error(CompileTimeErrorCode.recursiveFactoryRedirect, 145, 1),
       ],
     );
   }
@@ -81,12 +81,12 @@ class C implements A {
 }
 ''',
       [
-        error(CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE, 6, 1),
-        error(CompileTimeErrorCode.RECURSIVE_FACTORY_REDIRECT, 39, 1),
-        error(CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE, 50, 1),
-        error(CompileTimeErrorCode.RECURSIVE_FACTORY_REDIRECT, 83, 1),
-        error(CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE, 94, 1),
-        error(CompileTimeErrorCode.RECURSIVE_FACTORY_REDIRECT, 127, 1),
+        error(CompileTimeErrorCode.recursiveInterfaceInheritance, 6, 1),
+        error(CompileTimeErrorCode.recursiveFactoryRedirect, 39, 1),
+        error(CompileTimeErrorCode.recursiveInterfaceInheritance, 50, 1),
+        error(CompileTimeErrorCode.recursiveFactoryRedirect, 83, 1),
+        error(CompileTimeErrorCode.recursiveInterfaceInheritance, 94, 1),
+        error(CompileTimeErrorCode.recursiveFactoryRedirect, 127, 1),
       ],
     );
   }
@@ -105,12 +105,12 @@ class C implements A {
 }
 ''',
       [
-        error(CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE, 6, 1),
-        error(CompileTimeErrorCode.RECURSIVE_FACTORY_REDIRECT, 45, 7),
-        error(CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE, 62, 1),
-        error(CompileTimeErrorCode.RECURSIVE_FACTORY_REDIRECT, 101, 7),
-        error(CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE, 118, 1),
-        error(CompileTimeErrorCode.RECURSIVE_FACTORY_REDIRECT, 157, 7),
+        error(CompileTimeErrorCode.recursiveInterfaceInheritance, 6, 1),
+        error(CompileTimeErrorCode.recursiveFactoryRedirect, 45, 7),
+        error(CompileTimeErrorCode.recursiveInterfaceInheritance, 62, 1),
+        error(CompileTimeErrorCode.recursiveFactoryRedirect, 101, 7),
+        error(CompileTimeErrorCode.recursiveInterfaceInheritance, 118, 1),
+        error(CompileTimeErrorCode.recursiveFactoryRedirect, 157, 7),
       ],
     );
   }
@@ -131,10 +131,10 @@ class C implements A, B {
 }
 ''',
       [
-        error(CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE, 37, 1),
-        error(CompileTimeErrorCode.RECURSIVE_FACTORY_REDIRECT, 70, 1),
-        error(CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE, 81, 1),
-        error(CompileTimeErrorCode.RECURSIVE_FACTORY_REDIRECT, 117, 1),
+        error(CompileTimeErrorCode.recursiveInterfaceInheritance, 37, 1),
+        error(CompileTimeErrorCode.recursiveFactoryRedirect, 70, 1),
+        error(CompileTimeErrorCode.recursiveInterfaceInheritance, 81, 1),
+        error(CompileTimeErrorCode.recursiveFactoryRedirect, 117, 1),
       ],
     );
   }

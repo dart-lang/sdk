@@ -412,8 +412,8 @@ class A extends B {}
 class B extends A {}
 ''',
       [
-        error(CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE, 6, 1),
-        error(CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE, 27, 1),
+        error(CompileTimeErrorCode.recursiveInterfaceInheritance, 6, 1),
+        error(CompileTimeErrorCode.recursiveInterfaceInheritance, 27, 1),
       ],
     );
     var B = findElement2.class_('B');
@@ -703,8 +703,8 @@ class A extends B {}
 class B extends A {}
 ''',
       [
-        error(CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE, 6, 1),
-        error(CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE, 27, 1),
+        error(CompileTimeErrorCode.recursiveInterfaceInheritance, 6, 1),
+        error(CompileTimeErrorCode.recursiveInterfaceInheritance, 27, 1),
       ],
     );
     var B = findElement2.class_('B');
@@ -994,8 +994,8 @@ class A extends B {}
 class B extends A {}
 ''',
       [
-        error(CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE, 6, 1),
-        error(CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE, 27, 1),
+        error(CompileTimeErrorCode.recursiveInterfaceInheritance, 6, 1),
+        error(CompileTimeErrorCode.recursiveInterfaceInheritance, 27, 1),
       ],
     );
     var B = findElement2.class_('B');
@@ -1255,8 +1255,8 @@ class A extends B {}
 class B extends A {}
 ''',
       [
-        error(CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE, 6, 1),
-        error(CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE, 27, 1),
+        error(CompileTimeErrorCode.recursiveInterfaceInheritance, 6, 1),
+        error(CompileTimeErrorCode.recursiveInterfaceInheritance, 27, 1),
       ],
     );
     var B = findElement2.class_('B');

@@ -23,7 +23,7 @@ class A {
   A([this.x = 0]) {}
 }
 ''',
-      [error(CompileTimeErrorCode.INITIALIZER_FOR_STATIC_FIELD, 32, 6)],
+      [error(CompileTimeErrorCode.initializerForStaticField, 32, 6)],
     );
   }
 
@@ -37,7 +37,7 @@ class A {
 ''',
       [
         error(
-          CompileTimeErrorCode.INITIALIZER_FOR_STATIC_FIELD,
+          CompileTimeErrorCode.initializerForStaticField,
           38,
           5,
           messageContains: ["'x'"],

@@ -25,7 +25,7 @@ final dynamic a = 0;
 const cond = true;
 var v = const {if (cond) 0: 1 else a : 0};
 ''',
-      [error(CompileTimeErrorCode.NON_CONSTANT_MAP_KEY, 75, 1)],
+      [error(CompileTimeErrorCode.nonConstantMapKey, 75, 1)],
     );
   }
 
@@ -36,7 +36,7 @@ final dynamic a = 0;
 const cond = true;
 var v = const {if (cond) a : 0};
 ''',
-      [error(CompileTimeErrorCode.NON_CONSTANT_MAP_KEY, 65, 1)],
+      [error(CompileTimeErrorCode.nonConstantMapKey, 65, 1)],
     );
   }
 
@@ -46,7 +46,7 @@ var v = const {if (cond) a : 0};
 final dynamic a = 0;
 var v = const {a : 0};
 ''',
-      [error(CompileTimeErrorCode.NON_CONSTANT_MAP_KEY, 36, 1)],
+      [error(CompileTimeErrorCode.nonConstantMapKey, 36, 1)],
     );
   }
 }

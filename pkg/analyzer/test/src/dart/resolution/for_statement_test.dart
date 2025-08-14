@@ -81,7 +81,7 @@ void f(dynamic values) {
   for (var v in values) {}
 }
 ''',
-      [error(WarningCode.UNUSED_LOCAL_VARIABLE, 36, 1)],
+      [error(WarningCode.unusedLocalVariable, 36, 1)],
     );
 
     var node = findNode.singleForStatement;
@@ -117,7 +117,7 @@ void f() {
   }
 }
 ''',
-      [error(ParserErrorCode.MISSING_IDENTIFIER, 26, 1)],
+      [error(ParserErrorCode.missingIdentifier, 26, 1)],
     );
 
     var node = findNode.forStatement('for');
@@ -161,8 +161,8 @@ abstract class A implements Iterable<int> {
 }
 ''',
       [
-        error(WarningCode.UNUSED_LOCAL_VARIABLE, 70, 1),
-        error(ParserErrorCode.MISSING_ASSIGNABLE_SELECTOR, 75, 5),
+        error(WarningCode.unusedLocalVariable, 70, 1),
+        error(ParserErrorCode.missingAssignableSelector, 75, 5),
       ],
     );
 
@@ -502,7 +502,7 @@ abstract class A implements Iterable<int> {
   }
 }
 ''',
-      [error(ParserErrorCode.MISSING_ASSIGNABLE_SELECTOR, 76, 5)],
+      [error(ParserErrorCode.missingAssignableSelector, 76, 5)],
     );
     var node = findNode.singleForStatement;
     assertResolvedNodeText(node, r'''
@@ -626,7 +626,7 @@ void f(Object x) {
   }
 }
 ''',
-      [error(CompileTimeErrorCode.FOR_IN_OF_INVALID_TYPE, 37, 1)],
+      [error(CompileTimeErrorCode.forInOfInvalidType, 37, 1)],
     );
     var node = findNode.forStatement('for');
     assertResolvedNodeText(node, r'''
@@ -674,8 +674,8 @@ abstract class A implements Iterable<int> {
 }
 ''',
       [
-        error(WarningCode.UNUSED_LOCAL_VARIABLE, 71, 1),
-        error(ParserErrorCode.MISSING_ASSIGNABLE_SELECTOR, 77, 5),
+        error(WarningCode.unusedLocalVariable, 71, 1),
+        error(ParserErrorCode.missingAssignableSelector, 77, 5),
       ],
     );
     var node = findNode.singleForStatement;
@@ -715,7 +715,7 @@ void f() {
 
 T g<T>() => throw 0;
 ''',
-      [error(WarningCode.UNUSED_LOCAL_VARIABLE, 27, 1)],
+      [error(WarningCode.unusedLocalVariable, 27, 1)],
     );
     var node = findNode.forStatement('for');
     assertResolvedNodeText(node, r'''
@@ -767,7 +767,7 @@ void f() {
 
 T g<T>() => throw 0;
 ''',
-      [error(WarningCode.UNUSED_LOCAL_VARIABLE, 23, 1)],
+      [error(WarningCode.unusedLocalVariable, 23, 1)],
     );
     var node = findNode.forStatement('for');
     assertResolvedNodeText(node, r'''
@@ -956,7 +956,7 @@ void f(Object x) async {
   }
 }
 ''',
-      [error(CompileTimeErrorCode.FOR_IN_OF_INVALID_TYPE, 49, 1)],
+      [error(CompileTimeErrorCode.forInOfInvalidType, 49, 1)],
     );
     var node = findNode.singleForStatement;
     assertResolvedNodeText(node, r'''
@@ -1341,7 +1341,7 @@ class A {
   }
 }
 ''',
-      [error(ParserErrorCode.MISSING_ASSIGNABLE_SELECTOR, 35, 5)],
+      [error(ParserErrorCode.missingAssignableSelector, 35, 5)],
     );
 
     var node = findNode.singleForStatement;

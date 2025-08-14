@@ -113,7 +113,7 @@ class RecordLiteralResolver {
         if (name.startsWith('_')) {
           _diagnosticReporter.atNode(
             nameNode,
-            CompileTimeErrorCode.INVALID_FIELD_NAME_PRIVATE,
+            CompileTimeErrorCode.invalidFieldNamePrivate,
           );
         } else {
           var index = RecordTypeExtension.positionalFieldIndex(name);
@@ -121,13 +121,13 @@ class RecordLiteralResolver {
             if (index < positionalCount) {
               _diagnosticReporter.atNode(
                 nameNode,
-                CompileTimeErrorCode.INVALID_FIELD_NAME_POSITIONAL,
+                CompileTimeErrorCode.invalidFieldNamePositional,
               );
             }
           } else if (isForbiddenNameForRecordField(name)) {
             _diagnosticReporter.atNode(
               nameNode,
-              CompileTimeErrorCode.INVALID_FIELD_NAME_FROM_OBJECT,
+              CompileTimeErrorCode.invalidFieldNameFromObject,
             );
           }
         }
@@ -157,10 +157,7 @@ class RecordLiteralResolver {
     }
 
     if (staticType is VoidType) {
-      _diagnosticReporter.atNode(
-        field,
-        CompileTimeErrorCode.USE_OF_VOID_RESULT,
-      );
+      _diagnosticReporter.atNode(field, CompileTimeErrorCode.useOfVoidResult);
     }
 
     return staticType;

@@ -96,7 +96,7 @@ void f(A a) {
 
 T g<T>() => throw 0;
 ''',
-      [error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 107, 3)],
+      [error(CompileTimeErrorCode.argumentTypeNotAssignable, 107, 3)],
     );
 
     var node = findNode.methodInvocation('g()');
@@ -309,7 +309,7 @@ class A {
   int operator[](Object index) => 0;
 }
 ''',
-      [error(ParserErrorCode.MISSING_ASSIGNABLE_SELECTOR, 32, 5)],
+      [error(ParserErrorCode.missingAssignableSelector, 32, 5)],
     );
 
     var node = findNode.singleIndexExpression;
@@ -335,7 +335,7 @@ void f(List<int> a) {
   a[b];
 }
 ''',
-      [error(CompileTimeErrorCode.UNDEFINED_IDENTIFIER, 26, 1)],
+      [error(CompileTimeErrorCode.undefinedIdentifier, 26, 1)],
     );
 
     var node = findNode.singleIndexExpression;
@@ -545,7 +545,7 @@ void f() {
   a[0];
 }
 ''',
-      [error(CompileTimeErrorCode.UNDEFINED_IDENTIFIER, 13, 1)],
+      [error(CompileTimeErrorCode.undefinedIdentifier, 13, 1)],
     );
 
     var node = findNode.singleIndexExpression;

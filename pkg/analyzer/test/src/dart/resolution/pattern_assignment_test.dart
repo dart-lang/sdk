@@ -26,7 +26,7 @@ void f() {
   a;
 }
 ''',
-      [error(CompileTimeErrorCode.ASSIGNMENT_TO_FINAL_LOCAL, 38, 1)],
+      [error(CompileTimeErrorCode.assignmentToFinalLocal, 38, 1)],
     );
   }
 
@@ -52,7 +52,7 @@ void f(bool flag) {
   a;
 }
 ''',
-      [error(CompileTimeErrorCode.ASSIGNMENT_TO_FINAL_LOCAL, 67, 1)],
+      [error(CompileTimeErrorCode.assignmentToFinalLocal, 67, 1)],
     );
   }
 
@@ -66,7 +66,7 @@ void f() {
   a;
 }
 ''',
-      [error(CompileTimeErrorCode.LATE_FINAL_LOCAL_ALREADY_ASSIGNED, 43, 1)],
+      [error(CompileTimeErrorCode.lateFinalLocalAlreadyAssigned, 43, 1)],
     );
   }
 
@@ -353,9 +353,9 @@ void f(a, y) {
       [
         // The reference doesn't resolve so the errors include
         // UNUSED_LOCAL_VARIABLE and UNDEFINED_IDENTIFIER.
-        error(ParserErrorCode.PATTERN_ASSIGNMENT_DECLARES_VARIABLE, 25, 1),
-        error(WarningCode.UNUSED_LOCAL_VARIABLE, 25, 1),
-        error(CompileTimeErrorCode.UNDEFINED_IDENTIFIER, 35, 1),
+        error(ParserErrorCode.patternAssignmentDeclaresVariable, 25, 1),
+        error(WarningCode.unusedLocalVariable, 25, 1),
+        error(CompileTimeErrorCode.undefinedIdentifier, 35, 1),
       ],
     );
   }
@@ -371,8 +371,8 @@ void f(a, y) {
 }
 ''',
       [
-        error(ParserErrorCode.PATTERN_ASSIGNMENT_DECLARES_VARIABLE, 25, 1),
-        error(WarningCode.UNUSED_LOCAL_VARIABLE, 25, 1),
+        error(ParserErrorCode.patternAssignmentDeclaresVariable, 25, 1),
+        error(WarningCode.unusedLocalVariable, 25, 1),
       ],
     );
   }
@@ -387,7 +387,7 @@ void f() {
   a = 1;
 }
 ''',
-      [error(CompileTimeErrorCode.ASSIGNMENT_TO_FINAL_LOCAL, 44, 1)],
+      [error(CompileTimeErrorCode.assignmentToFinalLocal, 44, 1)],
     );
   }
 

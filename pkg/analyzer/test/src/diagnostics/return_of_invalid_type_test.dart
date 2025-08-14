@@ -24,7 +24,7 @@ Td f() {
   return () => "hello";
 }
 ''',
-      [error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_CLOSURE, 53, 7)],
+      [error(CompileTimeErrorCode.returnOfInvalidTypeFromClosure, 53, 7)],
     );
   }
 
@@ -35,13 +35,7 @@ class C {
   factory C.named() => 7;
 }
 ''',
-      [
-        error(
-          CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_CONSTRUCTOR,
-          33,
-          1,
-        ),
-      ],
+      [error(CompileTimeErrorCode.returnOfInvalidTypeFromConstructor, 33, 1)],
     );
   }
 
@@ -52,13 +46,7 @@ class C {
   factory C() => 7;
 }
 ''',
-      [
-        error(
-          CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_CONSTRUCTOR,
-          27,
-          1,
-        ),
-      ],
+      [error(CompileTimeErrorCode.returnOfInvalidTypeFromConstructor, 27, 1)],
     );
   }
 
@@ -81,7 +69,7 @@ Future<int> f(Future<Future<int>> a) async {
   return a;
 }
 ''',
-      [error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION, 54, 1)],
+      [error(CompileTimeErrorCode.returnOfInvalidTypeFromFunction, 54, 1)],
     );
   }
 
@@ -92,7 +80,7 @@ Future<int> f(Future<String> a) async {
   return a;
 }
 ''',
-      [error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION, 49, 1)],
+      [error(CompileTimeErrorCode.returnOfInvalidTypeFromFunction, 49, 1)],
     );
   }
 
@@ -110,7 +98,7 @@ int f() async {
   return 5;
 }
 ''',
-      [error(CompileTimeErrorCode.ILLEGAL_ASYNC_RETURN_TYPE, 0, 3)],
+      [error(CompileTimeErrorCode.illegalAsyncReturnType, 0, 3)],
     );
   }
 
@@ -137,7 +125,7 @@ Future<String> f() async {
   return 5;
 }
 ''',
-      [error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION, 36, 1)],
+      [error(CompileTimeErrorCode.returnOfInvalidTypeFromFunction, 36, 1)],
     );
   }
 
@@ -148,7 +136,7 @@ Future<void> f() async {
   return 0;
 }
 ''',
-      [error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION, 34, 1)],
+      [error(CompileTimeErrorCode.returnOfInvalidTypeFromFunction, 34, 1)],
     );
   }
 
@@ -159,7 +147,7 @@ void f() async {
   return 5;
 }
 ''',
-      [error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION, 26, 1)],
+      [error(CompileTimeErrorCode.returnOfInvalidTypeFromFunction, 26, 1)],
     );
   }
 
@@ -178,7 +166,7 @@ Future<int> f(void a) async {
   return a;
 }
 ''',
-      [error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION, 39, 1)],
+      [error(CompileTimeErrorCode.returnOfInvalidTypeFromFunction, 39, 1)],
     );
   }
 
@@ -189,7 +177,7 @@ Future<Null> f(void a) async {
   return a;
 }
 ''',
-      [error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION, 40, 1)],
+      [error(CompileTimeErrorCode.returnOfInvalidTypeFromFunction, 40, 1)],
     );
   }
 
@@ -202,7 +190,7 @@ FutureOr<Object?> f(void a) async {
   return a;
 }
 ''',
-      [error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION, 67, 1)],
+      [error(CompileTimeErrorCode.returnOfInvalidTypeFromFunction, 67, 1)],
     );
   }
 
@@ -227,7 +215,7 @@ Stream<int> f() async* => 3;
 ''',
       [
         // RETURN_OF_INVALID_TYPE shouldn't be reported in addition to this error.
-        error(CompileTimeErrorCode.RETURN_IN_GENERATOR, 23, 2),
+        error(CompileTimeErrorCode.returnInGenerator, 23, 2),
       ],
     );
   }
@@ -239,7 +227,7 @@ void f() {
   return new X();
 }
 ''',
-      [error(CompileTimeErrorCode.NEW_WITH_NON_TYPE, 24, 1)],
+      [error(CompileTimeErrorCode.newWithNonType, 24, 1)],
     );
   }
 
@@ -282,7 +270,7 @@ U Function<U>(U, int) foo(T Function<T>(T a) f) {
   return f;
 }
 ''',
-      [error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION, 59, 1)],
+      [error(CompileTimeErrorCode.returnOfInvalidTypeFromFunction, 59, 1)],
     );
   }
 
@@ -301,7 +289,7 @@ int Function(int, int) foo(T Function<T>(T a) f) {
   return f;
 }
 ''',
-      [error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION, 60, 1)],
+      [error(CompileTimeErrorCode.returnOfInvalidTypeFromFunction, 60, 1)],
     );
   }
 
@@ -320,7 +308,7 @@ void f() {
   return 42;
 }
 ''',
-      [error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION, 20, 2)],
+      [error(CompileTimeErrorCode.returnOfInvalidTypeFromFunction, 20, 2)],
     );
   }
 
@@ -331,7 +319,7 @@ int f(num a) {
   return a;
 }
 ''',
-      [error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION, 24, 1)],
+      [error(CompileTimeErrorCode.returnOfInvalidTypeFromFunction, 24, 1)],
     );
   }
 
@@ -342,7 +330,7 @@ int f() {
   return '0';
 }
 ''',
-      [error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION, 19, 3)],
+      [error(CompileTimeErrorCode.returnOfInvalidTypeFromFunction, 19, 3)],
     );
   }
 
@@ -379,7 +367,7 @@ int f(void a) {
   return a;
 }
 ''',
-      [error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION, 25, 1)],
+      [error(CompileTimeErrorCode.returnOfInvalidTypeFromFunction, 25, 1)],
     );
   }
 
@@ -390,7 +378,7 @@ Null f(void a) {
   return a;
 }
 ''',
-      [error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION, 26, 1)],
+      [error(CompileTimeErrorCode.returnOfInvalidTypeFromFunction, 26, 1)],
     );
   }
 
@@ -413,7 +401,7 @@ U Function<U>(U) foo(T Function<T>(T a) f) => f;
       '''
 U Function<U>(U, int) foo(T Function<T>(T a) f) => f;
 ''',
-      [error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION, 51, 1)],
+      [error(CompileTimeErrorCode.returnOfInvalidTypeFromFunction, 51, 1)],
     );
   }
 
@@ -428,7 +416,7 @@ int Function(int) foo(T Function<T>(T a) f) => f;
       '''
 int Function(int, int) foo(T Function<T>(T a) f) => f;
 ''',
-      [error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION, 52, 1)],
+      [error(CompileTimeErrorCode.returnOfInvalidTypeFromFunction, 52, 1)],
     );
   }
 
@@ -443,7 +431,7 @@ void f() => 42;
       '''
 int f() => '0';
 ''',
-      [error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION, 11, 3)],
+      [error(CompileTimeErrorCode.returnOfInvalidTypeFromFunction, 11, 3)],
     );
   }
 
@@ -454,7 +442,7 @@ Iterable<int> f() sync* => 3;
 ''',
       [
         // RETURN_OF_INVALID_TYPE shouldn't be reported in addition to this error.
-        error(CompileTimeErrorCode.RETURN_IN_GENERATOR, 24, 2),
+        error(CompileTimeErrorCode.returnInGenerator, 24, 2),
       ],
     );
   }
@@ -498,7 +486,7 @@ int get g {
   return '0';
 }
 ''',
-      [error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION, 21, 3)],
+      [error(CompileTimeErrorCode.returnOfInvalidTypeFromFunction, 21, 3)],
     );
   }
 
@@ -507,7 +495,7 @@ int get g {
       '''
 int get g => '0';
 ''',
-      [error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION, 13, 3)],
+      [error(CompileTimeErrorCode.returnOfInvalidTypeFromFunction, 13, 3)],
     );
   }
 
@@ -521,7 +509,7 @@ void f() {
   g();
 }
 ''',
-      [error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION, 34, 3)],
+      [error(CompileTimeErrorCode.returnOfInvalidTypeFromFunction, 34, 3)],
     );
   }
 
@@ -535,7 +523,7 @@ class A {
   }
 }
 ''',
-      [error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION, 38, 3)],
+      [error(CompileTimeErrorCode.returnOfInvalidTypeFromFunction, 38, 3)],
     );
   }
 
@@ -562,7 +550,7 @@ class A {
   }
 }
 ''',
-      [error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_METHOD, 33, 3)],
+      [error(CompileTimeErrorCode.returnOfInvalidTypeFromMethod, 33, 3)],
     );
   }
 
@@ -585,7 +573,7 @@ class A {
   int f() => '0';
 }
 ''',
-      [error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_METHOD, 23, 3)],
+      [error(CompileTimeErrorCode.returnOfInvalidTypeFromMethod, 23, 3)],
     );
   }
 
@@ -594,13 +582,7 @@ class A {
       '''
 Map<int, int> f() => {...[1, 2, 3, 4]};
 ''',
-      [
-        error(
-          CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION,
-          21,
-          17,
-        ),
-      ],
+      [error(CompileTimeErrorCode.returnOfInvalidTypeFromFunction, 21, 17)],
     );
   }
 }
@@ -613,7 +595,7 @@ class ReturnOfInvalidTypeWithStrictCastsTest extends PubPackageResolutionTest
       '''
 int f(dynamic a) => a;
 ''',
-      [error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION, 20, 1)],
+      [error(CompileTimeErrorCode.returnOfInvalidTypeFromFunction, 20, 1)],
     );
   }
 
@@ -624,7 +606,7 @@ Future<int> f(dynamic a) async {
   return a;
 }
 ''',
-      [error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION, 42, 1)],
+      [error(CompileTimeErrorCode.returnOfInvalidTypeFromFunction, 42, 1)],
     );
   }
 }

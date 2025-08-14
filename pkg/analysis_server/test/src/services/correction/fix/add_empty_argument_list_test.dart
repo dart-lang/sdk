@@ -31,7 +31,7 @@ class A {
 main() {}
 ''');
     await assertHasFixAllFix(
-      CompileTimeErrorCode.NO_ANNOTATION_CONSTRUCTOR_ARGUMENTS,
+      CompileTimeErrorCode.noAnnotationConstructorArguments,
       '''
 class A {
   const A();

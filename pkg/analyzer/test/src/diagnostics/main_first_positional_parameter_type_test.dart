@@ -20,7 +20,7 @@ class MainFirstPositionalParameterTest extends PubPackageResolutionTest {
 void main([List<int> args = const []]) {}
 ''');
     assertErrorsInResult([
-      error(CompileTimeErrorCode.MAIN_FIRST_POSITIONAL_PARAMETER_TYPE, 11, 9),
+      error(CompileTimeErrorCode.mainFirstPositionalParameterType, 11, 9),
     ]);
   }
 
@@ -35,7 +35,7 @@ void main(dynamic args) {}
 void main(void args()) {}
 ''');
     assertErrorsInResult([
-      error(CompileTimeErrorCode.MAIN_FIRST_POSITIONAL_PARAMETER_TYPE, 10, 11),
+      error(CompileTimeErrorCode.mainFirstPositionalParameterType, 10, 11),
     ]);
   }
 
@@ -50,7 +50,7 @@ void main(Iterable<String> args) {}
 void main(List<int> args) {}
 ''');
     assertErrorsInResult([
-      error(CompileTimeErrorCode.MAIN_FIRST_POSITIONAL_PARAMETER_TYPE, 10, 9),
+      error(CompileTimeErrorCode.mainFirstPositionalParameterType, 10, 9),
     ]);
   }
 

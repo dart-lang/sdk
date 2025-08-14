@@ -27,7 +27,7 @@ final class S extends Struct {
 }
 final class C extends S {}
 ''',
-      [error(FfiCode.SUBTYPE_OF_STRUCT_CLASS_IN_EXTENDS, 103, 1)],
+      [error(FfiCode.subtypeOfStructClassInExtends, 103, 1)],
     );
   }
 
@@ -40,7 +40,7 @@ final class S extends Union {
 }
 final class C extends S {}
 ''',
-      [error(FfiCode.SUBTYPE_OF_STRUCT_CLASS_IN_EXTENDS, 102, 1)],
+      [error(FfiCode.subtypeOfStructClassInExtends, 102, 1)],
     );
   }
 }
@@ -63,11 +63,11 @@ final class AbiSpecificInteger4 implements AbiSpecificInteger1 {
 ''',
       [
         error(
-          CompileTimeErrorCode.BASE_CLASS_IMPLEMENTED_OUTSIDE_OF_LIBRARY,
+          CompileTimeErrorCode.baseClassImplementedOutsideOfLibrary,
           216,
           19,
         ),
-        error(FfiCode.SUBTYPE_OF_STRUCT_CLASS_IN_IMPLEMENTS, 216, 19),
+        error(FfiCode.subtypeOfStructClassInImplements, 216, 19),
       ],
     );
   }
@@ -80,13 +80,9 @@ final class S extends Struct {}
 final class C implements S {}
 ''',
       [
-        error(FfiCode.EMPTY_STRUCT, 31, 1),
-        error(
-          CompileTimeErrorCode.BASE_CLASS_IMPLEMENTED_OUTSIDE_OF_LIBRARY,
-          76,
-          1,
-        ),
-        error(FfiCode.SUBTYPE_OF_STRUCT_CLASS_IN_IMPLEMENTS, 76, 1),
+        error(FfiCode.emptyStruct, 31, 1),
+        error(CompileTimeErrorCode.baseClassImplementedOutsideOfLibrary, 76, 1),
+        error(FfiCode.subtypeOfStructClassInImplements, 76, 1),
       ],
     );
   }
@@ -102,17 +98,13 @@ import 'lib1.dart' as lib1;
 class C implements lib1.S {}
 ''',
       [
+        error(CompileTimeErrorCode.baseClassImplementedOutsideOfLibrary, 47, 6),
         error(
-          CompileTimeErrorCode.BASE_CLASS_IMPLEMENTED_OUTSIDE_OF_LIBRARY,
+          CompileTimeErrorCode.finalClassImplementedOutsideOfLibrary,
           47,
           6,
         ),
-        error(
-          CompileTimeErrorCode.FINAL_CLASS_IMPLEMENTED_OUTSIDE_OF_LIBRARY,
-          47,
-          6,
-        ),
-        error(FfiCode.SUBTYPE_OF_STRUCT_CLASS_IN_IMPLEMENTS, 47, 6),
+        error(FfiCode.subtypeOfStructClassInImplements, 47, 6),
       ],
     );
   }
@@ -125,13 +117,9 @@ final class S extends Union {}
 final class C implements S {}
 ''',
       [
-        error(FfiCode.EMPTY_STRUCT, 31, 1),
-        error(
-          CompileTimeErrorCode.BASE_CLASS_IMPLEMENTED_OUTSIDE_OF_LIBRARY,
-          75,
-          1,
-        ),
-        error(FfiCode.SUBTYPE_OF_STRUCT_CLASS_IN_IMPLEMENTS, 75, 1),
+        error(FfiCode.emptyStruct, 31, 1),
+        error(CompileTimeErrorCode.baseClassImplementedOutsideOfLibrary, 75, 1),
+        error(FfiCode.subtypeOfStructClassInImplements, 75, 1),
       ],
     );
   }
@@ -147,10 +135,10 @@ final class S extends Struct {}
 final class C with S {}
 ''',
       [
-        error(FfiCode.EMPTY_STRUCT, 31, 1),
-        error(CompileTimeErrorCode.MIXIN_INHERITS_FROM_NOT_OBJECT, 70, 1),
+        error(FfiCode.emptyStruct, 31, 1),
+        error(CompileTimeErrorCode.mixinInheritsFromNotObject, 70, 1),
         error(
-          FfiCode.SUBTYPE_OF_STRUCT_CLASS_IN_WITH,
+          FfiCode.subtypeOfStructClassInWith,
           70,
           1,
           messageContains: ["class 'C'", "mix in 'S'"],
@@ -171,9 +159,9 @@ import 'lib1.dart' as lib1;
 class C with lib1.S {}
 ''',
       [
-        error(CompileTimeErrorCode.MIXIN_INHERITS_FROM_NOT_OBJECT, 42, 6),
+        error(CompileTimeErrorCode.mixinInheritsFromNotObject, 42, 6),
         error(
-          FfiCode.SUBTYPE_OF_STRUCT_CLASS_IN_WITH,
+          FfiCode.subtypeOfStructClassInWith,
           42,
           6,
           messageContains: ["class 'C'", "mix in 'S'"],
@@ -190,9 +178,9 @@ final class S extends Union {}
 final class C with S {}
 ''',
       [
-        error(FfiCode.EMPTY_STRUCT, 31, 1),
-        error(CompileTimeErrorCode.MIXIN_INHERITS_FROM_NOT_OBJECT, 69, 1),
-        error(FfiCode.SUBTYPE_OF_STRUCT_CLASS_IN_WITH, 69, 1),
+        error(FfiCode.emptyStruct, 31, 1),
+        error(CompileTimeErrorCode.mixinInheritsFromNotObject, 69, 1),
+        error(FfiCode.subtypeOfStructClassInWith, 69, 1),
       ],
     );
   }

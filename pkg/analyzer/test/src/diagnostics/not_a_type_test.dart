@@ -26,7 +26,7 @@ A.foo bar() {}
 ''',
       [
         error(
-          CompileTimeErrorCode.NOT_A_TYPE,
+          CompileTimeErrorCode.notAType,
           24,
           5,
           contextMessages: [message(testFile, 14, 3)],
@@ -46,7 +46,7 @@ A.foo bar() {}
 ''',
       [
         error(
-          CompileTimeErrorCode.NOT_A_TYPE,
+          CompileTimeErrorCode.notAType,
           36,
           5,
           contextMessages: [message(testFile, 24, 3)],
@@ -63,7 +63,7 @@ E a;
 ''',
       [
         error(
-          CompileTimeErrorCode.NOT_A_TYPE,
+          CompileTimeErrorCode.notAType,
           22,
           1,
           contextMessages: [message(testFile, 10, 1)],
@@ -89,12 +89,12 @@ main() {
 }''',
       [
         error(
-          CompileTimeErrorCode.NOT_A_TYPE,
+          CompileTimeErrorCode.notAType,
           18,
           1,
           contextMessages: [message(testFile, 0, 1)],
         ),
-        error(WarningCode.UNUSED_LOCAL_VARIABLE, 20, 1),
+        error(WarningCode.unusedLocalVariable, 20, 1),
       ],
     );
   }

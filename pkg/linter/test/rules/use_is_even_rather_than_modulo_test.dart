@@ -113,7 +113,7 @@ bool a = tmp % 2 == 0;
 ''',
       [
         // No lint
-        error(CompileTimeErrorCode.UNDEFINED_CLASS, 0, 5),
+        error(CompileTimeErrorCode.undefinedClass, 0, 5),
       ],
     );
   }

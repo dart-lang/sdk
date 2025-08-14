@@ -33,7 +33,7 @@ class ConstArgumentsVerifier extends SimpleAstVisitor<void> {
       // depends on the value of the left hand side.
       _diagnosticReporter.atNode(
         node.rightHandSide,
-        WarningCode.NON_CONST_ARGUMENT_FOR_CONST_PARAMETER,
+        WarningCode.nonConstArgumentForConstParameter,
         arguments: [node.rightHandSide],
       );
     }
@@ -113,7 +113,7 @@ class ConstArgumentsVerifier extends SimpleAstVisitor<void> {
         if (!_isConst(resolvedArgument)) {
           _diagnosticReporter.atNode(
             argument,
-            WarningCode.NON_CONST_ARGUMENT_FOR_CONST_PARAMETER,
+            WarningCode.nonConstArgumentForConstParameter,
             arguments: [parameterName],
           );
         }

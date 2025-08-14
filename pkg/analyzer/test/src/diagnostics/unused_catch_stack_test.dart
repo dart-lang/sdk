@@ -24,7 +24,7 @@ main() {
   }
 }
 ''',
-      [error(WarningCode.UNUSED_CATCH_STACK, 49, 10)],
+      [error(WarningCode.unusedCatchStack, 49, 10)],
     );
   }
 
@@ -48,7 +48,7 @@ main() {
   }
 }
 ''',
-      [error(WarningCode.UNUSED_CATCH_STACK, 39, 10)],
+      [error(WarningCode.unusedCatchStack, 39, 10)],
     );
   }
 

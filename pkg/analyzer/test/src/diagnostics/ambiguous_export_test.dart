@@ -27,7 +27,7 @@ class N {}
 export 'lib1.dart';
 export 'lib2.dart';
 ''',
-      [error(CompileTimeErrorCode.AMBIGUOUS_EXPORT, 27, 11)],
+      [error(CompileTimeErrorCode.ambiguousExport, 27, 11)],
     );
   }
 
@@ -43,7 +43,7 @@ extension E on String {}
 export 'lib1.dart';
 export 'lib2.dart';
 ''',
-      [error(CompileTimeErrorCode.AMBIGUOUS_EXPORT, 27, 11)],
+      [error(CompileTimeErrorCode.ambiguousExport, 27, 11)],
     );
   }
 
@@ -80,7 +80,7 @@ export 'lib2.dart';
     await assertErrorsInFile2(a, []);
 
     await assertErrorsInFile2(b, [
-      error(CompileTimeErrorCode.AMBIGUOUS_EXPORT, 25, 11),
+      error(CompileTimeErrorCode.ambiguousExport, 25, 11),
     ]);
   }
 
@@ -113,7 +113,7 @@ export 'lib2.dart';
     await assertErrorsInFile2(b, []);
 
     await assertErrorsInFile2(c, [
-      error(CompileTimeErrorCode.AMBIGUOUS_EXPORT, 25, 11),
+      error(CompileTimeErrorCode.ambiguousExport, 25, 11),
     ]);
   }
 }

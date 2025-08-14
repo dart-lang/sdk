@@ -23,7 +23,7 @@ class A {
   factory B() => throw 0;
 }
 ''',
-      [error(CompileTimeErrorCode.INVALID_FACTORY_NAME_NOT_A_CLASS, 31, 1)],
+      [error(CompileTimeErrorCode.invalidFactoryNameNotAClass, 31, 1)],
     );
   }
 
@@ -34,7 +34,7 @@ class A {
   factory B() => throw 0;
 }
 ''',
-      [error(CompileTimeErrorCode.INVALID_FACTORY_NAME_NOT_A_CLASS, 20, 1)],
+      [error(CompileTimeErrorCode.invalidFactoryNameNotAClass, 20, 1)],
     );
   }
 
@@ -56,7 +56,7 @@ augment class A {
 
     await resolveFile2(b);
     assertErrorsInResult([
-      error(CompileTimeErrorCode.INVALID_FACTORY_NAME_NOT_A_CLASS, 47, 1),
+      error(CompileTimeErrorCode.invalidFactoryNameNotAClass, 47, 1),
     ]);
   }
 

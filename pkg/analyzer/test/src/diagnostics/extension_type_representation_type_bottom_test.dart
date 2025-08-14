@@ -23,7 +23,7 @@ extension type A(Never it) {}
 ''',
       [
         error(
-          CompileTimeErrorCode.EXTENSION_TYPE_REPRESENTATION_TYPE_BOTTOM,
+          CompileTimeErrorCode.extensionTypeRepresentationTypeBottom,
           17,
           5,
         ),
@@ -44,7 +44,7 @@ extension type A<T extends Never>(T it) {}
 ''',
       [
         error(
-          CompileTimeErrorCode.EXTENSION_TYPE_REPRESENTATION_TYPE_BOTTOM,
+          CompileTimeErrorCode.extensionTypeRepresentationTypeBottom,
           34,
           1,
         ),

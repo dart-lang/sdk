@@ -1790,8 +1790,7 @@ test() {
 ''',
       [
         error(
-          CompileTimeErrorCode
-              .NOT_ASSIGNED_POTENTIALLY_NON_NULLABLE_LOCAL_VARIABLE,
+          CompileTimeErrorCode.notAssignedPotentiallyNonNullableLocalVariable,
           27,
           1,
         ),

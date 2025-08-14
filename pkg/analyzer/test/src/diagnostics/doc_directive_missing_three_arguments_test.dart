@@ -28,7 +28,7 @@ class C {}
 /// {@animation}
 class C {}
 ''',
-      [error(WarningCode.DOC_DIRECTIVE_MISSING_THREE_ARGUMENTS, 4, 13)],
+      [error(WarningCode.docDirectiveMissingThreeArguments, 4, 13)],
     );
   }
 
@@ -45,7 +45,7 @@ class C {}
 /// {@youtube}
 class C {}
 ''',
-      [error(WarningCode.DOC_DIRECTIVE_MISSING_THREE_ARGUMENTS, 4, 11)],
+      [error(WarningCode.docDirectiveMissingThreeArguments, 4, 11)],
     );
   }
 
@@ -55,7 +55,7 @@ class C {}
 /// {@youtube
 class C {}
 ''',
-      [error(WarningCode.DOC_DIRECTIVE_MISSING_THREE_ARGUMENTS, 4, 10)],
+      [error(WarningCode.docDirectiveMissingThreeArguments, 4, 10)],
     );
   }
 }

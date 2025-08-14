@@ -29,7 +29,7 @@ dependencies:
   foo:
     path: \foo
 ''',
-      [PubspecWarningCode.PATH_NOT_POSIX],
+      [PubspecWarningCode.pathNotPosix],
     );
   }
 }

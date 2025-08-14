@@ -57,7 +57,7 @@ void f(Object p, Object q) {
   }
 }
 ''');
-    await assertHasFixAllFix(WarningCode.UNNECESSARY_CAST, '''
+    await assertHasFixAllFix(WarningCode.unnecessaryCast, '''
 void f(Object p, Object q) {
   if (p is String) {
     var v = p;

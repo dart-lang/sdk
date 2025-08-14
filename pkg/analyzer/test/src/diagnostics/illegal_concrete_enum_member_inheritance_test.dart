@@ -27,13 +27,7 @@ class A {
 
 abstract class B extends A implements Enum {}
 ''',
-      [
-        error(
-          CompileTimeErrorCode.ILLEGAL_CONCRETE_ENUM_MEMBER_INHERITANCE,
-          48,
-          1,
-        ),
-      ],
+      [error(CompileTimeErrorCode.illegalConcreteEnumMemberInheritance, 48, 1)],
     );
   }
 
@@ -56,13 +50,7 @@ mixin M {
 
 abstract class B with M implements Enum {}
 ''',
-      [
-        error(
-          CompileTimeErrorCode.ILLEGAL_CONCRETE_ENUM_MEMBER_INHERITANCE,
-          48,
-          1,
-        ),
-      ],
+      [error(CompileTimeErrorCode.illegalConcreteEnumMemberInheritance, 48, 1)],
     );
   }
 
@@ -75,13 +63,7 @@ class A {
 
 abstract class B extends A implements Enum {}
 ''',
-      [
-        error(
-          CompileTimeErrorCode.ILLEGAL_CONCRETE_ENUM_MEMBER_INHERITANCE,
-          53,
-          1,
-        ),
-      ],
+      [error(CompileTimeErrorCode.illegalConcreteEnumMemberInheritance, 53, 1)],
     );
   }
 
@@ -114,13 +96,7 @@ class A {
 
 abstract class B extends A implements Enum {}
 ''',
-      [
-        error(
-          CompileTimeErrorCode.ILLEGAL_CONCRETE_ENUM_MEMBER_INHERITANCE,
-          71,
-          1,
-        ),
-      ],
+      [error(CompileTimeErrorCode.illegalConcreteEnumMemberInheritance, 71, 1)],
     );
   }
 
@@ -143,13 +119,7 @@ mixin M {
 
 abstract class B with M implements Enum {}
 ''',
-      [
-        error(
-          CompileTimeErrorCode.ILLEGAL_CONCRETE_ENUM_MEMBER_INHERITANCE,
-          71,
-          1,
-        ),
-      ],
+      [error(CompileTimeErrorCode.illegalConcreteEnumMemberInheritance, 71, 1)],
     );
   }
 }
@@ -180,13 +150,7 @@ enum E with M {
   v;
 }
 ''',
-      [
-        error(
-          CompileTimeErrorCode.ILLEGAL_CONCRETE_ENUM_MEMBER_INHERITANCE,
-          43,
-          1,
-        ),
-      ],
+      [error(CompileTimeErrorCode.illegalConcreteEnumMemberInheritance, 43, 1)],
     );
   }
 
@@ -225,13 +189,7 @@ enum E with M {
   v;
 }
 ''',
-      [
-        error(
-          CompileTimeErrorCode.ILLEGAL_CONCRETE_ENUM_MEMBER_INHERITANCE,
-          40,
-          1,
-        ),
-      ],
+      [error(CompileTimeErrorCode.illegalConcreteEnumMemberInheritance, 40, 1)],
     );
   }
 
@@ -270,13 +228,7 @@ enum E with M {
   v;
 }
 ''',
-      [
-        error(
-          CompileTimeErrorCode.ILLEGAL_CONCRETE_ENUM_MEMBER_INHERITANCE,
-          61,
-          1,
-        ),
-      ],
+      [error(CompileTimeErrorCode.illegalConcreteEnumMemberInheritance, 61, 1)],
     );
   }
 }

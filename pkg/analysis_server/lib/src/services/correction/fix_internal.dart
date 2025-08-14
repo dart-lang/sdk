@@ -579,418 +579,390 @@ final _builtInLintMultiGenerators = {
 };
 
 final _builtInNonLintGenerators = <DiagnosticCode, List<ProducerGenerator>>{
-  CompileTimeErrorCode.ABSTRACT_FIELD_INITIALIZER: [
+  CompileTimeErrorCode.abstractFieldInitializer: [
     RemoveAbstract.new,
     RemoveInitializer.new,
   ],
-  CompileTimeErrorCode.ABSTRACT_FIELD_CONSTRUCTOR_INITIALIZER: [
+  CompileTimeErrorCode.abstractFieldConstructorInitializer: [
     RemoveAbstract.new,
     RemoveInitializer.new,
   ],
-  CompileTimeErrorCode.ASSERT_IN_REDIRECTING_CONSTRUCTOR: [RemoveAssertion.new],
-  CompileTimeErrorCode.ASSIGNMENT_TO_FINAL: [
-    MakeFieldNotFinal.new,
-    AddLate.new,
-  ],
-  CompileTimeErrorCode.ASSIGNMENT_TO_FINAL_LOCAL: [MakeVariableNotFinal.new],
-  CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE: [
+  CompileTimeErrorCode.assertInRedirectingConstructor: [RemoveAssertion.new],
+  CompileTimeErrorCode.assignmentToFinal: [MakeFieldNotFinal.new, AddLate.new],
+  CompileTimeErrorCode.assignmentToFinalLocal: [MakeVariableNotFinal.new],
+  CompileTimeErrorCode.argumentTypeNotAssignable: [
     AddExplicitCast.new,
     AddNullCheck.new,
     WrapInText.new,
     AddAwait.argumentType,
   ],
-  CompileTimeErrorCode.ASYNC_FOR_IN_WRONG_CONTEXT: [AddAsync.new],
-  CompileTimeErrorCode.AUGMENTATION_MODIFIER_EXTRA: [RemoveLexeme.modifier],
-  CompileTimeErrorCode.AWAIT_IN_LATE_LOCAL_VARIABLE_INITIALIZER: [
-    RemoveLate.new,
-  ],
-  CompileTimeErrorCode.AWAIT_IN_WRONG_CONTEXT: [AddAsync.new],
-  CompileTimeErrorCode.BODY_MIGHT_COMPLETE_NORMALLY: [AddAsync.missingReturn],
-  CompileTimeErrorCode.CAST_TO_NON_TYPE: [ChangeTo.classOrMixin],
-  CompileTimeErrorCode.CLASS_INSTANTIATION_ACCESS_TO_STATIC_MEMBER: [
+  CompileTimeErrorCode.asyncForInWrongContext: [AddAsync.new],
+  CompileTimeErrorCode.augmentationModifierExtra: [RemoveLexeme.modifier],
+  CompileTimeErrorCode.awaitInLateLocalVariableInitializer: [RemoveLate.new],
+  CompileTimeErrorCode.awaitInWrongContext: [AddAsync.new],
+  CompileTimeErrorCode.bodyMightCompleteNormally: [AddAsync.missingReturn],
+  CompileTimeErrorCode.castToNonType: [ChangeTo.classOrMixin],
+  CompileTimeErrorCode.classInstantiationAccessToStaticMember: [
     RemoveTypeArguments.new,
   ],
-  CompileTimeErrorCode.CONCRETE_CLASS_WITH_ABSTRACT_MEMBER: [
+  CompileTimeErrorCode.concreteClassWithAbstractMember: [
     ConvertIntoBlockBody.missingBody,
     CreateNoSuchMethod.new,
     MakeClassAbstract.new,
   ],
-  CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE: [
+  CompileTimeErrorCode.constInitializedWithNonConstantValue: [
     RemoveConst.new,
     RemoveNew.new,
   ],
-  CompileTimeErrorCode.CONST_INSTANCE_FIELD: [AddStatic.new],
-  CompileTimeErrorCode.CONST_WITH_NON_CONST: [RemoveConst.new],
-  CompileTimeErrorCode.CONST_WITH_NON_TYPE: [ChangeTo.classOrMixin],
-  CompileTimeErrorCode.CONSTANT_PATTERN_WITH_NON_CONSTANT_EXPRESSION: [
-    AddConst.new,
-  ],
-  CompileTimeErrorCode.DEFAULT_VALUE_ON_REQUIRED_PARAMETER: [
+  CompileTimeErrorCode.constInstanceField: [AddStatic.new],
+  CompileTimeErrorCode.constWithNonConst: [RemoveConst.new],
+  CompileTimeErrorCode.constWithNonType: [ChangeTo.classOrMixin],
+  CompileTimeErrorCode.constantPatternWithNonConstantExpression: [AddConst.new],
+  CompileTimeErrorCode.defaultValueOnRequiredParameter: [
     RemoveDefaultValue.new,
     RemoveRequired.new,
   ],
-  CompileTimeErrorCode.DOT_SHORTHAND_UNDEFINED_GETTER: [
+  CompileTimeErrorCode.dotShorthandUndefinedGetter: [
     AddEnumConstant.new,
     ChangeTo.getterOrSetter,
     CreateGetter.new,
     CreateField.new,
   ],
-  CompileTimeErrorCode.DOT_SHORTHAND_UNDEFINED_INVOCATION: [
+  CompileTimeErrorCode.dotShorthandUndefinedInvocation: [
     ChangeTo.method,
     CreateConstructor.new,
     CreateMethod.method,
   ],
-  CompileTimeErrorCode.EMPTY_MAP_PATTERN: [
+  CompileTimeErrorCode.emptyMapPattern: [
     ReplaceEmptyMapPattern.any,
     ReplaceEmptyMapPattern.empty,
   ],
-  CompileTimeErrorCode.ENUM_WITH_ABSTRACT_MEMBER: [
+  CompileTimeErrorCode.enumWithAbstractMember: [
     ConvertIntoBlockBody.missingBody,
   ],
-  CompileTimeErrorCode.EXTENDS_DISALLOWED_CLASS: [
+  CompileTimeErrorCode.extendsDisallowedClass: [
     RemoveNameFromDeclarationClause.new,
   ],
-  CompileTimeErrorCode.EXTENDS_NON_CLASS: [
+  CompileTimeErrorCode.extendsNonClass: [
     ChangeTo.classOrMixin,
     RemoveNameFromDeclarationClause.new,
   ],
-  CompileTimeErrorCode.EXTENDS_TYPE_ALIAS_EXPANDS_TO_TYPE_PARAMETER: [
+  CompileTimeErrorCode.extendsTypeAliasExpandsToTypeParameter: [
     RemoveNameFromDeclarationClause.new,
   ],
-  CompileTimeErrorCode.EXTENSION_DECLARES_MEMBER_OF_OBJECT: [
+  CompileTimeErrorCode.extensionDeclaresMemberOfObject: [
     RemoveMethodDeclaration.new,
   ],
-  CompileTimeErrorCode.EXTENSION_DECLARES_INSTANCE_FIELD: [
-    ConvertIntoGetter.new,
-  ],
-  CompileTimeErrorCode.EXTENSION_TYPE_DECLARES_MEMBER_OF_OBJECT: [
+  CompileTimeErrorCode.extensionDeclaresInstanceField: [ConvertIntoGetter.new],
+  CompileTimeErrorCode.extensionTypeDeclaresMemberOfObject: [
     RemoveMethodDeclaration.new,
   ],
-  CompileTimeErrorCode.EXTENSION_TYPE_DECLARES_INSTANCE_FIELD: [
+  CompileTimeErrorCode.extensionTypeDeclaresInstanceField: [
     ConvertIntoGetter.new,
   ],
-  CompileTimeErrorCode.EXTENSION_OVERRIDE_ACCESS_TO_STATIC_MEMBER: [
+  CompileTimeErrorCode.extensionOverrideAccessToStaticMember: [
     ReplaceWithExtensionName.new,
   ],
-  CompileTimeErrorCode.EXTENSION_OVERRIDE_WITH_CASCADE: [
+  CompileTimeErrorCode.extensionOverrideWithCascade: [
     ReplaceCascadeWithDot.new,
   ],
-  CompileTimeErrorCode.EXTENSION_TYPE_WITH_ABSTRACT_MEMBER: [
+  CompileTimeErrorCode.extensionTypeWithAbstractMember: [
     ConvertIntoBlockBody.missingBody,
   ],
-  CompileTimeErrorCode.EXTRA_POSITIONAL_ARGUMENTS: [CreateConstructor.new],
-  CompileTimeErrorCode.EXTRA_POSITIONAL_ARGUMENTS_COULD_BE_NAMED: [
+  CompileTimeErrorCode.extraPositionalArguments: [CreateConstructor.new],
+  CompileTimeErrorCode.extraPositionalArgumentsCouldBeNamed: [
     CreateConstructor.new,
     ConvertToNamedArguments.new,
   ],
-  CompileTimeErrorCode.FINAL_CLASS_EXTENDED_OUTSIDE_OF_LIBRARY: [
+  CompileTimeErrorCode.finalClassExtendedOutsideOfLibrary: [
     RemoveNameFromDeclarationClause.new,
   ],
-  CompileTimeErrorCode.FINAL_CLASS_IMPLEMENTED_OUTSIDE_OF_LIBRARY: [
+  CompileTimeErrorCode.finalClassImplementedOutsideOfLibrary: [
     RemoveNameFromDeclarationClause.new,
   ],
-  CompileTimeErrorCode.FINAL_NOT_INITIALIZED: [
+  CompileTimeErrorCode.finalNotInitialized: [
     AddLate.new,
     CreateConstructorForFinalFields.requiredNamed,
     CreateConstructorForFinalFields.requiredPositional,
   ],
-  CompileTimeErrorCode.FINAL_NOT_INITIALIZED_CONSTRUCTOR_1: [
+  CompileTimeErrorCode.finalNotInitializedConstructor1: [
     AddFieldFormalParameters.new,
     AddFieldFormalParameters.requiredNamed,
   ],
-  CompileTimeErrorCode.FINAL_NOT_INITIALIZED_CONSTRUCTOR_2: [
+  CompileTimeErrorCode.finalNotInitializedConstructor2: [
     AddFieldFormalParameters.new,
     AddFieldFormalParameters.requiredNamed,
   ],
-  CompileTimeErrorCode.FINAL_NOT_INITIALIZED_CONSTRUCTOR_3_PLUS: [
+  CompileTimeErrorCode.finalNotInitializedConstructor3Plus: [
     AddFieldFormalParameters.new,
     AddFieldFormalParameters.requiredNamed,
   ],
-  CompileTimeErrorCode.FOR_IN_OF_INVALID_TYPE: [AddAwait.forIn],
-  CompileTimeErrorCode.ILLEGAL_ASYNC_GENERATOR_RETURN_TYPE: [
+  CompileTimeErrorCode.forInOfInvalidType: [AddAwait.forIn],
+  CompileTimeErrorCode.illegalAsyncGeneratorReturnType: [
     ReplaceReturnTypeStream.new,
   ],
-  CompileTimeErrorCode.ILLEGAL_ASYNC_RETURN_TYPE: [
+  CompileTimeErrorCode.illegalAsyncReturnType: [
     ReplaceReturnTypeFuture.new,
     RemoveAsync.new,
   ],
-  CompileTimeErrorCode.ILLEGAL_SYNC_GENERATOR_RETURN_TYPE: [
+  CompileTimeErrorCode.illegalSyncGeneratorReturnType: [
     ReplaceReturnTypeIterable.new,
   ],
-  CompileTimeErrorCode.IMPLEMENTS_DISALLOWED_CLASS: [
+  CompileTimeErrorCode.implementsDisallowedClass: [
     RemoveNameFromDeclarationClause.new,
   ],
-  CompileTimeErrorCode.IMPLEMENTS_NON_CLASS: [ChangeTo.classOrMixin],
-  CompileTimeErrorCode.IMPLEMENTS_REPEATED: [
+  CompileTimeErrorCode.implementsNonClass: [ChangeTo.classOrMixin],
+  CompileTimeErrorCode.implementsRepeated: [
     RemoveNameFromDeclarationClause.new,
   ],
-  CompileTimeErrorCode.IMPLEMENTS_SUPER_CLASS: [
+  CompileTimeErrorCode.implementsSuperClass: [
     RemoveNameFromDeclarationClause.new,
   ],
-  CompileTimeErrorCode.IMPLEMENTS_TYPE_ALIAS_EXPANDS_TO_TYPE_PARAMETER: [
+  CompileTimeErrorCode.implementsTypeAliasExpandsToTypeParameter: [
     RemoveNameFromDeclarationClause.new,
   ],
-  CompileTimeErrorCode.IMPLICIT_SUPER_INITIALIZER_MISSING_ARGUMENTS: [
+  CompileTimeErrorCode.implicitSuperInitializerMissingArguments: [
     AddSuperParameter.new,
   ],
-  CompileTimeErrorCode.IMPLICIT_THIS_REFERENCE_IN_INITIALIZER: [
+  CompileTimeErrorCode.implicitThisReferenceInInitializer: [
     ConvertIntoGetter.implicitThis,
     AddLate.implicitThis,
   ],
-  CompileTimeErrorCode.IMPORT_OF_NON_LIBRARY: [RemoveUnusedImport.new],
-  CompileTimeErrorCode.IMPORT_INTERNAL_LIBRARY: [RemoveUnusedImport.new],
-  CompileTimeErrorCode.INITIALIZING_FORMAL_FOR_NON_EXISTENT_FIELD: [
+  CompileTimeErrorCode.importOfNonLibrary: [RemoveUnusedImport.new],
+  CompileTimeErrorCode.importInternalLibrary: [RemoveUnusedImport.new],
+  CompileTimeErrorCode.initializingFormalForNonExistentField: [
     ChangeTo.field,
     CreateField.new,
   ],
-  CompileTimeErrorCode.INSTANCE_ACCESS_TO_STATIC_MEMBER: [
-    ChangeToStaticAccess.new,
-  ],
-  CompileTimeErrorCode.INTEGER_LITERAL_IMPRECISE_AS_DOUBLE: [
+  CompileTimeErrorCode.instanceAccessToStaticMember: [ChangeToStaticAccess.new],
+  CompileTimeErrorCode.integerLiteralImpreciseAsDouble: [
     ChangeToNearestPreciseValue.new,
   ],
-  CompileTimeErrorCode.INVALID_ANNOTATION: [ChangeTo.annotation],
-  CompileTimeErrorCode.INVALID_ASSIGNMENT: [
+  CompileTimeErrorCode.invalidAnnotation: [ChangeTo.annotation],
+  CompileTimeErrorCode.invalidAssignment: [
     AddExplicitCast.new,
     AddNullCheck.new,
     ChangeTypeAnnotation.new,
     MakeVariableNullable.new,
     AddAwait.assignment,
   ],
-  CompileTimeErrorCode.INVALID_CONSTANT: [RemoveConst.new],
-  CompileTimeErrorCode.INVALID_MODIFIER_ON_CONSTRUCTOR: [RemoveLexeme.modifier],
-  CompileTimeErrorCode.INVALID_MODIFIER_ON_SETTER: [RemoveLexeme.modifier],
-  CompileTimeErrorCode.INVALID_USE_OF_COVARIANT: [RemoveLexeme.keyword],
-  CompileTimeErrorCode.INVOCATION_OF_NON_FUNCTION_EXPRESSION: [
+  CompileTimeErrorCode.invalidConstant: [RemoveConst.new],
+  CompileTimeErrorCode.invalidModifierOnConstructor: [RemoveLexeme.modifier],
+  CompileTimeErrorCode.invalidModifierOnSetter: [RemoveLexeme.modifier],
+  CompileTimeErrorCode.invalidUseOfCovariant: [RemoveLexeme.keyword],
+  CompileTimeErrorCode.invocationOfNonFunctionExpression: [
     RemoveParenthesesInGetterInvocation.new,
   ],
-  CompileTimeErrorCode.LATE_FINAL_LOCAL_ALREADY_ASSIGNED: [
+  CompileTimeErrorCode.lateFinalLocalAlreadyAssigned: [
     MakeVariableNotFinal.new,
   ],
-  CompileTimeErrorCode.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE_NULLABILITY: [
+  CompileTimeErrorCode.listElementTypeNotAssignableNullability: [
     ConvertToNullAwareListElement.new,
   ],
-  CompileTimeErrorCode.MAP_KEY_TYPE_NOT_ASSIGNABLE_NULLABILITY: [
+  CompileTimeErrorCode.mapKeyTypeNotAssignableNullability: [
     ConvertToNullAwareMapEntryKey.new,
   ],
-  CompileTimeErrorCode.MAP_VALUE_TYPE_NOT_ASSIGNABLE_NULLABILITY: [
+  CompileTimeErrorCode.mapValueTypeNotAssignableNullability: [
     ConvertToNullAwareMapEntryValue.new,
   ],
-  CompileTimeErrorCode.MISSING_DEFAULT_VALUE_FOR_PARAMETER: [
+  CompileTimeErrorCode.missingDefaultValueForParameter: [
     AddRequiredKeyword.new,
     MakeVariableNullable.new,
   ],
-  CompileTimeErrorCode.MISSING_DEFAULT_VALUE_FOR_PARAMETER_POSITIONAL: [
+  CompileTimeErrorCode.missingDefaultValueForParameterPositional: [
     MakeVariableNullable.new,
   ],
-  CompileTimeErrorCode.MISSING_DEFAULT_VALUE_FOR_PARAMETER_WITH_ANNOTATION: [
+  CompileTimeErrorCode.missingDefaultValueForParameterWithAnnotation: [
     AddRequiredKeyword.new,
   ],
-  CompileTimeErrorCode.MISSING_REQUIRED_ARGUMENT: [
+  CompileTimeErrorCode.missingRequiredArgument: [
     AddMissingRequiredArgument.new,
   ],
-  CompileTimeErrorCode.MIXIN_APPLICATION_NOT_IMPLEMENTED_INTERFACE: [
+  CompileTimeErrorCode.mixinApplicationNotImplementedInterface: [
     ExtendClassForMixin.new,
   ],
-  CompileTimeErrorCode.MIXIN_CLASS_DECLARATION_EXTENDS_NOT_OBJECT: [
+  CompileTimeErrorCode.mixinClassDeclarationExtendsNotObject: [
     RemoveExtendsClause.new,
   ],
-  CompileTimeErrorCode.MIXIN_SUBTYPE_OF_BASE_IS_NOT_BASE: [
+  CompileTimeErrorCode.mixinSubtypeOfBaseIsNotBase: [
     AddClassModifier.baseModifier,
   ],
-  CompileTimeErrorCode.MIXIN_SUBTYPE_OF_FINAL_IS_NOT_BASE: [
+  CompileTimeErrorCode.mixinSubtypeOfFinalIsNotBase: [
     AddClassModifier.baseModifier,
   ],
-  CompileTimeErrorCode.MIXIN_OF_DISALLOWED_CLASS: [
+  CompileTimeErrorCode.mixinOfDisallowedClass: [
     RemoveNameFromDeclarationClause.new,
   ],
-  CompileTimeErrorCode.MIXIN_OF_NON_CLASS: [ChangeTo.classOrMixin],
-  CompileTimeErrorCode.MIXIN_SUPER_CLASS_CONSTRAINT_DISALLOWED_CLASS: [
+  CompileTimeErrorCode.mixinOfNonClass: [ChangeTo.classOrMixin],
+  CompileTimeErrorCode.mixinSuperClassConstraintDisallowedClass: [
     RemoveNameFromDeclarationClause.new,
   ],
-  CompileTimeErrorCode.MIXIN_SUPER_CLASS_CONSTRAINT_NON_INTERFACE: [
+  CompileTimeErrorCode.mixinSuperClassConstraintNonInterface: [
     RemoveNameFromDeclarationClause.new,
   ],
-  CompileTimeErrorCode.NEW_WITH_NON_TYPE: [ChangeTo.classOrMixin],
-  CompileTimeErrorCode.NEW_WITH_UNDEFINED_CONSTRUCTOR: [CreateConstructor.new],
-  CompileTimeErrorCode.NO_ANNOTATION_CONSTRUCTOR_ARGUMENTS: [
+  CompileTimeErrorCode.newWithNonType: [ChangeTo.classOrMixin],
+  CompileTimeErrorCode.newWithUndefinedConstructor: [CreateConstructor.new],
+  CompileTimeErrorCode.noAnnotationConstructorArguments: [
     AddEmptyArgumentList.new,
   ],
-  CompileTimeErrorCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_FIVE_PLUS: [
+  CompileTimeErrorCode.nonAbstractClassInheritsAbstractMemberFivePlus: [
     CreateMissingOverrides.new,
     CreateNoSuchMethod.new,
     MakeClassAbstract.new,
   ],
-  CompileTimeErrorCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_FOUR: [
+  CompileTimeErrorCode.nonAbstractClassInheritsAbstractMemberFour: [
     CreateMissingOverrides.new,
     CreateNoSuchMethod.new,
     MakeClassAbstract.new,
   ],
-  CompileTimeErrorCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_ONE: [
+  CompileTimeErrorCode.nonAbstractClassInheritsAbstractMemberOne: [
     CreateMissingOverrides.new,
     CreateNoSuchMethod.new,
     MakeClassAbstract.new,
   ],
-  CompileTimeErrorCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_THREE: [
+  CompileTimeErrorCode.nonAbstractClassInheritsAbstractMemberThree: [
     CreateMissingOverrides.new,
     CreateNoSuchMethod.new,
     MakeClassAbstract.new,
   ],
-  CompileTimeErrorCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_TWO: [
+  CompileTimeErrorCode.nonAbstractClassInheritsAbstractMemberTwo: [
     CreateMissingOverrides.new,
     CreateNoSuchMethod.new,
     MakeClassAbstract.new,
   ],
-  CompileTimeErrorCode.NON_BOOL_CONDITION: [AddNeNull.new, AddAwait.nonBool],
-  CompileTimeErrorCode.NON_CONST_GENERATIVE_ENUM_CONSTRUCTOR: [AddConst.new],
-  CompileTimeErrorCode.NON_CONSTANT_LIST_ELEMENT: [RemoveConst.new],
-  CompileTimeErrorCode.NON_CONSTANT_LIST_ELEMENT_FROM_DEFERRED_LIBRARY: [
+  CompileTimeErrorCode.nonBoolCondition: [AddNeNull.new, AddAwait.nonBool],
+  CompileTimeErrorCode.nonConstGenerativeEnumConstructor: [AddConst.new],
+  CompileTimeErrorCode.nonConstantListElement: [RemoveConst.new],
+  CompileTimeErrorCode.nonConstantListElementFromDeferredLibrary: [
     RemoveConst.new,
   ],
-  CompileTimeErrorCode.NON_CONSTANT_MAP_ELEMENT: [RemoveConst.new],
-  CompileTimeErrorCode.NON_CONSTANT_MAP_KEY: [RemoveConst.new],
-  CompileTimeErrorCode.NON_CONSTANT_MAP_KEY_FROM_DEFERRED_LIBRARY: [
+  CompileTimeErrorCode.nonConstantMapElement: [RemoveConst.new],
+  CompileTimeErrorCode.nonConstantMapKey: [RemoveConst.new],
+  CompileTimeErrorCode.nonConstantMapKeyFromDeferredLibrary: [RemoveConst.new],
+  CompileTimeErrorCode.nonConstantMapPatternKey: [AddConst.new],
+  CompileTimeErrorCode.nonConstantMapValue: [RemoveConst.new],
+  CompileTimeErrorCode.nonConstantMapValueFromDeferredLibrary: [
     RemoveConst.new,
   ],
-  CompileTimeErrorCode.NON_CONSTANT_MAP_PATTERN_KEY: [AddConst.new],
-  CompileTimeErrorCode.NON_CONSTANT_MAP_VALUE: [RemoveConst.new],
-  CompileTimeErrorCode.NON_CONSTANT_MAP_VALUE_FROM_DEFERRED_LIBRARY: [
-    RemoveConst.new,
-  ],
-  CompileTimeErrorCode.NON_CONSTANT_RELATIONAL_PATTERN_EXPRESSION: [
-    AddConst.new,
-  ],
-  CompileTimeErrorCode.NON_CONSTANT_SET_ELEMENT: [RemoveConst.new],
-  CompileTimeErrorCode.NON_EXHAUSTIVE_SWITCH_EXPRESSION: [
+  CompileTimeErrorCode.nonConstantRelationalPatternExpression: [AddConst.new],
+  CompileTimeErrorCode.nonConstantSetElement: [RemoveConst.new],
+  CompileTimeErrorCode.nonExhaustiveSwitchExpression: [
     AddMissingSwitchCases.new,
   ],
-  CompileTimeErrorCode.NON_EXHAUSTIVE_SWITCH_STATEMENT: [
+  CompileTimeErrorCode.nonExhaustiveSwitchStatement: [
     AddMissingSwitchCases.new,
   ],
-  CompileTimeErrorCode.NON_FINAL_FIELD_IN_ENUM: [MakeFinal.new],
-  CompileTimeErrorCode.NOT_A_TYPE: [ChangeTo.classOrMixin],
-  CompileTimeErrorCode.NOT_INITIALIZED_NON_NULLABLE_INSTANCE_FIELD: [
-    AddLate.new,
-  ],
-  CompileTimeErrorCode.NULLABLE_TYPE_IN_EXTENDS_CLAUSE: [
-    RemoveQuestionMark.new,
-  ],
-  CompileTimeErrorCode.NULLABLE_TYPE_IN_IMPLEMENTS_CLAUSE: [
-    RemoveQuestionMark.new,
-  ],
-  CompileTimeErrorCode.NULLABLE_TYPE_IN_ON_CLAUSE: [RemoveQuestionMark.new],
-  CompileTimeErrorCode.NULLABLE_TYPE_IN_WITH_CLAUSE: [RemoveQuestionMark.new],
-  CompileTimeErrorCode.OBSOLETE_COLON_FOR_DEFAULT_VALUE: [
+  CompileTimeErrorCode.nonFinalFieldInEnum: [MakeFinal.new],
+  CompileTimeErrorCode.notAType: [ChangeTo.classOrMixin],
+  CompileTimeErrorCode.notInitializedNonNullableInstanceField: [AddLate.new],
+  CompileTimeErrorCode.nullableTypeInExtendsClause: [RemoveQuestionMark.new],
+  CompileTimeErrorCode.nullableTypeInImplementsClause: [RemoveQuestionMark.new],
+  CompileTimeErrorCode.nullableTypeInOnClause: [RemoveQuestionMark.new],
+  CompileTimeErrorCode.nullableTypeInWithClause: [RemoveQuestionMark.new],
+  CompileTimeErrorCode.obsoleteColonForDefaultValue: [
     ReplaceColonWithEquals.new,
   ],
-  CompileTimeErrorCode.RECORD_LITERAL_ONE_POSITIONAL_NO_TRAILING_COMMA: [
+  CompileTimeErrorCode.recordLiteralOnePositionalNoTrailingComma: [
     AddTrailingComma.new,
   ],
-  CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_CLOSURE: [
+  CompileTimeErrorCode.returnOfInvalidTypeFromClosure: [
     AddAsync.wrongReturnType,
   ],
-  CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION: [
-    AddAsync.wrongReturnType,
-    MakeReturnTypeNullable.new,
-    ReplaceReturnType.new,
-  ],
-  CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_METHOD: [
+  CompileTimeErrorCode.returnOfInvalidTypeFromFunction: [
     AddAsync.wrongReturnType,
     MakeReturnTypeNullable.new,
     ReplaceReturnType.new,
   ],
-  CompileTimeErrorCode.SET_ELEMENT_FROM_DEFERRED_LIBRARY: [RemoveConst.new],
-  CompileTimeErrorCode.SET_ELEMENT_TYPE_NOT_ASSIGNABLE_NULLABILITY: [
+  CompileTimeErrorCode.returnOfInvalidTypeFromMethod: [
+    AddAsync.wrongReturnType,
+    MakeReturnTypeNullable.new,
+    ReplaceReturnType.new,
+  ],
+  CompileTimeErrorCode.setElementFromDeferredLibrary: [RemoveConst.new],
+  CompileTimeErrorCode.setElementTypeNotAssignableNullability: [
     ConvertToNullAwareSetElement.new,
   ],
-  CompileTimeErrorCode.SPREAD_EXPRESSION_FROM_DEFERRED_LIBRARY: [
-    RemoveConst.new,
-  ],
-  CompileTimeErrorCode.SUBTYPE_OF_BASE_IS_NOT_BASE_FINAL_OR_SEALED: [
+  CompileTimeErrorCode.spreadExpressionFromDeferredLibrary: [RemoveConst.new],
+  CompileTimeErrorCode.subtypeOfBaseIsNotBaseFinalOrSealed: [
     AddClassModifier.baseModifier,
     AddClassModifier.finalModifier,
     AddClassModifier.sealedModifier,
   ],
-  CompileTimeErrorCode.SUBTYPE_OF_FINAL_IS_NOT_BASE_FINAL_OR_SEALED: [
+  CompileTimeErrorCode.subtypeOfFinalIsNotBaseFinalOrSealed: [
     AddClassModifier.baseModifier,
     AddClassModifier.finalModifier,
     AddClassModifier.sealedModifier,
   ],
-  CompileTimeErrorCode.SUPER_FORMAL_PARAMETER_TYPE_IS_NOT_SUBTYPE_OF_ASSOCIATED:
-      [RemoveTypeAnnotation.other],
-  CompileTimeErrorCode.SUPER_FORMAL_PARAMETER_WITHOUT_ASSOCIATED_NAMED: [
+  CompileTimeErrorCode.superFormalParameterTypeIsNotSubtypeOfAssociated: [
+    RemoveTypeAnnotation.other,
+  ],
+  CompileTimeErrorCode.superFormalParameterWithoutAssociatedNamed: [
     ChangeTo.superFormalParameter,
   ],
-  CompileTimeErrorCode.SUPER_INVOCATION_NOT_LAST: [MakeSuperInvocationLast.new],
-  CompileTimeErrorCode.SWITCH_CASE_COMPLETES_NORMALLY: [AddSwitchCaseBreak.new],
-  CompileTimeErrorCode.TYPE_TEST_WITH_UNDEFINED_NAME: [ChangeTo.classOrMixin],
-  CompileTimeErrorCode.UNCHECKED_INVOCATION_OF_NULLABLE_VALUE: [
-    AddNullCheck.new,
-  ],
-  CompileTimeErrorCode.UNCHECKED_METHOD_INVOCATION_OF_NULLABLE_VALUE: [
+  CompileTimeErrorCode.superInvocationNotLast: [MakeSuperInvocationLast.new],
+  CompileTimeErrorCode.switchCaseCompletesNormally: [AddSwitchCaseBreak.new],
+  CompileTimeErrorCode.typeTestWithUndefinedName: [ChangeTo.classOrMixin],
+  CompileTimeErrorCode.uncheckedInvocationOfNullableValue: [AddNullCheck.new],
+  CompileTimeErrorCode.uncheckedMethodInvocationOfNullableValue: [
     AddNullCheck.new,
     ExtractLocalVariable.new,
     ReplaceWithNullAware.single,
     CreateExtensionMethod.new,
   ],
-  CompileTimeErrorCode.UNCHECKED_OPERATOR_INVOCATION_OF_NULLABLE_VALUE: [
+  CompileTimeErrorCode.uncheckedOperatorInvocationOfNullableValue: [
     AddNullCheck.new,
     CreateExtensionOperator.new,
     CreateOperator.new,
   ],
-  CompileTimeErrorCode.UNCHECKED_PROPERTY_ACCESS_OF_NULLABLE_VALUE: [
+  CompileTimeErrorCode.uncheckedPropertyAccessOfNullableValue: [
     AddNullCheck.new,
     ExtractLocalVariable.new,
     ReplaceWithNullAware.single,
     CreateExtensionGetter.new,
     CreateExtensionSetter.new,
   ],
-  CompileTimeErrorCode.UNCHECKED_USE_OF_NULLABLE_VALUE_AS_CONDITION: [
+  CompileTimeErrorCode.uncheckedUseOfNullableValueAsCondition: [
     AddNullCheck.new,
   ],
-  CompileTimeErrorCode.UNCHECKED_USE_OF_NULLABLE_VALUE_AS_ITERATOR: [
+  CompileTimeErrorCode.uncheckedUseOfNullableValueAsIterator: [
     AddNullCheck.new,
   ],
-  CompileTimeErrorCode.UNCHECKED_USE_OF_NULLABLE_VALUE_IN_SPREAD: [
+  CompileTimeErrorCode.uncheckedUseOfNullableValueInSpread: [
     AddNullCheck.new,
     ConvertToNullAwareSpread.new,
   ],
-  CompileTimeErrorCode.UNCHECKED_USE_OF_NULLABLE_VALUE_IN_YIELD_EACH: [
+  CompileTimeErrorCode.uncheckedUseOfNullableValueInYieldEach: [
     AddNullCheck.new,
   ],
-  CompileTimeErrorCode.UNDEFINED_ANNOTATION: [ChangeTo.annotation],
-  CompileTimeErrorCode.UNDEFINED_CLASS: [ChangeTo.classOrMixin],
-  CompileTimeErrorCode.UNDEFINED_CLASS_BOOLEAN: [ReplaceBooleanWithBool.new],
-  CompileTimeErrorCode.UNDEFINED_ENUM_CONSTANT: [
+  CompileTimeErrorCode.undefinedAnnotation: [ChangeTo.annotation],
+  CompileTimeErrorCode.undefinedClass: [ChangeTo.classOrMixin],
+  CompileTimeErrorCode.undefinedClassBoolean: [ReplaceBooleanWithBool.new],
+  CompileTimeErrorCode.undefinedEnumConstant: [
     AddEnumConstant.new,
     ChangeTo.getterOrSetter,
     CreateMethodOrFunction.new,
   ],
-  CompileTimeErrorCode.UNDEFINED_ENUM_CONSTRUCTOR_NAMED: [
-    CreateConstructor.new,
-  ],
-  CompileTimeErrorCode.UNDEFINED_ENUM_CONSTRUCTOR_UNNAMED: [
-    CreateConstructor.new,
-  ],
-  CompileTimeErrorCode.UNDEFINED_EXTENSION_GETTER: [
+  CompileTimeErrorCode.undefinedEnumConstructorNamed: [CreateConstructor.new],
+  CompileTimeErrorCode.undefinedEnumConstructorUnnamed: [CreateConstructor.new],
+  CompileTimeErrorCode.undefinedExtensionGetter: [
     ChangeTo.getterOrSetter,
     CreateExtensionGetter.new,
     CreateExtensionMethod.new,
   ],
-  CompileTimeErrorCode.UNDEFINED_EXTENSION_METHOD: [
+  CompileTimeErrorCode.undefinedExtensionMethod: [
     ChangeTo.method,
     CreateExtensionMethod.new,
     CreateMethod.method,
   ],
-  CompileTimeErrorCode.UNDEFINED_EXTENSION_SETTER: [
+  CompileTimeErrorCode.undefinedExtensionSetter: [
     ChangeTo.getterOrSetter,
     CreateSetter.new,
   ],
-  CompileTimeErrorCode.UNDEFINED_FUNCTION: [
+  CompileTimeErrorCode.undefinedFunction: [
     ChangeTo.function,
     CreateFunction.new,
   ],
-  CompileTimeErrorCode.UNDEFINED_GETTER: [
+  CompileTimeErrorCode.undefinedGetter: [
     ChangeTo.getterOrSetter,
     CreateExtensionGetter.new,
     CreateField.new,
@@ -998,7 +970,7 @@ final _builtInNonLintGenerators = <DiagnosticCode, List<ProducerGenerator>>{
     CreateLocalVariable.new,
     CreateMethodOrFunction.new,
   ],
-  CompileTimeErrorCode.UNDEFINED_IDENTIFIER: [
+  CompileTimeErrorCode.undefinedIdentifier: [
     ChangeTo.getterOrSetter,
     CreateField.new,
     CreateGetter.new,
@@ -1010,427 +982,387 @@ final _builtInNonLintGenerators = <DiagnosticCode, List<ProducerGenerator>>{
     CreateExtensionMethod.new,
     CreateExtensionSetter.new,
   ],
-  CompileTimeErrorCode.UNDEFINED_IDENTIFIER_AWAIT: [AddAsync.new],
-  CompileTimeErrorCode.UNDEFINED_METHOD: [
+  CompileTimeErrorCode.undefinedIdentifierAwait: [AddAsync.new],
+  CompileTimeErrorCode.undefinedMethod: [
     ChangeTo.method,
     CreateExtensionMethod.new,
     CreateFunction.new,
     CreateMethod.method,
   ],
-  CompileTimeErrorCode.UNDEFINED_NAMED_PARAMETER: [
+  CompileTimeErrorCode.undefinedNamedParameter: [
     AddMissingParameterNamed.new,
     ConvertFlutterChild.new,
     ConvertFlutterChildren.new,
   ],
-  CompileTimeErrorCode.UNDEFINED_OPERATOR: [
+  CompileTimeErrorCode.undefinedOperator: [
     CreateExtensionOperator.new,
     CreateOperator.new,
   ],
-  CompileTimeErrorCode.UNDEFINED_SETTER: [
+  CompileTimeErrorCode.undefinedSetter: [
     ChangeTo.getterOrSetter,
     CreateExtensionSetter.new,
     CreateField.new,
     CreateSetter.new,
   ],
-  CompileTimeErrorCode.UNQUALIFIED_REFERENCE_TO_NON_LOCAL_STATIC_MEMBER: [
+  CompileTimeErrorCode.unqualifiedReferenceToNonLocalStaticMember: [
     // TODO(brianwilkerson): Consider adding fixes to create a field, getter,
     //  method or setter. The existing _addFix methods would need to be
     //  updated so that only the appropriate subset is generated.
     QualifyReference.new,
   ],
-  CompileTimeErrorCode
-      .UNQUALIFIED_REFERENCE_TO_STATIC_MEMBER_OF_EXTENDED_TYPE: [
+  CompileTimeErrorCode.unqualifiedReferenceToStaticMemberOfExtendedType: [
     // TODO(brianwilkerson): Consider adding fixes to create a field, getter,
     //  method or setter. The existing producers would need to be updated so
     //  that only the appropriate subset is generated.
     QualifyReference.new,
   ],
-  CompileTimeErrorCode.URI_DOES_NOT_EXIST: [CreateFile.new],
-  ParserErrorCode.VARIABLE_PATTERN_KEYWORD_IN_DECLARATION_CONTEXT: [
-    RemoveVar.new,
-  ],
-  CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_CONSTRUCTOR: [
+  CompileTimeErrorCode.uriDoesNotExist: [CreateFile.new],
+  ParserErrorCode.variablePatternKeywordInDeclarationContext: [RemoveVar.new],
+  CompileTimeErrorCode.wrongNumberOfTypeArgumentsConstructor: [
     MoveTypeArgumentsToClass.new,
     RemoveTypeArguments.new,
   ],
-  CompileTimeErrorCode.YIELD_OF_INVALID_TYPE: [MakeReturnTypeNullable.new],
-  FfiCode.SUBTYPE_OF_STRUCT_CLASS_IN_EXTENDS: [
+  CompileTimeErrorCode.yieldOfInvalidType: [MakeReturnTypeNullable.new],
+  FfiCode.subtypeOfStructClassInExtends: [RemoveNameFromDeclarationClause.new],
+  FfiCode.subtypeOfStructClassInImplements: [
     RemoveNameFromDeclarationClause.new,
   ],
-  FfiCode.SUBTYPE_OF_STRUCT_CLASS_IN_IMPLEMENTS: [
-    RemoveNameFromDeclarationClause.new,
-  ],
-  FfiCode.SUBTYPE_OF_STRUCT_CLASS_IN_WITH: [
-    RemoveNameFromDeclarationClause.new,
-  ],
-  HintCode.DEPRECATED_COLON_FOR_DEFAULT_VALUE: [ReplaceColonWithEquals.new],
-  HintCode.UNNECESSARY_IMPORT: [RemoveUnusedImport.new],
-  ParserErrorCode.ABSTRACT_CLASS_MEMBER: [RemoveAbstract.bulkFixable],
-  ParserErrorCode.ABSTRACT_STATIC_FIELD: [RemoveLexeme.modifier],
-  ParserErrorCode.ABSTRACT_STATIC_METHOD: [RemoveLexeme.modifier],
-  ParserErrorCode.COLON_IN_PLACE_OF_IN: [ReplaceColonWithIn.new],
-  ParserErrorCode.CONST_CLASS: [RemoveConst.new],
-  ParserErrorCode.CONST_FACTORY: [RemoveConst.new],
-  ParserErrorCode.CONST_METHOD: [RemoveConst.new],
-  ParserErrorCode.COVARIANT_MEMBER: [RemoveLexeme.modifier],
-  ParserErrorCode.DEFAULT_IN_SWITCH_EXPRESSION: [ReplaceWithWildcard.new],
-  ParserErrorCode.DUPLICATED_MODIFIER: [RemoveLexeme.modifier],
-  ParserErrorCode.EMPTY_RECORD_LITERAL_WITH_COMMA: [
-    RemoveComma.emptyRecordLiteral,
-  ],
-  ParserErrorCode.EMPTY_RECORD_TYPE_WITH_COMMA: [RemoveComma.emptyRecordType],
-  ParserErrorCode.EXPECTED_CATCH_CLAUSE_BODY: [InsertBody.new],
-  ParserErrorCode.EXPECTED_CLASS_BODY: [InsertBody.new],
-  ParserErrorCode.EXPECTED_EXTENSION_BODY: [InsertBody.new],
-  ParserErrorCode.EXPECTED_EXTENSION_TYPE_BODY: [InsertBody.new],
-  ParserErrorCode.EXPECTED_FINALLY_CLAUSE_BODY: [InsertBody.new],
-  ParserErrorCode.EXPECTED_MIXIN_BODY: [InsertBody.new],
-  ParserErrorCode.EXPECTED_SWITCH_EXPRESSION_BODY: [InsertBody.new],
-  ParserErrorCode.EXPECTED_SWITCH_STATEMENT_BODY: [InsertBody.new],
-  ParserErrorCode.EXPECTED_TRY_STATEMENT_BODY: [InsertBody.new],
-  ParserErrorCode.EXPECTED_TOKEN: [
+  FfiCode.subtypeOfStructClassInWith: [RemoveNameFromDeclarationClause.new],
+  HintCode.deprecatedColonForDefaultValue: [ReplaceColonWithEquals.new],
+  HintCode.unnecessaryImport: [RemoveUnusedImport.new],
+  ParserErrorCode.abstractClassMember: [RemoveAbstract.bulkFixable],
+  ParserErrorCode.abstractStaticField: [RemoveLexeme.modifier],
+  ParserErrorCode.abstractStaticMethod: [RemoveLexeme.modifier],
+  ParserErrorCode.colonInPlaceOfIn: [ReplaceColonWithIn.new],
+  ParserErrorCode.constClass: [RemoveConst.new],
+  ParserErrorCode.constFactory: [RemoveConst.new],
+  ParserErrorCode.constMethod: [RemoveConst.new],
+  ParserErrorCode.covariantMember: [RemoveLexeme.modifier],
+  ParserErrorCode.defaultInSwitchExpression: [ReplaceWithWildcard.new],
+  ParserErrorCode.duplicatedModifier: [RemoveLexeme.modifier],
+  ParserErrorCode.emptyRecordLiteralWithComma: [RemoveComma.emptyRecordLiteral],
+  ParserErrorCode.emptyRecordTypeWithComma: [RemoveComma.emptyRecordType],
+  ParserErrorCode.expectedCatchClauseBody: [InsertBody.new],
+  ParserErrorCode.expectedClassBody: [InsertBody.new],
+  ParserErrorCode.expectedExtensionBody: [InsertBody.new],
+  ParserErrorCode.expectedExtensionTypeBody: [InsertBody.new],
+  ParserErrorCode.expectedFinallyClauseBody: [InsertBody.new],
+  ParserErrorCode.expectedMixinBody: [InsertBody.new],
+  ParserErrorCode.expectedSwitchExpressionBody: [InsertBody.new],
+  ParserErrorCode.expectedSwitchStatementBody: [InsertBody.new],
+  ParserErrorCode.expectedTryStatementBody: [InsertBody.new],
+  ParserErrorCode.expectedToken: [
     InsertSemicolon.new,
     ReplaceWithArrow.new,
     InsertOnKeyword.new,
   ],
-  ParserErrorCode.EXTENSION_AUGMENTATION_HAS_ON_CLAUSE: [RemoveOnClause.new],
-  ParserErrorCode.EXTENSION_DECLARES_CONSTRUCTOR: [RemoveConstructor.new],
-  ParserErrorCode.EXTERNAL_CLASS: [RemoveLexeme.modifier],
-  ParserErrorCode.EXTERNAL_ENUM: [RemoveLexeme.modifier],
-  ParserErrorCode.EXTERNAL_TYPEDEF: [RemoveLexeme.modifier],
-  ParserErrorCode.EXTRANEOUS_MODIFIER: [RemoveLexeme.modifier],
-  ParserErrorCode.FACTORY_TOP_LEVEL_DECLARATION: [RemoveLexeme.modifier],
-  ParserErrorCode.FINAL_ENUM: [RemoveLexeme.modifier],
-  ParserErrorCode.FINAL_CONSTRUCTOR: [RemoveLexeme.modifier],
-  ParserErrorCode.FINAL_METHOD: [RemoveLexeme.modifier],
-  ParserErrorCode.FINAL_MIXIN: [RemoveLexeme.modifier],
-  ParserErrorCode.FINAL_MIXIN_CLASS: [RemoveLexeme.modifier],
-  ParserErrorCode.GETTER_CONSTRUCTOR: [RemoveLexeme.keyword],
-  ParserErrorCode.GETTER_WITH_PARAMETERS: [
+  ParserErrorCode.extensionAugmentationHasOnClause: [RemoveOnClause.new],
+  ParserErrorCode.extensionDeclaresConstructor: [RemoveConstructor.new],
+  ParserErrorCode.externalClass: [RemoveLexeme.modifier],
+  ParserErrorCode.externalEnum: [RemoveLexeme.modifier],
+  ParserErrorCode.externalTypedef: [RemoveLexeme.modifier],
+  ParserErrorCode.extraneousModifier: [RemoveLexeme.modifier],
+  ParserErrorCode.factoryTopLevelDeclaration: [RemoveLexeme.modifier],
+  ParserErrorCode.finalEnum: [RemoveLexeme.modifier],
+  ParserErrorCode.finalConstructor: [RemoveLexeme.modifier],
+  ParserErrorCode.finalMethod: [RemoveLexeme.modifier],
+  ParserErrorCode.finalMixin: [RemoveLexeme.modifier],
+  ParserErrorCode.finalMixinClass: [RemoveLexeme.modifier],
+  ParserErrorCode.getterConstructor: [RemoveLexeme.keyword],
+  ParserErrorCode.getterWithParameters: [
     RemoveParametersInGetterDeclaration.new,
   ],
-  ParserErrorCode.INTERFACE_MIXIN: [RemoveLexeme.modifier],
-  ParserErrorCode.INTERFACE_MIXIN_CLASS: [RemoveLexeme.modifier],
-  ParserErrorCode.INVALID_CONSTANT_PATTERN_BINARY: [AddConst.new],
-  ParserErrorCode.INVALID_CONSTANT_PATTERN_GENERIC: [AddConst.new],
-  ParserErrorCode.INVALID_CONSTANT_PATTERN_NEGATION: [AddConst.new],
-  ParserErrorCode.INVALID_INSIDE_UNARY_PATTERN: [SurroundWithParentheses.new],
-  ParserErrorCode.INVALID_USE_OF_COVARIANT_IN_EXTENSION: [
-    RemoveLexeme.modifier,
-  ],
-  ParserErrorCode.LATE_PATTERN_VARIABLE_DECLARATION: [RemoveLate.new],
-  ParserErrorCode.LITERAL_WITH_NEW: [RemoveLexeme.keyword],
-  ParserErrorCode.MISSING_CONST_FINAL_VAR_OR_TYPE: [AddTypeAnnotation.new],
-  ParserErrorCode.MISSING_ENUM_BODY: [InsertBody.new],
-  ParserErrorCode.MISSING_FUNCTION_BODY: [ConvertIntoBlockBody.missingBody],
-  ParserErrorCode.MISSING_TYPEDEF_PARAMETERS: [AddEmptyArgumentList.new],
-  ParserErrorCode.MIXIN_DECLARES_CONSTRUCTOR: [RemoveConstructor.new],
-  ParserErrorCode.PATTERN_ASSIGNMENT_DECLARES_VARIABLE: [RemoveVarKeyword.new],
-  ParserErrorCode.RECORD_LITERAL_ONE_POSITIONAL_NO_TRAILING_COMMA: [
+  ParserErrorCode.interfaceMixin: [RemoveLexeme.modifier],
+  ParserErrorCode.interfaceMixinClass: [RemoveLexeme.modifier],
+  ParserErrorCode.invalidConstantPatternBinary: [AddConst.new],
+  ParserErrorCode.invalidConstantPatternGeneric: [AddConst.new],
+  ParserErrorCode.invalidConstantPatternNegation: [AddConst.new],
+  ParserErrorCode.invalidInsideUnaryPattern: [SurroundWithParentheses.new],
+  ParserErrorCode.invalidUseOfCovariantInExtension: [RemoveLexeme.modifier],
+  ParserErrorCode.latePatternVariableDeclaration: [RemoveLate.new],
+  ParserErrorCode.literalWithNew: [RemoveLexeme.keyword],
+  ParserErrorCode.missingConstFinalVarOrType: [AddTypeAnnotation.new],
+  ParserErrorCode.missingEnumBody: [InsertBody.new],
+  ParserErrorCode.missingFunctionBody: [ConvertIntoBlockBody.missingBody],
+  ParserErrorCode.missingTypedefParameters: [AddEmptyArgumentList.new],
+  ParserErrorCode.mixinDeclaresConstructor: [RemoveConstructor.new],
+  ParserErrorCode.patternAssignmentDeclaresVariable: [RemoveVarKeyword.new],
+  ParserErrorCode.recordLiteralOnePositionalNoTrailingComma: [
     AddTrailingComma.new,
   ],
-  ParserErrorCode.RECORD_TYPE_ONE_POSITIONAL_NO_TRAILING_COMMA: [
+  ParserErrorCode.recordTypeOnePositionalNoTrailingComma: [
     AddTrailingComma.new,
   ],
-  ParserErrorCode.REPRESENTATION_FIELD_TRAILING_COMMA: [
+  ParserErrorCode.representationFieldTrailingComma: [
     RemoveComma.representationField,
   ],
-  ParserErrorCode.SEALED_MIXIN: [RemoveLexeme.modifier],
-  ParserErrorCode.SEALED_MIXIN_CLASS: [RemoveLexeme.modifier],
-  ParserErrorCode.SETTER_CONSTRUCTOR: [RemoveLexeme.keyword],
-  ParserErrorCode.STATIC_CONSTRUCTOR: [RemoveLexeme.keyword],
-  ParserErrorCode.STATIC_GETTER_WITHOUT_BODY: [
-    ConvertIntoBlockBody.missingBody,
-  ],
-  ParserErrorCode.STATIC_SETTER_WITHOUT_BODY: [
-    ConvertIntoBlockBody.missingBody,
-  ],
-  ParserErrorCode.STATIC_OPERATOR: [RemoveLexeme.keyword],
-  ParserErrorCode.VAR_AND_TYPE: [
+  ParserErrorCode.sealedMixin: [RemoveLexeme.modifier],
+  ParserErrorCode.sealedMixinClass: [RemoveLexeme.modifier],
+  ParserErrorCode.setterConstructor: [RemoveLexeme.keyword],
+  ParserErrorCode.staticConstructor: [RemoveLexeme.keyword],
+  ParserErrorCode.staticGetterWithoutBody: [ConvertIntoBlockBody.missingBody],
+  ParserErrorCode.staticSetterWithoutBody: [ConvertIntoBlockBody.missingBody],
+  ParserErrorCode.staticOperator: [RemoveLexeme.keyword],
+  ParserErrorCode.varAndType: [
     RemoveTypeAnnotation.fixVarAndType,
     RemoveVar.new,
   ],
-  ParserErrorCode.VAR_AS_TYPE_NAME: [ReplaceVarWithDynamic.new],
-  ParserErrorCode.VAR_RETURN_TYPE: [RemoveVar.new],
-  ParserErrorCode.WRONG_SEPARATOR_FOR_POSITIONAL_PARAMETER: [
+  ParserErrorCode.varAsTypeName: [ReplaceVarWithDynamic.new],
+  ParserErrorCode.varReturnType: [RemoveVar.new],
+  ParserErrorCode.wrongSeparatorForPositionalParameter: [
     ReplaceColonWithEquals.new,
   ],
-  ScannerErrorCode.UNEXPECTED_SEPARATOR_IN_NUMBER: [
+  ScannerErrorCode.unexpectedSeparatorInNumber: [
     RemoveUnexpectedUnderscores.new,
   ],
-  StaticWarningCode.DEAD_NULL_AWARE_EXPRESSION: [RemoveDeadIfNull.new],
-  StaticWarningCode.INVALID_NULL_AWARE_ELEMENT: [
+  StaticWarningCode.deadNullAwareExpression: [RemoveDeadIfNull.new],
+  StaticWarningCode.invalidNullAwareElement: [
     ReplaceWithNotNullAwareElementOrEntry.entry,
   ],
-  StaticWarningCode.INVALID_NULL_AWARE_MAP_ENTRY_KEY: [
+  StaticWarningCode.invalidNullAwareMapEntryKey: [
     ReplaceWithNotNullAwareElementOrEntry.mapKey,
   ],
-  StaticWarningCode.INVALID_NULL_AWARE_MAP_ENTRY_VALUE: [
+  StaticWarningCode.invalidNullAwareMapEntryValue: [
     ReplaceWithNotNullAwareElementOrEntry.mapValue,
   ],
-  StaticWarningCode.INVALID_NULL_AWARE_OPERATOR: [ReplaceWithNotNullAware.new],
-  StaticWarningCode.INVALID_NULL_AWARE_OPERATOR_AFTER_SHORT_CIRCUIT: [
+  StaticWarningCode.invalidNullAwareOperator: [ReplaceWithNotNullAware.new],
+  StaticWarningCode.invalidNullAwareOperatorAfterShortCircuit: [
     ReplaceWithNotNullAware.new,
   ],
-  StaticWarningCode.MISSING_ENUM_CONSTANT_IN_SWITCH: [
+  StaticWarningCode.missingEnumConstantInSwitch: [
     AddMissingEnumCaseClauses.new,
   ],
-  StaticWarningCode.UNNECESSARY_NON_NULL_ASSERTION: [
-    RemoveNonNullAssertion.new,
-  ],
-  StaticWarningCode.UNNECESSARY_NULL_CHECK_PATTERN: [RemoveQuestionMark.new],
-  StaticWarningCode.UNNECESSARY_NULL_ASSERT_PATTERN: [
-    RemoveNonNullAssertion.new,
-  ],
-  WarningCode.BODY_MIGHT_COMPLETE_NORMALLY_NULLABLE: [AddReturnNull.new],
-  WarningCode.DEAD_CODE: [RemoveDeadCode.new],
-  WarningCode.DEAD_CODE_CATCH_FOLLOWING_CATCH: [
+  StaticWarningCode.unnecessaryNonNullAssertion: [RemoveNonNullAssertion.new],
+  StaticWarningCode.unnecessaryNullCheckPattern: [RemoveQuestionMark.new],
+  StaticWarningCode.unnecessaryNullAssertPattern: [RemoveNonNullAssertion.new],
+  WarningCode.bodyMightCompleteNormallyNullable: [AddReturnNull.new],
+  WarningCode.deadCode: [RemoveDeadCode.new],
+  WarningCode.deadCodeCatchFollowingCatch: [
     // TODO(brianwilkerson): Add a fix to move the unreachable catch clause to
     //  a place where it can be reached (when possible).
     RemoveDeadCode.new,
   ],
-  WarningCode.DEAD_CODE_LATE_WILDCARD_VARIABLE_INITIALIZER: [
+  WarningCode.deadCodeLateWildcardVariableInitializer: [
     RemoveInitializer.notLate,
     RemoveLate.new,
   ],
-  WarningCode.DEAD_CODE_ON_CATCH_SUBTYPE: [
+  WarningCode.deadCodeOnCatchSubtype: [
     // TODO(brianwilkerson): Add a fix to move the unreachable catch clause to
     //  a place where it can be reached (when possible).
     RemoveDeadCode.new,
   ],
-  WarningCode.DEPRECATED_EXTEND: [RemoveExtendsClause.new],
-  WarningCode.DEPRECATED_IMPLEMENT: [RemoveNameFromDeclarationClause.new],
-  WarningCode.DEPRECATED_IMPLEMENTS_FUNCTION: [
+  WarningCode.deprecatedExtend: [RemoveExtendsClause.new],
+  WarningCode.deprecatedImplement: [RemoveNameFromDeclarationClause.new],
+  WarningCode.deprecatedImplementsFunction: [
     RemoveNameFromDeclarationClause.new,
   ],
-  WarningCode.DEPRECATED_NEW_IN_COMMENT_REFERENCE: [
+  WarningCode.deprecatedNewInCommentReference: [
     RemoveDeprecatedNewInCommentReference.new,
   ],
-  WarningCode.DEPRECATED_SUBCLASS: [RemoveNameFromDeclarationClause.new],
-  WarningCode.DUPLICATE_HIDDEN_NAME: [RemoveNameFromCombinator.new],
-  WarningCode.DUPLICATE_IMPORT: [RemoveUnusedImport.new],
-  WarningCode.DUPLICATE_SHOWN_NAME: [RemoveNameFromCombinator.new],
-  WarningCode.INVALID_ANNOTATION_TARGET: [RemoveAnnotation.new],
-  WarningCode.INVALID_INTERNAL_ANNOTATION: [RemoveAnnotation.new],
-  WarningCode.INVALID_LITERAL_ANNOTATION: [RemoveAnnotation.new],
-  WarningCode.INVALID_NON_VIRTUAL_ANNOTATION: [RemoveAnnotation.new],
-  WarningCode.INVALID_REOPEN_ANNOTATION: [RemoveAnnotation.new],
-  WarningCode.INVALID_REQUIRED_NAMED_PARAM: [RemoveAnnotation.new],
-  WarningCode.INVALID_REQUIRED_OPTIONAL_POSITIONAL_PARAM: [
-    RemoveAnnotation.new,
-  ],
-  WarningCode.INVALID_REQUIRED_POSITIONAL_PARAM: [RemoveAnnotation.new],
-  WarningCode.INVALID_VISIBILITY_ANNOTATION: [RemoveAnnotation.new],
-  WarningCode.INVALID_VISIBLE_FOR_OVERRIDING_ANNOTATION: [RemoveAnnotation.new],
-  WarningCode.MISSING_OVERRIDE_OF_MUST_BE_OVERRIDDEN_ONE: [
+  WarningCode.deprecatedSubclass: [RemoveNameFromDeclarationClause.new],
+  WarningCode.duplicateHiddenName: [RemoveNameFromCombinator.new],
+  WarningCode.duplicateImport: [RemoveUnusedImport.new],
+  WarningCode.duplicateShownName: [RemoveNameFromCombinator.new],
+  WarningCode.invalidAnnotationTarget: [RemoveAnnotation.new],
+  WarningCode.invalidInternalAnnotation: [RemoveAnnotation.new],
+  WarningCode.invalidLiteralAnnotation: [RemoveAnnotation.new],
+  WarningCode.invalidNonVirtualAnnotation: [RemoveAnnotation.new],
+  WarningCode.invalidReopenAnnotation: [RemoveAnnotation.new],
+  WarningCode.invalidRequiredNamedParam: [RemoveAnnotation.new],
+  WarningCode.invalidRequiredOptionalPositionalParam: [RemoveAnnotation.new],
+  WarningCode.invalidRequiredPositionalParam: [RemoveAnnotation.new],
+  WarningCode.invalidVisibilityAnnotation: [RemoveAnnotation.new],
+  WarningCode.invalidVisibleForOverridingAnnotation: [RemoveAnnotation.new],
+  WarningCode.missingOverrideOfMustBeOverriddenOne: [
     CreateMissingOverrides.new,
   ],
-  WarningCode.MISSING_OVERRIDE_OF_MUST_BE_OVERRIDDEN_TWO: [
+  WarningCode.missingOverrideOfMustBeOverriddenTwo: [
     CreateMissingOverrides.new,
   ],
-  WarningCode.MISSING_OVERRIDE_OF_MUST_BE_OVERRIDDEN_THREE_PLUS: [
+  WarningCode.missingOverrideOfMustBeOverriddenThreePlus: [
     CreateMissingOverrides.new,
   ],
-  WarningCode.MISSING_REQUIRED_PARAM: [AddMissingRequiredArgument.new],
-  WarningCode.MISSING_REQUIRED_PARAM_WITH_DETAILS: [
-    AddMissingRequiredArgument.new,
-  ],
-  WarningCode.MUST_CALL_SUPER: [AddCallSuper.new],
-  WarningCode.NON_CONST_CALL_TO_LITERAL_CONSTRUCTOR_USING_NEW: [
+  WarningCode.missingRequiredParam: [AddMissingRequiredArgument.new],
+  WarningCode.missingRequiredParamWithDetails: [AddMissingRequiredArgument.new],
+  WarningCode.mustCallSuper: [AddCallSuper.new],
+  WarningCode.nonConstCallToLiteralConstructorUsingNew: [
     ReplaceNewWithConst.new,
   ],
-  WarningCode.NULL_CHECK_ALWAYS_FAILS: [RemoveNonNullAssertion.new],
-  WarningCode.NULLABLE_TYPE_IN_CATCH_CLAUSE: [RemoveQuestionMark.new],
-  WarningCode.OVERRIDE_ON_NON_OVERRIDING_FIELD: [RemoveAnnotation.new],
-  WarningCode.OVERRIDE_ON_NON_OVERRIDING_GETTER: [RemoveAnnotation.new],
-  WarningCode.OVERRIDE_ON_NON_OVERRIDING_METHOD: [RemoveAnnotation.new],
-  WarningCode.OVERRIDE_ON_NON_OVERRIDING_SETTER: [RemoveAnnotation.new],
-  WarningCode.REDECLARE_ON_NON_REDECLARING_MEMBER: [RemoveAnnotation.new],
-  WarningCode.SDK_VERSION_GT_GT_GT_OPERATOR: [
-    UpdateSdkConstraints.version_2_14_0,
-  ],
-  WarningCode.TEXT_DIRECTION_CODE_POINT_IN_COMMENT: [
+  WarningCode.nullCheckAlwaysFails: [RemoveNonNullAssertion.new],
+  WarningCode.nullableTypeInCatchClause: [RemoveQuestionMark.new],
+  WarningCode.overrideOnNonOverridingField: [RemoveAnnotation.new],
+  WarningCode.overrideOnNonOverridingGetter: [RemoveAnnotation.new],
+  WarningCode.overrideOnNonOverridingMethod: [RemoveAnnotation.new],
+  WarningCode.overrideOnNonOverridingSetter: [RemoveAnnotation.new],
+  WarningCode.redeclareOnNonRedeclaringMember: [RemoveAnnotation.new],
+  WarningCode.sdkVersionGtGtGtOperator: [UpdateSdkConstraints.version_2_14_0],
+  WarningCode.textDirectionCodePointInComment: [
     RemoveCharacter.new,
     ReplaceWithUnicodeEscape.new,
   ],
-  WarningCode.TEXT_DIRECTION_CODE_POINT_IN_LITERAL: [
+  WarningCode.textDirectionCodePointInLiteral: [
     RemoveCharacter.new,
     ReplaceWithUnicodeEscape.new,
   ],
-  WarningCode.TYPE_CHECK_IS_NOT_NULL: [UseNotEqNull.new],
-  WarningCode.TYPE_CHECK_IS_NULL: [UseEqEqNull.new],
-  WarningCode.UNDEFINED_HIDDEN_NAME: [RemoveNameFromCombinator.new],
-  WarningCode.UNDEFINED_SHOWN_NAME: [RemoveNameFromCombinator.new],
-  WarningCode.UNNECESSARY_CAST: [RemoveUnnecessaryCast.new],
-  WarningCode.UNNECESSARY_FINAL: [RemoveUnnecessaryFinal.new],
-  WarningCode.UNNECESSARY_NAN_COMPARISON_FALSE: [
+  WarningCode.typeCheckIsNotNull: [UseNotEqNull.new],
+  WarningCode.typeCheckIsNull: [UseEqEqNull.new],
+  WarningCode.undefinedHiddenName: [RemoveNameFromCombinator.new],
+  WarningCode.undefinedShownName: [RemoveNameFromCombinator.new],
+  WarningCode.unnecessaryCast: [RemoveUnnecessaryCast.new],
+  WarningCode.unnecessaryFinal: [RemoveUnnecessaryFinal.new],
+  WarningCode.unnecessaryNanComparisonFalse: [
     RemoveComparison.new,
     ReplaceWithIsNan.new,
   ],
-  WarningCode.UNNECESSARY_NAN_COMPARISON_TRUE: [
+  WarningCode.unnecessaryNanComparisonTrue: [
     RemoveComparison.new,
     ReplaceWithIsNan.new,
   ],
-  WarningCode.UNNECESSARY_NULL_COMPARISON_ALWAYS_NULL_FALSE: [
-    RemoveComparison.new,
-  ],
-  WarningCode.UNNECESSARY_NULL_COMPARISON_ALWAYS_NULL_TRUE: [
-    RemoveComparison.new,
-  ],
-  WarningCode.UNNECESSARY_NULL_COMPARISON_NEVER_NULL_FALSE: [
-    RemoveComparison.new,
-  ],
-  WarningCode.UNNECESSARY_NULL_COMPARISON_NEVER_NULL_TRUE: [
-    RemoveComparison.new,
-  ],
-  WarningCode.UNNECESSARY_QUESTION_MARK: [RemoveQuestionMark.new],
-  WarningCode.UNNECESSARY_SET_LITERAL: [ConvertIntoBlockBody.setLiteral],
-  WarningCode.UNNECESSARY_TYPE_CHECK_FALSE: [RemoveComparison.typeCheck],
-  WarningCode.UNNECESSARY_TYPE_CHECK_TRUE: [RemoveComparison.typeCheck],
-  WarningCode.UNNECESSARY_WILDCARD_PATTERN: [
+  WarningCode.unnecessaryNullComparisonAlwaysNullFalse: [RemoveComparison.new],
+  WarningCode.unnecessaryNullComparisonAlwaysNullTrue: [RemoveComparison.new],
+  WarningCode.unnecessaryNullComparisonNeverNullFalse: [RemoveComparison.new],
+  WarningCode.unnecessaryNullComparisonNeverNullTrue: [RemoveComparison.new],
+  WarningCode.unnecessaryQuestionMark: [RemoveQuestionMark.new],
+  WarningCode.unnecessarySetLiteral: [ConvertIntoBlockBody.setLiteral],
+  WarningCode.unnecessaryTypeCheckFalse: [RemoveComparison.typeCheck],
+  WarningCode.unnecessaryTypeCheckTrue: [RemoveComparison.typeCheck],
+  WarningCode.unnecessaryWildcardPattern: [
     RemoveUnnecessaryWildcardPattern.new,
   ],
-  WarningCode.UNREACHABLE_SWITCH_CASE: [RemoveDeadCode.new],
-  WarningCode.UNREACHABLE_SWITCH_DEFAULT: [RemoveDeadCode.new],
-  WarningCode.UNUSED_CATCH_CLAUSE: [RemoveUnusedCatchClause.new],
-  WarningCode.UNUSED_CATCH_STACK: [RemoveUnusedCatchStack.new],
-  WarningCode.UNUSED_ELEMENT: [RemoveUnusedElement.new],
-  WarningCode.UNUSED_ELEMENT_PARAMETER: [RemoveUnusedParameter.new],
-  WarningCode.UNUSED_FIELD: [RemoveUnusedField.new],
-  WarningCode.UNUSED_IMPORT: [RemoveUnusedImport.new],
-  WarningCode.UNUSED_LABEL: [RemoveUnusedLabel.new],
-  WarningCode.UNUSED_LOCAL_VARIABLE: [
+  WarningCode.unreachableSwitchCase: [RemoveDeadCode.new],
+  WarningCode.unreachableSwitchDefault: [RemoveDeadCode.new],
+  WarningCode.unusedCatchClause: [RemoveUnusedCatchClause.new],
+  WarningCode.unusedCatchStack: [RemoveUnusedCatchStack.new],
+  WarningCode.unusedElement: [RemoveUnusedElement.new],
+  WarningCode.unusedElementParameter: [RemoveUnusedParameter.new],
+  WarningCode.unusedField: [RemoveUnusedField.new],
+  WarningCode.unusedImport: [RemoveUnusedImport.new],
+  WarningCode.unusedLabel: [RemoveUnusedLabel.new],
+  WarningCode.unusedLocalVariable: [
     RemoveUnusedLocalVariable.new,
     ConvertToWildcardVariable.new,
   ],
-  WarningCode.UNUSED_SHOWN_NAME: [
+  WarningCode.unusedShownName: [
     OrganizeImports.new,
     RemoveNameFromCombinator.new,
   ],
 };
 
 final _builtInNonLintMultiGenerators = {
-  CompileTimeErrorCode.AMBIGUOUS_EXTENSION_MEMBER_ACCESS_TWO: [
+  CompileTimeErrorCode.ambiguousExtensionMemberAccessTwo: [
     AddExtensionOverride.new,
   ],
-  CompileTimeErrorCode.AMBIGUOUS_EXTENSION_MEMBER_ACCESS_THREE_OR_MORE: [
+  CompileTimeErrorCode.ambiguousExtensionMemberAccessThreeOrMore: [
     AddExtensionOverride.new,
   ],
-  CompileTimeErrorCode.AMBIGUOUS_IMPORT: [AmbiguousImportFix.new],
-  CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE: [DataDriven.new],
-  CompileTimeErrorCode.CAST_TO_NON_TYPE: [
+  CompileTimeErrorCode.ambiguousImport: [AmbiguousImportFix.new],
+  CompileTimeErrorCode.argumentTypeNotAssignable: [DataDriven.new],
+  CompileTimeErrorCode.castToNonType: [
     CreateClass.new,
     CreateMixin.new,
     DataDriven.new,
     ImportLibrary.forType,
   ],
-  CompileTimeErrorCode.CONST_WITH_NON_TYPE: [
+  CompileTimeErrorCode.constWithNonType: [
     CreateClass.new,
     ImportLibrary.forType,
   ],
-  CompileTimeErrorCode.EXTENDS_NON_CLASS: [
+  CompileTimeErrorCode.extendsNonClass: [
     CreateClass.new,
     DataDriven.new,
     ImportLibrary.forType,
   ],
-  CompileTimeErrorCode.EXTRA_POSITIONAL_ARGUMENTS: [
+  CompileTimeErrorCode.extraPositionalArguments: [
     AddMissingParameter.new,
     DataDriven.new,
   ],
-  CompileTimeErrorCode.EXTRA_POSITIONAL_ARGUMENTS_COULD_BE_NAMED: [
+  CompileTimeErrorCode.extraPositionalArgumentsCouldBeNamed: [
     AddMissingParameter.new,
     DataDriven.new,
   ],
-  CompileTimeErrorCode.IMPLEMENTS_NON_CLASS: [
+  CompileTimeErrorCode.implementsNonClass: [
     CreateClass.new,
     DataDriven.new,
     ImportLibrary.forType,
   ],
-  CompileTimeErrorCode.IMPLICIT_SUPER_INITIALIZER_MISSING_ARGUMENTS: [
+  CompileTimeErrorCode.implicitSuperInitializerMissingArguments: [
     AddSuperConstructorInvocation.new,
   ],
-  CompileTimeErrorCode.INVALID_ANNOTATION: [
+  CompileTimeErrorCode.invalidAnnotation: [
     CreateClass.new,
     ImportLibrary.forTopLevelVariable,
     ImportLibrary.forType,
   ],
-  CompileTimeErrorCode.INVALID_OVERRIDE: [DataDriven.new],
-  CompileTimeErrorCode.INVALID_OVERRIDE_SETTER: [DataDriven.new],
-  CompileTimeErrorCode.MISSING_REQUIRED_ARGUMENT: [DataDriven.new],
-  CompileTimeErrorCode.MIXIN_OF_NON_CLASS: [
+  CompileTimeErrorCode.invalidOverride: [DataDriven.new],
+  CompileTimeErrorCode.invalidOverrideSetter: [DataDriven.new],
+  CompileTimeErrorCode.missingRequiredArgument: [DataDriven.new],
+  CompileTimeErrorCode.mixinOfNonClass: [
     CreateClass.new,
     CreateMixin.new,
     DataDriven.new,
     ImportLibrary.forType,
   ],
-  CompileTimeErrorCode.MIXIN_WITH_NON_CLASS_SUPERCLASS: [
+  CompileTimeErrorCode.mixinWithNonClassSuperclass: [
     CreateClass.new,
     ImportLibrary.forType,
   ],
-  CompileTimeErrorCode.NEW_WITH_NON_TYPE: [
-    CreateClass.new,
-    ImportLibrary.forType,
-  ],
-  CompileTimeErrorCode.NEW_WITH_UNDEFINED_CONSTRUCTOR_DEFAULT: [DataDriven.new],
-  CompileTimeErrorCode.NO_DEFAULT_SUPER_CONSTRUCTOR_EXPLICIT: [
+  CompileTimeErrorCode.newWithNonType: [CreateClass.new, ImportLibrary.forType],
+  CompileTimeErrorCode.newWithUndefinedConstructorDefault: [DataDriven.new],
+  CompileTimeErrorCode.noDefaultSuperConstructorExplicit: [
     AddSuperConstructorInvocation.new,
   ],
-  CompileTimeErrorCode.NO_DEFAULT_SUPER_CONSTRUCTOR_IMPLICIT: [
+  CompileTimeErrorCode.noDefaultSuperConstructorImplicit: [
     AddSuperConstructorInvocation.new,
     CreateConstructorSuper.new,
   ],
-  CompileTimeErrorCode.NON_TYPE_IN_CATCH_CLAUSE: [ImportLibrary.forType],
-  CompileTimeErrorCode.NON_TYPE_AS_TYPE_ARGUMENT: [
+  CompileTimeErrorCode.nonTypeInCatchClause: [ImportLibrary.forType],
+  CompileTimeErrorCode.nonTypeAsTypeArgument: [
     CreateClass.new,
     CreateMixin.new,
     DataDriven.new,
     ImportLibrary.forType,
   ],
-  CompileTimeErrorCode.NOT_A_TYPE: [
+  CompileTimeErrorCode.notAType: [
     CreateClass.new,
     ImportLibrary.forType,
     CreateMixin.new,
   ],
-  CompileTimeErrorCode.NOT_ENOUGH_POSITIONAL_ARGUMENTS_NAME_PLURAL: [
+  CompileTimeErrorCode.notEnoughPositionalArgumentsNamePlural: [DataDriven.new],
+  CompileTimeErrorCode.notEnoughPositionalArgumentsNameSingular: [
     DataDriven.new,
   ],
-  CompileTimeErrorCode.NOT_ENOUGH_POSITIONAL_ARGUMENTS_NAME_SINGULAR: [
-    DataDriven.new,
-  ],
-  CompileTimeErrorCode.NOT_ENOUGH_POSITIONAL_ARGUMENTS_PLURAL: [DataDriven.new],
-  CompileTimeErrorCode.NOT_ENOUGH_POSITIONAL_ARGUMENTS_SINGULAR: [
-    DataDriven.new,
-  ],
-  CompileTimeErrorCode.TYPE_TEST_WITH_UNDEFINED_NAME: [
+  CompileTimeErrorCode.notEnoughPositionalArgumentsPlural: [DataDriven.new],
+  CompileTimeErrorCode.notEnoughPositionalArgumentsSingular: [DataDriven.new],
+  CompileTimeErrorCode.typeTestWithUndefinedName: [
     CreateClass.new,
     CreateMixin.new,
     ImportLibrary.forType,
   ],
-  CompileTimeErrorCode.UNCHECKED_METHOD_INVOCATION_OF_NULLABLE_VALUE: [
+  CompileTimeErrorCode.uncheckedMethodInvocationOfNullableValue: [
     ImportLibrary.forExtensionMember,
   ],
-  CompileTimeErrorCode.UNCHECKED_OPERATOR_INVOCATION_OF_NULLABLE_VALUE: [
+  CompileTimeErrorCode.uncheckedOperatorInvocationOfNullableValue: [
     ImportLibrary.forExtensionMember,
   ],
-  CompileTimeErrorCode.UNCHECKED_PROPERTY_ACCESS_OF_NULLABLE_VALUE: [
+  CompileTimeErrorCode.uncheckedPropertyAccessOfNullableValue: [
     ImportLibrary.forExtensionMember,
   ],
-  CompileTimeErrorCode.UNDEFINED_ANNOTATION: [
+  CompileTimeErrorCode.undefinedAnnotation: [
     CreateClass.new,
     ImportLibrary.forTopLevelVariable,
     ImportLibrary.forType,
   ],
-  CompileTimeErrorCode.UNDEFINED_CLASS: [
+  CompileTimeErrorCode.undefinedClass: [
     CreateClass.new,
     DataDriven.new,
     ImportLibrary.forType,
     CreateMixin.new,
   ],
-  CompileTimeErrorCode.UNDEFINED_CONSTRUCTOR_IN_INITIALIZER_DEFAULT: [
+  CompileTimeErrorCode.undefinedConstructorInInitializerDefault: [
     AddSuperConstructorInvocation.new,
   ],
-  CompileTimeErrorCode.UNDEFINED_EXTENSION_GETTER: [DataDriven.new],
-  CompileTimeErrorCode.UNDEFINED_FUNCTION: [
+  CompileTimeErrorCode.undefinedExtensionGetter: [DataDriven.new],
+  CompileTimeErrorCode.undefinedFunction: [
     CreateClass.new,
     DataDriven.new,
     ImportLibrary.forExtension,
@@ -1438,7 +1370,7 @@ final _builtInNonLintMultiGenerators = {
     ImportLibrary.forFunction,
     ImportLibrary.forType,
   ],
-  CompileTimeErrorCode.UNDEFINED_GETTER: [
+  CompileTimeErrorCode.undefinedGetter: [
     CreateClass.new,
     DataDriven.new,
     ImportLibrary.forExtensionMember,
@@ -1446,7 +1378,7 @@ final _builtInNonLintMultiGenerators = {
     ImportLibrary.forType,
     CreateMixin.new,
   ],
-  CompileTimeErrorCode.UNDEFINED_IDENTIFIER: [
+  CompileTimeErrorCode.undefinedIdentifier: [
     CreateClass.new,
     DataDriven.new,
     ImportLibrary.forExtension,
@@ -1456,40 +1388,36 @@ final _builtInNonLintMultiGenerators = {
     ImportLibrary.forType,
     CreateMixin.new,
   ],
-  CompileTimeErrorCode.UNDEFINED_METHOD: [
+  CompileTimeErrorCode.undefinedMethod: [
     CreateClass.new,
     DataDriven.new,
     ImportLibrary.forExtensionMember,
     ImportLibrary.forFunction,
     ImportLibrary.forType,
   ],
-  CompileTimeErrorCode.UNDEFINED_NAMED_PARAMETER: [
+  CompileTimeErrorCode.undefinedNamedParameter: [
     ChangeArgumentName.new,
     DataDriven.new,
   ],
-  CompileTimeErrorCode.UNDEFINED_OPERATOR: [
+  CompileTimeErrorCode.undefinedOperator: [
     ImportLibrary.forExtensionMember,
     UseDifferentDivisionOperator.new,
   ],
-  CompileTimeErrorCode.UNDEFINED_PREFIXED_NAME: [DataDriven.new],
-  CompileTimeErrorCode.UNDEFINED_SETTER: [
+  CompileTimeErrorCode.undefinedPrefixedName: [DataDriven.new],
+  CompileTimeErrorCode.undefinedSetter: [
     DataDriven.new,
     // TODO(brianwilkerson): Support ImportLibrary for non-extension members.
     ImportLibrary.forExtensionMember,
   ],
-  CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS: [DataDriven.new],
-  CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_CONSTRUCTOR: [
-    DataDriven.new,
-  ],
-  CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_EXTENSION: [
-    DataDriven.new,
-  ],
-  CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_METHOD: [DataDriven.new],
-  HintCode.DEPRECATED_MEMBER_USE: [DataDriven.new],
-  HintCode.DEPRECATED_MEMBER_USE_WITH_MESSAGE: [DataDriven.new],
-  WarningCode.DEPRECATED_EXPORT_USE: [DataDriven.new],
-  WarningCode.MULTIPLE_COMBINATORS: [MergeCombinators.new],
-  WarningCode.OVERRIDE_ON_NON_OVERRIDING_METHOD: [DataDriven.new],
+  CompileTimeErrorCode.wrongNumberOfTypeArguments: [DataDriven.new],
+  CompileTimeErrorCode.wrongNumberOfTypeArgumentsConstructor: [DataDriven.new],
+  CompileTimeErrorCode.wrongNumberOfTypeArgumentsExtension: [DataDriven.new],
+  CompileTimeErrorCode.wrongNumberOfTypeArgumentsMethod: [DataDriven.new],
+  HintCode.deprecatedMemberUse: [DataDriven.new],
+  HintCode.deprecatedMemberUseWithMessage: [DataDriven.new],
+  WarningCode.deprecatedExportUse: [DataDriven.new],
+  WarningCode.multipleCombinators: [MergeCombinators.new],
+  WarningCode.overrideOnNonOverridingMethod: [DataDriven.new],
 };
 
 final _builtInParseLintGenerators = <LintCode, List<ProducerGenerator>>{

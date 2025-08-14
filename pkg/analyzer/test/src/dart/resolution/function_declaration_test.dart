@@ -25,7 +25,7 @@ Stream<int> f() async* {
   return 0;
 }
 ''',
-      [error(CompileTimeErrorCode.RETURN_IN_GENERATOR, 49, 6)],
+      [error(CompileTimeErrorCode.returnInGenerator, 49, 6)],
     );
 
     var node = findNode.singleFunctionDeclaration;
@@ -78,7 +78,7 @@ import 'dart:async';
 
 Stream<int> f() async* => 0;
 ''',
-      [error(CompileTimeErrorCode.RETURN_IN_GENERATOR, 45, 2)],
+      [error(CompileTimeErrorCode.returnInGenerator, 45, 2)],
     );
 
     var node = findNode.singleFunctionDeclaration;
@@ -265,7 +265,7 @@ void f() {
   void m<T extends List<T>>() {}
 }
 ''',
-      [error(WarningCode.UNUSED_ELEMENT, 18, 1)],
+      [error(WarningCode.unusedElement, 18, 1)],
     );
 
     var node = findNode.singleFunctionDeclarationStatement.functionDeclaration;
@@ -322,7 +322,7 @@ void f() {
   void m<T extends num>() {}
 }
 ''',
-      [error(WarningCode.UNUSED_ELEMENT, 18, 1)],
+      [error(WarningCode.unusedElement, 18, 1)],
     );
 
     var node = findNode.singleFunctionDeclarationStatement.functionDeclaration;
@@ -369,7 +369,7 @@ FunctionDeclaration
       '''
 int get foo(double a) => 0;
 ''',
-      [error(ParserErrorCode.GETTER_WITH_PARAMETERS, 11, 1)],
+      [error(ParserErrorCode.getterWithParameters, 11, 1)],
     );
 
     var node = findNode.singleFunctionDeclaration;
@@ -417,7 +417,7 @@ Iterable<int> f() sync* {
   return 0;
 }
 ''',
-      [error(CompileTimeErrorCode.RETURN_IN_GENERATOR, 28, 6)],
+      [error(CompileTimeErrorCode.returnInGenerator, 28, 6)],
     );
 
     var node = findNode.singleFunctionDeclaration;
@@ -468,7 +468,7 @@ FunctionDeclaration
       '''
 Iterable<int> f() sync* => 0;
 ''',
-      [error(CompileTimeErrorCode.RETURN_IN_GENERATOR, 24, 2)],
+      [error(CompileTimeErrorCode.returnInGenerator, 24, 2)],
     );
 
     var node = findNode.singleFunctionDeclaration;
@@ -514,7 +514,7 @@ FunctionDeclaration
       '''
 _() {}
 ''',
-      [error(WarningCode.UNUSED_ELEMENT, 0, 1)],
+      [error(WarningCode.unusedElement, 0, 1)],
     );
 
     var node = findNode.singleFunctionDeclaration;
@@ -547,7 +547,7 @@ FunctionDeclaration
 
 _() {}
 ''',
-      [error(WarningCode.UNUSED_ELEMENT, 44, 1)],
+      [error(WarningCode.unusedElement, 44, 1)],
     );
 
     var node = findNode.singleFunctionDeclaration;
@@ -581,8 +581,8 @@ FunctionDeclaration
 void f<_ extends void Function<_>(_, _), _>() {}
 ''',
       [
-        error(CompileTimeErrorCode.UNDEFINED_CLASS, 34, 1),
-        error(CompileTimeErrorCode.UNDEFINED_CLASS, 37, 1),
+        error(CompileTimeErrorCode.undefinedClass, 34, 1),
+        error(CompileTimeErrorCode.undefinedClass, 37, 1),
       ],
     );
 

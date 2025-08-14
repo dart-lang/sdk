@@ -1975,7 +1975,7 @@ class AnalysisDriver {
           source: file.source,
           offset: 0,
           length: 0,
-          diagnosticCode: CompileTimeErrorCode.MISSING_DART_LIBRARY,
+          diagnosticCode: CompileTimeErrorCode.missingDartLibrary,
           arguments: [missingUri],
         ),
       ],

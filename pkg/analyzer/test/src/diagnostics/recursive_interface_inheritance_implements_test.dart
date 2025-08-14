@@ -23,7 +23,7 @@ class A implements A {}
 ''',
       [
         error(
-          CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE_IMPLEMENTS,
+          CompileTimeErrorCode.recursiveInterfaceInheritanceImplements,
           6,
           1,
         ),
@@ -40,7 +40,7 @@ augment class A implements A {}
 ''',
       [
         error(
-          CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE_IMPLEMENTS,
+          CompileTimeErrorCode.recursiveInterfaceInheritanceImplements,
           6,
           1,
         ),
@@ -56,7 +56,7 @@ class B implements A {}
 ''',
       [
         error(
-          CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE_IMPLEMENTS,
+          CompileTimeErrorCode.recursiveInterfaceInheritanceImplements,
           15,
           1,
         ),
@@ -73,7 +73,7 @@ class B = A with M implements B;
 ''',
       [
         error(
-          CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE_IMPLEMENTS,
+          CompileTimeErrorCode.recursiveInterfaceInheritanceImplements,
           28,
           1,
         ),
@@ -87,8 +87,8 @@ class B = A with M implements B;
 mixin A implements B {}
 mixin B implements A {}''',
       [
-        error(CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE, 6, 1),
-        error(CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE, 30, 1),
+        error(CompileTimeErrorCode.recursiveInterfaceInheritance, 6, 1),
+        error(CompileTimeErrorCode.recursiveInterfaceInheritance, 30, 1),
       ],
     );
   }

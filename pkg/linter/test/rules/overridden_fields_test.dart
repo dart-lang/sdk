@@ -78,7 +78,7 @@ class B extends A {
   int x = 9;
 }
 ''',
-      [error(CompileTimeErrorCode.CONFLICTING_FIELD_AND_METHOD, 55, 1)],
+      [error(CompileTimeErrorCode.conflictingFieldAndMethod, 55, 1)],
     );
   }
 
@@ -302,18 +302,18 @@ class GC34 extends GC33 {
 }
 ''',
       [
-        error(WarningCode.OVERRIDE_ON_NON_OVERRIDING_FIELD, 120, 1),
+        error(WarningCode.overrideOnNonOverridingField, 120, 1),
         lint(127, 5),
         lint(194, 9),
-        error(CompileTimeErrorCode.MIXIN_INHERITS_FROM_NOT_OBJECT, 273, 4),
+        error(CompileTimeErrorCode.mixinInheritsFromNotObject, 273, 4),
         lint(301, 9),
         lint(343, 5),
         lint(418, 9),
-        error(CompileTimeErrorCode.MIXIN_INHERITS_FROM_NOT_OBJECT, 472, 4),
+        error(CompileTimeErrorCode.mixinInheritsFromNotObject, 472, 4),
         lint(500, 9),
         lint(542, 5),
         lint(617, 9),
-        error(CompileTimeErrorCode.MIXIN_INHERITS_FROM_NOT_OBJECT, 751, 4),
+        error(CompileTimeErrorCode.mixinInheritsFromNotObject, 751, 4),
         lint(779, 9),
         lint(821, 4),
         lint(883, 1),
@@ -391,8 +391,8 @@ class B extends A {
 ''',
       [
         // No lint
-        error(CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE, 6, 1),
-        error(CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE, 27, 1),
+        error(CompileTimeErrorCode.recursiveInterfaceInheritance, 6, 1),
+        error(CompileTimeErrorCode.recursiveInterfaceInheritance, 27, 1),
       ],
     );
   }

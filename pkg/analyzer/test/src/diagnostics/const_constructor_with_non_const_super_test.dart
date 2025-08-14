@@ -25,13 +25,7 @@ class B extends A {
   const B(): super();
 }
 ''',
-      [
-        error(
-          CompileTimeErrorCode.CONST_CONSTRUCTOR_WITH_NON_CONST_SUPER,
-          52,
-          7,
-        ),
-      ],
+      [error(CompileTimeErrorCode.constConstructorWithNonConstSuper, 52, 7)],
     );
   }
 
@@ -45,13 +39,7 @@ class B extends A {
   const B();
 }
 ''',
-      [
-        error(
-          CompileTimeErrorCode.CONST_CONSTRUCTOR_WITH_NON_CONST_SUPER,
-          47,
-          1,
-        ),
-      ],
+      [error(CompileTimeErrorCode.constConstructorWithNonConstSuper, 47, 1)],
     );
   }
 
@@ -82,13 +70,7 @@ class B extends A {
   const B.bar() : super._();
 }
 ''',
-      [
-        error(
-          CompileTimeErrorCode.CONST_CONSTRUCTOR_WITH_NON_CONST_SUPER,
-          111,
-          9,
-        ),
-      ],
+      [error(CompileTimeErrorCode.constConstructorWithNonConstSuper, 111, 9)],
     );
   }
 

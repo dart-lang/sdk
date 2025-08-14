@@ -25,7 +25,7 @@ final class MyStruct extends Struct {
   external Array<Uint8> a0;
 }
 ''',
-      [error(FfiCode.NON_POSITIVE_ARRAY_DIMENSION, 74, 2)],
+      [error(FfiCode.nonPositiveArrayDimension, 74, 2)],
     );
   }
 
@@ -39,7 +39,7 @@ final class MyStruct extends Struct {
   external Array<Array<Array<Array<Array<Array<Uint8>>>>>> a0;
 }
 ''',
-      [error(FfiCode.NON_POSITIVE_ARRAY_DIMENSION, 83, 2)],
+      [error(FfiCode.nonPositiveArrayDimension, 83, 2)],
     );
   }
 
@@ -64,7 +64,7 @@ final class MyStruct extends Struct {
   external Array<Uint8> a0;
 }
 ''',
-      [error(FfiCode.NON_POSITIVE_ARRAY_DIMENSION, 74, 1)],
+      [error(FfiCode.nonPositiveArrayDimension, 74, 1)],
     );
   }
 
@@ -78,7 +78,7 @@ final class MyStruct extends Struct {
   external Array<Uint8> a0;
 }
 ''',
-      [error(FfiCode.NON_POSITIVE_ARRAY_DIMENSION, 67, 3)],
+      [error(FfiCode.nonPositiveArrayDimension, 67, 3)],
     );
   }
 
@@ -103,7 +103,7 @@ final class MyStruct extends Struct {
   external Array<Uint8> a0;
 }
 ''',
-      [error(FfiCode.NON_POSITIVE_ARRAY_DIMENSION, 67, 1)],
+      [error(FfiCode.nonPositiveArrayDimension, 67, 1)],
     );
   }
 }

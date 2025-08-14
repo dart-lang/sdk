@@ -25,7 +25,7 @@ class ConstructorReferenceResolver {
       // the parser has already reported an error.
       _resolver.diagnosticReporter.atNode(
         node,
-        WarningCode.SDK_VERSION_CONSTRUCTOR_TEAROFFS,
+        WarningCode.sdkVersionConstructorTearoffs,
       );
     }
     node.constructorName.accept(_resolver);
@@ -35,8 +35,7 @@ class ConstructorReferenceResolver {
       if (enclosingElement is ClassElementImpl && enclosingElement.isAbstract) {
         _resolver.diagnosticReporter.atNode(
           node,
-          CompileTimeErrorCode
-              .TEAROFF_OF_GENERATIVE_CONSTRUCTOR_OF_ABSTRACT_CLASS,
+          CompileTimeErrorCode.tearoffOfGenerativeConstructorOfAbstractClass,
         );
       }
     }
@@ -68,10 +67,9 @@ class ConstructorReferenceResolver {
         if (method != null) {
           var error =
               method.isStatic
-                  ? CompileTimeErrorCode
-                      .CLASS_INSTANTIATION_ACCESS_TO_STATIC_MEMBER
+                  ? CompileTimeErrorCode.classInstantiationAccessToStaticMember
                   : CompileTimeErrorCode
-                      .CLASS_INSTANTIATION_ACCESS_TO_INSTANCE_MEMBER;
+                      .classInstantiationAccessToInstanceMember;
           _resolver.diagnosticReporter.atNode(
             node,
             error,
@@ -80,7 +78,7 @@ class ConstructorReferenceResolver {
         } else if (!name.isSynthetic) {
           _resolver.diagnosticReporter.atNode(
             node,
-            CompileTimeErrorCode.CLASS_INSTANTIATION_ACCESS_TO_UNKNOWN_MEMBER,
+            CompileTimeErrorCode.classInstantiationAccessToUnknownMember,
             arguments: [enclosingElement.name!, name.name],
           );
         }

@@ -30,7 +30,7 @@ const a = const A();
 ''',
       [
         error(
-          CompileTimeErrorCode.CONST_EVAL_PROPERTY_ACCESS,
+          CompileTimeErrorCode.constEvalPropertyAccess,
           29,
           9,
           contextMessages: [
@@ -58,7 +58,7 @@ const int? c = d.length;''');
       r'''
 const dynamic d = null;
 const int? c = d.length;''',
-      [error(CompileTimeErrorCode.CONST_EVAL_PROPERTY_ACCESS, 39, 8)],
+      [error(CompileTimeErrorCode.constEvalPropertyAccess, 39, 8)],
     );
   }
 
@@ -75,7 +75,7 @@ class RequiresNonEmptyList {
 ''',
       [
         error(
-          CompileTimeErrorCode.CONST_EVAL_PROPERTY_ACCESS,
+          CompileTimeErrorCode.constEvalPropertyAccess,
           16,
           31,
           contextMessages: [
@@ -102,7 +102,7 @@ class C<T> {
 
 const x = const C().t;
 ''',
-      [error(CompileTimeErrorCode.CONST_EVAL_PROPERTY_ACCESS, 59, 11)],
+      [error(CompileTimeErrorCode.constEvalPropertyAccess, 59, 11)],
     );
   }
 
@@ -111,7 +111,7 @@ const x = const C().t;
       r'''
 const int? s = null;
 const bool? c = s?.isEven;''',
-      [error(CompileTimeErrorCode.CONST_EVAL_PROPERTY_ACCESS, 37, 9)],
+      [error(CompileTimeErrorCode.constEvalPropertyAccess, 37, 9)],
     );
   }
 
@@ -126,7 +126,7 @@ const int? c = d?.length;''');
       r'''
 const List? l = [];
 const int? c = l?.length;''',
-      [error(CompileTimeErrorCode.CONST_EVAL_PROPERTY_ACCESS, 35, 9)],
+      [error(CompileTimeErrorCode.constEvalPropertyAccess, 35, 9)],
     );
   }
 

@@ -24,7 +24,7 @@ class ConflictingTypeVariableAndClassTest extends PubPackageResolutionTest {
       r'''
 class T<T> {}
 ''',
-      [error(CompileTimeErrorCode.CONFLICTING_TYPE_VARIABLE_AND_CLASS, 8, 1)],
+      [error(CompileTimeErrorCode.conflictingTypeVariableAndClass, 8, 1)],
     );
   }
 }
@@ -38,7 +38,7 @@ enum E<E> {
   v
 }
 ''',
-      [error(CompileTimeErrorCode.CONFLICTING_TYPE_VARIABLE_AND_ENUM, 7, 1)],
+      [error(CompileTimeErrorCode.conflictingTypeVariableAndEnum, 7, 1)],
     );
   }
 }
@@ -50,13 +50,7 @@ class ConflictingTypeVariableAndExtensionTest extends PubPackageResolutionTest {
       r'''
 extension T<T> on String {}
 ''',
-      [
-        error(
-          CompileTimeErrorCode.CONFLICTING_TYPE_VARIABLE_AND_EXTENSION,
-          12,
-          1,
-        ),
-      ],
+      [error(CompileTimeErrorCode.conflictingTypeVariableAndExtension, 12, 1)],
     );
   }
 }
@@ -71,7 +65,7 @@ extension type T<T>(int it) {}
 ''',
       [
         error(
-          CompileTimeErrorCode.CONFLICTING_TYPE_VARIABLE_AND_EXTENSION_TYPE,
+          CompileTimeErrorCode.conflictingTypeVariableAndExtensionType,
           17,
           1,
         ),
@@ -87,7 +81,7 @@ class ConflictingTypeVariableAndMixinTest extends PubPackageResolutionTest {
       r'''
 mixin T<T> {}
 ''',
-      [error(CompileTimeErrorCode.CONFLICTING_TYPE_VARIABLE_AND_MIXIN, 8, 1)],
+      [error(CompileTimeErrorCode.conflictingTypeVariableAndMixin, 8, 1)],
     );
   }
 }

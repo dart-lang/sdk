@@ -35,7 +35,7 @@ class C {}
 /// {@canonicalFor}
 class C {}
 ''',
-      [error(WarningCode.DOC_DIRECTIVE_MISSING_ONE_ARGUMENT, 4, 16)],
+      [error(WarningCode.docDirectiveMissingOneArgument, 4, 16)],
     );
   }
 
@@ -52,7 +52,7 @@ class C {}
 /// {@macro}
 class C {}
 ''',
-      [error(WarningCode.DOC_DIRECTIVE_MISSING_ONE_ARGUMENT, 4, 9)],
+      [error(WarningCode.docDirectiveMissingOneArgument, 4, 9)],
     );
   }
 
@@ -69,7 +69,7 @@ class C {}
 /// {@youtube 600 400}
 class C {}
 ''',
-      [error(WarningCode.DOC_DIRECTIVE_MISSING_ONE_ARGUMENT, 4, 19)],
+      [error(WarningCode.docDirectiveMissingOneArgument, 4, 19)],
     );
   }
 
@@ -80,8 +80,8 @@ class C {}
 class C {}
 ''',
       [
-        error(WarningCode.DOC_DIRECTIVE_MISSING_ONE_ARGUMENT, 4, 18),
-        error(WarningCode.DOC_DIRECTIVE_MISSING_CLOSING_BRACE, 21, 1),
+        error(WarningCode.docDirectiveMissingOneArgument, 4, 18),
+        error(WarningCode.docDirectiveMissingClosingBrace, 21, 1),
       ],
     );
   }

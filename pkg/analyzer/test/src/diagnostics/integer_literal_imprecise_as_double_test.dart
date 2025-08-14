@@ -23,7 +23,7 @@ class IntegerLiteralImpreciseAsDoubleTest extends PubPackageResolutionTest {
       '000000000000000000000000000000000000000000000000000000;',
       [
         error(
-          CompileTimeErrorCode.INTEGER_LITERAL_IMPRECISE_AS_DOUBLE,
+          CompileTimeErrorCode.integerLiteralImpreciseAsDouble,
           11,
           259,
           correctionContains:
@@ -45,7 +45,7 @@ double x = 9223372036854775809;
 ''',
       [
         error(
-          CompileTimeErrorCode.INTEGER_LITERAL_IMPRECISE_AS_DOUBLE,
+          CompileTimeErrorCode.integerLiteralImpreciseAsDouble,
           11,
           19,
           // We suggest a valid double instead.
@@ -62,7 +62,7 @@ double x = 9_223_372_036_854_775_809;
 ''',
       [
         error(
-          CompileTimeErrorCode.INTEGER_LITERAL_IMPRECISE_AS_DOUBLE,
+          CompileTimeErrorCode.integerLiteralImpreciseAsDouble,
           11,
           25,
           // We suggest a valid double instead.

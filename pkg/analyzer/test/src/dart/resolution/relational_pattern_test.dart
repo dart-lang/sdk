@@ -127,7 +127,7 @@ void f(A x) {
   }
 }
 ''',
-      [error(CompileTimeErrorCode.UNDEFINED_OPERATOR, 50, 1)],
+      [error(CompileTimeErrorCode.undefinedOperator, 50, 1)],
     );
     var node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
@@ -205,7 +205,7 @@ void f(A x) {
   }
 }
 ''',
-      [error(CompileTimeErrorCode.UNDEFINED_OPERATOR, 50, 2)],
+      [error(CompileTimeErrorCode.undefinedOperator, 50, 2)],
     );
     var node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
@@ -305,7 +305,7 @@ void f(A x) {
   }
 }
 ''',
-      [error(CompileTimeErrorCode.UNDEFINED_OPERATOR, 50, 1)],
+      [error(CompileTimeErrorCode.undefinedOperator, 50, 1)],
     );
     var node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
@@ -383,7 +383,7 @@ void f(A x) {
   }
 }
 ''',
-      [error(CompileTimeErrorCode.UNDEFINED_OPERATOR, 50, 2)],
+      [error(CompileTimeErrorCode.undefinedOperator, 50, 2)],
     );
     var node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
@@ -457,7 +457,7 @@ void f(x, int Function() a) {
 ''',
       [
         error(
-          CompileTimeErrorCode.NON_CONSTANT_RELATIONAL_PATTERN_EXPRESSION,
+          CompileTimeErrorCode.nonConstantRelationalPatternExpression,
           57,
           3,
         ),

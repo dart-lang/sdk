@@ -26,7 +26,7 @@ class A {
 ''',
       [
         error(
-          CompileTimeErrorCode.FIELD_INITIALIZING_FORMAL_NOT_ASSIGNABLE,
+          CompileTimeErrorCode.fieldInitializingFormalNotAssignable,
           23,
           14,
         ),
@@ -44,7 +44,7 @@ class A {
 ''',
       [
         error(
-          CompileTimeErrorCode.FIELD_INITIALIZING_FORMAL_NOT_ASSIGNABLE,
+          CompileTimeErrorCode.fieldInitializingFormalNotAssignable,
           23,
           13,
         ),
@@ -63,7 +63,7 @@ enum E {
 ''',
       [
         error(
-          CompileTimeErrorCode.FIELD_INITIALIZING_FORMAL_NOT_ASSIGNABLE,
+          CompileTimeErrorCode.fieldInitializingFormalNotAssignable,
           42,
           14,
         ),
@@ -81,13 +81,9 @@ enum E {
 }
 ''',
       [
+        error(CompileTimeErrorCode.constConstructorParamTypeMismatch, 13, 2),
         error(
-          CompileTimeErrorCode.CONST_CONSTRUCTOR_PARAM_TYPE_MISMATCH,
-          13,
-          2,
-        ),
-        error(
-          CompileTimeErrorCode.FIELD_INITIALIZING_FORMAL_NOT_ASSIGNABLE,
+          CompileTimeErrorCode.fieldInitializingFormalNotAssignable,
           43,
           13,
         ),

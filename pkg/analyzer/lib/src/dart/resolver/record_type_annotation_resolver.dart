@@ -74,7 +74,7 @@ class RecordTypeAnnotationResolver {
           if (!isPositionalWildCard(field, name)) {
             _diagnosticReporter.atToken(
               nameToken,
-              CompileTimeErrorCode.INVALID_FIELD_NAME_PRIVATE,
+              CompileTimeErrorCode.invalidFieldNamePrivate,
             );
           }
         } else {
@@ -84,7 +84,7 @@ class RecordTypeAnnotationResolver {
                 positionalFields.indexOf(field) != index) {
               _diagnosticReporter.atToken(
                 nameToken,
-                CompileTimeErrorCode.INVALID_FIELD_NAME_POSITIONAL,
+                CompileTimeErrorCode.invalidFieldNamePositional,
               );
             }
           } else if (RecordLiteralResolver.isForbiddenNameForRecordField(
@@ -92,7 +92,7 @@ class RecordTypeAnnotationResolver {
           )) {
             _diagnosticReporter.atToken(
               nameToken,
-              CompileTimeErrorCode.INVALID_FIELD_NAME_FROM_OBJECT,
+              CompileTimeErrorCode.invalidFieldNameFromObject,
             );
           }
         }

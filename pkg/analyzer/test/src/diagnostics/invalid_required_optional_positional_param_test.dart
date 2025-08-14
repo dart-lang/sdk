@@ -29,7 +29,7 @@ import 'package:meta/meta.dart';
 
 m([@required a]) => null;
 ''',
-      [error(WarningCode.INVALID_REQUIRED_OPTIONAL_POSITIONAL_PARAM, 37, 11)],
+      [error(WarningCode.invalidRequiredOptionalPositionalParam, 37, 11)],
     );
   }
 
@@ -40,7 +40,7 @@ import 'package:meta/meta.dart';
 
 m(a, [@required b]) => null;
 ''',
-      [error(WarningCode.INVALID_REQUIRED_OPTIONAL_POSITIONAL_PARAM, 40, 11)],
+      [error(WarningCode.invalidRequiredOptionalPositionalParam, 40, 11)],
     );
   }
 
@@ -51,7 +51,7 @@ import 'package:meta/meta.dart';
 
 m([@required a = 1]) => null;
 ''',
-      [error(WarningCode.INVALID_REQUIRED_OPTIONAL_POSITIONAL_PARAM, 37, 15)],
+      [error(WarningCode.invalidRequiredOptionalPositionalParam, 37, 15)],
     );
   }
 
@@ -62,7 +62,7 @@ import 'package:meta/meta.dart';
 
 m([a, @required b = 1]) => null;
 ''',
-      [error(WarningCode.INVALID_REQUIRED_OPTIONAL_POSITIONAL_PARAM, 40, 15)],
+      [error(WarningCode.invalidRequiredOptionalPositionalParam, 40, 15)],
     );
   }
 

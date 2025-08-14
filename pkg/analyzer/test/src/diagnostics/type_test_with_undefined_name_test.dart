@@ -22,7 +22,7 @@ f(var p) {
   if (p is A) {
   }
 }''',
-      [error(CompileTimeErrorCode.TYPE_TEST_WITH_UNDEFINED_NAME, 22, 1)],
+      [error(CompileTimeErrorCode.typeTestWithUndefinedName, 22, 1)],
     );
   }
 }

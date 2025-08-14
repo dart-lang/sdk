@@ -64,7 +64,7 @@ class A {
 
 String f = A().v;
 ''',
-      [error(WarningCode.ASSIGNMENT_OF_DO_NOT_STORE, 91, 5)],
+      [error(WarningCode.assignmentOfDoNotStore, 91, 5)],
     );
   }
 
@@ -79,7 +79,7 @@ class A {
 
 String f = A().v();
 ''',
-      [error(WarningCode.ASSIGNMENT_OF_DO_NOT_STORE, 89, 7)],
+      [error(WarningCode.assignmentOfDoNotStore, 89, 7)],
     );
   }
 
@@ -94,7 +94,7 @@ class A {
 
 String f = A.v;
 ''',
-      [error(WarningCode.ASSIGNMENT_OF_DO_NOT_STORE, 98, 3)],
+      [error(WarningCode.assignmentOfDoNotStore, 98, 3)],
     );
   }
 
@@ -109,7 +109,7 @@ class A {
 
 String f = A.v();
 ''',
-      [error(WarningCode.ASSIGNMENT_OF_DO_NOT_STORE, 96, 5)],
+      [error(WarningCode.assignmentOfDoNotStore, 96, 5)],
     );
   }
 
@@ -129,7 +129,7 @@ class B {
 ''',
       [
         error(
-          WarningCode.ASSIGNMENT_OF_DO_NOT_STORE,
+          WarningCode.assignmentOfDoNotStore,
           106,
           5,
           messageContains: ["'v'"],
@@ -152,7 +152,7 @@ class B {
   String f = A.v;
 }
 ''',
-      [error(WarningCode.ASSIGNMENT_OF_DO_NOT_STORE, 113, 3)],
+      [error(WarningCode.assignmentOfDoNotStore, 113, 3)],
     );
   }
 
@@ -181,7 +181,7 @@ class A {
   final f = getV();
 }
 ''',
-      [error(WarningCode.ASSIGNMENT_OF_DO_NOT_STORE, 90, 6)],
+      [error(WarningCode.assignmentOfDoNotStore, 90, 6)],
     );
   }
 
@@ -199,7 +199,7 @@ class B {
   final f = A().getV();
 }
 ''',
-      [error(WarningCode.ASSIGNMENT_OF_DO_NOT_STORE, 106, 10)],
+      [error(WarningCode.assignmentOfDoNotStore, 106, 10)],
     );
   }
 
@@ -217,7 +217,7 @@ abstract class A {
   late String f = m.v();
 }
 ''',
-      [error(WarningCode.ASSIGNMENT_OF_DO_NOT_STORE, 126, 5)],
+      [error(WarningCode.assignmentOfDoNotStore, 126, 5)],
     );
   }
 
@@ -246,7 +246,7 @@ class A {
   final f = v;
 }
 ''',
-      [error(WarningCode.ASSIGNMENT_OF_DO_NOT_STORE, 89, 1)],
+      [error(WarningCode.assignmentOfDoNotStore, 89, 1)],
     );
   }
 
@@ -263,8 +263,8 @@ class A {
 }
 ''',
       [
-        error(WarningCode.ASSIGNMENT_OF_DO_NOT_STORE, 90, 1),
-        error(WarningCode.ASSIGNMENT_OF_DO_NOT_STORE, 95, 1),
+        error(WarningCode.assignmentOfDoNotStore, 90, 1),
+        error(WarningCode.assignmentOfDoNotStore, 95, 1),
       ],
     );
   }
@@ -281,7 +281,7 @@ String get v => '';
 ''',
       [
         error(
-          WarningCode.ASSIGNMENT_OF_DO_NOT_STORE,
+          WarningCode.assignmentOfDoNotStore,
           47,
           1,
           messageContains: ["'v'"],
@@ -304,7 +304,7 @@ class A{
 ''',
       [
         error(
-          WarningCode.ASSIGNMENT_OF_DO_NOT_STORE,
+          WarningCode.assignmentOfDoNotStore,
           47,
           5,
           messageContains: ["'f'"],
@@ -325,7 +325,7 @@ var c = () => _v;
 
 String v = c();
 ''',
-      [error(WarningCode.ASSIGNMENT_OF_DO_NOT_STORE, 82, 2)],
+      [error(WarningCode.assignmentOfDoNotStore, 82, 2)],
     );
   }
 
@@ -343,7 +343,7 @@ class A{
 ''',
       [
         error(
-          WarningCode.ASSIGNMENT_OF_DO_NOT_STORE,
+          WarningCode.assignmentOfDoNotStore,
           47,
           7,
           messageContains: ["'v'"],
@@ -370,7 +370,7 @@ class A {
   final f = v;
 }
 ''',
-      [error(WarningCode.ASSIGNMENT_OF_DO_NOT_STORE, 46, 1)],
+      [error(WarningCode.assignmentOfDoNotStore, 46, 1)],
     );
   }
 
@@ -388,8 +388,8 @@ class A {
 }
 ''',
       [
-        error(WarningCode.ASSIGNMENT_OF_DO_NOT_STORE, 118, 1),
-        error(WarningCode.ASSIGNMENT_OF_DO_NOT_STORE, 122, 1),
+        error(WarningCode.assignmentOfDoNotStore, 118, 1),
+        error(WarningCode.assignmentOfDoNotStore, 122, 1),
       ],
     );
   }

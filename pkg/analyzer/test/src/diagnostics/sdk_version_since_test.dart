@@ -37,7 +37,7 @@ void f() {
   A(foo: 0);
 }
 ''',
-      expectedErrors: [error(WarningCode.SDK_VERSION_SINCE, 35, 3)],
+      expectedErrors: [error(WarningCode.sdkVersionSince, 35, 3)],
     );
   }
 
@@ -59,7 +59,7 @@ void f() {
   A(42);
 }
 ''',
-      expectedErrors: [error(WarningCode.SDK_VERSION_SINCE, 35, 2)],
+      expectedErrors: [error(WarningCode.sdkVersionSince, 35, 2)],
     );
   }
 
@@ -82,7 +82,7 @@ void f() {
   A<int>.named();
 }
 ''',
-      expectedErrors: [error(WarningCode.SDK_VERSION_SINCE, 40, 5)],
+      expectedErrors: [error(WarningCode.sdkVersionSince, 40, 5)],
     );
   }
 
@@ -105,7 +105,7 @@ void f() {
   A<int>.named;
 }
 ''',
-      expectedErrors: [error(WarningCode.SDK_VERSION_SINCE, 40, 5)],
+      expectedErrors: [error(WarningCode.sdkVersionSince, 40, 5)],
     );
   }
 
@@ -128,7 +128,7 @@ void f() {
   A<int>();
 }
 ''',
-      expectedErrors: [error(WarningCode.SDK_VERSION_SINCE, 33, 1)],
+      expectedErrors: [error(WarningCode.sdkVersionSince, 33, 1)],
     );
   }
 
@@ -153,8 +153,8 @@ void f(A a) {
 }
 ''',
       expectedErrors: [
-        error(WarningCode.SDK_VERSION_SINCE, 40, 3),
-        error(WarningCode.SDK_VERSION_SINCE, 49, 3),
+        error(WarningCode.sdkVersionSince, 40, 3),
+        error(WarningCode.sdkVersionSince, 49, 3),
       ],
     );
   }
@@ -180,8 +180,8 @@ void f(A a) {
 }
 ''',
       expectedErrors: [
-        error(WarningCode.SDK_VERSION_SINCE, 40, 3),
-        error(WarningCode.SDK_VERSION_SINCE, 54, 3),
+        error(WarningCode.sdkVersionSince, 40, 3),
+        error(WarningCode.sdkVersionSince, 54, 3),
       ],
     );
   }
@@ -207,8 +207,8 @@ void f(A a) {
 }
 ''',
       expectedErrors: [
-        error(WarningCode.SDK_VERSION_SINCE, 40, 3),
-        error(WarningCode.SDK_VERSION_SINCE, 53, 3),
+        error(WarningCode.sdkVersionSince, 40, 3),
+        error(WarningCode.sdkVersionSince, 53, 3),
       ],
     );
   }
@@ -234,8 +234,8 @@ void f(A a) {
 }
 ''',
       expectedErrors: [
-        error(WarningCode.SDK_VERSION_SINCE, 40, 3),
-        error(WarningCode.SDK_VERSION_SINCE, 49, 3),
+        error(WarningCode.sdkVersionSince, 40, 3),
+        error(WarningCode.sdkVersionSince, 49, 3),
       ],
     );
   }
@@ -261,7 +261,7 @@ void f(A a) {
   a.foo += 0;
 }
 ''',
-      expectedErrors: [error(WarningCode.SDK_VERSION_SINCE, 38, 3)],
+      expectedErrors: [error(WarningCode.sdkVersionSince, 38, 3)],
     );
   }
 
@@ -285,7 +285,7 @@ void f(A a) {
   a.foo += 0;
 }
 ''',
-      expectedErrors: [error(WarningCode.SDK_VERSION_SINCE, 38, 3)],
+      expectedErrors: [error(WarningCode.sdkVersionSince, 38, 3)],
     );
   }
 
@@ -309,7 +309,7 @@ void f(A a) {
   a.foo += 0;
 }
 ''',
-      expectedErrors: [error(WarningCode.SDK_VERSION_SINCE, 38, 3)],
+      expectedErrors: [error(WarningCode.sdkVersionSince, 38, 3)],
     );
   }
 
@@ -332,7 +332,7 @@ void f(A a) {
   a[0];
 }
 ''',
-      expectedErrors: [error(WarningCode.SDK_VERSION_SINCE, 37, 1)],
+      expectedErrors: [error(WarningCode.sdkVersionSince, 37, 1)],
     );
   }
 
@@ -355,7 +355,7 @@ void f(A a) {
   a[0] = 0;
 }
 ''',
-      expectedErrors: [error(WarningCode.SDK_VERSION_SINCE, 37, 1)],
+      expectedErrors: [error(WarningCode.sdkVersionSince, 37, 1)],
     );
   }
 
@@ -376,7 +376,7 @@ void f() {
   foo.A<int>();
 }
 ''',
-      expectedErrors: [error(WarningCode.SDK_VERSION_SINCE, 44, 1)],
+      expectedErrors: [error(WarningCode.sdkVersionSince, 44, 1)],
     );
   }
 
@@ -397,7 +397,7 @@ void f() {
   A<int>();
 }
 ''',
-      expectedErrors: [error(WarningCode.SDK_VERSION_SINCE, 33, 1)],
+      expectedErrors: [error(WarningCode.sdkVersionSince, 33, 1)],
     );
   }
 
@@ -420,7 +420,7 @@ void f(A a) {
   a();
 }
 ''',
-      expectedErrors: [error(WarningCode.SDK_VERSION_SINCE, 37, 2)],
+      expectedErrors: [error(WarningCode.sdkVersionSince, 37, 2)],
     );
   }
 
@@ -444,7 +444,7 @@ void f() {
   foo(0, bar: 1);
 }
 ''',
-      expectedErrors: [error(WarningCode.SDK_VERSION_SINCE, 40, 3)],
+      expectedErrors: [error(WarningCode.sdkVersionSince, 40, 3)],
     );
   }
 
@@ -468,7 +468,7 @@ void f() {
   foo(0, 42);
 }
 ''',
-      expectedErrors: [error(WarningCode.SDK_VERSION_SINCE, 40, 2)],
+      expectedErrors: [error(WarningCode.sdkVersionSince, 40, 2)],
     );
   }
 
@@ -491,7 +491,7 @@ void f(A a) {
   a.foo();
 }
 ''',
-      expectedErrors: [error(WarningCode.SDK_VERSION_SINCE, 38, 3)],
+      expectedErrors: [error(WarningCode.sdkVersionSince, 38, 3)],
     );
   }
 
@@ -514,7 +514,7 @@ void f(A a) {
   a.foo;
 }
 ''',
-      expectedErrors: [error(WarningCode.SDK_VERSION_SINCE, 38, 3)],
+      expectedErrors: [error(WarningCode.sdkVersionSince, 38, 3)],
     );
 
     var node = findNode.prefixed('.foo');
@@ -553,7 +553,7 @@ void f(A a) {
   (a).foo;
 }
 ''',
-      expectedErrors: [error(WarningCode.SDK_VERSION_SINCE, 40, 3)],
+      expectedErrors: [error(WarningCode.sdkVersionSince, 40, 3)],
     );
 
     var node = findNode.propertyAccess('.foo');
@@ -597,8 +597,8 @@ void f(A a) {
 }
 ''',
       expectedErrors: [
-        error(WarningCode.SDK_VERSION_SINCE, 40, 3),
-        error(WarningCode.SDK_VERSION_SINCE, 53, 3),
+        error(WarningCode.sdkVersionSince, 40, 3),
+        error(WarningCode.sdkVersionSince, 53, 3),
       ],
     );
   }
@@ -618,7 +618,7 @@ import 'dart:foo' as foo;
 
 void f(foo.A<int> a) {}
 ''',
-      expectedErrors: [error(WarningCode.SDK_VERSION_SINCE, 38, 1)],
+      expectedErrors: [error(WarningCode.sdkVersionSince, 38, 1)],
     );
   }
 
@@ -637,7 +637,7 @@ import 'dart:foo';
 
 void f(A<int> a) {}
 ''',
-      expectedErrors: [error(WarningCode.SDK_VERSION_SINCE, 27, 1)],
+      expectedErrors: [error(WarningCode.sdkVersionSince, 27, 1)],
     );
   }
 
@@ -686,7 +686,7 @@ import 'dart:foo';
 
 void f(A a) {}
 ''',
-      expectedErrors: [error(WarningCode.SDK_VERSION_SINCE, 27, 1)],
+      expectedErrors: [error(WarningCode.sdkVersionSince, 27, 1)],
     );
   }
 
@@ -765,7 +765,7 @@ import 'dart:foo';
 
 void f(A a) {}
 ''',
-      expectedErrors: [error(WarningCode.SDK_VERSION_SINCE, 27, 1)],
+      expectedErrors: [error(WarningCode.sdkVersionSince, 27, 1)],
     );
   }
 
@@ -789,7 +789,7 @@ void f() {
   E.v2;
 }
 ''',
-      expectedErrors: [error(WarningCode.SDK_VERSION_SINCE, 35, 2)],
+      expectedErrors: [error(WarningCode.sdkVersionSince, 35, 2)],
     );
   }
 
@@ -812,8 +812,8 @@ void f(Enum e) {
 }
 ''',
       expectedErrors: [
-        error(WarningCode.SDK_VERSION_SINCE, 7, 4),
-        error(WarningCode.SDK_VERSION_SINCE, 21, 5),
+        error(WarningCode.sdkVersionSince, 7, 4),
+        error(WarningCode.sdkVersionSince, 21, 5),
       ],
     );
   }
@@ -832,7 +832,7 @@ void f() {
   myEnum.index;
 }
 ''',
-      expectedErrors: [error(WarningCode.SDK_VERSION_SINCE, 38, 5)],
+      expectedErrors: [error(WarningCode.sdkVersionSince, 38, 5)],
     );
   }
 
@@ -853,7 +853,7 @@ import 'dart:foo';
 
 void f(E a) {}
 ''',
-      expectedErrors: [error(WarningCode.SDK_VERSION_SINCE, 27, 1)],
+      expectedErrors: [error(WarningCode.sdkVersionSince, 27, 1)],
     );
   }
 
@@ -876,7 +876,7 @@ void f() {
   0.foo;
 }
 ''',
-      expectedErrors: [error(WarningCode.SDK_VERSION_SINCE, 35, 3)],
+      expectedErrors: [error(WarningCode.sdkVersionSince, 35, 3)],
     );
   }
 
@@ -899,7 +899,7 @@ void f() {
   E(0).foo();
 }
 ''',
-      expectedErrors: [error(WarningCode.SDK_VERSION_SINCE, 38, 3)],
+      expectedErrors: [error(WarningCode.sdkVersionSince, 38, 3)],
     );
   }
 
@@ -922,7 +922,7 @@ void f() {
   0.foo();
 }
 ''',
-      expectedErrors: [error(WarningCode.SDK_VERSION_SINCE, 35, 3)],
+      expectedErrors: [error(WarningCode.sdkVersionSince, 35, 3)],
     );
   }
 
@@ -945,7 +945,7 @@ void f() {
   0.foo();
 }
 ''',
-      expectedErrors: [error(WarningCode.SDK_VERSION_SINCE, 35, 3)],
+      expectedErrors: [error(WarningCode.sdkVersionSince, 35, 3)],
     );
   }
 
@@ -968,7 +968,7 @@ void f() {
   0.foo = 1;
 }
 ''',
-      expectedErrors: [error(WarningCode.SDK_VERSION_SINCE, 35, 3)],
+      expectedErrors: [error(WarningCode.sdkVersionSince, 35, 3)],
     );
   }
 
@@ -987,7 +987,7 @@ import 'dart:foo';
 
 void f(X a) {}
 ''',
-      expectedErrors: [error(WarningCode.SDK_VERSION_SINCE, 27, 1)],
+      expectedErrors: [error(WarningCode.sdkVersionSince, 27, 1)],
     );
   }
 
@@ -1006,7 +1006,7 @@ import 'dart:foo';
 
 void f(X a) {}
 ''',
-      expectedErrors: [error(WarningCode.SDK_VERSION_SINCE, 27, 1)],
+      expectedErrors: [error(WarningCode.sdkVersionSince, 27, 1)],
     );
   }
 
@@ -1025,7 +1025,7 @@ import 'dart:foo';
 
 void f(M<int> a) {}
 ''',
-      expectedErrors: [error(WarningCode.SDK_VERSION_SINCE, 27, 1)],
+      expectedErrors: [error(WarningCode.sdkVersionSince, 27, 1)],
     );
   }
 
@@ -1046,7 +1046,7 @@ void f() {
   foo.bar();
 }
 ''',
-      expectedErrors: [error(WarningCode.SDK_VERSION_SINCE, 44, 3)],
+      expectedErrors: [error(WarningCode.sdkVersionSince, 44, 3)],
     );
   }
 
@@ -1067,7 +1067,7 @@ void f() {
   foo();
 }
 ''',
-      expectedErrors: [error(WarningCode.SDK_VERSION_SINCE, 33, 3)],
+      expectedErrors: [error(WarningCode.sdkVersionSince, 33, 3)],
     );
   }
 
@@ -1088,7 +1088,7 @@ void f() {
   foo.v;
 }
 ''',
-      expectedErrors: [error(WarningCode.SDK_VERSION_SINCE, 44, 1)],
+      expectedErrors: [error(WarningCode.sdkVersionSince, 44, 1)],
     );
   }
 
@@ -1109,7 +1109,7 @@ void f() {
   v;
 }
 ''',
-      expectedErrors: [error(WarningCode.SDK_VERSION_SINCE, 33, 1)],
+      expectedErrors: [error(WarningCode.sdkVersionSince, 33, 1)],
     );
   }
 

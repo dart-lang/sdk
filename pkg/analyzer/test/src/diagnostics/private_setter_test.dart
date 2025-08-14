@@ -29,7 +29,7 @@ main() {
   A._foo = 0;
 }
 ''',
-      [error(CompileTimeErrorCode.PRIVATE_SETTER, 31, 4)],
+      [error(CompileTimeErrorCode.privateSetter, 31, 4)],
     );
 
     var assignment = findNode.assignment('_foo =');
@@ -90,7 +90,7 @@ main() {
   A._foo = 0;
 }
 ''',
-      [error(CompileTimeErrorCode.PRIVATE_SETTER, 31, 4)],
+      [error(CompileTimeErrorCode.privateSetter, 31, 4)],
     );
 
     var assignment = findNode.assignment('_foo =');
@@ -136,7 +136,7 @@ main() {
   A._foo = 0;
 }
 ''',
-      [error(CompileTimeErrorCode.PRIVATE_SETTER, 31, 4)],
+      [error(CompileTimeErrorCode.privateSetter, 31, 4)],
     );
 
     var assignment = findNode.assignment('_foo =');

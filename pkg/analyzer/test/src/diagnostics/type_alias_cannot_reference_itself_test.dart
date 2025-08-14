@@ -20,7 +20,7 @@ class TypeAliasCannotReferenceItselfTest extends PubPackageResolutionTest {
       '''
 typedef A<T extends A<int>>();
 ''',
-      [error(CompileTimeErrorCode.TYPE_ALIAS_CANNOT_REFERENCE_ITSELF, 8, 1)],
+      [error(CompileTimeErrorCode.typeAliasCannotReferenceItself, 8, 1)],
     );
   }
 
@@ -29,7 +29,7 @@ typedef A<T extends A<int>>();
       '''
 typedef A(A b());
 ''',
-      [error(CompileTimeErrorCode.TYPE_ALIAS_CANNOT_REFERENCE_ITSELF, 8, 1)],
+      [error(CompileTimeErrorCode.typeAliasCannotReferenceItself, 8, 1)],
     );
   }
 
@@ -44,8 +44,8 @@ main() {
 }
 ''',
       [
-        error(CompileTimeErrorCode.TYPE_ALIAS_CANNOT_REFERENCE_ITSELF, 8, 1),
-        error(CompileTimeErrorCode.TYPE_ALIAS_CANNOT_REFERENCE_ITSELF, 46, 1),
+        error(CompileTimeErrorCode.typeAliasCannotReferenceItself, 8, 1),
+        error(CompileTimeErrorCode.typeAliasCannotReferenceItself, 46, 1),
       ],
     );
   }
@@ -55,7 +55,7 @@ main() {
       '''
 typedef A<T extends A<int>> = void Function();
 ''',
-      [error(CompileTimeErrorCode.TYPE_ALIAS_CANNOT_REFERENCE_ITSELF, 8, 1)],
+      [error(CompileTimeErrorCode.typeAliasCannotReferenceItself, 8, 1)],
     );
   }
 
@@ -64,7 +64,7 @@ typedef A<T extends A<int>> = void Function();
       r'''
 typedef F<X extends F<X>> = F Function();
 ''',
-      [error(CompileTimeErrorCode.TYPE_ALIAS_CANNOT_REFERENCE_ITSELF, 8, 1)],
+      [error(CompileTimeErrorCode.typeAliasCannotReferenceItself, 8, 1)],
     );
   }
 
@@ -79,8 +79,8 @@ main() {
 }
 ''',
       [
-        error(CompileTimeErrorCode.TYPE_ALIAS_CANNOT_REFERENCE_ITSELF, 13, 1),
-        error(CompileTimeErrorCode.TYPE_ALIAS_CANNOT_REFERENCE_ITSELF, 40, 1),
+        error(CompileTimeErrorCode.typeAliasCannotReferenceItself, 13, 1),
+        error(CompileTimeErrorCode.typeAliasCannotReferenceItself, 40, 1),
       ],
     );
   }
@@ -105,8 +105,8 @@ typedef T1 = T2;
 typedef T2 = T1;
 ''',
       [
-        error(CompileTimeErrorCode.TYPE_ALIAS_CANNOT_REFERENCE_ITSELF, 8, 2),
-        error(CompileTimeErrorCode.TYPE_ALIAS_CANNOT_REFERENCE_ITSELF, 25, 2),
+        error(CompileTimeErrorCode.typeAliasCannotReferenceItself, 8, 2),
+        error(CompileTimeErrorCode.typeAliasCannotReferenceItself, 25, 2),
       ],
     );
   }
@@ -116,7 +116,7 @@ typedef T2 = T1;
       '''
 typedef T = void Function(T);
 ''',
-      [error(CompileTimeErrorCode.TYPE_ALIAS_CANNOT_REFERENCE_ITSELF, 8, 1)],
+      [error(CompileTimeErrorCode.typeAliasCannotReferenceItself, 8, 1)],
     );
   }
 
@@ -125,7 +125,7 @@ typedef T = void Function(T);
       '''
 typedef T = T;
 ''',
-      [error(CompileTimeErrorCode.TYPE_ALIAS_CANNOT_REFERENCE_ITSELF, 8, 1)],
+      [error(CompileTimeErrorCode.typeAliasCannotReferenceItself, 8, 1)],
     );
   }
 
@@ -134,7 +134,7 @@ typedef T = T;
       '''
 typedef T = T?;
 ''',
-      [error(CompileTimeErrorCode.TYPE_ALIAS_CANNOT_REFERENCE_ITSELF, 8, 1)],
+      [error(CompileTimeErrorCode.typeAliasCannotReferenceItself, 8, 1)],
     );
   }
 
@@ -143,7 +143,7 @@ typedef T = T?;
       '''
 typedef T = List<T>;
 ''',
-      [error(CompileTimeErrorCode.TYPE_ALIAS_CANNOT_REFERENCE_ITSELF, 8, 1)],
+      [error(CompileTimeErrorCode.typeAliasCannotReferenceItself, 8, 1)],
     );
   }
 
@@ -152,7 +152,7 @@ typedef T = List<T>;
       '''
 typedef T<X extends T<Never>> = List<X>;
 ''',
-      [error(CompileTimeErrorCode.TYPE_ALIAS_CANNOT_REFERENCE_ITSELF, 8, 1)],
+      [error(CompileTimeErrorCode.typeAliasCannotReferenceItself, 8, 1)],
     );
   }
 
@@ -161,7 +161,7 @@ typedef T<X extends T<Never>> = List<X>;
       '''
 typedef A({A a});
 ''',
-      [error(CompileTimeErrorCode.TYPE_ALIAS_CANNOT_REFERENCE_ITSELF, 8, 1)],
+      [error(CompileTimeErrorCode.typeAliasCannotReferenceItself, 8, 1)],
     );
   }
 
@@ -170,7 +170,7 @@ typedef A({A a});
       '''
 typedef A([A a]);
 ''',
-      [error(CompileTimeErrorCode.TYPE_ALIAS_CANNOT_REFERENCE_ITSELF, 8, 1)],
+      [error(CompileTimeErrorCode.typeAliasCannotReferenceItself, 8, 1)],
     );
   }
 
@@ -179,7 +179,7 @@ typedef A([A a]);
       '''
 typedef A(A a);
 ''',
-      [error(CompileTimeErrorCode.TYPE_ALIAS_CANNOT_REFERENCE_ITSELF, 8, 1)],
+      [error(CompileTimeErrorCode.typeAliasCannotReferenceItself, 8, 1)],
     );
   }
 
@@ -188,7 +188,7 @@ typedef A(A a);
       '''
 typedef A(List<A> a);
 ''',
-      [error(CompileTimeErrorCode.TYPE_ALIAS_CANNOT_REFERENCE_ITSELF, 8, 1)],
+      [error(CompileTimeErrorCode.typeAliasCannotReferenceItself, 8, 1)],
     );
   }
 
@@ -217,7 +217,7 @@ class C {
       '''
 typedef A A();
 ''',
-      [error(CompileTimeErrorCode.TYPE_ALIAS_CANNOT_REFERENCE_ITSELF, 10, 1)],
+      [error(CompileTimeErrorCode.typeAliasCannotReferenceItself, 10, 1)],
     );
   }
 
@@ -228,8 +228,8 @@ typedef B A();
 typedef A B();
 ''',
       [
-        error(CompileTimeErrorCode.TYPE_ALIAS_CANNOT_REFERENCE_ITSELF, 10, 1),
-        error(CompileTimeErrorCode.TYPE_ALIAS_CANNOT_REFERENCE_ITSELF, 25, 1),
+        error(CompileTimeErrorCode.typeAliasCannotReferenceItself, 10, 1),
+        error(CompileTimeErrorCode.typeAliasCannotReferenceItself, 25, 1),
       ],
     );
   }
@@ -239,7 +239,7 @@ typedef A B();
       r'''
 typedef F = (F, int) Function();
 ''',
-      [error(CompileTimeErrorCode.TYPE_ALIAS_CANNOT_REFERENCE_ITSELF, 8, 1)],
+      [error(CompileTimeErrorCode.typeAliasCannotReferenceItself, 8, 1)],
     );
   }
 }

@@ -25,7 +25,7 @@ class A {
 ''',
       [
         error(
-          CompileTimeErrorCode.REDIRECT_GENERATIVE_TO_MISSING_CONSTRUCTOR,
+          CompileTimeErrorCode.redirectGenerativeToMissingConstructor,
           18,
           24,
         ),
@@ -43,7 +43,7 @@ enum E {
 ''',
       [
         error(
-          CompileTimeErrorCode.REDIRECT_GENERATIVE_TO_MISSING_CONSTRUCTOR,
+          CompileTimeErrorCode.redirectGenerativeToMissingConstructor,
           28,
           24,
         ),

@@ -20,7 +20,7 @@ class NativeFunctionBodyInNonSdkCodeTest extends PubPackageResolutionTest {
       '''
 int m(a) native 'string';
 ''',
-      [error(ParserErrorCode.NATIVE_FUNCTION_BODY_IN_NON_SDK_CODE, 9, 16)],
+      [error(ParserErrorCode.nativeFunctionBodyInNonSdkCode, 9, 16)],
     );
   }
 
@@ -31,7 +31,7 @@ class A {
   static int m(a) native 'string';
 }
 ''',
-      [error(ParserErrorCode.NATIVE_FUNCTION_BODY_IN_NON_SDK_CODE, 28, 16)],
+      [error(ParserErrorCode.nativeFunctionBodyInNonSdkCode, 28, 16)],
     );
   }
 
@@ -42,7 +42,7 @@ mixin A {
   static int m(a) native 'string';
 }
 ''',
-      [error(ParserErrorCode.NATIVE_FUNCTION_BODY_IN_NON_SDK_CODE, 28, 16)],
+      [error(ParserErrorCode.nativeFunctionBodyInNonSdkCode, 28, 16)],
     );
   }
 }

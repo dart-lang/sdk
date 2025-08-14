@@ -147,7 +147,7 @@ void f(Object x) {
   [for (var (a) in x) a];
 }
 ''',
-      [error(CompileTimeErrorCode.FOR_IN_OF_INVALID_TYPE, 38, 1)],
+      [error(CompileTimeErrorCode.forInOfInvalidType, 38, 1)],
     );
     var node = findNode.forElement('for');
     assertResolvedNodeText(node, r'''
@@ -469,7 +469,7 @@ void f(Object x) async {
   [await for (var (a) in x) a];
 }
 ''',
-      [error(CompileTimeErrorCode.FOR_IN_OF_INVALID_TYPE, 50, 1)],
+      [error(CompileTimeErrorCode.forInOfInvalidType, 50, 1)],
     );
     var node = findNode.forElement('for');
     assertResolvedNodeText(node, r'''

@@ -38,7 +38,7 @@ extension E on int {
       errorFilter:
           (error) =>
               error.diagnosticCode ==
-              CompileTimeErrorCode.EXTENSION_DECLARES_INSTANCE_FIELD,
+              CompileTimeErrorCode.extensionDeclaresInstanceField,
     );
   }
 
@@ -242,7 +242,7 @@ class A {
 ''',
       errorFilter: (error) {
         return error.diagnosticCode ==
-            CompileTimeErrorCode.IMPLICIT_THIS_REFERENCE_IN_INITIALIZER;
+            CompileTimeErrorCode.implicitThisReferenceInInitializer;
       },
     );
   }
@@ -266,7 +266,7 @@ class A {
 ''',
       errorFilter: (error) {
         return error.diagnosticCode ==
-            CompileTimeErrorCode.IMPLICIT_THIS_REFERENCE_IN_INITIALIZER;
+            CompileTimeErrorCode.implicitThisReferenceInInitializer;
       },
     );
   }
@@ -290,7 +290,7 @@ class A {
 ''',
       errorFilter: (error) {
         return error.diagnosticCode ==
-            CompileTimeErrorCode.IMPLICIT_THIS_REFERENCE_IN_INITIALIZER;
+            CompileTimeErrorCode.implicitThisReferenceInInitializer;
       },
     );
   }

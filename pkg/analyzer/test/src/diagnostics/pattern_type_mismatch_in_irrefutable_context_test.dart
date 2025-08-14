@@ -29,7 +29,7 @@ class A {
 ''',
       [
         error(
-          CompileTimeErrorCode.PATTERN_TYPE_MISMATCH_IN_IRREFUTABLE_CONTEXT,
+          CompileTimeErrorCode.patternTypeMismatchInIrrefutableContext,
           41,
           1,
         ),
@@ -62,7 +62,7 @@ void f(int a, num x) {
 ''',
       [
         error(
-          CompileTimeErrorCode.PATTERN_TYPE_MISMATCH_IN_IRREFUTABLE_CONTEXT,
+          CompileTimeErrorCode.patternTypeMismatchInIrrefutableContext,
           26,
           1,
         ),
@@ -83,11 +83,11 @@ class A {
 ''',
       [
         error(
-          CompileTimeErrorCode.PATTERN_TYPE_MISMATCH_IN_IRREFUTABLE_CONTEXT,
+          CompileTimeErrorCode.patternTypeMismatchInIrrefutableContext,
           24,
           19,
         ),
-        error(WarningCode.UNUSED_LOCAL_VARIABLE, 42, 1),
+        error(WarningCode.unusedLocalVariable, 42, 1),
       ],
     );
   }
@@ -99,7 +99,7 @@ void f(dynamic x) {
   var (int a) = x;
 }
 ''',
-      [error(WarningCode.UNUSED_LOCAL_VARIABLE, 31, 1)],
+      [error(WarningCode.unusedLocalVariable, 31, 1)],
     );
   }
 
@@ -110,7 +110,7 @@ void f(int x) {
   var (num a) = x;
 }
 ''',
-      [error(WarningCode.UNUSED_LOCAL_VARIABLE, 27, 1)],
+      [error(WarningCode.unusedLocalVariable, 27, 1)],
     );
   }
 
@@ -123,11 +123,11 @@ void f(num x) {
 ''',
       [
         error(
-          CompileTimeErrorCode.PATTERN_TYPE_MISMATCH_IN_IRREFUTABLE_CONTEXT,
+          CompileTimeErrorCode.patternTypeMismatchInIrrefutableContext,
           23,
           5,
         ),
-        error(WarningCode.UNUSED_LOCAL_VARIABLE, 27, 1),
+        error(WarningCode.unusedLocalVariable, 27, 1),
       ],
     );
   }
@@ -141,11 +141,11 @@ void f(List<Object> x) {
 ''',
       [
         error(
-          CompileTimeErrorCode.PATTERN_TYPE_MISMATCH_IN_IRREFUTABLE_CONTEXT,
+          CompileTimeErrorCode.patternTypeMismatchInIrrefutableContext,
           31,
           8,
         ),
-        error(WarningCode.UNUSED_LOCAL_VARIABLE, 37, 1),
+        error(WarningCode.unusedLocalVariable, 37, 1),
       ],
     );
   }
@@ -159,11 +159,11 @@ void f(Object x) {
 ''',
       [
         error(
-          CompileTimeErrorCode.PATTERN_TYPE_MISMATCH_IN_IRREFUTABLE_CONTEXT,
+          CompileTimeErrorCode.patternTypeMismatchInIrrefutableContext,
           25,
           3,
         ),
-        error(WarningCode.UNUSED_LOCAL_VARIABLE, 26, 1),
+        error(WarningCode.unusedLocalVariable, 26, 1),
       ],
     );
   }
@@ -177,11 +177,11 @@ void f(Object x) {
 ''',
       [
         error(
-          CompileTimeErrorCode.PATTERN_TYPE_MISMATCH_IN_IRREFUTABLE_CONTEXT,
+          CompileTimeErrorCode.patternTypeMismatchInIrrefutableContext,
           25,
           19,
         ),
-        error(WarningCode.UNUSED_LOCAL_VARIABLE, 42, 1),
+        error(WarningCode.unusedLocalVariable, 42, 1),
       ],
     );
   }
@@ -195,11 +195,11 @@ void f(Object x) {
 ''',
       [
         error(
-          CompileTimeErrorCode.PATTERN_TYPE_MISMATCH_IN_IRREFUTABLE_CONTEXT,
+          CompileTimeErrorCode.patternTypeMismatchInIrrefutableContext,
           25,
           17,
         ),
-        error(WarningCode.UNUSED_LOCAL_VARIABLE, 40, 1),
+        error(WarningCode.unusedLocalVariable, 40, 1),
       ],
     );
   }
@@ -213,7 +213,7 @@ void f(int a) {
 ''',
       [
         error(
-          CompileTimeErrorCode.PATTERN_TYPE_MISMATCH_IN_IRREFUTABLE_CONTEXT,
+          CompileTimeErrorCode.patternTypeMismatchInIrrefutableContext,
           19,
           1,
         ),
@@ -230,11 +230,11 @@ void f(Object x) {
 ''',
       [
         error(
-          CompileTimeErrorCode.PATTERN_TYPE_MISMATCH_IN_IRREFUTABLE_CONTEXT,
+          CompileTimeErrorCode.patternTypeMismatchInIrrefutableContext,
           25,
           4,
         ),
-        error(WarningCode.UNUSED_LOCAL_VARIABLE, 26, 1),
+        error(WarningCode.unusedLocalVariable, 26, 1),
       ],
     );
   }
@@ -248,11 +248,11 @@ void f(({int foo}) x) {
 ''',
       [
         error(
-          CompileTimeErrorCode.PATTERN_TYPE_MISMATCH_IN_IRREFUTABLE_CONTEXT,
+          CompileTimeErrorCode.patternTypeMismatchInIrrefutableContext,
           30,
           4,
         ),
-        error(WarningCode.UNUSED_LOCAL_VARIABLE, 31, 1),
+        error(WarningCode.unusedLocalVariable, 31, 1),
       ],
     );
   }

@@ -29,7 +29,7 @@ part of 'a.dart';
 
 augment class A<T> {}
 ''',
-      [error(CompileTimeErrorCode.AUGMENTATION_TYPE_PARAMETER_COUNT, 34, 1)],
+      [error(CompileTimeErrorCode.augmentationTypeParameterCount, 34, 1)],
     );
   }
 
@@ -46,7 +46,7 @@ part of 'a.dart';
 
 augment class A {}
 ''',
-      [error(CompileTimeErrorCode.AUGMENTATION_TYPE_PARAMETER_COUNT, 33, 1)],
+      [error(CompileTimeErrorCode.augmentationTypeParameterCount, 33, 1)],
     );
   }
 
@@ -77,7 +77,7 @@ part of 'a.dart';
 
 augment class A<T, U> {}
 ''',
-      [error(CompileTimeErrorCode.AUGMENTATION_TYPE_PARAMETER_COUNT, 38, 1)],
+      [error(CompileTimeErrorCode.augmentationTypeParameterCount, 38, 1)],
     );
   }
 
@@ -94,7 +94,7 @@ part of 'a.dart';
 
 augment class A<T> {}
 ''',
-      [error(CompileTimeErrorCode.AUGMENTATION_TYPE_PARAMETER_COUNT, 36, 1)],
+      [error(CompileTimeErrorCode.augmentationTypeParameterCount, 36, 1)],
     );
   }
 
@@ -115,7 +115,7 @@ augment class A<T> {
   augment void foo() {}
 }
 ''',
-      [error(CompileTimeErrorCode.AUGMENTATION_TYPE_PARAMETER_COUNT, 34, 1)],
+      [error(CompileTimeErrorCode.augmentationTypeParameterCount, 34, 1)],
     );
   }
 
@@ -132,7 +132,7 @@ part of 'a.dart';
 
 augment enum A<T> {}
 ''',
-      [error(CompileTimeErrorCode.AUGMENTATION_TYPE_PARAMETER_COUNT, 33, 1)],
+      [error(CompileTimeErrorCode.augmentationTypeParameterCount, 33, 1)],
     );
   }
 
@@ -149,7 +149,7 @@ part of 'a.dart';
 
 augment enum A {}
 ''',
-      [error(CompileTimeErrorCode.AUGMENTATION_TYPE_PARAMETER_COUNT, 32, 1)],
+      [error(CompileTimeErrorCode.augmentationTypeParameterCount, 32, 1)],
     );
   }
 
@@ -180,7 +180,7 @@ part of 'a.dart';
 
 augment enum A<T, U> {}
 ''',
-      [error(CompileTimeErrorCode.AUGMENTATION_TYPE_PARAMETER_COUNT, 37, 1)],
+      [error(CompileTimeErrorCode.augmentationTypeParameterCount, 37, 1)],
     );
   }
 
@@ -197,7 +197,7 @@ part of 'a.dart';
 
 augment enum A<T> {}
 ''',
-      [error(CompileTimeErrorCode.AUGMENTATION_TYPE_PARAMETER_COUNT, 35, 1)],
+      [error(CompileTimeErrorCode.augmentationTypeParameterCount, 35, 1)],
     );
   }
 
@@ -214,7 +214,7 @@ part of 'a.dart';
 
 augment extension A<T> {}
 ''',
-      [error(CompileTimeErrorCode.AUGMENTATION_TYPE_PARAMETER_COUNT, 38, 1)],
+      [error(CompileTimeErrorCode.augmentationTypeParameterCount, 38, 1)],
     );
   }
 
@@ -231,7 +231,7 @@ part of 'a.dart';
 
 augment extension A {}
 ''',
-      [error(CompileTimeErrorCode.AUGMENTATION_TYPE_PARAMETER_COUNT, 37, 1)],
+      [error(CompileTimeErrorCode.augmentationTypeParameterCount, 37, 1)],
     );
   }
 
@@ -262,7 +262,7 @@ part of 'a.dart';
 
 augment extension A<T, U> {}
 ''',
-      [error(CompileTimeErrorCode.AUGMENTATION_TYPE_PARAMETER_COUNT, 42, 1)],
+      [error(CompileTimeErrorCode.augmentationTypeParameterCount, 42, 1)],
     );
   }
 
@@ -279,7 +279,7 @@ part of 'a.dart';
 
 augment extension A<T> {}
 ''',
-      [error(CompileTimeErrorCode.AUGMENTATION_TYPE_PARAMETER_COUNT, 40, 1)],
+      [error(CompileTimeErrorCode.augmentationTypeParameterCount, 40, 1)],
     );
   }
 
@@ -296,7 +296,7 @@ part of 'a.dart';
 
 augment extension type A<T>(int it) {}
 ''',
-      [error(CompileTimeErrorCode.AUGMENTATION_TYPE_PARAMETER_COUNT, 43, 1)],
+      [error(CompileTimeErrorCode.augmentationTypeParameterCount, 43, 1)],
     );
   }
 
@@ -313,7 +313,7 @@ part of 'a.dart';
 
 augment extension type A(int it) {}
 ''',
-      [error(CompileTimeErrorCode.AUGMENTATION_TYPE_PARAMETER_COUNT, 42, 1)],
+      [error(CompileTimeErrorCode.augmentationTypeParameterCount, 42, 1)],
     );
   }
 
@@ -344,7 +344,7 @@ part of 'a.dart';
 
 augment extension type A<T, U>(int it) {}
 ''',
-      [error(CompileTimeErrorCode.AUGMENTATION_TYPE_PARAMETER_COUNT, 47, 1)],
+      [error(CompileTimeErrorCode.augmentationTypeParameterCount, 47, 1)],
     );
   }
 
@@ -361,7 +361,7 @@ part of 'a.dart';
 
 augment extension type A<T>(int it) {}
 ''',
-      [error(CompileTimeErrorCode.AUGMENTATION_TYPE_PARAMETER_COUNT, 45, 1)],
+      [error(CompileTimeErrorCode.augmentationTypeParameterCount, 45, 1)],
     );
   }
 
@@ -378,7 +378,7 @@ part of 'a.dart';
 
 augment mixin A<T> {}
 ''',
-      [error(CompileTimeErrorCode.AUGMENTATION_TYPE_PARAMETER_COUNT, 34, 1)],
+      [error(CompileTimeErrorCode.augmentationTypeParameterCount, 34, 1)],
     );
   }
 
@@ -395,7 +395,7 @@ part of 'a.dart';
 
 augment mixin A {}
 ''',
-      [error(CompileTimeErrorCode.AUGMENTATION_TYPE_PARAMETER_COUNT, 33, 1)],
+      [error(CompileTimeErrorCode.augmentationTypeParameterCount, 33, 1)],
     );
   }
 
@@ -426,7 +426,7 @@ part of 'a.dart';
 
 augment mixin A<T, U> {}
 ''',
-      [error(CompileTimeErrorCode.AUGMENTATION_TYPE_PARAMETER_COUNT, 38, 1)],
+      [error(CompileTimeErrorCode.augmentationTypeParameterCount, 38, 1)],
     );
   }
 
@@ -443,7 +443,7 @@ part of 'a.dart';
 
 augment mixin A<T> {}
 ''',
-      [error(CompileTimeErrorCode.AUGMENTATION_TYPE_PARAMETER_COUNT, 36, 1)],
+      [error(CompileTimeErrorCode.augmentationTypeParameterCount, 36, 1)],
     );
   }
 
@@ -464,7 +464,7 @@ augment mixin A<T> {
   augment void foo() {}
 }
 ''',
-      [error(CompileTimeErrorCode.AUGMENTATION_TYPE_PARAMETER_COUNT, 34, 1)],
+      [error(CompileTimeErrorCode.augmentationTypeParameterCount, 34, 1)],
     );
   }
 }

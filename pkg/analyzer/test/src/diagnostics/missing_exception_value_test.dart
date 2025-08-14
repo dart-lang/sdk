@@ -25,7 +25,7 @@ void g() {
   Pointer.fromFunction<T>(f);
 }
 ''',
-      [error(FfiCode.MISSING_EXCEPTION_VALUE, 96, 12)],
+      [error(FfiCode.missingExceptionValue, 96, 12)],
     );
   }
 }

@@ -23,13 +23,7 @@ abstract class A {
   A() : x = 0;
 }
 ''',
-      [
-        error(
-          CompileTimeErrorCode.ABSTRACT_FIELD_CONSTRUCTOR_INITIALIZER,
-          45,
-          1,
-        ),
-      ],
+      [error(CompileTimeErrorCode.abstractFieldConstructorInitializer, 45, 1)],
     );
   }
 
@@ -41,13 +35,7 @@ abstract class A {
   A() : x = 0;
 }
 ''',
-      [
-        error(
-          CompileTimeErrorCode.ABSTRACT_FIELD_CONSTRUCTOR_INITIALIZER,
-          51,
-          1,
-        ),
-      ],
+      [error(CompileTimeErrorCode.abstractFieldConstructorInitializer, 51, 1)],
     );
   }
 
@@ -59,13 +47,7 @@ abstract class A {
   A(this.x);
 }
 ''',
-      [
-        error(
-          CompileTimeErrorCode.ABSTRACT_FIELD_CONSTRUCTOR_INITIALIZER,
-          52,
-          1,
-        ),
-      ],
+      [error(CompileTimeErrorCode.abstractFieldConstructorInitializer, 52, 1)],
     );
   }
 
@@ -86,13 +68,7 @@ abstract class A {
   A(this.x);
 }
 ''',
-      [
-        error(
-          CompileTimeErrorCode.ABSTRACT_FIELD_CONSTRUCTOR_INITIALIZER,
-          46,
-          1,
-        ),
-      ],
+      [error(CompileTimeErrorCode.abstractFieldConstructorInitializer, 46, 1)],
     );
   }
 

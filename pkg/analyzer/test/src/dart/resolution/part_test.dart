@@ -449,7 +449,7 @@ CompilationUnit
       r'''
 part 'a.dart';
 ''',
-      [error(CompileTimeErrorCode.URI_DOES_NOT_EXIST, 5, 8)],
+      [error(CompileTimeErrorCode.uriDoesNotExist, 5, 8)],
     );
 
     var node = findNode.singlePartDirective;
@@ -470,7 +470,7 @@ PartDirective
       '''
 part 'part.g.dart';
 ''',
-      [error(CompileTimeErrorCode.URI_HAS_NOT_BEEN_GENERATED, 5, 13)],
+      [error(CompileTimeErrorCode.uriHasNotBeenGenerated, 5, 13)],
     );
   }
 
@@ -479,7 +479,7 @@ part 'part.g.dart';
       r'''
 part ':net';
 ''',
-      [error(CompileTimeErrorCode.INVALID_URI, 5, 6)],
+      [error(CompileTimeErrorCode.invalidUri, 5, 6)],
     );
 
     var node = findNode.singlePartDirective;
@@ -500,7 +500,7 @@ PartDirective
       r'''
 part '${'foo'}.dart';
 ''',
-      [error(CompileTimeErrorCode.URI_WITH_INTERPOLATION, 5, 15)],
+      [error(CompileTimeErrorCode.uriWithInterpolation, 5, 15)],
     );
 
     var node = findNode.singlePartDirective;
@@ -531,7 +531,7 @@ PartDirective
       r'''
 part 'foo:bar';
 ''',
-      [error(CompileTimeErrorCode.URI_DOES_NOT_EXIST, 5, 9)],
+      [error(CompileTimeErrorCode.uriDoesNotExist, 5, 9)],
     );
 
     var node = findNode.singlePartDirective;
@@ -626,7 +626,7 @@ part of bar;
 
     await resolveFile2(a);
     assertErrorsInResult([
-      error(CompileTimeErrorCode.PART_OF_DIFFERENT_LIBRARY, 33, 8),
+      error(CompileTimeErrorCode.partOfDifferentLibrary, 33, 8),
     ]);
 
     var node = findNode.singlePartDirective;
@@ -673,7 +673,7 @@ part of 'x.dart';
       r'''
 part 'a.dart';
 ''',
-      [error(CompileTimeErrorCode.PART_OF_DIFFERENT_LIBRARY, 5, 8)],
+      [error(CompileTimeErrorCode.partOfDifferentLibrary, 5, 8)],
     );
 
     var node = findNode.singlePartDirective;
@@ -726,7 +726,7 @@ PartDirective
       r'''
 part 'a.dart';
 ''',
-      [error(CompileTimeErrorCode.PART_OF_NON_PART, 5, 8)],
+      [error(CompileTimeErrorCode.partOfNonPart, 5, 8)],
     );
 
     var node = findNode.singlePartDirective;
@@ -753,9 +753,7 @@ part 'c.dart';
 ''');
 
     await resolveFile2(b);
-    assertErrorsInResult([
-      error(CompileTimeErrorCode.URI_DOES_NOT_EXIST, 23, 8),
-    ]);
+    assertErrorsInResult([error(CompileTimeErrorCode.uriDoesNotExist, 23, 8)]);
 
     var node = findNode.singlePartDirective;
     assertResolvedNodeText(node, r'''
@@ -781,7 +779,7 @@ part ':net';
 ''');
 
     await resolveFile2(b);
-    assertErrorsInResult([error(CompileTimeErrorCode.INVALID_URI, 23, 6)]);
+    assertErrorsInResult([error(CompileTimeErrorCode.invalidUri, 23, 6)]);
 
     var node = findNode.singlePartDirective;
     assertResolvedNodeText(node, r'''
@@ -808,7 +806,7 @@ part '${'foo'}.dart';
 
     await resolveFile2(b);
     assertErrorsInResult([
-      error(CompileTimeErrorCode.URI_WITH_INTERPOLATION, 23, 15),
+      error(CompileTimeErrorCode.uriWithInterpolation, 23, 15),
     ]);
 
     var node = findNode.singlePartDirective;
@@ -845,9 +843,7 @@ part 'foo:bar';
 ''');
 
     await resolveFile2(b);
-    assertErrorsInResult([
-      error(CompileTimeErrorCode.URI_DOES_NOT_EXIST, 23, 9),
-    ]);
+    assertErrorsInResult([error(CompileTimeErrorCode.uriDoesNotExist, 23, 9)]);
 
     var node = findNode.singlePartDirective;
     assertResolvedNodeText(node, r'''
@@ -877,7 +873,7 @@ part of my.lib;
 ''');
 
     await resolveFile2(c);
-    assertErrorsInResult([error(ParserErrorCode.PART_OF_NAME, 8, 6)]);
+    assertErrorsInResult([error(ParserErrorCode.partOfName, 8, 6)]);
 
     // We already reported an error above.
     await resolveFile2(b);
@@ -942,7 +938,7 @@ part of 'a.dart';
 
     await resolveFile2(b);
     assertErrorsInResult([
-      error(CompileTimeErrorCode.PART_OF_DIFFERENT_LIBRARY, 23, 8),
+      error(CompileTimeErrorCode.partOfDifferentLibrary, 23, 8),
     ]);
 
     var node = findNode.singlePartDirective;
@@ -971,7 +967,7 @@ part 'c.dart';
     newFile('$testPackageLibPath/c.dart', '');
 
     await resolveFile2(b);
-    assertErrorsInResult([error(CompileTimeErrorCode.PART_OF_NON_PART, 23, 8)]);
+    assertErrorsInResult([error(CompileTimeErrorCode.partOfNonPart, 23, 8)]);
 
     var node = findNode.singlePartDirective;
     assertResolvedNodeText(node, r'''

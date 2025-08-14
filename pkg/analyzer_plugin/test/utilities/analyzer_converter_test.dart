@@ -74,7 +74,7 @@ class AnalyzerConverterTest extends AbstractSingleUnitTest {
       source: testSource,
       offset: offset,
       length: 5,
-      diagnosticCode: analyzer.CompileTimeErrorCode.AWAIT_IN_WRONG_CONTEXT,
+      diagnosticCode: analyzer.CompileTimeErrorCode.awaitInWrongContext,
       contextMessages: contextMessages,
     );
   }

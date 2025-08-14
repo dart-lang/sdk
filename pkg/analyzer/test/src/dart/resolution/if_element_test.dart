@@ -105,12 +105,12 @@ void f(Object x) {
 ''',
       [
         error(
-          CompileTimeErrorCode.NON_CONSTANT_RELATIONAL_PATTERN_EXPRESSION,
+          CompileTimeErrorCode.nonConstantRelationalPatternExpression,
           62,
           1,
         ),
         error(
-          CompileTimeErrorCode.REFERENCED_BEFORE_DECLARATION,
+          CompileTimeErrorCode.referencedBeforeDeclaration,
           62,
           1,
           contextMessages: [message(testFile, 56, 1)],
@@ -194,7 +194,7 @@ void f(Object x) {
   ];
 }
 ''',
-      [error(CompileTimeErrorCode.UNDEFINED_IDENTIFIER, 79, 1)],
+      [error(CompileTimeErrorCode.undefinedIdentifier, 79, 1)],
     );
 
     var node = findNode.ifElement('if');
@@ -257,8 +257,8 @@ class A {
 }
 ''',
       [
-        error(ParserErrorCode.MISSING_ASSIGNABLE_SELECTOR, 32, 5),
-        error(CompileTimeErrorCode.NON_BOOL_CONDITION, 32, 5),
+        error(ParserErrorCode.missingAssignableSelector, 32, 5),
+        error(CompileTimeErrorCode.nonBoolCondition, 32, 5),
       ],
     );
 

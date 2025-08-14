@@ -16,7 +16,7 @@ class EnumDeclarationTest extends PartialCodeTest {
       TestDescriptor(
         'keyword',
         'enum',
-        [ParserErrorCode.MISSING_IDENTIFIER, ParserErrorCode.MISSING_ENUM_BODY],
+        [ParserErrorCode.missingIdentifier, ParserErrorCode.missingEnumBody],
         'enum _s_ {}',
         expectedDiagnosticsInValidCode: [],
         failing: ['functionNonVoid', 'getter'],
@@ -24,21 +24,21 @@ class EnumDeclarationTest extends PartialCodeTest {
       TestDescriptor(
         'name',
         'enum E',
-        [ParserErrorCode.MISSING_ENUM_BODY],
+        [ParserErrorCode.missingEnumBody],
         'enum E {}',
         expectedDiagnosticsInValidCode: [],
       ),
       TestDescriptor(
         'missingName',
         'enum {}',
-        [ParserErrorCode.MISSING_IDENTIFIER],
+        [ParserErrorCode.missingIdentifier],
         'enum _s_ {}',
         expectedDiagnosticsInValidCode: [],
       ),
       TestDescriptor(
         'leftBrace',
         'enum E {',
-        [ParserErrorCode.MISSING_IDENTIFIER, ScannerErrorCode.EXPECTED_TOKEN],
+        [ParserErrorCode.missingIdentifier, ScannerErrorCode.expectedToken],
         'enum E {_s_}',
         failing: [
           'eof' /* tested separately below */,
@@ -53,9 +53,9 @@ class EnumDeclarationTest extends PartialCodeTest {
         'comma',
         'enum E {,',
         [
-          ParserErrorCode.MISSING_IDENTIFIER,
-          ParserErrorCode.MISSING_IDENTIFIER,
-          ScannerErrorCode.EXPECTED_TOKEN,
+          ParserErrorCode.missingIdentifier,
+          ParserErrorCode.missingIdentifier,
+          ScannerErrorCode.expectedToken,
         ],
         'enum E {_s_,_s_}',
         failing: [
@@ -68,30 +68,30 @@ class EnumDeclarationTest extends PartialCodeTest {
         ],
       ),
       TestDescriptor('value', 'enum E {a', [
-        ScannerErrorCode.EXPECTED_TOKEN,
+        ScannerErrorCode.expectedToken,
       ], 'enum E {a}'),
       TestDescriptor('commaValue', 'enum E {,a', [
-        ParserErrorCode.MISSING_IDENTIFIER,
-        ScannerErrorCode.EXPECTED_TOKEN,
+        ParserErrorCode.missingIdentifier,
+        ScannerErrorCode.expectedToken,
       ], 'enum E {_s_, a}'),
       TestDescriptor('commaRightBrace', 'enum E {,}', [
-        ParserErrorCode.MISSING_IDENTIFIER,
+        ParserErrorCode.missingIdentifier,
       ], 'enum E {_s_}'),
       TestDescriptor('commaValueRightBrace', 'enum E {, a}', [
-        ParserErrorCode.MISSING_IDENTIFIER,
+        ParserErrorCode.missingIdentifier,
       ], 'enum E {_s_, a}'),
     ], PartialCodeTest.declarationSuffixes);
     buildTests('enum_eof', [
       TestDescriptor(
         'leftBrace',
         'enum E {',
-        [ScannerErrorCode.EXPECTED_TOKEN],
+        [ScannerErrorCode.expectedToken],
         'enum E {}',
         expectedDiagnosticsInValidCode: [],
       ),
       TestDescriptor('comma', 'enum E {,', [
-        ParserErrorCode.MISSING_IDENTIFIER,
-        ScannerErrorCode.EXPECTED_TOKEN,
+        ParserErrorCode.missingIdentifier,
+        ScannerErrorCode.expectedToken,
       ], 'enum E {_s_}'),
     ], []);
   }

@@ -62,13 +62,7 @@ class A {
   static int x = 0, y, z = 2;
 }
 ''',
-      [
-        error(
-          CompileTimeErrorCode.NOT_INITIALIZED_NON_NULLABLE_VARIABLE,
-          30,
-          1,
-        ),
-      ],
+      [error(CompileTimeErrorCode.notInitializedNonNullableVariable, 30, 1)],
     );
   }
 
@@ -80,13 +74,7 @@ class A {
   A();
 }
 ''',
-      [
-        error(
-          CompileTimeErrorCode.NOT_INITIALIZED_NON_NULLABLE_VARIABLE,
-          30,
-          1,
-        ),
-      ],
+      [error(CompileTimeErrorCode.notInitializedNonNullableVariable, 30, 1)],
     );
   }
 
@@ -98,13 +86,7 @@ class A {
   A();
 }
 ''',
-      [
-        error(
-          CompileTimeErrorCode.NOT_INITIALIZED_NON_NULLABLE_VARIABLE,
-          36,
-          1,
-        ),
-      ],
+      [error(CompileTimeErrorCode.notInitializedNonNullableVariable, 36, 1)],
     );
   }
 
@@ -139,13 +121,7 @@ class A {
   static Never v;
 }
 ''',
-      [
-        error(
-          CompileTimeErrorCode.NOT_INITIALIZED_NON_NULLABLE_VARIABLE,
-          25,
-          1,
-        ),
-      ],
+      [error(CompileTimeErrorCode.notInitializedNonNullableVariable, 25, 1)],
     );
   }
 
@@ -176,13 +152,7 @@ int v = 0;
       '''
 int x = 0, y, z = 2;
 ''',
-      [
-        error(
-          CompileTimeErrorCode.NOT_INITIALIZED_NON_NULLABLE_VARIABLE,
-          11,
-          1,
-        ),
-      ],
+      [error(CompileTimeErrorCode.notInitializedNonNullableVariable, 11, 1)],
     );
   }
 
@@ -209,7 +179,7 @@ var v;
       '''
 Never v;
 ''',
-      [error(CompileTimeErrorCode.NOT_INITIALIZED_NON_NULLABLE_VARIABLE, 6, 1)],
+      [error(CompileTimeErrorCode.notInitializedNonNullableVariable, 6, 1)],
     );
   }
 

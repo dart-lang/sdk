@@ -37,7 +37,7 @@ extension type B(int it) implements A1, A2 {}
 ''',
       [
         error(
-          CompileTimeErrorCode.EXTENSION_TYPE_INHERITED_MEMBER_CONFLICT,
+          CompileTimeErrorCode.extensionTypeInheritedMemberConflict,
           109,
           1,
           contextMessages: [message(testFile, 35, 3), message(testFile, 82, 3)],
@@ -57,7 +57,7 @@ extension type C(String foo) implements A, B {}
 ''',
       [
         error(
-          CompileTimeErrorCode.EXTENSION_TYPE_INHERITED_MEMBER_CONFLICT,
+          CompileTimeErrorCode.extensionTypeInheritedMemberConflict,
           81,
           1,
           contextMessages: [message(testFile, 24, 3), message(testFile, 57, 3)],
@@ -115,7 +115,7 @@ extension type C(A it) implements A, B {}
 ''',
       [
         error(
-          CompileTimeErrorCode.EXTENSION_TYPE_INHERITED_MEMBER_CONFLICT,
+          CompileTimeErrorCode.extensionTypeInheritedMemberConflict,
           88,
           1,
           contextMessages: [message(testFile, 17, 3), message(testFile, 61, 3)],
@@ -163,7 +163,7 @@ extension type D(C it) implements A, B {}
 ''',
       [
         error(
-          CompileTimeErrorCode.EXTENSION_TYPE_INHERITED_MEMBER_CONFLICT,
+          CompileTimeErrorCode.extensionTypeInheritedMemberConflict,
           139,
           1,
           contextMessages: [message(testFile, 17, 3), message(testFile, 51, 3)],

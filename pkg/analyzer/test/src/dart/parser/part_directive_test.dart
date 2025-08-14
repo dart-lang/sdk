@@ -72,7 +72,7 @@ part 'foo.dart'
   if (dart.library.html) 'foo_html.dart';
 ''');
     parseResult.assertErrors([
-      error(ParserErrorCode.EXPERIMENT_NOT_ENABLED, 33, 2),
+      error(ParserErrorCode.experimentNotEnabled, 33, 2),
     ]);
 
     var node = parseResult.findNode.singlePartDirective;
@@ -108,7 +108,7 @@ part of 'a.dart';
 part 'b.dart';
 ''');
     parseResult.assertErrors([
-      error(ParserErrorCode.NON_PART_OF_DIRECTIVE_IN_PART, 33, 4),
+      error(ParserErrorCode.nonPartOfDirectiveInPart, 33, 4),
     ]);
 
     var node = parseResult.findNode.singlePartDirective;
@@ -128,7 +128,7 @@ part 'b.dart';
 part of 'a.dart';
 ''');
     parseResult.assertErrors([
-      error(ParserErrorCode.NON_PART_OF_DIRECTIVE_IN_PART, 30, 4),
+      error(ParserErrorCode.nonPartOfDirectiveInPart, 30, 4),
     ]);
 
     var node = parseResult.findNode.singlePartDirective;
@@ -145,7 +145,7 @@ PartDirective
     var parseResult = parseStringWithErrors(r'''
 part 'a.dart'
 ''');
-    parseResult.assertErrors([error(ParserErrorCode.EXPECTED_TOKEN, 5, 8)]);
+    parseResult.assertErrors([error(ParserErrorCode.expectedToken, 5, 8)]);
 
     var node = parseResult.findNode.singlePartDirective;
     assertParsedNodeText(node, r'''
@@ -162,7 +162,7 @@ PartDirective
 part ;
 ''');
     parseResult.assertErrors([
-      error(ParserErrorCode.EXPECTED_STRING_LITERAL, 5, 1),
+      error(ParserErrorCode.expectedStringLiteral, 5, 1),
     ]);
 
     var node = parseResult.findNode.singlePartDirective;
@@ -180,8 +180,8 @@ PartDirective
 part
 ''');
     parseResult.assertErrors([
-      error(ParserErrorCode.EXPECTED_TOKEN, 0, 4),
-      error(ParserErrorCode.EXPECTED_STRING_LITERAL, 5, 0),
+      error(ParserErrorCode.expectedToken, 0, 4),
+      error(ParserErrorCode.expectedStringLiteral, 5, 0),
     ]);
 
     var node = parseResult.findNode.singlePartDirective;

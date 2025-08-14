@@ -60,7 +60,7 @@ mixin DataDrivenFixProcessorTestMixin on AbstractSingleUnitTest {
   /// A method that can be used as an error filter to ignore any unused_import
   /// diagnostics.
   bool ignoreUnusedImport(Diagnostic diagnostic) =>
-      diagnostic.diagnosticCode != WarningCode.UNUSED_IMPORT;
+      diagnostic.diagnosticCode != WarningCode.unusedImport;
 
   /// Sets the content of the library that defines the element referenced by the
   /// data on which this test is based.

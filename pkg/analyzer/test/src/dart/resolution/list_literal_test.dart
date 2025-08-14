@@ -46,7 +46,7 @@ void f() {
   <int, double>[];
 }
 ''',
-      [error(CompileTimeErrorCode.EXPECTED_ONE_LIST_TYPE_ARGUMENTS, 13, 13)],
+      [error(CompileTimeErrorCode.expectedOneListTypeArguments, 13, 13)],
     );
 
     var node = findNode.singleListLiteral;

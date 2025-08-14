@@ -495,7 +495,7 @@ class ManifestValidator {
           reporter,
           activity,
           attributeScreenOrientation,
-          ManifestWarningCode.SETTING_ORIENTATION_ON_ACTIVITY,
+          ManifestWarningCode.settingOrientationOnActivity,
         );
       }
     }
@@ -505,7 +505,7 @@ class ManifestValidator {
           reporter,
           activity,
           attributeResizableActivity,
-          ManifestWarningCode.NON_RESIZABLE_ACTIVITY,
+          ManifestWarningCode.nonResizableActivity,
         );
       }
     }
@@ -532,7 +532,7 @@ class ManifestValidator {
           reporter,
           element,
           androidName,
-          ManifestWarningCode.UNSUPPORTED_CHROME_OS_HARDWARE,
+          ManifestWarningCode.unsupportedChromeOsHardware,
           [element.attributes[androidName]!.value],
         );
       } else if (element.attributes[androidRequired]?.value == 'true') {
@@ -545,7 +545,7 @@ class ManifestValidator {
           reporter,
           element,
           androidName,
-          ManifestWarningCode.UNSUPPORTED_CHROME_OS_FEATURE,
+          ManifestWarningCode.unsupportedChromeOsFeature,
           [element.attributes[androidName]!.value],
         );
       }
@@ -567,7 +567,7 @@ class ManifestValidator {
             reporter,
             permission,
             androidName,
-            ManifestWarningCode.CAMERA_PERMISSIONS_INCOMPATIBLE,
+            ManifestWarningCode.cameraPermissionsIncompatible,
           );
         }
       } else {
@@ -579,7 +579,7 @@ class ManifestValidator {
             reporter,
             permission,
             androidName,
-            ManifestWarningCode.PERMISSION_IMPLIES_UNSUPPORTED_HARDWARE,
+            ManifestWarningCode.permissionImpliesUnsupportedHardware,
             [featureName],
           );
         }
@@ -603,7 +603,7 @@ class ManifestValidator {
           reporter,
           feature,
           androidName,
-          ManifestWarningCode.UNSUPPORTED_CHROME_OS_HARDWARE,
+          ManifestWarningCode.unsupportedChromeOsHardware,
           [hardwareFeatureTouchscreen],
         );
       } else if (feature.attributes[androidRequired]?.value == 'true') {
@@ -611,7 +611,7 @@ class ManifestValidator {
           reporter,
           feature,
           androidName,
-          ManifestWarningCode.UNSUPPORTED_CHROME_OS_FEATURE,
+          ManifestWarningCode.unsupportedChromeOsFeature,
           [hardwareFeatureTouchscreen],
         );
       }
@@ -620,7 +620,7 @@ class ManifestValidator {
         reporter,
         manifest,
         null,
-        ManifestWarningCode.NO_TOUCHSCREEN_FEATURE,
+        ManifestWarningCode.noTouchscreenFeature,
       );
     }
   }

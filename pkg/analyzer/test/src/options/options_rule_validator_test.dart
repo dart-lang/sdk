@@ -82,7 +82,7 @@ linter:
   rules:
     - deprecated_lint_with_replacement
 ''',
-      [AnalysisOptionsWarningCode.DEPRECATED_LINT_WITH_REPLACEMENT],
+      [AnalysisOptionsWarningCode.deprecatedLintWithReplacement],
     );
   }
 
@@ -93,7 +93,7 @@ linter:
   rules:
     deprecated_lint: false
 ''',
-      [AnalysisOptionsWarningCode.DEPRECATED_LINT],
+      [AnalysisOptionsWarningCode.deprecatedLint],
     );
   }
 
@@ -104,7 +104,7 @@ linter:
   rules:
     - deprecated_lint
 ''',
-      [AnalysisOptionsWarningCode.DEPRECATED_LINT],
+      [AnalysisOptionsWarningCode.deprecatedLint],
     );
   }
 
@@ -115,7 +115,7 @@ linter:
   rules:
     - deprecated_since_3_lint
 ''',
-      [AnalysisOptionsWarningCode.DEPRECATED_LINT],
+      [AnalysisOptionsWarningCode.deprecatedLint],
       sdk: dart3,
     );
   }
@@ -152,7 +152,7 @@ linter:
     - stable_lint
     - stable_lint
 ''',
-      [AnalysisOptionsWarningCode.DUPLICATE_RULE],
+      [AnalysisOptionsWarningCode.duplicateRule],
     );
   }
 
@@ -164,7 +164,7 @@ linter:
     - rule_pos
     - rule_neg
 ''',
-      [AnalysisOptionsWarningCode.INCOMPATIBLE_LINT],
+      [AnalysisOptionsWarningCode.incompatibleLint],
     );
   }
 
@@ -176,7 +176,7 @@ linter:
     rule_pos: true
     rule_neg: true
 ''',
-      [AnalysisOptionsWarningCode.INCOMPATIBLE_LINT],
+      [AnalysisOptionsWarningCode.incompatibleLint],
     );
   }
 
@@ -196,7 +196,7 @@ linter:
   rules:
     - removed_in_2_12_lint
 ''',
-      [AnalysisOptionsWarningCode.REMOVED_LINT],
+      [AnalysisOptionsWarningCode.removedLint],
       sdk: dart2_12,
     );
   }
@@ -220,7 +220,7 @@ linter:
   rules:
     - replaced_lint
 ''',
-      [AnalysisOptionsWarningCode.REPLACED_LINT],
+      [AnalysisOptionsWarningCode.replacedLint],
       sdk: dart3,
     );
   }
@@ -248,7 +248,7 @@ linter:
   rules:
     - this_rule_does_not_exist
 ''',
-      [AnalysisOptionsWarningCode.UNDEFINED_LINT],
+      [AnalysisOptionsWarningCode.undefinedLint],
     );
   }
 
@@ -259,7 +259,7 @@ linter:
   rules:
     this_rule_does_not_exist: false
 ''',
-      [AnalysisOptionsWarningCode.UNDEFINED_LINT],
+      [AnalysisOptionsWarningCode.undefinedLint],
     );
   }
 }

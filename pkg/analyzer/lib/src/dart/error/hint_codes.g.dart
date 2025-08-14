@@ -31,7 +31,7 @@ class HintCode extends DiagnosticCode {
   /// plan to go through the exercise of converting it to a Warning.
   ///
   /// No parameters.
-  static const HintCode DEPRECATED_COLON_FOR_DEFAULT_VALUE = HintCode(
+  static const HintCode deprecatedColonForDefaultValue = HintCode(
     'DEPRECATED_COLON_FOR_DEFAULT_VALUE',
     "Using a colon as the separator before a default value is deprecated and "
         "will not be supported in language version 3.0 and later.",
@@ -41,7 +41,7 @@ class HintCode extends DiagnosticCode {
 
   /// Parameters:
   /// String p0: the name of the member
-  static const HintCode DEPRECATED_MEMBER_USE = HintCode(
+  static const HintCode deprecatedMemberUse = HintCode(
     'DEPRECATED_MEMBER_USE',
     "'{0}' is deprecated and shouldn't be used.",
     correctionMessage:
@@ -54,7 +54,7 @@ class HintCode extends DiagnosticCode {
   ///
   /// Parameters:
   /// String p0: the name of the member
-  static const HintCode DEPRECATED_MEMBER_USE_FROM_SAME_PACKAGE = HintCode(
+  static const HintCode deprecatedMemberUseFromSamePackage = HintCode(
     'DEPRECATED_MEMBER_USE_FROM_SAME_PACKAGE',
     "'{0}' is deprecated and shouldn't be used.",
     correctionMessage:
@@ -69,7 +69,7 @@ class HintCode extends DiagnosticCode {
   /// Object p0: the name of the member
   /// Object p1: message details
   static const HintCode
-  DEPRECATED_MEMBER_USE_FROM_SAME_PACKAGE_WITH_MESSAGE = HintCode(
+  deprecatedMemberUseFromSamePackageWithMessage = HintCode(
     'DEPRECATED_MEMBER_USE_FROM_SAME_PACKAGE',
     "'{0}' is deprecated and shouldn't be used. {1}",
     correctionMessage:
@@ -81,7 +81,7 @@ class HintCode extends DiagnosticCode {
   /// Parameters:
   /// String p0: the name of the member
   /// String p1: message details
-  static const HintCode DEPRECATED_MEMBER_USE_WITH_MESSAGE = HintCode(
+  static const HintCode deprecatedMemberUseWithMessage = HintCode(
     'DEPRECATED_MEMBER_USE',
     "'{0}' is deprecated and shouldn't be used. {1}",
     correctionMessage:
@@ -91,7 +91,7 @@ class HintCode extends DiagnosticCode {
   );
 
   /// No parameters.
-  static const HintCode IMPORT_DEFERRED_LIBRARY_WITH_LOAD_FUNCTION = HintCode(
+  static const HintCode importDeferredLibraryWithLoadFunction = HintCode(
     'IMPORT_DEFERRED_LIBRARY_WITH_LOAD_FUNCTION',
     "The imported library defines a top-level function named 'loadLibrary' "
         "that is hidden by deferring this library.",
@@ -104,13 +104,16 @@ class HintCode extends DiagnosticCode {
   /// Parameters:
   /// String p0: the URI that is not necessary
   /// String p1: the URI that makes it unnecessary
-  static const HintCode UNNECESSARY_IMPORT = HintCode(
+  static const HintCode unnecessaryImport = HintCode(
     'UNNECESSARY_IMPORT',
     "The import of '{0}' is unnecessary because all of the used elements are "
         "also provided by the import of '{1}'.",
     correctionMessage: "Try removing the import directive.",
     hasPublishedDocs: true,
   );
+
+  @Deprecated("Please use unnecessaryImport")
+  static const HintCode UNNECESSARY_IMPORT = unnecessaryImport;
 
   /// Initialize a newly created error code to have the given [name].
   const HintCode(

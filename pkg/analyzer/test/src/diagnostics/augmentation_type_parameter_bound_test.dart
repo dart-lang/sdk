@@ -29,7 +29,7 @@ part of 'a.dart';
 
 augment class A<T extends num> {}
 ''',
-      [error(CompileTimeErrorCode.AUGMENTATION_TYPE_PARAMETER_BOUND, 45, 3)],
+      [error(CompileTimeErrorCode.augmentationTypeParameterBound, 45, 3)],
     );
   }
 
@@ -46,7 +46,7 @@ part of 'a.dart';
 
 augment class A<T> {}
 ''',
-      [error(CompileTimeErrorCode.AUGMENTATION_TYPE_PARAMETER_BOUND, 35, 1)],
+      [error(CompileTimeErrorCode.augmentationTypeParameterBound, 35, 1)],
     );
   }
 
@@ -77,7 +77,7 @@ part of 'a.dart';
 
 augment class A<T extends Object> {}
 ''',
-      [error(CompileTimeErrorCode.AUGMENTATION_TYPE_PARAMETER_BOUND, 45, 6)],
+      [error(CompileTimeErrorCode.augmentationTypeParameterBound, 45, 6)],
     );
   }
 
@@ -94,7 +94,7 @@ part of 'a.dart';
 
 augment enum A<T extends num> {}
 ''',
-      [error(CompileTimeErrorCode.AUGMENTATION_TYPE_PARAMETER_BOUND, 44, 3)],
+      [error(CompileTimeErrorCode.augmentationTypeParameterBound, 44, 3)],
     );
   }
 
@@ -111,7 +111,7 @@ part of 'a.dart';
 
 augment extension A<T extends num> {}
 ''',
-      [error(CompileTimeErrorCode.AUGMENTATION_TYPE_PARAMETER_BOUND, 49, 3)],
+      [error(CompileTimeErrorCode.augmentationTypeParameterBound, 49, 3)],
     );
   }
 
@@ -128,7 +128,7 @@ part of 'a.dart';
 
 augment extension type A<T extends num>(int it) {}
 ''',
-      [error(CompileTimeErrorCode.AUGMENTATION_TYPE_PARAMETER_BOUND, 54, 3)],
+      [error(CompileTimeErrorCode.augmentationTypeParameterBound, 54, 3)],
     );
   }
 
@@ -145,7 +145,7 @@ part of 'a.dart';
 
 augment mixin A<T extends num> {}
 ''',
-      [error(CompileTimeErrorCode.AUGMENTATION_TYPE_PARAMETER_BOUND, 45, 3)],
+      [error(CompileTimeErrorCode.augmentationTypeParameterBound, 45, 3)],
     );
   }
 }

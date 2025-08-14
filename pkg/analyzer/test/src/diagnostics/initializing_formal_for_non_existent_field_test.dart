@@ -25,7 +25,7 @@ class A {
 ''',
       [
         error(
-          CompileTimeErrorCode.INITIALIZING_FORMAL_FOR_NON_EXISTENT_FIELD,
+          CompileTimeErrorCode.initializingFormalForNonExistentField,
           14,
           6,
         ),
@@ -45,7 +45,7 @@ class B extends A {
 ''',
       [
         error(
-          CompileTimeErrorCode.INITIALIZING_FORMAL_FOR_NON_EXISTENT_FIELD,
+          CompileTimeErrorCode.initializingFormalForNonExistentField,
           49,
           6,
         ),
@@ -62,7 +62,7 @@ class A {
 ''',
       [
         error(
-          CompileTimeErrorCode.INITIALIZING_FORMAL_FOR_NON_EXISTENT_FIELD,
+          CompileTimeErrorCode.initializingFormalForNonExistentField,
           15,
           6,
         ),
@@ -80,7 +80,7 @@ class A {
 ''',
       [
         error(
-          CompileTimeErrorCode.INITIALIZING_FORMAL_FOR_NON_EXISTENT_FIELD,
+          CompileTimeErrorCode.initializingFormalForNonExistentField,
           32,
           6,
         ),
@@ -108,11 +108,11 @@ enum E {
 ''',
       [
         error(
-          CompileTimeErrorCode.INITIALIZING_FORMAL_FOR_NON_EXISTENT_FIELD,
+          CompileTimeErrorCode.initializingFormalForNonExistentField,
           25,
           6,
         ),
-        error(WarningCode.UNUSED_ELEMENT_PARAMETER, 30, 1),
+        error(WarningCode.unusedElementParameter, 30, 1),
       ],
     );
   }
@@ -127,7 +127,7 @@ enum E {
 ''',
       [
         error(
-          CompileTimeErrorCode.INITIALIZING_FORMAL_FOR_NON_EXISTENT_FIELD,
+          CompileTimeErrorCode.initializingFormalForNonExistentField,
           27,
           6,
         ),
@@ -146,7 +146,7 @@ enum E {
 ''',
       [
         error(
-          CompileTimeErrorCode.INITIALIZING_FORMAL_FOR_NON_EXISTENT_FIELD,
+          CompileTimeErrorCode.initializingFormalForNonExistentField,
           27,
           6,
         ),

@@ -22,7 +22,7 @@ f() {
   return const A();
 }
 ''',
-      [error(CompileTimeErrorCode.CONST_WITH_NON_TYPE, 21, 1)],
+      [error(CompileTimeErrorCode.constWithNonType, 21, 1)],
     );
   }
 
@@ -33,7 +33,7 @@ import 'dart:core' as core;
 
 dynamic x;
 ''',
-      [error(CompileTimeErrorCode.UNDEFINED_CLASS, 29, 7)],
+      [error(CompileTimeErrorCode.undefinedClass, 29, 7)],
     );
   }
 
@@ -44,7 +44,7 @@ import 'a.dart' as p;
 
 p.A a;
 ''',
-      [error(CompileTimeErrorCode.URI_DOES_NOT_EXIST, 7, 8)],
+      [error(CompileTimeErrorCode.uriDoesNotExist, 7, 8)],
     );
   }
 
@@ -55,7 +55,7 @@ import 'a.dart' show A;
 
 A a;
 ''',
-      [error(CompileTimeErrorCode.URI_DOES_NOT_EXIST, 7, 8)],
+      [error(CompileTimeErrorCode.uriDoesNotExist, 7, 8)],
     );
   }
 
@@ -67,8 +67,8 @@ import 'a.dart' show B;
 A a;
 ''',
       [
-        error(CompileTimeErrorCode.URI_DOES_NOT_EXIST, 7, 8),
-        error(CompileTimeErrorCode.UNDEFINED_CLASS, 25, 1),
+        error(CompileTimeErrorCode.uriDoesNotExist, 7, 8),
+        error(CompileTimeErrorCode.undefinedClass, 25, 1),
       ],
     );
   }
@@ -84,7 +84,7 @@ part 'a.g.dart';
 
 _$A a;
 ''',
-      [error(CompileTimeErrorCode.UNDEFINED_CLASS, 18, 3)],
+      [error(CompileTimeErrorCode.undefinedClass, 18, 3)],
     );
   }
 
@@ -95,7 +95,7 @@ part 'a.template.dart';
 
 _$A a;
 ''',
-      [error(CompileTimeErrorCode.URI_HAS_NOT_BEEN_GENERATED, 5, 17)],
+      [error(CompileTimeErrorCode.uriHasNotBeenGenerated, 5, 17)],
     );
   }
 
@@ -106,7 +106,7 @@ part 'a.g.dart';
 
 _$A a;
 ''',
-      [error(CompileTimeErrorCode.URI_HAS_NOT_BEEN_GENERATED, 5, 10)],
+      [error(CompileTimeErrorCode.uriHasNotBeenGenerated, 5, 10)],
     );
   }
 
@@ -118,8 +118,8 @@ part 'a.g.dart';
 A a;
 ''',
       [
-        error(CompileTimeErrorCode.URI_HAS_NOT_BEEN_GENERATED, 5, 10),
-        error(CompileTimeErrorCode.UNDEFINED_CLASS, 18, 1),
+        error(CompileTimeErrorCode.uriHasNotBeenGenerated, 5, 10),
+        error(CompileTimeErrorCode.undefinedClass, 18, 1),
       ],
     );
   }
@@ -132,8 +132,8 @@ part 'a.dart';
 _$A a;
 ''',
       [
-        error(CompileTimeErrorCode.URI_DOES_NOT_EXIST, 5, 8),
-        error(CompileTimeErrorCode.UNDEFINED_CLASS, 16, 3),
+        error(CompileTimeErrorCode.uriDoesNotExist, 5, 8),
+        error(CompileTimeErrorCode.undefinedClass, 16, 3),
       ],
     );
   }
@@ -146,8 +146,8 @@ part 'a.dart';
 A a;
 ''',
       [
-        error(CompileTimeErrorCode.URI_DOES_NOT_EXIST, 5, 8),
-        error(CompileTimeErrorCode.UNDEFINED_CLASS, 16, 1),
+        error(CompileTimeErrorCode.uriDoesNotExist, 5, 8),
+        error(CompileTimeErrorCode.undefinedClass, 16, 1),
       ],
     );
   }
@@ -159,7 +159,7 @@ import 'dart:math' as p;
 
 p.A a;
 ''',
-      [error(CompileTimeErrorCode.UNDEFINED_CLASS, 26, 3)],
+      [error(CompileTimeErrorCode.undefinedClass, 26, 3)],
     );
   }
 
@@ -168,7 +168,7 @@ p.A a;
       '''
 f() { new C(); }
 ''',
-      [error(CompileTimeErrorCode.NEW_WITH_NON_TYPE, 10, 1)],
+      [error(CompileTimeErrorCode.newWithNonType, 10, 1)],
     );
   }
 
@@ -184,7 +184,7 @@ void f(Record r) {}
 // @dart = 2.19
 void f(Record r) {}
 ''',
-      [error(CompileTimeErrorCode.UNDEFINED_CLASS, 23, 6)],
+      [error(CompileTimeErrorCode.undefinedClass, 23, 6)],
     );
   }
 
@@ -206,8 +206,8 @@ void f(Record r) {}
 f() { C c; }
 ''',
       [
-        error(CompileTimeErrorCode.UNDEFINED_CLASS, 6, 1),
-        error(WarningCode.UNUSED_LOCAL_VARIABLE, 8, 1),
+        error(CompileTimeErrorCode.undefinedClass, 6, 1),
+        error(WarningCode.unusedLocalVariable, 8, 1),
       ],
     );
   }

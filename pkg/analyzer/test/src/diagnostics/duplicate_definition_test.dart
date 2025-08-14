@@ -33,7 +33,7 @@ class C {
 ''',
       [
         error(
-          CompileTimeErrorCode.DUPLICATE_DEFINITION,
+          CompileTimeErrorCode.duplicateDefinition,
           31,
           3,
           contextMessages: [message(testFile, 16, 3)],
@@ -78,13 +78,13 @@ class C {
 ''',
       [
         error(
-          CompileTimeErrorCode.DUPLICATE_DEFINITION,
+          CompileTimeErrorCode.duplicateDefinition,
           31,
           3,
           contextMessages: [message(testFile, 16, 3)],
         ),
         error(
-          CompileTimeErrorCode.DUPLICATE_DEFINITION,
+          CompileTimeErrorCode.duplicateDefinition,
           46,
           3,
           contextMessages: [message(testFile, 16, 3)],
@@ -117,7 +117,7 @@ class A {
     await resolveFile2(a);
     assertErrorsInResult([
       error(
-        CompileTimeErrorCode.DUPLICATE_DEFINITION,
+        CompileTimeErrorCode.duplicateDefinition,
         46,
         3,
         contextMessages: [message(testFile, 32, 3)],
@@ -135,7 +135,7 @@ class C {
 ''',
       [
         error(
-          CompileTimeErrorCode.DUPLICATE_DEFINITION,
+          CompileTimeErrorCode.duplicateDefinition,
           35,
           3,
           contextMessages: [message(testFile, 16, 3)],
@@ -154,7 +154,7 @@ class C {
 ''',
       [
         error(
-          CompileTimeErrorCode.DUPLICATE_DEFINITION,
+          CompileTimeErrorCode.duplicateDefinition,
           32,
           3,
           contextMessages: [message(testFile, 16, 3)],
@@ -173,7 +173,7 @@ class C {
 ''',
       [
         error(
-          CompileTimeErrorCode.DUPLICATE_DEFINITION,
+          CompileTimeErrorCode.duplicateDefinition,
           41,
           3,
           contextMessages: [message(testFile, 22, 3)],
@@ -210,7 +210,7 @@ class C {
 ''',
       [
         error(
-          CompileTimeErrorCode.DUPLICATE_DEFINITION,
+          CompileTimeErrorCode.duplicateDefinition,
           38,
           3,
           contextMessages: [message(testFile, 27, 3)],
@@ -229,7 +229,7 @@ class C {
 ''',
       [
         error(
-          CompileTimeErrorCode.DUPLICATE_DEFINITION,
+          CompileTimeErrorCode.duplicateDefinition,
           40,
           3,
           contextMessages: [message(testFile, 20, 3)],
@@ -265,7 +265,7 @@ augment class C {
 ''',
       [
         error(
-          CompileTimeErrorCode.DUPLICATE_DEFINITION,
+          CompileTimeErrorCode.duplicateDefinition,
           61,
           3,
           contextMessages: [message(testFile, 20, 3)],
@@ -285,7 +285,7 @@ class A {
 ''',
       [
         error(
-          CompileTimeErrorCode.DUPLICATE_DEFINITION,
+          CompileTimeErrorCode.duplicateDefinition,
           43,
           1,
           contextMessages: [message(testFile, 21, 1)],
@@ -304,7 +304,7 @@ class C {
 ''',
       [
         error(
-          CompileTimeErrorCode.DUPLICATE_DEFINITION,
+          CompileTimeErrorCode.duplicateDefinition,
           37,
           3,
           contextMessages: [message(testFile, 20, 3)],
@@ -333,7 +333,7 @@ class A {
 ''',
       [
         error(
-          CompileTimeErrorCode.DUPLICATE_DEFINITION,
+          CompileTimeErrorCode.duplicateDefinition,
           71,
           1,
           contextMessages: [message(testFile, 21, 1)],
@@ -353,7 +353,7 @@ class A {
 ''',
       [
         error(
-          CompileTimeErrorCode.DUPLICATE_DEFINITION,
+          CompileTimeErrorCode.duplicateDefinition,
           71,
           1,
           contextMessages: [message(testFile, 43, 1)],
@@ -372,7 +372,7 @@ class C {
 ''',
       [
         error(
-          CompileTimeErrorCode.DUPLICATE_DEFINITION,
+          CompileTimeErrorCode.duplicateDefinition,
           36,
           3,
           contextMessages: [message(testFile, 17, 3)],
@@ -391,7 +391,7 @@ class C {
 ''',
       [
         error(
-          CompileTimeErrorCode.DUPLICATE_DEFINITION,
+          CompileTimeErrorCode.duplicateDefinition,
           33,
           3,
           contextMessages: [message(testFile, 17, 3)],
@@ -427,7 +427,7 @@ augment class A {
 ''',
       [
         error(
-          CompileTimeErrorCode.DUPLICATE_DEFINITION,
+          CompileTimeErrorCode.duplicateDefinition,
           54,
           3,
           contextMessages: [message(testFile, 17, 3)],
@@ -446,7 +446,7 @@ class C {
 ''',
       [
         error(
-          CompileTimeErrorCode.DUPLICATE_DEFINITION,
+          CompileTimeErrorCode.duplicateDefinition,
           32,
           3,
           contextMessages: [message(testFile, 17, 3)],
@@ -469,7 +469,7 @@ augment class A {
 ''',
       [
         error(
-          CompileTimeErrorCode.DUPLICATE_DEFINITION,
+          CompileTimeErrorCode.duplicateDefinition,
           53,
           3,
           contextMessages: [message(testFile, 17, 3)],
@@ -505,7 +505,7 @@ augment class A {
 ''',
       [
         error(
-          CompileTimeErrorCode.DUPLICATE_DEFINITION,
+          CompileTimeErrorCode.duplicateDefinition,
           76,
           1,
           contextMessages: [message(testFile, 25, 1)],
@@ -534,7 +534,7 @@ class A {
 ''',
       [
         error(
-          CompileTimeErrorCode.DUPLICATE_DEFINITION,
+          CompileTimeErrorCode.duplicateDefinition,
           71,
           1,
           contextMessages: [message(testFile, 49, 1)],
@@ -554,7 +554,7 @@ class A {
 ''',
       [
         error(
-          CompileTimeErrorCode.DUPLICATE_DEFINITION,
+          CompileTimeErrorCode.duplicateDefinition,
           71,
           1,
           contextMessages: [message(testFile, 21, 1)],
@@ -573,7 +573,7 @@ class C {
 ''',
       [
         error(
-          CompileTimeErrorCode.DUPLICATE_DEFINITION,
+          CompileTimeErrorCode.duplicateDefinition,
           33,
           3,
           contextMessages: [message(testFile, 16, 3)],
@@ -596,7 +596,7 @@ augment class A {
 ''',
       [
         error(
-          CompileTimeErrorCode.DUPLICATE_DEFINITION,
+          CompileTimeErrorCode.duplicateDefinition,
           54,
           3,
           contextMessages: [message(testFile, 16, 3)],
@@ -615,7 +615,7 @@ class C {
 ''',
       [
         error(
-          CompileTimeErrorCode.DUPLICATE_DEFINITION,
+          CompileTimeErrorCode.duplicateDefinition,
           42,
           3,
           contextMessages: [message(testFile, 21, 3)],
@@ -648,7 +648,7 @@ class A {
 ''',
       [
         error(
-          CompileTimeErrorCode.DUPLICATE_DEFINITION,
+          CompileTimeErrorCode.duplicateDefinition,
           49,
           1,
           contextMessages: [message(testFile, 21, 1)],
@@ -671,7 +671,7 @@ augment class C {
 ''',
       [
         error(
-          CompileTimeErrorCode.DUPLICATE_DEFINITION,
+          CompileTimeErrorCode.duplicateDefinition,
           63,
           3,
           contextMessages: [message(testFile, 21, 3)],
@@ -690,7 +690,7 @@ class C {
 ''',
       [
         error(
-          CompileTimeErrorCode.DUPLICATE_DEFINITION,
+          CompileTimeErrorCode.duplicateDefinition,
           45,
           3,
           contextMessages: [message(testFile, 23, 3)],
@@ -709,7 +709,7 @@ class C {
 ''',
       [
         error(
-          CompileTimeErrorCode.DUPLICATE_DEFINITION,
+          CompileTimeErrorCode.duplicateDefinition,
           49,
           3,
           contextMessages: [message(testFile, 23, 3)],
@@ -728,7 +728,7 @@ class C {
 ''',
       [
         error(
-          CompileTimeErrorCode.DUPLICATE_DEFINITION,
+          CompileTimeErrorCode.duplicateDefinition,
           46,
           3,
           contextMessages: [message(testFile, 23, 3)],
@@ -747,7 +747,7 @@ class C {
 ''',
       [
         error(
-          CompileTimeErrorCode.DUPLICATE_DEFINITION,
+          CompileTimeErrorCode.duplicateDefinition,
           55,
           3,
           contextMessages: [message(testFile, 29, 3)],
@@ -784,7 +784,7 @@ class C {
 ''',
       [
         error(
-          CompileTimeErrorCode.DUPLICATE_DEFINITION,
+          CompileTimeErrorCode.duplicateDefinition,
           52,
           3,
           contextMessages: [message(testFile, 34, 3)],
@@ -803,7 +803,7 @@ class C {
 ''',
       [
         error(
-          CompileTimeErrorCode.DUPLICATE_DEFINITION,
+          CompileTimeErrorCode.duplicateDefinition,
           54,
           3,
           contextMessages: [message(testFile, 27, 3)],
@@ -839,7 +839,7 @@ augment class A {
 ''',
       [
         error(
-          CompileTimeErrorCode.DUPLICATE_DEFINITION,
+          CompileTimeErrorCode.duplicateDefinition,
           75,
           3,
           contextMessages: [message(testFile, 27, 3)],
@@ -858,7 +858,7 @@ class C {
 ''',
       [
         error(
-          CompileTimeErrorCode.DUPLICATE_DEFINITION,
+          CompileTimeErrorCode.duplicateDefinition,
           51,
           3,
           contextMessages: [message(testFile, 27, 3)],
@@ -886,7 +886,7 @@ class C {
 ''',
       [
         error(
-          CompileTimeErrorCode.DUPLICATE_DEFINITION,
+          CompileTimeErrorCode.duplicateDefinition,
           50,
           3,
           contextMessages: [message(testFile, 24, 3)],
@@ -905,7 +905,7 @@ class C {
 ''',
       [
         error(
-          CompileTimeErrorCode.DUPLICATE_DEFINITION,
+          CompileTimeErrorCode.duplicateDefinition,
           47,
           3,
           contextMessages: [message(testFile, 24, 3)],
@@ -941,7 +941,7 @@ augment class A {
 ''',
       [
         error(
-          CompileTimeErrorCode.DUPLICATE_DEFINITION,
+          CompileTimeErrorCode.duplicateDefinition,
           68,
           3,
           contextMessages: [message(testFile, 24, 3)],
@@ -960,7 +960,7 @@ class C {
 ''',
       [
         error(
-          CompileTimeErrorCode.DUPLICATE_DEFINITION,
+          CompileTimeErrorCode.duplicateDefinition,
           46,
           3,
           contextMessages: [message(testFile, 24, 3)],
@@ -988,7 +988,7 @@ class C {
 ''',
       [
         error(
-          CompileTimeErrorCode.DUPLICATE_DEFINITION,
+          CompileTimeErrorCode.duplicateDefinition,
           47,
           3,
           contextMessages: [message(testFile, 23, 3)],
@@ -1007,7 +1007,7 @@ class C {
 ''',
       [
         error(
-          CompileTimeErrorCode.DUPLICATE_DEFINITION,
+          CompileTimeErrorCode.duplicateDefinition,
           56,
           3,
           contextMessages: [message(testFile, 28, 3)],
@@ -1043,7 +1043,7 @@ augment class A {
 ''',
       [
         error(
-          CompileTimeErrorCode.DUPLICATE_DEFINITION,
+          CompileTimeErrorCode.duplicateDefinition,
           77,
           3,
           contextMessages: [message(testFile, 28, 3)],
@@ -1064,7 +1064,7 @@ enum E {
 ''',
       [
         error(
-          CompileTimeErrorCode.DUPLICATE_DEFINITION,
+          CompileTimeErrorCode.duplicateDefinition,
           16,
           3,
           contextMessages: [message(testFile, 11, 3)],
@@ -1084,7 +1084,7 @@ enum E {
 ''',
       [
         error(
-          CompileTimeErrorCode.DUPLICATE_DEFINITION,
+          CompileTimeErrorCode.duplicateDefinition,
           47,
           3,
           contextMessages: [message(testFile, 26, 3)],
@@ -1104,7 +1104,7 @@ enum E {
 ''',
       [
         error(
-          CompileTimeErrorCode.DUPLICATE_DEFINITION,
+          CompileTimeErrorCode.duplicateDefinition,
           45,
           3,
           contextMessages: [message(testFile, 26, 3)],
@@ -1124,7 +1124,7 @@ enum E {
 ''',
       [
         error(
-          CompileTimeErrorCode.DUPLICATE_DEFINITION,
+          CompileTimeErrorCode.duplicateDefinition,
           42,
           3,
           contextMessages: [message(testFile, 26, 3)],
@@ -1144,7 +1144,7 @@ enum E {
 ''',
       [
         error(
-          CompileTimeErrorCode.DUPLICATE_DEFINITION,
+          CompileTimeErrorCode.duplicateDefinition,
           45,
           3,
           contextMessages: [message(testFile, 26, 3)],
@@ -1174,7 +1174,7 @@ enum E {
 ''',
       [
         error(
-          CompileTimeErrorCode.DUPLICATE_DEFINITION,
+          CompileTimeErrorCode.duplicateDefinition,
           44,
           3,
           contextMessages: [message(testFile, 24, 3)],
@@ -1212,7 +1212,7 @@ augment enum E {;
 ''',
       [
         error(
-          CompileTimeErrorCode.DUPLICATE_DEFINITION,
+          CompileTimeErrorCode.duplicateDefinition,
           65,
           3,
           contextMessages: [message(testFile, 24, 3)],
@@ -1232,7 +1232,7 @@ enum E {
 ''',
       [
         error(
-          CompileTimeErrorCode.DUPLICATE_DEFINITION,
+          CompileTimeErrorCode.duplicateDefinition,
           41,
           3,
           contextMessages: [message(testFile, 24, 3)],
@@ -1262,7 +1262,7 @@ enum E {
 ''',
       [
         error(
-          CompileTimeErrorCode.DUPLICATE_DEFINITION,
+          CompileTimeErrorCode.duplicateDefinition,
           40,
           3,
           contextMessages: [message(testFile, 21, 3)],
@@ -1282,7 +1282,7 @@ enum E {
 ''',
       [
         error(
-          CompileTimeErrorCode.DUPLICATE_DEFINITION,
+          CompileTimeErrorCode.duplicateDefinition,
           37,
           3,
           contextMessages: [message(testFile, 21, 3)],
@@ -1320,7 +1320,7 @@ augment enum E {;
 ''',
       [
         error(
-          CompileTimeErrorCode.DUPLICATE_DEFINITION,
+          CompileTimeErrorCode.duplicateDefinition,
           58,
           3,
           contextMessages: [message(testFile, 21, 3)],
@@ -1340,7 +1340,7 @@ enum E {
 ''',
       [
         error(
-          CompileTimeErrorCode.DUPLICATE_DEFINITION,
+          CompileTimeErrorCode.duplicateDefinition,
           36,
           3,
           contextMessages: [message(testFile, 21, 3)],
@@ -1370,7 +1370,7 @@ enum E {
 ''',
       [
         error(
-          CompileTimeErrorCode.DUPLICATE_DEFINITION,
+          CompileTimeErrorCode.duplicateDefinition,
           37,
           3,
           contextMessages: [message(testFile, 20, 3)],
@@ -1390,7 +1390,7 @@ enum E {
 ''',
       [
         error(
-          CompileTimeErrorCode.DUPLICATE_DEFINITION,
+          CompileTimeErrorCode.duplicateDefinition,
           46,
           3,
           contextMessages: [message(testFile, 25, 3)],
@@ -1428,7 +1428,7 @@ augment enum E {;
 ''',
       [
         error(
-          CompileTimeErrorCode.DUPLICATE_DEFINITION,
+          CompileTimeErrorCode.duplicateDefinition,
           67,
           3,
           contextMessages: [message(testFile, 25, 3)],
@@ -1447,7 +1447,7 @@ enum E {
 ''',
       [
         error(
-          CompileTimeErrorCode.DUPLICATE_DEFINITION,
+          CompileTimeErrorCode.duplicateDefinition,
           29,
           3,
           contextMessages: [message(testFile, 11, 3)],
@@ -1466,7 +1466,7 @@ enum E {
 ''',
       [
         error(
-          CompileTimeErrorCode.DUPLICATE_DEFINITION,
+          CompileTimeErrorCode.duplicateDefinition,
           33,
           3,
           contextMessages: [message(testFile, 11, 3)],
@@ -1485,7 +1485,7 @@ enum E {
 ''',
       [
         error(
-          CompileTimeErrorCode.DUPLICATE_DEFINITION,
+          CompileTimeErrorCode.duplicateDefinition,
           30,
           3,
           contextMessages: [message(testFile, 11, 3)],
@@ -1514,7 +1514,7 @@ enum E {
 ''',
       [
         error(
-          CompileTimeErrorCode.DUPLICATE_DEFINITION,
+          CompileTimeErrorCode.duplicateDefinition,
           49,
           3,
           contextMessages: [message(testFile, 27, 3)],
@@ -1534,7 +1534,7 @@ enum E {
 ''',
       [
         error(
-          CompileTimeErrorCode.DUPLICATE_DEFINITION,
+          CompileTimeErrorCode.duplicateDefinition,
           53,
           3,
           contextMessages: [message(testFile, 27, 3)],
@@ -1554,7 +1554,7 @@ enum E {
 ''',
       [
         error(
-          CompileTimeErrorCode.DUPLICATE_DEFINITION,
+          CompileTimeErrorCode.duplicateDefinition,
           50,
           3,
           contextMessages: [message(testFile, 27, 3)],
@@ -1574,7 +1574,7 @@ enum E {
 ''',
       [
         error(
-          CompileTimeErrorCode.DUPLICATE_DEFINITION,
+          CompileTimeErrorCode.duplicateDefinition,
           59,
           3,
           contextMessages: [message(testFile, 33, 3)],
@@ -1604,7 +1604,7 @@ enum E {
 ''',
       [
         error(
-          CompileTimeErrorCode.DUPLICATE_DEFINITION,
+          CompileTimeErrorCode.duplicateDefinition,
           58,
           3,
           contextMessages: [message(testFile, 31, 3)],
@@ -1642,7 +1642,7 @@ augment enum E {;
 ''',
       [
         error(
-          CompileTimeErrorCode.DUPLICATE_DEFINITION,
+          CompileTimeErrorCode.duplicateDefinition,
           79,
           3,
           contextMessages: [message(testFile, 31, 3)],
@@ -1662,7 +1662,7 @@ enum E {
 ''',
       [
         error(
-          CompileTimeErrorCode.DUPLICATE_DEFINITION,
+          CompileTimeErrorCode.duplicateDefinition,
           55,
           3,
           contextMessages: [message(testFile, 31, 3)],
@@ -1692,7 +1692,7 @@ enum E {
 ''',
       [
         error(
-          CompileTimeErrorCode.DUPLICATE_DEFINITION,
+          CompileTimeErrorCode.duplicateDefinition,
           54,
           3,
           contextMessages: [message(testFile, 28, 3)],
@@ -1712,7 +1712,7 @@ enum E {
 ''',
       [
         error(
-          CompileTimeErrorCode.DUPLICATE_DEFINITION,
+          CompileTimeErrorCode.duplicateDefinition,
           51,
           3,
           contextMessages: [message(testFile, 28, 3)],
@@ -1750,7 +1750,7 @@ augment enum E {;
 ''',
       [
         error(
-          CompileTimeErrorCode.DUPLICATE_DEFINITION,
+          CompileTimeErrorCode.duplicateDefinition,
           72,
           3,
           contextMessages: [message(testFile, 28, 3)],
@@ -1770,7 +1770,7 @@ enum E {
 ''',
       [
         error(
-          CompileTimeErrorCode.DUPLICATE_DEFINITION,
+          CompileTimeErrorCode.duplicateDefinition,
           50,
           3,
           contextMessages: [message(testFile, 28, 3)],
@@ -1800,7 +1800,7 @@ enum E {
 ''',
       [
         error(
-          CompileTimeErrorCode.DUPLICATE_DEFINITION,
+          CompileTimeErrorCode.duplicateDefinition,
           51,
           3,
           contextMessages: [message(testFile, 27, 3)],
@@ -1820,7 +1820,7 @@ enum E {
 ''',
       [
         error(
-          CompileTimeErrorCode.DUPLICATE_DEFINITION,
+          CompileTimeErrorCode.duplicateDefinition,
           60,
           3,
           contextMessages: [message(testFile, 32, 3)],
@@ -1858,7 +1858,7 @@ augment enum E {;
 ''',
       [
         error(
-          CompileTimeErrorCode.DUPLICATE_DEFINITION,
+          CompileTimeErrorCode.duplicateDefinition,
           81,
           3,
           contextMessages: [message(testFile, 32, 3)],
@@ -1913,7 +1913,7 @@ extension E on A {
 ''',
       [
         error(
-          CompileTimeErrorCode.DUPLICATE_DEFINITION,
+          CompileTimeErrorCode.duplicateDefinition,
           60,
           3,
           contextMessages: [message(testFile, 40, 3)],
@@ -1949,7 +1949,7 @@ augment extension E {
 ''',
       [
         error(
-          CompileTimeErrorCode.DUPLICATE_DEFINITION,
+          CompileTimeErrorCode.duplicateDefinition,
           76,
           3,
           contextMessages: [message(testFile, 31, 3)],
@@ -1969,7 +1969,7 @@ extension E on A {
 ''',
       [
         error(
-          CompileTimeErrorCode.DUPLICATE_DEFINITION,
+          CompileTimeErrorCode.duplicateDefinition,
           57,
           3,
           contextMessages: [message(testFile, 40, 3)],
@@ -1999,7 +1999,7 @@ extension E on A {
 ''',
       [
         error(
-          CompileTimeErrorCode.DUPLICATE_DEFINITION,
+          CompileTimeErrorCode.duplicateDefinition,
           56,
           3,
           contextMessages: [message(testFile, 37, 3)],
@@ -2019,7 +2019,7 @@ extension E on A {
 ''',
       [
         error(
-          CompileTimeErrorCode.DUPLICATE_DEFINITION,
+          CompileTimeErrorCode.duplicateDefinition,
           53,
           3,
           contextMessages: [message(testFile, 37, 3)],
@@ -2055,7 +2055,7 @@ augment extension E {
 ''',
       [
         error(
-          CompileTimeErrorCode.DUPLICATE_DEFINITION,
+          CompileTimeErrorCode.duplicateDefinition,
           69,
           3,
           contextMessages: [message(testFile, 28, 3)],
@@ -2075,7 +2075,7 @@ extension E on A {
 ''',
       [
         error(
-          CompileTimeErrorCode.DUPLICATE_DEFINITION,
+          CompileTimeErrorCode.duplicateDefinition,
           52,
           3,
           contextMessages: [message(testFile, 37, 3)],
@@ -2105,7 +2105,7 @@ extension E on A {
 ''',
       [
         error(
-          CompileTimeErrorCode.DUPLICATE_DEFINITION,
+          CompileTimeErrorCode.duplicateDefinition,
           53,
           3,
           contextMessages: [message(testFile, 36, 3)],
@@ -2125,7 +2125,7 @@ extension E on A {
 ''',
       [
         error(
-          CompileTimeErrorCode.DUPLICATE_DEFINITION,
+          CompileTimeErrorCode.duplicateDefinition,
           62,
           3,
           contextMessages: [message(testFile, 41, 3)],
@@ -2161,7 +2161,7 @@ augment extension E {
 ''',
       [
         error(
-          CompileTimeErrorCode.DUPLICATE_DEFINITION,
+          CompileTimeErrorCode.duplicateDefinition,
           78,
           3,
           contextMessages: [message(testFile, 32, 3)],
@@ -2181,7 +2181,7 @@ extension E on A {
 ''',
       [
         error(
-          CompileTimeErrorCode.DUPLICATE_DEFINITION,
+          CompileTimeErrorCode.duplicateDefinition,
           65,
           3,
           contextMessages: [message(testFile, 43, 3)],
@@ -2201,7 +2201,7 @@ extension E on A {
 ''',
       [
         error(
-          CompileTimeErrorCode.DUPLICATE_DEFINITION,
+          CompileTimeErrorCode.duplicateDefinition,
           69,
           3,
           contextMessages: [message(testFile, 43, 3)],
@@ -2221,7 +2221,7 @@ extension E on A {
 ''',
       [
         error(
-          CompileTimeErrorCode.DUPLICATE_DEFINITION,
+          CompileTimeErrorCode.duplicateDefinition,
           66,
           3,
           contextMessages: [message(testFile, 43, 3)],
@@ -2241,7 +2241,7 @@ extension E on A {
 ''',
       [
         error(
-          CompileTimeErrorCode.DUPLICATE_DEFINITION,
+          CompileTimeErrorCode.duplicateDefinition,
           75,
           3,
           contextMessages: [message(testFile, 49, 3)],
@@ -2271,7 +2271,7 @@ extension E on A {
 ''',
       [
         error(
-          CompileTimeErrorCode.DUPLICATE_DEFINITION,
+          CompileTimeErrorCode.duplicateDefinition,
           74,
           3,
           contextMessages: [message(testFile, 47, 3)],
@@ -2307,7 +2307,7 @@ augment extension E {
 ''',
       [
         error(
-          CompileTimeErrorCode.DUPLICATE_DEFINITION,
+          CompileTimeErrorCode.duplicateDefinition,
           90,
           3,
           contextMessages: [message(testFile, 38, 3)],
@@ -2327,7 +2327,7 @@ extension E on A {
 ''',
       [
         error(
-          CompileTimeErrorCode.DUPLICATE_DEFINITION,
+          CompileTimeErrorCode.duplicateDefinition,
           71,
           3,
           contextMessages: [message(testFile, 47, 3)],
@@ -2357,7 +2357,7 @@ extension E on A {
 ''',
       [
         error(
-          CompileTimeErrorCode.DUPLICATE_DEFINITION,
+          CompileTimeErrorCode.duplicateDefinition,
           70,
           3,
           contextMessages: [message(testFile, 44, 3)],
@@ -2377,7 +2377,7 @@ extension E on A {
 ''',
       [
         error(
-          CompileTimeErrorCode.DUPLICATE_DEFINITION,
+          CompileTimeErrorCode.duplicateDefinition,
           67,
           3,
           contextMessages: [message(testFile, 44, 3)],
@@ -2413,7 +2413,7 @@ augment extension E {
 ''',
       [
         error(
-          CompileTimeErrorCode.DUPLICATE_DEFINITION,
+          CompileTimeErrorCode.duplicateDefinition,
           83,
           3,
           contextMessages: [message(testFile, 35, 3)],
@@ -2433,7 +2433,7 @@ extension E on A {
 ''',
       [
         error(
-          CompileTimeErrorCode.DUPLICATE_DEFINITION,
+          CompileTimeErrorCode.duplicateDefinition,
           66,
           3,
           contextMessages: [message(testFile, 44, 3)],
@@ -2462,7 +2462,7 @@ extension E on A {
 ''',
       [
         error(
-          CompileTimeErrorCode.DUPLICATE_DEFINITION,
+          CompileTimeErrorCode.duplicateDefinition,
           67,
           3,
           contextMessages: [message(testFile, 43, 3)],
@@ -2482,7 +2482,7 @@ extension E on A {
 ''',
       [
         error(
-          CompileTimeErrorCode.DUPLICATE_DEFINITION,
+          CompileTimeErrorCode.duplicateDefinition,
           76,
           3,
           contextMessages: [message(testFile, 48, 3)],
@@ -2518,7 +2518,7 @@ augment extension E {
 ''',
       [
         error(
-          CompileTimeErrorCode.DUPLICATE_DEFINITION,
+          CompileTimeErrorCode.duplicateDefinition,
           92,
           3,
           contextMessages: [message(testFile, 39, 3)],
@@ -2536,7 +2536,7 @@ extension E on A {}
 ''',
       [
         error(
-          CompileTimeErrorCode.DUPLICATE_DEFINITION,
+          CompileTimeErrorCode.duplicateDefinition,
           41,
           1,
           contextMessages: [message(testFile, 21, 1)],
@@ -2558,7 +2558,7 @@ extension type E(int it) {
 ''',
       [
         error(
-          CompileTimeErrorCode.DUPLICATE_DEFINITION,
+          CompileTimeErrorCode.duplicateDefinition,
           57,
           3,
           contextMessages: [message(testFile, 37, 3)],
@@ -2577,7 +2577,7 @@ extension type E(int it) {
 ''',
       [
         error(
-          CompileTimeErrorCode.DUPLICATE_DEFINITION,
+          CompileTimeErrorCode.duplicateDefinition,
           54,
           3,
           contextMessages: [message(testFile, 37, 3)],
@@ -2605,7 +2605,7 @@ extension type E(int it) {
 ''',
       [
         error(
-          CompileTimeErrorCode.DUPLICATE_DEFINITION,
+          CompileTimeErrorCode.duplicateDefinition,
           53,
           3,
           contextMessages: [message(testFile, 34, 3)],
@@ -2624,7 +2624,7 @@ extension type E(int it) {
 ''',
       [
         error(
-          CompileTimeErrorCode.DUPLICATE_DEFINITION,
+          CompileTimeErrorCode.duplicateDefinition,
           50,
           3,
           contextMessages: [message(testFile, 34, 3)],
@@ -2643,7 +2643,7 @@ extension type E(int it) {
 ''',
       [
         error(
-          CompileTimeErrorCode.DUPLICATE_DEFINITION,
+          CompileTimeErrorCode.duplicateDefinition,
           49,
           3,
           contextMessages: [message(testFile, 34, 3)],
@@ -2661,7 +2661,7 @@ extension type E(int it) {
 ''',
       [
         error(
-          CompileTimeErrorCode.DUPLICATE_DEFINITION,
+          CompileTimeErrorCode.duplicateDefinition,
           37,
           2,
           contextMessages: [message(testFile, 21, 2)],
@@ -2679,7 +2679,7 @@ extension type E(int it) {
 ''',
       [
         error(
-          CompileTimeErrorCode.DUPLICATE_DEFINITION,
+          CompileTimeErrorCode.duplicateDefinition,
           34,
           2,
           contextMessages: [message(testFile, 21, 2)],
@@ -2715,7 +2715,7 @@ extension type E(int it) {
 ''',
       [
         error(
-          CompileTimeErrorCode.DUPLICATE_DEFINITION,
+          CompileTimeErrorCode.duplicateDefinition,
           50,
           3,
           contextMessages: [message(testFile, 33, 3)],
@@ -2734,7 +2734,7 @@ extension type E(int it) {
 ''',
       [
         error(
-          CompileTimeErrorCode.DUPLICATE_DEFINITION,
+          CompileTimeErrorCode.duplicateDefinition,
           59,
           3,
           contextMessages: [message(testFile, 38, 3)],
@@ -2753,7 +2753,7 @@ extension type E(int it) {
 ''',
       [
         error(
-          CompileTimeErrorCode.DUPLICATE_DEFINITION,
+          CompileTimeErrorCode.duplicateDefinition,
           62,
           3,
           contextMessages: [message(testFile, 40, 3)],
@@ -2772,7 +2772,7 @@ extension type E(int it) {
 ''',
       [
         error(
-          CompileTimeErrorCode.DUPLICATE_DEFINITION,
+          CompileTimeErrorCode.duplicateDefinition,
           66,
           3,
           contextMessages: [message(testFile, 40, 3)],
@@ -2791,7 +2791,7 @@ extension type E(int it) {
 ''',
       [
         error(
-          CompileTimeErrorCode.DUPLICATE_DEFINITION,
+          CompileTimeErrorCode.duplicateDefinition,
           63,
           3,
           contextMessages: [message(testFile, 40, 3)],
@@ -2810,7 +2810,7 @@ extension type E(int it) {
 ''',
       [
         error(
-          CompileTimeErrorCode.DUPLICATE_DEFINITION,
+          CompileTimeErrorCode.duplicateDefinition,
           72,
           3,
           contextMessages: [message(testFile, 46, 3)],
@@ -2838,7 +2838,7 @@ extension type E(int it) {
 ''',
       [
         error(
-          CompileTimeErrorCode.DUPLICATE_DEFINITION,
+          CompileTimeErrorCode.duplicateDefinition,
           71,
           3,
           contextMessages: [message(testFile, 44, 3)],
@@ -2857,7 +2857,7 @@ extension type E(int it) {
 ''',
       [
         error(
-          CompileTimeErrorCode.DUPLICATE_DEFINITION,
+          CompileTimeErrorCode.duplicateDefinition,
           68,
           3,
           contextMessages: [message(testFile, 44, 3)],
@@ -2885,7 +2885,7 @@ extension type E(int it) {
 ''',
       [
         error(
-          CompileTimeErrorCode.DUPLICATE_DEFINITION,
+          CompileTimeErrorCode.duplicateDefinition,
           67,
           3,
           contextMessages: [message(testFile, 41, 3)],
@@ -2904,7 +2904,7 @@ extension type E(int it) {
 ''',
       [
         error(
-          CompileTimeErrorCode.DUPLICATE_DEFINITION,
+          CompileTimeErrorCode.duplicateDefinition,
           64,
           3,
           contextMessages: [message(testFile, 41, 3)],
@@ -2923,7 +2923,7 @@ extension type E(int it) {
 ''',
       [
         error(
-          CompileTimeErrorCode.DUPLICATE_DEFINITION,
+          CompileTimeErrorCode.duplicateDefinition,
           63,
           3,
           contextMessages: [message(testFile, 41, 3)],
@@ -2951,7 +2951,7 @@ extension type E(int it) {
 ''',
       [
         error(
-          CompileTimeErrorCode.DUPLICATE_DEFINITION,
+          CompileTimeErrorCode.duplicateDefinition,
           64,
           3,
           contextMessages: [message(testFile, 40, 3)],
@@ -2970,7 +2970,7 @@ extension type E(int it) {
 ''',
       [
         error(
-          CompileTimeErrorCode.DUPLICATE_DEFINITION,
+          CompileTimeErrorCode.duplicateDefinition,
           73,
           3,
           contextMessages: [message(testFile, 45, 3)],
@@ -2987,7 +2987,7 @@ extension type E(int it) {}
 ''',
       [
         error(
-          CompileTimeErrorCode.DUPLICATE_DEFINITION,
+          CompileTimeErrorCode.duplicateDefinition,
           43,
           1,
           contextMessages: [message(testFile, 15, 1)],
@@ -3009,7 +3009,7 @@ mixin M {
 ''',
       [
         error(
-          CompileTimeErrorCode.DUPLICATE_DEFINITION,
+          CompileTimeErrorCode.duplicateDefinition,
           31,
           3,
           contextMessages: [message(testFile, 16, 3)],
@@ -3028,7 +3028,7 @@ mixin M {
 ''',
       [
         error(
-          CompileTimeErrorCode.DUPLICATE_DEFINITION,
+          CompileTimeErrorCode.duplicateDefinition,
           35,
           3,
           contextMessages: [message(testFile, 16, 3)],
@@ -3047,7 +3047,7 @@ mixin M {
 ''',
       [
         error(
-          CompileTimeErrorCode.DUPLICATE_DEFINITION,
+          CompileTimeErrorCode.duplicateDefinition,
           32,
           3,
           contextMessages: [message(testFile, 16, 3)],
@@ -3066,7 +3066,7 @@ mixin M {
 ''',
       [
         error(
-          CompileTimeErrorCode.DUPLICATE_DEFINITION,
+          CompileTimeErrorCode.duplicateDefinition,
           41,
           3,
           contextMessages: [message(testFile, 22, 3)],
@@ -3094,7 +3094,7 @@ mixin M {
 ''',
       [
         error(
-          CompileTimeErrorCode.DUPLICATE_DEFINITION,
+          CompileTimeErrorCode.duplicateDefinition,
           40,
           3,
           contextMessages: [message(testFile, 20, 3)],
@@ -3113,7 +3113,7 @@ mixin M {
 ''',
       [
         error(
-          CompileTimeErrorCode.DUPLICATE_DEFINITION,
+          CompileTimeErrorCode.duplicateDefinition,
           37,
           3,
           contextMessages: [message(testFile, 20, 3)],
@@ -3141,7 +3141,7 @@ mixin M {
 ''',
       [
         error(
-          CompileTimeErrorCode.DUPLICATE_DEFINITION,
+          CompileTimeErrorCode.duplicateDefinition,
           36,
           3,
           contextMessages: [message(testFile, 17, 3)],
@@ -3160,7 +3160,7 @@ mixin M {
 ''',
       [
         error(
-          CompileTimeErrorCode.DUPLICATE_DEFINITION,
+          CompileTimeErrorCode.duplicateDefinition,
           33,
           3,
           contextMessages: [message(testFile, 17, 3)],
@@ -3218,7 +3218,7 @@ mixin A {
     await resolveFile2(a);
     assertErrorsInResult([
       error(
-        CompileTimeErrorCode.DUPLICATE_DEFINITION,
+        CompileTimeErrorCode.duplicateDefinition,
         47,
         3,
         contextMessages: [message(testFile, 33, 3)],
@@ -3236,7 +3236,7 @@ mixin M {
 ''',
       [
         error(
-          CompileTimeErrorCode.DUPLICATE_DEFINITION,
+          CompileTimeErrorCode.duplicateDefinition,
           32,
           3,
           contextMessages: [message(testFile, 17, 3)],
@@ -3264,7 +3264,7 @@ mixin M {
 ''',
       [
         error(
-          CompileTimeErrorCode.DUPLICATE_DEFINITION,
+          CompileTimeErrorCode.duplicateDefinition,
           33,
           3,
           contextMessages: [message(testFile, 16, 3)],
@@ -3283,7 +3283,7 @@ mixin M {
 ''',
       [
         error(
-          CompileTimeErrorCode.DUPLICATE_DEFINITION,
+          CompileTimeErrorCode.duplicateDefinition,
           42,
           3,
           contextMessages: [message(testFile, 21, 3)],
@@ -3302,7 +3302,7 @@ mixin M {
 ''',
       [
         error(
-          CompileTimeErrorCode.DUPLICATE_DEFINITION,
+          CompileTimeErrorCode.duplicateDefinition,
           45,
           3,
           contextMessages: [message(testFile, 23, 3)],
@@ -3321,7 +3321,7 @@ mixin M {
 ''',
       [
         error(
-          CompileTimeErrorCode.DUPLICATE_DEFINITION,
+          CompileTimeErrorCode.duplicateDefinition,
           49,
           3,
           contextMessages: [message(testFile, 23, 3)],
@@ -3340,7 +3340,7 @@ mixin M {
 ''',
       [
         error(
-          CompileTimeErrorCode.DUPLICATE_DEFINITION,
+          CompileTimeErrorCode.duplicateDefinition,
           46,
           3,
           contextMessages: [message(testFile, 23, 3)],
@@ -3359,7 +3359,7 @@ mixin M {
 ''',
       [
         error(
-          CompileTimeErrorCode.DUPLICATE_DEFINITION,
+          CompileTimeErrorCode.duplicateDefinition,
           55,
           3,
           contextMessages: [message(testFile, 29, 3)],
@@ -3387,7 +3387,7 @@ mixin M {
 ''',
       [
         error(
-          CompileTimeErrorCode.DUPLICATE_DEFINITION,
+          CompileTimeErrorCode.duplicateDefinition,
           54,
           3,
           contextMessages: [message(testFile, 27, 3)],
@@ -3406,7 +3406,7 @@ mixin M {
 ''',
       [
         error(
-          CompileTimeErrorCode.DUPLICATE_DEFINITION,
+          CompileTimeErrorCode.duplicateDefinition,
           51,
           3,
           contextMessages: [message(testFile, 27, 3)],
@@ -3434,7 +3434,7 @@ mixin M {
 ''',
       [
         error(
-          CompileTimeErrorCode.DUPLICATE_DEFINITION,
+          CompileTimeErrorCode.duplicateDefinition,
           50,
           3,
           contextMessages: [message(testFile, 24, 3)],
@@ -3453,7 +3453,7 @@ mixin M {
 ''',
       [
         error(
-          CompileTimeErrorCode.DUPLICATE_DEFINITION,
+          CompileTimeErrorCode.duplicateDefinition,
           47,
           3,
           contextMessages: [message(testFile, 24, 3)],
@@ -3472,7 +3472,7 @@ mixin M {
 ''',
       [
         error(
-          CompileTimeErrorCode.DUPLICATE_DEFINITION,
+          CompileTimeErrorCode.duplicateDefinition,
           46,
           3,
           contextMessages: [message(testFile, 24, 3)],
@@ -3500,7 +3500,7 @@ mixin M {
 ''',
       [
         error(
-          CompileTimeErrorCode.DUPLICATE_DEFINITION,
+          CompileTimeErrorCode.duplicateDefinition,
           47,
           3,
           contextMessages: [message(testFile, 23, 3)],
@@ -3519,7 +3519,7 @@ mixin M {
 ''',
       [
         error(
-          CompileTimeErrorCode.DUPLICATE_DEFINITION,
+          CompileTimeErrorCode.duplicateDefinition,
           56,
           3,
           contextMessages: [message(testFile, 28, 3)],
@@ -3541,9 +3541,9 @@ void f() {
 }
 ''',
       [
-        error(WarningCode.DEAD_CODE, 13, 11),
-        error(WarningCode.DEAD_CODE, 27, 19),
-        error(WarningCode.DEAD_CODE, 49, 24),
+        error(WarningCode.deadCode, 13, 11),
+        error(WarningCode.deadCode, 27, 19),
+        error(WarningCode.deadCode, 49, 24),
       ],
     );
   }
@@ -3561,21 +3561,21 @@ void f() {
 }
 ''',
       [
-        error(WarningCode.UNUSED_ELEMENT, 62, 1),
+        error(WarningCode.unusedElement, 62, 1),
         error(
-          CompileTimeErrorCode.DUPLICATE_DEFINITION,
+          CompileTimeErrorCode.duplicateDefinition,
           75,
           1,
           contextMessages: [message(testFile, 62, 1)],
         ),
-        error(WarningCode.UNUSED_ELEMENT, 75, 1),
+        error(WarningCode.unusedElement, 75, 1),
         error(
-          CompileTimeErrorCode.DUPLICATE_DEFINITION,
+          CompileTimeErrorCode.duplicateDefinition,
           100,
           1,
           contextMessages: [message(testFile, 62, 1)],
         ),
-        error(WarningCode.UNUSED_ELEMENT, 100, 1),
+        error(WarningCode.unusedElement, 100, 1),
       ],
     );
   }
@@ -3589,10 +3589,10 @@ void f() {
 }
 ''',
       [
-        error(WarningCode.UNUSED_LOCAL_VARIABLE, 17, 1),
-        error(WarningCode.UNUSED_LOCAL_VARIABLE, 30, 1),
+        error(WarningCode.unusedLocalVariable, 17, 1),
+        error(WarningCode.unusedLocalVariable, 30, 1),
         error(
-          CompileTimeErrorCode.DUPLICATE_DEFINITION,
+          CompileTimeErrorCode.duplicateDefinition,
           30,
           1,
           contextMessages: [message(testFile, 17, 1)],
@@ -3623,7 +3623,7 @@ void f() {
 ''',
       [
         error(
-          CompileTimeErrorCode.DUPLICATE_DEFINITION,
+          CompileTimeErrorCode.duplicateDefinition,
           74,
           1,
           contextMessages: [message(testFile, 61, 1)],
@@ -3641,14 +3641,14 @@ void f() {
 }
 ''',
       [
-        error(WarningCode.UNUSED_LOCAL_VARIABLE, 17, 1),
+        error(WarningCode.unusedLocalVariable, 17, 1),
         error(
-          CompileTimeErrorCode.DUPLICATE_DEFINITION,
+          CompileTimeErrorCode.duplicateDefinition,
           31,
           1,
           contextMessages: [message(testFile, 17, 1)],
         ),
-        error(WarningCode.UNUSED_LOCAL_VARIABLE, 31, 1),
+        error(WarningCode.unusedLocalVariable, 31, 1),
       ],
     );
   }
@@ -3683,14 +3683,14 @@ void f() {
 }
 ''',
       [
-        error(WarningCode.UNUSED_LOCAL_VARIABLE, 18, 1),
+        error(WarningCode.unusedLocalVariable, 18, 1),
         error(
-          CompileTimeErrorCode.DUPLICATE_DEFINITION,
+          CompileTimeErrorCode.duplicateDefinition,
           32,
           1,
           contextMessages: [message(testFile, 18, 1)],
         ),
-        error(WarningCode.UNUSED_LOCAL_VARIABLE, 32, 1),
+        error(WarningCode.unusedLocalVariable, 32, 1),
       ],
     );
   }
@@ -3704,14 +3704,14 @@ void f() {
 }
 ''',
       [
-        error(WarningCode.UNUSED_LOCAL_VARIABLE, 18, 1),
+        error(WarningCode.unusedLocalVariable, 18, 1),
         error(
-          CompileTimeErrorCode.DUPLICATE_DEFINITION,
+          CompileTimeErrorCode.duplicateDefinition,
           33,
           1,
           contextMessages: [message(testFile, 18, 1)],
         ),
-        error(WarningCode.UNUSED_LOCAL_VARIABLE, 33, 1),
+        error(WarningCode.unusedLocalVariable, 33, 1),
       ],
     );
   }
@@ -3723,9 +3723,9 @@ main() {
   try {} catch (e, e) {}
 }''',
       [
-        error(WarningCode.UNUSED_CATCH_STACK, 28, 1),
+        error(WarningCode.unusedCatchStack, 28, 1),
         error(
-          CompileTimeErrorCode.DUPLICATE_DEFINITION,
+          CompileTimeErrorCode.duplicateDefinition,
           28,
           1,
           contextMessages: [message(testFile, 25, 1)],
@@ -3752,7 +3752,7 @@ f() {
 }''',
       [
         error(
-          CompileTimeErrorCode.DUPLICATE_DEFINITION,
+          CompileTimeErrorCode.duplicateDefinition,
           69,
           1,
           contextMessages: [message(testFile, 66, 1)],
@@ -3771,7 +3771,7 @@ Map _globalMap = {
   'b' : () {}
 };
 ''',
-      [error(WarningCode.UNUSED_ELEMENT, 4, 10)],
+      [error(WarningCode.unusedElement, 4, 10)],
     );
   }
 
@@ -3784,12 +3784,12 @@ f() {
 ''',
       [
         error(
-          CompileTimeErrorCode.DUPLICATE_DEFINITION,
+          CompileTimeErrorCode.duplicateDefinition,
           24,
           1,
           contextMessages: [message(testFile, 17, 1)],
         ),
-        error(WarningCode.UNUSED_LOCAL_VARIABLE, 24, 1),
+        error(WarningCode.unusedLocalVariable, 24, 1),
       ],
     );
   }
@@ -3814,7 +3814,7 @@ f() {
 ''',
       [
         error(
-          CompileTimeErrorCode.DUPLICATE_DEFINITION,
+          CompileTimeErrorCode.duplicateDefinition,
           68,
           1,
           contextMessages: [message(testFile, 61, 1)],
@@ -3839,7 +3839,7 @@ class A {
 ''',
       [
         error(
-          CompileTimeErrorCode.DUPLICATE_DEFINITION,
+          CompileTimeErrorCode.duplicateDefinition,
           36,
           1,
           contextMessages: [message(testFile, 29, 1)],
@@ -3856,7 +3856,7 @@ class A {
   A(this._, int _);
 }
 ''',
-      [error(WarningCode.UNUSED_FIELD, 17, 1)],
+      [error(WarningCode.unusedField, 17, 1)],
     );
   }
 
@@ -3872,9 +3872,9 @@ class A {
 }
 ''',
       [
-        error(WarningCode.UNUSED_FIELD, 61, 1),
+        error(WarningCode.unusedField, 61, 1),
         error(
-          CompileTimeErrorCode.DUPLICATE_DEFINITION,
+          CompileTimeErrorCode.duplicateDefinition,
           80,
           1,
           contextMessages: [message(testFile, 73, 1)],
@@ -3893,7 +3893,7 @@ class A {
 ''',
       [
         error(
-          CompileTimeErrorCode.DUPLICATE_DEFINITION,
+          CompileTimeErrorCode.duplicateDefinition,
           36,
           1,
           contextMessages: [message(testFile, 28, 1)],
@@ -3910,7 +3910,7 @@ class A {
   A(int _, this._);
 }
 ''',
-      [error(WarningCode.UNUSED_FIELD, 17, 1)],
+      [error(WarningCode.unusedField, 17, 1)],
     );
   }
 
@@ -3926,9 +3926,9 @@ class A {
 }
 ''',
       [
-        error(WarningCode.UNUSED_FIELD, 61, 1),
+        error(WarningCode.unusedField, 61, 1),
         error(
-          CompileTimeErrorCode.DUPLICATE_DEFINITION,
+          CompileTimeErrorCode.duplicateDefinition,
           80,
           1,
           contextMessages: [message(testFile, 72, 1)],
@@ -3949,10 +3949,9 @@ class B extends A {
 }
 ''',
       [
-        error(WarningCode.UNUSED_FIELD, 17, 1),
+        error(WarningCode.unusedField, 17, 1),
         error(
-          CompileTimeErrorCode
-              .SUPER_FORMAL_PARAMETER_WITHOUT_ASSOCIATED_POSITIONAL,
+          CompileTimeErrorCode.superFormalParameterWithoutAssociatedPositional,
           74,
           1,
         ),
@@ -3975,16 +3974,15 @@ class B extends A {
 }
 ''',
       [
-        error(WarningCode.UNUSED_FIELD, 61, 1),
+        error(WarningCode.unusedField, 61, 1),
         error(
-          CompileTimeErrorCode.DUPLICATE_DEFINITION,
+          CompileTimeErrorCode.duplicateDefinition,
           118,
           1,
           contextMessages: [message(testFile, 109, 1)],
         ),
         error(
-          CompileTimeErrorCode
-              .SUPER_FORMAL_PARAMETER_WITHOUT_ASSOCIATED_POSITIONAL,
+          CompileTimeErrorCode.superFormalParameterWithoutAssociatedPositional,
           118,
           1,
         ),
@@ -4006,7 +4004,7 @@ class C extends A {
   C(this._, super._, [super._]);
 }
 ''',
-      [error(WarningCode.UNUSED_FIELD, 90, 1)],
+      [error(WarningCode.unusedField, 90, 1)],
     );
   }
 
@@ -4017,7 +4015,7 @@ typedef void F(int a, double a);
 ''',
       [
         error(
-          CompileTimeErrorCode.DUPLICATE_DEFINITION,
+          CompileTimeErrorCode.duplicateDefinition,
           29,
           1,
           contextMessages: [message(testFile, 19, 1)],
@@ -4042,7 +4040,7 @@ typedef void F(int _, double _);
 ''',
       [
         error(
-          CompileTimeErrorCode.DUPLICATE_DEFINITION,
+          CompileTimeErrorCode.duplicateDefinition,
           73,
           1,
           contextMessages: [message(testFile, 63, 1)],
@@ -4058,7 +4056,7 @@ typedef F = void Function(int a, double a);
 ''',
       [
         error(
-          CompileTimeErrorCode.DUPLICATE_DEFINITION,
+          CompileTimeErrorCode.duplicateDefinition,
           40,
           1,
           contextMessages: [message(testFile, 30, 1)],
@@ -4083,7 +4081,7 @@ typedef F = void Function(int _, double _);
 ''',
       [
         error(
-          CompileTimeErrorCode.DUPLICATE_DEFINITION,
+          CompileTimeErrorCode.duplicateDefinition,
           84,
           1,
           contextMessages: [message(testFile, 74, 1)],
@@ -4101,9 +4099,9 @@ main() {
 }
 ''',
       [
-        error(WarningCode.UNUSED_ELEMENT, 11, 1),
+        error(WarningCode.unusedElement, 11, 1),
         error(
-          CompileTimeErrorCode.DUPLICATE_DEFINITION,
+          CompileTimeErrorCode.duplicateDefinition,
           27,
           1,
           contextMessages: [message(testFile, 17, 1)],
@@ -4119,7 +4117,7 @@ f() {
   g(int _, double _) {};
 }
 ''',
-      [error(WarningCode.UNUSED_ELEMENT, 8, 1)],
+      [error(WarningCode.unusedElement, 8, 1)],
     );
   }
 
@@ -4134,9 +4132,9 @@ f() {
 }
 ''',
       [
-        error(WarningCode.UNUSED_ELEMENT, 52, 1),
+        error(WarningCode.unusedElement, 52, 1),
         error(
-          CompileTimeErrorCode.DUPLICATE_DEFINITION,
+          CompileTimeErrorCode.duplicateDefinition,
           68,
           1,
           contextMessages: [message(testFile, 58, 1)],
@@ -4155,7 +4153,7 @@ class A {
 ''',
       [
         error(
-          CompileTimeErrorCode.DUPLICATE_DEFINITION,
+          CompileTimeErrorCode.duplicateDefinition,
           28,
           1,
           contextMessages: [message(testFile, 18, 1)],
@@ -4186,7 +4184,7 @@ class A {
 ''',
       [
         error(
-          CompileTimeErrorCode.DUPLICATE_DEFINITION,
+          CompileTimeErrorCode.duplicateDefinition,
           72,
           1,
           contextMessages: [message(testFile, 62, 1)],
@@ -4202,7 +4200,7 @@ f(int a, double a) {}
 ''',
       [
         error(
-          CompileTimeErrorCode.DUPLICATE_DEFINITION,
+          CompileTimeErrorCode.duplicateDefinition,
           16,
           1,
           contextMessages: [message(testFile, 6, 1)],
@@ -4217,8 +4215,8 @@ f(int a, double a) {}
 f(,[]) {}
 ''',
       [
-        error(ParserErrorCode.MISSING_IDENTIFIER, 2, 1),
-        error(ParserErrorCode.MISSING_IDENTIFIER, 4, 1),
+        error(ParserErrorCode.missingIdentifier, 2, 1),
+        error(ParserErrorCode.missingIdentifier, 4, 1),
       ],
     );
   }
@@ -4239,7 +4237,7 @@ f(int _, double _) {}
 ''',
       [
         error(
-          CompileTimeErrorCode.DUPLICATE_DEFINITION,
+          CompileTimeErrorCode.duplicateDefinition,
           60,
           1,
           contextMessages: [message(testFile, 50, 1)],
@@ -4261,14 +4259,14 @@ void f() {
 }
 ''',
       [
-        error(WarningCode.UNUSED_LOCAL_VARIABLE, 64, 1),
+        error(WarningCode.unusedLocalVariable, 64, 1),
         error(
-          CompileTimeErrorCode.DUPLICATE_DEFINITION,
+          CompileTimeErrorCode.duplicateDefinition,
           77,
           1,
           contextMessages: [message(testFile, 64, 1)],
         ),
-        error(WarningCode.UNUSED_LOCAL_VARIABLE, 77, 1),
+        error(WarningCode.unusedLocalVariable, 77, 1),
       ],
     );
   }
@@ -4285,14 +4283,14 @@ void f() {
 }
 ''',
       [
-        error(WarningCode.UNUSED_LOCAL_VARIABLE, 49, 1),
+        error(WarningCode.unusedLocalVariable, 49, 1),
         error(
-          CompileTimeErrorCode.DUPLICATE_DEFINITION,
+          CompileTimeErrorCode.duplicateDefinition,
           62,
           1,
           contextMessages: [message(testFile, 49, 1)],
         ),
-        error(WarningCode.UNUSED_LOCAL_VARIABLE, 62, 1),
+        error(WarningCode.unusedLocalVariable, 62, 1),
       ],
     );
   }
@@ -4313,7 +4311,7 @@ void f() {
 ''',
       [
         error(
-          CompileTimeErrorCode.DUPLICATE_DEFINITION,
+          CompileTimeErrorCode.duplicateDefinition,
           106,
           1,
           contextMessages: [message(testFile, 93, 1)],
@@ -4346,14 +4344,14 @@ void f() {
 }
 ''',
       [
-        error(WarningCode.UNUSED_LOCAL_VARIABLE, 48, 1),
+        error(WarningCode.unusedLocalVariable, 48, 1),
         error(
-          CompileTimeErrorCode.DUPLICATE_DEFINITION,
+          CompileTimeErrorCode.duplicateDefinition,
           61,
           1,
           contextMessages: [message(testFile, 48, 1)],
         ),
-        error(WarningCode.UNUSED_LOCAL_VARIABLE, 61, 1),
+        error(WarningCode.unusedLocalVariable, 61, 1),
       ],
     );
   }
@@ -4386,7 +4384,7 @@ void f() {
 ''',
       [
         error(
-          CompileTimeErrorCode.DUPLICATE_DEFINITION,
+          CompileTimeErrorCode.duplicateDefinition,
           105,
           1,
           contextMessages: [message(testFile, 92, 1)],
@@ -4403,7 +4401,7 @@ var f = 2;
 ''',
       [
         error(
-          CompileTimeErrorCode.DUPLICATE_DEFINITION,
+          CompileTimeErrorCode.duplicateDefinition,
           15,
           1,
           contextMessages: [message(testFile, 4, 1)],
@@ -4420,7 +4418,7 @@ int get f => 7;
 ''',
       [
         error(
-          CompileTimeErrorCode.DUPLICATE_DEFINITION,
+          CompileTimeErrorCode.duplicateDefinition,
           19,
           1,
           contextMessages: [message(testFile, 4, 1)],
@@ -4437,7 +4435,7 @@ set f(int value) {}
 ''',
       [
         error(
-          CompileTimeErrorCode.DUPLICATE_DEFINITION,
+          CompileTimeErrorCode.duplicateDefinition,
           15,
           1,
           contextMessages: [message(testFile, 4, 1)],
@@ -4475,7 +4473,7 @@ set f(int value) {}
 ''',
       [
         error(
-          CompileTimeErrorCode.DUPLICATE_DEFINITION,
+          CompileTimeErrorCode.duplicateDefinition,
           18,
           1,
           contextMessages: [message(testFile, 11, 1)],
@@ -4492,7 +4490,7 @@ set f(int value) {}
 ''',
       [
         error(
-          CompileTimeErrorCode.DUPLICATE_DEFINITION,
+          CompileTimeErrorCode.duplicateDefinition,
           24,
           1,
           contextMessages: [message(testFile, 4, 1)],
@@ -4514,7 +4512,7 @@ set f(int value) {}
 
     await assertErrorsInFile2(a, [
       error(
-        CompileTimeErrorCode.DUPLICATE_DEFINITION,
+        CompileTimeErrorCode.duplicateDefinition,
         25,
         1,
         contextMessages: [message(testFile, 19, 1)],
@@ -4529,7 +4527,7 @@ class A<T, T> {}
 ''',
       [
         error(
-          CompileTimeErrorCode.DUPLICATE_DEFINITION,
+          CompileTimeErrorCode.duplicateDefinition,
           11,
           1,
           contextMessages: [message(testFile, 8, 1)],
@@ -4554,7 +4552,7 @@ class A<_, _> {}
 ''',
       [
         error(
-          CompileTimeErrorCode.DUPLICATE_DEFINITION,
+          CompileTimeErrorCode.duplicateDefinition,
           55,
           1,
           contextMessages: [message(testFile, 52, 1)],
@@ -4570,7 +4568,7 @@ typedef void F<T, T>();
 ''',
       [
         error(
-          CompileTimeErrorCode.DUPLICATE_DEFINITION,
+          CompileTimeErrorCode.duplicateDefinition,
           18,
           1,
           contextMessages: [message(testFile, 15, 1)],
@@ -4595,7 +4593,7 @@ typedef void F<_, _>();
 ''',
       [
         error(
-          CompileTimeErrorCode.DUPLICATE_DEFINITION,
+          CompileTimeErrorCode.duplicateDefinition,
           62,
           1,
           contextMessages: [message(testFile, 59, 1)],
@@ -4611,7 +4609,7 @@ typedef F = void Function<T, T>();
 ''',
       [
         error(
-          CompileTimeErrorCode.DUPLICATE_DEFINITION,
+          CompileTimeErrorCode.duplicateDefinition,
           29,
           1,
           contextMessages: [message(testFile, 26, 1)],
@@ -4636,7 +4634,7 @@ typedef F = void Function<_, _>();
 ''',
       [
         error(
-          CompileTimeErrorCode.DUPLICATE_DEFINITION,
+          CompileTimeErrorCode.duplicateDefinition,
           73,
           1,
           contextMessages: [message(testFile, 70, 1)],
@@ -4652,7 +4650,7 @@ typedef F<T, T> = void Function();
 ''',
       [
         error(
-          CompileTimeErrorCode.DUPLICATE_DEFINITION,
+          CompileTimeErrorCode.duplicateDefinition,
           13,
           1,
           contextMessages: [message(testFile, 10, 1)],
@@ -4677,7 +4675,7 @@ typedef F<_, _> = void Function();
 ''',
       [
         error(
-          CompileTimeErrorCode.DUPLICATE_DEFINITION,
+          CompileTimeErrorCode.duplicateDefinition,
           57,
           1,
           contextMessages: [message(testFile, 54, 1)],
@@ -4693,7 +4691,7 @@ typedef F<T, T> = Map;
 ''',
       [
         error(
-          CompileTimeErrorCode.DUPLICATE_DEFINITION,
+          CompileTimeErrorCode.duplicateDefinition,
           13,
           1,
           contextMessages: [message(testFile, 10, 1)],
@@ -4718,7 +4716,7 @@ typedef F<_, _> = Map;
 ''',
       [
         error(
-          CompileTimeErrorCode.DUPLICATE_DEFINITION,
+          CompileTimeErrorCode.duplicateDefinition,
           57,
           1,
           contextMessages: [message(testFile, 54, 1)],
@@ -4736,7 +4734,7 @@ class A {
 ''',
       [
         error(
-          CompileTimeErrorCode.DUPLICATE_DEFINITION,
+          CompileTimeErrorCode.duplicateDefinition,
           22,
           1,
           contextMessages: [message(testFile, 19, 1)],
@@ -4765,7 +4763,7 @@ class A {
 ''',
       [
         error(
-          CompileTimeErrorCode.DUPLICATE_DEFINITION,
+          CompileTimeErrorCode.duplicateDefinition,
           66,
           1,
           contextMessages: [message(testFile, 63, 1)],
@@ -4781,7 +4779,7 @@ void f<T, T>() {}
 ''',
       [
         error(
-          CompileTimeErrorCode.DUPLICATE_DEFINITION,
+          CompileTimeErrorCode.duplicateDefinition,
           10,
           1,
           contextMessages: [message(testFile, 7, 1)],
@@ -4806,7 +4804,7 @@ void f<_, _>() {}
 ''',
       [
         error(
-          CompileTimeErrorCode.DUPLICATE_DEFINITION,
+          CompileTimeErrorCode.duplicateDefinition,
           54,
           1,
           contextMessages: [message(testFile, 51, 1)],
@@ -4827,7 +4825,7 @@ class A {}
 ''',
       [
         error(
-          CompileTimeErrorCode.DUPLICATE_DEFINITION,
+          CompileTimeErrorCode.duplicateDefinition,
           28,
           1,
           contextMessages: [message(testFile, 6, 1)],
@@ -4877,7 +4875,7 @@ class A {}
       ..addAll(aResult.diagnostics)
       ..assertErrors([
         error(
-          CompileTimeErrorCode.DUPLICATE_DEFINITION,
+          CompileTimeErrorCode.duplicateDefinition,
           27,
           1,
           contextMessages: [message(lib, 22, 1)],
@@ -4915,7 +4913,7 @@ class A {}
       ..addAll(bResult.diagnostics)
       ..assertErrors([
         error(
-          CompileTimeErrorCode.DUPLICATE_DEFINITION,
+          CompileTimeErrorCode.duplicateDefinition,
           27,
           1,
           contextMessages: [message(a, 27, 1)],
@@ -4932,7 +4930,7 @@ extension A on int {}
 ''',
       [
         error(
-          CompileTimeErrorCode.DUPLICATE_DEFINITION,
+          CompileTimeErrorCode.duplicateDefinition,
           54,
           1,
           contextMessages: [message(testFile, 10, 1)],
@@ -4961,7 +4959,7 @@ extension A on int {}
       ..addAll(aResult.diagnostics)
       ..assertErrors([
         error(
-          CompileTimeErrorCode.DUPLICATE_DEFINITION,
+          CompileTimeErrorCode.duplicateDefinition,
           31,
           1,
           contextMessages: [message(lib, 26, 1)],
@@ -4978,7 +4976,7 @@ extension type A(int it) {}
 ''',
       [
         error(
-          CompileTimeErrorCode.DUPLICATE_DEFINITION,
+          CompileTimeErrorCode.duplicateDefinition,
           71,
           1,
           contextMessages: [message(testFile, 15, 1)],
@@ -5007,7 +5005,7 @@ extension type A(int it) {}
       ..addAll(aResult.diagnostics)
       ..assertErrors([
         error(
-          CompileTimeErrorCode.DUPLICATE_DEFINITION,
+          CompileTimeErrorCode.duplicateDefinition,
           36,
           1,
           contextMessages: [message(lib, 31, 1)],
@@ -5024,7 +5022,7 @@ mixin A {}
 ''',
       [
         error(
-          CompileTimeErrorCode.DUPLICATE_DEFINITION,
+          CompileTimeErrorCode.duplicateDefinition,
           28,
           1,
           contextMessages: [message(testFile, 6, 1)],
@@ -5074,7 +5072,7 @@ mixin A {}
       ..addAll(aResult.diagnostics)
       ..assertErrors([
         error(
-          CompileTimeErrorCode.DUPLICATE_DEFINITION,
+          CompileTimeErrorCode.duplicateDefinition,
           27,
           1,
           contextMessages: [message(lib, 22, 1)],
@@ -5090,7 +5088,7 @@ typedef A = List<int>;
 ''',
       [
         error(
-          CompileTimeErrorCode.DUPLICATE_DEFINITION,
+          CompileTimeErrorCode.duplicateDefinition,
           31,
           1,
           contextMessages: [message(testFile, 8, 1)],
@@ -5140,7 +5138,7 @@ int foo = 0;
     await resolveFile2(a);
     assertErrorsInResult([
       error(
-        CompileTimeErrorCode.DUPLICATE_DEFINITION,
+        CompileTimeErrorCode.duplicateDefinition,
         26,
         3,
         contextMessages: [message(testFile, 20, 3)],

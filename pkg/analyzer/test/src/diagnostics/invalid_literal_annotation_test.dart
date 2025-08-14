@@ -48,7 +48,7 @@ import 'package:meta/meta.dart';
 @literal
 extension type const E(int i) { }
 ''',
-      [error(WarningCode.INVALID_LITERAL_ANNOTATION, 34, 7)],
+      [error(WarningCode.invalidLiteralAnnotation, 34, 7)],
     );
   }
 
@@ -61,7 +61,7 @@ class A {
   A() {}
 }
 ''',
-      [error(WarningCode.INVALID_LITERAL_ANNOTATION, 46, 7)],
+      [error(WarningCode.invalidLiteralAnnotation, 46, 7)],
     );
   }
 
@@ -74,7 +74,7 @@ class A {
   void m() {}
 }
 ''',
-      [error(WarningCode.INVALID_LITERAL_ANNOTATION, 46, 7)],
+      [error(WarningCode.invalidLiteralAnnotation, 46, 7)],
     );
   }
 }

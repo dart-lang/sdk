@@ -68,13 +68,7 @@ ClassTypeAlias
 mixin class A {}
 class X = Function with A;
 ''',
-      [
-        error(
-          CompileTimeErrorCode.FINAL_CLASS_EXTENDED_OUTSIDE_OF_LIBRARY,
-          27,
-          8,
-        ),
-      ],
+      [error(CompileTimeErrorCode.finalClassExtendedOutsideOfLibrary, 27, 8)],
     );
     var x = findElement2.class_('X');
     assertType(x.supertype, 'Object');
@@ -89,7 +83,7 @@ class X = Object with A implements A, Function, B;
 ''',
       [
         error(
-          CompileTimeErrorCode.FINAL_CLASS_IMPLEMENTED_OUTSIDE_OF_LIBRARY,
+          CompileTimeErrorCode.finalClassImplementedOutsideOfLibrary,
           66,
           8,
         ),
@@ -106,7 +100,7 @@ mixin class A {}
 mixin class B {}
 class X = Object with A, Function, B;
 ''',
-      [error(CompileTimeErrorCode.CLASS_USED_AS_MIXIN, 59, 8)],
+      [error(CompileTimeErrorCode.classUsedAsMixin, 59, 8)],
     );
     var x = findElement2.class_('X');
     assertElementTypes(x.mixins, ['A', 'B']);
@@ -142,12 +136,8 @@ class C = A with M;
 const x = const C();
 ''',
       [
-        error(CompileTimeErrorCode.CONST_WITH_NON_CONST, 83, 5),
-        error(
-          CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE,
-          83,
-          5,
-        ),
+        error(CompileTimeErrorCode.constWithNonConst, 83, 5),
+        error(CompileTimeErrorCode.constInitializedWithNonConstantValue, 83, 5),
       ],
     );
   }

@@ -75,7 +75,7 @@ typedef F = var Function();
 typedef F = Function();
 ''',
       errorFilter: (error) {
-        return error.diagnosticCode == ParserErrorCode.VAR_RETURN_TYPE;
+        return error.diagnosticCode == ParserErrorCode.varReturnType;
       },
     );
   }

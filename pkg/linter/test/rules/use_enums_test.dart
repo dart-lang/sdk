@@ -141,9 +141,9 @@ class _E {
 ''',
       [
         // No lint.
-        error(CompileTimeErrorCode.RECURSIVE_CONSTANT_CONSTRUCTOR, 76, 2),
+        error(CompileTimeErrorCode.recursiveConstantConstructor, 76, 2),
         // We are reversing the deprecation: This code will remain a `HintCode`.
-        error(WarningCode.UNUSED_ELEMENT_PARAMETER, 83, 1),
+        error(WarningCode.unusedElementParameter, 83, 1),
       ],
     );
   }

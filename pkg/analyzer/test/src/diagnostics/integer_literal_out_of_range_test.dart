@@ -22,7 +22,7 @@ int x = 0xFFFF_FFFF_FFFF_FFFF_FFFF;
 ''',
       [
         error(
-          CompileTimeErrorCode.INTEGER_LITERAL_OUT_OF_RANGE,
+          CompileTimeErrorCode.integerLiteralOutOfRange,
           8,
           26,
           messageContains: [RegExp('0xFFFF_FFFF_FFFF_FFFF_FFFF')],
@@ -36,7 +36,7 @@ int x = 0xFFFF_FFFF_FFFF_FFFF_FFFF;
       '''
 int x = -9223372036854775809;
 ''',
-      [error(CompileTimeErrorCode.INTEGER_LITERAL_OUT_OF_RANGE, 9, 19)],
+      [error(CompileTimeErrorCode.integerLiteralOutOfRange, 9, 19)],
     );
   }
 
@@ -45,7 +45,7 @@ int x = -9223372036854775809;
       '''
 int x = 9223372036854775808;
 ''',
-      [error(CompileTimeErrorCode.INTEGER_LITERAL_OUT_OF_RANGE, 8, 19)],
+      [error(CompileTimeErrorCode.integerLiteralOutOfRange, 8, 19)],
     );
   }
 
@@ -56,7 +56,7 @@ int x = 9_223_372_036_854_775_808;
 ''',
       [
         error(
-          CompileTimeErrorCode.INTEGER_LITERAL_OUT_OF_RANGE,
+          CompileTimeErrorCode.integerLiteralOutOfRange,
           8,
           25,
           messageContains: [RegExp('9_223_372_036_854_775_808')],

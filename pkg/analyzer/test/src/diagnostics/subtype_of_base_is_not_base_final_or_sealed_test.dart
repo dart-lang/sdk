@@ -24,7 +24,7 @@ class B extends A {}
 ''',
       [
         error(
-          CompileTimeErrorCode.SUBTYPE_OF_BASE_IS_NOT_BASE_FINAL_OR_SEALED,
+          CompileTimeErrorCode.subtypeOfBaseIsNotBaseFinalOrSealed,
           22,
           1,
           text:
@@ -43,7 +43,7 @@ class C extends A {}
 ''',
       [
         error(
-          CompileTimeErrorCode.SUBTYPE_OF_BASE_IS_NOT_BASE_FINAL_OR_SEALED,
+          CompileTimeErrorCode.subtypeOfBaseIsNotBaseFinalOrSealed,
           48,
           1,
           text:
@@ -65,7 +65,7 @@ class B extends A {}
 ''',
       [
         error(
-          CompileTimeErrorCode.SUBTYPE_OF_BASE_IS_NOT_BASE_FINAL_OR_SEALED,
+          CompileTimeErrorCode.subtypeOfBaseIsNotBaseFinalOrSealed,
           23,
           1,
           text:
@@ -92,7 +92,7 @@ abstract class B extends A {}
 ''',
       [
         error(
-          CompileTimeErrorCode.SUBTYPE_OF_BASE_IS_NOT_BASE_FINAL_OR_SEALED,
+          CompileTimeErrorCode.subtypeOfBaseIsNotBaseFinalOrSealed,
           32,
           1,
           text:
@@ -110,7 +110,7 @@ class B implements A {}
 ''',
       [
         error(
-          CompileTimeErrorCode.SUBTYPE_OF_BASE_IS_NOT_BASE_FINAL_OR_SEALED,
+          CompileTimeErrorCode.subtypeOfBaseIsNotBaseFinalOrSealed,
           22,
           1,
           text:
@@ -132,17 +132,13 @@ class B implements A {}
 ''',
       [
         error(
-          CompileTimeErrorCode.SUBTYPE_OF_BASE_IS_NOT_BASE_FINAL_OR_SEALED,
+          CompileTimeErrorCode.subtypeOfBaseIsNotBaseFinalOrSealed,
           23,
           1,
           text:
               "The type 'B' must be 'base', 'final' or 'sealed' because the supertype 'A' is 'base'.",
         ),
-        error(
-          CompileTimeErrorCode.BASE_CLASS_IMPLEMENTED_OUTSIDE_OF_LIBRARY,
-          36,
-          1,
-        ),
+        error(CompileTimeErrorCode.baseClassImplementedOutsideOfLibrary, 36, 1),
       ],
     );
   }
@@ -164,17 +160,13 @@ abstract class B implements A {}
 ''',
       [
         error(
-          CompileTimeErrorCode.SUBTYPE_OF_BASE_IS_NOT_BASE_FINAL_OR_SEALED,
+          CompileTimeErrorCode.subtypeOfBaseIsNotBaseFinalOrSealed,
           32,
           1,
           text:
               "The type 'B' must be 'base', 'final' or 'sealed' because the supertype 'LinkedListEntry' is 'base'.",
         ),
-        error(
-          CompileTimeErrorCode.BASE_CLASS_IMPLEMENTED_OUTSIDE_OF_LIBRARY,
-          45,
-          1,
-        ),
+        error(CompileTimeErrorCode.baseClassImplementedOutsideOfLibrary, 45, 1),
       ],
     );
   }
@@ -188,7 +180,7 @@ class C extends B {}
 ''',
       [
         error(
-          CompileTimeErrorCode.SUBTYPE_OF_BASE_IS_NOT_BASE_FINAL_OR_SEALED,
+          CompileTimeErrorCode.subtypeOfBaseIsNotBaseFinalOrSealed,
           50,
           1,
           text:
@@ -217,7 +209,7 @@ class D extends C {}
 ''',
       [
         error(
-          CompileTimeErrorCode.SUBTYPE_OF_BASE_IS_NOT_BASE_FINAL_OR_SEALED,
+          CompileTimeErrorCode.subtypeOfBaseIsNotBaseFinalOrSealed,
           84,
           1,
           text:
@@ -246,7 +238,7 @@ class D extends C {}
 ''',
       [
         error(
-          CompileTimeErrorCode.SUBTYPE_OF_BASE_IS_NOT_BASE_FINAL_OR_SEALED,
+          CompileTimeErrorCode.subtypeOfBaseIsNotBaseFinalOrSealed,
           78,
           1,
           text:
@@ -275,7 +267,7 @@ class D extends C {}
 ''',
       [
         error(
-          CompileTimeErrorCode.SUBTYPE_OF_BASE_IS_NOT_BASE_FINAL_OR_SEALED,
+          CompileTimeErrorCode.subtypeOfBaseIsNotBaseFinalOrSealed,
           78,
           1,
           text:
@@ -307,7 +299,7 @@ class C extends B {}
 ''',
       [
         error(
-          CompileTimeErrorCode.SUBTYPE_OF_BASE_IS_NOT_BASE_FINAL_OR_SEALED,
+          CompileTimeErrorCode.subtypeOfBaseIsNotBaseFinalOrSealed,
           51,
           1,
           text:
@@ -335,7 +327,7 @@ base class A {}
 ''',
       [
         error(
-          CompileTimeErrorCode.SUBTYPE_OF_BASE_IS_NOT_BASE_FINAL_OR_SEALED,
+          CompileTimeErrorCode.subtypeOfBaseIsNotBaseFinalOrSealed,
           6,
           1,
           text:
@@ -363,7 +355,7 @@ class C implements B {}
 ''',
       [
         error(
-          CompileTimeErrorCode.SUBTYPE_OF_BASE_IS_NOT_BASE_FINAL_OR_SEALED,
+          CompileTimeErrorCode.subtypeOfBaseIsNotBaseFinalOrSealed,
           53,
           1,
           text:
@@ -391,7 +383,7 @@ class C = Object with B implements A;
 ''',
       [
         error(
-          CompileTimeErrorCode.SUBTYPE_OF_BASE_IS_NOT_BASE_FINAL_OR_SEALED,
+          CompileTimeErrorCode.subtypeOfBaseIsNotBaseFinalOrSealed,
           33,
           1,
           text:
@@ -410,7 +402,7 @@ interface class C = Object with B implements A;
 ''',
       [
         error(
-          CompileTimeErrorCode.SUBTYPE_OF_BASE_IS_NOT_BASE_FINAL_OR_SEALED,
+          CompileTimeErrorCode.subtypeOfBaseIsNotBaseFinalOrSealed,
           43,
           1,
           text:
@@ -430,7 +422,7 @@ class C = Object with B implements AA;
 ''',
       [
         error(
-          CompileTimeErrorCode.SUBTYPE_OF_BASE_IS_NOT_BASE_FINAL_OR_SEALED,
+          CompileTimeErrorCode.subtypeOfBaseIsNotBaseFinalOrSealed,
           62,
           1,
           text:
@@ -459,7 +451,7 @@ interface class C = Object with B implements AA;
 ''',
       [
         error(
-          CompileTimeErrorCode.SUBTYPE_OF_BASE_IS_NOT_BASE_FINAL_OR_SEALED,
+          CompileTimeErrorCode.subtypeOfBaseIsNotBaseFinalOrSealed,
           72,
           1,
           text:
@@ -487,7 +479,7 @@ class C extends B {}
 ''',
       [
         error(
-          CompileTimeErrorCode.SUBTYPE_OF_BASE_IS_NOT_BASE_FINAL_OR_SEALED,
+          CompileTimeErrorCode.subtypeOfBaseIsNotBaseFinalOrSealed,
           53,
           1,
           text:
@@ -519,7 +511,7 @@ class C extends B {}
 ''',
       [
         error(
-          CompileTimeErrorCode.SUBTYPE_OF_BASE_IS_NOT_BASE_FINAL_OR_SEALED,
+          CompileTimeErrorCode.subtypeOfBaseIsNotBaseFinalOrSealed,
           48,
           1,
           text:
@@ -546,7 +538,7 @@ class B with A {}
 ''',
       [
         error(
-          CompileTimeErrorCode.SUBTYPE_OF_BASE_IS_NOT_BASE_FINAL_OR_SEALED,
+          CompileTimeErrorCode.subtypeOfBaseIsNotBaseFinalOrSealed,
           28,
           1,
           text:
@@ -568,7 +560,7 @@ class B with A {}
 ''',
       [
         error(
-          CompileTimeErrorCode.SUBTYPE_OF_BASE_IS_NOT_BASE_FINAL_OR_SEALED,
+          CompileTimeErrorCode.subtypeOfBaseIsNotBaseFinalOrSealed,
           23,
           1,
           text:

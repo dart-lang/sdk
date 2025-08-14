@@ -22,8 +22,8 @@ class DocImportCannotBeDeferredTest extends PubPackageResolutionTest {
 class C {}
 ''',
       [
-        error(WarningCode.DOC_IMPORT_CANNOT_BE_DEFERRED, 27, 8),
-        error(WarningCode.DOC_IMPORT_CANNOT_HAVE_PREFIX, 39, 4),
+        error(WarningCode.docImportCannotBeDeferred, 27, 8),
+        error(WarningCode.docImportCannotHavePrefix, 39, 4),
       ],
     );
   }

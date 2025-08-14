@@ -604,7 +604,7 @@ void f(Object? x) {
       [
         error(
           CompileTimeErrorCode
-              .PATTERN_VARIABLE_SHARED_CASE_SCOPE_DIFFERENT_FINALITY_OR_TYPE,
+              .patternVariableSharedCaseScopeDifferentFinalityOrType,
           101,
           1,
         ),
@@ -707,7 +707,7 @@ void f(Object? x) {
       [
         error(
           CompileTimeErrorCode
-              .PATTERN_VARIABLE_SHARED_CASE_SCOPE_DIFFERENT_FINALITY_OR_TYPE,
+              .patternVariableSharedCaseScopeDifferentFinalityOrType,
           101,
           1,
         ),
@@ -810,7 +810,7 @@ void f(Object? x) {
       [
         error(
           CompileTimeErrorCode
-              .PATTERN_VARIABLE_SHARED_CASE_SCOPE_DIFFERENT_FINALITY_OR_TYPE,
+              .patternVariableSharedCaseScopeDifferentFinalityOrType,
           95,
           1,
         ),
@@ -911,7 +911,7 @@ void f(Object? x) {
 ''',
       [
         error(
-          CompileTimeErrorCode.PATTERN_VARIABLE_SHARED_CASE_SCOPE_NOT_ALL_CASES,
+          CompileTimeErrorCode.patternVariableSharedCaseScopeNotAllCases,
           80,
           1,
         ),
@@ -992,7 +992,7 @@ void f(Object? x) {
 ''',
       [
         error(
-          CompileTimeErrorCode.PATTERN_VARIABLE_SHARED_CASE_SCOPE_NOT_ALL_CASES,
+          CompileTimeErrorCode.patternVariableSharedCaseScopeNotAllCases,
           80,
           1,
         ),
@@ -1073,7 +1073,7 @@ void f(Object? x) {
 ''',
       [
         error(
-          CompileTimeErrorCode.PATTERN_VARIABLE_SHARED_CASE_SCOPE_HAS_LABEL,
+          CompileTimeErrorCode.patternVariableSharedCaseScopeHasLabel,
           81,
           1,
         ),
@@ -1148,11 +1148,11 @@ void f(Object? x) {
 }
 ''',
       [
-        error(WarningCode.DEAD_CODE, 55, 4),
-        error(WarningCode.UNREACHABLE_SWITCH_CASE, 55, 4),
-        error(WarningCode.DEAD_CODE, 71, 7),
+        error(WarningCode.deadCode, 55, 4),
+        error(WarningCode.unreachableSwitchCase, 55, 4),
+        error(WarningCode.deadCode, 71, 7),
         error(
-          CompileTimeErrorCode.PATTERN_VARIABLE_SHARED_CASE_SCOPE_HAS_LABEL,
+          CompileTimeErrorCode.patternVariableSharedCaseScopeHasLabel,
           86,
           1,
         ),
@@ -1219,9 +1219,9 @@ void f(Object? x) {
 }
 ''',
       [
-        error(WarningCode.UNUSED_LABEL, 39, 8),
+        error(WarningCode.unusedLabel, 39, 8),
         error(
-          CompileTimeErrorCode.PATTERN_VARIABLE_SHARED_CASE_SCOPE_HAS_LABEL,
+          CompileTimeErrorCode.patternVariableSharedCaseScopeHasLabel,
           81,
           1,
         ),
@@ -1303,17 +1303,17 @@ void f(Object? x) {
 ''',
       [
         error(
-          CompileTimeErrorCode.PATTERN_VARIABLE_SHARED_CASE_SCOPE_NOT_ALL_CASES,
+          CompileTimeErrorCode.patternVariableSharedCaseScopeNotAllCases,
           95,
           1,
         ),
         error(
-          CompileTimeErrorCode.PATTERN_VARIABLE_SHARED_CASE_SCOPE_NOT_ALL_CASES,
+          CompileTimeErrorCode.patternVariableSharedCaseScopeNotAllCases,
           104,
           1,
         ),
         error(
-          CompileTimeErrorCode.PATTERN_VARIABLE_SHARED_CASE_SCOPE_NOT_ALL_CASES,
+          CompileTimeErrorCode.patternVariableSharedCaseScopeNotAllCases,
           113,
           1,
         ),
@@ -1407,7 +1407,7 @@ void f(Object? x) {
   }
 }
 ''',
-      [error(WarningCode.DEAD_CODE, 56, 8)],
+      [error(WarningCode.deadCode, 56, 8)],
     );
 
     var node = findNode.switchStatement('switch');
@@ -1481,12 +1481,12 @@ void f(Object? x) {
 ''',
       [
         error(
-          CompileTimeErrorCode.NON_CONSTANT_RELATIONAL_PATTERN_EXPRESSION,
+          CompileTimeErrorCode.nonConstantRelationalPatternExpression,
           68,
           1,
         ),
         error(
-          CompileTimeErrorCode.REFERENCED_BEFORE_DECLARATION,
+          CompileTimeErrorCode.referencedBeforeDeclaration,
           68,
           1,
           contextMessages: [message(testFile, 62, 1)],

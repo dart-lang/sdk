@@ -28,7 +28,7 @@ import 'package:meta/meta.dart';
 
 m(@required a) => null;
 ''',
-      [error(WarningCode.INVALID_REQUIRED_POSITIONAL_PARAM, 36, 11)],
+      [error(WarningCode.invalidRequiredPositionalParam, 36, 11)],
     );
   }
 
@@ -39,7 +39,7 @@ import 'package:meta/meta.dart';
 
 m(a, @required b) => null;
 ''',
-      [error(WarningCode.INVALID_REQUIRED_POSITIONAL_PARAM, 39, 11)],
+      [error(WarningCode.invalidRequiredPositionalParam, 39, 11)],
     );
   }
 
@@ -50,7 +50,7 @@ import 'package:meta/meta.dart';
 
 typedef F = void Function(@required int a);
 ''',
-      [error(WarningCode.INVALID_REQUIRED_POSITIONAL_PARAM, 60, 15)],
+      [error(WarningCode.invalidRequiredPositionalParam, 60, 15)],
     );
   }
 
@@ -61,7 +61,7 @@ import 'package:meta/meta.dart';
 
 typedef F = void Function(@required int);
 ''',
-      [error(WarningCode.INVALID_REQUIRED_POSITIONAL_PARAM, 60, 13)],
+      [error(WarningCode.invalidRequiredPositionalParam, 60, 13)],
     );
   }
 

@@ -92,7 +92,7 @@ void f() {
 
 class A {}
 ''',
-      [error(WarningCode.UNUSED_LOCAL_VARIABLE, 18, 1)],
+      [error(WarningCode.unusedLocalVariable, 18, 1)],
     );
     var node = findNode.singlePatternVariableDeclarationStatement;
     assertResolvedNodeText(node, r'''
@@ -170,7 +170,7 @@ void f() {
 
 T g<T>() => throw 0;
 ''',
-      [error(WarningCode.UNUSED_LOCAL_VARIABLE, 22, 1)],
+      [error(WarningCode.unusedLocalVariable, 22, 1)],
     );
     var node = findNode.singlePatternVariableDeclarationStatement;
     assertResolvedNodeText(node, r'''
@@ -248,8 +248,8 @@ void f((int, String) x) {
 }
 ''',
       [
-        error(WarningCode.UNUSED_LOCAL_VARIABLE, 33, 1),
-        error(WarningCode.UNUSED_LOCAL_VARIABLE, 36, 1),
+        error(WarningCode.unusedLocalVariable, 33, 1),
+        error(WarningCode.unusedLocalVariable, 36, 1),
       ],
     );
     var node = findNode.singlePatternVariableDeclarationStatement;
@@ -297,7 +297,7 @@ void f() {
 
 T g<T>(T a) => throw 0;
 ''',
-      [error(WarningCode.UNUSED_LOCAL_VARIABLE, 18, 1)],
+      [error(WarningCode.unusedLocalVariable, 18, 1)],
     );
     var node = findNode.singlePatternVariableDeclarationStatement;
     assertResolvedNodeText(node, r'''
@@ -354,7 +354,7 @@ void f() {
 ''',
       [
         error(
-          ParserErrorCode.VARIABLE_PATTERN_KEYWORD_IN_DECLARATION_CONTEXT,
+          ParserErrorCode.variablePatternKeywordInDeclarationContext,
           18,
           5,
         ),
@@ -372,7 +372,7 @@ void f() {
 ''',
       [
         error(
-          ParserErrorCode.VARIABLE_PATTERN_KEYWORD_IN_DECLARATION_CONTEXT,
+          ParserErrorCode.variablePatternKeywordInDeclarationContext,
           18,
           3,
         ),

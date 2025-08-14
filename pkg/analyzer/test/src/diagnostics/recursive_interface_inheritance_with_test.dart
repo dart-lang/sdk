@@ -23,8 +23,8 @@ class A extends Object {}
 augment class A with A {}
 ''',
       [
-        error(CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE_WITH, 6, 1),
-        error(CompileTimeErrorCode.CLASS_USED_AS_MIXIN, 47, 1),
+        error(CompileTimeErrorCode.recursiveInterfaceInheritanceWith, 6, 1),
+        error(CompileTimeErrorCode.classUsedAsMixin, 47, 1),
       ],
     );
   }
@@ -34,7 +34,7 @@ augment class A with A {}
       r'''
 mixin class M = Object with M;
 ''',
-      [error(CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE_WITH, 12, 1)],
+      [error(CompileTimeErrorCode.recursiveInterfaceInheritanceWith, 12, 1)],
     );
   }
 }

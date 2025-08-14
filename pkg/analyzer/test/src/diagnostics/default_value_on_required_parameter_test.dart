@@ -32,7 +32,7 @@ void log({String? message}) {}
       '''
 void log({required String? message = 'no message'}) {}
 ''',
-      [error(CompileTimeErrorCode.DEFAULT_VALUE_ON_REQUIRED_PARAMETER, 27, 7)],
+      [error(CompileTimeErrorCode.defaultValueOnRequiredParameter, 27, 7)],
     );
   }
 
@@ -49,7 +49,7 @@ abstract class C {
   void foo({required int? a = 0});
 }
 ''',
-      [error(CompileTimeErrorCode.DEFAULT_VALUE_ON_REQUIRED_PARAMETER, 45, 1)],
+      [error(CompileTimeErrorCode.defaultValueOnRequiredParameter, 45, 1)],
     );
   }
 
@@ -60,7 +60,7 @@ class C {
   void foo({required int? a = 0}) {}
 }
 ''',
-      [error(CompileTimeErrorCode.DEFAULT_VALUE_ON_REQUIRED_PARAMETER, 36, 1)],
+      [error(CompileTimeErrorCode.defaultValueOnRequiredParameter, 36, 1)],
     );
   }
 }

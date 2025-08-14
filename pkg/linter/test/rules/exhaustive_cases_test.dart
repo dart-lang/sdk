@@ -116,7 +116,7 @@ void dep(DeprecatedFields e) {
 ''',
       [
         lint(449, 10),
-        error(HintCode.DEPRECATED_MEMBER_USE_FROM_SAME_PACKAGE, 599, 6),
+        error(HintCode.deprecatedMemberUseFromSamePackage, 599, 6),
       ],
     );
   }
@@ -350,7 +350,7 @@ void s(Subclassed e) {
 
   test_enum_ok() async {
     await assertDiagnostics(actualEnumSource, [
-      error(CompileTimeErrorCode.NON_EXHAUSTIVE_SWITCH_STATEMENT, 52, 6),
+      error(CompileTimeErrorCode.nonExhaustiveSwitchStatement, 52, 6),
     ]);
   }
 }
@@ -360,7 +360,7 @@ class ExhaustiveCasesTestLanguage219 extends BaseExhaustiveCasesTest
     with LanguageVersion219Mixin {
   test_enum_ok() async {
     await assertDiagnostics(actualEnumSource, [
-      error(StaticWarningCode.MISSING_ENUM_CONSTANT_IN_SWITCH, 52, 10),
+      error(StaticWarningCode.missingEnumConstantInSwitch, 52, 10),
     ]);
   }
 }

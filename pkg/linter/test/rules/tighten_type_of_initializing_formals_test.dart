@@ -96,8 +96,8 @@ class A {
 ''',
       [
         // No lint
-        error(WarningCode.UNNECESSARY_NULL_COMPARISON_NEVER_NULL_TRUE, 53, 7),
-        error(WarningCode.UNNECESSARY_NULL_COMPARISON_NEVER_NULL_TRUE, 93, 7),
+        error(WarningCode.unnecessaryNullComparisonNeverNullTrue, 53, 7),
+        error(WarningCode.unnecessaryNullComparisonNeverNullTrue, 93, 7),
       ],
     );
   }

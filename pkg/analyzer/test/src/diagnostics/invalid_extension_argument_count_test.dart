@@ -25,7 +25,7 @@ f() {
   E('a', 'b', 'c').m();
 }
 ''',
-      [error(CompileTimeErrorCode.INVALID_EXTENSION_ARGUMENT_COUNT, 49, 15)],
+      [error(CompileTimeErrorCode.invalidExtensionArgumentCount, 49, 15)],
     );
     assertTypeDynamic(findNode.extensionOverride('E(').extendedType);
   }
@@ -51,7 +51,7 @@ f() {
   E().m();
 }
 ''',
-      [error(CompileTimeErrorCode.INVALID_EXTENSION_ARGUMENT_COUNT, 49, 2)],
+      [error(CompileTimeErrorCode.invalidExtensionArgumentCount, 49, 2)],
     );
     assertTypeDynamic(findNode.extensionOverride('E(').extendedType);
   }

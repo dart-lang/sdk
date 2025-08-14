@@ -298,8 +298,8 @@ void f() {
 ''',
       [
         // No lint.
-        error(WarningCode.UNNECESSARY_NULL_COMPARISON_NEVER_NULL_FALSE, 23, 7),
-        error(WarningCode.DEAD_CODE, 32, 2),
+        error(WarningCode.unnecessaryNullComparisonNeverNullFalse, 23, 7),
+        error(WarningCode.deadCode, 32, 2),
       ],
     );
   }
@@ -324,7 +324,7 @@ String f(int char) {
 }
 ''',
       [
-        error(CompileTimeErrorCode.NON_EXHAUSTIVE_SWITCH_EXPRESSION, 49, 6),
+        error(CompileTimeErrorCode.nonExhaustiveSwitchExpression, 49, 6),
         lint(69, 10),
       ],
     );
@@ -341,7 +341,7 @@ String f(int i) {
 ''',
       [
         // No lint.
-        error(CompileTimeErrorCode.NON_EXHAUSTIVE_SWITCH_EXPRESSION, 27, 6),
+        error(CompileTimeErrorCode.nonExhaustiveSwitchExpression, 27, 6),
       ],
     );
   }
@@ -358,7 +358,7 @@ String f(int char) {
 }
 ''',
       [
-        error(CompileTimeErrorCode.NON_EXHAUSTIVE_SWITCH_EXPRESSION, 49, 6),
+        error(CompileTimeErrorCode.nonExhaustiveSwitchExpression, 49, 6),
         lint(69, 10),
       ],
     );
@@ -375,7 +375,7 @@ String f(String char) {
 ''',
       [
         // No lint.
-        error(CompileTimeErrorCode.NON_EXHAUSTIVE_SWITCH_EXPRESSION, 33, 6),
+        error(CompileTimeErrorCode.nonExhaustiveSwitchExpression, 33, 6),
       ],
     );
   }

@@ -35,7 +35,7 @@ f(x) {
   }
 }
 ''',
-      [error(WarningCode.UNUSED_LABEL, 26, 6)],
+      [error(WarningCode.unusedLabel, 26, 6)],
     );
   }
 
@@ -48,7 +48,7 @@ f(condition()) {
   }
 }
 ''',
-      [error(WarningCode.UNUSED_LABEL, 19, 6)],
+      [error(WarningCode.unusedLabel, 19, 6)],
     );
   }
 

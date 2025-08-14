@@ -23,7 +23,7 @@ class NullArgumentToNonNullCompleterCompleteTest
 import 'dart:async';
 void f() => Completer<int>().complete();
 ''',
-      [error(WarningCode.NULL_ARGUMENT_TO_NON_NULL_TYPE, 33, 27)],
+      [error(WarningCode.nullArgumentToNonNullType, 33, 27)],
     );
   }
 
@@ -42,7 +42,7 @@ void f() {
 import 'dart:async';
 void f() => Completer<int>().complete(null);
 ''',
-      [error(WarningCode.NULL_ARGUMENT_TO_NON_NULL_TYPE, 59, 4)],
+      [error(WarningCode.nullArgumentToNonNullType, 59, 4)],
     );
   }
 
@@ -63,7 +63,7 @@ void f() {
 import 'dart:async';
 void f(Null a) => Completer<int>().complete(a);
 ''',
-      [error(WarningCode.NULL_ARGUMENT_TO_NON_NULL_TYPE, 65, 1)],
+      [error(WarningCode.nullArgumentToNonNullType, 65, 1)],
     );
   }
 }
@@ -75,7 +75,7 @@ class NullArgumentToNonNullFutureValueTest extends PubPackageResolutionTest {
       '''
 void foo() => Future<int>.value();
 ''',
-      [error(WarningCode.NULL_ARGUMENT_TO_NON_NULL_TYPE, 14, 19)],
+      [error(WarningCode.nullArgumentToNonNullType, 14, 19)],
     );
   }
 
@@ -93,7 +93,7 @@ void f() {
       '''
 void foo() => Future<int>.value(null);
 ''',
-      [error(WarningCode.NULL_ARGUMENT_TO_NON_NULL_TYPE, 32, 4)],
+      [error(WarningCode.nullArgumentToNonNullType, 32, 4)],
     );
   }
 
@@ -111,7 +111,7 @@ void f() {
       '''
 void foo(Null a) => Future<int>.value(a);
 ''',
-      [error(WarningCode.NULL_ARGUMENT_TO_NON_NULL_TYPE, 38, 1)],
+      [error(WarningCode.nullArgumentToNonNullType, 38, 1)],
     );
   }
 }

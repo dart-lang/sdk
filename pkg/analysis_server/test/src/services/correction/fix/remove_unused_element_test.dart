@@ -181,7 +181,7 @@ enum _MyEnum {A, B, C}
 ''',
       errorFilter:
           (diagnostic) =>
-              diagnostic.diagnosticCode == WarningCode.UNUSED_ELEMENT,
+              diagnostic.diagnosticCode == WarningCode.unusedElement,
     );
   }
 

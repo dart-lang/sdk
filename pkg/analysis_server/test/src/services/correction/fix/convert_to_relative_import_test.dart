@@ -94,7 +94,7 @@ import 'foo';
 ''',
       errorFilter:
           (error) =>
-              error.diagnosticCode != CompileTimeErrorCode.URI_DOES_NOT_EXIST,
+              error.diagnosticCode != CompileTimeErrorCode.uriDoesNotExist,
     );
   }
 

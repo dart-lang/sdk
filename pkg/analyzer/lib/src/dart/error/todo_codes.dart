@@ -11,10 +11,10 @@ import 'package:analyzer/error/error.dart';
 /// Static helper methods and properties for working with [TodoCode]s.
 class Todo {
   static const _codes = {
-    'TODO': TodoCode.TODO,
-    'FIXME': TodoCode.FIXME,
-    'HACK': TodoCode.HACK,
-    'UNDONE': TodoCode.UNDONE,
+    'TODO': TodoCode.todo,
+    'FIXME': TodoCode.fixme,
+    'HACK': TodoCode.hack,
+    'UNDONE': TodoCode.undone,
   };
 
   /// This matches the two common Dart task styles
@@ -50,8 +50,8 @@ class Todo {
     throw UnimplementedError('Do not construct');
   }
 
-  /// Returns the TodoCode for [kind], falling back to [TodoCode.TODO].
-  static TodoCode forKind(String kind) => _codes[kind] ?? TodoCode.TODO;
+  /// Returns the TodoCode for [kind], falling back to [TodoCode.todo].
+  static TodoCode forKind(String kind) => _codes[kind] ?? TodoCode.todo;
 }
 
 /**
@@ -62,22 +62,22 @@ class TodoCode extends DiagnosticCode {
   /**
    * A standard TODO comment marked as TODO.
    */
-  static const TodoCode TODO = TodoCode('TODO');
+  static const TodoCode todo = TodoCode('TODO');
 
   /**
    * A TODO comment marked as FIXME.
    */
-  static const TodoCode FIXME = TodoCode('FIXME');
+  static const TodoCode fixme = TodoCode('FIXME');
 
   /**
    * A TODO comment marked as HACK.
    */
-  static const TodoCode HACK = TodoCode('HACK');
+  static const TodoCode hack = TodoCode('HACK');
 
   /**
    * A TODO comment marked as UNDONE.
    */
-  static const TodoCode UNDONE = TodoCode('UNDONE');
+  static const TodoCode undone = TodoCode('UNDONE');
 
   /**
    * Initialize a newly created error code to have the given [name].

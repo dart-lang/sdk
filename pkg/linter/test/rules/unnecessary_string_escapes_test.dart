@@ -214,8 +214,8 @@ String unclosedQuote() => '\
 ''',
       [
         // Ensure linter does not crash.
-        error(ParserErrorCode.INVALID_UNICODE_ESCAPE_STARTED, 27, 1),
-        error(ScannerErrorCode.UNTERMINATED_STRING_LITERAL, 27, 1),
+        error(ParserErrorCode.invalidUnicodeEscapeStarted, 27, 1),
+        error(ScannerErrorCode.unterminatedStringLiteral, 27, 1),
       ],
     );
   }

@@ -24,7 +24,7 @@ void f() {
   g!();
 }
 ''',
-      [error(StaticWarningCode.UNNECESSARY_NON_NULL_ASSERTION, 27, 1)],
+      [error(StaticWarningCode.unnecessaryNonNullAssertion, 27, 1)],
     );
   }
 
@@ -39,7 +39,7 @@ void f() {
   A.foo!();
 }
 ''',
-      [error(StaticWarningCode.UNNECESSARY_NON_NULL_ASSERTION, 54, 1)],
+      [error(StaticWarningCode.unnecessaryNonNullAssertion, 54, 1)],
     );
   }
 
@@ -50,7 +50,7 @@ f(int x) {
   x!;
 }
 ''',
-      [error(StaticWarningCode.UNNECESSARY_NON_NULL_ASSERTION, 14, 1)],
+      [error(StaticWarningCode.unnecessaryNonNullAssertion, 14, 1)],
     );
   }
 

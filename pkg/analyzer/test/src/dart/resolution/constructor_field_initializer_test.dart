@@ -199,7 +199,7 @@ const a = 0;
 ''',
       [
         error(
-          CompileTimeErrorCode.FIELD_INITIALIZED_IN_INITIALIZER_AND_DECLARATION,
+          CompileTimeErrorCode.fieldInitializedInInitializerAndDeclaration,
           39,
           1,
         ),
@@ -230,7 +230,7 @@ class A {
 const a = 0;
 class X {}
 ''',
-      [error(CompileTimeErrorCode.INITIALIZER_FOR_NON_EXISTENT_FIELD, 24, 5)],
+      [error(CompileTimeErrorCode.initializerForNonExistentField, 24, 5)],
     );
 
     var node = findNode.singleConstructorFieldInitializer;
@@ -257,7 +257,7 @@ class A {
 }
 const a = 0;
 ''',
-      [error(CompileTimeErrorCode.INITIALIZER_FOR_NON_EXISTENT_FIELD, 18, 5)],
+      [error(CompileTimeErrorCode.initializerForNonExistentField, 18, 5)],
     );
 
     var node = findNode.singleConstructorFieldInitializer;
@@ -285,8 +285,8 @@ class A {
 const a = 0;
 ''',
       [
-        error(WarningCode.UNUSED_IMPORT, 7, 12),
-        error(CompileTimeErrorCode.INITIALIZER_FOR_NON_EXISTENT_FIELD, 44, 5),
+        error(WarningCode.unusedImport, 7, 12),
+        error(CompileTimeErrorCode.initializerForNonExistentField, 44, 5),
       ],
     );
 
@@ -314,7 +314,7 @@ class A {
 }
 const a = 0;
 ''',
-      [error(CompileTimeErrorCode.INITIALIZER_FOR_NON_EXISTENT_FIELD, 18, 5)],
+      [error(CompileTimeErrorCode.initializerForNonExistentField, 18, 5)],
     );
 
     var node = findNode.singleConstructorFieldInitializer;
@@ -341,7 +341,7 @@ class A {
 }
 const a = 0;
 ''',
-      [error(CompileTimeErrorCode.INITIALIZER_FOR_NON_EXISTENT_FIELD, 18, 5)],
+      [error(CompileTimeErrorCode.initializerForNonExistentField, 18, 5)],
     );
 
     var node = findNode.singleConstructorFieldInitializer;
@@ -368,7 +368,7 @@ class A {
 const a = 0;
 void x() {}
 ''',
-      [error(CompileTimeErrorCode.INITIALIZER_FOR_NON_EXISTENT_FIELD, 18, 5)],
+      [error(CompileTimeErrorCode.initializerForNonExistentField, 18, 5)],
     );
 
     var node = findNode.singleConstructorFieldInitializer;
@@ -395,7 +395,7 @@ class A {
 const a = 0;
 var x = 0;
 ''',
-      [error(CompileTimeErrorCode.INITIALIZER_FOR_NON_EXISTENT_FIELD, 18, 5)],
+      [error(CompileTimeErrorCode.initializerForNonExistentField, 18, 5)],
     );
 
     var node = findNode.singleConstructorFieldInitializer;
@@ -421,7 +421,7 @@ class A<T> {
 }
 const a = 0;
 ''',
-      [error(CompileTimeErrorCode.INITIALIZER_FOR_NON_EXISTENT_FIELD, 21, 5)],
+      [error(CompileTimeErrorCode.initializerForNonExistentField, 21, 5)],
     );
 
     var node = findNode.singleConstructorFieldInitializer;
@@ -447,7 +447,7 @@ class A {
 }
 const a = 0;
 ''',
-      [error(CompileTimeErrorCode.INITIALIZER_FOR_NON_EXISTENT_FIELD, 18, 5)],
+      [error(CompileTimeErrorCode.initializerForNonExistentField, 18, 5)],
     );
 
     var node = findNode.singleConstructorFieldInitializer;

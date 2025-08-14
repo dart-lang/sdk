@@ -89,8 +89,8 @@ void f() {
 ''',
       [
         _notAssignedError(22, 1),
-        error(WarningCode.DEAD_CODE, 28, 2),
-        error(StaticWarningCode.DEAD_NULL_AWARE_EXPRESSION, 28, 1),
+        error(WarningCode.deadCode, 28, 2),
+        error(StaticWarningCode.deadNullAwareExpression, 28, 1),
       ],
     );
   }
@@ -105,8 +105,8 @@ void f() {
 ''',
       [
         _notAssignedError(22, 1),
-        error(WarningCode.DEAD_CODE, 28, 2),
-        error(StaticWarningCode.DEAD_NULL_AWARE_EXPRESSION, 28, 1),
+        error(WarningCode.deadCode, 28, 2),
+        error(StaticWarningCode.deadNullAwareExpression, 28, 1),
         _notAssignedError(28, 1),
       ],
     );
@@ -132,8 +132,8 @@ void f() {
 }
 ''',
       [
-        error(WarningCode.DEAD_CODE, 30, 4),
-        error(StaticWarningCode.DEAD_NULL_AWARE_EXPRESSION, 33, 1),
+        error(WarningCode.deadCode, 30, 4),
+        error(StaticWarningCode.deadNullAwareExpression, 33, 1),
       ],
     );
   }
@@ -148,8 +148,8 @@ void f(int a) {
 }
 ''',
       [
-        error(WarningCode.DEAD_CODE, 29, 10),
-        error(StaticWarningCode.DEAD_NULL_AWARE_EXPRESSION, 32, 7),
+        error(WarningCode.deadCode, 29, 10),
+        error(StaticWarningCode.deadNullAwareExpression, 32, 7),
         _notAssignedError(43, 1),
       ],
     );
@@ -562,7 +562,7 @@ void f() {
   v;
 }
 ''',
-      [error(WarningCode.DEAD_CODE, 51, 2)],
+      [error(WarningCode.deadCode, 51, 2)],
     );
   }
 
@@ -578,8 +578,8 @@ void f() {
 }
 ''',
       [
-        error(WarningCode.UNUSED_LOCAL_VARIABLE, 31, 1),
-        error(WarningCode.DEAD_CODE, 61, 2),
+        error(WarningCode.unusedLocalVariable, 31, 1),
+        error(WarningCode.deadCode, 61, 2),
       ],
     );
   }
@@ -596,7 +596,7 @@ void f(bool b) {
 }
 ''',
       [
-        error(WarningCode.UNUSED_LOCAL_VARIABLE, 31, 2),
+        error(WarningCode.unusedLocalVariable, 31, 2),
         _notAssignedError(75, 2),
         _notAssignedError(85, 2),
         _notAssignedError(95, 2),
@@ -718,8 +718,8 @@ void f() {
 }
 ''',
       [
-        error(WarningCode.UNUSED_LOCAL_VARIABLE, 17, 1),
-        error(WarningCode.UNUSED_ELEMENT, 38, 1),
+        error(WarningCode.unusedLocalVariable, 17, 1),
+        error(WarningCode.unusedElement, 38, 1),
         _notAssignedError(64, 1),
       ],
     );
@@ -742,7 +742,7 @@ void f() {
   }
 }
 ''',
-      [error(WarningCode.UNUSED_ELEMENT, 40, 1), _notAssignedError(94, 2)],
+      [error(WarningCode.unusedElement, 40, 1), _notAssignedError(94, 2)],
     );
   }
 
@@ -762,7 +762,7 @@ void f() {
   v2 = 0;
 }
 ''',
-      [error(WarningCode.UNUSED_ELEMENT, 44, 1), _notAssignedError(62, 2)],
+      [error(WarningCode.unusedElement, 44, 1), _notAssignedError(62, 2)],
     );
   }
 
@@ -779,7 +779,7 @@ void f() {
   v;
 }
 ''',
-      [error(WarningCode.UNUSED_ELEMENT, 28, 1), _notAssignedError(52, 1)],
+      [error(WarningCode.unusedElement, 28, 1), _notAssignedError(52, 1)],
     );
   }
 
@@ -792,7 +792,7 @@ f() {
   FutureOr<int?> v;
 }
 ''',
-      [error(WarningCode.UNUSED_LOCAL_VARIABLE, 45, 1)],
+      [error(WarningCode.unusedLocalVariable, 45, 1)],
     );
   }
 
@@ -832,7 +832,7 @@ void f() {
   v;
 }
 ''',
-      [error(WarningCode.DEAD_CODE, 33, 25)],
+      [error(WarningCode.deadCode, 33, 25)],
     );
   }
 
@@ -895,7 +895,7 @@ void f() {
   v;
 }
 ''',
-      [error(WarningCode.DEAD_CODE, 33, 25)],
+      [error(WarningCode.deadCode, 33, 25)],
     );
   }
 
@@ -1022,7 +1022,7 @@ void f() {
   int v;
 }
 ''',
-      [error(WarningCode.UNUSED_LOCAL_VARIABLE, 17, 1)],
+      [error(WarningCode.unusedLocalVariable, 17, 1)],
     );
   }
 
@@ -1288,7 +1288,7 @@ void f(Object? x) {
   }
 }
 ''',
-      [error(WarningCode.DEAD_CODE, 45, 8)],
+      [error(WarningCode.deadCode, 45, 8)],
     );
   }
 
@@ -1302,7 +1302,7 @@ void f(Object? x) {
   });
 }
 ''',
-      [error(WarningCode.DEAD_CODE, 52, 8)],
+      [error(WarningCode.deadCode, 52, 8)],
     );
   }
 
@@ -1316,7 +1316,7 @@ void f(Object? x) {
   }
 }
 ''',
-      [error(WarningCode.DEAD_CODE, 56, 8)],
+      [error(WarningCode.deadCode, 56, 8)],
     );
   }
 
@@ -1507,7 +1507,7 @@ f() {
   dynamic v;
 }
 ''',
-      [error(WarningCode.UNUSED_LOCAL_VARIABLE, 16, 1)],
+      [error(WarningCode.unusedLocalVariable, 16, 1)],
     );
   }
 
@@ -1518,7 +1518,7 @@ f() {
   var v;
 }
 ''',
-      [error(WarningCode.UNUSED_LOCAL_VARIABLE, 12, 1)],
+      [error(WarningCode.unusedLocalVariable, 12, 1)],
     );
   }
 
@@ -1529,7 +1529,7 @@ f() {
   void v;
 }
 ''',
-      [error(WarningCode.UNUSED_LOCAL_VARIABLE, 13, 1)],
+      [error(WarningCode.unusedLocalVariable, 13, 1)],
     );
   }
 
@@ -1613,7 +1613,7 @@ void f(bool b) {
   v;
 }
 ''',
-      [error(WarningCode.DEAD_CODE, 131, 2)],
+      [error(WarningCode.deadCode, 131, 2)],
     );
   }
 
@@ -1693,10 +1693,9 @@ void f(bool b) {
 }
 ''',
       [
-        error(WarningCode.DEAD_CODE, 81, 2),
+        error(WarningCode.deadCode, 81, 2),
         error(
-          CompileTimeErrorCode
-              .NOT_ASSIGNED_POTENTIALLY_NON_NULLABLE_LOCAL_VARIABLE,
+          CompileTimeErrorCode.notAssignedPotentiallyNonNullableLocalVariable,
           81,
           1,
         ),
@@ -1717,10 +1716,9 @@ void f() {
 }
 ''',
       [
-        error(WarningCode.DEAD_CODE, 114, 2),
+        error(WarningCode.deadCode, 114, 2),
         error(
-          CompileTimeErrorCode
-              .NOT_ASSIGNED_POTENTIALLY_NON_NULLABLE_LOCAL_VARIABLE,
+          CompileTimeErrorCode.notAssignedPotentiallyNonNullableLocalVariable,
           114,
           1,
         ),
@@ -1730,7 +1728,7 @@ void f() {
 
   ExpectedError _notAssignedError(int offset, int length) {
     return error(
-      CompileTimeErrorCode.NOT_ASSIGNED_POTENTIALLY_NON_NULLABLE_LOCAL_VARIABLE,
+      CompileTimeErrorCode.notAssignedPotentiallyNonNullableLocalVariable,
       offset,
       length,
     );

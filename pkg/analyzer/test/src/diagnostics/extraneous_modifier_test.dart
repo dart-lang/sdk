@@ -22,7 +22,7 @@ class A {
 }
 ''');
     parseResult.assertErrors([
-      error(ParserErrorCode.EXTRANEOUS_MODIFIER, 14, 5),
+      error(ParserErrorCode.extraneousModifier, 14, 5),
     ]);
 
     var node = parseResult.findNode.simpleFormalParameter('a);');
@@ -56,7 +56,7 @@ class A {
 }
 ''');
     parseResult.assertErrors([
-      error(ParserErrorCode.EXTRANEOUS_MODIFIER, 14, 3),
+      error(ParserErrorCode.extraneousModifier, 14, 3),
     ]);
 
     var node = parseResult.findNode.superFormalParameter('super.a');

@@ -714,7 +714,7 @@ void f() {
 }
 ''',
       errorFilter:
-          (e) => e.diagnosticCode == CompileTimeErrorCode.UNDEFINED_FUNCTION,
+          (e) => e.diagnosticCode == CompileTimeErrorCode.undefinedFunction,
     );
   }
 

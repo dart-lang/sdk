@@ -25,7 +25,7 @@ final class C extends Struct {
   external Array<Void> a0;
 }
 ''',
-      [error(FfiCode.NON_SIZED_TYPE_ARGUMENT, 80, 4)],
+      [error(FfiCode.nonSizedTypeArgument, 80, 4)],
     );
   }
 
@@ -39,7 +39,7 @@ final class C extends Union {
   external Array<Void> a0;
 }
 ''',
-      [error(FfiCode.NON_SIZED_TYPE_ARGUMENT, 79, 4)],
+      [error(FfiCode.nonSizedTypeArgument, 79, 4)],
     );
   }
 

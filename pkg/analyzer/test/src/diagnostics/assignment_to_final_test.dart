@@ -60,10 +60,10 @@ void f(A a) {
 }
 ''',
       [
-        error(CompileTimeErrorCode.ASSIGNMENT_TO_FINAL, 64, 1),
-        error(CompileTimeErrorCode.ASSIGNMENT_TO_FINAL, 75, 1),
-        error(CompileTimeErrorCode.ASSIGNMENT_TO_FINAL, 89, 1),
-        error(CompileTimeErrorCode.ASSIGNMENT_TO_FINAL, 96, 1),
+        error(CompileTimeErrorCode.assignmentToFinal, 64, 1),
+        error(CompileTimeErrorCode.assignmentToFinal, 75, 1),
+        error(CompileTimeErrorCode.assignmentToFinal, 89, 1),
+        error(CompileTimeErrorCode.assignmentToFinal, 96, 1),
       ],
     );
   }
@@ -98,10 +98,10 @@ void f(A a) {
 }
 ''',
       [
-        error(CompileTimeErrorCode.ASSIGNMENT_TO_FINAL, 64, 1),
-        error(CompileTimeErrorCode.ASSIGNMENT_TO_FINAL, 75, 1),
-        error(CompileTimeErrorCode.ASSIGNMENT_TO_FINAL, 89, 1),
-        error(CompileTimeErrorCode.ASSIGNMENT_TO_FINAL, 96, 1),
+        error(CompileTimeErrorCode.assignmentToFinal, 64, 1),
+        error(CompileTimeErrorCode.assignmentToFinal, 75, 1),
+        error(CompileTimeErrorCode.assignmentToFinal, 89, 1),
+        error(CompileTimeErrorCode.assignmentToFinal, 96, 1),
       ],
     );
   }
@@ -121,10 +121,10 @@ void f(A a) {
 }
 ''',
       [
-        error(CompileTimeErrorCode.ASSIGNMENT_TO_FINAL, 46, 1),
-        error(CompileTimeErrorCode.ASSIGNMENT_TO_FINAL, 57, 1),
-        error(CompileTimeErrorCode.ASSIGNMENT_TO_FINAL, 71, 1),
-        error(CompileTimeErrorCode.ASSIGNMENT_TO_FINAL, 78, 1),
+        error(CompileTimeErrorCode.assignmentToFinal, 46, 1),
+        error(CompileTimeErrorCode.assignmentToFinal, 57, 1),
+        error(CompileTimeErrorCode.assignmentToFinal, 71, 1),
+        error(CompileTimeErrorCode.assignmentToFinal, 78, 1),
       ],
     );
   }
@@ -159,10 +159,10 @@ void f(A a) {
 }
 ''',
       [
-        error(CompileTimeErrorCode.ASSIGNMENT_TO_FINAL, 64, 1),
-        error(CompileTimeErrorCode.ASSIGNMENT_TO_FINAL, 75, 1),
-        error(CompileTimeErrorCode.ASSIGNMENT_TO_FINAL, 89, 1),
-        error(CompileTimeErrorCode.ASSIGNMENT_TO_FINAL, 96, 1),
+        error(CompileTimeErrorCode.assignmentToFinal, 64, 1),
+        error(CompileTimeErrorCode.assignmentToFinal, 75, 1),
+        error(CompileTimeErrorCode.assignmentToFinal, 89, 1),
+        error(CompileTimeErrorCode.assignmentToFinal, 96, 1),
       ],
     );
   }
@@ -182,10 +182,10 @@ void f() {
 }
 ''',
       [
-        error(CompileTimeErrorCode.ASSIGNMENT_TO_FINAL, 68, 1),
-        error(CompileTimeErrorCode.ASSIGNMENT_TO_FINAL, 79, 1),
-        error(CompileTimeErrorCode.ASSIGNMENT_TO_FINAL, 93, 1),
-        error(CompileTimeErrorCode.ASSIGNMENT_TO_FINAL, 100, 1),
+        error(CompileTimeErrorCode.assignmentToFinal, 68, 1),
+        error(CompileTimeErrorCode.assignmentToFinal, 79, 1),
+        error(CompileTimeErrorCode.assignmentToFinal, 93, 1),
+        error(CompileTimeErrorCode.assignmentToFinal, 100, 1),
       ],
     );
   }
@@ -220,10 +220,10 @@ void f() {
 }
 ''',
       [
-        error(CompileTimeErrorCode.ASSIGNMENT_TO_FINAL, 68, 1),
-        error(CompileTimeErrorCode.ASSIGNMENT_TO_FINAL, 79, 1),
-        error(CompileTimeErrorCode.ASSIGNMENT_TO_FINAL, 93, 1),
-        error(CompileTimeErrorCode.ASSIGNMENT_TO_FINAL, 100, 1),
+        error(CompileTimeErrorCode.assignmentToFinal, 68, 1),
+        error(CompileTimeErrorCode.assignmentToFinal, 79, 1),
+        error(CompileTimeErrorCode.assignmentToFinal, 93, 1),
+        error(CompileTimeErrorCode.assignmentToFinal, 100, 1),
       ],
     );
   }
@@ -258,10 +258,10 @@ void f(A a) {
 }
 ''',
       [
-        error(CompileTimeErrorCode.ASSIGNMENT_TO_FINAL, 66, 1),
-        error(CompileTimeErrorCode.ASSIGNMENT_TO_FINAL, 79, 1),
-        error(CompileTimeErrorCode.ASSIGNMENT_TO_FINAL, 95, 1),
-        error(CompileTimeErrorCode.ASSIGNMENT_TO_FINAL, 104, 1),
+        error(CompileTimeErrorCode.assignmentToFinal, 66, 1),
+        error(CompileTimeErrorCode.assignmentToFinal, 79, 1),
+        error(CompileTimeErrorCode.assignmentToFinal, 95, 1),
+        error(CompileTimeErrorCode.assignmentToFinal, 104, 1),
       ],
     );
   }
@@ -281,7 +281,7 @@ class B extends A {
   }
 }
 ''',
-      [error(CompileTimeErrorCode.ASSIGNMENT_TO_FINAL, 96, 3)],
+      [error(CompileTimeErrorCode.assignmentToFinal, 96, 3)],
     );
   }
 
@@ -315,10 +315,10 @@ abstract class A {
 }
 ''',
       [
-        error(CompileTimeErrorCode.ASSIGNMENT_TO_FINAL, 61, 1),
-        error(CompileTimeErrorCode.ASSIGNMENT_TO_FINAL, 72, 1),
-        error(CompileTimeErrorCode.ASSIGNMENT_TO_FINAL, 86, 1),
-        error(CompileTimeErrorCode.ASSIGNMENT_TO_FINAL, 93, 1),
+        error(CompileTimeErrorCode.assignmentToFinal, 61, 1),
+        error(CompileTimeErrorCode.assignmentToFinal, 72, 1),
+        error(CompileTimeErrorCode.assignmentToFinal, 86, 1),
+        error(CompileTimeErrorCode.assignmentToFinal, 93, 1),
       ],
     );
   }
@@ -353,10 +353,10 @@ abstract class A {
 }
 ''',
       [
-        error(CompileTimeErrorCode.ASSIGNMENT_TO_FINAL, 68, 1),
-        error(CompileTimeErrorCode.ASSIGNMENT_TO_FINAL, 79, 1),
-        error(CompileTimeErrorCode.ASSIGNMENT_TO_FINAL, 93, 1),
-        error(CompileTimeErrorCode.ASSIGNMENT_TO_FINAL, 100, 1),
+        error(CompileTimeErrorCode.assignmentToFinal, 68, 1),
+        error(CompileTimeErrorCode.assignmentToFinal, 79, 1),
+        error(CompileTimeErrorCode.assignmentToFinal, 93, 1),
+        error(CompileTimeErrorCode.assignmentToFinal, 100, 1),
       ],
     );
   }
@@ -374,10 +374,10 @@ void f() {
 }
 ''',
       [
-        error(CompileTimeErrorCode.ASSIGNMENT_TO_FINAL, 30, 1),
-        error(CompileTimeErrorCode.ASSIGNMENT_TO_FINAL, 39, 1),
-        error(CompileTimeErrorCode.ASSIGNMENT_TO_FINAL, 51, 1),
-        error(CompileTimeErrorCode.ASSIGNMENT_TO_FINAL, 56, 1),
+        error(CompileTimeErrorCode.assignmentToFinal, 30, 1),
+        error(CompileTimeErrorCode.assignmentToFinal, 39, 1),
+        error(CompileTimeErrorCode.assignmentToFinal, 51, 1),
+        error(CompileTimeErrorCode.assignmentToFinal, 56, 1),
       ],
     );
   }
@@ -421,10 +421,10 @@ void f() {
 }
 ''',
       [
-        error(CompileTimeErrorCode.ASSIGNMENT_TO_FINAL, 32, 1),
-        error(CompileTimeErrorCode.ASSIGNMENT_TO_FINAL, 41, 1),
-        error(CompileTimeErrorCode.ASSIGNMENT_TO_FINAL, 53, 1),
-        error(CompileTimeErrorCode.ASSIGNMENT_TO_FINAL, 58, 1),
+        error(CompileTimeErrorCode.assignmentToFinal, 32, 1),
+        error(CompileTimeErrorCode.assignmentToFinal, 41, 1),
+        error(CompileTimeErrorCode.assignmentToFinal, 53, 1),
+        error(CompileTimeErrorCode.assignmentToFinal, 58, 1),
       ],
     );
   }
@@ -442,10 +442,10 @@ void f() {
 }
 ''',
       [
-        error(CompileTimeErrorCode.ASSIGNMENT_TO_FINAL, 27, 1),
-        error(CompileTimeErrorCode.ASSIGNMENT_TO_FINAL, 36, 1),
-        error(CompileTimeErrorCode.ASSIGNMENT_TO_FINAL, 48, 1),
-        error(CompileTimeErrorCode.ASSIGNMENT_TO_FINAL, 53, 1),
+        error(CompileTimeErrorCode.assignmentToFinal, 27, 1),
+        error(CompileTimeErrorCode.assignmentToFinal, 36, 1),
+        error(CompileTimeErrorCode.assignmentToFinal, 48, 1),
+        error(CompileTimeErrorCode.assignmentToFinal, 53, 1),
       ],
     );
   }
@@ -476,10 +476,10 @@ void f() {
 }
 ''',
       [
-        error(CompileTimeErrorCode.ASSIGNMENT_TO_FINAL, 36, 1),
-        error(CompileTimeErrorCode.ASSIGNMENT_TO_FINAL, 45, 1),
-        error(CompileTimeErrorCode.ASSIGNMENT_TO_FINAL, 57, 1),
-        error(CompileTimeErrorCode.ASSIGNMENT_TO_FINAL, 62, 1),
+        error(CompileTimeErrorCode.assignmentToFinal, 36, 1),
+        error(CompileTimeErrorCode.assignmentToFinal, 45, 1),
+        error(CompileTimeErrorCode.assignmentToFinal, 57, 1),
+        error(CompileTimeErrorCode.assignmentToFinal, 62, 1),
       ],
     );
   }

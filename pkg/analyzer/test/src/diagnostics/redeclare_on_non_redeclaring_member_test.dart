@@ -34,7 +34,7 @@ extension type E(C c) implements C {
   int get i => 0;
 }
 ''',
-      [error(WarningCode.REDECLARE_ON_NON_REDECLARING_MEMBER, 106, 1)],
+      [error(WarningCode.redeclareOnNonRedeclaringMember, 106, 1)],
     );
   }
 
@@ -65,7 +65,7 @@ extension type E(C c) implements C {
   void n() {}
 }
 ''',
-      [error(WarningCode.REDECLARE_ON_NON_REDECLARING_MEMBER, 103, 1)],
+      [error(WarningCode.redeclareOnNonRedeclaringMember, 103, 1)],
     );
   }
 
@@ -83,7 +83,7 @@ class D implements C {
 ''',
       [
         // No REDECLARE_ON_NON_REDECLARING_MEMBER warning.
-        error(WarningCode.INVALID_ANNOTATION_TARGET, 72, 9),
+        error(WarningCode.invalidAnnotationTarget, 72, 9),
       ],
     );
   }
@@ -118,8 +118,8 @@ extension type E(A it) implements A {
 }
 ''',
       [
-        error(WarningCode.UNUSED_ELEMENT, 51, 4),
-        error(WarningCode.UNUSED_ELEMENT, 122, 4),
+        error(WarningCode.unusedElement, 51, 4),
+        error(WarningCode.unusedElement, 122, 4),
       ],
     );
   }
@@ -138,7 +138,7 @@ extension type E(C c) implements C {
 ''',
       [
         // No REDECLARE_ON_NON_REDECLARING_MEMBER warning.
-        error(WarningCode.INVALID_ANNOTATION_TARGET, 86, 9),
+        error(WarningCode.invalidAnnotationTarget, 86, 9),
       ],
     );
   }
@@ -155,7 +155,7 @@ extension type E(C c) implements C {
   set i(int i) {}
 }
 ''',
-      [error(WarningCode.REDECLARE_ON_NON_REDECLARING_MEMBER, 102, 1)],
+      [error(WarningCode.redeclareOnNonRedeclaringMember, 102, 1)],
     );
   }
 

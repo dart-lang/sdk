@@ -22,7 +22,7 @@ class A implements Function {}
 ''',
       [
         error(
-          CompileTimeErrorCode.FINAL_CLASS_IMPLEMENTED_OUTSIDE_OF_LIBRARY,
+          CompileTimeErrorCode.finalClassImplementedOutsideOfLibrary,
           19,
           8,
         ),
@@ -37,13 +37,13 @@ class A implements Function, Function {}
 ''',
       [
         error(
-          CompileTimeErrorCode.FINAL_CLASS_IMPLEMENTED_OUTSIDE_OF_LIBRARY,
+          CompileTimeErrorCode.finalClassImplementedOutsideOfLibrary,
           19,
           8,
         ),
-        error(CompileTimeErrorCode.IMPLEMENTS_REPEATED, 29, 8),
+        error(CompileTimeErrorCode.implementsRepeated, 29, 8),
         error(
-          CompileTimeErrorCode.FINAL_CLASS_IMPLEMENTED_OUTSIDE_OF_LIBRARY,
+          CompileTimeErrorCode.finalClassImplementedOutsideOfLibrary,
           29,
           8,
         ),
@@ -58,8 +58,8 @@ class A implements Function, Function {}
 class A implements Function, Function {}
 ''',
       [
-        error(WarningCode.DEPRECATED_IMPLEMENTS_FUNCTION, 35, 8),
-        error(CompileTimeErrorCode.IMPLEMENTS_REPEATED, 45, 8),
+        error(WarningCode.deprecatedImplementsFunction, 35, 8),
+        error(CompileTimeErrorCode.implementsRepeated, 45, 8),
       ],
     );
   }
@@ -70,7 +70,7 @@ class A implements Function, Function {}
 // @dart = 2.19
 class A implements Function {}
 ''',
-      [error(WarningCode.DEPRECATED_IMPLEMENTS_FUNCTION, 35, 8)],
+      [error(WarningCode.deprecatedImplementsFunction, 35, 8)],
     );
   }
 
@@ -81,7 +81,7 @@ class A implements Function {}
 typedef F = Function;
 class A implements F {}
 ''',
-      [error(WarningCode.DEPRECATED_IMPLEMENTS_FUNCTION, 57, 1)],
+      [error(WarningCode.deprecatedImplementsFunction, 57, 1)],
     );
   }
 
@@ -91,7 +91,7 @@ class A implements F {}
 class Function {}
 class A implements Function {}
 ''',
-      [error(CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE_NAME, 6, 8)],
+      [error(CompileTimeErrorCode.builtInIdentifierAsTypeName, 6, 8)],
     );
   }
 
@@ -102,7 +102,7 @@ class A implements Function {}
 mixin M {}
 class A = Object with M implements Function;
 ''',
-      [error(WarningCode.DEPRECATED_IMPLEMENTS_FUNCTION, 62, 8)],
+      [error(WarningCode.deprecatedImplementsFunction, 62, 8)],
     );
   }
 
@@ -114,7 +114,7 @@ mixin M {}
 typedef F = Function;
 class A = Object with M implements F;
 ''',
-      [error(WarningCode.DEPRECATED_IMPLEMENTS_FUNCTION, 84, 1)],
+      [error(WarningCode.deprecatedImplementsFunction, 84, 1)],
     );
   }
 }

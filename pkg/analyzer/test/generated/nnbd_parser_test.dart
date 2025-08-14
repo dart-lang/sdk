@@ -156,7 +156,7 @@ main() {
     parseCompilationUnit(
       'main() { a..[27]?..x; }',
       errors: [
-        expectedError(ParserErrorCode.NULL_AWARE_CASCADE_OUT_OF_ORDER, 16, 3),
+        expectedError(ParserErrorCode.nullAwareCascadeOutOfOrder, 16, 3),
       ],
     );
   }
@@ -195,9 +195,9 @@ main() {
     parseCompilationUnit(
       'D? foo(X? x) { X ? ? x2 = x + bar(7) : y; }',
       errors: [
-        expectedError(ParserErrorCode.MISSING_IDENTIFIER, 19, 1),
-        expectedError(ParserErrorCode.EXPECTED_TOKEN, 40, 1),
-        expectedError(ParserErrorCode.MISSING_IDENTIFIER, 40, 1),
+        expectedError(ParserErrorCode.missingIdentifier, 19, 1),
+        expectedError(ParserErrorCode.expectedToken, 40, 1),
+        expectedError(ParserErrorCode.missingIdentifier, 40, 1),
       ],
     );
   }
@@ -231,11 +231,11 @@ main() {
     parseCompilationUnit(
       r'+t{{r?this}}',
       errors: [
-        expectedError(ParserErrorCode.EXPECTED_EXECUTABLE, 0, 1),
-        expectedError(ParserErrorCode.MISSING_FUNCTION_PARAMETERS, 1, 1),
-        expectedError(ParserErrorCode.EXPECTED_TOKEN, 6, 4),
-        expectedError(ParserErrorCode.EXPECTED_TOKEN, 10, 1),
-        expectedError(ParserErrorCode.MISSING_IDENTIFIER, 10, 1),
+        expectedError(ParserErrorCode.expectedExecutable, 0, 1),
+        expectedError(ParserErrorCode.missingFunctionParameters, 1, 1),
+        expectedError(ParserErrorCode.expectedToken, 6, 4),
+        expectedError(ParserErrorCode.expectedToken, 10, 1),
+        expectedError(ParserErrorCode.missingIdentifier, 10, 1),
       ],
     );
   }

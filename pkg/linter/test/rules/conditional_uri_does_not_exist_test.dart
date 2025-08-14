@@ -37,7 +37,7 @@ import ''
       [
         // The imported library '' can't have a part-of directive,
         // but that's OK for the purposes of verifying the lint.
-        error(CompileTimeErrorCode.IMPORT_OF_NON_LIBRARY, 26, 2),
+        error(CompileTimeErrorCode.importOfNonLibrary, 26, 2),
         lint(54, 16),
         lint(139, 16),
       ],
@@ -53,7 +53,7 @@ import ''
     if (dart.library.async) 'dart:missing_2';
 ''',
       [
-        error(WarningCode.UNUSED_IMPORT, 7, 2),
+        error(WarningCode.unusedImport, 7, 2),
         lint(35, 16, messageContains: 'dart:missing_1'),
         lint(120, 16, messageContains: 'dart:missing_2'),
       ],
@@ -71,7 +71,7 @@ import ''
     if (dart.library.async) 'missing_2.dart';
 ''',
       [
-        error(WarningCode.UNUSED_IMPORT, 7, 2),
+        error(WarningCode.unusedImport, 7, 2),
         lint(35, 16, messageContains: 'missing_1.dart'),
         lint(121, 16, messageContains: 'missing_2.dart'),
       ],
@@ -87,7 +87,7 @@ import ''
     if (dart.library.io) 'package:foo/missing_2.dart';
 ''',
       [
-        error(WarningCode.UNUSED_IMPORT, 7, 2),
+        error(WarningCode.unusedImport, 7, 2),
         lint(35, 29, messageContains: 'missing_1.dart'),
         lint(142, 28, messageContains: 'missing_2.dart'),
       ],
@@ -108,7 +108,7 @@ import ''
 
 part 'a.dart';
 ''',
-      [error(WarningCode.UNUSED_IMPORT, 7, 2), lint(35, 16), lint(120, 16)],
+      [error(WarningCode.unusedImport, 7, 2), lint(35, 16), lint(120, 16)],
     );
   }
 }

@@ -41,7 +41,7 @@ augment class A {
     await resolveFile2(a);
     assertErrorsInResult([
       error(
-        CompileTimeErrorCode.FIELD_INITIALIZED_IN_INITIALIZER_AND_DECLARATION,
+        CompileTimeErrorCode.fieldInitializedInInitializerAndDeclaration,
         56,
         1,
       ),
@@ -58,7 +58,7 @@ class A {
 ''',
       [
         error(
-          CompileTimeErrorCode.FIELD_INITIALIZED_IN_INITIALIZER_AND_DECLARATION,
+          CompileTimeErrorCode.fieldInitializedInInitializerAndDeclaration,
           37,
           1,
         ),
@@ -76,9 +76,9 @@ enum E {
 }
 ''',
       [
-        error(CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION, 11, 1),
+        error(CompileTimeErrorCode.constEvalThrowsException, 11, 1),
         error(
-          CompileTimeErrorCode.FIELD_INITIALIZED_IN_INITIALIZER_AND_DECLARATION,
+          CompileTimeErrorCode.fieldInitializedInInitializerAndDeclaration,
           47,
           1,
         ),

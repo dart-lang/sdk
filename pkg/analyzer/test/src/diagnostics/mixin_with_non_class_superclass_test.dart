@@ -22,7 +22,7 @@ int A = 0;
 mixin B {}
 class C extends A with B {}
 ''',
-      [error(CompileTimeErrorCode.MIXIN_WITH_NON_CLASS_SUPERCLASS, 38, 1)],
+      [error(CompileTimeErrorCode.mixinWithNonClassSuperclass, 38, 1)],
     );
   }
 
@@ -33,7 +33,7 @@ int A = 0;
 mixin B {}
 class C = A with B;
 ''',
-      [error(CompileTimeErrorCode.MIXIN_WITH_NON_CLASS_SUPERCLASS, 32, 1)],
+      [error(CompileTimeErrorCode.mixinWithNonClassSuperclass, 32, 1)],
     );
   }
 }

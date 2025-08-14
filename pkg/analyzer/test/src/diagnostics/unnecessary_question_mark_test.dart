@@ -26,7 +26,7 @@ dynamic a;
       '''
 dynamic? a;
 ''',
-      [error(WarningCode.UNNECESSARY_QUESTION_MARK, 7, 1)],
+      [error(WarningCode.unnecessaryQuestionMark, 7, 1)],
     );
   }
 
@@ -37,7 +37,7 @@ void f(List<Object> a) {
   var [dynamic? _] = a;
 }
 ''',
-      [error(WarningCode.UNNECESSARY_QUESTION_MARK, 39, 1)],
+      [error(WarningCode.unnecessaryQuestionMark, 39, 1)],
     );
   }
 
@@ -52,7 +52,7 @@ Null a;
       '''
 Null? a;
 ''',
-      [error(WarningCode.UNNECESSARY_QUESTION_MARK, 4, 1)],
+      [error(WarningCode.unnecessaryQuestionMark, 4, 1)],
     );
   }
 
@@ -66,8 +66,8 @@ void f(Object a) {
 }
 ''',
       [
-        error(WarningCode.PATTERN_NEVER_MATCHES_VALUE_TYPE, 52, 5),
-        error(WarningCode.UNNECESSARY_QUESTION_MARK, 56, 1),
+        error(WarningCode.patternNeverMatchesValueType, 52, 5),
+        error(WarningCode.unnecessaryQuestionMark, 56, 1),
       ],
     );
   }

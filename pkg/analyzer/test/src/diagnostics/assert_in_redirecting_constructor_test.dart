@@ -23,7 +23,7 @@ class A {
   A.name() {}
 }
 ''',
-      [error(CompileTimeErrorCode.ASSERT_IN_REDIRECTING_CONSTRUCTOR, 23, 13)],
+      [error(CompileTimeErrorCode.assertInRedirectingConstructor, 23, 13)],
     );
   }
 
@@ -53,7 +53,7 @@ class A {
   A.name() {}
 }
 ''',
-      [error(CompileTimeErrorCode.ASSERT_IN_REDIRECTING_CONSTRUCTOR, 36, 13)],
+      [error(CompileTimeErrorCode.assertInRedirectingConstructor, 36, 13)],
     );
   }
 
@@ -66,7 +66,7 @@ enum E {
   const E.name();
 }
 ''',
-      [error(CompileTimeErrorCode.ASSERT_IN_REDIRECTING_CONSTRUCTOR, 37, 13)],
+      [error(CompileTimeErrorCode.assertInRedirectingConstructor, 37, 13)],
     );
   }
 
@@ -98,7 +98,7 @@ enum E {
   const E.name();
 }
 ''',
-      [error(CompileTimeErrorCode.ASSERT_IN_REDIRECTING_CONSTRUCTOR, 50, 13)],
+      [error(CompileTimeErrorCode.assertInRedirectingConstructor, 50, 13)],
     );
   }
 }

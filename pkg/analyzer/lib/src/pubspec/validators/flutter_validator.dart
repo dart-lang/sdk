@@ -22,7 +22,7 @@ void flutterValidator(PubspecValidationContext ctx) {
     } else {
       ctx.reportErrorForNode(
         flutterField,
-        PubspecWarningCode.FLUTTER_FIELD_NOT_MAP,
+        PubspecWarningCode.flutterFieldNotMap,
       );
     }
     return;
@@ -31,10 +31,7 @@ void flutterValidator(PubspecValidationContext ctx) {
   var assetsField = flutterField.nodes[PubspecField.ASSETS_FIELD];
   if (assetsField == null) return;
   if (assetsField is! YamlList) {
-    ctx.reportErrorForNode(
-      assetsField,
-      PubspecWarningCode.ASSET_FIELD_NOT_LIST,
-    );
+    ctx.reportErrorForNode(assetsField, PubspecWarningCode.assetFieldNotList);
     return;
   }
 
@@ -44,7 +41,7 @@ void flutterValidator(PubspecValidationContext ctx) {
       if (entry is! String) {
         ctx.reportErrorForNode(
           assetField,
-          PubspecWarningCode.ASSET_NOT_STRING_OR_MAP,
+          PubspecWarningCode.assetNotStringOrMap,
         );
         return;
       }
@@ -53,22 +50,16 @@ void flutterValidator(PubspecValidationContext ctx) {
     } else if (assetField is YamlMap) {
       var pathField = assetField.nodes[PubspecField.ASSET_PATH_FIELD];
       if (pathField == null) {
-        ctx.reportErrorForNode(
-          assetField,
-          PubspecWarningCode.ASSET_MISSING_PATH,
-        );
+        ctx.reportErrorForNode(assetField, PubspecWarningCode.assetMissingPath);
       } else if (pathField is! YamlScalar) {
         ctx.reportErrorForNode(
           pathField,
-          PubspecWarningCode.ASSET_PATH_NOT_STRING,
+          PubspecWarningCode.assetPathNotString,
         );
       } else {
         var entry = pathField.valueOrThrow;
         if (entry is! String) {
-          ctx.reportErrorForNode(
-            pathField,
-            PubspecWarningCode.ASSET_NOT_STRING,
-          );
+          ctx.reportErrorForNode(pathField, PubspecWarningCode.assetNotString);
           return;
         }
 
@@ -77,7 +68,7 @@ void flutterValidator(PubspecValidationContext ctx) {
     } else {
       ctx.reportErrorForNode(
         assetField,
-        PubspecWarningCode.ASSET_NOT_STRING_OR_MAP,
+        PubspecWarningCode.assetNotStringOrMap,
       );
     }
   }
@@ -136,8 +127,8 @@ void _validateAssetPath(
     if (!_assetExistsAtPath(ctx, assetPath)) {
       var errorCode =
           isDirectoryEntry
-              ? PubspecWarningCode.ASSET_DIRECTORY_DOES_NOT_EXIST
-              : PubspecWarningCode.ASSET_DOES_NOT_EXIST;
+              ? PubspecWarningCode.assetDirectoryDoesNotExist
+              : PubspecWarningCode.assetDoesNotExist;
       ctx.reportErrorForNode(errorField, errorCode, [pathValue]);
     }
   }

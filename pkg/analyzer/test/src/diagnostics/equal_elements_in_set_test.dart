@@ -22,7 +22,7 @@ const a = 1;
 const b = 1;
 var s = {a, b};
 ''',
-      [error(WarningCode.EQUAL_ELEMENTS_IN_SET, 38, 1)],
+      [error(WarningCode.equalElementsInSet, 38, 1)],
     );
   }
 
@@ -32,7 +32,7 @@ var s = {a, b};
 const one = 1;
 var s = {1, one};
 ''',
-      [error(WarningCode.EQUAL_ELEMENTS_IN_SET, 27, 3)],
+      [error(WarningCode.equalElementsInSet, 27, 3)],
     );
   }
 
@@ -41,7 +41,7 @@ var s = {1, one};
       '''
 var s = {1, 1};
 ''',
-      [error(WarningCode.EQUAL_ELEMENTS_IN_SET, 12, 1)],
+      [error(WarningCode.equalElementsInSet, 12, 1)],
     );
   }
 }

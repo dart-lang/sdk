@@ -60,7 +60,7 @@ void f() {
   int x = 0;
 }
 ''',
-      [error(WarningCode.UNUSED_LOCAL_VARIABLE, 17, 1)],
+      [error(WarningCode.unusedLocalVariable, 17, 1)],
     );
 
     var x = findElement2.localVar('x');
@@ -77,7 +77,7 @@ void f() {
   const int x = 0;
 }
 ''',
-      [error(WarningCode.UNUSED_LOCAL_VARIABLE, 23, 1)],
+      [error(WarningCode.unusedLocalVariable, 23, 1)],
     );
 
     var x = findElement2.localVar('x');
@@ -94,7 +94,7 @@ void f() {
   final int x = 0;
 }
 ''',
-      [error(WarningCode.UNUSED_LOCAL_VARIABLE, 23, 1)],
+      [error(WarningCode.unusedLocalVariable, 23, 1)],
     );
 
     var x = findElement2.localVar('x');
@@ -112,7 +112,7 @@ void f() {
     int x = 0;
 }
 ''',
-      [error(WarningCode.UNUSED_LOCAL_VARIABLE, 32, 1)],
+      [error(WarningCode.unusedLocalVariable, 32, 1)],
     );
 
     var x = findElement2.localVar('x');
@@ -129,7 +129,7 @@ void f() {
   late int x = 0;
 }
 ''',
-      [error(WarningCode.UNUSED_LOCAL_VARIABLE, 22, 1)],
+      [error(WarningCode.unusedLocalVariable, 22, 1)],
     );
 
     var x = findElement2.localVar('x');
@@ -148,8 +148,8 @@ f() {
 }
 ''',
       [
-        error(WarningCode.DEAD_CODE, 8, 6),
-        error(CompileTimeErrorCode.UNDEFINED_FUNCTION, 17, 1),
+        error(WarningCode.deadCode, 8, 6),
+        error(CompileTimeErrorCode.undefinedFunction, 17, 1),
       ],
     );
   }

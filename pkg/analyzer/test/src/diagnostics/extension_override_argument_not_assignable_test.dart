@@ -28,7 +28,7 @@ f() {
 ''',
       [
         error(
-          CompileTimeErrorCode.EXTENSION_OVERRIDE_ARGUMENT_NOT_ASSIGNABLE,
+          CompileTimeErrorCode.extensionOverrideArgumentNotAssignable,
           50,
           4,
         ),
@@ -74,7 +74,7 @@ void f(A a) {
 ''',
       [
         error(
-          CompileTimeErrorCode.EXTENSION_OVERRIDE_ARGUMENT_NOT_ASSIGNABLE,
+          CompileTimeErrorCode.extensionOverrideArgumentNotAssignable,
           85,
           1,
         ),
@@ -96,7 +96,7 @@ void f(B b) {
 ''',
       [
         error(
-          CompileTimeErrorCode.EXTENSION_OVERRIDE_ARGUMENT_NOT_ASSIGNABLE,
+          CompileTimeErrorCode.extensionOverrideArgumentNotAssignable,
           75,
           1,
         ),

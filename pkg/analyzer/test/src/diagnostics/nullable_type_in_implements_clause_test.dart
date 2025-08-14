@@ -28,7 +28,7 @@ class B implements A {}
 class A {}
 class B implements A? {}
 ''',
-      [error(CompileTimeErrorCode.NULLABLE_TYPE_IN_IMPLEMENTS_CLAUSE, 30, 2)],
+      [error(CompileTimeErrorCode.nullableTypeInImplementsClause, 30, 2)],
     );
   }
 
@@ -39,7 +39,7 @@ class A {}
 typedef B = A;
 class C implements B? {}
 ''',
-      [error(CompileTimeErrorCode.NULLABLE_TYPE_IN_IMPLEMENTS_CLAUSE, 45, 2)],
+      [error(CompileTimeErrorCode.nullableTypeInImplementsClause, 45, 2)],
     );
   }
 
@@ -50,7 +50,7 @@ class A {}
 typedef B = A?;
 class C implements B {}
 ''',
-      [error(CompileTimeErrorCode.NULLABLE_TYPE_IN_IMPLEMENTS_CLAUSE, 46, 1)],
+      [error(CompileTimeErrorCode.nullableTypeInImplementsClause, 46, 1)],
     );
   }
 
@@ -67,7 +67,7 @@ extension type E(A _) implements A {}
 class A {}
 extension type E(A _) implements A? {}
 ''',
-      [error(CompileTimeErrorCode.NULLABLE_TYPE_IN_IMPLEMENTS_CLAUSE, 44, 2)],
+      [error(CompileTimeErrorCode.nullableTypeInImplementsClause, 44, 2)],
     );
   }
 
@@ -78,7 +78,7 @@ class A {}
 typedef B = A;
 extension type E(A _) implements B? {}
 ''',
-      [error(CompileTimeErrorCode.NULLABLE_TYPE_IN_IMPLEMENTS_CLAUSE, 59, 2)],
+      [error(CompileTimeErrorCode.nullableTypeInImplementsClause, 59, 2)],
     );
   }
 
@@ -89,7 +89,7 @@ class A {}
 typedef B = A?;
 extension type E(A _) implements B {}
 ''',
-      [error(CompileTimeErrorCode.NULLABLE_TYPE_IN_IMPLEMENTS_CLAUSE, 60, 1)],
+      [error(CompileTimeErrorCode.nullableTypeInImplementsClause, 60, 1)],
     );
   }
 
@@ -106,7 +106,7 @@ mixin B implements A {}
 class A {}
 mixin B implements A? {}
 ''',
-      [error(CompileTimeErrorCode.NULLABLE_TYPE_IN_IMPLEMENTS_CLAUSE, 30, 2)],
+      [error(CompileTimeErrorCode.nullableTypeInImplementsClause, 30, 2)],
     );
   }
 
@@ -117,7 +117,7 @@ class A {}
 typedef B = A;
 mixin C implements B? {}
 ''',
-      [error(CompileTimeErrorCode.NULLABLE_TYPE_IN_IMPLEMENTS_CLAUSE, 45, 2)],
+      [error(CompileTimeErrorCode.nullableTypeInImplementsClause, 45, 2)],
     );
   }
 
@@ -128,7 +128,7 @@ class A {}
 typedef B = A?;
 mixin C implements B {}
 ''',
-      [error(CompileTimeErrorCode.NULLABLE_TYPE_IN_IMPLEMENTS_CLAUSE, 46, 1)],
+      [error(CompileTimeErrorCode.nullableTypeInImplementsClause, 46, 1)],
     );
   }
 }

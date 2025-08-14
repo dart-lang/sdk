@@ -24,7 +24,7 @@ class A implements B {
 class B {
   factory B() = A;
 }''',
-      [error(CompileTimeErrorCode.REDIRECT_TO_INVALID_FUNCTION_TYPE, 65, 1)],
+      [error(CompileTimeErrorCode.redirectToInvalidFunctionType, 65, 1)],
     );
   }
 

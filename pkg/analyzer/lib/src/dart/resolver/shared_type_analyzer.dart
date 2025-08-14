@@ -44,8 +44,7 @@ class SharedTypeAnalyzerErrors
   }) {
     _diagnosticReporter.atNode(
       caseExpression,
-      CompileTimeErrorCode
-          .CASE_EXPRESSION_TYPE_IS_NOT_SWITCH_EXPRESSION_SUBTYPE,
+      CompileTimeErrorCode.caseExpressionTypeIsNotSwitchExpressionSubtype,
       arguments: [caseExpressionType, scrutineeType],
     );
   }
@@ -103,7 +102,7 @@ class SharedTypeAnalyzerErrors
 
   @override
   void emptyMapPattern({required DartPattern pattern}) {
-    _diagnosticReporter.atNode(pattern, CompileTimeErrorCode.EMPTY_MAP_PATTERN);
+    _diagnosticReporter.atNode(pattern, CompileTimeErrorCode.emptyMapPattern);
   }
 
   @override
@@ -113,7 +112,7 @@ class SharedTypeAnalyzerErrors
   }) {
     _diagnosticReporter.atElement2(
       component,
-      CompileTimeErrorCode.INCONSISTENT_PATTERN_VARIABLE_LOGICAL_OR,
+      CompileTimeErrorCode.inconsistentPatternVariableLogicalOr,
       arguments: [variable.name!],
     );
   }
@@ -126,12 +125,12 @@ class SharedTypeAnalyzerErrors
     if (pattern is NullAssertPattern) {
       _diagnosticReporter.atToken(
         pattern.operator,
-        StaticWarningCode.UNNECESSARY_NULL_ASSERT_PATTERN,
+        StaticWarningCode.unnecessaryNullAssertPattern,
       );
     } else if (pattern is NullCheckPattern) {
       _diagnosticReporter.atToken(
         pattern.operator,
-        StaticWarningCode.UNNECESSARY_NULL_CHECK_PATTERN,
+        StaticWarningCode.unnecessaryNullCheckPattern,
       );
     } else {
       throw UnimplementedError('(${pattern.runtimeType}) $pattern');
@@ -146,13 +145,13 @@ class SharedTypeAnalyzerErrors
   }) {
     _diagnosticReporter.atToken(
       pattern.asToken,
-      WarningCode.UNNECESSARY_CAST_PATTERN,
+      WarningCode.unnecessaryCastPattern,
     );
   }
 
   @override
   void nonBooleanCondition({required Expression node}) {
-    _diagnosticReporter.atNode(node, CompileTimeErrorCode.NON_BOOL_CONDITION);
+    _diagnosticReporter.atNode(node, CompileTimeErrorCode.nonBoolCondition);
   }
 
   @override
@@ -163,7 +162,7 @@ class SharedTypeAnalyzerErrors
   }) {
     _diagnosticReporter.atNode(
       expression,
-      CompileTimeErrorCode.FOR_IN_OF_INVALID_TYPE,
+      CompileTimeErrorCode.forInOfInvalidType,
       arguments: [expressionType, 'Iterable'],
     );
   }
@@ -177,7 +176,7 @@ class SharedTypeAnalyzerErrors
   }) {
     _diagnosticReporter.atNode(
       pattern,
-      CompileTimeErrorCode.PATTERN_TYPE_MISMATCH_IN_IRREFUTABLE_CONTEXT,
+      CompileTimeErrorCode.patternTypeMismatchInIrrefutableContext,
       arguments: [matchedType, requiredType],
     );
   }
@@ -189,7 +188,7 @@ class SharedTypeAnalyzerErrors
   }) {
     _diagnosticReporter.atNode(
       pattern,
-      CompileTimeErrorCode.REFUTABLE_PATTERN_IN_IRREFUTABLE_CONTEXT,
+      CompileTimeErrorCode.refutablePatternInIrrefutableContext,
     );
   }
 
@@ -201,7 +200,7 @@ class SharedTypeAnalyzerErrors
   }) {
     _diagnosticReporter.atNode(
       pattern.operand,
-      CompileTimeErrorCode.RELATIONAL_PATTERN_OPERAND_TYPE_NOT_ASSIGNABLE,
+      CompileTimeErrorCode.relationalPatternOperandTypeNotAssignable,
       arguments: [operandType, parameterType, pattern.operator.lexeme],
     );
   }
@@ -214,7 +213,7 @@ class SharedTypeAnalyzerErrors
     _diagnosticReporter.atToken(
       pattern.operator,
       CompileTimeErrorCode
-          .RELATIONAL_PATTERN_OPERATOR_RETURN_TYPE_NOT_ASSIGNABLE_TO_BOOL,
+          .relationalPatternOperatorReturnTypeNotAssignableToBool,
     );
   }
 
@@ -225,7 +224,7 @@ class SharedTypeAnalyzerErrors
   }) {
     _diagnosticReporter.atNode(
       element,
-      CompileTimeErrorCode.REST_ELEMENT_IN_MAP_PATTERN,
+      CompileTimeErrorCode.restElementInMapPattern,
     );
   }
 
@@ -236,7 +235,7 @@ class SharedTypeAnalyzerErrors
   }) {
     _diagnosticReporter.atToken(
       node.members[caseIndex].keyword,
-      CompileTimeErrorCode.SWITCH_CASE_COMPLETES_NORMALLY,
+      CompileTimeErrorCode.switchCaseCompletesNormally,
     );
   }
 
@@ -249,7 +248,7 @@ class SharedTypeAnalyzerErrors
       case UnnecessaryWildcardKind.logicalAndPatternOperand:
         _diagnosticReporter.atNode(
           pattern,
-          WarningCode.UNNECESSARY_WILDCARD_PATTERN,
+          WarningCode.unnecessaryWildcardPattern,
         );
     }
   }

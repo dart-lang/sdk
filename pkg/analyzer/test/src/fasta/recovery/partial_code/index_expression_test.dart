@@ -16,19 +16,19 @@ class IndexStatementTest extends PartialCodeTest {
       'index_assignment',
       [
         TestDescriptor('missing_index_no_space', 'intList[] = 0;', [
-          ParserErrorCode.MISSING_IDENTIFIER,
+          ParserErrorCode.missingIdentifier,
         ], 'intList[_s_] = 0;'),
         TestDescriptor('missing_index_with_space', 'intList[ ] = 0;', [
-          ParserErrorCode.MISSING_IDENTIFIER,
+          ParserErrorCode.missingIdentifier,
         ], 'intList[_s_] = 0;'),
         TestDescriptor('trailing_comma', 'intList[x,] = 0;', [
-          ParserErrorCode.EXPECTED_TOKEN,
+          ParserErrorCode.expectedToken,
         ], 'intList[x] = 0;'),
         TestDescriptor('trailing_comma_and_identifier', 'intList[x,y] = 0;', [
-          ParserErrorCode.EXPECTED_TOKEN,
+          ParserErrorCode.expectedToken,
         ], 'intList[x] = 0;'),
         TestDescriptor('trailing_identifier_no_comma', 'intList[x y] = 0;', [
-          ParserErrorCode.EXPECTED_TOKEN,
+          ParserErrorCode.expectedToken,
         ], 'intList[x] = 0;'),
       ],
       [], //PartialCodeTest.statementSuffixes,
@@ -42,10 +42,10 @@ class IndexStatementTest extends PartialCodeTest {
           'open',
           'intList[',
           [
-            ParserErrorCode.MISSING_IDENTIFIER,
-            ScannerErrorCode.EXPECTED_TOKEN,
-            ParserErrorCode.EXPECTED_TOKEN,
-            ParserErrorCode.EXPECTED_TOKEN,
+            ParserErrorCode.missingIdentifier,
+            ScannerErrorCode.expectedToken,
+            ParserErrorCode.expectedToken,
+            ParserErrorCode.expectedToken,
           ],
           'intList[_s_];',
           failing: [
@@ -63,9 +63,9 @@ class IndexStatementTest extends PartialCodeTest {
           'identifier',
           'intList[x',
           [
-            ScannerErrorCode.EXPECTED_TOKEN,
-            ParserErrorCode.EXPECTED_TOKEN,
-            ParserErrorCode.EXPECTED_TOKEN,
+            ScannerErrorCode.expectedToken,
+            ParserErrorCode.expectedToken,
+            ParserErrorCode.expectedToken,
           ],
           'intList[x];',
           failing: ['eof'],

@@ -39,7 +39,7 @@ abstract class B extends StatelessWidget {
   }
 }
 ''',
-      [error(WarningCode.INVALID_WIDGET_PREVIEW_APPLICATION, 133, 7)],
+      [error(WarningCode.invalidWidgetPreviewApplication, 133, 7)],
     );
   }
 
@@ -55,7 +55,7 @@ class B extends StatelessWidget {
   B();
 }
 ''',
-      [error(CompileTimeErrorCode.NO_ANNOTATION_CONSTRUCTOR_ARGUMENTS, 123, 8)],
+      [error(CompileTimeErrorCode.noAnnotationConstructorArguments, 123, 8)],
     );
   }
 
@@ -78,9 +78,9 @@ class B extends StatelessWidget {
 }
 ''',
       [
-        error(WarningCode.INVALID_WIDGET_PREVIEW_APPLICATION, 88, 7),
-        error(WarningCode.INVALID_WIDGET_PREVIEW_APPLICATION, 159, 7),
-        error(WarningCode.INVALID_WIDGET_PREVIEW_APPLICATION, 189, 7),
+        error(WarningCode.invalidWidgetPreviewApplication, 88, 7),
+        error(WarningCode.invalidWidgetPreviewApplication, 159, 7),
+        error(WarningCode.invalidWidgetPreviewApplication, 189, 7),
       ],
     );
   }
@@ -99,7 +99,7 @@ class B {
   }
 }
 ''',
-      [error(WarningCode.INVALID_WIDGET_PREVIEW_APPLICATION, 100, 7)],
+      [error(WarningCode.invalidWidgetPreviewApplication, 100, 7)],
     );
   }
 
@@ -129,8 +129,8 @@ class B {
 }
 ''',
       [
-        error(WarningCode.INVALID_WIDGET_PREVIEW_APPLICATION, 105, 7),
-        error(WarningCode.INVALID_WIDGET_PREVIEW_APPLICATION, 223, 7),
+        error(WarningCode.invalidWidgetPreviewApplication, 105, 7),
+        error(WarningCode.invalidWidgetPreviewApplication, 223, 7),
       ],
     );
   }
@@ -177,11 +177,11 @@ extension type FooExtensionType(Foo foo) {
 }
 ''',
       [
-        error(WarningCode.INVALID_WIDGET_PREVIEW_APPLICATION, 219, 7),
-        error(WarningCode.INVALID_WIDGET_PREVIEW_APPLICATION, 267, 7),
-        error(WarningCode.UNUSED_ELEMENT, 286, 23),
-        error(WarningCode.INVALID_WIDGET_PREVIEW_APPLICATION, 359, 7),
-        error(WarningCode.INVALID_WIDGET_PREVIEW_APPLICATION, 469, 7),
+        error(WarningCode.invalidWidgetPreviewApplication, 219, 7),
+        error(WarningCode.invalidWidgetPreviewApplication, 267, 7),
+        error(WarningCode.unusedElement, 286, 23),
+        error(WarningCode.invalidWidgetPreviewApplication, 359, 7),
+        error(WarningCode.invalidWidgetPreviewApplication, 469, 7),
       ],
     );
   }
@@ -210,12 +210,12 @@ class _B extends StatelessWidget {
 }
 ''',
       [
-        error(WarningCode.UNUSED_ELEMENT, 93, 2),
-        error(WarningCode.INVALID_WIDGET_PREVIEW_APPLICATION, 125, 7),
-        error(WarningCode.INVALID_WIDGET_PREVIEW_APPLICATION, 147, 7),
-        error(WarningCode.UNUSED_ELEMENT, 170, 3),
-        error(WarningCode.INVALID_WIDGET_PREVIEW_APPLICATION, 189, 7),
-        error(WarningCode.UNUSED_ELEMENT, 215, 3),
+        error(WarningCode.unusedElement, 93, 2),
+        error(WarningCode.invalidWidgetPreviewApplication, 125, 7),
+        error(WarningCode.invalidWidgetPreviewApplication, 147, 7),
+        error(WarningCode.unusedElement, 170, 3),
+        error(WarningCode.invalidWidgetPreviewApplication, 189, 7),
+        error(WarningCode.unusedElement, 215, 3),
       ],
     );
   }
@@ -243,10 +243,10 @@ class B extends StatelessWidget {
 }
 ''',
       [
-        error(WarningCode.INVALID_WIDGET_PREVIEW_APPLICATION, 124, 7),
-        error(WarningCode.UNUSED_ELEMENT, 138, 1),
-        error(WarningCode.INVALID_WIDGET_PREVIEW_APPLICATION, 147, 7),
-        error(WarningCode.UNUSED_ELEMENT, 169, 4),
+        error(WarningCode.invalidWidgetPreviewApplication, 124, 7),
+        error(WarningCode.unusedElement, 138, 1),
+        error(WarningCode.invalidWidgetPreviewApplication, 147, 7),
+        error(WarningCode.unusedElement, 169, 4),
       ],
     );
   }
@@ -271,8 +271,8 @@ class B extends StatelessWidget {
 }
 ''',
       [
-        error(WarningCode.INVALID_WIDGET_PREVIEW_APPLICATION, 124, 7),
-        error(WarningCode.UNUSED_ELEMENT, 150, 4),
+        error(WarningCode.invalidWidgetPreviewApplication, 124, 7),
+        error(WarningCode.unusedElement, 150, 4),
       ],
     );
   }
@@ -290,8 +290,8 @@ Widget _foo() {
 }
 ''',
       [
-        error(WarningCode.INVALID_WIDGET_PREVIEW_APPLICATION, 88, 7),
-        error(WarningCode.UNUSED_ELEMENT, 105, 4),
+        error(WarningCode.invalidWidgetPreviewApplication, 88, 7),
+        error(WarningCode.unusedElement, 105, 4),
       ],
     );
   }

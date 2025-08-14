@@ -41,7 +41,7 @@ void switchConstClass() {
   }
 }
 ''',
-      [error(WarningCode.UNREACHABLE_SWITCH_CASE, 237, 4)],
+      [error(WarningCode.unreachableSwitchCase, 237, 4)],
     );
   }
 
@@ -68,8 +68,8 @@ void switchEnum() {
 ''',
       [
         // No lint.
-        error(WarningCode.UNREACHABLE_SWITCH_CASE, 139, 4),
-        error(WarningCode.UNREACHABLE_SWITCH_DEFAULT, 155, 7),
+        error(WarningCode.unreachableSwitchCase, 139, 4),
+        error(WarningCode.unreachableSwitchDefault, 155, 7),
       ],
     );
   }
@@ -93,8 +93,8 @@ void switchInt() {
 ''',
       [
         // No lint.
-        error(WarningCode.UNREACHABLE_SWITCH_CASE, 95, 4),
-        error(WarningCode.UNREACHABLE_SWITCH_CASE, 107, 4),
+        error(WarningCode.unreachableSwitchCase, 95, 4),
+        error(WarningCode.unreachableSwitchCase, 107, 4),
       ],
     );
   }
@@ -118,10 +118,10 @@ void switchString() {
 ''',
       [
         // No lint.
-        error(WarningCode.UNREACHABLE_SWITCH_CASE, 115, 4),
-        error(ParserErrorCode.INVALID_CONSTANT_PATTERN_BINARY, 122, 1),
-        error(WarningCode.UNREACHABLE_SWITCH_CASE, 131, 4),
-        error(ParserErrorCode.INVALID_CONSTANT_PATTERN_BINARY, 153, 1),
+        error(WarningCode.unreachableSwitchCase, 115, 4),
+        error(ParserErrorCode.invalidConstantPatternBinary, 122, 1),
+        error(WarningCode.unreachableSwitchCase, 131, 4),
+        error(ParserErrorCode.invalidConstantPatternBinary, 153, 1),
       ],
     );
   }

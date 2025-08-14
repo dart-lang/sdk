@@ -21,7 +21,7 @@ class InvalidLanguageOverrideTest extends PubPackageResolutionTest {
 // @dart = 11.12
 int i = 0;
 ''',
-      [error(WarningCode.INVALID_LANGUAGE_VERSION_OVERRIDE_GREATER, 0, 16)],
+      [error(WarningCode.invalidLanguageVersionOverrideGreater, 0, 16)],
     );
   }
 
@@ -31,7 +31,7 @@ int i = 0;
 // @dart = 3.190
 int i = 0;
 ''',
-      [error(WarningCode.INVALID_LANGUAGE_VERSION_OVERRIDE_GREATER, 0, 16)],
+      [error(WarningCode.invalidLanguageVersionOverrideGreater, 0, 16)],
     );
   }
 
@@ -91,7 +91,7 @@ class A {
   void test() {}
 }
 ''',
-      [error(WarningCode.INVALID_LANGUAGE_VERSION_OVERRIDE_LOCATION, 15, 11)],
+      [error(WarningCode.invalidLanguageVersionOverrideLocation, 15, 11)],
     );
   }
 
@@ -101,7 +101,7 @@ class A {
 class A {}
 // @dart = 3.0
 ''',
-      [error(WarningCode.INVALID_LANGUAGE_VERSION_OVERRIDE_LOCATION, 14, 11)],
+      [error(WarningCode.invalidLanguageVersionOverrideLocation, 14, 11)],
     );
   }
 
@@ -111,7 +111,7 @@ class A {}
 class A {}
 // @dart = 3.0
 ''',
-      [error(WarningCode.INVALID_LANGUAGE_VERSION_OVERRIDE_LOCATION, 14, 11)],
+      [error(WarningCode.invalidLanguageVersionOverrideLocation, 14, 11)],
     );
   }
 
@@ -122,7 +122,7 @@ import 'dart:core';
 // @dart = 3.0
 class A {}
 ''',
-      [error(WarningCode.INVALID_LANGUAGE_VERSION_OVERRIDE_LOCATION, 23, 11)],
+      [error(WarningCode.invalidLanguageVersionOverrideLocation, 23, 11)],
     );
   }
 
@@ -150,7 +150,7 @@ class A {
 // dart = 2.0
 int i = 0;
 ''',
-      [error(WarningCode.INVALID_LANGUAGE_VERSION_OVERRIDE_AT_SIGN, 0, 13)],
+      [error(WarningCode.invalidLanguageVersionOverrideAtSign, 0, 13)],
     );
   }
 
@@ -160,7 +160,7 @@ int i = 0;
 // @dart 2.0
 int i = 0;
 ''',
-      [error(WarningCode.INVALID_LANGUAGE_VERSION_OVERRIDE_EQUALS, 0, 12)],
+      [error(WarningCode.invalidLanguageVersionOverrideEquals, 0, 12)],
     );
   }
 
@@ -227,7 +227,7 @@ int i = 0;
 // @dart >= 2.0
 int i = 0;
 ''',
-      [error(WarningCode.INVALID_LANGUAGE_VERSION_OVERRIDE_EQUALS, 0, 15)],
+      [error(WarningCode.invalidLanguageVersionOverrideEquals, 0, 15)],
     );
   }
 
@@ -246,7 +246,7 @@ int i = 0;
 // @Dart = 2.0
 int i = 0;
 ''',
-      [error(WarningCode.INVALID_LANGUAGE_VERSION_OVERRIDE_LOWER_CASE, 16, 14)],
+      [error(WarningCode.invalidLanguageVersionOverrideLowerCase, 16, 14)],
     );
   }
 
@@ -256,7 +256,7 @@ int i = 0;
 /// @dart = 2.0
 int i = 0;
 ''',
-      [error(WarningCode.INVALID_LANGUAGE_VERSION_OVERRIDE_TWO_SLASHES, 0, 15)],
+      [error(WarningCode.invalidLanguageVersionOverrideTwoSlashes, 0, 15)],
     );
   }
 
@@ -266,7 +266,7 @@ int i = 0;
 // dart @ 2.0
 int i = 0;
 ''',
-      [error(WarningCode.INVALID_LANGUAGE_VERSION_OVERRIDE_AT_SIGN, 0, 13)],
+      [error(WarningCode.invalidLanguageVersionOverrideAtSign, 0, 13)],
     );
   }
 
@@ -276,7 +276,7 @@ int i = 0;
 // @Dart = 2.0
 int i = 0;
 ''',
-      [error(WarningCode.INVALID_LANGUAGE_VERSION_OVERRIDE_LOWER_CASE, 0, 14)],
+      [error(WarningCode.invalidLanguageVersionOverrideLowerCase, 0, 14)],
     );
   }
 
@@ -287,7 +287,7 @@ int i = 0;
 // @Dart = 2.0
 int i = 0;
 ''',
-      [error(WarningCode.INVALID_LANGUAGE_VERSION_OVERRIDE_LOWER_CASE, 13, 14)],
+      [error(WarningCode.invalidLanguageVersionOverrideLowerCase, 13, 14)],
     );
   }
 
@@ -299,7 +299,7 @@ int i = 0;
 // @Dart = 2.0
 int i = 0;
 ''',
-      [error(WarningCode.INVALID_LANGUAGE_VERSION_OVERRIDE_LOWER_CASE, 14, 14)],
+      [error(WarningCode.invalidLanguageVersionOverrideLowerCase, 14, 14)],
     );
   }
 
@@ -309,7 +309,7 @@ int i = 0;
 // @dart:2.0
 int i = 0;
 ''',
-      [error(WarningCode.INVALID_LANGUAGE_VERSION_OVERRIDE_EQUALS, 0, 12)],
+      [error(WarningCode.invalidLanguageVersionOverrideEquals, 0, 12)],
     );
   }
 
@@ -319,7 +319,7 @@ int i = 0;
 // @dart : 2.0
 int i = 0;
 ''',
-      [error(WarningCode.INVALID_LANGUAGE_VERSION_OVERRIDE_EQUALS, 0, 14)],
+      [error(WarningCode.invalidLanguageVersionOverrideEquals, 0, 14)],
     );
   }
 
@@ -331,7 +331,7 @@ int i = 0;
 ''',
       [
         error(
-          WarningCode.INVALID_LANGUAGE_VERSION_OVERRIDE_TRAILING_CHARACTERS,
+          WarningCode.invalidLanguageVersionOverrideTrailingCharacters,
           0,
           16,
         ),
@@ -345,7 +345,7 @@ int i = 0;
 // @dart = 2
 int i = 0;
 ''',
-      [error(WarningCode.INVALID_LANGUAGE_VERSION_OVERRIDE_NUMBER, 0, 12)],
+      [error(WarningCode.invalidLanguageVersionOverrideNumber, 0, 12)],
     );
   }
 
@@ -355,7 +355,7 @@ int i = 0;
 // @dart = v2.0
 int i = 0;
 ''',
-      [error(WarningCode.INVALID_LANGUAGE_VERSION_OVERRIDE_PREFIX, 0, 15)],
+      [error(WarningCode.invalidLanguageVersionOverridePrefix, 0, 15)],
     );
   }
 }

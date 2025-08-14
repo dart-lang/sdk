@@ -22,7 +22,7 @@ void f<T>(x) {
   if (x case T) {}
 }
 ''',
-      [error(CompileTimeErrorCode.CONST_TYPE_PARAMETER, 28, 1)],
+      [error(CompileTimeErrorCode.constTypeParameter, 28, 1)],
     );
   }
 
@@ -33,7 +33,7 @@ void f<T>(Object? x) {
   if (x case const (T)) {}
 }
 ''',
-      [error(CompileTimeErrorCode.CONST_TYPE_PARAMETER, 43, 1)],
+      [error(CompileTimeErrorCode.constTypeParameter, 43, 1)],
     );
   }
 
@@ -44,7 +44,7 @@ void f<T>(Object? x) {
   if (x case const (List<T>)) {}
 }
 ''',
-      [error(CompileTimeErrorCode.CONST_TYPE_PARAMETER, 43, 7)],
+      [error(CompileTimeErrorCode.constTypeParameter, 43, 7)],
     );
   }
 }

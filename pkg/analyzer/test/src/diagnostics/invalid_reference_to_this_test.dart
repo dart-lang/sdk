@@ -24,7 +24,7 @@ class A {
   }
 }
 ''',
-      [error(WarningCode.UNUSED_LOCAL_VARIABLE, 26, 1)],
+      [error(WarningCode.unusedLocalVariable, 26, 1)],
     );
   }
 
@@ -35,7 +35,7 @@ class A {
   factory A() { return this; }
 }
 ''',
-      [error(CompileTimeErrorCode.INVALID_REFERENCE_TO_THIS, 33, 4)],
+      [error(CompileTimeErrorCode.invalidReferenceToThis, 33, 4)],
     );
   }
 
@@ -57,7 +57,7 @@ class A {
   A() : f = this;
 }
 ''',
-      [error(CompileTimeErrorCode.INVALID_REFERENCE_TO_THIS, 31, 4)],
+      [error(CompileTimeErrorCode.invalidReferenceToThis, 31, 4)],
     );
   }
 
@@ -68,7 +68,7 @@ class A {
   var f = this;
 }
 ''',
-      [error(CompileTimeErrorCode.INVALID_REFERENCE_TO_THIS, 20, 4)],
+      [error(CompileTimeErrorCode.invalidReferenceToThis, 20, 4)],
     );
   }
 
@@ -79,7 +79,7 @@ class A {
   static m() { return this; }
 }
 ''',
-      [error(CompileTimeErrorCode.INVALID_REFERENCE_TO_THIS, 32, 4)],
+      [error(CompileTimeErrorCode.invalidReferenceToThis, 32, 4)],
     );
   }
 
@@ -90,7 +90,7 @@ class A {
   static A f = this;
 }
 ''',
-      [error(CompileTimeErrorCode.INVALID_REFERENCE_TO_THIS, 25, 4)],
+      [error(CompileTimeErrorCode.invalidReferenceToThis, 25, 4)],
     );
   }
 
@@ -104,7 +104,7 @@ class B extends A {
   B() : super(this);
 }
 ''',
-      [error(CompileTimeErrorCode.INVALID_REFERENCE_TO_THIS, 60, 4)],
+      [error(CompileTimeErrorCode.invalidReferenceToThis, 60, 4)],
     );
   }
 
@@ -129,7 +129,7 @@ mixin A {
       '''
 f() { return this; }
 ''',
-      [error(CompileTimeErrorCode.INVALID_REFERENCE_TO_THIS, 13, 4)],
+      [error(CompileTimeErrorCode.invalidReferenceToThis, 13, 4)],
     );
   }
 
@@ -138,7 +138,7 @@ f() { return this; }
       '''
 int x = this;
 ''',
-      [error(CompileTimeErrorCode.INVALID_REFERENCE_TO_THIS, 8, 4)],
+      [error(CompileTimeErrorCode.invalidReferenceToThis, 8, 4)],
     );
   }
 
@@ -147,7 +147,7 @@ int x = this;
       '''
 late var x = this;
 ''',
-      [error(CompileTimeErrorCode.INVALID_REFERENCE_TO_THIS, 13, 4)],
+      [error(CompileTimeErrorCode.invalidReferenceToThis, 13, 4)],
     );
   }
 }

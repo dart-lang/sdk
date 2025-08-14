@@ -82,7 +82,7 @@ class SdkConstraintVerifier extends RecursiveAstVisitor<void> {
       if (operatorType == TokenType.GT_GT_GT) {
         _errorReporter.atToken(
           node.operator,
-          WarningCode.SDK_VERSION_GT_GT_GT_OPERATOR,
+          WarningCode.sdkVersionGtGtGtOperator,
         );
       }
     }
@@ -115,10 +115,7 @@ class SdkConstraintVerifier extends RecursiveAstVisitor<void> {
   @override
   void visitMethodDeclaration(MethodDeclaration node) {
     if (checkTripleShift && node.isOperator && node.name.lexeme == '>>>') {
-      _errorReporter.atToken(
-        node.name,
-        WarningCode.SDK_VERSION_GT_GT_GT_OPERATOR,
-      );
+      _errorReporter.atToken(node.name, WarningCode.sdkVersionGtGtGtOperator);
     }
     super.visitMethodDeclaration(node);
   }
@@ -199,7 +196,7 @@ class SdkConstraintVerifier extends RecursiveAstVisitor<void> {
         }
         _errorReporter.atEntity(
           errorEntity,
-          WarningCode.SDK_VERSION_SINCE,
+          WarningCode.sdkVersionSince,
           arguments: [
             sinceSdkVersion.toString(),
             _versionConstraint.toString(),

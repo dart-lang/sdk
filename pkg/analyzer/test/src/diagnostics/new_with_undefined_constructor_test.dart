@@ -34,7 +34,7 @@ f() {
 ''',
       [
         error(
-          CompileTimeErrorCode.NEW_WITH_UNDEFINED_CONSTRUCTOR_DEFAULT,
+          CompileTimeErrorCode.newWithUndefinedConstructorDefault,
           38,
           1,
           messageContains: ["'A'"],
@@ -53,13 +53,7 @@ f() {
   A();
 }
 ''',
-      [
-        error(
-          CompileTimeErrorCode.NEW_WITH_UNDEFINED_CONSTRUCTOR_DEFAULT,
-          34,
-          1,
-        ),
-      ],
+      [error(CompileTimeErrorCode.newWithUndefinedConstructorDefault, 34, 1)],
     );
   }
 
@@ -79,7 +73,7 @@ f() {
 ''',
       [
         error(
-          CompileTimeErrorCode.NEW_WITH_UNDEFINED_CONSTRUCTOR_DEFAULT,
+          CompileTimeErrorCode.newWithUndefinedConstructorDefault,
           41,
           6,
           messageContains: ["'lib1.A'"],
@@ -98,13 +92,7 @@ f() {
   A.new();
 }
 ''',
-      [
-        error(
-          CompileTimeErrorCode.NEW_WITH_UNDEFINED_CONSTRUCTOR_DEFAULT,
-          36,
-          3,
-        ),
-      ],
+      [error(CompileTimeErrorCode.newWithUndefinedConstructorDefault, 36, 3)],
     );
   }
 
@@ -153,7 +141,7 @@ f() {
 ''',
       [
         error(
-          CompileTimeErrorCode.NEW_WITH_UNDEFINED_CONSTRUCTOR,
+          CompileTimeErrorCode.newWithUndefinedConstructor,
           35,
           4,
           messageContains: ["class 'A'", "named 'name'"],
@@ -177,7 +165,7 @@ f() {
 ''',
       [
         error(
-          CompileTimeErrorCode.NEW_WITH_UNDEFINED_CONSTRUCTOR,
+          CompileTimeErrorCode.newWithUndefinedConstructor,
           47,
           4,
           messageContains: ["class 'lib1.A'", "named 'name'"],
@@ -199,7 +187,7 @@ void f() {
   new A._named();
 }
 ''',
-      [error(CompileTimeErrorCode.NEW_WITH_UNDEFINED_CONSTRUCTOR, 36, 6)],
+      [error(CompileTimeErrorCode.newWithUndefinedConstructor, 36, 6)],
     );
   }
 
@@ -216,7 +204,7 @@ void f() {
   new A._named();
 }
 ''',
-      [error(CompileTimeErrorCode.NEW_WITH_UNDEFINED_CONSTRUCTOR, 36, 6)],
+      [error(CompileTimeErrorCode.newWithUndefinedConstructor, 36, 6)],
     );
   }
 
@@ -233,7 +221,7 @@ void f() {
   new A<int>._named();
 }
 ''',
-      [error(CompileTimeErrorCode.NEW_WITH_UNDEFINED_CONSTRUCTOR, 41, 6)],
+      [error(CompileTimeErrorCode.newWithUndefinedConstructor, 41, 6)],
     );
   }
 }
@@ -252,7 +240,7 @@ f() {
   A();
 }
 ''',
-      [error(ParserErrorCode.EXPERIMENT_NOT_ENABLED, 14, 3)],
+      [error(ParserErrorCode.experimentNotEnabled, 14, 3)],
     );
   }
 
@@ -266,7 +254,7 @@ f() {
   A.new();
 }
 ''',
-      [error(ParserErrorCode.EXPERIMENT_NOT_ENABLED, 37, 3)],
+      [error(ParserErrorCode.experimentNotEnabled, 37, 3)],
     );
   }
 }

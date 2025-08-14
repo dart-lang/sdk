@@ -44,7 +44,7 @@ class A {
   const A(int _);
 }
 ''',
-      [error(CompileTimeErrorCode.INVALID_CONSTANT, 87, 1)],
+      [error(CompileTimeErrorCode.invalidConstant, 87, 1)],
     );
   }
 
@@ -55,7 +55,7 @@ class A {
   const A(int i) : assert(i.isNegative);
 }
 ''',
-      [error(CompileTimeErrorCode.INVALID_CONSTANT, 36, 12)],
+      [error(CompileTimeErrorCode.invalidConstant, 36, 12)],
     );
   }
 
@@ -66,7 +66,7 @@ class A {
   const A(int i) : assert(i < 0, 'isNegative = ${i.isNegative}');
 }
 ''',
-      [error(CompileTimeErrorCode.INVALID_CONSTANT, 59, 12)],
+      [error(CompileTimeErrorCode.invalidConstant, 59, 12)],
     );
   }
 
@@ -79,7 +79,7 @@ class A {
   const A() : a = C;
 }
 ''',
-      [error(CompileTimeErrorCode.INVALID_CONSTANT, 63, 1)],
+      [error(CompileTimeErrorCode.invalidConstant, 63, 1)],
     );
   }
 
@@ -105,7 +105,7 @@ class A {
   const A() : x = a.c;
 }
 ''',
-      [error(CompileTimeErrorCode.INVALID_CONSTANT, 91, 3)],
+      [error(CompileTimeErrorCode.invalidConstant, 91, 3)],
     );
   }
 
@@ -123,7 +123,7 @@ class A {
   const A() : x = a.c + 1;
 }
 ''',
-      [error(CompileTimeErrorCode.INVALID_CONSTANT, 91, 3)],
+      [error(CompileTimeErrorCode.invalidConstant, 91, 3)],
     );
   }
 
@@ -141,7 +141,7 @@ class A {
   const A() : this.named(a.c);
 }
 ''',
-      [error(CompileTimeErrorCode.INVALID_CONSTANT, 103, 3)],
+      [error(CompileTimeErrorCode.invalidConstant, 103, 3)],
     );
   }
 
@@ -161,7 +161,7 @@ class B extends A {
   const B() : super(a.c);
 }
 ''',
-      [error(CompileTimeErrorCode.INVALID_CONSTANT, 114, 3)],
+      [error(CompileTimeErrorCode.invalidConstant, 114, 3)],
     );
   }
 
@@ -178,9 +178,9 @@ class B {
 var b = const B();
 ''',
       [
-        error(CompileTimeErrorCode.INVALID_CONSTANT, 47, 7),
+        error(CompileTimeErrorCode.invalidConstant, 47, 7),
         error(
-          CompileTimeErrorCode.INVALID_CONSTANT,
+          CompileTimeErrorCode.invalidConstant,
           77,
           9,
           contextMessages: [
@@ -206,7 +206,7 @@ class A {
   const A() : this.named(C);
 }
 ''',
-      [error(CompileTimeErrorCode.INVALID_CONSTANT, 71, 1)],
+      [error(CompileTimeErrorCode.invalidConstant, 71, 1)],
     );
   }
 
@@ -221,7 +221,7 @@ class B extends A {
   const B() : super(C);
 }
 ''',
-      [error(CompileTimeErrorCode.INVALID_CONSTANT, 82, 1)],
+      [error(CompileTimeErrorCode.invalidConstant, 82, 1)],
     );
   }
 
@@ -238,7 +238,7 @@ void main() {
   const Foo(bar: data);
 }
 ''',
-      [error(CompileTimeErrorCode.INVALID_CONSTANT, 148, 4)],
+      [error(CompileTimeErrorCode.invalidConstant, 148, 4)],
     );
   }
 }

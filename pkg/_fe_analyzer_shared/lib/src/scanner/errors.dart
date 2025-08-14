@@ -38,7 +38,7 @@ void translateErrorToken(ErrorToken token, ReportError reportError) {
       // TODO(paulberry,ahe): Fasta reports the error location as the entire
       // string; analyzer expects the end of the string.
       reportError(
-        ScannerErrorCode.UNTERMINATED_STRING_LITERAL,
+        ScannerErrorCode.unterminatedStringLiteral,
         endOffset - 1,
         null,
       );
@@ -48,7 +48,7 @@ void translateErrorToken(ErrorToken token, ReportError reportError) {
       // TODO(paulberry,ahe): Fasta reports the error location as the entire
       // comment; analyzer expects the end of the comment.
       reportError(
-        ScannerErrorCode.UNTERMINATED_MULTI_LINE_COMMENT,
+        ScannerErrorCode.unterminatedMultiLineComment,
         endOffset - 1,
         null,
       );
@@ -58,24 +58,24 @@ void translateErrorToken(ErrorToken token, ReportError reportError) {
       // TODO(paulberry,ahe): Fasta reports the error location as the entire
       // number; analyzer expects the end of the number.
       charOffset = endOffset - 1;
-      return _makeError(ScannerErrorCode.MISSING_DIGIT, null);
+      return _makeError(ScannerErrorCode.missingDigit, null);
 
     case "MISSING_HEX_DIGIT":
       // TODO(paulberry,ahe): Fasta reports the error location as the entire
       // number; analyzer expects the end of the number.
       charOffset = endOffset - 1;
-      return _makeError(ScannerErrorCode.MISSING_HEX_DIGIT, null);
+      return _makeError(ScannerErrorCode.missingHexDigit, null);
 
     case "ILLEGAL_CHARACTER":
       // We can safely assume `token.character` is non-`null` because this error
       // is only reported when there is a character associated with the token.
-      return _makeError(ScannerErrorCode.ILLEGAL_CHARACTER, [token.character!]);
+      return _makeError(ScannerErrorCode.illegalCharacter, [token.character!]);
 
     case "UNEXPECTED_SEPARATOR_IN_NUMBER":
-      return _makeError(ScannerErrorCode.UNEXPECTED_SEPARATOR_IN_NUMBER, null);
+      return _makeError(ScannerErrorCode.unexpectedSeparatorInNumber, null);
 
     case "UNSUPPORTED_OPERATOR":
-      return _makeError(ScannerErrorCode.UNSUPPORTED_OPERATOR, [
+      return _makeError(ScannerErrorCode.unsupportedOperator, [
         (token as UnsupportedOperator).token.lexeme,
       ]);
 
@@ -85,19 +85,19 @@ void translateErrorToken(ErrorToken token, ReportError reportError) {
         TokenType type = token.begin!.type;
         if (type == TokenType.OPEN_CURLY_BRACKET ||
             type == TokenType.STRING_INTERPOLATION_EXPRESSION) {
-          return _makeError(ScannerErrorCode.EXPECTED_TOKEN, ['}']);
+          return _makeError(ScannerErrorCode.expectedToken, ['}']);
         }
         if (type == TokenType.OPEN_SQUARE_BRACKET) {
-          return _makeError(ScannerErrorCode.EXPECTED_TOKEN, [']']);
+          return _makeError(ScannerErrorCode.expectedToken, [']']);
         }
         if (type == TokenType.OPEN_PAREN) {
-          return _makeError(ScannerErrorCode.EXPECTED_TOKEN, [')']);
+          return _makeError(ScannerErrorCode.expectedToken, [')']);
         }
         if (type == TokenType.LT) {
-          return _makeError(ScannerErrorCode.EXPECTED_TOKEN, ['>']);
+          return _makeError(ScannerErrorCode.expectedToken, ['>']);
         }
       } else if (errorCode == codeUnexpectedDollarInString) {
-        return _makeError(ScannerErrorCode.MISSING_IDENTIFIER, null);
+        return _makeError(ScannerErrorCode.missingIdentifier, null);
       }
       throw new UnimplementedError(
         '$errorCode "${errorCode.analyzerCodes?.first}"',

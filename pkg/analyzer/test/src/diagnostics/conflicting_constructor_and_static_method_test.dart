@@ -46,7 +46,7 @@ class C {
 ''',
       [
         error(
-          CompileTimeErrorCode.CONFLICTING_CONSTRUCTOR_AND_STATIC_METHOD,
+          CompileTimeErrorCode.conflictingConstructorAndStaticMethod,
           14,
           3,
         ),
@@ -75,7 +75,7 @@ enum E {
 ''',
       [
         error(
-          CompileTimeErrorCode.CONFLICTING_CONSTRUCTOR_AND_STATIC_METHOD,
+          CompileTimeErrorCode.conflictingConstructorAndStaticMethod,
           30,
           3,
         ),
@@ -100,7 +100,7 @@ extension type A.foo(int it) {
 ''',
       [
         error(
-          CompileTimeErrorCode.CONFLICTING_CONSTRUCTOR_AND_STATIC_METHOD,
+          CompileTimeErrorCode.conflictingConstructorAndStaticMethod,
           17,
           3,
         ),

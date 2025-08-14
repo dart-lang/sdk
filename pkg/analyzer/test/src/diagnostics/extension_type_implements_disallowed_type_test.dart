@@ -24,7 +24,7 @@ typedef X = dynamic;
 ''',
       [
         error(
-          CompileTimeErrorCode.EXTENSION_TYPE_IMPLEMENTS_DISALLOWED_TYPE,
+          CompileTimeErrorCode.extensionTypeImplementsDisallowedType,
           36,
           1,
         ),
@@ -40,7 +40,7 @@ typedef X = void Function();
 ''',
       [
         error(
-          CompileTimeErrorCode.EXTENSION_TYPE_IMPLEMENTS_DISALLOWED_TYPE,
+          CompileTimeErrorCode.extensionTypeImplementsDisallowedType,
           36,
           1,
         ),
@@ -62,7 +62,7 @@ extension type A(int it) implements Function {}
 ''',
       [
         error(
-          CompileTimeErrorCode.EXTENSION_TYPE_IMPLEMENTS_DISALLOWED_TYPE,
+          CompileTimeErrorCode.extensionTypeImplementsDisallowedType,
           36,
           8,
         ),
@@ -77,7 +77,7 @@ extension type A(int it) implements FutureOr<int> {}
 ''',
       [
         error(
-          CompileTimeErrorCode.EXTENSION_TYPE_IMPLEMENTS_DISALLOWED_TYPE,
+          CompileTimeErrorCode.extensionTypeImplementsDisallowedType,
           36,
           13,
         ),
@@ -91,7 +91,7 @@ extension type A(int it) implements FutureOr<int> {}
 extension type A(int it) implements X {}
 typedef X = num?;
 ''',
-      [error(CompileTimeErrorCode.NULLABLE_TYPE_IN_IMPLEMENTS_CLAUSE, 36, 1)],
+      [error(CompileTimeErrorCode.nullableTypeInImplementsClause, 36, 1)],
     );
   }
 
@@ -109,7 +109,7 @@ typedef X = (int, String);
 ''',
       [
         error(
-          CompileTimeErrorCode.EXTENSION_TYPE_IMPLEMENTS_DISALLOWED_TYPE,
+          CompileTimeErrorCode.extensionTypeImplementsDisallowedType,
           36,
           1,
         ),
@@ -124,7 +124,7 @@ extension type A<T>(int it) implements T {}
 ''',
       [
         error(
-          CompileTimeErrorCode.EXTENSION_TYPE_IMPLEMENTS_DISALLOWED_TYPE,
+          CompileTimeErrorCode.extensionTypeImplementsDisallowedType,
           39,
           1,
         ),
@@ -140,7 +140,7 @@ typedef X = void;
 ''',
       [
         error(
-          CompileTimeErrorCode.EXTENSION_TYPE_IMPLEMENTS_DISALLOWED_TYPE,
+          CompileTimeErrorCode.extensionTypeImplementsDisallowedType,
           36,
           1,
         ),

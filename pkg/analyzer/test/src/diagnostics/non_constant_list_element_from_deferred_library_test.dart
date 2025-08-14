@@ -30,7 +30,7 @@ var v = const [ if (cond) 'a' else a.c ];
 ''',
       [
         error(
-          CompileTimeErrorCode.NON_CONSTANT_LIST_ELEMENT_FROM_DEFERRED_LIBRARY,
+          CompileTimeErrorCode.nonConstantListElementFromDeferredLibrary,
           0,
           0,
         ),
@@ -50,7 +50,7 @@ var v = const [ if (cond) a.c ];
 ''',
       [
         error(
-          CompileTimeErrorCode.NON_CONSTANT_LIST_ELEMENT_FROM_DEFERRED_LIBRARY,
+          CompileTimeErrorCode.nonConstantListElementFromDeferredLibrary,
           81,
           1,
         ),
@@ -69,7 +69,7 @@ var v = const [a.c];
 ''',
       [
         error(
-          CompileTimeErrorCode.NON_CONSTANT_LIST_ELEMENT_FROM_DEFERRED_LIBRARY,
+          CompileTimeErrorCode.nonConstantListElementFromDeferredLibrary,
           51,
           1,
         ),
@@ -88,7 +88,7 @@ var v = const [a.c + 1];
 ''',
       [
         error(
-          CompileTimeErrorCode.NON_CONSTANT_LIST_ELEMENT_FROM_DEFERRED_LIBRARY,
+          CompileTimeErrorCode.nonConstantListElementFromDeferredLibrary,
           51,
           1,
         ),

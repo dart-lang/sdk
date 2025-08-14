@@ -17,9 +17,9 @@ void main() {
 class DeprecatedMemberUseFromSamePackageTest extends LintRuleTest {
   @override
   List<DiagnosticCode> get ignoredDiagnosticCodes => [
-    HintCode.DEPRECATED_MEMBER_USE_FROM_SAME_PACKAGE,
-    HintCode.DEPRECATED_MEMBER_USE_FROM_SAME_PACKAGE_WITH_MESSAGE,
-    WarningCode.UNUSED_LOCAL_VARIABLE,
+    HintCode.deprecatedMemberUseFromSamePackage,
+    HintCode.deprecatedMemberUseFromSamePackageWithMessage,
+    WarningCode.unusedLocalVariable,
   ];
 
   @override
@@ -298,7 +298,7 @@ import 'lib.dart' hide C;
 ''',
       [
         // No lint.
-        error(WarningCode.UNUSED_IMPORT, 7, 10),
+        error(WarningCode.unusedImport, 7, 10),
       ],
     );
   }
@@ -312,7 +312,7 @@ class C {}
       r'''
 import 'lib.dart' show C;
 ''',
-      [error(WarningCode.UNUSED_IMPORT, 7, 10), lint(23, 1)],
+      [error(WarningCode.unusedImport, 7, 10), lint(23, 1)],
     );
   }
 
@@ -624,7 +624,7 @@ library a;
       r'''
 import 'lib.dart';
 ''',
-      [lint(0, 18), error(WarningCode.UNUSED_IMPORT, 7, 10)],
+      [lint(0, 18), error(WarningCode.unusedImport, 7, 10)],
     );
   }
 

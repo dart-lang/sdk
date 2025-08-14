@@ -22,7 +22,7 @@ class DocDirectiveHasUnexpectedNamedArgumentTest
 /// {@animation 600 400 http://google.com foo=bar}
 class C {}
 ''',
-      [error(WarningCode.DOC_DIRECTIVE_HAS_UNEXPECTED_NAMED_ARGUMENT, 42, 7)],
+      [error(WarningCode.docDirectiveHasUnexpectedNamedArgument, 42, 7)],
     );
   }
 
@@ -32,7 +32,7 @@ class C {}
 /// {@macro name foo=bar}
 class C {}
 ''',
-      [error(WarningCode.DOC_DIRECTIVE_HAS_UNEXPECTED_NAMED_ARGUMENT, 17, 7)],
+      [error(WarningCode.docDirectiveHasUnexpectedNamedArgument, 17, 7)],
     );
   }
 

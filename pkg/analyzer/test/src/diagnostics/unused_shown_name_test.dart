@@ -36,7 +36,7 @@ f() {
   s.length;
 }
 ''',
-      [error(WarningCode.UNUSED_SHOWN_NAME, 24, 1)],
+      [error(WarningCode.unusedShownName, 24, 1)],
     );
   }
 
@@ -149,7 +149,7 @@ class B {}
 import 'lib1.dart' show A, B;
 A a = A();
 ''',
-      [error(WarningCode.UNUSED_SHOWN_NAME, 27, 1)],
+      [error(WarningCode.unusedShownName, 27, 1)],
     );
   }
 
@@ -161,7 +161,7 @@ main() {
   print(max(1, 2));
 }
 ''',
-      [error(WarningCode.UNDEFINED_SHOWN_NAME, 29, 6)],
+      [error(WarningCode.undefinedShownName, 29, 6)],
     );
   }
 
@@ -175,7 +175,7 @@ class B {}
 import 'lib1.dart' as p show A, B;
 p.A a = p.A();
 ''',
-      [error(WarningCode.UNUSED_SHOWN_NAME, 32, 1)],
+      [error(WarningCode.unusedShownName, 32, 1)],
     );
   }
 
@@ -194,8 +194,8 @@ A a = A();
 C c = C();
 ''',
       [
-        error(WarningCode.UNUSED_SHOWN_NAME, 27, 1),
-        error(WarningCode.UNUSED_SHOWN_NAME, 57, 1),
+        error(WarningCode.unusedShownName, 27, 1),
+        error(WarningCode.unusedShownName, 57, 1),
       ],
     );
   }
@@ -215,7 +215,7 @@ int a = var1;
 int b = var2;
 int c = var3;
 ''',
-      [error(WarningCode.UNUSED_SHOWN_NAME, 66, 4)],
+      [error(WarningCode.unusedShownName, 66, 4)],
     );
   }
 }

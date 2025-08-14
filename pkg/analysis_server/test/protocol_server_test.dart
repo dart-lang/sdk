@@ -43,7 +43,7 @@ class AnalysisErrorTest {
     // prepare AnalysisError
     engineDiagnostic = MockDiagnostic(
       source: source,
-      diagnosticCode: engine.CompileTimeErrorCode.AMBIGUOUS_EXPORT,
+      diagnosticCode: engine.CompileTimeErrorCode.ambiguousExport,
       offset: 10,
       length: 20,
       message: 'my message',
@@ -111,7 +111,7 @@ class AnalysisErrorTest {
   void test_fromEngine_hasCorrection() {
     engineDiagnostic = MockDiagnostic(
       source: source,
-      diagnosticCode: engine.CompileTimeErrorCode.AMBIGUOUS_EXPORT,
+      diagnosticCode: engine.CompileTimeErrorCode.ambiguousExport,
       offset: 10,
       length: 20,
       message: 'my message',
@@ -202,7 +202,7 @@ class AnalysisErrorTest {
   void test_fromEngine_noCorrection() {
     engineDiagnostic = MockDiagnostic(
       source: source,
-      diagnosticCode: engine.CompileTimeErrorCode.AMBIGUOUS_EXPORT,
+      diagnosticCode: engine.CompileTimeErrorCode.ambiguousExport,
       offset: 10,
       length: 20,
       message: 'my message',

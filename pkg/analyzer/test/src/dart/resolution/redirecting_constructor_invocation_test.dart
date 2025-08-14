@@ -54,7 +54,7 @@ class C {
 ''',
       [
         error(
-          CompileTimeErrorCode.REDIRECT_GENERATIVE_TO_MISSING_CONSTRUCTOR,
+          CompileTimeErrorCode.redirectGenerativeToMissingConstructor,
           24,
           13,
         ),
@@ -116,7 +116,7 @@ class C {
 ''',
       [
         error(
-          CompileTimeErrorCode.REDIRECT_GENERATIVE_TO_MISSING_CONSTRUCTOR,
+          CompileTimeErrorCode.redirectGenerativeToMissingConstructor,
           37,
           7,
         ),

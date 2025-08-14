@@ -21,7 +21,7 @@ class ImplementsSuperClassTest extends PubPackageResolutionTest {
 class A {}
 class B extends A implements A {}
 ''',
-      [error(CompileTimeErrorCode.IMPLEMENTS_SUPER_CLASS, 40, 1)],
+      [error(CompileTimeErrorCode.implementsSuperClass, 40, 1)],
     );
   }
 
@@ -30,7 +30,7 @@ class B extends A implements A {}
       '''
 class A implements Object {}
 ''',
-      [error(CompileTimeErrorCode.IMPLEMENTS_SUPER_CLASS, 19, 6)],
+      [error(CompileTimeErrorCode.implementsSuperClass, 19, 6)],
     );
   }
 
@@ -41,7 +41,7 @@ class A {}
 typedef B = A;
 class C extends A implements B {}
 ''',
-      [error(CompileTimeErrorCode.IMPLEMENTS_SUPER_CLASS, 55, 1)],
+      [error(CompileTimeErrorCode.implementsSuperClass, 55, 1)],
     );
   }
 
@@ -52,7 +52,7 @@ class A {}
 mixin M {}
 class B = A with M implements A;
 ''',
-      [error(CompileTimeErrorCode.IMPLEMENTS_SUPER_CLASS, 52, 1)],
+      [error(CompileTimeErrorCode.implementsSuperClass, 52, 1)],
     );
   }
 
@@ -62,7 +62,7 @@ class B = A with M implements A;
 mixin M {}
 class A = Object with M implements Object;
 ''',
-      [error(CompileTimeErrorCode.IMPLEMENTS_SUPER_CLASS, 46, 6)],
+      [error(CompileTimeErrorCode.implementsSuperClass, 46, 6)],
     );
   }
 
@@ -74,7 +74,7 @@ mixin M {}
 typedef B = A;
 class C = A with M implements B;
 ''',
-      [error(CompileTimeErrorCode.IMPLEMENTS_SUPER_CLASS, 67, 1)],
+      [error(CompileTimeErrorCode.implementsSuperClass, 67, 1)],
     );
   }
 }

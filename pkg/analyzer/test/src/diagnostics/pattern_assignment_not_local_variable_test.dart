@@ -22,13 +22,7 @@ void f() {
   (int) = 0;
 }
 ''',
-      [
-        error(
-          CompileTimeErrorCode.PATTERN_ASSIGNMENT_NOT_LOCAL_VARIABLE,
-          14,
-          3,
-        ),
-      ],
+      [error(CompileTimeErrorCode.patternAssignmentNotLocalVariable, 14, 3)],
     );
   }
 
@@ -43,13 +37,7 @@ class A {
   }
 }
 ''',
-      [
-        error(
-          CompileTimeErrorCode.PATTERN_ASSIGNMENT_NOT_LOCAL_VARIABLE,
-          42,
-          1,
-        ),
-      ],
+      [error(CompileTimeErrorCode.patternAssignmentNotLocalVariable, 42, 1)],
     );
   }
 
@@ -62,13 +50,7 @@ class A<T> {
   }
 }
 ''',
-      [
-        error(
-          CompileTimeErrorCode.PATTERN_ASSIGNMENT_NOT_LOCAL_VARIABLE,
-          31,
-          1,
-        ),
-      ],
+      [error(CompileTimeErrorCode.patternAssignmentNotLocalVariable, 31, 1)],
     );
   }
 
@@ -79,13 +61,7 @@ void f() {
   (dynamic) = 0;
 }
 ''',
-      [
-        error(
-          CompileTimeErrorCode.PATTERN_ASSIGNMENT_NOT_LOCAL_VARIABLE,
-          14,
-          7,
-        ),
-      ],
+      [error(CompileTimeErrorCode.patternAssignmentNotLocalVariable, 14, 7)],
     );
   }
 
@@ -96,13 +72,7 @@ void f() {
   (f) = 0;
 }
 ''',
-      [
-        error(
-          CompileTimeErrorCode.PATTERN_ASSIGNMENT_NOT_LOCAL_VARIABLE,
-          14,
-          1,
-        ),
-      ],
+      [error(CompileTimeErrorCode.patternAssignmentNotLocalVariable, 14, 1)],
     );
   }
 
@@ -115,13 +85,7 @@ void f() {
   (x) = 0;
 }
 ''',
-      [
-        error(
-          CompileTimeErrorCode.PATTERN_ASSIGNMENT_NOT_LOCAL_VARIABLE,
-          26,
-          1,
-        ),
-      ],
+      [error(CompileTimeErrorCode.patternAssignmentNotLocalVariable, 26, 1)],
     );
   }
 }

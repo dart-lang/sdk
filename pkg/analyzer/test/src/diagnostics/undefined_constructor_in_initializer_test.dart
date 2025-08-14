@@ -25,7 +25,7 @@ class B extends A {
 ''',
       [
         error(
-          CompileTimeErrorCode.UNDEFINED_CONSTRUCTOR_IN_INITIALIZER,
+          CompileTimeErrorCode.undefinedConstructorInInitializer,
           39,
           13,
           messageContains: ["class 'A'", "named 'named'"],

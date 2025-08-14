@@ -34,7 +34,7 @@ class B	extends A {
   int get g;
 }
 ''',
-      [error(CompileTimeErrorCode.INVALID_IMPLEMENTATION_OVERRIDE, 36, 1)],
+      [error(CompileTimeErrorCode.invalidImplementationOverride, 36, 1)],
     );
   }
 
@@ -49,9 +49,9 @@ class B	extends A {
 }
 ''',
       [
-        error(CompileTimeErrorCode.INVALID_IMPLEMENTATION_OVERRIDE, 52, 1),
+        error(CompileTimeErrorCode.invalidImplementationOverride, 52, 1),
         error(
-          CompileTimeErrorCode.INVALID_OVERRIDE,
+          CompileTimeErrorCode.invalidOverride,
           72,
           3,
           contextMessages: [message(testFile, 16, 3)],
@@ -70,7 +70,7 @@ class B	extends A {
   int add(num a);
 }
 ''',
-      [error(CompileTimeErrorCode.INVALID_IMPLEMENTATION_OVERRIDE, 41, 1)],
+      [error(CompileTimeErrorCode.invalidImplementationOverride, 41, 1)],
     );
   }
 
@@ -95,7 +95,7 @@ class B	extends A {
   int add([int a = 0, int b = 0]);
 }
 ''',
-      [error(CompileTimeErrorCode.INVALID_IMPLEMENTATION_OVERRIDE, 36, 1)],
+      [error(CompileTimeErrorCode.invalidImplementationOverride, 36, 1)],
     );
   }
 
@@ -110,9 +110,9 @@ class A with M {
 }
 ''',
       [
-        error(CompileTimeErrorCode.INVALID_IMPLEMENTATION_OVERRIDE, 52, 1),
+        error(CompileTimeErrorCode.invalidImplementationOverride, 52, 1),
         error(
-          CompileTimeErrorCode.INVALID_OVERRIDE,
+          CompileTimeErrorCode.invalidOverride,
           69,
           3,
           contextMessages: [message(testFile, 16, 3)],
@@ -133,9 +133,9 @@ mixin M {
 class B	extends A with M {}
 ''',
       [
-        error(CompileTimeErrorCode.INVALID_IMPLEMENTATION_OVERRIDE, 77, 1),
+        error(CompileTimeErrorCode.invalidImplementationOverride, 77, 1),
         error(
-          CompileTimeErrorCode.INVALID_OVERRIDE,
+          CompileTimeErrorCode.invalidOverride,
           94,
           1,
           contextMessages: [message(testFile, 16, 3)],
@@ -177,7 +177,7 @@ class B extends A {
 ''',
       [
         error(
-          CompileTimeErrorCode.INVALID_IMPLEMENTATION_OVERRIDE_SETTER,
+          CompileTimeErrorCode.invalidImplementationOverrideSetter,
           37,
           1,
           messageContains: ["'A.c'", "'B.c'"],
@@ -197,7 +197,7 @@ enum E with M {
   int get foo;
 }
 ''',
-      [error(CompileTimeErrorCode.INVALID_IMPLEMENTATION_OVERRIDE, 37, 1)],
+      [error(CompileTimeErrorCode.invalidImplementationOverride, 37, 1)],
     );
   }
 
@@ -212,7 +212,7 @@ enum E with M {
   int foo();
 }
 ''',
-      [error(CompileTimeErrorCode.INVALID_IMPLEMENTATION_OVERRIDE, 35, 1)],
+      [error(CompileTimeErrorCode.invalidImplementationOverride, 35, 1)],
     );
   }
 
@@ -232,7 +232,7 @@ enum E2 implements I {
   String toString([int? value]) => '';
 }
 ''',
-      [error(CompileTimeErrorCode.INVALID_IMPLEMENTATION_OVERRIDE, 60, 2)],
+      [error(CompileTimeErrorCode.invalidImplementationOverride, 60, 2)],
     );
   }
 }

@@ -24,7 +24,7 @@ class A {
   }
 }
 ''',
-      [error(ParserErrorCode.MISSING_ASSIGNABLE_SELECTOR, 28, 5)],
+      [error(ParserErrorCode.missingAssignableSelector, 28, 5)],
     );
 
     var node = findNode.singleParenthesizedExpression;

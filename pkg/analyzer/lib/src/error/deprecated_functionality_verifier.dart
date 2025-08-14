@@ -48,13 +48,13 @@ class DeprecatedFunctionalityVerifier {
       if (element.hasDeprecatedWithField('_isExtend')) {
         _diagnosticReporter.atNode(
           node,
-          WarningCode.DEPRECATED_EXTEND,
+          WarningCode.deprecatedExtend,
           arguments: [element.name!],
         );
       } else if (element.hasDeprecatedWithField('_isSubclass')) {
         _diagnosticReporter.atNode(
           node,
-          WarningCode.DEPRECATED_SUBCLASS,
+          WarningCode.deprecatedSubclass,
           arguments: [element.name!],
         );
       }
@@ -71,13 +71,13 @@ class DeprecatedFunctionalityVerifier {
         if (element.hasDeprecatedWithField('_isImplement')) {
           _diagnosticReporter.atNode(
             namedType,
-            WarningCode.DEPRECATED_IMPLEMENT,
+            WarningCode.deprecatedImplement,
             arguments: [element.name!],
           );
         } else if (element.hasDeprecatedWithField('_isSubclass')) {
           _diagnosticReporter.atNode(
             namedType,
-            WarningCode.DEPRECATED_SUBCLASS,
+            WarningCode.deprecatedSubclass,
             arguments: [element.name!],
           );
         }
@@ -95,7 +95,7 @@ class DeprecatedFunctionalityVerifier {
         if (element.hasDeprecatedWithField('_isSubclass')) {
           _diagnosticReporter.atNode(
             namedType,
-            WarningCode.DEPRECATED_SUBCLASS,
+            WarningCode.deprecatedSubclass,
             arguments: [element.name!],
           );
         }

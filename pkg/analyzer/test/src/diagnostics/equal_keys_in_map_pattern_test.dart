@@ -24,7 +24,7 @@ void f(x) {
 ''',
       [
         error(
-          CompileTimeErrorCode.EQUAL_KEYS_IN_MAP_PATTERN,
+          CompileTimeErrorCode.equalKeysInMapPattern,
           35,
           4,
           contextMessages: [message(testFile, 26, 4)],
@@ -42,7 +42,7 @@ void f(x) {
 ''',
       [
         error(
-          CompileTimeErrorCode.EQUAL_KEYS_IN_MAP_PATTERN,
+          CompileTimeErrorCode.equalKeysInMapPattern,
           32,
           1,
           contextMessages: [message(testFile, 26, 1)],
@@ -63,7 +63,7 @@ void f(x) {
 ''',
       [
         error(
-          CompileTimeErrorCode.EQUAL_KEYS_IN_MAP_PATTERN,
+          CompileTimeErrorCode.equalKeysInMapPattern,
           59,
           1,
           contextMessages: [message(testFile, 53, 1)],
@@ -81,7 +81,7 @@ void f(x) {
 ''',
       [
         error(
-          CompileTimeErrorCode.EQUAL_KEYS_IN_MAP_PATTERN,
+          CompileTimeErrorCode.equalKeysInMapPattern,
           34,
           3,
           contextMessages: [message(testFile, 26, 3)],
@@ -100,7 +100,7 @@ extension type E(int it) {}
 ''',
       [
         error(
-          CompileTimeErrorCode.EQUAL_KEYS_IN_MAP_PATTERN,
+          CompileTimeErrorCode.equalKeysInMapPattern,
           34,
           1,
           contextMessages: [message(testFile, 26, 3)],
@@ -182,7 +182,7 @@ void f(x) {
 ''',
       [
         error(
-          CompileTimeErrorCode.EQUAL_KEYS_IN_MAP_PATTERN,
+          CompileTimeErrorCode.equalKeysInMapPattern,
           33,
           2,
           contextMessages: [message(testFile, 26, 2)],
@@ -200,7 +200,7 @@ void f(x) {
 ''',
       [
         error(
-          CompileTimeErrorCode.EQUAL_KEYS_IN_MAP_PATTERN,
+          CompileTimeErrorCode.equalKeysInMapPattern,
           37,
           6,
           contextMessages: [message(testFile, 26, 6)],
@@ -226,7 +226,7 @@ void f(x) {
 ''',
       [
         error(
-          CompileTimeErrorCode.EQUAL_KEYS_IN_MAP_PATTERN,
+          CompileTimeErrorCode.equalKeysInMapPattern,
           35,
           4,
           contextMessages: [message(testFile, 26, 4)],

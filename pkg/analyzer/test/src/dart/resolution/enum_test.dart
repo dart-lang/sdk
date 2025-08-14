@@ -265,7 +265,7 @@ enum E {
   const E(int a);
 }
 ''',
-      [error(CompileTimeErrorCode.UNDEFINED_ENUM_CONSTRUCTOR_NAMED, 13, 5)],
+      [error(CompileTimeErrorCode.undefinedEnumConstructorNamed, 13, 5)],
     );
 
     var node = findNode.enumConstantDeclaration('v.');
@@ -300,7 +300,7 @@ enum E {
   const E.named(int a);
 }
 ''',
-      [error(CompileTimeErrorCode.UNDEFINED_ENUM_CONSTRUCTOR_UNNAMED, 11, 1)],
+      [error(CompileTimeErrorCode.undefinedEnumConstructorUnnamed, 11, 1)],
     );
 
     var node = findNode.enumConstantDeclaration('v(');

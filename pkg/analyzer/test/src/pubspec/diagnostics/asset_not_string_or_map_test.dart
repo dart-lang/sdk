@@ -23,7 +23,7 @@ flutter:
   assets:
     - 23
 ''',
-      [PubspecWarningCode.ASSET_NOT_STRING_OR_MAP],
+      [PubspecWarningCode.assetNotStringOrMap],
     );
   }
 

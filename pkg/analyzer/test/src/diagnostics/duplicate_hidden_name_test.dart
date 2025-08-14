@@ -24,7 +24,7 @@ class B {}
       '''
 export 'lib1.dart' hide A, B, A;
 ''',
-      [error(WarningCode.DUPLICATE_HIDDEN_NAME, 30, 1)],
+      [error(WarningCode.duplicateHiddenName, 30, 1)],
     );
   }
 
@@ -41,7 +41,7 @@ export 'dart:math' hide pi, Random, pi;
     await assertErrorsInFile2(a, []);
 
     await assertErrorsInFile2(b, [
-      error(WarningCode.DUPLICATE_HIDDEN_NAME, 54, 2),
+      error(WarningCode.duplicateHiddenName, 54, 2),
     ]);
   }
 }

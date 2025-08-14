@@ -24,7 +24,7 @@ const map = {intConst: null, 0: ?intConst, null: 1, stringConst: 1};
 ''',
       [
         error(
-          CompileTimeErrorCode.EQUAL_KEYS_IN_CONST_MAP,
+          CompileTimeErrorCode.equalKeysInConstMap,
           86,
           1,
           contextMessages: [message(testFile, 70, 8)],
@@ -42,7 +42,7 @@ const set = {0, ?intConst, stringConst};
 ''',
       [
         error(
-          CompileTimeErrorCode.EQUAL_ELEMENTS_IN_CONST_SET,
+          CompileTimeErrorCode.equalElementsInConstSet,
           74,
           8,
           contextMessages: [message(testFile, 70, 1)],
@@ -60,7 +60,7 @@ const map = {intConst: null, ?(0 as int?): intConst, null: 1, stringConst: 1};
 ''',
       [
         error(
-          CompileTimeErrorCode.EQUAL_KEYS_IN_CONST_MAP,
+          CompileTimeErrorCode.equalKeysInConstMap,
           87,
           11,
           contextMessages: [message(testFile, 70, 8)],
@@ -79,7 +79,7 @@ const set = {nullConst, null, intConst, stringConst};
 ''',
       [
         error(
-          CompileTimeErrorCode.EQUAL_ELEMENTS_IN_CONST_SET,
+          CompileTimeErrorCode.equalElementsInConstSet,
           110,
           4,
           contextMessages: [message(testFile, 99, 9)],
@@ -98,7 +98,7 @@ const map = {null: 1, nullConst: 1, intConst: 1, stringConst: 1};
 ''',
       [
         error(
-          CompileTimeErrorCode.EQUAL_KEYS_IN_CONST_MAP,
+          CompileTimeErrorCode.equalKeysInConstMap,
           103,
           9,
           contextMessages: [message(testFile, 94, 4)],
@@ -117,7 +117,7 @@ const map = {null: 1, nullConst: ?intConst, stringConst: 1};
 ''',
       [
         error(
-          CompileTimeErrorCode.EQUAL_KEYS_IN_CONST_MAP,
+          CompileTimeErrorCode.equalKeysInConstMap,
           103,
           9,
           contextMessages: [message(testFile, 94, 4)],
@@ -135,7 +135,7 @@ const set = {null, intConst, "", ?stringConst};
 ''',
       [
         error(
-          CompileTimeErrorCode.EQUAL_ELEMENTS_IN_CONST_SET,
+          CompileTimeErrorCode.equalElementsInConstSet,
           91,
           11,
           contextMessages: [message(testFile, 86, 2)],
@@ -153,12 +153,8 @@ const String? stringConst = "";
 const list = [?null, ?nullVar, intConst, stringConst];
 ''',
       [
-        error(CompileTimeErrorCode.NON_CONSTANT_LIST_ELEMENT, 99, 7),
-        error(
-          CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE,
-          99,
-          7,
-        ),
+        error(CompileTimeErrorCode.nonConstantListElement, 99, 7),
+        error(CompileTimeErrorCode.constInitializedWithNonConstantValue, 99, 7),
       ],
     );
   }
@@ -171,12 +167,8 @@ int? intVar = 0;
 const map = {null: 1, ?intVar: 1, stringConst: 1};
 ''',
       [
-        error(CompileTimeErrorCode.NON_CONSTANT_MAP_KEY, 72, 6),
-        error(
-          CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE,
-          72,
-          6,
-        ),
+        error(CompileTimeErrorCode.nonConstantMapKey, 72, 6),
+        error(CompileTimeErrorCode.constInitializedWithNonConstantValue, 72, 6),
       ],
     );
   }
@@ -190,12 +182,8 @@ int? intVar = 0;
 const set = {nullConst, ?intVar, stringConst};
 ''',
       [
-        error(CompileTimeErrorCode.NON_CONSTANT_SET_ELEMENT, 98, 6),
-        error(
-          CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE,
-          98,
-          6,
-        ),
+        error(CompileTimeErrorCode.nonConstantSetElement, 98, 6),
+        error(CompileTimeErrorCode.constInitializedWithNonConstantValue, 98, 6),
       ],
     );
   }
@@ -208,12 +196,8 @@ int? intVar = 0;
 const map = {null: 1, 0: ?intVar, stringConst: 1};
 ''',
       [
-        error(CompileTimeErrorCode.NON_CONSTANT_MAP_VALUE, 75, 6),
-        error(
-          CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE,
-          75,
-          6,
-        ),
+        error(CompileTimeErrorCode.nonConstantMapValue, 75, 6),
+        error(CompileTimeErrorCode.constInitializedWithNonConstantValue, 75, 6),
       ],
     );
   }
@@ -227,12 +211,8 @@ const String? stringConst = "";
 const map = {?nullVar: 1, intConst: 1, stringConst: 1};
 ''',
       [
-        error(CompileTimeErrorCode.NON_CONSTANT_MAP_KEY, 91, 7),
-        error(
-          CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE,
-          91,
-          7,
-        ),
+        error(CompileTimeErrorCode.nonConstantMapKey, 91, 7),
+        error(CompileTimeErrorCode.constInitializedWithNonConstantValue, 91, 7),
       ],
     );
   }
@@ -246,12 +226,8 @@ const String? stringConst = "";
 const set = {?nullVar, intConst, stringConst};
 ''',
       [
-        error(CompileTimeErrorCode.NON_CONSTANT_SET_ELEMENT, 91, 7),
-        error(
-          CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE,
-          91,
-          7,
-        ),
+        error(CompileTimeErrorCode.nonConstantSetElement, 91, 7),
+        error(CompileTimeErrorCode.constInitializedWithNonConstantValue, 91, 7),
       ],
     );
   }
@@ -265,12 +241,8 @@ const String? stringConst = "";
 const map = {null: ?nullVar, intConst: 1, stringConst: 1};
 ''',
       [
-        error(CompileTimeErrorCode.NON_CONSTANT_MAP_VALUE, 97, 7),
-        error(
-          CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE,
-          97,
-          7,
-        ),
+        error(CompileTimeErrorCode.nonConstantMapValue, 97, 7),
+        error(CompileTimeErrorCode.constInitializedWithNonConstantValue, 97, 7),
       ],
     );
   }
@@ -282,12 +254,8 @@ String? stringVar = "";
 const map = {null: 1, 0: 1, ?stringVar: 1};
 ''',
       [
-        error(CompileTimeErrorCode.NON_CONSTANT_MAP_KEY, 53, 9),
-        error(
-          CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE,
-          53,
-          9,
-        ),
+        error(CompileTimeErrorCode.nonConstantMapKey, 53, 9),
+        error(CompileTimeErrorCode.constInitializedWithNonConstantValue, 53, 9),
       ],
     );
   }
@@ -301,9 +269,9 @@ String? stringVar = "";
 const set = {nullConst, intConst, ?stringVar};
 ''',
       [
-        error(CompileTimeErrorCode.NON_CONSTANT_SET_ELEMENT, 108, 9),
+        error(CompileTimeErrorCode.nonConstantSetElement, 108, 9),
         error(
-          CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE,
+          CompileTimeErrorCode.constInitializedWithNonConstantValue,
           108,
           9,
         ),
@@ -318,12 +286,8 @@ String? stringVar = "";
 const map = {null: 1, 0: 1, "": ?stringVar};
 ''',
       [
-        error(CompileTimeErrorCode.NON_CONSTANT_MAP_VALUE, 57, 9),
-        error(
-          CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE,
-          57,
-          9,
-        ),
+        error(CompileTimeErrorCode.nonConstantMapValue, 57, 9),
+        error(CompileTimeErrorCode.constInitializedWithNonConstantValue, 57, 9),
       ],
     );
   }
@@ -337,12 +301,8 @@ const String? stringConst = "";
 const list = [?nullVar, intConst, stringConst];
 ''',
       [
-        error(CompileTimeErrorCode.NON_CONSTANT_LIST_ELEMENT, 92, 7),
-        error(
-          CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE,
-          92,
-          7,
-        ),
+        error(CompileTimeErrorCode.nonConstantListElement, 92, 7),
+        error(CompileTimeErrorCode.constInitializedWithNonConstantValue, 92, 7),
       ],
     );
   }

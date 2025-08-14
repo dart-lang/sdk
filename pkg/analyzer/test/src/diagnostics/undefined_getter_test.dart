@@ -27,7 +27,7 @@ f(C c) {
   c.foo += 1;
 }
 ''',
-      [error(CompileTimeErrorCode.UNDEFINED_GETTER, 46, 3)],
+      [error(CompileTimeErrorCode.undefinedGetter, 46, 3)],
     );
   }
 
@@ -42,7 +42,7 @@ f() {
   C.foo += 1;
 }
 ''',
-      [error(CompileTimeErrorCode.UNDEFINED_GETTER, 50, 3)],
+      [error(CompileTimeErrorCode.undefinedGetter, 50, 3)],
     );
   }
 
@@ -55,7 +55,7 @@ main() {
   print(A().);
 }
 ''',
-      [error(ParserErrorCode.MISSING_IDENTIFIER, 33, 1)],
+      [error(ParserErrorCode.missingIdentifier, 33, 1)],
     );
   }
 
@@ -74,7 +74,7 @@ extension E on C {
   }
 }
 ''',
-      [error(CompileTimeErrorCode.UNDEFINED_GETTER, 95, 3)],
+      [error(CompileTimeErrorCode.undefinedGetter, 95, 3)],
     );
   }
 
@@ -88,7 +88,7 @@ f() {
   0.foo;
 }
 ''',
-      [error(CompileTimeErrorCode.UNDEFINED_GETTER, 58, 3)],
+      [error(CompileTimeErrorCode.undefinedGetter, 58, 3)],
     );
   }
 
@@ -98,7 +98,7 @@ f() {
 extension E on int {}
 var a = 3.v;
 ''',
-      [error(CompileTimeErrorCode.UNDEFINED_GETTER, 32, 1)],
+      [error(CompileTimeErrorCode.undefinedGetter, 32, 1)],
     );
   }
 
@@ -113,7 +113,7 @@ f(C c) {
   c.a;
 }
 ''',
-      [error(CompileTimeErrorCode.UNDEFINED_GETTER, 46, 1)],
+      [error(CompileTimeErrorCode.undefinedGetter, 46, 1)],
     );
   }
 
@@ -132,7 +132,7 @@ f(C c) {
   c.foo;
 }
 ''',
-      [error(CompileTimeErrorCode.UNDEFINED_GETTER, 93, 3)],
+      [error(CompileTimeErrorCode.undefinedGetter, 93, 3)],
     );
   }
 
@@ -149,7 +149,7 @@ extension E on Type {
   int get foo => 1;
 }
 ''',
-      [error(CompileTimeErrorCode.UNDEFINED_GETTER_ON_FUNCTION_TYPE, 58, 3)],
+      [error(CompileTimeErrorCode.undefinedGetterOnFunctionType, 58, 3)],
     );
   }
 
@@ -239,7 +239,7 @@ f(int x) {
   return [if (x is String) x.length];
 }
 ''',
-      [error(CompileTimeErrorCode.UNDEFINED_GETTER, 40, 6)],
+      [error(CompileTimeErrorCode.undefinedGetter, 40, 6)],
     );
   }
 
@@ -258,7 +258,7 @@ f(int x) {
   return {if (x is String) x : x.length};
 }
 ''',
-      [error(CompileTimeErrorCode.UNDEFINED_GETTER, 44, 6)],
+      [error(CompileTimeErrorCode.undefinedGetter, 44, 6)],
     );
   }
 
@@ -277,7 +277,7 @@ f(int x) {
   return {if (x is String) x.length};
 }
 ''',
-      [error(CompileTimeErrorCode.UNDEFINED_GETTER, 40, 6)],
+      [error(CompileTimeErrorCode.undefinedGetter, 40, 6)],
     );
   }
 
@@ -298,7 +298,7 @@ f(int x) {
   }
 }
 ''',
-      [error(CompileTimeErrorCode.UNDEFINED_GETTER, 38, 6)],
+      [error(CompileTimeErrorCode.undefinedGetter, 38, 6)],
     );
   }
 
@@ -318,7 +318,7 @@ f(Object x) {
 class T {}
 f(T e) { return e.m; }
 ''',
-      [error(CompileTimeErrorCode.UNDEFINED_GETTER, 29, 1)],
+      [error(CompileTimeErrorCode.undefinedGetter, 29, 1)],
     );
   }
 
@@ -329,7 +329,7 @@ mixin M {
   f() { return this.m; }
 }
 ''',
-      [error(CompileTimeErrorCode.UNDEFINED_GETTER, 30, 1)],
+      [error(CompileTimeErrorCode.undefinedGetter, 30, 1)],
     );
   }
 
@@ -342,7 +342,7 @@ f(C? c) {
   c..new;
 }
 ''',
-      [error(CompileTimeErrorCode.UNDEFINED_GETTER, 27, 3)],
+      [error(CompileTimeErrorCode.undefinedGetter, 27, 3)],
     );
   }
 
@@ -353,7 +353,7 @@ f(dynamic d) {
   d.new;
 }
 ''',
-      [error(CompileTimeErrorCode.UNDEFINED_GETTER, 19, 3)],
+      [error(CompileTimeErrorCode.undefinedGetter, 19, 3)],
     );
   }
 
@@ -366,7 +366,7 @@ f(C? c1, C c2) {
   (c1 ?? c2).new;
 }
 ''',
-      [error(CompileTimeErrorCode.UNDEFINED_GETTER, 42, 3)],
+      [error(CompileTimeErrorCode.undefinedGetter, 42, 3)],
     );
   }
 
@@ -379,7 +379,7 @@ f(C? c) {
   c?.new;
 }
 ''',
-      [error(CompileTimeErrorCode.UNDEFINED_GETTER, 27, 3)],
+      [error(CompileTimeErrorCode.undefinedGetter, 27, 3)],
     );
   }
 
@@ -396,7 +396,7 @@ f(D d) {
   d.c.new;
 }
 ''',
-      [error(CompileTimeErrorCode.UNDEFINED_GETTER, 60, 3)],
+      [error(CompileTimeErrorCode.undefinedGetter, 60, 3)],
     );
   }
 
@@ -409,7 +409,7 @@ f(C c) {
   c.new;
 }
 ''',
-      [error(CompileTimeErrorCode.UNDEFINED_GETTER, 25, 3)],
+      [error(CompileTimeErrorCode.undefinedGetter, 25, 3)],
     );
   }
 
@@ -420,7 +420,7 @@ f<T>(T t) {
   t.new;
 }
 ''',
-      [error(CompileTimeErrorCode.UNDEFINED_GETTER, 16, 3)],
+      [error(CompileTimeErrorCode.undefinedGetter, 16, 3)],
     );
   }
 
@@ -432,7 +432,7 @@ m() {
   _null.foo;
 }
 ''',
-      [error(CompileTimeErrorCode.INVALID_USE_OF_NULL_VALUE, 28, 3)],
+      [error(CompileTimeErrorCode.invalidUseOfNullValue, 28, 3)],
     );
   }
 
@@ -443,7 +443,7 @@ f(Object o) {
   return o.call;
 }
 ''',
-      [error(CompileTimeErrorCode.UNDEFINED_GETTER, 25, 4)],
+      [error(CompileTimeErrorCode.undefinedGetter, 25, 4)],
     );
   }
 
@@ -456,7 +456,7 @@ void f<X extends num, Y extends X>(Y y) {
   }
 }
 ''',
-      [error(CompileTimeErrorCode.UNDEFINED_GETTER, 66, 6)],
+      [error(CompileTimeErrorCode.undefinedGetter, 66, 6)],
     );
   }
 
@@ -467,7 +467,7 @@ void f(Function a) {
   return (a).call;
 }
 ''',
-      [error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION, 30, 8)],
+      [error(CompileTimeErrorCode.returnOfInvalidTypeFromFunction, 30, 8)],
     );
   }
 
@@ -491,7 +491,7 @@ class A {
 }
 var a = A?.x;
 ''',
-      [error(StaticWarningCode.INVALID_NULL_AWARE_OPERATOR, 37, 2)],
+      [error(StaticWarningCode.invalidNullAwareOperator, 37, 2)],
     );
   }
 
@@ -505,7 +505,7 @@ class C extends S {}
 f(var p) {
   f(C.g);
 }''',
-      [error(CompileTimeErrorCode.UNDEFINED_GETTER, 75, 1)],
+      [error(CompileTimeErrorCode.undefinedGetter, 75, 1)],
     );
   }
 
@@ -523,7 +523,7 @@ f(C c) {
   g(c).a;
 }
 ''',
-      [error(CompileTimeErrorCode.UNDEFINED_GETTER, 92, 1)],
+      [error(CompileTimeErrorCode.undefinedGetter, 92, 1)],
     );
   }
 
@@ -534,7 +534,7 @@ class C {}
 f(var p) {
   f(C.m);
 }''',
-      [error(CompileTimeErrorCode.UNDEFINED_GETTER, 28, 1)],
+      [error(CompileTimeErrorCode.undefinedGetter, 28, 1)],
     );
   }
 
@@ -548,7 +548,7 @@ main() {
   T..foo;
 }
 ''',
-      [error(CompileTimeErrorCode.UNDEFINED_GETTER, 54, 3)],
+      [error(CompileTimeErrorCode.undefinedGetter, 54, 3)],
     );
   }
 
@@ -559,8 +559,8 @@ class A {}
 f() => A?.hashCode;
 ''',
       [
-        error(StaticWarningCode.INVALID_NULL_AWARE_OPERATOR, 19, 2),
-        error(CompileTimeErrorCode.UNDEFINED_GETTER, 21, 8),
+        error(StaticWarningCode.invalidNullAwareOperator, 19, 2),
+        error(CompileTimeErrorCode.undefinedGetter, 21, 8),
       ],
     );
   }

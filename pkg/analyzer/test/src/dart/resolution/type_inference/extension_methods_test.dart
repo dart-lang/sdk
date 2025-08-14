@@ -393,13 +393,7 @@ main() {
   E<int, bool>({}).foo();
 }
 ''',
-      [
-        error(
-          CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_EXTENSION,
-          58,
-          11,
-        ),
-      ],
+      [error(CompileTimeErrorCode.wrongNumberOfTypeArgumentsExtension, 58, 11)],
     );
     var literal = findNode.setOrMapLiteral('{}).');
     assertType(literal, 'Set<dynamic>');
@@ -663,7 +657,7 @@ f(String s) {
 ''',
       [
         error(
-          CompileTimeErrorCode.EXTENSION_OVERRIDE_ARGUMENT_NOT_ASSIGNABLE,
+          CompileTimeErrorCode.extensionOverrideArgumentNotAssignable,
           71,
           1,
         ),

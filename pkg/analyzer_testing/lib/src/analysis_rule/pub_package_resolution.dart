@@ -153,9 +153,9 @@ class PubPackageResolutionTest with MockPackagesMixin, ResourceProviderMixin {
 
   /// Error codes that by default should be ignored in test expectations.
   List<DiagnosticCode> get ignoredDiagnosticCodes => [
-    WarningCode.UNUSED_ELEMENT,
-    WarningCode.UNUSED_FIELD,
-    WarningCode.UNUSED_LOCAL_VARIABLE,
+    WarningCode.unusedElement,
+    WarningCode.unusedField,
+    WarningCode.unusedLocalVariable,
   ];
 
   /// The path to the root of the external packages.

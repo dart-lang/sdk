@@ -339,7 +339,7 @@ void f({final String? _}) { }
       [
         // No lint.
         // https://github.com/dart-lang/language/blob/main/working/wildcards/feature-specification.md#declarations-that-are-capable-of-declaring-a-wildcard
-        error(CompileTimeErrorCode.PRIVATE_OPTIONAL_PARAMETER, 22, 1),
+        error(CompileTimeErrorCode.privateOptionalParameter, 22, 1),
       ],
     );
   }
@@ -371,7 +371,7 @@ void f({required String _}) { }
       [
         // No lint.
         // https://github.com/dart-lang/language/blob/main/working/wildcards/feature-specification.md#declarations-that-are-capable-of-declaring-a-wildcard
-        error(CompileTimeErrorCode.PRIVATE_OPTIONAL_PARAMETER, 24, 1),
+        error(CompileTimeErrorCode.privateOptionalParameter, 24, 1),
       ],
     );
   }

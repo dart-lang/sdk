@@ -26,7 +26,7 @@ void f() {
 ''',
       [
         error(
-          CompileTimeErrorCode.DUPLICATE_PATTERN_ASSIGNMENT_VARIABLE,
+          CompileTimeErrorCode.duplicatePatternAssignmentVariable,
           38,
           1,
           contextMessages: [message(testFile, 23, 1)],
@@ -46,7 +46,7 @@ void f() {
 ''',
       [
         error(
-          CompileTimeErrorCode.DUPLICATE_PATTERN_ASSIGNMENT_VARIABLE,
+          CompileTimeErrorCode.duplicatePatternAssignmentVariable,
           26,
           1,
           contextMessages: [message(testFile, 23, 1)],
@@ -66,13 +66,13 @@ void f() {
 ''',
       [
         error(
-          CompileTimeErrorCode.DUPLICATE_PATTERN_ASSIGNMENT_VARIABLE,
+          CompileTimeErrorCode.duplicatePatternAssignmentVariable,
           26,
           1,
           contextMessages: [message(testFile, 23, 1)],
         ),
         error(
-          CompileTimeErrorCode.DUPLICATE_PATTERN_ASSIGNMENT_VARIABLE,
+          CompileTimeErrorCode.duplicatePatternAssignmentVariable,
           29,
           1,
           contextMessages: [message(testFile, 23, 1)],

@@ -38,8 +38,8 @@ int x = '';
 int _y = 0; //INVALID_ASSIGNMENT
 ''',
       [
-        error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 34, 2),
-        error(WarningCode.UNUSED_ELEMENT, 42, 2),
+        error(CompileTimeErrorCode.invalidAssignment, 34, 2),
+        error(WarningCode.unusedElement, 42, 2),
       ],
     );
   }
@@ -52,7 +52,7 @@ int x = (0 as int);
 // ... but no ignore here ...
 var y = x + ''; //ARGUMENT_TYPE_NOT_ASSIGNABLE
 ''',
-      [error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 90, 2)],
+      [error(CompileTimeErrorCode.argumentTypeNotAssignable, 90, 2)],
     );
   }
 
@@ -63,7 +63,7 @@ int x = (0 as int); // ignore: unnecessary_cast
 // ... but no ignore here ...
 var y = x + ''; //ARGUMENT_TYPE_NOT_ASSIGNABLE
 ''',
-      [error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 90, 2)],
+      [error(CompileTimeErrorCode.argumentTypeNotAssignable, 90, 2)],
     );
   }
 
@@ -74,7 +74,7 @@ int x = (0 as int); //UNNECESSARY_CAST
 var y = x + ''; //ARGUMENT_TYPE_NOT_ASSIGNABLE
 // ignore_for_file: unnecessary_cast
 ''',
-      [error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 51, 2)],
+      [error(CompileTimeErrorCode.argumentTypeNotAssignable, 51, 2)],
     );
   }
 
@@ -116,7 +116,7 @@ void f() {
 int a = 0;
 int _x = 1;
 ''',
-      [error(WarningCode.UNUSED_ELEMENT, 45, 2)],
+      [error(WarningCode.unusedElement, 45, 2)],
     );
   }
 
@@ -134,7 +134,7 @@ int x = (0 as int);
 // ignore: unused_element
 String _foo = ''; //UNUSED_ELEMENT
 ''',
-      [error(WarningCode.UNNECESSARY_CAST, 28, 8)],
+      [error(WarningCode.unnecessaryCast, 28, 8)],
     );
   }
 
@@ -145,7 +145,7 @@ String _foo = ''; //UNUSED_ELEMENT
 int x = (0 as int);
 String _foo = ''; // ignore: $ignoredCode
 ''',
-      [error(WarningCode.UNNECESSARY_CAST, 28, 8)],
+      [error(WarningCode.unnecessaryCast, 28, 8)],
     );
   }
 
@@ -162,7 +162,7 @@ void f(arg1(int)) {} // AVOID_TYPES_AS_PARAMETER_NAMES
 // ignore: type=lint
 int _x = 1;
 ''',
-      [error(WarningCode.UNUSED_ELEMENT, 25, 2)],
+      [error(WarningCode.unusedElement, 25, 2)],
     );
   }
 
@@ -208,8 +208,8 @@ int x = '';
 var y = x + ''; //ARGUMENT_TYPE_NOT_ASSIGNABLE
 ''',
       [
-        error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 43, 2),
-        error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 59, 2),
+        error(CompileTimeErrorCode.invalidAssignment, 43, 2),
+        error(CompileTimeErrorCode.argumentTypeNotAssignable, 59, 2),
       ],
     );
   }
@@ -222,8 +222,8 @@ int x = 3;
 String y = x + ''; //INVALID_ASSIGNMENT, ARGUMENT_TYPE_NOT_ASSIGNABLE
 ''',
       [
-        error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 33, 6),
-        error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 37, 2),
+        error(CompileTimeErrorCode.invalidAssignment, 33, 6),
+        error(CompileTimeErrorCode.argumentTypeNotAssignable, 37, 2),
       ],
     );
   }
@@ -234,7 +234,7 @@ String y = x + ''; //INVALID_ASSIGNMENT, ARGUMENT_TYPE_NOT_ASSIGNABLE
 // ignore invalid_assignment
 String y = 3; //INVALID_ASSIGNMENT
 ''',
-      [error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 40, 1)],
+      [error(CompileTimeErrorCode.invalidAssignment, 40, 1)],
     );
   }
 
@@ -268,7 +268,7 @@ int x = (0 as int); //This is the first comment...
 // ignore: $ignoredCode
 String _foo = ''; //UNUSED_ELEMENT
 ''',
-      [error(WarningCode.UNNECESSARY_CAST, 9, 8)],
+      [error(WarningCode.unnecessaryCast, 9, 8)],
     );
   }
 
@@ -279,8 +279,8 @@ int x = ''; //INVALID_ASSIGNMENT
 var y = x + ''; //ARGUMENT_TYPE_NOT_ASSIGNABLE
 ''',
       [
-        error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 8, 2),
-        error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 45, 2),
+        error(CompileTimeErrorCode.invalidAssignment, 8, 2),
+        error(CompileTimeErrorCode.argumentTypeNotAssignable, 45, 2),
       ],
     );
   }
@@ -291,7 +291,7 @@ var y = x + ''; //ARGUMENT_TYPE_NOT_ASSIGNABLE
 int x = (0 as int); // ignore: unnecessary_cast
 int y = (0 as int);
 ''',
-      [error(WarningCode.UNNECESSARY_CAST, 57, 8)],
+      [error(WarningCode.unnecessaryCast, 57, 8)],
     );
   }
 
@@ -308,7 +308,7 @@ f() => g();
       '''
 f() => g();
 ''',
-      [error(CompileTimeErrorCode.UNDEFINED_FUNCTION, 7, 1)],
+      [error(CompileTimeErrorCode.undefinedFunction, 7, 1)],
     );
   }
 

@@ -76,7 +76,7 @@ var f = "foo${bar}
 ;
 ''';
     await assertErrorsInCode(code, [
-      error(ScannerErrorCode.UNTERMINATED_STRING_LITERAL, code.indexOf('}'), 1),
+      error(ScannerErrorCode.unterminatedStringLiteral, code.indexOf('}'), 1),
     ]);
     var string = findNode.stringInterpolation(r'"foo${bar}');
     expect(string.elements, hasLength(3));
@@ -96,7 +96,7 @@ var f = "foo${bar}'
 ;
 ''';
     await assertErrorsInCode(code, [
-      error(ScannerErrorCode.UNTERMINATED_STRING_LITERAL, code.indexOf("'"), 1),
+      error(ScannerErrorCode.unterminatedStringLiteral, code.indexOf("'"), 1),
     ]);
     var string = findNode.stringInterpolation('"foo\${bar}\'');
     expect(string.elements, hasLength(3));

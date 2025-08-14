@@ -26,13 +26,7 @@ void f() {
   E<int>(0).foo();
 }
 ''',
-      [
-        error(
-          CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_EXTENSION,
-          54,
-          5,
-        ),
-      ],
+      [error(CompileTimeErrorCode.wrongNumberOfTypeArgumentsExtension, 54, 5)],
     );
 
     var node = findNode.extensionOverride('E<int>');
@@ -72,13 +66,7 @@ void f() {
   E<bool>(0).foo();
 }
 ''',
-      [
-        error(
-          CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_EXTENSION,
-          60,
-          6,
-        ),
-      ],
+      [error(CompileTimeErrorCode.wrongNumberOfTypeArgumentsExtension, 60, 6)],
     );
 
     var node = findNode.extensionOverride('E<bool>');
@@ -121,13 +109,7 @@ void f() {
   E<bool, int>(0).foo();
 }
 ''',
-      [
-        error(
-          CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_EXTENSION,
-          57,
-          11,
-        ),
-      ],
+      [error(CompileTimeErrorCode.wrongNumberOfTypeArgumentsExtension, 57, 11)],
     );
 
     var node = findNode.extensionOverride('E<bool, int>');

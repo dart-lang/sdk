@@ -29,8 +29,7 @@ class B extends A<int> {
 ''',
       [
         error(
-          CompileTimeErrorCode
-              .SUPER_FORMAL_PARAMETER_TYPE_IS_NOT_SUBTYPE_OF_ASSOCIATED,
+          CompileTimeErrorCode.superFormalParameterTypeIsNotSubtypeOfAssociated,
           65,
           1,
         ),
@@ -75,8 +74,7 @@ class B extends A {
 ''',
       [
         error(
-          CompileTimeErrorCode
-              .SUPER_FORMAL_PARAMETER_TYPE_IS_NOT_SUBTYPE_OF_ASSOCIATED,
+          CompileTimeErrorCode.superFormalParameterTypeIsNotSubtypeOfAssociated,
           80,
           1,
         ),
@@ -133,8 +131,7 @@ class B extends A {
 ''',
       [
         error(
-          CompileTimeErrorCode
-              .SUPER_FORMAL_PARAMETER_TYPE_IS_NOT_SUBTYPE_OF_ASSOCIATED,
+          CompileTimeErrorCode.superFormalParameterTypeIsNotSubtypeOfAssociated,
           59,
           1,
         ),
@@ -156,8 +153,7 @@ class B extends A {
 ''',
       [
         error(
-          CompileTimeErrorCode
-              .SUPER_FORMAL_PARAMETER_TYPE_IS_NOT_SUBTYPE_OF_ASSOCIATED,
+          CompileTimeErrorCode.superFormalParameterTypeIsNotSubtypeOfAssociated,
           63,
           1,
         ),

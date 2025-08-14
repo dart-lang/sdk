@@ -23,7 +23,7 @@ class A {
   A({x = y}) {}
 }
 ''',
-      [error(CompileTimeErrorCode.NON_CONSTANT_DEFAULT_VALUE, 32, 1)],
+      [error(CompileTimeErrorCode.nonConstantDefaultValue, 32, 1)],
     );
   }
 
@@ -35,7 +35,7 @@ class A {
   A([x = y]) {}
 }
 ''',
-      [error(CompileTimeErrorCode.NON_CONSTANT_DEFAULT_VALUE, 32, 1)],
+      [error(CompileTimeErrorCode.nonConstantDefaultValue, 32, 1)],
     );
   }
 
@@ -48,7 +48,7 @@ class A {
 
 void f([A a = .new()]) {}
 ''',
-      [error(CompileTimeErrorCode.NON_CONSTANT_DEFAULT_VALUE, 40, 6)],
+      [error(CompileTimeErrorCode.nonConstantDefaultValue, 40, 6)],
     );
   }
 
@@ -77,7 +77,7 @@ enum E {
 int y = 0;
 f({x = y}) {}
 ''',
-      [error(CompileTimeErrorCode.NON_CONSTANT_DEFAULT_VALUE, 18, 1)],
+      [error(CompileTimeErrorCode.nonConstantDefaultValue, 18, 1)],
     );
   }
 
@@ -122,7 +122,7 @@ void f({x = (a: 0, b: 1)}) {}
       r'''
 void f({x = (a: 0, b: [1])}) {}
 ''',
-      [error(CompileTimeErrorCode.NON_CONSTANT_DEFAULT_VALUE, 22, 3)],
+      [error(CompileTimeErrorCode.nonConstantDefaultValue, 22, 3)],
     );
   }
 
@@ -143,7 +143,7 @@ void f({x = (0, 1)}) {}
       r'''
 void f({x = (0, [1])}) {}
 ''',
-      [error(CompileTimeErrorCode.NON_CONSTANT_DEFAULT_VALUE, 16, 3)],
+      [error(CompileTimeErrorCode.nonConstantDefaultValue, 16, 3)],
     );
   }
 
@@ -158,7 +158,7 @@ void f({x = (0, const [1])}) {}
       r'''
 void f({int x = X}) {}
 ''',
-      [error(CompileTimeErrorCode.UNDEFINED_IDENTIFIER, 16, 1)],
+      [error(CompileTimeErrorCode.undefinedIdentifier, 16, 1)],
     );
   }
 
@@ -168,7 +168,7 @@ void f({int x = X}) {}
 int y = 0;
 f([x = y]) {}
 ''',
-      [error(CompileTimeErrorCode.NON_CONSTANT_DEFAULT_VALUE, 18, 1)],
+      [error(CompileTimeErrorCode.nonConstantDefaultValue, 18, 1)],
     );
   }
 
@@ -177,7 +177,7 @@ f([x = y]) {}
       r'''
 void f([int x = X]) {}
 ''',
-      [error(CompileTimeErrorCode.UNDEFINED_IDENTIFIER, 16, 1)],
+      [error(CompileTimeErrorCode.undefinedIdentifier, 16, 1)],
     );
   }
 
@@ -189,7 +189,7 @@ class A {
   m({x = y}) {}
 }
 ''',
-      [error(CompileTimeErrorCode.NON_CONSTANT_DEFAULT_VALUE, 32, 1)],
+      [error(CompileTimeErrorCode.nonConstantDefaultValue, 32, 1)],
     );
   }
 
@@ -201,7 +201,7 @@ class A {
   m([x = y]) {}
 }
 ''',
-      [error(CompileTimeErrorCode.NON_CONSTANT_DEFAULT_VALUE, 32, 1)],
+      [error(CompileTimeErrorCode.nonConstantDefaultValue, 32, 1)],
     );
   }
 
