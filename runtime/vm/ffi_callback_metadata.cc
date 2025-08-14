@@ -251,7 +251,7 @@ FfiCallbackMetadata::Trampoline FfiCallbackMetadata::CreateMetadataEntry(
     uword target_entry_point,
     uint64_t context,
     MetadataEntry** list_head) {
-  MutexLocker locker(&lock_);
+  SafepointMutexLocker locker(&lock_);
   EnsureFreeListNotEmptyLocked();
   ASSERT(free_list_head_ != nullptr);
   MetadataEntry* entry = free_list_head_;
@@ -305,7 +305,7 @@ void FfiCallbackMetadata::DeleteCallbackLocked(MetadataEntry* entry) {
 }
 
 void FfiCallbackMetadata::DeleteAllCallbacks(MetadataEntry** list_head) {
-  MutexLocker locker(&lock_);
+  SafepointMutexLocker locker(&lock_);
   for (MetadataEntry* entry = *list_head; entry != nullptr;) {
     MetadataEntry* next = entry->list_next();
     DeleteCallbackLocked(entry);
@@ -316,7 +316,7 @@ void FfiCallbackMetadata::DeleteAllCallbacks(MetadataEntry** list_head) {
 
 void FfiCallbackMetadata::DeleteCallback(Trampoline trampoline,
                                          MetadataEntry** list_head) {
-  MutexLocker locker(&lock_);
+  SafepointMutexLocker locker(&lock_);
   auto* entry = MetadataEntryOfTrampoline(trampoline);
   ASSERT(entry->metadata()->IsLive());
   auto* prev = entry->list_prev_;

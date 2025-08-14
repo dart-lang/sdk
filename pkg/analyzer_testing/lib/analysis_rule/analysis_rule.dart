@@ -4,12 +4,12 @@
 
 import 'dart:convert' show json;
 
+import 'package:analyzer/analysis_rule/analysis_rule.dart';
 import 'package:analyzer/analysis_rule/pubspec.dart';
 import 'package:analyzer/diagnostic/diagnostic.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/source/file_source.dart';
-import 'package:analyzer/src/analysis_rule/rule_context.dart'; // ignore: implementation_imports
 import 'package:analyzer/src/lint/pub.dart'; // ignore: implementation_imports
 import 'package:analyzer/src/lint/registry.dart'; // ignore: implementation_imports
 import 'package:analyzer_testing/src/analysis_rule/pub_package_resolution.dart';

@@ -11,9 +11,6 @@ import 'package:analyzer/dart/element/type_system.dart';
 import 'package:analyzer/workspace/workspace.dart';
 
 export 'package:analyzer/analysis_rule/analysis_rule.dart';
-export 'package:analyzer/analysis_rule/rule_state.dart'
-    show dart2_12, dart3, dart3_3, RuleState;
-export 'package:analyzer/src/lint/linter_visitor.dart' show NodeLintRegistry;
 
 /// Returns whether [filePath] is in the top-level `lib` directory in [package].
 bool _isInLibDir(String? filePath, WorkspacePackage? package) {
