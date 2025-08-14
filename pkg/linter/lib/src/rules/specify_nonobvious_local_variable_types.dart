@@ -25,7 +25,7 @@ class SpecifyNonObviousLocalVariableTypes extends LintRule {
 
   @override
   DiagnosticCode get diagnosticCode =>
-      LinterLintCode.specify_nonobvious_local_variable_types;
+      LinterLintCode.specifyNonobviousLocalVariableTypes;
 
   @override
   List<String> get incompatibleRules => const [

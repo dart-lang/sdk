@@ -19,7 +19,7 @@ class AwaitOnlyFutures extends LintRule {
     : super(name: LintNames.await_only_futures, description: _desc);
 
   @override
-  DiagnosticCode get diagnosticCode => LinterLintCode.await_only_futures;
+  DiagnosticCode get diagnosticCode => LinterLintCode.awaitOnlyFutures;
 
   @override
   void registerNodeProcessors(

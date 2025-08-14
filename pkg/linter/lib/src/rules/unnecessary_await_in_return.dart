@@ -19,8 +19,7 @@ class UnnecessaryAwaitInReturn extends LintRule {
     : super(name: LintNames.unnecessary_await_in_return, description: _desc);
 
   @override
-  DiagnosticCode get diagnosticCode =>
-      LinterLintCode.unnecessary_await_in_return;
+  DiagnosticCode get diagnosticCode => LinterLintCode.unnecessaryAwaitInReturn;
 
   @override
   void registerNodeProcessors(

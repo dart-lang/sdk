@@ -18,7 +18,7 @@ class CancelSubscriptions extends LintRule {
     : super(name: LintNames.cancel_subscriptions, description: _desc);
 
   @override
-  DiagnosticCode get diagnosticCode => LinterLintCode.cancel_subscriptions;
+  DiagnosticCode get diagnosticCode => LinterLintCode.cancelSubscriptions;
 
   @override
   void registerNodeProcessors(

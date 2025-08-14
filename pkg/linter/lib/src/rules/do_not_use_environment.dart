@@ -18,7 +18,7 @@ class DoNotUseEnvironment extends LintRule {
     : super(name: LintNames.do_not_use_environment, description: _desc);
 
   @override
-  DiagnosticCode get diagnosticCode => LinterLintCode.do_not_use_environment;
+  DiagnosticCode get diagnosticCode => LinterLintCode.doNotUseEnvironment;
 
   @override
   void registerNodeProcessors(

@@ -28,7 +28,7 @@ class CollectionMethodsUnrelatedType extends LintRule {
 
   @override
   DiagnosticCode get diagnosticCode =>
-      LinterLintCode.collection_methods_unrelated_type;
+      LinterLintCode.collectionMethodsUnrelatedType;
 
   @override
   void registerNodeProcessors(

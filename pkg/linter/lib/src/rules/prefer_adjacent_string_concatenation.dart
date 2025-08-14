@@ -21,7 +21,7 @@ class PreferAdjacentStringConcatenation extends LintRule {
 
   @override
   DiagnosticCode get diagnosticCode =>
-      LinterLintCode.prefer_adjacent_string_concatenation;
+      LinterLintCode.preferAdjacentStringConcatenation;
 
   @override
   void registerNodeProcessors(

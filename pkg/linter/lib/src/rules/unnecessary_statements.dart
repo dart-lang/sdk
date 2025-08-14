@@ -19,7 +19,7 @@ class UnnecessaryStatements extends LintRule {
     : super(name: LintNames.unnecessary_statements, description: _desc);
 
   @override
-  DiagnosticCode get diagnosticCode => LinterLintCode.unnecessary_statements;
+  DiagnosticCode get diagnosticCode => LinterLintCode.unnecessaryStatements;
 
   @override
   void registerNodeProcessors(

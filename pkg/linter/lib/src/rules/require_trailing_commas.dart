@@ -24,7 +24,7 @@ class RequireTrailingCommas extends LintRule {
     : super(name: LintNames.require_trailing_commas, description: _desc);
 
   @override
-  DiagnosticCode get diagnosticCode => LinterLintCode.require_trailing_commas;
+  DiagnosticCode get diagnosticCode => LinterLintCode.requireTrailingCommas;
 
   @override
   void registerNodeProcessors(

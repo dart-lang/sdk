@@ -22,7 +22,7 @@ class AvoidClassesWithOnlyStaticMembers extends LintRule {
 
   @override
   DiagnosticCode get diagnosticCode =>
-      LinterLintCode.avoid_classes_with_only_static_members;
+      LinterLintCode.avoidClassesWithOnlyStaticMembers;
 
   @override
   void registerNodeProcessors(

@@ -25,7 +25,7 @@ class EraseDartTypeExtensionTypes extends LintRule {
 
   @override
   DiagnosticCode get diagnosticCode =>
-      LinterLintCode.erase_dart_type_extension_types;
+      LinterLintCode.eraseDartTypeExtensionTypes;
 
   @override
   void registerNodeProcessors(

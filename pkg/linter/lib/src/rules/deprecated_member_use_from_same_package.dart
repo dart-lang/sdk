@@ -34,8 +34,8 @@ class DeprecatedMemberUseFromSamePackage extends MultiAnalysisRule {
 
   @override
   List<DiagnosticCode> get diagnosticCodes => [
-    LinterLintCode.deprecated_member_use_from_same_package_with_message,
-    LinterLintCode.deprecated_member_use_from_same_package_without_message,
+    LinterLintCode.deprecatedMemberUseFromSamePackageWithMessage,
+    LinterLintCode.deprecatedMemberUseFromSamePackageWithoutMessage,
   ];
 
   @override
@@ -77,8 +77,7 @@ class _DeprecatedMemberUseVerifier extends BaseDeprecatedMemberUseVerifier {
         errorEntity.length,
         arguments: [displayName],
         diagnosticCode:
-            LinterLintCode
-                .deprecated_member_use_from_same_package_without_message,
+            LinterLintCode.deprecatedMemberUseFromSamePackageWithoutMessage,
       );
     } else {
       if (!normalizedMessage.endsWith('.') &&
@@ -91,7 +90,7 @@ class _DeprecatedMemberUseVerifier extends BaseDeprecatedMemberUseVerifier {
         errorEntity.length,
         arguments: [displayName, normalizedMessage],
         diagnosticCode:
-            LinterLintCode.deprecated_member_use_from_same_package_with_message,
+            LinterLintCode.deprecatedMemberUseFromSamePackageWithMessage,
       );
     }
   }

@@ -29,7 +29,7 @@ class SlashForDocComments extends LintRule {
   bool get canUseParsedResult => true;
 
   @override
-  DiagnosticCode get diagnosticCode => LinterLintCode.slash_for_doc_comments;
+  DiagnosticCode get diagnosticCode => LinterLintCode.slashForDocComments;
 
   @override
   void registerNodeProcessors(

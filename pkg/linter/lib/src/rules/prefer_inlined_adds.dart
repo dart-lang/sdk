@@ -19,8 +19,8 @@ class PreferInlinedAdds extends MultiAnalysisRule {
 
   @override
   List<DiagnosticCode> get diagnosticCodes => [
-    LinterLintCode.prefer_inlined_adds_multiple,
-    LinterLintCode.prefer_inlined_adds_single,
+    LinterLintCode.preferInlinedAddsMultiple,
+    LinterLintCode.preferInlinedAddsSingle,
   ];
 
   @override
@@ -65,8 +65,8 @@ class _Visitor extends SimpleAstVisitor<void> {
       invocation.methodName,
       diagnosticCode:
           addAll
-              ? LinterLintCode.prefer_inlined_adds_multiple
-              : LinterLintCode.prefer_inlined_adds_single,
+              ? LinterLintCode.preferInlinedAddsMultiple
+              : LinterLintCode.preferInlinedAddsSingle,
     );
   }
 }

@@ -52,7 +52,7 @@ class PreferConditionalAssignment extends LintRule {
 
   @override
   DiagnosticCode get diagnosticCode =>
-      LinterLintCode.prefer_conditional_assignment;
+      LinterLintCode.preferConditionalAssignment;
 
   @override
   void registerNodeProcessors(

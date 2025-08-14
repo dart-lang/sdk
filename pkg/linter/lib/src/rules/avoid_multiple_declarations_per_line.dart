@@ -21,7 +21,7 @@ class AvoidMultipleDeclarationsPerLine extends LintRule {
 
   @override
   DiagnosticCode get diagnosticCode =>
-      LinterLintCode.avoid_multiple_declarations_per_line;
+      LinterLintCode.avoidMultipleDeclarationsPerLine;
 
   @override
   void registerNodeProcessors(

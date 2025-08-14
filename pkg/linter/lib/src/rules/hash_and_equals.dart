@@ -19,7 +19,7 @@ class HashAndEquals extends LintRule {
   HashAndEquals() : super(name: LintNames.hash_and_equals, description: _desc);
 
   @override
-  DiagnosticCode get diagnosticCode => LinterLintCode.hash_and_equals;
+  DiagnosticCode get diagnosticCode => LinterLintCode.hashAndEquals;
 
   @override
   void registerNodeProcessors(

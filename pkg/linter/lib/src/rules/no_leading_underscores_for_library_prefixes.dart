@@ -23,7 +23,7 @@ class NoLeadingUnderscoresForLibraryPrefixes extends LintRule {
 
   @override
   DiagnosticCode get diagnosticCode =>
-      LinterLintCode.no_leading_underscores_for_library_prefixes;
+      LinterLintCode.noLeadingUnderscoresForLibraryPrefixes;
 
   @override
   void registerNodeProcessors(

@@ -16,7 +16,7 @@ class UseRawStrings extends LintRule {
   UseRawStrings() : super(name: LintNames.use_raw_strings, description: _desc);
 
   @override
-  DiagnosticCode get diagnosticCode => LinterLintCode.use_raw_strings;
+  DiagnosticCode get diagnosticCode => LinterLintCode.useRawStrings;
 
   @override
   void registerNodeProcessors(

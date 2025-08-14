@@ -20,7 +20,7 @@ class AvoidImplementingValueTypes extends LintRule {
 
   @override
   DiagnosticCode get diagnosticCode =>
-      LinterLintCode.avoid_implementing_value_types;
+      LinterLintCode.avoidImplementingValueTypes;
 
   @override
   void registerNodeProcessors(

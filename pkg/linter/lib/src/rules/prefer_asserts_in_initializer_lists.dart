@@ -23,7 +23,7 @@ class PreferAssertsInInitializerLists extends LintRule {
 
   @override
   DiagnosticCode get diagnosticCode =>
-      LinterLintCode.prefer_asserts_in_initializer_lists;
+      LinterLintCode.preferAssertsInInitializerLists;
 
   @override
   void registerNodeProcessors(

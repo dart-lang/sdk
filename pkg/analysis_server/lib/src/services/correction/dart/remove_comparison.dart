@@ -52,7 +52,7 @@ class RemoveComparison extends ResolvedCorrectionProducer {
         errorCode == WarningCode.unnecessaryNullComparisonAlwaysNullTrue ||
         errorCode == WarningCode.unnecessaryNullComparisonNeverNullTrue ||
         errorCode == WarningCode.unnecessaryTypeCheckTrue ||
-        errorCode == LinterLintCode.avoid_null_checks_in_equality_operators;
+        errorCode == LinterLintCode.avoidNullChecksInEqualityOperators;
   }
 
   @override

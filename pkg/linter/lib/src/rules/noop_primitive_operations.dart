@@ -18,7 +18,7 @@ class NoopPrimitiveOperations extends LintRule {
     : super(name: LintNames.noop_primitive_operations, description: _desc);
 
   @override
-  DiagnosticCode get diagnosticCode => LinterLintCode.noop_primitive_operations;
+  DiagnosticCode get diagnosticCode => LinterLintCode.noopPrimitiveOperations;
 
   @override
   void registerNodeProcessors(

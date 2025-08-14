@@ -20,7 +20,7 @@ class LibraryPrefixes extends LintRule {
     : super(name: LintNames.library_prefixes, description: _desc);
 
   @override
-  DiagnosticCode get diagnosticCode => LinterLintCode.library_prefixes;
+  DiagnosticCode get diagnosticCode => LinterLintCode.libraryPrefixes;
 
   @override
   void registerNodeProcessors(

@@ -21,7 +21,7 @@ class PreferIfElementsToConditionalExpressions extends LintRule {
 
   @override
   DiagnosticCode get diagnosticCode =>
-      LinterLintCode.prefer_if_elements_to_conditional_expressions;
+      LinterLintCode.preferIfElementsToConditionalExpressions;
 
   @override
   void registerNodeProcessors(

@@ -23,7 +23,7 @@ class PreferConstLiteralsToCreateImmutables extends LintRule {
 
   @override
   DiagnosticCode get diagnosticCode =>
-      LinterLintCode.prefer_const_literals_to_create_immutables;
+      LinterLintCode.preferConstLiteralsToCreateImmutables;
 
   @override
   void registerNodeProcessors(

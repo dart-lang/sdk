@@ -17,7 +17,7 @@ class CommentReferences extends LintRule {
     : super(name: LintNames.comment_references, description: _desc);
 
   @override
-  DiagnosticCode get diagnosticCode => LinterLintCode.comment_references;
+  DiagnosticCode get diagnosticCode => LinterLintCode.commentReferences;
 
   @override
   void registerNodeProcessors(

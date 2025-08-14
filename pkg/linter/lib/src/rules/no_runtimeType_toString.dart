@@ -20,7 +20,7 @@ class NoRuntimeTypeToString extends LintRule {
     : super(name: LintNames.no_runtimeType_toString, description: _desc);
 
   @override
-  DiagnosticCode get diagnosticCode => LinterLintCode.no_runtimeType_toString;
+  DiagnosticCode get diagnosticCode => LinterLintCode.noRuntimetypeTostring;
 
   @override
   void registerNodeProcessors(

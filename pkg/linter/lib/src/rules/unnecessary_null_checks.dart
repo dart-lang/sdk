@@ -146,7 +146,7 @@ class UnnecessaryNullChecks extends LintRule {
       );
 
   @override
-  DiagnosticCode get diagnosticCode => LinterLintCode.unnecessary_null_checks;
+  DiagnosticCode get diagnosticCode => LinterLintCode.unnecessaryNullChecks;
 
   @override
   void registerNodeProcessors(

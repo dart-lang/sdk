@@ -17,7 +17,7 @@ class SortConstructorsFirst extends LintRule {
     : super(name: LintNames.sort_constructors_first, description: _desc);
 
   @override
-  DiagnosticCode get diagnosticCode => LinterLintCode.sort_constructors_first;
+  DiagnosticCode get diagnosticCode => LinterLintCode.sortConstructorsFirst;
 
   @override
   void registerNodeProcessors(

@@ -24,7 +24,7 @@ class AvoidUnusedConstructorParameters extends LintRule {
 
   @override
   DiagnosticCode get diagnosticCode =>
-      LinterLintCode.avoid_unused_constructor_parameters;
+      LinterLintCode.avoidUnusedConstructorParameters;
 
   @override
   void registerNodeProcessors(

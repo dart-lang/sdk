@@ -172,13 +172,7 @@ int _x = 1;
 // ignore: type=wrong
 void f(arg1(int)) {} // AVOID_TYPES_AS_PARAMETER_NAMES
 ''',
-      [
-        error(
-          LinterLintCode.avoid_types_as_parameter_names_formal_parameter,
-          34,
-          3,
-        ),
-      ],
+      [error(LinterLintCode.avoidTypesAsParameterNamesFormalParameter, 34, 3)],
     );
   }
 

@@ -29,7 +29,7 @@ class UnreachableFromMain extends LintRule {
       );
 
   @override
-  DiagnosticCode get diagnosticCode => LinterLintCode.unreachable_from_main;
+  DiagnosticCode get diagnosticCode => LinterLintCode.unreachableFromMain;
 
   @override
   void registerNodeProcessors(

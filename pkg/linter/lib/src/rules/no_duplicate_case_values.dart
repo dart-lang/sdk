@@ -18,7 +18,7 @@ class NoDuplicateCaseValues extends LintRule {
     : super(name: LintNames.no_duplicate_case_values, description: _desc);
 
   @override
-  DiagnosticCode get diagnosticCode => LinterLintCode.no_duplicate_case_values;
+  DiagnosticCode get diagnosticCode => LinterLintCode.noDuplicateCaseValues;
 
   @override
   void registerNodeProcessors(

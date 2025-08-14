@@ -20,9 +20,9 @@ class DeprecatedConsistency extends MultiAnalysisRule {
 
   @override
   List<DiagnosticCode> get diagnosticCodes => [
-    LinterLintCode.deprecated_consistency_constructor,
-    LinterLintCode.deprecated_consistency_field,
-    LinterLintCode.deprecated_consistency_parameter,
+    LinterLintCode.deprecatedConsistencyConstructor,
+    LinterLintCode.deprecatedConsistencyField,
+    LinterLintCode.deprecatedConsistencyParameter,
   ];
 
   @override
@@ -51,7 +51,7 @@ class _Visitor extends SimpleAstVisitor<void> {
       rule.reportAtOffset(
         nodeToAnnotate.offset,
         nodeToAnnotate.length,
-        diagnosticCode: LinterLintCode.deprecated_consistency_constructor,
+        diagnosticCode: LinterLintCode.deprecatedConsistencyConstructor,
       );
     }
   }
@@ -67,7 +67,7 @@ class _Visitor extends SimpleAstVisitor<void> {
     if (field.hasDeprecated && !declaredElement.hasDeprecated) {
       rule.reportAtNode(
         node,
-        diagnosticCode: LinterLintCode.deprecated_consistency_field,
+        diagnosticCode: LinterLintCode.deprecatedConsistencyField,
       );
     }
     if (!field.hasDeprecated && declaredElement.hasDeprecated) {
@@ -79,7 +79,7 @@ class _Visitor extends SimpleAstVisitor<void> {
       rule.reportAtOffset(
         nameOffset,
         nameLength,
-        diagnosticCode: LinterLintCode.deprecated_consistency_parameter,
+        diagnosticCode: LinterLintCode.deprecatedConsistencyParameter,
       );
     }
   }

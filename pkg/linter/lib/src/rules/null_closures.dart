@@ -192,7 +192,7 @@ class NullClosures extends LintRule {
   NullClosures() : super(name: LintNames.null_closures, description: _desc);
 
   @override
-  DiagnosticCode get diagnosticCode => LinterLintCode.null_closures;
+  DiagnosticCode get diagnosticCode => LinterLintCode.nullClosures;
 
   @override
   void registerNodeProcessors(

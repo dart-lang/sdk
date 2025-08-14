@@ -18,7 +18,7 @@ class CombinatorsOrdering extends LintRule {
     : super(name: LintNames.combinators_ordering, description: _desc);
 
   @override
-  DiagnosticCode get diagnosticCode => LinterLintCode.combinators_ordering;
+  DiagnosticCode get diagnosticCode => LinterLintCode.combinatorsOrdering;
 
   @override
   void registerNodeProcessors(

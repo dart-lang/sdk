@@ -18,5 +18,5 @@ class AlwaysRequireNonNullNamedParameters extends LintRule {
       );
 
   @override
-  DiagnosticCode get diagnosticCode => LinterLintCode.removed_lint;
+  DiagnosticCode get diagnosticCode => LinterLintCode.removedLint;
 }

@@ -20,7 +20,7 @@ class AvoidAnnotatingWithDynamic extends LintRule {
 
   @override
   DiagnosticCode get diagnosticCode =>
-      LinterLintCode.avoid_annotating_with_dynamic;
+      LinterLintCode.avoidAnnotatingWithDynamic;
 
   @override
   void registerNodeProcessors(

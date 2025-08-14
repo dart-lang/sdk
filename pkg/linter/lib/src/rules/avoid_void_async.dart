@@ -20,7 +20,7 @@ class AvoidVoidAsync extends LintRule {
     : super(name: LintNames.avoid_void_async, description: _desc);
 
   @override
-  DiagnosticCode get diagnosticCode => LinterLintCode.avoid_void_async;
+  DiagnosticCode get diagnosticCode => LinterLintCode.avoidVoidAsync;
 
   @override
   void registerNodeProcessors(

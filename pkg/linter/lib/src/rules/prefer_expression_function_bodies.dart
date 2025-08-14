@@ -22,7 +22,7 @@ class PreferExpressionFunctionBodies extends LintRule {
 
   @override
   DiagnosticCode get diagnosticCode =>
-      LinterLintCode.prefer_expression_function_bodies;
+      LinterLintCode.preferExpressionFunctionBodies;
 
   @override
   void registerNodeProcessors(

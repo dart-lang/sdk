@@ -20,7 +20,7 @@ class PreferRelativeImports extends LintRule {
     : super(name: LintNames.prefer_relative_imports, description: _desc);
 
   @override
-  DiagnosticCode get diagnosticCode => LinterLintCode.prefer_relative_imports;
+  DiagnosticCode get diagnosticCode => LinterLintCode.preferRelativeImports;
 
   @override
   List<String> get incompatibleRules => const [

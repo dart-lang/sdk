@@ -20,7 +20,7 @@ class OmitLocalVariableTypes extends LintRule {
     : super(name: LintNames.omit_local_variable_types, description: _desc);
 
   @override
-  DiagnosticCode get diagnosticCode => LinterLintCode.omit_local_variable_types;
+  DiagnosticCode get diagnosticCode => LinterLintCode.omitLocalVariableTypes;
 
   @override
   List<String> get incompatibleRules => const [

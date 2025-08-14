@@ -24,7 +24,7 @@ class DocumentIgnores extends LintRule {
     : super(name: LintNames.document_ignores, description: _desc);
 
   @override
-  DiagnosticCode get diagnosticCode => LinterLintCode.document_ignores;
+  DiagnosticCode get diagnosticCode => LinterLintCode.documentIgnores;
 
   @override
   void registerNodeProcessors(

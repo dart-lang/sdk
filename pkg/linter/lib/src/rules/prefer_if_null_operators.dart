@@ -18,7 +18,7 @@ class PreferIfNullOperators extends LintRule {
     : super(name: LintNames.prefer_if_null_operators, description: _desc);
 
   @override
-  DiagnosticCode get diagnosticCode => LinterLintCode.prefer_if_null_operators;
+  DiagnosticCode get diagnosticCode => LinterLintCode.preferIfNullOperators;
 
   @override
   void registerNodeProcessors(

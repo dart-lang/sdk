@@ -23,7 +23,7 @@ class ImplicitReopen extends LintRule {
       );
 
   @override
-  DiagnosticCode get diagnosticCode => LinterLintCode.implicit_reopen;
+  DiagnosticCode get diagnosticCode => LinterLintCode.implicitReopen;
 
   @override
   void registerNodeProcessors(

@@ -20,7 +20,7 @@ class PreferFinalFields extends LintRule {
     : super(name: LintNames.prefer_final_fields, description: _desc);
 
   @override
-  DiagnosticCode get diagnosticCode => LinterLintCode.prefer_final_fields;
+  DiagnosticCode get diagnosticCode => LinterLintCode.preferFinalFields;
 
   @override
   void registerNodeProcessors(

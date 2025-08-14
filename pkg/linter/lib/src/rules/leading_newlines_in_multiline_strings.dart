@@ -22,7 +22,7 @@ class LeadingNewlinesInMultilineStrings extends LintRule {
 
   @override
   DiagnosticCode get diagnosticCode =>
-      LinterLintCode.leading_newlines_in_multiline_strings;
+      LinterLintCode.leadingNewlinesInMultilineStrings;
 
   @override
   void registerNodeProcessors(

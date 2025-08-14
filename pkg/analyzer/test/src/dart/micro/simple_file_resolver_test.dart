@@ -940,7 +940,7 @@ main() {
   a;
 }
 ''',
-      [error(LinterLintCode.omit_local_variable_types, 11, 3)],
+      [error(LinterLintCode.omitLocalVariableTypes, 11, 3)],
     );
   }
 

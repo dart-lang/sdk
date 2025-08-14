@@ -22,7 +22,7 @@ class PreferForElementsToMapFromIterable extends LintRule {
 
   @override
   DiagnosticCode get diagnosticCode =>
-      LinterLintCode.prefer_for_elements_to_map_fromIterable;
+      LinterLintCode.preferForElementsToMapFromiterable;
 
   @override
   void registerNodeProcessors(

@@ -49,8 +49,7 @@ class PreferInitializingFormals extends LintRule {
     : super(name: LintNames.prefer_initializing_formals, description: _desc);
 
   @override
-  DiagnosticCode get diagnosticCode =>
-      LinterLintCode.prefer_initializing_formals;
+  DiagnosticCode get diagnosticCode => LinterLintCode.preferInitializingFormals;
 
   @override
   void registerNodeProcessors(

@@ -21,7 +21,7 @@ class UnnecessaryConst extends LintRule {
   bool get canUseParsedResult => true;
 
   @override
-  DiagnosticCode get diagnosticCode => LinterLintCode.unnecessary_const;
+  DiagnosticCode get diagnosticCode => LinterLintCode.unnecessaryConst;
 
   @override
   void registerNodeProcessors(

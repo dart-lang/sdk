@@ -19,7 +19,7 @@ class AvoidDynamicCalls extends LintRule {
     : super(name: LintNames.avoid_dynamic_calls, description: _desc);
 
   @override
-  DiagnosticCode get diagnosticCode => LinterLintCode.avoid_dynamic_calls;
+  DiagnosticCode get diagnosticCode => LinterLintCode.avoidDynamicCalls;
 
   @override
   void registerNodeProcessors(

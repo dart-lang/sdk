@@ -27,7 +27,7 @@ class DiagnosticDescribeAllProperties extends LintRule {
 
   @override
   DiagnosticCode get diagnosticCode =>
-      LinterLintCode.diagnostic_describe_all_properties;
+      LinterLintCode.diagnosticDescribeAllProperties;
 
   @override
   void registerNodeProcessors(

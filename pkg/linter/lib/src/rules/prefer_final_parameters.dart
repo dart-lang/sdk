@@ -19,7 +19,7 @@ class PreferFinalParameters extends LintRule {
     : super(name: LintNames.prefer_final_parameters, description: _desc);
 
   @override
-  DiagnosticCode get diagnosticCode => LinterLintCode.prefer_final_parameters;
+  DiagnosticCode get diagnosticCode => LinterLintCode.preferFinalParameters;
 
   @override
   List<String> get incompatibleRules => const [

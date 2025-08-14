@@ -17,8 +17,7 @@ class AvoidEscapingInnerQuotes extends LintRule {
     : super(name: LintNames.avoid_escaping_inner_quotes, description: _desc);
 
   @override
-  DiagnosticCode get diagnosticCode =>
-      LinterLintCode.avoid_escaping_inner_quotes;
+  DiagnosticCode get diagnosticCode => LinterLintCode.avoidEscapingInnerQuotes;
 
   @override
   void registerNodeProcessors(

@@ -26,7 +26,7 @@ class UseSettersToChangeProperties extends LintRule {
 
   @override
   DiagnosticCode get diagnosticCode =>
-      LinterLintCode.use_setters_to_change_properties;
+      LinterLintCode.useSettersToChangeProperties;
 
   @override
   void registerNodeProcessors(

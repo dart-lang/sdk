@@ -18,7 +18,7 @@ class PreferForeach extends LintRule {
   PreferForeach() : super(name: LintNames.prefer_foreach, description: _desc);
 
   @override
-  DiagnosticCode get diagnosticCode => LinterLintCode.prefer_foreach;
+  DiagnosticCode get diagnosticCode => LinterLintCode.preferForeach;
 
   @override
   void registerNodeProcessors(

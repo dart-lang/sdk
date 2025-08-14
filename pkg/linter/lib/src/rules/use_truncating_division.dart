@@ -18,7 +18,7 @@ class UseTruncatingDivision extends LintRule {
     : super(name: LintNames.use_truncating_division, description: _desc);
 
   @override
-  DiagnosticCode get diagnosticCode => LinterLintCode.use_truncating_division;
+  DiagnosticCode get diagnosticCode => LinterLintCode.useTruncatingDivision;
 
   @override
   void registerNodeProcessors(

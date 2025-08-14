@@ -23,7 +23,7 @@ class AvoidFieldInitializersInConstClasses extends LintRule {
 
   @override
   DiagnosticCode get diagnosticCode =>
-      LinterLintCode.avoid_field_initializers_in_const_classes;
+      LinterLintCode.avoidFieldInitializersInConstClasses;
 
   @override
   void registerNodeProcessors(

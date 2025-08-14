@@ -20,7 +20,7 @@ class PreferConstConstructors extends LintRule {
     : super(name: LintNames.prefer_const_constructors, description: _desc);
 
   @override
-  DiagnosticCode get diagnosticCode => LinterLintCode.prefer_const_constructors;
+  DiagnosticCode get diagnosticCode => LinterLintCode.preferConstConstructors;
 
   @override
   void registerNodeProcessors(

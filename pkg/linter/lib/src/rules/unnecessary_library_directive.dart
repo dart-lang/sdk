@@ -20,7 +20,7 @@ class UnnecessaryLibraryDirective extends LintRule {
 
   @override
   DiagnosticCode get diagnosticCode =>
-      LinterLintCode.unnecessary_library_directive;
+      LinterLintCode.unnecessaryLibraryDirective;
 
   @override
   void registerNodeProcessors(

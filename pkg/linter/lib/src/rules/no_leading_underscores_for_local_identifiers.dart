@@ -24,7 +24,7 @@ class NoLeadingUnderscoresForLocalIdentifiers extends LintRule {
 
   @override
   DiagnosticCode get diagnosticCode =>
-      LinterLintCode.no_leading_underscores_for_local_identifiers;
+      LinterLintCode.noLeadingUnderscoresForLocalIdentifiers;
 
   @override
   void registerNodeProcessors(

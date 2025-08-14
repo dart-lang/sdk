@@ -18,7 +18,7 @@ class ThrowInFinally extends LintRule {
     : super(name: LintNames.throw_in_finally, description: _desc);
 
   @override
-  DiagnosticCode get diagnosticCode => LinterLintCode.throw_in_finally;
+  DiagnosticCode get diagnosticCode => LinterLintCode.throwInFinally;
 
   @override
   void registerNodeProcessors(

@@ -21,8 +21,8 @@ class UnnecessaryFinal extends MultiAnalysisRule {
 
   @override
   List<DiagnosticCode> get diagnosticCodes => [
-    LinterLintCode.unnecessary_final_with_type,
-    LinterLintCode.unnecessary_final_without_type,
+    LinterLintCode.unnecessaryFinalWithType,
+    LinterLintCode.unnecessaryFinalWithoutType,
   ];
 
   @override
@@ -53,8 +53,8 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   LintCode getErrorCode(Object? type) =>
       type == null
-          ? LinterLintCode.unnecessary_final_without_type
-          : LinterLintCode.unnecessary_final_with_type;
+          ? LinterLintCode.unnecessaryFinalWithoutType
+          : LinterLintCode.unnecessaryFinalWithType;
 
   (Token?, AstNode?) getParameterDetails(FormalParameter node) {
     var parameter = node is DefaultFormalParameter ? node.parameter : node;
@@ -110,7 +110,7 @@ class _Visitor extends SimpleAstVisitor<void> {
       if (keyword.isFinal) {
         rule.reportAtToken(
           keyword,
-          diagnosticCode: LinterLintCode.unnecessary_final_without_type,
+          diagnosticCode: LinterLintCode.unnecessaryFinalWithoutType,
         );
       }
     }

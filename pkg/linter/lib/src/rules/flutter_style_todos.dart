@@ -26,7 +26,7 @@ class FlutterStyleTodos extends LintRule {
     : super(name: LintNames.flutter_style_todos, description: _desc);
 
   @override
-  DiagnosticCode get diagnosticCode => LinterLintCode.flutter_style_todos;
+  DiagnosticCode get diagnosticCode => LinterLintCode.flutterStyleTodos;
 
   @override
   void registerNodeProcessors(

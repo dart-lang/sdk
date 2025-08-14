@@ -19,7 +19,7 @@ class UnnecessaryConstructorName extends LintRule {
 
   @override
   DiagnosticCode get diagnosticCode =>
-      LinterLintCode.unnecessary_constructor_name;
+      LinterLintCode.unnecessaryConstructorName;
 
   @override
   void registerNodeProcessors(

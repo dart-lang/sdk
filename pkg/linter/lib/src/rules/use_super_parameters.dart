@@ -37,8 +37,8 @@ class UseSuperParameters extends MultiAnalysisRule {
 
   @override
   List<DiagnosticCode> get diagnosticCodes => [
-    LinterLintCode.use_super_parameters_multiple,
-    LinterLintCode.use_super_parameters_single,
+    LinterLintCode.useSuperParametersMultiple,
+    LinterLintCode.useSuperParametersSingle,
   ];
 
   @override
@@ -260,14 +260,14 @@ class _Visitor extends SimpleAstVisitor<void> {
       rule.reportAtOffset(
         target.offset,
         target.length,
-        diagnosticCode: LinterLintCode.use_super_parameters_multiple,
+        diagnosticCode: LinterLintCode.useSuperParametersMultiple,
         arguments: [msg],
       );
     } else {
       rule.reportAtOffset(
         target.offset,
         target.length,
-        diagnosticCode: LinterLintCode.use_super_parameters_single,
+        diagnosticCode: LinterLintCode.useSuperParametersSingle,
         arguments: [identifiers.first],
       );
     }

@@ -20,7 +20,7 @@ class ExhaustiveCases extends LintRule {
     : super(name: LintNames.exhaustive_cases, description: _desc);
 
   @override
-  DiagnosticCode get diagnosticCode => LinterLintCode.exhaustive_cases;
+  DiagnosticCode get diagnosticCode => LinterLintCode.exhaustiveCases;
 
   @override
   void registerNodeProcessors(

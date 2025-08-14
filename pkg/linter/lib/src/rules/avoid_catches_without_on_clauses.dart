@@ -24,7 +24,7 @@ class AvoidCatchesWithoutOnClauses extends LintRule {
 
   @override
   DiagnosticCode get diagnosticCode =>
-      LinterLintCode.avoid_catches_without_on_clauses;
+      LinterLintCode.avoidCatchesWithoutOnClauses;
 
   @override
   void registerNodeProcessors(

@@ -17,8 +17,7 @@ class ProvideDeprecationMessage extends LintRule {
     : super(name: LintNames.provide_deprecation_message, description: _desc);
 
   @override
-  DiagnosticCode get diagnosticCode =>
-      LinterLintCode.provide_deprecation_message;
+  DiagnosticCode get diagnosticCode => LinterLintCode.provideDeprecationMessage;
 
   @override
   void registerNodeProcessors(

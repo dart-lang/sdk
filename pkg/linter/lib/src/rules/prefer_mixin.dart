@@ -18,7 +18,7 @@ class PreferMixin extends LintRule {
   PreferMixin() : super(name: LintNames.prefer_mixin, description: _desc);
 
   @override
-  DiagnosticCode get diagnosticCode => LinterLintCode.prefer_mixin;
+  DiagnosticCode get diagnosticCode => LinterLintCode.preferMixin;
 
   @override
   void registerNodeProcessors(

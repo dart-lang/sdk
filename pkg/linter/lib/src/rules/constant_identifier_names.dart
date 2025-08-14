@@ -20,7 +20,7 @@ class ConstantIdentifierNames extends LintRule {
     : super(name: LintNames.constant_identifier_names, description: _desc);
 
   @override
-  DiagnosticCode get diagnosticCode => LinterLintCode.constant_identifier_names;
+  DiagnosticCode get diagnosticCode => LinterLintCode.constantIdentifierNames;
 
   @override
   void registerNodeProcessors(

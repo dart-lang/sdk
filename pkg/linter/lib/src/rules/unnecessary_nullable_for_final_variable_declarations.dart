@@ -25,7 +25,7 @@ class UnnecessaryNullableForFinalVariableDeclarations extends LintRule {
 
   @override
   DiagnosticCode get diagnosticCode =>
-      LinterLintCode.unnecessary_nullable_for_final_variable_declarations;
+      LinterLintCode.unnecessaryNullableForFinalVariableDeclarations;
 
   @override
   void registerNodeProcessors(

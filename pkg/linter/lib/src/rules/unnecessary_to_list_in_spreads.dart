@@ -19,7 +19,7 @@ class UnnecessaryToListInSpreads extends LintRule {
 
   @override
   DiagnosticCode get diagnosticCode =>
-      LinterLintCode.unnecessary_to_list_in_spreads;
+      LinterLintCode.unnecessaryToListInSpreads;
 
   @override
   void registerNodeProcessors(

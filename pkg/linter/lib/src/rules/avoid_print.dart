@@ -18,7 +18,7 @@ class AvoidPrint extends LintRule {
   AvoidPrint() : super(name: LintNames.avoid_print, description: _desc);
 
   @override
-  DiagnosticCode get diagnosticCode => LinterLintCode.avoid_print;
+  DiagnosticCode get diagnosticCode => LinterLintCode.avoidPrint;
 
   @override
   void registerNodeProcessors(

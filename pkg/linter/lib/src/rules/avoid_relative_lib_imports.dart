@@ -17,8 +17,7 @@ class AvoidRelativeLibImports extends LintRule {
     : super(name: LintNames.avoid_relative_lib_imports, description: _desc);
 
   @override
-  DiagnosticCode get diagnosticCode =>
-      LinterLintCode.avoid_relative_lib_imports;
+  DiagnosticCode get diagnosticCode => LinterLintCode.avoidRelativeLibImports;
 
   @override
   void registerNodeProcessors(

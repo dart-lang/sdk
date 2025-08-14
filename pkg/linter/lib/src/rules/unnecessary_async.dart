@@ -25,7 +25,7 @@ class UnnecessaryAsync extends LintRule {
       );
 
   @override
-  DiagnosticCode get diagnosticCode => LinterLintCode.unnecessary_async;
+  DiagnosticCode get diagnosticCode => LinterLintCode.unnecessaryAsync;
 
   @override
   void registerNodeProcessors(

@@ -17,8 +17,7 @@ class NoAdjacentStringsInList extends LintRule {
     : super(name: LintNames.no_adjacent_strings_in_list, description: _desc);
 
   @override
-  DiagnosticCode get diagnosticCode =>
-      LinterLintCode.no_adjacent_strings_in_list;
+  DiagnosticCode get diagnosticCode => LinterLintCode.noAdjacentStringsInList;
 
   @override
   void registerNodeProcessors(

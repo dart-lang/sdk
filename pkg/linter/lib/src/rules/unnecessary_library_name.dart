@@ -18,7 +18,7 @@ class UnnecessaryLibraryName extends LintRule {
     : super(name: LintNames.unnecessary_library_name, description: _desc);
 
   @override
-  DiagnosticCode get diagnosticCode => LinterLintCode.unnecessary_library_name;
+  DiagnosticCode get diagnosticCode => LinterLintCode.unnecessaryLibraryName;
 
   @override
   void registerNodeProcessors(

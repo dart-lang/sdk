@@ -24,7 +24,7 @@ class UnnecessaryNullAwareOperatorOnExtensionOnNullable extends LintRule {
 
   @override
   DiagnosticCode get diagnosticCode =>
-      LinterLintCode.unnecessary_null_aware_operator_on_extension_on_nullable;
+      LinterLintCode.unnecessaryNullAwareOperatorOnExtensionOnNullable;
 
   @override
   void registerNodeProcessors(

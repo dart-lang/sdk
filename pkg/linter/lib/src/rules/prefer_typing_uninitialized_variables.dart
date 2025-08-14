@@ -23,8 +23,8 @@ class PreferTypingUninitializedVariables extends MultiAnalysisRule {
 
   @override
   List<DiagnosticCode> get diagnosticCodes => [
-    LinterLintCode.prefer_typing_uninitialized_variables_for_field,
-    LinterLintCode.prefer_typing_uninitialized_variables_for_local_variable,
+    LinterLintCode.preferTypingUninitializedVariablesForField,
+    LinterLintCode.preferTypingUninitializedVariablesForLocalVariable,
   ];
 
   @override
@@ -50,9 +50,9 @@ class _Visitor extends SimpleAstVisitor<void> {
       if (v.initializer == null && !v.isAugmentation) {
         var code =
             node.parent is FieldDeclaration
-                ? LinterLintCode.prefer_typing_uninitialized_variables_for_field
+                ? LinterLintCode.preferTypingUninitializedVariablesForField
                 : LinterLintCode
-                    .prefer_typing_uninitialized_variables_for_local_variable;
+                    .preferTypingUninitializedVariablesForLocalVariable;
         rule.reportAtNode(v, diagnosticCode: code);
       }
     }

@@ -21,7 +21,7 @@ class UnawaitedFutures extends LintRule {
     : super(name: LintNames.unawaited_futures, description: _desc);
 
   @override
-  DiagnosticCode get diagnosticCode => LinterLintCode.unawaited_futures;
+  DiagnosticCode get diagnosticCode => LinterLintCode.unawaitedFutures;
 
   @override
   void registerNodeProcessors(

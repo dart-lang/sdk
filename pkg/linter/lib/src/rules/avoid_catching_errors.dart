@@ -20,8 +20,8 @@ class AvoidCatchingErrors extends MultiAnalysisRule {
 
   @override
   List<DiagnosticCode> get diagnosticCodes => [
-    LinterLintCode.avoid_catching_errors_class,
-    LinterLintCode.avoid_catching_errors_subclass,
+    LinterLintCode.avoidCatchingErrorsClass,
+    LinterLintCode.avoidCatchingErrorsSubclass,
   ];
 
   @override
@@ -46,12 +46,12 @@ class _Visitor extends SimpleAstVisitor<void> {
       if (exceptionType.isSameAs('Error', 'dart.core')) {
         rule.reportAtNode(
           node,
-          diagnosticCode: LinterLintCode.avoid_catching_errors_class,
+          diagnosticCode: LinterLintCode.avoidCatchingErrorsClass,
         );
       } else {
         rule.reportAtNode(
           node,
-          diagnosticCode: LinterLintCode.avoid_catching_errors_subclass,
+          diagnosticCode: LinterLintCode.avoidCatchingErrorsSubclass,
           arguments: [exceptionType!.getDisplayString()],
         );
       }

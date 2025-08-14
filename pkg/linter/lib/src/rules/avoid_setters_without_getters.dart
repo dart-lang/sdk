@@ -19,7 +19,7 @@ class AvoidSettersWithoutGetters extends LintRule {
 
   @override
   DiagnosticCode get diagnosticCode =>
-      LinterLintCode.avoid_setters_without_getters;
+      LinterLintCode.avoidSettersWithoutGetters;
 
   @override
   void registerNodeProcessors(

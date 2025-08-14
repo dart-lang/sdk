@@ -23,7 +23,7 @@ class PreferInterpolationToComposeStrings extends LintRule {
 
   @override
   DiagnosticCode get diagnosticCode =>
-      LinterLintCode.prefer_interpolation_to_compose_strings;
+      LinterLintCode.preferInterpolationToComposeStrings;
 
   @override
   void registerNodeProcessors(

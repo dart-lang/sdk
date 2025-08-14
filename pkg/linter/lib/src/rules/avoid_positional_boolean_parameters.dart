@@ -25,7 +25,7 @@ class AvoidPositionalBooleanParameters extends LintRule {
 
   @override
   DiagnosticCode get diagnosticCode =>
-      LinterLintCode.avoid_positional_boolean_parameters;
+      LinterLintCode.avoidPositionalBooleanParameters;
 
   @override
   void registerNodeProcessors(

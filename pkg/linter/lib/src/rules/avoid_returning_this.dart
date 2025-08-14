@@ -22,7 +22,7 @@ class AvoidReturningThis extends LintRule {
     : super(name: LintNames.avoid_returning_this, description: _desc);
 
   @override
-  DiagnosticCode get diagnosticCode => LinterLintCode.avoid_returning_this;
+  DiagnosticCode get diagnosticCode => LinterLintCode.avoidReturningThis;
 
   @override
   void registerNodeProcessors(

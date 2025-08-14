@@ -23,7 +23,7 @@ class AvoidRedundantArgumentValues extends LintRule {
 
   @override
   DiagnosticCode get diagnosticCode =>
-      LinterLintCode.avoid_redundant_argument_values;
+      LinterLintCode.avoidRedundantArgumentValues;
 
   @override
   void registerNodeProcessors(

@@ -22,7 +22,7 @@ class UnnecessaryOverrides extends LintRule {
     : super(name: LintNames.unnecessary_overrides, description: _desc);
 
   @override
-  DiagnosticCode get diagnosticCode => LinterLintCode.unnecessary_overrides;
+  DiagnosticCode get diagnosticCode => LinterLintCode.unnecessaryOverrides;
 
   @override
   void registerNodeProcessors(

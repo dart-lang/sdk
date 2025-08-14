@@ -20,7 +20,7 @@ class PreferIsNotEmpty extends LintRule {
     : super(name: LintNames.prefer_is_not_empty, description: _desc);
 
   @override
-  DiagnosticCode get diagnosticCode => LinterLintCode.prefer_is_not_empty;
+  DiagnosticCode get diagnosticCode => LinterLintCode.preferIsNotEmpty;
 
   @override
   void registerNodeProcessors(

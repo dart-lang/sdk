@@ -21,7 +21,7 @@ class AlwaysPutControlBodyOnNewLine extends LintRule {
 
   @override
   DiagnosticCode get diagnosticCode =>
-      LinterLintCode.always_put_control_body_on_new_line;
+      LinterLintCode.alwaysPutControlBodyOnNewLine;
 
   @override
   void registerNodeProcessors(

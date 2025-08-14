@@ -31,7 +31,7 @@ class ParameterAssignments extends LintRule {
     : super(name: LintNames.parameter_assignments, description: _desc);
 
   @override
-  DiagnosticCode get diagnosticCode => LinterLintCode.parameter_assignments;
+  DiagnosticCode get diagnosticCode => LinterLintCode.parameterAssignments;
 
   @override
   void registerNodeProcessors(

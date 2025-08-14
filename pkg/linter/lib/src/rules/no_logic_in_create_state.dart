@@ -18,7 +18,7 @@ class NoLogicInCreateState extends LintRule {
     : super(name: LintNames.no_logic_in_create_state, description: _desc);
 
   @override
-  DiagnosticCode get diagnosticCode => LinterLintCode.no_logic_in_create_state;
+  DiagnosticCode get diagnosticCode => LinterLintCode.noLogicInCreateState;
 
   @override
   void registerNodeProcessors(

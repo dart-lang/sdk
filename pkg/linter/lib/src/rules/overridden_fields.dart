@@ -20,7 +20,7 @@ class OverriddenFields extends LintRule {
     : super(name: LintNames.overridden_fields, description: _desc);
 
   @override
-  DiagnosticCode get diagnosticCode => LinterLintCode.overridden_fields;
+  DiagnosticCode get diagnosticCode => LinterLintCode.overriddenFields;
 
   @override
   void registerNodeProcessors(

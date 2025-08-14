@@ -126,7 +126,7 @@ class UnintendedHtmlInDocComment extends LintRule {
 
   @override
   DiagnosticCode get diagnosticCode =>
-      LinterLintCode.unintended_html_in_doc_comment;
+      LinterLintCode.unintendedHtmlInDocComment;
 
   @override
   void registerNodeProcessors(

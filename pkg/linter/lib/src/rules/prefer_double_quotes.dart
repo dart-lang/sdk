@@ -17,7 +17,7 @@ class PreferDoubleQuotes extends LintRule {
     : super(name: LintNames.prefer_double_quotes, description: _desc);
 
   @override
-  DiagnosticCode get diagnosticCode => LinterLintCode.prefer_double_quotes;
+  DiagnosticCode get diagnosticCode => LinterLintCode.preferDoubleQuotes;
 
   @override
   List<String> get incompatibleRules => const [LintNames.prefer_single_quotes];

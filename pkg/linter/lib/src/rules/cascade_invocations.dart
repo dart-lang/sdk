@@ -75,7 +75,7 @@ class CascadeInvocations extends LintRule {
     : super(name: LintNames.cascade_invocations, description: _desc);
 
   @override
-  DiagnosticCode get diagnosticCode => LinterLintCode.cascade_invocations;
+  DiagnosticCode get diagnosticCode => LinterLintCode.cascadeInvocations;
 
   @override
   void registerNodeProcessors(

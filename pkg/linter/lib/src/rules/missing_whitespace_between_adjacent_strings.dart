@@ -21,7 +21,7 @@ class MissingWhitespaceBetweenAdjacentStrings extends LintRule {
 
   @override
   DiagnosticCode get diagnosticCode =>
-      LinterLintCode.missing_whitespace_between_adjacent_strings;
+      LinterLintCode.missingWhitespaceBetweenAdjacentStrings;
 
   @override
   void registerNodeProcessors(

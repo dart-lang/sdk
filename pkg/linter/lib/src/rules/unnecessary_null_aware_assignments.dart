@@ -24,7 +24,7 @@ class UnnecessaryNullAwareAssignments extends LintRule {
 
   @override
   DiagnosticCode get diagnosticCode =>
-      LinterLintCode.unnecessary_null_aware_assignments;
+      LinterLintCode.unnecessaryNullAwareAssignments;
 
   @override
   void registerNodeProcessors(

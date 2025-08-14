@@ -27,7 +27,7 @@ class UnsafeVariance extends LintRule {
       );
 
   @override
-  DiagnosticCode get diagnosticCode => LinterLintCode.unsafe_variance;
+  DiagnosticCode get diagnosticCode => LinterLintCode.unsafeVariance;
 
   @override
   void registerNodeProcessors(

@@ -20,7 +20,7 @@ class UnnecessaryThis extends LintRule {
     : super(name: LintNames.unnecessary_this, description: _desc);
 
   @override
-  DiagnosticCode get diagnosticCode => LinterLintCode.unnecessary_this;
+  DiagnosticCode get diagnosticCode => LinterLintCode.unnecessaryThis;
 
   @override
   void registerNodeProcessors(

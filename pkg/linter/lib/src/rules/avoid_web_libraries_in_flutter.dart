@@ -40,7 +40,7 @@ class AvoidWebLibrariesInFlutter extends LintRule {
 
   @override
   DiagnosticCode get diagnosticCode =>
-      LinterLintCode.avoid_web_libraries_in_flutter;
+      LinterLintCode.avoidWebLibrariesInFlutter;
 
   bool hasFlutterDep(File? pubspec) {
     if (pubspec == null) {

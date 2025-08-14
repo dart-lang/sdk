@@ -17,8 +17,7 @@ class AlwaysUsePackageImports extends LintRule {
     : super(name: LintNames.always_use_package_imports, description: _desc);
 
   @override
-  DiagnosticCode get diagnosticCode =>
-      LinterLintCode.always_use_package_imports;
+  DiagnosticCode get diagnosticCode => LinterLintCode.alwaysUsePackageImports;
 
   @override
   List<String> get incompatibleRules => const [

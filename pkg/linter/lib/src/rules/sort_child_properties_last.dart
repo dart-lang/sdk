@@ -18,8 +18,7 @@ class SortChildPropertiesLast extends LintRule {
     : super(name: LintNames.sort_child_properties_last, description: _desc);
 
   @override
-  DiagnosticCode get diagnosticCode =>
-      LinterLintCode.sort_child_properties_last;
+  DiagnosticCode get diagnosticCode => LinterLintCode.sortChildPropertiesLast;
 
   @override
   void registerNodeProcessors(

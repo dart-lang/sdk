@@ -22,7 +22,7 @@ class UseKeyInWidgetConstructors extends LintRule {
 
   @override
   DiagnosticCode get diagnosticCode =>
-      LinterLintCode.use_key_in_widget_constructors;
+      LinterLintCode.useKeyInWidgetConstructors;
 
   @override
   void registerNodeProcessors(

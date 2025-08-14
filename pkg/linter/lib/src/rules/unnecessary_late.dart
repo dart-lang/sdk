@@ -17,7 +17,7 @@ class UnnecessaryLate extends LintRule {
     : super(name: LintNames.unnecessary_late, description: _desc);
 
   @override
-  DiagnosticCode get diagnosticCode => LinterLintCode.unnecessary_late;
+  DiagnosticCode get diagnosticCode => LinterLintCode.unnecessaryLate;
 
   @override
   void registerNodeProcessors(

@@ -41,7 +41,7 @@ const linterLintCodeInfo = ErrorClassInfo(
 /// This is a temporary flag to allow the codebase to be transitioned to using
 /// camel-case error constants. TODO(paulberry): once the transition is
 /// complete, remove this constant.
-const _useLowerCamelCaseNames = false;
+const _useLowerCamelCaseNames = true;
 
 GeneratedFile get generatedCodesFile =>
     GeneratedFile(generatedCodesPath, (pkgRoot) async {

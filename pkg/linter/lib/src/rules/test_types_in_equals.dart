@@ -17,7 +17,7 @@ class TestTypesInEquals extends LintRule {
     : super(name: LintNames.test_types_in_equals, description: _desc);
 
   @override
-  DiagnosticCode get diagnosticCode => LinterLintCode.test_types_in_equals;
+  DiagnosticCode get diagnosticCode => LinterLintCode.testTypesInEquals;
 
   @override
   void registerNodeProcessors(

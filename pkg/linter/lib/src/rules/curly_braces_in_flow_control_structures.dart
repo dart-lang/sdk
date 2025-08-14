@@ -24,7 +24,7 @@ class CurlyBracesInFlowControlStructures extends LintRule {
 
   @override
   DiagnosticCode get diagnosticCode =>
-      LinterLintCode.curly_braces_in_flow_control_structures;
+      LinterLintCode.curlyBracesInFlowControlStructures;
 
   @override
   void registerNodeProcessors(

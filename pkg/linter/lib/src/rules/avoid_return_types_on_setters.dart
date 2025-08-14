@@ -20,8 +20,7 @@ class AvoidReturnTypesOnSetters extends LintRule {
   bool get canUseParsedResult => true;
 
   @override
-  DiagnosticCode get diagnosticCode =>
-      LinterLintCode.avoid_return_types_on_setters;
+  DiagnosticCode get diagnosticCode => LinterLintCode.avoidReturnTypesOnSetters;
 
   @override
   void registerNodeProcessors(

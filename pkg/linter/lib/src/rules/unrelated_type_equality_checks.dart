@@ -24,8 +24,8 @@ class UnrelatedTypeEqualityChecks extends MultiAnalysisRule {
 
   @override
   List<DiagnosticCode> get diagnosticCodes => [
-    LinterLintCode.unrelated_type_equality_checks_in_expression,
-    LinterLintCode.unrelated_type_equality_checks_in_pattern,
+    LinterLintCode.unrelatedTypeEqualityChecksInExpression,
+    LinterLintCode.unrelatedTypeEqualityChecksInPattern,
   ];
 
   @override
@@ -64,8 +64,7 @@ class _Visitor extends SimpleAstVisitor<void> {
 
     rule.reportAtToken(
       node.operator,
-      diagnosticCode:
-          LinterLintCode.unrelated_type_equality_checks_in_expression,
+      diagnosticCode: LinterLintCode.unrelatedTypeEqualityChecksInExpression,
       arguments: [rightType.getDisplayString(), leftType.getDisplayString()],
     );
   }
@@ -81,7 +80,7 @@ class _Visitor extends SimpleAstVisitor<void> {
 
     rule.reportAtNode(
       node,
-      diagnosticCode: LinterLintCode.unrelated_type_equality_checks_in_pattern,
+      diagnosticCode: LinterLintCode.unrelatedTypeEqualityChecksInPattern,
       arguments: [operandType.getDisplayString(), valueType.getDisplayString()],
     );
   }

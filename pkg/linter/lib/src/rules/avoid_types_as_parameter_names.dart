@@ -24,8 +24,8 @@ class AvoidTypesAsParameterNames extends MultiAnalysisRule {
 
   @override
   List<DiagnosticCode> get diagnosticCodes => [
-    LinterLintCode.avoid_types_as_parameter_names_type_parameter,
-    LinterLintCode.avoid_types_as_parameter_names_formal_parameter,
+    LinterLintCode.avoidTypesAsParameterNamesTypeParameter,
+    LinterLintCode.avoidTypesAsParameterNamesFormalParameter,
   ];
 
   @override
@@ -54,7 +54,7 @@ class _Visitor extends SimpleAstVisitor<void> {
         parameter,
         arguments: [parameter.name.lexeme],
         diagnosticCode:
-            LinterLintCode.avoid_types_as_parameter_names_formal_parameter,
+            LinterLintCode.avoidTypesAsParameterNamesFormalParameter,
       );
     }
   }
@@ -73,7 +73,7 @@ class _Visitor extends SimpleAstVisitor<void> {
           name,
           arguments: [name.lexeme],
           diagnosticCode:
-              LinterLintCode.avoid_types_as_parameter_names_formal_parameter,
+              LinterLintCode.avoidTypesAsParameterNamesFormalParameter,
         );
       }
     }
@@ -114,7 +114,7 @@ class _Visitor extends SimpleAstVisitor<void> {
           name,
           arguments: [name.lexeme],
           diagnosticCode:
-              LinterLintCode.avoid_types_as_parameter_names_type_parameter,
+              LinterLintCode.avoidTypesAsParameterNamesTypeParameter,
         );
       }
     }

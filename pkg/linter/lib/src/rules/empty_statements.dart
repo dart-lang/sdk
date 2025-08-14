@@ -17,7 +17,7 @@ class EmptyStatements extends LintRule {
     : super(name: LintNames.empty_statements, description: _desc);
 
   @override
-  DiagnosticCode get diagnosticCode => LinterLintCode.empty_statements;
+  DiagnosticCode get diagnosticCode => LinterLintCode.emptyStatements;
 
   @override
   void registerNodeProcessors(

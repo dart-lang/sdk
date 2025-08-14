@@ -19,7 +19,7 @@ class PreferNullAwareMethodCalls extends LintRule {
 
   @override
   DiagnosticCode get diagnosticCode =>
-      LinterLintCode.prefer_null_aware_method_calls;
+      LinterLintCode.preferNullAwareMethodCalls;
 
   @override
   void registerNodeProcessors(

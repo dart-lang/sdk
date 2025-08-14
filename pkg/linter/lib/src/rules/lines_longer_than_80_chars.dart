@@ -27,8 +27,7 @@ class LinesLongerThan80Chars extends LintRule {
     : super(name: LintNames.lines_longer_than_80_chars, description: _desc);
 
   @override
-  DiagnosticCode get diagnosticCode =>
-      LinterLintCode.lines_longer_than_80_chars;
+  DiagnosticCode get diagnosticCode => LinterLintCode.linesLongerThan80Chars;
 
   @override
   void registerNodeProcessors(

@@ -17,7 +17,7 @@ class EmptyCatches extends LintRule {
   EmptyCatches() : super(name: LintNames.empty_catches, description: _desc);
 
   @override
-  DiagnosticCode get diagnosticCode => LinterLintCode.empty_catches;
+  DiagnosticCode get diagnosticCode => LinterLintCode.emptyCatches;
 
   @override
   void registerNodeProcessors(

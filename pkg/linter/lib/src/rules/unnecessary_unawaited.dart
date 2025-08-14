@@ -18,7 +18,7 @@ class UnnecessaryUnawaited extends LintRule {
     : super(name: LintNames.unnecessary_unawaited, description: _desc);
 
   @override
-  DiagnosticCode get diagnosticCode => LinterLintCode.unnecessary_unawaited;
+  DiagnosticCode get diagnosticCode => LinterLintCode.unnecessaryUnawaited;
 
   @override
   void registerNodeProcessors(

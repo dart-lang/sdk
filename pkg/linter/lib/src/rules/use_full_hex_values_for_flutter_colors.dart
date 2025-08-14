@@ -24,7 +24,7 @@ class UseFullHexValuesForFlutterColors extends LintRule {
 
   @override
   DiagnosticCode get diagnosticCode =>
-      LinterLintCode.use_full_hex_values_for_flutter_colors;
+      LinterLintCode.useFullHexValuesForFlutterColors;
 
   @override
   void registerNodeProcessors(

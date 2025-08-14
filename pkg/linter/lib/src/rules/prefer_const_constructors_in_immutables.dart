@@ -24,7 +24,7 @@ class PreferConstConstructorsInImmutables extends LintRule {
 
   @override
   DiagnosticCode get diagnosticCode =>
-      LinterLintCode.prefer_const_constructors_in_immutables;
+      LinterLintCode.preferConstConstructorsInImmutables;
 
   @override
   void registerNodeProcessors(
