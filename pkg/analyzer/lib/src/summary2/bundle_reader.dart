@@ -1896,7 +1896,6 @@ class ResolutionReader {
       var typeParameterFragment = TypeParameterFragmentImpl(name: fragmentName);
       var typeParameterElement = TypeParameterElementImpl(
         firstFragment: typeParameterFragment,
-        name: typeParameterFragment.name,
       );
       _localElements.add(typeParameterElement);
       // TODO(scheglov): why not element?

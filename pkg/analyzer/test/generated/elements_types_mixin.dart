@@ -666,7 +666,7 @@ mixin ElementsTypesMixin {
     var fragment = TypeParameterFragmentImpl(name: name);
     fragment.bound = bound;
 
-    var element = TypeParameterElementImpl(firstFragment: fragment, name: name);
+    var element = TypeParameterElementImpl(firstFragment: fragment);
     element.variance = variance;
     return element;
   }

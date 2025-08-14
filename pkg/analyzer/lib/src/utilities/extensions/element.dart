@@ -414,7 +414,7 @@ extension TypeParameterElement2Extension on TypeParameterElement {
   TypeParameterElementImpl freshCopy() {
     var fragment = TypeParameterFragmentImpl(name: name);
     fragment.bound = bound;
-    return TypeParameterElementImpl(firstFragment: fragment, name: name);
+    return TypeParameterElementImpl(firstFragment: fragment);
   }
 }
 

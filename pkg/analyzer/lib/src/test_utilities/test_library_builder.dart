@@ -226,7 +226,7 @@ class _LibraryBuilder {
 
     for (var name in spec.typeParameters) {
       var tpElement = _createTypeParameterElement(name);
-      scope.addTypeParameter(name, tpElement);
+      scope.addTypeParameter(tpElement);
       fragment.typeParameters.add(tpElement.firstFragment);
     }
 
@@ -260,7 +260,7 @@ class _LibraryBuilder {
     fragment.typeParameters =
         spec.typeParameters.map((name) {
           var tpElement = _createTypeParameterElement(name);
-          scope.addTypeParameter(name, tpElement);
+          scope.addTypeParameter(tpElement);
           return tpElement.firstFragment;
         }).toList();
 
@@ -279,7 +279,7 @@ class _LibraryBuilder {
 
   TypeParameterElementImpl _createTypeParameterElement(String name) {
     var fragment = TypeParameterFragmentImpl(name: name);
-    return TypeParameterElementImpl(firstFragment: fragment, name: name);
+    return TypeParameterElementImpl(firstFragment: fragment);
   }
 
   void _populateClasses(LibrarySpec libSpec) {
@@ -291,7 +291,7 @@ class _LibraryBuilder {
       fragment.typeParameters =
           classSpec.typeParameters.map((name) {
             var tpElement = _createTypeParameterElement(name);
-            scope.addTypeParameter(name, tpElement);
+            scope.addTypeParameter(tpElement);
             return tpElement.firstFragment;
           }).toList();
 
@@ -406,11 +406,8 @@ class _PreFunctionType implements _PreType {
     var typeParameters =
         this.typeParameters.map((pre) {
           var fragment = TypeParameterFragmentImpl(name: pre.name);
-          var element = TypeParameterElementImpl(
-            firstFragment: fragment,
-            name: pre.name,
-          );
-          functionScope.addTypeParameter(pre.name, element);
+          var element = TypeParameterElementImpl(firstFragment: fragment);
+          functionScope.addTypeParameter(element);
           return element;
         }).toList();
 
@@ -510,8 +507,8 @@ class _Scope {
   _Scope.root(this._interfaces) : parent = null;
 
   /// Adds a type parameter to the current scope.
-  void addTypeParameter(String name, TypeParameterElementImpl element) {
-    _typeParameters[name] = element;
+  void addTypeParameter(TypeParameterElementImpl element) {
+    _typeParameters[element.name!] = element;
   }
 
   /// Looks up an interface by name.
