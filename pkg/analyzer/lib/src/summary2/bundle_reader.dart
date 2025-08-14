@@ -327,7 +327,7 @@ class LibraryReader {
             reader,
             fragment.typeParameters,
           );
-          _readFragmentMetadata(fragment, reader);
+          fragment.metadata = reader._readMetadata();
           fragment.supertype = reader._readOptionalInterfaceType();
           fragment.mixins = reader._readInterfaceTypeList();
           fragment.interfaces = reader._readInterfaceTypeList();
@@ -393,7 +393,7 @@ class LibraryReader {
             reader,
             fragment.formalParameters,
           );
-          _readFragmentMetadata(fragment, reader);
+          fragment.metadata = reader._readMetadata();
           fragment.constantInitializers = reader.readNodeList();
         },
       );
@@ -522,7 +522,7 @@ class LibraryReader {
             reader,
             fragment.typeParameters,
           );
-          _readFragmentMetadata(fragment, reader);
+          fragment.metadata = reader._readMetadata();
           fragment.supertype = reader._readOptionalInterfaceType();
           fragment.mixins = reader._readInterfaceTypeList();
           fragment.interfaces = reader._readInterfaceTypeList();
@@ -605,7 +605,7 @@ class LibraryReader {
             reader,
             fragment.typeParameters,
           );
-          _readFragmentMetadata(fragment, reader);
+          fragment.metadata = reader._readMetadata();
         },
       );
     });
@@ -664,7 +664,7 @@ class LibraryReader {
             reader,
             fragment.typeParameters,
           );
-          _readFragmentMetadata(fragment, reader);
+          fragment.metadata = reader._readMetadata();
           fragment.interfaces = reader._readInterfaceTypeList();
           fragment.typeErasure = reader.readRequiredType();
         },
@@ -713,7 +713,7 @@ class LibraryReader {
               fragment.element.enclosingElement as InstanceElementImpl;
           reader._addTypeParameters2(enclosingElement.typeParameters);
 
-          _readFragmentMetadata(fragment, reader);
+          fragment.metadata = reader._readMetadata();
           if (reader.readOptionalExpression() case var initializer?) {
             fragment.constantInitializer = initializer;
             ConstantContextForExpressionImpl(fragment, initializer);
@@ -752,14 +752,6 @@ class LibraryReader {
 
   int _readFragmentId() {
     return _reader.readUInt30();
-  }
-
-  void _readFragmentMetadata<T extends FragmentImpl>(
-    T fragment,
-    ResolutionReader reader,
-  ) {
-    // TODO(scheglov): inline it
-    fragment.metadata = reader._readMetadata();
   }
 
   String? _readFragmentName() {
@@ -820,7 +812,7 @@ class LibraryReader {
             reader,
             fragment.formalParameters,
           );
-          _readFragmentMetadata(fragment, reader);
+          fragment.metadata = reader._readMetadata();
         },
       );
     });
@@ -951,7 +943,7 @@ class LibraryReader {
             reader,
             fragment.formalParameters,
           );
-          _readFragmentMetadata(fragment, reader);
+          fragment.metadata = reader._readMetadata();
         },
       );
     });
@@ -1010,7 +1002,7 @@ class LibraryReader {
             reader,
             fragment.typeParameters,
           );
-          _readFragmentMetadata(fragment, reader);
+          fragment.metadata = reader._readMetadata();
           // _readTypeParameters(reader, fragment.typeParameters);
           fragment.superclassConstraints = reader._readInterfaceTypeList();
           fragment.interfaces = reader._readInterfaceTypeList();
@@ -1138,7 +1130,7 @@ class LibraryReader {
             reader,
             fragment.formalParameters,
           );
-          _readFragmentMetadata(fragment, reader);
+          fragment.metadata = reader._readMetadata();
         },
       );
     });
@@ -1216,7 +1208,7 @@ class LibraryReader {
             reader,
             fragment.formalParameters,
           );
-          _readFragmentMetadata(fragment, reader);
+          fragment.metadata = reader._readMetadata();
         },
       );
     });
@@ -1261,7 +1253,7 @@ class LibraryReader {
         },
         readResolution: (fragment, reader) {
           reader.currentLibraryFragment = fragment.libraryFragment;
-          _readFragmentMetadata(fragment, reader);
+          fragment.metadata = reader._readMetadata();
           if (reader.readOptionalExpression() case var initializer?) {
             fragment.constantInitializer = initializer;
             ConstantContextForExpressionImpl(fragment, initializer);
@@ -1310,7 +1302,7 @@ class LibraryReader {
             reader,
             fragment.typeParameters,
           );
-          _readFragmentMetadata(fragment, reader);
+          fragment.metadata = reader._readMetadata();
           fragment.aliasedElement = reader._readAliasedElement(unitElement);
         },
       );
