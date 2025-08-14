@@ -130,21 +130,6 @@ class TypeSchemaEnvironment extends HierarchyBasedTypeEnvironment
     return operandType;
   }
 
-  bool hasOmittedBound(StructuralParameter parameter) {
-    // If the bound was omitted by the programmer, the Kernel representation for
-    // the parameter will look similar to the following:
-    //
-    //     T extends Object = dynamic
-    //
-    // Note that it's not possible to receive [Object] as [TypeParameter.bound]
-    // and `dynamic` as [TypeParameter.defaultType] from the front end in any
-    // other way.
-    DartType bound = parameter.bound;
-    return bound is InterfaceType &&
-        identical(bound.classReference, coreTypes.objectClass.reference) &&
-        parameter.defaultType is DynamicType;
-  }
-
   /// Use the given [constraints] to substitute for type parameters.
   ///
   /// [typeParametersToInfer] is the set of type parameters that should be
@@ -175,7 +160,7 @@ class TypeSchemaEnvironment extends HierarchyBasedTypeEnvironment
 
       DartType typeParamBound = typeParam.bound;
       DartType? extendsConstraint;
-      if (!hasOmittedBound(typeParam)) {
+      if (!operations.isBoundOmitted(typeParam)) {
         extendsConstraint = new FunctionTypeInstantiator.fromIterables(
                 typeParametersToInfer, inferredTypes)
             .substitute(typeParamBound);
@@ -194,12 +179,11 @@ class TypeSchemaEnvironment extends HierarchyBasedTypeEnvironment
                 inferenceUsingBoundsIsEnabled: inferenceUsingBoundsIsEnabled)
             as DartType;
       } else {
-        inferredTypes[i] = _inferTypeParameterFromAll(
+        inferredTypes[i] = operations.inferTypeParameterFromAll(
                 previouslyInferredTypes?[i], constraint, extendsConstraint,
                 isContravariant:
                     typeParam.variance == shared.Variance.contravariant,
                 isLegacyCovariant: typeParam.isLegacyCovariant,
-                operations: operations,
                 constraints: constraints,
                 typeParameterToInfer: typeParam,
                 typeParametersToInfer: typeParametersToInfer,
@@ -366,53 +350,6 @@ class TypeSchemaEnvironment extends HierarchyBasedTypeEnvironment
     return inferredTypes;
   }
 
-  SharedType _inferTypeParameterFromAll(DartType? typeFromPreviousInference,
-      MergedTypeConstraint constraint, DartType? extendsConstraint,
-      {bool isContravariant = false,
-      bool isLegacyCovariant = true,
-      required OperationsCfe operations,
-      required Map<StructuralParameter, MergedTypeConstraint> constraints,
-      required StructuralParameter typeParameterToInfer,
-      required List<StructuralParameter> typeParametersToInfer,
-      required InferenceDataForTesting? dataForTesting,
-      required bool inferenceUsingBoundsIsEnabled}) {
-    // See if we already fixed this type in a previous inference step.
-    // If so, then we aren't allowed to change it unless [isLegacyCovariant] is
-    // false.
-    if (typeFromPreviousInference != null &&
-        isLegacyCovariant &&
-        operations
-            .isKnownType(new SharedTypeSchemaView(typeFromPreviousInference))) {
-      return typeFromPreviousInference;
-    }
-
-    if (inferenceUsingBoundsIsEnabled &&
-        constraint.lower is! SharedUnknownTypeSchemaView &&
-        !hasOmittedBound(typeParameterToInfer)) {
-      MergedTypeConstraint constraintFromBound =
-          operations.mergeInConstraintsFromBound(
-              typeParameterToInfer: typeParameterToInfer,
-              typeParametersToInfer:
-                  typeParametersToInfer.cast<SharedTypeParameterView>(),
-              lower: constraint.lower.unwrapTypeSchemaView<DartType>(),
-              inferencePhaseConstraints: constraints,
-              dataForTesting: dataForTesting,
-              inferenceUsingBoundsIsEnabled: inferenceUsingBoundsIsEnabled);
-
-      constraint.mergeInTypeSchemaUpper(constraintFromBound.upper, operations);
-      constraint.mergeInTypeSchemaLower(constraintFromBound.lower, operations);
-    }
-
-    if (extendsConstraint != null) {
-      constraint = constraint.clone();
-      constraint.mergeInTypeSchemaUpper(
-          new SharedTypeSchemaView(extendsConstraint), operations);
-    }
-
-    return operations.chooseTypeFromConstraint(constraint,
-        grounded: true, isContravariant: isContravariant);
-  }
-
   SharedType _inferTypeParameterFromContext(DartType? typeFromPreviousInference,
       MergedTypeConstraint constraint, DartType? extendsConstraint,
       {bool isLegacyCovariant = true,
@@ -448,7 +385,7 @@ class TypeSchemaEnvironment extends HierarchyBasedTypeEnvironment
 
     if (inferenceUsingBoundsIsEnabled &&
         constraint.lower is! SharedUnknownTypeSchemaView &&
-        !hasOmittedBound(typeParameterToInfer)) {
+        !operations.isBoundOmitted(typeParameterToInfer)) {
       // Coverage-ignore-block(suite): Not run.
       MergedTypeConstraint constraintFromBound =
           operations.mergeInConstraintsFromBound(
