@@ -14,7 +14,7 @@ main() {
   for (var i = 0; i < m; i++) {
     print("chunk${i}() {");
     for (var j = 0; j < n / m; j++) {
-      print("  add(${n / m * i + j}.0);");
+      print("  add(${n ~/ m * i + j}.0);");
     }
     print("}");
   }
