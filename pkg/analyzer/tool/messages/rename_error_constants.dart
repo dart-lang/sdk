@@ -6,10 +6,11 @@
 /// camelCase.
 ///
 /// This script analyzes `pkg/analyzer` (and related packages), and renames
-/// every static const error code declaration from SCREAMING_CAPS format to
-/// camelCase format. It also flips the constant `_useLowerCamelCaseNames`
-/// (in `messages/generate.dart`) from `false` to `true`, so that error message
-/// code generation will start generating error codes in camelCase format.
+/// every static const error code declaration from SCREAMING_CAPS or
+/// lower_snake_case format to camelCase format. It also flips the constant
+/// `_useLowerCamelCaseNames` (in `messages/generate.dart` and
+/// `generate_lints.dart`) from `false` to `true`, so that error message code
+/// generation will start generating errorcodes in camelCase format.
 ///
 /// This script will be run once to change the format of all the analyzer error
 /// codes, and then it will be removed from the codebase.
@@ -86,6 +87,8 @@ void main() async {
   }
 }
 
+final _lowerSnakeCaseRegExp = RegExp(r'^[a-z0-9][A-Za-z0-9]*_[A-Za-z0-9_]+$');
+
 final _screamingCapsRegExp = RegExp(r'^[A-Z0-9_]+$');
 
 class _Elements {
@@ -104,8 +107,7 @@ class _Visitor extends RecursiveAstVisitor {
 
   @override
   visitSimpleIdentifier(SimpleIdentifier node) {
-    if (_isScreamingCaps(node.name) &&
-        _isDiagnosticCodeConstant(node.element)) {
+    if (_isSnakeCase(node.name) && _isDiagnosticCodeConstant(node.element)) {
       _edits.add(SourceEdit(node.offset, node.length, node.name.toCamelCase()));
     }
     return super.visitSimpleIdentifier(node);
@@ -114,11 +116,14 @@ class _Visitor extends RecursiveAstVisitor {
   @override
   visitVariableDeclaration(VariableDeclaration node) {
     if (node.name.lexeme == '_useLowerCamelCaseNames' &&
-        path.basename(_file) == 'generate.dart') {
+        const {
+          'generate.dart',
+          'generate_lints.dart',
+        }.contains(path.basename(_file))) {
       _edits.add(
         SourceEdit(node.initializer!.offset, node.initializer!.length, 'true'),
       );
-    } else if (_isScreamingCaps(node.name.lexeme) &&
+    } else if (_isSnakeCase(node.name.lexeme) &&
         _isDiagnosticCodeConstant(node.declaredFragment?.element)) {
       _edits.add(
         SourceEdit(
@@ -148,5 +153,6 @@ class _Visitor extends RecursiveAstVisitor {
     );
   }
 
-  bool _isScreamingCaps(String s) => _screamingCapsRegExp.hasMatch(s);
+  bool _isSnakeCase(String s) =>
+      _screamingCapsRegExp.hasMatch(s) || _lowerSnakeCaseRegExp.hasMatch(s);
 }
