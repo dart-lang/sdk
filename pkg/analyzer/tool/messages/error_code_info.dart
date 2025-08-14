@@ -88,6 +88,16 @@ const List<ErrorClassInfo> errorClasses = [
     severity: 'WARNING',
   ),
   ErrorClassInfo(
+    file: todoCodesFile,
+    name: 'TodoCode',
+    type: 'TODO',
+    severity: 'INFO',
+    comment: '''
+The error code indicating a marker in code for work that needs to be finished
+or revisited.
+''',
+  ),
+  ErrorClassInfo(
     file: transformSetErrorCodeFile,
     name: 'TransformSetErrorCode',
     type: 'COMPILE_TIME_ERROR',
@@ -136,6 +146,11 @@ const scannerErrorFile = GeneratedErrorCodeFile(
 const syntacticErrorsFile = GeneratedErrorCodeFile(
   path: 'analyzer/lib/src/dart/error/syntactic_errors.g.dart',
   preferredImportUri: 'package:analyzer/src/dart/error/syntactic_errors.dart',
+);
+
+const todoCodesFile = GeneratedErrorCodeFile(
+  path: 'analyzer/lib/src/dart/error/todo_codes.g.dart',
+  preferredImportUri: 'package:analyzer/src/dart/error/todo_codes.dart',
 );
 
 const transformSetErrorCodeFile = GeneratedErrorCodeFile(

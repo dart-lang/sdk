@@ -23220,6 +23220,35 @@ StaticWarningCode:
         if (x case var a when a > 0) {}
       }
       ```
+TodoCode:
+  FIXME:
+    parameters:
+      String message: the user-supplied problem message
+    problemMessage: "#message"
+    hasPublishedDocs: false
+    comment: |-
+      A TODO comment marked as FIXME.
+  HACK:
+    parameters:
+      String message: the user-supplied problem message
+    problemMessage: "#message"
+    hasPublishedDocs: false
+    comment: |-
+      A TODO comment marked as HACK.
+  TODO:
+    parameters:
+      String message: the user-supplied problem message
+    problemMessage: "#message"
+    hasPublishedDocs: false
+    comment: |-
+      A standard TODO comment marked as TODO.
+  UNDONE:
+    parameters:
+      String message: the user-supplied problem message
+    problemMessage: "#message"
+    hasPublishedDocs: false
+    comment: |-
+      A TODO comment marked as UNDONE.
 TransformSetErrorCode:
   conflicting_key:
     parameters:

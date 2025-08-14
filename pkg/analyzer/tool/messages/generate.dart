@@ -259,14 +259,6 @@ class _DiagnosticCodeValuesGenerator {
   _DiagnosticCodeValuesGenerator(this.generatedCodes);
 
   void generate() {
-    // The scanner error codes are not yet being generated, so we need to add
-    // them to the list explicitly.
-    generatedCodes.addAll([
-      ('TodoCode', 'TODO'),
-      ('TodoCode', 'FIXME'),
-      ('TodoCode', 'HACK'),
-      ('TodoCode', 'UNDONE'),
-    ]);
     generatedCodes.sortBy((x) => '${x.$1}.${x.$2}');
 
     out.writeln();
