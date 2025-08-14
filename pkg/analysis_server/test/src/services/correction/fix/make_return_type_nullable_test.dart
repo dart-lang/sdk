@@ -4,6 +4,7 @@
 
 import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
+import 'package:analyzer_testing/utilities/utilities.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'fix_processor.dart';
@@ -146,6 +147,21 @@ class B extends A {
     await assertNoFix();
   }
 
+  Future<void> test_nullable_type() async {
+    await resolveTestCode('''
+int? f(String v) => v;
+''');
+    await assertNoFix();
+  }
+
+  Future<void> test_nullable_type_dynamic() async {
+    writeAnalysisOptionsFile(analysisOptionsContent(strictCasts: true));
+    await resolveTestCode('''
+int? f(dynamic v) => v;
+''');
+    await assertNoFix();
+  }
+
   Future<void> test_returnTypeHasTypeArguments() async {
     await resolveTestCode('''
 List<String> f() {
@@ -157,5 +173,13 @@ List<String>? f() {
   return null;
 }
 ''');
+  }
+
+  Future<void> test_unrelated_types() async {
+    writeAnalysisOptionsFile(analysisOptionsContent(strictCasts: true));
+    await resolveTestCode('''
+int f(dynamic v) => v;
+''');
+    await assertNoFix();
   }
 }
