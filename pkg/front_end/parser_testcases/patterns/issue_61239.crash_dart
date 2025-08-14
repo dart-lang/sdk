@@ -1,0 +1,6 @@
+void f(x) {
+  return switch(x) {
+    42 xor => 42,
+    _ => 0,
+  }
+}

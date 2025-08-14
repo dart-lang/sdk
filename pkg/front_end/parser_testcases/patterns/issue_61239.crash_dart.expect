@@ -1,0 +1,71 @@
+Problems reported:
+
+parser/patterns/issue_61239.crash:3:8: Expected '=>' before this.
+    42 xor => 42,
+       ^^^
+
+parser/patterns/issue_61239.crash:3:12: Expected ',' before this.
+    42 xor => 42,
+           ^^
+
+parser/patterns/issue_61239.crash:5:3: Expected ';' after this.
+  }
+  ^
+
+beginCompilationUnit(void)
+  beginMetadataStar(void)
+  endMetadataStar(0)
+  beginTopLevelMember(void)
+    beginTopLevelMethod(, null, null)
+      handleVoidKeyword(void)
+      handleIdentifier(f, topLevelFunctionDeclaration)
+      handleNoTypeVariables(()
+      beginFormalParameters((, MemberKind.TopLevelMethod)
+        beginMetadataStar(x)
+        endMetadataStar(0)
+        beginFormalParameter(x, MemberKind.TopLevelMethod, null, null, null)
+          handleNoType(()
+          handleIdentifier(x, formalParameterDeclaration)
+          handleFormalParameterWithoutValue())
+        endFormalParameter(null, null, null, x, null, null, FormalParameterKind.requiredPositional, MemberKind.TopLevelMethod)
+      endFormalParameters(1, (, ), MemberKind.TopLevelMethod)
+      handleAsyncModifier(null, null)
+      beginBlockFunctionBody({)
+        beginReturnStatement(return)
+          beginSwitchExpression(switch)
+            handleIdentifier(x, expression)
+            handleNoTypeArguments())
+            handleNoArguments())
+            handleSend(x, x)
+            handleParenthesizedCondition((, null, null)
+            beginSwitchExpressionBlock({)
+              beginSwitchExpressionCase()
+                beginPattern({)
+                  beginConstantPattern(null)
+                    handleLiteralInt(42)
+                  endConstantPattern(null)
+                endPattern(42)
+                handleSwitchExpressionCasePattern(42)
+                handleRecoverableError(Message[Template(ExpectedButGot), Expected '=>' before this., null, {string: =>}], xor, xor)
+                handleIdentifier(xor, expression)
+                handleNoTypeArguments(=>)
+                handleNoArguments(=>)
+                handleSend(xor, xor)
+              endSwitchExpressionCase(42, null, =>, xor)
+              handleRecoverableError(Message[Template(ExpectedButGot), Expected ',' before this., null, {string: ,}], =>, =>)
+              beginSwitchExpressionCase()
+                beginPattern(,)
+                  handleNoType(_)
+                  handleWildcardPattern(null, _)
+                endPattern(_)
+                handleSwitchExpressionCasePattern(_)
+                handleLiteralInt(0)
+              endSwitchExpressionCase(_, null, =>, 0)
+            endSwitchExpressionBlock(2, {, })
+          endSwitchExpression(switch, })
+          handleRecoverableError(Message[Template(ExpectedAfterButGot), Expected ';' after this., null, {string: ;}], }, })
+        endReturnStatement(true, return, ;)
+      endBlockFunctionBody(1, {, })
+    endTopLevelMethod(void, null, })
+  endTopLevelDeclaration(})
+endCompilationUnit(1, )
