@@ -25,7 +25,7 @@ final class C extends Struct {
   external Pointer notEmpty;
 }
 ''',
-      [error(FfiCode.MISSING_FIELD_TYPE_IN_STRUCT, 65, 3)],
+      [error(FfiCode.missingFieldTypeInStruct, 65, 3)],
     );
   }
 

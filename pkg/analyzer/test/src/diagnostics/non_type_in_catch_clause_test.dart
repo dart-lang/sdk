@@ -85,7 +85,7 @@ f() {
   }
 }
 ''',
-      [error(CompileTimeErrorCode.NON_TYPE_IN_CATCH_CLAUSE, 21, 1)],
+      [error(CompileTimeErrorCode.nonTypeInCatchClause, 21, 1)],
     );
   }
 
@@ -100,7 +100,7 @@ f() {
   }
 }
 ''',
-      [error(CompileTimeErrorCode.NON_TYPE_IN_CATCH_CLAUSE, 32, 1)],
+      [error(CompileTimeErrorCode.nonTypeInCatchClause, 32, 1)],
     );
   }
 

@@ -66,7 +66,7 @@ linter:
   rules:
     - undefined
     ''',
-      [AnalysisOptionsWarningCode.UNDEFINED_LINT],
+      [AnalysisOptionsWarningCode.undefinedLint],
     );
   }
 

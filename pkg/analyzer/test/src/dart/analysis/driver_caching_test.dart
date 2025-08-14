@@ -62,7 +62,7 @@ int b = a;
 
     // `strict-cast: true`, so has errors.
     assertErrorsInList(await _computeTestFileDiagnostics(), [
-      error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 23, 1),
+      error(CompileTimeErrorCode.invalidAssignment, 23, 1),
     ]);
   }
 

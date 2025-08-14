@@ -30,8 +30,8 @@ const int a = 0;
 const b = $expr;
 ''',
       [
-        error(CompileTimeErrorCode.CONST_EVAL_TYPE_BOOL_INT, 27, 6),
-        error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 31, 2),
+        error(CompileTimeErrorCode.constEvalTypeBoolInt, 27, 6),
+        error(CompileTimeErrorCode.argumentTypeNotAssignable, 31, 2),
       ],
     );
   }

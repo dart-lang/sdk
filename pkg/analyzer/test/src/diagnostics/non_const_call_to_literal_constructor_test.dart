@@ -74,7 +74,7 @@ class A {
 }
 A a = .named();
 ''',
-      [error(WarningCode.NON_CONST_CALL_TO_LITERAL_CONSTRUCTOR, 81, 8)],
+      [error(WarningCode.nonConstCallToLiteralConstructor, 81, 8)],
     );
   }
 
@@ -88,7 +88,7 @@ class A {
 }
 A a = .new();
 ''',
-      [error(WarningCode.NON_CONST_CALL_TO_LITERAL_CONSTRUCTOR, 75, 6)],
+      [error(WarningCode.nonConstCallToLiteralConstructor, 75, 6)],
     );
   }
 
@@ -102,7 +102,7 @@ class A {
 }
 var a = A.named();
 ''',
-      [error(WarningCode.NON_CONST_CALL_TO_LITERAL_CONSTRUCTOR, 83, 9)],
+      [error(WarningCode.nonConstCallToLiteralConstructor, 83, 9)],
     );
   }
 
@@ -116,7 +116,7 @@ class A {
 }
 var a = A();
 ''',
-      [error(WarningCode.NON_CONST_CALL_TO_LITERAL_CONSTRUCTOR, 77, 3)],
+      [error(WarningCode.nonConstCallToLiteralConstructor, 77, 3)],
     );
   }
 
@@ -141,13 +141,7 @@ class A {
 }
 var a = new A();
 ''',
-      [
-        error(
-          WarningCode.NON_CONST_CALL_TO_LITERAL_CONSTRUCTOR_USING_NEW,
-          77,
-          7,
-        ),
-      ],
+      [error(WarningCode.nonConstCallToLiteralConstructorUsingNew, 77, 7)],
     );
   }
 
@@ -161,7 +155,7 @@ extension type const E(int i) {
 }
 E e = E.zero();
 ''',
-      [error(WarningCode.NON_CONST_CALL_TO_LITERAL_CONSTRUCTOR, 112, 8)],
+      [error(WarningCode.nonConstCallToLiteralConstructor, 112, 8)],
     );
   }
 }

@@ -24,8 +24,8 @@ class A {
 }
 ''',
       [
-        error(CompileTimeErrorCode.TOP_LEVEL_CYCLE, 25, 1),
-        error(CompileTimeErrorCode.TOP_LEVEL_CYCLE, 51, 1),
+        error(CompileTimeErrorCode.topLevelCycle, 25, 1),
+        error(CompileTimeErrorCode.topLevelCycle, 51, 1),
       ],
     );
   }
@@ -40,8 +40,8 @@ class A {
 }
 ''',
       [
-        error(CompileTimeErrorCode.TOP_LEVEL_CYCLE, 25, 1),
-        error(CompileTimeErrorCode.TOP_LEVEL_CYCLE, 66, 1),
+        error(CompileTimeErrorCode.topLevelCycle, 25, 1),
+        error(CompileTimeErrorCode.topLevelCycle, 66, 1),
       ],
     );
   }
@@ -53,8 +53,8 @@ var x = y + 1;
 var y = x + 1;
 ''',
       [
-        error(CompileTimeErrorCode.TOP_LEVEL_CYCLE, 4, 1),
-        error(CompileTimeErrorCode.TOP_LEVEL_CYCLE, 19, 1),
+        error(CompileTimeErrorCode.topLevelCycle, 4, 1),
+        error(CompileTimeErrorCode.topLevelCycle, 19, 1),
       ],
     );
   }
@@ -64,7 +64,7 @@ var y = x + 1;
       r'''
 var x = x;
 ''',
-      [error(CompileTimeErrorCode.TOP_LEVEL_CYCLE, 4, 1)],
+      [error(CompileTimeErrorCode.topLevelCycle, 4, 1)],
     );
   }
 
@@ -77,7 +77,7 @@ var elems = [
   ],
 ];
 ''',
-      [error(CompileTimeErrorCode.TOP_LEVEL_CYCLE, 4, 5)],
+      [error(CompileTimeErrorCode.topLevelCycle, 4, 5)],
     );
   }
 }

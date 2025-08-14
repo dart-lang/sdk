@@ -27,8 +27,8 @@ class A {
 }
 ''',
       [
-        error(WarningCode.UNUSED_LOCAL_VARIABLE, 33, 1),
-        error(ParserErrorCode.MISSING_ASSIGNABLE_SELECTOR, 37, 5),
+        error(WarningCode.unusedLocalVariable, 33, 1),
+        error(ParserErrorCode.missingAssignableSelector, 37, 5),
       ],
     );
 
@@ -60,7 +60,7 @@ class A {
   }
 }
 ''',
-      [error(WarningCode.UNUSED_LOCAL_VARIABLE, 33, 1)],
+      [error(WarningCode.unusedLocalVariable, 33, 1)],
     );
 
     var node = findNode.singleVariableDeclarationStatement;

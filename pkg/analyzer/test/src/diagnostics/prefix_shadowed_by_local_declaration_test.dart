@@ -34,8 +34,8 @@ f(int a) {
 }
 ''',
       [
-        error(WarningCode.UNUSED_IMPORT, 7, 12),
-        error(CompileTimeErrorCode.PREFIX_SHADOWED_BY_LOCAL_DECLARATION, 39, 1),
+        error(WarningCode.unusedImport, 7, 12),
+        error(CompileTimeErrorCode.prefixShadowedByLocalDeclaration, 39, 1),
       ],
     );
   }
@@ -51,14 +51,14 @@ f() {
 }
 ''',
       [
-        error(WarningCode.UNUSED_IMPORT, 7, 12),
+        error(WarningCode.unusedImport, 7, 12),
         error(
-          CompileTimeErrorCode.REFERENCED_BEFORE_DECLARATION,
+          CompileTimeErrorCode.referencedBeforeDeclaration,
           34,
           1,
           contextMessages: [message(testFile, 60, 1)],
         ),
-        error(CompileTimeErrorCode.PREFIX_SHADOWED_BY_LOCAL_DECLARATION, 34, 1),
+        error(CompileTimeErrorCode.prefixShadowedByLocalDeclaration, 34, 1),
       ],
     );
   }
@@ -74,8 +74,8 @@ f() {
 }
 ''',
       [
-        error(WarningCode.UNUSED_IMPORT, 7, 12),
-        error(CompileTimeErrorCode.PREFIX_SHADOWED_BY_LOCAL_DECLARATION, 47, 1),
+        error(WarningCode.unusedImport, 7, 12),
+        error(CompileTimeErrorCode.prefixShadowedByLocalDeclaration, 47, 1),
       ],
     );
   }

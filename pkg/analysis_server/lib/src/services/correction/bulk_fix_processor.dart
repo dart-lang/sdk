@@ -90,9 +90,9 @@ class BulkFixProcessor {
   /// will almost certainly be invalid code.
   static const Map<DiagnosticCode, List<MultiProducerGenerator>>
   nonLintMultiProducerMap = {
-    CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE: [DataDriven.new],
-    CompileTimeErrorCode.CAST_TO_NON_TYPE: [DataDriven.new],
-    CompileTimeErrorCode.EXTENDS_NON_CLASS: [DataDriven.new],
+    CompileTimeErrorCode.argumentTypeNotAssignable: [DataDriven.new],
+    CompileTimeErrorCode.castToNonType: [DataDriven.new],
+    CompileTimeErrorCode.extendsNonClass: [DataDriven.new],
     // TODO(brianwilkerson): The following fix fails if an invocation of the
     //  function is the argument that needs to be removed.
     // CompileTimeErrorCode.EXTRA_POSITIONAL_ARGUMENTS: [
@@ -103,53 +103,41 @@ class BulkFixProcessor {
     // CompileTimeErrorCode.EXTRA_POSITIONAL_ARGUMENTS_COULD_BE_NAMED: [
     //   DataDriven.newInstance,
     // ],
-    CompileTimeErrorCode.IMPLEMENTS_NON_CLASS: [DataDriven.new],
-    CompileTimeErrorCode.INVALID_OVERRIDE: [DataDriven.new],
-    CompileTimeErrorCode.INVALID_OVERRIDE_SETTER: [DataDriven.new],
-    CompileTimeErrorCode.MISSING_REQUIRED_ARGUMENT: [DataDriven.new],
-    CompileTimeErrorCode.MIXIN_OF_NON_CLASS: [DataDriven.new],
-    CompileTimeErrorCode.NEW_WITH_UNDEFINED_CONSTRUCTOR_DEFAULT: [
+    CompileTimeErrorCode.implementsNonClass: [DataDriven.new],
+    CompileTimeErrorCode.invalidOverride: [DataDriven.new],
+    CompileTimeErrorCode.invalidOverrideSetter: [DataDriven.new],
+    CompileTimeErrorCode.missingRequiredArgument: [DataDriven.new],
+    CompileTimeErrorCode.mixinOfNonClass: [DataDriven.new],
+    CompileTimeErrorCode.newWithUndefinedConstructorDefault: [DataDriven.new],
+    CompileTimeErrorCode.nonTypeAsTypeArgument: [DataDriven.new],
+    CompileTimeErrorCode.notEnoughPositionalArgumentsNamePlural: [
       DataDriven.new,
     ],
-    CompileTimeErrorCode.NON_TYPE_AS_TYPE_ARGUMENT: [DataDriven.new],
-    CompileTimeErrorCode.NOT_ENOUGH_POSITIONAL_ARGUMENTS_NAME_PLURAL: [
+    CompileTimeErrorCode.notEnoughPositionalArgumentsNameSingular: [
       DataDriven.new,
     ],
-    CompileTimeErrorCode.NOT_ENOUGH_POSITIONAL_ARGUMENTS_NAME_SINGULAR: [
+    CompileTimeErrorCode.notEnoughPositionalArgumentsPlural: [DataDriven.new],
+    CompileTimeErrorCode.notEnoughPositionalArgumentsSingular: [DataDriven.new],
+    CompileTimeErrorCode.undefinedClass: [DataDriven.new],
+    CompileTimeErrorCode.undefinedExtensionGetter: [DataDriven.new],
+    CompileTimeErrorCode.undefinedFunction: [DataDriven.new],
+    CompileTimeErrorCode.undefinedGetter: [DataDriven.new],
+    CompileTimeErrorCode.undefinedIdentifier: [DataDriven.new],
+    CompileTimeErrorCode.undefinedMethod: [DataDriven.new],
+    CompileTimeErrorCode.undefinedNamedParameter: [DataDriven.new],
+    CompileTimeErrorCode.undefinedSetter: [DataDriven.new],
+    CompileTimeErrorCode.wrongNumberOfTypeArguments: [DataDriven.new],
+    CompileTimeErrorCode.wrongNumberOfTypeArgumentsConstructor: [
       DataDriven.new,
     ],
-    CompileTimeErrorCode.NOT_ENOUGH_POSITIONAL_ARGUMENTS_PLURAL: [
-      DataDriven.new,
-    ],
-    CompileTimeErrorCode.NOT_ENOUGH_POSITIONAL_ARGUMENTS_SINGULAR: [
-      DataDriven.new,
-    ],
-    CompileTimeErrorCode.UNDEFINED_CLASS: [DataDriven.new],
-    CompileTimeErrorCode.UNDEFINED_EXTENSION_GETTER: [DataDriven.new],
-    CompileTimeErrorCode.UNDEFINED_FUNCTION: [DataDriven.new],
-    CompileTimeErrorCode.UNDEFINED_GETTER: [DataDriven.new],
-    CompileTimeErrorCode.UNDEFINED_IDENTIFIER: [DataDriven.new],
-    CompileTimeErrorCode.UNDEFINED_METHOD: [DataDriven.new],
-    CompileTimeErrorCode.UNDEFINED_NAMED_PARAMETER: [DataDriven.new],
-    CompileTimeErrorCode.UNDEFINED_SETTER: [DataDriven.new],
-    CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS: [DataDriven.new],
-    CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_CONSTRUCTOR: [
-      DataDriven.new,
-    ],
-    CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_EXTENSION: [
-      DataDriven.new,
-    ],
-    CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_METHOD: [
-      DataDriven.new,
-    ],
-    HintCode.DEPRECATED_MEMBER_USE: [DataDriven.new],
-    HintCode.DEPRECATED_MEMBER_USE_FROM_SAME_PACKAGE: [DataDriven.new],
-    HintCode.DEPRECATED_MEMBER_USE_FROM_SAME_PACKAGE_WITH_MESSAGE: [
-      DataDriven.new,
-    ],
-    HintCode.DEPRECATED_MEMBER_USE_WITH_MESSAGE: [DataDriven.new],
-    WarningCode.DEPRECATED_EXPORT_USE: [DataDriven.new],
-    WarningCode.OVERRIDE_ON_NON_OVERRIDING_METHOD: [DataDriven.new],
+    CompileTimeErrorCode.wrongNumberOfTypeArgumentsExtension: [DataDriven.new],
+    CompileTimeErrorCode.wrongNumberOfTypeArgumentsMethod: [DataDriven.new],
+    HintCode.deprecatedMemberUse: [DataDriven.new],
+    HintCode.deprecatedMemberUseFromSamePackage: [DataDriven.new],
+    HintCode.deprecatedMemberUseFromSamePackageWithMessage: [DataDriven.new],
+    HintCode.deprecatedMemberUseWithMessage: [DataDriven.new],
+    WarningCode.deprecatedExportUse: [DataDriven.new],
+    WarningCode.overrideOnNonOverridingMethod: [DataDriven.new],
   };
 
   /// Cached results of [_canBulkFix].
@@ -449,7 +437,7 @@ class BulkFixProcessor {
           details.add(
             BulkFix(pubspecFile.path, [
               BulkFixDetail(
-                PubspecWarningCode.MISSING_DEPENDENCY.name.toLowerCase(),
+                PubspecWarningCode.missingDependency.name.toLowerCase(),
                 1,
               ),
             ]),
@@ -662,9 +650,9 @@ class BulkFixProcessor {
           directivesOrderingError = diagnostic;
           break;
         }
-      } else if (diagnosticCode == WarningCode.DUPLICATE_IMPORT ||
-          diagnosticCode == HintCode.UNNECESSARY_IMPORT ||
-          diagnosticCode == WarningCode.UNUSED_IMPORT) {
+      } else if (diagnosticCode == WarningCode.duplicateImport ||
+          diagnosticCode == HintCode.unnecessaryImport ||
+          diagnosticCode == WarningCode.unusedImport) {
         unusedImportDiagnostics.add(diagnostic);
       }
     }
@@ -1147,9 +1135,9 @@ extension on Diagnostic {
   bool get isFixable {
     // Special cases that can be bulk fixed by this class but not by
     // FixProcessor.
-    if (diagnosticCode == WarningCode.DUPLICATE_IMPORT ||
-        diagnosticCode == HintCode.UNNECESSARY_IMPORT ||
-        diagnosticCode == WarningCode.UNUSED_IMPORT ||
+    if (diagnosticCode == WarningCode.duplicateImport ||
+        diagnosticCode == HintCode.unnecessaryImport ||
+        diagnosticCode == WarningCode.unusedImport ||
         (DirectivesOrdering.allCodes.contains(diagnosticCode))) {
       return true;
     }

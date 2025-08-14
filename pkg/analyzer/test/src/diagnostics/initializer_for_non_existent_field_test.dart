@@ -27,7 +27,7 @@ A a = const A();
 ''',
       [
         error(
-          CompileTimeErrorCode.INITIALIZER_FOR_NON_EXISTENT_FIELD,
+          CompileTimeErrorCode.initializerForNonExistentField,
           24,
           9,
           messageContains: ["'x'"],
@@ -46,7 +46,7 @@ class A {
 ''',
       [
         error(
-          CompileTimeErrorCode.INITIALIZER_FOR_NON_EXISTENT_FIELD,
+          CompileTimeErrorCode.initializerForNonExistentField,
           36,
           5,
           messageContains: ["'x'"],
@@ -62,7 +62,7 @@ class A {
   A() : x = 0 {}
 }
 ''',
-      [error(CompileTimeErrorCode.INITIALIZER_FOR_NON_EXISTENT_FIELD, 18, 5)],
+      [error(CompileTimeErrorCode.initializerForNonExistentField, 18, 5)],
     );
   }
 }

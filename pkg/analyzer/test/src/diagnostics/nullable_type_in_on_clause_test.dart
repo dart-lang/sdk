@@ -28,7 +28,7 @@ mixin B on A {}
 class A {}
 mixin B on A? {}
 ''',
-      [error(CompileTimeErrorCode.NULLABLE_TYPE_IN_ON_CLAUSE, 22, 2)],
+      [error(CompileTimeErrorCode.nullableTypeInOnClause, 22, 2)],
     );
   }
 
@@ -39,7 +39,7 @@ class A {}
 typedef B = A;
 mixin C on B? {}
 ''',
-      [error(CompileTimeErrorCode.NULLABLE_TYPE_IN_ON_CLAUSE, 37, 2)],
+      [error(CompileTimeErrorCode.nullableTypeInOnClause, 37, 2)],
     );
   }
 
@@ -50,7 +50,7 @@ class A {}
 typedef B = A?;
 mixin C on B {}
 ''',
-      [error(CompileTimeErrorCode.NULLABLE_TYPE_IN_ON_CLAUSE, 38, 1)],
+      [error(CompileTimeErrorCode.nullableTypeInOnClause, 38, 1)],
     );
   }
 }

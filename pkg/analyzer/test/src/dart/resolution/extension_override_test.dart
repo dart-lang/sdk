@@ -879,7 +879,7 @@ f(){
   E(0).v++;
 }
 ''',
-      [error(CompileTimeErrorCode.UNDEFINED_EXTENSION_SETTER, 45, 1)],
+      [error(CompileTimeErrorCode.undefinedExtensionSetter, 45, 1)],
     );
 
     var node = findNode.postfix('++;');

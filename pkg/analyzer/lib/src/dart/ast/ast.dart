@@ -7899,7 +7899,7 @@ sealed class ExpressionImpl extends CollectionElementImpl
 
     var constant = visitor.evaluateAndReportInvalidConstant(this);
     var isInvalidConstant = diagnosticListener.diagnostics.any(
-      (e) => e.diagnosticCode == CompileTimeErrorCode.INVALID_CONSTANT,
+      (e) => e.diagnosticCode == CompileTimeErrorCode.invalidConstant,
     );
     if (isInvalidConstant) {
       return null;

@@ -33,7 +33,7 @@ mixin M on T {}
 ''',
       [
         error(
-          CompileTimeErrorCode.MIXIN_ON_TYPE_ALIAS_EXPANDS_TO_TYPE_PARAMETER,
+          CompileTimeErrorCode.mixinOnTypeAliasExpandsToTypeParameter,
           50,
           1,
         ),
@@ -50,7 +50,7 @@ mixin M on T<A> {}
 ''',
       [
         error(
-          CompileTimeErrorCode.MIXIN_ON_TYPE_ALIAS_EXPANDS_TO_TYPE_PARAMETER,
+          CompileTimeErrorCode.mixinOnTypeAliasExpandsToTypeParameter,
           50,
           1,
         ),

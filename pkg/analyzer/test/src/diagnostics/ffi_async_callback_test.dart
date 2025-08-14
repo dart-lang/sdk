@@ -26,7 +26,7 @@ void g() {
   NativeCallable<Int32 Function(Int32)>.isolateLocal(f, exceptionalReturn: e);
 }
 ''',
-      [error(FfiCode.ARGUMENT_MUST_BE_A_CONSTANT, 143, 1)],
+      [error(FfiCode.argumentMustBeAConstant, 143, 1)],
     );
   }
 
@@ -39,7 +39,7 @@ void g() {
   NativeCallable<Int32 Function(Int32)>.isolateLocal(f, exceptionalReturn: '?');
 }
 ''',
-      [error(FfiCode.MUST_BE_A_SUBTYPE, 128, 3)],
+      [error(FfiCode.mustBeASubtype, 128, 3)],
     );
   }
 
@@ -64,7 +64,7 @@ void g() {
   NativeCallable<Void Function(Int32)>.isolateLocal(f, exceptionalReturn: 4);
 }
 ''',
-      [error(FfiCode.INVALID_EXCEPTION_VALUE, 109, 20)],
+      [error(FfiCode.invalidExceptionValue, 109, 20)],
     );
   }
 
@@ -77,7 +77,7 @@ void g() {
   NativeCallable<Int32 Function(Int32)>.isolateLocal(f);
 }
 ''',
-      [error(FfiCode.MISSING_EXCEPTION_VALUE, 55, 53)],
+      [error(FfiCode.missingExceptionValue, 55, 53)],
     );
   }
 
@@ -90,7 +90,7 @@ void g() {
   NativeCallable<int Function(int)>.isolateLocal(f, exceptionalReturn: 4);
 }
 ''',
-      [error(FfiCode.MUST_BE_A_NATIVE_FUNCTION_TYPE, 55, 46)],
+      [error(FfiCode.mustBeANativeFunctionType, 55, 46)],
     );
   }
 
@@ -103,7 +103,7 @@ void g() {
   NativeCallable<Int32 Function(Double)>.isolateLocal(f, exceptionalReturn: 4);
 }
 ''',
-      [error(FfiCode.MUST_BE_A_SUBTYPE, 107, 1)],
+      [error(FfiCode.mustBeASubtype, 107, 1)],
     );
   }
 
@@ -116,7 +116,7 @@ void g() {
   NativeCallable.isolateLocal(f, exceptionalReturn: 4);
 }
 ''',
-      [error(FfiCode.MUST_BE_A_NATIVE_FUNCTION_TYPE, 55, 27)],
+      [error(FfiCode.mustBeANativeFunctionType, 55, 27)],
     );
   }
 
@@ -171,7 +171,7 @@ void g() {
   NativeCallable<void Function(int)>.listener(f);
 }
 ''',
-      [error(FfiCode.MUST_BE_A_NATIVE_FUNCTION_TYPE, 56, 43)],
+      [error(FfiCode.mustBeANativeFunctionType, 56, 43)],
     );
   }
 
@@ -184,7 +184,7 @@ void g() {
   NativeCallable<Void Function(Double)>.listener(f);
 }
 ''',
-      [error(FfiCode.MUST_BE_A_SUBTYPE, 103, 1)],
+      [error(FfiCode.mustBeASubtype, 103, 1)],
     );
   }
 
@@ -197,7 +197,7 @@ void g() {
   NativeCallable.listener(f);
 }
 ''',
-      [error(FfiCode.MUST_BE_A_NATIVE_FUNCTION_TYPE, 55, 23)],
+      [error(FfiCode.mustBeANativeFunctionType, 55, 23)],
     );
   }
 
@@ -210,7 +210,7 @@ void g() {
   NativeCallable<Int32 Function(Int32)>.listener(f);
 }
 ''',
-      [error(FfiCode.MUST_RETURN_VOID, 102, 1)],
+      [error(FfiCode.mustReturnVoid, 102, 1)],
     );
   }
 

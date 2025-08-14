@@ -25,10 +25,10 @@ void f() { // \u2066
 }
 ''',
       [
-        error(WarningCode.TEXT_DIRECTION_CODE_POINT_IN_COMMENT, 3, 1),
-        error(WarningCode.TEXT_DIRECTION_CODE_POINT_IN_COMMENT, 9, 1),
-        error(WarningCode.TEXT_DIRECTION_CODE_POINT_IN_COMMENT, 25, 1),
-        error(WarningCode.TEXT_DIRECTION_CODE_POINT_IN_COMMENT, 32, 1),
+        error(WarningCode.textDirectionCodePointInComment, 3, 1),
+        error(WarningCode.textDirectionCodePointInComment, 9, 1),
+        error(WarningCode.textDirectionCodePointInComment, 25, 1),
+        error(WarningCode.textDirectionCodePointInComment, 32, 1),
       ],
     );
   }
@@ -48,7 +48,7 @@ var u202a = '\u202A';
 ''',
       [
         error(
-          WarningCode.TEXT_DIRECTION_CODE_POINT_IN_LITERAL,
+          WarningCode.textDirectionCodePointInLiteral,
           13,
           1,
           messageContains: ['U+202A'],
@@ -64,7 +64,7 @@ var s = """ \u202a
         Multiline!
 """;
 ''',
-      [error(WarningCode.TEXT_DIRECTION_CODE_POINT_IN_LITERAL, 12, 1)],
+      [error(WarningCode.textDirectionCodePointInLiteral, 12, 1)],
     );
   }
 
@@ -82,15 +82,15 @@ var u2068 = '\u2068';
 var u2069 = '\u2069';
 ''',
       [
-        error(WarningCode.TEXT_DIRECTION_CODE_POINT_IN_LITERAL, 13, 1),
-        error(WarningCode.TEXT_DIRECTION_CODE_POINT_IN_LITERAL, 30, 1),
-        error(WarningCode.TEXT_DIRECTION_CODE_POINT_IN_LITERAL, 47, 1),
-        error(WarningCode.TEXT_DIRECTION_CODE_POINT_IN_LITERAL, 64, 1),
-        error(WarningCode.TEXT_DIRECTION_CODE_POINT_IN_LITERAL, 81, 1),
-        error(WarningCode.TEXT_DIRECTION_CODE_POINT_IN_LITERAL, 98, 1),
-        error(WarningCode.TEXT_DIRECTION_CODE_POINT_IN_LITERAL, 115, 1),
-        error(WarningCode.TEXT_DIRECTION_CODE_POINT_IN_LITERAL, 132, 1),
-        error(WarningCode.TEXT_DIRECTION_CODE_POINT_IN_LITERAL, 149, 1),
+        error(WarningCode.textDirectionCodePointInLiteral, 13, 1),
+        error(WarningCode.textDirectionCodePointInLiteral, 30, 1),
+        error(WarningCode.textDirectionCodePointInLiteral, 47, 1),
+        error(WarningCode.textDirectionCodePointInLiteral, 64, 1),
+        error(WarningCode.textDirectionCodePointInLiteral, 81, 1),
+        error(WarningCode.textDirectionCodePointInLiteral, 98, 1),
+        error(WarningCode.textDirectionCodePointInLiteral, 115, 1),
+        error(WarningCode.textDirectionCodePointInLiteral, 132, 1),
+        error(WarningCode.textDirectionCodePointInLiteral, 149, 1),
       ],
     );
   }
@@ -101,7 +101,7 @@ var u2069 = '\u2069';
 var x = 'x';
 var u202a = '\u202A\$x';
 ''',
-      [error(WarningCode.TEXT_DIRECTION_CODE_POINT_IN_LITERAL, 26, 1)],
+      [error(WarningCode.textDirectionCodePointInLiteral, 26, 1)],
     );
   }
 }

@@ -326,7 +326,7 @@ const foo = 42;
 part 'a.dart';
 const foo = 42;
 ''',
-      [error(CompileTimeErrorCode.URI_DOES_NOT_EXIST, 10, 8)],
+      [error(CompileTimeErrorCode.uriDoesNotExist, 10, 8)],
     );
 
     _assertAtFoo42();

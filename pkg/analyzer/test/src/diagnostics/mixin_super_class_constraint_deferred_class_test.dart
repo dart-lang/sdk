@@ -24,7 +24,7 @@ mixin M on math.Random {}
 ''',
       [
         error(
-          CompileTimeErrorCode.MIXIN_SUPER_CLASS_CONSTRAINT_DEFERRED_CLASS,
+          CompileTimeErrorCode.mixinSuperClassConstraintDeferredClass,
           48,
           11,
         ),

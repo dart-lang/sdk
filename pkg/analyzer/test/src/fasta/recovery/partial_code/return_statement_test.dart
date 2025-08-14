@@ -18,12 +18,12 @@ class ReturnStatementTest extends PartialCodeTest {
         TestDescriptor(
           'keyword',
           'return',
-          [ParserErrorCode.EXPECTED_TOKEN],
+          [ParserErrorCode.expectedToken],
           "return;",
           allFailing: true,
         ),
         TestDescriptor('expression', 'return a', [
-          ParserErrorCode.EXPECTED_TOKEN,
+          ParserErrorCode.expectedToken,
         ], "return a;"),
       ],
       PartialCodeTest.statementSuffixes,

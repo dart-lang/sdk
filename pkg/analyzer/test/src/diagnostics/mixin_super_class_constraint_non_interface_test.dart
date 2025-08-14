@@ -24,7 +24,7 @@ mixin M on dynamic {}
 ''',
       [
         error(
-          CompileTimeErrorCode.MIXIN_SUPER_CLASS_CONSTRAINT_NON_INTERFACE,
+          CompileTimeErrorCode.mixinSuperClassConstraintNonInterface,
           11,
           7,
         ),
@@ -51,7 +51,7 @@ mixin M on E {}
 ''',
       [
         error(
-          CompileTimeErrorCode.MIXIN_SUPER_CLASS_CONSTRAINT_NON_INTERFACE,
+          CompileTimeErrorCode.mixinSuperClassConstraintNonInterface,
           24,
           1,
         ),
@@ -78,7 +78,7 @@ mixin M on A {}
 ''',
       [
         error(
-          CompileTimeErrorCode.MIXIN_SUPER_CLASS_CONSTRAINT_NON_INTERFACE,
+          CompileTimeErrorCode.mixinSuperClassConstraintNonInterface,
           39,
           1,
         ),
@@ -104,7 +104,7 @@ mixin M on Never {}
 ''',
       [
         error(
-          CompileTimeErrorCode.MIXIN_SUPER_CLASS_CONSTRAINT_NON_INTERFACE,
+          CompileTimeErrorCode.mixinSuperClassConstraintNonInterface,
           11,
           5,
         ),
@@ -129,9 +129,9 @@ MixinOnClause
 mixin M on void {}
 ''',
       [
-        error(ParserErrorCode.EXPECTED_TYPE_NAME, 11, 4),
+        error(ParserErrorCode.expectedTypeName, 11, 4),
         error(
-          CompileTimeErrorCode.MIXIN_SUPER_CLASS_CONSTRAINT_NON_INTERFACE,
+          CompileTimeErrorCode.mixinSuperClassConstraintNonInterface,
           11,
           4,
         ),

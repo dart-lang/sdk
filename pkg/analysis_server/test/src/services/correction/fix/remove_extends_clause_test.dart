@@ -28,7 +28,7 @@ mixin class B extends A {}
 mixin class C extends A {}
 ''');
     await assertHasFixAllFix(
-      CompileTimeErrorCode.MIXIN_CLASS_DECLARATION_EXTENDS_NOT_OBJECT,
+      CompileTimeErrorCode.mixinClassDeclarationExtendsNotObject,
       '''
 class A {}
 mixin class B {}

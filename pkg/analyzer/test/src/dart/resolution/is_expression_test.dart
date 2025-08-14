@@ -24,7 +24,7 @@ class A<T> {
   }
 }
 ''',
-      [error(ParserErrorCode.MISSING_ASSIGNABLE_SELECTOR, 30, 5)],
+      [error(ParserErrorCode.missingAssignableSelector, 30, 5)],
     );
 
     var node = findNode.singleIsExpression;

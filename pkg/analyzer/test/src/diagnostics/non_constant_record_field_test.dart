@@ -21,7 +21,7 @@ class NonConstantRecordFieldTest extends PubPackageResolutionTest {
 final a = 0;
 var v = const (a: a);
 ''',
-      [error(CompileTimeErrorCode.NON_CONSTANT_RECORD_FIELD, 31, 1)],
+      [error(CompileTimeErrorCode.nonConstantRecordField, 31, 1)],
     );
   }
 
@@ -31,7 +31,7 @@ var v = const (a: a);
 final a = 0;
 var v = const (a, );
 ''',
-      [error(CompileTimeErrorCode.NON_CONSTANT_RECORD_FIELD, 28, 1)],
+      [error(CompileTimeErrorCode.nonConstantRecordField, 28, 1)],
     );
   }
 

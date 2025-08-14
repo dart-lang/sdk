@@ -55,8 +55,7 @@ class _DefiniteAssignmentDataComputer extends DataComputer<String> {
         .map((e) => e.diagnosticCode)
         .where(
           (c) =>
-              c !=
-              CompileTimeErrorCode.DEFINITELY_UNASSIGNED_LATE_LOCAL_VARIABLE,
+              c != CompileTimeErrorCode.definitelyUnassignedLateLocalVariable,
         );
     return diagnosticCodes.isNotEmpty ? diagnosticCodes.join(',') : null;
   }

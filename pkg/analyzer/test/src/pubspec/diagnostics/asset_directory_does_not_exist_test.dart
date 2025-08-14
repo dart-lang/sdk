@@ -33,7 +33,7 @@ flutter:
   assets:
     - assets/logos/
 ''',
-      [PubspecWarningCode.ASSET_DIRECTORY_DOES_NOT_EXIST],
+      [PubspecWarningCode.assetDirectoryDoesNotExist],
     );
   }
 }

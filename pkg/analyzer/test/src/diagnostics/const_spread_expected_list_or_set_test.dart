@@ -24,7 +24,7 @@ mixin ConstSpreadExpectedListOrSetTestCases on PubPackageResolutionTest {
 const dynamic a = 5;
 var b = const <int>[...a];
 ''',
-      [error(CompileTimeErrorCode.CONST_SPREAD_EXPECTED_LIST_OR_SET, 44, 1)],
+      [error(CompileTimeErrorCode.constSpreadExpectedListOrSet, 44, 1)],
     );
   }
 
@@ -34,7 +34,7 @@ var b = const <int>[...a];
 const dynamic a = 5;
 const x = <int>[...a];
 ''',
-      [error(CompileTimeErrorCode.CONST_SPREAD_EXPECTED_LIST_OR_SET, 40, 1)],
+      [error(CompileTimeErrorCode.constSpreadExpectedListOrSet, 40, 1)],
     );
   }
 
@@ -51,7 +51,7 @@ var b = const <int>[...a];
 const dynamic a = <int, int>{0: 1};
 var b = const <int>[...a];
 ''',
-      [error(CompileTimeErrorCode.CONST_SPREAD_EXPECTED_LIST_OR_SET, 59, 1)],
+      [error(CompileTimeErrorCode.constSpreadExpectedListOrSet, 59, 1)],
     );
   }
 
@@ -61,7 +61,7 @@ var b = const <int>[...a];
 const dynamic a = null;
 var b = const <int>[...a];
 ''',
-      [error(CompileTimeErrorCode.CONST_SPREAD_EXPECTED_LIST_OR_SET, 47, 1)],
+      [error(CompileTimeErrorCode.constSpreadExpectedListOrSet, 47, 1)],
     );
   }
 
@@ -85,7 +85,7 @@ var b = const <int>[...a];
 const dynamic a = 5;
 var b = const <int>{...a};
 ''',
-      [error(CompileTimeErrorCode.CONST_SPREAD_EXPECTED_LIST_OR_SET, 44, 1)],
+      [error(CompileTimeErrorCode.constSpreadExpectedListOrSet, 44, 1)],
     );
   }
 
@@ -102,7 +102,7 @@ var b = const <int>{...a};
 const dynamic a = <int, int>{1: 2};
 var b = const <int>{...a};
 ''',
-      [error(CompileTimeErrorCode.CONST_SPREAD_EXPECTED_LIST_OR_SET, 59, 1)],
+      [error(CompileTimeErrorCode.constSpreadExpectedListOrSet, 59, 1)],
     );
   }
 
@@ -112,7 +112,7 @@ var b = const <int>{...a};
 const dynamic a = null;
 var b = const <int>{...a};
 ''',
-      [error(CompileTimeErrorCode.CONST_SPREAD_EXPECTED_LIST_OR_SET, 47, 1)],
+      [error(CompileTimeErrorCode.constSpreadExpectedListOrSet, 47, 1)],
     );
   }
 

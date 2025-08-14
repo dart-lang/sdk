@@ -69,7 +69,7 @@ class A {
   }
 }
 ''',
-      [error(ParserErrorCode.MISSING_ASSIGNABLE_SELECTOR, 39, 5)],
+      [error(ParserErrorCode.missingAssignableSelector, 39, 5)],
     );
 
     var node = findNode.singleAwaitExpression;
@@ -117,7 +117,7 @@ void f() async {
   await unresolved;
 }
 ''',
-      [error(CompileTimeErrorCode.UNDEFINED_IDENTIFIER, 25, 10)],
+      [error(CompileTimeErrorCode.undefinedIdentifier, 25, 10)],
     );
 
     var node = findNode.singleAwaitExpression;
@@ -141,7 +141,7 @@ void f() async {
   await prefix.unresolved;
 }
 ''',
-      [error(CompileTimeErrorCode.UNDEFINED_PREFIXED_NAME, 63, 10)],
+      [error(CompileTimeErrorCode.undefinedPrefixedName, 63, 10)],
     );
 
     var node = findNode.singleAwaitExpression;
@@ -171,7 +171,7 @@ void f() async {
   await 0.isEven.unresolved;
 }
 ''',
-      [error(CompileTimeErrorCode.UNDEFINED_GETTER, 34, 10)],
+      [error(CompileTimeErrorCode.undefinedGetter, 34, 10)],
     );
 
     var node = findNode.singleAwaitExpression;

@@ -21,10 +21,10 @@ class ExtensionMethodsParserTest extends FastaParserTestCase {
     var unit = parseCompilationUnit(
       'extension E extends A with B, C implements D { }',
       errors: [
-        expectedError(ParserErrorCode.EXPECTED_INSTEAD, 12, 7),
-        expectedError(ParserErrorCode.UNEXPECTED_TOKEN, 22, 4),
-        expectedError(ParserErrorCode.UNEXPECTED_TOKEN, 28, 1),
-        expectedError(ParserErrorCode.UNEXPECTED_TOKEN, 32, 10),
+        expectedError(ParserErrorCode.expectedInstead, 12, 7),
+        expectedError(ParserErrorCode.unexpectedToken, 22, 4),
+        expectedError(ParserErrorCode.unexpectedToken, 28, 1),
+        expectedError(ParserErrorCode.unexpectedToken, 32, 10),
       ],
     );
     expect(unit.declarations, hasLength(1));
@@ -39,8 +39,8 @@ class ExtensionMethodsParserTest extends FastaParserTestCase {
     var unit = parseCompilationUnit(
       'extension E implements C, D { }',
       errors: [
-        expectedError(ParserErrorCode.EXPECTED_INSTEAD, 12, 10),
-        expectedError(ParserErrorCode.UNEXPECTED_TOKEN, 24, 1),
+        expectedError(ParserErrorCode.expectedInstead, 12, 10),
+        expectedError(ParserErrorCode.unexpectedToken, 24, 1),
       ],
     );
     expect(unit.declarations, hasLength(1));
@@ -96,7 +96,7 @@ extension E on C {
 class C {}
 ''',
       errors: [
-        expectedError(ParserErrorCode.EXTENSION_DECLARES_CONSTRUCTOR, 21, 1),
+        expectedError(ParserErrorCode.extensionDeclaresConstructor, 21, 1),
       ],
     );
     expect(unit.declarations, hasLength(2));
@@ -113,7 +113,7 @@ extension E on C {
 class C {}
 ''',
       errors: [
-        expectedError(ParserErrorCode.EXTENSION_DECLARES_CONSTRUCTOR, 21, 1),
+        expectedError(ParserErrorCode.extensionDeclaresConstructor, 21, 1),
       ],
     );
     expect(unit.declarations, hasLength(2));
@@ -125,9 +125,9 @@ class C {}
     var unit = parseCompilationUnit(
       'extension E',
       errors: [
-        expectedError(ParserErrorCode.EXPECTED_TOKEN, 10, 1),
-        expectedError(ParserErrorCode.EXPECTED_TYPE_NAME, 11, 0),
-        expectedError(ParserErrorCode.EXPECTED_EXTENSION_BODY, 11, 0),
+        expectedError(ParserErrorCode.expectedToken, 10, 1),
+        expectedError(ParserErrorCode.expectedTypeName, 11, 0),
+        expectedError(ParserErrorCode.expectedExtensionBody, 11, 0),
       ],
     );
     expect(unit.declarations, hasLength(1));
@@ -142,8 +142,8 @@ class C {}
     var unit = parseCompilationUnit(
       'extension E {}',
       errors: [
-        expectedError(ParserErrorCode.EXPECTED_TOKEN, 10, 1),
-        expectedError(ParserErrorCode.EXPECTED_TYPE_NAME, 12, 1),
+        expectedError(ParserErrorCode.expectedToken, 10, 1),
+        expectedError(ParserErrorCode.expectedTypeName, 12, 1),
       ],
     );
     expect(unit.declarations, hasLength(1));
@@ -157,7 +157,7 @@ class C {}
   void test_missing_on_withClassAndBlock() {
     var unit = parseCompilationUnit(
       'extension E C {}',
-      errors: [expectedError(ParserErrorCode.EXPECTED_TOKEN, 10, 1)],
+      errors: [expectedError(ParserErrorCode.expectedToken, 10, 1)],
     );
     expect(unit.declarations, hasLength(1));
     var extension = unit.declarations[0] as ExtensionDeclaration;
@@ -201,7 +201,7 @@ class C {}
   void test_simple_extends() {
     var unit = parseCompilationUnit(
       'extension E extends C { }',
-      errors: [expectedError(ParserErrorCode.EXPECTED_INSTEAD, 12, 7)],
+      errors: [expectedError(ParserErrorCode.expectedInstead, 12, 7)],
     );
     expect(unit.declarations, hasLength(1));
     var extension = unit.declarations[0] as ExtensionDeclaration;
@@ -214,7 +214,7 @@ class C {}
   void test_simple_implements() {
     var unit = parseCompilationUnit(
       'extension E implements C { }',
-      errors: [expectedError(ParserErrorCode.EXPECTED_INSTEAD, 12, 10)],
+      errors: [expectedError(ParserErrorCode.expectedInstead, 12, 10)],
     );
     expect(unit.declarations, hasLength(1));
     var extension = unit.declarations[0] as ExtensionDeclaration;
@@ -240,7 +240,7 @@ class C {}
   void test_simple_with() {
     var unit = parseCompilationUnit(
       'extension E with C { }',
-      errors: [expectedError(ParserErrorCode.EXPECTED_INSTEAD, 12, 4)],
+      errors: [expectedError(ParserErrorCode.expectedInstead, 12, 4)],
     );
     expect(unit.declarations, hasLength(1));
     var extension = unit.declarations[0] as ExtensionDeclaration;

@@ -22,7 +22,7 @@ f(var x, var y) {
   return x and y;
 }
 ''',
-      [error(ParserErrorCode.BINARY_OPERATOR_WRITTEN_OUT, 29, 3)],
+      [error(ParserErrorCode.binaryOperatorWrittenOut, 29, 3)],
     );
   }
 
@@ -41,7 +41,7 @@ f(var x, var y) {
   return x or y;
 }
 ''',
-      [error(ParserErrorCode.BINARY_OPERATOR_WRITTEN_OUT, 29, 2)],
+      [error(ParserErrorCode.binaryOperatorWrittenOut, 29, 2)],
     );
   }
 
@@ -60,7 +60,7 @@ f(var x) {
   return x shl 2;
 }
 ''',
-      [error(ParserErrorCode.BINARY_OPERATOR_WRITTEN_OUT, 22, 3)],
+      [error(ParserErrorCode.binaryOperatorWrittenOut, 22, 3)],
     );
   }
 
@@ -79,7 +79,7 @@ f(var x) {
   return x shr 2;
 }
 ''',
-      [error(ParserErrorCode.BINARY_OPERATOR_WRITTEN_OUT, 22, 3)],
+      [error(ParserErrorCode.binaryOperatorWrittenOut, 22, 3)],
     );
   }
 
@@ -98,7 +98,7 @@ f(var x, var y) {
   return x xor y;
 }
 ''',
-      [error(ParserErrorCode.BINARY_OPERATOR_WRITTEN_OUT, 29, 3)],
+      [error(ParserErrorCode.binaryOperatorWrittenOut, 29, 3)],
     );
   }
 

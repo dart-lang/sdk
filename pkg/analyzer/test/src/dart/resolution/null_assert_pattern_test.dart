@@ -22,7 +22,7 @@ void f(int? x) {
   if (x case var y!) {}
 }
 ''',
-      [error(WarningCode.UNUSED_LOCAL_VARIABLE, 34, 1)],
+      [error(WarningCode.unusedLocalVariable, 34, 1)],
     );
     var node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
@@ -49,7 +49,7 @@ void f(int? x) {
   }
 }
 ''',
-      [error(WarningCode.UNUSED_LOCAL_VARIABLE, 45, 1)],
+      [error(WarningCode.unusedLocalVariable, 45, 1)],
     );
     var node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
@@ -73,7 +73,7 @@ void f(int? x) {
   var (a!) = x;
 }
 ''',
-      [error(WarningCode.UNUSED_LOCAL_VARIABLE, 24, 1)],
+      [error(WarningCode.unusedLocalVariable, 24, 1)],
     );
     var node = findNode.singlePatternVariableDeclaration;
     assertResolvedNodeText(node, r'''

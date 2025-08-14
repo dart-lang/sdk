@@ -26,7 +26,7 @@ m() {
   x as int;
 }
 ''',
-      [error(WarningCode.CAST_FROM_NULL_ALWAYS_FAILS, 18, 8)],
+      [error(WarningCode.castFromNullAlwaysFails, 18, 8)],
     );
   }
 
@@ -56,7 +56,7 @@ m() {
   x == null;
 }
 ''',
-      [error(WarningCode.UNNECESSARY_NULL_COMPARISON_ALWAYS_NULL_TRUE, 18, 4)],
+      [error(WarningCode.unnecessaryNullComparisonAlwaysNullTrue, 18, 4)],
     );
   }
 
@@ -69,8 +69,8 @@ m() {
 }
 ''',
       [
-        error(WarningCode.UNUSED_LOCAL_VARIABLE, 27, 1),
-        error(CompileTimeErrorCode.INVALID_USE_OF_NULL_VALUE, 32, 1),
+        error(WarningCode.unusedLocalVariable, 27, 1),
+        error(CompileTimeErrorCode.invalidUseOfNullValue, 32, 1),
       ],
     );
   }
@@ -110,7 +110,7 @@ m() {
   x != null;
 }
 ''',
-      [error(WarningCode.UNNECESSARY_NULL_COMPARISON_ALWAYS_NULL_FALSE, 18, 4)],
+      [error(WarningCode.unnecessaryNullComparisonAlwaysNullFalse, 18, 4)],
     );
   }
 
@@ -175,12 +175,12 @@ extension E on A? {
 ''',
       [
         error(
-          CompileTimeErrorCode.UNCHECKED_METHOD_INVOCATION_OF_NULLABLE_VALUE,
+          CompileTimeErrorCode.uncheckedMethodInvocationOfNullableValue,
           130,
           1,
         ),
         error(
-          CompileTimeErrorCode.UNCHECKED_METHOD_INVOCATION_OF_NULLABLE_VALUE,
+          CompileTimeErrorCode.uncheckedMethodInvocationOfNullableValue,
           158,
           1,
         ),
@@ -227,12 +227,12 @@ extension E on A? {
 ''',
       [
         error(
-          CompileTimeErrorCode.UNCHECKED_METHOD_INVOCATION_OF_NULLABLE_VALUE,
+          CompileTimeErrorCode.uncheckedMethodInvocationOfNullableValue,
           68,
           3,
         ),
         error(
-          CompileTimeErrorCode.UNCHECKED_METHOD_INVOCATION_OF_NULLABLE_VALUE,
+          CompileTimeErrorCode.uncheckedMethodInvocationOfNullableValue,
           84,
           3,
         ),
@@ -281,7 +281,7 @@ extension E on A? {
 ''',
       [
         error(
-          CompileTimeErrorCode.UNCHECKED_METHOD_INVOCATION_OF_NULLABLE_VALUE,
+          CompileTimeErrorCode.uncheckedMethodInvocationOfNullableValue,
           77,
           1,
         ),
@@ -332,12 +332,12 @@ extension E on A? {
 ''',
       [
         error(
-          CompileTimeErrorCode.UNCHECKED_PROPERTY_ACCESS_OF_NULLABLE_VALUE,
+          CompileTimeErrorCode.uncheckedPropertyAccessOfNullableValue,
           93,
           3,
         ),
         error(
-          CompileTimeErrorCode.UNCHECKED_PROPERTY_ACCESS_OF_NULLABLE_VALUE,
+          CompileTimeErrorCode.uncheckedPropertyAccessOfNullableValue,
           107,
           3,
         ),
@@ -388,12 +388,12 @@ extension E on A? {
 ''',
       [
         error(
-          CompileTimeErrorCode.UNCHECKED_METHOD_INVOCATION_OF_NULLABLE_VALUE,
+          CompileTimeErrorCode.uncheckedMethodInvocationOfNullableValue,
           93,
           3,
         ),
         error(
-          CompileTimeErrorCode.UNCHECKED_PROPERTY_ACCESS_OF_NULLABLE_VALUE,
+          CompileTimeErrorCode.uncheckedPropertyAccessOfNullableValue,
           111,
           3,
         ),
@@ -423,7 +423,7 @@ m() {
 ''',
       [
         error(
-          CompileTimeErrorCode.UNCHECKED_USE_OF_NULLABLE_VALUE_AS_CONDITION,
+          CompileTimeErrorCode.uncheckedUseOfNullableValueAsCondition,
           22,
           1,
         ),
@@ -439,7 +439,7 @@ void f() {
   x as int;
 }
 ''',
-      [error(WarningCode.CAST_FROM_NULLABLE_ALWAYS_FAILS, 23, 1)],
+      [error(WarningCode.castFromNullableAlwaysFails, 23, 1)],
     );
   }
 
@@ -471,7 +471,7 @@ m() {
 ''',
       [
         error(
-          CompileTimeErrorCode.UNCHECKED_USE_OF_NULLABLE_VALUE_AS_CONDITION,
+          CompileTimeErrorCode.uncheckedUseOfNullableValueAsCondition,
           26,
           1,
         ),
@@ -499,7 +499,7 @@ m(B b) {
 ''',
       [
         error(
-          CompileTimeErrorCode.UNCHECKED_PROPERTY_ACCESS_OF_NULLABLE_VALUE,
+          CompileTimeErrorCode.uncheckedPropertyAccessOfNullableValue,
           104,
           1,
         ),
@@ -643,7 +643,7 @@ m(B b) {
 ''',
       [
         error(
-          CompileTimeErrorCode.UNCHECKED_METHOD_INVOCATION_OF_NULLABLE_VALUE,
+          CompileTimeErrorCode.uncheckedMethodInvocationOfNullableValue,
           115,
           2,
         ),
@@ -739,7 +739,7 @@ m(B b) {
 ''',
       [
         error(
-          CompileTimeErrorCode.UNCHECKED_PROPERTY_ACCESS_OF_NULLABLE_VALUE,
+          CompileTimeErrorCode.uncheckedPropertyAccessOfNullableValue,
           105,
           1,
         ),
@@ -825,7 +825,7 @@ m(int x, int? y) {
 ''',
       [
         error(
-          CompileTimeErrorCode.UNCHECKED_METHOD_INVOCATION_OF_NULLABLE_VALUE,
+          CompileTimeErrorCode.uncheckedMethodInvocationOfNullableValue,
           33,
           2,
         ),
@@ -907,7 +907,7 @@ f(List<int>? x) {
 ''',
       [
         error(
-          CompileTimeErrorCode.UNCHECKED_METHOD_INVOCATION_OF_NULLABLE_VALUE,
+          CompileTimeErrorCode.uncheckedMethodInvocationOfNullableValue,
           23,
           1,
         ),
@@ -933,7 +933,7 @@ m() {
 ''',
       [
         error(
-          CompileTimeErrorCode.UNCHECKED_METHOD_INVOCATION_OF_NULLABLE_VALUE,
+          CompileTimeErrorCode.uncheckedMethodInvocationOfNullableValue,
           21,
           3,
         ),
@@ -958,7 +958,7 @@ f(int? x) {
 ''',
       [
         error(
-          CompileTimeErrorCode.UNCHECKED_PROPERTY_ACCESS_OF_NULLABLE_VALUE,
+          CompileTimeErrorCode.uncheckedPropertyAccessOfNullableValue,
           17,
           6,
         ),
@@ -982,7 +982,7 @@ m() {
   x == null;
 }
 ''',
-      [error(WarningCode.UNNECESSARY_NULL_COMPARISON_ALWAYS_NULL_TRUE, 18, 4)],
+      [error(WarningCode.unnecessaryNullComparisonAlwaysNullTrue, 18, 4)],
     );
   }
 
@@ -994,7 +994,7 @@ m() {
   for (var y in x) {}
 }
 ''',
-      [error(WarningCode.UNUSED_LOCAL_VARIABLE, 32, 1)],
+      [error(WarningCode.unusedLocalVariable, 32, 1)],
     );
   }
 
@@ -1007,9 +1007,9 @@ m() {
 }
 ''',
       [
-        error(WarningCode.UNUSED_LOCAL_VARIABLE, 28, 1),
+        error(WarningCode.unusedLocalVariable, 28, 1),
         error(
-          CompileTimeErrorCode.UNCHECKED_USE_OF_NULLABLE_VALUE_AS_ITERATOR,
+          CompileTimeErrorCode.uncheckedUseOfNullableValueAsIterator,
           33,
           1,
         ),
@@ -1026,9 +1026,9 @@ m() {
 }
 ''',
       [
-        error(WarningCode.UNUSED_LOCAL_VARIABLE, 29, 1),
+        error(WarningCode.unusedLocalVariable, 29, 1),
         error(
-          CompileTimeErrorCode.UNCHECKED_USE_OF_NULLABLE_VALUE_AS_ITERATOR,
+          CompileTimeErrorCode.uncheckedUseOfNullableValueAsIterator,
           35,
           1,
         ),
@@ -1049,7 +1049,7 @@ m(int? x) {
 ''',
       [
         error(
-          CompileTimeErrorCode.UNCHECKED_PROPERTY_ACCESS_OF_NULLABLE_VALUE,
+          CompileTimeErrorCode.uncheckedPropertyAccessOfNullableValue,
           60,
           3,
         ),
@@ -1076,7 +1076,7 @@ m() {
 ''',
       [
         error(
-          CompileTimeErrorCode.UNCHECKED_USE_OF_NULLABLE_VALUE_AS_CONDITION,
+          CompileTimeErrorCode.uncheckedUseOfNullableValueAsCondition,
           23,
           1,
         ),
@@ -1103,7 +1103,7 @@ m() {
 ''',
       [
         error(
-          CompileTimeErrorCode.UNCHECKED_METHOD_INVOCATION_OF_NULLABLE_VALUE,
+          CompileTimeErrorCode.uncheckedMethodInvocationOfNullableValue,
           20,
           1,
         ),
@@ -1128,13 +1128,7 @@ m() {
   x();
 }
 ''',
-      [
-        error(
-          CompileTimeErrorCode.UNCHECKED_INVOCATION_OF_NULLABLE_VALUE,
-          23,
-          1,
-        ),
-      ],
+      [error(CompileTimeErrorCode.uncheckedInvocationOfNullableValue, 23, 1)],
     );
   }
 
@@ -1145,13 +1139,7 @@ void f<F extends Function>(List<F?> funcList) {
   funcList[0]();
 }
 ''',
-      [
-        error(
-          CompileTimeErrorCode.UNCHECKED_INVOCATION_OF_NULLABLE_VALUE,
-          50,
-          11,
-        ),
-      ],
+      [error(CompileTimeErrorCode.uncheckedInvocationOfNullableValue, 50, 11)],
     );
   }
 
@@ -1172,13 +1160,7 @@ m() {
   x();
 }
 ''',
-      [
-        error(
-          CompileTimeErrorCode.UNCHECKED_INVOCATION_OF_NULLABLE_VALUE,
-          25,
-          1,
-        ),
-      ],
+      [error(CompileTimeErrorCode.uncheckedInvocationOfNullableValue, 25, 1)],
     );
   }
 
@@ -1237,7 +1219,7 @@ m() {
 ''',
       [
         error(
-          CompileTimeErrorCode.UNCHECKED_PROPERTY_ACCESS_OF_NULLABLE_VALUE,
+          CompileTimeErrorCode.uncheckedPropertyAccessOfNullableValue,
           20,
           6,
         ),
@@ -1272,7 +1254,7 @@ m() {
 ''',
       [
         error(
-          CompileTimeErrorCode.UNCHECKED_PROPERTY_ACCESS_OF_NULLABLE_VALUE,
+          CompileTimeErrorCode.uncheckedPropertyAccessOfNullableValue,
           22,
           6,
         ),
@@ -1298,7 +1280,7 @@ m<T extends int?>(T x) {
 ''',
       [
         error(
-          CompileTimeErrorCode.UNCHECKED_PROPERTY_ACCESS_OF_NULLABLE_VALUE,
+          CompileTimeErrorCode.uncheckedPropertyAccessOfNullableValue,
           29,
           6,
         ),
@@ -1313,13 +1295,7 @@ m<T extends Function>(List<T?> x) {
   x.first();
 }
 ''',
-      [
-        error(
-          CompileTimeErrorCode.UNCHECKED_INVOCATION_OF_NULLABLE_VALUE,
-          38,
-          7,
-        ),
-      ],
+      [error(CompileTimeErrorCode.uncheckedInvocationOfNullableValue, 38, 7)],
     );
   }
 
@@ -1367,7 +1343,7 @@ m() {
 ''',
       [
         error(
-          CompileTimeErrorCode.UNCHECKED_METHOD_INVOCATION_OF_NULLABLE_VALUE,
+          CompileTimeErrorCode.uncheckedMethodInvocationOfNullableValue,
           20,
           5,
         ),
@@ -1388,7 +1364,7 @@ m(int? x) {
 ''',
       [
         error(
-          CompileTimeErrorCode.UNCHECKED_METHOD_INVOCATION_OF_NULLABLE_VALUE,
+          CompileTimeErrorCode.uncheckedMethodInvocationOfNullableValue,
           56,
           3,
         ),
@@ -1429,7 +1405,7 @@ m(Function? x) {
 ''',
       [
         error(
-          CompileTimeErrorCode.UNCHECKED_METHOD_INVOCATION_OF_NULLABLE_VALUE,
+          CompileTimeErrorCode.uncheckedMethodInvocationOfNullableValue,
           21,
           4,
         ),
@@ -1445,7 +1421,7 @@ m() {
   x -= 1;
 }
 ''',
-      [error(WarningCode.UNUSED_LOCAL_VARIABLE, 12, 1)],
+      [error(WarningCode.unusedLocalVariable, 12, 1)],
     );
   }
 
@@ -1458,9 +1434,9 @@ m() {
 }
 ''',
       [
-        error(WarningCode.UNUSED_LOCAL_VARIABLE, 13, 1),
+        error(WarningCode.unusedLocalVariable, 13, 1),
         error(
-          CompileTimeErrorCode.UNCHECKED_METHOD_INVOCATION_OF_NULLABLE_VALUE,
+          CompileTimeErrorCode.uncheckedMethodInvocationOfNullableValue,
           20,
           2,
         ),
@@ -1476,7 +1452,7 @@ m() {
   if(!x) {}
 }
 ''',
-      [error(WarningCode.DEAD_CODE, 32, 2)],
+      [error(WarningCode.deadCode, 32, 2)],
     );
   }
 
@@ -1490,7 +1466,7 @@ m() {
 ''',
       [
         error(
-          CompileTimeErrorCode.UNCHECKED_USE_OF_NULLABLE_VALUE_AS_CONDITION,
+          CompileTimeErrorCode.uncheckedUseOfNullableValueAsCondition,
           23,
           1,
         ),
@@ -1506,7 +1482,7 @@ m() {
   x != null;
 }
 ''',
-      [error(WarningCode.UNNECESSARY_NULL_COMPARISON_ALWAYS_NULL_FALSE, 18, 4)],
+      [error(WarningCode.unnecessaryNullComparisonAlwaysNullFalse, 18, 4)],
     );
   }
 
@@ -1557,7 +1533,7 @@ m() {
 ''',
       [
         error(
-          CompileTimeErrorCode.UNCHECKED_OPERATOR_INVOCATION_OF_NULLABLE_VALUE,
+          CompileTimeErrorCode.uncheckedOperatorInvocationOfNullableValue,
           20,
           1,
         ),
@@ -1584,7 +1560,7 @@ m() {
 ''',
       [
         error(
-          CompileTimeErrorCode.UNCHECKED_OPERATOR_INVOCATION_OF_NULLABLE_VALUE,
+          CompileTimeErrorCode.uncheckedOperatorInvocationOfNullableValue,
           20,
           1,
         ),
@@ -1600,7 +1576,7 @@ m() {
   x--;
 }
 ''',
-      [error(WarningCode.UNUSED_LOCAL_VARIABLE, 12, 1)],
+      [error(WarningCode.unusedLocalVariable, 12, 1)],
     );
   }
 
@@ -1613,9 +1589,9 @@ m() {
 }
 ''',
       [
-        error(WarningCode.UNUSED_LOCAL_VARIABLE, 13, 1),
+        error(WarningCode.unusedLocalVariable, 13, 1),
         error(
-          CompileTimeErrorCode.UNCHECKED_METHOD_INVOCATION_OF_NULLABLE_VALUE,
+          CompileTimeErrorCode.uncheckedMethodInvocationOfNullableValue,
           19,
           2,
         ),
@@ -1640,7 +1616,7 @@ m(int? x) {
 ''',
       [
         error(
-          CompileTimeErrorCode.UNCHECKED_METHOD_INVOCATION_OF_NULLABLE_VALUE,
+          CompileTimeErrorCode.uncheckedMethodInvocationOfNullableValue,
           15,
           2,
         ),
@@ -1663,7 +1639,7 @@ m(A? x) {
 ''',
       [
         error(
-          CompileTimeErrorCode.UNCHECKED_METHOD_INVOCATION_OF_NULLABLE_VALUE,
+          CompileTimeErrorCode.uncheckedMethodInvocationOfNullableValue,
           78,
           2,
         ),
@@ -1679,7 +1655,7 @@ m() {
   --x;
 }
 ''',
-      [error(WarningCode.UNUSED_LOCAL_VARIABLE, 12, 1)],
+      [error(WarningCode.unusedLocalVariable, 12, 1)],
     );
   }
 
@@ -1692,9 +1668,9 @@ m() {
 }
 ''',
       [
-        error(WarningCode.UNUSED_LOCAL_VARIABLE, 13, 1),
+        error(WarningCode.unusedLocalVariable, 13, 1),
         error(
-          CompileTimeErrorCode.UNCHECKED_METHOD_INVOCATION_OF_NULLABLE_VALUE,
+          CompileTimeErrorCode.uncheckedMethodInvocationOfNullableValue,
           18,
           2,
         ),
@@ -1719,7 +1695,7 @@ m(int? x) {
 ''',
       [
         error(
-          CompileTimeErrorCode.UNCHECKED_METHOD_INVOCATION_OF_NULLABLE_VALUE,
+          CompileTimeErrorCode.uncheckedMethodInvocationOfNullableValue,
           14,
           2,
         ),
@@ -1735,7 +1711,7 @@ m() {
   -x;
 }
 ''',
-      [error(WarningCode.UNUSED_LOCAL_VARIABLE, 12, 1)],
+      [error(WarningCode.unusedLocalVariable, 12, 1)],
     );
   }
 
@@ -1748,9 +1724,9 @@ m() {
 }
 ''',
       [
-        error(WarningCode.UNUSED_LOCAL_VARIABLE, 13, 1),
+        error(WarningCode.unusedLocalVariable, 13, 1),
         error(
-          CompileTimeErrorCode.UNCHECKED_METHOD_INVOCATION_OF_NULLABLE_VALUE,
+          CompileTimeErrorCode.uncheckedMethodInvocationOfNullableValue,
           18,
           1,
         ),
@@ -1773,7 +1749,7 @@ m(A? x) {
 ''',
       [
         error(
-          CompileTimeErrorCode.UNCHECKED_METHOD_INVOCATION_OF_NULLABLE_VALUE,
+          CompileTimeErrorCode.uncheckedMethodInvocationOfNullableValue,
           72,
           1,
         ),
@@ -1789,7 +1765,7 @@ m() {
   if(x || false) {}
 }
 ''',
-      [error(WarningCode.DEAD_CODE, 30, 8)],
+      [error(WarningCode.deadCode, 30, 8)],
     );
   }
 
@@ -1803,7 +1779,7 @@ m() {
 ''',
       [
         error(
-          CompileTimeErrorCode.UNCHECKED_USE_OF_NULLABLE_VALUE_AS_CONDITION,
+          CompileTimeErrorCode.uncheckedUseOfNullableValueAsCondition,
           22,
           1,
         ),
@@ -1828,7 +1804,7 @@ m(int? x) {
 ''',
       [
         error(
-          CompileTimeErrorCode.UNCHECKED_METHOD_INVOCATION_OF_NULLABLE_VALUE,
+          CompileTimeErrorCode.uncheckedMethodInvocationOfNullableValue,
           16,
           2,
         ),
@@ -1851,7 +1827,7 @@ m(A? a) {
 ''',
       [
         error(
-          CompileTimeErrorCode.UNCHECKED_PROPERTY_ACCESS_OF_NULLABLE_VALUE,
+          CompileTimeErrorCode.uncheckedPropertyAccessOfNullableValue,
           68,
           1,
         ),
@@ -1889,7 +1865,7 @@ m(B b) {
 ''',
       [
         error(
-          CompileTimeErrorCode.UNCHECKED_PROPERTY_ACCESS_OF_NULLABLE_VALUE,
+          CompileTimeErrorCode.uncheckedPropertyAccessOfNullableValue,
           105,
           1,
         ),
@@ -1927,7 +1903,7 @@ m(B? b) {
 ''',
       [
         error(
-          CompileTimeErrorCode.UNCHECKED_PROPERTY_ACCESS_OF_NULLABLE_VALUE,
+          CompileTimeErrorCode.uncheckedPropertyAccessOfNullableValue,
           103,
           1,
         ),
@@ -1970,7 +1946,7 @@ m(C c) {
 ''',
       [
         error(
-          CompileTimeErrorCode.UNCHECKED_PROPERTY_ACCESS_OF_NULLABLE_VALUE,
+          CompileTimeErrorCode.uncheckedPropertyAccessOfNullableValue,
           148,
           1,
         ),
@@ -2013,7 +1989,7 @@ m(C c) {
 ''',
       [
         error(
-          CompileTimeErrorCode.UNCHECKED_PROPERTY_ACCESS_OF_NULLABLE_VALUE,
+          CompileTimeErrorCode.uncheckedPropertyAccessOfNullableValue,
           152,
           1,
         ),
@@ -2052,13 +2028,7 @@ m() {
   [...list];
 }
 ''',
-      [
-        error(
-          CompileTimeErrorCode.UNCHECKED_USE_OF_NULLABLE_VALUE_IN_SPREAD,
-          26,
-          4,
-        ),
-      ],
+      [error(CompileTimeErrorCode.uncheckedUseOfNullableValueInSpread, 26, 4)],
     );
   }
 
@@ -2081,7 +2051,7 @@ m() {
 ''',
       [
         error(
-          CompileTimeErrorCode.UNCHECKED_USE_OF_NULLABLE_VALUE_AS_CONDITION,
+          CompileTimeErrorCode.uncheckedUseOfNullableValueAsCondition,
           19,
           1,
         ),
@@ -2116,7 +2086,7 @@ m(String? s) {
 ''',
       [
         error(
-          CompileTimeErrorCode.UNCHECKED_OPERATOR_INVOCATION_OF_NULLABLE_VALUE,
+          CompileTimeErrorCode.uncheckedOperatorInvocationOfNullableValue,
           27,
           3,
         ),
@@ -2133,7 +2103,7 @@ void f(int? x) {
 ''',
       [
         error(
-          CompileTimeErrorCode.UNCHECKED_OPERATOR_INVOCATION_OF_NULLABLE_VALUE,
+          CompileTimeErrorCode.uncheckedOperatorInvocationOfNullableValue,
           30,
           1,
         ),
@@ -2171,9 +2141,9 @@ m() sync* {
 }
 ''',
       [
-        error(CompileTimeErrorCode.YIELD_EACH_OF_INVALID_TYPE, 37, 1),
+        error(CompileTimeErrorCode.yieldEachOfInvalidType, 37, 1),
         error(
-          CompileTimeErrorCode.UNCHECKED_USE_OF_NULLABLE_VALUE_IN_YIELD_EACH,
+          CompileTimeErrorCode.uncheckedUseOfNullableValueInYieldEach,
           37,
           1,
         ),

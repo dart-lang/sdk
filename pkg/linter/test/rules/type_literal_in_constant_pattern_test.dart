@@ -32,7 +32,7 @@ void f(Type x) {
   if (x case 0) {}
 }
 ''',
-      [error(WarningCode.CONSTANT_PATTERN_NEVER_MATCHES_VALUE_TYPE, 30, 1)],
+      [error(WarningCode.constantPatternNeverMatchesValueType, 30, 1)],
     );
   }
 

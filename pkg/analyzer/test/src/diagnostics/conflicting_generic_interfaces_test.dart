@@ -34,7 +34,7 @@ class B extends A {}
     await assertErrorsInFile2(a, []);
 
     await assertErrorsInFile2(testFile, [
-      error(CompileTimeErrorCode.CONFLICTING_GENERIC_INTERFACES, 65, 1),
+      error(CompileTimeErrorCode.conflictingGenericInterfaces, 65, 1),
     ]);
   }
 
@@ -46,7 +46,7 @@ class A implements I<int> {}
 class B implements I<String> {}
 class C extends A implements B {}
 ''',
-      [error(CompileTimeErrorCode.CONFLICTING_GENERIC_INTERFACES, 81, 1)],
+      [error(CompileTimeErrorCode.conflictingGenericInterfaces, 81, 1)],
     );
   }
 
@@ -67,7 +67,7 @@ class A implements I<int> {}
 class B implements I<int?> {}
 class C extends A implements B {}
 ''',
-      [error(CompileTimeErrorCode.CONFLICTING_GENERIC_INTERFACES, 79, 1)],
+      [error(CompileTimeErrorCode.conflictingGenericInterfaces, 79, 1)],
     );
   }
 
@@ -79,7 +79,7 @@ class B implements A<Object> {}
 class C implements A<Object?> {}
 class D extends B implements C {}
 ''',
-      [error(CompileTimeErrorCode.CONFLICTING_GENERIC_INTERFACES, 85, 1)],
+      [error(CompileTimeErrorCode.conflictingGenericInterfaces, 85, 1)],
     );
   }
 
@@ -91,7 +91,7 @@ class A implements I<int> {}
 mixin B implements I<String> {}
 class C extends A with B {}
 ''',
-      [error(CompileTimeErrorCode.CONFLICTING_GENERIC_INTERFACES, 81, 1)],
+      [error(CompileTimeErrorCode.conflictingGenericInterfaces, 81, 1)],
     );
   }
 
@@ -115,7 +115,7 @@ typedef A = I<int>;
 mixin M implements I<String> {}
 class C = A with M;
 ''',
-      [error(CompileTimeErrorCode.CONFLICTING_GENERIC_INTERFACES, 72, 1)],
+      [error(CompileTimeErrorCode.conflictingGenericInterfaces, 72, 1)],
     );
   }
 
@@ -136,7 +136,7 @@ class A implements I<int> {}
 mixin M implements I<String> {}
 class C = A with M;
 ''',
-      [error(CompileTimeErrorCode.CONFLICTING_GENERIC_INTERFACES, 81, 1)],
+      [error(CompileTimeErrorCode.conflictingGenericInterfaces, 81, 1)],
     );
   }
 
@@ -150,7 +150,7 @@ enum E implements A, B {
   v
 }
 ''',
-      [error(CompileTimeErrorCode.CONFLICTING_GENERIC_INTERFACES, 80, 1)],
+      [error(CompileTimeErrorCode.conflictingGenericInterfaces, 80, 1)],
     );
   }
 
@@ -164,7 +164,7 @@ enum E with M1, M2 {
   v
 }
 ''',
-      [error(CompileTimeErrorCode.CONFLICTING_GENERIC_INTERFACES, 82, 1)],
+      [error(CompileTimeErrorCode.conflictingGenericInterfaces, 82, 1)],
     );
   }
 
@@ -177,9 +177,9 @@ class B implements I<num> {}
 extension type C(Never it) implements A, B {}
 ''',
       [
-        error(CompileTimeErrorCode.CONFLICTING_GENERIC_INTERFACES, 87, 1),
+        error(CompileTimeErrorCode.conflictingGenericInterfaces, 87, 1),
         error(
-          CompileTimeErrorCode.EXTENSION_TYPE_REPRESENTATION_TYPE_BOTTOM,
+          CompileTimeErrorCode.extensionTypeRepresentationTypeBottom,
           89,
           5,
         ),
@@ -195,7 +195,7 @@ class A implements I<int> {}
 class B implements I<String> {}
 mixin M on A implements B {}
 ''',
-      [error(CompileTimeErrorCode.CONFLICTING_GENERIC_INTERFACES, 81, 1)],
+      [error(CompileTimeErrorCode.conflictingGenericInterfaces, 81, 1)],
     );
   }
 

@@ -22,7 +22,7 @@ mixin M {
   factory M.named() => throw 0;
 }
 ''',
-      [error(ParserErrorCode.MIXIN_DECLARES_CONSTRUCTOR, 12, 7)],
+      [error(ParserErrorCode.mixinDeclaresConstructor, 12, 7)],
     );
 
     var node = findNode.singleMixinDeclaration;
@@ -43,7 +43,7 @@ mixin M {
   factory M() => throw 0;
 }
 ''',
-      [error(ParserErrorCode.MIXIN_DECLARES_CONSTRUCTOR, 12, 7)],
+      [error(ParserErrorCode.mixinDeclaresConstructor, 12, 7)],
     );
 
     var node = findNode.singleMixinDeclaration;
@@ -64,7 +64,7 @@ mixin M {
   M.named();
 }
 ''',
-      [error(ParserErrorCode.MIXIN_DECLARES_CONSTRUCTOR, 12, 1)],
+      [error(ParserErrorCode.mixinDeclaresConstructor, 12, 1)],
     );
 
     var node = findNode.singleMixinDeclaration;
@@ -85,7 +85,7 @@ mixin M {
   M();
 }
 ''',
-      [error(ParserErrorCode.MIXIN_DECLARES_CONSTRUCTOR, 12, 1)],
+      [error(ParserErrorCode.mixinDeclaresConstructor, 12, 1)],
     );
 
     var node = findNode.singleMixinDeclaration;

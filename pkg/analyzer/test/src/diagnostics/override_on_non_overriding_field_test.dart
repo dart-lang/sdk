@@ -23,7 +23,7 @@ class A {
   int? foo;
 }
 ''',
-      [error(WarningCode.OVERRIDE_ON_NON_OVERRIDING_FIELD, 29, 3)],
+      [error(WarningCode.overrideOnNonOverridingField, 29, 3)],
     );
   }
 
@@ -45,7 +45,7 @@ class B extends A {
 }''',
       [
         error(
-          CompileTimeErrorCode.INVALID_OVERRIDE_SETTER,
+          CompileTimeErrorCode.invalidOverrideSetter,
           131,
           1,
           contextMessages: [message(testFile, 39, 1)],
@@ -72,7 +72,7 @@ class B implements A {
 }''',
       [
         error(
-          CompileTimeErrorCode.INVALID_OVERRIDE_SETTER,
+          CompileTimeErrorCode.invalidOverrideSetter,
           134,
           1,
           contextMessages: [message(testFile, 39, 1)],
@@ -90,7 +90,7 @@ enum E {
   final int foo = 0;
 }
 ''',
-      [error(WarningCode.OVERRIDE_ON_NON_OVERRIDING_FIELD, 38, 3)],
+      [error(WarningCode.overrideOnNonOverridingField, 38, 3)],
     );
   }
 

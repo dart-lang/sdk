@@ -28,7 +28,7 @@ class C {}
 @Deprecated.extend()
 final class C {}
 ''',
-      [error(WarningCode.INVALID_DEPRECATED_EXTEND_ANNOTATION, 1, 17)],
+      [error(WarningCode.invalidDeprecatedExtendAnnotation, 1, 17)],
     );
   }
 
@@ -38,7 +38,7 @@ final class C {}
 @Deprecated.extend()
 interface class C {}
 ''',
-      [error(WarningCode.INVALID_DEPRECATED_EXTEND_ANNOTATION, 1, 17)],
+      [error(WarningCode.invalidDeprecatedExtendAnnotation, 1, 17)],
     );
   }
 
@@ -50,7 +50,7 @@ class C {
   C._();
 }
 ''',
-      [error(WarningCode.INVALID_DEPRECATED_EXTEND_ANNOTATION, 1, 17)],
+      [error(WarningCode.invalidDeprecatedExtendAnnotation, 1, 17)],
     );
   }
 
@@ -60,7 +60,7 @@ class C {
 @Deprecated.extend()
 sealed class C {}
 ''',
-      [error(WarningCode.INVALID_DEPRECATED_EXTEND_ANNOTATION, 1, 17)],
+      [error(WarningCode.invalidDeprecatedExtendAnnotation, 1, 17)],
     );
   }
 
@@ -78,7 +78,7 @@ class C = Object with M;
 @Deprecated.extend()
 mixin M {}
 ''',
-      [error(WarningCode.INVALID_DEPRECATED_EXTEND_ANNOTATION, 1, 17)],
+      [error(WarningCode.invalidDeprecatedExtendAnnotation, 1, 17)],
     );
   }
 
@@ -97,7 +97,7 @@ enum E { one; }
 @Deprecated.extend()
 typedef F = E;
 ''',
-      [error(WarningCode.INVALID_DEPRECATED_EXTEND_ANNOTATION, 17, 17)],
+      [error(WarningCode.invalidDeprecatedExtendAnnotation, 17, 17)],
     );
   }
 }

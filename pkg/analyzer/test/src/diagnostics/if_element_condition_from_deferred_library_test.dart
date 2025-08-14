@@ -30,7 +30,7 @@ f() {
 }''',
       [
         error(
-          CompileTimeErrorCode.IF_ELEMENT_CONDITION_FROM_DEFERRED_LIBRARY,
+          CompileTimeErrorCode.ifElementConditionFromDeferredLibrary,
           61,
           1,
         ),
@@ -69,7 +69,7 @@ f() {
 }''',
       [
         error(
-          CompileTimeErrorCode.IF_ELEMENT_CONDITION_FROM_DEFERRED_LIBRARY,
+          CompileTimeErrorCode.ifElementConditionFromDeferredLibrary,
           61,
           1,
         ),
@@ -108,7 +108,7 @@ f() {
 }''',
       [
         error(
-          CompileTimeErrorCode.IF_ELEMENT_CONDITION_FROM_DEFERRED_LIBRARY,
+          CompileTimeErrorCode.ifElementConditionFromDeferredLibrary,
           61,
           1,
         ),

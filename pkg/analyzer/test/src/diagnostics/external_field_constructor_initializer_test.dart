@@ -23,13 +23,7 @@ class A {
   A() : x = 0;
 }
 ''',
-      [
-        error(
-          CompileTimeErrorCode.EXTERNAL_FIELD_CONSTRUCTOR_INITIALIZER,
-          36,
-          1,
-        ),
-      ],
+      [error(CompileTimeErrorCode.externalFieldConstructorInitializer, 36, 1)],
     );
   }
 
@@ -41,13 +35,7 @@ class A {
   A() : x = 0;
 }
 ''',
-      [
-        error(
-          CompileTimeErrorCode.EXTERNAL_FIELD_CONSTRUCTOR_INITIALIZER,
-          42,
-          1,
-        ),
-      ],
+      [error(CompileTimeErrorCode.externalFieldConstructorInitializer, 42, 1)],
     );
   }
 
@@ -59,13 +47,7 @@ class A {
   A(this.x);
 }
 ''',
-      [
-        error(
-          CompileTimeErrorCode.EXTERNAL_FIELD_CONSTRUCTOR_INITIALIZER,
-          43,
-          1,
-        ),
-      ],
+      [error(CompileTimeErrorCode.externalFieldConstructorInitializer, 43, 1)],
     );
   }
 
@@ -86,13 +68,7 @@ class A {
   A(this.x);
 }
 ''',
-      [
-        error(
-          CompileTimeErrorCode.EXTERNAL_FIELD_CONSTRUCTOR_INITIALIZER,
-          37,
-          1,
-        ),
-      ],
+      [error(CompileTimeErrorCode.externalFieldConstructorInitializer, 37, 1)],
     );
   }
 

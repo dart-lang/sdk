@@ -27,7 +27,7 @@ final x = f(g, (z) => z.length);
 ''',
       [
         error(
-          CompileTimeErrorCode.UNCHECKED_PROPERTY_ACCESS_OF_NULLABLE_VALUE,
+          CompileTimeErrorCode.uncheckedPropertyAccessOfNullableValue,
           108,
           6,
         ),

@@ -31,50 +31,41 @@ class MethodTest extends PartialCodeTest {
         TestDescriptor(
           'noType_leftParen',
           'm(',
-          [
-            ScannerErrorCode.EXPECTED_TOKEN,
-            ParserErrorCode.MISSING_FUNCTION_BODY,
-          ],
+          [ScannerErrorCode.expectedToken, ParserErrorCode.missingFunctionBody],
           'm() {}',
           failing: allExceptEof,
         ),
         TestDescriptor(
           'noType_paramName',
           'm(B',
-          [
-            ScannerErrorCode.EXPECTED_TOKEN,
-            ParserErrorCode.MISSING_FUNCTION_BODY,
-          ],
+          [ScannerErrorCode.expectedToken, ParserErrorCode.missingFunctionBody],
           'm(B) {}',
           failing: ['methodNonVoid', 'getter', 'setter'],
         ),
         TestDescriptor('noType_paramTypeAndName', 'm(B b', [
-          ScannerErrorCode.EXPECTED_TOKEN,
-          ParserErrorCode.MISSING_FUNCTION_BODY,
+          ScannerErrorCode.expectedToken,
+          ParserErrorCode.missingFunctionBody,
         ], 'm(B b) {}'),
         TestDescriptor(
           'noType_paramAndComma',
           'm(B b,',
-          [
-            ScannerErrorCode.EXPECTED_TOKEN,
-            ParserErrorCode.MISSING_FUNCTION_BODY,
-          ],
+          [ScannerErrorCode.expectedToken, ParserErrorCode.missingFunctionBody],
           'm(B b) {}',
           failing: allExceptEof,
         ),
         TestDescriptor('noType_noParams', 'm()', [
-          ParserErrorCode.MISSING_FUNCTION_BODY,
+          ParserErrorCode.missingFunctionBody,
         ], 'm() {}'),
         TestDescriptor('noType_params', 'm(b, c)', [
-          ParserErrorCode.MISSING_FUNCTION_BODY,
+          ParserErrorCode.missingFunctionBody,
         ], 'm(b, c) {}'),
         TestDescriptor('noType_emptyOptional', 'm(B b, [])', [
-          ParserErrorCode.MISSING_IDENTIFIER,
-          ParserErrorCode.MISSING_FUNCTION_BODY,
+          ParserErrorCode.missingIdentifier,
+          ParserErrorCode.missingFunctionBody,
         ], 'm(B b, [_s_]){}'),
         TestDescriptor('noType_emptyNamed', 'm(B b, {})', [
-          ParserErrorCode.MISSING_IDENTIFIER,
-          ParserErrorCode.MISSING_FUNCTION_BODY,
+          ParserErrorCode.missingIdentifier,
+          ParserErrorCode.missingFunctionBody,
         ], 'm(B b, {_s_}){}'),
         //
         // Instance method, with simple return type.
@@ -82,50 +73,41 @@ class MethodTest extends PartialCodeTest {
         TestDescriptor(
           'type_leftParen',
           'A m(',
-          [
-            ScannerErrorCode.EXPECTED_TOKEN,
-            ParserErrorCode.MISSING_FUNCTION_BODY,
-          ],
+          [ScannerErrorCode.expectedToken, ParserErrorCode.missingFunctionBody],
           'A m() {}',
           failing: allExceptEof,
         ),
         TestDescriptor(
           'type_paramName',
           'A m(B',
-          [
-            ScannerErrorCode.EXPECTED_TOKEN,
-            ParserErrorCode.MISSING_FUNCTION_BODY,
-          ],
+          [ScannerErrorCode.expectedToken, ParserErrorCode.missingFunctionBody],
           'A m(B) {}',
           failing: ['methodNonVoid', 'getter', 'setter'],
         ),
         TestDescriptor('type_paramTypeAndName', 'A m(B b', [
-          ScannerErrorCode.EXPECTED_TOKEN,
-          ParserErrorCode.MISSING_FUNCTION_BODY,
+          ScannerErrorCode.expectedToken,
+          ParserErrorCode.missingFunctionBody,
         ], 'A m(B b) {}'),
         TestDescriptor(
           'type_paramAndComma',
           'A m(B b,',
-          [
-            ScannerErrorCode.EXPECTED_TOKEN,
-            ParserErrorCode.MISSING_FUNCTION_BODY,
-          ],
+          [ScannerErrorCode.expectedToken, ParserErrorCode.missingFunctionBody],
           'A m(B b) {}',
           failing: allExceptEof,
         ),
         TestDescriptor('type_noParams', 'A m()', [
-          ParserErrorCode.MISSING_FUNCTION_BODY,
+          ParserErrorCode.missingFunctionBody,
         ], 'A m() {}'),
         TestDescriptor('type_params', 'A m(b, c)', [
-          ParserErrorCode.MISSING_FUNCTION_BODY,
+          ParserErrorCode.missingFunctionBody,
         ], 'A m(b, c) {}'),
         TestDescriptor('type_emptyOptional', 'A m(B b, [])', [
-          ParserErrorCode.MISSING_IDENTIFIER,
-          ParserErrorCode.MISSING_FUNCTION_BODY,
+          ParserErrorCode.missingIdentifier,
+          ParserErrorCode.missingFunctionBody,
         ], 'A m(B b, [_s_]){}'),
         TestDescriptor('type_emptyNamed', 'A m(B b, {})', [
-          ParserErrorCode.MISSING_IDENTIFIER,
-          ParserErrorCode.MISSING_FUNCTION_BODY,
+          ParserErrorCode.missingIdentifier,
+          ParserErrorCode.missingFunctionBody,
         ], 'A m(B b, {_s_}){}'),
         //
         // Static method, no return type.
@@ -133,55 +115,46 @@ class MethodTest extends PartialCodeTest {
         TestDescriptor(
           'static_noType_leftParen',
           'static m(',
-          [
-            ScannerErrorCode.EXPECTED_TOKEN,
-            ParserErrorCode.MISSING_FUNCTION_BODY,
-          ],
+          [ScannerErrorCode.expectedToken, ParserErrorCode.missingFunctionBody],
           'static m() {}',
           failing: allExceptEof,
         ),
         TestDescriptor(
           'static_noType_paramName',
           'static m(B',
-          [
-            ScannerErrorCode.EXPECTED_TOKEN,
-            ParserErrorCode.MISSING_FUNCTION_BODY,
-          ],
+          [ScannerErrorCode.expectedToken, ParserErrorCode.missingFunctionBody],
           'static m(B) {}',
           failing: ['methodNonVoid', 'getter', 'setter'],
         ),
         TestDescriptor('static_noType_paramTypeAndName', 'static m(B b', [
-          ScannerErrorCode.EXPECTED_TOKEN,
-          ParserErrorCode.MISSING_FUNCTION_BODY,
+          ScannerErrorCode.expectedToken,
+          ParserErrorCode.missingFunctionBody,
         ], 'static m(B b) {}'),
         TestDescriptor(
           'static_noType_paramAndComma',
           'static m(B b,',
-          [
-            ScannerErrorCode.EXPECTED_TOKEN,
-            ParserErrorCode.MISSING_FUNCTION_BODY,
-          ],
+          [ScannerErrorCode.expectedToken, ParserErrorCode.missingFunctionBody],
           'static m(B b) {}',
           failing: allExceptEof,
         ),
         TestDescriptor('static_noType_noParams', 'static m()', [
-          ParserErrorCode.MISSING_FUNCTION_BODY,
+          ParserErrorCode.missingFunctionBody,
         ], 'static m() {}'),
         TestDescriptor('static_noType_params', 'static m(b, c)', [
-          ParserErrorCode.MISSING_FUNCTION_BODY,
+          ParserErrorCode.missingFunctionBody,
         ], 'static m(b, c) {}'),
         TestDescriptor(
           'static_noType_emptyOptional',
           'static m(B b, [])',
           [
-            ParserErrorCode.MISSING_IDENTIFIER,
-            ParserErrorCode.MISSING_FUNCTION_BODY,
+            ParserErrorCode.missingIdentifier,
+            ParserErrorCode.missingFunctionBody,
           ],
           'static m(B b, [_s_]){}',
         ),
         TestDescriptor('static_noType_emptyNamed', 'static m(B b, {})', [
-          ParserErrorCode.MISSING_IDENTIFIER,
-          ParserErrorCode.MISSING_FUNCTION_BODY,
+          ParserErrorCode.missingIdentifier,
+          ParserErrorCode.missingFunctionBody,
         ], 'static m(B b, {_s_}){}'),
         //
         // Static method, with simple return type.
@@ -189,49 +162,40 @@ class MethodTest extends PartialCodeTest {
         TestDescriptor(
           'static_type_leftParen',
           'static A m(',
-          [
-            ScannerErrorCode.EXPECTED_TOKEN,
-            ParserErrorCode.MISSING_FUNCTION_BODY,
-          ],
+          [ScannerErrorCode.expectedToken, ParserErrorCode.missingFunctionBody],
           'static A m() {}',
           failing: allExceptEof,
         ),
         TestDescriptor(
           'static_type_paramName',
           'static A m(B',
-          [
-            ScannerErrorCode.EXPECTED_TOKEN,
-            ParserErrorCode.MISSING_FUNCTION_BODY,
-          ],
+          [ScannerErrorCode.expectedToken, ParserErrorCode.missingFunctionBody],
           'static A m(B) {}',
           failing: ['methodNonVoid', 'getter', 'setter'],
         ),
         TestDescriptor('static_type_paramTypeAndName', 'static A m(B b', [
-          ScannerErrorCode.EXPECTED_TOKEN,
-          ParserErrorCode.MISSING_FUNCTION_BODY,
+          ScannerErrorCode.expectedToken,
+          ParserErrorCode.missingFunctionBody,
         ], 'static A m(B b) {}'),
         TestDescriptor(
           'static_type_paramAndComma',
           'static A m(B b,',
-          [
-            ScannerErrorCode.EXPECTED_TOKEN,
-            ParserErrorCode.MISSING_FUNCTION_BODY,
-          ],
+          [ScannerErrorCode.expectedToken, ParserErrorCode.missingFunctionBody],
           'static A m(B b) {}',
           failing: allExceptEof,
         ),
         TestDescriptor('static_type_noParams', 'static A m()', [
-          ParserErrorCode.MISSING_FUNCTION_BODY,
+          ParserErrorCode.missingFunctionBody,
         ], 'static A m() {}'),
         TestDescriptor('static_type_params', 'static A m(b, c)', [
-          ParserErrorCode.MISSING_FUNCTION_BODY,
+          ParserErrorCode.missingFunctionBody,
         ], 'static A m(b, c) {}'),
         TestDescriptor(
           'static_type_emptyOptional',
           'static A m(B b, [])',
           [
-            ParserErrorCode.MISSING_IDENTIFIER,
-            ParserErrorCode.MISSING_FUNCTION_BODY,
+            ParserErrorCode.missingIdentifier,
+            ParserErrorCode.missingFunctionBody,
           ],
           'static A m(B b, [_s_]){}',
         ),
@@ -239,8 +203,8 @@ class MethodTest extends PartialCodeTest {
           'static_type_emptyNamed',
           'static A m(B b, {})',
           [
-            ParserErrorCode.MISSING_IDENTIFIER,
-            ParserErrorCode.MISSING_FUNCTION_BODY,
+            ParserErrorCode.missingIdentifier,
+            ParserErrorCode.missingFunctionBody,
           ],
           'static A m(B b, {_s_}){}',
         ),

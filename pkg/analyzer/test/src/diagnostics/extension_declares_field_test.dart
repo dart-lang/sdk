@@ -23,9 +23,9 @@ extension E on String {
 }
 ''',
       [
-        error(CompileTimeErrorCode.EXTENSION_DECLARES_INSTANCE_FIELD, 34, 3),
-        error(CompileTimeErrorCode.EXTENSION_DECLARES_INSTANCE_FIELD, 39, 3),
-        error(CompileTimeErrorCode.EXTENSION_DECLARES_INSTANCE_FIELD, 44, 5),
+        error(CompileTimeErrorCode.extensionDeclaresInstanceField, 34, 3),
+        error(CompileTimeErrorCode.extensionDeclaresInstanceField, 39, 3),
+        error(CompileTimeErrorCode.extensionDeclaresInstanceField, 44, 5),
       ],
     );
   }
@@ -43,7 +43,7 @@ extension E on String {
   String? s;
 }
 ''',
-      [error(CompileTimeErrorCode.EXTENSION_DECLARES_INSTANCE_FIELD, 34, 1)],
+      [error(CompileTimeErrorCode.extensionDeclaresInstanceField, 34, 1)],
     );
   }
 

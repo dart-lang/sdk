@@ -89,7 +89,7 @@ abstract class A {
   final int x;
 }
 ''',
-      [error(CompileTimeErrorCode.FINAL_NOT_INITIALIZED, 31, 1)],
+      [error(CompileTimeErrorCode.finalNotInitialized, 31, 1)],
     );
   }
 
@@ -147,7 +147,7 @@ class A {
 
   factory A() => throw 0;
 }''',
-      [error(CompileTimeErrorCode.FINAL_NOT_INITIALIZED, 22, 1)],
+      [error(CompileTimeErrorCode.finalNotInitialized, 22, 1)],
     );
   }
 
@@ -188,7 +188,7 @@ enum E {
   final int x;
 }
 ''',
-      [error(CompileTimeErrorCode.FINAL_NOT_INITIALIZED, 26, 1)],
+      [error(CompileTimeErrorCode.finalNotInitialized, 26, 1)],
     );
   }
 
@@ -198,7 +198,7 @@ enum E {
 extension E on String {
   static final F;
 }''',
-      [error(CompileTimeErrorCode.FINAL_NOT_INITIALIZED, 39, 1)],
+      [error(CompileTimeErrorCode.finalNotInitialized, 39, 1)],
     );
   }
 
@@ -208,7 +208,7 @@ extension E on String {
 class A {
   final F;
 }''',
-      [error(CompileTimeErrorCode.FINAL_NOT_INITIALIZED, 18, 1)],
+      [error(CompileTimeErrorCode.finalNotInitialized, 18, 1)],
     );
   }
 
@@ -218,7 +218,7 @@ class A {
 class A {
   static final F;
 }''',
-      [error(CompileTimeErrorCode.FINAL_NOT_INITIALIZED, 25, 1)],
+      [error(CompileTimeErrorCode.finalNotInitialized, 25, 1)],
     );
   }
 
@@ -227,7 +227,7 @@ class A {
       '''
 final F;
 ''',
-      [error(CompileTimeErrorCode.FINAL_NOT_INITIALIZED, 6, 1)],
+      [error(CompileTimeErrorCode.finalNotInitialized, 6, 1)],
     );
   }
 
@@ -237,7 +237,7 @@ final F;
 f() {
   final int x;
 }''',
-      [error(WarningCode.UNUSED_LOCAL_VARIABLE, 18, 1)],
+      [error(WarningCode.unusedLocalVariable, 18, 1)],
     );
   }
 
@@ -248,7 +248,7 @@ f() {
   late final x = 1;
 }
 ''',
-      [error(WarningCode.UNUSED_LOCAL_VARIABLE, 19, 1)],
+      [error(WarningCode.unusedLocalVariable, 19, 1)],
     );
   }
 
@@ -259,7 +259,7 @@ f() {
   late final x;
 }
 ''',
-      [error(WarningCode.UNUSED_LOCAL_VARIABLE, 19, 1)],
+      [error(WarningCode.unusedLocalVariable, 19, 1)],
     );
   }
 
@@ -270,7 +270,7 @@ mixin M {
   final int x;
 }
 ''',
-      [error(CompileTimeErrorCode.FINAL_NOT_INITIALIZED, 22, 1)],
+      [error(CompileTimeErrorCode.finalNotInitialized, 22, 1)],
     );
   }
 
@@ -293,7 +293,7 @@ external final int x;
       '''
 final int x;
 ''',
-      [error(CompileTimeErrorCode.FINAL_NOT_INITIALIZED, 10, 1)],
+      [error(CompileTimeErrorCode.finalNotInitialized, 10, 1)],
     );
   }
 }

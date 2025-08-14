@@ -28,7 +28,7 @@ VerifySuperFormalParametersResult verifySuperFormalParameters({
           diagnosticReporter?.atToken(
             parameter.name,
             CompileTimeErrorCode
-                .POSITIONAL_SUPER_FORMAL_PARAMETER_WITH_POSITIONAL_ARGUMENT,
+                .positionalSuperFormalParameterWithPositionalArgument,
           );
         }
       }

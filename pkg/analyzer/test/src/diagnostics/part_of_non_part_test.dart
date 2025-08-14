@@ -24,7 +24,7 @@ library l2;
 library l1;
 part 'l2.dart';
 ''',
-      [error(CompileTimeErrorCode.PART_OF_NON_PART, 17, 9)],
+      [error(CompileTimeErrorCode.partOfNonPart, 17, 9)],
     );
   }
 
@@ -46,7 +46,7 @@ part 'a.dart';
 library lib;
 part 'test.dart';
 ''',
-      [error(CompileTimeErrorCode.PART_OF_NON_PART, 18, 11)],
+      [error(CompileTimeErrorCode.partOfNonPart, 18, 11)],
     );
   }
 }

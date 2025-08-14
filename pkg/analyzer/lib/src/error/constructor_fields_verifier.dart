@@ -150,19 +150,19 @@ class _Constructor {
     if (names.length == 1) {
       diagnosticReporter.atNode(
         node.returnType,
-        CompileTimeErrorCode.FINAL_NOT_INITIALIZED_CONSTRUCTOR_1,
+        CompileTimeErrorCode.finalNotInitializedConstructor1,
         arguments: names,
       );
     } else if (names.length == 2) {
       diagnosticReporter.atNode(
         node.returnType,
-        CompileTimeErrorCode.FINAL_NOT_INITIALIZED_CONSTRUCTOR_2,
+        CompileTimeErrorCode.finalNotInitializedConstructor2,
         arguments: names,
       );
     } else {
       diagnosticReporter.atNode(
         node.returnType,
-        CompileTimeErrorCode.FINAL_NOT_INITIALIZED_CONSTRUCTOR_3_PLUS,
+        CompileTimeErrorCode.finalNotInitializedConstructor3Plus,
         arguments: [names[0], names[1], names.length - 2],
       );
     }
@@ -179,8 +179,7 @@ class _Constructor {
     for (var name in names) {
       diagnosticReporter.atNode(
         node.returnType,
-        CompileTimeErrorCode
-            .NOT_INITIALIZED_NON_NULLABLE_INSTANCE_FIELD_CONSTRUCTOR,
+        CompileTimeErrorCode.notInitializedNonNullableInstanceFieldConstructor,
         arguments: [name],
       );
     }
@@ -206,19 +205,18 @@ class _Constructor {
               diagnosticReporter.atNode(
                 fieldName,
                 CompileTimeErrorCode
-                    .FIELD_INITIALIZED_IN_INITIALIZER_AND_DECLARATION,
+                    .fieldInitializedInInitializerAndDeclaration,
               );
             }
           } else if (state == _InitState.initInFieldFormal) {
             diagnosticReporter.atNode(
               fieldName,
-              CompileTimeErrorCode
-                  .FIELD_INITIALIZED_IN_PARAMETER_AND_INITIALIZER,
+              CompileTimeErrorCode.fieldInitializedInParameterAndInitializer,
             );
           } else if (state == _InitState.initInInitializer) {
             diagnosticReporter.atNode(
               fieldName,
-              CompileTimeErrorCode.FIELD_INITIALIZED_BY_MULTIPLE_INITIALIZERS,
+              CompileTimeErrorCode.fieldInitializedByMultipleInitializers,
               arguments: [fieldElement.displayName],
             );
           }
@@ -244,8 +242,7 @@ class _Constructor {
           if (fieldElement.isFinal || fieldElement.isConst) {
             diagnosticReporter.atToken(
               formalParameter.name,
-              CompileTimeErrorCode
-                  .FINAL_INITIALIZED_IN_DECLARATION_AND_CONSTRUCTOR,
+              CompileTimeErrorCode.finalInitializedInDeclarationAndConstructor,
               arguments: [fieldElement.displayName],
             );
           }

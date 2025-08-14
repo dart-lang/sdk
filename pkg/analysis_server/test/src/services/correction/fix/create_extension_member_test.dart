@@ -891,8 +891,7 @@ extension E on int {
 ''',
       errorFilter:
           (diagnostic) =>
-              diagnostic.diagnosticCode ==
-              CompileTimeErrorCode.UNDEFINED_METHOD,
+              diagnostic.diagnosticCode == CompileTimeErrorCode.undefinedMethod,
     );
   }
 
@@ -911,14 +910,13 @@ extension E on A {
     await assertNoFix(
       errorFilter:
           (diagnostic) =>
-              diagnostic.diagnosticCode ==
-              CompileTimeErrorCode.UNDEFINED_METHOD,
+              diagnostic.diagnosticCode == CompileTimeErrorCode.undefinedMethod,
     );
     await assertNoFix(
       errorFilter:
           (diagnostic) =>
               diagnostic.diagnosticCode ==
-              CompileTimeErrorCode.INVALID_ASSIGNMENT,
+              CompileTimeErrorCode.invalidAssignment,
     );
   }
 
@@ -979,8 +977,7 @@ extension E on int {
 ''',
       errorFilter:
           (diagnostic) =>
-              diagnostic.diagnosticCode ==
-              CompileTimeErrorCode.UNDEFINED_METHOD,
+              diagnostic.diagnosticCode == CompileTimeErrorCode.undefinedMethod,
     );
   }
 
@@ -995,8 +992,7 @@ extension E on int {
     await assertNoFix(
       errorFilter:
           (diagnostic) =>
-              diagnostic.diagnosticCode ==
-              CompileTimeErrorCode.UNDEFINED_METHOD,
+              diagnostic.diagnosticCode == CompileTimeErrorCode.undefinedMethod,
     );
   }
 
@@ -1020,8 +1016,7 @@ extension E on int {
 ''',
       errorFilter:
           (diagnostic) =>
-              diagnostic.diagnosticCode ==
-              CompileTimeErrorCode.UNDEFINED_METHOD,
+              diagnostic.diagnosticCode == CompileTimeErrorCode.undefinedMethod,
     );
   }
 
@@ -1042,8 +1037,7 @@ extension E on B {
     await assertNoFix(
       errorFilter:
           (diagnostic) =>
-              diagnostic.diagnosticCode ==
-              CompileTimeErrorCode.UNDEFINED_METHOD,
+              diagnostic.diagnosticCode == CompileTimeErrorCode.undefinedMethod,
     );
   }
 

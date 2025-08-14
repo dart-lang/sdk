@@ -30,8 +30,7 @@ class DiagnosticFactory {
       source: source,
       offset: duplicate.offset,
       length: duplicate.length,
-      diagnosticCode:
-          CompileTimeErrorCode.DUPLICATE_PATTERN_ASSIGNMENT_VARIABLE,
+      diagnosticCode: CompileTimeErrorCode.duplicatePatternAssignmentVariable,
       arguments: [variable.name!],
       contextMessages: [
         DiagnosticMessageImpl(
@@ -112,7 +111,7 @@ class DiagnosticFactory {
       source: source,
       offset: duplicateNode.offset,
       length: duplicateNode.length,
-      diagnosticCode: CompileTimeErrorCode.DUPLICATE_FIELD_NAME,
+      diagnosticCode: CompileTimeErrorCode.duplicateFieldName,
       arguments: [duplicateName],
       contextMessages: [
         DiagnosticMessageImpl(
@@ -142,7 +141,7 @@ class DiagnosticFactory {
       source: source,
       offset: duplicateNode.offset,
       length: duplicateNode.length,
-      diagnosticCode: CompileTimeErrorCode.DUPLICATE_FIELD_NAME,
+      diagnosticCode: CompileTimeErrorCode.duplicateFieldName,
       arguments: [duplicateName],
       contextMessages: [
         DiagnosticMessageImpl(
@@ -172,7 +171,7 @@ class DiagnosticFactory {
       source: source,
       offset: duplicateTarget.offset,
       length: duplicateTarget.length,
-      diagnosticCode: CompileTimeErrorCode.DUPLICATE_PATTERN_FIELD,
+      diagnosticCode: CompileTimeErrorCode.duplicatePatternField,
       arguments: [name],
       contextMessages: [
         DiagnosticMessageImpl(
@@ -197,7 +196,7 @@ class DiagnosticFactory {
       source: source,
       offset: duplicateElement.offset,
       length: duplicateElement.length,
-      diagnosticCode: CompileTimeErrorCode.DUPLICATE_REST_ELEMENT_IN_PATTERN,
+      diagnosticCode: CompileTimeErrorCode.duplicateRestElementInPattern,
       contextMessages: [
         DiagnosticMessageImpl(
           filePath: source.fullName,
@@ -221,7 +220,7 @@ class DiagnosticFactory {
       source: source,
       offset: duplicateElement.offset,
       length: duplicateElement.length,
-      diagnosticCode: CompileTimeErrorCode.EQUAL_ELEMENTS_IN_CONST_SET,
+      diagnosticCode: CompileTimeErrorCode.equalElementsInConstSet,
       contextMessages: [
         DiagnosticMessageImpl(
           filePath: source.fullName,
@@ -245,7 +244,7 @@ class DiagnosticFactory {
       source: source,
       offset: duplicateKey.offset,
       length: duplicateKey.length,
-      diagnosticCode: CompileTimeErrorCode.EQUAL_KEYS_IN_CONST_MAP,
+      diagnosticCode: CompileTimeErrorCode.equalKeysInConstMap,
       contextMessages: [
         DiagnosticMessageImpl(
           filePath: source.fullName,
@@ -269,7 +268,7 @@ class DiagnosticFactory {
       source: source,
       offset: duplicateKey.offset,
       length: duplicateKey.length,
-      diagnosticCode: CompileTimeErrorCode.EQUAL_KEYS_IN_MAP_PATTERN,
+      diagnosticCode: CompileTimeErrorCode.equalKeysInMapPattern,
       contextMessages: [
         DiagnosticMessageImpl(
           filePath: source.fullName,
@@ -295,7 +294,7 @@ class DiagnosticFactory {
       offset: offset,
       length: length,
       diagnosticCode:
-          StaticWarningCode.INVALID_NULL_AWARE_OPERATOR_AFTER_SHORT_CIRCUIT,
+          StaticWarningCode.invalidNullAwareOperatorAfterShortCircuit,
       arguments: arguments,
       contextMessages: [
         DiagnosticMessageImpl(
@@ -341,7 +340,7 @@ class DiagnosticFactory {
         // INVALID_IMPLEMENTATION_OVERRIDE may provide the subclass as superMember
         // if the subclass has an abstract member and the superclass has the
         // concrete).
-        if (code == CompileTimeErrorCode.INVALID_OVERRIDE)
+        if (code == CompileTimeErrorCode.invalidOverride)
           DiagnosticMessageImpl(
             filePath: superFragment.libraryFragment!.source.fullName,
             message: "The member being overridden.",
@@ -349,7 +348,7 @@ class DiagnosticFactory {
             length: superFragment.name!.length,
             url: null,
           ),
-        if (code == CompileTimeErrorCode.INVALID_OVERRIDE_SETTER)
+        if (code == CompileTimeErrorCode.invalidOverrideSetter)
           DiagnosticMessageImpl(
             filePath: superFragment.libraryFragment!.source.fullName,
             message: "The setter being overridden.",
@@ -386,7 +385,7 @@ class DiagnosticFactory {
       source: source,
       offset: nameToken.offset,
       length: nameToken.length,
-      diagnosticCode: CompileTimeErrorCode.REFERENCED_BEFORE_DECLARATION,
+      diagnosticCode: CompileTimeErrorCode.referencedBeforeDeclaration,
       arguments: [name],
       contextMessages: contextMessages ?? const [],
     );

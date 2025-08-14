@@ -28,7 +28,7 @@ void f() {
   foo.C();
 }
 ''',
-      [error(CompileTimeErrorCode.DEFERRED_IMPORT_OF_EXTENSION, 7, 10)],
+      [error(CompileTimeErrorCode.deferredImportOfExtension, 7, 10)],
     );
   }
 

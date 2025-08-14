@@ -152,7 +152,7 @@ class AssignmentExpressionResolver {
       )) {
         _diagnosticReporter.atNode(
           right,
-          CompileTimeErrorCode.RECORD_LITERAL_ONE_POSITIONAL_NO_TRAILING_COMMA,
+          CompileTimeErrorCode.recordLiteralOnePositionalNoTrailingComma,
         );
         return;
       }
@@ -160,7 +160,7 @@ class AssignmentExpressionResolver {
 
     _diagnosticReporter.atNode(
       right,
-      CompileTimeErrorCode.INVALID_ASSIGNMENT,
+      CompileTimeErrorCode.invalidAssignment,
       arguments: [rightType, writeType],
       contextMessages: _resolver.computeWhyNotPromotedMessages(
         right,
@@ -173,7 +173,7 @@ class AssignmentExpressionResolver {
   /// when it returns 'void'. Or, in rare cases, when other types of expressions
   /// are void, such as identifiers.
   ///
-  /// See [CompileTimeErrorCode.USE_OF_VOID_RESULT].
+  /// See [CompileTimeErrorCode.useOfVoidResult].
   // TODO(scheglov): this is duplicate
   bool _checkForUseOfVoidResult(Expression expression) {
     if (!identical(expression.staticType, VoidTypeImpl.instance)) {
@@ -184,12 +184,12 @@ class AssignmentExpressionResolver {
       SimpleIdentifier methodName = expression.methodName;
       _diagnosticReporter.atNode(
         methodName,
-        CompileTimeErrorCode.USE_OF_VOID_RESULT,
+        CompileTimeErrorCode.useOfVoidResult,
       );
     } else {
       _diagnosticReporter.atNode(
         expression,
-        CompileTimeErrorCode.USE_OF_VOID_RESULT,
+        CompileTimeErrorCode.useOfVoidResult,
       );
     }
 
@@ -242,7 +242,7 @@ class AssignmentExpressionResolver {
       if (leftType is VoidType) {
         _diagnosticReporter.atToken(
           operator,
-          CompileTimeErrorCode.USE_OF_VOID_RESULT,
+          CompileTimeErrorCode.useOfVoidResult,
         );
         return;
       }
@@ -274,7 +274,7 @@ class AssignmentExpressionResolver {
     if (result.needsGetterError) {
       _diagnosticReporter.atToken(
         operator,
-        CompileTimeErrorCode.UNDEFINED_OPERATOR,
+        CompileTimeErrorCode.undefinedOperator,
         arguments: [methodName, leftType],
       );
     }
@@ -402,14 +402,14 @@ class AssignmentExpressionShared {
             if (isForEachIdentifier || assigned) {
               _errorReporter.atNode(
                 left,
-                CompileTimeErrorCode.LATE_FINAL_LOCAL_ALREADY_ASSIGNED,
+                CompileTimeErrorCode.lateFinalLocalAlreadyAssigned,
               );
             }
           } else {
             if (isForEachIdentifier || !unassigned) {
               _errorReporter.atNode(
                 left,
-                CompileTimeErrorCode.ASSIGNMENT_TO_FINAL_LOCAL,
+                CompileTimeErrorCode.assignmentToFinalLocal,
                 arguments: [element.name!],
               );
             }

@@ -26,11 +26,7 @@ extension type E(int i) {
 ''',
       [
         // No lint.
-        error(
-          CompileTimeErrorCode.EXTENSION_TYPE_DECLARES_INSTANCE_FIELD,
-          33,
-          2,
-        ),
+        error(CompileTimeErrorCode.extensionTypeDeclaresInstanceField, 33, 2),
       ],
     );
   }
@@ -120,11 +116,7 @@ class C {
 ''',
       [
         // No lint.
-        error(
-          CompileTimeErrorCode.PATTERN_ASSIGNMENT_NOT_LOCAL_VARIABLE,
-          54,
-          2,
-        ),
+        error(CompileTimeErrorCode.patternAssignmentNotLocalVariable, 54, 2),
       ],
     );
   }
@@ -141,11 +133,7 @@ m() {
 ''',
       [
         // No lint.
-        error(
-          CompileTimeErrorCode.PATTERN_ASSIGNMENT_NOT_LOCAL_VARIABLE,
-          31,
-          2,
-        ),
+        error(CompileTimeErrorCode.patternAssignmentNotLocalVariable, 31, 2),
       ],
     );
   }

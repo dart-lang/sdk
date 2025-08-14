@@ -31,7 +31,7 @@ class C {
       [
         // This changed from a method to a extension method, uses Dart semantics
         // instead of manual check now.
-        error(CompileTimeErrorCode.UNDEFINED_METHOD, 98, 10),
+        error(CompileTimeErrorCode.undefinedMethod, 98, 10),
       ],
     );
   }
@@ -48,7 +48,7 @@ class C {
   }
 }
 ''',
-      [error(FfiCode.NON_NATIVE_FUNCTION_TYPE_ARGUMENT_TO_POINTER, 165, 1)],
+      [error(FfiCode.nonNativeFunctionTypeArgumentToPointer, 165, 1)],
     );
   }
 
@@ -63,7 +63,7 @@ class C<T extends Function> {
   }
 }
 ''',
-      [error(FfiCode.NON_CONSTANT_TYPE_ARGUMENT, 125, 1)],
+      [error(FfiCode.nonConstantTypeArgument, 125, 1)],
     );
   }
 

@@ -27,7 +27,7 @@ void f(int x) {
   }
 }
 ''',
-      [error(CompileTimeErrorCode.BREAK_LABEL_ON_SWITCH_MEMBER, 83, 1)],
+      [error(CompileTimeErrorCode.breakLabelOnSwitchMember, 83, 1)],
     );
   }
 
@@ -44,7 +44,7 @@ void f(int x) {
   }
 }
 ''',
-      [error(CompileTimeErrorCode.BREAK_LABEL_ON_SWITCH_MEMBER, 99, 1)],
+      [error(CompileTimeErrorCode.breakLabelOnSwitchMember, 99, 1)],
     );
   }
 }

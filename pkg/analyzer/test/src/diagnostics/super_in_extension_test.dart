@@ -22,7 +22,7 @@ extension E on int {
   int plusOne() => super + 1;
 }
 ''',
-      [error(CompileTimeErrorCode.SUPER_IN_EXTENSION, 40, 5)],
+      [error(CompileTimeErrorCode.superInExtension, 40, 5)],
     );
   }
 
@@ -36,8 +36,8 @@ extension <T> on T {
 }
 ''',
       [
-        error(WarningCode.UNUSED_ELEMENT, 23, 1),
-        error(CompileTimeErrorCode.SUPER_IN_EXTENSION, 33, 5),
+        error(WarningCode.unusedElement, 23, 1),
+        error(CompileTimeErrorCode.superInExtension, 33, 5),
       ],
     );
   }
@@ -55,7 +55,7 @@ extension E on C {
   }
 }
 ''',
-      [error(CompileTimeErrorCode.SUPER_IN_EXTENSION, 117, 5)],
+      [error(CompileTimeErrorCode.superInExtension, 117, 5)],
     );
   }
 
@@ -69,7 +69,7 @@ extension E on C {
   int at(int i) => super[i];
 }
 ''',
-      [error(CompileTimeErrorCode.SUPER_IN_EXTENSION, 80, 5)],
+      [error(CompileTimeErrorCode.superInExtension, 80, 5)],
     );
   }
 
@@ -80,7 +80,7 @@ extension E on int {
   String get displayText => super.toString();
 }
 ''',
-      [error(CompileTimeErrorCode.SUPER_IN_EXTENSION, 49, 5)],
+      [error(CompileTimeErrorCode.superInExtension, 49, 5)],
     );
   }
 
@@ -92,8 +92,8 @@ extension E on int {
 }
 ''',
       [
-        error(CompileTimeErrorCode.EXTENSION_DECLARES_INSTANCE_FIELD, 34, 1),
-        error(CompileTimeErrorCode.SUPER_IN_EXTENSION, 38, 5),
+        error(CompileTimeErrorCode.extensionDeclaresInstanceField, 34, 1),
+        error(CompileTimeErrorCode.superInExtension, 38, 5),
       ],
     );
   }
@@ -107,7 +107,7 @@ extension E on int {
   }
 }
 ''',
-      [error(CompileTimeErrorCode.SUPER_IN_EXTENSION, 40, 5)],
+      [error(CompileTimeErrorCode.superInExtension, 40, 5)],
     );
   }
 
@@ -121,7 +121,7 @@ extension E on C {
   C get negated => -super;
 }
 ''',
-      [error(CompileTimeErrorCode.SUPER_IN_EXTENSION, 76, 5)],
+      [error(CompileTimeErrorCode.superInExtension, 76, 5)],
     );
   }
 }

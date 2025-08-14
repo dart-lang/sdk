@@ -102,13 +102,7 @@ SuperFormalParameter
       r'''
 void f(super.a) {}
 ''',
-      [
-        error(
-          CompileTimeErrorCode.INVALID_SUPER_FORMAL_PARAMETER_LOCATION,
-          7,
-          5,
-        ),
-      ],
+      [error(CompileTimeErrorCode.invalidSuperFormalParameterLocation, 7, 5)],
     );
 
     var node = findNode.superFormalParameter('super.');

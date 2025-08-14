@@ -45,9 +45,9 @@ class ExpressionParserTest extends FastaParserTestCase {
     parseExpression(
       '<b?c>()',
       errors: [
-        expectedError(ParserErrorCode.EXPECTED_TOKEN, 1, 1),
-        expectedError(ParserErrorCode.UNEXPECTED_TOKEN, 7, 0),
-        expectedError(ParserErrorCode.MISSING_FUNCTION_BODY, 7, 0),
+        expectedError(ParserErrorCode.expectedToken, 1, 1),
+        expectedError(ParserErrorCode.unexpectedToken, 7, 0),
+        expectedError(ParserErrorCode.missingFunctionBody, 7, 0),
       ],
     );
   }
@@ -57,15 +57,11 @@ class ExpressionParserTest extends FastaParserTestCase {
     parseExpression(
       'n=<.["\$assert',
       errors: [
-        expectedError(ParserErrorCode.EXPECTED_TYPE_NAME, 3, 1),
-        expectedError(ParserErrorCode.EXPECTED_TYPE_NAME, 4, 1),
-        expectedError(
-          ParserErrorCode.EXPECTED_IDENTIFIER_BUT_GOT_KEYWORD,
-          7,
-          6,
-        ),
-        expectedError(ScannerErrorCode.UNTERMINATED_STRING_LITERAL, 12, 1),
-        expectedError(ScannerErrorCode.EXPECTED_TOKEN, 13, 1),
+        expectedError(ParserErrorCode.expectedTypeName, 3, 1),
+        expectedError(ParserErrorCode.expectedTypeName, 4, 1),
+        expectedError(ParserErrorCode.expectedIdentifierButGotKeyword, 7, 6),
+        expectedError(ScannerErrorCode.unterminatedStringLiteral, 12, 1),
+        expectedError(ScannerErrorCode.expectedToken, 13, 1),
       ],
     );
   }
@@ -75,8 +71,8 @@ class ExpressionParserTest extends FastaParserTestCase {
     parseExpression(
       '[<y.<z>(){}]',
       errors: [
-        expectedError(ParserErrorCode.EXPECTED_TYPE_NAME, 4, 1),
-        expectedError(ParserErrorCode.EXPECTED_TOKEN, 6, 1),
+        expectedError(ParserErrorCode.expectedTypeName, 4, 1),
+        expectedError(ParserErrorCode.expectedToken, 6, 1),
       ],
     );
   }
@@ -87,14 +83,10 @@ class ExpressionParserTest extends FastaParserTestCase {
         parseExpression(
               '<.["',
               errors: [
-                expectedError(ParserErrorCode.EXPECTED_TYPE_NAME, 1, 1),
-                expectedError(ParserErrorCode.EXPECTED_TYPE_NAME, 2, 1),
-                expectedError(
-                  ScannerErrorCode.UNTERMINATED_STRING_LITERAL,
-                  3,
-                  1,
-                ),
-                expectedError(ScannerErrorCode.EXPECTED_TOKEN, 4, 1),
+                expectedError(ParserErrorCode.expectedTypeName, 1, 1),
+                expectedError(ParserErrorCode.expectedTypeName, 2, 1),
+                expectedError(ScannerErrorCode.unterminatedStringLiteral, 3, 1),
+                expectedError(ScannerErrorCode.expectedToken, 4, 1),
               ],
             )
             as ListLiteral;
@@ -109,8 +101,8 @@ class ExpressionParserTest extends FastaParserTestCase {
         parseExpression(
               '<.[]',
               errors: [
-                expectedError(ParserErrorCode.EXPECTED_TYPE_NAME, 1, 1),
-                expectedError(ParserErrorCode.EXPECTED_TYPE_NAME, 2, 2),
+                expectedError(ParserErrorCode.expectedTypeName, 1, 1),
+                expectedError(ParserErrorCode.expectedTypeName, 2, 2),
               ],
             )
             as ListLiteral;
@@ -151,7 +143,7 @@ class ExpressionParserTest extends FastaParserTestCase {
                 // type arguments, but the parser could report this.
                 expectedError(
                   /* ParserErrorCode.EXPECTED_ONE_OR_TWO_TYPE_VARIABLES */
-                  ParserErrorCode.EXPECTED_TOKEN,
+                  ParserErrorCode.expectedToken,
                   11,
                   3,
                 ),
@@ -172,7 +164,7 @@ class ExpressionParserTest extends FastaParserTestCase {
                 // type arguments, but the parser could report this.
                 expectedError(
                   /* ParserErrorCode.EXPECTED_ONE_OR_TWO_TYPE_VARIABLES */
-                  ParserErrorCode.EXPECTED_TOKEN,
+                  ParserErrorCode.expectedToken,
                   11,
                   3,
                 ),
@@ -804,7 +796,7 @@ class ExpressionParserTest extends FastaParserTestCase {
   void test_parseConstExpression_mapLiteral_typed_missingGt() {
     Expression expression = parseExpression(
       'const <A, B {}',
-      errors: [expectedError(ParserErrorCode.EXPECTED_TOKEN, 10, 1)],
+      errors: [expectedError(ParserErrorCode.expectedToken, 10, 1)],
     );
     expect(expression, isNotNull);
     var literal = expression as SetOrMapLiteral;
@@ -829,7 +821,7 @@ class ExpressionParserTest extends FastaParserTestCase {
     // https://github.com/dart-lang/sdk/issues/37414
     parseCompilationUnit(
       'class C { C.n() : this()(); }',
-      errors: [expectedError(ParserErrorCode.INVALID_INITIALIZER, 18, 8)],
+      errors: [expectedError(ParserErrorCode.invalidInitializer, 18, 8)],
     );
   }
 
@@ -888,7 +880,7 @@ class ExpressionParserTest extends FastaParserTestCase {
       'const <E>',
       codes: [
         // TODO(danrubel): Improve this error message.
-        ParserErrorCode.EXPECTED_TOKEN,
+        ParserErrorCode.expectedToken,
       ],
     );
     expect(expression, isNotNull);
@@ -1106,7 +1098,7 @@ class ExpressionParserTest extends FastaParserTestCase {
       'const <E>(E i) => i++',
     );
     expect(expression, isNotNull);
-    assertErrorsWithCodes([ParserErrorCode.UNEXPECTED_TOKEN]);
+    assertErrorsWithCodes([ParserErrorCode.unexpectedToken]);
     expect(expression.body, isNotNull);
     expect(expression.typeParameters, isNotNull);
     expect(expression.parameters, isNotNull);
@@ -1117,7 +1109,7 @@ class ExpressionParserTest extends FastaParserTestCase {
     Expression expression = parseExpression(
       '<test('
       ', (){});>[0, 1, 2]',
-      codes: [ParserErrorCode.EXPECTED_TOKEN],
+      codes: [ParserErrorCode.expectedToken],
     );
     expect(expression, isNotNull);
     var literal = expression as ListLiteral;
@@ -1275,7 +1267,7 @@ class ExpressionParserTest extends FastaParserTestCase {
               'new a.b.c<C>()',
               errors: [
                 expectedError(
-                  ParserErrorCode.CONSTRUCTOR_WITH_TYPE_ARGUMENTS,
+                  ParserErrorCode.constructorWithTypeArguments,
                   8,
                   1,
                 ),
@@ -1904,7 +1896,7 @@ class ExpressionParserTest extends FastaParserTestCase {
     var asExpression =
         parseExpression(
               'x as Y as Z',
-              errors: [expectedError(ParserErrorCode.UNEXPECTED_TOKEN, 7, 2)],
+              errors: [expectedError(ParserErrorCode.unexpectedToken, 7, 2)],
             )
             as AsExpression;
     expect(asExpression, isNotNull);
@@ -1982,7 +1974,7 @@ class ExpressionParserTest extends FastaParserTestCase {
     var isExpression =
         parseExpression(
               'x is Y is! Z',
-              errors: [expectedError(ParserErrorCode.UNEXPECTED_TOKEN, 7, 2)],
+              errors: [expectedError(ParserErrorCode.unexpectedToken, 7, 2)],
             )
             as IsExpression;
     expect(isExpression, isNotNull);
@@ -2131,11 +2123,7 @@ class ExpressionParserTest extends FastaParserTestCase {
     expect(expression, isNotNull);
     assertErrors(
       errors: [
-        expectedError(
-          ParserErrorCode.EXPECTED_IDENTIFIER_BUT_GOT_KEYWORD,
-          8,
-          4,
-        ),
+        expectedError(ParserErrorCode.expectedIdentifierButGotKeyword, 8, 4),
       ],
     );
     expect(expression, isStringInterpolation);
@@ -2605,7 +2593,7 @@ class ExpressionParserTest extends FastaParserTestCase {
     PrefixExpression expression = parseUnaryExpression('!super');
     expect(expression, isNotNull);
     assertErrors(
-      errors: [error(ParserErrorCode.MISSING_ASSIGNABLE_SELECTOR, 1, 5)],
+      errors: [error(ParserErrorCode.missingAssignableSelector, 1, 5)],
     );
     expect(expression.operator, isNotNull);
     expect(expression.operator.type, TokenType.BANG);

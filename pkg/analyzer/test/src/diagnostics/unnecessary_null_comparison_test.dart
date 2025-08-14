@@ -36,8 +36,8 @@ f(int a) {
 }
 ''',
       [
-        error(WarningCode.UNNECESSARY_NULL_COMPARISON_NEVER_NULL_FALSE, 15, 7),
-        error(WarningCode.UNNECESSARY_NULL_COMPARISON_NEVER_NULL_FALSE, 26, 7),
+        error(WarningCode.unnecessaryNullComparisonNeverNullFalse, 15, 7),
+        error(WarningCode.unnecessaryNullComparisonNeverNullFalse, 26, 7),
       ],
     );
   }
@@ -61,8 +61,8 @@ f() {
 }
 ''',
       [
-        error(WarningCode.UNNECESSARY_NULL_COMPARISON_ALWAYS_NULL_FALSE, 18, 4),
-        error(WarningCode.UNNECESSARY_NULL_COMPARISON_ALWAYS_NULL_FALSE, 36, 4),
+        error(WarningCode.unnecessaryNullComparisonAlwaysNullFalse, 18, 4),
+        error(WarningCode.unnecessaryNullComparisonAlwaysNullFalse, 36, 4),
       ],
     );
   }
@@ -77,8 +77,8 @@ f() {
 }
 ''',
       [
-        error(WarningCode.UNNECESSARY_NULL_COMPARISON_ALWAYS_NULL_TRUE, 18, 4),
-        error(WarningCode.UNNECESSARY_NULL_COMPARISON_ALWAYS_NULL_TRUE, 36, 4),
+        error(WarningCode.unnecessaryNullComparisonAlwaysNullTrue, 18, 4),
+        error(WarningCode.unnecessaryNullComparisonAlwaysNullTrue, 36, 4),
       ],
     );
   }
@@ -95,7 +95,7 @@ f(Unresolved o) {
   null == i;
 }
 ''',
-      [error(CompileTimeErrorCode.UNDEFINED_CLASS, 2, 10)],
+      [error(CompileTimeErrorCode.undefinedClass, 2, 10)],
     );
   }
 
@@ -108,7 +108,7 @@ f(Unresolved o) {
   null == i;
 }
 ''',
-      [error(CompileTimeErrorCode.UNDEFINED_CLASS, 2, 10)],
+      [error(CompileTimeErrorCode.undefinedClass, 2, 10)],
     );
   }
 
@@ -132,7 +132,7 @@ f(Unresolved o) {
   null != i;
 }
 ''',
-      [error(CompileTimeErrorCode.UNDEFINED_CLASS, 2, 10)],
+      [error(CompileTimeErrorCode.undefinedClass, 2, 10)],
     );
   }
 
@@ -145,7 +145,7 @@ f(Unresolved o) {
   null != i;
 }
 ''',
-      [error(CompileTimeErrorCode.UNDEFINED_CLASS, 2, 10)],
+      [error(CompileTimeErrorCode.undefinedClass, 2, 10)],
     );
   }
 
@@ -158,8 +158,8 @@ f(int a) {
 }
 ''',
       [
-        error(WarningCode.UNNECESSARY_NULL_COMPARISON_NEVER_NULL_TRUE, 15, 7),
-        error(WarningCode.UNNECESSARY_NULL_COMPARISON_NEVER_NULL_TRUE, 26, 7),
+        error(WarningCode.unnecessaryNullComparisonNeverNullTrue, 15, 7),
+        error(WarningCode.unnecessaryNullComparisonNeverNullTrue, 26, 7),
       ],
     );
   }

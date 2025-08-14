@@ -153,7 +153,7 @@ FunctionDeclaration
 set foo {}
 ''');
     parseResult.assertErrors([
-      error(ParserErrorCode.MISSING_FUNCTION_PARAMETERS, 4, 3),
+      error(ParserErrorCode.missingFunctionParameters, 4, 3),
     ]);
 
     var node = parseResult.findNode.singleFunctionDeclaration;
@@ -179,7 +179,7 @@ FunctionDeclaration
 set foo({a}) {}
 ''');
     parseResult.assertErrors([
-      error(ParserErrorCode.WRONG_NUMBER_OF_PARAMETERS_FOR_SETTER, 4, 3),
+      error(ParserErrorCode.wrongNumberOfParametersForSetter, 4, 3),
     ]);
 
     var node = parseResult.findNode.singleFunctionDeclaration;
@@ -205,7 +205,7 @@ FunctionDeclaration
 set foo([a]) {}
 ''');
     parseResult.assertErrors([
-      error(ParserErrorCode.WRONG_NUMBER_OF_PARAMETERS_FOR_SETTER, 4, 3),
+      error(ParserErrorCode.wrongNumberOfParametersForSetter, 4, 3),
     ]);
 
     var node = parseResult.findNode.singleFunctionDeclaration;
@@ -231,7 +231,7 @@ FunctionDeclaration
 set foo(a, b, c) {}
 ''');
     parseResult.assertErrors([
-      error(ParserErrorCode.WRONG_NUMBER_OF_PARAMETERS_FOR_SETTER, 4, 3),
+      error(ParserErrorCode.wrongNumberOfParametersForSetter, 4, 3),
     ]);
 
     var node = parseResult.findNode.singleFunctionDeclaration;
@@ -257,7 +257,7 @@ FunctionDeclaration
 set foo() {}
 ''');
     parseResult.assertErrors([
-      error(ParserErrorCode.WRONG_NUMBER_OF_PARAMETERS_FOR_SETTER, 4, 3),
+      error(ParserErrorCode.wrongNumberOfParametersForSetter, 4, 3),
     ]);
 
     var node = parseResult.findNode.singleFunctionDeclaration;

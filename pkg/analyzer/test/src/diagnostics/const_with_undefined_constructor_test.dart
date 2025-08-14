@@ -27,7 +27,7 @@ f() {
 ''',
       [
         error(
-          CompileTimeErrorCode.CONST_WITH_UNDEFINED_CONSTRUCTOR,
+          CompileTimeErrorCode.constWithUndefinedConstructor,
           48,
           17,
           messageContains: ["class 'A'", "constructor 'noSuchConstructor'"],
@@ -46,7 +46,7 @@ f() {
 ''',
       [
         error(
-          CompileTimeErrorCode.CONST_WITH_UNDEFINED_CONSTRUCTOR,
+          CompileTimeErrorCode.constWithUndefinedConstructor,
           56,
           17,
           messageContains: [
@@ -69,13 +69,7 @@ f() {
   return const B();
 }
 ''',
-      [
-        error(
-          CompileTimeErrorCode.CONST_WITH_UNDEFINED_CONSTRUCTOR_DEFAULT,
-          66,
-          1,
-        ),
-      ],
+      [error(CompileTimeErrorCode.constWithUndefinedConstructorDefault, 66, 1)],
     );
   }
 
@@ -91,7 +85,7 @@ f() {
 ''',
       [
         error(
-          CompileTimeErrorCode.CONST_WITH_UNDEFINED_CONSTRUCTOR_DEFAULT,
+          CompileTimeErrorCode.constWithUndefinedConstructorDefault,
           51,
           1,
           messageContains: ["'A'"],
@@ -115,7 +109,7 @@ f() {
 ''',
       [
         error(
-          CompileTimeErrorCode.CONST_WITH_UNDEFINED_CONSTRUCTOR_DEFAULT,
+          CompileTimeErrorCode.constWithUndefinedConstructorDefault,
           49,
           6,
           messageContains: ["'lib1.A'"],
@@ -135,7 +129,7 @@ enum E {
   v
 }
 ''',
-      [error(CompileTimeErrorCode.CONST_WITH_UNDEFINED_CONSTRUCTOR, 21, 1)],
+      [error(CompileTimeErrorCode.constWithUndefinedConstructor, 21, 1)],
     );
   }
 
@@ -152,7 +146,7 @@ enum E {
   void foo() {}
 }
 ''',
-      [error(CompileTimeErrorCode.CONST_WITH_UNDEFINED_CONSTRUCTOR, 21, 3)],
+      [error(CompileTimeErrorCode.constWithUndefinedConstructor, 21, 3)],
     );
   }
 
@@ -167,7 +161,7 @@ enum E {
   v
 }
 ''',
-      [error(CompileTimeErrorCode.CONST_WITH_UNDEFINED_CONSTRUCTOR, 21, 3)],
+      [error(CompileTimeErrorCode.constWithUndefinedConstructor, 21, 3)],
     );
   }
 }

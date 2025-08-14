@@ -52,7 +52,7 @@ f(C c) {
   E(c);
 }
 ''',
-      [error(CompileTimeErrorCode.EXTENSION_OVERRIDE_WITHOUT_ACCESS, 57, 4)],
+      [error(CompileTimeErrorCode.extensionOverrideWithoutAccess, 57, 4)],
     );
     assertTypeDynamic(findNode.extensionOverride('E(c)'));
   }

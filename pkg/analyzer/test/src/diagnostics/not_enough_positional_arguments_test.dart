@@ -27,7 +27,7 @@ void f() {
 ''',
       [
         error(
-          CompileTimeErrorCode.NOT_ENOUGH_POSITIONAL_ARGUMENTS_NAME_SINGULAR,
+          CompileTimeErrorCode.notEnoughPositionalArgumentsNameSingular,
           45,
           1,
           messageContains: ["expected by 'named'"],
@@ -48,7 +48,7 @@ void f() {
 ''',
       [
         error(
-          CompileTimeErrorCode.NOT_ENOUGH_POSITIONAL_ARGUMENTS_NAME_SINGULAR,
+          CompileTimeErrorCode.notEnoughPositionalArgumentsNameSingular,
           33,
           1,
           messageContains: ["expected by 'A.new'"],
@@ -70,7 +70,7 @@ void f() {
 ''',
       [
         error(
-          CompileTimeErrorCode.NOT_ENOUGH_POSITIONAL_ARGUMENTS_NAME_SINGULAR,
+          CompileTimeErrorCode.notEnoughPositionalArgumentsNameSingular,
           42,
           1,
           messageContains: ["expected by 'A.new'"],
@@ -89,7 +89,7 @@ enum E {
 ''',
       [
         error(
-          CompileTimeErrorCode.NOT_ENOUGH_POSITIONAL_ARGUMENTS_NAME_SINGULAR,
+          CompileTimeErrorCode.notEnoughPositionalArgumentsNameSingular,
           13,
           1,
           messageContains: ["expected by 'E'"],
@@ -108,7 +108,7 @@ enum E {
 ''',
       [
         error(
-          CompileTimeErrorCode.NOT_ENOUGH_POSITIONAL_ARGUMENTS_NAME_SINGULAR,
+          CompileTimeErrorCode.notEnoughPositionalArgumentsNameSingular,
           11,
           1,
           messageContains: ["expected by 'E'"],
@@ -127,7 +127,7 @@ main() {
 }''',
       [
         error(
-          CompileTimeErrorCode.NOT_ENOUGH_POSITIONAL_ARGUMENTS_NAME_SINGULAR,
+          CompileTimeErrorCode.notEnoughPositionalArgumentsNameSingular,
           66,
           1,
           messageContains: ["expected by 'getter'"],
@@ -142,13 +142,7 @@ main() {
 main() {
   (int x, int y) {} ();
 }''',
-      [
-        error(
-          CompileTimeErrorCode.NOT_ENOUGH_POSITIONAL_ARGUMENTS_PLURAL,
-          30,
-          1,
-        ),
-      ],
+      [error(CompileTimeErrorCode.notEnoughPositionalArgumentsPlural, 30, 1)],
     );
   }
 
@@ -158,13 +152,7 @@ main() {
 main() {
   (int x) {} ();
 }''',
-      [
-        error(
-          CompileTimeErrorCode.NOT_ENOUGH_POSITIONAL_ARGUMENTS_SINGULAR,
-          23,
-          1,
-        ),
-      ],
+      [error(CompileTimeErrorCode.notEnoughPositionalArgumentsSingular, 23, 1)],
     );
   }
 
@@ -180,7 +168,7 @@ main() {
 ''',
       [
         error(
-          CompileTimeErrorCode.NOT_ENOUGH_POSITIONAL_ARGUMENTS_NAME_SINGULAR,
+          CompileTimeErrorCode.notEnoughPositionalArgumentsNameSingular,
           49,
           1,
           messageContains: ["expected by 'A.new'"],
@@ -201,11 +189,11 @@ main() {
 ''',
       [
         error(
-          CompileTimeErrorCode.NOT_ENOUGH_POSITIONAL_ARGUMENTS_NAME_SINGULAR,
+          CompileTimeErrorCode.notEnoughPositionalArgumentsNameSingular,
           49,
           1,
         ),
-        error(CompileTimeErrorCode.UNDEFINED_NAMED_PARAMETER, 49, 1),
+        error(CompileTimeErrorCode.undefinedNamedParameter, 49, 1),
       ],
     );
   }
@@ -223,7 +211,7 @@ void f() {
 ''',
       [
         error(
-          CompileTimeErrorCode.NOT_ENOUGH_POSITIONAL_ARGUMENTS_NAME_PLURAL,
+          CompileTimeErrorCode.notEnoughPositionalArgumentsNamePlural,
           70,
           1,
           messageContains: ["expected by 'named'"],
@@ -245,7 +233,7 @@ void f() {
 ''',
       [
         error(
-          CompileTimeErrorCode.NOT_ENOUGH_POSITIONAL_ARGUMENTS_NAME_PLURAL,
+          CompileTimeErrorCode.notEnoughPositionalArgumentsNamePlural,
           58,
           1,
           messageContains: [
@@ -265,7 +253,7 @@ main() {
 }''',
       [
         error(
-          CompileTimeErrorCode.NOT_ENOUGH_POSITIONAL_ARGUMENTS_NAME_PLURAL,
+          CompileTimeErrorCode.notEnoughPositionalArgumentsNamePlural,
           35,
           1,
           messageContains: ["expected by 'f'"],
@@ -284,7 +272,7 @@ class A {
 ''',
       [
         error(
-          CompileTimeErrorCode.NOT_ENOUGH_POSITIONAL_ARGUMENTS_NAME_SINGULAR,
+          CompileTimeErrorCode.notEnoughPositionalArgumentsNameSingular,
           58,
           1,
           messageContains: ["expected by 'A.new'"],
@@ -303,7 +291,7 @@ class A {
 ''',
       [
         error(
-          CompileTimeErrorCode.NOT_ENOUGH_POSITIONAL_ARGUMENTS_NAME_SINGULAR,
+          CompileTimeErrorCode.notEnoughPositionalArgumentsNameSingular,
           64,
           1,
           messageContains: ["expected by 'named'"],
@@ -324,7 +312,7 @@ class B extends A {
 ''',
       [
         error(
-          CompileTimeErrorCode.NOT_ENOUGH_POSITIONAL_ARGUMENTS_NAME_SINGULAR,
+          CompileTimeErrorCode.notEnoughPositionalArgumentsNameSingular,
           70,
           1,
           messageContains: ["expected by 'A.new'"],
@@ -345,7 +333,7 @@ class B extends A {
 ''',
       [
         error(
-          CompileTimeErrorCode.NOT_ENOUGH_POSITIONAL_ARGUMENTS_NAME_SINGULAR,
+          CompileTimeErrorCode.notEnoughPositionalArgumentsNameSingular,
           82,
           1,
           messageContains: ["expected by 'named'"],

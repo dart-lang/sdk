@@ -45,7 +45,7 @@ augment abstract class C with A {}
 ''');
 
     await assertErrorsInFile2(a, [
-      error(CompileTimeErrorCode.INCONSISTENT_INHERITANCE, 122, 1),
+      error(CompileTimeErrorCode.inconsistentInheritance, 122, 1),
     ]);
     await assertErrorsInFile2(b, []);
     await assertErrorsInFile2(c, []);
@@ -81,7 +81,7 @@ augment abstract class C implements B {}
 ''');
 
     await assertErrorsInFile2(a, [
-      error(CompileTimeErrorCode.INCONSISTENT_INHERITANCE, 122, 1),
+      error(CompileTimeErrorCode.inconsistentInheritance, 122, 1),
     ]);
     await assertErrorsInFile2(b, []);
     await assertErrorsInFile2(c, []);
@@ -100,7 +100,7 @@ abstract class B1 { void m(D1 d1); }
 abstract class B2 { void m(D2 d2); }
 class C extends A implements B1, B2 {}
 ''',
-      [error(CompileTimeErrorCode.INCONSISTENT_INHERITANCE, 171, 1)],
+      [error(CompileTimeErrorCode.inconsistentInheritance, 171, 1)],
     );
   }
 
@@ -115,7 +115,7 @@ abstract class B {
 }
 abstract class C implements A, B {}
 ''',
-      [error(CompileTimeErrorCode.INCONSISTENT_INHERITANCE, 94, 1)],
+      [error(CompileTimeErrorCode.inconsistentInheritance, 94, 1)],
     );
   }
 
@@ -130,7 +130,7 @@ abstract class B {
 }
 abstract class C extends B implements A {}
 ''',
-      [error(CompileTimeErrorCode.INCONSISTENT_INHERITANCE, 94, 1)],
+      [error(CompileTimeErrorCode.inconsistentInheritance, 94, 1)],
     );
   }
 
@@ -146,7 +146,7 @@ abstract class B {
 abstract class B2 extends B {}
 abstract class C implements A, B2 {}
 ''',
-      [error(CompileTimeErrorCode.INCONSISTENT_INHERITANCE, 125, 1)],
+      [error(CompileTimeErrorCode.inconsistentInheritance, 125, 1)],
     );
   }
 
@@ -162,7 +162,7 @@ abstract class B {
 abstract class B2 extends B {}
 abstract class C extends Object with A implements B2 {}
 ''',
-      [error(CompileTimeErrorCode.INCONSISTENT_INHERITANCE, 116, 1)],
+      [error(CompileTimeErrorCode.inconsistentInheritance, 116, 1)],
     );
   }
 
@@ -178,7 +178,7 @@ abstract class B {
 abstract class B2 extends B {}
 abstract class C = Object with A implements B2;
 ''',
-      [error(CompileTimeErrorCode.INCONSISTENT_INHERITANCE, 116, 1)],
+      [error(CompileTimeErrorCode.inconsistentInheritance, 116, 1)],
     );
   }
 
@@ -194,7 +194,7 @@ mixin B {
 abstract class B2 extends Object with B {}
 abstract class C implements A, B2 {}
 ''',
-      [error(CompileTimeErrorCode.INCONSISTENT_INHERITANCE, 128, 1)],
+      [error(CompileTimeErrorCode.inconsistentInheritance, 128, 1)],
     );
   }
 
@@ -210,7 +210,7 @@ mixin B {
 abstract class B2 extends Object with B {}
 abstract class C extends Object with A implements B2 {}
 ''',
-      [error(CompileTimeErrorCode.INCONSISTENT_INHERITANCE, 119, 1)],
+      [error(CompileTimeErrorCode.inconsistentInheritance, 119, 1)],
     );
   }
 
@@ -228,7 +228,7 @@ abstract class C {
 }
 abstract class D implements A, B, C {}
 ''',
-      [error(CompileTimeErrorCode.INCONSISTENT_INHERITANCE, 135, 1)],
+      [error(CompileTimeErrorCode.inconsistentInheritance, 135, 1)],
     );
   }
 
@@ -243,7 +243,7 @@ abstract class B {
 }
 abstract class C implements A, B {}
 ''',
-      [error(CompileTimeErrorCode.INCONSISTENT_INHERITANCE, 86, 1)],
+      [error(CompileTimeErrorCode.inconsistentInheritance, 86, 1)],
     );
   }
 
@@ -258,7 +258,7 @@ abstract class B {
 }
 abstract class C implements A, B {}
 ''',
-      [error(CompileTimeErrorCode.INCONSISTENT_INHERITANCE, 82, 1)],
+      [error(CompileTimeErrorCode.inconsistentInheritance, 82, 1)],
     );
   }
 
@@ -275,7 +275,7 @@ abstract class B {
 
 enum E implements A, B {v}
 ''',
-      [error(CompileTimeErrorCode.INCONSISTENT_INHERITANCE, 78, 1)],
+      [error(CompileTimeErrorCode.inconsistentInheritance, 78, 1)],
     );
   }
 
@@ -297,7 +297,7 @@ augment enum E implements B {
   augment v;
 }
 ''',
-      [error(CompileTimeErrorCode.INCONSISTENT_INHERITANCE, 78, 1)],
+      [error(CompileTimeErrorCode.inconsistentInheritance, 78, 1)],
     );
   }
 
@@ -312,7 +312,7 @@ abstract class B {
 }
 mixin M implements A, B {}
 ''',
-      [error(CompileTimeErrorCode.INCONSISTENT_INHERITANCE, 85, 1)],
+      [error(CompileTimeErrorCode.inconsistentInheritance, 85, 1)],
     );
   }
 
@@ -327,7 +327,7 @@ abstract class B {
 }
 mixin M implements A, B {}
 ''',
-      [error(CompileTimeErrorCode.INCONSISTENT_INHERITANCE, 77, 1)],
+      [error(CompileTimeErrorCode.inconsistentInheritance, 77, 1)],
     );
   }
 
@@ -342,7 +342,7 @@ abstract class B {
 }
 mixin M implements A, B {}
 ''',
-      [error(CompileTimeErrorCode.INCONSISTENT_INHERITANCE, 73, 1)],
+      [error(CompileTimeErrorCode.inconsistentInheritance, 73, 1)],
     );
   }
 
@@ -357,7 +357,7 @@ abstract class B {
 }
 mixin M on A, B {}
 ''',
-      [error(CompileTimeErrorCode.INCONSISTENT_INHERITANCE, 85, 1)],
+      [error(CompileTimeErrorCode.inconsistentInheritance, 85, 1)],
     );
   }
 
@@ -372,7 +372,7 @@ abstract class B {
 }
 mixin M on A, B {}
 ''',
-      [error(CompileTimeErrorCode.INCONSISTENT_INHERITANCE, 77, 1)],
+      [error(CompileTimeErrorCode.inconsistentInheritance, 77, 1)],
     );
   }
 
@@ -387,7 +387,7 @@ abstract class B {
 }
 mixin M on A, B {}
 ''',
-      [error(CompileTimeErrorCode.INCONSISTENT_INHERITANCE, 73, 1)],
+      [error(CompileTimeErrorCode.inconsistentInheritance, 73, 1)],
     );
   }
 

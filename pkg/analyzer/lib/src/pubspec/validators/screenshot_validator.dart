@@ -29,11 +29,9 @@ void screenshotsValidator(PubspecValidationContext ctx) {
     if (entryValue is! YamlScalar) continue;
     var path = entryValue.value;
     if (path is String && !fileExistsAtPath(path)) {
-      ctx.reportErrorForNode(
-        entryValue,
-        PubspecWarningCode.PATH_DOES_NOT_EXIST,
-        [entryValue.valueOrThrow],
-      );
+      ctx.reportErrorForNode(entryValue, PubspecWarningCode.pathDoesNotExist, [
+        entryValue.valueOrThrow,
+      ]);
     }
   }
 }

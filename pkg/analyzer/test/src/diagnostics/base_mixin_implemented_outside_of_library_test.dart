@@ -33,13 +33,7 @@ base mixin Foo {}
 import 'foo.dart';
 base class Bar implements Foo {}
 ''',
-      [
-        error(
-          CompileTimeErrorCode.BASE_MIXIN_IMPLEMENTED_OUTSIDE_OF_LIBRARY,
-          45,
-          3,
-        ),
-      ],
+      [error(CompileTimeErrorCode.baseMixinImplementedOutsideOfLibrary, 45, 3)],
     );
   }
 
@@ -57,7 +51,7 @@ class C implements B {}
 ''',
       [
         error(
-          CompileTimeErrorCode.BASE_MIXIN_IMPLEMENTED_OUTSIDE_OF_LIBRARY,
+          CompileTimeErrorCode.baseMixinImplementedOutsideOfLibrary,
           77,
           1,
           contextMessages: [message(a, 11, 1)],
@@ -79,7 +73,7 @@ base class Bar implements FooTypedef {}
 ''',
       [
         error(
-          CompileTimeErrorCode.BASE_MIXIN_IMPLEMENTED_OUTSIDE_OF_LIBRARY,
+          CompileTimeErrorCode.baseMixinImplementedOutsideOfLibrary,
           45,
           10,
         ),
@@ -100,7 +94,7 @@ base class Bar implements FooTypedef {}
 ''',
       [
         error(
-          CompileTimeErrorCode.BASE_MIXIN_IMPLEMENTED_OUTSIDE_OF_LIBRARY,
+          CompileTimeErrorCode.baseMixinImplementedOutsideOfLibrary,
           71,
           10,
         ),
@@ -125,13 +119,7 @@ base mixin Foo {}
 import 'foo.dart';
 enum Bar implements Foo { bar }
 ''',
-      [
-        error(
-          CompileTimeErrorCode.BASE_MIXIN_IMPLEMENTED_OUTSIDE_OF_LIBRARY,
-          39,
-          3,
-        ),
-      ],
+      [error(CompileTimeErrorCode.baseMixinImplementedOutsideOfLibrary, 39, 3)],
     );
   }
 
@@ -148,7 +136,7 @@ enum Bar implements FooTypedef { bar }
 ''',
       [
         error(
-          CompileTimeErrorCode.BASE_MIXIN_IMPLEMENTED_OUTSIDE_OF_LIBRARY,
+          CompileTimeErrorCode.baseMixinImplementedOutsideOfLibrary,
           39,
           10,
         ),
@@ -169,7 +157,7 @@ enum Bar implements FooTypedef { bar }
 ''',
       [
         error(
-          CompileTimeErrorCode.BASE_MIXIN_IMPLEMENTED_OUTSIDE_OF_LIBRARY,
+          CompileTimeErrorCode.baseMixinImplementedOutsideOfLibrary,
           65,
           10,
         ),
@@ -194,13 +182,7 @@ base mixin Foo {}
 import 'foo.dart';
 base mixin Bar implements Foo {}
 ''',
-      [
-        error(
-          CompileTimeErrorCode.BASE_MIXIN_IMPLEMENTED_OUTSIDE_OF_LIBRARY,
-          45,
-          3,
-        ),
-      ],
+      [error(CompileTimeErrorCode.baseMixinImplementedOutsideOfLibrary, 45, 3)],
     );
   }
 
@@ -217,7 +199,7 @@ base mixin Bar implements FooTypedef {}
 ''',
       [
         error(
-          CompileTimeErrorCode.BASE_MIXIN_IMPLEMENTED_OUTSIDE_OF_LIBRARY,
+          CompileTimeErrorCode.baseMixinImplementedOutsideOfLibrary,
           45,
           10,
         ),
@@ -238,7 +220,7 @@ base mixin Bar implements FooTypedef {}
 ''',
       [
         error(
-          CompileTimeErrorCode.BASE_MIXIN_IMPLEMENTED_OUTSIDE_OF_LIBRARY,
+          CompileTimeErrorCode.baseMixinImplementedOutsideOfLibrary,
           71,
           10,
         ),

@@ -34,7 +34,7 @@ augment class B extends A {}
 ''',
       [
         error(
-          CompileTimeErrorCode.AUGMENTATION_EXTENDS_CLAUSE_ALREADY_PRESENT,
+          CompileTimeErrorCode.augmentationExtendsClauseAlreadyPresent,
           35,
           7,
           contextMessages: [message(a, 37, 1)],
@@ -67,7 +67,7 @@ augment class B extends A {}
 ''',
       [
         error(
-          CompileTimeErrorCode.AUGMENTATION_EXTENDS_CLAUSE_ALREADY_PRESENT,
+          CompileTimeErrorCode.augmentationExtendsClauseAlreadyPresent,
           35,
           7,
           contextMessages: [message(a, 52, 1)],

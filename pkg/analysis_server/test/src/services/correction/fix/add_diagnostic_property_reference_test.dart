@@ -660,7 +660,7 @@ class C extends Widget with Diagnosticable {
 ''',
       errorFilter:
           (error) =>
-              error.diagnosticCode != CompileTimeErrorCode.UNDEFINED_CLASS,
+              error.diagnosticCode != CompileTimeErrorCode.undefinedClass,
     );
   }
 
@@ -695,7 +695,7 @@ class C extends Widget with Diagnosticable {
 ''',
       errorFilter:
           (error) =>
-              error.diagnosticCode != CompileTimeErrorCode.UNDEFINED_CLASS,
+              error.diagnosticCode != CompileTimeErrorCode.undefinedClass,
     );
   }
 

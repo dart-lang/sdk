@@ -25,7 +25,7 @@ void g() {
   Pointer.fromFunction<T>(f, 5);
 }
 ''',
-      [error(FfiCode.MUST_BE_A_SUBTYPE, 122, 1)],
+      [error(FfiCode.mustBeASubtype, 122, 1)],
     );
   }
 
@@ -39,7 +39,7 @@ void g() {
   Pointer.fromFunction<T>(f, '');
 }
 ''',
-      [error(FfiCode.MUST_BE_A_SUBTYPE, 115, 2)],
+      [error(FfiCode.mustBeASubtype, 115, 2)],
     );
   }
 
@@ -87,7 +87,7 @@ class C<F extends int Function(int)> {
   }
 }
 ''',
-      [error(FfiCode.MUST_BE_A_SUBTYPE, 166, 1)],
+      [error(FfiCode.mustBeASubtype, 166, 1)],
     );
   }
 }

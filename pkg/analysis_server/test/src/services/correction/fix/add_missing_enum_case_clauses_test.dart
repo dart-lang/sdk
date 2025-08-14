@@ -32,7 +32,7 @@ class AddMissingEnumCaseClausesTest extends FixProcessorTest {
     return (error) {
       if (!hasError &&
           error.diagnosticCode ==
-              StaticWarningCode.MISSING_ENUM_CONSTANT_IN_SWITCH) {
+              StaticWarningCode.missingEnumConstantInSwitch) {
         hasError = true;
         return true;
       }

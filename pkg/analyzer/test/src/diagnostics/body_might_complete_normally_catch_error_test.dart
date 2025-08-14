@@ -41,7 +41,7 @@ void f(Future<int> future) {
   future.catchError(test: (_) => false, (e, st) {});
 }
 ''',
-      [error(WarningCode.BODY_MIGHT_COMPLETE_NORMALLY_CATCH_ERROR, 77, 1)],
+      [error(WarningCode.bodyMightCompleteNormallyCatchError, 77, 1)],
     );
   }
 
@@ -52,7 +52,7 @@ void f(Future<int> future) {
   future.catchError((e, st) {});
 }
 ''',
-      [error(WarningCode.BODY_MIGHT_COMPLETE_NORMALLY_CATCH_ERROR, 57, 1)],
+      [error(WarningCode.bodyMightCompleteNormallyCatchError, 57, 1)],
     );
   }
 
@@ -63,7 +63,7 @@ void f(Future<int?> future) {
   future.catchError((e, st) {});
 }
 ''',
-      [error(WarningCode.BODY_MIGHT_COMPLETE_NORMALLY_CATCH_ERROR, 58, 1)],
+      [error(WarningCode.bodyMightCompleteNormallyCatchError, 58, 1)],
     );
   }
 

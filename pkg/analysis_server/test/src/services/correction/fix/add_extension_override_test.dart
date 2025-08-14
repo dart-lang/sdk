@@ -52,7 +52,7 @@ void f(String str) {
       errorFilter:
           (error) =>
               error.diagnosticCode ==
-              CompileTimeErrorCode.AMBIGUOUS_EXTENSION_MEMBER_ACCESS_TWO,
+              CompileTimeErrorCode.ambiguousExtensionMemberAccessTwo,
     );
 
     await assertHasFixesWithoutApplying(
@@ -64,7 +64,7 @@ void f(String str) {
       errorFilter:
           (error) =>
               error.diagnosticCode ==
-              CompileTimeErrorCode.AMBIGUOUS_EXTENSION_MEMBER_ACCESS_TWO,
+              CompileTimeErrorCode.ambiguousExtensionMemberAccessTwo,
     );
   }
 
@@ -128,7 +128,7 @@ f() {
       expectedNumberOfFixesForKind: 1,
       errorFilter: (error) {
         return error.diagnosticCode ==
-            CompileTimeErrorCode.AMBIGUOUS_EXTENSION_MEMBER_ACCESS_TWO;
+            CompileTimeErrorCode.ambiguousExtensionMemberAccessTwo;
       },
     );
   }
@@ -206,7 +206,7 @@ extension E2 on A {
       errorFilter:
           (error) =>
               error.diagnosticCode ==
-              CompileTimeErrorCode.AMBIGUOUS_EXTENSION_MEMBER_ACCESS_TWO,
+              CompileTimeErrorCode.ambiguousExtensionMemberAccessTwo,
     );
   }
 
@@ -242,7 +242,7 @@ extension E2 on A {
       errorFilter:
           (error) =>
               error.diagnosticCode ==
-              CompileTimeErrorCode.AMBIGUOUS_EXTENSION_MEMBER_ACCESS_TWO,
+              CompileTimeErrorCode.ambiguousExtensionMemberAccessTwo,
     );
   }
 
@@ -282,7 +282,7 @@ extension E2 on A {
       errorFilter:
           (error) =>
               error.diagnosticCode ==
-              CompileTimeErrorCode.AMBIGUOUS_EXTENSION_MEMBER_ACCESS_TWO,
+              CompileTimeErrorCode.ambiguousExtensionMemberAccessTwo,
     );
   }
 
@@ -391,7 +391,7 @@ void f(String str) {
       errorFilter:
           (error) =>
               error.diagnosticCode ==
-              CompileTimeErrorCode.AMBIGUOUS_EXTENSION_MEMBER_ACCESS_TWO,
+              CompileTimeErrorCode.ambiguousExtensionMemberAccessTwo,
     );
 
     await assertHasFixesWithoutApplying(
@@ -403,7 +403,7 @@ void f(String str) {
       errorFilter:
           (error) =>
               error.diagnosticCode ==
-              CompileTimeErrorCode.AMBIGUOUS_EXTENSION_MEMBER_ACCESS_TWO,
+              CompileTimeErrorCode.ambiguousExtensionMemberAccessTwo,
     );
   }
 }

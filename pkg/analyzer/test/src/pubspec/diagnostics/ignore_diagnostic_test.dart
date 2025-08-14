@@ -27,7 +27,7 @@ dependencies:
   bar:
     git: git@github.com:foo/bar.git
 ''',
-      [PubspecWarningCode.INVALID_DEPENDENCY],
+      [PubspecWarningCode.invalidDependency],
     );
   }
 
@@ -56,7 +56,7 @@ dependencies:
   bar:
     git: git@github.com:foo/bar.git
 ''',
-      [PubspecWarningCode.INVALID_DEPENDENCY],
+      [PubspecWarningCode.invalidDependency],
     );
   }
 
@@ -71,7 +71,7 @@ dependencies:
   bar:
     git: git@github.com:foo/bar.git # ignore: invalid_dependency
 ''',
-      [PubspecWarningCode.INVALID_DEPENDENCY],
+      [PubspecWarningCode.invalidDependency],
     );
   }
 
@@ -87,8 +87,8 @@ dependencies:
     git: git@github.com:foo/bar.git
 ''',
       [
-        PubspecWarningCode.INVALID_DEPENDENCY,
-        PubspecWarningCode.INVALID_DEPENDENCY,
+        PubspecWarningCode.invalidDependency,
+        PubspecWarningCode.invalidDependency,
       ],
     );
   }

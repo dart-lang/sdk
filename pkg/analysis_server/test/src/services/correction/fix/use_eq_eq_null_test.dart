@@ -28,7 +28,7 @@ void f(p, q) {
   q is Null;
 }
 ''');
-    await assertHasFixAllFix(WarningCode.TYPE_CHECK_IS_NULL, '''
+    await assertHasFixAllFix(WarningCode.typeCheckIsNull, '''
 void f(p, q) {
   p == null;
   q == null;

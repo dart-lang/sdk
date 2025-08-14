@@ -60,9 +60,7 @@ class ConstantsDataComputer extends DataComputer<String> {
     var diagnosticCodes = diagnostics
         .map((e) => e.diagnosticCode)
         .where(
-          (c) =>
-              c !=
-              CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE,
+          (c) => c != CompileTimeErrorCode.constInitializedWithNonConstantValue,
         );
     return diagnosticCodes.isNotEmpty ? diagnosticCodes.join(',') : null;
   }

@@ -24,7 +24,7 @@ class A {
 ''',
       [
         error(
-          CompileTimeErrorCode.CONCRETE_CLASS_WITH_ABSTRACT_MEMBER,
+          CompileTimeErrorCode.concreteClassWithAbstractMember,
           12,
           16,
           text: "'x' must have a method body because 'A' isn't abstract.",
@@ -42,7 +42,7 @@ class A {
 ''',
       [
         error(
-          CompileTimeErrorCode.CONCRETE_CLASS_WITH_ABSTRACT_MEMBER,
+          CompileTimeErrorCode.concreteClassWithAbstractMember,
           12,
           22,
           text: "'x' must have a method body because 'A' isn't abstract.",
@@ -57,7 +57,7 @@ class A {
 class A {
   m();
 }''',
-      [error(CompileTimeErrorCode.CONCRETE_CLASS_WITH_ABSTRACT_MEMBER, 12, 4)],
+      [error(CompileTimeErrorCode.concreteClassWithAbstractMember, 12, 4)],
     );
   }
 
@@ -86,7 +86,7 @@ class I {
 class A implements I {
   m();
 }''',
-      [error(CompileTimeErrorCode.CONCRETE_CLASS_WITH_ABSTRACT_MEMBER, 62, 4)],
+      [error(CompileTimeErrorCode.concreteClassWithAbstractMember, 62, 4)],
     );
   }
 
@@ -99,7 +99,7 @@ class A {
 ''',
       [
         error(
-          CompileTimeErrorCode.CONCRETE_CLASS_WITH_ABSTRACT_MEMBER,
+          CompileTimeErrorCode.concreteClassWithAbstractMember,
           12,
           13,
           text: "'s' must have a method body because 'A' isn't abstract.",

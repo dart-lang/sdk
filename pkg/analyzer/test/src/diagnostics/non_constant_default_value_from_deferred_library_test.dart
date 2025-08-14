@@ -29,7 +29,7 @@ f({x = a.V}) {}
 ''',
       [
         error(
-          CompileTimeErrorCode.NON_CONSTANT_DEFAULT_VALUE_FROM_DEFERRED_LIBRARY,
+          CompileTimeErrorCode.nonConstantDefaultValueFromDeferredLibrary,
           57,
           1,
         ),
@@ -50,7 +50,7 @@ f({x = a.V + 1}) {}
 ''',
       [
         error(
-          CompileTimeErrorCode.NON_CONSTANT_DEFAULT_VALUE_FROM_DEFERRED_LIBRARY,
+          CompileTimeErrorCode.nonConstantDefaultValueFromDeferredLibrary,
           57,
           1,
         ),

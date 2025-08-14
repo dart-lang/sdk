@@ -256,7 +256,7 @@ final k = K(
 ''',
       [
         // No lint
-        error(CompileTimeErrorCode.MISSING_REQUIRED_ARGUMENT, 178, 1),
+        error(CompileTimeErrorCode.missingRequiredArgument, 178, 1),
       ],
     );
   }
@@ -282,7 +282,7 @@ var e1 = new B([]); // OK
 ''',
       [
         // No lint
-        error(CompileTimeErrorCode.NEW_WITH_NON_TYPE, 13, 1),
+        error(CompileTimeErrorCode.newWithNonType, 13, 1),
       ],
     );
   }

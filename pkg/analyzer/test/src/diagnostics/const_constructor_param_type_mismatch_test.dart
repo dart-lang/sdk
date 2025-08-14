@@ -57,12 +57,8 @@ foo(x) => 1;
 var v = const A(foo);
 ''',
       [
-        error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 116, 3),
-        error(
-          CompileTimeErrorCode.CONST_CONSTRUCTOR_PARAM_TYPE_MISMATCH,
-          116,
-          3,
-        ),
+        error(CompileTimeErrorCode.argumentTypeNotAssignable, 116, 3),
+        error(CompileTimeErrorCode.constConstructorParamTypeMismatch, 116, 3),
       ],
     );
   }
@@ -93,7 +89,7 @@ class A {
 }
 var v = const A('foo');
 ''',
-      [error(CompileTimeErrorCode.UNDEFINED_CLASS, 20, 10)],
+      [error(CompileTimeErrorCode.undefinedClass, 20, 10)],
     );
   }
 
@@ -107,7 +103,7 @@ class A {
 }
 var v = const A(null);
 ''',
-      [error(CompileTimeErrorCode.UNDEFINED_CLASS, 20, 10)],
+      [error(CompileTimeErrorCode.undefinedClass, 20, 10)],
     );
   }
 
@@ -202,12 +198,8 @@ class A {
 var v = const A();
 ''',
       [
-        error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 45, 5),
-        error(
-          CompileTimeErrorCode.CONST_CONSTRUCTOR_PARAM_TYPE_MISMATCH,
-          64,
-          9,
-        ),
+        error(CompileTimeErrorCode.invalidAssignment, 45, 5),
+        error(CompileTimeErrorCode.constConstructorParamTypeMismatch, 64, 9),
       ],
     );
   }
@@ -229,12 +221,8 @@ const A u = const A();
 var v = const C(u);
 ''',
       [
-        error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 143, 1),
-        error(
-          CompileTimeErrorCode.CONST_CONSTRUCTOR_PARAM_TYPE_MISMATCH,
-          143,
-          1,
-        ),
+        error(CompileTimeErrorCode.argumentTypeNotAssignable, 143, 1),
+        error(CompileTimeErrorCode.constConstructorParamTypeMismatch, 143, 1),
       ],
     );
   }
@@ -253,12 +241,8 @@ int foo(String x) => 1;
 var v = const A(foo);
 ''',
       [
-        error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 127, 3),
-        error(
-          CompileTimeErrorCode.CONST_CONSTRUCTOR_PARAM_TYPE_MISMATCH,
-          127,
-          3,
-        ),
+        error(CompileTimeErrorCode.argumentTypeNotAssignable, 127, 3),
+        error(CompileTimeErrorCode.constConstructorParamTypeMismatch, 127, 3),
       ],
     );
   }
@@ -273,12 +257,8 @@ class A {
 var v = const A('foo');
 ''',
       [
-        error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 62, 5),
-        error(
-          CompileTimeErrorCode.CONST_CONSTRUCTOR_PARAM_TYPE_MISMATCH,
-          62,
-          5,
-        ),
+        error(CompileTimeErrorCode.argumentTypeNotAssignable, 62, 5),
+        error(CompileTimeErrorCode.constConstructorParamTypeMismatch, 62, 5),
       ],
     );
   }
@@ -292,7 +272,7 @@ class A {
 }
 var v = const A('foo');
 ''',
-      [error(CompileTimeErrorCode.UNDEFINED_CLASS, 18, 10)],
+      [error(CompileTimeErrorCode.undefinedClass, 18, 10)],
     );
   }
 
@@ -305,12 +285,8 @@ class A<T> {
 var v = const A<int>('foo');
 ''',
       [
-        error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 52, 5),
-        error(
-          CompileTimeErrorCode.CONST_CONSTRUCTOR_PARAM_TYPE_MISMATCH,
-          52,
-          5,
-        ),
+        error(CompileTimeErrorCode.argumentTypeNotAssignable, 52, 5),
+        error(CompileTimeErrorCode.constConstructorParamTypeMismatch, 52, 5),
       ],
     );
   }
@@ -324,12 +300,8 @@ class A {
 var v = const A('foo');
 ''',
       [
-        error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 46, 5),
-        error(
-          CompileTimeErrorCode.CONST_CONSTRUCTOR_PARAM_TYPE_MISMATCH,
-          46,
-          5,
-        ),
+        error(CompileTimeErrorCode.argumentTypeNotAssignable, 46, 5),
+        error(CompileTimeErrorCode.constConstructorParamTypeMismatch, 46, 5),
       ],
     );
   }

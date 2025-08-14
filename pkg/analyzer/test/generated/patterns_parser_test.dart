@@ -30,7 +30,7 @@ void f(x) {
 }
 ''',
       errors: [
-        error(ParserErrorCode.ILLEGAL_PATTERN_ASSIGNMENT_VARIABLE_NAME, 29, 2),
+        error(ParserErrorCode.illegalPatternAssignmentVariableName, 29, 2),
       ],
     );
     var node = findNode.singlePatternAssignment.pattern;
@@ -52,7 +52,7 @@ void f(x) {
 }
 ''',
       errors: [
-        error(ParserErrorCode.ILLEGAL_PATTERN_ASSIGNMENT_VARIABLE_NAME, 31, 4),
+        error(ParserErrorCode.illegalPatternAssignmentVariableName, 31, 4),
       ],
     );
     var node = findNode.singlePatternAssignment.pattern;
@@ -77,8 +77,8 @@ void f(x) {
 }
 ''',
       errors: [
-        error(ParserErrorCode.MISSING_IDENTIFIER, 41, 1),
-        error(ParserErrorCode.EXPECTED_TOKEN, 41, 1),
+        error(ParserErrorCode.missingIdentifier, 41, 1),
+        error(ParserErrorCode.expectedToken, 41, 1),
       ],
     );
     var node = findNode.switchPatternCase('case');
@@ -644,7 +644,7 @@ void f(x) {
   }
 }
 ''',
-      errors: [error(ParserErrorCode.INVALID_INSIDE_UNARY_PATTERN, 51, 8)],
+      errors: [error(ParserErrorCode.invalidInsideUnaryPattern, 51, 8)],
     );
     var node = findNode.singleGuardedPattern.pattern;
     assertParsedNodeText(node, r'''
@@ -901,7 +901,7 @@ void f(x) {
   }
 }
 ''',
-      errors: [error(ParserErrorCode.INVALID_INSIDE_UNARY_PATTERN, 51, 8)],
+      errors: [error(ParserErrorCode.invalidInsideUnaryPattern, 51, 8)],
     );
     var node = findNode.singleGuardedPattern.pattern;
     assertParsedNodeText(node, r'''
@@ -928,7 +928,7 @@ void f(x) {
   }
 }
 ''',
-      errors: [error(ParserErrorCode.INVALID_INSIDE_UNARY_PATTERN, 51, 9)],
+      errors: [error(ParserErrorCode.invalidInsideUnaryPattern, 51, 9)],
     );
     var node = findNode.singleGuardedPattern.pattern;
     assertParsedNodeText(node, r'''
@@ -1325,7 +1325,7 @@ void f(x) {
   }
 }
 ''',
-      errors: [error(ParserErrorCode.ILLEGAL_PATTERN_IDENTIFIER_NAME, 36, 2)],
+      errors: [error(ParserErrorCode.illegalPatternIdentifierName, 36, 2)],
     );
     var node = findNode.singleGuardedPattern.pattern;
     assertParsedNodeText(node, r'''
@@ -1344,7 +1344,7 @@ void f(x) {
   }
 }
 ''',
-      errors: [error(ParserErrorCode.ILLEGAL_PATTERN_IDENTIFIER_NAME, 36, 4)],
+      errors: [error(ParserErrorCode.illegalPatternIdentifierName, 36, 4)],
     );
     var node = findNode.singleGuardedPattern.pattern;
     assertParsedNodeText(node, r'''
@@ -3061,9 +3061,7 @@ void f() {
   [a, final d] = y;
 }
 ''',
-      errors: [
-        error(ParserErrorCode.PATTERN_ASSIGNMENT_DECLARES_VARIABLE, 23, 1),
-      ],
+      errors: [error(ParserErrorCode.patternAssignmentDeclaresVariable, 23, 1)],
     );
     var node = findNode.patternAssignment('=');
     assertParsedNodeText(node, r'''
@@ -3090,9 +3088,7 @@ void f() {
   [a, final int d] = y;
 }
 ''',
-      errors: [
-        error(ParserErrorCode.PATTERN_ASSIGNMENT_DECLARES_VARIABLE, 27, 1),
-      ],
+      errors: [error(ParserErrorCode.patternAssignmentDeclaresVariable, 27, 1)],
     );
     var node = findNode.patternAssignment('=');
     assertParsedNodeText(node, r'''
@@ -3121,9 +3117,7 @@ void f() {
   [a, int d] = y;
 }
 ''',
-      errors: [
-        error(ParserErrorCode.PATTERN_ASSIGNMENT_DECLARES_VARIABLE, 21, 1),
-      ],
+      errors: [error(ParserErrorCode.patternAssignmentDeclaresVariable, 21, 1)],
     );
     var node = findNode.patternAssignment('=');
     assertParsedNodeText(node, r'''
@@ -3151,9 +3145,7 @@ void f() {
   [a, var d] = y;
 }
 ''',
-      errors: [
-        error(ParserErrorCode.PATTERN_ASSIGNMENT_DECLARES_VARIABLE, 21, 1),
-      ],
+      errors: [error(ParserErrorCode.patternAssignmentDeclaresVariable, 21, 1)],
     );
     var node = findNode.patternAssignment('=');
     assertParsedNodeText(node, r'''
@@ -3180,9 +3172,7 @@ void f() {
   [a, var int d] = y;
 }
 ''',
-      errors: [
-        error(ParserErrorCode.PATTERN_ASSIGNMENT_DECLARES_VARIABLE, 25, 1),
-      ],
+      errors: [error(ParserErrorCode.patternAssignmentDeclaresVariable, 25, 1)],
     );
     var node = findNode.patternAssignment('=');
     assertParsedNodeText(node, r'''
@@ -3217,7 +3207,7 @@ f() {
   } catch (e) {}
 }
 ''',
-      errors: [error(ParserErrorCode.MISSING_IDENTIFIER, 26, 1)],
+      errors: [error(ParserErrorCode.missingIdentifier, 26, 1)],
     );
   }
 
@@ -4226,7 +4216,7 @@ void f(x) {
   }
 }
 ''',
-      errors: [error(ParserErrorCode.EXPECTED_TOKEN, 43, 1)],
+      errors: [error(ParserErrorCode.expectedToken, 43, 1)],
     );
     var node = findNode.singleGuardedPattern.pattern;
     assertParsedNodeText(node, r'''
@@ -4255,7 +4245,7 @@ void f(x) {
   }
 }
 ''',
-      errors: [error(ScannerErrorCode.EXPECTED_TOKEN, 59, 1)],
+      errors: [error(ScannerErrorCode.expectedToken, 59, 1)],
     );
     var node = findNode.switchStatement('switch').members.single;
     assertParsedNodeText(node, r'''
@@ -4291,7 +4281,7 @@ void f(x) {
   }
 }
 ''',
-      errors: [error(ParserErrorCode.EXPECTED_TOKEN, 43, 3)],
+      errors: [error(ParserErrorCode.expectedToken, 43, 3)],
     );
     var node = findNode.singleGuardedPattern.pattern;
     assertParsedNodeText(node, r'''
@@ -5345,7 +5335,7 @@ void f(x) {
   }
 }
 ''',
-      errors: [error(ParserErrorCode.EXPECTED_TOKEN, 50, 1)],
+      errors: [error(ParserErrorCode.expectedToken, 50, 1)],
     );
     var node = findNode.singleGuardedPattern.pattern;
     assertParsedNodeText(node, r'''
@@ -5378,8 +5368,8 @@ void f(Object o) {
 }
 ''',
       errors: [
-        error(ParserErrorCode.EXPECTED_TOKEN, 59, 1),
-        error(ParserErrorCode.MISSING_IDENTIFIER, 59, 1),
+        error(ParserErrorCode.expectedToken, 59, 1),
+        error(ParserErrorCode.missingIdentifier, 59, 1),
       ],
     );
     var node = findNode.switchPatternCase('case');
@@ -5419,7 +5409,7 @@ void f(x) {
   }
 }
 ''',
-      errors: [error(ScannerErrorCode.EXPECTED_TOKEN, 50, 1)],
+      errors: [error(ScannerErrorCode.expectedToken, 50, 1)],
     );
     var node = findNode.switchStatement('switch').members.single;
     assertParsedNodeText(node, r'''
@@ -5462,7 +5452,7 @@ void f(x) {
   }
 }
 ''',
-      errors: [error(ParserErrorCode.EXPECTED_TOKEN, 50, 5)],
+      errors: [error(ParserErrorCode.expectedToken, 50, 5)],
     );
     var node = findNode.singleGuardedPattern.pattern;
     assertParsedNodeText(node, r'''
@@ -5522,7 +5512,7 @@ void f(x) {
   }
 }
 ''',
-      errors: [error(ParserErrorCode.INVALID_INSIDE_UNARY_PATTERN, 51, 2)],
+      errors: [error(ParserErrorCode.invalidInsideUnaryPattern, 51, 2)],
     );
     var node = findNode.singleGuardedPattern.pattern;
     assertParsedNodeText(node, r'''
@@ -5714,7 +5704,7 @@ void f(x) {
   }
 }
 ''',
-      errors: [error(ParserErrorCode.INVALID_INSIDE_UNARY_PATTERN, 51, 2)],
+      errors: [error(ParserErrorCode.invalidInsideUnaryPattern, 51, 2)],
     );
     var node = findNode.singleGuardedPattern.pattern;
     assertParsedNodeText(node, r'''
@@ -5739,7 +5729,7 @@ void f(x) {
   }
 }
 ''',
-      errors: [error(ParserErrorCode.INVALID_INSIDE_UNARY_PATTERN, 51, 2)],
+      errors: [error(ParserErrorCode.invalidInsideUnaryPattern, 51, 2)],
     );
     var node = findNode.singleGuardedPattern.pattern;
     assertParsedNodeText(node, r'''
@@ -5958,7 +5948,7 @@ void f(x) {
   }
 }
 ''',
-      errors: [error(ParserErrorCode.INVALID_INSIDE_UNARY_PATTERN, 51, 2)],
+      errors: [error(ParserErrorCode.invalidInsideUnaryPattern, 51, 2)],
     );
     var node = findNode.singleGuardedPattern.pattern;
     assertParsedNodeText(node, r'''
@@ -6150,7 +6140,7 @@ void f(x) {
   }
 }
 ''',
-      errors: [error(ParserErrorCode.INVALID_INSIDE_UNARY_PATTERN, 51, 2)],
+      errors: [error(ParserErrorCode.invalidInsideUnaryPattern, 51, 2)],
     );
     var node = findNode.singleGuardedPattern.pattern;
     assertParsedNodeText(node, r'''
@@ -6175,7 +6165,7 @@ void f(x) {
   }
 }
 ''',
-      errors: [error(ParserErrorCode.INVALID_INSIDE_UNARY_PATTERN, 51, 2)],
+      errors: [error(ParserErrorCode.invalidInsideUnaryPattern, 51, 2)],
     );
     var node = findNode.singleGuardedPattern.pattern;
     assertParsedNodeText(node, r'''
@@ -6805,7 +6795,7 @@ void f(x) {
   }
 }
 ''',
-      errors: [error(ParserErrorCode.EXPECTED_TOKEN, 55, 1)],
+      errors: [error(ParserErrorCode.expectedToken, 55, 1)],
     );
     var node = findNode.singleGuardedPattern.pattern;
     assertParsedNodeText(node, r'''
@@ -6840,7 +6830,7 @@ void f(x) {
   }
 }
 ''',
-      errors: [error(ScannerErrorCode.EXPECTED_TOKEN, 71, 1)],
+      errors: [error(ScannerErrorCode.expectedToken, 71, 1)],
     );
     var node = findNode.switchStatement('switch').members.single;
     assertParsedNodeText(node, r'''
@@ -6882,7 +6872,7 @@ void f(x) {
   }
 }
 ''',
-      errors: [error(ParserErrorCode.EXPECTED_TOKEN, 55, 3)],
+      errors: [error(ParserErrorCode.expectedToken, 55, 3)],
     );
     var node = findNode.singleGuardedPattern.pattern;
     assertParsedNodeText(node, r'''
@@ -7585,9 +7575,9 @@ void main() {
 }
 ''',
       errors: [
-        error(ParserErrorCode.PATTERN_ASSIGNMENT_DECLARES_VARIABLE, 33, 1),
-        error(ParserErrorCode.MISSING_IDENTIFIER, 42, 1),
-        error(ParserErrorCode.PATTERN_ASSIGNMENT_DECLARES_VARIABLE, 42, 1),
+        error(ParserErrorCode.patternAssignmentDeclaresVariable, 33, 1),
+        error(ParserErrorCode.missingIdentifier, 42, 1),
+        error(ParserErrorCode.patternAssignmentDeclaresVariable, 42, 1),
       ],
     );
     // No assertion on the parsed node text; all we are concerned with is that
@@ -7606,8 +7596,7 @@ class C {
 ''',
       errors: [
         error(
-          ParserErrorCode
-              .PATTERN_VARIABLE_DECLARATION_OUTSIDE_FUNCTION_OR_METHOD,
+          ParserErrorCode.patternVariableDeclarationOutsideFunctionOrMethod,
           16,
           6,
         ),
@@ -7650,8 +7639,7 @@ var (a, b) = (0, 1);
 ''',
       errors: [
         error(
-          ParserErrorCode
-              .PATTERN_VARIABLE_DECLARATION_OUTSIDE_FUNCTION_OR_METHOD,
+          ParserErrorCode.patternVariableDeclarationOutsideFunctionOrMethod,
           4,
           6,
         ),
@@ -7689,13 +7677,9 @@ f(x) {
 }
 ''',
       errors: [
-        error(ParserErrorCode.MISSING_ASSIGNABLE_SELECTOR, 9, 9),
-        error(ParserErrorCode.ILLEGAL_ASSIGNMENT_TO_NON_ASSIGNABLE, 9, 9),
-        error(
-          ParserErrorCode.RECORD_LITERAL_ONE_POSITIONAL_NO_TRAILING_COMMA,
-          17,
-          1,
-        ),
+        error(ParserErrorCode.missingAssignableSelector, 9, 9),
+        error(ParserErrorCode.illegalAssignmentToNonAssignable, 9, 9),
+        error(ParserErrorCode.recordLiteralOnePositionalNoTrailingComma, 17, 1),
       ],
     );
   }
@@ -7707,7 +7691,7 @@ f(x) {
   late var (_) = x;
 }
 ''',
-      errors: [error(ParserErrorCode.LATE_PATTERN_VARIABLE_DECLARATION, 9, 4)],
+      errors: [error(ParserErrorCode.latePatternVariableDeclaration, 9, 4)],
     );
     var node = findNode.patternVariableDeclarationStatement('= x');
     assertParsedNodeText(node, r'''
@@ -8658,7 +8642,7 @@ void f(x) {
   }
 }
 ''',
-      errors: [error(ParserErrorCode.INVALID_INSIDE_UNARY_PATTERN, 36, 5)],
+      errors: [error(ParserErrorCode.invalidInsideUnaryPattern, 36, 5)],
     );
     var node = findNode.singleGuardedPattern;
     assertParsedNodeText(node, r'''
@@ -10065,11 +10049,11 @@ void f(x) {
 }
 ''',
       errors: [
-        error(ParserErrorCode.EXPECTED_TOKEN, 41, 1),
-        error(ParserErrorCode.MISSING_IDENTIFIER, 41, 1),
-        error(ParserErrorCode.EXPECTED_TOKEN, 43, 1),
-        error(ParserErrorCode.MISSING_IDENTIFIER, 44, 1),
-        error(ParserErrorCode.UNEXPECTED_TOKEN, 44, 1),
+        error(ParserErrorCode.expectedToken, 41, 1),
+        error(ParserErrorCode.missingIdentifier, 41, 1),
+        error(ParserErrorCode.expectedToken, 43, 1),
+        error(ParserErrorCode.missingIdentifier, 44, 1),
+        error(ParserErrorCode.unexpectedToken, 44, 1),
       ],
     );
     // We don't care what the parsed AST is, just that there are errors.
@@ -10089,11 +10073,11 @@ void f(x) {
 }
 ''',
       errors: [
-        error(ParserErrorCode.EXPECTED_TOKEN, 40, 1),
-        error(ParserErrorCode.MISSING_IDENTIFIER, 40, 1),
-        error(ParserErrorCode.EXPECTED_TOKEN, 42, 1),
-        error(ParserErrorCode.MISSING_IDENTIFIER, 43, 1),
-        error(ParserErrorCode.UNEXPECTED_TOKEN, 43, 1),
+        error(ParserErrorCode.expectedToken, 40, 1),
+        error(ParserErrorCode.missingIdentifier, 40, 1),
+        error(ParserErrorCode.expectedToken, 42, 1),
+        error(ParserErrorCode.missingIdentifier, 43, 1),
+        error(ParserErrorCode.unexpectedToken, 43, 1),
       ],
     );
     // We don't care what the parsed AST is, just that there are errors.
@@ -10399,7 +10383,7 @@ void f(x) {
   }
 }
 ''',
-      errors: [error(ParserErrorCode.INVALID_INSIDE_UNARY_PATTERN, 36, 4)],
+      errors: [error(ParserErrorCode.invalidInsideUnaryPattern, 36, 4)],
     );
     var node = findNode.singleGuardedPattern.pattern;
     assertParsedNodeText(node, r'''
@@ -10422,7 +10406,7 @@ void f(x) {
   }
 }
 ''',
-      errors: [error(ParserErrorCode.INVALID_INSIDE_UNARY_PATTERN, 36, 3)],
+      errors: [error(ParserErrorCode.invalidInsideUnaryPattern, 36, 3)],
     );
     var node = findNode.singleGuardedPattern.pattern;
     assertParsedNodeText(node, r'''
@@ -10687,9 +10671,9 @@ main() {
   int var = 0;
 ''',
       errors: [
-        error(ParserErrorCode.EXPECTED_TOKEN, 11, 3),
-        error(ParserErrorCode.MISSING_IDENTIFIER, 19, 1),
-        error(ScannerErrorCode.EXPECTED_TOKEN, 24, 1),
+        error(ParserErrorCode.expectedToken, 11, 3),
+        error(ParserErrorCode.missingIdentifier, 19, 1),
+        error(ScannerErrorCode.expectedToken, 24, 1),
       ],
     );
   }
@@ -10809,7 +10793,7 @@ f(x) => switch(x) {
   int() => 0 : 1
 };
 ''',
-      errors: [error(ParserErrorCode.EXPECTED_TOKEN, 33, 1)],
+      errors: [error(ParserErrorCode.expectedToken, 33, 1)],
     );
     var node = findNode.switchExpression('switch');
     assertParsedNodeText(node, r'''
@@ -10845,7 +10829,7 @@ f(x) => [switch(x) {
   int() => 0 : 1
 }, 0];
 ''',
-      errors: [error(ParserErrorCode.EXPECTED_TOKEN, 34, 1)],
+      errors: [error(ParserErrorCode.expectedToken, 34, 1)],
     );
     var node = findNode.listLiteral('[');
     assertParsedNodeText(node, r'''
@@ -10887,7 +10871,7 @@ f(x) => switch(x) {
   int() => 0 : (1, 2)
 };
 ''',
-      errors: [error(ParserErrorCode.EXPECTED_TOKEN, 33, 1)],
+      errors: [error(ParserErrorCode.expectedToken, 33, 1)],
     );
     var node = findNode.switchExpression('switch');
     assertParsedNodeText(node, r'''
@@ -10922,8 +10906,8 @@ f(x) => switch (x) {
 };
 ''',
       errors: [
-        error(ParserErrorCode.UNEXPECTED_TOKEN, 23, 4),
-        error(ParserErrorCode.UNEXPECTED_TOKEN, 42, 4),
+        error(ParserErrorCode.unexpectedToken, 23, 4),
+        error(ParserErrorCode.unexpectedToken, 42, 4),
       ],
     );
     var node = findNode.switchExpression('switch');
@@ -10965,8 +10949,8 @@ f(x) => switch (x) {
 };
 ''',
       errors: [
-        error(ParserErrorCode.EXPECTED_TOKEN, 24, 1),
-        error(ParserErrorCode.EXPECTED_TOKEN, 36, 1),
+        error(ParserErrorCode.expectedToken, 24, 1),
+        error(ParserErrorCode.expectedToken, 36, 1),
       ],
     );
     var node = findNode.switchExpression('switch');
@@ -11007,7 +10991,7 @@ f(x) => switch (x) {
   default => 'other'
 };
 ''',
-      errors: [error(ParserErrorCode.DEFAULT_IN_SWITCH_EXPRESSION, 37, 7)],
+      errors: [error(ParserErrorCode.defaultInSwitchExpression, 37, 7)],
     );
     var node = findNode.switchExpression('switch');
     assertParsedNodeText(node, r'''
@@ -11048,7 +11032,7 @@ f(x) => switch (x) {
   _ => 2
 };
 ''',
-      errors: [error(ParserErrorCode.EXPECTED_TOKEN, 41, 2)],
+      errors: [error(ParserErrorCode.expectedToken, 41, 2)],
     );
     var node = findNode.switchExpression('switch');
     assertParsedNodeText(node, r'''
@@ -11095,7 +11079,7 @@ f(x) => switch (x) {
   _ => 2
 };
 ''',
-      errors: [error(ParserErrorCode.EXPECTED_TOKEN, 41, 2)],
+      errors: [error(ParserErrorCode.expectedToken, 41, 2)],
     );
     var node = findNode.switchExpression('switch');
     assertParsedNodeText(node, r'''
@@ -11140,7 +11124,7 @@ f(x) => switch(x) {
   double() => 1
 };
 ''',
-      errors: [error(ParserErrorCode.EXPECTED_TOKEN, 35, 6)],
+      errors: [error(ParserErrorCode.expectedToken, 35, 6)],
     );
     var node = findNode.switchExpression('switch');
     assertParsedNodeText(node, r'''
@@ -11184,7 +11168,7 @@ f(x) => switch (x) {
   2 => 'two'
 };
 ''',
-      errors: [error(ParserErrorCode.EXPECTED_TOKEN, 33, 1)],
+      errors: [error(ParserErrorCode.expectedToken, 33, 1)],
     );
     var node = findNode.switchExpression('switch');
     assertParsedNodeText(node, r'''
@@ -11226,7 +11210,7 @@ f(x) => switch (x) {
     < 1 => 0
 };
 ''',
-      errors: [error(ParserErrorCode.EXPECTED_TOKEN, 40, 2)],
+      errors: [error(ParserErrorCode.expectedToken, 40, 2)],
     );
     // No assertion on the parsed node text; all we are concerned with is that
     // the parser doesn't crash.
@@ -11278,7 +11262,7 @@ void f(Object? x) {
   };
 }
 ''',
-      errors: [error(ParserErrorCode.MISSING_IDENTIFIER, 45, 2)],
+      errors: [error(ParserErrorCode.missingIdentifier, 45, 2)],
     );
     var node = findNode.switchPatternCase('case');
     assertParsedNodeText(node, r'''
@@ -11306,9 +11290,9 @@ void f(Object? x) {
 }
 ''',
       errors: [
-        error(ParserErrorCode.MISSING_IDENTIFIER, 48, 2),
-        error(ParserErrorCode.EXPECTED_TOKEN, 48, 2),
-        error(ParserErrorCode.EXPECTED_TOKEN, 48, 2),
+        error(ParserErrorCode.missingIdentifier, 48, 2),
+        error(ParserErrorCode.expectedToken, 48, 2),
+        error(ParserErrorCode.expectedToken, 48, 2),
       ],
     );
     var node = findNode.switchPatternCase('case');
@@ -11348,8 +11332,8 @@ void f(Object? x) {
 }
 ''',
       errors: [
-        error(ParserErrorCode.MISSING_IDENTIFIER, 45, 2),
-        error(ParserErrorCode.EXPECTED_TOKEN, 45, 2),
+        error(ParserErrorCode.missingIdentifier, 45, 2),
+        error(ParserErrorCode.expectedToken, 45, 2),
       ],
     );
     var node = findNode.switchPatternCase('case');
@@ -11377,8 +11361,8 @@ void f(Object? x) {
 }
 ''',
       errors: [
-        error(ParserErrorCode.MISSING_IDENTIFIER, 48, 2),
-        error(ParserErrorCode.EXPECTED_TOKEN, 48, 2),
+        error(ParserErrorCode.missingIdentifier, 48, 2),
+        error(ParserErrorCode.expectedToken, 48, 2),
       ],
     );
     var node = findNode.switchPatternCase('case');
@@ -11407,9 +11391,9 @@ SwitchPatternCase
 void f(Object? x) => switch (x) {if};
 ''',
       errors: [
-        error(ParserErrorCode.MISSING_IDENTIFIER, 33, 2),
-        error(ParserErrorCode.EXPECTED_TOKEN, 33, 2),
-        error(ParserErrorCode.EXPECTED_TOKEN, 33, 2),
+        error(ParserErrorCode.missingIdentifier, 33, 2),
+        error(ParserErrorCode.expectedToken, 33, 2),
+        error(ParserErrorCode.expectedToken, 33, 2),
       ],
     );
     var node = findNode.switchExpression('if');
@@ -11528,7 +11512,7 @@ void f(x) {
 ''',
       errors: [
         error(
-          ParserErrorCode.VARIABLE_PATTERN_KEYWORD_IN_DECLARATION_CONTEXT,
+          ParserErrorCode.variablePatternKeywordInDeclarationContext,
           19,
           5,
         ),
@@ -11609,7 +11593,7 @@ void f(x) {
   }
 }
 ''',
-      errors: [error(ParserErrorCode.ILLEGAL_PATTERN_VARIABLE_NAME, 40, 2)],
+      errors: [error(ParserErrorCode.illegalPatternVariableName, 40, 2)],
     );
     var node = findNode.singleGuardedPattern.pattern;
     assertParsedNodeText(node, r'''
@@ -11628,7 +11612,7 @@ void f(x) {
   }
 }
 ''',
-      errors: [error(ParserErrorCode.ILLEGAL_PATTERN_VARIABLE_NAME, 40, 4)],
+      errors: [error(ParserErrorCode.illegalPatternVariableName, 40, 4)],
     );
     var node = findNode.singleGuardedPattern.pattern;
     assertParsedNodeText(node, r'''
@@ -11854,7 +11838,7 @@ void f(x) {
 ''',
       errors: [
         error(
-          ParserErrorCode.VARIABLE_PATTERN_KEYWORD_IN_DECLARATION_CONTEXT,
+          ParserErrorCode.variablePatternKeywordInDeclarationContext,
           19,
           3,
         ),
@@ -11973,7 +11957,7 @@ void f(int x) {
 ''',
       errors: [
         error(
-          ParserErrorCode.VARIABLE_PATTERN_KEYWORD_IN_DECLARATION_CONTEXT,
+          ParserErrorCode.variablePatternKeywordInDeclarationContext,
           23,
           3,
         ),
@@ -12001,7 +11985,7 @@ void f(x) {
 ''',
       errors: [
         error(
-          ParserErrorCode.VARIABLE_PATTERN_KEYWORD_IN_DECLARATION_CONTEXT,
+          ParserErrorCode.variablePatternKeywordInDeclarationContext,
           19,
           3,
         ),
@@ -12030,7 +12014,7 @@ void f(x) {
   }
 }
 ''',
-      errors: [error(ParserErrorCode.VAR_AND_TYPE, 36, 3)],
+      errors: [error(ParserErrorCode.varAndType, 36, 3)],
     );
     var node = findNode.singleGuardedPattern;
     assertParsedNodeText(node, r'''
@@ -12053,7 +12037,7 @@ void f(x) {
   }
 }
 ''',
-      errors: [error(ParserErrorCode.VAR_AND_TYPE, 36, 3)],
+      errors: [error(ParserErrorCode.varAndType, 36, 3)],
     );
     var node = findNode.singleGuardedPattern;
     assertParsedNodeText(node, r'''
@@ -12401,9 +12385,7 @@ void f() {
   [a, final _] = y;
 }
 ''',
-      errors: [
-        error(ParserErrorCode.PATTERN_ASSIGNMENT_DECLARES_VARIABLE, 23, 1),
-      ],
+      errors: [error(ParserErrorCode.patternAssignmentDeclaresVariable, 23, 1)],
     );
     var node = findNode.patternAssignment('=');
     assertParsedNodeText(node, r'''
@@ -12430,9 +12412,7 @@ void f() {
   [a, final int _] = y;
 }
 ''',
-      errors: [
-        error(ParserErrorCode.PATTERN_ASSIGNMENT_DECLARES_VARIABLE, 27, 1),
-      ],
+      errors: [error(ParserErrorCode.patternAssignmentDeclaresVariable, 27, 1)],
     );
     var node = findNode.patternAssignment('=');
     assertParsedNodeText(node, r'''
@@ -12461,9 +12441,7 @@ void f() {
   [a, int _] = y;
 }
 ''',
-      errors: [
-        error(ParserErrorCode.PATTERN_ASSIGNMENT_DECLARES_VARIABLE, 21, 1),
-      ],
+      errors: [error(ParserErrorCode.patternAssignmentDeclaresVariable, 21, 1)],
     );
     var node = findNode.patternAssignment('=');
     assertParsedNodeText(node, r'''
@@ -12491,9 +12469,7 @@ void f() {
   [a, var _] = y;
 }
 ''',
-      errors: [
-        error(ParserErrorCode.PATTERN_ASSIGNMENT_DECLARES_VARIABLE, 21, 1),
-      ],
+      errors: [error(ParserErrorCode.patternAssignmentDeclaresVariable, 21, 1)],
     );
     var node = findNode.patternAssignment('=');
     assertParsedNodeText(node, r'''
@@ -12520,9 +12496,7 @@ void f() {
   [a, var int _] = y;
 }
 ''',
-      errors: [
-        error(ParserErrorCode.PATTERN_ASSIGNMENT_DECLARES_VARIABLE, 25, 1),
-      ],
+      errors: [error(ParserErrorCode.patternAssignmentDeclaresVariable, 25, 1)],
     );
     var node = findNode.patternAssignment('=');
     assertParsedNodeText(node, r'''

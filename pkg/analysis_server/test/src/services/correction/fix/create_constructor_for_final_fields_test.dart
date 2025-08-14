@@ -314,7 +314,7 @@ class Test {
 ''',
       errorFilter: (error) {
         return error.diagnosticCode ==
-                CompileTimeErrorCode.FINAL_NOT_INITIALIZED &&
+                CompileTimeErrorCode.finalNotInitialized &&
             error.message.contains("'_a'");
       },
     );

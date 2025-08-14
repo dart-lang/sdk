@@ -22,7 +22,7 @@ class ObjectCannotExtendAnotherClassTest extends PubPackageResolutionTest {
       r'''
 class Object extends List {}
 ''',
-      [error(CompileTimeErrorCode.OBJECT_CANNOT_EXTEND_ANOTHER_CLASS, 0, 0)],
+      [error(CompileTimeErrorCode.objectCannotExtendAnotherClass, 0, 0)],
     );
   }
 }

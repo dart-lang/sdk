@@ -203,7 +203,7 @@ class ErrorHandlerVerifier {
     void report() {
       _diagnosticReporter.atNode(
         expression,
-        WarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE_TO_ERROR_HANDLER,
+        WarningCode.argumentTypeNotAssignableToErrorHandler,
         arguments: [expressionType, expectedFunctionReturnType],
       );
     }
@@ -292,7 +292,7 @@ class ErrorHandlerVerifier {
     )) {
       _diagnosticReporter.atNode(
         callback,
-        WarningCode.RETURN_TYPE_INVALID_FOR_CATCH_ERROR,
+        WarningCode.returnTypeInvalidForCatchError,
         arguments: [functionReturnType, expectedType],
       );
     }

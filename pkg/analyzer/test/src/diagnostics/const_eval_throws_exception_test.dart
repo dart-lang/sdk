@@ -30,9 +30,9 @@ const int y = 1;
 var v = const C<String>();
 ''',
       [
-        error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 27, 1),
+        error(CompileTimeErrorCode.invalidAssignment, 27, 1),
         error(
-          CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION,
+          CompileTimeErrorCode.constEvalThrowsException,
           70,
           17,
           contextMessages: [
@@ -60,7 +60,7 @@ var v = const A('foo');
 ''',
       [
         error(
-          CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION,
+          CompileTimeErrorCode.constEvalThrowsException,
           57,
           14,
           contextMessages: [
@@ -80,7 +80,7 @@ var v = const A('foo');
   test_notGeneric_int_null() async {
     var errors = [
       error(
-        CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION,
+        CompileTimeErrorCode.constEvalThrowsException,
         57,
         13,
         contextMessages: [
@@ -115,7 +115,7 @@ const a = const C(null);
 ''',
       [
         error(
-          CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION,
+          CompileTimeErrorCode.constEvalThrowsException,
           60,
           13,
           contextMessages: [
@@ -151,7 +151,7 @@ main() {
 ''',
       [
         error(
-          CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION,
+          CompileTimeErrorCode.constEvalThrowsException,
           92,
           19,
           contextMessages: [
@@ -165,7 +165,7 @@ main() {
           ],
         ),
         error(
-          CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION,
+          CompileTimeErrorCode.constEvalThrowsException,
           115,
           18,
           contextMessages: [
@@ -198,7 +198,7 @@ main() {
 ''',
       [
         error(
-          CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION,
+          CompileTimeErrorCode.constEvalThrowsException,
           104,
           21,
           contextMessages: [
@@ -212,7 +212,7 @@ main() {
           ],
         ),
         error(
-          CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION,
+          CompileTimeErrorCode.constEvalThrowsException,
           129,
           18,
           contextMessages: [
@@ -239,7 +239,7 @@ var v = const A(3, 2);
 ''',
       [
         error(
-          CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION,
+          CompileTimeErrorCode.constEvalThrowsException,
           61,
           13,
           contextMessages: [
@@ -272,7 +272,7 @@ main() {
 ''',
       [
         error(
-          CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION,
+          CompileTimeErrorCode.constEvalThrowsException,
           124,
           10,
           contextMessages: [
@@ -306,7 +306,7 @@ const a = const A(0);
 ''',
       [
         error(
-          CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION,
+          CompileTimeErrorCode.constEvalThrowsException,
           84,
           10,
           contextMessages: [
@@ -332,11 +332,11 @@ class A {
 const a = const A(0);
 ''',
       [
-        error(CompileTimeErrorCode.INVALID_CONSTANT, 45, 8),
-        error(CompileTimeErrorCode.CONST_CONSTRUCTOR_THROWS_EXCEPTION, 45, 8),
-        error(WarningCode.DEAD_CODE, 54, 3),
+        error(CompileTimeErrorCode.invalidConstant, 45, 8),
+        error(CompileTimeErrorCode.constConstructorThrowsException, 45, 8),
+        error(WarningCode.deadCode, 54, 3),
         error(
-          CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION,
+          CompileTimeErrorCode.constEvalThrowsException,
           70,
           10,
           contextMessages: [
@@ -359,7 +359,7 @@ const a = const A(0);
 const dynamic D = null;
 const C = D - 5;
 ''',
-      [error(CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION, 34, 5)],
+      [error(CompileTimeErrorCode.constEvalThrowsException, 34, 5)],
     );
 
     await assertErrorsInCode(
@@ -367,7 +367,7 @@ const C = D - 5;
 const dynamic D = null;
 const C = 5 - D;
 ''',
-      [error(CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION, 34, 5)],
+      [error(CompileTimeErrorCode.constEvalThrowsException, 34, 5)],
     );
   }
 
@@ -377,7 +377,7 @@ const C = 5 - D;
 const dynamic D = null;
 const C = D + 5;
 ''',
-      [error(CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION, 34, 5)],
+      [error(CompileTimeErrorCode.constEvalThrowsException, 34, 5)],
     );
 
     await assertErrorsInCode(
@@ -385,7 +385,7 @@ const C = D + 5;
 const dynamic D = null;
 const C = 5 + D;
 ''',
-      [error(CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION, 34, 5)],
+      [error(CompileTimeErrorCode.constEvalThrowsException, 34, 5)],
     );
   }
 
@@ -463,11 +463,11 @@ main() {
   var c = const C();
 }
 ''',
-      [error(WarningCode.UNUSED_LOCAL_VARIABLE, 37, 1)],
+      [error(WarningCode.unusedLocalVariable, 37, 1)],
     );
     var otherFileResult = await resolveFile(other);
     assertErrorsInList(otherFileResult.diagnostics, [
-      error(WarningCode.UNNECESSARY_NULL_COMPARISON_NEVER_NULL_TRUE, 97, 7),
+      error(WarningCode.unnecessaryNullComparisonNeverNullTrue, 97, 7),
     ]);
   }
 
@@ -482,7 +482,7 @@ enum E {
 ''',
       [
         error(
-          CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION,
+          CompileTimeErrorCode.constEvalThrowsException,
           11,
           3,
           contextMessages: [
@@ -511,7 +511,7 @@ enum E {
 ''',
       [
         error(
-          CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION,
+          CompileTimeErrorCode.constEvalThrowsException,
           36,
           4,
           contextMessages: [
@@ -540,7 +540,7 @@ enum E {
 ''',
       [
         error(
-          CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION,
+          CompileTimeErrorCode.constEvalThrowsException,
           35,
           4,
           contextMessages: [
@@ -582,11 +582,11 @@ var x = const C();
 ''',
       [
         error(
-          CompileTimeErrorCode.FIELD_INITIALIZED_IN_INITIALIZER_AND_DECLARATION,
+          CompileTimeErrorCode.fieldInitializedInInitializerAndDeclaration,
           39,
           1,
         ),
-        error(CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION, 56, 9),
+        error(CompileTimeErrorCode.constEvalThrowsException, 56, 9),
       ],
     );
   }
@@ -607,11 +607,11 @@ var x = const C(2);
 ''',
       [
         error(
-          CompileTimeErrorCode.FINAL_INITIALIZED_IN_DECLARATION_AND_CONSTRUCTOR,
+          CompileTimeErrorCode.finalInitializedInDeclarationAndConstructor,
           40,
           1,
         ),
-        error(CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION, 54, 10),
+        error(CompileTimeErrorCode.constEvalThrowsException, 54, 10),
       ],
     );
   }
@@ -636,10 +636,10 @@ var b1 = const bool.fromEnvironment(1);
 var b2 = const bool.fromEnvironment('x', defaultValue: 1);
 ''',
       [
-        error(CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION, 9, 29),
-        error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 36, 1),
-        error(CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION, 49, 48),
-        error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 95, 1),
+        error(CompileTimeErrorCode.constEvalThrowsException, 9, 29),
+        error(CompileTimeErrorCode.argumentTypeNotAssignable, 36, 1),
+        error(CompileTimeErrorCode.constEvalThrowsException, 49, 48),
+        error(CompileTimeErrorCode.argumentTypeNotAssignable, 95, 1),
       ],
     );
   }
@@ -653,8 +653,8 @@ var b2 = const bool.fromEnvironment('x', defaultValue: 1);
 var b = const bool.fromEnvironment('x', defaultValue: 1);
 ''',
       [
-        error(CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION, 8, 48),
-        error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 54, 1),
+        error(CompileTimeErrorCode.constEvalThrowsException, 8, 48),
+        error(CompileTimeErrorCode.argumentTypeNotAssignable, 54, 1),
       ],
     );
   }
@@ -696,7 +696,7 @@ var v = const A.a1(0);
 ''',
       [
         error(
-          CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION,
+          CompileTimeErrorCode.constEvalThrowsException,
           74,
           13,
           contextMessages: [
@@ -727,7 +727,7 @@ const f = const D('0.0');
 ''',
       [
         error(
-          CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION,
+          CompileTimeErrorCode.constEvalThrowsException,
           106,
           14,
           contextMessages: [
@@ -757,8 +757,8 @@ const f = const D('0.0');
 var s2 = const Symbol(3);
 ''',
       [
-        error(CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION, 9, 15),
-        error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 22, 1),
+        error(CompileTimeErrorCode.constEvalThrowsException, 9, 15),
+        error(CompileTimeErrorCode.argumentTypeNotAssignable, 22, 1),
       ],
     );
   }
@@ -781,7 +781,7 @@ var s = const Symbol('_');
 const dynamic D = null;
 const C = ~D;
 ''',
-      [error(CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION, 34, 2)],
+      [error(CompileTimeErrorCode.constEvalThrowsException, 34, 2)],
     );
   }
 
@@ -791,7 +791,7 @@ const C = ~D;
 const dynamic D = null;
 const C = -D;
 ''',
-      [error(CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION, 34, 2)],
+      [error(CompileTimeErrorCode.constEvalThrowsException, 34, 2)],
     );
   }
 
@@ -801,7 +801,7 @@ const C = -D;
 const dynamic D = null;
 const C = !D;
 ''',
-      [error(CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION, 34, 2)],
+      [error(CompileTimeErrorCode.constEvalThrowsException, 34, 2)],
     );
   }
 }

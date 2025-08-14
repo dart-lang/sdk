@@ -17,8 +17,8 @@ void main() {
 class AlwaysPutControlBodyOnNewLineTest extends LintRuleTest {
   @override
   List<DiagnosticCode> get ignoredDiagnosticCodes => [
-    WarningCode.DEAD_CODE,
-    WarningCode.UNUSED_LOCAL_VARIABLE,
+    WarningCode.deadCode,
+    WarningCode.unusedLocalVariable,
   ];
 
   @override

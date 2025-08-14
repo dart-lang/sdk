@@ -78,7 +78,7 @@ void f(x) {
 ''',
       [
         error(
-          CompileTimeErrorCode.CONSTANT_PATTERN_WITH_NON_CONSTANT_EXPRESSION,
+          CompileTimeErrorCode.constantPatternWithNonConstantExpression,
           60,
           3,
         ),
@@ -297,7 +297,7 @@ void f(x) {
 ''',
       [
         error(
-          CompileTimeErrorCode.CONSTANT_PATTERN_WITH_NON_CONSTANT_EXPRESSION,
+          CompileTimeErrorCode.constantPatternWithNonConstantExpression,
           47,
           1,
         ),
@@ -335,7 +335,7 @@ void f(x) {
 ''',
       [
         error(
-          CompileTimeErrorCode.CONSTANT_PATTERN_WITH_NON_CONSTANT_EXPRESSION,
+          CompileTimeErrorCode.constantPatternWithNonConstantExpression,
           38,
           1,
         ),
@@ -415,7 +415,7 @@ void f(x) {
 ''',
       [
         error(
-          CompileTimeErrorCode.CONSTANT_PATTERN_WITH_NON_CONSTANT_EXPRESSION,
+          CompileTimeErrorCode.constantPatternWithNonConstantExpression,
           47,
           1,
         ),
@@ -465,7 +465,7 @@ void f(x) {
 ''',
       [
         error(
-          CompileTimeErrorCode.CONSTANT_PATTERN_WITH_NON_CONSTANT_EXPRESSION,
+          CompileTimeErrorCode.constantPatternWithNonConstantExpression,
           50,
           1,
         ),
@@ -537,7 +537,7 @@ void f(var e, int a) {
 ''',
       [
         error(
-          CompileTimeErrorCode.CONSTANT_PATTERN_WITH_NON_CONSTANT_EXPRESSION,
+          CompileTimeErrorCode.constantPatternWithNonConstantExpression,
           58,
           1,
         ),
@@ -577,7 +577,7 @@ void f(x) {
 ''',
       [
         error(
-          CompileTimeErrorCode.CONSTANT_PATTERN_WITH_NON_CONSTANT_EXPRESSION,
+          CompileTimeErrorCode.constantPatternWithNonConstantExpression,
           39,
           1,
         ),
@@ -603,7 +603,7 @@ void f(Object? x) {
   if (x case foo) {}
 }
 ''',
-      [error(CompileTimeErrorCode.UNDEFINED_IDENTIFIER, 33, 3)],
+      [error(CompileTimeErrorCode.undefinedIdentifier, 33, 3)],
     );
 
     var node = findNode.singleGuardedPattern;

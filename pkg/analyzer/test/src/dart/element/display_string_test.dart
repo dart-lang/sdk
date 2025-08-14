@@ -307,7 +307,7 @@ final class A {}
       r'''
 import 'src/f.dart';
 ''',
-      [error(CompileTimeErrorCode.URI_DOES_NOT_EXIST, 7, 12)],
+      [error(CompileTimeErrorCode.uriDoesNotExist, 7, 12)],
     );
     var import =
         findElement2.libraryFragment.libraryImports[0] as LibraryImportImpl;
@@ -410,7 +410,7 @@ void f() {
   f: 0;
 }
 ''',
-      [error(WarningCode.UNUSED_LABEL, 13, 2)],
+      [error(WarningCode.unusedLabel, 13, 2)],
     );
     var element = findElement2.label('f');
     expect(element.displayString(), 'f');
@@ -429,7 +429,7 @@ library f;
       r'''
 export 'src/f.dart';
 ''',
-      [error(CompileTimeErrorCode.URI_DOES_NOT_EXIST, 7, 12)],
+      [error(CompileTimeErrorCode.uriDoesNotExist, 7, 12)],
     );
     var export =
         findElement2.libraryFragment.libraryExports.single as LibraryExportImpl;
@@ -441,7 +441,7 @@ export 'src/f.dart';
       r'''
 import 'src/f.dart';
 ''',
-      [error(CompileTimeErrorCode.URI_DOES_NOT_EXIST, 7, 12)],
+      [error(CompileTimeErrorCode.uriDoesNotExist, 7, 12)],
     );
     var import =
         findElement2.libraryFragment.libraryImports[0] as LibraryImportImpl;
@@ -455,7 +455,7 @@ void f() {
   void g() {}
 }
 ''',
-      [error(WarningCode.UNUSED_ELEMENT, 18, 1)],
+      [error(WarningCode.unusedElement, 18, 1)],
     );
     var element = findElement2.localFunction('g');
     expect(element.displayString(), "void g()");
@@ -468,7 +468,7 @@ void f() {
   void g(int a, bool b, {String? c}) {}
 }
 ''',
-      [error(WarningCode.UNUSED_ELEMENT, 18, 1)],
+      [error(WarningCode.unusedElement, 18, 1)],
     );
     var element = findElement2.localFunction('g');
     expect(element.displayString(), "void g(int a, bool b, {String? c})");
@@ -481,7 +481,7 @@ void f() {
   void g<T, S extends num>() {}
 }
 ''',
-      [error(WarningCode.UNUSED_ELEMENT, 18, 1)],
+      [error(WarningCode.unusedElement, 18, 1)],
     );
     var element = findElement2.localFunction('g');
     expect(element.displayString(), "void g<T, S extends num>()");
@@ -530,7 +530,7 @@ mixin M<T, S extends num> {}
       r'''
 Never a;
 ''',
-      [error(CompileTimeErrorCode.NOT_INITIALIZED_NON_NULLABLE_VARIABLE, 6, 1)],
+      [error(CompileTimeErrorCode.notInitializedNonNullableVariable, 6, 1)],
     );
     var element = findElement2.topVar('a');
     expect(element.displayString(), "Never a");
@@ -541,7 +541,7 @@ Never a;
       r'''
 part 'src/f.dart';
 ''',
-      [error(CompileTimeErrorCode.URI_DOES_NOT_EXIST, 5, 12)],
+      [error(CompileTimeErrorCode.uriDoesNotExist, 5, 12)],
     );
     var element =
         findElement2.libraryFragment.partIncludes.single as PartIncludeImpl;
@@ -555,8 +555,8 @@ import 'src/f.dart' as a;
 import 'src/bar.dart' as a;
 ''',
       [
-        error(CompileTimeErrorCode.URI_DOES_NOT_EXIST, 7, 12),
-        error(CompileTimeErrorCode.URI_DOES_NOT_EXIST, 33, 14),
+        error(CompileTimeErrorCode.uriDoesNotExist, 7, 12),
+        error(CompileTimeErrorCode.uriDoesNotExist, 33, 14),
       ],
     );
     var prefix = findElement2.prefix('a');
@@ -571,7 +571,7 @@ import 'src/bar.dart' as a;
       r'''
 import 'src/f.dart' as a;
 ''',
-      [error(CompileTimeErrorCode.URI_DOES_NOT_EXIST, 7, 12)],
+      [error(CompileTimeErrorCode.uriDoesNotExist, 7, 12)],
     );
     var prefix = findElement2.prefix('a');
     expect(prefix.displayString(), "import 'src/f.dart' as a;");

@@ -23,11 +23,9 @@ void dependencyValidator(PubspecValidationContext ctx) {
     } else if (field is YamlMap) {
       return field.nodes;
     }
-    ctx.reportErrorForNode(
-      field,
-      PubspecWarningCode.DEPENDENCIES_FIELD_NOT_MAP,
-      [key],
-    );
+    ctx.reportErrorForNode(field, PubspecWarningCode.dependenciesFieldNotMap, [
+      key,
+    ]);
     return <String, YamlNode>{};
   }
 
@@ -50,7 +48,7 @@ void dependencyValidator(PubspecValidationContext ctx) {
       YamlNode pathValue() => dependency.valueAt(PubspecField.PATH_FIELD)!;
 
       if (pathEntry.contains(r'\')) {
-        ctx.reportErrorForNode(pathValue(), PubspecWarningCode.PATH_NOT_POSIX, [
+        ctx.reportErrorForNode(pathValue(), PubspecWarningCode.pathNotPosix, [
           pathEntry,
         ]);
         return;
@@ -65,14 +63,14 @@ void dependencyValidator(PubspecValidationContext ctx) {
       if (!packageFolder.exists) {
         ctx.reportErrorForNode(
           pathValue(),
-          PubspecWarningCode.PATH_DOES_NOT_EXIST,
+          PubspecWarningCode.pathDoesNotExist,
           [pathEntry],
         );
       } else {
         if (!packageFolder.getChild(file_paths.pubspecYaml).exists) {
           ctx.reportErrorForNode(
             pathValue(),
-            PubspecWarningCode.PATH_PUBSPEC_DOES_NOT_EXIST,
+            PubspecWarningCode.pathPubspecDoesNotExist,
             [pathEntry],
           );
         }
@@ -80,7 +78,7 @@ void dependencyValidator(PubspecValidationContext ctx) {
       if (checkForPathAndGitDeps) {
         ctx.reportErrorForNode(
           pathKey(),
-          PubspecWarningCode.INVALID_DEPENDENCY,
+          PubspecWarningCode.invalidDependency,
           [PubspecField.PATH_FIELD],
         );
       }
@@ -90,7 +88,7 @@ void dependencyValidator(PubspecValidationContext ctx) {
     if (gitEntry != null && checkForPathAndGitDeps) {
       ctx.reportErrorForNode(
         dependency.getKey(PubspecField.GIT_FIELD)!,
-        PubspecWarningCode.INVALID_DEPENDENCY,
+        PubspecWarningCode.invalidDependency,
         [PubspecField.GIT_FIELD],
       );
     }
@@ -123,7 +121,7 @@ void dependencyValidator(PubspecValidationContext ctx) {
     if (declaredDependencies.containsKey(packageName)) {
       ctx.reportErrorForNode(
         packageName,
-        PubspecWarningCode.UNNECESSARY_DEV_DEPENDENCY,
+        PubspecWarningCode.unnecessaryDevDependency,
         [packageName.valueOrThrow],
       );
     }

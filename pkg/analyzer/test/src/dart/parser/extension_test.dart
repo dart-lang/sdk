@@ -60,7 +60,7 @@ ExtensionDeclaration
 augment extension E on int {}
 ''');
     parseResult.assertErrors([
-      error(ParserErrorCode.EXTENSION_AUGMENTATION_HAS_ON_CLAUSE, 20, 2),
+      error(ParserErrorCode.extensionAugmentationHasOnClause, 20, 2),
     ]);
 
     var node = parseResult.findNode.singleExtensionDeclaration;

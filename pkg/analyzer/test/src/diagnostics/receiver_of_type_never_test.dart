@@ -23,8 +23,8 @@ void f() {
 }
 ''',
       [
-        error(WarningCode.RECEIVER_OF_TYPE_NEVER, 13, 10),
-        error(WarningCode.DEAD_CODE, 24, 8),
+        error(WarningCode.receiverOfTypeNever, 13, 10),
+        error(WarningCode.deadCode, 24, 8),
       ],
     );
 
@@ -67,8 +67,8 @@ void f(Never x) {
 }
 ''',
       [
-        error(WarningCode.RECEIVER_OF_TYPE_NEVER, 20, 1),
-        error(WarningCode.DEAD_CODE, 22, 8),
+        error(WarningCode.receiverOfTypeNever, 20, 1),
+        error(WarningCode.deadCode, 22, 8),
       ],
     );
 
@@ -106,8 +106,8 @@ void f(Never x) {
 }
 ''',
       [
-        error(WarningCode.RECEIVER_OF_TYPE_NEVER, 20, 1),
-        error(WarningCode.DEAD_CODE, 22, 9),
+        error(WarningCode.receiverOfTypeNever, 20, 1),
+        error(WarningCode.deadCode, 22, 9),
       ],
     );
 
@@ -183,7 +183,7 @@ void f(Never? x) {
 ''',
       [
         error(
-          CompileTimeErrorCode.UNCHECKED_OPERATOR_INVOCATION_OF_NULLABLE_VALUE,
+          CompileTimeErrorCode.uncheckedOperatorInvocationOfNullableValue,
           23,
           1,
         ),
@@ -228,8 +228,8 @@ void f() {
 }
 ''',
       [
-        error(WarningCode.RECEIVER_OF_TYPE_NEVER, 13, 10),
-        error(WarningCode.DEAD_CODE, 24, 9),
+        error(WarningCode.receiverOfTypeNever, 13, 10),
+        error(WarningCode.deadCode, 24, 9),
       ],
     );
 
@@ -294,8 +294,8 @@ void f(Never x) {
 }
 ''',
       [
-        error(WarningCode.RECEIVER_OF_TYPE_NEVER, 20, 1),
-        error(WarningCode.DEAD_CODE, 21, 3),
+        error(WarningCode.receiverOfTypeNever, 20, 1),
+        error(WarningCode.deadCode, 21, 3),
       ],
     );
   }
@@ -307,13 +307,7 @@ void f(Never? x) {
   x();
 }
 ''',
-      [
-        error(
-          CompileTimeErrorCode.UNCHECKED_INVOCATION_OF_NULLABLE_VALUE,
-          21,
-          1,
-        ),
-      ],
+      [error(CompileTimeErrorCode.uncheckedInvocationOfNullableValue, 21, 1)],
     );
   }
 
@@ -325,8 +319,8 @@ void f(Never x) {
 }
 ''',
       [
-        error(WarningCode.RECEIVER_OF_TYPE_NEVER, 20, 1),
-        error(WarningCode.DEAD_CODE, 22, 3),
+        error(WarningCode.receiverOfTypeNever, 20, 1),
+        error(WarningCode.deadCode, 22, 3),
       ],
     );
 
@@ -355,8 +349,8 @@ void f(Never x) {
 }
 ''',
       [
-        error(WarningCode.RECEIVER_OF_TYPE_NEVER, 20, 1),
-        error(WarningCode.DEAD_CODE, 22, 12),
+        error(WarningCode.receiverOfTypeNever, 20, 1),
+        error(WarningCode.deadCode, 22, 12),
       ],
     );
 
@@ -407,8 +401,8 @@ void f(Never x) {
 }
 ''',
       [
-        error(WarningCode.RECEIVER_OF_TYPE_NEVER, 20, 1),
-        error(WarningCode.DEAD_CODE, 22, 11),
+        error(WarningCode.receiverOfTypeNever, 20, 1),
+        error(WarningCode.deadCode, 22, 11),
       ],
     );
 
@@ -459,7 +453,7 @@ void f(Never? x) {
 ''',
       [
         error(
-          CompileTimeErrorCode.UNCHECKED_METHOD_INVOCATION_OF_NULLABLE_VALUE,
+          CompileTimeErrorCode.uncheckedMethodInvocationOfNullableValue,
           22,
           1,
         ),
@@ -492,7 +486,7 @@ void f(Never? x) {
 ''',
       [
         error(
-          CompileTimeErrorCode.UNCHECKED_METHOD_INVOCATION_OF_NULLABLE_VALUE,
+          CompileTimeErrorCode.uncheckedMethodInvocationOfNullableValue,
           22,
           1,
         ),
@@ -547,7 +541,7 @@ void f(Never? x) {
 ''',
       [
         error(
-          CompileTimeErrorCode.UNCHECKED_METHOD_INVOCATION_OF_NULLABLE_VALUE,
+          CompileTimeErrorCode.uncheckedMethodInvocationOfNullableValue,
           22,
           1,
         ),
@@ -608,8 +602,8 @@ void f(Never x) {
 }
 ''',
       [
-        error(WarningCode.RECEIVER_OF_TYPE_NEVER, 20, 1),
-        error(WarningCode.DEAD_CODE, 25, 8),
+        error(WarningCode.receiverOfTypeNever, 20, 1),
+        error(WarningCode.deadCode, 25, 8),
       ],
     );
 
@@ -655,8 +649,8 @@ void f(Never x) {
 }
 ''',
       [
-        error(WarningCode.RECEIVER_OF_TYPE_NEVER, 20, 1),
-        error(WarningCode.DEAD_CODE, 30, 8),
+        error(WarningCode.receiverOfTypeNever, 20, 1),
+        error(WarningCode.deadCode, 30, 8),
       ],
     );
 
@@ -701,7 +695,7 @@ void f(Never? x) {
   x.toString(1 + 2);
 }
 ''',
-      [error(CompileTimeErrorCode.EXTRA_POSITIONAL_ARGUMENTS, 32, 5)],
+      [error(CompileTimeErrorCode.extraPositionalArguments, 32, 5)],
     );
 
     var node = findNode.methodInvocation('.toString(1 + 2)');
@@ -746,8 +740,8 @@ void f() {
 }
 ''',
       [
-        error(WarningCode.RECEIVER_OF_TYPE_NEVER, 13, 10),
-        error(WarningCode.DEAD_CODE, 32, 3),
+        error(WarningCode.receiverOfTypeNever, 13, 10),
+        error(WarningCode.deadCode, 32, 3),
       ],
     );
 
@@ -783,7 +777,7 @@ void f(Never x) {
   x++;
 }
 ''',
-      [error(WarningCode.RECEIVER_OF_TYPE_NEVER, 20, 1)],
+      [error(WarningCode.receiverOfTypeNever, 20, 1)],
     );
 
     assertResolvedNodeText(findNode.postfix('x++'), r'''
@@ -811,7 +805,7 @@ void f(Never? x) {
 ''',
       [
         error(
-          CompileTimeErrorCode.UNCHECKED_METHOD_INVOCATION_OF_NULLABLE_VALUE,
+          CompileTimeErrorCode.uncheckedMethodInvocationOfNullableValue,
           22,
           2,
         ),
@@ -842,7 +836,7 @@ void f(Never x) {
   ++x;
 }
 ''',
-      [error(WarningCode.RECEIVER_OF_TYPE_NEVER, 22, 1)],
+      [error(WarningCode.receiverOfTypeNever, 22, 1)],
     );
 
     assertResolvedNodeText(findNode.prefix('++x'), r'''
@@ -870,7 +864,7 @@ void f(Never? x) {
 ''',
       [
         error(
-          CompileTimeErrorCode.UNCHECKED_METHOD_INVOCATION_OF_NULLABLE_VALUE,
+          CompileTimeErrorCode.uncheckedMethodInvocationOfNullableValue,
           21,
           2,
         ),
@@ -900,7 +894,7 @@ void f(Never x) {
   x.foo;
 }
 ''',
-      [error(WarningCode.DEAD_CODE, 22, 4)],
+      [error(WarningCode.deadCode, 22, 4)],
     );
 
     var node = findNode.singlePrefixedIdentifier;
@@ -927,7 +921,7 @@ void f(Never x) {
   x.hashCode;
 }
 ''',
-      [error(WarningCode.DEAD_CODE, 22, 9)],
+      [error(WarningCode.deadCode, 22, 9)],
     );
 
     var node = findNode.singlePrefixedIdentifier;
@@ -954,7 +948,7 @@ void f(Never x) {
   x.foo += 0;
 }
 ''',
-      [error(WarningCode.DEAD_CODE, 29, 2)],
+      [error(WarningCode.deadCode, 29, 2)],
     );
 
     var assignment = findNode.assignment('foo += 0');
@@ -993,7 +987,7 @@ void f(Never x) {
   x.toString;
 }
 ''',
-      [error(WarningCode.DEAD_CODE, 22, 9)],
+      [error(WarningCode.deadCode, 22, 9)],
     );
 
     var node = findNode.singlePrefixedIdentifier;
@@ -1020,7 +1014,7 @@ void f(Never x) {
   x.foo = 0;
 }
 ''',
-      [error(WarningCode.DEAD_CODE, 28, 2)],
+      [error(WarningCode.deadCode, 28, 2)],
     );
 
     var assignment = findNode.assignment('foo = 0');
@@ -1061,7 +1055,7 @@ void f(Never? x) {
 ''',
       [
         error(
-          CompileTimeErrorCode.UNCHECKED_PROPERTY_ACCESS_OF_NULLABLE_VALUE,
+          CompileTimeErrorCode.uncheckedPropertyAccessOfNullableValue,
           23,
           3,
         ),
@@ -1140,7 +1134,7 @@ void f() {
   (throw '').toString;
 }
 ''',
-      [error(WarningCode.DEAD_CODE, 24, 9)],
+      [error(WarningCode.deadCode, 24, 9)],
     );
 
     var node = findNode.singlePropertyAccess;
@@ -1171,7 +1165,7 @@ void f() {
   (throw '').hashCode;
 }
 ''',
-      [error(WarningCode.DEAD_CODE, 24, 9)],
+      [error(WarningCode.deadCode, 24, 9)],
     );
 
     var node = findNode.singlePropertyAccess;

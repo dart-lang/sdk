@@ -21,7 +21,7 @@ class NonBoolConditionTest extends PubPackageResolutionTest {
       '''
 f() { return 3 ? 2 : 1; }
 ''',
-      [error(CompileTimeErrorCode.NON_BOOL_CONDITION, 13, 1)],
+      [error(CompileTimeErrorCode.nonBoolCondition, 13, 1)],
     );
   }
 
@@ -30,7 +30,7 @@ f() { return 3 ? 2 : 1; }
       '''
 f() { return [1, 2, 3] ? 2 : 1; }
 ''',
-      [error(CompileTimeErrorCode.NON_BOOL_CONDITION, 13, 9)],
+      [error(CompileTimeErrorCode.nonBoolCondition, 13, 9)],
     );
   }
 
@@ -39,7 +39,7 @@ f() { return [1, 2, 3] ? 2 : 1; }
       '''
 f(Object o) { return o ? 2 : 1; }
 ''',
-      [error(CompileTimeErrorCode.NON_BOOL_CONDITION, 21, 1)],
+      [error(CompileTimeErrorCode.nonBoolCondition, 21, 1)],
     );
   }
 
@@ -49,7 +49,7 @@ f(Object o) { return o ? 2 : 1; }
 const dynamic c = 2;
 const x = [1, if (c) 2 else 3, 4];
 ''',
-      [error(CompileTimeErrorCode.NON_BOOL_CONDITION, 39, 1)],
+      [error(CompileTimeErrorCode.nonBoolCondition, 39, 1)],
     );
   }
 
@@ -58,7 +58,7 @@ const x = [1, if (c) 2 else 3, 4];
       r'''
 const x = [1, if (1) 2 else 3, 4];
 ''',
-      [error(CompileTimeErrorCode.NON_BOOL_CONDITION, 18, 1)],
+      [error(CompileTimeErrorCode.nonBoolCondition, 18, 1)],
     );
   }
 
@@ -69,7 +69,7 @@ f() {
   do {} while (3);
 }
 ''',
-      [error(CompileTimeErrorCode.NON_BOOL_CONDITION, 21, 1)],
+      [error(CompileTimeErrorCode.nonBoolCondition, 21, 1)],
     );
   }
 
@@ -80,7 +80,7 @@ f(Object o) {
   do {} while ([1, 2, 3]);
 }
 ''',
-      [error(CompileTimeErrorCode.NON_BOOL_CONDITION, 29, 9)],
+      [error(CompileTimeErrorCode.nonBoolCondition, 29, 9)],
     );
   }
 
@@ -91,7 +91,7 @@ f(Object o) {
   do {} while (o);
 }
 ''',
-      [error(CompileTimeErrorCode.NON_BOOL_CONDITION, 29, 1)],
+      [error(CompileTimeErrorCode.nonBoolCondition, 29, 1)],
     );
   }
 
@@ -103,7 +103,7 @@ f() {
   for (;3;) {}
 }
 ''',
-      [error(CompileTimeErrorCode.NON_BOOL_CONDITION, 14, 1)],
+      [error(CompileTimeErrorCode.nonBoolCondition, 14, 1)],
     );
   }
 
@@ -116,8 +116,8 @@ f() {
 }
 ''',
       [
-        error(WarningCode.UNUSED_LOCAL_VARIABLE, 17, 1),
-        error(CompileTimeErrorCode.NON_BOOL_CONDITION, 24, 1),
+        error(WarningCode.unusedLocalVariable, 17, 1),
+        error(CompileTimeErrorCode.nonBoolCondition, 24, 1),
       ],
     );
   }
@@ -131,8 +131,8 @@ f() {
   for (i = 0; 3;) {}
 }''',
       [
-        error(WarningCode.UNUSED_LOCAL_VARIABLE, 12, 1),
-        error(CompileTimeErrorCode.NON_BOOL_CONDITION, 29, 1),
+        error(WarningCode.unusedLocalVariable, 12, 1),
+        error(CompileTimeErrorCode.nonBoolCondition, 29, 1),
       ],
     );
   }
@@ -144,7 +144,7 @@ f() {
   for (;[1, 2, 3];) {}
 }
 ''',
-      [error(CompileTimeErrorCode.NON_BOOL_CONDITION, 14, 9)],
+      [error(CompileTimeErrorCode.nonBoolCondition, 14, 9)],
     );
   }
 
@@ -155,7 +155,7 @@ f(Object o) {
   for (;o;) {}
 }
 ''',
-      [error(CompileTimeErrorCode.NON_BOOL_CONDITION, 22, 1)],
+      [error(CompileTimeErrorCode.nonBoolCondition, 22, 1)],
     );
   }
 
@@ -164,7 +164,7 @@ f(Object o) {
       '''
 var v = [for (; 0;) 1];
 ''',
-      [error(CompileTimeErrorCode.NON_BOOL_CONDITION, 16, 1)],
+      [error(CompileTimeErrorCode.nonBoolCondition, 16, 1)],
     );
   }
 
@@ -175,7 +175,7 @@ void f() {
   if (0 case _ when 1) {}
 }
 ''',
-      [error(CompileTimeErrorCode.NON_BOOL_CONDITION, 31, 1)],
+      [error(CompileTimeErrorCode.nonBoolCondition, 31, 1)],
     );
   }
 
@@ -186,7 +186,7 @@ f() {
   if (3) return 2; else return 1;
 }
 ''',
-      [error(CompileTimeErrorCode.NON_BOOL_CONDITION, 12, 1)],
+      [error(CompileTimeErrorCode.nonBoolCondition, 12, 1)],
     );
   }
 
@@ -197,7 +197,7 @@ f() {
   if ([1, 2, 3]) return 2; else return 1;
 }
 ''',
-      [error(CompileTimeErrorCode.NON_BOOL_CONDITION, 12, 9)],
+      [error(CompileTimeErrorCode.nonBoolCondition, 12, 9)],
     );
   }
 
@@ -208,7 +208,7 @@ f(Object o) {
   if (o) return 2; else return 1;
 }
 ''',
-      [error(CompileTimeErrorCode.NON_BOOL_CONDITION, 20, 1)],
+      [error(CompileTimeErrorCode.nonBoolCondition, 20, 1)],
     );
   }
 
@@ -218,7 +218,7 @@ f(Object o) {
 const dynamic nonBool = null;
 const c = const {if (nonBool) 'a' : 1};
 ''',
-      [error(CompileTimeErrorCode.NON_BOOL_CONDITION, 51, 7)],
+      [error(CompileTimeErrorCode.nonBoolCondition, 51, 7)],
     );
   }
 
@@ -229,7 +229,7 @@ void f(Null a) {
   if (a) {}
 }
 ''',
-      [error(CompileTimeErrorCode.NON_BOOL_CONDITION, 23, 1)],
+      [error(CompileTimeErrorCode.nonBoolCondition, 23, 1)],
     );
   }
 
@@ -239,7 +239,7 @@ void f(Null a) {
 const dynamic nonBool = 'a';
 const c = const {if (nonBool) 3};
 ''',
-      [error(CompileTimeErrorCode.NON_BOOL_CONDITION, 50, 7)],
+      [error(CompileTimeErrorCode.nonBoolCondition, 50, 7)],
     );
   }
 
@@ -248,7 +248,7 @@ const c = const {if (nonBool) 3};
       '''
 var v = [if (3) 1];
 ''',
-      [error(CompileTimeErrorCode.NON_BOOL_CONDITION, 13, 1)],
+      [error(CompileTimeErrorCode.nonBoolCondition, 13, 1)],
     );
   }
 
@@ -257,7 +257,7 @@ var v = [if (3) 1];
       '''
 var v = [if ([1, 2, 3]) 'x'];
 ''',
-      [error(CompileTimeErrorCode.NON_BOOL_CONDITION, 13, 9)],
+      [error(CompileTimeErrorCode.nonBoolCondition, 13, 9)],
     );
   }
 
@@ -267,7 +267,7 @@ var v = [if ([1, 2, 3]) 'x'];
 final o = Object();
 var v = [if (o) 'x'];
 ''',
-      [error(CompileTimeErrorCode.NON_BOOL_CONDITION, 33, 1)],
+      [error(CompileTimeErrorCode.nonBoolCondition, 33, 1)],
     );
   }
 
@@ -278,7 +278,7 @@ void f(Null a) {
   a ? 0 : 1;
 }
 ''',
-      [error(CompileTimeErrorCode.NON_BOOL_CONDITION, 19, 1)],
+      [error(CompileTimeErrorCode.nonBoolCondition, 19, 1)],
     );
   }
 
@@ -289,7 +289,7 @@ f() {
   while (3) {}
 }
 ''',
-      [error(CompileTimeErrorCode.NON_BOOL_CONDITION, 15, 1)],
+      [error(CompileTimeErrorCode.nonBoolCondition, 15, 1)],
     );
   }
 
@@ -300,7 +300,7 @@ f() {
   while ([1, 2, 3]) {}
 }
 ''',
-      [error(CompileTimeErrorCode.NON_BOOL_CONDITION, 15, 9)],
+      [error(CompileTimeErrorCode.nonBoolCondition, 15, 9)],
     );
   }
 
@@ -311,7 +311,7 @@ f(Object o) {
   while (o) {}
 }
 ''',
-      [error(CompileTimeErrorCode.NON_BOOL_CONDITION, 23, 1)],
+      [error(CompileTimeErrorCode.nonBoolCondition, 23, 1)],
     );
   }
 }
@@ -326,7 +326,7 @@ void f(dynamic c) {
   <int, int>{if (c) 0: 0};
 }
 ''',
-      [error(CompileTimeErrorCode.NON_BOOL_CONDITION, 37, 1)],
+      [error(CompileTimeErrorCode.nonBoolCondition, 37, 1)],
     );
   }
 
@@ -337,7 +337,7 @@ void f(dynamic c) {
   <int>{if (c) 0};
 }
 ''',
-      [error(CompileTimeErrorCode.NON_BOOL_CONDITION, 32, 1)],
+      [error(CompileTimeErrorCode.nonBoolCondition, 32, 1)],
     );
   }
 }

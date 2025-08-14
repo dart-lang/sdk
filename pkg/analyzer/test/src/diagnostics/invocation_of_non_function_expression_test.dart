@@ -22,13 +22,7 @@ void f() {
   3(5);
 }
 ''',
-      [
-        error(
-          CompileTimeErrorCode.INVOCATION_OF_NON_FUNCTION_EXPRESSION,
-          13,
-          1,
-        ),
-      ],
+      [error(CompileTimeErrorCode.invocationOfNonFunctionExpression, 13, 1)],
     );
 
     var node = findNode.singleFunctionExpressionInvocation;

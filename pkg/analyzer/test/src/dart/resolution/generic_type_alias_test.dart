@@ -93,7 +93,7 @@ C<G>? x;
 ''',
       [
         error(
-          CompileTimeErrorCode.GENERIC_FUNCTION_TYPE_CANNOT_BE_TYPE_ARGUMENT,
+          CompileTimeErrorCode.genericFunctionTypeCannotBeTypeArgument,
           47,
           1,
         ),
@@ -118,7 +118,7 @@ C<G>? x;
 ''',
       [
         error(
-          CompileTimeErrorCode.GENERIC_FUNCTION_TYPE_CANNOT_BE_TYPE_ARGUMENT,
+          CompileTimeErrorCode.genericFunctionTypeCannotBeTypeArgument,
           59,
           1,
         ),
@@ -136,7 +136,7 @@ C<Function<S>()>? x;
 ''',
       [
         error(
-          CompileTimeErrorCode.GENERIC_FUNCTION_TYPE_CANNOT_BE_TYPE_ARGUMENT,
+          CompileTimeErrorCode.genericFunctionTypeCannotBeTypeArgument,
           31,
           13,
         ),
@@ -156,7 +156,7 @@ main() {
 ''',
       [
         error(
-          CompileTimeErrorCode.GENERIC_FUNCTION_TYPE_CANNOT_BE_TYPE_ARGUMENT,
+          CompileTimeErrorCode.genericFunctionTypeCannotBeTypeArgument,
           44,
           13,
         ),
@@ -176,7 +176,7 @@ main() {
 ''',
       [
         error(
-          CompileTimeErrorCode.GENERIC_FUNCTION_TYPE_CANNOT_BE_TYPE_ARGUMENT,
+          CompileTimeErrorCode.genericFunctionTypeCannotBeTypeArgument,
           54,
           13,
         ),
@@ -198,7 +198,7 @@ main() {
 ''',
       [
         error(
-          CompileTimeErrorCode.GENERIC_FUNCTION_TYPE_CANNOT_BE_TYPE_ARGUMENT,
+          CompileTimeErrorCode.genericFunctionTypeCannotBeTypeArgument,
           66,
           13,
         ),
@@ -216,7 +216,7 @@ F<Function<S>()>? x;
 ''',
       [
         error(
-          CompileTimeErrorCode.GENERIC_FUNCTION_TYPE_CANNOT_BE_TYPE_ARGUMENT,
+          CompileTimeErrorCode.genericFunctionTypeCannotBeTypeArgument,
           38,
           13,
         ),
@@ -254,8 +254,8 @@ void f() {
 }
 ''',
       [
-        error(ParserErrorCode.EXPECTED_TYPE_NAME, 15, 1),
-        error(CompileTimeErrorCode.UNDEFINED_GETTER, 33, 1),
+        error(ParserErrorCode.expectedTypeName, 15, 1),
+        error(CompileTimeErrorCode.undefinedGetter, 33, 1),
       ],
     );
   }
@@ -272,7 +272,7 @@ void f() {
   p.F.a;
 }
 ''',
-      [error(CompileTimeErrorCode.UNDEFINED_GETTER, 40, 1)],
+      [error(CompileTimeErrorCode.undefinedGetter, 40, 1)],
     );
   }
 

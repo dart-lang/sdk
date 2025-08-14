@@ -20,7 +20,7 @@ class BuiltInIdentifierAsTypeNameTest extends PubPackageResolutionTest {
       '''
 class as {}
 ''',
-      [error(CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE_NAME, 6, 2)],
+      [error(CompileTimeErrorCode.builtInIdentifierAsTypeName, 6, 2)],
     );
   }
 
@@ -29,7 +29,7 @@ class as {}
       '''
 class Function {}
 ''',
-      [error(CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE_NAME, 6, 8)],
+      [error(CompileTimeErrorCode.builtInIdentifierAsTypeName, 6, 8)],
     );
   }
 
@@ -40,7 +40,7 @@ enum as {
   v
 }
 ''',
-      [error(CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE_NAME, 5, 2)],
+      [error(CompileTimeErrorCode.builtInIdentifierAsTypeName, 5, 2)],
     );
   }
 
@@ -49,7 +49,7 @@ enum as {
       '''
 mixin as {}
 ''',
-      [error(CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE_NAME, 6, 2)],
+      [error(CompileTimeErrorCode.builtInIdentifierAsTypeName, 6, 2)],
     );
   }
 
@@ -58,7 +58,7 @@ mixin as {}
       '''
 mixin Function {}
 ''',
-      [error(CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE_NAME, 6, 8)],
+      [error(CompileTimeErrorCode.builtInIdentifierAsTypeName, 6, 8)],
     );
   }
 

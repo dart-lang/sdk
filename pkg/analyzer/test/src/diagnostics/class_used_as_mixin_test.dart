@@ -22,7 +22,7 @@ class Bar with Comparable<int> {
   int compareTo(int x) => 0;
 }
 ''',
-      [error(CompileTimeErrorCode.CLASS_USED_AS_MIXIN, 15, 15)],
+      [error(CompileTimeErrorCode.classUsedAsMixin, 15, 15)],
     );
   }
 
@@ -41,7 +41,7 @@ class Bar with Comparable<int> {
 class Foo {}
 class Bar with Foo {}
 ''',
-      [error(CompileTimeErrorCode.CLASS_USED_AS_MIXIN, 28, 3)],
+      [error(CompileTimeErrorCode.classUsedAsMixin, 28, 3)],
     );
   }
 
@@ -70,7 +70,7 @@ class Foo {}
 import 'foo.dart';
 class Bar with Foo {}
 ''',
-      [error(CompileTimeErrorCode.CLASS_USED_AS_MIXIN, 34, 3)],
+      [error(CompileTimeErrorCode.classUsedAsMixin, 34, 3)],
     );
   }
 
@@ -97,7 +97,7 @@ class Foo {}
 import 'foo.dart';
 class Bar with Foo {}
 ''',
-      [error(CompileTimeErrorCode.CLASS_USED_AS_MIXIN, 50, 3)],
+      [error(CompileTimeErrorCode.classUsedAsMixin, 50, 3)],
     );
   }
 
@@ -123,7 +123,7 @@ typedef FooTypedef = Foo;
 import 'foo.dart';
 class Bar with FooTypedef {}
 ''',
-      [error(CompileTimeErrorCode.CLASS_USED_AS_MIXIN, 34, 10)],
+      [error(CompileTimeErrorCode.classUsedAsMixin, 34, 10)],
     );
   }
 
@@ -163,7 +163,7 @@ import 'foo.dart';
 typedef FooTypedef = Foo;
 class Bar with FooTypedef {}
 ''',
-      [error(CompileTimeErrorCode.CLASS_USED_AS_MIXIN, 60, 10)],
+      [error(CompileTimeErrorCode.classUsedAsMixin, 60, 10)],
     );
   }
 

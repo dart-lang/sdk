@@ -22,7 +22,7 @@ extension E on String {
   void hashCode() {}
 }
 ''',
-      [error(CompileTimeErrorCode.EXTENSION_DECLARES_MEMBER_OF_OBJECT, 31, 8)],
+      [error(CompileTimeErrorCode.extensionDeclaresMemberOfObject, 31, 8)],
     );
   }
 
@@ -38,19 +38,11 @@ extension E on String {
 }
 ''',
       [
-        error(CompileTimeErrorCode.EXTENSION_DECLARES_MEMBER_OF_OBJECT, 39, 2),
-        error(CompileTimeErrorCode.EXTENSION_DECLARES_MEMBER_OF_OBJECT, 72, 8),
-        error(CompileTimeErrorCode.EXTENSION_DECLARES_MEMBER_OF_OBJECT, 96, 8),
-        error(
-          CompileTimeErrorCode.EXTENSION_DECLARES_MEMBER_OF_OBJECT,
-          128,
-          11,
-        ),
-        error(
-          CompileTimeErrorCode.EXTENSION_DECLARES_MEMBER_OF_OBJECT,
-          159,
-          12,
-        ),
+        error(CompileTimeErrorCode.extensionDeclaresMemberOfObject, 39, 2),
+        error(CompileTimeErrorCode.extensionDeclaresMemberOfObject, 72, 8),
+        error(CompileTimeErrorCode.extensionDeclaresMemberOfObject, 96, 8),
+        error(CompileTimeErrorCode.extensionDeclaresMemberOfObject, 128, 11),
+        error(CompileTimeErrorCode.extensionDeclaresMemberOfObject, 159, 12),
       ],
     );
   }
@@ -62,7 +54,7 @@ extension E on String {
   static void hashCode() {}
 }
 ''',
-      [error(CompileTimeErrorCode.EXTENSION_DECLARES_MEMBER_OF_OBJECT, 38, 8)],
+      [error(CompileTimeErrorCode.extensionDeclaresMemberOfObject, 38, 8)],
     );
   }
 }

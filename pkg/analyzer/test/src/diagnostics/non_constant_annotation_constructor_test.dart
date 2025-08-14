@@ -25,7 +25,7 @@ class A {
 main() {
 }
 ''',
-      [error(CompileTimeErrorCode.NON_CONSTANT_ANNOTATION_CONSTRUCTOR, 29, 12)],
+      [error(CompileTimeErrorCode.nonConstantAnnotationConstructor, 29, 12)],
     );
   }
 
@@ -39,7 +39,7 @@ class A {
 main() {
 }
 ''',
-      [error(CompileTimeErrorCode.NON_CONSTANT_ANNOTATION_CONSTRUCTOR, 21, 4)],
+      [error(CompileTimeErrorCode.nonConstantAnnotationConstructor, 21, 4)],
     );
   }
 }

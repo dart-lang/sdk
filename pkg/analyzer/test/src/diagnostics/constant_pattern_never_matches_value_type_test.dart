@@ -31,7 +31,7 @@ void f(int x) {
   if (x case (true)) {}
 }
 ''',
-      [error(WarningCode.CONSTANT_PATTERN_NEVER_MATCHES_VALUE_TYPE, 30, 4)],
+      [error(WarningCode.constantPatternNeverMatchesValueType, 30, 4)],
     );
   }
 
@@ -42,7 +42,7 @@ void f(List<bool> x) {
   if (x case (true)) {}
 }
 ''',
-      [error(WarningCode.CONSTANT_PATTERN_NEVER_MATCHES_VALUE_TYPE, 37, 4)],
+      [error(WarningCode.constantPatternNeverMatchesValueType, 37, 4)],
     );
   }
 
@@ -69,7 +69,7 @@ void f<T extends num>(T x) {
   if (x case (true)) {}
 }
 ''',
-      [error(WarningCode.CONSTANT_PATTERN_NEVER_MATCHES_VALUE_TYPE, 43, 4)],
+      [error(WarningCode.constantPatternNeverMatchesValueType, 43, 4)],
     );
   }
 
@@ -80,7 +80,7 @@ void f<T extends num>(List<T> x) {
   if (x case [true]) {}
 }
 ''',
-      [error(WarningCode.CONSTANT_PATTERN_NEVER_MATCHES_VALUE_TYPE, 49, 4)],
+      [error(WarningCode.constantPatternNeverMatchesValueType, 49, 4)],
     );
   }
 
@@ -103,7 +103,7 @@ void f<T>(T x) {
   }
 }
 ''',
-      [error(WarningCode.CONSTANT_PATTERN_NEVER_MATCHES_VALUE_TYPE, 51, 4)],
+      [error(WarningCode.constantPatternNeverMatchesValueType, 51, 4)],
     );
   }
 
@@ -184,7 +184,7 @@ class B extends A {
   const B();
 }
 ''',
-      [error(WarningCode.CONSTANT_PATTERN_NEVER_MATCHES_VALUE_TYPE, 27, 9)],
+      [error(WarningCode.constantPatternNeverMatchesValueType, 27, 9)],
     );
   }
 
@@ -219,7 +219,7 @@ class B extends A<int> {
   const B();
 }
 ''',
-      [error(WarningCode.CONSTANT_PATTERN_NEVER_MATCHES_VALUE_TYPE, 27, 14)],
+      [error(WarningCode.constantPatternNeverMatchesValueType, 27, 14)],
     );
   }
 
@@ -258,7 +258,7 @@ class A<T> {
   const A();
 }
 ''',
-      [error(WarningCode.CONSTANT_PATTERN_NEVER_MATCHES_VALUE_TYPE, 32, 14)],
+      [error(WarningCode.constantPatternNeverMatchesValueType, 32, 14)],
     );
   }
 
@@ -293,7 +293,7 @@ void f(bool x) {
   if (x case (0)) {}
 }
 ''',
-      [error(WarningCode.CONSTANT_PATTERN_NEVER_MATCHES_VALUE_TYPE, 31, 1)],
+      [error(WarningCode.constantPatternNeverMatchesValueType, 31, 1)],
     );
   }
 
@@ -316,7 +316,7 @@ void f(E x) {
   if (x case (0)) {}
 }
 ''',
-      [error(WarningCode.CONSTANT_PATTERN_NEVER_MATCHES_VALUE_TYPE, 58, 1)],
+      [error(WarningCode.constantPatternNeverMatchesValueType, 58, 1)],
     );
   }
 
@@ -339,7 +339,7 @@ void f(void Function() x) {
 
 class A {}
 ''',
-      [error(WarningCode.CONSTANT_PATTERN_NEVER_MATCHES_VALUE_TYPE, 42, 1)],
+      [error(WarningCode.constantPatternNeverMatchesValueType, 42, 1)],
     );
   }
 
@@ -376,7 +376,7 @@ void f(A x) {
 
 class A {}
 ''',
-      [error(WarningCode.CONSTANT_PATTERN_NEVER_MATCHES_VALUE_TYPE, 28, 1)],
+      [error(WarningCode.constantPatternNeverMatchesValueType, 28, 1)],
     );
   }
 
@@ -387,7 +387,7 @@ void f(String x) {
   if (x case (0)) {}
 }
 ''',
-      [error(WarningCode.CONSTANT_PATTERN_NEVER_MATCHES_VALUE_TYPE, 33, 1)],
+      [error(WarningCode.constantPatternNeverMatchesValueType, 33, 1)],
     );
   }
 
@@ -399,8 +399,8 @@ void f(void Function() x) {
 }
 ''',
       [
-        error(WarningCode.CONSTANT_PATTERN_NEVER_MATCHES_VALUE_TYPE, 42, 4),
-        error(WarningCode.DEAD_CODE, 49, 2),
+        error(WarningCode.constantPatternNeverMatchesValueType, 42, 4),
+        error(WarningCode.deadCode, 49, 2),
       ],
     );
   }
@@ -421,8 +421,8 @@ void f(int x) {
 }
 ''',
       [
-        error(WarningCode.CONSTANT_PATTERN_NEVER_MATCHES_VALUE_TYPE, 30, 4),
-        error(WarningCode.DEAD_CODE, 37, 2),
+        error(WarningCode.constantPatternNeverMatchesValueType, 30, 4),
+        error(WarningCode.deadCode, 37, 2),
       ],
     );
   }
@@ -443,8 +443,8 @@ void f<T extends Object>(T x) {
 }
 ''',
       [
-        error(WarningCode.CONSTANT_PATTERN_NEVER_MATCHES_VALUE_TYPE, 45, 4),
-        error(WarningCode.DEAD_CODE, 51, 2),
+        error(WarningCode.constantPatternNeverMatchesValueType, 45, 4),
+        error(WarningCode.deadCode, 51, 2),
       ],
     );
   }

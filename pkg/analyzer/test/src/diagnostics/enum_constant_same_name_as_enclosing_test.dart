@@ -22,7 +22,7 @@ enum E {
   E
 }
 ''',
-      [error(CompileTimeErrorCode.ENUM_CONSTANT_SAME_NAME_AS_ENCLOSING, 11, 1)],
+      [error(CompileTimeErrorCode.enumConstantSameNameAsEnclosing, 11, 1)],
     );
   }
 }

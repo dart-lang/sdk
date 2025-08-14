@@ -34,16 +34,8 @@ enum E {
 }
 ''',
       [
-        error(
-          CompileTimeErrorCode.CONST_CONSTRUCTOR_FIELD_TYPE_MISMATCH,
-          11,
-          1,
-        ),
-        error(
-          CompileTimeErrorCode.CONST_FIELD_INITIALIZER_NOT_ASSIGNABLE,
-          47,
-          2,
-        ),
+        error(CompileTimeErrorCode.constConstructorFieldTypeMismatch, 11, 1),
+        error(CompileTimeErrorCode.constFieldInitializerNotAssignable, 47, 2),
       ],
     );
   }
@@ -56,13 +48,7 @@ class A {
   const A() : x = '';
 }
 ''',
-      [
-        error(
-          CompileTimeErrorCode.CONST_FIELD_INITIALIZER_NOT_ASSIGNABLE,
-          43,
-          2,
-        ),
-      ],
+      [error(CompileTimeErrorCode.constFieldInitializerNotAssignable, 43, 2)],
     );
   }
 }

@@ -138,7 +138,7 @@ class C {
 ''',
       errorFilter:
           (error) =>
-              error.diagnosticCode == CompileTimeErrorCode.ASSIGNMENT_TO_FINAL,
+              error.diagnosticCode == CompileTimeErrorCode.assignmentToFinal,
     );
   }
 
@@ -177,7 +177,7 @@ void f(C c) {
 ''',
       errorFilter:
           (error) =>
-              error.diagnosticCode == CompileTimeErrorCode.ASSIGNMENT_TO_FINAL,
+              error.diagnosticCode == CompileTimeErrorCode.assignmentToFinal,
     );
   }
 
@@ -201,7 +201,7 @@ class C {
 ''',
       errorFilter:
           (error) =>
-              error.diagnosticCode == CompileTimeErrorCode.ASSIGNMENT_TO_FINAL,
+              error.diagnosticCode == CompileTimeErrorCode.assignmentToFinal,
     );
   }
 

@@ -86,7 +86,7 @@ class InstanceCreationExpressionResolver {
         } else {
           _resolver.diagnosticReporter.atNode(
             node.constructorName,
-            CompileTimeErrorCode.CONST_WITH_UNDEFINED_CONSTRUCTOR,
+            CompileTimeErrorCode.constWithUndefinedConstructor,
             arguments: [contextType, node.constructorName.name],
           );
         }
@@ -98,14 +98,14 @@ class InstanceCreationExpressionResolver {
         if (constructorElement != null && !constructorElement.isFactory) {
           _resolver.diagnosticReporter.atNode(
             node,
-            CompileTimeErrorCode.INSTANTIATE_ABSTRACT_CLASS,
+            CompileTimeErrorCode.instantiateAbstractClass,
           );
         }
       } else if (typeArguments != null) {
         _resolver.diagnosticReporter.atNode(
           typeArguments,
           CompileTimeErrorCode
-              .WRONG_NUMBER_OF_TYPE_ARGUMENTS_DOT_SHORTHAND_CONSTRUCTOR,
+              .wrongNumberOfTypeArgumentsDotShorthandConstructor,
           arguments: [
             dotShorthandContextType.getDisplayString(),
             node.constructorName.name,
@@ -115,7 +115,7 @@ class InstanceCreationExpressionResolver {
     } else {
       _resolver.diagnosticReporter.atNode(
         node,
-        CompileTimeErrorCode.DOT_SHORTHAND_MISSING_CONTEXT,
+        CompileTimeErrorCode.dotShorthandMissingContext,
       );
     }
 

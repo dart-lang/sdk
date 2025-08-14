@@ -30,7 +30,7 @@ part of 'a.dart';
 
 import 'package:flutter/src/material/colors.dart';
 ''',
-      [error(WarningCode.UNUSED_IMPORT, 26, 42), lint(26, 42)],
+      [error(WarningCode.unusedImport, 26, 42), lint(26, 42)],
     );
   }
 }

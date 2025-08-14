@@ -17,7 +17,7 @@ main() {
 class FinalInitializedByMultipleInitializersTest
     extends PubPackageResolutionTest {
   static const _errorCode =
-      CompileTimeErrorCode.FIELD_INITIALIZED_BY_MULTIPLE_INITIALIZERS;
+      CompileTimeErrorCode.fieldInitializedByMultipleInitializers;
 
   @SkippedTest() // TODO(scheglov): implement augmentation
   test_class_augmentation2_bothInitialize() async {
@@ -203,7 +203,7 @@ enum E {
 }
 ''',
       [
-        error(CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION, 11, 1),
+        error(CompileTimeErrorCode.constEvalThrowsException, 11, 1),
         error(_errorCode, 50, 1),
       ],
     );

@@ -44,10 +44,9 @@ int f() {
 }
 ''',
       [
-        error(CompileTimeErrorCode.CONST_EVAL_METHOD_INVOCATION, 26, 3),
+        error(CompileTimeErrorCode.constEvalMethodInvocation, 26, 3),
         error(
-          CompileTimeErrorCode
-              .CONST_CONSTRUCTOR_WITH_FIELD_INITIALIZED_BY_NON_CONST,
+          CompileTimeErrorCode.constConstructorWithFieldInitializedByNonConst,
           33,
           5,
         ),
@@ -66,8 +65,7 @@ class A {
 ''',
       [
         error(
-          CompileTimeErrorCode
-              .CONST_CONSTRUCTOR_WITH_FIELD_INITIALIZED_BY_NON_CONST,
+          CompileTimeErrorCode.constConstructorWithFieldInitializedByNonConst,
           27,
           5,
         ),
@@ -116,10 +114,9 @@ enum E {
 int f() => 0;
 ''',
       [
-        error(CompileTimeErrorCode.CONST_EVAL_METHOD_INVOCATION, 30, 3),
+        error(CompileTimeErrorCode.constEvalMethodInvocation, 30, 3),
         error(
-          CompileTimeErrorCode
-              .CONST_CONSTRUCTOR_WITH_FIELD_INITIALIZED_BY_NON_CONST,
+          CompileTimeErrorCode.constConstructorWithFieldInitializedByNonConst,
           37,
           5,
         ),

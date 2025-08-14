@@ -22,7 +22,7 @@ extension E on String {
   E.named() : super();
 }
 ''',
-      [error(ParserErrorCode.EXTENSION_DECLARES_CONSTRUCTOR, 26, 1)],
+      [error(ParserErrorCode.extensionDeclaresConstructor, 26, 1)],
     );
   }
 
@@ -39,7 +39,7 @@ extension E on String {
   E() : super();
 }
 ''',
-      [error(ParserErrorCode.EXTENSION_DECLARES_CONSTRUCTOR, 26, 1)],
+      [error(ParserErrorCode.extensionDeclaresConstructor, 26, 1)],
     );
   }
 }

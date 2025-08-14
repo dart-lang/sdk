@@ -55,13 +55,7 @@ class A {
   A(var _) : v = _;
 }
 ''',
-      [
-        error(
-          CompileTimeErrorCode.IMPLICIT_THIS_REFERENCE_IN_INITIALIZER,
-          45,
-          1,
-        ),
-      ],
+      [error(CompileTimeErrorCode.implicitThisReferenceInInitializer, 45, 1)],
     );
 
     var node = findNode.constructorFieldInitializer('v = _');
@@ -233,7 +227,7 @@ class B {
   factory B() = A.named;
 }
 ''',
-      [error(CompileTimeErrorCode.REDIRECT_TO_MISSING_CONSTRUCTOR, 59, 7)],
+      [error(CompileTimeErrorCode.redirectToMissingConstructor, 59, 7)],
     );
 
     var node = findNode.constructorDeclaration('factory B');
@@ -366,7 +360,7 @@ class B {
   factory B.named() = A;
 }
 ''',
-      [error(CompileTimeErrorCode.REDIRECT_TO_MISSING_CONSTRUCTOR, 71, 1)],
+      [error(CompileTimeErrorCode.redirectToMissingConstructor, 71, 1)],
     );
 
     var node = findNode.constructorDeclaration('factory B');

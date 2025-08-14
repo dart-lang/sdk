@@ -28,7 +28,7 @@ class C {}
 @Deprecated.subclass()
 final class C {}
 ''',
-      [error(WarningCode.INVALID_DEPRECATED_SUBCLASS_ANNOTATION, 1, 19)],
+      [error(WarningCode.invalidDeprecatedSubclassAnnotation, 1, 19)],
     );
   }
 
@@ -38,7 +38,7 @@ final class C {}
 @Deprecated.subclass()
 sealed class C {}
 ''',
-      [error(WarningCode.INVALID_DEPRECATED_SUBCLASS_ANNOTATION, 1, 19)],
+      [error(WarningCode.invalidDeprecatedSubclassAnnotation, 1, 19)],
     );
   }
 
@@ -48,7 +48,7 @@ sealed class C {}
 @Deprecated.subclass()
 enum E { one; }
 ''',
-      [error(WarningCode.INVALID_DEPRECATED_SUBCLASS_ANNOTATION, 1, 19)],
+      [error(WarningCode.invalidDeprecatedSubclassAnnotation, 1, 19)],
     );
   }
 
@@ -65,7 +65,7 @@ mixin M {}
 @Deprecated.subclass()
 base mixin M {}
 ''',
-      [error(WarningCode.INVALID_DEPRECATED_SUBCLASS_ANNOTATION, 1, 19)],
+      [error(WarningCode.invalidDeprecatedSubclassAnnotation, 1, 19)],
     );
   }
 
@@ -84,7 +84,7 @@ final class C {}
 @Deprecated.subclass()
 typedef D = C;
 ''',
-      [error(WarningCode.INVALID_DEPRECATED_SUBCLASS_ANNOTATION, 18, 19)],
+      [error(WarningCode.invalidDeprecatedSubclassAnnotation, 18, 19)],
     );
   }
 }

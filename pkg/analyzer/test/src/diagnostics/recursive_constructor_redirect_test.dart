@@ -22,7 +22,7 @@ class A {
   A() : this();
 }
 ''',
-      [error(CompileTimeErrorCode.RECURSIVE_CONSTRUCTOR_REDIRECT, 18, 6)],
+      [error(CompileTimeErrorCode.recursiveConstructorRedirect, 18, 6)],
     );
   }
 
@@ -35,8 +35,8 @@ class A {
 }
 ''',
       [
-        error(CompileTimeErrorCode.RECURSIVE_CONSTRUCTOR_REDIRECT, 20, 8),
-        error(CompileTimeErrorCode.RECURSIVE_CONSTRUCTOR_REDIRECT, 40, 8),
+        error(CompileTimeErrorCode.recursiveConstructorRedirect, 20, 8),
+        error(CompileTimeErrorCode.recursiveConstructorRedirect, 40, 8),
       ],
     );
   }

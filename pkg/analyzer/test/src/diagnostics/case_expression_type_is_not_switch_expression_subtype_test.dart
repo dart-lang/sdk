@@ -45,24 +45,22 @@ mixin CaseExpressionTypeIsNotSwitchExpressionSubtypeTestCases
       case _Variant.nullSafe:
         expectedErrors = [
           error(
-            CompileTimeErrorCode
-                .CASE_EXPRESSION_TYPE_IS_NOT_SWITCH_EXPRESSION_SUBTYPE,
+            CompileTimeErrorCode.caseExpressionTypeIsNotSwitchExpressionSubtype,
             180,
             2,
           ),
           error(
-            CompileTimeErrorCode.CASE_EXPRESSION_TYPE_IMPLEMENTS_EQUALS,
+            CompileTimeErrorCode.caseExpressionTypeImplementsEquals,
             180,
             2,
           ),
           error(
-            CompileTimeErrorCode
-                .CASE_EXPRESSION_TYPE_IS_NOT_SWITCH_EXPRESSION_SUBTYPE,
+            CompileTimeErrorCode.caseExpressionTypeIsNotSwitchExpressionSubtype,
             206,
             10,
           ),
           error(
-            CompileTimeErrorCode.CASE_EXPRESSION_TYPE_IMPLEMENTS_EQUALS,
+            CompileTimeErrorCode.caseExpressionTypeImplementsEquals,
             206,
             10,
           ),
@@ -101,22 +99,20 @@ void f(A e) {
       case _Variant.nullSafe:
         expectedErrors = [
           error(
-            CompileTimeErrorCode
-                .CASE_EXPRESSION_TYPE_IS_NOT_SWITCH_EXPRESSION_SUBTYPE,
+            CompileTimeErrorCode.caseExpressionTypeIsNotSwitchExpressionSubtype,
             145,
             2,
           ),
           error(
-            CompileTimeErrorCode
-                .CASE_EXPRESSION_TYPE_IS_NOT_SWITCH_EXPRESSION_SUBTYPE,
+            CompileTimeErrorCode.caseExpressionTypeIsNotSwitchExpressionSubtype,
             171,
             10,
           ),
         ];
       case _Variant.patterns:
         expectedErrors = [
-          error(WarningCode.CONSTANT_PATTERN_NEVER_MATCHES_VALUE_TYPE, 145, 2),
-          error(WarningCode.CONSTANT_PATTERN_NEVER_MATCHES_VALUE_TYPE, 171, 10),
+          error(WarningCode.constantPatternNeverMatchesValueType, 145, 2),
+          error(WarningCode.constantPatternNeverMatchesValueType, 171, 10),
         ];
     }
 

@@ -175,7 +175,7 @@ void f((String,) a) {
   a + 0;
 }
 ''',
-      [error(CompileTimeErrorCode.UNDEFINED_OPERATOR, 26, 1)],
+      [error(CompileTimeErrorCode.undefinedOperator, 26, 1)],
     );
 
     var node = findNode.binary('+ 0');
@@ -382,7 +382,7 @@ class A {
   }
 }
 ''',
-      [error(CompileTimeErrorCode.UNDEFINED_IDENTIFIER, 50, 9)],
+      [error(CompileTimeErrorCode.undefinedIdentifier, 50, 9)],
     );
 
     var node = findNode.singleBinaryExpression;
@@ -464,7 +464,7 @@ augment class A {
   }
 }
 ''',
-      [error(CompileTimeErrorCode.AUGMENTED_EXPRESSION_NOT_OPERATOR, 76, 9)],
+      [error(CompileTimeErrorCode.augmentedExpressionNotOperator, 76, 9)],
     );
 
     var node = findNode.singleBinaryExpression;
@@ -585,7 +585,7 @@ augment class A {
   }
 }
 ''',
-      [error(CompileTimeErrorCode.AUGMENTED_EXPRESSION_IS_SETTER, 68, 9)],
+      [error(CompileTimeErrorCode.augmentedExpressionIsSetter, 68, 9)],
     );
 
     var node = findNode.singleBinaryExpression;
@@ -673,8 +673,8 @@ f(Never a, int b) {
 }
 ''',
       [
-        error(WarningCode.RECEIVER_OF_TYPE_NEVER, 22, 1),
-        error(WarningCode.DEAD_CODE, 24, 3),
+        error(WarningCode.receiverOfTypeNever, 22, 1),
+        error(WarningCode.deadCode, 24, 3),
       ],
     );
 
@@ -792,9 +792,9 @@ void f() {
 }
 ''',
       [
-        error(WarningCode.UNUSED_LOCAL_VARIABLE, 19, 1),
-        error(ParserErrorCode.MISSING_IDENTIFIER, 23, 1),
-        error(ParserErrorCode.MISSING_IDENTIFIER, 25, 1),
+        error(WarningCode.unusedLocalVariable, 19, 1),
+        error(ParserErrorCode.missingIdentifier, 23, 1),
+        error(ParserErrorCode.missingIdentifier, 25, 1),
       ],
     );
 
@@ -825,8 +825,8 @@ void f() {
 }
 ''',
       [
-        error(WarningCode.UNUSED_LOCAL_VARIABLE, 19, 1),
-        error(ParserErrorCode.MISSING_IDENTIFIER, 23, 1),
+        error(WarningCode.unusedLocalVariable, 19, 1),
+        error(ParserErrorCode.missingIdentifier, 23, 1),
       ],
     );
 
@@ -856,8 +856,8 @@ void f() {
 }
 ''',
       [
-        error(WarningCode.UNUSED_LOCAL_VARIABLE, 19, 1),
-        error(ParserErrorCode.MISSING_IDENTIFIER, 27, 1),
+        error(WarningCode.unusedLocalVariable, 19, 1),
+        error(ParserErrorCode.missingIdentifier, 27, 1),
       ],
     );
 
@@ -975,7 +975,7 @@ void f(int a) {
   E(a) != 0;
 }
 ''',
-      [error(CompileTimeErrorCode.UNDEFINED_EXTENSION_OPERATOR, 46, 2)],
+      [error(CompileTimeErrorCode.undefinedExtensionOperator, 46, 2)],
     );
 
     assertResolvedNodeText(findNode.binary('!= 0'), r'''
@@ -1012,7 +1012,7 @@ f(int a, int b) {
   a !== b;
 }
 ''',
-      [error(ScannerErrorCode.UNSUPPORTED_OPERATOR, 22, 1)],
+      [error(ScannerErrorCode.unsupportedOperator, 22, 1)],
     );
 
     assertResolvedNodeText(findNode.binary('a !== b'), r'''
@@ -1067,7 +1067,7 @@ void f(int a) {
   E(a) == 0;
 }
 ''',
-      [error(CompileTimeErrorCode.UNDEFINED_EXTENSION_OPERATOR, 46, 2)],
+      [error(CompileTimeErrorCode.undefinedExtensionOperator, 46, 2)],
     );
 
     assertResolvedNodeText(findNode.binary('== 0'), r'''
@@ -1130,7 +1130,7 @@ void f(A a) {
   a == 0;
 }
 ''',
-      [error(CompileTimeErrorCode.UNDEFINED_CLASS, 7, 1)],
+      [error(CompileTimeErrorCode.undefinedClass, 7, 1)],
     );
 
     var node = findNode.binary('a == 0');
@@ -1158,7 +1158,7 @@ f(int a, int b) {
   a === b;
 }
 ''',
-      [error(ScannerErrorCode.UNSUPPORTED_OPERATOR, 22, 1)],
+      [error(ScannerErrorCode.unsupportedOperator, 22, 1)],
     );
 
     assertResolvedNodeText(findNode.binary('a === b'), r'''
@@ -1444,7 +1444,7 @@ g(double a) {
 }
 h(int x) {}
 ''',
-      [error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 45, 7)],
+      [error(CompileTimeErrorCode.argumentTypeNotAssignable, 45, 7)],
     );
 
     var node = findNode.methodInvocation('f()');
@@ -1609,7 +1609,7 @@ g(int a) {
 }
 h(int x) {}
 ''',
-      [error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 98, 10)],
+      [error(CompileTimeErrorCode.argumentTypeNotAssignable, 98, 10)],
     );
 
     var node = findNode.methodInvocation('f()');
@@ -1862,7 +1862,7 @@ void f() {
   x + 0;
 }
 ''',
-      [error(CompileTimeErrorCode.UNDEFINED_IDENTIFIER, 13, 1)],
+      [error(CompileTimeErrorCode.undefinedIdentifier, 13, 1)],
     );
 
     var node = findNode.binary('x + 0');
@@ -1892,7 +1892,7 @@ g(num a) {
 }
 h(int x) {}
 ''',
-      [error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 42, 7)],
+      [error(CompileTimeErrorCode.argumentTypeNotAssignable, 42, 7)],
     );
 
     var node = findNode.methodInvocation('f()');
@@ -1925,7 +1925,7 @@ g(A a) {
 }
 h(int x) {}
 ''',
-      [error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 88, 7)],
+      [error(CompileTimeErrorCode.argumentTypeNotAssignable, 88, 7)],
     );
 
     var node = findNode.methodInvocation('f()');
@@ -1959,7 +1959,7 @@ g(A a) {
 }
 h(int x) {}
 ''',
-      [error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 105, 10)],
+      [error(CompileTimeErrorCode.argumentTypeNotAssignable, 105, 10)],
     );
 
     var node = findNode.methodInvocation('f()');
@@ -1993,7 +1993,7 @@ g(A a) {
 }
 h(int x) {}
 ''',
-      [error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 105, 7)],
+      [error(CompileTimeErrorCode.argumentTypeNotAssignable, 105, 7)],
     );
 
     var node = findNode.methodInvocation('f()');

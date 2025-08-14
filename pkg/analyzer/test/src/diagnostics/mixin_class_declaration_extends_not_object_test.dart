@@ -24,7 +24,7 @@ mixin class B extends A {}
 ''',
       [
         error(
-          CompileTimeErrorCode.MIXIN_CLASS_DECLARATION_EXTENDS_NOT_OBJECT,
+          CompileTimeErrorCode.mixinClassDeclarationExtendsNotObject,
           33,
           1,
         ),
@@ -46,7 +46,7 @@ mixin class A extends Object with M {}
 ''',
       [
         error(
-          CompileTimeErrorCode.MIXIN_CLASS_DECLARATION_EXTENDS_NOT_OBJECT,
+          CompileTimeErrorCode.mixinClassDeclarationExtendsNotObject,
           40,
           6,
         ),
@@ -70,7 +70,7 @@ mixin class A = Object with M1, M2;
 ''',
       [
         error(
-          CompileTimeErrorCode.MIXIN_CLASS_DECLARATION_EXTENDS_NOT_OBJECT,
+          CompileTimeErrorCode.mixinClassDeclarationExtendsNotObject,
           47,
           11,
         ),

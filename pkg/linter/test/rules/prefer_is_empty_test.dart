@@ -32,7 +32,7 @@ var x = i.length != 0;
       r'''
 var x = ([].length as int) > 0;
 ''',
-      [lint(8, 22), error(WarningCode.UNNECESSARY_CAST, 9, 16)],
+      [lint(8, 22), error(WarningCode.unnecessaryCast, 9, 16)],
     );
   }
 

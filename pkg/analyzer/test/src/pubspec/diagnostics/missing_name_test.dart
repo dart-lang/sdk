@@ -16,7 +16,7 @@ main() {
 @reflectiveTest
 class MissingNameTest extends PubspecDiagnosticTest {
   test_missingName_error() {
-    assertErrors('', [PubspecWarningCode.MISSING_NAME]);
+    assertErrors('', [PubspecWarningCode.missingName]);
   }
 
   test_missingName_noError() {

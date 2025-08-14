@@ -95,9 +95,9 @@ class C extends A {}
 class X extends A {}
 ''',
       [
-        error(CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE, 6, 1),
-        error(CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE, 27, 1),
-        error(CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE, 48, 1),
+        error(CompileTimeErrorCode.recursiveInterfaceInheritance, 6, 1),
+        error(CompileTimeErrorCode.recursiveInterfaceInheritance, 27, 1),
+        error(CompileTimeErrorCode.recursiveInterfaceInheritance, 48, 1),
       ],
     );
 
@@ -109,13 +109,7 @@ class X extends A {}
       r'''
 class A extends Function {}
 ''',
-      [
-        error(
-          CompileTimeErrorCode.FINAL_CLASS_EXTENDED_OUTSIDE_OF_LIBRARY,
-          16,
-          8,
-        ),
-      ],
+      [error(CompileTimeErrorCode.finalClassExtendedOutsideOfLibrary, 16, 8)],
     );
     var a = findElement2.class_('A');
     assertType(a.supertype, 'Object');
@@ -127,7 +121,7 @@ class A extends Function {}
 // @dart = 2.19
 class A extends Function {}
 ''',
-      [error(WarningCode.DEPRECATED_EXTENDS_FUNCTION, 32, 8)],
+      [error(WarningCode.deprecatedExtendsFunction, 32, 8)],
     );
     var a = findElement2.class_('A');
     assertType(a.supertype, 'Object');
@@ -140,7 +134,7 @@ mixin A {}
 mixin B {}
 class C extends Object with A, Function, B {}
 ''',
-      [error(CompileTimeErrorCode.CLASS_USED_AS_MIXIN, 53, 8)],
+      [error(CompileTimeErrorCode.classUsedAsMixin, 53, 8)],
     );
 
     assertElementTypes(findElement2.class_('C').mixins, ['A', 'B']);
@@ -154,7 +148,7 @@ mixin A {}
 mixin B {}
 class C extends Object with A, Function, B {}
 ''',
-      [error(WarningCode.DEPRECATED_MIXIN_FUNCTION, 69, 8)],
+      [error(WarningCode.deprecatedMixinFunction, 69, 8)],
     );
 
     assertElementTypes(findElement2.class_('C').mixins, ['A', 'B']);
@@ -174,15 +168,14 @@ main() {
 }
 ''',
       [
-        error(CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE, 6, 1),
-        error(CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE, 33, 1),
+        error(CompileTimeErrorCode.recursiveInterfaceInheritance, 6, 1),
+        error(CompileTimeErrorCode.recursiveInterfaceInheritance, 33, 1),
         error(
-          CompileTimeErrorCode
-              .NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_FIVE_PLUS,
+          CompileTimeErrorCode.nonAbstractClassInheritsAbstractMemberFivePlus,
           60,
           1,
         ),
-        error(WarningCode.UNUSED_LOCAL_VARIABLE, 150, 1),
+        error(WarningCode.unusedLocalVariable, 150, 1),
       ],
     );
   }

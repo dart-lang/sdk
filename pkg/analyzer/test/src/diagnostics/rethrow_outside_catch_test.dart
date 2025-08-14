@@ -36,7 +36,7 @@ void f() {
   }
 }
 ''',
-      [error(CompileTimeErrorCode.RETHROW_OUTSIDE_CATCH, 47, 7)],
+      [error(CompileTimeErrorCode.rethrowOutsideCatch, 47, 7)],
     );
   }
 
@@ -61,7 +61,7 @@ void f() {
   rethrow;
 }
 ''',
-      [error(CompileTimeErrorCode.RETHROW_OUTSIDE_CATCH, 13, 7)],
+      [error(CompileTimeErrorCode.rethrowOutsideCatch, 13, 7)],
     );
 
     var node = findNode.singleRethrowExpression;

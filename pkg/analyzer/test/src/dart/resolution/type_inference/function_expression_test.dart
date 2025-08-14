@@ -26,7 +26,7 @@ FutureOr<void> Function() v = () async {
   return 0;
 };
 ''',
-      [error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_CLOSURE, 72, 1)],
+      [error(CompileTimeErrorCode.returnOfInvalidTypeFromClosure, 72, 1)],
     );
     _assertReturnType('() async {', 'Future<void>');
   }
@@ -38,7 +38,7 @@ Future<void> Function() v = () async {
   return 0;
 };
 ''',
-      [error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_CLOSURE, 48, 1)],
+      [error(CompileTimeErrorCode.returnOfInvalidTypeFromClosure, 48, 1)],
     );
     _assertReturnType('() async {', 'Future<void>');
   }
@@ -327,7 +327,7 @@ void Function() v = () {
   return 0;
 };
 ''',
-      [error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_CLOSURE, 34, 1)],
+      [error(CompileTimeErrorCode.returnOfInvalidTypeFromClosure, 34, 1)],
     );
     _assertReturnType('() {', 'void');
   }
@@ -536,7 +536,7 @@ void f() {
   final v = <T>(T a) => <T>[a];
 }
 ''',
-      [error(WarningCode.UNUSED_LOCAL_VARIABLE, 19, 1)],
+      [error(WarningCode.unusedLocalVariable, 19, 1)],
     );
 
     var node = findNode.functionExpression('<T>(');
@@ -882,7 +882,7 @@ int test<T extends int Function(int)>(T Function() createT) {
   return createT()('');
 }
 ''',
-      [error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 81, 2)],
+      [error(CompileTimeErrorCode.argumentTypeNotAssignable, 81, 2)],
     );
 
     var node = findNode.functionExpressionInvocation("('')");

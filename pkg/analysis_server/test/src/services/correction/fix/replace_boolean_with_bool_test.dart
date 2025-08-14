@@ -28,7 +28,7 @@ void f() {
   boolean w;
 }
 ''');
-    await assertHasFixAllFix(CompileTimeErrorCode.UNDEFINED_CLASS_BOOLEAN, '''
+    await assertHasFixAllFix(CompileTimeErrorCode.undefinedClassBoolean, '''
 void f() {
   bool v;
   bool w;

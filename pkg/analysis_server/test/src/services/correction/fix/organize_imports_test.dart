@@ -97,7 +97,7 @@ class OrganizeImportsDirectivesOrderingTest extends FixProcessorLintTest {
     var firstError = true;
     return (Diagnostic diagnostic) {
       if (firstError &&
-          diagnostic.diagnosticCode == WarningCode.UNUSED_SHOWN_NAME) {
+          diagnostic.diagnosticCode == WarningCode.unusedShownName) {
         firstError = false;
         return true;
       }

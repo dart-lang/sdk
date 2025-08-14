@@ -186,8 +186,8 @@ abstract class C extends A {
 void Function() f(A a, bool b, C c, dynamic d) => b ? d : c ?? a;
 ''',
       [
-        error(WarningCode.DEAD_CODE, 127, 4),
-        error(StaticWarningCode.DEAD_NULL_AWARE_EXPRESSION, 130, 1),
+        error(WarningCode.deadCode, 127, 4),
+        error(StaticWarningCode.deadNullAwareExpression, 130, 1),
       ],
     );
     // `c` is on the LHS of an if-null expression, so implicit call tearoff
@@ -616,7 +616,7 @@ class A {
 }
 Function f<X extends A, Y extends X?>(Y y) => y;
 ''',
-      [error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION, 75, 1)],
+      [error(CompileTimeErrorCode.returnOfInvalidTypeFromFunction, 75, 1)],
     );
 
     // Verify that no ImplicitCallReference was inserted.
@@ -637,7 +637,7 @@ class A {
 }
 Function f<X extends A>(X? x) => x;
 ''',
-      [error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION, 62, 1)],
+      [error(CompileTimeErrorCode.returnOfInvalidTypeFromFunction, 62, 1)],
     );
 
     // Verify that no ImplicitCallReference was inserted.
@@ -878,7 +878,7 @@ void f() {
   X(0);
 }
 ''',
-      [error(CompileTimeErrorCode.INVOCATION_OF_NON_FUNCTION, 33, 1)],
+      [error(CompileTimeErrorCode.invocationOfNonFunction, 33, 1)],
     );
 
     // Not rewritten.
@@ -953,7 +953,7 @@ f() {
 ''',
       [
         error(
-          CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_CONSTRUCTOR,
+          CompileTimeErrorCode.wrongNumberOfTypeArgumentsConstructor,
           50,
           5,
           messageContains: ["The constructor 'prefix.A.named'"],
@@ -1022,7 +1022,7 @@ f() {
 ''',
       [
         error(
-          CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_CONSTRUCTOR,
+          CompileTimeErrorCode.wrongNumberOfTypeArgumentsConstructor,
           48,
           5,
           messageContains: ["The constructor 'prefix.A.new'"],
@@ -1233,7 +1233,7 @@ f() {
 ''',
       [
         error(
-          CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_CONSTRUCTOR,
+          CompileTimeErrorCode.wrongNumberOfTypeArgumentsConstructor,
           52,
           13,
           messageContains: ["The constructor 'A.named'"],
@@ -1299,7 +1299,7 @@ f() {
 ''',
       [
         error(
-          CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_CONSTRUCTOR,
+          CompileTimeErrorCode.wrongNumberOfTypeArgumentsConstructor,
           48,
           13,
           messageContains: ["The constructor 'A.new'"],
@@ -1606,7 +1606,7 @@ void f() {
   C.new = 1;
 }
 ''',
-      [error(CompileTimeErrorCode.UNDEFINED_SETTER, 27, 3)],
+      [error(CompileTimeErrorCode.undefinedSetter, 27, 3)],
     );
 
     var identifier = findNode.prefixed('C.new');

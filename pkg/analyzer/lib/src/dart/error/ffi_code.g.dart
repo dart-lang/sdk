@@ -28,7 +28,7 @@ import "package:_fe_analyzer_shared/src/base/errors.dart";
 
 class FfiCode extends DiagnosticCode {
   /// No parameters.
-  static const FfiCode ABI_SPECIFIC_INTEGER_INVALID = FfiCode(
+  static const FfiCode abiSpecificIntegerInvalid = FfiCode(
     'ABI_SPECIFIC_INTEGER_INVALID',
     "Classes extending 'AbiSpecificInteger' must have exactly one const "
         "constructor, no other members, and no type parameters.",
@@ -39,7 +39,7 @@ class FfiCode extends DiagnosticCode {
   );
 
   /// No parameters.
-  static const FfiCode ABI_SPECIFIC_INTEGER_MAPPING_EXTRA = FfiCode(
+  static const FfiCode abiSpecificIntegerMappingExtra = FfiCode(
     'ABI_SPECIFIC_INTEGER_MAPPING_EXTRA',
     "Classes extending 'AbiSpecificInteger' must have exactly one "
         "'AbiSpecificIntegerMapping' annotation specifying the mapping from "
@@ -49,7 +49,7 @@ class FfiCode extends DiagnosticCode {
   );
 
   /// No parameters.
-  static const FfiCode ABI_SPECIFIC_INTEGER_MAPPING_MISSING = FfiCode(
+  static const FfiCode abiSpecificIntegerMappingMissing = FfiCode(
     'ABI_SPECIFIC_INTEGER_MAPPING_MISSING',
     "Classes extending 'AbiSpecificInteger' must have exactly one "
         "'AbiSpecificIntegerMapping' annotation specifying the mapping from "
@@ -60,7 +60,7 @@ class FfiCode extends DiagnosticCode {
 
   /// Parameters:
   /// String p0: the value of the invalid mapping
-  static const FfiCode ABI_SPECIFIC_INTEGER_MAPPING_UNSUPPORTED = FfiCode(
+  static const FfiCode abiSpecificIntegerMappingUnsupported = FfiCode(
     'ABI_SPECIFIC_INTEGER_MAPPING_UNSUPPORTED',
     "Invalid mapping to '{0}'; only mappings to 'Int8', 'Int16', 'Int32', "
         "'Int64', 'Uint8', 'Uint16', 'UInt32', and 'Uint64' are supported.",
@@ -71,14 +71,14 @@ class FfiCode extends DiagnosticCode {
   );
 
   /// No parameters.
-  static const FfiCode ADDRESS_POSITION = FfiCode(
+  static const FfiCode addressPosition = FfiCode(
     'ADDRESS_POSITION',
     "The '.address' expression can only be used as argument to a leaf native "
         "external call.",
   );
 
   /// No parameters.
-  static const FfiCode ADDRESS_RECEIVER = FfiCode(
+  static const FfiCode addressReceiver = FfiCode(
     'ADDRESS_RECEIVER',
     "The receiver of '.address' must be a concrete 'TypedData', a concrete "
         "'TypedData' '[]', an 'Array', an 'Array' '[]', a Struct field, or a "
@@ -88,7 +88,7 @@ class FfiCode extends DiagnosticCode {
   );
 
   /// No parameters.
-  static const FfiCode ANNOTATION_ON_POINTER_FIELD = FfiCode(
+  static const FfiCode annotationOnPointerField = FfiCode(
     'ANNOTATION_ON_POINTER_FIELD',
     "Fields in a struct class whose type is 'Pointer' shouldn't have any "
         "annotations.",
@@ -98,7 +98,7 @@ class FfiCode extends DiagnosticCode {
 
   /// Parameters:
   /// String p0: the name of the argument
-  static const FfiCode ARGUMENT_MUST_BE_A_CONSTANT = FfiCode(
+  static const FfiCode argumentMustBeAConstant = FfiCode(
     'ARGUMENT_MUST_BE_A_CONSTANT',
     "Argument '{0}' must be a constant.",
     correctionMessage: "Try replacing the value with a literal or const.",
@@ -106,7 +106,7 @@ class FfiCode extends DiagnosticCode {
   );
 
   /// No parameters.
-  static const FfiCode ARGUMENT_MUST_BE_NATIVE = FfiCode(
+  static const FfiCode argumentMustBeNative = FfiCode(
     'ARGUMENT_MUST_BE_NATIVE',
     "Argument to 'Native.addressOf' must be annotated with @Native",
     correctionMessage:
@@ -116,7 +116,7 @@ class FfiCode extends DiagnosticCode {
 
   /// Parameters:
   /// String p0: the name of the struct or union class
-  static const FfiCode COMPOUND_IMPLEMENTS_FINALIZABLE = FfiCode(
+  static const FfiCode compoundImplementsFinalizable = FfiCode(
     'COMPOUND_IMPLEMENTS_FINALIZABLE',
     "The class '{0}' can't implement Finalizable.",
     correctionMessage: "Try removing the implements clause from '{0}'.",
@@ -124,7 +124,7 @@ class FfiCode extends DiagnosticCode {
   );
 
   /// No parameters.
-  static const FfiCode CREATION_OF_STRUCT_OR_UNION = FfiCode(
+  static const FfiCode creationOfStructOrUnion = FfiCode(
     'CREATION_OF_STRUCT_OR_UNION',
     "Subclasses of 'Struct' and 'Union' are backed by native memory, and can't "
         "be instantiated by a generative constructor.",
@@ -136,7 +136,7 @@ class FfiCode extends DiagnosticCode {
   /// Parameters:
   /// String p0: the name of the subclass
   /// String p1: the name of the superclass
-  static const FfiCode EMPTY_STRUCT = FfiCode(
+  static const FfiCode emptyStruct = FfiCode(
     'EMPTY_STRUCT',
     "The class '{0}' can't be empty because it's a subclass of '{1}'.",
     correctionMessage:
@@ -145,7 +145,7 @@ class FfiCode extends DiagnosticCode {
   );
 
   /// No parameters.
-  static const FfiCode EXTRA_ANNOTATION_ON_STRUCT_FIELD = FfiCode(
+  static const FfiCode extraAnnotationOnStructField = FfiCode(
     'EXTRA_ANNOTATION_ON_STRUCT_FIELD',
     "Fields in a struct class must have exactly one annotation indicating the "
         "native type.",
@@ -154,7 +154,7 @@ class FfiCode extends DiagnosticCode {
   );
 
   /// No parameters.
-  static const FfiCode EXTRA_SIZE_ANNOTATION_CARRAY = FfiCode(
+  static const FfiCode extraSizeAnnotationCarray = FfiCode(
     'EXTRA_SIZE_ANNOTATION_CARRAY',
     "'Array's must have exactly one 'Array' annotation.",
     correctionMessage: "Try removing the extra annotation.",
@@ -162,7 +162,7 @@ class FfiCode extends DiagnosticCode {
   );
 
   /// No parameters.
-  static const FfiCode FFI_NATIVE_INVALID_DUPLICATE_DEFAULT_ASSET = FfiCode(
+  static const FfiCode ffiNativeInvalidDuplicateDefaultAsset = FfiCode(
     'FFI_NATIVE_INVALID_DUPLICATE_DEFAULT_ASSET',
     "There may be at most one @DefaultAsset annotation on a library.",
     correctionMessage: "Try removing the extra annotation.",
@@ -170,7 +170,7 @@ class FfiCode extends DiagnosticCode {
   );
 
   /// No parameters.
-  static const FfiCode FFI_NATIVE_INVALID_MULTIPLE_ANNOTATIONS = FfiCode(
+  static const FfiCode ffiNativeInvalidMultipleAnnotations = FfiCode(
     'FFI_NATIVE_INVALID_MULTIPLE_ANNOTATIONS',
     "Native functions and fields must have exactly one `@Native` annotation.",
     correctionMessage: "Try removing the extra annotation.",
@@ -178,7 +178,7 @@ class FfiCode extends DiagnosticCode {
   );
 
   /// No parameters.
-  static const FfiCode FFI_NATIVE_MUST_BE_EXTERNAL = FfiCode(
+  static const FfiCode ffiNativeMustBeExternal = FfiCode(
     'FFI_NATIVE_MUST_BE_EXTERNAL',
     "Native functions must be declared external.",
     correctionMessage: "Add the `external` keyword to the function.",
@@ -187,7 +187,7 @@ class FfiCode extends DiagnosticCode {
 
   /// No parameters.
   static const FfiCode
-  FFI_NATIVE_ONLY_CLASSES_EXTENDING_NATIVEFIELDWRAPPERCLASS1_CAN_BE_POINTER = FfiCode(
+  ffiNativeOnlyClassesExtendingNativefieldwrapperclass1CanBePointer = FfiCode(
     'FFI_NATIVE_ONLY_CLASSES_EXTENDING_NATIVEFIELDWRAPPERCLASS1_CAN_BE_POINTER',
     "Only classes extending NativeFieldWrapperClass1 can be passed as Pointer.",
     correctionMessage: "Pass as Handle instead.",
@@ -196,7 +196,7 @@ class FfiCode extends DiagnosticCode {
   /// Parameters:
   /// int p0: the expected number of parameters
   /// int p1: the actual number of parameters
-  static const FfiCode FFI_NATIVE_UNEXPECTED_NUMBER_OF_PARAMETERS = FfiCode(
+  static const FfiCode ffiNativeUnexpectedNumberOfParameters = FfiCode(
     'FFI_NATIVE_UNEXPECTED_NUMBER_OF_PARAMETERS',
     "Unexpected number of Native annotation parameters. Expected {0} but has "
         "{1}.",
@@ -208,7 +208,7 @@ class FfiCode extends DiagnosticCode {
   /// int p0: the expected number of parameters
   /// int p1: the actual number of parameters
   static const FfiCode
-  FFI_NATIVE_UNEXPECTED_NUMBER_OF_PARAMETERS_WITH_RECEIVER = FfiCode(
+  ffiNativeUnexpectedNumberOfParametersWithReceiver = FfiCode(
     'FFI_NATIVE_UNEXPECTED_NUMBER_OF_PARAMETERS_WITH_RECEIVER',
     "Unexpected number of Native annotation parameters. Expected {0} but has "
         "{1}. Native instance method annotation must have receiver as first "
@@ -220,7 +220,7 @@ class FfiCode extends DiagnosticCode {
   );
 
   /// No parameters.
-  static const FfiCode FIELD_MUST_BE_EXTERNAL_IN_STRUCT = FfiCode(
+  static const FfiCode fieldMustBeExternalInStruct = FfiCode(
     'FIELD_MUST_BE_EXTERNAL_IN_STRUCT',
     "Fields of 'Struct' and 'Union' subclasses must be marked external.",
     correctionMessage: "Try adding the 'external' modifier.",
@@ -229,7 +229,7 @@ class FfiCode extends DiagnosticCode {
 
   /// Parameters:
   /// String p0: the name of the struct class
-  static const FfiCode GENERIC_STRUCT_SUBCLASS = FfiCode(
+  static const FfiCode genericStructSubclass = FfiCode(
     'GENERIC_STRUCT_SUBCLASS',
     "The class '{0}' can't extend 'Struct' or 'Union' because '{0}' is "
         "generic.",
@@ -239,7 +239,7 @@ class FfiCode extends DiagnosticCode {
 
   /// Parameters:
   /// String p0: the name of the method
-  static const FfiCode INVALID_EXCEPTION_VALUE = FfiCode(
+  static const FfiCode invalidExceptionValue = FfiCode(
     'INVALID_EXCEPTION_VALUE',
     "The method {0} can't have an exceptional return value (the second "
         "argument) when the return type of the function is either 'void', "
@@ -250,7 +250,7 @@ class FfiCode extends DiagnosticCode {
 
   /// Parameters:
   /// String p0: the type of the field
-  static const FfiCode INVALID_FIELD_TYPE_IN_STRUCT = FfiCode(
+  static const FfiCode invalidFieldTypeInStruct = FfiCode(
     'INVALID_FIELD_TYPE_IN_STRUCT',
     "Fields in struct classes can't have the type '{0}'. They can only be "
         "declared as 'int', 'double', 'Array', 'Pointer', or subtype of "
@@ -262,7 +262,7 @@ class FfiCode extends DiagnosticCode {
   );
 
   /// No parameters.
-  static const FfiCode LEAF_CALL_MUST_NOT_RETURN_HANDLE = FfiCode(
+  static const FfiCode leafCallMustNotReturnHandle = FfiCode(
     'LEAF_CALL_MUST_NOT_RETURN_HANDLE',
     "FFI leaf call can't return a 'Handle'.",
     correctionMessage: "Try changing the return type to primitive or struct.",
@@ -270,7 +270,7 @@ class FfiCode extends DiagnosticCode {
   );
 
   /// No parameters.
-  static const FfiCode LEAF_CALL_MUST_NOT_TAKE_HANDLE = FfiCode(
+  static const FfiCode leafCallMustNotTakeHandle = FfiCode(
     'LEAF_CALL_MUST_NOT_TAKE_HANDLE',
     "FFI leaf call can't take arguments of type 'Handle'.",
     correctionMessage: "Try changing the argument type to primitive or struct.",
@@ -278,7 +278,7 @@ class FfiCode extends DiagnosticCode {
   );
 
   /// No parameters.
-  static const FfiCode MISMATCHED_ANNOTATION_ON_STRUCT_FIELD = FfiCode(
+  static const FfiCode mismatchedAnnotationOnStructField = FfiCode(
     'MISMATCHED_ANNOTATION_ON_STRUCT_FIELD',
     "The annotation doesn't match the declared type of the field.",
     correctionMessage:
@@ -290,7 +290,7 @@ class FfiCode extends DiagnosticCode {
   /// Parameters:
   /// Type p0: the type that is missing a native type annotation
   /// String p1: the superclass which is extended by this field's class
-  static const FfiCode MISSING_ANNOTATION_ON_STRUCT_FIELD = FfiCode(
+  static const FfiCode missingAnnotationOnStructField = FfiCode(
     'MISSING_ANNOTATION_ON_STRUCT_FIELD',
     "Fields of type '{0}' in a subclass of '{1}' must have an annotation "
         "indicating the native type.",
@@ -300,7 +300,7 @@ class FfiCode extends DiagnosticCode {
 
   /// Parameters:
   /// String p0: the name of the method
-  static const FfiCode MISSING_EXCEPTION_VALUE = FfiCode(
+  static const FfiCode missingExceptionValue = FfiCode(
     'MISSING_EXCEPTION_VALUE',
     "The method {0} must have an exceptional return value (the second "
         "argument) when the return type of the function is neither 'void', "
@@ -310,7 +310,7 @@ class FfiCode extends DiagnosticCode {
   );
 
   /// No parameters.
-  static const FfiCode MISSING_FIELD_TYPE_IN_STRUCT = FfiCode(
+  static const FfiCode missingFieldTypeInStruct = FfiCode(
     'MISSING_FIELD_TYPE_IN_STRUCT',
     "Fields in struct classes must have an explicitly declared type of 'int', "
         "'double' or 'Pointer'.",
@@ -319,7 +319,7 @@ class FfiCode extends DiagnosticCode {
   );
 
   /// No parameters.
-  static const FfiCode MISSING_SIZE_ANNOTATION_CARRAY = FfiCode(
+  static const FfiCode missingSizeAnnotationCarray = FfiCode(
     'MISSING_SIZE_ANNOTATION_CARRAY',
     "Fields of type 'Array' must have exactly one 'Array' annotation.",
     correctionMessage:
@@ -332,7 +332,7 @@ class FfiCode extends DiagnosticCode {
   /// Object p0: the type that should be a valid dart:ffi native type.
   /// String p1: the name of the function whose invocation depends on this
   ///            relationship
-  static const FfiCode MUST_BE_A_NATIVE_FUNCTION_TYPE = FfiCode(
+  static const FfiCode mustBeANativeFunctionType = FfiCode(
     'MUST_BE_A_NATIVE_FUNCTION_TYPE',
     "The type '{0}' given to '{1}' must be a valid 'dart:ffi' native function "
         "type.",
@@ -346,7 +346,7 @@ class FfiCode extends DiagnosticCode {
   /// Type p1: the supertype that the subtype is compared to
   /// String p2: the name of the function whose invocation depends on this
   ///            relationship
-  static const FfiCode MUST_BE_A_SUBTYPE = FfiCode(
+  static const FfiCode mustBeASubtype = FfiCode(
     'MUST_BE_A_SUBTYPE',
     "The type '{0}' must be a subtype of '{1}' for '{2}'.",
     correctionMessage: "Try changing one or both of the type arguments.",
@@ -355,7 +355,7 @@ class FfiCode extends DiagnosticCode {
 
   /// Parameters:
   /// Type p0: the return type that should be 'void'.
-  static const FfiCode MUST_RETURN_VOID = FfiCode(
+  static const FfiCode mustReturnVoid = FfiCode(
     'MUST_RETURN_VOID',
     "The return type of the function passed to 'NativeCallable.listener' must "
         "be 'void' rather than '{0}'.",
@@ -365,7 +365,7 @@ class FfiCode extends DiagnosticCode {
 
   /// Parameters:
   /// Type p0: The invalid type.
-  static const FfiCode NATIVE_FIELD_INVALID_TYPE = FfiCode(
+  static const FfiCode nativeFieldInvalidType = FfiCode(
     'NATIVE_FIELD_INVALID_TYPE',
     "'{0}' is an unsupported type for native fields. Native fields only "
         "support pointers, arrays or numeric and compound types.",
@@ -376,7 +376,7 @@ class FfiCode extends DiagnosticCode {
   );
 
   /// No parameters.
-  static const FfiCode NATIVE_FIELD_MISSING_TYPE = FfiCode(
+  static const FfiCode nativeFieldMissingType = FfiCode(
     'NATIVE_FIELD_MISSING_TYPE',
     "The native type of this field could not be inferred and must be specified "
         "in the annotation.",
@@ -387,7 +387,7 @@ class FfiCode extends DiagnosticCode {
   );
 
   /// No parameters.
-  static const FfiCode NATIVE_FIELD_NOT_STATIC = FfiCode(
+  static const FfiCode nativeFieldNotStatic = FfiCode(
     'NATIVE_FIELD_NOT_STATIC',
     "Native fields must be static.",
     correctionMessage: "Try adding the modifier 'static' to this field.",
@@ -395,7 +395,7 @@ class FfiCode extends DiagnosticCode {
   );
 
   /// No parameters.
-  static const FfiCode NATIVE_FUNCTION_MISSING_TYPE = FfiCode(
+  static const FfiCode nativeFunctionMissingType = FfiCode(
     'NATIVE_FUNCTION_MISSING_TYPE',
     "The native type of this function couldn't be inferred so it must be "
         "specified in the annotation.",
@@ -406,7 +406,7 @@ class FfiCode extends DiagnosticCode {
   );
 
   /// No parameters.
-  static const FfiCode NEGATIVE_VARIABLE_DIMENSION = FfiCode(
+  static const FfiCode negativeVariableDimension = FfiCode(
     'NEGATIVE_VARIABLE_DIMENSION',
     "The variable dimension of a variable-length array must be non-negative.",
     correctionMessage: "Try using a value that is zero or greater.",
@@ -416,7 +416,7 @@ class FfiCode extends DiagnosticCode {
   /// Parameters:
   /// String p0: the name of the function, method, or constructor having type
   ///            arguments
-  static const FfiCode NON_CONSTANT_TYPE_ARGUMENT = FfiCode(
+  static const FfiCode nonConstantTypeArgument = FfiCode(
     'NON_CONSTANT_TYPE_ARGUMENT',
     "The type arguments to '{0}' must be known at compile time, so they can't "
         "be type parameters.",
@@ -426,7 +426,7 @@ class FfiCode extends DiagnosticCode {
 
   /// Parameters:
   /// Type p0: the type that should be a valid dart:ffi native type.
-  static const FfiCode NON_NATIVE_FUNCTION_TYPE_ARGUMENT_TO_POINTER = FfiCode(
+  static const FfiCode nonNativeFunctionTypeArgumentToPointer = FfiCode(
     'NON_NATIVE_FUNCTION_TYPE_ARGUMENT_TO_POINTER',
     "Can't invoke 'asFunction' because the function signature '{0}' for the "
         "pointer isn't a valid C function signature.",
@@ -437,7 +437,7 @@ class FfiCode extends DiagnosticCode {
   );
 
   /// No parameters.
-  static const FfiCode NON_POSITIVE_ARRAY_DIMENSION = FfiCode(
+  static const FfiCode nonPositiveArrayDimension = FfiCode(
     'NON_POSITIVE_ARRAY_DIMENSION',
     "Array dimensions must be positive numbers.",
     correctionMessage: "Try changing the input to a positive number.",
@@ -447,7 +447,7 @@ class FfiCode extends DiagnosticCode {
   /// Parameters:
   /// String p0: the name of the field
   /// Type p1: the type of the field
-  static const FfiCode NON_SIZED_TYPE_ARGUMENT = FfiCode(
+  static const FfiCode nonSizedTypeArgument = FfiCode(
     'NON_SIZED_TYPE_ARGUMENT',
     "The type '{1}' isn't a valid type argument for '{0}'. The type argument "
         "must be a native integer, 'Float', 'Double', 'Pointer', or subtype of "
@@ -459,7 +459,7 @@ class FfiCode extends DiagnosticCode {
   );
 
   /// No parameters.
-  static const FfiCode PACKED_ANNOTATION = FfiCode(
+  static const FfiCode packedAnnotation = FfiCode(
     'PACKED_ANNOTATION',
     "Structs must have at most one 'Packed' annotation.",
     correctionMessage: "Try removing extra 'Packed' annotations.",
@@ -467,7 +467,7 @@ class FfiCode extends DiagnosticCode {
   );
 
   /// No parameters.
-  static const FfiCode PACKED_ANNOTATION_ALIGNMENT = FfiCode(
+  static const FfiCode packedAnnotationAlignment = FfiCode(
     'PACKED_ANNOTATION_ALIGNMENT',
     "Only packing to 1, 2, 4, 8, and 16 bytes is supported.",
     correctionMessage:
@@ -476,7 +476,7 @@ class FfiCode extends DiagnosticCode {
   );
 
   /// No parameters.
-  static const FfiCode SIZE_ANNOTATION_DIMENSIONS = FfiCode(
+  static const FfiCode sizeAnnotationDimensions = FfiCode(
     'SIZE_ANNOTATION_DIMENSIONS',
     "'Array's must have an 'Array' annotation that matches the dimensions.",
     correctionMessage: "Try adjusting the arguments in the 'Array' annotation.",
@@ -486,7 +486,7 @@ class FfiCode extends DiagnosticCode {
   /// Parameters:
   /// String p0: the name of the subclass
   /// String p1: the name of the class being extended, implemented, or mixed in
-  static const FfiCode SUBTYPE_OF_STRUCT_CLASS_IN_EXTENDS = FfiCode(
+  static const FfiCode subtypeOfStructClassInExtends = FfiCode(
     'SUBTYPE_OF_STRUCT_CLASS',
     "The class '{0}' can't extend '{1}' because '{1}' is a subtype of "
         "'Struct', 'Union', or 'AbiSpecificInteger'.",
@@ -499,7 +499,7 @@ class FfiCode extends DiagnosticCode {
   /// Parameters:
   /// String p0: the name of the subclass
   /// String p1: the name of the class being extended, implemented, or mixed in
-  static const FfiCode SUBTYPE_OF_STRUCT_CLASS_IN_IMPLEMENTS = FfiCode(
+  static const FfiCode subtypeOfStructClassInImplements = FfiCode(
     'SUBTYPE_OF_STRUCT_CLASS',
     "The class '{0}' can't implement '{1}' because '{1}' is a subtype of "
         "'Struct', 'Union', or 'AbiSpecificInteger'.",
@@ -512,7 +512,7 @@ class FfiCode extends DiagnosticCode {
   /// Parameters:
   /// String p0: the name of the subclass
   /// String p1: the name of the class being extended, implemented, or mixed in
-  static const FfiCode SUBTYPE_OF_STRUCT_CLASS_IN_WITH = FfiCode(
+  static const FfiCode subtypeOfStructClassInWith = FfiCode(
     'SUBTYPE_OF_STRUCT_CLASS',
     "The class '{0}' can't mix in '{1}' because '{1}' is a subtype of "
         "'Struct', 'Union', or 'AbiSpecificInteger'.",
@@ -523,7 +523,7 @@ class FfiCode extends DiagnosticCode {
   );
 
   /// No parameters.
-  static const FfiCode VARIABLE_LENGTH_ARRAY_NOT_LAST = FfiCode(
+  static const FfiCode variableLengthArrayNotLast = FfiCode(
     'VARIABLE_LENGTH_ARRAY_NOT_LAST',
     "Variable length 'Array's must only occur as the last field of Structs.",
     correctionMessage: "Try adjusting the arguments in the 'Array' annotation.",

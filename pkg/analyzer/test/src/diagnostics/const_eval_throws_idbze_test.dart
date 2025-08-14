@@ -20,7 +20,7 @@ class ConstEvalThrowsIdbzeTest extends PubPackageResolutionTest {
       '''
 const C = 1 ~/ 0;
 ''',
-      [error(CompileTimeErrorCode.CONST_EVAL_THROWS_IDBZE, 10, 6)],
+      [error(CompileTimeErrorCode.constEvalThrowsIdbze, 10, 6)],
     );
   }
 }

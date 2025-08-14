@@ -36,7 +36,7 @@ void f() {
   A.new(0);
 }
 ''',
-      [error(ParserErrorCode.EXPERIMENT_NOT_ENABLED, 40, 3)],
+      [error(ParserErrorCode.experimentNotEnabled, 40, 3)],
     );
 
     // Resolution should continue even though the experiment is not enabled.
@@ -201,7 +201,7 @@ void f() {
   A(0);
 }
 ''',
-      [error(WarningCode.UNUSED_ELEMENT, 33, 1)],
+      [error(WarningCode.unusedElement, 33, 1)],
     );
 
     var node = findNode.singleInstanceCreationExpression;
@@ -539,7 +539,7 @@ void f() {
   A();
 }
 ''',
-      [error(WarningCode.UNUSED_ELEMENT, 30, 1)],
+      [error(WarningCode.unusedElement, 30, 1)],
     );
 
     var node = findNode.singleInstanceCreationExpression;
@@ -640,7 +640,7 @@ void f() {
 }
 
 ''',
-      [error(CompileTimeErrorCode.NEW_WITH_UNDEFINED_CONSTRUCTOR, 31, 10)],
+      [error(CompileTimeErrorCode.newWithUndefinedConstructor, 31, 10)],
     );
 
     var node = findNode.singleInstanceCreationExpression;
@@ -715,7 +715,7 @@ InstanceCreationExpression
       r'''
 final foo = Map<int>();
 ''',
-      [error(CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS, 12, 8)],
+      [error(CompileTimeErrorCode.wrongNumberOfTypeArguments, 12, 8)],
     );
 
     var node = findNode.instanceCreation('Map<int>');
@@ -757,7 +757,7 @@ main() {
 ''',
       [
         error(
-          CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_CONSTRUCTOR,
+          CompileTimeErrorCode.wrongNumberOfTypeArgumentsConstructor,
           53,
           5,
           messageContains: ["The constructor 'Foo.bar'"],
@@ -812,7 +812,7 @@ main() {
 ''',
       [
         error(
-          CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_CONSTRUCTOR,
+          CompileTimeErrorCode.wrongNumberOfTypeArgumentsConstructor,
           53,
           5,
           messageContains: ["The constructor 'Foo.new'"],
@@ -868,7 +868,7 @@ main() {
   new p.Foo.bar<int>();
 }
 ''',
-      [error(ParserErrorCode.CONSTRUCTOR_WITH_TYPE_ARGUMENTS, 44, 3)],
+      [error(ParserErrorCode.constructorWithTypeArguments, 44, 3)],
     );
 
     // TODO(brianwilkerson): Test this more carefully after we can re-write the
@@ -924,7 +924,7 @@ main() {
 ''',
       [
         error(
-          CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_CONSTRUCTOR,
+          CompileTimeErrorCode.wrongNumberOfTypeArgumentsConstructor,
           49,
           5,
         ),
@@ -980,7 +980,7 @@ main() {
 ''',
       [
         error(
-          CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_CONSTRUCTOR,
+          CompileTimeErrorCode.wrongNumberOfTypeArgumentsConstructor,
           43,
           5,
         ),
@@ -1237,7 +1237,7 @@ void f() {
   new A.named(0);
 }
 ''',
-      [error(CompileTimeErrorCode.NEW_WITH_UNDEFINED_CONSTRUCTOR, 48, 5)],
+      [error(CompileTimeErrorCode.newWithUndefinedConstructor, 48, 5)],
     );
 
     var node = findNode.singleInstanceCreationExpression;
@@ -1277,7 +1277,7 @@ void f() {
 }
 
 ''',
-      [error(CompileTimeErrorCode.NEW_WITH_NON_TYPE, 48, 6)],
+      [error(CompileTimeErrorCode.newWithNonType, 48, 6)],
     );
 
     var node = findNode.singleInstanceCreationExpression;
@@ -1746,7 +1746,7 @@ void f() {
 }
 
 ''',
-      [error(CompileTimeErrorCode.NEW_WITH_UNDEFINED_CONSTRUCTOR, 54, 3)],
+      [error(CompileTimeErrorCode.newWithUndefinedConstructor, 54, 3)],
     );
 
     var node = findNode.singleInstanceCreationExpression;
@@ -1790,7 +1790,7 @@ void f() {
 }
 
 ''',
-      [error(CompileTimeErrorCode.NEW_WITH_NON_TYPE, 55, 3)],
+      [error(CompileTimeErrorCode.newWithNonType, 55, 3)],
     );
 
     var node = findNode.singleInstanceCreationExpression;
@@ -2010,7 +2010,7 @@ void f() {
   X(0);
 }
 ''',
-      [error(WarningCode.UNUSED_ELEMENT, 33, 1)],
+      [error(WarningCode.unusedElement, 33, 1)],
     );
 
     var node = findNode.singleInstanceCreationExpression;
@@ -2225,7 +2225,7 @@ void f() {
   B.named(0);
 }
 ''',
-      [error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 77, 1)],
+      [error(CompileTimeErrorCode.argumentTypeNotAssignable, 77, 1)],
     );
 
     var node = findNode.instanceCreation('B.named(0)');
@@ -2273,7 +2273,7 @@ void f() {
   B(0);
 }
 ''',
-      [error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 65, 1)],
+      [error(CompileTimeErrorCode.argumentTypeNotAssignable, 65, 1)],
     );
 
     var node = findNode.instanceCreation('B(0)');
@@ -2369,7 +2369,7 @@ void f() {
   X();
 }
 ''',
-      [error(WarningCode.UNUSED_ELEMENT, 30, 1)],
+      [error(WarningCode.unusedElement, 30, 1)],
     );
 
     var node = findNode.singleInstanceCreationExpression;
@@ -2507,7 +2507,7 @@ void f() {
 }
 
 ''',
-      [error(CompileTimeErrorCode.NEW_WITH_NON_TYPE, 17, 10)],
+      [error(CompileTimeErrorCode.newWithNonType, 17, 10)],
     );
 
     var node = findNode.singleInstanceCreationExpression;
@@ -2540,7 +2540,7 @@ void f() {
 }
 
 ''',
-      [error(CompileTimeErrorCode.NEW_WITH_NON_TYPE, 17, 16)],
+      [error(CompileTimeErrorCode.newWithNonType, 17, 16)],
     );
 
     var node = findNode.singleInstanceCreationExpression;
@@ -2577,7 +2577,7 @@ void f() {
 }
 
 ''',
-      [error(CompileTimeErrorCode.NEW_WITH_NON_TYPE, 17, 14)],
+      [error(CompileTimeErrorCode.newWithNonType, 17, 14)],
     );
 
     var node = findNode.singleInstanceCreationExpression;

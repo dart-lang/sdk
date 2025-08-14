@@ -20,7 +20,7 @@ class MapEntryNotInMapTest extends PubPackageResolutionTest {
       '''
 var c = <int>{1:2};
 ''',
-      [error(CompileTimeErrorCode.MAP_ENTRY_NOT_IN_MAP, 14, 3)],
+      [error(CompileTimeErrorCode.mapEntryNotInMap, 14, 3)],
     );
   }
 
@@ -29,7 +29,7 @@ var c = <int>{1:2};
       '''
 var c = const <int>{1:2};
 ''',
-      [error(CompileTimeErrorCode.MAP_ENTRY_NOT_IN_MAP, 20, 3)],
+      [error(CompileTimeErrorCode.mapEntryNotInMap, 20, 3)],
     );
   }
 }

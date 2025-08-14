@@ -36,7 +36,7 @@ class B extends A {
   B({super.a : ''});
 }
 ''',
-      [error(HintCode.DEPRECATED_COLON_FOR_DEFAULT_VALUE, 74, 1)],
+      [error(HintCode.deprecatedColonForDefaultValue, 74, 1)],
     );
   }
 
@@ -45,7 +45,7 @@ class B extends A {
       '''
 void f({int x : 0}) {}
 ''',
-      [error(HintCode.DEPRECATED_COLON_FOR_DEFAULT_VALUE, 14, 1)],
+      [error(HintCode.deprecatedColonForDefaultValue, 14, 1)],
     );
   }
 

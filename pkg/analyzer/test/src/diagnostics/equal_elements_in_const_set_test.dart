@@ -25,7 +25,7 @@ var c = const {1, 2, 1};
 ''',
       [
         error(
-          CompileTimeErrorCode.EQUAL_ELEMENTS_IN_CONST_SET,
+          CompileTimeErrorCode.equalElementsInConstSet,
           21,
           1,
           contextMessages: [message(testFile, 15, 1)],
@@ -42,7 +42,7 @@ extension type E(int it) {}
 ''',
       [
         error(
-          CompileTimeErrorCode.EQUAL_ELEMENTS_IN_CONST_SET,
+          CompileTimeErrorCode.equalElementsInConstSet,
           16,
           1,
           contextMessages: [message(testFile, 11, 3)],
@@ -58,7 +58,7 @@ var c = const {1, if (1 < 0) 2 else 1};
 ''',
       [
         error(
-          CompileTimeErrorCode.EQUAL_ELEMENTS_IN_CONST_SET,
+          CompileTimeErrorCode.equalElementsInConstSet,
           36,
           1,
           contextMessages: [message(testFile, 15, 1)],
@@ -98,7 +98,7 @@ var c = const {1, if (0 < 1) 1};
 ''',
       [
         error(
-          CompileTimeErrorCode.EQUAL_ELEMENTS_IN_CONST_SET,
+          CompileTimeErrorCode.equalElementsInConstSet,
           29,
           1,
           contextMessages: [message(testFile, 15, 1)],
@@ -118,7 +118,7 @@ var c = const {const A<int>(), const A<int>()};
 ''',
       [
         error(
-          CompileTimeErrorCode.EQUAL_ELEMENTS_IN_CONST_SET,
+          CompileTimeErrorCode.equalElementsInConstSet,
           60,
           14,
           contextMessages: [message(testFile, 44, 14)],
@@ -145,7 +145,7 @@ const x = {[0], [0]};
 ''',
       [
         error(
-          CompileTimeErrorCode.EQUAL_ELEMENTS_IN_CONST_SET,
+          CompileTimeErrorCode.equalElementsInConstSet,
           16,
           3,
           contextMessages: [message(testFile, 11, 3)],
@@ -167,7 +167,7 @@ const x = {(0, 1), (0, 1)};
 ''',
       [
         error(
-          CompileTimeErrorCode.EQUAL_ELEMENTS_IN_CONST_SET,
+          CompileTimeErrorCode.equalElementsInConstSet,
           19,
           6,
           contextMessages: [message(testFile, 11, 6)],
@@ -195,7 +195,7 @@ var c = const {1, ...{1}};
 ''',
       [
         error(
-          CompileTimeErrorCode.EQUAL_ELEMENTS_IN_CONST_SET,
+          CompileTimeErrorCode.equalElementsInConstSet,
           21,
           3,
           contextMessages: [message(testFile, 15, 1)],
@@ -210,7 +210,7 @@ var c = const {1, ...{1}};
       '''
 var c = {1, 2, 1};
 ''',
-      [error(WarningCode.EQUAL_ELEMENTS_IN_SET, 15, 1)],
+      [error(WarningCode.equalElementsInSet, 15, 1)],
     );
   }
 }

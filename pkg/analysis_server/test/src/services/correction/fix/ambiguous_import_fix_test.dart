@@ -145,7 +145,7 @@ class C with M {}
 ''',
       matchFixMessage: "Hide others to use 'M' from 'lib4.dart'",
       errorFilter: (error) {
-        return error.diagnosticCode == CompileTimeErrorCode.AMBIGUOUS_IMPORT;
+        return error.diagnosticCode == CompileTimeErrorCode.ambiguousImport;
       },
     );
   }
@@ -195,7 +195,7 @@ class C with M {}
 ''',
       matchFixMessage: "Hide others to use 'M' from 'lib3.dart'",
       errorFilter: (error) {
-        return error.diagnosticCode == CompileTimeErrorCode.AMBIGUOUS_IMPORT;
+        return error.diagnosticCode == CompileTimeErrorCode.ambiguousImport;
       },
     );
   }
@@ -228,7 +228,7 @@ void foo(int i) {
 ''',
       matchFixMessage: "Hide others to use 'E' from 'lib1.dart'",
       errorFilter: (error) {
-        return error.diagnosticCode == CompileTimeErrorCode.AMBIGUOUS_IMPORT;
+        return error.diagnosticCode == CompileTimeErrorCode.ambiguousImport;
       },
     );
   }
@@ -276,7 +276,7 @@ class C with M {}
 ''',
       matchFixMessage: "Hide others to use 'M' from 'lib1.dart'",
       errorFilter: (error) {
-        return error.diagnosticCode == CompileTimeErrorCode.AMBIGUOUS_IMPORT;
+        return error.diagnosticCode == CompileTimeErrorCode.ambiguousImport;
       },
     );
   }
@@ -566,7 +566,7 @@ void f() {
       matchFixMessage: "Hide others to use 'N' from 'lib2.dart'",
       errorFilter:
           (error) =>
-              error.diagnosticCode == CompileTimeErrorCode.AMBIGUOUS_IMPORT,
+              error.diagnosticCode == CompileTimeErrorCode.ambiguousImport,
     );
   }
 
@@ -595,7 +595,7 @@ void f() {
       matchFixMessage: "Hide others to use 'N' from 'lib2.dart' as l",
       errorFilter:
           (error) =>
-              error.diagnosticCode == CompileTimeErrorCode.AMBIGUOUS_IMPORT,
+              error.diagnosticCode == CompileTimeErrorCode.ambiguousImport,
     );
   }
 
@@ -623,7 +623,7 @@ class C with M {}
 ''',
       matchFixMessage: "Hide others to use 'M' from 'lib1.dart'",
       errorFilter: (error) {
-        return error.diagnosticCode == CompileTimeErrorCode.AMBIGUOUS_IMPORT;
+        return error.diagnosticCode == CompileTimeErrorCode.ambiguousImport;
       },
     );
     await assertHasFix(
@@ -636,7 +636,7 @@ class C with M {}
 ''',
       matchFixMessage: "Hide others to use 'M' from 'lib2.dart'",
       errorFilter: (error) {
-        return error.diagnosticCode == CompileTimeErrorCode.AMBIGUOUS_IMPORT;
+        return error.diagnosticCode == CompileTimeErrorCode.ambiguousImport;
       },
     );
     await assertHasFix(
@@ -649,7 +649,7 @@ class C with M {}
 ''',
       matchFixMessage: "Hide others to use 'M' from 'lib3.dart'",
       errorFilter: (error) {
-        return error.diagnosticCode == CompileTimeErrorCode.AMBIGUOUS_IMPORT;
+        return error.diagnosticCode == CompileTimeErrorCode.ambiguousImport;
       },
     );
   }
@@ -865,7 +865,7 @@ void f(N? n, O? o) {
 ''',
       errorFilter:
           (error) =>
-              error.diagnosticCode == CompileTimeErrorCode.AMBIGUOUS_IMPORT,
+              error.diagnosticCode == CompileTimeErrorCode.ambiguousImport,
       matchFixMessage: "Remove show to use 'N' from 'lib2.dart'",
     );
   }

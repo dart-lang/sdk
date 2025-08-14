@@ -49,7 +49,7 @@ class A {
 }
 ''',
       [
-        error(CompileTimeErrorCode.DUPLICATE_CONSTRUCTOR_DEFAULT, 19, 5),
+        error(CompileTimeErrorCode.duplicateConstructorDefault, 19, 5),
         // A lint should likely not get reported here since we're already
         // producing a compilation error.
       ],
@@ -73,7 +73,7 @@ extension type E(int i) {
 ''',
       [
         // No lint.
-        error(CompileTimeErrorCode.DUPLICATE_CONSTRUCTOR_DEFAULT, 28, 5),
+        error(CompileTimeErrorCode.duplicateConstructorDefault, 28, 5),
       ],
     );
   }

@@ -24,7 +24,7 @@ mixin B implements A {}
 ''',
       [
         error(
-          CompileTimeErrorCode.MIXIN_SUBTYPE_OF_BASE_IS_NOT_BASE,
+          CompileTimeErrorCode.mixinSubtypeOfBaseIsNotBase,
           22,
           1,
           text:
@@ -43,7 +43,7 @@ mixin C implements B {}
 ''',
       [
         error(
-          CompileTimeErrorCode.MIXIN_SUBTYPE_OF_BASE_IS_NOT_BASE,
+          CompileTimeErrorCode.mixinSubtypeOfBaseIsNotBase,
           53,
           1,
           text:
@@ -70,7 +70,7 @@ mixin B on A {}
 ''',
       [
         error(
-          CompileTimeErrorCode.MIXIN_SUBTYPE_OF_BASE_IS_NOT_BASE,
+          CompileTimeErrorCode.mixinSubtypeOfBaseIsNotBase,
           22,
           1,
           text:
@@ -88,7 +88,7 @@ mixin B implements A {}
 ''',
       [
         error(
-          CompileTimeErrorCode.MIXIN_SUBTYPE_OF_BASE_IS_NOT_BASE,
+          CompileTimeErrorCode.mixinSubtypeOfBaseIsNotBase,
           22,
           1,
           text:

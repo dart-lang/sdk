@@ -23,13 +23,7 @@ void f() {
   var (0) = 0;
 }
 ''',
-      [
-        error(
-          CompileTimeErrorCode.REFUTABLE_PATTERN_IN_IRREFUTABLE_CONTEXT,
-          18,
-          1,
-        ),
-      ],
+      [error(CompileTimeErrorCode.refutablePatternInIrrefutableContext, 18, 1)],
     );
 
     var node = findNode.singlePatternVariableDeclaration;
@@ -61,12 +55,8 @@ void f() {
 }
 ''',
       [
-        error(
-          CompileTimeErrorCode.REFUTABLE_PATTERN_IN_IRREFUTABLE_CONTEXT,
-          18,
-          6,
-        ),
-        error(WarningCode.DEAD_CODE, 20, 4),
+        error(CompileTimeErrorCode.refutablePatternInIrrefutableContext, 18, 6),
+        error(WarningCode.deadCode, 20, 4),
       ],
     );
 
@@ -102,13 +92,7 @@ void f(int? x) {
   var (_?) = x;
 }
 ''',
-      [
-        error(
-          CompileTimeErrorCode.REFUTABLE_PATTERN_IN_IRREFUTABLE_CONTEXT,
-          24,
-          2,
-        ),
-      ],
+      [error(CompileTimeErrorCode.refutablePatternInIrrefutableContext, 24, 2)],
     );
 
     var node = findNode.singlePatternVariableDeclaration;
@@ -141,13 +125,7 @@ void f() {
   var (> 0) = 0;
 }
 ''',
-      [
-        error(
-          CompileTimeErrorCode.REFUTABLE_PATTERN_IN_IRREFUTABLE_CONTEXT,
-          18,
-          3,
-        ),
-      ],
+      [error(CompileTimeErrorCode.refutablePatternInIrrefutableContext, 18, 3)],
     );
 
     var node = findNode.singlePatternVariableDeclaration;

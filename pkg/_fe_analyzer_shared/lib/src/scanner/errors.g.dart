@@ -29,52 +29,52 @@ import "package:_fe_analyzer_shared/src/base/errors.dart";
 class ScannerErrorCode extends DiagnosticCode {
   /// Parameters:
   /// String p0: the token that was expected but not found
-  static const ScannerErrorCode EXPECTED_TOKEN = const ScannerErrorCode(
+  static const ScannerErrorCode expectedToken = const ScannerErrorCode(
     'EXPECTED_TOKEN',
     "Expected to find '{0}'.",
   );
 
   /// Parameters:
   /// Object p0: the illegal character
-  static const ScannerErrorCode ILLEGAL_CHARACTER = const ScannerErrorCode(
+  static const ScannerErrorCode illegalCharacter = const ScannerErrorCode(
     'ILLEGAL_CHARACTER',
     "Illegal character '{0}'.",
   );
 
   /// No parameters.
-  static const ScannerErrorCode MISSING_DIGIT = const ScannerErrorCode(
+  static const ScannerErrorCode missingDigit = const ScannerErrorCode(
     'MISSING_DIGIT',
     "Decimal digit expected.",
   );
 
   /// No parameters.
-  static const ScannerErrorCode MISSING_HEX_DIGIT = const ScannerErrorCode(
+  static const ScannerErrorCode missingHexDigit = const ScannerErrorCode(
     'MISSING_HEX_DIGIT',
     "Hexadecimal digit expected.",
   );
 
   /// No parameters.
-  static const ScannerErrorCode MISSING_IDENTIFIER = const ScannerErrorCode(
+  static const ScannerErrorCode missingIdentifier = const ScannerErrorCode(
     'MISSING_IDENTIFIER',
     "Expected an identifier.",
   );
 
   /// No parameters.
-  static const ScannerErrorCode MISSING_QUOTE = const ScannerErrorCode(
+  static const ScannerErrorCode missingQuote = const ScannerErrorCode(
     'MISSING_QUOTE',
     "Expected quote (' or \").",
   );
 
   /// Parameters:
   /// Object p0: the path of the file that cannot be read
-  static const ScannerErrorCode UNABLE_GET_CONTENT = const ScannerErrorCode(
+  static const ScannerErrorCode unableGetContent = const ScannerErrorCode(
     'UNABLE_GET_CONTENT',
     "Unable to get content of '{0}'.",
   );
 
   /// No parameters.
   static const ScannerErrorCode
-  UNEXPECTED_DOLLAR_IN_STRING = const ScannerErrorCode(
+  unexpectedDollarInString = const ScannerErrorCode(
     'UNEXPECTED_DOLLAR_IN_STRING',
     "A '\$' has special meaning inside a string, and must be followed by an "
         "identifier or an expression in curly braces ({}).",
@@ -83,7 +83,7 @@ class ScannerErrorCode extends DiagnosticCode {
 
   /// No parameters.
   static const ScannerErrorCode
-  UNEXPECTED_SEPARATOR_IN_NUMBER = const ScannerErrorCode(
+  unexpectedSeparatorInNumber = const ScannerErrorCode(
     'UNEXPECTED_SEPARATOR_IN_NUMBER',
     "Digit separators ('_') in a number literal can only be placed between two "
         "digits.",
@@ -92,13 +92,13 @@ class ScannerErrorCode extends DiagnosticCode {
 
   /// Parameters:
   /// String p0: the unsupported operator
-  static const ScannerErrorCode UNSUPPORTED_OPERATOR = const ScannerErrorCode(
+  static const ScannerErrorCode unsupportedOperator = const ScannerErrorCode(
     'UNSUPPORTED_OPERATOR',
     "The '{0}' operator is not supported.",
   );
 
   /// No parameters.
-  static const ScannerErrorCode UNTERMINATED_MULTI_LINE_COMMENT =
+  static const ScannerErrorCode unterminatedMultiLineComment =
       const ScannerErrorCode(
         'UNTERMINATED_MULTI_LINE_COMMENT',
         "Unterminated multi-line comment.",
@@ -108,7 +108,7 @@ class ScannerErrorCode extends DiagnosticCode {
       );
 
   /// No parameters.
-  static const ScannerErrorCode UNTERMINATED_STRING_LITERAL =
+  static const ScannerErrorCode unterminatedStringLiteral =
       const ScannerErrorCode(
         'UNTERMINATED_STRING_LITERAL',
         "Unterminated string literal.",

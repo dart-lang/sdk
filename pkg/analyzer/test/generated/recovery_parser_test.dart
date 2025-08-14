@@ -24,7 +24,7 @@ main() {
 class RecoveryParserTest extends FastaParserTestCase {
   void test_additiveExpression_missing_LHS() {
     var expression =
-        parseExpression("+ y", codes: [ParserErrorCode.MISSING_IDENTIFIER])
+        parseExpression("+ y", codes: [ParserErrorCode.missingIdentifier])
             as BinaryExpression;
     expect(expression.leftOperand, isSimpleIdentifier);
     expect(expression.leftOperand.isSynthetic, isTrue);
@@ -35,8 +35,8 @@ class RecoveryParserTest extends FastaParserTestCase {
         parseExpression(
               "+",
               codes: [
-                ParserErrorCode.MISSING_IDENTIFIER,
-                ParserErrorCode.MISSING_IDENTIFIER,
+                ParserErrorCode.missingIdentifier,
+                ParserErrorCode.missingIdentifier,
               ],
             )
             as BinaryExpression;
@@ -48,7 +48,7 @@ class RecoveryParserTest extends FastaParserTestCase {
 
   void test_additiveExpression_missing_RHS() {
     var expression =
-        parseExpression("x +", codes: [ParserErrorCode.MISSING_IDENTIFIER])
+        parseExpression("x +", codes: [ParserErrorCode.missingIdentifier])
             as BinaryExpression;
     expect(expression.rightOperand, isSimpleIdentifier);
     expect(expression.rightOperand.isSynthetic, isTrue);
@@ -56,7 +56,7 @@ class RecoveryParserTest extends FastaParserTestCase {
 
   void test_additiveExpression_missing_RHS_super() {
     var expression =
-        parseExpression("super +", codes: [ParserErrorCode.MISSING_IDENTIFIER])
+        parseExpression("super +", codes: [ParserErrorCode.missingIdentifier])
             as BinaryExpression;
     expect(expression.rightOperand, isSimpleIdentifier);
     expect(expression.rightOperand.isSynthetic, isTrue);
@@ -67,9 +67,9 @@ class RecoveryParserTest extends FastaParserTestCase {
         parseExpression(
               "* +",
               codes: [
-                ParserErrorCode.MISSING_IDENTIFIER,
-                ParserErrorCode.MISSING_IDENTIFIER,
-                ParserErrorCode.MISSING_IDENTIFIER,
+                ParserErrorCode.missingIdentifier,
+                ParserErrorCode.missingIdentifier,
+                ParserErrorCode.missingIdentifier,
               ],
             )
             as BinaryExpression;
@@ -81,9 +81,9 @@ class RecoveryParserTest extends FastaParserTestCase {
         parseExpression(
               "+ *",
               codes: [
-                ParserErrorCode.MISSING_IDENTIFIER,
-                ParserErrorCode.MISSING_IDENTIFIER,
-                ParserErrorCode.MISSING_IDENTIFIER,
+                ParserErrorCode.missingIdentifier,
+                ParserErrorCode.missingIdentifier,
+                ParserErrorCode.missingIdentifier,
               ],
             )
             as BinaryExpression;
@@ -95,8 +95,8 @@ class RecoveryParserTest extends FastaParserTestCase {
         parseExpression(
               "super + +",
               codes: [
-                ParserErrorCode.MISSING_IDENTIFIER,
-                ParserErrorCode.MISSING_IDENTIFIER,
+                ParserErrorCode.missingIdentifier,
+                ParserErrorCode.missingIdentifier,
               ],
             )
             as BinaryExpression;
@@ -105,7 +105,7 @@ class RecoveryParserTest extends FastaParserTestCase {
 
   void test_assignableSelector() {
     var expression =
-        parseExpression("a.b[]", codes: [ParserErrorCode.MISSING_IDENTIFIER])
+        parseExpression("a.b[]", codes: [ParserErrorCode.missingIdentifier])
             as IndexExpression;
     var index = expression.index;
     expect(index, isSimpleIdentifier);
@@ -114,7 +114,7 @@ class RecoveryParserTest extends FastaParserTestCase {
 
   void test_assignmentExpression_missing_compound1() {
     var expression =
-        parseExpression("= y = 0", codes: [ParserErrorCode.MISSING_IDENTIFIER])
+        parseExpression("= y = 0", codes: [ParserErrorCode.missingIdentifier])
             as AssignmentExpression;
     Expression syntheticExpression = expression.leftHandSide;
     expect(syntheticExpression, isSimpleIdentifier);
@@ -123,7 +123,7 @@ class RecoveryParserTest extends FastaParserTestCase {
 
   void test_assignmentExpression_missing_compound2() {
     var expression =
-        parseExpression("x = = 0", codes: [ParserErrorCode.MISSING_IDENTIFIER])
+        parseExpression("x = = 0", codes: [ParserErrorCode.missingIdentifier])
             as AssignmentExpression;
     Expression syntheticExpression =
         (expression.rightHandSide as AssignmentExpression).leftHandSide;
@@ -133,7 +133,7 @@ class RecoveryParserTest extends FastaParserTestCase {
 
   void test_assignmentExpression_missing_compound3() {
     var expression =
-        parseExpression("x = y =", codes: [ParserErrorCode.MISSING_IDENTIFIER])
+        parseExpression("x = y =", codes: [ParserErrorCode.missingIdentifier])
             as AssignmentExpression;
     Expression syntheticExpression =
         (expression.rightHandSide as AssignmentExpression).rightHandSide;
@@ -143,7 +143,7 @@ class RecoveryParserTest extends FastaParserTestCase {
 
   void test_assignmentExpression_missing_LHS() {
     var expression =
-        parseExpression("= 0", codes: [ParserErrorCode.MISSING_IDENTIFIER])
+        parseExpression("= 0", codes: [ParserErrorCode.missingIdentifier])
             as AssignmentExpression;
     expect(expression.leftHandSide, isSimpleIdentifier);
     expect(expression.leftHandSide.isSynthetic, isTrue);
@@ -151,7 +151,7 @@ class RecoveryParserTest extends FastaParserTestCase {
 
   void test_assignmentExpression_missing_RHS() {
     var expression =
-        parseExpression("x =", codes: [ParserErrorCode.MISSING_IDENTIFIER])
+        parseExpression("x =", codes: [ParserErrorCode.missingIdentifier])
             as AssignmentExpression;
     expect(expression.leftHandSide, isSimpleIdentifier);
     expect(expression.rightHandSide.isSynthetic, isTrue);
@@ -159,7 +159,7 @@ class RecoveryParserTest extends FastaParserTestCase {
 
   void test_bitwiseAndExpression_missing_LHS() {
     var expression =
-        parseExpression("& y", codes: [ParserErrorCode.MISSING_IDENTIFIER])
+        parseExpression("& y", codes: [ParserErrorCode.missingIdentifier])
             as BinaryExpression;
     expect(expression.leftOperand, isSimpleIdentifier);
     expect(expression.leftOperand.isSynthetic, isTrue);
@@ -170,8 +170,8 @@ class RecoveryParserTest extends FastaParserTestCase {
         parseExpression(
               "&",
               codes: [
-                ParserErrorCode.MISSING_IDENTIFIER,
-                ParserErrorCode.MISSING_IDENTIFIER,
+                ParserErrorCode.missingIdentifier,
+                ParserErrorCode.missingIdentifier,
               ],
             )
             as BinaryExpression;
@@ -183,7 +183,7 @@ class RecoveryParserTest extends FastaParserTestCase {
 
   void test_bitwiseAndExpression_missing_RHS() {
     var expression =
-        parseExpression("x &", codes: [ParserErrorCode.MISSING_IDENTIFIER])
+        parseExpression("x &", codes: [ParserErrorCode.missingIdentifier])
             as BinaryExpression;
     expect(expression.rightOperand, isSimpleIdentifier);
     expect(expression.rightOperand.isSynthetic, isTrue);
@@ -191,7 +191,7 @@ class RecoveryParserTest extends FastaParserTestCase {
 
   void test_bitwiseAndExpression_missing_RHS_super() {
     var expression =
-        parseExpression("super &", codes: [ParserErrorCode.MISSING_IDENTIFIER])
+        parseExpression("super &", codes: [ParserErrorCode.missingIdentifier])
             as BinaryExpression;
     expect(expression.rightOperand, isSimpleIdentifier);
     expect(expression.rightOperand.isSynthetic, isTrue);
@@ -202,9 +202,9 @@ class RecoveryParserTest extends FastaParserTestCase {
         parseExpression(
               "== &&",
               codes: [
-                ParserErrorCode.MISSING_IDENTIFIER,
-                ParserErrorCode.MISSING_IDENTIFIER,
-                ParserErrorCode.MISSING_IDENTIFIER,
+                ParserErrorCode.missingIdentifier,
+                ParserErrorCode.missingIdentifier,
+                ParserErrorCode.missingIdentifier,
               ],
             )
             as BinaryExpression;
@@ -216,9 +216,9 @@ class RecoveryParserTest extends FastaParserTestCase {
         parseExpression(
               "&& ==",
               codes: [
-                ParserErrorCode.MISSING_IDENTIFIER,
-                ParserErrorCode.MISSING_IDENTIFIER,
-                ParserErrorCode.MISSING_IDENTIFIER,
+                ParserErrorCode.missingIdentifier,
+                ParserErrorCode.missingIdentifier,
+                ParserErrorCode.missingIdentifier,
               ],
             )
             as BinaryExpression;
@@ -230,8 +230,8 @@ class RecoveryParserTest extends FastaParserTestCase {
         parseExpression(
               "super &  &",
               codes: [
-                ParserErrorCode.MISSING_IDENTIFIER,
-                ParserErrorCode.MISSING_IDENTIFIER,
+                ParserErrorCode.missingIdentifier,
+                ParserErrorCode.missingIdentifier,
               ],
             )
             as BinaryExpression;
@@ -240,7 +240,7 @@ class RecoveryParserTest extends FastaParserTestCase {
 
   void test_bitwiseOrExpression_missing_LHS() {
     var expression =
-        parseExpression("| y", codes: [ParserErrorCode.MISSING_IDENTIFIER])
+        parseExpression("| y", codes: [ParserErrorCode.missingIdentifier])
             as BinaryExpression;
     expect(expression.leftOperand, isSimpleIdentifier);
     expect(expression.leftOperand.isSynthetic, isTrue);
@@ -251,8 +251,8 @@ class RecoveryParserTest extends FastaParserTestCase {
         parseExpression(
               "|",
               codes: [
-                ParserErrorCode.MISSING_IDENTIFIER,
-                ParserErrorCode.MISSING_IDENTIFIER,
+                ParserErrorCode.missingIdentifier,
+                ParserErrorCode.missingIdentifier,
               ],
             )
             as BinaryExpression;
@@ -264,7 +264,7 @@ class RecoveryParserTest extends FastaParserTestCase {
 
   void test_bitwiseOrExpression_missing_RHS() {
     var expression =
-        parseExpression("x |", codes: [ParserErrorCode.MISSING_IDENTIFIER])
+        parseExpression("x |", codes: [ParserErrorCode.missingIdentifier])
             as BinaryExpression;
     expect(expression.rightOperand, isSimpleIdentifier);
     expect(expression.rightOperand.isSynthetic, isTrue);
@@ -272,7 +272,7 @@ class RecoveryParserTest extends FastaParserTestCase {
 
   void test_bitwiseOrExpression_missing_RHS_super() {
     var expression =
-        parseExpression("super |", codes: [ParserErrorCode.MISSING_IDENTIFIER])
+        parseExpression("super |", codes: [ParserErrorCode.missingIdentifier])
             as BinaryExpression;
     expect(expression.rightOperand, isSimpleIdentifier);
     expect(expression.rightOperand.isSynthetic, isTrue);
@@ -283,9 +283,9 @@ class RecoveryParserTest extends FastaParserTestCase {
         parseExpression(
               "^ |",
               codes: [
-                ParserErrorCode.MISSING_IDENTIFIER,
-                ParserErrorCode.MISSING_IDENTIFIER,
-                ParserErrorCode.MISSING_IDENTIFIER,
+                ParserErrorCode.missingIdentifier,
+                ParserErrorCode.missingIdentifier,
+                ParserErrorCode.missingIdentifier,
               ],
             )
             as BinaryExpression;
@@ -297,9 +297,9 @@ class RecoveryParserTest extends FastaParserTestCase {
         parseExpression(
               "| ^",
               codes: [
-                ParserErrorCode.MISSING_IDENTIFIER,
-                ParserErrorCode.MISSING_IDENTIFIER,
-                ParserErrorCode.MISSING_IDENTIFIER,
+                ParserErrorCode.missingIdentifier,
+                ParserErrorCode.missingIdentifier,
+                ParserErrorCode.missingIdentifier,
               ],
             )
             as BinaryExpression;
@@ -311,8 +311,8 @@ class RecoveryParserTest extends FastaParserTestCase {
         parseExpression(
               "super |  |",
               codes: [
-                ParserErrorCode.MISSING_IDENTIFIER,
-                ParserErrorCode.MISSING_IDENTIFIER,
+                ParserErrorCode.missingIdentifier,
+                ParserErrorCode.missingIdentifier,
               ],
             )
             as BinaryExpression;
@@ -321,7 +321,7 @@ class RecoveryParserTest extends FastaParserTestCase {
 
   void test_bitwiseXorExpression_missing_LHS() {
     var expression =
-        parseExpression("^ y", codes: [ParserErrorCode.MISSING_IDENTIFIER])
+        parseExpression("^ y", codes: [ParserErrorCode.missingIdentifier])
             as BinaryExpression;
     expect(expression.leftOperand, isSimpleIdentifier);
     expect(expression.leftOperand.isSynthetic, isTrue);
@@ -332,8 +332,8 @@ class RecoveryParserTest extends FastaParserTestCase {
         parseExpression(
               "^",
               codes: [
-                ParserErrorCode.MISSING_IDENTIFIER,
-                ParserErrorCode.MISSING_IDENTIFIER,
+                ParserErrorCode.missingIdentifier,
+                ParserErrorCode.missingIdentifier,
               ],
             )
             as BinaryExpression;
@@ -345,7 +345,7 @@ class RecoveryParserTest extends FastaParserTestCase {
 
   void test_bitwiseXorExpression_missing_RHS() {
     var expression =
-        parseExpression("x ^", codes: [ParserErrorCode.MISSING_IDENTIFIER])
+        parseExpression("x ^", codes: [ParserErrorCode.missingIdentifier])
             as BinaryExpression;
     expect(expression.rightOperand, isSimpleIdentifier);
     expect(expression.rightOperand.isSynthetic, isTrue);
@@ -353,7 +353,7 @@ class RecoveryParserTest extends FastaParserTestCase {
 
   void test_bitwiseXorExpression_missing_RHS_super() {
     var expression =
-        parseExpression("super ^", codes: [ParserErrorCode.MISSING_IDENTIFIER])
+        parseExpression("super ^", codes: [ParserErrorCode.missingIdentifier])
             as BinaryExpression;
     expect(expression.rightOperand, isSimpleIdentifier);
     expect(expression.rightOperand.isSynthetic, isTrue);
@@ -364,9 +364,9 @@ class RecoveryParserTest extends FastaParserTestCase {
         parseExpression(
               "& ^",
               codes: [
-                ParserErrorCode.MISSING_IDENTIFIER,
-                ParserErrorCode.MISSING_IDENTIFIER,
-                ParserErrorCode.MISSING_IDENTIFIER,
+                ParserErrorCode.missingIdentifier,
+                ParserErrorCode.missingIdentifier,
+                ParserErrorCode.missingIdentifier,
               ],
             )
             as BinaryExpression;
@@ -378,9 +378,9 @@ class RecoveryParserTest extends FastaParserTestCase {
         parseExpression(
               "^ &",
               codes: [
-                ParserErrorCode.MISSING_IDENTIFIER,
-                ParserErrorCode.MISSING_IDENTIFIER,
-                ParserErrorCode.MISSING_IDENTIFIER,
+                ParserErrorCode.missingIdentifier,
+                ParserErrorCode.missingIdentifier,
+                ParserErrorCode.missingIdentifier,
               ],
             )
             as BinaryExpression;
@@ -392,8 +392,8 @@ class RecoveryParserTest extends FastaParserTestCase {
         parseExpression(
               "super ^  ^",
               codes: [
-                ParserErrorCode.MISSING_IDENTIFIER,
-                ParserErrorCode.MISSING_IDENTIFIER,
+                ParserErrorCode.missingIdentifier,
+                ParserErrorCode.missingIdentifier,
               ],
             )
             as BinaryExpression;
@@ -407,7 +407,7 @@ class A {}
 class B = Object with A {}''',
       codes:
       // TODO(danrubel): Consolidate and improve error message.
-      [ParserErrorCode.EXPECTED_EXECUTABLE, ParserErrorCode.EXPECTED_TOKEN],
+      [ParserErrorCode.expectedExecutable, ParserErrorCode.expectedToken],
     );
   }
 
@@ -415,10 +415,10 @@ class B = Object with A {}''',
     createParser('import "/testB.dart" show @');
     parser.parseCompilationUnit2();
     listener.assertErrors([
-      expectedError(ParserErrorCode.MISSING_IDENTIFIER, 26, 1),
-      expectedError(ParserErrorCode.EXPECTED_TOKEN, 26, 1),
-      expectedError(ParserErrorCode.EXPECTED_TOKEN, 26, 1),
-      expectedError(ParserErrorCode.MISSING_CONST_FINAL_VAR_OR_TYPE, 27, 0),
+      expectedError(ParserErrorCode.missingIdentifier, 26, 1),
+      expectedError(ParserErrorCode.expectedToken, 26, 1),
+      expectedError(ParserErrorCode.expectedToken, 26, 1),
+      expectedError(ParserErrorCode.missingConstFinalVarOrType, 27, 0),
     ]);
   }
 
@@ -426,14 +426,14 @@ class B = Object with A {}''',
     createParser('import "/testB.dart" show ;');
     parser.parseCompilationUnit2();
     listener.assertErrors([
-      expectedError(ParserErrorCode.MISSING_IDENTIFIER, 26, 1),
+      expectedError(ParserErrorCode.missingIdentifier, 26, 1),
     ]);
   }
 
   void test_conditionalExpression_missingElse() {
     Expression expression = parseExpression(
       'x ? y :',
-      codes: [ParserErrorCode.MISSING_IDENTIFIER],
+      codes: [ParserErrorCode.missingIdentifier],
     );
     expectNotNullIfNoErrors(expression);
     expect(expression, isConditionalExpression);
@@ -445,7 +445,7 @@ class B = Object with A {}''',
   void test_conditionalExpression_missingThen() {
     Expression expression = parseExpression(
       'x ? : z',
-      codes: [ParserErrorCode.MISSING_IDENTIFIER],
+      codes: [ParserErrorCode.missingIdentifier],
     );
     expectNotNullIfNoErrors(expression);
     expect(expression, isConditionalExpression);
@@ -457,25 +457,21 @@ class B = Object with A {}''',
   void test_conditionalExpression_super() {
     parseExpression(
       'x ? super : z',
-      errors: [
-        expectedError(ParserErrorCode.MISSING_ASSIGNABLE_SELECTOR, 4, 5),
-      ],
+      errors: [expectedError(ParserErrorCode.missingAssignableSelector, 4, 5)],
     );
   }
 
   void test_conditionalExpression_super2() {
     parseExpression(
       'x ? z : super',
-      errors: [
-        expectedError(ParserErrorCode.MISSING_ASSIGNABLE_SELECTOR, 8, 5),
-      ],
+      errors: [expectedError(ParserErrorCode.missingAssignableSelector, 8, 5)],
     );
   }
 
   void test_declarationBeforeDirective() {
     CompilationUnit unit = parseCompilationUnit(
       "class foo { } import 'bar.dart';",
-      codes: [ParserErrorCode.DIRECTIVE_AFTER_DECLARATION],
+      codes: [ParserErrorCode.directiveAfterDeclaration],
     );
     expect(unit.directives, hasLength(1));
     expect(unit.declarations, hasLength(1));
@@ -488,9 +484,9 @@ class B = Object with A {}''',
     var result = parseExpression(
       ".",
       codes: [
-        ParserErrorCode.MISSING_IDENTIFIER,
-        ParserErrorCode.EXPERIMENT_NOT_ENABLED,
-        ParserErrorCode.EXPERIMENT_NOT_ENABLED,
+        ParserErrorCode.missingIdentifier,
+        ParserErrorCode.experimentNotEnabled,
+        ParserErrorCode.experimentNotEnabled,
       ],
     );
     var expression = result as DotShorthandPropertyAccess;
@@ -500,7 +496,7 @@ class B = Object with A {}''',
 
   void test_equalityExpression_missing_LHS() {
     var expression =
-        parseExpression("== y", codes: [ParserErrorCode.MISSING_IDENTIFIER])
+        parseExpression("== y", codes: [ParserErrorCode.missingIdentifier])
             as BinaryExpression;
     expect(expression.leftOperand, isSimpleIdentifier);
     expect(expression.leftOperand.isSynthetic, isTrue);
@@ -511,8 +507,8 @@ class B = Object with A {}''',
         parseExpression(
               "==",
               codes: [
-                ParserErrorCode.MISSING_IDENTIFIER,
-                ParserErrorCode.MISSING_IDENTIFIER,
+                ParserErrorCode.missingIdentifier,
+                ParserErrorCode.missingIdentifier,
               ],
             )
             as BinaryExpression;
@@ -524,7 +520,7 @@ class B = Object with A {}''',
 
   void test_equalityExpression_missing_RHS() {
     var expression =
-        parseExpression("x ==", codes: [ParserErrorCode.MISSING_IDENTIFIER])
+        parseExpression("x ==", codes: [ParserErrorCode.missingIdentifier])
             as BinaryExpression;
     expect(expression.rightOperand, isSimpleIdentifier);
     expect(expression.rightOperand.isSynthetic, isTrue);
@@ -532,7 +528,7 @@ class B = Object with A {}''',
 
   void test_equalityExpression_missing_RHS_super() {
     var expression =
-        parseExpression("super ==", codes: [ParserErrorCode.MISSING_IDENTIFIER])
+        parseExpression("super ==", codes: [ParserErrorCode.missingIdentifier])
             as BinaryExpression;
     expect(expression.rightOperand, isSimpleIdentifier);
     expect(expression.rightOperand.isSynthetic, isTrue);
@@ -542,9 +538,9 @@ class B = Object with A {}''',
     parseExpression(
       "== is",
       codes: [
-        ParserErrorCode.EXPECTED_TYPE_NAME,
-        ParserErrorCode.MISSING_IDENTIFIER,
-        ParserErrorCode.MISSING_IDENTIFIER,
+        ParserErrorCode.expectedTypeName,
+        ParserErrorCode.missingIdentifier,
+        ParserErrorCode.missingIdentifier,
       ],
     );
   }
@@ -554,9 +550,9 @@ class B = Object with A {}''',
         parseExpression(
               "super ==  ==",
               codes: [
-                ParserErrorCode.MISSING_IDENTIFIER,
-                ParserErrorCode.MISSING_IDENTIFIER,
-                ParserErrorCode.EQUALITY_CANNOT_BE_EQUALITY_OPERAND,
+                ParserErrorCode.missingIdentifier,
+                ParserErrorCode.missingIdentifier,
+                ParserErrorCode.equalityCannotBeEqualityOperand,
               ],
             )
             as BinaryExpression;
@@ -566,9 +562,7 @@ class B = Object with A {}''',
   void test_equalityExpression_superRHS() {
     parseExpression(
       "1 == super",
-      errors: [
-        expectedError(ParserErrorCode.MISSING_ASSIGNABLE_SELECTOR, 5, 5),
-      ],
+      errors: [expectedError(ParserErrorCode.missingAssignableSelector, 5, 5)],
     );
   }
 
@@ -576,7 +570,7 @@ class B = Object with A {}''',
     List<Expression> result = parseExpressionList(', 2, 3, 4');
     expectNotNullIfNoErrors(result);
     // TODO(brianwilkerson): Convert codes to errors when highlighting is fixed.
-    listener.assertErrorsWithCodes([ParserErrorCode.MISSING_IDENTIFIER]);
+    listener.assertErrorsWithCodes([ParserErrorCode.missingIdentifier]);
     //    listener.assertErrors(
     //        [expectedError(ParserErrorCode.MISSING_IDENTIFIER, 0, 1)]);
     expect(result, hasLength(4));
@@ -589,7 +583,7 @@ class B = Object with A {}''',
     List<Expression> result = parseExpressionList('1, 2, , 4');
     expectNotNullIfNoErrors(result);
     // TODO(brianwilkerson): Convert codes to errors when highlighting is fixed.
-    listener.assertErrorsWithCodes([ParserErrorCode.MISSING_IDENTIFIER]);
+    listener.assertErrorsWithCodes([ParserErrorCode.missingIdentifier]);
     //    listener.assertErrors(
     //        [expectedError(ParserErrorCode.MISSING_IDENTIFIER, 6, 1)]);
     expect(result, hasLength(4));
@@ -611,7 +605,7 @@ class B = Object with A {}''',
   void test_functionExpression_in_ConstructorFieldInitializer() {
     CompilationUnit unit = parseCompilationUnit(
       "class A { A() : a = (){}; var v; }",
-      codes: [ParserErrorCode.EXPECTED_CLASS_MEMBER],
+      codes: [ParserErrorCode.expectedClassMember],
     );
     // Make sure we recovered and parsed "var v" correctly
     ClassDeclaration declaration = unit.declarations[0] as ClassDeclaration;
@@ -628,21 +622,19 @@ class B = Object with A {}''',
     parseExpression(
       "m(f() => 0);",
       expectedEndOffset: 11,
-      codes: [ParserErrorCode.NAMED_FUNCTION_EXPRESSION],
+      codes: [ParserErrorCode.namedFunctionExpression],
     );
   }
 
   void test_ifStatement_noElse_statement() {
     parseStatement('if (x v) f(x);');
-    listener.assertErrors([
-      expectedError(ParserErrorCode.EXPECTED_TOKEN, 6, 1),
-    ]);
+    listener.assertErrors([expectedError(ParserErrorCode.expectedToken, 6, 1)]);
   }
 
   void test_importDirectivePartial_as() {
     CompilationUnit unit = parseCompilationUnit(
       "import 'b.dart' d as b;",
-      codes: [ParserErrorCode.UNEXPECTED_TOKEN],
+      codes: [ParserErrorCode.unexpectedToken],
     );
     var importDirective = unit.childEntities.first as ImportDirective;
     expect(importDirective.asKeyword, isNotNull);
@@ -653,7 +645,7 @@ class B = Object with A {}''',
   void test_importDirectivePartial_hide() {
     CompilationUnit unit = parseCompilationUnit(
       "import 'b.dart' d hide foo;",
-      codes: [ParserErrorCode.UNEXPECTED_TOKEN],
+      codes: [ParserErrorCode.unexpectedToken],
     );
     var importDirective = unit.childEntities.first as ImportDirective;
     expect(importDirective.combinators, hasLength(1));
@@ -664,7 +656,7 @@ class B = Object with A {}''',
   void test_importDirectivePartial_show() {
     CompilationUnit unit = parseCompilationUnit(
       "import 'b.dart' d show foo;",
-      codes: [ParserErrorCode.UNEXPECTED_TOKEN],
+      codes: [ParserErrorCode.unexpectedToken],
     );
     var importDirective = unit.childEntities.first as ImportDirective;
     expect(importDirective.combinators, hasLength(1));
@@ -675,10 +667,7 @@ class B = Object with A {}''',
   void test_incomplete_conditionalExpression() {
     parseExpression(
       "x ? 0",
-      codes: [
-        ParserErrorCode.EXPECTED_TOKEN,
-        ParserErrorCode.MISSING_IDENTIFIER,
-      ],
+      codes: [ParserErrorCode.expectedToken, ParserErrorCode.missingIdentifier],
     );
   }
 
@@ -687,7 +676,7 @@ class B = Object with A {}''',
     var member = parser.parseClassMember('C');
     expectNotNullIfNoErrors(member);
     listener.assertErrors([
-      expectedError(ParserErrorCode.MISSING_INITIALIZER, 4, 1),
+      expectedError(ParserErrorCode.missingInitializer, 4, 1),
     ]);
   }
 
@@ -696,7 +685,7 @@ class B = Object with A {}''',
     var member = parser.parseClassMember('C');
     expectNotNullIfNoErrors(member);
     listener.assertErrors([
-      expectedError(ParserErrorCode.MISSING_ASSIGNMENT_IN_INITIALIZER, 6, 1),
+      expectedError(ParserErrorCode.missingAssignmentInInitializer, 6, 1),
     ]);
     expect(member, isConstructorDeclaration);
     NodeList<ConstructorInitializer> initializers =
@@ -715,8 +704,8 @@ class B = Object with A {}''',
     var member = parser.parseClassMember('C');
     expectNotNullIfNoErrors(member);
     listener.assertErrors([
-      expectedError(ParserErrorCode.EXPECTED_TOKEN, 11, 1),
-      expectedError(ParserErrorCode.MISSING_ASSIGNMENT_IN_INITIALIZER, 6, 4),
+      expectedError(ParserErrorCode.expectedToken, 11, 1),
+      expectedError(ParserErrorCode.missingAssignmentInInitializer, 6, 4),
     ]);
   }
 
@@ -725,7 +714,7 @@ class B = Object with A {}''',
     var member = parser.parseClassMember('C');
     expectNotNullIfNoErrors(member);
     listener.assertErrors([
-      expectedError(ParserErrorCode.MISSING_ASSIGNMENT_IN_INITIALIZER, 6, 4),
+      expectedError(ParserErrorCode.missingAssignmentInInitializer, 6, 4),
     ]);
   }
 
@@ -734,8 +723,8 @@ class B = Object with A {}''',
     var member = parser.parseClassMember('C');
     expectNotNullIfNoErrors(member);
     listener.assertErrors([
-      expectedError(ParserErrorCode.MISSING_IDENTIFIER, 12, 1),
-      expectedError(ParserErrorCode.MISSING_ASSIGNMENT_IN_INITIALIZER, 6, 4),
+      expectedError(ParserErrorCode.missingIdentifier, 12, 1),
+      expectedError(ParserErrorCode.missingAssignmentInInitializer, 6, 4),
     ]);
   }
 
@@ -744,14 +733,14 @@ class B = Object with A {}''',
     var member = parser.parseClassMember('C');
     expectNotNullIfNoErrors(member);
     listener.assertErrors([
-      expectedError(ParserErrorCode.MISSING_ASSIGNMENT_IN_INITIALIZER, 6, 1),
+      expectedError(ParserErrorCode.missingAssignmentInInitializer, 6, 1),
     ]);
   }
 
   void test_incomplete_functionExpression() {
     var expression = parseExpression(
       "() a => null",
-      errors: [expectedError(ParserErrorCode.UNEXPECTED_TOKEN, 3, 1)],
+      errors: [expectedError(ParserErrorCode.unexpectedToken, 3, 1)],
     );
     var functionExpression = expression as FunctionExpression;
     expect(functionExpression.parameters!.parameters, hasLength(0));
@@ -760,7 +749,7 @@ class B = Object with A {}''',
   void test_incomplete_functionExpression2() {
     var expression = parseExpression(
       "() a {}",
-      errors: [expectedError(ParserErrorCode.UNEXPECTED_TOKEN, 3, 1)],
+      errors: [expectedError(ParserErrorCode.unexpectedToken, 3, 1)],
     );
     var functionExpression = expression as FunctionExpression;
     expect(functionExpression.parameters!.parameters, hasLength(0));
@@ -778,8 +767,8 @@ Map<Symbol, convertStringToSymbolMap(Map<String, dynamic> map) {
   return result;
 }''',
       errors: [
-        expectedError(ParserErrorCode.EXPECTED_TOKEN, 12, 24),
-        expectedError(ParserErrorCode.MISSING_FUNCTION_PARAMETERS, 0, 3),
+        expectedError(ParserErrorCode.expectedToken, 12, 24),
+        expectedError(ParserErrorCode.missingFunctionParameters, 0, 3),
       ],
     );
   }
@@ -787,7 +776,7 @@ Map<Symbol, convertStringToSymbolMap(Map<String, dynamic> map) {
   void test_incomplete_topLevelFunction() {
     parseCompilationUnit(
       "foo();",
-      codes: [ParserErrorCode.MISSING_FUNCTION_BODY],
+      codes: [ParserErrorCode.missingFunctionBody],
     );
   }
 
@@ -795,8 +784,8 @@ Map<Symbol, convertStringToSymbolMap(Map<String, dynamic> map) {
     CompilationUnit unit = parseCompilationUnit(
       "String",
       errors: [
-        expectedError(ParserErrorCode.MISSING_CONST_FINAL_VAR_OR_TYPE, 0, 6),
-        expectedError(ParserErrorCode.EXPECTED_TOKEN, 0, 6),
+        expectedError(ParserErrorCode.missingConstFinalVarOrType, 0, 6),
+        expectedError(ParserErrorCode.expectedToken, 0, 6),
       ],
     );
     NodeList<CompilationUnitMember> declarations = unit.declarations;
@@ -813,10 +802,7 @@ Map<Symbol, convertStringToSymbolMap(Map<String, dynamic> map) {
   void test_incomplete_topLevelVariable_const() {
     CompilationUnit unit = parseCompilationUnit(
       "const ",
-      codes: [
-        ParserErrorCode.MISSING_IDENTIFIER,
-        ParserErrorCode.EXPECTED_TOKEN,
-      ],
+      codes: [ParserErrorCode.missingIdentifier, ParserErrorCode.expectedToken],
     );
     NodeList<CompilationUnitMember> declarations = unit.declarations;
     expect(declarations, hasLength(1));
@@ -832,10 +818,7 @@ Map<Symbol, convertStringToSymbolMap(Map<String, dynamic> map) {
   void test_incomplete_topLevelVariable_final() {
     CompilationUnit unit = parseCompilationUnit(
       "final ",
-      codes: [
-        ParserErrorCode.MISSING_IDENTIFIER,
-        ParserErrorCode.EXPECTED_TOKEN,
-      ],
+      codes: [ParserErrorCode.missingIdentifier, ParserErrorCode.expectedToken],
     );
     NodeList<CompilationUnitMember> declarations = unit.declarations;
     expect(declarations, hasLength(1));
@@ -851,10 +834,7 @@ Map<Symbol, convertStringToSymbolMap(Map<String, dynamic> map) {
   void test_incomplete_topLevelVariable_var() {
     CompilationUnit unit = parseCompilationUnit(
       "var ",
-      codes: [
-        ParserErrorCode.MISSING_IDENTIFIER,
-        ParserErrorCode.EXPECTED_TOKEN,
-      ],
+      codes: [ParserErrorCode.missingIdentifier, ParserErrorCode.expectedToken],
     );
     NodeList<CompilationUnitMember> declarations = unit.declarations;
     expect(declarations, hasLength(1));
@@ -873,10 +853,7 @@ Map<Symbol, convertStringToSymbolMap(Map<String, dynamic> map) {
 class C {
   const
 }''',
-      codes: [
-        ParserErrorCode.MISSING_IDENTIFIER,
-        ParserErrorCode.EXPECTED_TOKEN,
-      ],
+      codes: [ParserErrorCode.missingIdentifier, ParserErrorCode.expectedToken],
     );
     NodeList<CompilationUnitMember> declarations = unit.declarations;
     expect(declarations, hasLength(1));
@@ -901,10 +878,7 @@ class C {
 class C {
   final
 }''',
-      codes: [
-        ParserErrorCode.MISSING_IDENTIFIER,
-        ParserErrorCode.EXPECTED_TOKEN,
-      ],
+      codes: [ParserErrorCode.missingIdentifier, ParserErrorCode.expectedToken],
     );
     NodeList<CompilationUnitMember> declarations = unit.declarations;
     expect(declarations, hasLength(1));
@@ -930,8 +904,8 @@ class C {
   static c
 }''',
       codes: [
-        ParserErrorCode.MISSING_CONST_FINAL_VAR_OR_TYPE,
-        ParserErrorCode.EXPECTED_TOKEN,
+        ParserErrorCode.missingConstFinalVarOrType,
+        ParserErrorCode.expectedToken,
       ],
     );
     NodeList<CompilationUnitMember> declarations = unit.declarations;
@@ -958,7 +932,7 @@ class C {
 class C {
   static c x
 }''',
-      codes: [ParserErrorCode.EXPECTED_TOKEN],
+      codes: [ParserErrorCode.expectedToken],
     );
     NodeList<CompilationUnitMember> declarations = unit.declarations;
     expect(declarations, hasLength(1));
@@ -985,8 +959,8 @@ class C {
   A
 }''',
       codes: [
-        ParserErrorCode.MISSING_CONST_FINAL_VAR_OR_TYPE,
-        ParserErrorCode.EXPECTED_TOKEN,
+        ParserErrorCode.missingConstFinalVarOrType,
+        ParserErrorCode.expectedToken,
       ],
     );
     NodeList<CompilationUnitMember> declarations = unit.declarations;
@@ -1013,10 +987,7 @@ class C {
 class C {
   var
 }''',
-      codes: [
-        ParserErrorCode.MISSING_IDENTIFIER,
-        ParserErrorCode.EXPECTED_TOKEN,
-      ],
+      codes: [ParserErrorCode.missingIdentifier, ParserErrorCode.expectedToken],
     );
     NodeList<CompilationUnitMember> declarations = unit.declarations;
     expect(declarations, hasLength(1));
@@ -1040,8 +1011,8 @@ class C {
     // entry parsing is enabled by default
     var statement = parseStatement('for (String item i) {}') as ForStatement;
     listener.assertErrors([
-      expectedError(ParserErrorCode.EXPECTED_TOKEN, 12, 4),
-      expectedError(ParserErrorCode.EXPECTED_TOKEN, 17, 1),
+      expectedError(ParserErrorCode.expectedToken, 12, 4),
+      expectedError(ParserErrorCode.expectedToken, 17, 1),
     ]);
     expect(statement, isForStatement);
     expect(statement.toSource(), 'for (String item; i;) {}');
@@ -1055,8 +1026,8 @@ class C {
   void test_incompleteForEach2() {
     var statement = parseStatement('for (String item i) {}') as ForStatement;
     listener.assertErrors([
-      expectedError(ParserErrorCode.EXPECTED_TOKEN, 12, 4),
-      expectedError(ParserErrorCode.EXPECTED_TOKEN, 17, 1),
+      expectedError(ParserErrorCode.expectedToken, 12, 4),
+      expectedError(ParserErrorCode.expectedToken, 17, 1),
     ]);
     expect(statement.toSource(), 'for (String item; i;) {}');
     var forLoopParts = statement.forLoopParts as ForPartsWithDeclarations;
@@ -1068,9 +1039,7 @@ class C {
 
   void test_incompleteLocalVariable_atTheEndOfBlock() {
     Statement statement = parseStatement('String v }', expectedEndOffset: 9);
-    listener.assertErrors([
-      expectedError(ParserErrorCode.EXPECTED_TOKEN, 7, 1),
-    ]);
+    listener.assertErrors([expectedError(ParserErrorCode.expectedToken, 7, 1)]);
     expect(statement, isVariableDeclarationStatement);
     expect(statement.toSource(), 'String v;');
   }
@@ -1078,8 +1047,8 @@ class C {
   void test_incompleteLocalVariable_atTheEndOfBlock_modifierOnly() {
     Statement statement = parseStatement('final }', expectedEndOffset: 6);
     listener.assertErrors([
-      expectedError(ParserErrorCode.EXPECTED_TOKEN, 0, 5),
-      expectedError(ParserErrorCode.MISSING_IDENTIFIER, 6, 1),
+      expectedError(ParserErrorCode.expectedToken, 0, 5),
+      expectedError(ParserErrorCode.missingIdentifier, 6, 1),
     ]);
     expect(statement, isVariableDeclarationStatement);
     expect(statement.toSource(), 'final ;');
@@ -1090,9 +1059,7 @@ class C {
       'String v String v2;',
       expectedEndOffset: 9,
     );
-    listener.assertErrors([
-      expectedError(ParserErrorCode.EXPECTED_TOKEN, 7, 1),
-    ]);
+    listener.assertErrors([expectedError(ParserErrorCode.expectedToken, 7, 1)]);
     expect(statement, isVariableDeclarationStatement);
     expect(statement.toSource(), 'String v;');
   }
@@ -1102,18 +1069,14 @@ class C {
       'String v if (true) {}',
       expectedEndOffset: 9,
     );
-    listener.assertErrors([
-      expectedError(ParserErrorCode.EXPECTED_TOKEN, 7, 1),
-    ]);
+    listener.assertErrors([expectedError(ParserErrorCode.expectedToken, 7, 1)]);
     expect(statement, isVariableDeclarationStatement);
     expect(statement.toSource(), 'String v;');
   }
 
   void test_incompleteLocalVariable_beforeNextBlock() {
     Statement statement = parseStatement('String v {}', expectedEndOffset: 9);
-    listener.assertErrors([
-      expectedError(ParserErrorCode.EXPECTED_TOKEN, 7, 1),
-    ]);
+    listener.assertErrors([expectedError(ParserErrorCode.expectedToken, 7, 1)]);
     expect(statement, isVariableDeclarationStatement);
     expect(statement.toSource(), 'String v;');
   }
@@ -1124,7 +1087,7 @@ class C {
       expectedEndOffset: 15,
     );
     listener.assertErrors([
-      expectedError(ParserErrorCode.EXPECTED_TOKEN, 13, 1),
+      expectedError(ParserErrorCode.expectedToken, 13, 1),
     ]);
     expect(statement, isVariableDeclarationStatement);
     expect(statement.toSource(), 'List<String> v;');
@@ -1136,7 +1099,7 @@ class C {
 class C {
   final List<int f;
 }''',
-      errors: [expectedError(ParserErrorCode.EXPECTED_TOKEN, 23, 3)],
+      errors: [expectedError(ParserErrorCode.expectedToken, 23, 3)],
     );
     // one class
     List<CompilationUnitMember> declarations = unit.declarations;
@@ -1166,7 +1129,7 @@ class C {
       r'''
 class C<K {
 }''',
-      errors: [expectedError(ParserErrorCode.EXPECTED_TOKEN, 8, 1)],
+      errors: [expectedError(ParserErrorCode.expectedToken, 8, 1)],
     );
     // one class
     List<CompilationUnitMember> declarations = unit.declarations;
@@ -1186,7 +1149,7 @@ class C<K {
       r'''
 class C<K extends L<T> {
 }''',
-      errors: [expectedError(ParserErrorCode.EXPECTED_TOKEN, 21, 1)],
+      errors: [expectedError(ParserErrorCode.expectedToken, 21, 1)],
     );
     // one class
     List<CompilationUnitMember> declarations = unit.declarations;
@@ -1206,7 +1169,7 @@ class C<K extends L<T> {
       r'''
 class C<K extends L<T {
 }''',
-      errors: [expectedError(ParserErrorCode.EXPECTED_TOKEN, 20, 1)],
+      errors: [expectedError(ParserErrorCode.expectedToken, 20, 1)],
     );
     // one class
     List<CompilationUnitMember> declarations = unit.declarations;
@@ -1224,22 +1187,22 @@ class C<K extends L<T {
   void test_invalidFunctionBodyModifier() {
     parseCompilationUnit(
       "f() sync {}",
-      codes: [ParserErrorCode.MISSING_STAR_AFTER_SYNC],
+      codes: [ParserErrorCode.missingStarAfterSync],
     );
   }
 
   void test_invalidMapLiteral() {
     parseCompilationUnit(
       "class C { var f = Map<A, B> {}; }",
-      codes: [ParserErrorCode.LITERAL_WITH_CLASS],
+      codes: [ParserErrorCode.literalWithClass],
     );
     parseCompilationUnit(
       "class C { var f = new Map<A, B> {}; }",
-      codes: [ParserErrorCode.LITERAL_WITH_CLASS_AND_NEW],
+      codes: [ParserErrorCode.literalWithClassAndNew],
     );
     parseCompilationUnit(
       "class C { var f = new <A, B> {}; }",
-      codes: [ParserErrorCode.LITERAL_WITH_NEW],
+      codes: [ParserErrorCode.literalWithNew],
     );
   }
 
@@ -1249,7 +1212,7 @@ class C<K extends L<T {
 class C {
   G<int double> g;
 }''',
-      errors: [expectedError(ParserErrorCode.EXPECTED_TOKEN, 18, 6)],
+      errors: [expectedError(ParserErrorCode.expectedToken, 18, 6)],
     );
     // one class
     List<CompilationUnitMember> declarations = unit.declarations;
@@ -1266,7 +1229,7 @@ class C {
   void test_invalidTypeParameters_super() {
     parseCompilationUnit(
       'class C<X super Y> {}',
-      errors: [expectedError(ParserErrorCode.EXPECTED_TOKEN, 8, 1)],
+      errors: [expectedError(ParserErrorCode.expectedToken, 8, 1)],
     );
   }
 
@@ -1274,10 +1237,10 @@ class C {
     CompilationUnit unit = parseCompilationUnit(
       "class Bar<T extends Foo> {m(x){if (x is ) return;if (x is !)}}",
       codes: [
-        ParserErrorCode.EXPECTED_TYPE_NAME,
-        ParserErrorCode.EXPECTED_TYPE_NAME,
-        ParserErrorCode.MISSING_IDENTIFIER,
-        ParserErrorCode.EXPECTED_TOKEN,
+        ParserErrorCode.expectedTypeName,
+        ParserErrorCode.expectedTypeName,
+        ParserErrorCode.missingIdentifier,
+        ParserErrorCode.expectedToken,
       ],
     );
     ClassDeclaration declaration = unit.declarations[0] as ClassDeclaration;
@@ -1301,8 +1264,8 @@ class C {
     var unit = parseCompilationUnit(
       'class C { get C.named => null; }',
       errors: [
-        expectedError(ParserErrorCode.GETTER_CONSTRUCTOR, 10, 3),
-        expectedError(ParserErrorCode.MISSING_METHOD_PARAMETERS, 14, 1),
+        expectedError(ParserErrorCode.getterConstructor, 10, 3),
+        expectedError(ParserErrorCode.missingMethodParameters, 14, 1),
       ],
     );
     var declaration = unit.declarations[0] as ClassDeclaration;
@@ -1314,7 +1277,7 @@ class C {
   void test_issue_34610_initializers() {
     var unit = parseCompilationUnit(
       'class C { C.named : super(); }',
-      errors: [expectedError(ParserErrorCode.MISSING_METHOD_PARAMETERS, 10, 1)],
+      errors: [expectedError(ParserErrorCode.missingMethodParameters, 10, 1)],
     );
     var declaration = unit.declarations[0] as ClassDeclaration;
     var constructor = declaration.members[0] as ConstructorDeclaration;
@@ -1326,7 +1289,7 @@ class C {
   void test_issue_34610_missing_param() {
     var unit = parseCompilationUnit(
       'class C { C => null; }',
-      errors: [expectedError(ParserErrorCode.MISSING_METHOD_PARAMETERS, 10, 1)],
+      errors: [expectedError(ParserErrorCode.missingMethodParameters, 10, 1)],
     );
     var declaration = unit.declarations[0] as ClassDeclaration;
     var constructor = declaration.members[0] as ConstructorDeclaration;
@@ -1338,7 +1301,7 @@ class C {
   void test_issue_34610_named_missing_param() {
     var unit = parseCompilationUnit(
       'class C { C.named => null; }',
-      errors: [expectedError(ParserErrorCode.MISSING_METHOD_PARAMETERS, 10, 1)],
+      errors: [expectedError(ParserErrorCode.missingMethodParameters, 10, 1)],
     );
     var declaration = unit.declarations[0] as ClassDeclaration;
     var constructor = declaration.members[0] as ConstructorDeclaration;
@@ -1351,8 +1314,8 @@ class C {
     var unit = parseCompilationUnit(
       'class C { set C.named => null; }',
       errors: [
-        expectedError(ParserErrorCode.SETTER_CONSTRUCTOR, 10, 3),
-        expectedError(ParserErrorCode.MISSING_METHOD_PARAMETERS, 14, 1),
+        expectedError(ParserErrorCode.setterConstructor, 10, 3),
+        expectedError(ParserErrorCode.missingMethodParameters, 14, 1),
       ],
     );
     var declaration = unit.declarations[0] as ClassDeclaration;
@@ -1366,13 +1329,13 @@ class C {
     // TODO(brianwilkerson): We could do better with this.
     parseCompilationUnit(
       "do() {}",
-      codes: [ParserErrorCode.EXPECTED_IDENTIFIER_BUT_GOT_KEYWORD],
+      codes: [ParserErrorCode.expectedIdentifierButGotKeyword],
     );
   }
 
   void test_logicalAndExpression_missing_LHS() {
     var expression =
-        parseExpression("&& y", codes: [ParserErrorCode.MISSING_IDENTIFIER])
+        parseExpression("&& y", codes: [ParserErrorCode.missingIdentifier])
             as BinaryExpression;
     expect(expression.leftOperand, isSimpleIdentifier);
     expect(expression.leftOperand.isSynthetic, isTrue);
@@ -1383,8 +1346,8 @@ class C {
         parseExpression(
               "&&",
               codes: [
-                ParserErrorCode.MISSING_IDENTIFIER,
-                ParserErrorCode.MISSING_IDENTIFIER,
+                ParserErrorCode.missingIdentifier,
+                ParserErrorCode.missingIdentifier,
               ],
             )
             as BinaryExpression;
@@ -1396,7 +1359,7 @@ class C {
 
   void test_logicalAndExpression_missing_RHS() {
     var expression =
-        parseExpression("x &&", codes: [ParserErrorCode.MISSING_IDENTIFIER])
+        parseExpression("x &&", codes: [ParserErrorCode.missingIdentifier])
             as BinaryExpression;
     expect(expression.rightOperand, isSimpleIdentifier);
     expect(expression.rightOperand.isSynthetic, isTrue);
@@ -1407,9 +1370,9 @@ class C {
         parseExpression(
               "| &&",
               codes: [
-                ParserErrorCode.MISSING_IDENTIFIER,
-                ParserErrorCode.MISSING_IDENTIFIER,
-                ParserErrorCode.MISSING_IDENTIFIER,
+                ParserErrorCode.missingIdentifier,
+                ParserErrorCode.missingIdentifier,
+                ParserErrorCode.missingIdentifier,
               ],
             )
             as BinaryExpression;
@@ -1421,9 +1384,9 @@ class C {
         parseExpression(
               "&& |",
               codes: [
-                ParserErrorCode.MISSING_IDENTIFIER,
-                ParserErrorCode.MISSING_IDENTIFIER,
-                ParserErrorCode.MISSING_IDENTIFIER,
+                ParserErrorCode.missingIdentifier,
+                ParserErrorCode.missingIdentifier,
+                ParserErrorCode.missingIdentifier,
               ],
             )
             as BinaryExpression;
@@ -1432,7 +1395,7 @@ class C {
 
   void test_logicalOrExpression_missing_LHS() {
     var expression =
-        parseExpression("|| y", codes: [ParserErrorCode.MISSING_IDENTIFIER])
+        parseExpression("|| y", codes: [ParserErrorCode.missingIdentifier])
             as BinaryExpression;
     expect(expression.leftOperand, isSimpleIdentifier);
     expect(expression.leftOperand.isSynthetic, isTrue);
@@ -1443,8 +1406,8 @@ class C {
         parseExpression(
               "||",
               codes: [
-                ParserErrorCode.MISSING_IDENTIFIER,
-                ParserErrorCode.MISSING_IDENTIFIER,
+                ParserErrorCode.missingIdentifier,
+                ParserErrorCode.missingIdentifier,
               ],
             )
             as BinaryExpression;
@@ -1456,7 +1419,7 @@ class C {
 
   void test_logicalOrExpression_missing_RHS() {
     var expression =
-        parseExpression("x ||", codes: [ParserErrorCode.MISSING_IDENTIFIER])
+        parseExpression("x ||", codes: [ParserErrorCode.missingIdentifier])
             as BinaryExpression;
     expect(expression.rightOperand, isSimpleIdentifier);
     expect(expression.rightOperand.isSynthetic, isTrue);
@@ -1467,9 +1430,9 @@ class C {
         parseExpression(
               "&& ||",
               codes: [
-                ParserErrorCode.MISSING_IDENTIFIER,
-                ParserErrorCode.MISSING_IDENTIFIER,
-                ParserErrorCode.MISSING_IDENTIFIER,
+                ParserErrorCode.missingIdentifier,
+                ParserErrorCode.missingIdentifier,
+                ParserErrorCode.missingIdentifier,
               ],
             )
             as BinaryExpression;
@@ -1481,9 +1444,9 @@ class C {
         parseExpression(
               "|| &&",
               codes: [
-                ParserErrorCode.MISSING_IDENTIFIER,
-                ParserErrorCode.MISSING_IDENTIFIER,
-                ParserErrorCode.MISSING_IDENTIFIER,
+                ParserErrorCode.missingIdentifier,
+                ParserErrorCode.missingIdentifier,
+                ParserErrorCode.missingIdentifier,
               ],
             )
             as BinaryExpression;
@@ -1493,7 +1456,7 @@ class C {
   void test_method_missingBody() {
     parseCompilationUnit(
       "class C { b() }",
-      errors: [expectedError(ParserErrorCode.MISSING_FUNCTION_BODY, 14, 1)],
+      errors: [expectedError(ParserErrorCode.missingFunctionBody, 14, 1)],
     );
   }
 
@@ -1501,7 +1464,7 @@ class C {
     var expression =
         parseExpression(
               "f(x: 1 y: 2)",
-              errors: [expectedError(ParserErrorCode.EXPECTED_TOKEN, 7, 1)],
+              errors: [expectedError(ParserErrorCode.expectedToken, 7, 1)],
             )
             as MethodInvocation;
     NodeList<Expression> arguments = expression.argumentList.arguments;
@@ -1512,9 +1475,7 @@ class C {
     createParser('(a b: c)');
     ArgumentList argumentList = parser.parseArgumentList();
     expectNotNullIfNoErrors(argumentList);
-    listener.assertErrors([
-      expectedError(ParserErrorCode.EXPECTED_TOKEN, 3, 1),
-    ]);
+    listener.assertErrors([expectedError(ParserErrorCode.expectedToken, 3, 1)]);
     expect(argumentList.arguments, hasLength(2));
   }
 
@@ -1525,7 +1486,7 @@ class C {
   int length {}
   void foo() {}
 }''',
-      errors: [expectedError(ParserErrorCode.MISSING_METHOD_PARAMETERS, 16, 6)],
+      errors: [expectedError(ParserErrorCode.missingMethodParameters, 16, 6)],
     );
     expect(unit, isNotNull);
     ClassDeclaration classDeclaration =
@@ -1543,7 +1504,7 @@ class C {
     var member = parser.parseClassMemberOrNull('C');
     expectNotNullIfNoErrors(member);
     listener.assertErrors([
-      expectedError(ParserErrorCode.EXPECTED_CLASS_MEMBER, 10, 1),
+      expectedError(ParserErrorCode.expectedClassMember, 10, 1),
     ]);
     // TODO(danrubel): Consider generating a sub method so that the
     // existing annotation can be associated with a class member.
@@ -1580,8 +1541,8 @@ class C {
     CompilationUnit unit = parseCompilationUnit(
       'String n x = "";',
       codes: [
-        ParserErrorCode.EXPECTED_TOKEN,
-        ParserErrorCode.MISSING_CONST_FINAL_VAR_OR_TYPE,
+        ParserErrorCode.expectedToken,
+        ParserErrorCode.missingConstFinalVarOrType,
       ],
     );
     expect(unit, isNotNull);
@@ -1593,7 +1554,7 @@ class C {
 
   void test_multiplicativeExpression_missing_LHS() {
     var expression =
-        parseExpression("* y", codes: [ParserErrorCode.MISSING_IDENTIFIER])
+        parseExpression("* y", codes: [ParserErrorCode.missingIdentifier])
             as BinaryExpression;
     expect(expression.leftOperand, isSimpleIdentifier);
     expect(expression.leftOperand.isSynthetic, isTrue);
@@ -1604,8 +1565,8 @@ class C {
         parseExpression(
               "*",
               codes: [
-                ParserErrorCode.MISSING_IDENTIFIER,
-                ParserErrorCode.MISSING_IDENTIFIER,
+                ParserErrorCode.missingIdentifier,
+                ParserErrorCode.missingIdentifier,
               ],
             )
             as BinaryExpression;
@@ -1617,7 +1578,7 @@ class C {
 
   void test_multiplicativeExpression_missing_RHS() {
     var expression =
-        parseExpression("x *", codes: [ParserErrorCode.MISSING_IDENTIFIER])
+        parseExpression("x *", codes: [ParserErrorCode.missingIdentifier])
             as BinaryExpression;
     expect(expression.rightOperand, isSimpleIdentifier);
     expect(expression.rightOperand.isSynthetic, isTrue);
@@ -1625,7 +1586,7 @@ class C {
 
   void test_multiplicativeExpression_missing_RHS_super() {
     var expression =
-        parseExpression("super *", codes: [ParserErrorCode.MISSING_IDENTIFIER])
+        parseExpression("super *", codes: [ParserErrorCode.missingIdentifier])
             as BinaryExpression;
     expect(expression.rightOperand, isSimpleIdentifier);
     expect(expression.rightOperand.isSynthetic, isTrue);
@@ -1633,14 +1594,14 @@ class C {
 
   void test_multiplicativeExpression_precedence_unary_left() {
     var expression =
-        parseExpression("-x *", codes: [ParserErrorCode.MISSING_IDENTIFIER])
+        parseExpression("-x *", codes: [ParserErrorCode.missingIdentifier])
             as BinaryExpression;
     expect(expression.leftOperand, isPrefixExpression);
   }
 
   void test_multiplicativeExpression_precedence_unary_right() {
     var expression =
-        parseExpression("* -y", codes: [ParserErrorCode.MISSING_IDENTIFIER])
+        parseExpression("* -y", codes: [ParserErrorCode.missingIdentifier])
             as BinaryExpression;
     expect(expression.rightOperand, isPrefixExpression);
   }
@@ -1650,9 +1611,9 @@ class C {
         parseExpression(
               "super ==  ==",
               codes: [
-                ParserErrorCode.MISSING_IDENTIFIER,
-                ParserErrorCode.MISSING_IDENTIFIER,
-                ParserErrorCode.EQUALITY_CANNOT_BE_EQUALITY_OPERAND,
+                ParserErrorCode.missingIdentifier,
+                ParserErrorCode.missingIdentifier,
+                ParserErrorCode.equalityCannotBeEqualityOperand,
               ],
             )
             as BinaryExpression;
@@ -1663,8 +1624,8 @@ class C {
     CompilationUnit unit = parseCompilationUnit(
       'class A { b(c: 0, Foo d: 0, e){} }',
       errors: [
-        expectedError(ParserErrorCode.NAMED_PARAMETER_OUTSIDE_GROUP, 13, 1),
-        expectedError(ParserErrorCode.NAMED_PARAMETER_OUTSIDE_GROUP, 23, 1),
+        expectedError(ParserErrorCode.namedParameterOutsideGroup, 13, 1),
+        expectedError(ParserErrorCode.namedParameterOutsideGroup, 23, 1),
       ],
     );
     expect(unit.declarations, hasLength(1));
@@ -1682,19 +1643,19 @@ class C {
     parseCompilationUnit(
       "import dart:io; class C {}",
       errors: [
-        expectedError(ParserErrorCode.EXPECTED_TOKEN, 0, 6),
-        expectedError(ParserErrorCode.EXPECTED_STRING_LITERAL, 7, 4),
-        expectedError(ParserErrorCode.MISSING_CONST_FINAL_VAR_OR_TYPE, 7, 4),
-        expectedError(ParserErrorCode.EXPECTED_TOKEN, 7, 4),
-        expectedError(ParserErrorCode.EXPECTED_EXECUTABLE, 11, 1),
-        expectedError(ParserErrorCode.MISSING_CONST_FINAL_VAR_OR_TYPE, 12, 2),
+        expectedError(ParserErrorCode.expectedToken, 0, 6),
+        expectedError(ParserErrorCode.expectedStringLiteral, 7, 4),
+        expectedError(ParserErrorCode.missingConstFinalVarOrType, 7, 4),
+        expectedError(ParserErrorCode.expectedToken, 7, 4),
+        expectedError(ParserErrorCode.expectedExecutable, 11, 1),
+        expectedError(ParserErrorCode.missingConstFinalVarOrType, 12, 2),
       ],
     );
   }
 
   void test_prefixExpression_missing_operand_minus() {
     var expression =
-        parseExpression("-", codes: [ParserErrorCode.MISSING_IDENTIFIER])
+        parseExpression("-", codes: [ParserErrorCode.missingIdentifier])
             as PrefixExpression;
     expect(expression.operand, isSimpleIdentifier);
     expect(expression.operand.isSynthetic, isTrue);
@@ -1706,7 +1667,7 @@ class C {
         parsePrimaryExpression(
               '?a',
               expectedEndOffset: 0,
-              errors: [expectedError(ParserErrorCode.MISSING_IDENTIFIER, 0, 1)],
+              errors: [expectedError(ParserErrorCode.missingIdentifier, 0, 1)],
             )
             as SimpleIdentifier;
     expectNotNullIfNoErrors(expression);
@@ -1715,7 +1676,7 @@ class C {
 
   void test_relationalExpression_missing_LHS() {
     var expression =
-        parseExpression("is y", codes: [ParserErrorCode.MISSING_IDENTIFIER])
+        parseExpression("is y", codes: [ParserErrorCode.missingIdentifier])
             as IsExpression;
     expect(expression.expression, isSimpleIdentifier);
     expect(expression.expression.isSynthetic, isTrue);
@@ -1725,15 +1686,15 @@ class C {
     parseExpression(
       "is",
       codes: [
-        ParserErrorCode.EXPECTED_TYPE_NAME,
-        ParserErrorCode.MISSING_IDENTIFIER,
+        ParserErrorCode.expectedTypeName,
+        ParserErrorCode.missingIdentifier,
       ],
     );
   }
 
   void test_relationalExpression_missing_RHS() {
     var expression =
-        parseExpression("x is", codes: [ParserErrorCode.EXPECTED_TYPE_NAME])
+        parseExpression("x is", codes: [ParserErrorCode.expectedTypeName])
             as IsExpression;
     expect(expression.type, isNamedType);
     expect(expression.type.isSynthetic, isTrue);
@@ -1743,16 +1704,16 @@ class C {
     parseExpression(
       "<< is",
       codes: [
-        ParserErrorCode.EXPECTED_TYPE_NAME,
-        ParserErrorCode.MISSING_IDENTIFIER,
-        ParserErrorCode.MISSING_IDENTIFIER,
+        ParserErrorCode.expectedTypeName,
+        ParserErrorCode.missingIdentifier,
+        ParserErrorCode.missingIdentifier,
       ],
     );
   }
 
   void test_shiftExpression_missing_LHS() {
     var expression =
-        parseExpression("<< y", codes: [ParserErrorCode.MISSING_IDENTIFIER])
+        parseExpression("<< y", codes: [ParserErrorCode.missingIdentifier])
             as BinaryExpression;
     expect(expression.leftOperand, isSimpleIdentifier);
     expect(expression.leftOperand.isSynthetic, isTrue);
@@ -1763,8 +1724,8 @@ class C {
         parseExpression(
               "<<",
               codes: [
-                ParserErrorCode.MISSING_IDENTIFIER,
-                ParserErrorCode.MISSING_IDENTIFIER,
+                ParserErrorCode.missingIdentifier,
+                ParserErrorCode.missingIdentifier,
               ],
             )
             as BinaryExpression;
@@ -1776,7 +1737,7 @@ class C {
 
   void test_shiftExpression_missing_RHS() {
     var expression =
-        parseExpression("x <<", codes: [ParserErrorCode.MISSING_IDENTIFIER])
+        parseExpression("x <<", codes: [ParserErrorCode.missingIdentifier])
             as BinaryExpression;
     expect(expression.rightOperand, isSimpleIdentifier);
     expect(expression.rightOperand.isSynthetic, isTrue);
@@ -1784,7 +1745,7 @@ class C {
 
   void test_shiftExpression_missing_RHS_super() {
     var expression =
-        parseExpression("super <<", codes: [ParserErrorCode.MISSING_IDENTIFIER])
+        parseExpression("super <<", codes: [ParserErrorCode.missingIdentifier])
             as BinaryExpression;
     expect(expression.rightOperand, isSimpleIdentifier);
     expect(expression.rightOperand.isSynthetic, isTrue);
@@ -1795,9 +1756,9 @@ class C {
         parseExpression(
               "+ <<",
               codes: [
-                ParserErrorCode.MISSING_IDENTIFIER,
-                ParserErrorCode.MISSING_IDENTIFIER,
-                ParserErrorCode.MISSING_IDENTIFIER,
+                ParserErrorCode.missingIdentifier,
+                ParserErrorCode.missingIdentifier,
+                ParserErrorCode.missingIdentifier,
               ],
             )
             as BinaryExpression;
@@ -1809,9 +1770,9 @@ class C {
         parseExpression(
               "<< +",
               codes: [
-                ParserErrorCode.MISSING_IDENTIFIER,
-                ParserErrorCode.MISSING_IDENTIFIER,
-                ParserErrorCode.MISSING_IDENTIFIER,
+                ParserErrorCode.missingIdentifier,
+                ParserErrorCode.missingIdentifier,
+                ParserErrorCode.missingIdentifier,
               ],
             )
             as BinaryExpression;
@@ -1823,8 +1784,8 @@ class C {
         parseExpression(
               "super << <<",
               codes: [
-                ParserErrorCode.MISSING_IDENTIFIER,
-                ParserErrorCode.MISSING_IDENTIFIER,
+                ParserErrorCode.missingIdentifier,
+                ParserErrorCode.missingIdentifier,
               ],
             )
             as BinaryExpression;
@@ -1835,8 +1796,8 @@ class C {
     CompilationUnit unit = parseCompilationUnit(
       "typedef n",
       codes: [
-        ParserErrorCode.EXPECTED_TOKEN,
-        ParserErrorCode.MISSING_TYPEDEF_PARAMETERS,
+        ParserErrorCode.expectedToken,
+        ParserErrorCode.missingTypedefParameters,
       ],
     );
     NodeList<CompilationUnitMember> declarations = unit.declarations;
@@ -1846,6 +1807,6 @@ class C {
   }
 
   void test_unaryPlus() {
-    parseExpression("+2", codes: [ParserErrorCode.MISSING_IDENTIFIER]);
+    parseExpression("+2", codes: [ParserErrorCode.missingIdentifier]);
   }
 }

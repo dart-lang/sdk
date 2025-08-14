@@ -25,12 +25,12 @@ extension type B(A it) {}
 ''',
       [
         error(
-          CompileTimeErrorCode.EXTENSION_TYPE_REPRESENTATION_DEPENDS_ON_ITSELF,
+          CompileTimeErrorCode.extensionTypeRepresentationDependsOnItself,
           15,
           1,
         ),
         error(
-          CompileTimeErrorCode.EXTENSION_TYPE_REPRESENTATION_DEPENDS_ON_ITSELF,
+          CompileTimeErrorCode.extensionTypeRepresentationDependsOnItself,
           42,
           1,
         ),
@@ -47,12 +47,12 @@ extension type B(List<A> it) {}
 ''',
       [
         error(
-          CompileTimeErrorCode.EXTENSION_TYPE_REPRESENTATION_DEPENDS_ON_ITSELF,
+          CompileTimeErrorCode.extensionTypeRepresentationDependsOnItself,
           15,
           1,
         ),
         error(
-          CompileTimeErrorCode.EXTENSION_TYPE_REPRESENTATION_DEPENDS_ON_ITSELF,
+          CompileTimeErrorCode.extensionTypeRepresentationDependsOnItself,
           48,
           1,
         ),
@@ -67,7 +67,7 @@ extension type A(A it) {}
 ''',
       [
         error(
-          CompileTimeErrorCode.EXTENSION_TYPE_REPRESENTATION_DEPENDS_ON_ITSELF,
+          CompileTimeErrorCode.extensionTypeRepresentationDependsOnItself,
           15,
           1,
         ),
@@ -82,7 +82,7 @@ extension type A(List<A> it) {}
 ''',
       [
         error(
-          CompileTimeErrorCode.EXTENSION_TYPE_REPRESENTATION_DEPENDS_ON_ITSELF,
+          CompileTimeErrorCode.extensionTypeRepresentationDependsOnItself,
           15,
           1,
         ),

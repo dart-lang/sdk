@@ -26,7 +26,7 @@ Function getFunction() {
   return .new();
 }
 ''',
-      [error(CompileTimeErrorCode.INSTANTIATE_ABSTRACT_CLASS, 34, 6)],
+      [error(CompileTimeErrorCode.instantiateAbstractClass, 34, 6)],
     );
   }
 
@@ -254,7 +254,7 @@ void main() {
   print(c);
 }
 ''',
-      [error(CompileTimeErrorCode.CONST_WITH_NON_CONST, 69, 5)],
+      [error(CompileTimeErrorCode.constWithNonConst, 69, 5)],
     );
   }
 
@@ -272,7 +272,7 @@ void main() {
   print(c);
 }
 ''',
-      [error(CompileTimeErrorCode.CONST_WITH_UNDEFINED_CONSTRUCTOR, 107, 2)],
+      [error(CompileTimeErrorCode.constWithUndefinedConstructor, 107, 2)],
     );
   }
 
@@ -366,7 +366,7 @@ void f() {
 ''',
       [
         error(
-          CompileTimeErrorCode.INVALID_REFERENCE_TO_GENERATIVE_ENUM_CONSTRUCTOR,
+          CompileTimeErrorCode.invalidReferenceToGenerativeEnumConstructor,
           65,
           5,
         ),
@@ -618,8 +618,8 @@ void main() {
 }
 ''',
       [
-        error(CompileTimeErrorCode.DOT_SHORTHAND_UNDEFINED_INVOCATION, 35, 3),
-        error(ParserErrorCode.ILLEGAL_ASSIGNMENT_TO_NON_ASSIGNABLE, 40, 2),
+        error(CompileTimeErrorCode.dotShorthandUndefinedInvocation, 35, 3),
+        error(ParserErrorCode.illegalAssignmentToNonAssignable, 40, 2),
       ],
     );
   }
@@ -635,8 +635,8 @@ void main() {
 }
 ''',
       [
-        error(CompileTimeErrorCode.DOT_SHORTHAND_UNDEFINED_INVOCATION, 37, 3),
-        error(ParserErrorCode.MISSING_ASSIGNABLE_SELECTOR, 41, 1),
+        error(CompileTimeErrorCode.dotShorthandUndefinedInvocation, 37, 3),
+        error(ParserErrorCode.missingAssignableSelector, 41, 1),
       ],
     );
   }
@@ -654,7 +654,7 @@ void main() {
   print(c);
 }
 ''',
-      [error(CompileTimeErrorCode.MISSING_REQUIRED_ARGUMENT, 69, 3)],
+      [error(CompileTimeErrorCode.missingRequiredArgument, 69, 3)],
     );
   }
 
@@ -673,7 +673,7 @@ void main() {
       [
         error(
           CompileTimeErrorCode
-              .WRONG_NUMBER_OF_TYPE_ARGUMENTS_DOT_SHORTHAND_CONSTRUCTOR,
+              .wrongNumberOfTypeArgumentsDotShorthandConstructor,
           46,
           5,
         ),
@@ -696,7 +696,7 @@ void main() {
       [
         error(
           CompileTimeErrorCode
-              .WRONG_NUMBER_OF_TYPE_ARGUMENTS_DOT_SHORTHAND_CONSTRUCTOR,
+              .wrongNumberOfTypeArgumentsDotShorthandConstructor,
           58,
           5,
         ),
@@ -712,7 +712,7 @@ void main() {
   print(c);
 }
 ''',
-      [error(CompileTimeErrorCode.DOT_SHORTHAND_MISSING_CONTEXT, 24, 17)],
+      [error(CompileTimeErrorCode.dotShorthandMissingContext, 24, 17)],
     );
   }
 }

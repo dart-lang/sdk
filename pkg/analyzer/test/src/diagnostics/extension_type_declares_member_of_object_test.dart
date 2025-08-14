@@ -22,13 +22,7 @@ extension type E(int it) {
   int get hashCode => 0;
 }
 ''',
-      [
-        error(
-          CompileTimeErrorCode.EXTENSION_TYPE_DECLARES_MEMBER_OF_OBJECT,
-          37,
-          8,
-        ),
-      ],
+      [error(CompileTimeErrorCode.extensionTypeDeclaresMemberOfObject, 37, 8)],
     );
   }
 
@@ -44,28 +38,16 @@ extension type E(int it) {
 }
 ''',
       [
+        error(CompileTimeErrorCode.extensionTypeDeclaresMemberOfObject, 42, 2),
+        error(CompileTimeErrorCode.extensionTypeDeclaresMemberOfObject, 75, 8),
+        error(CompileTimeErrorCode.extensionTypeDeclaresMemberOfObject, 99, 8),
         error(
-          CompileTimeErrorCode.EXTENSION_TYPE_DECLARES_MEMBER_OF_OBJECT,
-          42,
-          2,
-        ),
-        error(
-          CompileTimeErrorCode.EXTENSION_TYPE_DECLARES_MEMBER_OF_OBJECT,
-          75,
-          8,
-        ),
-        error(
-          CompileTimeErrorCode.EXTENSION_TYPE_DECLARES_MEMBER_OF_OBJECT,
-          99,
-          8,
-        ),
-        error(
-          CompileTimeErrorCode.EXTENSION_TYPE_DECLARES_MEMBER_OF_OBJECT,
+          CompileTimeErrorCode.extensionTypeDeclaresMemberOfObject,
           131,
           11,
         ),
         error(
-          CompileTimeErrorCode.EXTENSION_TYPE_DECLARES_MEMBER_OF_OBJECT,
+          CompileTimeErrorCode.extensionTypeDeclaresMemberOfObject,
           162,
           12,
         ),

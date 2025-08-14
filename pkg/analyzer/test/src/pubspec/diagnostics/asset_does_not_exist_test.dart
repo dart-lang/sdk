@@ -23,7 +23,7 @@ flutter:
   assets:
     - assets/my_icon.png
 ''',
-      [PubspecWarningCode.ASSET_DOES_NOT_EXIST],
+      [PubspecWarningCode.assetDoesNotExist],
     );
   }
 
@@ -56,7 +56,7 @@ flutter:
   assets:
     - packages/icons/my_icon.png
 ''',
-      [PubspecWarningCode.ASSET_DOES_NOT_EXIST],
+      [PubspecWarningCode.assetDoesNotExist],
     );
   }
 

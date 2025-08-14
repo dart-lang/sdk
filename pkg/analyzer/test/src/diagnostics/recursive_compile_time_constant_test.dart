@@ -22,8 +22,8 @@ const x = y + 1;
 const y = x + 1;
 ''',
       [
-        error(CompileTimeErrorCode.RECURSIVE_COMPILE_TIME_CONSTANT, 6, 1),
-        error(CompileTimeErrorCode.RECURSIVE_COMPILE_TIME_CONSTANT, 23, 1),
+        error(CompileTimeErrorCode.recursiveCompileTimeConstant, 6, 1),
+        error(CompileTimeErrorCode.recursiveCompileTimeConstant, 23, 1),
       ],
     );
   }
@@ -36,7 +36,7 @@ enum E {
   const E(Object a);
 }
 ''',
-      [error(CompileTimeErrorCode.RECURSIVE_COMPILE_TIME_CONSTANT, 11, 1)],
+      [error(CompileTimeErrorCode.recursiveCompileTimeConstant, 11, 1)],
     );
   }
 
@@ -49,8 +49,8 @@ enum E {
 }
 ''',
       [
-        error(CompileTimeErrorCode.RECURSIVE_COMPILE_TIME_CONSTANT, 11, 2),
-        error(CompileTimeErrorCode.RECURSIVE_COMPILE_TIME_CONSTANT, 19, 2),
+        error(CompileTimeErrorCode.recursiveCompileTimeConstant, 11, 2),
+        error(CompileTimeErrorCode.recursiveCompileTimeConstant, 19, 2),
       ],
     );
   }
@@ -65,8 +65,8 @@ enum E {
 }
 ''',
       [
-        error(CompileTimeErrorCode.RECURSIVE_COMPILE_TIME_CONSTANT, 29, 1),
-        error(CompileTimeErrorCode.RECURSIVE_COMPILE_TIME_CONSTANT, 55, 1),
+        error(CompileTimeErrorCode.recursiveCompileTimeConstant, 29, 1),
+        error(CompileTimeErrorCode.recursiveCompileTimeConstant, 55, 1),
       ],
     );
   }
@@ -88,7 +88,7 @@ final z = {x: 0, y: 1};
       r'''
 const x = x;
 ''',
-      [error(CompileTimeErrorCode.RECURSIVE_COMPILE_TIME_CONSTANT, 6, 1)],
+      [error(CompileTimeErrorCode.recursiveCompileTimeConstant, 6, 1)],
     );
   }
 
@@ -101,7 +101,7 @@ const elems = const [
   ],
 ];
 ''',
-      [error(CompileTimeErrorCode.RECURSIVE_COMPILE_TIME_CONSTANT, 6, 5)],
+      [error(CompileTimeErrorCode.recursiveCompileTimeConstant, 6, 5)],
     );
   }
 }

@@ -20,7 +20,7 @@ class ExpressionInMapTest extends PubPackageResolutionTest {
       '''
 var m = <String, int>{'a', 'b' : 2};
 ''',
-      [error(CompileTimeErrorCode.EXPRESSION_IN_MAP, 22, 3)],
+      [error(CompileTimeErrorCode.expressionInMap, 22, 3)],
     );
   }
 
@@ -29,7 +29,7 @@ var m = <String, int>{'a', 'b' : 2};
       '''
 const m = <String, int>{'a', 'b' : 2};
 ''',
-      [error(CompileTimeErrorCode.EXPRESSION_IN_MAP, 24, 3)],
+      [error(CompileTimeErrorCode.expressionInMap, 24, 3)],
     );
   }
 }

@@ -27,12 +27,8 @@ void f(int x) {
 }
 ''',
       [
-        error(WarningCode.UNUSED_LOCAL_VARIABLE, 33, 1),
-        error(
-          CompileTimeErrorCode.PATTERN_VARIABLE_ASSIGNMENT_INSIDE_GUARD,
-          68,
-          1,
-        ),
+        error(WarningCode.unusedLocalVariable, 33, 1),
+        error(CompileTimeErrorCode.patternVariableAssignmentInsideGuard, 68, 1),
       ],
     );
   }
@@ -48,12 +44,8 @@ void f(int x) {
 }
 ''',
       [
-        error(WarningCode.UNUSED_LOCAL_VARIABLE, 33, 1),
-        error(
-          CompileTimeErrorCode.PATTERN_VARIABLE_ASSIGNMENT_INSIDE_GUARD,
-          49,
-          1,
-        ),
+        error(WarningCode.unusedLocalVariable, 33, 1),
+        error(CompileTimeErrorCode.patternVariableAssignmentInsideGuard, 49, 1),
       ],
     );
   }
@@ -66,12 +58,8 @@ void f(int x) {
 }
 ''',
       [
-        error(WarningCode.UNUSED_LOCAL_VARIABLE, 33, 1),
-        error(
-          CompileTimeErrorCode.PATTERN_VARIABLE_ASSIGNMENT_INSIDE_GUARD,
-          41,
-          1,
-        ),
+        error(WarningCode.unusedLocalVariable, 33, 1),
+        error(CompileTimeErrorCode.patternVariableAssignmentInsideGuard, 41, 1),
       ],
     );
   }
@@ -83,13 +71,7 @@ void f(int x) {
   if (x case var a when (a += 1) > 0) {}
 }
 ''',
-      [
-        error(
-          CompileTimeErrorCode.PATTERN_VARIABLE_ASSIGNMENT_INSIDE_GUARD,
-          41,
-          1,
-        ),
-      ],
+      [error(CompileTimeErrorCode.patternVariableAssignmentInsideGuard, 41, 1)],
     );
   }
 
@@ -101,14 +83,10 @@ void f(int x) {
 }
 ''',
       [
-        error(WarningCode.UNUSED_LOCAL_VARIABLE, 33, 1),
-        error(WarningCode.DEAD_CODE, 35, 8),
-        error(WarningCode.UNUSED_LOCAL_VARIABLE, 42, 1),
-        error(
-          CompileTimeErrorCode.PATTERN_VARIABLE_ASSIGNMENT_INSIDE_GUARD,
-          50,
-          1,
-        ),
+        error(WarningCode.unusedLocalVariable, 33, 1),
+        error(WarningCode.deadCode, 35, 8),
+        error(WarningCode.unusedLocalVariable, 42, 1),
+        error(CompileTimeErrorCode.patternVariableAssignmentInsideGuard, 50, 1),
       ],
     );
   }
@@ -120,13 +98,7 @@ void f(int x) {
   if (x case var a when (a++) > 0) {}
 }
 ''',
-      [
-        error(
-          CompileTimeErrorCode.PATTERN_VARIABLE_ASSIGNMENT_INSIDE_GUARD,
-          41,
-          1,
-        ),
-      ],
+      [error(CompileTimeErrorCode.patternVariableAssignmentInsideGuard, 41, 1)],
     );
   }
 
@@ -137,13 +109,7 @@ void f(int x) {
   if (x case var a when (++a) > 0) {}
 }
 ''',
-      [
-        error(
-          CompileTimeErrorCode.PATTERN_VARIABLE_ASSIGNMENT_INSIDE_GUARD,
-          43,
-          1,
-        ),
-      ],
+      [error(CompileTimeErrorCode.patternVariableAssignmentInsideGuard, 43, 1)],
     );
   }
 
@@ -166,7 +132,7 @@ void f(int x) {
   if (x case var a when (b = 1) > 0) {}
 }
 ''',
-      [error(WarningCode.UNUSED_LOCAL_VARIABLE, 80, 1)],
+      [error(WarningCode.unusedLocalVariable, 80, 1)],
     );
   }
 

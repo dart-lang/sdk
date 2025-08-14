@@ -189,8 +189,7 @@ class LanguageVersionOverrideVerifier {
       _diagnosticReporter.atOffset(
         offset: offset,
         length: length,
-        diagnosticCode:
-            WarningCode.INVALID_LANGUAGE_VERSION_OVERRIDE_TWO_SLASHES,
+        diagnosticCode: WarningCode.invalidLanguageVersionOverrideTwoSlashes,
       );
       return false;
     }
@@ -199,7 +198,7 @@ class LanguageVersionOverrideVerifier {
       _diagnosticReporter.atOffset(
         offset: offset,
         length: length,
-        diagnosticCode: WarningCode.INVALID_LANGUAGE_VERSION_OVERRIDE_AT_SIGN,
+        diagnosticCode: WarningCode.invalidLanguageVersionOverrideAtSign,
       );
       return false;
     }
@@ -209,8 +208,7 @@ class LanguageVersionOverrideVerifier {
       _diagnosticReporter.atOffset(
         offset: offset,
         length: length,
-        diagnosticCode:
-            WarningCode.INVALID_LANGUAGE_VERSION_OVERRIDE_LOWER_CASE,
+        diagnosticCode: WarningCode.invalidLanguageVersionOverrideLowerCase,
       );
       return false;
     }
@@ -222,7 +220,7 @@ class LanguageVersionOverrideVerifier {
       _diagnosticReporter.atOffset(
         offset: offset,
         length: length,
-        diagnosticCode: WarningCode.INVALID_LANGUAGE_VERSION_OVERRIDE_EQUALS,
+        diagnosticCode: WarningCode.invalidLanguageVersionOverrideEquals,
       );
       return false;
     }
@@ -231,7 +229,7 @@ class LanguageVersionOverrideVerifier {
       _diagnosticReporter.atOffset(
         offset: offset,
         length: length,
-        diagnosticCode: WarningCode.INVALID_LANGUAGE_VERSION_OVERRIDE_PREFIX,
+        diagnosticCode: WarningCode.invalidLanguageVersionOverridePrefix,
       );
       return false;
     }
@@ -240,7 +238,7 @@ class LanguageVersionOverrideVerifier {
       _diagnosticReporter.atOffset(
         offset: offset,
         length: length,
-        diagnosticCode: WarningCode.INVALID_LANGUAGE_VERSION_OVERRIDE_NUMBER,
+        diagnosticCode: WarningCode.invalidLanguageVersionOverrideNumber,
       );
     }
 
@@ -277,7 +275,7 @@ class LanguageVersionOverrideVerifier {
       offset: offset,
       length: length,
       diagnosticCode:
-          WarningCode.INVALID_LANGUAGE_VERSION_OVERRIDE_TRAILING_CHARACTERS,
+          WarningCode.invalidLanguageVersionOverrideTrailingCharacters,
     );
     return false;
   }
@@ -307,7 +305,7 @@ class LanguageVersionOverrideVerifier {
               offset: commentToken.offset + atDartStart,
               length: match.end - atDartStart,
               diagnosticCode:
-                  WarningCode.INVALID_LANGUAGE_VERSION_OVERRIDE_LOCATION,
+                  WarningCode.invalidLanguageVersionOverrideLocation,
             );
           }
         }

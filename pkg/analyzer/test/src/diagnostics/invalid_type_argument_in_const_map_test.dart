@@ -25,7 +25,7 @@ class A<E> {
 ''',
       [
         error(
-          CompileTimeErrorCode.INVALID_TYPE_ARGUMENT_IN_CONST_MAP,
+          CompileTimeErrorCode.invalidTypeArgumentInConstMap,
           96,
           1,
           messageContains: ["'E'"],
@@ -55,7 +55,7 @@ class A<E> {
 ''',
       [
         error(
-          CompileTimeErrorCode.INVALID_TYPE_ARGUMENT_IN_CONST_MAP,
+          CompileTimeErrorCode.invalidTypeArgumentInConstMap,
           37,
           1,
           messageContains: ["'E'"],
@@ -75,7 +75,7 @@ class A<E> {
 ''',
       [
         error(
-          CompileTimeErrorCode.INVALID_TYPE_ARGUMENT_IN_CONST_MAP,
+          CompileTimeErrorCode.invalidTypeArgumentInConstMap,
           56,
           1,
           messageContains: ["'E'"],
@@ -95,7 +95,7 @@ class A<E> {
 ''',
       [
         error(
-          CompileTimeErrorCode.INVALID_TYPE_ARGUMENT_IN_CONST_MAP,
+          CompileTimeErrorCode.invalidTypeArgumentInConstMap,
           45,
           1,
           messageContains: ["'E'"],
@@ -115,7 +115,7 @@ class A<E> {
 ''',
       [
         error(
-          CompileTimeErrorCode.INVALID_TYPE_ARGUMENT_IN_CONST_MAP,
+          CompileTimeErrorCode.invalidTypeArgumentInConstMap,
           50,
           1,
           messageContains: ["'E'"],

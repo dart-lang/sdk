@@ -24,8 +24,8 @@ class A {
 }
 ''',
       [
-        error(CompileTimeErrorCode.RECURSIVE_CONSTANT_CONSTRUCTOR, 18, 1),
-        error(CompileTimeErrorCode.RECURSIVE_COMPILE_TIME_CONSTANT, 31, 1),
+        error(CompileTimeErrorCode.recursiveConstantConstructor, 18, 1),
+        error(CompileTimeErrorCode.recursiveCompileTimeConstant, 31, 1),
       ],
     );
   }
@@ -40,8 +40,8 @@ class C {
 }
 ''',
       [
-        error(CompileTimeErrorCode.RECURSIVE_COMPILE_TIME_CONSTANT, 6, 1),
-        error(CompileTimeErrorCode.RECURSIVE_CONSTANT_CONSTRUCTOR, 39, 1),
+        error(CompileTimeErrorCode.recursiveCompileTimeConstant, 6, 1),
+        error(CompileTimeErrorCode.recursiveConstantConstructor, 39, 1),
       ],
     );
   }
@@ -54,7 +54,7 @@ class A {
   const A() : a = const A();
 }
 ''',
-      [error(CompileTimeErrorCode.RECURSIVE_CONSTANT_CONSTRUCTOR, 31, 1)],
+      [error(CompileTimeErrorCode.recursiveConstantConstructor, 31, 1)],
     );
   }
 
@@ -71,8 +71,8 @@ class A {
 }
 ''',
       [
-        error(CompileTimeErrorCode.RECURSIVE_CONSTANT_CONSTRUCTOR, 31, 1),
-        error(CompileTimeErrorCode.RECURSIVE_CONSTANT_CONSTRUCTOR, 85, 1),
+        error(CompileTimeErrorCode.recursiveConstantConstructor, 31, 1),
+        error(CompileTimeErrorCode.recursiveConstantConstructor, 85, 1),
       ],
     );
   }

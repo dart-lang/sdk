@@ -22,7 +22,7 @@ Future<int> f() async {
   return;
 }
 ''',
-      [error(CompileTimeErrorCode.RETURN_WITHOUT_VALUE, 26, 6)],
+      [error(CompileTimeErrorCode.returnWithoutValue, 26, 6)],
     );
   }
 
@@ -33,7 +33,7 @@ Future<Object> f() async {
   return;
 }
 ''',
-      [error(CompileTimeErrorCode.RETURN_WITHOUT_VALUE, 29, 6)],
+      [error(CompileTimeErrorCode.returnWithoutValue, 29, 6)],
     );
   }
 
@@ -56,7 +56,7 @@ class A {
   }
 }
 ''',
-      [error(CompileTimeErrorCode.RETURN_WITHOUT_VALUE, 30, 6)],
+      [error(CompileTimeErrorCode.returnWithoutValue, 30, 6)],
     );
   }
 
@@ -67,7 +67,7 @@ int f() {
   return;
 }
 ''',
-      [error(CompileTimeErrorCode.RETURN_WITHOUT_VALUE, 12, 6)],
+      [error(CompileTimeErrorCode.returnWithoutValue, 12, 6)],
     );
   }
 
@@ -125,7 +125,7 @@ f() {
   };
 }
 ''',
-      [error(CompileTimeErrorCode.RETURN_WITHOUT_VALUE, 48, 6)],
+      [error(CompileTimeErrorCode.returnWithoutValue, 48, 6)],
     );
   }
 
@@ -146,7 +146,7 @@ class A {
   }
 }
 ''',
-      [error(CompileTimeErrorCode.RETURN_WITHOUT_VALUE, 26, 6)],
+      [error(CompileTimeErrorCode.returnWithoutValue, 26, 6)],
     );
   }
 
@@ -162,7 +162,7 @@ int f(int x) {
   return;
 }
 ''',
-      [error(CompileTimeErrorCode.RETURN_WITHOUT_VALUE, 50, 6)],
+      [error(CompileTimeErrorCode.returnWithoutValue, 50, 6)],
     );
   }
 }

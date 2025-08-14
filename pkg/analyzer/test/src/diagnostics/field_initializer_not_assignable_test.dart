@@ -48,7 +48,7 @@ class A {
   A() : x = '';
 }
 ''',
-      [error(CompileTimeErrorCode.FIELD_INITIALIZER_NOT_ASSIGNABLE, 31, 2)],
+      [error(CompileTimeErrorCode.fieldInitializerNotAssignable, 31, 2)],
     );
   }
 }
@@ -65,7 +65,7 @@ class A {
   A(dynamic a) : i = a;
 }
 ''',
-      [error(CompileTimeErrorCode.FIELD_INITIALIZER_NOT_ASSIGNABLE, 40, 1)],
+      [error(CompileTimeErrorCode.fieldInitializerNotAssignable, 40, 1)],
     );
   }
 }

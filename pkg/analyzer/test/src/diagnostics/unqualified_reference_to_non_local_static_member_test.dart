@@ -17,7 +17,7 @@ main() {
 class UnqualifiedReferenceToNonLocalStaticMemberTest
     extends PubPackageResolutionTest {
   CompileTimeErrorCode get _errorCode =>
-      CompileTimeErrorCode.UNQUALIFIED_REFERENCE_TO_NON_LOCAL_STATIC_MEMBER;
+      CompileTimeErrorCode.unqualifiedReferenceToNonLocalStaticMember;
 
   test_getter() async {
     await assertErrorsInCode(

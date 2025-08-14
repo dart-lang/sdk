@@ -52,21 +52,19 @@ final completionFilterTextSplitPattern = RegExp(r'=>|[\(]');
 final completionSetterTypePattern = RegExp(r'^\((\S+)\s+\S+\)$');
 
 final diagnosticTagsForErrorCode = <String, List<lsp.DiagnosticTag>>{
-  _diagnosticCode(WarningCode.DEAD_CODE): [lsp.DiagnosticTag.Unnecessary],
-  _diagnosticCode(HintCode.DEPRECATED_MEMBER_USE_FROM_SAME_PACKAGE): [
+  _diagnosticCode(WarningCode.deadCode): [lsp.DiagnosticTag.Unnecessary],
+  _diagnosticCode(HintCode.deprecatedMemberUseFromSamePackage): [
     lsp.DiagnosticTag.Deprecated,
   ],
-  _diagnosticCode(
-    HintCode.DEPRECATED_MEMBER_USE_FROM_SAME_PACKAGE_WITH_MESSAGE,
-  ): [lsp.DiagnosticTag.Deprecated],
-  _diagnosticCode(HintCode.DEPRECATED_MEMBER_USE): [
+  _diagnosticCode(HintCode.deprecatedMemberUseFromSamePackageWithMessage): [
     lsp.DiagnosticTag.Deprecated,
   ],
+  _diagnosticCode(HintCode.deprecatedMemberUse): [lsp.DiagnosticTag.Deprecated],
   'deprecated_member_use_from_same_package': [lsp.DiagnosticTag.Deprecated],
   'deprecated_member_use_from_same_package_with_message': [
     lsp.DiagnosticTag.Deprecated,
   ],
-  _diagnosticCode(HintCode.DEPRECATED_MEMBER_USE_WITH_MESSAGE): [
+  _diagnosticCode(HintCode.deprecatedMemberUseWithMessage): [
     lsp.DiagnosticTag.Deprecated,
   ],
 };

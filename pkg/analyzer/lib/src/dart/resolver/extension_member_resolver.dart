@@ -118,7 +118,7 @@ class ExtensionMemberResolver {
     if (mostSpecific.length == 2) {
       _diagnosticReporter.atEntity(
         nameEntity,
-        CompileTimeErrorCode.AMBIGUOUS_EXTENSION_MEMBER_ACCESS_TWO,
+        CompileTimeErrorCode.ambiguousExtensionMemberAccessTwo,
         arguments: [
           name.name,
           mostSpecific[0].extension,
@@ -129,7 +129,7 @@ class ExtensionMemberResolver {
       var extensions = mostSpecific.map((e) => e.extension).toList();
       _diagnosticReporter.atEntity(
         nameEntity,
-        CompileTimeErrorCode.AMBIGUOUS_EXTENSION_MEMBER_ACCESS_THREE_OR_MORE,
+        CompileTimeErrorCode.ambiguousExtensionMemberAccessThreeOrMore,
         arguments: [
           name.name,
           mostSpecific.map((e) {
@@ -207,7 +207,7 @@ class ExtensionMemberResolver {
       if (!_isCascadeTarget(node)) {
         _diagnosticReporter.atNode(
           node,
-          CompileTimeErrorCode.EXTENSION_OVERRIDE_WITHOUT_ACCESS,
+          CompileTimeErrorCode.extensionOverrideWithoutAccess,
         );
       }
       nodeImpl.setPseudoExpressionStaticType(DynamicTypeImpl.instance);
@@ -217,7 +217,7 @@ class ExtensionMemberResolver {
     if (arguments.length != 1) {
       _diagnosticReporter.atNode(
         node.argumentList,
-        CompileTimeErrorCode.INVALID_EXTENSION_ARGUMENT_COUNT,
+        CompileTimeErrorCode.invalidExtensionArgumentCount,
       );
       nodeImpl.typeArgumentTypes = _listOfDynamic(typeParameters);
       nodeImpl.extendedType = DynamicTypeImpl.instance;
@@ -260,7 +260,7 @@ class ExtensionMemberResolver {
     if (receiverType is VoidType) {
       _diagnosticReporter.atNode(
         receiverExpression,
-        CompileTimeErrorCode.USE_OF_VOID_RESULT,
+        CompileTimeErrorCode.useOfVoidResult,
       );
     } else if (!_typeSystem.isAssignableTo(
       receiverType,
@@ -271,7 +271,7 @@ class ExtensionMemberResolver {
           whyNotPromotedArguments.isEmpty ? null : whyNotPromotedArguments[0];
       _diagnosticReporter.atNode(
         receiverExpression,
-        CompileTimeErrorCode.EXTENSION_OVERRIDE_ARGUMENT_NOT_ASSIGNABLE,
+        CompileTimeErrorCode.extensionOverrideArgumentNotAssignable,
         arguments: [receiverType, extendedType],
         contextMessages: _resolver.computeWhyNotPromotedMessages(
           receiverExpression,
@@ -298,7 +298,7 @@ class ExtensionMemberResolver {
           if (!_typeSystem.isSubtypeOf(argument, parameterBound)) {
             _diagnosticReporter.atNode(
               typeArgumentList.arguments[i],
-              CompileTimeErrorCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS,
+              CompileTimeErrorCode.typeArgumentNotMatchingBounds,
               arguments: [argument, name, parameterBound],
             );
           }
@@ -381,7 +381,7 @@ class ExtensionMemberResolver {
         // explicit extension overrides cannot refer to unnamed extensions.
         _diagnosticReporter.atNode(
           typeArguments,
-          CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_EXTENSION,
+          CompileTimeErrorCode.wrongNumberOfTypeArgumentsExtension,
           arguments: [element.name!, typeParameters.length, arguments.length],
         );
         return _listOfDynamic(typeParameters);

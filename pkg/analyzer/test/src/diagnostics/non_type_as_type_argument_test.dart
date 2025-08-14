@@ -34,7 +34,7 @@ A doOption<A>(
   );
 }
 ''',
-      [error(CompileTimeErrorCode.NON_TYPE_AS_TYPE_ARGUMENT, 62, 1)],
+      [error(CompileTimeErrorCode.nonTypeAsTypeArgument, 62, 1)],
     );
   }
 
@@ -45,7 +45,7 @@ int A = 0;
 class B<E> {}
 f(B<A> b) {}
 ''',
-      [error(CompileTimeErrorCode.NON_TYPE_AS_TYPE_ARGUMENT, 29, 1)],
+      [error(CompileTimeErrorCode.nonTypeAsTypeArgument, 29, 1)],
     );
   }
 
@@ -55,7 +55,7 @@ f(B<A> b) {}
 class B<E> {}
 f(B<A> b) {}
 ''',
-      [error(CompileTimeErrorCode.NON_TYPE_AS_TYPE_ARGUMENT, 18, 1)],
+      [error(CompileTimeErrorCode.nonTypeAsTypeArgument, 18, 1)],
     );
   }
 }

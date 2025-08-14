@@ -34,7 +34,7 @@ void f() {
   HashMap.from({1: 1, 2: 2, 3: 3});
 }
 ''',
-      [error(WarningCode.INFERENCE_FAILURE_ON_INSTANCE_CREATION, 39, 12)],
+      [error(WarningCode.inferenceFailureOnInstanceCreation, 39, 12)],
     );
     expect(result.diagnostics[0].message, contains("'HashMap.from'"));
   }
@@ -47,7 +47,7 @@ void f() {
   c.HashMap.from({1: 1, 2: 2, 3: 3});
 }
 ''',
-      [error(WarningCode.INFERENCE_FAILURE_ON_INSTANCE_CREATION, 44, 14)],
+      [error(WarningCode.inferenceFailureOnInstanceCreation, 44, 14)],
     );
     expect(result.diagnostics[0].message, contains("'c.HashMap.from'"));
   }
@@ -60,7 +60,7 @@ void f() {
   HashMap();
 }
 ''',
-      [error(WarningCode.INFERENCE_FAILURE_ON_INSTANCE_CREATION, 39, 7)],
+      [error(WarningCode.inferenceFailureOnInstanceCreation, 39, 7)],
     );
     expect(result.diagnostics[0].message, contains("'HashMap'"));
   }
@@ -73,7 +73,7 @@ void f() {
   c.HashMap();
 }
 ''',
-      [error(WarningCode.INFERENCE_FAILURE_ON_INSTANCE_CREATION, 44, 9)],
+      [error(WarningCode.inferenceFailureOnInstanceCreation, 44, 9)],
     );
     expect(result.diagnostics[0].message, contains("'c.HashMap'"));
   }
@@ -95,7 +95,7 @@ void f() {
   E(1);
 }
 ''',
-      [error(WarningCode.INFERENCE_FAILURE_ON_INSTANCE_CREATION, 43, 1)],
+      [error(WarningCode.inferenceFailureOnInstanceCreation, 43, 1)],
     );
   }
 
@@ -109,7 +109,7 @@ class C<T> {
 @C()
 void f() {}
 ''',
-      [error(WarningCode.INFERENCE_FAILURE_ON_INSTANCE_CREATION, 29, 4)],
+      [error(WarningCode.inferenceFailureOnInstanceCreation, 29, 4)],
     );
   }
 
@@ -177,7 +177,7 @@ void f() {
   HashMap();
 }
 ''',
-      [error(WarningCode.INFERENCE_FAILURE_ON_INSTANCE_CREATION, 39, 7)],
+      [error(WarningCode.inferenceFailureOnInstanceCreation, 39, 7)],
     );
   }
 
@@ -199,7 +199,7 @@ void f() {
 import 'dart:collection';
 var m = HashMap();
 ''',
-      [error(WarningCode.INFERENCE_FAILURE_ON_INSTANCE_CREATION, 34, 7)],
+      [error(WarningCode.inferenceFailureOnInstanceCreation, 34, 7)],
     );
   }
 

@@ -21,7 +21,7 @@ class DeprecatedFieldTest extends PubspecDiagnosticTest {
 name: sample
 author: foo
 ''',
-      [PubspecWarningCode.DEPRECATED_FIELD],
+      [PubspecWarningCode.deprecatedField],
     );
   }
 
@@ -33,7 +33,7 @@ authors:
   - foo
   - bar
 ''',
-      [PubspecWarningCode.DEPRECATED_FIELD],
+      [PubspecWarningCode.deprecatedField],
     );
   }
 
@@ -44,7 +44,7 @@ name: sample
 transformers:
   - foo
 ''',
-      [PubspecWarningCode.DEPRECATED_FIELD],
+      [PubspecWarningCode.deprecatedField],
     );
   }
 
@@ -54,7 +54,7 @@ transformers:
 name: sample
 web: foo
 ''',
-      [PubspecWarningCode.DEPRECATED_FIELD],
+      [PubspecWarningCode.deprecatedField],
     );
   }
 }

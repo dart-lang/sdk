@@ -25,8 +25,8 @@ void f() {
   var a = const A<int>();
 }''',
       [
-        error(WarningCode.UNUSED_LOCAL_VARIABLE, 54, 1),
-        error(CompileTimeErrorCode.INSTANTIATE_ABSTRACT_CLASS, 64, 6),
+        error(WarningCode.unusedLocalVariable, 54, 1),
+        error(CompileTimeErrorCode.instantiateAbstractClass, 64, 6),
       ],
     );
 
@@ -43,8 +43,8 @@ void f() {
   A a = const A();
 }''',
       [
-        error(WarningCode.UNUSED_LOCAL_VARIABLE, 49, 1),
-        error(CompileTimeErrorCode.INSTANTIATE_ABSTRACT_CLASS, 59, 1),
+        error(WarningCode.unusedLocalVariable, 49, 1),
+        error(CompileTimeErrorCode.instantiateAbstractClass, 59, 1),
       ],
     );
   }
@@ -57,7 +57,7 @@ void f() {
   new A<int>();
 }
 ''',
-      [error(CompileTimeErrorCode.INSTANTIATE_ABSTRACT_CLASS, 40, 6)],
+      [error(CompileTimeErrorCode.instantiateAbstractClass, 40, 6)],
     );
 
     assertType(findNode.instanceCreation('new A<int>'), 'A<int>');
@@ -72,7 +72,7 @@ void f() {
   new B();
 }
 ''',
-      [error(CompileTimeErrorCode.INSTANTIATE_ABSTRACT_CLASS, 52, 1)],
+      [error(CompileTimeErrorCode.instantiateAbstractClass, 52, 1)],
     );
   }
 
@@ -84,7 +84,7 @@ void f() {
   new A();
 }
 ''',
-      [error(CompileTimeErrorCode.INSTANTIATE_ABSTRACT_CLASS, 37, 1)],
+      [error(CompileTimeErrorCode.instantiateAbstractClass, 37, 1)],
     );
   }
 
@@ -96,7 +96,7 @@ void f() {
   A<int>();
 }
 ''',
-      [error(CompileTimeErrorCode.INSTANTIATE_ABSTRACT_CLASS, 36, 6)],
+      [error(CompileTimeErrorCode.instantiateAbstractClass, 36, 6)],
     );
 
     assertType(findNode.instanceCreation('A<int>'), 'A<int>');
@@ -111,7 +111,7 @@ void f() {
   B();
 }
 ''',
-      [error(CompileTimeErrorCode.INSTANTIATE_ABSTRACT_CLASS, 48, 1)],
+      [error(CompileTimeErrorCode.instantiateAbstractClass, 48, 1)],
     );
   }
 
@@ -123,7 +123,7 @@ void f() {
   A();
 }
 ''',
-      [error(CompileTimeErrorCode.INSTANTIATE_ABSTRACT_CLASS, 33, 1)],
+      [error(CompileTimeErrorCode.instantiateAbstractClass, 33, 1)],
     );
   }
 }

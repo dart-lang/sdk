@@ -22,7 +22,7 @@ main() {
   // FIXME: Implement
 }
 ''',
-      [error(TodoCode.FIXME, 14, 16, text: 'FIXME: Implement')],
+      [error(TodoCode.fixme, 14, 16, text: 'FIXME: Implement')],
     );
   }
 
@@ -33,7 +33,7 @@ main() {
   // HACK: This is a hack
 }
 ''',
-      [error(TodoCode.HACK, 14, 20, text: 'HACK: This is a hack')],
+      [error(TodoCode.hack, 14, 20, text: 'HACK: This is a hack')],
     );
   }
 
@@ -46,8 +46,8 @@ main() {
 }
 ''',
       [
-        error(TodoCode.TODO, 14, 15, text: 'TODO: Implement'),
-        error(TodoCode.TODO, 38, 15, text: 'TODO: Implement'),
+        error(TodoCode.todo, 14, 15, text: 'TODO: Implement'),
+        error(TodoCode.todo, 38, 15, text: 'TODO: Implement'),
       ],
     );
   }
@@ -78,25 +78,25 @@ main() {
 ''',
       [
         error(
-          TodoCode.TODO,
+          TodoCode.todo,
           14,
           64,
           text: 'TODO(a): Implement something that is too long for one line',
         ),
         error(
-          TodoCode.TODO,
+          TodoCode.todo,
           129,
           61,
           text: 'TODO: Implement something that is too long for one line',
         ),
         error(
-          TodoCode.TODO,
+          TodoCode.todo,
           241,
           64,
           text: 'TODO(a): Implement something that is too long for one line',
         ),
         error(
-          TodoCode.TODO,
+          TodoCode.todo,
           362,
           61,
           text: 'TODO: Implement something that is too long for one line',
@@ -112,7 +112,7 @@ main() {
   // TODO: Implement
 }
 ''',
-      [error(TodoCode.TODO, 14, 15, text: 'TODO: Implement')],
+      [error(TodoCode.todo, 14, 15, text: 'TODO: Implement')],
     );
   }
 
@@ -136,13 +136,13 @@ main() {
 ''',
       [
         error(
-          TodoCode.TODO,
+          TodoCode.todo,
           20,
           67,
           text: 'TODO: Implement something that is too long for one line',
         ),
-        error(TodoCode.TODO, 117, 25, text: 'TODO: Implement something'),
-        error(TodoCode.TODO, 202, 25, text: 'TODO: Implement something'),
+        error(TodoCode.todo, 117, 25, text: 'TODO: Implement something'),
+        error(TodoCode.todo, 202, 25, text: 'TODO: Implement something'),
       ],
     );
   }
@@ -154,7 +154,7 @@ main() {
 /// This is the function documentation
 void f() {}
 ''',
-      [error(TodoCode.TODO, 3, 25, text: 'TODO: Implement something')],
+      [error(TodoCode.todo, 3, 25, text: 'TODO: Implement something')],
     );
   }
 
@@ -169,7 +169,7 @@ main() {
 ''',
       [
         error(
-          TodoCode.TODO,
+          TodoCode.todo,
           14,
           61,
           text: 'TODO: Implement something that is too long for one line',
@@ -189,7 +189,7 @@ main() {
 ''',
       [
         error(
-          TodoCode.TODO,
+          TodoCode.todo,
           14,
           61,
           text: 'TODO: Implement something that is too long for one line',
@@ -209,13 +209,13 @@ main() {
 ''',
       [
         error(
-          TodoCode.TODO,
+          TodoCode.todo,
           14,
           61,
           text: 'TODO: Implement something that is too long for one line',
         ),
         error(
-          TodoCode.TODO,
+          TodoCode.todo,
           82,
           59,
           text: 'TODO: This is a separate todo that is accidentally indented',
@@ -245,19 +245,19 @@ main() {
 ''',
       [
         error(
-          TodoCode.TODO,
+          TodoCode.todo,
           14,
           61,
           text: 'TODO: Implement something that is too long for one line',
         ),
         error(
-          TodoCode.TODO,
+          TodoCode.todo,
           116,
           61,
           text: 'TODO: Implement something that is too long for one line',
         ),
         error(
-          TodoCode.TODO,
+          TodoCode.todo,
           220,
           61,
           text: 'TODO: Implement something that is too long for one line',
@@ -273,7 +273,7 @@ main() {
   // UNDONE: This was undone
 }
 ''',
-      [error(TodoCode.UNDONE, 14, 23, text: 'UNDONE: This was undone')],
+      [error(TodoCode.undone, 14, 23, text: 'UNDONE: This was undone')],
     );
   }
 }

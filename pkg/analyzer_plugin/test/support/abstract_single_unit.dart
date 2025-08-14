@@ -106,13 +106,13 @@ class AbstractSingleUnitTest extends AbstractContextTest {
     testUnit = result.unit;
     if (verifyNoTestUnitErrors) {
       expect(result.diagnostics.where((d) {
-        return d.diagnosticCode != WarningCode.DEAD_CODE &&
-            d.diagnosticCode != WarningCode.UNUSED_CATCH_CLAUSE &&
-            d.diagnosticCode != WarningCode.UNUSED_CATCH_STACK &&
-            d.diagnosticCode != WarningCode.UNUSED_ELEMENT &&
-            d.diagnosticCode != WarningCode.UNUSED_FIELD &&
-            d.diagnosticCode != WarningCode.UNUSED_IMPORT &&
-            d.diagnosticCode != WarningCode.UNUSED_LOCAL_VARIABLE;
+        return d.diagnosticCode != WarningCode.deadCode &&
+            d.diagnosticCode != WarningCode.unusedCatchClause &&
+            d.diagnosticCode != WarningCode.unusedCatchStack &&
+            d.diagnosticCode != WarningCode.unusedElement &&
+            d.diagnosticCode != WarningCode.unusedField &&
+            d.diagnosticCode != WarningCode.unusedImport &&
+            d.diagnosticCode != WarningCode.unusedLocalVariable;
       }), isEmpty);
     }
     findNode = FindNode(testCode, testUnit);

@@ -25,7 +25,7 @@ part of 'test.dart';
 part 'part.dart';
 part 'foo/../part.dart';
 ''',
-      [error(CompileTimeErrorCode.DUPLICATE_PART, 23, 18)],
+      [error(CompileTimeErrorCode.duplicatePart, 23, 18)],
     );
   }
 
@@ -39,7 +39,7 @@ part of 'test.dart';
 part 'part.dart';
 part 'part.dart';
 ''',
-      [error(CompileTimeErrorCode.DUPLICATE_PART, 23, 11)],
+      [error(CompileTimeErrorCode.duplicatePart, 23, 11)],
     );
   }
 
@@ -71,7 +71,7 @@ part 'b.dart';
     await assertErrorsInFile2(a, []);
 
     await assertErrorsInFile2(b, [
-      error(CompileTimeErrorCode.DUPLICATE_PART, 23, 8),
+      error(CompileTimeErrorCode.duplicatePart, 23, 8),
     ]);
   }
 }

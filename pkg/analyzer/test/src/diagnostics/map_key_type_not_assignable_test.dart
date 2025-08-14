@@ -31,7 +31,7 @@ const dynamic a = 0;
 const dynamic b = 'b';
 var v = const <int, bool>{if (1 < 0) a: true else b: false};
 ''',
-      [error(CompileTimeErrorCode.MAP_KEY_TYPE_NOT_ASSIGNABLE, 94, 1)],
+      [error(CompileTimeErrorCode.mapKeyTypeNotAssignable, 94, 1)],
     );
   }
 
@@ -47,7 +47,7 @@ var v = const <int, bool>{if (1 < 0) a: true};
       '''
 var v = const <int, bool>{if (1 < 0) 'a': true};
 ''',
-      [error(CompileTimeErrorCode.MAP_KEY_TYPE_NOT_ASSIGNABLE, 37, 3)],
+      [error(CompileTimeErrorCode.mapKeyTypeNotAssignable, 37, 3)],
     );
   }
 
@@ -64,7 +64,7 @@ var v = const <int, bool>{if (true) a: true};
 const dynamic a = 'a';
 var v = const <int, bool>{if (true) a: true};
 ''',
-      [error(CompileTimeErrorCode.MAP_KEY_TYPE_NOT_ASSIGNABLE, 59, 1)],
+      [error(CompileTimeErrorCode.mapKeyTypeNotAssignable, 59, 1)],
     );
   }
 
@@ -74,7 +74,7 @@ var v = const <int, bool>{if (true) a: true};
 final a = 0;
 var v = const <int, bool>{if (1 < 2) a: true};
 ''',
-      [error(CompileTimeErrorCode.NON_CONSTANT_MAP_KEY, 50, 1)],
+      [error(CompileTimeErrorCode.nonConstantMapKey, 50, 1)],
     );
   }
 
@@ -91,13 +91,7 @@ var v = const <int, bool>{a : true};
 const dynamic a = null;
 var v = const <int, bool>{a : true};
 ''',
-      [
-        error(
-          CompileTimeErrorCode.MAP_KEY_TYPE_NOT_ASSIGNABLE_NULLABILITY,
-          50,
-          1,
-        ),
-      ],
+      [error(CompileTimeErrorCode.mapKeyTypeNotAssignableNullability, 50, 1)],
     );
   }
 
@@ -106,13 +100,7 @@ var v = const <int, bool>{a : true};
       '''
 var v = const <int, bool>{null : true};
 ''',
-      [
-        error(
-          CompileTimeErrorCode.MAP_KEY_TYPE_NOT_ASSIGNABLE_NULLABILITY,
-          26,
-          4,
-        ),
-      ],
+      [error(CompileTimeErrorCode.mapKeyTypeNotAssignableNullability, 26, 4)],
     );
   }
 
@@ -135,7 +123,7 @@ var v = const <int?, bool>{null : true};
 const dynamic a = 'a';
 var v = const <int, bool>{a : true};
 ''',
-      [error(CompileTimeErrorCode.MAP_KEY_TYPE_NOT_ASSIGNABLE, 49, 1)],
+      [error(CompileTimeErrorCode.mapKeyTypeNotAssignable, 49, 1)],
     );
   }
 
@@ -144,7 +132,7 @@ var v = const <int, bool>{a : true};
       '''
 var v = const <int, bool>{'a' : true};
 ''',
-      [error(CompileTimeErrorCode.MAP_KEY_TYPE_NOT_ASSIGNABLE, 26, 3)],
+      [error(CompileTimeErrorCode.mapKeyTypeNotAssignable, 26, 3)],
     );
   }
 
@@ -160,7 +148,7 @@ var v = const <int, String>{...{1: 'a'}};
 const dynamic a = 'a';
 var v = const <int, String>{...{a: 'a'}};
 ''',
-      [error(CompileTimeErrorCode.MAP_KEY_TYPE_NOT_ASSIGNABLE, 55, 1)],
+      [error(CompileTimeErrorCode.mapKeyTypeNotAssignable, 55, 1)],
     );
   }
 
@@ -191,7 +179,7 @@ var v = <int, bool>{if (1 < 0) a: true else b: false};
       '''
 var v = <int, bool>{if (1 < 0) 'a': true};
 ''',
-      [error(CompileTimeErrorCode.MAP_KEY_TYPE_NOT_ASSIGNABLE, 31, 3)],
+      [error(CompileTimeErrorCode.mapKeyTypeNotAssignable, 31, 3)],
     );
   }
 
@@ -228,7 +216,7 @@ var v = <int, bool>{a : true};
       '''
 var v = <int, bool>{'a' : true};
 ''',
-      [error(CompileTimeErrorCode.MAP_KEY_TYPE_NOT_ASSIGNABLE, 20, 3)],
+      [error(CompileTimeErrorCode.mapKeyTypeNotAssignable, 20, 3)],
     );
   }
 
@@ -243,7 +231,7 @@ var v = <int, String>{...{1: 'a'}};
       '''
 var v = <int, String>{...{'a': 'a'}};
 ''',
-      [error(CompileTimeErrorCode.MAP_KEY_TYPE_NOT_ASSIGNABLE, 26, 3)],
+      [error(CompileTimeErrorCode.mapKeyTypeNotAssignable, 26, 3)],
     );
   }
 
@@ -266,7 +254,7 @@ void f(bool c, dynamic a) {
   <int, int>{if (c) 0: 0 else a: 0};
 }
 ''',
-      [error(CompileTimeErrorCode.MAP_KEY_TYPE_NOT_ASSIGNABLE, 58, 1)],
+      [error(CompileTimeErrorCode.mapKeyTypeNotAssignable, 58, 1)],
     );
   }
 
@@ -277,7 +265,7 @@ void f(bool c, dynamic a) {
   <int, int>{if (c) a: 0 };
 }
 ''',
-      [error(CompileTimeErrorCode.MAP_KEY_TYPE_NOT_ASSIGNABLE, 48, 1)],
+      [error(CompileTimeErrorCode.mapKeyTypeNotAssignable, 48, 1)],
     );
   }
 
@@ -288,7 +276,7 @@ void f(Map<dynamic, int> a) {
   <int, int>{...a};
 }
 ''',
-      [error(CompileTimeErrorCode.MAP_KEY_TYPE_NOT_ASSIGNABLE, 46, 1)],
+      [error(CompileTimeErrorCode.mapKeyTypeNotAssignable, 46, 1)],
     );
   }
 }

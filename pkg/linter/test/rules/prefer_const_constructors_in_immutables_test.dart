@@ -403,7 +403,7 @@ class B extends A {
 ''',
       [
         error(
-          CompileTimeErrorCode.UNDEFINED_CONSTRUCTOR_IN_INITIALIZER_DEFAULT,
+          CompileTimeErrorCode.undefinedConstructorInInitializerDefault,
           99,
           1,
         ),
@@ -438,11 +438,7 @@ class F {
 ''',
       [
         // No lint
-        error(
-          CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_CONSTRUCTOR,
-          75,
-          4,
-        ),
+        error(CompileTimeErrorCode.returnOfInvalidTypeFromConstructor, 75, 4),
       ],
     );
   }

@@ -76,7 +76,7 @@ void f() {
   var v = {0};
 }
 ''',
-      [error(WarningCode.UNUSED_LOCAL_VARIABLE, 17, 1)],
+      [error(WarningCode.unusedLocalVariable, 17, 1)],
     );
 
     var node = findNode.singleSetOrMapLiteral;
@@ -100,7 +100,7 @@ void f() {
   var v = {0: ''};
 }
 ''',
-      [error(WarningCode.UNUSED_LOCAL_VARIABLE, 17, 1)],
+      [error(WarningCode.unusedLocalVariable, 17, 1)],
     );
 
     var node = findNode.singleSetOrMapLiteral;
@@ -128,7 +128,7 @@ void f() {
   var v = {};
 }
 ''',
-      [error(WarningCode.UNUSED_LOCAL_VARIABLE, 17, 1)],
+      [error(WarningCode.unusedLocalVariable, 17, 1)],
     );
 
     var node = findNode.singleSetOrMapLiteral;

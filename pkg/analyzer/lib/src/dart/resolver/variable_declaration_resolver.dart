@@ -31,7 +31,7 @@ class VariableDeclarationResolver {
       if (_strictInference && parent.type == null) {
         _resolver.diagnosticReporter.atNode(
           node,
-          WarningCode.INFERENCE_FAILURE_ON_UNINITIALIZED_VARIABLE,
+          WarningCode.inferenceFailureOnUninitializedVariable,
           arguments: [node.name.lexeme],
         );
       }
@@ -85,7 +85,7 @@ class VariableDeclarationResolver {
       initializer,
       initializerType,
       element.type,
-      CompileTimeErrorCode.INVALID_ASSIGNMENT,
+      CompileTimeErrorCode.invalidAssignment,
       whyNotPromoted: whyNotPromoted,
     );
   }

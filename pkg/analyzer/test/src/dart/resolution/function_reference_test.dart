@@ -117,7 +117,7 @@ var x = A.foo<int>;
 ''',
       [
         error(
-          CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_CONSTRUCTOR,
+          CompileTimeErrorCode.wrongNumberOfTypeArgumentsConstructor,
           42,
           5,
           messageContains: ["'A.foo'"],
@@ -160,7 +160,7 @@ var x = a.Future.delayed<int>;
 ''',
       [
         error(
-          CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_CONSTRUCTOR,
+          CompileTimeErrorCode.wrongNumberOfTypeArgumentsConstructor,
           50,
           5,
           messageContains: ["'a.Future.delayed'"],
@@ -212,7 +212,7 @@ void bar() {
 ''',
       [
         error(
-          CompileTimeErrorCode.DISALLOWED_TYPE_INSTANTIATION_EXPRESSION,
+          CompileTimeErrorCode.disallowedTypeInstantiationExpression,
           31,
           1,
         ),
@@ -248,7 +248,7 @@ void bar() {
 ''',
       [
         error(
-          CompileTimeErrorCode.DISALLOWED_TYPE_INSTANTIATION_EXPRESSION,
+          CompileTimeErrorCode.disallowedTypeInstantiationExpression,
           31,
           1,
         ),
@@ -284,7 +284,7 @@ foo() {
 ''',
       [
         error(
-          CompileTimeErrorCode.GENERIC_METHOD_TYPE_INSTANTIATION_ON_DYNAMIC,
+          CompileTimeErrorCode.genericMethodTypeInstantiationOnDynamic,
           29,
           23,
         ),
@@ -332,7 +332,7 @@ bar() {
   a.foo<int>;
 }
 ''',
-      [error(CompileTimeErrorCode.UNDEFINED_IDENTIFIER, 10, 1)],
+      [error(CompileTimeErrorCode.undefinedIdentifier, 10, 1)],
     );
 
     assertResolvedNodeText(findNode.functionReference('foo<int>;'), r'''
@@ -368,7 +368,7 @@ bar() {
   a.b.foo<int>;
 }
 ''',
-      [error(CompileTimeErrorCode.UNDEFINED_IDENTIFIER, 10, 1)],
+      [error(CompileTimeErrorCode.undefinedIdentifier, 10, 1)],
     );
 
     var node = findNode.functionReference('foo<int>;');
@@ -416,7 +416,7 @@ void foo() {
 ''',
       [
         error(
-          CompileTimeErrorCode.DISALLOWED_TYPE_INSTANTIATION_EXPRESSION,
+          CompileTimeErrorCode.disallowedTypeInstantiationExpression,
           44,
           1,
         ),
@@ -456,7 +456,7 @@ void foo() {
 ''',
       [
         error(
-          CompileTimeErrorCode.DISALLOWED_TYPE_INSTANTIATION_EXPRESSION,
+          CompileTimeErrorCode.disallowedTypeInstantiationExpression,
           38,
           3,
         ),
@@ -505,7 +505,7 @@ bar(A a) {
 ''',
       [
         error(
-          CompileTimeErrorCode.DISALLOWED_TYPE_INSTANTIATION_EXPRESSION,
+          CompileTimeErrorCode.disallowedTypeInstantiationExpression,
           67,
           8,
         ),
@@ -689,7 +689,7 @@ bar(A a) {
   E(a)..foo<int>;
 }
 ''',
-      [error(CompileTimeErrorCode.EXTENSION_OVERRIDE_WITH_CASCADE, 85, 1)],
+      [error(CompileTimeErrorCode.extensionOverrideWithCascade, 85, 1)],
     );
 
     var reference = findNode.functionReference('foo<int>;');
@@ -731,7 +731,7 @@ bar(A a) {
 ''',
       [
         error(
-          CompileTimeErrorCode.EXTENSION_OVERRIDE_ACCESS_TO_STATIC_MEMBER,
+          CompileTimeErrorCode.extensionOverrideAccessToStaticMember,
           81,
           3,
         ),
@@ -787,7 +787,7 @@ bar(A a) {
   E(a).foo<int>;
 }
 ''',
-      [error(CompileTimeErrorCode.UNDEFINED_EXTENSION_GETTER, 51, 3)],
+      [error(CompileTimeErrorCode.undefinedExtensionGetter, 51, 3)],
     );
 
     assertResolvedNodeText(findNode.functionReference('foo<int>;'), r'''
@@ -869,9 +869,9 @@ extension on double {
 }
 ''',
       [
-        error(WarningCode.UNUSED_ELEMENT, 24, 3),
+        error(WarningCode.unusedElement, 24, 3),
         error(
-          CompileTimeErrorCode.UNDEFINED_METHOD,
+          CompileTimeErrorCode.undefinedMethod,
           36,
           3,
           messageContains: ["for the type 'double'"],
@@ -943,13 +943,7 @@ void bar() {
   foo.call<int>;
 }
 ''',
-      [
-        error(
-          CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_FUNCTION,
-          52,
-          5,
-        ),
-      ],
+      [error(CompileTimeErrorCode.wrongNumberOfTypeArgumentsFunction, 52, 5)],
     );
 
     assertResolvedNodeText(findNode.functionReference('foo.call<int>;'), r'''
@@ -990,13 +984,7 @@ void bar() {
   foo.call<int>;
 }
 ''',
-      [
-        error(
-          CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_FUNCTION,
-          46,
-          5,
-        ),
-      ],
+      [error(CompileTimeErrorCode.wrongNumberOfTypeArgumentsFunction, 46, 5)],
     );
 
     assertResolvedNodeText(findNode.functionReference('foo.call<int>;'), r'''
@@ -1118,7 +1106,7 @@ extension E on Function {
   static void m<T>(T t) {}
 }
 ''',
-      [error(CompileTimeErrorCode.UNDEFINED_GETTER, 40, 1)],
+      [error(CompileTimeErrorCode.undefinedGetter, 40, 1)],
     );
 
     assertResolvedNodeText(findNode.functionReference('foo.m<int>;'), r'''
@@ -1405,13 +1393,7 @@ foo() {
   C()<int>;
 }
 ''',
-      [
-        error(
-          CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_FUNCTION,
-          57,
-          5,
-        ),
-      ],
+      [error(CompileTimeErrorCode.wrongNumberOfTypeArgumentsFunction, 57, 5)],
     );
 
     var node = findNode.implicitCallReference('C()<int>;');
@@ -1455,13 +1437,7 @@ foo() {
   C()<int>;
 }
 ''',
-      [
-        error(
-          CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_FUNCTION,
-          50,
-          5,
-        ),
-      ],
+      [error(CompileTimeErrorCode.wrongNumberOfTypeArgumentsFunction, 50, 5)],
     );
 
     var node = findNode.implicitCallReference('C()<int>;');
@@ -1608,7 +1584,7 @@ void foo(A a) {
 ''',
       [
         error(
-          CompileTimeErrorCode.DISALLOWED_TYPE_INSTANTIATION_EXPRESSION,
+          CompileTimeErrorCode.disallowedTypeInstantiationExpression,
           61,
           1,
         ),
@@ -1654,7 +1630,7 @@ void foo(A a) {
 ''',
       [
         error(
-          CompileTimeErrorCode.DISALLOWED_TYPE_INSTANTIATION_EXPRESSION,
+          CompileTimeErrorCode.disallowedTypeInstantiationExpression,
           63,
           1,
         ),
@@ -1873,7 +1849,7 @@ void f(A a) {
 ''',
       [
         error(
-          CompileTimeErrorCode.DISALLOWED_TYPE_INSTANTIATION_EXPRESSION,
+          CompileTimeErrorCode.disallowedTypeInstantiationExpression,
           97,
           3,
         ),
@@ -2125,7 +2101,7 @@ class A {
   }
 }
 ''',
-      [error(CompileTimeErrorCode.UNDEFINED_SUPER_GETTER, 30, 3)],
+      [error(CompileTimeErrorCode.undefinedSuperGetter, 30, 3)],
     );
 
     assertResolvedNodeText(findNode.functionReference('foo<int>;'), r'''
@@ -2159,7 +2135,7 @@ bar() {
   super.foo<int>;
 }
 ''',
-      [error(CompileTimeErrorCode.SUPER_IN_INVALID_CONTEXT, 10, 5)],
+      [error(CompileTimeErrorCode.superInInvalidContext, 10, 5)],
     );
 
     assertResolvedNodeText(findNode.functionReference('foo<int>;'), r'''
@@ -2372,7 +2348,7 @@ bar() {
   prefix.a.foo<int>;
 }
 ''',
-      [error(CompileTimeErrorCode.UNDEFINED_GETTER, 47, 3)],
+      [error(CompileTimeErrorCode.undefinedGetter, 47, 3)],
     );
 
     var node = findNode.functionReference('foo<int>;');
@@ -2416,7 +2392,7 @@ bar<T>() {
   T.foo<int>;
 }
 ''',
-      [error(CompileTimeErrorCode.UNDEFINED_GETTER, 15, 3)],
+      [error(CompileTimeErrorCode.undefinedGetter, 15, 3)],
     );
 
     assertResolvedNodeText(findNode.functionReference('foo<int>;'), r'''
@@ -2666,7 +2642,7 @@ class A {
 ''',
       [
         error(
-          CompileTimeErrorCode.UNDEFINED_METHOD,
+          CompileTimeErrorCode.undefinedMethod,
           24,
           3,
           messageContains: ["for the type 'A'"],
@@ -2703,7 +2679,7 @@ void f() {
   prefix.loadLibrary;
 }
 ''',
-      [error(WarningCode.UNUSED_IMPORT, 7, 8)],
+      [error(WarningCode.unusedImport, 7, 8)],
     );
 
     var node = findNode.expressionStatement('prefix.loadLibrary');
@@ -2835,13 +2811,7 @@ void bar() {
   fn.call<int>;
 }
 ''',
-      [
-        error(
-          CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_FUNCTION,
-          74,
-          5,
-        ),
-      ],
+      [error(CompileTimeErrorCode.wrongNumberOfTypeArgumentsFunction, 74, 5)],
     );
 
     var reference = findNode.functionReference('fn.call<int>;');
@@ -2883,7 +2853,7 @@ void bar<T extends Function>(T foo) {
 ''',
       [
         error(
-          CompileTimeErrorCode.DISALLOWED_TYPE_INSTANTIATION_EXPRESSION,
+          CompileTimeErrorCode.disallowedTypeInstantiationExpression,
           40,
           3,
         ),
@@ -2946,7 +2916,7 @@ void bar<T>(T foo) {
 ''',
       [
         error(
-          CompileTimeErrorCode.DISALLOWED_TYPE_INSTANTIATION_EXPRESSION,
+          CompileTimeErrorCode.disallowedTypeInstantiationExpression,
           23,
           3,
         ),
@@ -2983,7 +2953,7 @@ void bar() {
 ''',
       [
         error(
-          CompileTimeErrorCode.DISALLOWED_TYPE_INSTANTIATION_EXPRESSION,
+          CompileTimeErrorCode.disallowedTypeInstantiationExpression,
           38,
           1,
         ),
@@ -3019,13 +2989,7 @@ class A {
   }
 }
 ''',
-      [
-        error(
-          CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_FUNCTION,
-          44,
-          5,
-        ),
-      ],
+      [error(CompileTimeErrorCode.wrongNumberOfTypeArgumentsFunction, 44, 5)],
     );
 
     var reference = findNode.functionReference('foo<int>;');
@@ -3068,8 +3032,7 @@ void f(void Function<T>(T a) foo, void Function<T>(T a) bar) {
 ''',
       [
         error(
-          CompileTimeErrorCode
-              .WRONG_NUMBER_OF_TYPE_ARGUMENTS_ANONYMOUS_FUNCTION,
+          CompileTimeErrorCode.wrongNumberOfTypeArgumentsAnonymousFunction,
           85,
           13,
         ),
@@ -3092,7 +3055,7 @@ bar(dynamic a) {
 ''',
       [
         error(
-          CompileTimeErrorCode.GENERIC_METHOD_TYPE_INSTANTIATION_ON_DYNAMIC,
+          CompileTimeErrorCode.genericMethodTypeInstantiationOnDynamic,
           19,
           5,
         ),
@@ -3132,7 +3095,7 @@ void f(({T Function<T>(T) f1, String f2}) r) {
   int Function(int) v = r.f1;
 }
 ''',
-      [error(WarningCode.UNUSED_LOCAL_VARIABLE, 67, 1)],
+      [error(WarningCode.unusedLocalVariable, 67, 1)],
     );
 
     var node = findNode.functionReference(r'.f1;');
@@ -3162,7 +3125,7 @@ void f((T Function<T>(T), String) r) {
   int Function(int) v = r.$1;
 }
 ''',
-      [error(WarningCode.UNUSED_LOCAL_VARIABLE, 59, 1)],
+      [error(WarningCode.unusedLocalVariable, 59, 1)],
     );
 
     var node = findNode.functionReference(r'.$1;');
@@ -3461,7 +3424,7 @@ class B extends A {
   }
 }
 ''',
-      [error(ParserErrorCode.MISSING_ASSIGNABLE_SELECTOR, 70, 5)],
+      [error(ParserErrorCode.missingAssignableSelector, 70, 5)],
     );
 
     var node = findNode.singleImplicitCallReference;
@@ -3496,13 +3459,7 @@ class A {
   }
 }
 ''',
-      [
-        error(
-          CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_FUNCTION,
-          58,
-          5,
-        ),
-      ],
+      [error(CompileTimeErrorCode.wrongNumberOfTypeArgumentsFunction, 58, 5)],
     );
 
     var reference = findNode.functionReference('foo<int>;');
@@ -3538,13 +3495,7 @@ class A {
   }
 }
 ''',
-      [
-        error(
-          CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_FUNCTION,
-          50,
-          10,
-        ),
-      ],
+      [error(CompileTimeErrorCode.wrongNumberOfTypeArgumentsFunction, 50, 10)],
     );
 
     var reference = findNode.functionReference('foo<int, int>;');
@@ -3694,7 +3645,7 @@ bar() {
   prefix.foo<int>;
 }
 ''',
-      [error(CompileTimeErrorCode.UNDEFINED_IDENTIFIER, 10, 6)],
+      [error(CompileTimeErrorCode.undefinedIdentifier, 10, 6)],
     );
 
     assertResolvedNodeText(findNode.functionReference('foo<int>;'), r'''
@@ -3843,7 +3794,7 @@ bar() {
   prefix.a.foo<int>;
 }
 ''',
-      [error(CompileTimeErrorCode.UNDEFINED_PREFIXED_NAME, 45, 1)],
+      [error(CompileTimeErrorCode.undefinedPrefixedName, 45, 1)],
     );
 
     var node = findNode.functionReference('foo<int>;');
@@ -3887,7 +3838,7 @@ typedef Cb = void Function();
 
 var a = Cb.foo<int>;
 ''',
-      [error(CompileTimeErrorCode.UNDEFINED_GETTER, 42, 3)],
+      [error(CompileTimeErrorCode.undefinedGetter, 42, 3)],
     );
 
     assertResolvedNodeText(findNode.functionReference('foo<int>;'), r'''
@@ -3923,7 +3874,7 @@ typedef T<E> = E;
 
 var a = T.foo<int>;
 ''',
-      [error(CompileTimeErrorCode.UNDEFINED_GETTER, 29, 3)],
+      [error(CompileTimeErrorCode.undefinedGetter, 29, 3)],
     );
 
     assertResolvedNodeText(findNode.functionReference('foo<int>;'), r'''
@@ -3959,7 +3910,7 @@ void bar() {
   foo<int>;
 }
 ''',
-      [error(CompileTimeErrorCode.UNDEFINED_IDENTIFIER, 15, 3)],
+      [error(CompileTimeErrorCode.undefinedIdentifier, 15, 3)],
     );
 
     assertResolvedNodeText(findNode.functionReference('foo<int>;'), r'''
@@ -3991,7 +3942,7 @@ class B {
   }
 }
 ''',
-      [error(CompileTimeErrorCode.UNDEFINED_GETTER, 41, 3)],
+      [error(CompileTimeErrorCode.undefinedGetter, 41, 3)],
     );
 
     assertResolvedNodeText(findNode.functionReference('foo<int>;'), r'''
@@ -4030,7 +3981,7 @@ void bar() {
   a.foo<int>;
 }
 ''',
-      [error(CompileTimeErrorCode.UNDEFINED_PREFIXED_NAME, 40, 3)],
+      [error(CompileTimeErrorCode.undefinedPrefixedName, 40, 3)],
     );
 
     assertResolvedNodeText(findNode.functionReference('foo<int>;'), r'''
@@ -4662,7 +4613,7 @@ void bar(void Function<T>(T a) foo) {
   foo<int>;
 }
 ''',
-      [error(ParserErrorCode.EXPERIMENT_NOT_ENABLED, 43, 5)],
+      [error(ParserErrorCode.experimentNotEnabled, 43, 5)],
     );
 
     var reference = findNode.functionReference('foo<int>;');

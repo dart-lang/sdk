@@ -341,8 +341,8 @@ class DeprecatedMemberUseVerifier extends BaseDeprecatedMemberUseVerifier {
       _diagnosticReporter.atEntity(
         errorEntity,
         _isLibraryInWorkspacePackage(library)
-            ? HintCode.DEPRECATED_MEMBER_USE_FROM_SAME_PACKAGE
-            : HintCode.DEPRECATED_MEMBER_USE,
+            ? HintCode.deprecatedMemberUseFromSamePackage
+            : HintCode.deprecatedMemberUse,
         arguments: [displayName],
       );
     } else {
@@ -354,8 +354,8 @@ class DeprecatedMemberUseVerifier extends BaseDeprecatedMemberUseVerifier {
       _diagnosticReporter.atEntity(
         errorEntity,
         _isLibraryInWorkspacePackage(library)
-            ? HintCode.DEPRECATED_MEMBER_USE_FROM_SAME_PACKAGE_WITH_MESSAGE
-            : HintCode.DEPRECATED_MEMBER_USE_WITH_MESSAGE,
+            ? HintCode.deprecatedMemberUseFromSamePackageWithMessage
+            : HintCode.deprecatedMemberUseWithMessage,
         arguments: [displayName, message],
       );
     }

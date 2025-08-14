@@ -191,12 +191,11 @@ abstract class PartialCodeTest extends AbstractRecoveryTest {
       parseCompilationUnit2(base.toString(), listener, featureSet: featureSet);
       var baseDiagnosticCodes = <DiagnosticCode>[];
       for (var diagnostic in listener.diagnostics) {
-        if (diagnostic.diagnosticCode ==
-                ParserErrorCode.BREAK_OUTSIDE_OF_LOOP ||
+        if (diagnostic.diagnosticCode == ParserErrorCode.breakOutsideOfLoop ||
             diagnostic.diagnosticCode ==
-                ParserErrorCode.CONTINUE_OUTSIDE_OF_LOOP ||
+                ParserErrorCode.continueOutsideOfLoop ||
             diagnostic.diagnosticCode ==
-                ParserErrorCode.CONTINUE_WITHOUT_LABEL_IN_CASE) {
+                ParserErrorCode.continueWithoutLabelInCase) {
           baseDiagnosticCodes.add(diagnostic.diagnosticCode);
         }
       }

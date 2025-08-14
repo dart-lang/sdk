@@ -24,7 +24,7 @@ mixin ConstSpreadExpectedMapTestCases on PubPackageResolutionTest {
 const dynamic a = 5;
 var b = const <int, int>{...a};
 ''',
-      [error(CompileTimeErrorCode.CONST_SPREAD_EXPECTED_MAP, 49, 1)],
+      [error(CompileTimeErrorCode.constSpreadExpectedMap, 49, 1)],
     );
   }
 
@@ -34,7 +34,7 @@ var b = const <int, int>{...a};
 const dynamic a = <int>[5];
 var b = const <int, int>{...a};
 ''',
-      [error(CompileTimeErrorCode.CONST_SPREAD_EXPECTED_MAP, 56, 1)],
+      [error(CompileTimeErrorCode.constSpreadExpectedMap, 56, 1)],
     );
   }
 
@@ -51,7 +51,7 @@ var b = <int, int>{...a};
 const dynamic a = null;
 var b = const <int, int>{...a};
 ''',
-      [error(CompileTimeErrorCode.CONST_SPREAD_EXPECTED_MAP, 52, 1)],
+      [error(CompileTimeErrorCode.constSpreadExpectedMap, 52, 1)],
     );
   }
 
@@ -68,7 +68,7 @@ var b = <int, int>{...?a};
 const dynamic a = <int>{5};
 var b = const <int, int>{...a};
 ''',
-      [error(CompileTimeErrorCode.CONST_SPREAD_EXPECTED_MAP, 56, 1)],
+      [error(CompileTimeErrorCode.constSpreadExpectedMap, 56, 1)],
     );
   }
 

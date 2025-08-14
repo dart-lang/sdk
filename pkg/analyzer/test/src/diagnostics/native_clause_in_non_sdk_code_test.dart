@@ -20,7 +20,7 @@ class NativeClauseInNonSdkCodeTest extends PubPackageResolutionTest {
       '''
 class A native 'string' {}
 ''',
-      [error(ParserErrorCode.NATIVE_CLAUSE_IN_NON_SDK_CODE, 8, 15)],
+      [error(ParserErrorCode.nativeClauseInNonSdkCode, 8, 15)],
     );
   }
 }

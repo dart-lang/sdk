@@ -21,13 +21,7 @@ class BuiltInIdentifierAsTypeParameterNameTest
       '''
 class A<as> {}
 ''',
-      [
-        error(
-          CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE_PARAMETER_NAME,
-          8,
-          2,
-        ),
-      ],
+      [error(CompileTimeErrorCode.builtInIdentifierAsTypeParameterName, 8, 2)],
     );
   }
 
@@ -36,13 +30,7 @@ class A<as> {}
       '''
 class A<Function> {}
 ''',
-      [
-        error(
-          CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE_PARAMETER_NAME,
-          8,
-          8,
-        ),
-      ],
+      [error(CompileTimeErrorCode.builtInIdentifierAsTypeParameterName, 8, 8)],
     );
   }
 
@@ -51,13 +39,7 @@ class A<Function> {}
       '''
 extension <as> on List {}
 ''',
-      [
-        error(
-          CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE_PARAMETER_NAME,
-          11,
-          2,
-        ),
-      ],
+      [error(CompileTimeErrorCode.builtInIdentifierAsTypeParameterName, 11, 2)],
     );
   }
 
@@ -66,13 +48,7 @@ extension <as> on List {}
       '''
 void f<as>() {}
 ''',
-      [
-        error(
-          CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE_PARAMETER_NAME,
-          7,
-          2,
-        ),
-      ],
+      [error(CompileTimeErrorCode.builtInIdentifierAsTypeParameterName, 7, 2)],
     );
   }
 }

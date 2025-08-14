@@ -19,12 +19,12 @@ class ContinueStatementTest extends PartialCodeTest {
           'keyword',
           'continue',
           [
-            ParserErrorCode.EXPECTED_TOKEN,
-            ParserErrorCode.CONTINUE_OUTSIDE_OF_LOOP,
+            ParserErrorCode.expectedToken,
+            ParserErrorCode.continueOutsideOfLoop,
           ],
           "continue;",
           expectedDiagnosticsInValidCode: [
-            ParserErrorCode.CONTINUE_OUTSIDE_OF_LOOP,
+            ParserErrorCode.continueOutsideOfLoop,
           ],
           failing: ['labeled', 'localFunctionNonVoid'],
         ),
@@ -32,12 +32,12 @@ class ContinueStatementTest extends PartialCodeTest {
           'label',
           'continue a',
           [
-            ParserErrorCode.EXPECTED_TOKEN,
-            ParserErrorCode.CONTINUE_OUTSIDE_OF_LOOP,
+            ParserErrorCode.expectedToken,
+            ParserErrorCode.continueOutsideOfLoop,
           ],
           "continue a;",
           expectedDiagnosticsInValidCode: [
-            ParserErrorCode.CONTINUE_OUTSIDE_OF_LOOP,
+            ParserErrorCode.continueOutsideOfLoop,
           ],
         ),
       ],

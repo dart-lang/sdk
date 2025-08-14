@@ -63,7 +63,7 @@ f() {
   foo(x: 1);
 }
 ''',
-      [error(CompileTimeErrorCode.MISSING_REQUIRED_ARGUMENT, 54, 3)],
+      [error(CompileTimeErrorCode.missingRequiredArgument, 54, 3)],
     );
 
     var node = findNode.methodInvocation('foo(');
@@ -110,7 +110,7 @@ f() {
 ''',
       [
         error(
-          CompileTimeErrorCode.NOT_ENOUGH_POSITIONAL_ARGUMENTS_NAME_PLURAL,
+          CompileTimeErrorCode.notEnoughPositionalArgumentsNamePlural,
           39,
           1,
         ),
@@ -150,7 +150,7 @@ f() {
   foo(1, 2, 3);
 }
 ''',
-      [error(CompileTimeErrorCode.EXTRA_POSITIONAL_ARGUMENTS, 44, 1)],
+      [error(CompileTimeErrorCode.extraPositionalArguments, 44, 1)],
     );
 
     var node = findNode.methodInvocation('foo(');
@@ -196,7 +196,7 @@ f() {
   foo(1, 2, z: 3);
 }
 ''',
-      [error(CompileTimeErrorCode.UNDEFINED_NAMED_PARAMETER, 44, 1)],
+      [error(CompileTimeErrorCode.undefinedNamedParameter, 44, 1)],
     );
 
     var node = findNode.methodInvocation('foo(');

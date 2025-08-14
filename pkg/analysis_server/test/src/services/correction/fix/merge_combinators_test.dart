@@ -34,7 +34,7 @@ import 'other.dart' show Stream, Future hide Stream;
         DartFixKind.MERGE_COMBINATORS_HIDE_SHOW,
       ],
       errorFilter: (error) {
-        return error.diagnosticCode == WarningCode.MULTIPLE_COMBINATORS;
+        return error.diagnosticCode == WarningCode.multipleCombinators;
       },
     );
   }
@@ -49,7 +49,7 @@ import 'other.dart' hide Stream hide Future;
         DartFixKind.MERGE_COMBINATORS_SHOW_HIDE,
       ],
       errorFilter: (error) {
-        return error.diagnosticCode == WarningCode.MULTIPLE_COMBINATORS;
+        return error.diagnosticCode == WarningCode.multipleCombinators;
       },
     );
   }
@@ -58,7 +58,7 @@ import 'other.dart' hide Stream hide Future;
 @reflectiveTest
 class MergeHideUsingHideTest extends _MergeCombinatorTest {
   @override
-  DiagnosticCode get diagnosticCode => WarningCode.MULTIPLE_COMBINATORS;
+  DiagnosticCode get diagnosticCode => WarningCode.multipleCombinators;
 
   @override
   FixKind get kind => DartFixKind.MERGE_COMBINATORS_HIDE_HIDE;
@@ -170,7 +170,7 @@ import 'other.dart' show Stream, FutureOr, Future show Stream, FutureOr;
 @reflectiveTest
 class MergeHideUsingShowTest extends _MergeCombinatorTest {
   @override
-  DiagnosticCode get diagnosticCode => WarningCode.MULTIPLE_COMBINATORS;
+  DiagnosticCode get diagnosticCode => WarningCode.multipleCombinators;
 
   @override
   FixKind get kind => DartFixKind.MERGE_COMBINATORS_SHOW_HIDE;
@@ -282,7 +282,7 @@ import 'other.dart' show Stream, FutureOr, Future show Stream, FutureOr;
 @reflectiveTest
 class MergeShowUsingHideTest extends _MergeCombinatorTest {
   @override
-  DiagnosticCode get diagnosticCode => WarningCode.MULTIPLE_COMBINATORS;
+  DiagnosticCode get diagnosticCode => WarningCode.multipleCombinators;
 
   @override
   FixKind get kind => DartFixKind.MERGE_COMBINATORS_HIDE_SHOW;
@@ -422,7 +422,7 @@ import 'other.dart' hide Completer, Future, Timer;
 @reflectiveTest
 class MergeShowUsingShowTest extends _MergeCombinatorTest {
   @override
-  DiagnosticCode get diagnosticCode => WarningCode.MULTIPLE_COMBINATORS;
+  DiagnosticCode get diagnosticCode => WarningCode.multipleCombinators;
 
   @override
   FixKind get kind => DartFixKind.MERGE_COMBINATORS_SHOW_SHOW;

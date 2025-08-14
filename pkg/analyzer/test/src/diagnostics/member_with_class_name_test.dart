@@ -22,7 +22,7 @@ class A {
   int A = 0;
 }
 ''',
-      [error(ParserErrorCode.MEMBER_WITH_CLASS_NAME, 16, 1)],
+      [error(ParserErrorCode.memberWithClassName, 16, 1)],
     );
   }
 
@@ -33,7 +33,7 @@ class A {
   int z = 0, A = 0, b = 0;
 }
 ''',
-      [error(ParserErrorCode.MEMBER_WITH_CLASS_NAME, 23, 1)],
+      [error(ParserErrorCode.memberWithClassName, 23, 1)],
     );
   }
 
@@ -44,7 +44,7 @@ class A {
   get A => 0;
 }
 ''',
-      [error(ParserErrorCode.MEMBER_WITH_CLASS_NAME, 16, 1)],
+      [error(ParserErrorCode.memberWithClassName, 16, 1)],
     );
   }
 
@@ -55,7 +55,7 @@ class A {
   static int get A => 0;
 }
 ''',
-      [error(ParserErrorCode.MEMBER_WITH_CLASS_NAME, 27, 1)],
+      [error(ParserErrorCode.memberWithClassName, 27, 1)],
     );
   }
 
@@ -71,7 +71,7 @@ class A {
   set A(_) {}
 }
 ''',
-      [error(ParserErrorCode.MEMBER_WITH_CLASS_NAME, 16, 1)],
+      [error(ParserErrorCode.memberWithClassName, 16, 1)],
     );
   }
 
@@ -82,7 +82,7 @@ class A {
   static set A(_) {}
 }
 ''',
-      [error(ParserErrorCode.MEMBER_WITH_CLASS_NAME, 23, 1)],
+      [error(ParserErrorCode.memberWithClassName, 23, 1)],
     );
   }
 
@@ -94,7 +94,7 @@ enum E {
   final int E = 0;
 }
 ''',
-      [error(ParserErrorCode.MEMBER_WITH_CLASS_NAME, 26, 1)],
+      [error(ParserErrorCode.memberWithClassName, 26, 1)],
     );
   }
 
@@ -106,7 +106,7 @@ enum E {
   int get E => 0;
 }
 ''',
-      [error(ParserErrorCode.MEMBER_WITH_CLASS_NAME, 24, 1)],
+      [error(ParserErrorCode.memberWithClassName, 24, 1)],
     );
   }
 
@@ -118,7 +118,7 @@ enum E {
   static int get E => 0;
 }
 ''',
-      [error(ParserErrorCode.MEMBER_WITH_CLASS_NAME, 31, 1)],
+      [error(ParserErrorCode.memberWithClassName, 31, 1)],
     );
   }
 
@@ -130,7 +130,7 @@ enum E {
   set E(int _) {}
 }
 ''',
-      [error(ParserErrorCode.MEMBER_WITH_CLASS_NAME, 20, 1)],
+      [error(ParserErrorCode.memberWithClassName, 20, 1)],
     );
   }
 
@@ -142,7 +142,7 @@ enum E {
   static set E(int _) {}
 }
 ''',
-      [error(ParserErrorCode.MEMBER_WITH_CLASS_NAME, 27, 1)],
+      [error(ParserErrorCode.memberWithClassName, 27, 1)],
     );
   }
 
@@ -153,7 +153,7 @@ mixin M {
   int get M => 0;
 }
 ''',
-      [error(ParserErrorCode.MEMBER_WITH_CLASS_NAME, 20, 1)],
+      [error(ParserErrorCode.memberWithClassName, 20, 1)],
     );
   }
 
@@ -164,7 +164,7 @@ mixin M {
   static int get M => 0;
 }
 ''',
-      [error(ParserErrorCode.MEMBER_WITH_CLASS_NAME, 27, 1)],
+      [error(ParserErrorCode.memberWithClassName, 27, 1)],
     );
   }
 
@@ -175,7 +175,7 @@ mixin M {
   void set M(_) {}
 }
 ''',
-      [error(ParserErrorCode.MEMBER_WITH_CLASS_NAME, 21, 1)],
+      [error(ParserErrorCode.memberWithClassName, 21, 1)],
     );
   }
 
@@ -186,7 +186,7 @@ mixin M {
   static void set M(_) {}
 }
 ''',
-      [error(ParserErrorCode.MEMBER_WITH_CLASS_NAME, 28, 1)],
+      [error(ParserErrorCode.memberWithClassName, 28, 1)],
     );
   }
 }

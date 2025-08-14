@@ -22,7 +22,7 @@ include: analysis_options.yaml
 ''',
       [
         error(
-          AnalysisOptionsWarningCode.RECURSIVE_INCLUDE_FILE,
+          AnalysisOptionsWarningCode.recursiveIncludeFile,
           9,
           21,
           text:
@@ -41,7 +41,7 @@ include:
 ''',
       [
         error(
-          AnalysisOptionsWarningCode.RECURSIVE_INCLUDE_FILE,
+          AnalysisOptionsWarningCode.recursiveIncludeFile,
           13,
           21,
           text:
@@ -65,7 +65,7 @@ include: a.yaml
 ''',
       [
         error(
-          AnalysisOptionsWarningCode.RECURSIVE_INCLUDE_FILE,
+          AnalysisOptionsWarningCode.recursiveIncludeFile,
           9,
           6,
           text:
@@ -86,7 +86,7 @@ include: a.yaml
 ''',
       [
         error(
-          AnalysisOptionsWarningCode.INCLUDED_FILE_WARNING,
+          AnalysisOptionsWarningCode.includedFileWarning,
           9,
           6,
           messageContains: [
@@ -115,7 +115,7 @@ include:
 ''',
       [
         error(
-          AnalysisOptionsWarningCode.RECURSIVE_INCLUDE_FILE,
+          AnalysisOptionsWarningCode.recursiveIncludeFile,
           13,
           10,
           text:
@@ -143,7 +143,7 @@ include: a.yaml
 ''',
       [
         error(
-          AnalysisOptionsWarningCode.RECURSIVE_INCLUDE_FILE,
+          AnalysisOptionsWarningCode.recursiveIncludeFile,
           9,
           6,
           text:
@@ -167,7 +167,7 @@ include: a.yaml
 ''',
       [
         error(
-          AnalysisOptionsWarningCode.INCLUDED_FILE_WARNING,
+          AnalysisOptionsWarningCode.includedFileWarning,
           9,
           6,
           messageContains: [

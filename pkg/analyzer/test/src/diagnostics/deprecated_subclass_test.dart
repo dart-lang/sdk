@@ -26,7 +26,7 @@ class Foo {}
 import 'foo.dart';
 enum Bar implements Foo { one; }
 ''',
-      [error(WarningCode.DEPRECATED_SUBCLASS, 39, 3)],
+      [error(WarningCode.deprecatedSubclass, 39, 3)],
     );
   }
 
@@ -41,7 +41,7 @@ class Foo {}
 import 'foo.dart';
 class Bar extends Foo {}
 ''',
-      [error(WarningCode.DEPRECATED_SUBCLASS, 37, 3)],
+      [error(WarningCode.deprecatedSubclass, 37, 3)],
     );
   }
 
@@ -56,7 +56,7 @@ class Foo {}
 import 'foo.dart';
 class Bar implements Foo {}
 ''',
-      [error(WarningCode.DEPRECATED_SUBCLASS, 40, 3)],
+      [error(WarningCode.deprecatedSubclass, 40, 3)],
     );
   }
 
@@ -71,7 +71,7 @@ mixin Foo {}
 import 'foo.dart';
 class Bar implements Foo {}
 ''',
-      [error(WarningCode.DEPRECATED_SUBCLASS, 40, 3)],
+      [error(WarningCode.deprecatedSubclass, 40, 3)],
     );
   }
 
@@ -96,7 +96,7 @@ class Foo {}
 import 'foo.dart';
 class Bar extends Object with Foo {}
 ''',
-      [error(WarningCode.DEPRECATED_SUBCLASS, 65, 3)],
+      [error(WarningCode.deprecatedSubclass, 65, 3)],
     );
   }
 
@@ -111,7 +111,7 @@ class Foo {}
 import 'foo.dart';
 mixin Bar implements Foo {}
 ''',
-      [error(WarningCode.DEPRECATED_SUBCLASS, 40, 3)],
+      [error(WarningCode.deprecatedSubclass, 40, 3)],
     );
   }
 
@@ -126,7 +126,7 @@ class Foo {}
 import 'foo.dart';
 mixin Bar on Foo {}
 ''',
-      [error(WarningCode.DEPRECATED_SUBCLASS, 32, 3)],
+      [error(WarningCode.deprecatedSubclass, 32, 3)],
     );
   }
 

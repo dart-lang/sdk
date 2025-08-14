@@ -179,7 +179,7 @@ class MustCallSuperVerifier {
       // safe to assume [overriddenEnclosingName] is non-`null`.
       _diagnosticReporter.atToken(
         node.name,
-        WarningCode.MUST_CALL_SUPER,
+        WarningCode.mustCallSuper,
         arguments: [overriddenEnclosingName!],
       );
     }

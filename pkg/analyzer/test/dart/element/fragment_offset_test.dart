@@ -90,7 +90,7 @@ class C = Object with M;
 mixin M {}
 class = Object with M;
 ''',
-      [error(ParserErrorCode.MISSING_IDENTIFIER, 17, 1)],
+      [error(ParserErrorCode.missingIdentifier, 17, 1)],
     );
     var classTypeAlias = findNode.classTypeAlias('Object with M');
     checkOffsetInRange<ClassFragment>(
@@ -106,7 +106,7 @@ library; // Ensures that the class declaration isn't at offset 0
 
 class {}
 ''',
-      [error(ParserErrorCode.MISSING_IDENTIFIER, 72, 1)],
+      [error(ParserErrorCode.missingIdentifier, 72, 1)],
     );
     var classDeclaration = findNode.classDeclaration('class {}');
     checkOffsetInRange<ClassFragment>(
@@ -138,7 +138,7 @@ class C {
   C.();
 }
 ''',
-      [error(ParserErrorCode.MISSING_IDENTIFIER, 14, 1)],
+      [error(ParserErrorCode.missingIdentifier, 14, 1)],
     );
     var constructorDeclaration = findNode.constructor('C.()');
     checkOffsetInRange<ConstructorFragment>(
@@ -206,7 +206,7 @@ library; // Ensures that the enum declaration isn't at offset 0
 
 enum { e1 }
 ''',
-      [error(ParserErrorCode.MISSING_IDENTIFIER, 70, 1)],
+      [error(ParserErrorCode.missingIdentifier, 70, 1)],
     );
     var enumDeclaration = findNode.enumDeclaration('enum { e1 }');
     checkOffsetInRange<EnumFragment>(
@@ -261,7 +261,7 @@ library; // Ensures that the extension type declaration isn't at offset 0
 
 extension type(int i) {}
 ''',
-      [error(ParserErrorCode.MISSING_IDENTIFIER, 89, 1)],
+      [error(ParserErrorCode.missingIdentifier, 89, 1)],
     );
     var extensionTypeDeclaration = findNode.extensionTypeDeclaration(
       'extension type(int i)',
@@ -297,11 +297,11 @@ class C {
 ''',
       [
         error(
-          CompileTimeErrorCode.INITIALIZING_FORMAL_FOR_NON_EXISTENT_FIELD,
+          CompileTimeErrorCode.initializingFormalForNonExistentField,
           24,
           5,
         ),
-        error(ParserErrorCode.MISSING_IDENTIFIER, 29, 1),
+        error(ParserErrorCode.missingIdentifier, 29, 1),
       ],
     );
     var parameter = findNode.fieldFormalParameter('this.');
@@ -410,7 +410,7 @@ void f(int x) {}
       r'''
 void f((int x)) {}
 ''',
-      [error(ParserErrorCode.MISSING_IDENTIFIER, 7, 1)],
+      [error(ParserErrorCode.missingIdentifier, 7, 1)],
     );
     var function = findNode.functionDeclaration('f(');
     var parameter =
@@ -428,7 +428,7 @@ void f((int x)) {}
       r'''
 void f(void (int x)) {}
 ''',
-      [error(ParserErrorCode.MISSING_IDENTIFIER, 12, 1)],
+      [error(ParserErrorCode.missingIdentifier, 12, 1)],
     );
     var function = findNode.functionDeclaration('f(');
     var parameter =
@@ -764,7 +764,7 @@ library; // Ensures that the mixin declaration isn't at offset 0
 
 mixin {}
 ''',
-      [error(ParserErrorCode.MISSING_IDENTIFIER, 72, 1)],
+      [error(ParserErrorCode.missingIdentifier, 72, 1)],
     );
     var mixinDeclaration = findNode.mixinDeclaration('mixin {}');
     checkOffsetInRange<MixinFragment>(
@@ -819,7 +819,7 @@ import 'dart:math' as a; // second
 // ignore: unused_import
 import 'dart:async' as;
 ''',
-      [error(ParserErrorCode.MISSING_IDENTIFIER, 47, 1)],
+      [error(ParserErrorCode.missingIdentifier, 47, 1)],
     );
     var importDirective = findNode.import('as;');
     checkOffsetInRange<PrefixFragment>(
@@ -916,7 +916,7 @@ class C extends B {
   C(super.);
 }
 ''',
-      [error(ParserErrorCode.MISSING_IDENTIFIER, 58, 1)],
+      [error(ParserErrorCode.missingIdentifier, 58, 1)],
     );
     var parameter = findNode.superFormalParameter('super.');
     checkOffsetInRange<SuperFormalParameterFragment>(
@@ -1001,8 +1001,8 @@ library; // Ensures that the function type alias declaration isn't at offset 0
 typedef void();
 ''',
       [
-        error(WarningCode.UNUSED_ELEMENT, 0, 0),
-        error(ParserErrorCode.MISSING_IDENTIFIER, 92, 1),
+        error(WarningCode.unusedElement, 0, 0),
+        error(ParserErrorCode.missingIdentifier, 92, 1),
       ],
     );
     var functionTypeAlias = findNode.functionTypeAlias('void()');
@@ -1032,8 +1032,8 @@ library; // Ensures that the generic type alias declaration isn't at offset 0
 typedef = int;
 ''',
       [
-        error(WarningCode.UNUSED_ELEMENT, 0, 0),
-        error(ParserErrorCode.MISSING_IDENTIFIER, 87, 1),
+        error(WarningCode.unusedElement, 0, 0),
+        error(ParserErrorCode.missingIdentifier, 87, 1),
       ],
     );
     var genericTypeAlias = findNode.genericTypeAlias('= int');

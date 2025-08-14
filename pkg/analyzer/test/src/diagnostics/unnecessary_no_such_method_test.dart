@@ -28,7 +28,7 @@ class B extends A {
   }
 }
 ''',
-      [error(WarningCode.UNNECESSARY_NO_SUCH_METHOD, 87, 12)],
+      [error(WarningCode.unnecessaryNoSuchMethod, 87, 12)],
     );
   }
 
@@ -72,7 +72,7 @@ class B extends A {
   noSuchMethod(y) => super.noSuchMethod(y);
 }
 ''',
-      [error(WarningCode.UNNECESSARY_NO_SUCH_METHOD, 87, 12)],
+      [error(WarningCode.unnecessaryNoSuchMethod, 87, 12)],
     );
   }
 

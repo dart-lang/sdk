@@ -88,7 +88,7 @@ class AnnotationInferrer extends FullInvocationInferrer<AnnotationImpl> {
 
   @override
   DiagnosticCode get _wrongNumberOfTypeArgumentsErrorCode =>
-      CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS;
+      CompileTimeErrorCode.wrongNumberOfTypeArguments;
 
   @override
   List<FormalParameterElement>? _storeResult(
@@ -197,7 +197,7 @@ abstract class FullInvocationInferrer<Node extends AstNodeImpl>
   TypeArgumentListImpl? get _typeArguments;
 
   DiagnosticCode get _wrongNumberOfTypeArgumentsErrorCode =>
-      CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_METHOD;
+      CompileTimeErrorCode.wrongNumberOfTypeArgumentsMethod;
 
   @override
   DartType resolveInvocation({required FunctionTypeImpl? rawType}) {
@@ -252,7 +252,7 @@ abstract class FullInvocationInferrer<Node extends AstNodeImpl>
               if (!resolver.typeSystem.isSubtypeOf(typeArgument, bound)) {
                 resolver.diagnosticReporter.atNode(
                   typeArgumentList.arguments[i],
-                  CompileTimeErrorCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS,
+                  CompileTimeErrorCode.typeArgumentNotMatchingBounds,
                   arguments: [typeArgument, typeParameter.name!, bound],
                 );
               }

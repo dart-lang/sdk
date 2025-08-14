@@ -25,7 +25,7 @@ final class A extends Struct {
   int a;
 }
 ''',
-      [error(FfiCode.FIELD_MUST_BE_EXTERNAL_IN_STRUCT, 68, 1)],
+      [error(FfiCode.fieldMustBeExternalInStruct, 68, 1)],
     );
   }
 
@@ -39,7 +39,7 @@ final class A extends Union {
   int a;
 }
 ''',
-      [error(FfiCode.FIELD_MUST_BE_EXTERNAL_IN_STRUCT, 67, 1)],
+      [error(FfiCode.fieldMustBeExternalInStruct, 67, 1)],
     );
   }
 }

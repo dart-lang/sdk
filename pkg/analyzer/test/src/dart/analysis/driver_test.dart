@@ -2679,7 +2679,7 @@ linter:
 library my.lib;
 part 'a.dart';
 ''',
-      [error(CompileTimeErrorCode.URI_DOES_NOT_EXIST, 21, 8)],
+      [error(CompileTimeErrorCode.uriDoesNotExist, 21, 8)],
     );
   }
 
@@ -2697,7 +2697,7 @@ linter:
 library my.lib;
 part 'a.dart';
 ''',
-      [error(CompileTimeErrorCode.PART_OF_NON_PART, 21, 8)],
+      [error(CompileTimeErrorCode.partOfNonPart, 21, 8)],
     );
   }
 
@@ -2717,7 +2717,7 @@ part of other.lib;
 library my.lib;
 part 'a.dart';
 ''',
-      [error(CompileTimeErrorCode.PART_OF_DIFFERENT_LIBRARY, 21, 8)],
+      [error(CompileTimeErrorCode.partOfDifferentLibrary, 21, 8)],
     );
   }
 
@@ -2737,7 +2737,7 @@ part of 'not_test.dart';
 library my.lib;
 part 'a.dart';
 ''',
-      [error(CompileTimeErrorCode.PART_OF_DIFFERENT_LIBRARY, 21, 8)],
+      [error(CompileTimeErrorCode.partOfDifferentLibrary, 21, 8)],
     );
   }
 
@@ -3317,7 +3317,7 @@ elementFactory
     var result = await driver.getErrors(a.path);
     result as ErrorsResult;
     assertErrorsInList(result.diagnostics, [
-      error(CompileTimeErrorCode.MISSING_DART_LIBRARY, 0, 0),
+      error(CompileTimeErrorCode.missingDartLibrary, 0, 0),
     ]);
   }
 
@@ -3330,7 +3330,7 @@ elementFactory
     var result = await driver.getErrors(a.path);
     result as ErrorsResult;
     assertErrorsInList(result.diagnostics, [
-      error(CompileTimeErrorCode.MISSING_DART_LIBRARY, 0, 0),
+      error(CompileTimeErrorCode.missingDartLibrary, 0, 0),
     ]);
   }
 

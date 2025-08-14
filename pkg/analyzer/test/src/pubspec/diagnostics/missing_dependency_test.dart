@@ -24,7 +24,7 @@ class MissingDependencyTest with ResourceProviderMixin {
   late Source _source;
 
   /// Asserts that when the validator is used on the given [content], a
-  /// [PubspecWarningCode.MISSING_DEPENDENCY] warning is produced.
+  /// [PubspecWarningCode.missingDependency] warning is produced.
   void assertErrors(
     String content, {
     required Set<String> usedDeps,
@@ -35,7 +35,7 @@ class MissingDependencyTest with ResourceProviderMixin {
   }) {
     var error = _runValidator(content, usedDeps, usedDevDeps).first;
     var data = MissingDependencyData.byDiagnostic[error]!;
-    expect(error.diagnosticCode, PubspecWarningCode.MISSING_DEPENDENCY);
+    expect(error.diagnosticCode, PubspecWarningCode.missingDependency);
     expect(data.addDeps, addDeps);
     expect(data.addDevDeps, addDevDeps);
     expect(data.removeDevDeps, removeDevDeps);

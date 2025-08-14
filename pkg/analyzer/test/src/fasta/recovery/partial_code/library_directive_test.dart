@@ -16,22 +16,22 @@ class LibraryDirectivesTest extends PartialCodeTest {
       TestDescriptor(
         'keyword',
         'library',
-        [ParserErrorCode.MISSING_IDENTIFIER, ParserErrorCode.EXPECTED_TOKEN],
+        [ParserErrorCode.missingIdentifier, ParserErrorCode.expectedToken],
         'library _s_;',
         failing: ['functionNonVoid', 'getter'],
       ),
       TestDescriptor('name', 'library lib', [
-        ParserErrorCode.EXPECTED_TOKEN,
+        ParserErrorCode.expectedToken,
       ], 'library lib;'),
       TestDescriptor(
         'nameDot',
         'library lib.',
-        [ParserErrorCode.MISSING_IDENTIFIER, ParserErrorCode.EXPECTED_TOKEN],
+        [ParserErrorCode.missingIdentifier, ParserErrorCode.expectedToken],
         'library lib._s_;',
         failing: ['functionNonVoid', 'getter'],
       ),
       TestDescriptor('nameDotName', 'library lib.a', [
-        ParserErrorCode.EXPECTED_TOKEN,
+        ParserErrorCode.expectedToken,
       ], 'library lib.a;'),
     ], PartialCodeTest.prePartSuffixes);
   }

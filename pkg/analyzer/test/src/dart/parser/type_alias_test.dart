@@ -61,7 +61,7 @@ GenericTypeAlias
     var parseResult = parseStringWithErrors(r'''
 typedef = int;
 ''');
-    parseResult.assertErrors([error(ParserErrorCode.MISSING_IDENTIFIER, 8, 1)]);
+    parseResult.assertErrors([error(ParserErrorCode.missingIdentifier, 8, 1)]);
 
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''

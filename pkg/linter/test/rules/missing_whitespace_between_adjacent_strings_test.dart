@@ -39,7 +39,7 @@ void f() {
 ''',
       [
         // No lint
-        error(CompileTimeErrorCode.NEW_WITH_NON_TYPE, 17, 10),
+        error(CompileTimeErrorCode.newWithNonType, 17, 10),
       ],
     );
   }

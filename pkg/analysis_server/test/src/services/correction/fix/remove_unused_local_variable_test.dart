@@ -272,7 +272,7 @@ void f() {
       errorFilter:
           (e) =>
               e.diagnosticCode !=
-              CompileTimeErrorCode.REFERENCED_BEFORE_DECLARATION,
+              CompileTimeErrorCode.referencedBeforeDeclaration,
     );
   }
 }

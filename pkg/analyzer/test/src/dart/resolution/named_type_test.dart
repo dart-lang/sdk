@@ -130,7 +130,7 @@ import 'dart:core' as myCore;
 
 dynamic a;
 ''',
-      [error(CompileTimeErrorCode.UNDEFINED_CLASS, 31, 7)],
+      [error(CompileTimeErrorCode.undefinedClass, 31, 7)],
     );
 
     var node = findNode.namedType('dynamic a;');
@@ -187,7 +187,7 @@ class A<T, U> {}
 
 class B extends A<int> {}
 ''',
-      [error(CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS, 34, 6)],
+      [error(CompileTimeErrorCode.wrongNumberOfTypeArguments, 34, 6)],
     );
 
     var node = findNode.namedType('A<int>');
@@ -214,7 +214,7 @@ class A<T> {}
 
 class B extends A<int, String> {}
 ''',
-      [error(CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS, 31, 14)],
+      [error(CompileTimeErrorCode.wrongNumberOfTypeArguments, 31, 14)],
     );
 
     var node = findNode.namedType('A<int, String>');
@@ -244,8 +244,8 @@ NamedType
 class A<T> extends T<int> {}
 ''',
       [
-        error(CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS, 19, 6),
-        error(CompileTimeErrorCode.EXTENDS_NON_CLASS, 19, 1),
+        error(CompileTimeErrorCode.wrongNumberOfTypeArguments, 19, 6),
+        error(CompileTimeErrorCode.extendsNonClass, 19, 1),
       ],
     );
 
@@ -436,7 +436,7 @@ import 'dart:math' as math;
 
 void f(math.Unresolved<int> a) {}
 ''',
-      [error(CompileTimeErrorCode.UNDEFINED_CLASS, 36, 15)],
+      [error(CompileTimeErrorCode.undefinedClass, 36, 15)],
     );
 
     var node = findNode.namedType('math.Unresolved');
@@ -469,7 +469,7 @@ main() {
   new math.A();
 }
 ''',
-      [error(CompileTimeErrorCode.NEW_WITH_NON_TYPE, 49, 1)],
+      [error(CompileTimeErrorCode.newWithNonType, 49, 1)],
     );
 
     var node = findNode.namedType('A();');
@@ -510,7 +510,7 @@ main() {
   new A();
 }
 ''',
-      [error(CompileTimeErrorCode.NEW_WITH_NON_TYPE, 15, 1)],
+      [error(CompileTimeErrorCode.newWithNonType, 15, 1)],
     );
 
     var node = findNode.namedType('A();');
@@ -532,8 +532,8 @@ void f() {
 }
 ''',
       [
-        error(CompileTimeErrorCode.TYPE_ANNOTATION_DEFERRED_CLASS, 53, 17),
-        error(WarningCode.UNUSED_LOCAL_VARIABLE, 71, 1),
+        error(CompileTimeErrorCode.typeAnnotationDeferredClass, 53, 17),
+        error(WarningCode.unusedLocalVariable, 71, 1),
       ],
     );
 
@@ -567,7 +567,7 @@ void f(prefix a) {}
 ''',
       [
         error(
-          CompileTimeErrorCode.NOT_A_TYPE,
+          CompileTimeErrorCode.notAType,
           38,
           6,
           contextMessages: [message(testFile, 22, 6)],
@@ -593,7 +593,7 @@ void f(prefix<int> a) {}
 ''',
       [
         error(
-          CompileTimeErrorCode.NOT_A_TYPE,
+          CompileTimeErrorCode.notAType,
           38,
           6,
           contextMessages: [message(testFile, 22, 6)],
@@ -625,7 +625,7 @@ void f() {
   new int.double.other();
 }
 ''',
-      [error(CompileTimeErrorCode.NEW_WITH_NON_TYPE, 17, 10)],
+      [error(CompileTimeErrorCode.newWithNonType, 17, 10)],
     );
 
     var node = findNode.namedType('int.double');
@@ -648,7 +648,7 @@ void f() {
   0 as int.double;
 }
 ''',
-      [error(CompileTimeErrorCode.NOT_A_TYPE, 18, 10)],
+      [error(CompileTimeErrorCode.notAType, 18, 10)],
     );
 
     var node = findNode.namedType('int.double');
@@ -673,7 +673,7 @@ void T() {}
 ''',
       [
         error(
-          CompileTimeErrorCode.NOT_A_TYPE,
+          CompileTimeErrorCode.notAType,
           7,
           1,
           contextMessages: [message(testFile, 21, 1)],
@@ -699,7 +699,7 @@ void T() {}
 ''',
       [
         error(
-          CompileTimeErrorCode.NOT_A_TYPE,
+          CompileTimeErrorCode.notAType,
           7,
           1,
           contextMessages: [message(testFile, 26, 1)],
@@ -729,7 +729,7 @@ NamedType
       r'''
 void f<T>(T.name<int> a) {}
 ''',
-      [error(CompileTimeErrorCode.PREFIX_SHADOWED_BY_LOCAL_DECLARATION, 10, 1)],
+      [error(CompileTimeErrorCode.prefixShadowedByLocalDeclaration, 10, 1)],
     );
 
     var node = findNode.namedType('T.name<int>');
@@ -769,7 +769,7 @@ import 'b.dart';
 
 void f(A a) {}
 ''',
-      [error(CompileTimeErrorCode.AMBIGUOUS_IMPORT, 42, 1)],
+      [error(CompileTimeErrorCode.ambiguousImport, 42, 1)],
     );
 
     var node = findNode.namedType('A a');
@@ -1085,7 +1085,7 @@ NamedType
       r'''
 void f(Unresolved<int> a) {}
 ''',
-      [error(CompileTimeErrorCode.UNDEFINED_CLASS, 7, 10)],
+      [error(CompileTimeErrorCode.undefinedClass, 7, 10)],
     );
 
     var node = findNode.namedType('Unresolved');
@@ -1110,7 +1110,7 @@ NamedType
       r'''
 void f(unresolved.List<int> a) {}
 ''',
-      [error(CompileTimeErrorCode.UNDEFINED_CLASS, 7, 15)],
+      [error(CompileTimeErrorCode.undefinedClass, 7, 15)],
     );
 
     var node = findNode.namedType('unresolved.List');

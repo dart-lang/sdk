@@ -31,7 +31,7 @@ const dynamic a = 0;
 const dynamic b = 'b';
 var v = const <int>{if (1 < 0) a else b};
 ''',
-      [error(CompileTimeErrorCode.SET_ELEMENT_TYPE_NOT_ASSIGNABLE, 82, 1)],
+      [error(CompileTimeErrorCode.setElementTypeNotAssignable, 82, 1)],
     );
   }
 
@@ -40,7 +40,7 @@ var v = const <int>{if (1 < 0) a else b};
       '''
 var v = const <int>{if (1 < 0) 'a'};
 ''',
-      [error(CompileTimeErrorCode.SET_ELEMENT_TYPE_NOT_ASSIGNABLE, 31, 3)],
+      [error(CompileTimeErrorCode.setElementTypeNotAssignable, 31, 3)],
     );
   }
 
@@ -64,7 +64,7 @@ var v = const <int>{if (true) a};
 const dynamic a = 'a';
 var v = const <int>{if (true) a};
 ''',
-      [error(CompileTimeErrorCode.SET_ELEMENT_TYPE_NOT_ASSIGNABLE, 53, 1)],
+      [error(CompileTimeErrorCode.setElementTypeNotAssignable, 53, 1)],
     );
   }
 
@@ -89,7 +89,7 @@ var v = const <int>{a};
 ''',
       [
         error(
-          CompileTimeErrorCode.SET_ELEMENT_TYPE_NOT_ASSIGNABLE_NULLABILITY,
+          CompileTimeErrorCode.setElementTypeNotAssignableNullability,
           36,
           1,
         ),
@@ -104,7 +104,7 @@ var v = const <int>{null};
 ''',
       [
         error(
-          CompileTimeErrorCode.SET_ELEMENT_TYPE_NOT_ASSIGNABLE_NULLABILITY,
+          CompileTimeErrorCode.setElementTypeNotAssignableNullability,
           20,
           4,
         ),
@@ -118,7 +118,7 @@ var v = const <int>{null};
 const dynamic x = 'abc';
 var v = const <int>{x};
 ''',
-      [error(CompileTimeErrorCode.SET_ELEMENT_TYPE_NOT_ASSIGNABLE, 45, 1)],
+      [error(CompileTimeErrorCode.setElementTypeNotAssignable, 45, 1)],
     );
   }
 
@@ -127,7 +127,7 @@ var v = const <int>{x};
       '''
 var v = const <int>{'abc'};
 ''',
-      [error(CompileTimeErrorCode.SET_ELEMENT_TYPE_NOT_ASSIGNABLE, 20, 5)],
+      [error(CompileTimeErrorCode.setElementTypeNotAssignable, 20, 5)],
     );
   }
 
@@ -171,7 +171,7 @@ var v = <int>{if (1 < 0) a else b};
       '''
 var v = <int>[if (1 < 0) 'a'];
 ''',
-      [error(CompileTimeErrorCode.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE, 25, 3)],
+      [error(CompileTimeErrorCode.listElementTypeNotAssignable, 25, 3)],
     );
   }
 
@@ -207,7 +207,7 @@ var v = <int>{x};
       '''
 var v = <int>{'abc'};
 ''',
-      [error(CompileTimeErrorCode.SET_ELEMENT_TYPE_NOT_ASSIGNABLE, 14, 5)],
+      [error(CompileTimeErrorCode.setElementTypeNotAssignable, 14, 5)],
     );
   }
 }
@@ -223,7 +223,7 @@ void f(bool c, dynamic a) {
   <int>{if (c) 0 else a};
 }
 ''',
-      [error(CompileTimeErrorCode.SET_ELEMENT_TYPE_NOT_ASSIGNABLE, 50, 1)],
+      [error(CompileTimeErrorCode.setElementTypeNotAssignable, 50, 1)],
     );
   }
 
@@ -234,7 +234,7 @@ void f(bool c, dynamic a) {
   <int>{if (c) a};
 }
 ''',
-      [error(CompileTimeErrorCode.SET_ELEMENT_TYPE_NOT_ASSIGNABLE, 43, 1)],
+      [error(CompileTimeErrorCode.setElementTypeNotAssignable, 43, 1)],
     );
   }
 
@@ -245,7 +245,7 @@ void f(Iterable<dynamic> a) {
   <int>{...a};
 }
 ''',
-      [error(CompileTimeErrorCode.SET_ELEMENT_TYPE_NOT_ASSIGNABLE, 41, 1)],
+      [error(CompileTimeErrorCode.setElementTypeNotAssignable, 41, 1)],
     );
   }
 }

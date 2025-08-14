@@ -25,7 +25,7 @@ class A {
 main() {
 }
 ''',
-      [error(CompileTimeErrorCode.NO_ANNOTATION_CONSTRUCTOR_ARGUMENTS, 25, 2)],
+      [error(CompileTimeErrorCode.noAnnotationConstructorArguments, 25, 2)],
     );
   }
 }

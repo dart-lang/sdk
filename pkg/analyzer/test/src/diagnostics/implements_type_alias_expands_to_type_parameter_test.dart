@@ -33,7 +33,7 @@ class B implements T {}
 ''',
       [
         error(
-          CompileTimeErrorCode.IMPLEMENTS_TYPE_ALIAS_EXPANDS_TO_TYPE_PARAMETER,
+          CompileTimeErrorCode.implementsTypeAliasExpandsToTypeParameter,
           58,
           1,
         ),
@@ -58,7 +58,7 @@ class B implements T<A> {}
 ''',
       [
         error(
-          CompileTimeErrorCode.IMPLEMENTS_TYPE_ALIAS_EXPANDS_TO_TYPE_PARAMETER,
+          CompileTimeErrorCode.implementsTypeAliasExpandsToTypeParameter,
           58,
           1,
         ),
@@ -91,7 +91,7 @@ mixin M implements T {}
 ''',
       [
         error(
-          CompileTimeErrorCode.IMPLEMENTS_TYPE_ALIAS_EXPANDS_TO_TYPE_PARAMETER,
+          CompileTimeErrorCode.implementsTypeAliasExpandsToTypeParameter,
           58,
           1,
         ),

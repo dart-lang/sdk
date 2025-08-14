@@ -21,7 +21,7 @@ class DocImportCannotHaveCombinatorsTest extends PubPackageResolutionTest {
 /// @docImport 'dart:math' show max;
 class C {}
 ''',
-      [error(WarningCode.DOC_IMPORT_CANNOT_HAVE_COMBINATORS, 27, 8)],
+      [error(WarningCode.docImportCannotHaveCombinators, 27, 8)],
     );
   }
 

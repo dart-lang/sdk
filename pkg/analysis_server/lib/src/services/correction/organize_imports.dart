@@ -65,9 +65,9 @@ class ImportOrganizer {
 
   bool _isUnusedImport(UriBasedDirective directive) {
     for (var diagnostic in diagnostics) {
-      if ((diagnostic.diagnosticCode == WarningCode.DUPLICATE_IMPORT ||
-              diagnostic.diagnosticCode == WarningCode.UNUSED_IMPORT ||
-              diagnostic.diagnosticCode == HintCode.UNNECESSARY_IMPORT) &&
+      if ((diagnostic.diagnosticCode == WarningCode.duplicateImport ||
+              diagnostic.diagnosticCode == WarningCode.unusedImport ||
+              diagnostic.diagnosticCode == HintCode.unnecessaryImport) &&
           directive.uri.offset == diagnostic.offset) {
         return true;
       }
@@ -77,7 +77,7 @@ class ImportOrganizer {
 
   bool _isUnusedShowName(SimpleIdentifier name) {
     for (var diagnostic in diagnostics) {
-      if ((diagnostic.diagnosticCode == WarningCode.UNUSED_SHOWN_NAME) &&
+      if ((diagnostic.diagnosticCode == WarningCode.unusedShownName) &&
           name.offset == diagnostic.offset) {
         return true;
       }

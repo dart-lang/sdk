@@ -21,13 +21,7 @@ class RecursiveInterfaceInheritanceExtendsTest
       r'''
 class A extends A {}
 ''',
-      [
-        error(
-          CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE_EXTENDS,
-          6,
-          1,
-        ),
-      ],
+      [error(CompileTimeErrorCode.recursiveInterfaceInheritanceExtends, 6, 1)],
     );
   }
 
@@ -39,13 +33,7 @@ class C extends C {
   bar();
 }
 ''',
-      [
-        error(
-          CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE_EXTENDS,
-          6,
-          1,
-        ),
-      ],
+      [error(CompileTimeErrorCode.recursiveInterfaceInheritanceExtends, 6, 1)],
     );
   }
 
@@ -56,13 +44,7 @@ class C extends C {
 class A {}
 augment class A extends A {}
 ''',
-      [
-        error(
-          CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE_EXTENDS,
-          6,
-          1,
-        ),
-      ],
+      [error(CompileTimeErrorCode.recursiveInterfaceInheritanceExtends, 6, 1)],
     );
   }
 }

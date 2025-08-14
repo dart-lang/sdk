@@ -37,7 +37,7 @@ class B implements A {}
 ''',
       [
         error(
-          CompileTimeErrorCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_ONE,
+          CompileTimeErrorCode.nonAbstractClassInheritsAbstractMemberOne,
           51,
           1,
         ),
@@ -57,7 +57,7 @@ class B implements A {
 ''',
       [
         error(
-          CompileTimeErrorCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_ONE,
+          CompileTimeErrorCode.nonAbstractClassInheritsAbstractMemberOne,
           45,
           1,
         ),
@@ -87,7 +87,7 @@ class B implements A {}
 ''',
       [
         error(
-          CompileTimeErrorCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_TWO,
+          CompileTimeErrorCode.nonAbstractClassInheritsAbstractMemberTwo,
           45,
           1,
         ),
@@ -107,7 +107,7 @@ class B implements A {
 ''',
       [
         error(
-          CompileTimeErrorCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_ONE,
+          CompileTimeErrorCode.nonAbstractClassInheritsAbstractMemberOne,
           45,
           1,
         ),
@@ -166,7 +166,7 @@ class D extends C {}
 ''',
       [
         error(
-          CompileTimeErrorCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_ONE,
+          CompileTimeErrorCode.nonAbstractClassInheritsAbstractMemberOne,
           42,
           1,
         ),
@@ -224,7 +224,7 @@ enum E implements A {
 ''',
       [
         error(
-          CompileTimeErrorCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_ONE,
+          CompileTimeErrorCode.nonAbstractClassInheritsAbstractMemberOne,
           38,
           1,
         ),
@@ -245,7 +245,7 @@ enum E with M {
 ''',
       [
         error(
-          CompileTimeErrorCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_ONE,
+          CompileTimeErrorCode.nonAbstractClassInheritsAbstractMemberOne,
           33,
           1,
         ),
@@ -266,7 +266,7 @@ enum E implements A {
 ''',
       [
         error(
-          CompileTimeErrorCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_ONE,
+          CompileTimeErrorCode.nonAbstractClassInheritsAbstractMemberOne,
           34,
           1,
         ),
@@ -287,7 +287,7 @@ enum E with M {
 ''',
       [
         error(
-          CompileTimeErrorCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_ONE,
+          CompileTimeErrorCode.nonAbstractClassInheritsAbstractMemberOne,
           32,
           1,
         ),
@@ -308,7 +308,7 @@ enum E implements A {
 ''',
       [
         error(
-          CompileTimeErrorCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_ONE,
+          CompileTimeErrorCode.nonAbstractClassInheritsAbstractMemberOne,
           38,
           1,
         ),
@@ -329,7 +329,7 @@ enum E with M {
 ''',
       [
         error(
-          CompileTimeErrorCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_ONE,
+          CompileTimeErrorCode.nonAbstractClassInheritsAbstractMemberOne,
           36,
           1,
         ),
@@ -358,7 +358,7 @@ class B implements A {}
 ''',
       [
         error(
-          CompileTimeErrorCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_ONE,
+          CompileTimeErrorCode.nonAbstractClassInheritsAbstractMemberOne,
           42,
           1,
         ),
@@ -378,7 +378,7 @@ class B implements A {
 ''',
       [
         error(
-          CompileTimeErrorCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_ONE,
+          CompileTimeErrorCode.nonAbstractClassInheritsAbstractMemberOne,
           36,
           1,
         ),
@@ -408,7 +408,7 @@ class B implements A {}
 ''',
       [
         error(
-          CompileTimeErrorCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_TWO,
+          CompileTimeErrorCode.nonAbstractClassInheritsAbstractMemberTwo,
           36,
           1,
         ),
@@ -428,7 +428,7 @@ class B implements A {
 ''',
       [
         error(
-          CompileTimeErrorCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_ONE,
+          CompileTimeErrorCode.nonAbstractClassInheritsAbstractMemberOne,
           36,
           1,
         ),
@@ -451,8 +451,7 @@ class C extends A {
 ''',
       [
         error(
-          CompileTimeErrorCode
-              .NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_FIVE_PLUS,
+          CompileTimeErrorCode.nonAbstractClassInheritsAbstractMemberFivePlus,
           62,
           1,
         ),
@@ -474,7 +473,7 @@ class C extends A {
 ''',
       [
         error(
-          CompileTimeErrorCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_FOUR,
+          CompileTimeErrorCode.nonAbstractClassInheritsAbstractMemberFour,
           55,
           1,
         ),
@@ -584,7 +583,7 @@ class B = A with M implements I;
 ''',
       [
         error(
-          CompileTimeErrorCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_ONE,
+          CompileTimeErrorCode.nonAbstractClassInheritsAbstractMemberOne,
           87,
           1,
         ),
@@ -605,7 +604,7 @@ class B = A with M;
 ''',
       [
         error(
-          CompileTimeErrorCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_ONE,
+          CompileTimeErrorCode.nonAbstractClassInheritsAbstractMemberOne,
           67,
           1,
         ),
@@ -626,7 +625,7 @@ class B = A with M;
 ''',
       [
         error(
-          CompileTimeErrorCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_ONE,
+          CompileTimeErrorCode.nonAbstractClassInheritsAbstractMemberOne,
           58,
           1,
         ),
@@ -645,7 +644,7 @@ class C implements I {
 ''',
       [
         error(
-          CompileTimeErrorCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_ONE,
+          CompileTimeErrorCode.nonAbstractClassInheritsAbstractMemberOne,
           42,
           1,
         ),
@@ -664,7 +663,7 @@ class C extends A {
 ''',
       [
         error(
-          CompileTimeErrorCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_ONE,
+          CompileTimeErrorCode.nonAbstractClassInheritsAbstractMemberOne,
           40,
           1,
         ),
@@ -683,7 +682,7 @@ class C implements I {
 ''',
       [
         error(
-          CompileTimeErrorCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_ONE,
+          CompileTimeErrorCode.nonAbstractClassInheritsAbstractMemberOne,
           28,
           1,
         ),
@@ -703,7 +702,7 @@ class C implements I {
 ''',
       [
         error(
-          CompileTimeErrorCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_ONE,
+          CompileTimeErrorCode.nonAbstractClassInheritsAbstractMemberOne,
           28,
           1,
         ),
@@ -737,7 +736,7 @@ class C implements I {
 ''',
       [
         error(
-          CompileTimeErrorCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_ONE,
+          CompileTimeErrorCode.nonAbstractClassInheritsAbstractMemberOne,
           55,
           1,
         ),
@@ -756,7 +755,7 @@ class C extends A {
 ''',
       [
         error(
-          CompileTimeErrorCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_ONE,
+          CompileTimeErrorCode.nonAbstractClassInheritsAbstractMemberOne,
           35,
           1,
         ),
@@ -779,7 +778,7 @@ class C implements A, B {
 ''',
       [
         error(
-          CompileTimeErrorCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_ONE,
+          CompileTimeErrorCode.nonAbstractClassInheritsAbstractMemberOne,
           89,
           1,
         ),
@@ -798,7 +797,7 @@ class C extends Object with B {}
 ''',
       [
         error(
-          CompileTimeErrorCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_ONE,
+          CompileTimeErrorCode.nonAbstractClassInheritsAbstractMemberOne,
           103,
           1,
         ),
@@ -817,7 +816,7 @@ class C extends Object with B {}
 ''',
       [
         error(
-          CompileTimeErrorCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_ONE,
+          CompileTimeErrorCode.nonAbstractClassInheritsAbstractMemberOne,
           97,
           1,
         ),
@@ -836,7 +835,7 @@ class C extends Object with B {}
 ''',
       [
         error(
-          CompileTimeErrorCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_ONE,
+          CompileTimeErrorCode.nonAbstractClassInheritsAbstractMemberOne,
           109,
           1,
         ),
@@ -859,7 +858,7 @@ class B extends A implements I {
 ''',
       [
         error(
-          CompileTimeErrorCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_ONE,
+          CompileTimeErrorCode.nonAbstractClassInheritsAbstractMemberOne,
           71,
           1,
         ),
@@ -883,7 +882,7 @@ class B extends A implements I {
 ''',
       [
         error(
-          CompileTimeErrorCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_ONE,
+          CompileTimeErrorCode.nonAbstractClassInheritsAbstractMemberOne,
           77,
           1,
         ),
@@ -902,7 +901,7 @@ class C implements I {
 ''',
       [
         error(
-          CompileTimeErrorCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_ONE,
+          CompileTimeErrorCode.nonAbstractClassInheritsAbstractMemberOne,
           36,
           1,
         ),
@@ -921,7 +920,7 @@ class C extends A {
 ''',
       [
         error(
-          CompileTimeErrorCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_ONE,
+          CompileTimeErrorCode.nonAbstractClassInheritsAbstractMemberOne,
           43,
           1,
         ),
@@ -944,7 +943,7 @@ class C extends B {
 ''',
       [
         error(
-          CompileTimeErrorCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_ONE,
+          CompileTimeErrorCode.nonAbstractClassInheritsAbstractMemberOne,
           84,
           1,
         ),
@@ -965,7 +964,7 @@ class C implements I {
 ''',
       [
         error(
-          CompileTimeErrorCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_ONE,
+          CompileTimeErrorCode.nonAbstractClassInheritsAbstractMemberOne,
           27,
           1,
         ),
@@ -986,7 +985,7 @@ class C implements I {
 ''',
       [
         error(
-          CompileTimeErrorCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_ONE,
+          CompileTimeErrorCode.nonAbstractClassInheritsAbstractMemberOne,
           27,
           1,
         ),
@@ -1018,8 +1017,7 @@ class C extends A {
 ''',
       [
         error(
-          CompileTimeErrorCode
-              .NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_THREE,
+          CompileTimeErrorCode.nonAbstractClassInheritsAbstractMemberThree,
           48,
           1,
         ),
@@ -1039,7 +1037,7 @@ class C extends A {
 ''',
       [
         error(
-          CompileTimeErrorCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_TWO,
+          CompileTimeErrorCode.nonAbstractClassInheritsAbstractMemberTwo,
           41,
           1,
         ),
@@ -1059,7 +1057,7 @@ class C implements I {
 ''',
       [
         error(
-          CompileTimeErrorCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_TWO,
+          CompileTimeErrorCode.nonAbstractClassInheritsAbstractMemberTwo,
           27,
           1,
         ),

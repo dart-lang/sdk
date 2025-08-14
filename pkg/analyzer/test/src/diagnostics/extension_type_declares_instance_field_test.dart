@@ -22,13 +22,7 @@ extension type E(int it) {
   final int foo = 0;
 }
 ''',
-      [
-        error(
-          CompileTimeErrorCode.EXTENSION_TYPE_DECLARES_INSTANCE_FIELD,
-          39,
-          3,
-        ),
-      ],
+      [error(CompileTimeErrorCode.extensionTypeDeclaresInstanceField, 39, 3)],
     );
   }
 
@@ -64,21 +58,9 @@ extension type E(int it) {
 }
 ''',
       [
-        error(
-          CompileTimeErrorCode.EXTENSION_TYPE_DECLARES_INSTANCE_FIELD,
-          37,
-          3,
-        ),
-        error(
-          CompileTimeErrorCode.EXTENSION_TYPE_DECLARES_INSTANCE_FIELD,
-          42,
-          3,
-        ),
-        error(
-          CompileTimeErrorCode.EXTENSION_TYPE_DECLARES_INSTANCE_FIELD,
-          47,
-          5,
-        ),
+        error(CompileTimeErrorCode.extensionTypeDeclaresInstanceField, 37, 3),
+        error(CompileTimeErrorCode.extensionTypeDeclaresInstanceField, 42, 3),
+        error(CompileTimeErrorCode.extensionTypeDeclaresInstanceField, 47, 5),
       ],
     );
   }

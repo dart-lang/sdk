@@ -31,7 +31,7 @@ void f() {
   }
 }
 ''');
-    await assertHasFixAllFix(WarningCode.UNUSED_CATCH_STACK, '''
+    await assertHasFixAllFix(WarningCode.unusedCatchStack, '''
 void f() {
   try {
     throw 42;

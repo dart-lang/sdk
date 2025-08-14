@@ -181,7 +181,7 @@ class PrefixedIdentifierResolver {
 
     _resolver.diagnosticReporter.atNode(
       node,
-      CompileTimeErrorCode.EXTENSION_AS_EXPRESSION,
+      CompileTimeErrorCode.extensionAsExpression,
       arguments: [node.name],
     );
 

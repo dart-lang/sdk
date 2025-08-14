@@ -20,13 +20,7 @@ class DeprecatedExtendsFunctionTest extends PubPackageResolutionTest {
       '''
 class A extends Function {}
 ''',
-      [
-        error(
-          CompileTimeErrorCode.FINAL_CLASS_EXTENDED_OUTSIDE_OF_LIBRARY,
-          16,
-          8,
-        ),
-      ],
+      [error(CompileTimeErrorCode.finalClassExtendedOutsideOfLibrary, 16, 8)],
     );
   }
 
@@ -36,7 +30,7 @@ class A extends Function {}
 // @dart = 2.19
 class A extends Function {}
 ''',
-      [error(WarningCode.DEPRECATED_EXTENDS_FUNCTION, 32, 8)],
+      [error(WarningCode.deprecatedExtendsFunction, 32, 8)],
     );
   }
 
@@ -47,7 +41,7 @@ class A extends Function {}
 typedef F = Function;
 class A extends F {}
 ''',
-      [error(WarningCode.DEPRECATED_EXTENDS_FUNCTION, 54, 1)],
+      [error(WarningCode.deprecatedExtendsFunction, 54, 1)],
     );
   }
 
@@ -58,7 +52,7 @@ class A extends F {}
 class Function {}
 class A extends Function {}
 ''',
-      [error(CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE_NAME, 22, 8)],
+      [error(CompileTimeErrorCode.builtInIdentifierAsTypeName, 22, 8)],
     );
   }
 }

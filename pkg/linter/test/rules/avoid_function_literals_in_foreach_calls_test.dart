@@ -25,7 +25,7 @@ void f(dynamic iter) => iter?.forEach(...);
 ''',
       [
         // No lint
-        error(ParserErrorCode.MISSING_IDENTIFIER, 38, 3),
+        error(ParserErrorCode.missingIdentifier, 38, 3),
       ],
     );
   }

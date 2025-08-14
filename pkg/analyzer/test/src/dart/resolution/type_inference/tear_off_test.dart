@@ -25,7 +25,7 @@ void test() {
   context = f; // 1
 }
 ''',
-      [error(WarningCode.UNUSED_LOCAL_VARIABLE, 52, 7)],
+      [error(WarningCode.unusedLocalVariable, 52, 7)],
     );
 
     var node = findNode.simple('f; // 1');
@@ -48,7 +48,7 @@ void test() {
   context = f; // 1
 }
 ''',
-      [error(WarningCode.UNUSED_LOCAL_VARIABLE, 54, 7)],
+      [error(WarningCode.unusedLocalVariable, 54, 7)],
     );
 
     var node = findNode.simple('f; // 1');

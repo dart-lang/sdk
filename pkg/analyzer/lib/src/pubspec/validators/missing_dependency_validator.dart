@@ -12,7 +12,7 @@ import 'package:analyzer/src/pubspec/pubspec_warning_code.dart';
 import 'package:yaml/yaml.dart';
 
 class MissingDependencyData {
-  /// Expando associating each [PubspecWarningCode.MISSING_DEPENDENCY] with
+  /// Expando associating each [PubspecWarningCode.missingDependency] with
   /// missing dependency information; this information is used by the analysis
   /// server to list of missing patterns; this data is used by the analysis
   /// server to compute fixes.
@@ -76,11 +76,9 @@ class MissingDependencyValidator {
       } else if (field is YamlMap) {
         return field.nodes;
       }
-      _reportErrorForNode(
-        field,
-        PubspecWarningCode.DEPENDENCIES_FIELD_NOT_MAP,
-        [key],
-      );
+      _reportErrorForNode(field, PubspecWarningCode.dependenciesFieldNotMap, [
+        key,
+      ]);
       return <String, YamlNode>{};
     }
 
@@ -135,7 +133,7 @@ class MissingDependencyValidator {
     if (addDeps.isNotEmpty || addDevDeps.isNotEmpty) {
       var diagnostic = _reportErrorForNode(
         contents.nodes.values.first,
-        PubspecWarningCode.MISSING_DEPENDENCY,
+        PubspecWarningCode.missingDependency,
         [message],
         [],
       );

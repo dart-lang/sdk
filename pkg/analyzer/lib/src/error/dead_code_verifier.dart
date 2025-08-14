@@ -77,7 +77,7 @@ class DeadCodeVerifier extends RecursiveAstVisitor<void> {
     if (_wildCardVariablesEnabled &&
         element is LocalFunctionElement &&
         element.name == '_') {
-      _diagnosticReporter.atNode(node, WarningCode.DEAD_CODE);
+      _diagnosticReporter.atNode(node, WarningCode.deadCode);
     }
     super.visitFunctionDeclaration(node);
   }
@@ -127,7 +127,7 @@ class DeadCodeVerifier extends RecursiveAstVisitor<void> {
           element.name == '_') {
         _diagnosticReporter.atNode(
           initializer,
-          WarningCode.DEAD_CODE_LATE_WILDCARD_VARIABLE_INITIALIZER,
+          WarningCode.deadCodeLateWildcardVariableInitializer,
         );
       }
     }
@@ -145,10 +145,10 @@ class DeadCodeVerifier extends RecursiveAstVisitor<void> {
     DiagnosticCode warningCode;
     if (combinator is HideCombinator) {
       names = combinator.hiddenNames;
-      warningCode = WarningCode.UNDEFINED_HIDDEN_NAME;
+      warningCode = WarningCode.undefinedHiddenName;
     } else {
       names = (combinator as ShowCombinator).shownNames;
-      warningCode = WarningCode.UNDEFINED_SHOWN_NAME;
+      warningCode = WarningCode.undefinedShownName;
     }
     for (SimpleIdentifier name in names) {
       String nameStr = name.name;
@@ -173,7 +173,7 @@ class DeadCodeVerifier extends RecursiveAstVisitor<void> {
       for (Label label in labelTracker.unusedLabels()) {
         _diagnosticReporter.atNode(
           label,
-          WarningCode.UNUSED_LABEL,
+          WarningCode.unusedLabel,
           arguments: [label.label.name],
         );
       }
@@ -234,7 +234,7 @@ class NullSafetyDeadCodeVerifier {
     }
 
     if (node is SwitchMember && node == firstDeadNode) {
-      _diagnosticReporter.atToken(node.keyword, WarningCode.DEAD_CODE);
+      _diagnosticReporter.atToken(node.keyword, WarningCode.deadCode);
       _firstDeadNode = null;
       return;
     }
@@ -284,7 +284,7 @@ class NullSafetyDeadCodeVerifier {
         _diagnosticReporter.atOffset(
           offset: parent.offset,
           length: parent.end - parent.offset,
-          diagnosticCode: WarningCode.DEAD_CODE,
+          diagnosticCode: WarningCode.deadCode,
         );
         offset = node.end;
       } else if (parent is DoStatement) {
@@ -297,7 +297,7 @@ class NullSafetyDeadCodeVerifier {
         _diagnosticReporter.atOffset(
           offset: whileOffset,
           length: whileEnd - whileOffset,
-          diagnosticCode: WarningCode.DEAD_CODE,
+          diagnosticCode: WarningCode.deadCode,
         );
         offset = parent.semicolon.next!.offset;
         if (parent.hasBreakStatement) {
@@ -318,7 +318,7 @@ class NullSafetyDeadCodeVerifier {
         _diagnosticReporter.atOffset(
           offset: offset,
           length: length,
-          diagnosticCode: WarningCode.DEAD_CODE,
+          diagnosticCode: WarningCode.deadCode,
         );
       }
     }
@@ -360,7 +360,7 @@ class NullSafetyDeadCodeVerifier {
         _diagnosticReporter.atOffset(
           offset: beginToken.offset,
           length: endToken.end - beginToken.offset,
-          diagnosticCode: WarningCode.DEAD_CODE,
+          diagnosticCode: WarningCode.deadCode,
         );
       }
     }
@@ -498,7 +498,7 @@ class NullSafetyDeadCodeVerifier {
         _diagnosticReporter.atOffset(
           offset: operator.offset,
           length: node.end - operator.offset,
-          diagnosticCode: WarningCode.DEAD_CODE,
+          diagnosticCode: WarningCode.deadCode,
         );
       }
     }
@@ -551,7 +551,7 @@ class _CatchClausesVerifier {
         _reportDiagnostic(
           catchClauses[index + 1],
           catchClauses.last,
-          WarningCode.DEAD_CODE_CATCH_FOLLOWING_CATCH,
+          WarningCode.deadCodeCatchFollowingCatch,
           const [],
         );
         _done = true;
@@ -566,7 +566,7 @@ class _CatchClausesVerifier {
         _reportDiagnostic(
           catchClause,
           catchClauses.last,
-          WarningCode.DEAD_CODE_ON_CATCH_SUBTYPE,
+          WarningCode.deadCodeOnCatchSubtype,
           [currentType, type],
         );
         _done = true;

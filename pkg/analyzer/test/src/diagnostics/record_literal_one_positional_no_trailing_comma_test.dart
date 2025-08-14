@@ -23,7 +23,7 @@ void f((int,) i) {
   f((''));
 }
 ''',
-      [error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 24, 2)],
+      [error(CompileTimeErrorCode.argumentTypeNotAssignable, 24, 2)],
     );
   }
 
@@ -34,7 +34,7 @@ void f((int,) i) {
   f(1);
 }
 ''',
-      [error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 23, 1)],
+      [error(CompileTimeErrorCode.argumentTypeNotAssignable, 23, 1)],
     );
   }
 
@@ -47,7 +47,7 @@ void f((int,) i) {
 ''',
       [
         error(
-          CompileTimeErrorCode.RECORD_LITERAL_ONE_POSITIONAL_NO_TRAILING_COMMA,
+          CompileTimeErrorCode.recordLiteralOnePositionalNoTrailingComma,
           23,
           3,
         ),
@@ -70,7 +70,7 @@ void f((int,) r) {
   r = ('');
 }
 ''',
-      [error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 25, 4)],
+      [error(CompileTimeErrorCode.invalidAssignment, 25, 4)],
     );
   }
 
@@ -81,7 +81,7 @@ void f((int,) r) {
   r = 1;
 }
 ''',
-      [error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 25, 1)],
+      [error(CompileTimeErrorCode.invalidAssignment, 25, 1)],
     );
   }
 
@@ -94,7 +94,7 @@ void f((int,) r) {
 ''',
       [
         error(
-          CompileTimeErrorCode.RECORD_LITERAL_ONE_POSITIONAL_NO_TRAILING_COMMA,
+          CompileTimeErrorCode.recordLiteralOnePositionalNoTrailingComma,
           25,
           3,
         ),
@@ -117,7 +117,7 @@ void f((int,) r) {
 ''',
       [
         error(
-          CompileTimeErrorCode.RECORD_LITERAL_ONE_POSITIONAL_NO_TRAILING_COMMA,
+          CompileTimeErrorCode.recordLiteralOnePositionalNoTrailingComma,
           11,
           3,
         ),
@@ -130,7 +130,7 @@ void f((int,) r) {
       '''
 (int,) r = ('');
 ''',
-      [error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 12, 2)],
+      [error(CompileTimeErrorCode.invalidAssignment, 12, 2)],
     );
   }
 
@@ -147,7 +147,7 @@ void f((int,) r) {
   return 1;
 }
 ''',
-      [error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION, 22, 1)],
+      [error(CompileTimeErrorCode.returnOfInvalidTypeFromFunction, 22, 1)],
     );
   }
 
@@ -160,7 +160,7 @@ void f((int,) r) {
 ''',
       [
         error(
-          CompileTimeErrorCode.RECORD_LITERAL_ONE_POSITIONAL_NO_TRAILING_COMMA,
+          CompileTimeErrorCode.recordLiteralOnePositionalNoTrailingComma,
           22,
           3,
         ),
@@ -173,7 +173,7 @@ void f((int,) r) {
       '''
 (int,) f() => ('');
 ''',
-      [error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION, 14, 4)],
+      [error(CompileTimeErrorCode.returnOfInvalidTypeFromFunction, 14, 4)],
     );
   }
 
@@ -182,7 +182,7 @@ void f((int,) r) {
       '''
 (int,) f() => 1;
 ''',
-      [error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION, 14, 1)],
+      [error(CompileTimeErrorCode.returnOfInvalidTypeFromFunction, 14, 1)],
     );
   }
 
@@ -193,7 +193,7 @@ void f((int,) r) {
 ''',
       [
         error(
-          CompileTimeErrorCode.RECORD_LITERAL_ONE_POSITIONAL_NO_TRAILING_COMMA,
+          CompileTimeErrorCode.recordLiteralOnePositionalNoTrailingComma,
           14,
           3,
         ),
@@ -206,7 +206,7 @@ void f((int,) r) {
       '''
 (int,) f() { return (''); }
 ''',
-      [error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION, 20, 4)],
+      [error(CompileTimeErrorCode.returnOfInvalidTypeFromFunction, 20, 4)],
     );
   }
 

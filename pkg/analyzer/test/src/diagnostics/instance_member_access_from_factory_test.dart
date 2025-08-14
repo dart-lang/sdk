@@ -27,7 +27,7 @@ class A {
   }
 }
 ''',
-      [error(CompileTimeErrorCode.INSTANCE_MEMBER_ACCESS_FROM_FACTORY, 56, 3)],
+      [error(CompileTimeErrorCode.instanceMemberAccessFromFactory, 56, 3)],
     );
   }
 
@@ -46,7 +46,7 @@ class A {
   }
 }
 ''',
-      [error(CompileTimeErrorCode.INSTANCE_MEMBER_ACCESS_FROM_FACTORY, 73, 3)],
+      [error(CompileTimeErrorCode.instanceMemberAccessFromFactory, 73, 3)],
     );
   }
 
@@ -62,7 +62,7 @@ class A {
   }
 }
 ''',
-      [error(CompileTimeErrorCode.INSTANCE_MEMBER_ACCESS_FROM_FACTORY, 52, 3)],
+      [error(CompileTimeErrorCode.instanceMemberAccessFromFactory, 52, 3)],
     );
   }
 
@@ -78,7 +78,7 @@ class A {
   }
 }
 ''',
-      [error(CompileTimeErrorCode.INSTANCE_MEMBER_ACCESS_FROM_FACTORY, 58, 3)],
+      [error(CompileTimeErrorCode.instanceMemberAccessFromFactory, 58, 3)],
     );
   }
 
@@ -95,7 +95,7 @@ class A {
   }
 }
 ''',
-      [error(CompileTimeErrorCode.INSTANCE_MEMBER_ACCESS_FROM_FACTORY, 102, 3)],
+      [error(CompileTimeErrorCode.instanceMemberAccessFromFactory, 102, 3)],
     );
   }
 
@@ -111,7 +111,7 @@ class A {
   }
 }
 ''',
-      [error(CompileTimeErrorCode.INSTANCE_MEMBER_ACCESS_FROM_FACTORY, 47, 3)],
+      [error(CompileTimeErrorCode.instanceMemberAccessFromFactory, 47, 3)],
     );
   }
 }

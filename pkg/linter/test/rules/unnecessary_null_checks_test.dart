@@ -25,7 +25,7 @@ Future<void> f(int? p, int? i, Future<int?> future) async {
 }
 ''',
       [
-        error(StaticWarningCode.UNNECESSARY_NON_NULL_ASSERTION, 78, 1),
+        error(StaticWarningCode.unnecessaryNonNullAssertion, 78, 1),
         lint(78, 1),
       ],
     );
@@ -377,7 +377,7 @@ f6(int? p) {
 ''',
       [
         // No lint
-        error(CompileTimeErrorCode.UNDEFINED_FUNCTION, 22, 1),
+        error(CompileTimeErrorCode.undefinedFunction, 22, 1),
       ],
     );
   }

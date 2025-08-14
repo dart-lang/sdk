@@ -85,7 +85,7 @@ class ForResolver {
     );
     _resolver.popRewrite();
     _resolver.nullableDereferenceVerifier.expression(
-      CompileTimeErrorCode.UNCHECKED_USE_OF_NULLABLE_VALUE_AS_ITERATOR,
+      CompileTimeErrorCode.uncheckedUseOfNullableValueAsIterator,
       forLoopParts.iterable,
     );
   }
@@ -177,7 +177,7 @@ class ForResolver {
     iterable = _resolver.popRewrite()!;
 
     _resolver.nullableDereferenceVerifier.expression(
-      CompileTimeErrorCode.UNCHECKED_USE_OF_NULLABLE_VALUE_AS_ITERATOR,
+      CompileTimeErrorCode.uncheckedUseOfNullableValueAsIterator,
       iterable,
     );
 

@@ -201,7 +201,7 @@ int Function() foo() {
   return B().a; // ref
 }
 ''',
-      [error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION, 85, 5)],
+      [error(CompileTimeErrorCode.returnOfInvalidTypeFromFunction, 85, 5)],
     );
 
     var identifier = findNode.simple('a; // ref');
@@ -335,7 +335,7 @@ class A {
   }
 }
 ''',
-      [error(CompileTimeErrorCode.UNDEFINED_SUPER_GETTER, 54, 3)],
+      [error(CompileTimeErrorCode.undefinedSuperGetter, 54, 3)],
     );
 
     var node = findNode.propertyAccess('foo;');
@@ -428,7 +428,7 @@ class B extends A {
   }
 }
 ''',
-      [error(CompileTimeErrorCode.UNDEFINED_SUPER_GETTER, 97, 3)],
+      [error(CompileTimeErrorCode.undefinedSuperGetter, 97, 3)],
     );
 
     var node = findNode.propertyAccess('foo;');
@@ -1749,7 +1749,7 @@ void f(A a) {
   (a).foo;
 }
 ''',
-      [error(CompileTimeErrorCode.UNDEFINED_GETTER, 49, 3)],
+      [error(CompileTimeErrorCode.undefinedGetter, 49, 3)],
     );
 
     var node = findNode.singlePropertyAccess;
@@ -2154,7 +2154,7 @@ void f((int, String) r) {
   r.$3;
 }
 ''',
-      [error(CompileTimeErrorCode.UNDEFINED_GETTER, 30, 2)],
+      [error(CompileTimeErrorCode.undefinedGetter, 30, 2)],
     );
 
     var node = findNode.propertyAccess(r'$3;');
@@ -2180,7 +2180,7 @@ void f((int, String) r) {
   r.$0a;
 }
 ''',
-      [error(CompileTimeErrorCode.UNDEFINED_GETTER, 30, 3)],
+      [error(CompileTimeErrorCode.undefinedGetter, 30, 3)],
     );
 
     var node = findNode.propertyAccess(r'$0a;');
@@ -2206,7 +2206,7 @@ void f((int, String) r) {
   r.$zero;
 }
 ''',
-      [error(CompileTimeErrorCode.UNDEFINED_GETTER, 30, 5)],
+      [error(CompileTimeErrorCode.undefinedGetter, 30, 5)],
     );
 
     var node = findNode.propertyAccess(r'$zero;');
@@ -2261,7 +2261,7 @@ void f((int, String) r) {
   r.a$0;
 }
 ''',
-      [error(CompileTimeErrorCode.UNDEFINED_GETTER, 30, 3)],
+      [error(CompileTimeErrorCode.undefinedGetter, 30, 3)],
     );
 
     var node = findNode.propertyAccess(r'a$0;');
@@ -2310,7 +2310,7 @@ void f(({int foo}) r) {
   r.bar;
 }
 ''',
-      [error(CompileTimeErrorCode.UNDEFINED_GETTER, 28, 3)],
+      [error(CompileTimeErrorCode.undefinedGetter, 28, 3)],
     );
 
     var node = findNode.propertyAccess('bar;');
@@ -2338,7 +2338,7 @@ void f((int foo, String) r) {
   r.foo;
 }
 ''',
-      [error(CompileTimeErrorCode.UNDEFINED_GETTER, 34, 3)],
+      [error(CompileTimeErrorCode.undefinedGetter, 34, 3)],
     );
 
     var node = findNode.propertyAccess('foo;');
@@ -2584,7 +2584,7 @@ class C<T> {
 ''',
       [
         error(
-          CompileTimeErrorCode.UNCHECKED_PROPERTY_ACCESS_OF_NULLABLE_VALUE,
+          CompileTimeErrorCode.uncheckedPropertyAccessOfNullableValue,
           37,
           3,
         ),
@@ -2638,7 +2638,7 @@ void f() {
   (a).foo;
 }
 ''',
-      [error(CompileTimeErrorCode.UNDEFINED_IDENTIFIER, 14, 1)],
+      [error(CompileTimeErrorCode.undefinedIdentifier, 14, 1)],
     );
 
     var node = findNode.singlePropertyAccess;

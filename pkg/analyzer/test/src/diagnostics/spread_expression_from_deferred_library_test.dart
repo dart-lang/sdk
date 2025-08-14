@@ -27,13 +27,7 @@ import 'lib1.dart' deferred as a;
 f() {
   return const [...a.c];
 }''',
-      [
-        error(
-          CompileTimeErrorCode.SPREAD_EXPRESSION_FROM_DEFERRED_LIBRARY,
-          61,
-          1,
-        ),
-      ],
+      [error(CompileTimeErrorCode.spreadExpressionFromDeferredLibrary, 61, 1)],
     );
   }
 
@@ -66,13 +60,7 @@ import 'lib1.dart' deferred as a;
 f() {
   return const {...a.c};
 }''',
-      [
-        error(
-          CompileTimeErrorCode.SPREAD_EXPRESSION_FROM_DEFERRED_LIBRARY,
-          61,
-          1,
-        ),
-      ],
+      [error(CompileTimeErrorCode.spreadExpressionFromDeferredLibrary, 61, 1)],
     );
   }
 
@@ -105,13 +93,7 @@ import 'lib1.dart' deferred as a;
 f() {
   return const {...a.c};
 }''',
-      [
-        error(
-          CompileTimeErrorCode.SPREAD_EXPRESSION_FROM_DEFERRED_LIBRARY,
-          61,
-          1,
-        ),
-      ],
+      [error(CompileTimeErrorCode.spreadExpressionFromDeferredLibrary, 61, 1)],
     );
   }
 

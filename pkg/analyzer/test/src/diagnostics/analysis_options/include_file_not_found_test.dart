@@ -20,7 +20,7 @@ class IncludeFileNotFoundTest extends AbstractAnalysisOptionsTest {
       '''
 include: "./analysis_options.yaml"
 ''',
-      [error(AnalysisOptionsWarningCode.RECURSIVE_INCLUDE_FILE, 9, 25)],
+      [error(AnalysisOptionsWarningCode.recursiveIncludeFile, 9, 25)],
     );
   }
 
@@ -29,7 +29,7 @@ include: "./analysis_options.yaml"
       '''
 include: ./analysis_options.yaml
 ''',
-      [error(AnalysisOptionsWarningCode.RECURSIVE_INCLUDE_FILE, 9, 23)],
+      [error(AnalysisOptionsWarningCode.recursiveIncludeFile, 9, 23)],
     );
   }
 
@@ -38,7 +38,7 @@ include: ./analysis_options.yaml
       '''
 include: './analysis_options.yaml'
 ''',
-      [error(AnalysisOptionsWarningCode.RECURSIVE_INCLUDE_FILE, 9, 25)],
+      [error(AnalysisOptionsWarningCode.recursiveIncludeFile, 9, 25)],
     );
   }
 
@@ -50,7 +50,7 @@ include: "package:pedantic/analysis_options.yaml"
 ''',
       [
         error(
-          AnalysisOptionsWarningCode.INCLUDE_FILE_NOT_FOUND,
+          AnalysisOptionsWarningCode.includeFileNotFound,
           74,
           40,
           text:
@@ -69,7 +69,7 @@ include: package:pedantic/analysis_options.yaml
 ''',
       [
         error(
-          AnalysisOptionsWarningCode.INCLUDE_FILE_NOT_FOUND,
+          AnalysisOptionsWarningCode.includeFileNotFound,
           74,
           38,
           text:
@@ -88,7 +88,7 @@ include: 'package:pedantic/analysis_options.yaml'
 ''',
       [
         error(
-          AnalysisOptionsWarningCode.INCLUDE_FILE_NOT_FOUND,
+          AnalysisOptionsWarningCode.includeFileNotFound,
           74,
           40,
           text:

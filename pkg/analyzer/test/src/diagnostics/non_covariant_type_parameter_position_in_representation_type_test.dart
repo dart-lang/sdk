@@ -26,7 +26,7 @@ extension type A<T>(void Function(T) it) {}
       [
         error(
           CompileTimeErrorCode
-              .NON_COVARIANT_TYPE_PARAMETER_POSITION_IN_REPRESENTATION_TYPE,
+              .nonCovariantTypeParameterPositionInRepresentationType,
           17,
           1,
         ),
@@ -48,7 +48,7 @@ extension type A<T>(T Function(T) it) {}
       [
         error(
           CompileTimeErrorCode
-              .NON_COVARIANT_TYPE_PARAMETER_POSITION_IN_REPRESENTATION_TYPE,
+              .nonCovariantTypeParameterPositionInRepresentationType,
           17,
           1,
         ),

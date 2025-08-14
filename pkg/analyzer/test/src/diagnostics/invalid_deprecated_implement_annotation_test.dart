@@ -29,7 +29,7 @@ class C {}
 @Deprecated.implement()
 base class C {}
 ''',
-      [error(WarningCode.INVALID_DEPRECATED_IMPLEMENT_ANNOTATION, 1, 20)],
+      [error(WarningCode.invalidDeprecatedImplementAnnotation, 1, 20)],
     );
   }
 
@@ -39,7 +39,7 @@ base class C {}
 @Deprecated.implement()
 final class C {}
 ''',
-      [error(WarningCode.INVALID_DEPRECATED_IMPLEMENT_ANNOTATION, 1, 20)],
+      [error(WarningCode.invalidDeprecatedImplementAnnotation, 1, 20)],
     );
   }
 
@@ -49,7 +49,7 @@ final class C {}
 @Deprecated.implement()
 sealed class C {}
 ''',
-      [error(WarningCode.INVALID_DEPRECATED_IMPLEMENT_ANNOTATION, 1, 20)],
+      [error(WarningCode.invalidDeprecatedImplementAnnotation, 1, 20)],
     );
   }
 
@@ -67,7 +67,7 @@ class C = Object with M;
 @Deprecated.implement()
 void f() {}
 ''',
-      [error(WarningCode.INVALID_DEPRECATED_IMPLEMENT_ANNOTATION, 1, 20)],
+      [error(WarningCode.invalidDeprecatedImplementAnnotation, 1, 20)],
     );
   }
 
@@ -84,7 +84,7 @@ mixin M {}
 @Deprecated.implement()
 base mixin M {}
 ''',
-      [error(WarningCode.INVALID_DEPRECATED_IMPLEMENT_ANNOTATION, 1, 20)],
+      [error(WarningCode.invalidDeprecatedImplementAnnotation, 1, 20)],
     );
   }
 
@@ -103,7 +103,7 @@ enum E { one; }
 @Deprecated.implement()
 typedef F = E;
 ''',
-      [error(WarningCode.INVALID_DEPRECATED_IMPLEMENT_ANNOTATION, 17, 20)],
+      [error(WarningCode.invalidDeprecatedImplementAnnotation, 17, 20)],
     );
   }
 }

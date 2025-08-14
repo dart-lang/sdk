@@ -26,7 +26,7 @@ void g() {
   const [f as void Function<T>(T, [int])];
 }
 ''',
-      [error(CompileTimeErrorCode.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE, 38, 31)],
+      [error(CompileTimeErrorCode.listElementTypeNotAssignable, 38, 31)],
     );
   }
 
@@ -39,7 +39,7 @@ class A<T> {
 ''',
       [
         error(
-          CompileTimeErrorCode.CONST_WITH_TYPE_PARAMETERS_CONSTRUCTOR_TEAROFF,
+          CompileTimeErrorCode.constWithTypeParametersConstructorTearoff,
           34,
           1,
         ),
@@ -57,7 +57,7 @@ class A<T> {
 ''',
       [
         error(
-          CompileTimeErrorCode.CONST_WITH_TYPE_PARAMETERS_CONSTRUCTOR_TEAROFF,
+          CompileTimeErrorCode.constWithTypeParametersConstructorTearoff,
           52,
           1,
         ),
@@ -75,7 +75,7 @@ class A<T> {
       [
         // `A<dynamic> Function()` cannot be assigned to `A<T> Function()`, but
         // there should not be any other error reported here.
-        error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 44, 5),
+        error(CompileTimeErrorCode.invalidAssignment, 44, 5),
       ],
     );
   }
@@ -90,9 +90,9 @@ class A<T> {
 }
 ''',
       [
-        error(WarningCode.UNUSED_LOCAL_VARIABLE, 36, 1),
+        error(WarningCode.unusedLocalVariable, 36, 1),
         error(
-          CompileTimeErrorCode.CONST_WITH_TYPE_PARAMETERS_CONSTRUCTOR_TEAROFF,
+          CompileTimeErrorCode.constWithTypeParametersConstructorTearoff,
           42,
           1,
         ),
@@ -110,7 +110,7 @@ class A<T> {
 ''',
       [
         error(
-          CompileTimeErrorCode.CONST_WITH_TYPE_PARAMETERS_CONSTRUCTOR_TEAROFF,
+          CompileTimeErrorCode.constWithTypeParametersConstructorTearoff,
           40,
           1,
         ),
@@ -128,9 +128,9 @@ class A<T> {
 }
 ''',
       [
-        error(WarningCode.UNUSED_LOCAL_VARIABLE, 36, 1),
+        error(WarningCode.unusedLocalVariable, 36, 1),
         error(
-          CompileTimeErrorCode.CONST_WITH_TYPE_PARAMETERS_CONSTRUCTOR_TEAROFF,
+          CompileTimeErrorCode.constWithTypeParametersConstructorTearoff,
           47,
           1,
         ),
@@ -147,7 +147,7 @@ class A<T> {
   }
 }
 ''',
-      [error(CompileTimeErrorCode.CONST_WITH_TYPE_PARAMETERS, 60, 1)],
+      [error(CompileTimeErrorCode.constWithTypeParameters, 60, 1)],
     );
   }
 
@@ -177,7 +177,7 @@ class C<T> {
 ''',
       [
         error(
-          CompileTimeErrorCode.CONST_WITH_TYPE_PARAMETERS_FUNCTION_TEAROFF,
+          CompileTimeErrorCode.constWithTypeParametersFunctionTearoff,
           83,
           1,
         ),
@@ -194,7 +194,7 @@ void bar<T>([void Function(T) p = f]) {}
 ''',
       [
         error(
-          CompileTimeErrorCode.CONST_WITH_TYPE_PARAMETERS_FUNCTION_TEAROFF,
+          CompileTimeErrorCode.constWithTypeParametersFunctionTearoff,
           56,
           1,
         ),
@@ -213,7 +213,7 @@ class C<T> {
 ''',
       [
         error(
-          CompileTimeErrorCode.CONST_WITH_TYPE_PARAMETERS_FUNCTION_TEAROFF,
+          CompileTimeErrorCode.constWithTypeParametersFunctionTearoff,
           68,
           1,
         ),
@@ -230,7 +230,7 @@ void bar<T>([void Function(List<T>) p = f]) {}
 ''',
       [
         error(
-          CompileTimeErrorCode.CONST_WITH_TYPE_PARAMETERS_FUNCTION_TEAROFF,
+          CompileTimeErrorCode.constWithTypeParametersFunctionTearoff,
           62,
           1,
         ),
@@ -247,7 +247,7 @@ void bar<T>([void Function(T Function()) p = f]) {}
 ''',
       [
         error(
-          CompileTimeErrorCode.CONST_WITH_TYPE_PARAMETERS_FUNCTION_TEAROFF,
+          CompileTimeErrorCode.constWithTypeParametersFunctionTearoff,
           67,
           1,
         ),
@@ -265,7 +265,7 @@ class A<U> {
 ''',
       [
         error(
-          CompileTimeErrorCode.CONST_WITH_TYPE_PARAMETERS_FUNCTION_TEAROFF,
+          CompileTimeErrorCode.constWithTypeParametersFunctionTearoff,
           65,
           1,
         ),
@@ -284,9 +284,9 @@ class A<U> {
 }
 ''',
       [
-        error(WarningCode.UNUSED_LOCAL_VARIABLE, 54, 1),
+        error(WarningCode.unusedLocalVariable, 54, 1),
         error(
-          CompileTimeErrorCode.CONST_WITH_TYPE_PARAMETERS_FUNCTION_TEAROFF,
+          CompileTimeErrorCode.constWithTypeParametersFunctionTearoff,
           60,
           1,
         ),
@@ -305,13 +305,12 @@ class A<U> {
 ''',
       [
         error(
-          CompileTimeErrorCode
-              .CONST_CONSTRUCTOR_WITH_FIELD_INITIALIZED_BY_NON_CONST,
+          CompileTimeErrorCode.constConstructorWithFieldInitializedByNonConst,
           33,
           5,
         ),
         error(
-          CompileTimeErrorCode.CONST_WITH_TYPE_PARAMETERS_FUNCTION_TEAROFF,
+          CompileTimeErrorCode.constWithTypeParametersFunctionTearoff,
           58,
           1,
         ),
@@ -331,7 +330,7 @@ extension<U> on A<U> {
       [
         // An instance field is illegal, but we should not also report an
         // additional error for the type variable.
-        error(CompileTimeErrorCode.EXTENSION_DECLARES_INSTANCE_FIELD, 63, 1),
+        error(CompileTimeErrorCode.extensionDeclaresInstanceField, 63, 1),
       ],
     );
   }
@@ -356,9 +355,9 @@ class A<U> {
 }
 ''',
       [
-        error(WarningCode.UNUSED_LOCAL_VARIABLE, 54, 1),
+        error(WarningCode.unusedLocalVariable, 54, 1),
         error(
-          CompileTimeErrorCode.CONST_WITH_TYPE_PARAMETERS_FUNCTION_TEAROFF,
+          CompileTimeErrorCode.constWithTypeParametersFunctionTearoff,
           65,
           1,
         ),
@@ -390,7 +389,7 @@ class A<T> {
   }
 }
 ''',
-      [error(CompileTimeErrorCode.CONST_WITH_TYPE_PARAMETERS, 51, 1)],
+      [error(CompileTimeErrorCode.constWithTypeParameters, 51, 1)],
     );
   }
 
@@ -404,7 +403,7 @@ class A<T> {
   }
 }
 ''',
-      [error(CompileTimeErrorCode.CONST_WITH_TYPE_PARAMETERS, 56, 1)],
+      [error(CompileTimeErrorCode.constWithTypeParameters, 56, 1)],
     );
   }
 
@@ -418,7 +417,7 @@ class A<T> {
   }
 }
 ''',
-      [error(CompileTimeErrorCode.CONST_WITH_TYPE_PARAMETERS, 51, 1)],
+      [error(CompileTimeErrorCode.constWithTypeParameters, 51, 1)],
     );
   }
 
@@ -432,7 +431,7 @@ class A<T> {
   }
 }
 ''',
-      [error(CompileTimeErrorCode.CONST_WITH_TYPE_PARAMETERS, 65, 1)],
+      [error(CompileTimeErrorCode.constWithTypeParameters, 65, 1)],
     );
   }
 
@@ -490,7 +489,7 @@ class A<T> {
   }
 }
 ''',
-      [error(CompileTimeErrorCode.CONST_WITH_TYPE_PARAMETERS, 75, 1)],
+      [error(CompileTimeErrorCode.constWithTypeParameters, 75, 1)],
     );
   }
 

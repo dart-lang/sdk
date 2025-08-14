@@ -32,7 +32,7 @@ f(String p, String q) {
   }
 }
 ''');
-    await assertNoFixAllFix(CompileTimeErrorCode.NON_BOOL_CONDITION);
+    await assertNoFixAllFix(CompileTimeErrorCode.nonBoolCondition);
   }
 
   Future<void> test_nonBoolCondition_all_nullable() async {
@@ -46,7 +46,7 @@ f(String? p, String? q) {
   }
 }
 ''');
-    await assertHasFixAllFix(CompileTimeErrorCode.NON_BOOL_CONDITION, '''
+    await assertHasFixAllFix(CompileTimeErrorCode.nonBoolCondition, '''
 f(String? p, String? q) {
   if (p != null) {
     print(p);

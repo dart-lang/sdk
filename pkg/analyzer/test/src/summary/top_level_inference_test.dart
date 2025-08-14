@@ -99,8 +99,8 @@ var a = b;
 var b = a;
 ''',
       [
-        error(CompileTimeErrorCode.TOP_LEVEL_CYCLE, 4, 1),
-        error(CompileTimeErrorCode.TOP_LEVEL_CYCLE, 15, 1),
+        error(CompileTimeErrorCode.topLevelCycle, 4, 1),
+        error(CompileTimeErrorCode.topLevelCycle, 15, 1),
       ],
     );
   }
@@ -314,13 +314,13 @@ class C implements A, B {
 ''',
       [
         error(
-          CompileTimeErrorCode.INVALID_OVERRIDE,
+          CompileTimeErrorCode.invalidOverride,
           109,
           3,
           contextMessages: [message(testFile, 64, 3)],
         ),
         error(
-          CompileTimeErrorCode.INVALID_OVERRIDE,
+          CompileTimeErrorCode.invalidOverride,
           109,
           3,
           contextMessages: [message(testFile, 25, 3)],
@@ -342,7 +342,7 @@ class C implements A, B {
   void mmm(a) {}
 }
 ''',
-      [error(CompileTimeErrorCode.NO_COMBINED_SUPER_SIGNATURE, 116, 3)],
+      [error(CompileTimeErrorCode.noCombinedSuperSignature, 116, 3)],
     );
   }
 

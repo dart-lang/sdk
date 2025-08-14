@@ -77,7 +77,7 @@ Widget privateThemeData() => Text('Foo');
 ''',
       [
         error(
-          WarningCode.INVALID_WIDGET_PREVIEW_PRIVATE_ARGUMENT,
+          WarningCode.invalidWidgetPreviewPrivateArgument,
           388,
           18,
           correctionContains: correctionMessageBuilder(
@@ -86,7 +86,7 @@ Widget privateThemeData() => Text('Foo');
           ),
         ),
         error(
-          WarningCode.INVALID_WIDGET_PREVIEW_PRIVATE_ARGUMENT,
+          WarningCode.invalidWidgetPreviewPrivateArgument,
           455,
           21,
           correctionContains: correctionMessageBuilder(
@@ -95,7 +95,7 @@ Widget privateThemeData() => Text('Foo');
           ),
         ),
         error(
-          WarningCode.INVALID_WIDGET_PREVIEW_PRIVATE_ARGUMENT,
+          WarningCode.invalidWidgetPreviewPrivateArgument,
           537,
           24,
           correctionContains: correctionMessageBuilder(
@@ -104,7 +104,7 @@ Widget privateThemeData() => Text('Foo');
           ),
         ),
         error(
-          WarningCode.INVALID_WIDGET_PREVIEW_PRIVATE_ARGUMENT,
+          WarningCode.invalidWidgetPreviewPrivateArgument,
           615,
           20,
           correctionContains: correctionMessageBuilder(
@@ -113,7 +113,7 @@ Widget privateThemeData() => Text('Foo');
           ),
         ),
         error(
-          WarningCode.INVALID_WIDGET_PREVIEW_PRIVATE_ARGUMENT,
+          WarningCode.invalidWidgetPreviewPrivateArgument,
           645,
           22,
           correctionContains: correctionMessageBuilder(
@@ -122,7 +122,7 @@ Widget privateThemeData() => Text('Foo');
           ),
         ),
         error(
-          WarningCode.INVALID_WIDGET_PREVIEW_PRIVATE_ARGUMENT,
+          WarningCode.invalidWidgetPreviewPrivateArgument,
           677,
           33,
           correctionContains: correctionMessageBuilder(
@@ -131,7 +131,7 @@ Widget privateThemeData() => Text('Foo');
           ),
         ),
         error(
-          WarningCode.INVALID_WIDGET_PREVIEW_PRIVATE_ARGUMENT,
+          WarningCode.invalidWidgetPreviewPrivateArgument,
           762,
           25,
           correctionContains: correctionMessageBuilder(
@@ -140,7 +140,7 @@ Widget privateThemeData() => Text('Foo');
           ),
         ),
         error(
-          WarningCode.INVALID_WIDGET_PREVIEW_PRIVATE_ARGUMENT,
+          WarningCode.invalidWidgetPreviewPrivateArgument,
           859,
           24,
           correctionContains: correctionMessageBuilder(
@@ -149,7 +149,7 @@ Widget privateThemeData() => Text('Foo');
           ),
         ),
         error(
-          WarningCode.INVALID_WIDGET_PREVIEW_PRIVATE_ARGUMENT,
+          WarningCode.invalidWidgetPreviewPrivateArgument,
           935,
           20,
           correctionContains: correctionMessageBuilder(

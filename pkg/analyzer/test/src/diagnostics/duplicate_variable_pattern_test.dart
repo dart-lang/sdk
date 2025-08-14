@@ -26,7 +26,7 @@ void f(int x) {
 ''',
       [
         error(
-          CompileTimeErrorCode.DUPLICATE_VARIABLE_PATTERN,
+          CompileTimeErrorCode.duplicateVariablePattern,
           42,
           1,
           contextMessages: [message(testFile, 33, 1)],
@@ -88,7 +88,7 @@ void f(int x) {
 ''',
       [
         error(
-          CompileTimeErrorCode.DUPLICATE_VARIABLE_PATTERN,
+          CompileTimeErrorCode.duplicateVariablePattern,
           53,
           1,
           contextMessages: [message(testFile, 44, 1)],
@@ -138,7 +138,7 @@ void f() {
 ''',
       [
         error(
-          CompileTimeErrorCode.DUPLICATE_VARIABLE_PATTERN,
+          CompileTimeErrorCode.duplicateVariablePattern,
           21,
           1,
           contextMessages: [message(testFile, 18, 1)],

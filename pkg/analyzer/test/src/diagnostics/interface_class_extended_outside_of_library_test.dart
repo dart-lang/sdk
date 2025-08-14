@@ -35,7 +35,7 @@ class Bar extends Foo {}
 ''',
       [
         error(
-          CompileTimeErrorCode.INTERFACE_CLASS_EXTENDED_OUTSIDE_OF_LIBRARY,
+          CompileTimeErrorCode.interfaceClassExtendedOutsideOfLibrary,
           37,
           3,
         ),
@@ -56,7 +56,7 @@ class Bar extends FooTypedef {}
 ''',
       [
         error(
-          CompileTimeErrorCode.INTERFACE_CLASS_EXTENDED_OUTSIDE_OF_LIBRARY,
+          CompileTimeErrorCode.interfaceClassExtendedOutsideOfLibrary,
           37,
           10,
         ),
@@ -77,7 +77,7 @@ class Bar extends FooTypedef {}
 ''',
       [
         error(
-          CompileTimeErrorCode.INTERFACE_CLASS_EXTENDED_OUTSIDE_OF_LIBRARY,
+          CompileTimeErrorCode.interfaceClassExtendedOutsideOfLibrary,
           63,
           10,
         ),

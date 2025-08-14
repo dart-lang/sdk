@@ -197,7 +197,7 @@ main() {
   dynamic;
 }
 ''',
-      [error(CompileTimeErrorCode.UNDEFINED_IDENTIFIER, 42, 7)],
+      [error(CompileTimeErrorCode.undefinedIdentifier, 42, 7)],
     );
 
     var node = findNode.simple('dynamic;');
@@ -273,7 +273,7 @@ class C {
   }
 }
 ''',
-      [error(CompileTimeErrorCode.RETURN_IN_GENERATIVE_CONSTRUCTOR, 43, 1)],
+      [error(CompileTimeErrorCode.returnInGenerativeConstructor, 43, 1)],
     );
 
     var node = findNode.simple('a;');
@@ -295,12 +295,8 @@ class C {
 }
 ''',
       [
-        error(CompileTimeErrorCode.RETURN_IN_GENERATIVE_CONSTRUCTOR, 30, 5),
-        error(
-          CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_CONSTRUCTOR,
-          33,
-          1,
-        ),
+        error(CompileTimeErrorCode.returnInGenerativeConstructor, 30, 5),
+        error(CompileTimeErrorCode.returnOfInvalidTypeFromConstructor, 33, 1),
       ],
     );
 
@@ -365,7 +361,7 @@ int Function() foo(A? a) {
   return a;
 }
 ''',
-      [error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION, 68, 1)],
+      [error(CompileTimeErrorCode.returnOfInvalidTypeFromFunction, 68, 1)],
     );
 
     var identifier = findNode.simple('a;');
@@ -552,7 +548,7 @@ extension E on ({int foo}) {
   }
 }
 ''',
-      [error(CompileTimeErrorCode.UNDEFINED_IDENTIFIER, 46, 3)],
+      [error(CompileTimeErrorCode.undefinedIdentifier, 46, 3)],
     );
 
     var node = findNode.simple('bar;');
@@ -629,7 +625,7 @@ extension E on (int, String) {
   }
 }
 ''',
-      [error(CompileTimeErrorCode.UNDEFINED_IDENTIFIER, 48, 2)],
+      [error(CompileTimeErrorCode.undefinedIdentifier, 48, 2)],
     );
 
     var node = findNode.simple(r'$3;');

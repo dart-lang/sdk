@@ -44,7 +44,7 @@ class B extends A {
       [
         error(
           CompileTimeErrorCode
-              .POSITIONAL_SUPER_FORMAL_PARAMETER_WITH_POSITIONAL_ARGUMENT,
+              .positionalSuperFormalParameterWithPositionalArgument,
           62,
           1,
         ),

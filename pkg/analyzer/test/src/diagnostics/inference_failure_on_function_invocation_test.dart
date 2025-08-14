@@ -35,7 +35,7 @@ void f(void Function<T>() m) {
   m();
 }
 ''',
-      [error(WarningCode.INFERENCE_FAILURE_ON_FUNCTION_INVOCATION, 33, 1)],
+      [error(WarningCode.inferenceFailureOnFunctionInvocation, 33, 1)],
     );
   }
 
@@ -102,7 +102,7 @@ void f(C c) {
   c.m();
 }
 ''',
-      [error(WarningCode.INFERENCE_FAILURE_ON_FUNCTION_INVOCATION, 55, 1)],
+      [error(WarningCode.inferenceFailureOnFunctionInvocation, 55, 1)],
     );
   }
 
@@ -143,7 +143,7 @@ void f() {
   C.m();
 }
 ''',
-      [error(WarningCode.INFERENCE_FAILURE_ON_FUNCTION_INVOCATION, 52, 1)],
+      [error(WarningCode.inferenceFailureOnFunctionInvocation, 52, 1)],
     );
   }
 
@@ -155,7 +155,7 @@ void g(Fn fn) {
   fn();
 }
 ''',
-      [error(WarningCode.INFERENCE_FAILURE_ON_FUNCTION_INVOCATION, 51, 2)],
+      [error(WarningCode.inferenceFailureOnFunctionInvocation, 51, 2)],
     );
   }
 
@@ -178,7 +178,7 @@ void f() {
   g();
 }
 ''',
-      [error(WarningCode.INFERENCE_FAILURE_ON_FUNCTION_INVOCATION, 30, 1)],
+      [error(WarningCode.inferenceFailureOnFunctionInvocation, 30, 1)],
     );
   }
 
@@ -190,7 +190,7 @@ void f() {
   m();
 }
 ''',
-      [error(WarningCode.INFERENCE_FAILURE_ON_FUNCTION_INVOCATION, 33, 1)],
+      [error(WarningCode.inferenceFailureOnFunctionInvocation, 33, 1)],
     );
   }
 
@@ -215,7 +215,7 @@ void g() {
   f();
 }
 ''',
-      [error(WarningCode.INFERENCE_FAILURE_ON_FUNCTION_INVOCATION, 29, 1)],
+      [error(WarningCode.inferenceFailureOnFunctionInvocation, 29, 1)],
     );
   }
 
@@ -230,7 +230,7 @@ void g() {
   a.f();
 }
 ''',
-      [error(WarningCode.INFERENCE_FAILURE_ON_FUNCTION_INVOCATION, 37, 1)],
+      [error(WarningCode.inferenceFailureOnFunctionInvocation, 37, 1)],
     );
   }
 

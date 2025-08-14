@@ -21,13 +21,7 @@ class BuiltInIdentifierAsExtensionTypeNameTest
       r'''
 extension type as(int it) {}
 ''',
-      [
-        error(
-          CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_EXTENSION_TYPE_NAME,
-          15,
-          2,
-        ),
-      ],
+      [error(CompileTimeErrorCode.builtInIdentifierAsExtensionTypeName, 15, 2)],
     );
   }
 
@@ -36,13 +30,7 @@ extension type as(int it) {}
       r'''
 extension type Function(int it) {}
 ''',
-      [
-        error(
-          CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_EXTENSION_TYPE_NAME,
-          15,
-          8,
-        ),
-      ],
+      [error(CompileTimeErrorCode.builtInIdentifierAsExtensionTypeName, 15, 8)],
     );
   }
 }

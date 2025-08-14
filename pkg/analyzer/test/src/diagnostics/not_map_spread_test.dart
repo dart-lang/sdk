@@ -53,7 +53,7 @@ void f<T extends Map<int, String>?>(T a) {
 var a = 0;
 var v = <int, int>{...a};
 ''',
-      [error(CompileTimeErrorCode.NOT_MAP_SPREAD, 33, 1)],
+      [error(CompileTimeErrorCode.notMapSpread, 33, 1)],
     );
   }
 
@@ -64,8 +64,8 @@ var a = 0;
 var v = <int, int>{for (var i in []) ...a};
 ''',
       [
-        error(WarningCode.UNUSED_LOCAL_VARIABLE, 39, 1),
-        error(CompileTimeErrorCode.NOT_MAP_SPREAD, 51, 1),
+        error(WarningCode.unusedLocalVariable, 39, 1),
+        error(CompileTimeErrorCode.notMapSpread, 51, 1),
       ],
     );
   }
@@ -76,7 +76,7 @@ var v = <int, int>{for (var i in []) ...a};
 var a = 0;
 var v = <int, int>{if (1 > 0) ...<int, int>{} else ...a};
 ''',
-      [error(CompileTimeErrorCode.NOT_MAP_SPREAD, 65, 1)],
+      [error(CompileTimeErrorCode.notMapSpread, 65, 1)],
     );
   }
 
@@ -86,7 +86,7 @@ var v = <int, int>{if (1 > 0) ...<int, int>{} else ...a};
 var a = 0;
 var v = <int, int>{if (1 > 0) ...a};
 ''',
-      [error(CompileTimeErrorCode.NOT_MAP_SPREAD, 44, 1)],
+      [error(CompileTimeErrorCode.notMapSpread, 44, 1)],
     );
   }
 
@@ -98,7 +98,7 @@ void f<T extends num>(T a) {
   v;
 }
 ''',
-      [error(CompileTimeErrorCode.NOT_MAP_SPREAD, 53, 1)],
+      [error(CompileTimeErrorCode.notMapSpread, 53, 1)],
     );
   }
 }
@@ -113,7 +113,7 @@ void f(dynamic a) {
   <int, String>{...a};
 }
 ''',
-      [error(CompileTimeErrorCode.NOT_MAP_SPREAD, 39, 1)],
+      [error(CompileTimeErrorCode.notMapSpread, 39, 1)],
     );
   }
 }

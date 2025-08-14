@@ -25,7 +25,7 @@ extension type E(int it) {
 ''',
       [
         error(
-          CompileTimeErrorCode.EXTENSION_TYPE_CONSTRUCTOR_WITH_SUPER_INVOCATION,
+          CompileTimeErrorCode.extensionTypeConstructorWithSuperInvocation,
           49,
           5,
         ),
@@ -56,9 +56,9 @@ extension type const E._(int it) {
 }
 ''',
       [
-        error(CompileTimeErrorCode.FINAL_NOT_INITIALIZED_CONSTRUCTOR_1, 43, 1),
+        error(CompileTimeErrorCode.finalNotInitializedConstructor1, 43, 1),
         error(
-          CompileTimeErrorCode.EXTENSION_TYPE_CONSTRUCTOR_WITH_SUPER_INVOCATION,
+          CompileTimeErrorCode.extensionTypeConstructorWithSuperInvocation,
           55,
           5,
         ),
@@ -75,7 +75,7 @@ extension type E(int it) {
 ''',
       [
         error(
-          CompileTimeErrorCode.EXTENSION_TYPE_CONSTRUCTOR_WITH_SUPER_INVOCATION,
+          CompileTimeErrorCode.extensionTypeConstructorWithSuperInvocation,
           49,
           5,
         ),

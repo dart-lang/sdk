@@ -30,13 +30,7 @@ extension E2 on A {
 
 int f(A a) => a();
 ''',
-      [
-        error(
-          CompileTimeErrorCode.AMBIGUOUS_EXTENSION_MEMBER_ACCESS_TWO,
-          110,
-          1,
-        ),
-      ],
+      [error(CompileTimeErrorCode.ambiguousExtensionMemberAccessTwo, 110, 1)],
     );
   }
 
@@ -55,13 +49,7 @@ f() {
   0.a;
 }
 ''',
-      [
-        error(
-          CompileTimeErrorCode.AMBIGUOUS_EXTENSION_MEMBER_ACCESS_TWO,
-          98,
-          1,
-        ),
-      ],
+      [error(CompileTimeErrorCode.ambiguousExtensionMemberAccessTwo, 98, 1)],
     );
 
     var node = findNode.propertyAccess('0.a');
@@ -124,13 +112,7 @@ f() {
   0.a;
 }
 ''',
-      [
-        error(
-          CompileTimeErrorCode.AMBIGUOUS_EXTENSION_MEMBER_ACCESS_TWO,
-          91,
-          1,
-        ),
-      ],
+      [error(CompileTimeErrorCode.ambiguousExtensionMemberAccessTwo, 91, 1)],
     );
 
     var node = findNode.propertyAccess('0.a');
@@ -163,13 +145,7 @@ f() {
   0.a;
 }
 ''',
-      [
-        error(
-          CompileTimeErrorCode.AMBIGUOUS_EXTENSION_MEMBER_ACCESS_TWO,
-          96,
-          1,
-        ),
-      ],
+      [error(CompileTimeErrorCode.ambiguousExtensionMemberAccessTwo, 96, 1)],
     );
 
     var node = findNode.propertyAccess('0.a');
@@ -199,7 +175,7 @@ void f() {
 ''',
       [
         error(
-          CompileTimeErrorCode.AMBIGUOUS_EXTENSION_MEMBER_ACCESS_TWO,
+          CompileTimeErrorCode.ambiguousExtensionMemberAccessTwo,
           129,
           3,
           messageContains: [
@@ -228,7 +204,7 @@ void f() {
 ''',
       [
         error(
-          CompileTimeErrorCode.AMBIGUOUS_EXTENSION_MEMBER_ACCESS_TWO,
+          CompileTimeErrorCode.ambiguousExtensionMemberAccessTwo,
           87,
           3,
           messageContains: [
@@ -253,7 +229,7 @@ extension on Iterable<Undef2> { void foo() {} }
 ''',
       [
         error(
-          CompileTimeErrorCode.AMBIGUOUS_EXTENSION_MEMBER_ACCESS_TWO,
+          CompileTimeErrorCode.ambiguousExtensionMemberAccessTwo,
           66,
           3,
           messageContains: [
@@ -264,8 +240,8 @@ extension on Iterable<Undef2> { void foo() {} }
           ],
           contextMessages: [message(testFile, -1, 0), message(testFile, -1, 0)],
         ),
-        error(CompileTimeErrorCode.NON_TYPE_AS_TYPE_ARGUMENT, 97, 6),
-        error(CompileTimeErrorCode.NON_TYPE_AS_TYPE_ARGUMENT, 145, 6),
+        error(CompileTimeErrorCode.nonTypeAsTypeArgument, 97, 6),
+        error(CompileTimeErrorCode.nonTypeAsTypeArgument, 145, 6),
       ],
     );
   }
@@ -293,7 +269,7 @@ void f() {
 ''',
       [
         error(
-          CompileTimeErrorCode.AMBIGUOUS_EXTENSION_MEMBER_ACCESS_TWO,
+          CompileTimeErrorCode.ambiguousExtensionMemberAccessTwo,
           129,
           3,
           messageContains: [
@@ -330,13 +306,7 @@ f() {
   0.a();
 }
 ''',
-      [
-        error(
-          CompileTimeErrorCode.AMBIGUOUS_EXTENSION_MEMBER_ACCESS_TWO,
-          88,
-          1,
-        ),
-      ],
+      [error(CompileTimeErrorCode.ambiguousExtensionMemberAccessTwo, 88, 1)],
     );
 
     var node = findNode.methodInvocation('0.a()');
@@ -370,7 +340,7 @@ void f() {
 ''',
       [
         error(
-          CompileTimeErrorCode.AMBIGUOUS_EXTENSION_MEMBER_ACCESS_TWO,
+          CompileTimeErrorCode.ambiguousExtensionMemberAccessTwo,
           129,
           3,
           messageContains: [
@@ -394,7 +364,7 @@ void f() {
 ''',
       [
         error(
-          CompileTimeErrorCode.AMBIGUOUS_EXTENSION_MEMBER_ACCESS_THREE_OR_MORE,
+          CompileTimeErrorCode.ambiguousExtensionMemberAccessThreeOrMore,
           167,
           3,
           messageContains: [
@@ -438,7 +408,7 @@ void f() {
 ''',
       [
         error(
-          CompileTimeErrorCode.AMBIGUOUS_EXTENSION_MEMBER_ACCESS_THREE_OR_MORE,
+          CompileTimeErrorCode.ambiguousExtensionMemberAccessThreeOrMore,
           108,
           3,
           contextMessages: [message(one, 10, 1), message(two, 10, 1)],
@@ -469,13 +439,7 @@ f(SubTarget<num> t) {
   t.foo;
 }
 ''',
-      [
-        error(
-          CompileTimeErrorCode.AMBIGUOUS_EXTENSION_MEMBER_ACCESS_TWO,
-          396,
-          3,
-        ),
-      ],
+      [error(CompileTimeErrorCode.ambiguousExtensionMemberAccessTwo, 396, 3)],
     );
   }
 
@@ -494,13 +458,7 @@ extension E2 on A {
 
 A f(A a) => a + a;
 ''',
-      [
-        error(
-          CompileTimeErrorCode.AMBIGUOUS_EXTENSION_MEMBER_ACCESS_TWO,
-          122,
-          5,
-        ),
-      ],
+      [error(CompileTimeErrorCode.ambiguousExtensionMemberAccessTwo, 122, 5)],
     );
   }
 
@@ -521,13 +479,7 @@ void f(A a) {
   a += 0;
 }
 ''',
-      [
-        error(
-          CompileTimeErrorCode.AMBIGUOUS_EXTENSION_MEMBER_ACCESS_TWO,
-          130,
-          2,
-        ),
-      ],
+      [error(CompileTimeErrorCode.ambiguousExtensionMemberAccessTwo, 130, 2)],
     );
   }
 
@@ -546,13 +498,7 @@ extension E2 on A {
 
 int f(A a) => a[0];
 ''',
-      [
-        error(
-          CompileTimeErrorCode.AMBIGUOUS_EXTENSION_MEMBER_ACCESS_TWO,
-          134,
-          1,
-        ),
-      ],
+      [error(CompileTimeErrorCode.ambiguousExtensionMemberAccessTwo, 134, 1)],
     );
   }
 
@@ -571,13 +517,7 @@ f() {
   0[1] += 2;
 }
 ''',
-      [
-        error(
-          CompileTimeErrorCode.AMBIGUOUS_EXTENSION_MEMBER_ACCESS_TWO,
-          136,
-          1,
-        ),
-      ],
+      [error(CompileTimeErrorCode.ambiguousExtensionMemberAccessTwo, 136, 1)],
     );
   }
 
@@ -596,13 +536,7 @@ extension E2 on A {
 
 int f(A a) => -a;
 ''',
-      [
-        error(
-          CompileTimeErrorCode.AMBIGUOUS_EXTENSION_MEMBER_ACCESS_TWO,
-          123,
-          1,
-        ),
-      ],
+      [error(CompileTimeErrorCode.ambiguousExtensionMemberAccessTwo, 123, 1)],
     );
   }
 
@@ -621,13 +555,7 @@ f() {
   0.a = 3;
 }
 ''',
-      [
-        error(
-          CompileTimeErrorCode.AMBIGUOUS_EXTENSION_MEMBER_ACCESS_TWO,
-          88,
-          1,
-        ),
-      ],
+      [error(CompileTimeErrorCode.ambiguousExtensionMemberAccessTwo, 88, 1)],
     );
 
     assertResolvedNodeText(findNode.assignment('= 3'), r'''
@@ -679,7 +607,7 @@ int h(List<B> x) => x();
 ''',
       [
         error(
-          CompileTimeErrorCode.AMBIGUOUS_EXTENSION_MEMBER_ACCESS_TWO,
+          CompileTimeErrorCode.ambiguousExtensionMemberAccessTwo,
           167,
           1,
           messageContains: [

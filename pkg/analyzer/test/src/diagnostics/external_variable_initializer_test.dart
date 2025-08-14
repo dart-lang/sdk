@@ -20,7 +20,7 @@ class ExternalVariableInitializerTest extends PubPackageResolutionTest {
       '''
 external final int x = 0;
 ''',
-      [error(CompileTimeErrorCode.EXTERNAL_VARIABLE_INITIALIZER, 19, 1)],
+      [error(CompileTimeErrorCode.externalVariableInitializer, 19, 1)],
     );
   }
 
@@ -35,7 +35,7 @@ external final int x;
       '''
 external int x = 0;
 ''',
-      [error(CompileTimeErrorCode.EXTERNAL_VARIABLE_INITIALIZER, 13, 1)],
+      [error(CompileTimeErrorCode.externalVariableInitializer, 13, 1)],
     );
   }
 

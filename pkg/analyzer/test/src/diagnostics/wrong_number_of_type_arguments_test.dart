@@ -22,7 +22,7 @@ class WrongNumberOfTypeArgumentsTest extends PubPackageResolutionTest {
 class A<E, F> {}
 A<A>? a;
 ''',
-      [error(CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS, 17, 5)],
+      [error(CompileTimeErrorCode.wrongNumberOfTypeArguments, 17, 5)],
     );
   }
 
@@ -32,7 +32,7 @@ A<A>? a;
 class A<E> {}
 A<A, A>? a;
 ''',
-      [error(CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS, 14, 8)],
+      [error(CompileTimeErrorCode.wrongNumberOfTypeArguments, 14, 8)],
     );
   }
 
@@ -43,7 +43,7 @@ class A {}
 mixin M {}
 class B<F extends num> = A<F> with M;
 ''',
-      [error(CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS, 47, 4)],
+      [error(CompileTimeErrorCode.wrongNumberOfTypeArguments, 47, 4)],
     );
   }
 
@@ -58,7 +58,7 @@ f() {
   return const C<int>();
 }
 ''',
-      [error(CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS, 47, 6)],
+      [error(CompileTimeErrorCode.wrongNumberOfTypeArguments, 47, 6)],
     );
   }
 
@@ -73,7 +73,7 @@ f() {
   return const C<int>();
 }
 ''',
-      [error(CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS, 53, 6)],
+      [error(CompileTimeErrorCode.wrongNumberOfTypeArguments, 53, 6)],
     );
   }
 
@@ -88,7 +88,7 @@ f() {
   return const C<int, int>();
 }
 ''',
-      [error(CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS, 50, 11)],
+      [error(CompileTimeErrorCode.wrongNumberOfTypeArguments, 50, 11)],
     );
   }
 
@@ -97,7 +97,7 @@ f() {
       r'''
 dynamic<int> v;
 ''',
-      [error(CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS, 0, 12)],
+      [error(CompileTimeErrorCode.wrongNumberOfTypeArguments, 0, 12)],
     );
   }
 
@@ -109,13 +109,7 @@ void f() {
 }
 void g<T, U>() {}
 ''',
-      [
-        error(
-          CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_METHOD,
-          14,
-          5,
-        ),
-      ],
+      [error(CompileTimeErrorCode.wrongNumberOfTypeArgumentsMethod, 14, 5)],
     );
   }
 
@@ -127,13 +121,7 @@ void f() {
 }
 void g<T>() {}
 ''',
-      [
-        error(
-          CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_METHOD,
-          14,
-          13,
-        ),
-      ],
+      [error(CompileTimeErrorCode.wrongNumberOfTypeArgumentsMethod, 14, 13)],
     );
   }
 
@@ -147,13 +135,7 @@ class C {
   void call<T, U>() {}
 }
 ''',
-      [
-        error(
-          CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_FUNCTION,
-          12,
-          5,
-        ),
-      ],
+      [error(CompileTimeErrorCode.wrongNumberOfTypeArgumentsFunction, 12, 5)],
     );
   }
 
@@ -167,13 +149,7 @@ class C {
   void call<T>() {}
 }
 ''',
-      [
-        error(
-          CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_FUNCTION,
-          12,
-          13,
-        ),
-      ],
+      [error(CompileTimeErrorCode.wrongNumberOfTypeArgumentsFunction, 12, 13)],
     );
   }
 
@@ -185,13 +161,7 @@ f() {
   foo<int>;
 }
 ''',
-      [
-        error(
-          CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_FUNCTION,
-          33,
-          5,
-        ),
-      ],
+      [error(CompileTimeErrorCode.wrongNumberOfTypeArgumentsFunction, 33, 5)],
     );
   }
 
@@ -203,13 +173,7 @@ f() {
   foo<int, int>;
 }
 ''',
-      [
-        error(
-          CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_FUNCTION,
-          30,
-          10,
-        ),
-      ],
+      [error(CompileTimeErrorCode.wrongNumberOfTypeArgumentsFunction, 30, 10)],
     );
   }
 
@@ -222,8 +186,7 @@ f(void Function<T, U>() foo, void Function<T, U>() bar) {
 ''',
       [
         error(
-          CompileTimeErrorCode
-              .WRONG_NUMBER_OF_TYPE_ARGUMENTS_ANONYMOUS_FUNCTION,
+          CompileTimeErrorCode.wrongNumberOfTypeArgumentsAnonymousFunction,
           80,
           5,
         ),
@@ -240,7 +203,7 @@ f(void Function<T>() foo, void Function<T, U>() bar) {
 ''',
       [
         error(
-          CompileTimeErrorCode.DISALLOWED_TYPE_INSTANTIATION_EXPRESSION,
+          CompileTimeErrorCode.disallowedTypeInstantiationExpression,
           57,
           20,
         ),
@@ -258,7 +221,7 @@ class A {
 @A<int>()
 void f() {}
 ''',
-      [error(CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS, 28, 5)],
+      [error(CompileTimeErrorCode.wrongNumberOfTypeArguments, 28, 5)],
     );
   }
 
@@ -274,7 +237,7 @@ typedef B = A;
 @B<int>()
 void f() {}
 ''',
-      [error(CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS, 44, 5)],
+      [error(CompileTimeErrorCode.wrongNumberOfTypeArguments, 44, 5)],
     );
   }
 
@@ -288,7 +251,7 @@ class A<T, U> {
 @A<int>()
 void f() {}
 ''',
-      [error(CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS, 34, 5)],
+      [error(CompileTimeErrorCode.wrongNumberOfTypeArguments, 34, 5)],
     );
   }
 
@@ -304,7 +267,7 @@ typedef B<T, U> = A;
 @B<int>()
 void f() {}
 ''',
-      [error(CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS, 50, 5)],
+      [error(CompileTimeErrorCode.wrongNumberOfTypeArguments, 50, 5)],
     );
   }
 
@@ -318,7 +281,7 @@ class A<T> {
 @A<int, String>()
 void f() {}
 ''',
-      [error(CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS, 31, 13)],
+      [error(CompileTimeErrorCode.wrongNumberOfTypeArguments, 31, 13)],
     );
   }
 
@@ -334,7 +297,7 @@ typedef B<T> = A;
 @B<int, String>()
 void f() {}
 ''',
-      [error(CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS, 47, 13)],
+      [error(CompileTimeErrorCode.wrongNumberOfTypeArguments, 47, 13)],
     );
   }
 
@@ -348,13 +311,7 @@ class C {
   void g<T, U>() {}
 }
 ''',
-      [
-        error(
-          CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_METHOD,
-          19,
-          5,
-        ),
-      ],
+      [error(CompileTimeErrorCode.wrongNumberOfTypeArgumentsMethod, 19, 5)],
     );
   }
 
@@ -368,13 +325,7 @@ class C {
   void g<T>() {}
 }
 ''',
-      [
-        error(
-          CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_METHOD,
-          19,
-          13,
-        ),
-      ],
+      [error(CompileTimeErrorCode.wrongNumberOfTypeArgumentsMethod, 19, 13)],
     );
   }
 
@@ -387,7 +338,7 @@ f() {
   return new C<int>();
 }
 ''',
-      [error(CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS, 31, 6)],
+      [error(CompileTimeErrorCode.wrongNumberOfTypeArguments, 31, 6)],
     );
   }
 
@@ -400,7 +351,7 @@ f() {
   return new C<int>();
 }
 ''',
-      [error(CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS, 37, 6)],
+      [error(CompileTimeErrorCode.wrongNumberOfTypeArguments, 37, 6)],
     );
   }
 
@@ -413,7 +364,7 @@ f() {
   return new C<int, int>();
 }
 ''',
-      [error(CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS, 34, 11)],
+      [error(CompileTimeErrorCode.wrongNumberOfTypeArguments, 34, 11)],
     );
   }
 
@@ -431,7 +382,7 @@ void f(x) {
   }
 }
 ''',
-      [error(CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS, 79, 6)],
+      [error(CompileTimeErrorCode.wrongNumberOfTypeArguments, 79, 6)],
     );
   }
 
@@ -449,7 +400,7 @@ void f(x) {
   }
 }
 ''',
-      [error(CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS, 73, 6)],
+      [error(CompileTimeErrorCode.wrongNumberOfTypeArguments, 73, 6)],
     );
   }
 
@@ -463,7 +414,7 @@ f(A<int> a) {
   a.element.anyGetterExistsInDynamic;
 }
 ''',
-      [error(CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS, 38, 6)],
+      [error(CompileTimeErrorCode.wrongNumberOfTypeArguments, 38, 6)],
     );
   }
 
@@ -477,7 +428,7 @@ f(A<int, int> a) {
   a.element.anyGetterExistsInDynamic;
 }
 ''',
-      [error(CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS, 35, 11)],
+      [error(CompileTimeErrorCode.wrongNumberOfTypeArguments, 35, 11)],
     );
   }
 
@@ -488,7 +439,7 @@ class C<T> {
   late T<int> f;
 }
 ''',
-      [error(CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS, 20, 6)],
+      [error(CompileTimeErrorCode.wrongNumberOfTypeArguments, 20, 6)],
     );
   }
 
@@ -501,7 +452,7 @@ f(p) {
   return p is C<A>;
 }
 ''',
-      [error(CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS, 49, 4)],
+      [error(CompileTimeErrorCode.wrongNumberOfTypeArguments, 49, 4)],
     );
   }
 
@@ -514,7 +465,7 @@ f(p) {
   return p is C<A, A>;
 }
 ''',
-      [error(CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS, 46, 7)],
+      [error(CompileTimeErrorCode.wrongNumberOfTypeArguments, 46, 7)],
     );
   }
 }
@@ -529,7 +480,7 @@ extension type A(int it) {}
 
 void f(A<int> a) {}
 ''',
-      [error(CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS, 36, 6)],
+      [error(CompileTimeErrorCode.wrongNumberOfTypeArguments, 36, 6)],
     );
 
     var node = findNode.namedType('A<int>');
@@ -556,7 +507,7 @@ extension type A<S, T>(int it) {}
 
 void f(A<int> a) {}
 ''',
-      [error(CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS, 42, 6)],
+      [error(CompileTimeErrorCode.wrongNumberOfTypeArguments, 42, 6)],
     );
 
     var node = findNode.namedType('A<int>');
@@ -583,7 +534,7 @@ extension type A<T>(int it) {}
 
 void f(A<int, String> a) {}
 ''',
-      [error(CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS, 39, 14)],
+      [error(CompileTimeErrorCode.wrongNumberOfTypeArguments, 39, 14)],
     );
 
     var node = findNode.namedType('A<int, String>');

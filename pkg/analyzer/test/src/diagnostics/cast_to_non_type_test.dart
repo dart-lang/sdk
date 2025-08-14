@@ -21,8 +21,8 @@ class CastToNonTypeTest extends PubPackageResolutionTest {
 var A = 0;
 f(String s) { var x = s as A; }''',
       [
-        error(WarningCode.UNUSED_LOCAL_VARIABLE, 29, 1),
-        error(CompileTimeErrorCode.CAST_TO_NON_TYPE, 38, 1),
+        error(WarningCode.unusedLocalVariable, 29, 1),
+        error(CompileTimeErrorCode.castToNonType, 38, 1),
       ],
     );
   }

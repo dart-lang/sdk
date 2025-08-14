@@ -20,13 +20,7 @@ class BuiltInIdentifierAsExtensionNameTest extends PubPackageResolutionTest {
       r'''
 extension as on Object {}
 ''',
-      [
-        error(
-          CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_EXTENSION_NAME,
-          10,
-          2,
-        ),
-      ],
+      [error(CompileTimeErrorCode.builtInIdentifierAsExtensionName, 10, 2)],
     );
   }
 
@@ -35,13 +29,7 @@ extension as on Object {}
       r'''
 extension Function on Object {}
 ''',
-      [
-        error(
-          CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_EXTENSION_NAME,
-          10,
-          8,
-        ),
-      ],
+      [error(CompileTimeErrorCode.builtInIdentifierAsExtensionName, 10, 8)],
     );
   }
 }

@@ -88,7 +88,7 @@ class C {
   _() {}
 }
 ''',
-      [error(WarningCode.UNUSED_ELEMENT, 12, 1)],
+      [error(WarningCode.unusedElement, 12, 1)],
     );
 
     var node = findNode.methodDeclaration('_');
@@ -118,7 +118,7 @@ class C {
   _() {}
 }
 ''',
-      [error(WarningCode.UNUSED_ELEMENT, 56, 1)],
+      [error(WarningCode.unusedElement, 56, 1)],
     );
 
     var node = findNode.methodDeclaration('_');

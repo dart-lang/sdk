@@ -92,7 +92,7 @@ class TypeArgumentsVerifier {
             i < typeArgumentListLength ? typeArgumentList.arguments[i] : node;
         _diagnosticReporter.atNode(
           errorNode,
-          CompileTimeErrorCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS,
+          CompileTimeErrorCode.typeArgumentNotMatchingBounds,
           arguments: [typeArgument, typeParameter.name!, bound],
         );
       }
@@ -121,7 +121,7 @@ class TypeArgumentsVerifier {
         typeArgumentNodes.length != typeParameters.length) {
       _diagnosticReporter.atNode(
         typeArgumentList,
-        CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_ENUM,
+        CompileTimeErrorCode.wrongNumberOfTypeArgumentsEnum,
         arguments: [typeParameters.length, typeArgumentNodes.length],
       );
     }
@@ -148,7 +148,7 @@ class TypeArgumentsVerifier {
         var errorTarget = typeArgumentNodes?[i] ?? node.name;
         _diagnosticReporter.atEntity(
           errorTarget,
-          CompileTimeErrorCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS,
+          CompileTimeErrorCode.typeArgumentNotMatchingBounds,
           arguments: [typeArgument, typeParameter.name!, bound],
         );
       }
@@ -184,14 +184,14 @@ class TypeArgumentsVerifier {
         for (var argument in typeArguments.arguments) {
           _checkTypeArgumentConst(
             argument,
-            CompileTimeErrorCode.INVALID_TYPE_ARGUMENT_IN_CONST_LIST,
+            CompileTimeErrorCode.invalidTypeArgumentInConstList,
           );
         }
       }
       _checkTypeArgumentCount(
         typeArguments,
         1,
-        CompileTimeErrorCode.EXPECTED_ONE_LIST_TYPE_ARGUMENTS,
+        CompileTimeErrorCode.expectedOneListTypeArguments,
       );
     }
   }
@@ -203,14 +203,14 @@ class TypeArgumentsVerifier {
         for (var argument in typeArguments.arguments) {
           _checkTypeArgumentConst(
             argument,
-            CompileTimeErrorCode.INVALID_TYPE_ARGUMENT_IN_CONST_MAP,
+            CompileTimeErrorCode.invalidTypeArgumentInConstMap,
           );
         }
       }
       _checkTypeArgumentCount(
         typeArguments,
         2,
-        CompileTimeErrorCode.EXPECTED_TWO_MAP_TYPE_ARGUMENTS,
+        CompileTimeErrorCode.expectedTwoMapTypeArguments,
       );
     }
   }
@@ -239,14 +239,14 @@ class TypeArgumentsVerifier {
         for (var argument in typeArguments.arguments) {
           _checkTypeArgumentConst(
             argument,
-            CompileTimeErrorCode.INVALID_TYPE_ARGUMENT_IN_CONST_SET,
+            CompileTimeErrorCode.invalidTypeArgumentInConstSet,
           );
         }
       }
       _checkTypeArgumentCount(
         typeArguments,
         1,
-        CompileTimeErrorCode.EXPECTED_ONE_SET_TYPE_ARGUMENTS,
+        CompileTimeErrorCode.expectedOneSetTypeArguments,
       );
     }
   }
@@ -256,7 +256,7 @@ class TypeArgumentsVerifier {
   ///
   /// This checks if [node] refers to a generic type and does not have explicit
   /// or inferred type arguments. When that happens, it reports error code
-  /// [WarningCode.STRICT_RAW_TYPE].
+  /// [WarningCode.strictRawType].
   void _checkForRawTypeName(NamedType node) {
     AstNode parentEscapingTypeArguments(NamedType node) {
       var parent = node.parent!;
@@ -287,7 +287,7 @@ class TypeArgumentsVerifier {
       } else {
         _diagnosticReporter.atNode(
           node,
-          WarningCode.STRICT_RAW_TYPE,
+          WarningCode.strictRawType,
           arguments: [type],
         );
       }
@@ -343,7 +343,7 @@ class TypeArgumentsVerifier {
         if (!_libraryElement.featureSet.isEnabled(Feature.generic_metadata)) {
           _diagnosticReporter.atNode(
             _typeArgumentErrorNode(namedType, i),
-            CompileTimeErrorCode.GENERIC_FUNCTION_TYPE_CANNOT_BE_TYPE_ARGUMENT,
+            CompileTimeErrorCode.genericFunctionTypeCannotBeTypeArgument,
           );
           continue;
         }
@@ -421,7 +421,7 @@ class TypeArgumentsVerifier {
       for (var issue in issues) {
         _diagnosticReporter.atNode(
           _typeArgumentErrorNode(namedType, issue.index),
-          CompileTimeErrorCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS,
+          CompileTimeErrorCode.typeArgumentNotMatchingBounds,
           arguments: [
             issue.argument,
             issue.parameterName,
@@ -469,7 +469,7 @@ class TypeArgumentsVerifier {
       if (!_typeSystem.isSubtypeOf(typeArgument, bound)) {
         _diagnosticReporter.atNode(
           _typeArgumentErrorNode(namedType, i),
-          CompileTimeErrorCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS,
+          CompileTimeErrorCode.typeArgumentNotMatchingBounds,
           arguments: [typeArgument, typeParameterName, bound],
           contextMessages: buildContextMessages(
             invertedTypeArguments: invertedTypeArguments,
@@ -519,7 +519,7 @@ class TypeArgumentsVerifier {
         if (!_libraryElement.featureSet.isEnabled(Feature.generic_metadata)) {
           _diagnosticReporter.atNode(
             typeArgumentList[i],
-            CompileTimeErrorCode.GENERIC_FUNCTION_TYPE_CANNOT_BE_TYPE_ARGUMENT,
+            CompileTimeErrorCode.genericFunctionTypeCannotBeTypeArgument,
           );
           continue;
         }
@@ -541,7 +541,7 @@ class TypeArgumentsVerifier {
       if (!_typeSystem.isSubtypeOf(argType, bound)) {
         _diagnosticReporter.atNode(
           typeArgumentList[i],
-          CompileTimeErrorCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS,
+          CompileTimeErrorCode.typeArgumentNotMatchingBounds,
           arguments: [argType, fnTypeParamName, bound],
         );
       }
@@ -551,9 +551,9 @@ class TypeArgumentsVerifier {
   /// Checks whether the given [typeAnnotation] contains a type parameter.
   ///
   /// The [errorCode] is either
-  /// [CompileTimeErrorCode.INVALID_TYPE_ARGUMENT_IN_CONST_LIST],
-  /// [CompileTimeErrorCode.INVALID_TYPE_ARGUMENT_IN_CONST_MAP], or
-  /// [CompileTimeErrorCode.INVALID_TYPE_ARGUMENT_IN_CONST_SET].
+  /// [CompileTimeErrorCode.invalidTypeArgumentInConstList],
+  /// [CompileTimeErrorCode.invalidTypeArgumentInConstMap], or
+  /// [CompileTimeErrorCode.invalidTypeArgumentInConstSet].
   void _checkTypeArgumentConst(
     TypeAnnotation typeAnnotation,
     DiagnosticCode errorCode,

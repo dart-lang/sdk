@@ -24,7 +24,7 @@ void f() {
   const lib.A();
 }
 ''',
-      [error(CompileTimeErrorCode.CONST_WITH_NON_TYPE, 50, 1)],
+      [error(CompileTimeErrorCode.constWithNonType, 50, 1)],
     );
   }
 
@@ -36,7 +36,7 @@ f() {
   return const A();
 }
 ''',
-      [error(CompileTimeErrorCode.CONST_WITH_NON_TYPE, 32, 1)],
+      [error(CompileTimeErrorCode.constWithNonType, 32, 1)],
     );
   }
 }

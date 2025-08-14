@@ -92,8 +92,8 @@ void f() {
 ''',
       [
         // No lint
-        error(ParserErrorCode.EXPECTED_TOKEN, 67, 4),
-        error(ParserErrorCode.MISSING_IDENTIFIER, 72, 1),
+        error(ParserErrorCode.expectedToken, 67, 4),
+        error(ParserErrorCode.missingIdentifier, 72, 1),
       ],
     );
   }
