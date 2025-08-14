@@ -44,9 +44,9 @@ class NormalizeHelper {
   FunctionTypeImpl _functionType(FunctionTypeImpl functionType) {
     var fresh = getFreshTypeParameters(functionType.typeParameters);
     for (var typeParameter in fresh.freshTypeParameters) {
-      var bound = typeParameter.firstFragment.bound;
+      var bound = typeParameter.bound;
       if (bound != null) {
-        typeParameter.firstFragment.bound = _normalize(bound);
+        typeParameter.bound = _normalize(bound);
       }
     }
 

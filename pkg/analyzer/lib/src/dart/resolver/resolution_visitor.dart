@@ -1419,7 +1419,7 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
     if (boundNode != null) {
       boundNode.accept(this);
       if (_elementWalker == null) {
-        fragment.bound = boundNode.type;
+        fragment.element.bound = boundNode.type;
       }
     }
   }

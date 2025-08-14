@@ -275,13 +275,13 @@ class TypeConstraintGatherer
     // not contain any variables from `L`.
     var newTypeParameters = <TypeParameterElementImpl>[];
     for (var i = 0; i < P.typeParameters.length; i++) {
-      var Z = TypeParameterFragmentImpl(name: 'Z$i');
+      var Z = TypeParameterElementImpl.synthetic(name: 'Z$i');
       if (leftSchema) {
         Z.bound = P.typeParameters[i].bound;
       } else {
         Z.bound = Q.typeParameters[i].bound;
       }
-      newTypeParameters.add(Z.element);
+      newTypeParameters.add(Z);
     }
 
     // And `F0[Z0/T0, ..., Zn/Tn]` is a subtype match for

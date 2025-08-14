@@ -15,6 +15,7 @@ import 'package:analyzer/src/dart/element/member.dart';
 import 'package:analyzer/src/dart/element/type_algebra.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/utilities/extensions/collection.dart';
+import 'package:analyzer/src/utilities/extensions/element.dart';
 import 'package:collection/collection.dart';
 
 /// Returns a [List] of fixed length with given types.
@@ -443,9 +444,7 @@ class FunctionTypeImpl extends TypeImpl
     for (int i = 0; i < count; i++) {
       TypeParameterElement p1 = params1[i];
       TypeParameterElement p2 = params2[i];
-      TypeParameterFragmentImpl pFresh = TypeParameterFragmentImpl.synthetic(
-        name: p2.name,
-      );
+      var pFresh = p2.freshCopy();
 
       TypeParameterTypeImpl variableFresh = pFresh.instantiate(
         nullabilitySuffix: NullabilitySuffix.none,
@@ -470,7 +469,7 @@ class FunctionTypeImpl extends TypeImpl
       }
 
       if (bound2 is! DynamicType) {
-        pFresh.bound = bound2;
+        pFresh.bound = bound2 as TypeImpl;
       }
     }
     return variablesFresh;

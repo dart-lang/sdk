@@ -46,13 +46,13 @@ FreshTypeParameters getFreshTypeParameters(
     // variance is added to the interface.
     var typeParameter = typeParameters[i] as TypeParameterElementImpl;
     if (!typeParameter.isLegacyCovariant) {
-      freshParameters[i].firstFragment.variance = typeParameter.variance;
+      freshParameters[i].variance = typeParameter.variance;
     }
 
     var bound = typeParameter.bound;
     if (bound != null) {
       var newBound = substitution.substituteType(bound);
-      freshParameters[i].firstFragment.bound = newBound;
+      freshParameters[i].bound = newBound;
     }
   }
 
@@ -262,7 +262,7 @@ class _FreshTypeParametersSubstitutor extends _TypeSubstitutor {
 
     var freshElements = List.generate(elements.length, (index) {
       var element = elements[index];
-      var freshElement = TypeParameterFragmentImpl(name: element.name);
+      var freshElement = element.freshCopy();
       var freshType = freshElement.instantiate(
         nullabilitySuffix: NullabilitySuffix.none,
       );
@@ -270,7 +270,7 @@ class _FreshTypeParametersSubstitutor extends _TypeSubstitutor {
       if (!element.isLegacyCovariant) {
         freshElement.variance = element.variance;
       }
-      return freshElement.asElement2;
+      return freshElement;
     }, growable: false);
 
     for (var i = 0; i < freshElements.length; i++) {

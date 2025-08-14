@@ -10,7 +10,6 @@ import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_algebra.dart';
-import 'package:analyzer/src/utilities/extensions/element.dart';
 
 /// A class that builds a "display string" for [Element]s and [DartType]s.
 class ElementDisplayStringBuilder {
@@ -601,9 +600,9 @@ class ElementDisplayStringBuilder {
         name = typeParameter.name! + subscript;
       }
 
-      var newTypeParameter = TypeParameterFragmentImpl(name: name);
+      var newTypeParameter = TypeParameterElementImpl.synthetic(name: name);
       newTypeParameter.bound = typeParameter.bound;
-      newTypeParameters.add(newTypeParameter.asElement2);
+      newTypeParameters.add(newTypeParameter);
     }
 
     return replaceTypeParameters(type, newTypeParameters);

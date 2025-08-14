@@ -4762,7 +4762,6 @@ abstract class InterfaceElementImpl extends InstanceElementImpl
   InterfaceTypeImpl get thisType {
     if (_thisType == null) {
       List<TypeImpl> typeArguments;
-      var typeParameters = firstFragment.typeParameters;
       if (typeParameters.isNotEmpty) {
         typeArguments =
             typeParameters.map<TypeImpl>((t) {
@@ -9877,6 +9876,23 @@ class TypeParameterElementImpl extends ElementImpl
   @override
   final String? name;
 
+  /// The value representing the variance modifier keyword, or `null` if
+  /// there is no explicit variance modifier, meaning legacy covariance.
+  shared.Variance? _variance;
+
+  /// The type representing the bound associated with this type parameter,
+  /// or `null` if this type parameter does not have an explicit bound.
+  ///
+  /// Being able to distinguish between an implicit and explicit bound is
+  /// needed by the instantiate to bounds algorithm.
+  @override
+  TypeImpl? bound;
+
+  /// The default value of the type parameter. It is used to provide the
+  /// corresponding missing type argument in type annotations and as the
+  /// fall-back type value in type inference.
+  TypeImpl? defaultType;
+
   TypeParameterElementImpl({required this.firstFragment})
     : name = firstFragment.name {
     firstFragment.element = this;
@@ -9891,19 +9907,7 @@ class TypeParameterElementImpl extends ElementImpl
   TypeParameterElementImpl get baseElement => this;
 
   @override
-  TypeImpl? get bound => firstFragment.bound;
-
-  set bound(TypeImpl? value) {
-    firstFragment.bound = value;
-  }
-
-  @override
   TypeImpl? get boundShared => bound;
-
-  /// The default value of the type parameter. It is used to provide the
-  /// corresponding missing type argument in type annotations and as the
-  /// fall-back type value in type inference.
-  TypeImpl? get defaultType => firstFragment.defaultType;
 
   @override
   Element? get enclosingElement {
@@ -9926,7 +9930,9 @@ class TypeParameterElementImpl extends ElementImpl
     ];
   }
 
-  bool get isLegacyCovariant => firstFragment.isLegacyCovariant;
+  bool get isLegacyCovariant {
+    return _variance == null;
+  }
 
   @override
   bool get isSynthetic {
@@ -9957,11 +9963,11 @@ class TypeParameterElementImpl extends ElementImpl
   @override
   String? get name3 => name;
 
-  shared.Variance get variance => firstFragment.variance;
-
-  set variance(shared.Variance? value) {
-    firstFragment.variance = value;
+  shared.Variance get variance {
+    return _variance ?? shared.Variance.covariant;
   }
+
+  set variance(shared.Variance? newVariance) => _variance = newVariance;
 
   @override
   T? accept<T>(ElementVisitor2<T> visitor) {
@@ -9977,145 +9983,10 @@ class TypeParameterElementImpl extends ElementImpl
     builder.writeTypeParameterElement(this);
   }
 
-  @override
-  TypeParameterTypeImpl instantiate({
-    required NullabilitySuffix nullabilitySuffix,
-  }) {
-    return TypeParameterTypeImpl(
-      element: this,
-      nullabilitySuffix: nullabilitySuffix,
-    );
-  }
-
-  @override
-  void visitChildren<T>(ElementVisitor2<T> visitor) {
-    for (var child in children) {
-      child.accept(visitor);
-    }
-  }
-}
-
-class TypeParameterFragmentImpl extends FragmentImpl
-    implements TypeParameterFragment {
-  @override
-  final String? name;
-
-  @override
-  int? nameOffset;
-
-  /// The default value of the type parameter. It is used to provide the
-  /// corresponding missing type argument in type annotations and as the
-  /// fall-back type value in type inference.
-  TypeImpl? defaultType;
-
-  /// The type representing the bound associated with this parameter, or `null`
-  /// if this parameter does not have an explicit bound.
-  TypeImpl? _bound;
-
-  /// The value representing the variance modifier keyword, or `null` if
-  /// there is no explicit variance modifier, meaning legacy covariance.
-  shared.Variance? _variance;
-
-  /// The element corresponding to this fragment.
-  TypeParameterElementImpl? _element;
-
-  /// Initialize a newly created method element to have the given [name] and
-  /// [offset].
-  TypeParameterFragmentImpl({required this.name, super.firstTokenOffset});
-
-  /// Initialize a newly created synthetic type parameter element to have the
-  /// given [name], and with [isSynthetic] set to `true`.
-  TypeParameterFragmentImpl.synthetic({required this.name})
-    : super(firstTokenOffset: null) {
-    isSynthetic = true;
-  }
-
-  /// The type representing the bound associated with this parameter, or `null`
-  /// if this parameter does not have an explicit bound. Being able to
-  /// distinguish between an implicit and explicit bound is needed by the
-  /// instantiate to bounds algorithm.
-  TypeImpl? get bound {
-    return _bound;
-  }
-
-  set bound(DartType? bound) {
-    // TODO(paulberry): Change the type of the parameter `bound` so that this
-    // cast isn't needed.
-    _bound = bound as TypeImpl?;
-    if (_element case var element?) {
-      if (!identical(element.bound, bound)) {
-        element.bound = bound;
-      }
-    }
-  }
-
-  @override
-  List<Fragment> get children => const [];
-
-  @Deprecated('Use children instead')
-  @override
-  List<Fragment> get children3 => children;
-
-  @override
-  TypeParameterFragmentImpl get declaration => this;
-
-  @override
-  String get displayName => name ?? '';
-
-  @override
-  TypeParameterElementImpl get element {
-    if (_element != null) {
-      return _element!;
-    }
-    var firstFragment = this;
-    var previousFragment = firstFragment.previousFragment;
-    while (previousFragment != null) {
-      firstFragment = previousFragment;
-      previousFragment = firstFragment.previousFragment;
-    }
-    // As a side-effect of creating the element, all of the fragments in the
-    // chain will have their `_element` set to the newly created element.
-    return TypeParameterElementImpl(firstFragment: firstFragment);
-  }
-
-  set element(TypeParameterElementImpl element) {
-    _element = element;
-  }
-
-  bool get isLegacyCovariant {
-    return _variance == null;
-  }
-
-  @override
-  LibraryFragment? get libraryFragment {
-    return enclosingFragment?.libraryFragment;
-  }
-
-  @Deprecated('Use metadata instead')
-  @override
-  MetadataImpl get metadata2 => metadata;
-
-  @override
-  // TODO(augmentations): Support chaining between the fragments.
-  TypeParameterFragmentImpl? get nextFragment => null;
-
-  @override
-  int get offset => nameOffset ?? firstTokenOffset!;
-
-  @override
-  // TODO(augmentations): Support chaining between the fragments.
-  TypeParameterFragmentImpl? get previousFragment => null;
-
-  shared.Variance get variance {
-    return _variance ?? shared.Variance.covariant;
-  }
-
-  set variance(shared.Variance? newVariance) => _variance = newVariance;
-
   /// Computes the variance of the type parameters in the [type].
   shared.Variance computeVarianceInType(DartType type) {
     if (type is TypeParameterTypeImpl) {
-      if (type.element == element) {
+      if (type.element == this) {
         return shared.Variance.covariant;
       } else {
         return shared.Variance.unrelated;
@@ -10158,13 +10029,98 @@ class TypeParameterFragmentImpl extends FragmentImpl
     return shared.Variance.unrelated;
   }
 
-  /// Creates the [TypeParameterType] with the given [nullabilitySuffix] for
-  /// this type parameter.
+  @override
   TypeParameterTypeImpl instantiate({
     required NullabilitySuffix nullabilitySuffix,
   }) {
-    return element.instantiate(nullabilitySuffix: nullabilitySuffix);
+    return TypeParameterTypeImpl(
+      element: this,
+      nullabilitySuffix: nullabilitySuffix,
+    );
   }
+
+  @override
+  void visitChildren<T>(ElementVisitor2<T> visitor) {
+    for (var child in children) {
+      child.accept(visitor);
+    }
+  }
+}
+
+class TypeParameterFragmentImpl extends FragmentImpl
+    implements TypeParameterFragment {
+  @override
+  final String? name;
+
+  @override
+  int? nameOffset;
+
+  /// The element corresponding to this fragment.
+  TypeParameterElementImpl? _element;
+
+  /// Initialize a newly created method element to have the given [name] and
+  /// [offset].
+  TypeParameterFragmentImpl({required this.name, super.firstTokenOffset});
+
+  /// Initialize a newly created synthetic type parameter element to have the
+  /// given [name], and with [isSynthetic] set to `true`.
+  TypeParameterFragmentImpl.synthetic({required this.name})
+    : super(firstTokenOffset: null) {
+    isSynthetic = true;
+  }
+
+  @override
+  List<Fragment> get children => const [];
+
+  @Deprecated('Use children instead')
+  @override
+  List<Fragment> get children3 => children;
+
+  @override
+  TypeParameterFragmentImpl get declaration => this;
+
+  @override
+  String get displayName => name ?? '';
+
+  @override
+  TypeParameterElementImpl get element {
+    if (_element != null) {
+      return _element!;
+    }
+    var firstFragment = this;
+    var previousFragment = firstFragment.previousFragment;
+    while (previousFragment != null) {
+      firstFragment = previousFragment;
+      previousFragment = firstFragment.previousFragment;
+    }
+    // As a side-effect of creating the element, all of the fragments in the
+    // chain will have their `_element` set to the newly created element.
+    return TypeParameterElementImpl(firstFragment: firstFragment);
+  }
+
+  set element(TypeParameterElementImpl element) {
+    _element = element;
+  }
+
+  @override
+  LibraryFragment? get libraryFragment {
+    return enclosingFragment?.libraryFragment;
+  }
+
+  @Deprecated('Use metadata instead')
+  @override
+  MetadataImpl get metadata2 => metadata;
+
+  @override
+  // TODO(augmentations): Support chaining between the fragments.
+  TypeParameterFragmentImpl? get nextFragment => null;
+
+  @override
+  int get offset => nameOffset ?? firstTokenOffset!;
+
+  @override
+  // TODO(augmentations): Support chaining between the fragments.
+  TypeParameterFragmentImpl? get previousFragment => null;
 }
 
 /// Mixin representing an element which can have type parameters.
