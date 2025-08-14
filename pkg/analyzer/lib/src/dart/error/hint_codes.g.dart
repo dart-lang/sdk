@@ -112,9 +112,6 @@ class HintCode extends DiagnosticCode {
     hasPublishedDocs: true,
   );
 
-  @Deprecated("Please use unnecessaryImport")
-  static const HintCode UNNECESSARY_IMPORT = unnecessaryImport;
-
   /// Initialize a newly created error code to have the given [name].
   const HintCode(
     String name,

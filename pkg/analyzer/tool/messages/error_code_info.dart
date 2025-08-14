@@ -35,7 +35,6 @@ const List<ErrorClassInfo> errorClasses = [
     name: 'CompileTimeErrorCode',
     type: 'COMPILE_TIME_ERROR',
     deprecatedSnakeCaseNames: {
-      'IMPORT_INTERNAL_LIBRARY', // Referenced by `verify_docs.dart`.
       'INSTANCE_ACCESS_TO_STATIC_MEMBER', // Referenced by `messages.yaml`.
       'INVALID_OVERRIDE', // Referenced by `messages.yaml`.
       'TYPE_ARGUMENT_NOT_MATCHING_BOUNDS', // Referenced by `messages.yaml`.
@@ -58,25 +57,13 @@ const List<ErrorClassInfo> errorClasses = [
     name: 'WarningCode',
     type: 'STATIC_WARNING',
     severity: 'WARNING',
-    deprecatedSnakeCaseNames: {
-      'UNUSED_ELEMENT', // Referenced by `verify_docs.dart`.
-      'UNUSED_IMPORT', // Referenced by `verify_docs.dart`.
-      'UNUSED_LOCAL_VARIABLE', // Referenced by `verify_docs.dart`.
-    },
   ),
   ErrorClassInfo(
     file: ffiCodesFile,
     name: 'FfiCode',
     type: 'COMPILE_TIME_ERROR',
   ),
-  ErrorClassInfo(
-    file: hintCodesFile,
-    name: 'HintCode',
-    type: 'HINT',
-    deprecatedSnakeCaseNames: {
-      'UNNECESSARY_IMPORT', // Referenced by `verify_docs.dart`.
-    },
-  ),
+  ErrorClassInfo(file: hintCodesFile, name: 'HintCode', type: 'HINT'),
   ErrorClassInfo(
     file: syntacticErrorsFile,
     name: 'ParserErrorCode',
