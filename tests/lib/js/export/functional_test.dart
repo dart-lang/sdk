@@ -11,7 +11,9 @@ import 'package:expect/legacy/minitest.dart'; // ignore: deprecated_member_use_f
 import 'package:js/js_util.dart';
 
 // Test exporting all vs. only some members.
-@JSExport()
+// Also test using a non-empty `@JSExport` annotation on a class, which should
+// be a warning but should not prevent code generation.
+@JSExport('A')
 class ExportAll {
   ExportAll.constructor();
   factory ExportAll.factory() => ExportAll.constructor();
