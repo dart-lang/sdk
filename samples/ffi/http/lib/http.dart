@@ -17,7 +17,6 @@ Future<String> httpGet(String uri) async {
   final completer = Completer<String>();
   void onResponse(Pointer<Utf8> responsePointer) {
     completer.complete(responsePointer.toDartString());
-    calloc.free(responsePointer);
   }
 
   final callback = NativeCallable<HttpCallback>.listener(onResponse);
@@ -44,7 +43,6 @@ void httpServe(void Function(String) onRequest) {
   // Create the NativeCallable.listener.
   void onNativeRequest(Pointer<Utf8> requestPointer) {
     onRequest(requestPointer.toDartString());
-    calloc.free(requestPointer);
   }
 
   final callback = NativeCallable<HttpCallback>.listener(onNativeRequest);
