@@ -117,16 +117,7 @@ class BundleWriter {
     _writeTopLevelFunctionElements(libraryElement.topLevelFunctions);
     _writeMixinElements(libraryElement.mixins);
     _writeTypeAliasElements(libraryElement.typeAliases);
-
-    // TODO(scheglov): extract
-    _sink.writeList(libraryElement.topLevelVariables, (element) {
-      _writeReference(element.reference);
-      _writeFragments(element.fragments);
-      _writeElementResolution(() {
-        _resolutionSink.writeType(element.type);
-      });
-    });
-
+    _writeTopLevelVariableElements(libraryElement.topLevelVariables);
     _writeGetterElements(libraryElement.getters);
     _writeSetterElements(libraryElement.setters);
     _writeVariableGetterSetterLinking(libraryElement.topLevelVariables);
@@ -723,6 +714,18 @@ class BundleWriter {
       _writeTypeParameters(fragment.typeParameters, () {
         _sink.writeList(fragment.formalParameters, _writeParameterElement);
         _resolutionSink._writeMetadata(fragment.metadata);
+      });
+    });
+  }
+
+  void _writeTopLevelVariableElements(
+    List<TopLevelVariableElementImpl> elements,
+  ) {
+    _sink.writeList(elements, (element) {
+      _writeReference(element.reference);
+      _writeFragments(element.fragments);
+      _writeElementResolution(() {
+        _resolutionSink.writeType(element.type);
       });
     });
   }
