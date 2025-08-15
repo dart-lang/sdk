@@ -24,7 +24,7 @@ class AvoidFutureOrVoid extends LintRule {
       );
 
   @override
-  DiagnosticCode get diagnosticCode => LinterLintCode.avoid_futureor_void;
+  DiagnosticCode get diagnosticCode => LinterLintCode.avoidFutureorVoid;
 
   @override
   void registerNodeProcessors(

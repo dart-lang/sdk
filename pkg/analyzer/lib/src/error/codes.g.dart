@@ -6489,6 +6489,14 @@ class WarningCode extends DiagnosticCode {
     uniqueName: 'DEPRECATED_IMPLEMENTS_FUNCTION',
   );
 
+  /// Parameters:
+  /// Object p0: the name of the member
+  static const WarningCode deprecatedInstantiate = WarningCode(
+    'DEPRECATED_INSTANTIATE',
+    "Instantiating '{0}' is deprecated.",
+    correctionMessage: "Try instantiating a non-abstract class.",
+  );
+
   /// No parameters.
   static const WarningCode deprecatedMixinFunction = WarningCode(
     'DEPRECATED_SUBTYPE_OF_FUNCTION',
@@ -6823,6 +6831,13 @@ class WarningCode extends DiagnosticCode {
     "The annotation '@Deprecated.implement' can only be applied to "
         "implementable classes.",
     correctionMessage: "Try removing the '@Deprecated.implement' annotation.",
+  );
+
+  /// No parameters.
+  static const WarningCode invalidDeprecatedInstantiateAnnotation = WarningCode(
+    'INVALID_DEPRECATED_INSTANTIATE_ANNOTATION',
+    "The annotation '@Deprecated.instantiate' can only be applied to classes.",
+    correctionMessage: "Try removing the '@Deprecated.instantiate' annotation.",
   );
 
   /// No parameters.

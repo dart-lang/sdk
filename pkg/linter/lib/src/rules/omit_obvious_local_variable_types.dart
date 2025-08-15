@@ -25,7 +25,7 @@ class OmitObviousLocalVariableTypes extends LintRule {
 
   @override
   DiagnosticCode get diagnosticCode =>
-      LinterLintCode.omit_obvious_local_variable_types;
+      LinterLintCode.omitObviousLocalVariableTypes;
 
   @override
   List<String> get incompatibleRules => const [LintNames.always_specify_types];

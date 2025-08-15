@@ -28,7 +28,7 @@ class UnnecessaryBraceInStringInterps extends LintRule {
 
   @override
   DiagnosticCode get diagnosticCode =>
-      LinterLintCode.unnecessary_brace_in_string_interps;
+      LinterLintCode.unnecessaryBraceInStringInterps;
 
   @override
   void registerNodeProcessors(

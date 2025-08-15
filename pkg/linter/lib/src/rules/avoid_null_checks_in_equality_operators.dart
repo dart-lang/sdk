@@ -45,7 +45,7 @@ class AvoidNullChecksInEqualityOperators extends LintRule {
 
   @override
   DiagnosticCode get diagnosticCode =>
-      LinterLintCode.avoid_null_checks_in_equality_operators;
+      LinterLintCode.avoidNullChecksInEqualityOperators;
 
   @override
   void registerNodeProcessors(

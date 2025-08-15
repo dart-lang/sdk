@@ -21,7 +21,7 @@ class AvoidTypeToString extends LintRule {
     : super(name: LintNames.avoid_type_to_string, description: _desc);
 
   @override
-  DiagnosticCode get diagnosticCode => LinterLintCode.avoid_type_to_string;
+  DiagnosticCode get diagnosticCode => LinterLintCode.avoidTypeToString;
 
   @override
   void registerNodeProcessors(

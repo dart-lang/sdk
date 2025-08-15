@@ -27,7 +27,7 @@ class InvalidCasePatterns extends LintRule {
   // TODO(pq): update to add specific messages w/ specific corrections
   // https://github.com/dart-lang/linter/issues/4172
   @override
-  DiagnosticCode get diagnosticCode => LinterLintCode.invalid_case_patterns;
+  DiagnosticCode get diagnosticCode => LinterLintCode.invalidCasePatterns;
 
   @override
   void registerNodeProcessors(

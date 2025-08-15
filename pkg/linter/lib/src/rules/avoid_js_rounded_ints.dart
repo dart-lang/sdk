@@ -17,7 +17,7 @@ class AvoidJsRoundedInts extends LintRule {
     : super(name: LintNames.avoid_js_rounded_ints, description: _desc);
 
   @override
-  DiagnosticCode get diagnosticCode => LinterLintCode.avoid_js_rounded_ints;
+  DiagnosticCode get diagnosticCode => LinterLintCode.avoidJsRoundedInts;
 
   @override
   void registerNodeProcessors(

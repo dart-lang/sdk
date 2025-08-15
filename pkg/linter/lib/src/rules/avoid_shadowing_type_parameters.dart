@@ -22,7 +22,7 @@ class AvoidShadowingTypeParameters extends LintRule {
 
   @override
   DiagnosticCode get diagnosticCode =>
-      LinterLintCode.avoid_shadowing_type_parameters;
+      LinterLintCode.avoidShadowingTypeParameters;
 
   @override
   void registerNodeProcessors(

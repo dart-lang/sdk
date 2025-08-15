@@ -28,8 +28,7 @@ class UseToAndAsIfApplicable extends LintRule {
     : super(name: LintNames.use_to_and_as_if_applicable, description: _desc);
 
   @override
-  DiagnosticCode get diagnosticCode =>
-      LinterLintCode.use_to_and_as_if_applicable;
+  DiagnosticCode get diagnosticCode => LinterLintCode.useToAndAsIfApplicable;
 
   @override
   void registerNodeProcessors(

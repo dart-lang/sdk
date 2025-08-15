@@ -35,7 +35,7 @@ class UseLateForPrivateFieldsAndVariables extends LintRule {
 
   @override
   DiagnosticCode get diagnosticCode =>
-      LinterLintCode.use_late_for_private_fields_and_variables;
+      LinterLintCode.useLateForPrivateFieldsAndVariables;
 
   @override
   void registerNodeProcessors(

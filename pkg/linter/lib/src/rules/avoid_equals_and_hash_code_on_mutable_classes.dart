@@ -26,7 +26,7 @@ class AvoidEqualsAndHashCodeOnMutableClasses extends LintRule {
 
   @override
   DiagnosticCode get diagnosticCode =>
-      LinterLintCode.avoid_equals_and_hash_code_on_mutable_classes;
+      LinterLintCode.avoidEqualsAndHashCodeOnMutableClasses;
 
   @override
   void registerNodeProcessors(

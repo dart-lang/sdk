@@ -18,7 +18,7 @@ class UnnecessaryBreaks extends LintRule {
     : super(name: LintNames.unnecessary_breaks, description: _desc);
 
   @override
-  DiagnosticCode get diagnosticCode => LinterLintCode.unnecessary_breaks;
+  DiagnosticCode get diagnosticCode => LinterLintCode.unnecessaryBreaks;
 
   @override
   void registerNodeProcessors(

@@ -24,7 +24,7 @@ class PreferGenericFunctionTypeAliases extends LintRule {
 
   @override
   DiagnosticCode get diagnosticCode =>
-      LinterLintCode.prefer_generic_function_type_aliases;
+      LinterLintCode.preferGenericFunctionTypeAliases;
 
   @override
   void registerNodeProcessors(

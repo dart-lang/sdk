@@ -25,7 +25,7 @@ class NoDefaultCases extends LintRule {
       );
 
   @override
-  DiagnosticCode get diagnosticCode => LinterLintCode.no_default_cases;
+  DiagnosticCode get diagnosticCode => LinterLintCode.noDefaultCases;
 
   @override
   void registerNodeProcessors(

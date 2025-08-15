@@ -21,8 +21,7 @@ class UnnecessaryStringEscapes extends LintRule {
   bool get canUseParsedResult => true;
 
   @override
-  DiagnosticCode get diagnosticCode =>
-      LinterLintCode.unnecessary_string_escapes;
+  DiagnosticCode get diagnosticCode => LinterLintCode.unnecessaryStringEscapes;
 
   @override
   void registerNodeProcessors(

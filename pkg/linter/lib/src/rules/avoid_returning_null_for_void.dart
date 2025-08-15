@@ -20,8 +20,8 @@ class AvoidReturningNullForVoid extends MultiAnalysisRule {
 
   @override
   List<DiagnosticCode> get diagnosticCodes => [
-    LinterLintCode.avoid_returning_null_for_void_from_function,
-    LinterLintCode.avoid_returning_null_for_void_from_method,
+    LinterLintCode.avoidReturningNullForVoidFromFunction,
+    LinterLintCode.avoidReturningNullForVoidFromMethod,
   ];
 
   @override
@@ -64,12 +64,12 @@ class _Visitor extends SimpleAstVisitor<void> {
       FunctionExpression() => (
         parent.declaredFragment?.element.returnType,
         parent.body.isAsynchronous,
-        LinterLintCode.avoid_returning_null_for_void_from_function,
+        LinterLintCode.avoidReturningNullForVoidFromFunction,
       ),
       MethodDeclaration() => (
         parent.declaredFragment?.element.returnType,
         parent.body.isAsynchronous,
-        LinterLintCode.avoid_returning_null_for_void_from_method,
+        LinterLintCode.avoidReturningNullForVoidFromMethod,
       ),
       _ => throw StateError('Unexpected type'),
     };

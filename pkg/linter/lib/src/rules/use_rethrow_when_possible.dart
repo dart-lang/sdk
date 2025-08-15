@@ -18,7 +18,7 @@ class UseRethrowWhenPossible extends LintRule {
     : super(name: LintNames.use_rethrow_when_possible, description: _desc);
 
   @override
-  DiagnosticCode get diagnosticCode => LinterLintCode.use_rethrow_when_possible;
+  DiagnosticCode get diagnosticCode => LinterLintCode.useRethrowWhenPossible;
 
   @override
   void registerNodeProcessors(

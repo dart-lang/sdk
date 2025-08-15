@@ -23,7 +23,7 @@ class AnnotateRedeclares extends LintRule {
       );
 
   @override
-  DiagnosticCode get diagnosticCode => LinterLintCode.annotate_redeclares;
+  DiagnosticCode get diagnosticCode => LinterLintCode.annotateRedeclares;
 
   @override
   void registerNodeProcessors(

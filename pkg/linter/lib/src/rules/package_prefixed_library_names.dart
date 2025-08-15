@@ -24,7 +24,7 @@ class PackagePrefixedLibraryNames extends LintRule {
 
   @override
   DiagnosticCode get diagnosticCode =>
-      LinterLintCode.package_prefixed_library_names;
+      LinterLintCode.packagePrefixedLibraryNames;
 
   @override
   void registerNodeProcessors(

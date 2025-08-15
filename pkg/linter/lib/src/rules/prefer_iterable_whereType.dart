@@ -19,7 +19,7 @@ class PreferIterableWhereType extends LintRule {
     : super(name: LintNames.prefer_iterable_whereType, description: _desc);
 
   @override
-  DiagnosticCode get diagnosticCode => LinterLintCode.prefer_iterable_whereType;
+  DiagnosticCode get diagnosticCode => LinterLintCode.preferIterableWheretype;
 
   @override
   void registerNodeProcessors(

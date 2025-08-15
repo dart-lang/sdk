@@ -17,21 +17,21 @@ class UnnecessaryIgnore extends MultiAnalysisRule {
     // We do this here to avoid having to introduce a dependency from the analyzer
     // on the linter.
     IgnoreValidator.unnecessaryIgnoreFileLintCode =
-        LinterLintCode.unnecessary_ignore_file;
+        LinterLintCode.unnecessaryIgnoreFile;
     IgnoreValidator.unnecessaryIgnoreLocationLintCode =
-        LinterLintCode.unnecessary_ignore;
+        LinterLintCode.unnecessaryIgnore;
     IgnoreValidator.unnecessaryIgnoreNameFileLintCode =
-        LinterLintCode.unnecessary_ignore_name_file;
+        LinterLintCode.unnecessaryIgnoreNameFile;
     IgnoreValidator.unnecessaryIgnoreNameLocationLintCode =
-        LinterLintCode.unnecessary_ignore_name;
+        LinterLintCode.unnecessaryIgnoreName;
   }
 
   @override
   List<DiagnosticCode> get diagnosticCodes => const [
-    LinterLintCode.unnecessary_ignore,
-    LinterLintCode.unnecessary_ignore_file,
-    LinterLintCode.unnecessary_ignore_name,
-    LinterLintCode.unnecessary_ignore_name_file,
+    LinterLintCode.unnecessaryIgnore,
+    LinterLintCode.unnecessaryIgnoreFile,
+    LinterLintCode.unnecessaryIgnoreName,
+    LinterLintCode.unnecessaryIgnoreNameFile,
   ];
 
   /// Note that there is intentionally no registration logic as there is no visiting or

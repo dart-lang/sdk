@@ -17,7 +17,7 @@ class PreferSingleQuotes extends LintRule {
     : super(name: LintNames.prefer_single_quotes, description: _desc);
 
   @override
-  DiagnosticCode get diagnosticCode => LinterLintCode.prefer_single_quotes;
+  DiagnosticCode get diagnosticCode => LinterLintCode.preferSingleQuotes;
 
   @override
   List<String> get incompatibleRules => const [LintNames.prefer_double_quotes];

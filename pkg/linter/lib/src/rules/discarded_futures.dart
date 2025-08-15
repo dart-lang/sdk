@@ -18,7 +18,7 @@ class DiscardedFutures extends LintRule {
     : super(name: LintNames.discarded_futures, description: _desc);
 
   @override
-  DiagnosticCode get diagnosticCode => LinterLintCode.discarded_futures;
+  DiagnosticCode get diagnosticCode => LinterLintCode.discardedFutures;
 
   @override
   void registerNodeProcessors(

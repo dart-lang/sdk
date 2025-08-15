@@ -19,7 +19,7 @@ class ImplementationImports extends LintRule {
     : super(name: LintNames.implementation_imports, description: _desc);
 
   @override
-  DiagnosticCode get diagnosticCode => LinterLintCode.implementation_imports;
+  DiagnosticCode get diagnosticCode => LinterLintCode.implementationImports;
 
   @override
   void registerNodeProcessors(

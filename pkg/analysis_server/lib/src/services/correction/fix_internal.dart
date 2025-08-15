@@ -266,314 +266,298 @@ import 'package:analyzer/src/generated/parser.dart';
 import 'package:linter/src/lint_codes.dart';
 
 final _builtInLintGenerators = <LintCode, List<ProducerGenerator>>{
-  LinterLintCode.always_declare_return_types_of_functions: [AddReturnType.new],
-  LinterLintCode.always_declare_return_types_of_methods: [AddReturnType.new],
-  LinterLintCode.always_put_control_body_on_new_line: [UseCurlyBraces.nonBulk],
-  LinterLintCode.always_put_required_named_parameters_first: [
+  LinterLintCode.alwaysDeclareReturnTypesOfFunctions: [AddReturnType.new],
+  LinterLintCode.alwaysDeclareReturnTypesOfMethods: [AddReturnType.new],
+  LinterLintCode.alwaysPutControlBodyOnNewLine: [UseCurlyBraces.nonBulk],
+  LinterLintCode.alwaysPutRequiredNamedParametersFirst: [
     MakeRequiredNamedParametersFirst.new,
   ],
-  LinterLintCode.always_specify_types_add_type: [AddTypeAnnotation.bulkFixable],
-  LinterLintCode.always_specify_types_specify_type: [
+  LinterLintCode.alwaysSpecifyTypesAddType: [AddTypeAnnotation.bulkFixable],
+  LinterLintCode.alwaysSpecifyTypesSpecifyType: [AddTypeAnnotation.bulkFixable],
+  LinterLintCode.alwaysSpecifyTypesReplaceKeyword: [
     AddTypeAnnotation.bulkFixable,
   ],
-  LinterLintCode.always_specify_types_replace_keyword: [
+  LinterLintCode.alwaysSpecifyTypesSplitToTypes: [
     AddTypeAnnotation.bulkFixable,
   ],
-  LinterLintCode.always_specify_types_split_to_types: [
-    AddTypeAnnotation.bulkFixable,
-  ],
-  LinterLintCode.always_use_package_imports: [ConvertToPackageImport.new],
-  LinterLintCode.annotate_overrides: [AddOverride.new],
-  LinterLintCode.annotate_redeclares: [AddRedeclare.new],
-  LinterLintCode.avoid_annotating_with_dynamic: [RemoveTypeAnnotation.other],
-  LinterLintCode.avoid_bool_literals_in_conditional_expressions: [
+  LinterLintCode.alwaysUsePackageImports: [ConvertToPackageImport.new],
+  LinterLintCode.annotateOverrides: [AddOverride.new],
+  LinterLintCode.annotateRedeclares: [AddRedeclare.new],
+  LinterLintCode.avoidAnnotatingWithDynamic: [RemoveTypeAnnotation.other],
+  LinterLintCode.avoidBoolLiteralsInConditionalExpressions: [
     ConvertToBooleanExpression.new,
   ],
-  LinterLintCode.avoid_empty_else: [RemoveEmptyElse.new],
-  LinterLintCode.avoid_escaping_inner_quotes: [ConvertQuotes.new],
-  LinterLintCode.avoid_function_literals_in_foreach_calls: [
+  LinterLintCode.avoidEmptyElse: [RemoveEmptyElse.new],
+  LinterLintCode.avoidEscapingInnerQuotes: [ConvertQuotes.new],
+  LinterLintCode.avoidFunctionLiteralsInForeachCalls: [
     ConvertForEachToForLoop.new,
   ],
-  LinterLintCode.avoid_init_to_null: [RemoveInitializer.bulkFixable],
-  LinterLintCode.avoid_multiple_declarations_per_line: [
+  LinterLintCode.avoidInitToNull: [RemoveInitializer.bulkFixable],
+  LinterLintCode.avoidMultipleDeclarationsPerLine: [
     SplitMultipleDeclarations.new,
   ],
-  LinterLintCode.avoid_null_checks_in_equality_operators: [
-    RemoveComparison.new,
-  ],
-  LinterLintCode.avoid_print: [MakeConditionalOnDebugMode.new, RemovePrint.new],
-  LinterLintCode.avoid_private_typedef_functions: [InlineTypedef.new],
-  LinterLintCode.avoid_redundant_argument_values: [RemoveArgument.new],
-  LinterLintCode.avoid_relative_lib_imports: [ConvertToPackageImport.new],
-  LinterLintCode.avoid_renaming_method_parameters: [RenameMethodParameter.new],
-  LinterLintCode.avoid_return_types_on_setters: [RemoveTypeAnnotation.other],
-  LinterLintCode.avoid_returning_null_for_void_from_function: [
+  LinterLintCode.avoidNullChecksInEqualityOperators: [RemoveComparison.new],
+  LinterLintCode.avoidPrint: [MakeConditionalOnDebugMode.new, RemovePrint.new],
+  LinterLintCode.avoidPrivateTypedefFunctions: [InlineTypedef.new],
+  LinterLintCode.avoidRedundantArgumentValues: [RemoveArgument.new],
+  LinterLintCode.avoidRelativeLibImports: [ConvertToPackageImport.new],
+  LinterLintCode.avoidRenamingMethodParameters: [RenameMethodParameter.new],
+  LinterLintCode.avoidReturnTypesOnSetters: [RemoveTypeAnnotation.other],
+  LinterLintCode.avoidReturningNullForVoidFromFunction: [
     RemoveReturnedValue.new,
   ],
-  LinterLintCode.avoid_returning_null_for_void_from_method: [
-    RemoveReturnedValue.new,
-  ],
-  LinterLintCode.avoid_single_cascade_in_expression_statements: [
+  LinterLintCode.avoidReturningNullForVoidFromMethod: [RemoveReturnedValue.new],
+  LinterLintCode.avoidSingleCascadeInExpressionStatements: [
     // TODO(brianwilkerson): This fix should be applied to some non-lint
     //  diagnostics and should also be available as an assist.
     ReplaceCascadeWithDot.new,
   ],
-  LinterLintCode.avoid_types_as_parameter_names_formal_parameter: [
+  LinterLintCode.avoidTypesAsParameterNamesFormalParameter: [
     ConvertToOnType.new,
   ],
-  LinterLintCode.avoid_types_on_closure_parameters: [
+  LinterLintCode.avoidTypesOnClosureParameters: [
     ReplaceWithIdentifier.new,
     RemoveTypeAnnotation.other,
   ],
-  LinterLintCode.avoid_unused_constructor_parameters: [
-    RemoveUnusedParameter.new,
-  ],
-  LinterLintCode.avoid_unnecessary_containers: [FlutterRemoveWidget.new],
-  LinterLintCode.avoid_void_async: [ReplaceReturnTypeFuture.new],
-  LinterLintCode.await_only_futures: [RemoveAwait.new],
-  LinterLintCode.cascade_invocations: [
+  LinterLintCode.avoidUnusedConstructorParameters: [RemoveUnusedParameter.new],
+  LinterLintCode.avoidUnnecessaryContainers: [FlutterRemoveWidget.new],
+  LinterLintCode.avoidVoidAsync: [ReplaceReturnTypeFuture.new],
+  LinterLintCode.awaitOnlyFutures: [RemoveAwait.new],
+  LinterLintCode.cascadeInvocations: [
     ConvertToCascade.new,
     ConvertRelatedToCascade.new,
   ],
-  LinterLintCode.cast_nullable_to_non_nullable: [
+  LinterLintCode.castNullableToNonNullable: [
     AddNullCheck.withoutAssignabilityCheck,
   ],
-  LinterLintCode.combinators_ordering: [SortCombinators.new],
-  LinterLintCode.constant_identifier_names: [RenameToCamelCase.new],
-  LinterLintCode.curly_braces_in_flow_control_structures: [UseCurlyBraces.new],
-  LinterLintCode.dangling_library_doc_comments: [
+  LinterLintCode.combinatorsOrdering: [SortCombinators.new],
+  LinterLintCode.constantIdentifierNames: [RenameToCamelCase.new],
+  LinterLintCode.curlyBracesInFlowControlStructures: [UseCurlyBraces.new],
+  LinterLintCode.danglingLibraryDocComments: [
     MoveDocCommentToLibraryDirective.new,
   ],
-  LinterLintCode.diagnostic_describe_all_properties: [
+  LinterLintCode.diagnosticDescribeAllProperties: [
     AddDiagnosticPropertyReference.new,
   ],
-  LinterLintCode.directives_ordering_dart: [OrganizeImports.new],
-  LinterLintCode.directives_ordering_alphabetical: [OrganizeImports.new],
-  LinterLintCode.directives_ordering_exports: [OrganizeImports.new],
-  LinterLintCode.directives_ordering_package_before_relative: [
-    OrganizeImports.new,
-  ],
-  LinterLintCode.discarded_futures: [
+  LinterLintCode.directivesOrderingDart: [OrganizeImports.new],
+  LinterLintCode.directivesOrderingAlphabetical: [OrganizeImports.new],
+  LinterLintCode.directivesOrderingExports: [OrganizeImports.new],
+  LinterLintCode.directivesOrderingPackageBeforeRelative: [OrganizeImports.new],
+  LinterLintCode.discardedFutures: [
     AddAsync.discardedFutures,
     WrapInUnawaited.new,
   ],
-  LinterLintCode.empty_catches: [RemoveEmptyCatch.new],
-  LinterLintCode.empty_constructor_bodies: [RemoveEmptyConstructorBody.new],
-  LinterLintCode.empty_statements: [
+  LinterLintCode.emptyCatches: [RemoveEmptyCatch.new],
+  LinterLintCode.emptyConstructorBodies: [RemoveEmptyConstructorBody.new],
+  LinterLintCode.emptyStatements: [
     RemoveEmptyStatement.new,
     ReplaceWithBrackets.new,
   ],
-  LinterLintCode.eol_at_end_of_file: [AddEolAtEndOfFile.new],
-  LinterLintCode.exhaustive_cases: [AddMissingEnumLikeCaseClauses.new],
-  LinterLintCode.flutter_style_todos: [ConvertToFlutterStyleTodo.new],
-  LinterLintCode.hash_and_equals: [CreateMethod.equalityOrHashCode],
-  LinterLintCode.implicit_call_tearoffs: [AddExplicitCall.new],
-  LinterLintCode.implicit_reopen: [AddReopen.new],
-  LinterLintCode.invalid_case_patterns: [AddConst.new],
-  LinterLintCode.leading_newlines_in_multiline_strings: [
+  LinterLintCode.eolAtEndOfFile: [AddEolAtEndOfFile.new],
+  LinterLintCode.exhaustiveCases: [AddMissingEnumLikeCaseClauses.new],
+  LinterLintCode.flutterStyleTodos: [ConvertToFlutterStyleTodo.new],
+  LinterLintCode.hashAndEquals: [CreateMethod.equalityOrHashCode],
+  LinterLintCode.implicitCallTearoffs: [AddExplicitCall.new],
+  LinterLintCode.implicitReopen: [AddReopen.new],
+  LinterLintCode.invalidCasePatterns: [AddConst.new],
+  LinterLintCode.leadingNewlinesInMultilineStrings: [
     AddLeadingNewlineToString.new,
   ],
-  LinterLintCode.library_annotations: [MoveAnnotationToLibraryDirective.new],
-  LinterLintCode.no_duplicate_case_values: [RemoveDuplicateCase.new],
-  LinterLintCode.no_leading_underscores_for_library_prefixes: [
+  LinterLintCode.libraryAnnotations: [MoveAnnotationToLibraryDirective.new],
+  LinterLintCode.noDuplicateCaseValues: [RemoveDuplicateCase.new],
+  LinterLintCode.noLeadingUnderscoresForLibraryPrefixes: [
     RemoveLeadingUnderscore.new,
   ],
-  LinterLintCode.no_leading_underscores_for_local_identifiers: [
+  LinterLintCode.noLeadingUnderscoresForLocalIdentifiers: [
     RemoveLeadingUnderscore.new,
   ],
-  LinterLintCode.no_literal_bool_comparisons: [ConvertToBooleanExpression.new],
-  LinterLintCode.non_constant_identifier_names: [RenameToCamelCase.new],
-  LinterLintCode.noop_primitive_operations: [RemoveInvocation.new],
-  LinterLintCode.null_check_on_nullable_type_parameter: [
+  LinterLintCode.noLiteralBoolComparisons: [ConvertToBooleanExpression.new],
+  LinterLintCode.nonConstantIdentifierNames: [RenameToCamelCase.new],
+  LinterLintCode.noopPrimitiveOperations: [RemoveInvocation.new],
+  LinterLintCode.nullCheckOnNullableTypeParameter: [
     ReplaceNullCheckWithCast.new,
   ],
-  LinterLintCode.null_closures: [ReplaceNullWithClosure.new],
-  LinterLintCode.omit_local_variable_types: [
+  LinterLintCode.nullClosures: [ReplaceNullWithClosure.new],
+  LinterLintCode.omitLocalVariableTypes: [
     ReplaceWithVar.new,
     RemoveTypeAnnotation.other,
   ],
-  LinterLintCode.omit_obvious_local_variable_types: [
+  LinterLintCode.omitObviousLocalVariableTypes: [
     ReplaceWithVar.new,
     RemoveTypeAnnotation.other,
   ],
-  LinterLintCode.omit_obvious_property_types: [
+  LinterLintCode.omitObviousPropertyTypes: [
     ReplaceWithVar.new,
     RemoveTypeAnnotation.other,
   ],
-  LinterLintCode.prefer_adjacent_string_concatenation: [RemoveOperator.new],
-  LinterLintCode.prefer_collection_literals: [
+  LinterLintCode.preferAdjacentStringConcatenation: [RemoveOperator.new],
+  LinterLintCode.preferCollectionLiterals: [
     ConvertToMapLiteral.new,
     ConvertToSetLiteral.new,
   ],
-  LinterLintCode.prefer_conditional_assignment: [
+  LinterLintCode.preferConditionalAssignment: [
     ReplaceWithConditionalAssignment.new,
   ],
-  LinterLintCode.prefer_const_constructors: [
+  LinterLintCode.preferConstConstructors: [
     AddConst.new,
     ReplaceNewWithConst.new,
   ],
-  LinterLintCode.prefer_const_constructors_in_immutables: [AddConst.new],
-  LinterLintCode.prefer_const_declarations: [ReplaceFinalWithConst.new],
-  LinterLintCode.prefer_const_literals_to_create_immutables: [AddConst.new],
-  LinterLintCode.prefer_contains_always_false: [ConvertToContains.new],
-  LinterLintCode.prefer_contains_always_true: [ConvertToContains.new],
-  LinterLintCode.prefer_contains_use_contains: [ConvertToContains.new],
-  LinterLintCode.prefer_double_quotes: [ConvertToDoubleQuotes.new],
-  LinterLintCode.prefer_expression_function_bodies: [
+  LinterLintCode.preferConstConstructorsInImmutables: [AddConst.new],
+  LinterLintCode.preferConstDeclarations: [ReplaceFinalWithConst.new],
+  LinterLintCode.preferConstLiteralsToCreateImmutables: [AddConst.new],
+  LinterLintCode.preferContainsAlwaysFalse: [ConvertToContains.new],
+  LinterLintCode.preferContainsAlwaysTrue: [ConvertToContains.new],
+  LinterLintCode.preferContainsUseContains: [ConvertToContains.new],
+  LinterLintCode.preferDoubleQuotes: [ConvertToDoubleQuotes.new],
+  LinterLintCode.preferExpressionFunctionBodies: [
     ConvertToExpressionFunctionBody.new,
   ],
-  LinterLintCode.prefer_final_fields: [MakeFinal.new],
-  LinterLintCode.prefer_final_in_for_each_pattern: [MakeFinal.new],
-  LinterLintCode.prefer_final_in_for_each_variable: [MakeFinal.new],
-  LinterLintCode.prefer_final_locals: [MakeFinal.new],
-  LinterLintCode.prefer_final_parameters: [MakeFinal.new],
-  LinterLintCode.prefer_for_elements_to_map_fromIterable: [
+  LinterLintCode.preferFinalFields: [MakeFinal.new],
+  LinterLintCode.preferFinalInForEachPattern: [MakeFinal.new],
+  LinterLintCode.preferFinalInForEachVariable: [MakeFinal.new],
+  LinterLintCode.preferFinalLocals: [MakeFinal.new],
+  LinterLintCode.preferFinalParameters: [MakeFinal.new],
+  LinterLintCode.preferForElementsToMapFromiterable: [
     ConvertMapFromIterableToForLiteral.new,
   ],
-  LinterLintCode.prefer_foreach: [ConvertToForEach.new],
-  LinterLintCode.prefer_function_declarations_over_variables: [
+  LinterLintCode.preferForeach: [ConvertToForEach.new],
+  LinterLintCode.preferFunctionDeclarationsOverVariables: [
     ConvertToFunctionDeclaration.new,
   ],
-  LinterLintCode.prefer_generic_function_type_aliases: [
+  LinterLintCode.preferGenericFunctionTypeAliases: [
     ConvertToGenericFunctionSyntax.new,
   ],
-  LinterLintCode.prefer_if_elements_to_conditional_expressions: [
+  LinterLintCode.preferIfElementsToConditionalExpressions: [
     ConvertConditionalExpressionToIfElement.new,
   ],
-  LinterLintCode.prefer_if_null_operators: [ConvertToIfNull.preferIfNull],
-  LinterLintCode.prefer_initializing_formals: [ConvertToInitializingFormal.new],
-  LinterLintCode.prefer_inlined_adds_single: [
+  LinterLintCode.preferIfNullOperators: [ConvertToIfNull.preferIfNull],
+  LinterLintCode.preferInitializingFormals: [ConvertToInitializingFormal.new],
+  LinterLintCode.preferInlinedAddsSingle: [
     ConvertAddAllToSpread.new,
     InlineInvocation.new,
   ],
-  LinterLintCode.prefer_inlined_adds_multiple: [
+  LinterLintCode.preferInlinedAddsMultiple: [
     ConvertAddAllToSpread.new,
     InlineInvocation.new,
   ],
-  LinterLintCode.prefer_int_literals: [ConvertToIntLiteral.new],
-  LinterLintCode.prefer_interpolation_to_compose_strings: [
+  LinterLintCode.preferIntLiterals: [ConvertToIntLiteral.new],
+  LinterLintCode.preferInterpolationToComposeStrings: [
     ReplaceWithInterpolation.new,
   ],
-  LinterLintCode.prefer_is_empty_always_false: [ReplaceWithIsEmpty.new],
-  LinterLintCode.prefer_is_empty_always_true: [ReplaceWithIsEmpty.new],
-  LinterLintCode.prefer_is_empty_use_is_empty: [ReplaceWithIsEmpty.new],
-  LinterLintCode.prefer_is_empty_use_is_not_empty: [ReplaceWithIsEmpty.new],
-  LinterLintCode.prefer_is_not_empty: [UseIsNotEmpty.new],
-  LinterLintCode.prefer_is_not_operator: [ConvertIntoIsNot.new],
-  LinterLintCode.prefer_iterable_whereType: [ConvertToWhereType.new],
-  LinterLintCode.prefer_null_aware_operators: [ConvertToNullAware.new],
-  LinterLintCode.prefer_relative_imports: [ConvertToRelativeImport.new],
-  LinterLintCode.prefer_single_quotes: [ConvertToSingleQuotes.new],
-  LinterLintCode.prefer_spread_collections: [ConvertAddAllToSpread.new],
-  LinterLintCode.prefer_typing_uninitialized_variables_for_field: [
+  LinterLintCode.preferIsEmptyAlwaysFalse: [ReplaceWithIsEmpty.new],
+  LinterLintCode.preferIsEmptyAlwaysTrue: [ReplaceWithIsEmpty.new],
+  LinterLintCode.preferIsEmptyUseIsEmpty: [ReplaceWithIsEmpty.new],
+  LinterLintCode.preferIsEmptyUseIsNotEmpty: [ReplaceWithIsEmpty.new],
+  LinterLintCode.preferIsNotEmpty: [UseIsNotEmpty.new],
+  LinterLintCode.preferIsNotOperator: [ConvertIntoIsNot.new],
+  LinterLintCode.preferIterableWheretype: [ConvertToWhereType.new],
+  LinterLintCode.preferNullAwareOperators: [ConvertToNullAware.new],
+  LinterLintCode.preferRelativeImports: [ConvertToRelativeImport.new],
+  LinterLintCode.preferSingleQuotes: [ConvertToSingleQuotes.new],
+  LinterLintCode.preferSpreadCollections: [ConvertAddAllToSpread.new],
+  LinterLintCode.preferTypingUninitializedVariablesForField: [
     AddTypeAnnotation.bulkFixable,
   ],
-  LinterLintCode.prefer_typing_uninitialized_variables_for_local_variable: [
+  LinterLintCode.preferTypingUninitializedVariablesForLocalVariable: [
     AddTypeAnnotation.bulkFixable,
   ],
-  LinterLintCode.prefer_void_to_null: [ReplaceNullWithVoid.new],
-  LinterLintCode.require_trailing_commas: [AddTrailingComma.new],
-  LinterLintCode.sized_box_for_whitespace: [ReplaceContainerWithSizedBox.new],
-  LinterLintCode.slash_for_doc_comments: [ConvertDocumentationIntoLine.new],
-  LinterLintCode.sort_child_properties_last: [SortChildPropertyLast.new],
-  LinterLintCode.sort_constructors_first: [SortConstructorFirst.new],
-  LinterLintCode.sort_unnamed_constructors_first: [
+  LinterLintCode.preferVoidToNull: [ReplaceNullWithVoid.new],
+  LinterLintCode.requireTrailingCommas: [AddTrailingComma.new],
+  LinterLintCode.sizedBoxForWhitespace: [ReplaceContainerWithSizedBox.new],
+  LinterLintCode.slashForDocComments: [ConvertDocumentationIntoLine.new],
+  LinterLintCode.sortChildPropertiesLast: [SortChildPropertyLast.new],
+  LinterLintCode.sortConstructorsFirst: [SortConstructorFirst.new],
+  LinterLintCode.sortUnnamedConstructorsFirst: [
     SortUnnamedConstructorFirst.new,
   ],
-  LinterLintCode.specify_nonobvious_local_variable_types: [
+  LinterLintCode.specifyNonobviousLocalVariableTypes: [
     AddTypeAnnotation.bulkFixable,
   ],
-  LinterLintCode.specify_nonobvious_property_types: [
+  LinterLintCode.specifyNonobviousPropertyTypes: [
     AddTypeAnnotation.bulkFixable,
   ],
-  LinterLintCode.strict_top_level_inference_add_type: [AddReturnType.new],
-  LinterLintCode.type_annotate_public_apis: [AddTypeAnnotation.bulkFixable],
-  LinterLintCode.type_init_formals: [RemoveTypeAnnotation.other],
-  LinterLintCode.type_literal_in_constant_pattern: [
+  LinterLintCode.strictTopLevelInferenceAddType: [AddReturnType.new],
+  LinterLintCode.typeAnnotatePublicApis: [AddTypeAnnotation.bulkFixable],
+  LinterLintCode.typeInitFormals: [RemoveTypeAnnotation.other],
+  LinterLintCode.typeLiteralInConstantPattern: [
     ConvertToConstantPattern.new,
     ConvertToWildcardPattern.new,
   ],
-  LinterLintCode.unawaited_futures: [AddAwait.unawaited, WrapInUnawaited.new],
-  LinterLintCode.unnecessary_async: [RemoveAsync.unnecessary],
-  LinterLintCode.unnecessary_await_in_return: [RemoveAwait.new],
-  LinterLintCode.unnecessary_brace_in_string_interps: [
+  LinterLintCode.unawaitedFutures: [AddAwait.unawaited, WrapInUnawaited.new],
+  LinterLintCode.unnecessaryAsync: [RemoveAsync.unnecessary],
+  LinterLintCode.unnecessaryAwaitInReturn: [RemoveAwait.new],
+  LinterLintCode.unnecessaryBraceInStringInterps: [
     RemoveInterpolationBraces.new,
   ],
-  LinterLintCode.unnecessary_breaks: [RemoveBreak.new],
-  LinterLintCode.unnecessary_const: [RemoveUnnecessaryConst.new],
-  LinterLintCode.unnecessary_constructor_name: [RemoveConstructorName.new],
-  LinterLintCode.unnecessary_final_with_type: [ReplaceFinalWithVar.new],
-  LinterLintCode.unnecessary_final_without_type: [ReplaceFinalWithVar.new],
-  LinterLintCode.unnecessary_getters_setters: [MakeFieldPublic.new],
-  LinterLintCode.unnecessary_ignore_name: [RemoveIgnoredDiagnostic.new],
-  LinterLintCode.unnecessary_ignore_name_file: [RemoveIgnoredDiagnostic.new],
-  LinterLintCode.unnecessary_ignore: [RemoveComment.ignore],
-  LinterLintCode.unnecessary_ignore_file: [RemoveComment.ignore],
-  LinterLintCode.unnecessary_lambdas: [ReplaceWithTearOff.new],
-  LinterLintCode.unnecessary_late: [RemoveUnnecessaryLate.new],
-  LinterLintCode.unnecessary_library_directive: [
+  LinterLintCode.unnecessaryBreaks: [RemoveBreak.new],
+  LinterLintCode.unnecessaryConst: [RemoveUnnecessaryConst.new],
+  LinterLintCode.unnecessaryConstructorName: [RemoveConstructorName.new],
+  LinterLintCode.unnecessaryFinalWithType: [ReplaceFinalWithVar.new],
+  LinterLintCode.unnecessaryFinalWithoutType: [ReplaceFinalWithVar.new],
+  LinterLintCode.unnecessaryGettersSetters: [MakeFieldPublic.new],
+  LinterLintCode.unnecessaryIgnoreName: [RemoveIgnoredDiagnostic.new],
+  LinterLintCode.unnecessaryIgnoreNameFile: [RemoveIgnoredDiagnostic.new],
+  LinterLintCode.unnecessaryIgnore: [RemoveComment.ignore],
+  LinterLintCode.unnecessaryIgnoreFile: [RemoveComment.ignore],
+  LinterLintCode.unnecessaryLambdas: [ReplaceWithTearOff.new],
+  LinterLintCode.unnecessaryLate: [RemoveUnnecessaryLate.new],
+  LinterLintCode.unnecessaryLibraryDirective: [
     RemoveUnnecessaryLibraryDirective.new,
   ],
-  LinterLintCode.unnecessary_library_name: [RemoveLibraryName.new],
-  LinterLintCode.unnecessary_new: [RemoveUnnecessaryNew.new],
-  LinterLintCode.unnecessary_null_aware_assignments: [RemoveAssignment.new],
-  LinterLintCode.unnecessary_null_checks: [RemoveNonNullAssertion.new],
-  LinterLintCode.unnecessary_null_in_if_null_operators: [
-    RemoveIfNullOperator.new,
-  ],
-  LinterLintCode.unnecessary_nullable_for_final_variable_declarations: [
+  LinterLintCode.unnecessaryLibraryName: [RemoveLibraryName.new],
+  LinterLintCode.unnecessaryNew: [RemoveUnnecessaryNew.new],
+  LinterLintCode.unnecessaryNullAwareAssignments: [RemoveAssignment.new],
+  LinterLintCode.unnecessaryNullChecks: [RemoveNonNullAssertion.new],
+  LinterLintCode.unnecessaryNullInIfNullOperators: [RemoveIfNullOperator.new],
+  LinterLintCode.unnecessaryNullableForFinalVariableDeclarations: [
     RemoveQuestionMark.new,
   ],
-  LinterLintCode.unnecessary_overrides: [RemoveMethodDeclaration.new],
-  LinterLintCode.unnecessary_parenthesis: [RemoveUnnecessaryParentheses.new],
-  LinterLintCode.unnecessary_raw_strings: [RemoveUnnecessaryRawString.new],
-  LinterLintCode.unnecessary_string_escapes: [
-    RemoveUnnecessaryStringEscape.new,
-  ],
-  LinterLintCode.unnecessary_string_interpolations: [
+  LinterLintCode.unnecessaryOverrides: [RemoveMethodDeclaration.new],
+  LinterLintCode.unnecessaryParenthesis: [RemoveUnnecessaryParentheses.new],
+  LinterLintCode.unnecessaryRawStrings: [RemoveUnnecessaryRawString.new],
+  LinterLintCode.unnecessaryStringEscapes: [RemoveUnnecessaryStringEscape.new],
+  LinterLintCode.unnecessaryStringInterpolations: [
     RemoveUnnecessaryStringInterpolation.new,
   ],
-  LinterLintCode.unnecessary_to_list_in_spreads: [RemoveToList.new],
-  LinterLintCode.unnecessary_this: [RemoveThisExpression.new],
-  LinterLintCode.unnecessary_unawaited: [RemoveUnawaited.new],
-  LinterLintCode.unnecessary_underscores: [ConvertToWildcardVariable.new],
-  LinterLintCode.unreachable_from_main: [RemoveUnusedElement.new],
-  LinterLintCode.use_colored_box: [ReplaceContainerWithColoredBox.new],
-  LinterLintCode.use_decorated_box: [ReplaceWithDecoratedBox.new],
-  LinterLintCode.use_enums: [ConvertClassToEnum.new],
-  LinterLintCode.use_full_hex_values_for_flutter_colors: [
+  LinterLintCode.unnecessaryToListInSpreads: [RemoveToList.new],
+  LinterLintCode.unnecessaryThis: [RemoveThisExpression.new],
+  LinterLintCode.unnecessaryUnawaited: [RemoveUnawaited.new],
+  LinterLintCode.unnecessaryUnderscores: [ConvertToWildcardVariable.new],
+  LinterLintCode.unreachableFromMain: [RemoveUnusedElement.new],
+  LinterLintCode.useColoredBox: [ReplaceContainerWithColoredBox.new],
+  LinterLintCode.useDecoratedBox: [ReplaceWithDecoratedBox.new],
+  LinterLintCode.useEnums: [ConvertClassToEnum.new],
+  LinterLintCode.useFullHexValuesForFlutterColors: [
     ReplaceWithEightDigitHex.new,
   ],
-  LinterLintCode.use_function_type_syntax_for_parameters: [
+  LinterLintCode.useFunctionTypeSyntaxForParameters: [
     ConvertToGenericFunctionSyntax.new,
   ],
-  LinterLintCode.use_if_null_to_convert_nulls_to_bools: [
+  LinterLintCode.useIfNullToConvertNullsToBools: [
     ConvertToIfNull.useToConvertNullsToBools,
   ],
-  LinterLintCode.use_key_in_widget_constructors: [AddKeyToConstructors.new],
-  LinterLintCode.use_named_constants: [ReplaceWithNamedConstant.new],
-  LinterLintCode.use_null_aware_elements: [
+  LinterLintCode.useKeyInWidgetConstructors: [AddKeyToConstructors.new],
+  LinterLintCode.useNamedConstants: [ReplaceWithNamedConstant.new],
+  LinterLintCode.useNullAwareElements: [
     ConvertNullCheckToNullAwareElementOrEntry.new,
   ],
-  LinterLintCode.use_raw_strings: [ConvertToRawString.new],
-  LinterLintCode.use_rethrow_when_possible: [UseRethrow.new],
-  LinterLintCode.use_string_in_part_of_directives: [
-    ReplaceWithPartOrUriEmpty.new,
-  ],
-  LinterLintCode.use_super_parameters_single: [ConvertToSuperParameters.new],
-  LinterLintCode.use_super_parameters_multiple: [ConvertToSuperParameters.new],
-  LinterLintCode.use_truncating_division: [UseEffectiveIntegerDivision.new],
+  LinterLintCode.useRawStrings: [ConvertToRawString.new],
+  LinterLintCode.useRethrowWhenPossible: [UseRethrow.new],
+  LinterLintCode.useStringInPartOfDirectives: [ReplaceWithPartOrUriEmpty.new],
+  LinterLintCode.useSuperParametersSingle: [ConvertToSuperParameters.new],
+  LinterLintCode.useSuperParametersMultiple: [ConvertToSuperParameters.new],
+  LinterLintCode.useTruncatingDivision: [UseEffectiveIntegerDivision.new],
 };
 
 final _builtInLintMultiGenerators = {
-  LinterLintCode.comment_references: [
+  LinterLintCode.commentReferences: [
     ImportLibrary.forType,
     ImportLibrary.forExtension,
   ],
-  LinterLintCode.deprecated_member_use_from_same_package_without_message: [
+  LinterLintCode.deprecatedMemberUseFromSamePackageWithoutMessage: [
     DataDriven.new,
   ],
-  LinterLintCode.deprecated_member_use_from_same_package_with_message: [
+  LinterLintCode.deprecatedMemberUseFromSamePackageWithMessage: [
     DataDriven.new,
   ],
 };
@@ -1421,16 +1405,14 @@ final _builtInNonLintMultiGenerators = {
 };
 
 final _builtInParseLintGenerators = <LintCode, List<ProducerGenerator>>{
-  LinterLintCode.prefer_generic_function_type_aliases: [
+  LinterLintCode.preferGenericFunctionTypeAliases: [
     ConvertToGenericFunctionSyntax.new,
   ],
-  LinterLintCode.slash_for_doc_comments: [ConvertDocumentationIntoLine.new],
-  LinterLintCode.unnecessary_const: [RemoveUnnecessaryConst.new],
-  LinterLintCode.unnecessary_new: [RemoveUnnecessaryNew.new],
-  LinterLintCode.unnecessary_string_escapes: [
-    RemoveUnnecessaryStringEscape.new,
-  ],
-  LinterLintCode.use_function_type_syntax_for_parameters: [
+  LinterLintCode.slashForDocComments: [ConvertDocumentationIntoLine.new],
+  LinterLintCode.unnecessaryConst: [RemoveUnnecessaryConst.new],
+  LinterLintCode.unnecessaryNew: [RemoveUnnecessaryNew.new],
+  LinterLintCode.unnecessaryStringEscapes: [RemoveUnnecessaryStringEscape.new],
+  LinterLintCode.useFunctionTypeSyntaxForParameters: [
     ConvertToGenericFunctionSyntax.new,
   ],
 };

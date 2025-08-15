@@ -26,7 +26,7 @@ class AvoidRenamingMethodParameters extends LintRule {
 
   @override
   DiagnosticCode get diagnosticCode =>
-      LinterLintCode.avoid_renaming_method_parameters;
+      LinterLintCode.avoidRenamingMethodParameters;
 
   @override
   void registerNodeProcessors(

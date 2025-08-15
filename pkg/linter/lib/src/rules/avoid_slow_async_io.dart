@@ -35,7 +35,7 @@ class AvoidSlowAsyncIo extends LintRule {
     : super(name: LintNames.avoid_slow_async_io, description: _desc);
 
   @override
-  DiagnosticCode get diagnosticCode => LinterLintCode.avoid_slow_async_io;
+  DiagnosticCode get diagnosticCode => LinterLintCode.avoidSlowAsyncIo;
 
   @override
   void registerNodeProcessors(

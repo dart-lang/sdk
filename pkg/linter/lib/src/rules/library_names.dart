@@ -17,7 +17,7 @@ class LibraryNames extends LintRule {
   LibraryNames() : super(name: LintNames.library_names, description: _desc);
 
   @override
-  DiagnosticCode get diagnosticCode => LinterLintCode.library_names;
+  DiagnosticCode get diagnosticCode => LinterLintCode.libraryNames;
 
   @override
   void registerNodeProcessors(

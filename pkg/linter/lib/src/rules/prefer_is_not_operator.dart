@@ -18,7 +18,7 @@ class PreferIsNotOperator extends LintRule {
     : super(name: LintNames.prefer_is_not_operator, description: _desc);
 
   @override
-  DiagnosticCode get diagnosticCode => LinterLintCode.prefer_is_not_operator;
+  DiagnosticCode get diagnosticCode => LinterLintCode.preferIsNotOperator;
 
   @override
   void registerNodeProcessors(

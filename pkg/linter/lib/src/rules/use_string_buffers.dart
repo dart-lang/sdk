@@ -29,7 +29,7 @@ class UseStringBuffers extends LintRule {
     : super(name: LintNames.use_string_buffers, description: _desc);
 
   @override
-  DiagnosticCode get diagnosticCode => LinterLintCode.use_string_buffers;
+  DiagnosticCode get diagnosticCode => LinterLintCode.useStringBuffers;
 
   @override
   void registerNodeProcessors(

@@ -21,7 +21,7 @@ class SortUnnamedConstructorsFirst extends LintRule {
 
   @override
   DiagnosticCode get diagnosticCode =>
-      LinterLintCode.sort_unnamed_constructors_first;
+      LinterLintCode.sortUnnamedConstructorsFirst;
 
   @override
   void registerNodeProcessors(

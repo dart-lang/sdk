@@ -20,7 +20,7 @@ class UnnecessaryNew extends LintRule {
   bool get canUseParsedResult => true;
 
   @override
-  DiagnosticCode get diagnosticCode => LinterLintCode.unnecessary_new;
+  DiagnosticCode get diagnosticCode => LinterLintCode.unnecessaryNew;
 
   @override
   void registerNodeProcessors(

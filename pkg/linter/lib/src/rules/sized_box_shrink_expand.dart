@@ -19,7 +19,7 @@ class SizedBoxShrinkExpand extends LintRule {
       );
 
   @override
-  DiagnosticCode get diagnosticCode => LinterLintCode.sized_box_shrink_expand;
+  DiagnosticCode get diagnosticCode => LinterLintCode.sizedBoxShrinkExpand;
 
   @override
   void registerNodeProcessors(

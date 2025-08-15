@@ -22,7 +22,7 @@ class UnnecessaryStringInterpolations extends LintRule {
 
   @override
   DiagnosticCode get diagnosticCode =>
-      LinterLintCode.unnecessary_string_interpolations;
+      LinterLintCode.unnecessaryStringInterpolations;
 
   @override
   void registerNodeProcessors(

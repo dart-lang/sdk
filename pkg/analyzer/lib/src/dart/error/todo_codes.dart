@@ -2,11 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/error/error.dart';
+// ignore: deprecated_member_use_from_same_package
+import 'package:analyzer/src/dart/error/todo_codes.g.dart';
 
-// It is hard to visually separate each code's _doc comment_ from its published
-// _documentation comment_ when each is written as an end-of-line comment.
-// ignore_for_file: slash_for_doc_comments
+// ignore: deprecated_member_use_from_same_package
+export 'package:analyzer/src/dart/error/todo_codes.g.dart' show TodoCode;
 
 /// Static helper methods and properties for working with [TodoCode]s.
 class Todo {
@@ -52,42 +52,4 @@ class Todo {
 
   /// Returns the TodoCode for [kind], falling back to [TodoCode.todo].
   static TodoCode forKind(String kind) => _codes[kind] ?? TodoCode.todo;
-}
-
-/**
- * The error code indicating a marker in code for work that needs to be finished
- * or revisited.
- */
-class TodoCode extends DiagnosticCode {
-  /**
-   * A standard TODO comment marked as TODO.
-   */
-  static const TodoCode todo = TodoCode('TODO');
-
-  /**
-   * A TODO comment marked as FIXME.
-   */
-  static const TodoCode fixme = TodoCode('FIXME');
-
-  /**
-   * A TODO comment marked as HACK.
-   */
-  static const TodoCode hack = TodoCode('HACK');
-
-  /**
-   * A TODO comment marked as UNDONE.
-   */
-  static const TodoCode undone = TodoCode('UNDONE');
-
-  /**
-   * Initialize a newly created error code to have the given [name].
-   */
-  const TodoCode(String name)
-    : super(problemMessage: "{0}", name: name, uniqueName: 'TodoCode.$name');
-
-  @override
-  DiagnosticSeverity get severity => DiagnosticSeverity.INFO;
-
-  @override
-  DiagnosticType get type => DiagnosticType.TODO;
 }

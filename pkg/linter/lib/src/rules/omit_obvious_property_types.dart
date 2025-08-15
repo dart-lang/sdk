@@ -24,8 +24,7 @@ class OmitObviousPropertyTypes extends LintRule {
       );
 
   @override
-  DiagnosticCode get diagnosticCode =>
-      LinterLintCode.omit_obvious_property_types;
+  DiagnosticCode get diagnosticCode => LinterLintCode.omitObviousPropertyTypes;
 
   @override
   List<String> get incompatibleRules => const [

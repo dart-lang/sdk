@@ -21,7 +21,7 @@ class PreferFunctionDeclarationsOverVariables extends LintRule {
 
   @override
   DiagnosticCode get diagnosticCode =>
-      LinterLintCode.prefer_function_declarations_over_variables;
+      LinterLintCode.preferFunctionDeclarationsOverVariables;
 
   @override
   void registerNodeProcessors(

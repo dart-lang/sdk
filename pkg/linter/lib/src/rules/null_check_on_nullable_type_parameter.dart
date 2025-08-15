@@ -25,7 +25,7 @@ class NullCheckOnNullableTypeParameter extends LintRule {
 
   @override
   DiagnosticCode get diagnosticCode =>
-      LinterLintCode.null_check_on_nullable_type_parameter;
+      LinterLintCode.nullCheckOnNullableTypeParameter;
 
   @override
   void registerNodeProcessors(

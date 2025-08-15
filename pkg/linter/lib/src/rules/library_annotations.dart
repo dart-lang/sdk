@@ -21,7 +21,7 @@ class LibraryAnnotations extends LintRule {
     : super(name: LintNames.library_annotations, description: _desc);
 
   @override
-  DiagnosticCode get diagnosticCode => LinterLintCode.library_annotations;
+  DiagnosticCode get diagnosticCode => LinterLintCode.libraryAnnotations;
 
   @override
   void registerNodeProcessors(

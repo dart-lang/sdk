@@ -21,8 +21,7 @@ class PreferCollectionLiterals extends LintRule {
     : super(name: LintNames.prefer_collection_literals, description: _desc);
 
   @override
-  DiagnosticCode get diagnosticCode =>
-      LinterLintCode.prefer_collection_literals;
+  DiagnosticCode get diagnosticCode => LinterLintCode.preferCollectionLiterals;
 
   @override
   void registerNodeProcessors(

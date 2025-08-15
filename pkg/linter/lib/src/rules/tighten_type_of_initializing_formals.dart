@@ -23,7 +23,7 @@ class TightenTypeOfInitializingFormals extends LintRule {
 
   @override
   DiagnosticCode get diagnosticCode =>
-      LinterLintCode.tighten_type_of_initializing_formals;
+      LinterLintCode.tightenTypeOfInitializingFormals;
 
   @override
   void registerNodeProcessors(

@@ -24,7 +24,7 @@ class PublicMemberApiDocs extends LintRule {
     : super(name: LintNames.public_member_api_docs, description: _desc);
 
   @override
-  DiagnosticCode get diagnosticCode => LinterLintCode.public_member_api_docs;
+  DiagnosticCode get diagnosticCode => LinterLintCode.publicMemberApiDocs;
 
   @override
   void registerNodeProcessors(

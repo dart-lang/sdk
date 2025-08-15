@@ -40,7 +40,7 @@ class LiteralOnlyBooleanExpressions extends LintRule {
 
   @override
   DiagnosticCode get diagnosticCode =>
-      LinterLintCode.literal_only_boolean_expressions;
+      LinterLintCode.literalOnlyBooleanExpressions;
 
   @override
   void registerNodeProcessors(

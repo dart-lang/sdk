@@ -18,7 +18,7 @@ class TypeInitFormals extends LintRule {
     : super(name: LintNames.type_init_formals, description: _desc);
 
   @override
-  DiagnosticCode get diagnosticCode => LinterLintCode.type_init_formals;
+  DiagnosticCode get diagnosticCode => LinterLintCode.typeInitFormals;
 
   @override
   void registerNodeProcessors(

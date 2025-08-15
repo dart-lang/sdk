@@ -73,6 +73,11 @@ final recordedUses = Recordings(
         loadingUnit: '3',
         location: Location(uri: 'lib/test3.dart'),
       ),
+      const InstanceReference(
+        instanceConstant: InstanceConstant(fields: {}),
+        loadingUnit: '3',
+        location: Location(uri: 'lib/test3.dart'),
+      ),
     ],
   },
 );
@@ -181,6 +186,9 @@ final recordedUsesJson = '''{
         "a": 13,
         "b": 14
       }
+    },
+    {
+      "type": "Instance"
     }
   ],
   "locations": [
@@ -241,6 +249,11 @@ final recordedUsesJson = '''{
       "instances": [
         {
           "constant_index": 15,
+          "loading_unit": "3",
+          "@": 2
+        },
+        {
+          "constant_index": 16,
           "loading_unit": "3",
           "@": 2
         }

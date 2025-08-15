@@ -17,7 +17,7 @@ class ControlFlowInFinally extends LintRule {
     : super(name: LintNames.control_flow_in_finally, description: _desc);
 
   @override
-  DiagnosticCode get diagnosticCode => LinterLintCode.control_flow_in_finally;
+  DiagnosticCode get diagnosticCode => LinterLintCode.controlFlowInFinally;
 
   @override
   void registerNodeProcessors(

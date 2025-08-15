@@ -18,7 +18,7 @@ class UseDecoratedBox extends LintRule {
     : super(name: LintNames.use_decorated_box, description: _desc);
 
   @override
-  DiagnosticCode get diagnosticCode => LinterLintCode.use_decorated_box;
+  DiagnosticCode get diagnosticCode => LinterLintCode.useDecoratedBox;
 
   @override
   void registerNodeProcessors(

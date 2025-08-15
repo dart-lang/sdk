@@ -21,7 +21,7 @@ class PreferFinalLocals extends LintRule {
     : super(name: LintNames.prefer_final_locals, description: _desc);
 
   @override
-  DiagnosticCode get diagnosticCode => LinterLintCode.prefer_final_locals;
+  DiagnosticCode get diagnosticCode => LinterLintCode.preferFinalLocals;
 
   @override
   List<String> get incompatibleRules => const [LintNames.unnecessary_final];

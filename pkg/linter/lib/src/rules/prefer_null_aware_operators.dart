@@ -18,8 +18,7 @@ class PreferNullAwareOperators extends LintRule {
     : super(name: LintNames.prefer_null_aware_operators, description: _desc);
 
   @override
-  DiagnosticCode get diagnosticCode =>
-      LinterLintCode.prefer_null_aware_operators;
+  DiagnosticCode get diagnosticCode => LinterLintCode.preferNullAwareOperators;
 
   @override
   void registerNodeProcessors(

@@ -17,7 +17,7 @@ class CloseSinks extends LintRule {
   CloseSinks() : super(name: LintNames.close_sinks, description: _desc);
 
   @override
-  DiagnosticCode get diagnosticCode => LinterLintCode.close_sinks;
+  DiagnosticCode get diagnosticCode => LinterLintCode.closeSinks;
 
   @override
   void registerNodeProcessors(

@@ -22,7 +22,7 @@ class UseStringInPartOfDirectives extends LintRule {
 
   @override
   DiagnosticCode get diagnosticCode =>
-      LinterLintCode.use_string_in_part_of_directives;
+      LinterLintCode.useStringInPartOfDirectives;
 
   @override
   void registerNodeProcessors(

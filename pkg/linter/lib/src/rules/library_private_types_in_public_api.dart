@@ -24,7 +24,7 @@ class LibraryPrivateTypesInPublicApi extends LintRule {
 
   @override
   DiagnosticCode get diagnosticCode =>
-      LinterLintCode.library_private_types_in_public_api;
+      LinterLintCode.libraryPrivateTypesInPublicApi;
 
   @override
   void registerNodeProcessors(

@@ -27,7 +27,7 @@ class PreferConstructorsOverStaticMethods extends LintRule {
 
   @override
   DiagnosticCode get diagnosticCode =>
-      LinterLintCode.prefer_constructors_over_static_methods;
+      LinterLintCode.preferConstructorsOverStaticMethods;
 
   @override
   void registerNodeProcessors(

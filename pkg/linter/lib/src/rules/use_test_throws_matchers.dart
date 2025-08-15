@@ -18,7 +18,7 @@ class UseTestThrowsMatchers extends LintRule {
     : super(name: LintNames.use_test_throws_matchers, description: _desc);
 
   @override
-  DiagnosticCode get diagnosticCode => LinterLintCode.use_test_throws_matchers;
+  DiagnosticCode get diagnosticCode => LinterLintCode.useTestThrowsMatchers;
 
   @override
   void registerNodeProcessors(

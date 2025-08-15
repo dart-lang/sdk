@@ -1,3 +1,7 @@
+## 0.4.2
+
+- Fix empty instance parsing.
+
 ## 0.4.1
 
 - Fix bug in signature parsing.

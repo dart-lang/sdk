@@ -22,7 +22,7 @@ class UnnecessaryParenthesis extends LintRule {
     : super(name: LintNames.unnecessary_parenthesis, description: _desc);
 
   @override
-  DiagnosticCode get diagnosticCode => LinterLintCode.unnecessary_parenthesis;
+  DiagnosticCode get diagnosticCode => LinterLintCode.unnecessaryParenthesis;
 
   @override
   void registerNodeProcessors(

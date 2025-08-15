@@ -21,8 +21,8 @@ class AlwaysDeclareReturnTypes extends MultiAnalysisRule {
 
   @override
   List<DiagnosticCode> get diagnosticCodes => [
-    LinterLintCode.always_declare_return_types_of_functions,
-    LinterLintCode.always_declare_return_types_of_methods,
+    LinterLintCode.alwaysDeclareReturnTypesOfFunctions,
+    LinterLintCode.alwaysDeclareReturnTypesOfMethods,
   ];
 
   @override
@@ -49,7 +49,7 @@ class _Visitor extends SimpleAstVisitor<void> {
       rule.reportAtToken(
         node.name,
         arguments: [node.name.lexeme],
-        diagnosticCode: LinterLintCode.always_declare_return_types_of_functions,
+        diagnosticCode: LinterLintCode.alwaysDeclareReturnTypesOfFunctions,
       );
     }
   }
@@ -60,7 +60,7 @@ class _Visitor extends SimpleAstVisitor<void> {
       rule.reportAtToken(
         node.name,
         arguments: [node.name.lexeme],
-        diagnosticCode: LinterLintCode.always_declare_return_types_of_functions,
+        diagnosticCode: LinterLintCode.alwaysDeclareReturnTypesOfFunctions,
       );
     }
   }
@@ -82,7 +82,7 @@ class _Visitor extends SimpleAstVisitor<void> {
     rule.reportAtToken(
       node.name,
       arguments: [node.name.lexeme],
-      diagnosticCode: LinterLintCode.always_declare_return_types_of_methods,
+      diagnosticCode: LinterLintCode.alwaysDeclareReturnTypesOfMethods,
     );
   }
 }

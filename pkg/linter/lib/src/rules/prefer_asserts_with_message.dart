@@ -17,8 +17,7 @@ class PreferAssertsWithMessage extends LintRule {
     : super(name: LintNames.prefer_asserts_with_message, description: _desc);
 
   @override
-  DiagnosticCode get diagnosticCode =>
-      LinterLintCode.prefer_asserts_with_message;
+  DiagnosticCode get diagnosticCode => LinterLintCode.preferAssertsWithMessage;
 
   @override
   void registerNodeProcessors(

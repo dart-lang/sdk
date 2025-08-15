@@ -24,7 +24,7 @@ class UseFunctionTypeSyntaxForParameters extends LintRule {
 
   @override
   DiagnosticCode get diagnosticCode =>
-      LinterLintCode.use_function_type_syntax_for_parameters;
+      LinterLintCode.useFunctionTypeSyntaxForParameters;
 
   @override
   void registerNodeProcessors(

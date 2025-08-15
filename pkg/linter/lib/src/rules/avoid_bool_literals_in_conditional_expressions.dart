@@ -21,7 +21,7 @@ class AvoidBoolLiteralsInConditionalExpressions extends LintRule {
 
   @override
   DiagnosticCode get diagnosticCode =>
-      LinterLintCode.avoid_bool_literals_in_conditional_expressions;
+      LinterLintCode.avoidBoolLiteralsInConditionalExpressions;
 
   @override
   void registerNodeProcessors(

@@ -18,7 +18,7 @@ class ImplicitCallTearoffs extends LintRule {
     : super(name: LintNames.implicit_call_tearoffs, description: _desc);
 
   @override
-  DiagnosticCode get diagnosticCode => LinterLintCode.implicit_call_tearoffs;
+  DiagnosticCode get diagnosticCode => LinterLintCode.implicitCallTearoffs;
 
   @override
   void registerNodeProcessors(

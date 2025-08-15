@@ -20,7 +20,7 @@ class PreferVoidToNull extends LintRule {
     : super(name: LintNames.prefer_void_to_null, description: _desc);
 
   @override
-  DiagnosticCode get diagnosticCode => LinterLintCode.prefer_void_to_null;
+  DiagnosticCode get diagnosticCode => LinterLintCode.preferVoidToNull;
 
   @override
   void registerNodeProcessors(

@@ -19,7 +19,7 @@ class AvoidUnnecessaryContainers extends LintRule {
 
   @override
   DiagnosticCode get diagnosticCode =>
-      LinterLintCode.avoid_unnecessary_containers;
+      LinterLintCode.avoidUnnecessaryContainers;
 
   @override
   void registerNodeProcessors(

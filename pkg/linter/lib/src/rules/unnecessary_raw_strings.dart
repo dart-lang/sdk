@@ -17,7 +17,7 @@ class UnnecessaryRawStrings extends LintRule {
     : super(name: LintNames.unnecessary_raw_strings, description: _desc);
 
   @override
-  DiagnosticCode get diagnosticCode => LinterLintCode.unnecessary_raw_strings;
+  DiagnosticCode get diagnosticCode => LinterLintCode.unnecessaryRawStrings;
 
   @override
   void registerNodeProcessors(

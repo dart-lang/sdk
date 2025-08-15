@@ -22,7 +22,7 @@ class AvoidSingleCascadeInExpressionStatements extends LintRule {
 
   @override
   DiagnosticCode get diagnosticCode =>
-      LinterLintCode.avoid_single_cascade_in_expression_statements;
+      LinterLintCode.avoidSingleCascadeInExpressionStatements;
 
   @override
   void registerNodeProcessors(

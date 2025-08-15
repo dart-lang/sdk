@@ -20,7 +20,7 @@ class UseEnums extends LintRule {
   UseEnums() : super(name: LintNames.use_enums, description: _desc);
 
   @override
-  DiagnosticCode get diagnosticCode => LinterLintCode.use_enums;
+  DiagnosticCode get diagnosticCode => LinterLintCode.useEnums;
 
   @override
   void registerNodeProcessors(

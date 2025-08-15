@@ -20,7 +20,7 @@ class NoWildcardVariableUses extends LintRule {
     : super(name: LintNames.no_wildcard_variable_uses, description: _desc);
 
   @override
-  DiagnosticCode get diagnosticCode => LinterLintCode.no_wildcard_variable_uses;
+  DiagnosticCode get diagnosticCode => LinterLintCode.noWildcardVariableUses;
 
   @override
   void registerNodeProcessors(

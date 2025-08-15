@@ -62,10 +62,10 @@ bool _isRelativeDirective(NamespaceDirective node) =>
 
 class DirectivesOrdering extends MultiAnalysisRule {
   static const List<LintCode> allCodes = [
-    LinterLintCode.directives_ordering_alphabetical,
-    LinterLintCode.directives_ordering_dart,
-    LinterLintCode.directives_ordering_exports,
-    LinterLintCode.directives_ordering_package_before_relative,
+    LinterLintCode.directivesOrderingAlphabetical,
+    LinterLintCode.directivesOrderingDart,
+    LinterLintCode.directivesOrderingExports,
+    LinterLintCode.directivesOrderingPackageBeforeRelative,
   ];
 
   DirectivesOrdering()
@@ -86,7 +86,7 @@ class DirectivesOrdering extends MultiAnalysisRule {
   void _reportLintWithDartDirectiveGoFirstMessage(AstNode node, String type) {
     reportAtNode(
       node,
-      diagnosticCode: LinterLintCode.directives_ordering_dart,
+      diagnosticCode: LinterLintCode.directivesOrderingDart,
       arguments: ['${type}s'],
     );
   }
@@ -96,14 +96,14 @@ class DirectivesOrdering extends MultiAnalysisRule {
   ) {
     reportAtNode(
       node,
-      diagnosticCode: LinterLintCode.directives_ordering_alphabetical,
+      diagnosticCode: LinterLintCode.directivesOrderingAlphabetical,
     );
   }
 
   void _reportLintWithExportDirectiveAfterImportDirectiveMessage(AstNode node) {
     reportAtNode(
       node,
-      diagnosticCode: LinterLintCode.directives_ordering_exports,
+      diagnosticCode: LinterLintCode.directivesOrderingExports,
     );
   }
 
@@ -113,8 +113,7 @@ class DirectivesOrdering extends MultiAnalysisRule {
   ) {
     reportAtNode(
       node,
-      diagnosticCode:
-          LinterLintCode.directives_ordering_package_before_relative,
+      diagnosticCode: LinterLintCode.directivesOrderingPackageBeforeRelative,
       arguments: ['${type}s'],
     );
   }

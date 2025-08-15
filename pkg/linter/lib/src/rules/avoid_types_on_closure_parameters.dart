@@ -23,7 +23,7 @@ class AvoidTypesOnClosureParameters extends LintRule {
 
   @override
   DiagnosticCode get diagnosticCode =>
-      LinterLintCode.avoid_types_on_closure_parameters;
+      LinterLintCode.avoidTypesOnClosureParameters;
 
   @override
   List<String> get incompatibleRules => const [LintNames.always_specify_types];

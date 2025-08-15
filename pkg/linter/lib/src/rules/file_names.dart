@@ -17,7 +17,7 @@ class FileNames extends LintRule {
   FileNames() : super(name: LintNames.file_names, description: _desc);
 
   @override
-  DiagnosticCode get diagnosticCode => LinterLintCode.file_names;
+  DiagnosticCode get diagnosticCode => LinterLintCode.fileNames;
 
   @override
   void registerNodeProcessors(

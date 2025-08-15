@@ -18,7 +18,7 @@ class PreferIntLiterals extends LintRule {
     : super(name: LintNames.prefer_int_literals, description: _desc);
 
   @override
-  DiagnosticCode get diagnosticCode => LinterLintCode.prefer_int_literals;
+  DiagnosticCode get diagnosticCode => LinterLintCode.preferIntLiterals;
 
   @override
   void registerNodeProcessors(

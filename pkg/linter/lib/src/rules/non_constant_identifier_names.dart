@@ -22,7 +22,7 @@ class NonConstantIdentifierNames extends LintRule {
 
   @override
   DiagnosticCode get diagnosticCode =>
-      LinterLintCode.non_constant_identifier_names;
+      LinterLintCode.nonConstantIdentifierNames;
 
   @override
   void registerNodeProcessors(

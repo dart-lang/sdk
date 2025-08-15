@@ -21,7 +21,7 @@ class AlwaysPutRequiredNamedParametersFirst extends LintRule {
 
   @override
   DiagnosticCode get diagnosticCode =>
-      LinterLintCode.always_put_required_named_parameters_first;
+      LinterLintCode.alwaysPutRequiredNamedParametersFirst;
 
   @override
   void registerNodeProcessors(

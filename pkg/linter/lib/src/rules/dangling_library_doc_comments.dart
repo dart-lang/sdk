@@ -20,7 +20,7 @@ class DanglingLibraryDocComments extends LintRule {
 
   @override
   DiagnosticCode get diagnosticCode =>
-      LinterLintCode.dangling_library_doc_comments;
+      LinterLintCode.danglingLibraryDocComments;
 
   @override
   void registerNodeProcessors(

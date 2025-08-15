@@ -28,6 +28,18 @@ class DeprecatedFunctionalityVerifier {
     _checkForDeprecatedImplement(node.implementsClause?.interfaces);
   }
 
+  void constructorName(ConstructorName node) {
+    var classElement = node.type.element;
+    if (classElement == null) return;
+    if (classElement.hasDeprecatedWithField('_isInstantiate')) {
+      _diagnosticReporter.atNode(
+        node,
+        WarningCode.deprecatedInstantiate,
+        arguments: [classElement.name!],
+      );
+    }
+  }
+
   void enumDeclaration(EnumDeclaration node) {
     _checkForDeprecatedImplement(node.implementsClause?.interfaces);
   }

@@ -22,7 +22,7 @@ class UnnecessaryUnderscores extends LintRule {
     : super(name: LintNames.unnecessary_underscores, description: _desc);
 
   @override
-  DiagnosticCode get diagnosticCode => LinterLintCode.unnecessary_underscores;
+  DiagnosticCode get diagnosticCode => LinterLintCode.unnecessaryUnderscores;
 
   @override
   void registerNodeProcessors(

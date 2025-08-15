@@ -17,7 +17,7 @@ class EmptyConstructorBodies extends LintRule {
     : super(name: LintNames.empty_constructor_bodies, description: _desc);
 
   @override
-  DiagnosticCode get diagnosticCode => LinterLintCode.empty_constructor_bodies;
+  DiagnosticCode get diagnosticCode => LinterLintCode.emptyConstructorBodies;
 
   @override
   void registerNodeProcessors(

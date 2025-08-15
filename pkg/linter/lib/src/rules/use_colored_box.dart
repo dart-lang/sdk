@@ -18,7 +18,7 @@ class UseColoredBox extends LintRule {
   UseColoredBox() : super(name: LintNames.use_colored_box, description: _desc);
 
   @override
-  DiagnosticCode get diagnosticCode => LinterLintCode.use_colored_box;
+  DiagnosticCode get diagnosticCode => LinterLintCode.useColoredBox;
 
   @override
   void registerNodeProcessors(

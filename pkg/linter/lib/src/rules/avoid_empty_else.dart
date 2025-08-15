@@ -17,7 +17,7 @@ class AvoidEmptyElse extends LintRule {
     : super(name: LintNames.avoid_empty_else, description: _desc);
 
   @override
-  DiagnosticCode get diagnosticCode => LinterLintCode.avoid_empty_else;
+  DiagnosticCode get diagnosticCode => LinterLintCode.avoidEmptyElse;
 
   @override
   void registerNodeProcessors(

@@ -46,7 +46,7 @@ class AvoidFunctionLiteralsInForeachCalls extends LintRule {
 
   @override
   DiagnosticCode get diagnosticCode =>
-      LinterLintCode.avoid_function_literals_in_foreach_calls;
+      LinterLintCode.avoidFunctionLiteralsInForeachCalls;
 
   @override
   void registerNodeProcessors(

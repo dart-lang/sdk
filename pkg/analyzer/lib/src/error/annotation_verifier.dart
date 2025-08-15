@@ -141,6 +141,13 @@ class AnnotationVerifier {
       _checkDeprecatedSubclass(node, node.parent);
       return;
     }
+
+    var isInstantiate =
+        value.getField('_isInstantiate')?.toBoolValue() ?? false;
+    if (isInstantiate) {
+      _checkDeprecatedInstantiate(node, node.parent);
+      return;
+    }
   }
 
   void _checkDeprecatedExtend(Annotation node, AstNode parent) {
@@ -154,10 +161,8 @@ class AnnotationVerifier {
     }
 
     if (declaredElement is ClassElement) {
-      var hasGenerativeConstructor = declaredElement.constructors.any(
-        (c) => c.isPublic && c.isGenerative,
-      );
-      if (declaredElement.isExtendableOutside && hasGenerativeConstructor) {
+      if (declaredElement.isExtendableOutside &&
+          declaredElement.hasGenerativeConstructor) {
         return;
       }
     }
@@ -191,6 +196,29 @@ class AnnotationVerifier {
     _diagnosticReporter.atNode(
       node.name,
       WarningCode.invalidDeprecatedImplementAnnotation,
+    );
+  }
+
+  void _checkDeprecatedInstantiate(Annotation node, AstNode parent) {
+    Element? declaredElement;
+    if (parent
+        case ClassDeclaration(:var declaredFragment) ||
+            ClassTypeAlias(:var declaredFragment)) {
+      declaredElement = declaredFragment!.element;
+    } else if (parent is GenericTypeAlias) {
+      declaredElement = parent.type.type?.element;
+    }
+
+    if (declaredElement is ClassElement) {
+      if (!declaredElement.isAbstract &&
+          declaredElement.hasGenerativeConstructor) {
+        return;
+      }
+    }
+
+    _diagnosticReporter.atNode(
+      node.name,
+      WarningCode.invalidDeprecatedInstantiateAnnotation,
     );
   }
 
@@ -734,4 +762,9 @@ class AnnotationVerifier {
       _ => false,
     };
   }
+}
+
+extension on ClassElement {
+  bool get hasGenerativeConstructor =>
+      constructors.any((c) => c.isPublic && c.isGenerative);
 }

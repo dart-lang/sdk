@@ -20,7 +20,7 @@ class DependOnReferencedPackages extends LintRule {
 
   @override
   DiagnosticCode get diagnosticCode =>
-      LinterLintCode.depend_on_referenced_packages;
+      LinterLintCode.dependOnReferencedPackages;
 
   @override
   void registerNodeProcessors(

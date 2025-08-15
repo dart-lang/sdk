@@ -25,7 +25,7 @@ class UnnecessaryLambdas extends LintRule {
     : super(name: LintNames.unnecessary_lambdas, description: _desc);
 
   @override
-  DiagnosticCode get diagnosticCode => LinterLintCode.unnecessary_lambdas;
+  DiagnosticCode get diagnosticCode => LinterLintCode.unnecessaryLambdas;
 
   @override
   void registerNodeProcessors(

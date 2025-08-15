@@ -18,7 +18,7 @@ class SizedBoxForWhitespace extends LintRule {
     : super(name: LintNames.sized_box_for_whitespace, description: _desc);
 
   @override
-  DiagnosticCode get diagnosticCode => LinterLintCode.sized_box_for_whitespace;
+  DiagnosticCode get diagnosticCode => LinterLintCode.sizedBoxForWhitespace;
 
   @override
   void registerNodeProcessors(

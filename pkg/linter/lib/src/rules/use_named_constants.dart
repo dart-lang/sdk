@@ -19,7 +19,7 @@ class UseNamedConstants extends LintRule {
     : super(name: LintNames.use_named_constants, description: _desc);
 
   @override
-  DiagnosticCode get diagnosticCode => LinterLintCode.use_named_constants;
+  DiagnosticCode get diagnosticCode => LinterLintCode.useNamedConstants;
 
   @override
   void registerNodeProcessors(

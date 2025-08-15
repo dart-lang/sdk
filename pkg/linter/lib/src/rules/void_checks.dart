@@ -19,7 +19,7 @@ class VoidChecks extends LintRule {
   VoidChecks() : super(name: LintNames.void_checks, description: _desc);
 
   @override
-  DiagnosticCode get diagnosticCode => LinterLintCode.void_checks;
+  DiagnosticCode get diagnosticCode => LinterLintCode.voidChecks;
 
   @override
   void registerNodeProcessors(

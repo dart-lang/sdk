@@ -20,7 +20,7 @@ class TypeAnnotatePublicApis extends LintRule {
     : super(name: LintNames.type_annotate_public_apis, description: _desc);
 
   @override
-  DiagnosticCode get diagnosticCode => LinterLintCode.type_annotate_public_apis;
+  DiagnosticCode get diagnosticCode => LinterLintCode.typeAnnotatePublicApis;
 
   @override
   List<String> get incompatibleRules => const ['omit_obvious_property_types'];

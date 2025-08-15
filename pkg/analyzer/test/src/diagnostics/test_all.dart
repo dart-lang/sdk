@@ -185,6 +185,7 @@ import 'deprecated_extends_function_test.dart' as deprecated_extends_function;
 import 'deprecated_implement_test.dart' as deprecated_implement;
 import 'deprecated_implements_function_test.dart'
     as deprecated_implements_function;
+import 'deprecated_instantiate_test.dart' as deprecated_instantiate;
 import 'deprecated_member_use_test.dart' as deprecated_member_use;
 import 'deprecated_mixin_function_test.dart' as deprecated_mixin_function;
 import 'deprecated_subclass_test.dart' as deprecated_subclass;
@@ -441,6 +442,8 @@ import 'invalid_deprecated_extend_annotation_test.dart'
     as invalid_deprecated_extend_annotation;
 import 'invalid_deprecated_implement_annotation_test.dart'
     as invalid_deprecated_implement_annotation;
+import 'invalid_deprecated_instantiate_annotation_test.dart'
+    as invalid_deprecated_instantiate_annotation;
 import 'invalid_deprecated_subclass_annotation_test.dart'
     as invalid_deprecated_subclass_annotation;
 import 'invalid_do_not_submit_test.dart' as invalid_do_not_submit;
@@ -1070,6 +1073,7 @@ main() {
     deprecated_extends_function.main();
     deprecated_implement.main();
     deprecated_implements_function.main();
+    deprecated_instantiate.main();
     deprecated_member_use.main();
     deprecated_mixin_function.main();
     deprecated_subclass.main();
@@ -1229,6 +1233,7 @@ main() {
     invalid_constructor_name.main();
     invalid_deprecated_extend_annotation.main();
     invalid_deprecated_implement_annotation.main();
+    invalid_deprecated_instantiate_annotation.main();
     invalid_deprecated_subclass_annotation.main();
     invalid_do_not_submit.main();
     invalid_exception_value.main();

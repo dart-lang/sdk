@@ -34,7 +34,7 @@ class OnlyThrowErrors extends LintRule {
     : super(name: LintNames.only_throw_errors, description: _desc);
 
   @override
-  DiagnosticCode get diagnosticCode => LinterLintCode.only_throw_errors;
+  DiagnosticCode get diagnosticCode => LinterLintCode.onlyThrowErrors;
 
   @override
   void registerNodeProcessors(

@@ -23,7 +23,7 @@ class UseIfNullToConvertNullsToBools extends LintRule {
 
   @override
   DiagnosticCode get diagnosticCode =>
-      LinterLintCode.use_if_null_to_convert_nulls_to_bools;
+      LinterLintCode.useIfNullToConvertNullsToBools;
 
   @override
   void registerNodeProcessors(

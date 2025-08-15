@@ -21,7 +21,7 @@ class TypeLiteralInConstantPattern extends LintRule {
 
   @override
   DiagnosticCode get diagnosticCode =>
-      LinterLintCode.type_literal_in_constant_pattern;
+      LinterLintCode.typeLiteralInConstantPattern;
 
   @override
   void registerNodeProcessors(

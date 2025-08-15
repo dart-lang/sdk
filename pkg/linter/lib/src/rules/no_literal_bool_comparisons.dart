@@ -19,8 +19,7 @@ class NoLiteralBoolComparisons extends LintRule {
     : super(name: LintNames.no_literal_bool_comparisons, description: _desc);
 
   @override
-  DiagnosticCode get diagnosticCode =>
-      LinterLintCode.no_literal_bool_comparisons;
+  DiagnosticCode get diagnosticCode => LinterLintCode.noLiteralBoolComparisons;
 
   @override
   void registerNodeProcessors(

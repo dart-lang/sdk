@@ -18,8 +18,7 @@ class CastNullableToNonNullable extends LintRule {
     : super(name: LintNames.cast_nullable_to_non_nullable, description: _desc);
 
   @override
-  DiagnosticCode get diagnosticCode =>
-      LinterLintCode.cast_nullable_to_non_nullable;
+  DiagnosticCode get diagnosticCode => LinterLintCode.castNullableToNonNullable;
 
   @override
   void registerNodeProcessors(

@@ -18,7 +18,7 @@ class RecursiveGetters extends LintRule {
     : super(name: LintNames.recursive_getters, description: _desc);
 
   @override
-  DiagnosticCode get diagnosticCode => LinterLintCode.recursive_getters;
+  DiagnosticCode get diagnosticCode => LinterLintCode.recursiveGetters;
 
   @override
   void registerNodeProcessors(

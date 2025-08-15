@@ -19,7 +19,7 @@ class OneMemberAbstracts extends LintRule {
     : super(name: LintNames.one_member_abstracts, description: _desc);
 
   @override
-  DiagnosticCode get diagnosticCode => LinterLintCode.one_member_abstracts;
+  DiagnosticCode get diagnosticCode => LinterLintCode.oneMemberAbstracts;
 
   @override
   void registerNodeProcessors(

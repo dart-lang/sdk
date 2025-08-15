@@ -22,7 +22,7 @@ class MissingCodeBlockLanguageInDocComment extends LintRule {
 
   @override
   DiagnosticCode get diagnosticCode =>
-      LinterLintCode.missing_code_block_language_in_doc_comment;
+      LinterLintCode.missingCodeBlockLanguageInDocComment;
 
   @override
   void registerNodeProcessors(

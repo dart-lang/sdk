@@ -20,7 +20,7 @@ class AvoidInitToNull extends LintRule {
     : super(name: LintNames.avoid_init_to_null, description: _desc);
 
   @override
-  DiagnosticCode get diagnosticCode => LinterLintCode.avoid_init_to_null;
+  DiagnosticCode get diagnosticCode => LinterLintCode.avoidInitToNull;
 
   @override
   void registerNodeProcessors(

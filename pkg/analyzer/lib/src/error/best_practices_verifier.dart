@@ -300,6 +300,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
   @override
   void visitConstructorName(ConstructorName node) {
     _deprecatedMemberUseVerifier.constructorName(node);
+    _deprecatedFunctionalityVerifier.constructorName(node);
     super.visitConstructorName(node);
   }
 

@@ -19,7 +19,7 @@ class ConditionalUriDoesNotExist extends LintRule {
 
   @override
   DiagnosticCode get diagnosticCode =>
-      LinterLintCode.conditional_uri_does_not_exist;
+      LinterLintCode.conditionalUriDoesNotExist;
 
   @override
   void registerNodeProcessors(

@@ -22,7 +22,7 @@ class AvoidPrivateTypedefFunctions extends LintRule {
 
   @override
   DiagnosticCode get diagnosticCode =>
-      LinterLintCode.avoid_private_typedef_functions;
+      LinterLintCode.avoidPrivateTypedefFunctions;
 
   @override
   void registerNodeProcessors(

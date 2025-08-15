@@ -17,7 +17,7 @@ class PreferSpreadCollections extends LintRule {
     : super(name: LintNames.prefer_spread_collections, description: _desc);
 
   @override
-  DiagnosticCode get diagnosticCode => LinterLintCode.prefer_spread_collections;
+  DiagnosticCode get diagnosticCode => LinterLintCode.preferSpreadCollections;
 
   @override
   void registerNodeProcessors(

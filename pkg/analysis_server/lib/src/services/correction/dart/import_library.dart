@@ -965,16 +965,20 @@ class _ImportLibraryPrefix extends ResolvedCorrectionProducer {
         builder.addSimpleInsertion(targetNode.offset, '$_prefixName.');
       });
     } else if (_nodePrefix != _prefixName) {
-      AstNode prefix;
+      SourceRange nodeRange;
       if (targetNode case NamedType(:var importPrefix?)) {
-        prefix = importPrefix;
+        nodeRange = range.node(importPrefix);
       } else if (targetNode case PrefixedIdentifier(prefix: var prefixNode)) {
-        prefix = prefixNode;
+        nodeRange = range.node(prefixNode);
+      } else if (targetNode.parent case MethodInvocation(
+        :SimpleIdentifier target,
+      ) when target.name == _nodePrefix) {
+        nodeRange = range.startOffsetEndOffset(target.offset, target.end + 1);
       } else {
         return;
       }
       await builder.addDartFileEdit(file, (builder) {
-        builder.addSimpleReplacement(range.node(prefix), '$_prefixName.');
+        builder.addSimpleReplacement(nodeRange, '$_prefixName.');
       });
     }
   }

@@ -23,7 +23,7 @@ class UnnecessaryNullInIfNullOperators extends LintRule {
 
   @override
   DiagnosticCode get diagnosticCode =>
-      LinterLintCode.unnecessary_null_in_if_null_operators;
+      LinterLintCode.unnecessaryNullInIfNullOperators;
 
   @override
   void registerNodeProcessors(

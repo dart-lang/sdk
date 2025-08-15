@@ -20,7 +20,7 @@ class AnnotateOverrides extends LintRule {
     : super(name: LintNames.annotate_overrides, description: _desc);
 
   @override
-  DiagnosticCode get diagnosticCode => LinterLintCode.annotate_overrides;
+  DiagnosticCode get diagnosticCode => LinterLintCode.annotateOverrides;
 
   @override
   void registerNodeProcessors(

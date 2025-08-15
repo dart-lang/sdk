@@ -26,7 +26,7 @@ class SpecifyNonObviousPropertyTypes extends LintRule {
 
   @override
   DiagnosticCode get diagnosticCode =>
-      LinterLintCode.specify_nonobvious_property_types;
+      LinterLintCode.specifyNonobviousPropertyTypes;
 
   @override
   List<String> get incompatibleRules => const [];

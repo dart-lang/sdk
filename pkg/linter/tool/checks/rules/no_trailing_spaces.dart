@@ -10,17 +10,15 @@ import 'package:analyzer/error/error.dart';
 import 'package:analyzer/src/dart/ast/token.dart';
 import 'package:linter/src/analyzer.dart';
 
-const _desc = r"Don't create string literals with trailing spaces in tests.";
-
 class NoTrailingSpaces extends LintRule {
-  static const LintCode code = LintCode(
-    'no_trailing_spaces',
-    _desc,
-    correctionMessage: 'Try removing the trailing spaces.',
-    hasPublishedDocs: true,
-  );
+  static const LintCode code = LinterLintCode.noTrailingSpaces;
 
-  NoTrailingSpaces() : super(name: 'no_trailing_spaces', description: _desc);
+  NoTrailingSpaces()
+    : super(
+        name: 'no_trailing_spaces',
+        description:
+            "Don't create string literals with trailing spaces in tests.",
+      );
 
   @override
   DiagnosticCode get diagnosticCode => code;

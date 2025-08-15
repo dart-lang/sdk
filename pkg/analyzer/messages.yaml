@@ -23220,6 +23220,152 @@ StaticWarningCode:
         if (x case var a when a > 0) {}
       }
       ```
+TodoCode:
+  FIXME:
+    parameters:
+      String message: the user-supplied problem message
+    problemMessage: "#message"
+    hasPublishedDocs: false
+    comment: |-
+      A TODO comment marked as FIXME.
+  HACK:
+    parameters:
+      String message: the user-supplied problem message
+    problemMessage: "#message"
+    hasPublishedDocs: false
+    comment: |-
+      A TODO comment marked as HACK.
+  TODO:
+    parameters:
+      String message: the user-supplied problem message
+    problemMessage: "#message"
+    hasPublishedDocs: false
+    comment: |-
+      A standard TODO comment marked as TODO.
+  UNDONE:
+    parameters:
+      String message: the user-supplied problem message
+    problemMessage: "#message"
+    hasPublishedDocs: false
+    comment: |-
+      A TODO comment marked as UNDONE.
+TransformSetErrorCode:
+  conflicting_key:
+    parameters:
+      Object p0: the conflicting key
+      Object p1: the key that it conflicts with
+    problemMessage: "The key '#p0' can't be used when '#p1' is also used."
+    hasPublishedDocs: false
+  expected_primary:
+    parameters: none
+    problemMessage: "Expected either an identifier or a string literal."
+    hasPublishedDocs: false
+  incompatible_element_kind:
+    parameters:
+      Object p0: the old kind
+      Object p1: the new kind
+    problemMessage: "An element of kind '#p0' can't be replaced by an element of kind '#p1'."
+    hasPublishedDocs: false
+  invalid_change_for_kind:
+    parameters:
+      Object p0: the change kind that is invalid
+      Object p1: the element kind for the transform
+    problemMessage: "A change of type '#p0' can't be used for an element of kind '#p1'."
+    hasPublishedDocs: false
+  invalid_character:
+    parameters:
+      Object p0: the character that is invalid
+    problemMessage: "Invalid character '#p0'."
+    hasPublishedDocs: false
+  invalid_key:
+    parameters:
+      Object p0: the actual type of the key
+    problemMessage: "Keys must be of type 'String' but found the type '#p0'."
+    hasPublishedDocs: false
+  invalid_required_if:
+    parameters: none
+    problemMessage: "The key 'requiredIf' can only be used with optional named parameters."
+    hasPublishedDocs: false
+  invalid_value:
+    parameters:
+      Object p0: the key with which the value is associated
+      Object p1: the expected type of the value
+      Object p2: the actual type of the value
+    problemMessage: "The value of '#p0' should be of type '#p1' but is of type '#p2'."
+    hasPublishedDocs: false
+  invalid_parameter_style:
+    parameters:
+      Object p0: the list of valid parameter styles
+    problemMessage: "The parameter style must be one of the following: #p0."
+    hasPublishedDocs: false
+  invalid_value_one_of:
+    parameters:
+      Object p0: the key with which the value is associated
+      Object p1: the allowed values as a comma-separated list
+    problemMessage: "The value of '#p0' must be one of the following: '#p1'."
+    hasPublishedDocs: false
+  missing_key:
+    parameters:
+      Object p0: the missing key
+    problemMessage: "Missing the required key '#p0'."
+    hasPublishedDocs: false
+  missing_one_of_multiple_keys:
+    parameters:
+      Object p0: the list of valid keys
+    problemMessage: "Exactly one of the following keys must be provided: #p0."
+    hasPublishedDocs: false
+  missing_template_end:
+    parameters: none
+    problemMessage: "Missing the end brace for the template."
+    hasPublishedDocs: false
+  missing_token:
+    parameters:
+      Object p0: a description of the expected kinds of tokens
+    problemMessage: "Expected to find #p0."
+    hasPublishedDocs: false
+  missing_uri:
+    parameters: none
+    problemMessage: "At least one URI must be provided."
+    hasPublishedDocs: false
+  undefined_variable:
+    parameters:
+      Object p0: the missing key
+    problemMessage: "The variable '#p0' isn't defined."
+    hasPublishedDocs: false
+  unexpected_token:
+    parameters:
+      Object p0: the token that was unexpectedly found
+    problemMessage: "Didn't expect to find #p0."
+    hasPublishedDocs: false
+  unknown_accessor:
+    parameters:
+      Object p0: a description of the expected kind of token
+    problemMessage: "The accessor '#p0' is invalid."
+    hasPublishedDocs: false
+  unsupported_key:
+    parameters:
+      Object p0: the unsupported key
+    problemMessage: "The key '#p0' isn't supported."
+    hasPublishedDocs: false
+  unsupported_static:
+    parameters: none
+    problemMessage: "The key 'static' is only supported for elements in a class, enum, extension, or mixin."
+    hasPublishedDocs: false
+  unsupported_version:
+    parameters: none
+    problemMessage: "Only version '1' is supported at this time."
+    hasPublishedDocs: false
+  wrong_token:
+    parameters:
+      Object p0: a description of the expected kind of token
+      Object p1: a description of the actual kind of token
+    problemMessage: "Expected to find #p0, but found #p1."
+    hasPublishedDocs: false
+  yaml_syntax_error:
+    parameters:
+      Object p0: the message produced by the YAML parser
+    problemMessage: "Parse error: #p0"
+    hasPublishedDocs: false
 WarningCode:
   ARGUMENT_TYPE_NOT_ASSIGNABLE_TO_ERROR_HANDLER:
     parameters:
@@ -23763,7 +23909,7 @@ WarningCode:
     documentation: |-
       #### Description
 
-      The analyzer produces this diagnostic when a class which is annotated with
+      The analyzer produces this diagnostic when a class annotated with
       `@Deprecated.extend` is used in the `extends` clause of a class
       declaration.
 
@@ -23838,12 +23984,12 @@ WarningCode:
     documentation: |-
       #### Description
 
-      The analyzer produces this diagnostic when a class which is annotated with
+      The analyzer produces this diagnostic when a class annotated with
       `@Deprecated.implement` is used in the `implements` clause of a class or
       enum declaration. This annotation indicates that the ability for classes
       to implement the annotated class is deprecated, and will soon be removed,
-      perhaps
-      by marking the annotated class with `interface`, `final`, or `sealed`.
+      perhaps by marking the annotated class with `interface`, `final`, or
+      `sealed`.
 
       #### Example
 
@@ -23878,6 +24024,43 @@ WarningCode:
     problemMessage: "Implementing 'Function' has no effect."
     correctionMessage: "Try removing 'Function' from the 'implements' clause."
     hasPublishedDocs: true
+  DEPRECATED_INSTANTIATE:
+    parameters:
+      Object p0: the name of the member
+    problemMessage: "Instantiating '#p0' is deprecated."
+    correctionMessage: Try instantiating a non-abstract class.
+    hasPublishedDocs: false
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when a class annotated with
+      `@Deprecated.instantiate` is instantiated. This annotation indicates that
+      the ability to instantiate the class is deprecated, and will soon be removed,
+      perhaps by marking the annotated class with `abstract`, or `sealed`.
+
+      #### Example
+
+      If the library `p` defines a class annotated with
+      `@Deprecated.instantiate`:
+
+      ```dart
+      %uri="package:p/p.dart"
+      @Deprecated.instantiate()
+      class C {}
+      ```
+
+      Then, the following code, when in a library other than `p`, produces this
+      diagnostic:
+
+      ```dart
+      import 'package:p/p.dart';
+
+      var c = [!C!]();
+      ```
+
+      #### Common fixes
+
+      Follow any directions found in the `Deprecation.instantiate` annotation.
   DEPRECATED_MIXIN_FUNCTION:
     parameters: none
     sharedName: DEPRECATED_SUBTYPE_OF_FUNCTION
@@ -23947,7 +24130,7 @@ WarningCode:
     documentation: |-
       #### Description
 
-      The analyzer produces this diagnostic when a class which is annotated with
+      The analyzer produces this diagnostic when a class annotated with
       `@Deprecated.subclass` is used in the `extends` clause of a class
       declaration, or the `implements` clause of a class or enum declaration.
 
@@ -24651,6 +24834,36 @@ WarningCode:
 
       ```dart
       @[!Deprecated.implement!]()
+      sealed class C {}
+      ```
+
+      #### Common fixes
+
+      Remove the annotation:
+
+      ```dart
+      sealed class C {}
+      ```
+  INVALID_DEPRECATED_INSTANTIATE_ANNOTATION:
+    parameters: none
+    problemMessage: "The annotation '@Deprecated.instantiate' can only be applied to classes."
+    correctionMessage: Try removing the '@Deprecated.instantiate' annotation.
+    hasPublishedDocs: false
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when anything other than an
+      instantiable class is annotated with Deprecated.instantiate. An
+      instantiable class is one not declared with the `abstract` or `sealed`
+      keywords, and with at least one public, generative constructor.
+
+      #### Example
+
+      The following code produces this diagnostic because the annotation is on a
+      sealed class:
+
+      ```dart
+      @[!Deprecated.instantiate!]()
       sealed class C {}
       ```
 

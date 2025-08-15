@@ -19,7 +19,7 @@ class PreferConstDeclarations extends LintRule {
     : super(name: LintNames.prefer_const_declarations, description: _desc);
 
   @override
-  DiagnosticCode get diagnosticCode => LinterLintCode.prefer_const_declarations;
+  DiagnosticCode get diagnosticCode => LinterLintCode.preferConstDeclarations;
 
   @override
   void registerNodeProcessors(

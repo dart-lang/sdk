@@ -17,7 +17,7 @@ class EolAtEndOfFile extends LintRule {
     : super(name: LintNames.eol_at_end_of_file, description: _desc);
 
   @override
-  DiagnosticCode get diagnosticCode => LinterLintCode.eol_at_end_of_file;
+  DiagnosticCode get diagnosticCode => LinterLintCode.eolAtEndOfFile;
 
   @override
   void registerNodeProcessors(

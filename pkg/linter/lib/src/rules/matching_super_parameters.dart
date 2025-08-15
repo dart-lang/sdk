@@ -18,7 +18,7 @@ class MatchingSuperParameters extends LintRule {
     : super(name: LintNames.matching_super_parameters, description: _desc);
 
   @override
-  DiagnosticCode get diagnosticCode => LinterLintCode.matching_super_parameters;
+  DiagnosticCode get diagnosticCode => LinterLintCode.matchingSuperParameters;
 
   @override
   void registerNodeProcessors(

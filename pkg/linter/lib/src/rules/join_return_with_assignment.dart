@@ -35,8 +35,7 @@ class JoinReturnWithAssignment extends LintRule {
     : super(name: LintNames.join_return_with_assignment, description: _desc);
 
   @override
-  DiagnosticCode get diagnosticCode =>
-      LinterLintCode.join_return_with_assignment;
+  DiagnosticCode get diagnosticCode => LinterLintCode.joinReturnWithAssignment;
 
   @override
   void registerNodeProcessors(

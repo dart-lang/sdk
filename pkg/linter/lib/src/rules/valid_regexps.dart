@@ -16,7 +16,7 @@ class ValidRegexps extends LintRule {
   ValidRegexps() : super(name: LintNames.valid_regexps, description: _desc);
 
   @override
-  DiagnosticCode get diagnosticCode => LinterLintCode.valid_regexps;
+  DiagnosticCode get diagnosticCode => LinterLintCode.validRegexps;
 
   @override
   void registerNodeProcessors(

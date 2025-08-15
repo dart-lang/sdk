@@ -19,8 +19,7 @@ class UseIsEvenRatherThanModulo extends LintRule {
     : super(name: LintNames.use_is_even_rather_than_modulo, description: _desc);
 
   @override
-  DiagnosticCode get diagnosticCode =>
-      LinterLintCode.use_is_even_rather_than_modulo;
+  DiagnosticCode get diagnosticCode => LinterLintCode.useIsEvenRatherThanModulo;
 
   @override
   void registerNodeProcessors(

@@ -6,6 +6,7 @@
 /// the entries in `pkg/linter/messages.yaml`.
 library;
 
+import 'package:analyzer/src/utilities/extensions/string.dart';
 import 'package:analyzer_testing/package_root.dart' as pkg_root;
 import 'package:analyzer_utilities/tools.dart';
 
@@ -69,7 +70,8 @@ class LinterLintCode extends LintCode {
         if (codeInfo.deprecatedMessage case var deprecatedMessage?) {
           out.writeln('  @Deprecated("$deprecatedMessage")');
         }
-        out.writeln('  static const LintCode $errorName =');
+        var constantName = errorName.toCamelCase();
+        out.writeln('  static const LintCode $constantName =');
         out.writeln(
           codeInfo.toAnalyzerCode(
             linterLintCodeInfo,
@@ -81,11 +83,12 @@ class LinterLintCode extends LintCode {
         out.writeln();
       }
 
+      var removedLintName = 'removedLint';
       out.writeln('''
   /// A lint code that removed lints can specify as their `lintCode`.
   ///
   /// Avoid other usages as it should be made unnecessary and removed.
-  static const LintCode removed_lint = LinterLintCode(
+  static const LintCode $removedLintName = LinterLintCode(
     'removed_lint',
     'Removed lint.',
   );

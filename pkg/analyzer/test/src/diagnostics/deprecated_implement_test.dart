@@ -59,7 +59,7 @@ class Bar implements Foo2 {}
   test_annotatedClassTypeAlias() async {
     newFile('$testPackageLibPath/foo.dart', r'''
 @Deprecated.implement()
-class Foo  = Object with M;
+class Foo = Object with M;
 mixin M {}
 ''');
 

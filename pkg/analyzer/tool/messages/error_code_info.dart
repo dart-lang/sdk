@@ -87,6 +87,27 @@ const List<ErrorClassInfo> errorClasses = [
     type: 'STATIC_WARNING',
     severity: 'WARNING',
   ),
+  ErrorClassInfo(
+    file: todoCodesFile,
+    name: 'TodoCode',
+    type: 'TODO',
+    severity: 'INFO',
+    comment: '''
+The error code indicating a marker in code for work that needs to be finished
+or revisited.
+''',
+  ),
+  ErrorClassInfo(
+    file: transformSetErrorCodeFile,
+    name: 'TransformSetErrorCode',
+    type: 'COMPILE_TIME_ERROR',
+    severity: 'ERROR',
+    includeInDiagnosticCodeValues: false,
+    comment: '''
+An error code representing a problem in a file containing an encoding of a
+transform set.
+''',
+  ),
 ];
 
 const ffiCodesFile = GeneratedErrorCodeFile(
@@ -125,6 +146,21 @@ const scannerErrorFile = GeneratedErrorCodeFile(
 const syntacticErrorsFile = GeneratedErrorCodeFile(
   path: 'analyzer/lib/src/dart/error/syntactic_errors.g.dart',
   preferredImportUri: 'package:analyzer/src/dart/error/syntactic_errors.dart',
+);
+
+const todoCodesFile = GeneratedErrorCodeFile(
+  path: 'analyzer/lib/src/dart/error/todo_codes.g.dart',
+  preferredImportUri: 'package:analyzer/src/dart/error/todo_codes.dart',
+);
+
+const transformSetErrorCodeFile = GeneratedErrorCodeFile(
+  path:
+      'analysis_server/lib/src/services/correction/fix/data_driven/'
+      'transform_set_error_code.g.dart',
+  preferredImportUri:
+      'package:analysis_server/src/services/correction/fix/data_driven/'
+      'transform_set_error_code.dart',
+  shouldIgnorePreferSingleQuotes: true,
 );
 
 /// Decoded messages from the analyzer's `messages.yaml` file.
@@ -507,6 +543,15 @@ class ErrorClassInfo {
   /// notice) after migration to camel case error codes.
   final Set<String> deprecatedSnakeCaseNames;
 
+  /// If `true` (the default), error codes of this class will be included in the
+  /// automatically-generated `diagnosticCodeValues` list.
+  final bool includeInDiagnosticCodeValues;
+
+  /// Documentation comment to generate for the error class.
+  ///
+  /// If no documentation comment is needed, this should be the empty string.
+  final String comment;
+
   const ErrorClassInfo({
     this.extraImports = const [],
     required this.file,
@@ -516,6 +561,8 @@ class ErrorClassInfo {
     this.superclass = 'DiagnosticCode',
     required this.type,
     this.deprecatedSnakeCaseNames = const {},
+    this.includeInDiagnosticCodeValues = true,
+    this.comment = '',
   });
 
   /// Generates the code to compute the severity of errors of this class.
@@ -868,9 +915,12 @@ class GeneratedErrorCodeFile {
   /// constructor invocations.
   final bool shouldUseExplicitConst;
 
+  final bool shouldIgnorePreferSingleQuotes;
+
   const GeneratedErrorCodeFile({
     required this.path,
     required this.preferredImportUri,
     this.shouldUseExplicitConst = false,
+    this.shouldIgnorePreferSingleQuotes = false,
   });
 }

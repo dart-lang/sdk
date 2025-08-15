@@ -22,7 +22,7 @@ class SwitchOnType extends LintRule {
   SwitchOnType() : super(name: LintNames.switch_on_type, description: _desc);
 
   @override
-  DiagnosticCode get diagnosticCode => LinterLintCode.switch_on_type;
+  DiagnosticCode get diagnosticCode => LinterLintCode.switchOnType;
 
   @override
   void registerNodeProcessors(

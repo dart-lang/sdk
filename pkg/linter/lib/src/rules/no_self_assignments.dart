@@ -18,7 +18,7 @@ class NoSelfAssignments extends LintRule {
     : super(name: LintNames.no_self_assignments, description: _desc);
 
   @override
-  DiagnosticCode get diagnosticCode => LinterLintCode.no_self_assignments;
+  DiagnosticCode get diagnosticCode => LinterLintCode.noSelfAssignments;
 
   @override
   void registerNodeProcessors(

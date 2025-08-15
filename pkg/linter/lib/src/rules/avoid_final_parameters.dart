@@ -17,7 +17,7 @@ class AvoidFinalParameters extends LintRule {
     : super(name: LintNames.avoid_final_parameters, description: _desc);
 
   @override
-  DiagnosticCode get diagnosticCode => LinterLintCode.avoid_final_parameters;
+  DiagnosticCode get diagnosticCode => LinterLintCode.avoidFinalParameters;
 
   @override
   List<String> get incompatibleRules => const [

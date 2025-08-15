@@ -24,7 +24,7 @@ class UseNullAwareElements extends LintRule {
     : super(name: LintNames.use_null_aware_elements, description: _desc);
 
   @override
-  DiagnosticCode get diagnosticCode => LinterLintCode.use_null_aware_elements;
+  DiagnosticCode get diagnosticCode => LinterLintCode.useNullAwareElements;
 
   @override
   void registerNodeProcessors(

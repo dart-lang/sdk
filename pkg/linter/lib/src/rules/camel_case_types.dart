@@ -20,7 +20,7 @@ class CamelCaseTypes extends LintRule {
     : super(name: LintNames.camel_case_types, description: _desc);
 
   @override
-  DiagnosticCode get diagnosticCode => LinterLintCode.camel_case_types;
+  DiagnosticCode get diagnosticCode => LinterLintCode.camelCaseTypes;
 
   @override
   void registerNodeProcessors(

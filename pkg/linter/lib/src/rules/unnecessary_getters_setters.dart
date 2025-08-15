@@ -20,8 +20,7 @@ class UnnecessaryGettersSetters extends LintRule {
     : super(name: LintNames.unnecessary_getters_setters, description: _desc);
 
   @override
-  DiagnosticCode get diagnosticCode =>
-      LinterLintCode.unnecessary_getters_setters;
+  DiagnosticCode get diagnosticCode => LinterLintCode.unnecessaryGettersSetters;
 
   @override
   void registerNodeProcessors(

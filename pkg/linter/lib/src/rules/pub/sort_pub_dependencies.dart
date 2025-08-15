@@ -15,7 +15,7 @@ class SortPubDependencies extends LintRule {
     : super(name: LintNames.sort_pub_dependencies, description: _desc);
 
   @override
-  DiagnosticCode get diagnosticCode => LinterLintCode.sort_pub_dependencies;
+  DiagnosticCode get diagnosticCode => LinterLintCode.sortPubDependencies;
 
   @override
   PubspecVisitor<void> get pubspecVisitor => Visitor(this);

@@ -930,8 +930,8 @@ class UseBuildContextSynchronously extends MultiAnalysisRule {
 
   @override
   List<DiagnosticCode> get diagnosticCodes => [
-    LinterLintCode.use_build_context_synchronously_async_use,
-    LinterLintCode.use_build_context_synchronously_wrong_mounted,
+    LinterLintCode.useBuildContextSynchronouslyAsyncUse,
+    LinterLintCode.useBuildContextSynchronouslyWrongMounted,
   ];
 
   @override
@@ -1123,8 +1123,8 @@ class _Visitor extends SimpleAstVisitor<void> {
       if (asyncState == AsyncState.asynchronous) {
         var errorCode =
             asyncStateTracker.hasUnrelatedMountedCheck
-                ? LinterLintCode.use_build_context_synchronously_wrong_mounted
-                : LinterLintCode.use_build_context_synchronously_async_use;
+                ? LinterLintCode.useBuildContextSynchronouslyWrongMounted
+                : LinterLintCode.useBuildContextSynchronouslyAsyncUse;
         rule.reportAtNode(node, diagnosticCode: errorCode);
         return;
       }
@@ -1269,8 +1269,7 @@ class _Visitor extends SimpleAstVisitor<void> {
       if (callback == argument.expression) {
         rule.reportAtNode(
           errorNode,
-          diagnosticCode:
-              LinterLintCode.use_build_context_synchronously_async_use,
+          diagnosticCode: LinterLintCode.useBuildContextSynchronouslyAsyncUse,
         );
       }
     }
@@ -1289,8 +1288,7 @@ class _Visitor extends SimpleAstVisitor<void> {
           callback == positionalArguments[position]) {
         rule.reportAtNode(
           errorNode,
-          diagnosticCode:
-              LinterLintCode.use_build_context_synchronously_async_use,
+          diagnosticCode: LinterLintCode.useBuildContextSynchronouslyAsyncUse,
         );
       }
     }

@@ -713,7 +713,10 @@ class TypeSystemImpl implements TypeSystem {
     required covariant InterfaceElementImpl element,
     required NullabilitySuffix nullabilitySuffix,
   }) {
-    return instantiateInterfaceToBounds(element: element, nullabilitySuffix: nullabilitySuffix);
+    return instantiateInterfaceToBounds(
+      element: element,
+      nullabilitySuffix: nullabilitySuffix,
+    );
   }
 
   /// Given a [DartType] [type] and a list of types
@@ -753,7 +756,10 @@ class TypeSystemImpl implements TypeSystem {
     required covariant TypeAliasElementImpl element,
     required NullabilitySuffix nullabilitySuffix,
   }) {
-    return instantiateTypeAliasToBounds(element: element, nullabilitySuffix: nullabilitySuffix);
+    return instantiateTypeAliasToBounds(
+      element: element,
+      nullabilitySuffix: nullabilitySuffix,
+    );
   }
 
   /// Given uninstantiated [typeFormals], instantiate them to their bounds.

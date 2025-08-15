@@ -18,8 +18,7 @@ class AvoidDoubleAndIntChecks extends LintRule {
     : super(name: LintNames.avoid_double_and_int_checks, description: _desc);
 
   @override
-  DiagnosticCode get diagnosticCode =>
-      LinterLintCode.avoid_double_and_int_checks;
+  DiagnosticCode get diagnosticCode => LinterLintCode.avoidDoubleAndIntChecks;
 
   @override
   void registerNodeProcessors(
