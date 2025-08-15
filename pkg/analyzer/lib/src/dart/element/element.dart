@@ -2646,6 +2646,16 @@ class FieldElementImpl extends PropertyInducingElementImpl
     ];
   }
 
+  @override
+  GetterElementImpl? get getter {
+    globalResultRequirements?.record_fieldElement_getter(
+      element: this,
+      name: name,
+    );
+
+    return super.getter;
+  }
+
   /// Whether the type of this fragment references a type parameter of the
   /// enclosing element. This includes not only explicitly specified type
   /// annotations, but also inferred types.
@@ -2730,6 +2740,16 @@ class FieldElementImpl extends PropertyInducingElementImpl
   @Deprecated('Use name instead')
   @override
   String? get name3 => name;
+
+  @override
+  SetterElementImpl? get setter {
+    globalResultRequirements?.record_fieldElement_setter(
+      element: this,
+      name: name,
+    );
+
+    return super.setter;
+  }
 
   @override
   List<FieldFragmentImpl> get _fragments => fragments;

@@ -779,6 +779,30 @@ class RequirementsManifest {
     // TODO(scheglov): implement.
   }
 
+  void record_fieldElement_getter({
+    required FieldElementImpl element,
+    String? name,
+  }) {
+    if (name != null) {
+      record_instanceElement_getGetter(
+        element: element.enclosingElement,
+        name: name,
+      );
+    }
+  }
+
+  void record_fieldElement_setter({
+    required FieldElementImpl element,
+    String? name,
+  }) {
+    if (name != null) {
+      record_instanceElement_getSetter(
+        element: element.enclosingElement,
+        name: name,
+      );
+    }
+  }
+
   /// Record that [id] was looked up in the import prefix scope that
   /// imports [importedLibraries].
   void record_importPrefixScope_lookup({
