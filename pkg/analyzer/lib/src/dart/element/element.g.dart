@@ -8,7 +8,7 @@
 
 part of 'element.dart';
 
-mixin _ClassFragmentImplMixin on FragmentImpl {
+mixin _ClassFragmentImplMixin {
   bool get hasExtendsClause {
     return hasModifier(Modifier.HAS_EXTENDS_CLAUSE);
   }
@@ -17,6 +17,10 @@ mixin _ClassFragmentImplMixin on FragmentImpl {
     setModifier(Modifier.HAS_EXTENDS_CLAUSE, value);
   }
 
+  /// Whether the executable element is abstract.
+  ///
+  /// Executable elements are abstract if they are not external, and have no
+  /// body.
   bool get isAbstract {
     return hasModifier(Modifier.ABSTRACT);
   }
@@ -72,9 +76,13 @@ mixin _ClassFragmentImplMixin on FragmentImpl {
   set isSealed(bool value) {
     setModifier(Modifier.SEALED, value);
   }
+
+  bool hasModifier(Modifier modifier);
+
+  void setModifier(Modifier modifier, bool value);
 }
 
-mixin _ConstructorFragmentImplMixin on FragmentImpl {
+mixin _ConstructorFragmentImplMixin {
   bool get isConst {
     return hasModifier(Modifier.CONST);
   }
@@ -90,9 +98,208 @@ mixin _ConstructorFragmentImplMixin on FragmentImpl {
   set isFactory(bool value) {
     setModifier(Modifier.FACTORY, value);
   }
+
+  bool hasModifier(Modifier modifier);
+
+  void setModifier(Modifier modifier, bool value);
 }
 
-mixin _VariableFragmentImplMixin on FragmentImpl {
+mixin _ExecutableFragmentImplMixin {
+  bool get hasImplicitReturnType {
+    return hasModifier(Modifier.HAS_IMPLICIT_RETURN_TYPE);
+  }
+
+  set hasImplicitReturnType(bool value) {
+    setModifier(Modifier.HAS_IMPLICIT_RETURN_TYPE, value);
+  }
+
+  bool get invokesSuperSelf {
+    return hasModifier(Modifier.INVOKES_SUPER_SELF);
+  }
+
+  set invokesSuperSelf(bool value) {
+    setModifier(Modifier.INVOKES_SUPER_SELF, value);
+  }
+
+  /// Whether the executable element is abstract.
+  ///
+  /// Executable elements are abstract if they are not external, and have no
+  /// body.
+  bool get isAbstract {
+    return hasModifier(Modifier.ABSTRACT);
+  }
+
+  set isAbstract(bool value) {
+    setModifier(Modifier.ABSTRACT, value);
+  }
+
+  bool get isAsynchronous {
+    return hasModifier(Modifier.ASYNCHRONOUS);
+  }
+
+  set isAsynchronous(bool value) {
+    setModifier(Modifier.ASYNCHRONOUS, value);
+  }
+
+  /// Executable elements are external if they are explicitly marked as such
+  /// using the 'external' keyword.
+  bool get isExternal {
+    return hasModifier(Modifier.EXTERNAL);
+  }
+
+  set isExternal(bool value) {
+    setModifier(Modifier.EXTERNAL, value);
+  }
+
+  bool get isGenerator {
+    return hasModifier(Modifier.GENERATOR);
+  }
+
+  set isGenerator(bool value) {
+    setModifier(Modifier.GENERATOR, value);
+  }
+
+  bool get isStatic {
+    return hasModifier(Modifier.STATIC);
+  }
+
+  set isStatic(bool value) {
+    setModifier(Modifier.STATIC, value);
+  }
+
+  bool hasModifier(Modifier modifier);
+
+  void setModifier(Modifier modifier, bool value);
+}
+
+mixin _FieldFragmentImplMixin {
+  bool get isEnumConstant {
+    return hasModifier(Modifier.ENUM_CONSTANT);
+  }
+
+  set isEnumConstant(bool value) {
+    setModifier(Modifier.ENUM_CONSTANT, value);
+  }
+
+  /// Whether the field was explicitly marked as being covariant.
+  bool get isExplicitlyCovariant {
+    return hasModifier(Modifier.EXPLICITLY_COVARIANT);
+  }
+
+  set isExplicitlyCovariant(bool value) {
+    setModifier(Modifier.EXPLICITLY_COVARIANT, value);
+  }
+
+  bool get isPromotable {
+    return hasModifier(Modifier.PROMOTABLE);
+  }
+
+  set isPromotable(bool value) {
+    setModifier(Modifier.PROMOTABLE, value);
+  }
+
+  bool hasModifier(Modifier modifier);
+
+  void setModifier(Modifier modifier, bool value);
+}
+
+mixin _FormalParameterFragmentImplMixin {
+  /// Whether the field was explicitly marked as being covariant.
+  bool get isExplicitlyCovariant {
+    return hasModifier(Modifier.EXPLICITLY_COVARIANT);
+  }
+
+  set isExplicitlyCovariant(bool value) {
+    setModifier(Modifier.EXPLICITLY_COVARIANT, value);
+  }
+
+  bool hasModifier(Modifier modifier);
+
+  void setModifier(Modifier modifier, bool value);
+}
+
+mixin _FragmentImplMixin {
+  bool get isAugmentation {
+    return hasModifier(Modifier.AUGMENTATION);
+  }
+
+  set isAugmentation(bool value) {
+    setModifier(Modifier.AUGMENTATION, value);
+  }
+
+  /// A synthetic element is an element that is not represented in the source
+  /// code explicitly, but is implied by the source code, such as the default
+  /// constructor for a class that does not explicitly define any constructors.
+  bool get isSynthetic {
+    return hasModifier(Modifier.SYNTHETIC);
+  }
+
+  set isSynthetic(bool value) {
+    setModifier(Modifier.SYNTHETIC, value);
+  }
+
+  bool hasModifier(Modifier modifier);
+
+  void setModifier(Modifier modifier, bool value);
+}
+
+mixin _InterfaceFragmentImplMixin {
+  bool get isSimplyBounded {
+    return hasModifier(Modifier.SIMPLY_BOUNDED);
+  }
+
+  set isSimplyBounded(bool value) {
+    setModifier(Modifier.SIMPLY_BOUNDED, value);
+  }
+
+  bool hasModifier(Modifier modifier);
+
+  void setModifier(Modifier modifier, bool value);
+}
+
+mixin _MixinFragmentImplMixin {
+  bool get isBase {
+    return hasModifier(Modifier.BASE);
+  }
+
+  set isBase(bool value) {
+    setModifier(Modifier.BASE, value);
+  }
+
+  bool hasModifier(Modifier modifier);
+
+  void setModifier(Modifier modifier, bool value);
+}
+
+mixin _NonParameterVariableFragmentImplMixin {
+  bool get hasInitializer {
+    return hasModifier(Modifier.HAS_INITIALIZER);
+  }
+
+  set hasInitializer(bool value) {
+    setModifier(Modifier.HAS_INITIALIZER, value);
+  }
+
+  bool hasModifier(Modifier modifier);
+
+  void setModifier(Modifier modifier, bool value);
+}
+
+mixin _TypeAliasFragmentImplMixin {
+  bool get isSimplyBounded {
+    return hasModifier(Modifier.SIMPLY_BOUNDED);
+  }
+
+  set isSimplyBounded(bool value) {
+    setModifier(Modifier.SIMPLY_BOUNDED, value);
+  }
+
+  bool hasModifier(Modifier modifier);
+
+  void setModifier(Modifier modifier, bool value);
+}
+
+mixin _VariableFragmentImplMixin {
   /// Whether the variable element did not have an explicit type specified
   /// for it.
   bool get hasImplicitType {
@@ -103,6 +310,10 @@ mixin _VariableFragmentImplMixin on FragmentImpl {
     setModifier(Modifier.HAS_IMPLICIT_TYPE, value);
   }
 
+  /// Whether the executable element is abstract.
+  ///
+  /// Executable elements are abstract if they are not external, and have no
+  /// body.
   bool get isAbstract {
     return hasModifier(Modifier.ABSTRACT);
   }
@@ -119,6 +330,8 @@ mixin _VariableFragmentImplMixin on FragmentImpl {
     setModifier(Modifier.CONST, value);
   }
 
+  /// Executable elements are external if they are explicitly marked as such
+  /// using the 'external' keyword.
   bool get isExternal {
     return hasModifier(Modifier.EXTERNAL);
   }
@@ -163,4 +376,8 @@ mixin _VariableFragmentImplMixin on FragmentImpl {
   set isStatic(bool value) {
     setModifier(Modifier.STATIC, value);
   }
+
+  bool hasModifier(Modifier modifier);
+
+  void setModifier(Modifier modifier, bool value);
 }

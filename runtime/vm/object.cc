@@ -11997,17 +11997,17 @@ bool Function::HasDynamicCallers(Zone* zone) const {
 }
 
 bool Function::PrologueNeedsArgumentsDescriptor() const {
-  // These functions have a saved compile-time arguments descriptor that is
-  // used in lieu of the runtime arguments descriptor in generated IL.
-  if (HasSavedArgumentsDescriptor()) {
-    return false;
-  }
 #if defined(DART_DYNAMIC_MODULES)
   // Entering interpreter needs arguments descriptor.
   if (is_declared_in_bytecode()) {
     return true;
   }
 #endif
+  // These functions have a saved compile-time arguments descriptor that is
+  // used in lieu of the runtime arguments descriptor in generated IL.
+  if (HasSavedArgumentsDescriptor()) {
+    return false;
+  }
   // The prologue of those functions need to examine the arg descriptor for
   // various purposes.
   return IsGeneric() || HasOptionalParameters();
