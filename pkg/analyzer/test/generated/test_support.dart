@@ -12,6 +12,7 @@ import 'package:analyzer/instrumentation/instrumentation.dart';
 import 'package:analyzer/source/line_info.dart';
 import 'package:analyzer/source/source.dart';
 import 'package:analyzer/src/generated/engine.dart';
+import 'package:analyzer/src/utilities/extensions/string.dart';
 import 'package:test/test.dart';
 
 /// A description of a message that is expected to be reported with an error.
@@ -271,7 +272,7 @@ class GatheringDiagnosticListener implements DiagnosticListener {
         for (Diagnostic actual in diagnostics) {
           List<DiagnosticMessage> contextMessages = actual.contextMessages;
           buffer.write('  error(');
-          buffer.write(actual.diagnosticCode);
+          buffer.write(actual.diagnosticCode.constantName);
           buffer.write(', ');
           buffer.write(actual.offset);
           buffer.write(', ');
@@ -553,4 +554,20 @@ class TestSourceWithUri extends TestSource {
     }
     return false;
   }
+}
+
+extension on DiagnosticCode {
+  /// The name of the constant in the analyzer package (or other related
+  /// package) that represents this diagnostic code.
+  ///
+  /// This string is used when generating test failure messages that suggest how
+  /// to change test expectations to match the current behavior.
+  ///
+  /// For example, if the unique name is `TestClass.MY_ERROR`, this method will
+  /// return `TestClass.myError`.
+  String get constantName => switch (uniqueName.split('.')) {
+    [var className, var snakeCaseName] =>
+      '$className.${snakeCaseName.toCamelCase()}',
+    _ => throw StateError('Malformed DiagnosticCode: $uniqueName'),
+  };
 }
