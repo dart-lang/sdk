@@ -24,6 +24,38 @@ class IterableExtensionTest {
     expect(['a', 'b', 'c'].asElementToIndexMap, {'a': 0, 'b': 1, 'c': 2});
   }
 
+  test_sortedBy2_primaryOnly() {
+    var data = <(int, int, String)>[
+      (3, 9, 'x'),
+      (1, 5, 'y'),
+      (4, 0, 'v'),
+      (2, 7, 'z'),
+    ];
+    var sorted = data.sortedBy2((e) => e.$1, (e) => e.$2);
+    expect(sorted, <(int, int, String)>[
+      (1, 5, 'y'),
+      (2, 7, 'z'),
+      (3, 9, 'x'),
+      (4, 0, 'v'),
+    ]);
+  }
+
+  test_sortedBy2_withTies_usesSecondaryKey() {
+    var data = <(int, int, String)>[
+      (2, 1, 'b'),
+      (1, 2, 'c'),
+      (1, 1, 'a'),
+      (2, 0, 'd'),
+    ];
+    var sorted = data.sortedBy2((e) => e.$1, (e) => e.$2);
+    expect(sorted, <(int, int, String)>[
+      (1, 1, 'a'),
+      (1, 2, 'c'),
+      (2, 0, 'd'),
+      (2, 1, 'b'),
+    ]);
+  }
+
   test_whereNotType() {
     expect(<Object>['0', 1, '2'].whereNotType<int>(), ['0', '2']);
   }

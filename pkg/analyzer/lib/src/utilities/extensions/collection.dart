@@ -12,6 +12,23 @@ extension IterableExtension<E> on Iterable<E> {
     return {for (var (index, element) in indexed) element: index};
   }
 
+  /// Creates a sorted list of the elements of the iterable.
+  ///
+  /// The elements are ordered first by the natural ordering of the
+  /// property returned by [keyOf1], and for elements with equal
+  /// [keyOf1] values, by the natural ordering of the property
+  /// returned by [keyOf2].
+  List<E> sortedBy2<K1 extends Comparable, K2 extends Comparable>(
+    K1 Function(E element) keyOf1,
+    K2 Function(E element) keyOf2,
+  ) {
+    return sorted((a, b) {
+      var c1 = keyOf1(a).compareTo(keyOf1(b));
+      if (c1 != 0) return c1;
+      return keyOf2(a).compareTo(keyOf2(b));
+    });
+  }
+
   /// Returns the fixed-length [List] with elements of `this`.
   List<E> toFixedList() {
     if (isEmpty) {

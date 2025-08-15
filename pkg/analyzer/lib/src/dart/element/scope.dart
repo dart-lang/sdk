@@ -312,6 +312,9 @@ class LibraryFragmentScope implements Scope {
 
   final Map<String, PrefixElementImpl> _prefixElements = {};
 
+  /// All libraries that contribute to [accessibleExtensions].
+  List<LibraryElementImpl>? _importedLibrariesContributingExtensions;
+
   /// The cached result for [accessibleExtensions].
   List<ExtensionElement>? _extensions;
 
@@ -357,14 +360,31 @@ class LibraryFragmentScope implements Scope {
 
   /// The extensions accessible within [fragment].
   List<ExtensionElement> get accessibleExtensions {
-    var libraryDeclarations = fragment.library.libraryDeclarations;
-    return _extensions ??=
+    if (_extensions case var extensions?) {
+      return extensions;
+    }
+
+    globalResultRequirements?.record_libraryFragmentScope_accessibleExtensions(
+      importedLibraries: importedLibrariesContributingExtensions,
+    );
+
+    return _extensions =
         {
-          ...libraryDeclarations.extensions,
+          ...fragment.library.libraryDeclarations.extensions,
           ...noPrefixScope._extensions,
           for (var prefix in _prefixElements.values)
             ...prefix.scope._extensions,
           ...?parent?.accessibleExtensions,
+        }.toFixedList();
+  }
+
+  List<LibraryElementImpl> get importedLibrariesContributingExtensions {
+    return _importedLibrariesContributingExtensions ??=
+        {
+          ...noPrefixScope._importedLibraries,
+          for (var prefix in _prefixElements.values)
+            ...prefix.scope._importedLibraries,
+          ...?parent?.importedLibrariesContributingExtensions,
         }.toFixedList();
   }
 

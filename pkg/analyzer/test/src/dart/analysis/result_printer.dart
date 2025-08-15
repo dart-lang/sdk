@@ -48,6 +48,7 @@ class BundleRequirementsPrinter {
       _writeTopLevels(requirements);
       _writeInstanceItems(requirements);
       _writeInterfaceItems(requirements);
+      _writeExportedExtensions(requirements);
       _writeExportRequirements(requirements);
       _writeOpaqueApiUses(requirements);
     });
@@ -64,6 +65,22 @@ class BundleRequirementsPrinter {
           sink.writelnWithIndent('show ${baseNames.join(', ')}');
       }
     });
+  }
+
+  void _writeExportedExtensions(RequirementsManifest requirements) {
+    sink.writeElements(
+      'exportedExtensions',
+      requirements.exportedExtensions.entries.sortedBy(
+        (export) => export.key.toString(),
+      ),
+      (entry) {
+        var idListStr = entry.value.asString(idProvider);
+        if (idListStr.isEmpty) {
+          idListStr = '[]';
+        }
+        sink.writelnWithIndent('${entry.key}: $idListStr');
+      },
+    );
   }
 
   void _writeExportRequirements(RequirementsManifest requirements) {
@@ -522,6 +539,13 @@ class DriverEventsPrinter {
       case ExportLibraryMissing():
         // TODO(scheglov): Handle this case.
         throw UnimplementedError();
+      case ExportedExtensionsMismatch():
+        sink.writelnWithIndent('exportedExtensionsMismatch');
+        sink.writeProperties({
+          'libraryUri': failure.libraryUri,
+          'expectedIds': failure.expectedIds.asString(idProvider),
+          'actualIds': failure.actualIds.asString(idProvider),
+        });
       case InstanceFieldIdMismatch():
         sink.writelnWithIndent('instanceFieldIdMismatch');
         sink.writeProperties({
@@ -582,6 +606,12 @@ class DriverEventsPrinter {
           'name': failure.name.asString,
           'expectedId': idProvider.manifestId(failure.expectedId),
           'actualId': idProvider.manifestId(failure.actualId),
+        });
+      case TopLevelNotInstance():
+        sink.writelnWithIndent('topLevelNotInstance');
+        sink.writeProperties({
+          'libraryUri': failure.libraryUri,
+          'name': failure.name.asString,
         });
       case TopLevelNotInterface():
         // TODO(scheglov): Handle this case.
@@ -988,6 +1018,12 @@ class LibraryManifestPrinter {
           _writeNamedId(entry.key, entry.value);
         }
       });
+    }
+
+    var exportedExtensionIds = manifest.exportedExtensions;
+    if (exportedExtensionIds.ids.isNotEmpty) {
+      var idListStr = exportedExtensionIds.asString(idProvider);
+      sink.writelnWithIndent('exportedExtensions: $idListStr');
     }
   }
 

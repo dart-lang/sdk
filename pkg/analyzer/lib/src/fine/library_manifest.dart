@@ -35,6 +35,9 @@ class LibraryManifest {
   final Map<LookupName, TopLevelFunctionItem> declaredFunctions;
   final Map<LookupName, TopLevelVariableItem> declaredVariables;
 
+  /// All exported (declared or re-exported) extensions.
+  ManifestItemIdList exportedExtensions;
+
   LibraryManifest({
     required this.reExportMap,
     required this.declaredClasses,
@@ -47,6 +50,7 @@ class LibraryManifest {
     required this.declaredSetters,
     required this.declaredFunctions,
     required this.declaredVariables,
+    required this.exportedExtensions,
   });
 
   factory LibraryManifest.read(SummaryDataReader reader) {
@@ -82,6 +86,7 @@ class LibraryManifest {
       declaredVariables: reader.readLookupNameMap(
         readValue: () => TopLevelVariableItem.read(reader),
       ),
+      exportedExtensions: ManifestItemIdList.read(reader),
     );
   }
 
@@ -132,6 +137,7 @@ class LibraryManifest {
     declaredSetters.write(sink);
     declaredFunctions.write(sink);
     declaredVariables.write(sink);
+    exportedExtensions.write(sink);
   }
 }
 
@@ -185,6 +191,7 @@ class LibraryManifestBuilder {
     _fillItemMapFromInputManifests(performance: performance);
 
     _buildManifests();
+    _addExportedExtensions();
     _addReExports();
     assert(_assertSerialization());
 
@@ -301,6 +308,29 @@ class LibraryManifestBuilder {
         interfaceItem: enumItem,
       );
     });
+  }
+
+  void _addExportedExtensions() {
+    for (var libraryElement in libraryElements) {
+      var manifest = libraryElement.manifest!;
+
+      var extensionIds = <ManifestItemId>{};
+
+      var exportedExtensionElements =
+          libraryElement.exportNamespace.definedNames2.values
+              .whereType<ExtensionElementImpl>();
+      for (var extensionElement in exportedExtensionElements) {
+        var extensionName = extensionElement.lookupName?.asLookupName;
+        var extensionLibraryManifest = extensionElement.library.manifest!;
+        var extensionItem =
+            extensionLibraryManifest.declaredExtensions[extensionName]!;
+        extensionIds.add(extensionItem.id);
+      }
+
+      manifest.exportedExtensions = ManifestItemIdList(
+        extensionIds.toList(growable: false)..sort(),
+      );
+    }
   }
 
   void _addExtension({
@@ -812,6 +842,7 @@ class LibraryManifestBuilder {
         declaredSetters: newTopLevelSetters,
         declaredFunctions: newTopLevelFunctions,
         declaredVariables: newTopLevelVariables,
+        exportedExtensions: ManifestItemIdList([]),
       );
       libraryElement.manifest = newManifest;
       newManifests[libraryUri] = newManifest;
@@ -997,6 +1028,7 @@ class LibraryManifestBuilder {
           declaredSetters: {},
           declaredFunctions: {},
           declaredVariables: {},
+          exportedExtensions: ManifestItemIdList([]),
         );
   }
 

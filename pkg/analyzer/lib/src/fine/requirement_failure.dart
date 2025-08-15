@@ -28,6 +28,24 @@ final class ExportCountMismatch extends ExportFailure {
   }
 }
 
+class ExportedExtensionsMismatch extends RequirementFailure {
+  final Uri libraryUri;
+  final ManifestItemIdList expectedIds;
+  final ManifestItemIdList actualIds;
+
+  ExportedExtensionsMismatch({
+    required this.libraryUri,
+    required this.expectedIds,
+    required this.actualIds,
+  });
+
+  @override
+  String toString() {
+    return 'ExportedExtensionsMismatch(libraryUri: $libraryUri, '
+        'expectedIds: $expectedIds, actualIds: $actualIds)';
+  }
+}
+
 sealed class ExportFailure extends RequirementFailure {}
 
 final class ExportIdMismatch extends ExportFailure {
@@ -258,6 +276,22 @@ class TopLevelIdMismatch extends TopLevelFailure {
         'name: ${name.asString}, '
         'expectedId: $expectedId, '
         'actualId: $actualId)';
+  }
+}
+
+class TopLevelNotInstance extends TopLevelFailure {
+  final Object? actualItem;
+
+  TopLevelNotInstance({
+    required super.libraryUri,
+    required super.name,
+    required this.actualItem,
+  });
+
+  @override
+  String toString() {
+    return 'TopLevelNotInstance(libraryUri: $libraryUri, '
+        'name: ${name.asString})';
   }
 }
 

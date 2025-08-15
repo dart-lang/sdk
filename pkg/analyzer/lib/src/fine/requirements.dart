@@ -231,10 +231,10 @@ class InstanceItemRequirements {
 
   factory InstanceItemRequirements.read(SummaryDataReader reader) {
     return InstanceItemRequirements(
-      requestedFields: reader.readNameToIdMap(),
-      requestedGetters: reader.readNameToIdMap(),
-      requestedSetters: reader.readNameToIdMap(),
-      requestedMethods: reader.readNameToIdMap(),
+      requestedFields: reader.readNameToOptionalIdMap(),
+      requestedGetters: reader.readNameToOptionalIdMap(),
+      requestedSetters: reader.readNameToOptionalIdMap(),
+      requestedMethods: reader.readNameToOptionalIdMap(),
       allDeclaredFields: ManifestItemIdList.readOptional(reader),
       allDeclaredGetters: ManifestItemIdList.readOptional(reader),
       allDeclaredSetters: ManifestItemIdList.readOptional(reader),
@@ -292,8 +292,8 @@ class InterfaceItemRequirements {
     return InterfaceItemRequirements(
       interfaceId: ManifestItemId.readOptional(reader),
       allDeclaredConstructors: ManifestItemIdList.readOptional(reader),
-      requestedConstructors: reader.readNameToIdMap(),
-      methods: reader.readNameToIdMap(),
+      requestedConstructors: reader.readNameToOptionalIdMap(),
+      methods: reader.readNameToOptionalIdMap(),
     );
   }
 
@@ -394,6 +394,11 @@ class RequirementsManifest {
   /// LibraryUri => TopName => InterfaceItemRequirements
   final Map<Uri, Map<LookupName, InterfaceItemRequirements>> interfaces = {};
 
+  /// All extensions exported from a library (including re-exports).
+  ///
+  /// LibraryUri => IDs
+  final Map<Uri, ManifestItemIdList> exportedExtensions = {};
+
   final List<LibraryExportRequirements> exportRequirements = [];
 
   /// If this list is not empty, [isSatisfied] returns `false`.
@@ -411,7 +416,7 @@ class RequirementsManifest {
     result.topLevels.addAll(
       reader.readMap(
         readKey: () => reader.readUri(),
-        readValue: () => reader.readNameToIdMap(),
+        readValue: () => reader.readNameToOptionalIdMap(),
       ),
     );
 
@@ -436,6 +441,13 @@ class RequirementsManifest {
             readValue: () => InterfaceItemRequirements.read(reader),
           );
         },
+      ),
+    );
+
+    result.exportedExtensions.addAll(
+      reader.readMap(
+        readKey: () => reader.readUri(),
+        readValue: () => ManifestItemIdList.read(reader),
       ),
     );
 
@@ -545,9 +557,10 @@ class RequirementsManifest {
             libraryManifest.declaredExtensionTypes[instanceName] ??
             libraryManifest.declaredMixins[instanceName];
         if (instanceItem is! InstanceItem) {
-          return TopLevelNotInterface(
+          return TopLevelNotInstance(
             libraryUri: libraryUri,
             name: instanceName,
+            actualItem: instanceItem,
           );
         }
 
@@ -759,6 +772,24 @@ class RequirementsManifest {
       );
       if (failure != null) {
         return failure;
+      }
+    }
+
+    for (var extensionsRequirement in exportedExtensions.entries) {
+      var declaringUri = extensionsRequirement.key;
+
+      // SAFETY: we already checked exports.
+      var libraryElement = elementFactory.libraryOfUri(declaringUri)!;
+      var libraryManifest = libraryElement.manifest!;
+
+      var expectedIds = extensionsRequirement.value;
+      var actualIds = libraryManifest.exportedExtensions;
+      if (actualIds != expectedIds) {
+        return ExportedExtensionsMismatch(
+          libraryUri: declaringUri,
+          expectedIds: expectedIds,
+          actualIds: actualIds,
+        );
       }
     }
 
@@ -1045,6 +1076,26 @@ class RequirementsManifest {
     requirements.requestedConstructors[constructorName] = constructorId;
   }
 
+  /// Record that all accessible extensions inside a [LibraryFragmentImpl]
+  /// are requested, which means dependency on all extensions exported
+  /// from [importedLibraries].
+  void record_libraryFragmentScope_accessibleExtensions({
+    required List<LibraryElementImpl> importedLibraries,
+  }) {
+    if (_recordingLockLevel != 0) {
+      return;
+    }
+
+    for (var importedLibrary in importedLibraries) {
+      if (importedLibrary.manifest case var manifest?) {
+        var uri = importedLibrary.uri;
+        if (!exportedExtensions.containsKey(uri)) {
+          exportedExtensions[uri] = manifest.exportedExtensions;
+        }
+      }
+    }
+  }
+
   void record_propertyAccessorElement_variable({
     required PropertyAccessorElementImpl element,
     required String? name,
@@ -1144,6 +1195,12 @@ class RequirementsManifest {
           writeValue: (interface) => interface.write(sink),
         );
       },
+    );
+
+    sink.writeMap(
+      exportedExtensions,
+      writeKey: (uri) => sink.writeUri(uri),
+      writeValue: (idList) => idList.write(sink),
     );
 
     sink.writeList(
@@ -1375,7 +1432,7 @@ extension _BufferedSinkExtension on BufferedSink {
 }
 
 extension _SummaryDataReaderExtension on SummaryDataReader {
-  Map<LookupName, ManifestItemId?> readNameToIdMap() {
+  Map<LookupName, ManifestItemId?> readNameToOptionalIdMap() {
     return readMap(
       readKey: () => LookupName.read(this),
       readValue: () => ManifestItemId.readOptional(this),
