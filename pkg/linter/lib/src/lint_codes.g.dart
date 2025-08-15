@@ -7,10 +7,6 @@
 // Instead modify 'pkg/linter/messages.yaml' and run
 // 'dart run pkg/linter/tool/generate_lints.dart' to update.
 
-// We allow some snake_case and SCREAMING_SNAKE_CASE identifiers in generated
-// code, as they match names declared in the source configuration files.
-// ignore_for_file: constant_identifier_names
-
 // Generated comments don't quite align with flutter style.
 // ignore_for_file: flutter_style_todos
 
