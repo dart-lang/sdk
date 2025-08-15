@@ -9,18 +9,18 @@ import "dart:typed_data";
 
 static method main() → void {
   final typ::Int8List typedData = typ::Int8List::•(20);
-  self::myNative#T(typedData);
-  self::myNative#C(new ffi::_Compound::_fromTypedDataBase(typedData, #C1.{core::num::*}(0){(core::num) → core::num}));
+  self::#myNative#T(typedData);
+  self::#myNative#C(new ffi::_Compound::_fromTypedDataBase(typedData, #C1.{core::num::*}(0){(core::num) → core::num}));
 }
 @#C7
 @#C9
 external static method myNative(ffi::Pointer<ffi::Void> pointer) → core::int;
 @#C7
 @#C9
-external static method myNative#T(typ::TypedData pointer) → core::int;
+external static method #myNative#T(typ::TypedData pointer) → core::int;
 @#C7
 @#C9
-external static method myNative#C(ffi::_Compound pointer) → core::int;
+external static method #myNative#C(ffi::_Compound pointer) → core::int;
 constants  {
   #C1 = 1
   #C2 = "cfe:ffi:native-marker"

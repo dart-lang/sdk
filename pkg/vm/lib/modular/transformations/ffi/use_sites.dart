@@ -1991,7 +1991,7 @@ mixin _FfiUseSiteTransformer on FfiTransformer {
       return node;
     }
 
-    final newName = '${target.name.text}#$methodPostfix';
+    final newName = '#${target.name.text}#$methodPostfix';
     final Procedure newTarget;
     final parent = target.parent;
     final members = switch (parent) {
