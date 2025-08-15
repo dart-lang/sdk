@@ -2626,8 +2626,9 @@ class FieldElementImpl extends PropertyInducingElementImpl
   FieldElementImpl get baseElement => this;
 
   @override
-  InstanceElement get enclosingElement =>
-      (firstFragment.enclosingFragment as InstanceFragment).element;
+  InstanceElementImpl get enclosingElement {
+    return firstFragment.enclosingFragment.element;
+  }
 
   @Deprecated('Use enclosingElement instead')
   @override
@@ -2853,6 +2854,11 @@ class FieldFragmentImpl extends PropertyInducingFragmentImpl
 
   @override
   FieldFragmentImpl get declaration => this;
+
+  @override
+  InstanceFragmentImpl get enclosingFragment {
+    return super.enclosingFragment as InstanceFragmentImpl;
+  }
 
   /// Whether the type of this fragment references a type parameter of the
   /// enclosing element. This includes not only explicitly specified type
@@ -7391,8 +7397,9 @@ class MethodElementImpl extends ExecutableElementImpl
   }
 
   @override
-  Element? get enclosingElement =>
-      (firstFragment.enclosingFragment as InstanceFragment).element;
+  InstanceElementImpl get enclosingElement {
+    return firstFragment.enclosingFragment.element;
+  }
 
   @Deprecated('Use enclosingElement instead')
   @override

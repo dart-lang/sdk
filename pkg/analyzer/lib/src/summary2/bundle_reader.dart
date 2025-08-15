@@ -352,8 +352,7 @@ class LibraryReader {
       // TODO(scheglov): formal parameters
       element.deferReadResolution(
         _createDeferredReadResolutionCallback((reader) {
-          var enclosingElement =
-              element.enclosingElement as InstanceElementImpl;
+          var enclosingElement = element.enclosingElement;
           reader._addTypeParameters2(enclosingElement.typeParameters);
           element.returnType = reader.readRequiredType();
           element.superConstructor = reader.readConstructorElementMixin();
@@ -379,8 +378,7 @@ class LibraryReader {
           return fragment;
         },
         readResolution: (fragment, reader) {
-          var enclosingElement =
-              fragment.element.enclosingElement as InstanceElementImpl;
+          var enclosingElement = fragment.element.enclosingElement;
           reader._addTypeParameters2(enclosingElement.typeParameters);
 
           _readTypeParameters2(
@@ -689,8 +687,7 @@ class LibraryReader {
 
       element.deferReadResolution(
         _createDeferredReadResolutionCallback((reader) {
-          var enclosingElement =
-              element.enclosingElement as InstanceElementImpl;
+          var enclosingElement = element.enclosingElement;
           reader._addTypeParameters2(enclosingElement.typeParameters);
           element.type = reader.readRequiredType();
         }),
@@ -709,8 +706,7 @@ class LibraryReader {
           return fragment;
         },
         readResolution: (fragment, reader) {
-          var enclosingElement =
-              fragment.element.enclosingElement as InstanceElementImpl;
+          var enclosingElement = fragment.element.enclosingElement;
           reader._addTypeParameters2(enclosingElement.typeParameters);
 
           fragment.metadata = reader._readMetadata();
@@ -903,8 +899,7 @@ class LibraryReader {
       // TODO(scheglov): formal parameters
       element.deferReadResolution(
         _createDeferredReadResolutionCallback((reader) {
-          var enclosingElement =
-              element.enclosingElement as InstanceElementImpl;
+          var enclosingElement = element.enclosingElement;
           reader._addTypeParameters2(enclosingElement.typeParameters);
 
           reader._addTypeParameters2(element.typeParameters);
@@ -929,8 +924,7 @@ class LibraryReader {
           return fragment;
         },
         readResolution: (fragment, reader) {
-          var enclosingElement =
-              fragment.element.enclosingElement as InstanceElementImpl;
+          var enclosingElement = fragment.element.enclosingElement;
           reader._addTypeParameters2(enclosingElement.typeParameters);
 
           _readTypeParameters2(
