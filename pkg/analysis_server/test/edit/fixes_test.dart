@@ -98,7 +98,7 @@ void f() {
 
   Future<void> test_fromPlugins() async {
     if (!AnalysisServer.supportsPlugins) return;
-    PluginInfo info = DiscoveredPluginInfo(
+    PluginInfo info = PluginInfo(
       'a',
       'b',
       'c',
