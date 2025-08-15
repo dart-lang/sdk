@@ -39,71 +39,6 @@ import 'package:yaml/yaml.dart';
 
 const _builtAsAot = bool.fromEnvironment('built_as_aot');
 
-/// Information about a plugin that is built-in.
-class BuiltInPluginInfo extends PluginInfo {
-  /// The entry point function that will be executed in the plugin's isolate.
-  final EntryPoint entryPoint;
-
-  @override
-  final String pluginId;
-
-  /// Initialize a newly created built-in plugin.
-  BuiltInPluginInfo(
-    this.entryPoint,
-    this.pluginId,
-    AbstractNotificationManager notificationManager,
-    InstrumentationService instrumentationService,
-  ) : super(notificationManager, instrumentationService);
-
-  @override
-  ServerCommunicationChannel _createChannel() {
-    return ServerIsolateChannel.builtIn(
-      entryPoint,
-      pluginId,
-      instrumentationService,
-    );
-  }
-}
-
-/// Information about a plugin that was discovered.
-class DiscoveredPluginInfo extends PluginInfo {
-  /// The path to the root directory of the definition of the plugin on disk
-  /// (the directory containing the 'pubspec.yaml' file and the 'bin'
-  /// directory).
-  final String path;
-
-  /// The path to the 'plugin.dart' file that will be executed in an isolate.
-  final String executionPath;
-
-  /// The path to the '.packages' file used to control the resolution of
-  /// 'package:' URIs.
-  final String packagesPath;
-
-  /// Initialize the newly created information about a plugin.
-  DiscoveredPluginInfo(
-    this.path,
-    this.executionPath,
-    this.packagesPath,
-    AbstractNotificationManager notificationManager,
-    InstrumentationService instrumentationService,
-  ) : super(notificationManager, instrumentationService);
-
-  @override
-  bool get canBeStarted => executionPath.isNotEmpty;
-
-  @override
-  String get pluginId => path;
-
-  @override
-  ServerCommunicationChannel _createChannel() {
-    return ServerIsolateChannel.discovered(
-      Uri.file(executionPath, windows: Platform.isWindows),
-      Uri.file(packagesPath, windows: Platform.isWindows),
-      instrumentationService,
-    );
-  }
-}
-
 /// An indication of a problem with the execution of a plugin that occurs prior
 /// to the execution of the plugin's entry point in an isolate.
 class PluginException implements Exception {
@@ -129,12 +64,24 @@ class PluginFiles {
 }
 
 /// Information about a single plugin.
-abstract class PluginInfo {
+class PluginInfo {
+  /// The path to the root directory of the definition of the plugin on disk
+  /// (the directory containing the 'pubspec.yaml' file and the 'bin'
+  /// directory).
+  final String _path;
+
+  /// The path to the 'plugin.dart' file that will be executed in an isolate.
+  final String executionPath;
+
+  /// The path to the '.packages' file used to control the resolution of
+  /// 'package:' URIs.
+  final String packagesPath;
+
   /// The object used to manage the receiving and sending of notifications.
-  final AbstractNotificationManager notificationManager;
+  final AbstractNotificationManager _notificationManager;
 
   /// The instrumentation service that is being used by the analysis server.
-  final InstrumentationService instrumentationService;
+  final InstrumentationService _instrumentationService;
 
   /// The context roots that are currently using the results produced by the
   /// plugin.
@@ -146,28 +93,36 @@ abstract class PluginInfo {
 
   CaughtException? _exception;
 
-  /// Initialize the newly created information about a plugin.
-  PluginInfo(this.notificationManager, this.instrumentationService);
+  PluginInfo(
+    this._path,
+    this.executionPath,
+    this.packagesPath,
+    this._notificationManager,
+    this._instrumentationService,
+  );
 
-  /// Return `true` if this plugin can be started, or `false` if there is a
-  /// reason why it cannot be started. For example, a plugin cannot be started
-  /// if there was an error with a previous attempt to start running it or if
-  /// the plugin is not correctly configured.
-  bool get canBeStarted => true;
-
-  /// Return the data known about this plugin.
+  /// The data known about this plugin, for instrumentation and exception
+  /// purposes.
   PluginData get data =>
-      PluginData(pluginId, currentSession?.name, currentSession?.version);
+      PluginData(pluginId, currentSession?._name, currentSession?._version);
 
   /// The exception that occurred that prevented the plugin from being started,
   /// or `null` if there was no exception (possibly because no attempt has yet
   /// been made to start the plugin).
   CaughtException? get exception => _exception;
 
-  /// Return the id of this plugin, used to identify the plugin to users.
-  String get pluginId;
+  /// The ID of this plugin, used to identify the plugin to users.
+  String get pluginId => _path;
 
-  /// Add the given [contextRoot] to the set of context roots being analyzed by
+  /// Whether this plugin can be started, or `false` if there is a reason that
+  /// it cannot be started.
+  ///
+  /// For example, a plugin cannot be started if there was an error with a
+  /// previous attempt to start running it or if the plugin is not correctly
+  /// configured.
+  bool get _canBeStarted => executionPath.isNotEmpty;
+
+  /// Adds the given [contextRoot] to the set of context roots being analyzed by
   /// this plugin.
   void addContextRoot(analyzer.ContextRoot contextRoot) {
     if (contextRoots.add(contextRoot)) {
@@ -175,7 +130,7 @@ abstract class PluginInfo {
     }
   }
 
-  /// Add the given context [roots] to the set of context roots being analyzed
+  /// Adds the given context [roots] to the set of context roots being analyzed
   /// by this plugin.
   void addContextRoots(Iterable<analyzer.ContextRoot> roots) {
     var changed = false;
@@ -189,8 +144,8 @@ abstract class PluginInfo {
     }
   }
 
-  /// Return `true` if at least one of the context roots being analyzed contains
-  /// the file with the given [filePath].
+  /// Whether at least one of the context roots being analyzed contains the file
+  /// with the given [filePath].
   bool isAnalyzing(String filePath) {
     for (var contextRoot in contextRoots) {
       if (contextRoot.isAnalyzed(filePath)) {
@@ -200,7 +155,7 @@ abstract class PluginInfo {
     return false;
   }
 
-  /// Remove the given [contextRoot] from the set of context roots being
+  /// Removes the given [contextRoot] from the set of context roots being
   /// analyzed by this plugin.
   void removeContextRoot(analyzer.ContextRoot contextRoot) {
     if (contextRoots.remove(contextRoot)) {
@@ -212,7 +167,7 @@ abstract class PluginInfo {
     // If a previous exception has been reported, do not replace it here; the
     // first should have more "root cause" information.
     _exception ??= exception;
-    instrumentationService.logPluginException(
+    _instrumentationService.logPluginException(
       data,
       exception.exception,
       exception.stackTrace,
@@ -223,19 +178,21 @@ abstract class PluginInfo {
         // exception is.
         '${exception.message ?? exception.exception}\n'
         '${exception.stackTrace}';
-    notificationManager.handlePluginError(message);
+    _notificationManager.handlePluginError(message);
   }
 
-  /// If the plugin is currently running, send a request based on the given
-  /// [params] to the plugin. If the plugin is not running, the request will
-  /// silently be dropped.
+  /// If the plugin is currently running, sends a request based on the given
+  /// [params] to the plugin.
+  ///
+  /// If the plugin is not running, the request will silently be dropped.
   void sendRequest(RequestParams params) {
     currentSession?.sendRequest(params);
   }
 
-  /// Start a new isolate that is running the plugin. Return the state object
-  /// used to interact with the plugin, or `null` if the plugin could not be
-  /// run.
+  /// Starts a new isolate that is running the plugin.
+  ///
+  /// Returns the [PluginSession] used to interact with the plugin, or `null` if
+  /// the plugin could not be run.
   Future<PluginSession?> start(String? byteStorePath, String sdkPath) async {
     if (currentSession != null) {
       throw StateError('Cannot start a plugin that is already running.');
@@ -248,7 +205,7 @@ abstract class PluginInfo {
     return currentSession;
   }
 
-  /// Request that the plugin shutdown.
+  /// Requests that the plugin shut down.
   Future<void> stop() {
     if (currentSession == null) {
       if (_exception != null) {
@@ -262,10 +219,16 @@ abstract class PluginInfo {
     return doneFuture;
   }
 
-  /// Create and return the channel used to communicate with the server.
-  ServerCommunicationChannel _createChannel();
+  /// Creates and returns the channel used to communicate with the server.
+  ServerCommunicationChannel _createChannel() {
+    return ServerIsolateChannel.discovered(
+      Uri.file(executionPath, windows: Platform.isWindows),
+      Uri.file(packagesPath, windows: Platform.isWindows),
+      _instrumentationService,
+    );
+  }
 
-  /// Update the context roots that the plugin should be analyzing.
+  /// Updates the context roots that the plugin should be analyzing.
   void _updatePluginRoots() {
     var currentSession = this.currentSession;
     if (currentSession != null) {
@@ -297,17 +260,17 @@ class PluginManager {
   static const String _pubEnvironmentKey = 'PUB_ENVIRONMENT';
 
   /// The resource provider used to access the file system.
-  final ResourceProvider resourceProvider;
+  final ResourceProvider _resourceProvider;
 
   /// The absolute path of the directory containing the on-disk byte store, or
   /// `null` if there is no on-disk store.
-  final String? byteStorePath;
+  final String? _byteStorePath;
 
   /// The absolute path of the directory containing the SDK.
-  final String sdkPath;
+  final String _sdkPath;
 
   /// The object used to manage the receiving and sending of notifications.
-  final AbstractNotificationManager notificationManager;
+  final AbstractNotificationManager _notificationManager;
 
   /// The instrumentation service that is being used by the analysis server.
   final InstrumentationService instrumentationService;
@@ -343,12 +306,12 @@ class PluginManager {
   Completer<void> initializedCompleter = Completer();
 
   /// Initialize a newly created plugin manager. The notifications from the
-  /// running plugins will be handled by the given [notificationManager].
+  /// running plugins will be handled by the given [_notificationManager].
   PluginManager(
-    this.resourceProvider,
-    this.byteStorePath,
-    this.sdkPath,
-    this.notificationManager,
+    this._resourceProvider,
+    this._byteStorePath,
+    this._sdkPath,
+    this._notificationManager,
     this.instrumentationService,
   );
 
@@ -378,30 +341,30 @@ class PluginManager {
       try {
         pluginFiles = filesFor(path, isLegacyPlugin: isLegacyPlugin);
       } catch (exception, stackTrace) {
-        plugin = DiscoveredPluginInfo(
+        plugin = PluginInfo(
           path,
           '',
           '',
-          notificationManager,
+          _notificationManager,
           instrumentationService,
         );
         plugin.reportException(CaughtException(exception, stackTrace));
         _pluginMap[path] = plugin;
         return;
       }
-      plugin = DiscoveredPluginInfo(
+      plugin = PluginInfo(
         path,
         pluginFiles.execution.path,
         pluginFiles.packageConfig.path,
-        notificationManager,
+        _notificationManager,
         instrumentationService,
       );
       _pluginMap[path] = plugin;
       try {
         instrumentationService.logInfo('Starting plugin "$plugin"');
-        var session = await plugin.start(byteStorePath, sdkPath);
+        var session = await plugin.start(_byteStorePath, _sdkPath);
         unawaited(
-          session?.onDone.then((_) {
+          session?._onDone.then((_) {
             if (_pluginMap[path] == plugin) {
               _pluginMap.remove(path);
               _notifyPluginsChanged();
@@ -464,8 +427,10 @@ class PluginManager {
 
     /// Return `true` if the given glob [pattern] matches the file being
     /// watched.
-    bool matches(String pattern) =>
-        Glob(resourceProvider.pathContext.separator, pattern).matches(filePath);
+    bool matches(String pattern) => Glob(
+      _resourceProvider.pathContext.separator,
+      pattern,
+    ).matches(filePath);
 
     WatchEvent? event;
     var responses = <Future<Response>>[];
@@ -498,14 +463,14 @@ class PluginManager {
   /// from being executing.
   @visibleForTesting
   PluginFiles filesFor(String pluginPath, {required bool isLegacyPlugin}) {
-    var pluginFolder = resourceProvider.getFolder(pluginPath);
+    var pluginFolder = _resourceProvider.getFolder(pluginPath);
     var pubspecFile = pluginFolder.getChildAssumingFile(file_paths.pubspecYaml);
     if (!pubspecFile.exists) {
       // If there's no pubspec file, then we don't need to copy the package
       // because we won't be running pub.
       return _computeFiles(pluginFolder);
     }
-    var workspace = BlazeWorkspace.find(resourceProvider, pluginFolder.path);
+    var workspace = BlazeWorkspace.find(_resourceProvider, pluginFolder.path);
     if (workspace != null) {
       // Similarly, we won't be running pub if we're in a workspace because
       // there is exactly one version of each package.
@@ -553,7 +518,7 @@ class PluginManager {
   /// This is a directory under the state location for '.plugin_manager', named
   /// with a hash based on [pluginPath].
   Folder pluginStateFolder(String pluginPath) {
-    var stateFolder = resourceProvider.getStateLocation('.plugin_manager');
+    var stateFolder = _resourceProvider.getStateLocation('.plugin_manager');
     if (stateFolder == null) {
       throw PluginException('No state location, so plugin could not be copied');
     }
@@ -566,8 +531,8 @@ class PluginManager {
     var plugins = _pluginMap.values.toList();
     for (var plugin in plugins) {
       plugin.removeContextRoot(contextRoot);
-      if (plugin is DiscoveredPluginInfo && plugin.contextRoots.isEmpty) {
-        _pluginMap.remove(plugin.path);
+      if (plugin.contextRoots.isEmpty) {
+        _pluginMap.remove(plugin._path);
         _notifyPluginsChanged();
         try {
           plugin.stop();
@@ -597,9 +562,9 @@ class PluginManager {
         // Restart the plugin.
         //
         _pluginMap[path] = plugin;
-        var session = await plugin.start(byteStorePath, sdkPath);
+        var session = await plugin.start(_byteStorePath, _sdkPath);
         unawaited(
-          session?.onDone.then((_) {
+          session?._onDone.then((_) {
             _pluginMap.remove(path);
           }),
         );
@@ -769,7 +734,7 @@ class PluginManager {
         buffer.writeln('  stderr = ${pubResult.stderr}');
         exceptionReason = buffer.toString();
         instrumentationService.logError(exceptionReason);
-        notificationManager.handlePluginError(exceptionReason);
+        _notificationManager.handlePluginError(exceptionReason);
       }
       if (!packageConfigFile.exists) {
         exceptionReason ??= 'File "${packageConfigFile.path}" does not exist.';
@@ -837,7 +802,7 @@ class PluginManager {
     UriResolver packageUriResolver,
   ) {
     var pluginPath = pluginFolder.path;
-    var stateFolder = resourceProvider.getStateLocation('.plugin_manager')!;
+    var stateFolder = _resourceProvider.getStateLocation('.plugin_manager')!;
     var stateName = '${_uniqueDirectoryName(pluginPath)}.packages';
     var packageConfigFile = stateFolder.getChildAssumingFile(stateName);
     if (!packageConfigFile.exists) {
@@ -851,7 +816,7 @@ class PluginManager {
       try {
         var visitedPackageNames = <String>{};
         var packages = <_Package>[];
-        var context = resourceProvider.pathContext;
+        var context = _resourceProvider.pathContext;
         packages.add(_Package(context.basename(pluginPath), pluginFolder));
         var pubspecFiles = <File>[];
         pubspecFiles.add(pluginPubspec);
@@ -863,7 +828,7 @@ class PluginManager {
               var packageSource = packageUriResolver.resolveAbsolute(uri);
               if (packageSource != null) {
                 var packageRoot =
-                    resourceProvider
+                    _resourceProvider
                         .getFile(packageSource.fullName)
                         .parent
                         .parent;
@@ -887,7 +852,7 @@ class PluginManager {
         }
         packageConfigFile.writeAsStringSync(
           packageConfigBuilder.toContent(
-            pathContext: resourceProvider.pathContext,
+            pathContext: _resourceProvider.pathContext,
           ),
         );
       } catch (exception) {
@@ -979,7 +944,7 @@ class PluginManager {
   }
 }
 
-/// Information about the execution a single plugin.
+/// Information about the execution of a single plugin.
 @visibleForTesting
 class PluginSession {
   /// The maximum number of milliseconds that server should wait for a response
@@ -991,7 +956,7 @@ class PluginSession {
   static const Duration WAIT_FOR_SHUTDOWN_DURATION = Duration(seconds: 10);
 
   /// The information about the plugin being executed.
-  final PluginInfo info;
+  final PluginInfo _info;
 
   /// The completer used to signal when the plugin has stopped.
   Completer<void> pluginStoppedCompleter = Completer<void>();
@@ -1012,46 +977,43 @@ class PluginSession {
   /// the plugin API being used by this server.
   bool isCompatible = true;
 
-  /// The contact information to include when reporting problems related to the
-  /// plugin.
-  String? contactInfo;
-
   /// The glob patterns of files that the plugin is interested in knowing about.
   List<String>? interestingFiles;
 
   /// The name to be used when reporting problems related to the plugin.
-  String? name;
+  String? _name;
 
   /// The version number to be used when reporting problems related to the
   /// plugin.
-  String? version;
+  String? _version;
 
-  /// Initialize the newly created information about the execution of a plugin.
-  PluginSession(this.info);
+  PluginSession(this._info);
 
-  /// Return the next request id, encoded as a string and increment the id so
-  /// that a different result will be returned on each invocation.
+  /// The next request ID, encoded as a string.
+  ///
+  /// This increments the ID so that a different result will be returned on each
+  /// invocation.
   String get nextRequestId => (requestId++).toString();
 
-  /// Return a future that will complete when the plugin has stopped.
-  Future<void> get onDone => pluginStoppedCompleter.future;
+  /// A future that will complete when the plugin has stopped.
+  Future<void> get _onDone => pluginStoppedCompleter.future;
 
-  /// Handle the given [notification] from [PluginServer].
+  /// Handles the given [notification] from [PluginServer].
   void handleNotification(Notification notification) {
     if (notification.event == PLUGIN_NOTIFICATION_ERROR) {
       var params = PluginErrorParams.fromNotification(notification);
       if (params.isFatal) {
-        info.stop();
+        _info.stop();
         stop();
       }
     }
-    info.notificationManager.handlePluginNotification(
-      info.pluginId,
+    _info._notificationManager.handlePluginNotification(
+      _info.pluginId,
       notification,
     );
   }
 
-  /// Handle the fact that the plugin has stopped.
+  /// Handles the fact that the plugin has stopped.
   void handleOnDone() {
     if (channel != null) {
       channel!.close();
@@ -1060,12 +1022,12 @@ class PluginSession {
     pluginStoppedCompleter.complete(null);
   }
 
-  /// Handle the fact that an unhandled error has occurred in the plugin.
+  /// Handles the fact that an unhandled error has occurred in the plugin.
   void handleOnError(Object? error) {
     if (error case [String message, String stackTraceString]) {
       var stackTrace = StackTrace.fromString(stackTraceString);
       var exception = PluginException(message);
-      info.reportException(
+      _info.reportException(
         CaughtException.withMessage(message, exception, stackTrace),
       );
     } else {
@@ -1077,21 +1039,21 @@ class PluginSession {
     }
   }
 
-  /// Handle a [response] from the plugin by completing the future that was
+  /// Handles a [response] from the plugin by completing the future that was
   /// created when the request was sent.
   void handleResponse(Response response) {
     var requestData = pendingRequests.remove(response.id);
     if (requestData != null) {
       var responseTime = DateTime.now().millisecondsSinceEpoch;
       var duration = responseTime - requestData.requestTime;
-      PluginManager.recordResponseTime(info, requestData.method, duration);
+      PluginManager.recordResponseTime(_info, requestData.method, duration);
       var completer = requestData.completer;
       completer.complete(response);
     }
   }
 
-  /// Return `true` if there are any requests that have not been responded to
-  /// within the maximum allowed amount of time.
+  /// Whether there are any requests that have not been responded to within the
+  /// maximum allowed amount of time.
   bool isNonResponsive() {
     // TODO(brianwilkerson): Figure out when to invoke this method in order to
     // identify non-responsive plugins and kill them.
@@ -1106,8 +1068,9 @@ class PluginSession {
     return false;
   }
 
-  /// Send a request, based on the given [parameters]. Return a future that will
-  /// complete when a response is received.
+  /// Sends a request, based on the given [parameters].
+  ///
+  /// Returns a future that will complete when a response is received.
   Future<Response> sendRequest(RequestParams parameters) {
     var channel = this.channel;
     if (channel == null) {
@@ -1130,7 +1093,7 @@ class PluginSession {
         if (error.code == RequestErrorCode.UNKNOWN_REQUEST) {
           // The plugin doesn't support this request. It may just be using an
           // older version of the `analysis_server_plugin` package.
-          info.instrumentationService.logInfo(
+          _info._instrumentationService.logInfo(
             "Plugin cannot handle request '${request.method}' with parameters: "
             '$parameters.',
           );
@@ -1138,7 +1101,7 @@ class PluginSession {
         }
         var stackTrace = StackTrace.fromString(error.stackTrace!);
         var exception = PluginException(error.message);
-        info.reportException(
+        _info.reportException(
           CaughtException.withMessage(error.message, exception, stackTrace),
         );
       }
@@ -1146,9 +1109,10 @@ class PluginSession {
     return completer.future;
   }
 
-  /// Start a new isolate that is running this plugin. The plugin will be sent
-  /// the given [byteStorePath]. Return `true` if the plugin is compatible and
-  /// running.
+  /// Starts a new isolate that is running this plugin.
+  ///
+  /// The plugin will be sent the given [byteStorePath]. Returns whether the
+  /// plugin is compatible and running.
   Future<bool> start(String? byteStorePath, String sdkPath) async {
     if (channel != null) {
       throw StateError('Cannot start a plugin that is already running.');
@@ -1157,7 +1121,7 @@ class PluginSession {
       throw StateError('Missing byte store path');
     }
     if (!isCompatible) {
-      info.reportException(
+      _info.reportException(
         CaughtException(
           PluginException('Plugin is not compatible.'),
           StackTrace.current,
@@ -1165,8 +1129,8 @@ class PluginSession {
       );
       return false;
     }
-    if (!info.canBeStarted) {
-      info.reportException(
+    if (!_info._canBeStarted) {
+      _info.reportException(
         CaughtException(
           PluginException('Plugin cannot be started.'),
           StackTrace.current,
@@ -1174,7 +1138,7 @@ class PluginSession {
       );
       return false;
     }
-    channel = info._createChannel();
+    channel = _info._createChannel();
     // TODO(brianwilkerson): Determine if await is necessary, if so, change the
     // return type of `channel.listen` to `Future<void>`.
     await (channel!.listen(
@@ -1187,7 +1151,7 @@ class PluginSession {
     if (channel == null) {
       // If there is an error when starting the isolate, the channel will invoke
       // `handleOnDone`, which will cause `channel` to be set to `null`.
-      info.reportException(
+      _info.reportException(
         CaughtException(
           PluginException('Unrecorded error while starting the plugin.'),
           StackTrace.current,
@@ -1200,13 +1164,12 @@ class PluginSession {
     );
     var result = PluginVersionCheckResult.fromResponse(response);
     isCompatible = result.isCompatible;
-    contactInfo = result.contactInfo;
     interestingFiles = result.interestingFiles;
-    name = result.name;
-    version = result.version;
+    _name = result.name;
+    _version = result.version;
     if (!isCompatible) {
       unawaited(sendRequest(PluginShutdownParams()));
-      info.reportException(
+      _info.reportException(
         CaughtException(
           PluginException('Plugin is not compatible.'),
           StackTrace.current,
@@ -1217,7 +1180,7 @@ class PluginSession {
     return true;
   }
 
-  /// Request that the plugin shutdown.
+  /// Requests that the plugin shutdown.
   Future<void> stop() {
     if (channel == null) {
       throw StateError('Cannot stop a plugin that is not running.');

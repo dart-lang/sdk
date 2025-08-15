@@ -48,10 +48,8 @@ class PluginsPage extends DiagnosticPageWithNav {
 
         _emitTable([
           ['Bootstrap package path:', id],
-          if (plugin is DiscoveredPluginInfo) ...[
-            ['Execution path:', plugin.executionPath.wordBreakOnSlashes],
-            ['Packages file path', plugin.packagesPath.wordBreakOnSlashes],
-          ],
+          ['Execution path:', plugin.executionPath.wordBreakOnSlashes],
+          ['Packages file path', plugin.packagesPath.wordBreakOnSlashes],
         ]);
 
         if (data.name == null) {

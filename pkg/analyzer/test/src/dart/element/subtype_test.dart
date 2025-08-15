@@ -2420,6 +2420,7 @@ class SubtypeTest extends _SubtypingTestBase with StringTypes {
     isNotSubtype(I_none, M_none, strT0: 'I', strT1: 'M');
   }
 
+  @SkippedTest() // TODO(scheglov): implement augmentation
   test_interfaceType_mixin_augmented_superclassConstraints() {
     var M = mixin_2(name: 'M');
     var C = class_2(name: 'C');

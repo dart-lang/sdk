@@ -28,7 +28,6 @@ import '../../support/sdk_paths.dart';
 
 void main() {
   defineReflectiveSuite(() {
-    defineReflectiveTests(BuiltInPluginInfoTest);
     defineReflectiveTests(DiscoveredPluginInfoTest);
     defineReflectiveTests(PluginManagerTest);
     defineReflectiveTests(PluginManagerFromDiskTest);
@@ -38,89 +37,16 @@ void main() {
 }
 
 @reflectiveTest
-class BuiltInPluginInfoTest with ResourceProviderMixin, _ContextRoot {
-  late TestNotificationManager notificationManager;
-  late BuiltInPluginInfo plugin;
-
-  void setUp() {
-    notificationManager = TestNotificationManager();
-    plugin = BuiltInPluginInfo(
-      (_) {},
-      'test plugin',
-      notificationManager,
-      InstrumentationService.NULL_SERVICE,
-    );
-  }
-
-  void test_addContextRoot() {
-    var contextRoot1 = _newContextRoot('/pkg1');
-    plugin.addContextRoot(contextRoot1);
-    expect(plugin.contextRoots, [contextRoot1]);
-    plugin.addContextRoot(contextRoot1);
-    expect(plugin.contextRoots, [contextRoot1]);
-  }
-
-  void test_creation() {
-    expect(plugin.pluginId, 'test plugin');
-    expect(plugin.notificationManager, notificationManager);
-    expect(plugin.contextRoots, isEmpty);
-    expect(plugin.currentSession, isNull);
-  }
-
-  void test_removeContextRoot() {
-    var contextRoot1 = _newContextRoot('/pkg1');
-    var contextRoot2 = _newContextRoot('/pkg2');
-    plugin.addContextRoot(contextRoot1);
-    expect(plugin.contextRoots, unorderedEquals([contextRoot1]));
-    plugin.addContextRoot(contextRoot2);
-    expect(plugin.contextRoots, unorderedEquals([contextRoot1, contextRoot2]));
-    plugin.removeContextRoot(contextRoot1);
-    expect(plugin.contextRoots, unorderedEquals([contextRoot2]));
-    plugin.removeContextRoot(contextRoot2);
-    expect(plugin.contextRoots, isEmpty);
-  }
-
-  @failingTest
-  Future<void> test_start_notRunning() {
-    fail('Not tested');
-  }
-
-  Future<void> test_start_running() async {
-    plugin.currentSession = PluginSession(plugin);
-    try {
-      await plugin.start('', '');
-      fail('Expected a StateError');
-    } on StateError {
-      // Expected.
-    }
-  }
-
-  void test_stop_notRunning() {
-    expect(() => plugin.stop(), throwsStateError);
-  }
-
-  Future<void> test_stop_running() async {
-    var session = PluginSession(plugin);
-    var channel = TestServerCommunicationChannel(session);
-    plugin.currentSession = session;
-    await plugin.stop();
-    expect(plugin.currentSession, isNull);
-    expect(channel.sentRequests, hasLength(1));
-    expect(channel.sentRequests[0].method, 'plugin.shutdown');
-  }
-}
-
-@reflectiveTest
 class DiscoveredPluginInfoTest with ResourceProviderMixin, _ContextRoot {
   late TestNotificationManager notificationManager;
   String pluginPath = '/pluginDir';
   String executionPath = '/pluginDir/bin/plugin.dart';
   String packagesPath = '/pluginDir/.packages';
-  late DiscoveredPluginInfo plugin;
+  late PluginInfo plugin;
 
   void setUp() {
     notificationManager = TestNotificationManager();
-    plugin = DiscoveredPluginInfo(
+    plugin = PluginInfo(
       pluginPath,
       executionPath,
       packagesPath,
@@ -147,9 +73,7 @@ class DiscoveredPluginInfoTest with ResourceProviderMixin, _ContextRoot {
   }
 
   void test_creation() {
-    expect(plugin.path, pluginPath);
     expect(plugin.executionPath, executionPath);
-    expect(plugin.notificationManager, notificationManager);
     expect(plugin.contextRoots, isEmpty);
     expect(plugin.currentSession, isNull);
   }
@@ -567,13 +491,6 @@ class PluginManagerTest with ResourceProviderMixin, _ContextRoot {
     expect(responses, hasLength(0));
   }
 
-  void test_creation() {
-    expect(manager.resourceProvider, resourceProvider);
-    expect(manager.byteStorePath, byteStorePath);
-    expect(manager.sdkPath, sdkPath);
-    expect(manager.notificationManager, notificationManager);
-  }
-
   void test_pathsFor_withPackageConfigJsonFile() {
     //
     // Build the minimal directory structure for a plugin package that includes
@@ -679,7 +596,7 @@ class PluginSessionFromDiskTest extends PluginTestSupport {
         var mainPath = path.join(pluginPath, 'bin', 'plugin.dart');
         var byteStorePath = path.join(pluginPath, 'byteStore');
         io.Directory(byteStorePath).createSync();
-        PluginInfo plugin = DiscoveredPluginInfo(
+        var plugin = PluginInfo(
           pluginPath,
           mainPath,
           packagesPath,
@@ -711,7 +628,7 @@ class PluginSessionTest with ResourceProviderMixin {
     executionPath = resourceProvider.convertPath('/pluginDir/bin/plugin.dart');
     packagesPath = resourceProvider.convertPath('/pluginDir/.packages');
     sdkPath = resourceProvider.convertPath('/sdk');
-    plugin = DiscoveredPluginInfo(
+    plugin = PluginInfo(
       pluginPath,
       executionPath,
       packagesPath,

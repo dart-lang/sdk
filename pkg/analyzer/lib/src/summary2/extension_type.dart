@@ -93,7 +93,7 @@ class _ImplementsNode extends graph.Node<_ImplementsNode> {
         typeSystem.isNonNullable(representationType)
             ? typeSystem.objectNone
             : typeSystem.objectQuestion;
-    element.firstFragment.interfaces = [superInterface];
+    element.interfaces = [superInterface];
   }
 }
 
@@ -158,7 +158,7 @@ class _Node extends graph.Node<_Node> {
     representationElement.type = type;
 
     element.firstFragment.typeErasure = type.extensionTypeErasure;
-    element.firstFragment.interfaces =
+    element.interfaces =
         element.interfaces
             .whereType<InterfaceType>()
             .where(typeSystem.isValidExtensionTypeSuperinterface)

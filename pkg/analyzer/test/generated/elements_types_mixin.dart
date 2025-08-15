@@ -133,12 +133,12 @@ mixin ElementsTypesMixin {
     fragment.isSealed = isSealed;
     fragment.enclosingFragment = testLibrary.definingCompilationUnit;
     fragment.typeParameters = typeParameters.map((e) => e.asElement).toList();
-    fragment.supertype = superType ?? typeProvider.objectType;
-    fragment.interfaces = interfaces;
-    fragment.mixins = mixins;
     fragment.methods = methods;
 
-    ClassElementImpl(Reference.root(), fragment);
+    var element = ClassElementImpl(Reference.root(), fragment);
+    element.supertype = superType ?? typeProvider.objectType;
+    element.mixins = mixins;
+    element.interfaces = interfaces;
 
     return fragment;
   }
@@ -161,12 +161,12 @@ mixin ElementsTypesMixin {
     fragment.enclosingFragment = testLibrary.definingCompilationUnit;
     fragment.typeParameters =
         typeParameters.map((e) => e.firstFragment).toList();
-    fragment.supertype = superType ?? typeProvider.objectType;
-    fragment.interfaces = interfaces;
-    fragment.mixins = mixins;
     fragment.methods = methods.map((e) => e.firstFragment).toList();
 
     var element = ClassElementImpl(Reference.root(), fragment);
+    element.supertype = superType ?? typeProvider.objectType;
+    element.mixins = mixins;
+    element.interfaces = interfaces;
     return element;
   }
 
@@ -241,7 +241,6 @@ mixin ElementsTypesMixin {
     var fragment = ExtensionTypeFragmentImpl(name: name);
     fragment.enclosingFragment = testLibrary.definingCompilationUnit;
     fragment.typeParameters = typeParameters.map((e) => e.asElement).toList();
-    fragment.interfaces = interfaces;
 
     var fieldFragment = FieldFragmentImpl(name: representationName);
     var fieldElement = FieldElementImpl(
@@ -253,7 +252,8 @@ mixin ElementsTypesMixin {
 
     fragment.typeErasure = representationType;
 
-    ExtensionTypeElementImpl(Reference.root(), fragment);
+    var element = ExtensionTypeElementImpl(Reference.root(), fragment);
+    element.interfaces = interfaces;
 
     return fragment;
   }
@@ -268,7 +268,6 @@ mixin ElementsTypesMixin {
     var fragment = ExtensionTypeFragmentImpl(name: name);
     fragment.enclosingFragment = testLibrary.definingCompilationUnit;
     fragment.typeParameters = typeParameters.map((e) => e.asElement).toList();
-    fragment.interfaces = interfaces;
 
     var fieldFragment = FieldFragmentImpl(name: representationName);
     fragment.fields = [fieldFragment];
@@ -281,7 +280,10 @@ mixin ElementsTypesMixin {
 
     fragment.typeErasure = representationType;
 
-    return ExtensionTypeElementImpl(Reference.root(), fragment);
+    var element = ExtensionTypeElementImpl(Reference.root(), fragment);
+    element.interfaces = interfaces;
+
+    return element;
   }
 
   FunctionTypeImpl functionType({
@@ -477,11 +479,12 @@ mixin ElementsTypesMixin {
     fragment.isAugmentation = isAugmentation;
     fragment.enclosingFragment = testLibrary.definingCompilationUnit;
     fragment.typeParameters = typeParameters.map((e) => e.asElement).toList();
-    fragment.superclassConstraints = constraints ?? [typeProvider.objectType];
-    fragment.interfaces = interfaces;
     fragment.constructors = const <ConstructorFragmentImpl>[];
 
-    MixinElementImpl(Reference.root(), fragment);
+    var element = MixinElementImpl(Reference.root(), fragment);
+    element.superclassConstraints = constraints ?? [typeProvider.objectType];
+    element.interfaces = interfaces;
+
     return fragment;
   }
 
@@ -496,11 +499,11 @@ mixin ElementsTypesMixin {
     fragment.isAugmentation = isAugmentation;
     fragment.enclosingFragment = testLibrary.definingCompilationUnit;
     fragment.typeParameters = typeParameters.map((e) => e.asElement).toList();
-    fragment.superclassConstraints = constraints ?? [typeProvider.objectType];
-    fragment.interfaces = interfaces;
     fragment.constructors = const <ConstructorFragmentImpl>[];
 
     var element = MixinElementImpl(Reference.root(), fragment);
+    element.superclassConstraints = constraints ?? [typeProvider.objectType];
+    element.interfaces = interfaces;
     return element;
   }
 

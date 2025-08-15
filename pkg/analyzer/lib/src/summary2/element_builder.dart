@@ -292,8 +292,7 @@ class ElementBuilder {
     FragmentImpl? lastFieldFragment,
     FieldFragmentImpl fieldFragment,
   ) {
-    var instanceFragment =
-        fieldFragment.enclosingFragment as InstanceFragmentImpl;
+    var instanceFragment = fieldFragment.enclosingFragment;
     instanceFragment.addField(fieldFragment);
 
     if (fieldFragment.isAugmentation &&

@@ -126,7 +126,8 @@ class TypesBuilder {
   }
 
   void _classDeclaration(ClassDeclarationImpl node) {
-    var element = node.declaredFragment!;
+    var fragment = node.declaredFragment!;
+    var element = fragment.element;
 
     var extendsClause = node.extendsClause;
     if (extendsClause != null) {
@@ -134,19 +135,20 @@ class TypesBuilder {
       if (type is InterfaceTypeImpl && _isInterfaceTypeClass(type)) {
         element.supertype = type;
       }
-    } else if (element.element.isDartCoreObject) {
-      element.setModifier(Modifier.DART_CORE_OBJECT, true);
+    } else if (element.isDartCoreObject) {
+      fragment.setModifier(Modifier.DART_CORE_OBJECT, true);
     }
 
     element.interfaces = _toInterfaceTypeList(
       node.implementsClause?.interfaces,
     );
 
-    _addFragmentWithClause(element, node.withClause);
+    _addFragmentWithClause(fragment, node.withClause);
   }
 
   void _classTypeAlias(ClassTypeAliasImpl node) {
-    var element = node.declaredFragment!;
+    var fragment = node.declaredFragment!;
+    var element = fragment.element;
 
     var superType = node.superclass.type;
     if (superType is InterfaceTypeImpl && _isInterfaceTypeClass(superType)) {
@@ -159,7 +161,7 @@ class TypesBuilder {
       node.implementsClause?.interfaces,
     );
 
-    _addFragmentWithClause(element, node.withClause);
+    _addFragmentWithClause(fragment, node.withClause);
   }
 
   void _declaration(AstNode node) {
@@ -204,8 +206,9 @@ class TypesBuilder {
 
   void _enumDeclaration(EnumDeclarationImpl node) {
     var fragment = node.declaredFragment!;
+    var element = fragment.element;
 
-    fragment.interfaces = _toInterfaceTypeList(
+    element.interfaces = _toInterfaceTypeList(
       node.implementsClause?.interfaces,
     );
 
@@ -232,7 +235,7 @@ class TypesBuilder {
             .where(typeSystem.isValidExtensionTypeSuperinterface)
             .toFixedList();
     if (interfaces != null) {
-      fragment.interfaces = interfaces;
+      element.interfaces = interfaces;
     }
   }
 
@@ -334,13 +337,14 @@ class TypesBuilder {
 
   void _mixinDeclaration(MixinDeclarationImpl node) {
     var fragment = node.declaredFragment!;
+    var element = fragment.element;
 
     var constraints = _toInterfaceTypeList(
       node.onClause?.superclassConstraints,
     );
-    fragment.superclassConstraints = constraints;
+    element.superclassConstraints = constraints;
 
-    fragment.interfaces = _toInterfaceTypeList(
+    element.interfaces = _toInterfaceTypeList(
       node.implementsClause?.interfaces,
     );
   }
@@ -647,7 +651,7 @@ class _MixinsInference {
       );
       for (var fragment in declaration.fragments) {
         var inferred = inference.perform(fragment.withClause);
-        fragment.fragment.mixins = inferred;
+        element.mixins = inferred;
       }
     } finally {
       element.mixinInferenceCallback = null;

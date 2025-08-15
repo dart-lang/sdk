@@ -297,10 +297,10 @@ class _LibraryBuilder {
 
       if (classSpec.supertype case var supertypeStr?) {
         var supertype = _typeParser.parse(supertypeStr, scope);
-        fragment.supertype = supertype as InterfaceTypeImpl?;
+        element.supertype = supertype as InterfaceTypeImpl;
       }
 
-      fragment.interfaces =
+      element.interfaces =
           classSpec.interfaces.map((interfaceStr) {
             var interface = _typeParser.parse(interfaceStr, scope);
             return interface as InterfaceTypeImpl;

@@ -99,13 +99,13 @@ abstract class AbstractLspAnalysisServerTest
   @override
   ClientUriConverter get uriConverter => server.uriConverter;
 
-  DiscoveredPluginInfo configureTestPlugin({
+  PluginInfo configureTestPlugin({
     plugin.ResponseResult? respondWith,
     plugin.Notification? notification,
     plugin.ResponseResult? Function(plugin.RequestParams)? handler,
     Duration respondAfter = Duration.zero,
   }) {
-    var info = DiscoveredPluginInfo(
+    var info = PluginInfo(
       'a',
       'b',
       'c',
