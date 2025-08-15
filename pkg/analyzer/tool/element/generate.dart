@@ -114,7 +114,9 @@ part of 'element.dart';
     for (var generateFragment in astLibrary.generateFragments) {
       var fragmentName = generateFragment.element.name;
       out.write('''
-mixin _${fragmentName}Mixin on FragmentImpl {
+mixin _${fragmentName}Mixin {
+  bool hasModifier(Modifier modifier);
+  void setModifier(Modifier modifier, bool value);
 ''');
       for (var modifier in generateFragment.modifiers) {
         var name = modifier.name;

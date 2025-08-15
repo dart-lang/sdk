@@ -343,7 +343,7 @@ class ElementBuilder {
         nameOffset: null,
         parameterKind: ParameterKind.REQUIRED,
       );
-      valueFragment.isExplicitlyCovariant = fieldFragment.isCovariant;
+      valueFragment.isExplicitlyCovariant = fieldFragment.isExplicitlyCovariant;
       setterFragment.formalParameters = [valueFragment];
 
       var setterElement = SetterElementImpl(
@@ -1184,7 +1184,7 @@ class FragmentBuilder extends ThrowingAstVisitor<void> {
       fragment.isAbstract = node.abstractKeyword != null;
       fragment.isAugmentation = node.augmentKeyword != null;
       fragment.isConst = node.fields.isConst;
-      fragment.isCovariant = node.covariantKeyword != null;
+      fragment.isExplicitlyCovariant = node.covariantKeyword != null;
       fragment.isExternal = node.externalKeyword != null;
       fragment.isFinal = node.fields.isFinal;
       fragment.isLate = node.fields.isLate;

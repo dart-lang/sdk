@@ -1220,7 +1220,7 @@ class DynamicFragmentImpl extends FragmentImpl implements TypeDefiningFragment {
   /// associated with this element. The single instance of this class should be
   /// accessed through the method [instance].
   DynamicFragmentImpl._() : super(firstTokenOffset: null) {
-    setModifier(Modifier.SYNTHETIC, true);
+    isSynthetic = true;
   }
 
   @override
@@ -2257,8 +2257,12 @@ abstract class ExecutableElementImpl extends FunctionTypedElementImpl
   }
 }
 
+@GenerateFragmentImpl(modifiers: _ExecutableFragmentImplModifiers.values)
 abstract class ExecutableFragmentImpl extends FragmentImpl
-    with DeferredResolutionReadingMixin, TypeParameterizedFragmentMixin
+    with
+        DeferredResolutionReadingMixin,
+        TypeParameterizedFragmentMixin,
+        _ExecutableFragmentImplMixin
     implements ExecutableFragment {
   /// A list containing all of the parameters defined by this executable
   /// element.
@@ -2310,83 +2314,11 @@ abstract class ExecutableFragmentImpl extends FragmentImpl
     setModifier(Modifier.NO_ENCLOSING_TYPE_PARAMETER_REFERENCE, !value);
   }
 
-  /// Whether the executable element did not have an explicit return type
-  /// specified for it in the original source.
-  bool get hasImplicitReturnType {
-    return hasModifier(Modifier.HAS_IMPLICIT_TYPE);
-  }
-
-  /// Set whether this executable element has an implicit return type.
-  set hasImplicitReturnType(bool hasImplicitReturnType) {
-    setModifier(Modifier.HAS_IMPLICIT_TYPE, hasImplicitReturnType);
-  }
-
-  bool get invokesSuperSelf {
-    return hasModifier(Modifier.INVOKES_SUPER_SELF);
-  }
-
-  set invokesSuperSelf(bool value) {
-    setModifier(Modifier.INVOKES_SUPER_SELF, value);
-  }
-
-  /// Whether the executable element is abstract.
-  ///
-  /// Executable elements are abstract if they are not external, and have no
-  /// body.
-  bool get isAbstract {
-    return hasModifier(Modifier.ABSTRACT);
-  }
-
-  @override
-  bool get isAsynchronous {
-    return hasModifier(Modifier.ASYNCHRONOUS);
-  }
-
-  /// Set whether this executable element's body is asynchronous.
-  set isAsynchronous(bool isAsynchronous) {
-    setModifier(Modifier.ASYNCHRONOUS, isAsynchronous);
-  }
-
-  /// Whether the executable element is external.
-  ///
-  /// Executable elements are external if they are explicitly marked as such
-  /// using the 'external' keyword.
-  bool get isExternal {
-    return hasModifier(Modifier.EXTERNAL);
-  }
-
-  /// Set whether this executable element is external.
-  set isExternal(bool isExternal) {
-    setModifier(Modifier.EXTERNAL, isExternal);
-  }
-
-  @override
-  bool get isGenerator {
-    return hasModifier(Modifier.GENERATOR);
-  }
-
-  /// Set whether this method's body is a generator.
-  set isGenerator(bool isGenerator) {
-    setModifier(Modifier.GENERATOR, isGenerator);
-  }
-
   /// Whether the executable element is an operator.
   ///
   /// The test may be based on the name of the executable element, in which
   /// case the result will be correct when the name is legal.
   bool get isOperator => false;
-
-  /// Whether the element is a static element.
-  ///
-  /// A static element is an element that is not associated with a particular
-  /// instance, but rather with an entire library or class.
-  bool get isStatic {
-    return hasModifier(Modifier.STATIC);
-  }
-
-  set isStatic(bool isStatic) {
-    setModifier(Modifier.STATIC, isStatic);
-  }
 
   @override
   bool get isSynchronous => !isAsynchronous;
@@ -2730,7 +2662,7 @@ class FieldElementImpl extends PropertyInducingElementImpl
   bool get isConst => firstFragment.isConst;
 
   @override
-  bool get isCovariant => firstFragment.isCovariant;
+  bool get isCovariant => firstFragment.isExplicitlyCovariant;
 
   @override
   bool get isEnumConstant => firstFragment.isEnumConstant;
@@ -2898,7 +2830,9 @@ class FieldFormalParameterFragmentImpl extends FormalParameterFragmentImpl
   );
 }
 
+@GenerateFragmentImpl(modifiers: _FieldFragmentImplModifiers.values)
 class FieldFragmentImpl extends PropertyInducingFragmentImpl
+    with _FieldFragmentImplMixin
     implements FieldFragment {
   /// True if this field inherits from a covariant parameter. This happens
   /// when it overrides a field in a supertype that is covariant.
@@ -2929,34 +2863,6 @@ class FieldFragmentImpl extends PropertyInducingFragmentImpl
 
   set hasEnclosingTypeParameterReference(bool value) {
     setModifier(Modifier.NO_ENCLOSING_TYPE_PARAMETER_REFERENCE, !value);
-  }
-
-  /// Whether the field was explicitly marked as being covariant.
-  bool get isCovariant {
-    return hasModifier(Modifier.COVARIANT);
-  }
-
-  /// Set whether this field is explicitly marked as being covariant.
-  set isCovariant(bool isCovariant) {
-    setModifier(Modifier.COVARIANT, isCovariant);
-  }
-
-  /// Whether the element is an enum constant.
-  bool get isEnumConstant {
-    return hasModifier(Modifier.ENUM_CONSTANT);
-  }
-
-  set isEnumConstant(bool isEnumConstant) {
-    setModifier(Modifier.ENUM_CONSTANT, isEnumConstant);
-  }
-
-  /// Whether the field can be type promoted.
-  bool get isPromotable {
-    return hasModifier(Modifier.PROMOTABLE);
-  }
-
-  set isPromotable(bool value) {
-    setModifier(Modifier.PROMOTABLE, value);
   }
 
   @override
@@ -3199,7 +3105,9 @@ class FormalParameterElementImpl extends PromotableElementImpl
   //     .toList();
 }
 
+@GenerateFragmentImpl(modifiers: _FormalParameterFragmentImplModifiers.values)
 class FormalParameterFragmentImpl extends VariableFragmentImpl
+    with _FormalParameterFragmentImplMixin
     implements FormalParameterFragment {
   @override
   final String? name;
@@ -3296,17 +3204,6 @@ class FormalParameterFragmentImpl extends VariableFragmentImpl
       formalParameter.enclosingFragment = this;
     }
     _formalParameters = value;
-  }
-
-  /// Return true if this parameter is explicitly marked as being covariant.
-  bool get isExplicitlyCovariant {
-    return hasModifier(Modifier.COVARIANT);
-  }
-
-  /// Set whether this variable parameter is explicitly marked as being
-  /// covariant.
-  set isExplicitlyCovariant(bool isCovariant) {
-    setModifier(Modifier.COVARIANT, isCovariant);
   }
 
   /// Whether the parameter is an initializing formal parameter.
@@ -3407,7 +3304,8 @@ class FormalParameterFragmentImpl extends VariableFragmentImpl
   ) => FormalParameterElementImpl(firstFragment as FormalParameterFragmentImpl);
 }
 
-abstract class FragmentImpl implements Fragment {
+@GenerateFragmentImpl(modifiers: _FragmentImplModifiers.values)
+abstract class FragmentImpl with _FragmentImplMixin implements Fragment {
   static int _NEXT_ID = 0;
 
   /// The unique integer identifier of this fragment.
@@ -3478,14 +3376,6 @@ abstract class FragmentImpl implements Fragment {
     return enclosingFragment!.enclosingUnit;
   }
 
-  bool get isAugmentation {
-    return hasModifier(Modifier.AUGMENTATION);
-  }
-
-  set isAugmentation(bool value) {
-    setModifier(Modifier.AUGMENTATION, value);
-  }
-
   /// Whether the element is private.
   ///
   /// Private elements are visible only within the library in which they are
@@ -3503,20 +3393,6 @@ abstract class FragmentImpl implements Fragment {
   /// Public elements are visible within any library that imports the library
   /// in which they are declared.
   bool get isPublic => !isPrivate;
-
-  /// Whether the element is synthetic.
-  ///
-  /// A synthetic element is an element that is not represented in the source
-  /// code explicitly, but is implied by the source code, such as the default
-  /// constructor for a class that does not explicitly define any constructors.
-  bool get isSynthetic {
-    return hasModifier(Modifier.SYNTHETIC);
-  }
-
-  /// Set whether this element is synthetic.
-  set isSynthetic(bool isSynthetic) {
-    setModifier(Modifier.SYNTHETIC, isSynthetic);
-  }
 
   String? get lookupName {
     return name;
@@ -3589,6 +3465,7 @@ abstract class FragmentImpl implements Fragment {
   }
 
   /// Return `true` if this element has the given [modifier] associated with it.
+  @override
   bool hasModifier(Modifier modifier) => _modifiers[modifier];
 
   void readModifiers(SummaryDataReader reader) {
@@ -3603,6 +3480,7 @@ abstract class FragmentImpl implements Fragment {
 
   /// Set whether the given [modifier] is associated with this element to
   /// correspond to the given [value].
+  @override
   void setModifier(Modifier modifier, bool value) {
     _modifiers = _modifiers.updated(modifier, value);
   }
@@ -5015,7 +4893,9 @@ abstract class InterfaceElementImpl extends InstanceElementImpl
   void _buildMixinAppConstructors() {}
 }
 
+@GenerateFragmentImpl(modifiers: _InterfaceFragmentImplModifiers.values)
 abstract class InterfaceFragmentImpl extends InstanceFragmentImpl
+    with _InterfaceFragmentImplMixin
     implements InterfaceFragment {
   /// A list containing all of the mixins that are applied to the class being
   /// extended in order to derive the superclass of this class.
@@ -5088,15 +4968,6 @@ abstract class InterfaceFragmentImpl extends InstanceFragmentImpl
     // TODO(paulberry): eliminate this cast by changing the type of the
     // `interfaces` parameter.
     _interfaces = interfaces.cast();
-  }
-
-  @override
-  bool get isSimplyBounded {
-    return hasModifier(Modifier.SIMPLY_BOUNDED);
-  }
-
-  set isSimplyBounded(bool isSimplyBounded) {
-    setModifier(Modifier.SIMPLY_BOUNDED, isSimplyBounded);
   }
 
   @override
@@ -7622,11 +7493,6 @@ class MethodFragmentImpl extends ExecutableFragmentImpl
   InstanceFragmentImpl get enclosingFragment =>
       super.enclosingFragment as InstanceFragmentImpl;
 
-  /// Set whether this class is abstract.
-  set isAbstract(bool isAbstract) {
-    setModifier(Modifier.ABSTRACT, isAbstract);
-  }
-
   @override
   bool get isOperator {
     String name = displayName;
@@ -7745,7 +7611,10 @@ class MixinElementImpl extends InterfaceElementImpl implements MixinElement {
 }
 
 /// A [ClassFragmentImpl] representing a mixin declaration.
-class MixinFragmentImpl extends InterfaceFragmentImpl implements MixinFragment {
+@GenerateFragmentImpl(modifiers: _MixinFragmentImplModifiers.values)
+class MixinFragmentImpl extends InterfaceFragmentImpl
+    with _MixinFragmentImplMixin
+    implements MixinFragment {
   @override
   late final MixinElementImpl element;
 
@@ -7759,14 +7628,6 @@ class MixinFragmentImpl extends InterfaceFragmentImpl implements MixinFragment {
   /// Initialize a newly created class element to have the given [name] at the
   /// given [offset] in the file that contains the declaration of this element.
   MixinFragmentImpl({required super.name});
-
-  bool get isBase {
-    return hasModifier(Modifier.BASE);
-  }
-
-  set isBase(bool isBase) {
-    setModifier(Modifier.BASE, isBase);
-  }
 
   @override
   List<InterfaceTypeImpl> get mixins => const [];
@@ -7836,7 +7697,7 @@ enum Modifier {
   CONST,
 
   /// Indicates that the modifier 'covariant' was applied to the element.
-  COVARIANT,
+  EXPLICITLY_COVARIANT,
 
   /// Indicates that the class is `Object` from `dart:core`.
   DART_CORE_OBJECT,
@@ -7888,9 +7749,12 @@ enum Modifier {
   HAS_SINCE_SDK_VERSION_VALUE,
 
   /// Indicates that the associated element did not have an explicit type
-  /// associated with it. If the element is an [ExecutableElement], then the
-  /// type being referred to is the return type.
+  /// associated with it.
   HAS_IMPLICIT_TYPE,
+
+  /// Indicates that the associated [ExecutableElement] did
+  /// not have an explicit return type associated with it.
+  HAS_IMPLICIT_RETURN_TYPE,
 
   /// Indicates that the modifier 'interface' was applied to the element.
   INTERFACE,
@@ -8257,7 +8121,7 @@ class NeverFragmentImpl extends FragmentImpl implements TypeDefiningFragment {
   /// associated with this element. The single instance of this class should be
   /// accessed through the method [instance].
   NeverFragmentImpl._() : super(firstTokenOffset: null) {
-    setModifier(Modifier.SYNTHETIC, true);
+    isSynthetic = true;
   }
 
   @override
@@ -8313,7 +8177,11 @@ class NeverFragmentImpl extends FragmentImpl implements TypeDefiningFragment {
 }
 
 /// A [VariableFragmentImpl], which is not a parameter.
-abstract class NonParameterVariableFragmentImpl extends VariableFragmentImpl {
+@GenerateFragmentImpl(
+  modifiers: _NonParameterVariableFragmentImplModifiers.values,
+)
+abstract class NonParameterVariableFragmentImpl extends VariableFragmentImpl
+    with _NonParameterVariableFragmentImplMixin {
   /// Initialize a newly created variable element to have the given [name] and
   /// [offset].
   NonParameterVariableFragmentImpl({super.firstTokenOffset});
@@ -8321,15 +8189,6 @@ abstract class NonParameterVariableFragmentImpl extends VariableFragmentImpl {
   @override
   FragmentImpl get enclosingFragment {
     return super.enclosingFragment as FragmentImpl;
-  }
-
-  bool get hasInitializer {
-    return hasModifier(Modifier.HAS_INITIALIZER);
-  }
-
-  /// Set whether this variable has an initializer.
-  set hasInitializer(bool hasInitializer) {
-    setModifier(Modifier.HAS_INITIALIZER, hasInitializer);
   }
 }
 
@@ -8692,11 +8551,6 @@ sealed class PropertyAccessorFragmentImpl extends ExecutableFragmentImpl
 
   @override
   PropertyAccessorElementImpl get element;
-
-  /// Set whether this class is abstract.
-  set isAbstract(bool isAbstract) {
-    setModifier(Modifier.ABSTRACT, isAbstract);
-  }
 
   @override
   MetadataImpl get metadata {
@@ -9787,8 +9641,12 @@ class TypeAliasElementImpl extends ElementImpl
 /// An element that represents [GenericTypeAlias].
 ///
 /// Clients may not extend, implement or mix-in this class.
+@GenerateFragmentImpl(modifiers: _TypeAliasFragmentImplModifiers.values)
 class TypeAliasFragmentImpl extends FragmentImpl
-    with DeferredResolutionReadingMixin, TypeParameterizedFragmentMixin
+    with
+        DeferredResolutionReadingMixin,
+        TypeParameterizedFragmentMixin,
+        _TypeAliasFragmentImplMixin
     implements TypeAliasFragment {
   @override
   final String? name;
@@ -9842,15 +9700,6 @@ class TypeAliasFragmentImpl extends FragmentImpl
   @override
   LibraryFragmentImpl get enclosingFragment =>
       super.enclosingFragment as LibraryFragmentImpl;
-
-  @override
-  bool get isSimplyBounded {
-    return hasModifier(Modifier.SIMPLY_BOUNDED);
-  }
-
-  set isSimplyBounded(bool isSimplyBounded) {
-    setModifier(Modifier.SIMPLY_BOUNDED, isSimplyBounded);
-  }
 
   @override
   MetadataImpl get metadata {
@@ -10301,6 +10150,11 @@ abstract class VariableFragmentImpl extends FragmentImpl
 
 enum _ClassFragmentImplModifiers {
   hasExtendsClause,
+
+  /// Whether the executable element is abstract.
+  ///
+  /// Executable elements are abstract if they are not external, and have no
+  /// body.
   isAbstract,
   isBase,
   isFinal,
@@ -10311,6 +10165,51 @@ enum _ClassFragmentImplModifiers {
 }
 
 enum _ConstructorFragmentImplModifiers { isConst, isFactory }
+
+enum _ExecutableFragmentImplModifiers {
+  hasImplicitReturnType,
+  invokesSuperSelf,
+
+  /// Whether the executable element is abstract.
+  ///
+  /// Executable elements are abstract if they are not external, and have no
+  /// body.
+  isAbstract,
+  isAsynchronous,
+
+  /// Executable elements are external if they are explicitly marked as such
+  /// using the 'external' keyword.
+  isExternal,
+  isGenerator,
+  isStatic,
+}
+
+enum _FieldFragmentImplModifiers {
+  /// Whether the field was explicitly marked as being covariant.
+  isExplicitlyCovariant,
+  isEnumConstant,
+  isPromotable,
+}
+
+enum _FormalParameterFragmentImplModifiers {
+  /// Whether the field was explicitly marked as being covariant.
+  isExplicitlyCovariant,
+}
+
+enum _FragmentImplModifiers {
+  isAugmentation,
+
+  /// A synthetic element is an element that is not represented in the source
+  /// code explicitly, but is implied by the source code, such as the default
+  /// constructor for a class that does not explicitly define any constructors.
+  isSynthetic,
+}
+
+enum _InterfaceFragmentImplModifiers { isSimplyBounded }
+
+enum _MixinFragmentImplModifiers { isBase }
+
+enum _NonParameterVariableFragmentImplModifiers { hasInitializer }
 
 /// Instances of [List]s that are used as "not yet computed" values, they
 /// must be not `null`, and not identical to `const <T>[]`.
@@ -10342,12 +10241,22 @@ class _Sentinel {
   static final List<LibraryImportImpl> libraryImport = List.unmodifiable([]);
 }
 
+enum _TypeAliasFragmentImplModifiers { isSimplyBounded }
+
 enum _VariableFragmentImplModifiers {
   /// Whether the variable element did not have an explicit type specified
   /// for it.
   hasImplicitType,
+
+  /// Whether the executable element is abstract.
+  ///
+  /// Executable elements are abstract if they are not external, and have no
+  /// body.
   isAbstract,
   isConst,
+
+  /// Executable elements are external if they are explicitly marked as such
+  /// using the 'external' keyword.
   isExternal,
 
   /// Whether the variable was declared with the 'final' modifier.
