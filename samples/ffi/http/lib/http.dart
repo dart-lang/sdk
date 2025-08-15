@@ -39,7 +39,8 @@ Future<String> httpGet(String uri) async {
 }
 
 // Start a HTTP server on a background thread.
-void httpServe(void Function(String) onRequest) {
+// Returns a function that should be called to stop the server.
+Function httpServe(void Function(String) onRequest) {
   // Create the NativeCallable.listener.
   void onNativeRequest(Pointer<Utf8> requestPointer) {
     onRequest(requestPointer.toDartString());
@@ -50,13 +51,12 @@ void httpServe(void Function(String) onRequest) {
   // Invoke the native function to start the HTTP server. Our example
   // HTTP library will start a server on a background thread, and pass
   // any requests it receives to out callback.
-  nativeHttpServe(callback.nativeFunction);
+  nativeHttpStartServing(callback.nativeFunction);
 
-  // The server will run indefinitely, and the callback needs to stay
-  // alive for that whole time, so we can't close the callback here.
-  // But we also don't want the callback to keep the isolate alive
-  // forever, so we set keepIsolateAlive to false.
-  callback.keepIsolateAlive = false;
+  return () {
+      nativeHttpStopServing();
+      callback.close();
+  };
 }
 
 // Load the native functions from a DynamicLibrary.
@@ -73,12 +73,21 @@ typedef HttpGetNativeFunction = Void Function(
 final nativeHttpGet =
     dylib.lookupFunction<HttpGetNativeFunction, HttpGetFunction>('http_get');
 
-typedef HttpServeFunction = void Function(
+typedef HttpStartServingFunction = bool Function(
     Pointer<NativeFunction<HttpCallback>>);
-typedef HttpServeNativeFunction = Void Function(
+typedef HttpStartServingNativeFunction = Bool Function(
     Pointer<NativeFunction<HttpCallback>>);
-final nativeHttpServe = dylib
-    .lookupFunction<HttpServeNativeFunction, HttpServeFunction>('http_serve');
+final nativeHttpStartServing = dylib
+    .lookupFunction<HttpStartServingNativeFunction, HttpStartServingFunction>(
+  'http_start_serving',
+);
+
+typedef HttpStopServingFunction = void Function();
+typedef HttpStopServingNativeFunction = Void Function();
+final nativeHttpStopServing = dylib
+    .lookupFunction<HttpStopServingNativeFunction, HttpStopServingFunction>(
+  'http_stop_serving',
+);
 
 Future<void> main() async {
   print('Sending GET request...');
