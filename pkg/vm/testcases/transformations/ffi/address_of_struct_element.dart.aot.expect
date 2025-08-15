@@ -72,19 +72,19 @@ final class MyUnion extends ffi::Union {
 [@vm.inferred-return-type.metadata=dart.core::Null? (value: null)]
 static method main() → void {
   final self::MyStruct myStruct = new self::MyStruct::#fromTypedDataBase([@vm.inferred-type.metadata=dart.typed_data::_Uint8List] typ::Uint8List::•([@vm.inferred-type.metadata=dart.core::_Smi] self::MyStruct::#sizeOf));
-  self::myNative#CC( block {
+  self::#myNative#CC( block {
     synthesized ffi::_Compound pointer#value = myStruct;
   } =>new ffi::_Compound::_fromTypedDataBase([@vm.direct-call.metadata=dart.ffi::_Compound._typedDataBase] pointer#value.{ffi::_Compound::_typedDataBase}{core::Object}, [@vm.direct-call.metadata=dart.core::_IntegerImplementation.+??] [@vm.inferred-type.metadata=int (skip check)] [@vm.direct-call.metadata=dart.ffi::_Compound._offsetInBytes] [@vm.inferred-type.metadata=int?] pointer#value.{ffi::_Compound::_offsetInBytes}{core::int}.{core::num::+}([@vm.inferred-type.metadata=dart.core::_Smi (value: 0)] self::MyStruct::a#offsetOf){(core::num) → core::num}), block {
     synthesized ffi::_Compound pointer2#value = myStruct;
   } =>new ffi::_Compound::_fromTypedDataBase([@vm.direct-call.metadata=dart.ffi::_Compound._typedDataBase] pointer2#value.{ffi::_Compound::_typedDataBase}{core::Object}, [@vm.direct-call.metadata=dart.core::_IntegerImplementation.+??] [@vm.inferred-type.metadata=int (skip check)] [@vm.direct-call.metadata=dart.ffi::_Compound._offsetInBytes] [@vm.inferred-type.metadata=int?] pointer2#value.{ffi::_Compound::_offsetInBytes}{core::int}.{core::num::+}([@vm.inferred-type.metadata=dart.core::_Smi (value: 1)] self::MyStruct::b#offsetOf){(core::num) → core::num}));
   final self::MyUnion myUnion = new self::MyUnion::#fromTypedDataBase([@vm.inferred-type.metadata=dart.typed_data::_Uint8List] typ::Uint8List::•([@vm.inferred-type.metadata=dart.core::_Smi (value: 1)] self::MyUnion::#sizeOf));
-  self::myNative#CC(myUnion, myUnion);
-  self::myNative#CC( block {
+  self::#myNative#CC(myUnion, myUnion);
+  self::#myNative#CC( block {
     synthesized ffi::_Compound pointer#value = [@vm.direct-call.metadata=#lib::MyStruct.array] [@vm.inferred-type.metadata=dart.ffi::Array<dart.ffi::Int8>] myStruct.{self::MyStruct::array}{ffi::Array<ffi::Int8>};
   } =>new ffi::_Compound::_fromTypedDataBase([@vm.direct-call.metadata=dart.ffi::_Compound._typedDataBase] pointer#value.{ffi::_Compound::_typedDataBase}{core::Object}, [@vm.direct-call.metadata=dart.core::_IntegerImplementation.+??] [@vm.inferred-type.metadata=int (skip check)] [@vm.direct-call.metadata=dart.ffi::_Compound._offsetInBytes] [@vm.inferred-type.metadata=int?] pointer#value.{ffi::_Compound::_offsetInBytes}{core::int}.{core::num::+}([@vm.direct-call.metadata=dart.core::_IntegerImplementation.*] [@vm.inferred-type.metadata=int (skip check)] #C19.{core::num::*}(3){(core::num) → core::num}){(core::num) → core::num}), block {
     synthesized ffi::_Compound pointer2#value = [@vm.direct-call.metadata=#lib::MyStruct.array] [@vm.inferred-type.metadata=dart.ffi::Array<dart.ffi::Int8>] myStruct.{self::MyStruct::array}{ffi::Array<ffi::Int8>};
   } =>new ffi::_Compound::_fromTypedDataBase([@vm.direct-call.metadata=dart.ffi::_Compound._typedDataBase] pointer2#value.{ffi::_Compound::_typedDataBase}{core::Object}, [@vm.direct-call.metadata=dart.core::_IntegerImplementation.+??] [@vm.inferred-type.metadata=int (skip check)] [@vm.direct-call.metadata=dart.ffi::_Compound._offsetInBytes] [@vm.inferred-type.metadata=int?] pointer2#value.{ffi::_Compound::_offsetInBytes}{core::int}.{core::num::+}([@vm.direct-call.metadata=dart.core::_IntegerImplementation.*] [@vm.inferred-type.metadata=int (skip check)] #C19.{core::num::*}(4){(core::num) → core::num}){(core::num) → core::num}));
-  self::myNative#CC( block {
+  self::#myNative#CC( block {
     synthesized ffi::_Compound pointer#value = [@vm.direct-call.metadata=#lib::MyStruct.array2] [@vm.inferred-type.metadata=dart.ffi::Array<dart.ffi::UnsignedLong>] myStruct.{self::MyStruct::array2}{ffi::Array<ffi::UnsignedLong>};
   } =>new ffi::_Compound::_fromTypedDataBase([@vm.direct-call.metadata=dart.ffi::_Compound._typedDataBase] pointer#value.{ffi::_Compound::_typedDataBase}{core::Object}, [@vm.direct-call.metadata=dart.core::_IntegerImplementation.+??] [@vm.inferred-type.metadata=int (skip check)] [@vm.direct-call.metadata=dart.ffi::_Compound._offsetInBytes] [@vm.inferred-type.metadata=int?] pointer#value.{ffi::_Compound::_offsetInBytes}{core::int}.{core::num::+}([@vm.direct-call.metadata=dart.core::_IntegerImplementation.*] [@vm.inferred-type.metadata=int (skip check)] [@vm.inferred-type.metadata=dart.core::_Smi] ffi::UnsignedLong::#sizeOf.{core::num::*}(3){(core::num) → core::num}){(core::num) → core::num}), block {
     synthesized ffi::_Compound pointer2#value = [@vm.direct-call.metadata=#lib::MyStruct.array2] [@vm.inferred-type.metadata=dart.ffi::Array<dart.ffi::UnsignedLong>] myStruct.{self::MyStruct::array2}{ffi::Array<ffi::UnsignedLong>};
@@ -92,7 +92,7 @@ static method main() → void {
 }
 @#C37
 @#C39
-external static method myNative#CC([@vm.inferred-arg-type.metadata=!] ffi::_Compound pointer, [@vm.inferred-arg-type.metadata=!] ffi::_Compound pointer2) → void;
+external static method #myNative#CC([@vm.inferred-arg-type.metadata=!] ffi::_Compound pointer, [@vm.inferred-arg-type.metadata=!] ffi::_Compound pointer2) → void;
 constants  {
   #C1 = "vm:deeply-immutable"
   #C2 = null

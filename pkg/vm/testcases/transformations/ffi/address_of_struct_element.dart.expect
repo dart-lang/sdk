@@ -108,19 +108,19 @@ final class MyUnion extends ffi::Union {
 }
 static method main() → void {
   final self::MyStruct myStruct = new self::MyStruct::#fromTypedDataBase(typ::Uint8List::•(self::MyStruct::#sizeOf), #C23);
-  self::myNative#CC( block {
+  self::#myNative#CC( block {
     synthesized ffi::_Compound pointer#value = myStruct;
   } =>new ffi::_Compound::_fromTypedDataBase(pointer#value.{ffi::_Compound::_typedDataBase}{core::Object}, pointer#value.{ffi::_Compound::_offsetInBytes}{core::int}.{core::num::+}(self::MyStruct::a#offsetOf){(core::num) → core::num}), block {
     synthesized ffi::_Compound pointer2#value = myStruct;
   } =>new ffi::_Compound::_fromTypedDataBase(pointer2#value.{ffi::_Compound::_typedDataBase}{core::Object}, pointer2#value.{ffi::_Compound::_offsetInBytes}{core::int}.{core::num::+}(self::MyStruct::b#offsetOf){(core::num) → core::num}));
   final self::MyUnion myUnion = new self::MyUnion::#fromTypedDataBase(typ::Uint8List::•(self::MyUnion::#sizeOf), #C23);
-  self::myNative#CC(myUnion, myUnion);
-  self::myNative#CC( block {
+  self::#myNative#CC(myUnion, myUnion);
+  self::#myNative#CC( block {
     synthesized ffi::_Compound pointer#value = myStruct.{self::MyStruct::array}{ffi::Array<ffi::Int8>};
   } =>new ffi::_Compound::_fromTypedDataBase(pointer#value.{ffi::_Compound::_typedDataBase}{core::Object}, pointer#value.{ffi::_Compound::_offsetInBytes}{core::int}.{core::num::+}(#C25.{core::num::*}(3){(core::num) → core::num}){(core::num) → core::num}), block {
     synthesized ffi::_Compound pointer2#value = myStruct.{self::MyStruct::array}{ffi::Array<ffi::Int8>};
   } =>new ffi::_Compound::_fromTypedDataBase(pointer2#value.{ffi::_Compound::_typedDataBase}{core::Object}, pointer2#value.{ffi::_Compound::_offsetInBytes}{core::int}.{core::num::+}(#C25.{core::num::*}(4){(core::num) → core::num}){(core::num) → core::num}));
-  self::myNative#CC( block {
+  self::#myNative#CC( block {
     synthesized ffi::_Compound pointer#value = myStruct.{self::MyStruct::array2}{ffi::Array<ffi::UnsignedLong>};
   } =>new ffi::_Compound::_fromTypedDataBase(pointer#value.{ffi::_Compound::_typedDataBase}{core::Object}, pointer#value.{ffi::_Compound::_offsetInBytes}{core::int}.{core::num::+}(ffi::UnsignedLong::#sizeOf.{core::num::*}(3){(core::num) → core::num}){(core::num) → core::num}), block {
     synthesized ffi::_Compound pointer2#value = myStruct.{self::MyStruct::array2}{ffi::Array<ffi::UnsignedLong>};
@@ -131,7 +131,7 @@ static method main() → void {
 external static method myNative(ffi::Pointer<ffi::Int8> pointer, ffi::Pointer<ffi::Int8> pointer2) → void;
 @#C43
 @#C45
-external static method myNative#CC(ffi::_Compound pointer, ffi::_Compound pointer2) → void;
+external static method #myNative#CC(ffi::_Compound pointer, ffi::_Compound pointer2) → void;
 constants  {
   #C1 = "vm:deeply-immutable"
   #C2 = null

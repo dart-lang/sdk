@@ -16,11 +16,11 @@ final class SomeClass extends core::Object {
   external static method myNative(ffi::Pointer<ffi::Int8> pointer, ffi::Pointer<ffi::Int8> pointer2) → core::int;
   @#C6
   @#C8
-  external static method myNative#CC(ffi::_Compound pointer, ffi::_Compound pointer2) → core::int;
+  external static method #myNative#CC(ffi::_Compound pointer, ffi::_Compound pointer2) → core::int;
 }
 static method main() → void {
   final typ::Int8List typedData = typ::Int8List::•(20);
-  self::SomeClass::myNative#CC(new ffi::_Compound::_fromTypedDataBase(typedData, #C9.{core::num::*}(3){(core::num) → core::num}), new ffi::_Compound::_fromTypedDataBase(typedData, #C9.{core::num::*}(8){(core::num) → core::num}));
+  self::SomeClass::#myNative#CC(new ffi::_Compound::_fromTypedDataBase(typedData, #C9.{core::num::*}(3){(core::num) → core::num}), new ffi::_Compound::_fromTypedDataBase(typedData, #C9.{core::num::*}(8){(core::num) → core::num}));
 }
 constants  {
   #C1 = "cfe:ffi:native-marker"

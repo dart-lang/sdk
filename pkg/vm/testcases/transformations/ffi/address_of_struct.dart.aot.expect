@@ -48,20 +48,20 @@ final class MyUnion extends ffi::Union {
 [@vm.inferred-return-type.metadata=dart.core::Null? (value: null)]
 static method main() → void {
   final self::MyStruct myStruct = new self::MyStruct::#fromTypedDataBase([@vm.inferred-type.metadata=dart.typed_data::_Uint8List] typ::Uint8List::•([@vm.inferred-type.metadata=dart.core::_Smi (value: 10)] self::MyStruct::#sizeOf));
-  self::myNative#C(myStruct);
+  self::#myNative#C(myStruct);
   final self::MyUnion myUnion = new self::MyUnion::#fromTypedDataBase([@vm.inferred-type.metadata=dart.typed_data::_Uint8List] typ::Uint8List::•([@vm.inferred-type.metadata=dart.core::_Smi (value: 1)] self::MyUnion::#sizeOf));
-  self::myNative2#C(myUnion);
-  self::myNative3#C([@vm.direct-call.metadata=#lib::MyStruct.a] [@vm.inferred-type.metadata=dart.ffi::Array<dart.ffi::Int8>] myStruct.{self::MyStruct::a}{ffi::Array<ffi::Int8>});
+  self::#myNative2#C(myUnion);
+  self::#myNative3#C([@vm.direct-call.metadata=#lib::MyStruct.a] [@vm.inferred-type.metadata=dart.ffi::Array<dart.ffi::Int8>] myStruct.{self::MyStruct::a}{ffi::Array<ffi::Int8>});
 }
 @#C28
 @#C30
-external static method myNative#C([@vm.inferred-arg-type.metadata=#lib::MyStruct] ffi::_Compound pointer) → void;
+external static method #myNative#C([@vm.inferred-arg-type.metadata=#lib::MyStruct] ffi::_Compound pointer) → void;
 @#C33
 @#C34
-external static method myNative2#C([@vm.inferred-arg-type.metadata=#lib::MyUnion] ffi::_Compound pointer) → void;
+external static method #myNative2#C([@vm.inferred-arg-type.metadata=#lib::MyUnion] ffi::_Compound pointer) → void;
 @#C37
 @#C38
-external static method myNative3#C([@vm.inferred-arg-type.metadata=dart.ffi::Array<dart.ffi::Int8>] ffi::_Compound pointer) → void;
+external static method #myNative3#C([@vm.inferred-arg-type.metadata=dart.ffi::Array<dart.ffi::Int8>] ffi::_Compound pointer) → void;
 constants  {
   #C1 = "vm:deeply-immutable"
   #C2 = null
