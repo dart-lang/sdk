@@ -8,7 +8,6 @@ import 'package:_fe_analyzer_shared/src/type_inference/type_analyzer_operations.
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
-import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/source/line_info.dart';
 import 'package:analyzer/source/source.dart';
 import 'package:analyzer/source/source_range.dart';
@@ -290,7 +289,10 @@ class LibraryReader {
 
       element.deferReadResolution(
         _createDeferredReadResolutionCallback((reader) {
-          // TODO(scheglov): read resolution information
+          reader._addTypeParameters2(element.typeParameters);
+          element.supertype = reader._readOptionalInterfaceType();
+          element.mixins = reader._readInterfaceTypeList();
+          element.interfaces = reader._readInterfaceTypeList();
         }),
       );
 
@@ -328,9 +330,6 @@ class LibraryReader {
             fragment.typeParameters,
           );
           fragment.metadata = reader._readMetadata();
-          fragment.supertype = reader._readOptionalInterfaceType();
-          fragment.mixins = reader._readInterfaceTypeList();
-          fragment.interfaces = reader._readInterfaceTypeList();
         },
       );
     });
@@ -490,7 +489,10 @@ class LibraryReader {
 
       element.deferReadResolution(
         _createDeferredReadResolutionCallback((reader) {
-          // TODO(scheglov): read resolution information
+          reader._addTypeParameters2(element.typeParameters);
+          element.supertype = reader._readOptionalInterfaceType();
+          element.mixins = reader._readInterfaceTypeList();
+          element.interfaces = reader._readInterfaceTypeList();
         }),
       );
 
@@ -521,9 +523,6 @@ class LibraryReader {
             fragment.typeParameters,
           );
           fragment.metadata = reader._readMetadata();
-          fragment.supertype = reader._readOptionalInterfaceType();
-          fragment.mixins = reader._readInterfaceTypeList();
-          fragment.interfaces = reader._readInterfaceTypeList();
         },
       );
     });
@@ -630,7 +629,8 @@ class LibraryReader {
 
       element.deferReadResolution(
         _createDeferredReadResolutionCallback((reader) {
-          // TODO(scheglov): read resolution information
+          reader._addTypeParameters2(element.typeParameters);
+          element.interfaces = reader._readInterfaceTypeList();
         }),
       );
 
@@ -663,7 +663,6 @@ class LibraryReader {
             fragment.typeParameters,
           );
           fragment.metadata = reader._readMetadata();
-          fragment.interfaces = reader._readInterfaceTypeList();
           fragment.typeErasure = reader.readRequiredType();
         },
       );
@@ -965,7 +964,9 @@ class LibraryReader {
 
       element.deferReadResolution(
         _createDeferredReadResolutionCallback((reader) {
-          // TODO(scheglov): read resolution information
+          reader._addTypeParameters2(element.typeParameters);
+          element.superclassConstraints = reader._readInterfaceTypeList();
+          element.interfaces = reader._readInterfaceTypeList();
         }),
       );
 
@@ -997,9 +998,6 @@ class LibraryReader {
             fragment.typeParameters,
           );
           fragment.metadata = reader._readMetadata();
-          // _readTypeParameters(reader, fragment.typeParameters);
-          fragment.superclassConstraints = reader._readInterfaceTypeList();
-          fragment.interfaces = reader._readInterfaceTypeList();
         },
       );
     });
@@ -1837,8 +1835,8 @@ class ResolutionReader {
     return NullabilitySuffix.values[index];
   }
 
-  InterfaceType? _readOptionalInterfaceType() {
-    return readType() as InterfaceType?;
+  InterfaceTypeImpl? _readOptionalInterfaceType() {
+    return readType() as InterfaceTypeImpl?;
   }
 
   RecordTypeImpl _readRecordType() {

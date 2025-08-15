@@ -208,7 +208,7 @@ class LibraryBuilder {
   void buildEnumChildren() {
     var typeProvider = element.typeProvider;
     for (var enum_ in implicitEnumNodes.values) {
-      enum_.element.supertype =
+      enum_.element.element.supertype =
           typeProvider.enumType ?? typeProvider.objectType;
       var valuesType = typeProvider.listType(
         element.typeSystem.instantiateInterfaceToBounds(
@@ -378,16 +378,18 @@ class LibraryBuilder {
     for (var interfaceFragment in element.topLevelElements) {
       switch (interfaceFragment) {
         case ClassFragmentImpl():
-          if (interfaceFragment.element.isDartCoreObject) continue;
-          if (interfaceFragment.supertype == null) {
-            shouldResetClassHierarchies = true;
-            interfaceFragment.supertype = objectType;
+          var element = interfaceFragment.element;
+          if (!element.isDartCoreObject) {
+            if (interfaceFragment.supertype == null) {
+              shouldResetClassHierarchies = true;
+              element.supertype = objectType;
+            }
           }
         case MixinFragmentImpl():
           var element = interfaceFragment.element;
           if (element.superclassConstraints.isEmpty) {
             shouldResetClassHierarchies = true;
-            interfaceFragment.superclassConstraints = [objectType];
+            element.superclassConstraints = [objectType];
           }
       }
     }

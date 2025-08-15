@@ -4536,6 +4536,10 @@ abstract class InterfaceElementImpl extends InstanceElementImpl
   /// Should be used only when the element has no type parameters.
   InterfaceTypeImpl? _nullableInstance;
 
+  InterfaceTypeImpl? _supertype;
+  List<InterfaceTypeImpl> _mixins = const [];
+  List<InterfaceTypeImpl> _interfaces = const [];
+
   InterfaceTypeImpl? _thisType;
 
   /// The cached result of [allSupertypes].
@@ -4629,9 +4633,14 @@ abstract class InterfaceElementImpl extends InstanceElementImpl
   @override
   @trackedIncludedInId
   List<InterfaceTypeImpl> get interfaces {
-    return globalResultRequirements.includedInId(() {
-      return firstFragment.interfaces;
-    });
+    _ensureReadResolution();
+    return _interfaces;
+  }
+
+  set interfaces(List<InterfaceType> interfaces) {
+    // TODO(paulberry): eliminate this cast by changing the type of the
+    // `interfaces` parameter.
+    _interfaces = interfaces.cast();
   }
 
   /// Return `true` if this class represents the class '_Enum' defined in the
@@ -4649,17 +4658,32 @@ abstract class InterfaceElementImpl extends InstanceElementImpl
   @override
   @trackedIncludedInId
   List<InterfaceTypeImpl> get mixins {
-    return globalResultRequirements.includedInId(() {
-      return firstFragment.mixins;
-    });
+    if (mixinInferenceCallback case var mixinInferenceCallback?) {
+      var mixins = mixinInferenceCallback(this);
+      if (mixins != null) {
+        return _mixins = mixins;
+      }
+    }
+
+    _ensureReadResolution();
+    return _mixins;
+  }
+
+  set mixins(List<InterfaceType> mixins) {
+    // TODO(paulberry): eliminate this cast by changing the type of the `mixins`
+    // parameter.
+    _mixins = mixins.cast();
   }
 
   @override
   @trackedIncludedInId
   InterfaceTypeImpl? get supertype {
-    return globalResultRequirements.includedInId(() {
-      return firstFragment.supertype;
-    });
+    _ensureReadResolution();
+    return _supertype;
+  }
+
+  set supertype(InterfaceTypeImpl? value) {
+    _supertype = value;
   }
 
   @override
@@ -4923,16 +4947,6 @@ abstract class InterfaceElementImpl extends InstanceElementImpl
 abstract class InterfaceFragmentImpl extends InstanceFragmentImpl
     with _InterfaceFragmentImplMixin
     implements InterfaceFragment {
-  /// A list containing all of the mixins that are applied to the class being
-  /// extended in order to derive the superclass of this class.
-  List<InterfaceTypeImpl> _mixins = const [];
-
-  /// A list containing all of the interfaces that are implemented by this
-  /// class.
-  List<InterfaceTypeImpl> _interfaces = const [];
-
-  InterfaceTypeImpl? _supertype;
-
   List<ConstructorFragmentImpl> _constructors = _Sentinel.constructorFragment;
 
   /// Initialize a newly created class element to have the given [name] at the
@@ -4985,35 +4999,11 @@ abstract class InterfaceFragmentImpl extends InstanceFragmentImpl
   InterfaceElementImpl get element;
 
   @override
-  List<InterfaceTypeImpl> get interfaces {
-    _ensureReadResolution();
-    return _interfaces;
-  }
+  List<InterfaceTypeImpl> get interfaces => element.interfaces;
 
-  set interfaces(List<InterfaceType> interfaces) {
-    // TODO(paulberry): eliminate this cast by changing the type of the
-    // `interfaces` parameter.
-    _interfaces = interfaces.cast();
-  }
 
   @override
-  List<InterfaceTypeImpl> get mixins {
-    if (element.mixinInferenceCallback case var mixinInferenceCallback?) {
-      var mixins = mixinInferenceCallback(element);
-      if (mixins != null) {
-        return _mixins = mixins;
-      }
-    }
-
-    _ensureReadResolution();
-    return _mixins;
-  }
-
-  set mixins(List<InterfaceType> mixins) {
-    // TODO(paulberry): eliminate this cast by changing the type of the `mixins`
-    // parameter.
-    _mixins = mixins.cast();
-  }
+  List<InterfaceTypeImpl> get mixins => element.mixins;
 
   @override
   InterfaceFragmentImpl? get nextFragment {
@@ -5026,16 +5016,7 @@ abstract class InterfaceFragmentImpl extends InstanceFragmentImpl
   }
 
   @override
-  InterfaceTypeImpl? get supertype {
-    _ensureReadResolution();
-    return _supertype;
-  }
-
-  set supertype(InterfaceType? value) {
-    // TODO(paulberry): eliminate this cast by changing the type of the `value`
-    // parameter.
-    _supertype = value as InterfaceTypeImpl?;
-  }
+  InterfaceTypeImpl? get supertype => element.supertype;
 
   void addConstructor(ConstructorFragmentImpl fragment) {
     if (identical(_constructors, _Sentinel.constructorFragment)) {
@@ -7555,6 +7536,8 @@ class MixinElementImpl extends InterfaceElementImpl implements MixinElement {
   @override
   final MixinFragmentImpl firstFragment;
 
+  List<InterfaceTypeImpl> _superclassConstraints = const [];
+
   MixinElementImpl(this.reference, this.firstFragment) {
     reference.element = this;
     firstFragment.element = this;
@@ -7590,14 +7573,29 @@ class MixinElementImpl extends InterfaceElementImpl implements MixinElement {
   ElementKind get kind => ElementKind.MIXIN;
 
   @override
+  set mixins(List<InterfaceType> mixins) {
+    throw StateError('Attempt to set mixins for a mixin declaration.');
+  }
+
+  @override
   List<InterfaceTypeImpl> get superclassConstraints {
-    return [for (var fragment in fragments) ...fragment.superclassConstraints];
+    _ensureReadResolution();
+    return _superclassConstraints;
+  }
+
+  set superclassConstraints(List<InterfaceTypeImpl> value) {
+    _superclassConstraints = value;
   }
 
   /// Names of methods, getters, setters, and operators that this mixin
   /// declaration super-invokes.  For setters this includes the trailing "=".
   /// The list will be empty if this class is not a mixin declaration.
   List<String> get superInvokedNames => firstFragment.superInvokedNames;
+
+  @override
+  set supertype(InterfaceType? supertype) {
+    throw StateError('Attempt to set a supertype for a mixin declaration.');
+  }
 
   @override
   T? accept<T>(ElementVisitor2<T> visitor) {
@@ -7645,8 +7643,6 @@ class MixinFragmentImpl extends InterfaceFragmentImpl
   @override
   late final MixinElementImpl element;
 
-  List<InterfaceTypeImpl> _superclassConstraints = const [];
-
   /// Names of methods, getters, setters, and operators that this mixin
   /// declaration super-invokes.  For setters this includes the trailing "=".
   /// The list will be empty if this class is not a mixin declaration.
@@ -7660,11 +7656,6 @@ class MixinFragmentImpl extends InterfaceFragmentImpl
   List<InterfaceTypeImpl> get mixins => const [];
 
   @override
-  set mixins(List<InterfaceType> mixins) {
-    throw StateError('Attempt to set mixins for a mixin declaration.');
-  }
-
-  @override
   MixinFragmentImpl? get nextFragment =>
       super.nextFragment as MixinFragmentImpl?;
 
@@ -7674,21 +7665,11 @@ class MixinFragmentImpl extends InterfaceFragmentImpl
 
   @override
   List<InterfaceTypeImpl> get superclassConstraints {
-    _ensureReadResolution();
-    return _superclassConstraints;
-  }
-
-  set superclassConstraints(List<InterfaceTypeImpl> superclassConstraints) {
-    _superclassConstraints = superclassConstraints;
+    return element.superclassConstraints;
   }
 
   @override
   InterfaceTypeImpl? get supertype => null;
-
-  @override
-  set supertype(InterfaceType? supertype) {
-    throw StateError('Attempt to set a supertype for a mixin declaration.');
-  }
 
   void addFragment(MixinFragmentImpl fragment) {
     fragment.element = element;
