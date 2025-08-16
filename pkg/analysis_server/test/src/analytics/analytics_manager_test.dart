@@ -11,8 +11,8 @@ import 'package:analysis_server/src/analytics/percentile_calculator.dart';
 import 'package:analysis_server/src/plugin/plugin_manager.dart';
 import 'package:analysis_server/src/protocol_server.dart';
 import 'package:analyzer/dart/analysis/analysis_context_collection.dart';
-import 'package:analyzer/dart/analysis/context_root.dart' as analyzer;
 import 'package:analyzer/file_system/file_system.dart';
+import 'package:analyzer/instrumentation/service.dart';
 import 'package:analyzer/src/test_utilities/mock_sdk.dart';
 import 'package:analyzer_testing/resource_provider_mixin.dart';
 import 'package:http/src/response.dart' as http;
@@ -23,6 +23,8 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 import 'package:unified_analytics/src/constants.dart';
 import 'package:unified_analytics/src/enums.dart';
 import 'package:unified_analytics/unified_analytics.dart';
+
+import '../../mocks.dart';
 
 void main() {
   defineReflectiveSuite(() {
@@ -494,8 +496,12 @@ class AnalyticsManagerTest with ResourceProviderMixin {
 
   DateTime _now() => DateTime.now();
 
-  _MockPluginInfo _pluginInfo(String name) => _MockPluginInfo(
+  PluginInfo _pluginInfo(String name) => PluginInfo(
     path.join('.pub-cache', 'pub.dev', name, 'tools', 'analyzer_plugin'),
+    '/some/execution/path',
+    '/some/packages/path',
+    TestNotificationManager(),
+    InstrumentationService.NULL_SERVICE,
   );
 }
 
@@ -671,19 +677,6 @@ class _MockAnalytics implements NoOpAnalytics {
 
   @override
   void suppressTelemetry() {}
-}
-
-class _MockPluginInfo implements PluginInfo {
-  @override
-  String pluginId;
-
-  _MockPluginInfo(this.pluginId);
-
-  @override
-  Set<analyzer.ContextRoot> get contextRoots => {};
-
-  @override
-  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
 
 class _MockPluginManager implements PluginManager {
