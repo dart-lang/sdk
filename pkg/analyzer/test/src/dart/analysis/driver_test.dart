@@ -20519,13 +20519,6 @@ void f() {
       package:test/a.dart
         Object: <null>
         int: <null>
-    instances
-      package:test/a.dart
-        A
-          requestedFields
-            _foo: #M1
-          requestedMethods
-            _foo: <null>
     exportedExtensions
       dart:core: #M9
       package:test/a.dart: #M0
@@ -20561,43 +20554,9 @@ extension A on Object {
       7 +8 UNUSED_IMPORT
 [operation] readLibraryCycleBundle
   package:test/test.dart
-[operation] getErrorsCannotReuse
-  instanceFieldIdMismatch
-    libraryUri: package:test/a.dart
-    interfaceName: A
-    fieldName: _foo
-    expectedId: #M1
-    actualId: #M10
-[operation] analyzeFile
+[operation] getErrorsFromBytes
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
-[stream]
-  ResolvedUnitResult #3
-    path: /home/test/lib/test.dart
-    uri: package:test/test.dart
-    flags: exists isLibrary
-    errors
-      7 +8 UNUSED_IMPORT
-[operation] analyzedLibrary
-  file: /home/test/lib/test.dart
-  requirements
-    topLevels
-      dart:core
-        Object: #M3
-        int: #M4
-      package:test/a.dart
-        Object: <null>
-        int: <null>
-    instances
-      package:test/a.dart
-        A
-          requestedFields
-            _foo: #M10
-          requestedMethods
-            _foo: <null>
-    exportedExtensions
-      dart:core: #M9
-      package:test/a.dart: #M0
 [status] idle
 ''',
     );
