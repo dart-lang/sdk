@@ -24663,6 +24663,45 @@ WarningCode:
     comment: |-
       When "strict-inference" is enabled, collection literal types must be
       inferred via the context type, or have type arguments.
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when
+      - the language option `strict-inference` has been enabled in the analysis options file,
+      - a list, map or set literal doesn't have type arguments, and
+      - the values for the type arguments can't be inferred from the elements.
+
+      #### Example
+
+      Given an analysis options file containing the following:
+
+      ```yaml
+      %uri="analysis_options.yaml"
+      analyzer:
+        language:
+          strict-inference: true
+      ```
+
+      The following code produces this diagnostic because the type of the
+      elements of the list literal can't be inferred by the analyzer:
+
+      ```dart
+      void f() {
+        var list = [![]!];
+        print(list);
+      }
+      ```
+
+      #### Common fixes
+
+      Provide explicit type arguments for the literal:
+
+      ```dart
+      void f() {
+        var list = <int>[];
+        print(list);
+      }
+      ```
   INFERENCE_FAILURE_ON_FUNCTION_INVOCATION:
     parameters:
       String p0: the name of the function
@@ -24672,10 +24711,56 @@ WarningCode:
     comment: |-
       When "strict-inference" is enabled, types in function invocations must be
       inferred via the context type, or have type arguments.
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when
+      - the language option `strict-inference` has been enabled in the analysis options file,
+      - the invocation of a method or function doesn't have type arguments, and
+      - the values for the type arguments can't be inferred.
+
+      #### Example
+
+      Given an analysis options file containing the following:
+
+      ```yaml
+      %uri="analysis_options.yaml"
+      analyzer:
+        language:
+          strict-inference: true
+      ```
+
+      The following code produces this diagnostic because the invocation of the
+      method `m` doesn't have type arguments and the type arguments can't be
+      inferred:
+
+      ```dart
+      abstract class C {
+        void m<T>();
+      }
+
+      void f(C c) {
+        c.[!m!]();
+      }
+      ```
+
+      #### Common fixes
+
+      Provide explicit type arguments for the invocation:
+
+      ```dart
+      abstract class C {
+        void m<T>();
+      }
+
+      void f(C c) {
+        c.m<int>();
+      }
+      ```
   INFERENCE_FAILURE_ON_FUNCTION_RETURN_TYPE:
     parameters:
-      String p0: the name of the function or method
-    problemMessage: "The return type of '#p0' cannot be inferred."
+      String p0: the name of the function or method whose return type couldn't be inferred
+    problemMessage: "The return type of '#p0' can't be inferred."
     correctionMessage: "Declare the return type of '#p0'."
     hasPublishedDocs: false
     comment: |-
@@ -24684,6 +24769,43 @@ WarningCode:
       specify a return type. See the strict-inference resource:
 
       https://github.com/dart-lang/language/blob/master/resources/type-system/strict-inference.md
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when
+      - the language option `strict-inference` has been enabled in the analysis options file,
+      - the declaration of a method or function doesn't have a return type, and
+      - the return type can't be inferred.
+
+      #### Example
+
+      Given an analysis options file containing the following:
+
+      ```yaml
+      %uri="analysis_options.yaml"
+      analyzer:
+        language:
+          strict-inference: true
+      ```
+
+      The following code produces this diagnostic because the method `m` doesn't
+      have a return type:
+
+      ```dart
+      class C {
+        [!m!]() => 7;
+      }
+      ```
+
+      #### Common fixes
+
+      Add a return type to the method or function:
+
+      ```dart
+      class C {
+        int m() => 7;
+      }
+      ```
   INFERENCE_FAILURE_ON_GENERIC_INVOCATION:
     parameters:
       String p0: the name of the type
@@ -24712,6 +24834,40 @@ WarningCode:
     comment: |-
       When "strict-inference" in enabled, uninitialized variables must be
       declared with a specific type.
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when
+      - the language option `strict-inference` has been enabled in the analysis options file,
+      - the declaration of a variable doesn't have a type, and
+      - the type of the variable can't be inferred.
+
+      #### Example
+
+      Given an analysis options file containing the following:
+
+      ```yaml
+      %uri="analysis_options.yaml"
+      analyzer:
+        language:
+          strict-inference: true
+      ```
+
+      The following code produces this diagnostic because the variable `s`
+      doesn't have an explicit type and the type can't be inferred because
+      there's no initializer:
+
+      ```dart
+      var [!s!];
+      ```
+
+      #### Common fixes
+
+      Add an explicit type:
+
+      ```dart
+      String? s;
+      ```
   INFERENCE_FAILURE_ON_UNTYPED_PARAMETER:
     parameters:
       String p0: the name of the parameter
@@ -24721,6 +24877,42 @@ WarningCode:
     comment: |-
       When "strict-inference" in enabled, function parameters must be
       declared with a specific type, or inherit a type.
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when
+      - the language option `strict-inference` has been enabled in the analysis options file,
+      - the declaration of a formal parameter doesn't have a type, and
+      - the type of the parameter can't be inferred.
+
+      The type of a parameter of a method can be inferred if the method
+      overrides an inherited method.
+
+      #### Example
+
+      Given an analysis options file containing the following:
+
+      ```yaml
+      %uri="analysis_options.yaml"
+      analyzer:
+        language:
+          strict-inference: true
+      ```
+
+      The following code produces this diagnostic because the formal parameter
+      `p` doesn't have an explicit type and the type can't be inferred:
+
+      ```dart
+      void f([!p!]) => print(p);
+      ```
+
+      #### Common fixes
+
+      Add an explicit type:
+
+      ```dart
+      void f(int p) => print(p);
+      ```
   INVALID_ANNOTATION_TARGET:
     parameters:
       String p0: the name of the annotation
@@ -26820,6 +27012,39 @@ WarningCode:
     problemMessage: "The matched value type '#p0' can never match the required type '#p1'."
     correctionMessage: "Try using a different pattern."
     hasPublishedDocs: false
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when the type of the object being
+      matched can't ever be matched by the pattern.
+
+      #### Example
+
+      The following code produces this diagnostic because a `double` is being
+      matched by a pattern that requires an `int`, which can never succeed:
+
+      ```dart
+      void f(String? s) {
+        if (s case [!int!] _) {}
+      }
+      ```
+
+      #### Common fixes
+
+      If one of the types is wrong, then change one or both of the types so that
+      the pattern can succeed:
+
+      ```dart
+      void f(String? s) {
+        if (s case String _) {}
+      }
+      ```
+
+      If the types aren't wrong, then remove the pattern match:
+
+      ```dart
+      void f(double x) {}
+      ```
   RECEIVER_OF_TYPE_NEVER:
     parameters: none
     problemMessage: "The receiver is of type 'Never', and will never complete with a value."
@@ -26909,6 +27134,36 @@ WarningCode:
     hasPublishedDocs: false
     comment: |-
       An error code indicating use of a removed lint rule.
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when a lint that has been removed is
+      used in an analysis options file. Because the lint has been removed, the
+      reference to it (such as enabling it) will have no effect.
+
+      #### Example
+
+      Assuming that the lint `removed_lint` has been removed, the following
+      options file produces this diagnostic:
+
+      ```yaml
+      %uri="analysis_options.yaml"
+      linter:
+        rules:
+        - always_put_required_named_parameters_first
+        - [!removed_lint!]
+      ```
+
+      #### Common fixes
+
+      Remove the reference to the lint code:
+
+      ```yaml
+      %uri="analysis_options.yaml"
+      linter:
+        rules:
+        - always_put_required_named_parameters_first
+      ```
   REPLACED_LINT_USE:
     parameters:
       Object p0: the rule name
@@ -27980,6 +28235,36 @@ WarningCode:
     problemMessage: Unnecessary cast pattern.
     correctionMessage: Try removing the cast pattern.
     hasPublishedDocs: false
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when a cast pattern is used on a
+      value that is known to be of the specified type.
+
+      #### Example
+
+      The following code produces this diagnostic because the cast `as num` is
+      known to always succeed because the type of `z` is `int`:
+
+      ```dart
+      void f(int x) {
+        if (x case var z [!as!] num) {
+          print(z);
+        }
+      }
+      ```
+
+      #### Common fixes
+
+      Remove the cast pattern:
+
+      ```dart
+      void f(int x) {
+        if (x case var z) {
+          print(z);
+        }
+      }
+      ```
   UNNECESSARY_FINAL:
     parameters: none
     problemMessage: The keyword 'final' isn't necessary because the parameter is implicitly 'final'.
