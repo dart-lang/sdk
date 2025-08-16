@@ -221,7 +221,7 @@ Future<CompilationResult> compileToModule(
       return CompilationDryRunError();
     }
     final summarizer = DryRunSummarizer(component);
-    final hasErrors = summarizer.summarize();
+    final hasErrors = await summarizer.summarize();
     return hasErrors ? CompilationDryRunError() : CompilationDryRunSuccess();
   }
   if (hadCompileTimeError) {

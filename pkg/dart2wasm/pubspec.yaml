@@ -10,11 +10,13 @@ resolution: workspace
 dependencies:
   _fe_analyzer_shared: any
   _js_interop_checks: any
+  analyzer: any
   args: any
   build_integration: any
   collection: any
   front_end: any
   kernel: any
+  linter: any
   vm: any
   wasm_builder: any
   path: any

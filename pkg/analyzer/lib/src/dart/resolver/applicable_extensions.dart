@@ -133,6 +133,10 @@ extension ExtensionsExtensions on Iterable<ExtensionElement> {
   ) {
     var result = <_NotInstantiatedExtensionWithMember>[];
     for (var extension in this) {
+      if (!baseName.isAccessibleFor(extension.library.uri)) {
+        continue;
+      }
+
       if (baseName.name == '[]') {
         var getter = extension.getMethod('[]');
         var setter = extension.getMethod('[]=');
@@ -150,31 +154,27 @@ extension ExtensionsExtensions on Iterable<ExtensionElement> {
       } else {
         var field = extension.getField(baseName.name);
         if (field != null && !field.isStatic) {
-          if (Name.forElement(field) == baseName) {
-            result.add(
-              _NotInstantiatedExtensionWithMember(
-                // TODO(paulberry): eliminate this cast by changing the
-                // extension to apply only to `Iterable<ExtensionElementImpl>`.
-                extension as ExtensionElementImpl,
-                getter: field.getter,
-                setter: field.setter,
-              ),
-            );
-          }
+          result.add(
+            _NotInstantiatedExtensionWithMember(
+              // TODO(paulberry): eliminate this cast by changing the
+              // extension to apply only to `Iterable<ExtensionElementImpl>`.
+              extension as ExtensionElementImpl,
+              getter: field.getter,
+              setter: field.setter,
+            ),
+          );
         }
 
         var method = extension.getMethod(baseName.name);
         if (method != null && !method.isStatic) {
-          if (Name.forElement(method) == baseName) {
-            result.add(
-              _NotInstantiatedExtensionWithMember(
-                // TODO(paulberry): eliminate this cast by changing the
-                // extension to apply only to `Iterable<ExtensionElementImpl>`.
-                extension as ExtensionElementImpl,
-                getter: method,
-              ),
-            );
-          }
+          result.add(
+            _NotInstantiatedExtensionWithMember(
+              // TODO(paulberry): eliminate this cast by changing the
+              // extension to apply only to `Iterable<ExtensionElementImpl>`.
+              extension as ExtensionElementImpl,
+              getter: method,
+            ),
+          );
         }
       }
     }
