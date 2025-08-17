@@ -6747,10 +6747,11 @@ class WarningCode extends DiagnosticCode {
   /// https://github.com/dart-lang/language/blob/master/resources/type-system/strict-inference.md
   ///
   /// Parameters:
-  /// String p0: the name of the function or method
+  /// String p0: the name of the function or method whose return type couldn't
+  ///            be inferred
   static const WarningCode inferenceFailureOnFunctionReturnType = WarningCode(
     'INFERENCE_FAILURE_ON_FUNCTION_RETURN_TYPE',
-    "The return type of '{0}' cannot be inferred.",
+    "The return type of '{0}' can't be inferred.",
     correctionMessage: "Declare the return type of '{0}'.",
   );
 

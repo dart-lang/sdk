@@ -14,7 +14,7 @@ import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../analysis_server_base.dart';
-import '../src/plugin/plugin_manager_test.dart';
+import '../mocks.dart';
 
 void main() {
   defineReflectiveSuite(() {

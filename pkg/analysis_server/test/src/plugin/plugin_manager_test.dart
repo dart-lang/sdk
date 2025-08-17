@@ -4,7 +4,6 @@
 
 import 'dart:io' as io;
 
-import 'package:analysis_server/src/plugin/notification_manager.dart';
 import 'package:analysis_server/src/plugin/plugin_manager.dart';
 import 'package:analyzer/file_system/physical_file_system.dart';
 import 'package:analyzer/instrumentation/instrumentation.dart';
@@ -24,11 +23,12 @@ import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 import 'package:watcher/watcher.dart' as watcher;
 
+import '../../mocks.dart';
 import '../../support/sdk_paths.dart';
 
 void main() {
   defineReflectiveSuite(() {
-    defineReflectiveTests(DiscoveredPluginInfoTest);
+    defineReflectiveTests(PluginInfoTest);
     defineReflectiveTests(PluginManagerTest);
     defineReflectiveTests(PluginManagerFromDiskTest);
     defineReflectiveTests(PluginSessionTest);
@@ -37,7 +37,7 @@ void main() {
 }
 
 @reflectiveTest
-class DiscoveredPluginInfoTest with ResourceProviderMixin, _ContextRoot {
+class PluginInfoTest with ResourceProviderMixin, _ContextRoot {
   late TestNotificationManager notificationManager;
   String pluginPath = '/pluginDir';
   String executionPath = '/pluginDir/bin/plugin.dart';
@@ -856,43 +856,6 @@ class MinimalPlugin extends ServerPlugin {
     } finally {
       tempDirectory.deleteSync(recursive: true);
     }
-  }
-}
-
-class TestNotificationManager implements AbstractNotificationManager {
-  List<Notification> notifications = <Notification>[];
-
-  Map<String, Map<String, List<AnalysisError>>> recordedErrors =
-      <String, Map<String, List<AnalysisError>>>{};
-
-  List<String> pluginErrors = [];
-
-  @override
-  void handlePluginError(String message) {
-    pluginErrors.add(message);
-  }
-
-  @override
-  void handlePluginNotification(String pluginId, Notification notification) {
-    notifications.add(notification);
-  }
-
-  @override
-  dynamic noSuchMethod(Invocation invocation) {
-    fail('Unexpected invocation of ${invocation.memberName}');
-  }
-
-  @override
-  void recordAnalysisErrors(
-    String pluginId,
-    String filePath,
-    List<AnalysisError> errorData,
-  ) {
-    recordedErrors.putIfAbsent(
-          pluginId,
-          () => <String, List<AnalysisError>>{},
-        )[filePath] =
-        errorData;
   }
 }
 

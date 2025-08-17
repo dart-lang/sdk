@@ -181,6 +181,9 @@ class DocumentationValidator {
 
     // Reports CompileTimeErrorCode.FINAL_CLASS_EXTENDED_OUTSIDE_OF_LIBRARY
     'WarningCode.DEPRECATED_EXTENDS_FUNCTION',
+    // Doesn't apply to Dart files.
+    // TODO(brianwilkerson): Provide better support for non-Dart files.
+    'WarningCode.REMOVED_LINT_USE',
     // Produces more than one error range by design.
     // TODO(srawlins): update verification to allow for multiple highlight ranges.
     'WarningCode.TEXT_DIRECTION_CODE_POINT_IN_COMMENT',
