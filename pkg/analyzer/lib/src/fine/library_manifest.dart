@@ -110,9 +110,9 @@ class LibraryManifest {
     ]);
   }
 
-  /// Returns the ID of a top-level element either declared or re-exported,
-  /// or `null` if there is no such element.
-  ManifestItemId? getExportedId(LookupName name) {
+  /// Returns the ID of a declared top-level element, or `null` if there is no
+  /// such element.
+  ManifestItemId? getDeclaredId(LookupName name) {
     return declaredClasses[name]?.id ??
         declaredEnums[name]?.id ??
         declaredExtensions[name]?.id ??
@@ -121,8 +121,13 @@ class LibraryManifest {
         declaredTypeAliases[name]?.id ??
         declaredGetters[name]?.id ??
         declaredSetters[name]?.id ??
-        declaredFunctions[name]?.id ??
-        reExportMap[name];
+        declaredFunctions[name]?.id;
+  }
+
+  /// Returns the ID of a top-level element either declared or re-exported,
+  /// or `null` if there is no such element.
+  ManifestItemId? getExportedId(LookupName name) {
+    return getDeclaredId(name) ?? reExportMap[name];
   }
 
   void write(BufferedSink sink) {
