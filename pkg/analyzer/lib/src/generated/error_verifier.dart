@@ -4303,8 +4303,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
 
     var mixinSupertype = mixinElement.supertype;
     if (mixinSupertype == null || mixinSupertype.isDartCoreObject) {
-      // TODO(scheglov): don't use firstFragment
-      var mixins = mixinElement.firstFragment.mixins;
+      var mixins = mixinElement.mixins;
       if (mixins.isEmpty ||
           mixinElement.isMixinApplication && mixins.length < 2) {
         return false;
@@ -4588,7 +4587,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       return;
     }
     // prepare super
-    var superType = fragment.supertype;
+    var superType = fragment.element.supertype;
     if (superType == null) {
       return;
     }

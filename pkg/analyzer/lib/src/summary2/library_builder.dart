@@ -380,7 +380,7 @@ class LibraryBuilder {
         case ClassFragmentImpl():
           var element = interfaceFragment.element;
           if (!element.isDartCoreObject) {
-            if (interfaceFragment.supertype == null) {
+            if (element.supertype == null) {
               shouldResetClassHierarchies = true;
               element.supertype = objectType;
             }
