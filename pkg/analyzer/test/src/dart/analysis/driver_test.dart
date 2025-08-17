@@ -5492,9 +5492,6 @@ import 'a.dart';
           map
             foo: #M2
   requirements
-    topLevels
-      dart:core
-        int: #M4
 [operation] linkLibraryCycle
   package:test/test.dart
   requirements
@@ -5511,16 +5508,14 @@ import 'a.dart';
 [operation] analyzedLibrary
   file: /home/test/lib/test.dart
   requirements
-    topLevels
-      dart:core
-        A: <null>
+    libraries
       package:test/a.dart
-        A: #M0
-    instances
-      package:test/a.dart
-        A
-          requestedFields
-            foo: #M1
+        exportedTopLevels
+          A: #M0
+        instances
+          A
+            requestedDeclaredFields
+              foo: #M1
 [status] idle
 ''',
       updatedA: r'''
@@ -5535,16 +5530,13 @@ class A {
     declaredClasses
       A: #M0
         declaredFields
-          foo: #M5
+          foo: #M4
         declaredGetters
-          foo: #M6
-        interface: #M7
+          foo: #M5
+        interface: #M6
           map
-            foo: #M6
+            foo: #M5
   requirements
-    topLevels
-      dart:core
-        double: #M8
 [future] getErrors T2
   ErrorsResult #2
     path: /home/test/lib/test.dart
@@ -5560,7 +5552,7 @@ class A {
     interfaceName: A
     fieldName: foo
     expectedId: #M1
-    actualId: #M5
+    actualId: #M4
 [operation] analyzeFile
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
@@ -5574,16 +5566,14 @@ class A {
 [operation] analyzedLibrary
   file: /home/test/lib/test.dart
   requirements
-    topLevels
-      dart:core
-        A: <null>
+    libraries
       package:test/a.dart
-        A: #M0
-    instances
-      package:test/a.dart
-        A
-          requestedFields
-            foo: #M5
+        exportedTopLevels
+          A: #M0
+        instances
+          A
+            requestedDeclaredFields
+              foo: #M4
 [status] idle
 ''',
     );
@@ -5631,9 +5621,6 @@ import 'a.dart';
             bar: #M3
             foo: #M4
   requirements
-    topLevels
-      dart:core
-        int: #M6
 [operation] linkLibraryCycle
   package:test/test.dart
   requirements
@@ -5650,16 +5637,14 @@ import 'a.dart';
 [operation] analyzedLibrary
   file: /home/test/lib/test.dart
   requirements
-    topLevels
-      dart:core
-        A: <null>
+    libraries
       package:test/a.dart
-        A: #M0
-    instances
-      package:test/a.dart
-        A
-          requestedFields
-            foo: #M2
+        exportedTopLevels
+          A: #M0
+        instances
+          A
+            requestedDeclaredFields
+              foo: #M2
 [status] idle
 ''',
       updatedA: r'''
@@ -5675,20 +5660,16 @@ class A {
     declaredClasses
       A: #M0
         declaredFields
-          bar: #M7
+          bar: #M6
           foo: #M2
         declaredGetters
-          bar: #M8
+          bar: #M7
           foo: #M4
-        interface: #M9
+        interface: #M8
           map
-            bar: #M8
+            bar: #M7
             foo: #M4
   requirements
-    topLevels
-      dart:core
-        double: #M10
-        int: #M6
 [future] getErrors T2
   ErrorsResult #2
     path: /home/test/lib/test.dart
@@ -5741,28 +5722,23 @@ class B extends A {}
           map
             foo: #M2
   requirements
-    topLevels
-      dart:core
-        int: #M4
 [operation] linkLibraryCycle
   package:test/test.dart
     declaredClasses
-      B: #M5
-        interface: #M6
+      B: #M4
+        interface: #M5
           map
             foo: #M2
   requirements
-    topLevels
-      dart:core
-        A: <null>
+    libraries
       package:test/a.dart
-        A: #M0
-    interfaces
-      package:test/a.dart
-        A
-          interfaceId: #M3
-          constructors
-            new: #M7
+        exportedTopLevels
+          A: #M0
+        interfaces
+          A
+            interfaceId: #M3
+            requestedConstructors
+              new: #M6
 [status] idle
 ''',
       updatedA: r'''
@@ -5778,19 +5754,16 @@ class A {
     declaredClasses
       A: #M0
         declaredFields
-          bar: #M8
+          bar: #M7
           foo: #M1
         declaredGetters
-          bar: #M9
+          bar: #M8
           foo: #M2
-        interface: #M10
+        interface: #M9
           map
-            bar: #M9
+            bar: #M8
             foo: #M2
   requirements
-    topLevels
-      dart:core
-        int: #M4
 [future] getLibraryByUri T2
   library
     classes
@@ -5803,27 +5776,25 @@ class A {
     libraryUri: package:test/a.dart
     interfaceName: A
     expectedId: #M3
-    actualId: #M10
+    actualId: #M9
 [operation] linkLibraryCycle
   package:test/test.dart
     declaredClasses
-      B: #M5
-        interface: #M11
+      B: #M4
+        interface: #M10
           map
-            bar: #M9
+            bar: #M8
             foo: #M2
   requirements
-    topLevels
-      dart:core
-        A: <null>
+    libraries
       package:test/a.dart
-        A: #M0
-    interfaces
-      package:test/a.dart
-        A
-          interfaceId: #M10
-          constructors
-            new: #M7
+        exportedTopLevels
+          A: #M0
+        interfaces
+          A
+            interfaceId: #M9
+            requestedConstructors
+              new: #M6
 [status] idle
 ''',
     );
@@ -5867,9 +5838,6 @@ import 'a.dart';
           map
             foo: #M2
   requirements
-    topLevels
-      dart:core
-        int: #M4
 [operation] linkLibraryCycle
   package:test/test.dart
   requirements
@@ -5886,15 +5854,13 @@ import 'a.dart';
 [operation] analyzedLibrary
   file: /home/test/lib/test.dart
   requirements
-    topLevels
-      dart:core
-        A: <null>
+    libraries
       package:test/a.dart
-        A: #M0
-    instances
-      package:test/a.dart
-        A
-          allDeclaredGetters: #M2
+        exportedTopLevels
+          A: #M0
+        instances
+          A
+            allDeclaredGetters: #M2
 [status] idle
 ''',
       updatedA: r'''
@@ -5910,19 +5876,16 @@ class A {
     declaredClasses
       A: #M0
         declaredFields
-          bar: #M5
+          bar: #M4
           foo: #M1
         declaredGetters
-          bar: #M6
+          bar: #M5
           foo: #M2
-        interface: #M7
+        interface: #M6
           map
-            bar: #M6
+            bar: #M5
             foo: #M2
   requirements
-    topLevels
-      dart:core
-        int: #M4
 [future] getErrors T2
   ErrorsResult #2
     path: /home/test/lib/test.dart
@@ -5938,7 +5901,7 @@ class A {
     instanceName: A
     childrenPropertyName: getters
     expectedIds: #M2
-    actualIds: #M2 #M6
+    actualIds: #M2 #M5
 [operation] analyzeFile
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
@@ -5952,15 +5915,13 @@ class A {
 [operation] analyzedLibrary
   file: /home/test/lib/test.dart
   requirements
-    topLevels
-      dart:core
-        A: <null>
+    libraries
       package:test/a.dart
-        A: #M0
-    instances
-      package:test/a.dart
-        A
-          allDeclaredGetters: #M2 #M6
+        exportedTopLevels
+          A: #M0
+        instances
+          A
+            allDeclaredGetters: #M2 #M5
 [status] idle
 ''',
     );
@@ -6004,53 +5965,45 @@ class B extends A {}
             foo: #M2
             foo=: #M3
   requirements
-    topLevels
-      dart:core
-        int: #M5
 [operation] linkLibraryCycle
   package:test/test.dart
     declaredClasses
-      B: #M6
-        interface: #M7
+      B: #M5
+        interface: #M6
           map
             foo: #M2
             foo=: #M3
   requirements
-    topLevels
-      dart:core
-        A: <null>
+    libraries
       package:test/a.dart
-        A: #M0
-    interfaces
-      package:test/a.dart
-        A
-          interfaceId: #M4
-          constructors
-            new: #M8
+        exportedTopLevels
+          A: #M0
+        interfaces
+          A
+            interfaceId: #M4
+            requestedConstructors
+              new: #M7
 [operation] analyzeFile
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
 [operation] analyzedLibrary
   file: /home/test/lib/test.dart
   requirements
-    topLevels
-      dart:core
-        A: <null>
+    libraries
       package:test/a.dart
-        A: #M0
-    instances
-      package:test/a.dart
-        A
-          requestedFields
-            foo: #M1
-          allDeclaredGetters: #M2
-          allDeclaredSetters: #M3
-    interfaces
-      package:test/a.dart
-        A
-          allDeclaredConstructors: #M8
-          constructors
-            new: #M8
+        exportedTopLevels
+          A: #M0
+        instances
+          A
+            requestedDeclaredFields
+              foo: #M1
+            allDeclaredGetters: #M2
+            allDeclaredSetters: #M3
+        interfaces
+          A
+            allConstructors: #M7
+            requestedConstructors
+              new: #M7
 [status] idle
 ''',
       updatedA: r'''
@@ -6066,20 +6019,16 @@ class A {
     declaredClasses
       A: #M0
         declaredFields
-          foo: #M9
+          foo: #M8
         declaredGetters
-          foo: #M10
+          foo: #M9
         declaredSetters
           foo=: #M3
-        interface: #M11
+        interface: #M10
           map
-            foo: #M10
+            foo: #M9
             foo=: #M3
   requirements
-    topLevels
-      dart:core
-        double: #M12
-        int: #M5
 [future] getErrors T2
   ErrorsResult #1
     path: /home/test/lib/test.dart
@@ -6090,58 +6039,53 @@ class A {
     libraryUri: package:test/a.dart
     interfaceName: A
     expectedId: #M4
-    actualId: #M11
+    actualId: #M10
 [operation] linkLibraryCycle
   package:test/test.dart
     declaredClasses
-      B: #M6
-        interface: #M13
+      B: #M5
+        interface: #M11
           map
-            foo: #M10
+            foo: #M9
             foo=: #M3
   requirements
-    topLevels
-      dart:core
-        A: <null>
+    libraries
       package:test/a.dart
-        A: #M0
-    interfaces
-      package:test/a.dart
-        A
-          interfaceId: #M11
-          constructors
-            new: #M8
+        exportedTopLevels
+          A: #M0
+        interfaces
+          A
+            interfaceId: #M10
+            requestedConstructors
+              new: #M7
 [operation] getErrorsCannotReuse
   instanceFieldIdMismatch
     libraryUri: package:test/a.dart
     interfaceName: A
     fieldName: foo
     expectedId: #M1
-    actualId: #M9
+    actualId: #M8
 [operation] analyzeFile
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
 [operation] analyzedLibrary
   file: /home/test/lib/test.dart
   requirements
-    topLevels
-      dart:core
-        A: <null>
+    libraries
       package:test/a.dart
-        A: #M0
-    instances
-      package:test/a.dart
-        A
-          requestedFields
-            foo: #M9
-          allDeclaredGetters: #M10
-          allDeclaredSetters: #M3
-    interfaces
-      package:test/a.dart
-        A
-          allDeclaredConstructors: #M8
-          constructors
-            new: #M8
+        exportedTopLevels
+          A: #M0
+        instances
+          A
+            requestedDeclaredFields
+              foo: #M8
+            allDeclaredGetters: #M9
+            allDeclaredSetters: #M3
+        interfaces
+          A
+            allConstructors: #M7
+            requestedConstructors
+              new: #M7
 [status] idle
 ''',
     );
@@ -6185,9 +6129,6 @@ import 'a.dart';
           map
             foo: #M2
   requirements
-    topLevels
-      dart:core
-        int: #M4
 [operation] linkLibraryCycle
   package:test/test.dart
   requirements
@@ -6204,18 +6145,16 @@ import 'a.dart';
 [operation] analyzedLibrary
   file: /home/test/lib/test.dart
   requirements
-    topLevels
-      dart:core
-        A: <null>
+    libraries
       package:test/a.dart
-        A: #M0
-    instances
-      package:test/a.dart
-        A
-          requestedFields
-            foo: #M1
-          requestedGetters
-            foo: #M2
+        exportedTopLevels
+          A: #M0
+        instances
+          A
+            requestedDeclaredFields
+              foo: #M1
+            requestedDeclaredGetters
+              foo: #M2
 [status] idle
 ''',
       updatedA: r'''
@@ -6230,16 +6169,13 @@ class A {
     declaredClasses
       A: #M0
         declaredFields
-          foo: #M5
+          foo: #M4
         declaredGetters
-          foo: #M6
-        interface: #M7
+          foo: #M5
+        interface: #M6
           map
-            foo: #M6
+            foo: #M5
   requirements
-    topLevels
-      dart:core
-        double: #M8
 [future] getErrors T2
   ErrorsResult #2
     path: /home/test/lib/test.dart
@@ -6255,7 +6191,7 @@ class A {
     interfaceName: A
     fieldName: foo
     expectedId: #M1
-    actualId: #M5
+    actualId: #M4
 [operation] analyzeFile
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
@@ -6269,18 +6205,16 @@ class A {
 [operation] analyzedLibrary
   file: /home/test/lib/test.dart
   requirements
-    topLevels
-      dart:core
-        A: <null>
+    libraries
       package:test/a.dart
-        A: #M0
-    instances
-      package:test/a.dart
-        A
-          requestedFields
-            foo: #M5
-          requestedGetters
-            foo: #M6
+        exportedTopLevels
+          A: #M0
+        instances
+          A
+            requestedDeclaredFields
+              foo: #M4
+            requestedDeclaredGetters
+              foo: #M5
 [status] idle
 ''',
     );
@@ -6324,9 +6258,6 @@ import 'a.dart';
           map
             foo: #M2
   requirements
-    topLevels
-      dart:core
-        int: #M4
 [operation] linkLibraryCycle
   package:test/test.dart
   requirements
@@ -6343,16 +6274,14 @@ import 'a.dart';
 [operation] analyzedLibrary
   file: /home/test/lib/test.dart
   requirements
-    topLevels
-      dart:core
-        A: <null>
+    libraries
       package:test/a.dart
-        A: #M0
-    instances
-      package:test/a.dart
-        A
-          requestedGetters
-            foo: #M2
+        exportedTopLevels
+          A: #M0
+        instances
+          A
+            requestedDeclaredGetters
+              foo: #M2
 [status] idle
 ''',
       updatedA: r'''
@@ -6367,16 +6296,13 @@ class A {
     declaredClasses
       A: #M0
         declaredFields
-          foo: #M5
+          foo: #M4
         declaredGetters
-          foo: #M6
-        interface: #M7
+          foo: #M5
+        interface: #M6
           map
-            foo: #M6
+            foo: #M5
   requirements
-    topLevels
-      dart:core
-        double: #M8
 [future] getErrors T2
   ErrorsResult #2
     path: /home/test/lib/test.dart
@@ -6392,7 +6318,7 @@ class A {
     interfaceName: A
     methodName: foo
     expectedId: #M2
-    actualId: #M6
+    actualId: #M5
 [operation] analyzeFile
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
@@ -6406,16 +6332,14 @@ class A {
 [operation] analyzedLibrary
   file: /home/test/lib/test.dart
   requirements
-    topLevels
-      dart:core
-        A: <null>
+    libraries
       package:test/a.dart
-        A: #M0
-    instances
-      package:test/a.dart
-        A
-          requestedGetters
-            foo: #M6
+        exportedTopLevels
+          A: #M0
+        instances
+          A
+            requestedDeclaredGetters
+              foo: #M5
 [status] idle
 ''',
     );
@@ -6463,9 +6387,6 @@ import 'a.dart';
             bar: #M3
             foo: #M4
   requirements
-    topLevels
-      dart:core
-        int: #M6
 [operation] linkLibraryCycle
   package:test/test.dart
   requirements
@@ -6482,16 +6403,14 @@ import 'a.dart';
 [operation] analyzedLibrary
   file: /home/test/lib/test.dart
   requirements
-    topLevels
-      dart:core
-        A: <null>
+    libraries
       package:test/a.dart
-        A: #M0
-    instances
-      package:test/a.dart
-        A
-          requestedGetters
-            foo: #M4
+        exportedTopLevels
+          A: #M0
+        instances
+          A
+            requestedDeclaredGetters
+              foo: #M4
 [status] idle
 ''',
       updatedA: r'''
@@ -6507,20 +6426,16 @@ class A {
     declaredClasses
       A: #M0
         declaredFields
-          bar: #M7
+          bar: #M6
           foo: #M2
         declaredGetters
-          bar: #M8
+          bar: #M7
           foo: #M4
-        interface: #M9
+        interface: #M8
           map
-            bar: #M8
+            bar: #M7
             foo: #M4
   requirements
-    topLevels
-      dart:core
-        double: #M10
-        int: #M6
 [future] getErrors T2
   ErrorsResult #2
     path: /home/test/lib/test.dart
@@ -6572,19 +6487,15 @@ void f(A a) {
           map
             foo: #M2
   requirements
-    topLevels
-      dart:core
-        int: #M4
 [operation] linkLibraryCycle
   package:test/test.dart
     declaredFunctions
-      f: #M5
+      f: #M4
   requirements
-    topLevels
-      dart:core
-        A: <null>
+    libraries
       package:test/a.dart
-        A: #M0
+        exportedTopLevels
+          A: #M0
 [operation] analyzeFile
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
@@ -6596,21 +6507,18 @@ void f(A a) {
 [operation] analyzedLibrary
   file: /home/test/lib/test.dart
   requirements
-    topLevels
-      dart:core
-        A: <null>
+    libraries
       package:test/a.dart
-        A: #M0
-    instances
-      package:test/a.dart
-        A
-          requestedFields
-            foo: #M1
-    interfaces
-      package:test/a.dart
-        A
-          methods
-            foo: #M2
+        exportedTopLevels
+          A: #M0
+        instances
+          A
+            requestedDeclaredFields
+              foo: #M1
+        interfaces
+          A
+            methods
+              foo: #M2
 [status] idle
 ''',
       updatedA: r'''
@@ -6625,16 +6533,13 @@ class A {
     declaredClasses
       A: #M0
         declaredFields
-          foo: #M6
+          foo: #M5
         declaredGetters
-          foo: #M7
-        interface: #M8
+          foo: #M6
+        interface: #M7
           map
-            foo: #M7
+            foo: #M6
   requirements
-    topLevels
-      dart:core
-        double: #M9
 [future] getErrors T2
   ErrorsResult #2
     path: /home/test/lib/test.dart
@@ -6648,7 +6553,7 @@ class A {
     interfaceName: A
     fieldName: foo
     expectedId: #M1
-    actualId: #M6
+    actualId: #M5
 [operation] analyzeFile
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
@@ -6660,21 +6565,18 @@ class A {
 [operation] analyzedLibrary
   file: /home/test/lib/test.dart
   requirements
-    topLevels
-      dart:core
-        A: <null>
+    libraries
       package:test/a.dart
-        A: #M0
-    instances
-      package:test/a.dart
-        A
-          requestedFields
-            foo: #M6
-    interfaces
-      package:test/a.dart
-        A
-          methods
-            foo: #M7
+        exportedTopLevels
+          A: #M0
+        instances
+          A
+            requestedDeclaredFields
+              foo: #M5
+        interfaces
+          A
+            methods
+              foo: #M6
 [status] idle
 ''',
     );
@@ -6724,13 +6626,10 @@ void f() {
             foo: #M2
             foo=: #M3
   requirements
-    topLevels
-      dart:core
-        int: #M6
 [operation] linkLibraryCycle
   package:test/test.dart
     declaredFunctions
-      f: #M7
+      f: #M6
   requirements
 [operation] analyzeFile
   file: /home/test/lib/test.dart
@@ -6738,24 +6637,21 @@ void f() {
 [operation] analyzedLibrary
   file: /home/test/lib/test.dart
   requirements
-    topLevels
-      dart:core
-        A: <null>
+    libraries
       package:test/a.dart
-        A: #M0
-    instances
-      package:test/a.dart
-        A
-          requestedFields
-            foo: #M1
-    interfaces
-      package:test/a.dart
-        A
-          constructors
-            foo: #M4
-          methods
-            foo: #M2
-            foo=: #M3
+        exportedTopLevels
+          A: #M0
+        instances
+          A
+            requestedDeclaredFields
+              foo: #M1
+        interfaces
+          A
+            requestedConstructors
+              foo: #M4
+            methods
+              foo: #M2
+              foo=: #M3
 [status] idle
 ''',
       updatedA: r'''
@@ -6772,22 +6668,18 @@ class A {
     declaredClasses
       A: #M0
         declaredFields
-          foo: #M8
+          foo: #M7
         declaredGetters
-          foo: #M9
+          foo: #M8
         declaredSetters
           foo=: #M3
         declaredConstructors
           foo: #M4
-        interface: #M10
+        interface: #M9
           map
-            foo: #M9
+            foo: #M8
             foo=: #M3
   requirements
-    topLevels
-      dart:core
-        double: #M11
-        int: #M6
 [future] getErrors T2
   ErrorsResult #1
     path: /home/test/lib/test.dart
@@ -6801,31 +6693,28 @@ class A {
     interfaceName: A
     fieldName: foo
     expectedId: #M1
-    actualId: #M8
+    actualId: #M7
 [operation] analyzeFile
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
 [operation] analyzedLibrary
   file: /home/test/lib/test.dart
   requirements
-    topLevels
-      dart:core
-        A: <null>
+    libraries
       package:test/a.dart
-        A: #M0
-    instances
-      package:test/a.dart
-        A
-          requestedFields
-            foo: #M8
-    interfaces
-      package:test/a.dart
-        A
-          constructors
-            foo: #M4
-          methods
-            foo: #M9
-            foo=: #M3
+        exportedTopLevels
+          A: #M0
+        instances
+          A
+            requestedDeclaredFields
+              foo: #M7
+        interfaces
+          A
+            requestedConstructors
+              foo: #M4
+            methods
+              foo: #M8
+              foo=: #M3
 [status] idle
 ''',
     );
@@ -6869,19 +6758,15 @@ void f(A a) {
             bar: #M3
             foo: #M4
   requirements
-    topLevels
-      dart:core
-        int: #M6
 [operation] linkLibraryCycle
   package:test/test.dart
     declaredFunctions
-      f: #M7
+      f: #M6
   requirements
-    topLevels
-      dart:core
-        A: <null>
+    libraries
       package:test/a.dart
-        A: #M0
+        exportedTopLevels
+          A: #M0
 [operation] analyzeFile
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
@@ -6893,21 +6778,18 @@ void f(A a) {
 [operation] analyzedLibrary
   file: /home/test/lib/test.dart
   requirements
-    topLevels
-      dart:core
-        A: <null>
+    libraries
       package:test/a.dart
-        A: #M0
-    instances
-      package:test/a.dart
-        A
-          requestedFields
-            foo: #M2
-    interfaces
-      package:test/a.dart
-        A
-          methods
-            foo: #M4
+        exportedTopLevels
+          A: #M0
+        instances
+          A
+            requestedDeclaredFields
+              foo: #M2
+        interfaces
+          A
+            methods
+              foo: #M4
 [status] idle
 ''',
       updatedA: r'''
@@ -6925,13 +6807,10 @@ class A {
           foo: #M2
         declaredGetters
           foo: #M4
-        interface: #M8
+        interface: #M7
           map
             foo: #M4
   requirements
-    topLevels
-      dart:core
-        int: #M6
 [future] getErrors T2
   ErrorsResult #2
     path: /home/test/lib/test.dart
@@ -6988,40 +6867,33 @@ void f(B b) {
           map
             foo: #M2
   requirements
-    topLevels
-      dart:core
-        int: #M6
 [operation] linkLibraryCycle
   package:test/test.dart
     declaredFunctions
-      f: #M7
+      f: #M6
   requirements
-    topLevels
-      dart:core
-        B: <null>
+    libraries
       package:test/a.dart
-        B: #M4
+        exportedTopLevels
+          B: #M4
 [operation] analyzeFile
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
 [operation] analyzedLibrary
   file: /home/test/lib/test.dart
   requirements
-    topLevels
-      dart:core
-        B: <null>
+    libraries
       package:test/a.dart
-        B: #M4
-    instances
-      package:test/a.dart
-        A
-          requestedFields
-            foo: #M1
-    interfaces
-      package:test/a.dart
-        B
-          methods
-            foo: #M2
+        exportedTopLevels
+          B: #M4
+        instances
+          A
+            requestedDeclaredFields
+              foo: #M1
+        interfaces
+          B
+            methods
+              foo: #M2
 [status] idle
 ''',
       updatedA: r'''
@@ -7044,14 +6916,11 @@ class B extends A<double> {}
         interface: #M3
           map
             foo: #M2
-      B: #M8
-        interface: #M9
+      B: #M7
+        interface: #M8
           map
             foo: #M2
   requirements
-    topLevels
-      dart:core
-        double: #M10
 [future] getErrors T2
   ErrorsResult #1
     path: /home/test/lib/test.dart
@@ -7062,44 +6931,40 @@ class B extends A<double> {}
     libraryUri: package:test/a.dart
     name: B
     expectedId: #M4
-    actualId: #M8
+    actualId: #M7
 [operation] linkLibraryCycle
   package:test/test.dart
     declaredFunctions
-      f: #M11
+      f: #M9
   requirements
-    topLevels
-      dart:core
-        B: <null>
+    libraries
       package:test/a.dart
-        B: #M8
+        exportedTopLevels
+          B: #M7
 [operation] getErrorsCannotReuse
   topLevelIdMismatch
     libraryUri: package:test/a.dart
     name: B
     expectedId: #M4
-    actualId: #M8
+    actualId: #M7
 [operation] analyzeFile
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
 [operation] analyzedLibrary
   file: /home/test/lib/test.dart
   requirements
-    topLevels
-      dart:core
-        B: <null>
+    libraries
       package:test/a.dart
-        B: #M8
-    instances
-      package:test/a.dart
-        A
-          requestedFields
-            foo: #M1
-    interfaces
-      package:test/a.dart
-        B
-          methods
-            foo: #M2
+        exportedTopLevels
+          B: #M7
+        instances
+          A
+            requestedDeclaredFields
+              foo: #M1
+        interfaces
+          B
+            methods
+              foo: #M2
 [status] idle
 ''',
     );
@@ -7146,40 +7011,33 @@ void f(B b) {
           map
             foo: #M2
   requirements
-    topLevels
-      dart:core
-        int: #M6
 [operation] linkLibraryCycle
   package:test/test.dart
     declaredFunctions
-      f: #M7
+      f: #M6
   requirements
-    topLevels
-      dart:core
-        B: <null>
+    libraries
       package:test/a.dart
-        B: #M4
+        exportedTopLevels
+          B: #M4
 [operation] analyzeFile
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
 [operation] analyzedLibrary
   file: /home/test/lib/test.dart
   requirements
-    topLevels
-      dart:core
-        B: <null>
+    libraries
       package:test/a.dart
-        B: #M4
-    instances
-      package:test/a.dart
-        A
-          requestedFields
-            foo: #M1
-    interfaces
-      package:test/a.dart
-        B
-          methods
-            foo: #M2
+        exportedTopLevels
+          B: #M4
+        instances
+          A
+            requestedDeclaredFields
+              foo: #M1
+        interfaces
+          B
+            methods
+              foo: #M2
 [status] idle
 ''',
       updatedA: r'''
@@ -7202,14 +7060,11 @@ class B implements A<double> {}
         interface: #M3
           map
             foo: #M2
-      B: #M8
-        interface: #M9
+      B: #M7
+        interface: #M8
           map
             foo: #M2
   requirements
-    topLevels
-      dart:core
-        double: #M10
 [future] getErrors T2
   ErrorsResult #1
     path: /home/test/lib/test.dart
@@ -7220,44 +7075,40 @@ class B implements A<double> {}
     libraryUri: package:test/a.dart
     name: B
     expectedId: #M4
-    actualId: #M8
+    actualId: #M7
 [operation] linkLibraryCycle
   package:test/test.dart
     declaredFunctions
-      f: #M11
+      f: #M9
   requirements
-    topLevels
-      dart:core
-        B: <null>
+    libraries
       package:test/a.dart
-        B: #M8
+        exportedTopLevels
+          B: #M7
 [operation] getErrorsCannotReuse
   topLevelIdMismatch
     libraryUri: package:test/a.dart
     name: B
     expectedId: #M4
-    actualId: #M8
+    actualId: #M7
 [operation] analyzeFile
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
 [operation] analyzedLibrary
   file: /home/test/lib/test.dart
   requirements
-    topLevels
-      dart:core
-        B: <null>
+    libraries
       package:test/a.dart
-        B: #M8
-    instances
-      package:test/a.dart
-        A
-          requestedFields
-            foo: #M1
-    interfaces
-      package:test/a.dart
-        B
-          methods
-            foo: #M2
+        exportedTopLevels
+          B: #M7
+        instances
+          A
+            requestedDeclaredFields
+              foo: #M1
+        interfaces
+          B
+            methods
+              foo: #M2
 [status] idle
 ''',
     );
@@ -7304,40 +7155,33 @@ void f(B b) {
           map
             foo: #M2
   requirements
-    topLevels
-      dart:core
-        int: #M6
 [operation] linkLibraryCycle
   package:test/test.dart
     declaredFunctions
-      f: #M7
+      f: #M6
   requirements
-    topLevels
-      dart:core
-        B: <null>
+    libraries
       package:test/a.dart
-        B: #M4
+        exportedTopLevels
+          B: #M4
 [operation] analyzeFile
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
 [operation] analyzedLibrary
   file: /home/test/lib/test.dart
   requirements
-    topLevels
-      dart:core
-        B: <null>
+    libraries
       package:test/a.dart
-        B: #M4
-    instances
-      package:test/a.dart
-        A
-          requestedFields
-            foo: #M1
-    interfaces
-      package:test/a.dart
-        B
-          methods
-            foo: #M2
+        exportedTopLevels
+          B: #M4
+        instances
+          A
+            requestedDeclaredFields
+              foo: #M1
+        interfaces
+          B
+            methods
+              foo: #M2
 [status] idle
 ''',
       updatedA: r'''
@@ -7360,14 +7204,11 @@ class B with A<double> {}
         interface: #M3
           map
             foo: #M2
-      B: #M8
-        interface: #M9
+      B: #M7
+        interface: #M8
           map
             foo: #M2
   requirements
-    topLevels
-      dart:core
-        double: #M10
 [future] getErrors T2
   ErrorsResult #1
     path: /home/test/lib/test.dart
@@ -7378,44 +7219,40 @@ class B with A<double> {}
     libraryUri: package:test/a.dart
     name: B
     expectedId: #M4
-    actualId: #M8
+    actualId: #M7
 [operation] linkLibraryCycle
   package:test/test.dart
     declaredFunctions
-      f: #M11
+      f: #M9
   requirements
-    topLevels
-      dart:core
-        B: <null>
+    libraries
       package:test/a.dart
-        B: #M8
+        exportedTopLevels
+          B: #M7
 [operation] getErrorsCannotReuse
   topLevelIdMismatch
     libraryUri: package:test/a.dart
     name: B
     expectedId: #M4
-    actualId: #M8
+    actualId: #M7
 [operation] analyzeFile
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
 [operation] analyzedLibrary
   file: /home/test/lib/test.dart
   requirements
-    topLevels
-      dart:core
-        B: <null>
+    libraries
       package:test/a.dart
-        B: #M8
-    instances
-      package:test/a.dart
-        A
-          requestedFields
-            foo: #M1
-    interfaces
-      package:test/a.dart
-        B
-          methods
-            foo: #M2
+        exportedTopLevels
+          B: #M7
+        instances
+          A
+            requestedDeclaredFields
+              foo: #M1
+        interfaces
+          B
+            methods
+              foo: #M2
 [status] idle
 ''',
     );
@@ -7464,18 +7301,12 @@ void f (B b) {
     declaredFunctions
       f: #M6
   requirements
-    topLevels
-      dart:core
-        int: #M7
 [operation] analyzeFile
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
 [operation] analyzedLibrary
   file: /home/test/lib/test.dart
   requirements
-    topLevels
-      dart:core
-        int: #M7
 [status] idle
 ''',
       updateFiles: () {
@@ -7499,18 +7330,15 @@ void f (B b) {
     declaredClasses
       A: #M0
         declaredFields
-          _foo: #M8
+          _foo: #M7
         declaredGetters
-          _foo: #M9
+          _foo: #M8
         interface: #M3
       B: #M4
         interface: #M5
     declaredFunctions
       f: #M6
   requirements
-    topLevels
-      dart:core
-        String: #M10
 [future] getErrors T2
   ErrorsResult #1
     path: /home/test/lib/test.dart
@@ -7524,11 +7352,6 @@ void f (B b) {
 [operation] analyzedLibrary
   file: /home/test/lib/test.dart
   requirements
-    topLevels
-      dart:core
-        String: #M10
-    exportedExtensions
-      dart:core: #M11
 [status] idle
 ''',
     );
@@ -7575,17 +7398,15 @@ class B extends A {}
           map
             foo: #M1
   requirements
-    topLevels
-      dart:core
-        A: <null>
+    libraries
       package:test/a.dart
-        A: #M0
-    interfaces
-      package:test/a.dart
-        A
-          interfaceId: #M2
-          constructors
-            new: #M5
+        exportedTopLevels
+          A: #M0
+        interfaces
+          A
+            interfaceId: #M2
+            requestedConstructors
+              new: #M5
 [status] idle
 ''',
       updatedA: r'''
@@ -7630,17 +7451,15 @@ class A {
             bar: #M6
             foo: #M1
   requirements
-    topLevels
-      dart:core
-        A: <null>
+    libraries
       package:test/a.dart
-        A: #M0
-    interfaces
-      package:test/a.dart
-        A
-          interfaceId: #M7
-          constructors
-            new: #M5
+        exportedTopLevels
+          A: #M0
+        interfaces
+          A
+            interfaceId: #M7
+            requestedConstructors
+              new: #M5
 [status] idle
 ''',
     );
@@ -7698,15 +7517,13 @@ import 'a.dart';
 [operation] analyzedLibrary
   file: /home/test/lib/test.dart
   requirements
-    topLevels
-      dart:core
-        A: <null>
+    libraries
       package:test/a.dart
-        A: #M0
-    instances
-      package:test/a.dart
-        A
-          allDeclaredMethods: #M1
+        exportedTopLevels
+          A: #M0
+        instances
+          A
+            allDeclaredMethods: #M1
 [status] idle
 ''',
       updatedA: r'''
@@ -7758,15 +7575,13 @@ class A {
 [operation] analyzedLibrary
   file: /home/test/lib/test.dart
   requirements
-    topLevels
-      dart:core
-        A: <null>
+    libraries
       package:test/a.dart
-        A: #M0
-    instances
-      package:test/a.dart
-        A
-          allDeclaredMethods: #M1 #M3
+        exportedTopLevels
+          A: #M0
+        instances
+          A
+            allDeclaredMethods: #M1 #M3
 [status] idle
 ''',
     );
@@ -7806,38 +7621,32 @@ void f(A a) {
     declaredFunctions
       f: #M2
   requirements
-    topLevels
-      dart:core
-        A: <null>
+    libraries
       package:test/a.dart
-        A: #M0
+        exportedTopLevels
+          A: #M0
 [operation] analyzeFile
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
 [operation] analyzedLibrary
   file: /home/test/lib/test.dart
   requirements
-    topLevels
-      dart:core
-        A: <null>
+    libraries
       package:test/a.dart
-        A: #M0
-    instances
-      package:test/a.dart
-        A
-          requestedGetters
-            foo: <null>
-          requestedMethods
-            foo: <null>
-    interfaces
-      package:test/a.dart
-        A
-          methods
-            foo: <null>
-            foo=: <null>
-    exportedExtensions
-      dart:core: #M3
-      package:test/a.dart: []
+        exportedTopLevels
+          A: #M0
+        instances
+          A
+            requestedDeclaredGetters
+              foo: <null>
+            requestedDeclaredMethods
+              foo: <null>
+        interfaces
+          A
+            methods
+              foo: <null>
+              foo=: <null>
+        exportedExtensions: []
 [status] idle
 ''',
       updatedA: r'''
@@ -7852,14 +7661,11 @@ class A {
     declaredClasses
       A: #M0
         declaredMethods
-          foo: #M4
-        interface: #M5
+          foo: #M3
+        interface: #M4
           map
-            foo: #M4
+            foo: #M3
   requirements
-    topLevels
-      dart:core
-        int: #M6
 [future] getErrors T2
   ErrorsResult #1
     path: /home/test/lib/test.dart
@@ -7873,23 +7679,21 @@ class A {
     interfaceName: A
     methodName: foo
     expectedId: <null>
-    actualId: #M4
+    actualId: #M3
 [operation] analyzeFile
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
 [operation] analyzedLibrary
   file: /home/test/lib/test.dart
   requirements
-    topLevels
-      dart:core
-        A: <null>
+    libraries
       package:test/a.dart
-        A: #M0
-    interfaces
-      package:test/a.dart
-        A
-          methods
-            foo: #M4
+        exportedTopLevels
+          A: #M0
+        interfaces
+          A
+            methods
+              foo: #M3
 [status] idle
 ''',
     );
@@ -7939,38 +7743,33 @@ class B extends A {}
             bar: #M1
             foo: #M2
   requirements
-    topLevels
-      dart:core
-        A: <null>
+    libraries
       package:test/a.dart
-        A: #M0
-    interfaces
-      package:test/a.dart
-        A
-          interfaceId: #M3
-          constructors
-            new: #M6
+        exportedTopLevels
+          A: #M0
+        interfaces
+          A
+            interfaceId: #M3
+            requestedConstructors
+              new: #M6
 [operation] analyzeFile
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
 [operation] analyzedLibrary
   file: /home/test/lib/test.dart
   requirements
-    topLevels
-      dart:core
-        A: <null>
+    libraries
       package:test/a.dart
-        A: #M0
-    instances
-      package:test/a.dart
-        A
-          allDeclaredMethods: #M2 #M1
-    interfaces
-      package:test/a.dart
-        A
-          allDeclaredConstructors: #M6
-          constructors
-            new: #M6
+        exportedTopLevels
+          A: #M0
+        instances
+          A
+            allDeclaredMethods: #M2 #M1
+        interfaces
+          A
+            allConstructors: #M6
+            requestedConstructors
+              new: #M6
 [status] idle
 ''',
       updatedA: r'''
@@ -7993,9 +7792,6 @@ class A {
             bar: #M1
             foo: #M7
   requirements
-    topLevels
-      dart:core
-        int: #M9
 [future] getErrors T2
   ErrorsResult #1
     path: /home/test/lib/test.dart
@@ -8011,22 +7807,20 @@ class A {
   package:test/test.dart
     declaredClasses
       B: #M4
-        interface: #M10
+        interface: #M9
           map
             bar: #M1
             foo: #M7
   requirements
-    topLevels
-      dart:core
-        A: <null>
+    libraries
       package:test/a.dart
-        A: #M0
-    interfaces
-      package:test/a.dart
-        A
-          interfaceId: #M8
-          constructors
-            new: #M6
+        exportedTopLevels
+          A: #M0
+        interfaces
+          A
+            interfaceId: #M8
+            requestedConstructors
+              new: #M6
 [operation] getErrorsCannotReuse
   instanceChildrenIdsMismatch
     libraryUri: package:test/a.dart
@@ -8040,21 +7834,18 @@ class A {
 [operation] analyzedLibrary
   file: /home/test/lib/test.dart
   requirements
-    topLevels
-      dart:core
-        A: <null>
+    libraries
       package:test/a.dart
-        A: #M0
-    instances
-      package:test/a.dart
-        A
-          allDeclaredMethods: #M7 #M1
-    interfaces
-      package:test/a.dart
-        A
-          allDeclaredConstructors: #M6
-          constructors
-            new: #M6
+        exportedTopLevels
+          A: #M0
+        instances
+          A
+            allDeclaredMethods: #M7 #M1
+        interfaces
+          A
+            allConstructors: #M6
+            requestedConstructors
+              new: #M6
 [status] idle
 ''',
     );
@@ -8110,9 +7901,6 @@ class X extends C {}
           combinedIds
             [#M1, #M4]: #M8
   requirements
-    topLevels
-      dart:core
-        dynamic: <null>
 [operation] linkLibraryCycle
   package:test/test.dart
     declaredClasses
@@ -8121,41 +7909,36 @@ class X extends C {}
           map
             foo: #M8
   requirements
-    topLevels
-      dart:core
-        C: <null>
+    libraries
       package:test/a.dart
-        C: #M6
-    interfaces
-      package:test/a.dart
-        C
-          interfaceId: #M7
-          constructors
-            new: #M11
+        exportedTopLevels
+          C: #M6
+        interfaces
+          C
+            interfaceId: #M7
+            requestedConstructors
+              new: #M11
 [operation] analyzeFile
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
 [operation] analyzedLibrary
   file: /home/test/lib/test.dart
   requirements
-    topLevels
-      dart:core
-        C: <null>
+    libraries
       package:test/a.dart
-        C: #M6
-    instances
-      package:test/a.dart
-        A
-          allDeclaredMethods: #M1
-        B
-          allDeclaredMethods: #M4
-        C
-    interfaces
-      package:test/a.dart
-        C
-          allDeclaredConstructors: #M11
-          constructors
-            new: #M11
+        exportedTopLevels
+          C: #M6
+        instances
+          A
+            allDeclaredMethods: #M1
+          B
+            allDeclaredMethods: #M4
+          C
+        interfaces
+          C
+            allConstructors: #M11
+            requestedConstructors
+              new: #M11
 [status] idle
 ''',
       updatedA: r'''
@@ -8193,10 +7976,6 @@ class C extends A implements B {}
           combinedIds
             [#M12, #M4]: #M15
   requirements
-    topLevels
-      dart:core
-        dynamic: <null>
-        int: #M16
 [future] getErrors T2
   ErrorsResult #1
     path: /home/test/lib/test.dart
@@ -8212,21 +7991,19 @@ class C extends A implements B {}
   package:test/test.dart
     declaredClasses
       X: #M9
-        interface: #M17
+        interface: #M16
           map
             foo: #M12
   requirements
-    topLevels
-      dart:core
-        C: <null>
+    libraries
       package:test/a.dart
-        C: #M6
-    interfaces
-      package:test/a.dart
-        C
-          interfaceId: #M14
-          constructors
-            new: #M11
+        exportedTopLevels
+          C: #M6
+        interfaces
+          C
+            interfaceId: #M14
+            requestedConstructors
+              new: #M11
 [operation] getErrorsCannotReuse
   instanceChildrenIdsMismatch
     libraryUri: package:test/a.dart
@@ -8240,24 +8017,21 @@ class C extends A implements B {}
 [operation] analyzedLibrary
   file: /home/test/lib/test.dart
   requirements
-    topLevels
-      dart:core
-        C: <null>
+    libraries
       package:test/a.dart
-        C: #M6
-    instances
-      package:test/a.dart
-        A
-          allDeclaredMethods: #M12
-        B
-          allDeclaredMethods: #M4
-        C
-    interfaces
-      package:test/a.dart
-        C
-          allDeclaredConstructors: #M11
-          constructors
-            new: #M11
+        exportedTopLevels
+          C: #M6
+        instances
+          A
+            allDeclaredMethods: #M12
+          B
+            allDeclaredMethods: #M4
+          C
+        interfaces
+          C
+            allConstructors: #M11
+            requestedConstructors
+              new: #M11
 [status] idle
 ''',
     );
@@ -8299,9 +8073,6 @@ import 'a.dart';
           map
             foo: #M1
   requirements
-    topLevels
-      dart:core
-        int: #M3
 [operation] linkLibraryCycle
   package:test/test.dart
   requirements
@@ -8318,16 +8089,14 @@ import 'a.dart';
 [operation] analyzedLibrary
   file: /home/test/lib/test.dart
   requirements
-    topLevels
-      dart:core
-        A: <null>
+    libraries
       package:test/a.dart
-        A: #M0
-    instances
-      package:test/a.dart
-        A
-          requestedMethods
-            foo: #M1
+        exportedTopLevels
+          A: #M0
+        instances
+          A
+            requestedDeclaredMethods
+              foo: #M1
 [status] idle
 ''',
       updatedA: r'''
@@ -8342,14 +8111,11 @@ class A {
     declaredClasses
       A: #M0
         declaredMethods
-          foo: #M4
-        interface: #M5
+          foo: #M3
+        interface: #M4
           map
-            foo: #M4
+            foo: #M3
   requirements
-    topLevels
-      dart:core
-        double: #M6
 [future] getErrors T2
   ErrorsResult #2
     path: /home/test/lib/test.dart
@@ -8365,7 +8131,7 @@ class A {
     interfaceName: A
     methodName: foo
     expectedId: #M1
-    actualId: #M4
+    actualId: #M3
 [operation] analyzeFile
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
@@ -8379,16 +8145,14 @@ class A {
 [operation] analyzedLibrary
   file: /home/test/lib/test.dart
   requirements
-    topLevels
-      dart:core
-        A: <null>
+    libraries
       package:test/a.dart
-        A: #M0
-    instances
-      package:test/a.dart
-        A
-          requestedMethods
-            foo: #M4
+        exportedTopLevels
+          A: #M0
+        instances
+          A
+            requestedDeclaredMethods
+              foo: #M3
 [status] idle
 ''',
     );
@@ -8433,9 +8197,6 @@ import 'a.dart';
             bar: #M1
             foo: #M2
   requirements
-    topLevels
-      dart:core
-        int: #M4
 [operation] linkLibraryCycle
   package:test/test.dart
   requirements
@@ -8452,16 +8213,14 @@ import 'a.dart';
 [operation] analyzedLibrary
   file: /home/test/lib/test.dart
   requirements
-    topLevels
-      dart:core
-        A: <null>
+    libraries
       package:test/a.dart
-        A: #M0
-    instances
-      package:test/a.dart
-        A
-          requestedMethods
-            foo: #M2
+        exportedTopLevels
+          A: #M0
+        instances
+          A
+            requestedDeclaredMethods
+              foo: #M2
 [status] idle
 ''',
       updatedA: r'''
@@ -8477,17 +8236,13 @@ class A {
     declaredClasses
       A: #M0
         declaredMethods
-          bar: #M5
+          bar: #M4
           foo: #M2
-        interface: #M6
+        interface: #M5
           map
-            bar: #M5
+            bar: #M4
             foo: #M2
   requirements
-    topLevels
-      dart:core
-        double: #M7
-        int: #M4
 [future] getErrors T2
   ErrorsResult #2
     path: /home/test/lib/test.dart
@@ -8537,19 +8292,15 @@ void f(A a) {
           map
             foo: #M1
   requirements
-    topLevels
-      dart:core
-        int: #M3
 [operation] linkLibraryCycle
   package:test/test.dart
     declaredFunctions
-      f: #M4
+      f: #M3
   requirements
-    topLevels
-      dart:core
-        A: <null>
+    libraries
       package:test/a.dart
-        A: #M0
+        exportedTopLevels
+          A: #M0
 [operation] analyzeFile
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
@@ -8561,16 +8312,14 @@ void f(A a) {
 [operation] analyzedLibrary
   file: /home/test/lib/test.dart
   requirements
-    topLevels
-      dart:core
-        A: <null>
+    libraries
       package:test/a.dart
-        A: #M0
-    interfaces
-      package:test/a.dart
-        A
-          methods
-            foo: #M1
+        exportedTopLevels
+          A: #M0
+        interfaces
+          A
+            methods
+              foo: #M1
 [status] idle
 ''',
       updatedA: r'''
@@ -8585,14 +8334,11 @@ class A {
     declaredClasses
       A: #M0
         declaredMethods
-          foo: #M5
-        interface: #M6
+          foo: #M4
+        interface: #M5
           map
-            foo: #M5
+            foo: #M4
   requirements
-    topLevels
-      dart:core
-        double: #M7
 [future] getErrors T2
   ErrorsResult #2
     path: /home/test/lib/test.dart
@@ -8606,7 +8352,7 @@ class A {
     interfaceName: A
     methodName: foo
     expectedId: #M1
-    actualId: #M5
+    actualId: #M4
 [operation] analyzeFile
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
@@ -8618,16 +8364,14 @@ class A {
 [operation] analyzedLibrary
   file: /home/test/lib/test.dart
   requirements
-    topLevels
-      dart:core
-        A: <null>
+    libraries
       package:test/a.dart
-        A: #M0
-    interfaces
-      package:test/a.dart
-        A
-          methods
-            foo: #M5
+        exportedTopLevels
+          A: #M0
+        interfaces
+          A
+            methods
+              foo: #M4
 [status] idle
 ''',
     );
@@ -8669,13 +8413,10 @@ void f() {
           map
             foo: #M1
   requirements
-    topLevels
-      dart:core
-        int: #M4
 [operation] linkLibraryCycle
   package:test/test.dart
     declaredFunctions
-      f: #M5
+      f: #M4
   requirements
 [operation] analyzeFile
   file: /home/test/lib/test.dart
@@ -8683,18 +8424,16 @@ void f() {
 [operation] analyzedLibrary
   file: /home/test/lib/test.dart
   requirements
-    topLevels
-      dart:core
-        A: <null>
+    libraries
       package:test/a.dart
-        A: #M0
-    interfaces
-      package:test/a.dart
-        A
-          constructors
-            foo: #M2
-          methods
-            foo: #M1
+        exportedTopLevels
+          A: #M0
+        interfaces
+          A
+            requestedConstructors
+              foo: #M2
+            methods
+              foo: #M1
 [status] idle
 ''',
       updatedA: r'''
@@ -8710,17 +8449,13 @@ class A {
     declaredClasses
       A: #M0
         declaredMethods
-          foo: #M6
+          foo: #M5
         declaredConstructors
           foo: #M2
-        interface: #M7
+        interface: #M6
           map
-            foo: #M6
+            foo: #M5
   requirements
-    topLevels
-      dart:core
-        double: #M8
-        int: #M4
 [future] getErrors T2
   ErrorsResult #1
     path: /home/test/lib/test.dart
@@ -8734,25 +8469,23 @@ class A {
     interfaceName: A
     methodName: foo
     expectedId: #M1
-    actualId: #M6
+    actualId: #M5
 [operation] analyzeFile
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
 [operation] analyzedLibrary
   file: /home/test/lib/test.dart
   requirements
-    topLevels
-      dart:core
-        A: <null>
+    libraries
       package:test/a.dart
-        A: #M0
-    interfaces
-      package:test/a.dart
-        A
-          constructors
-            foo: #M2
-          methods
-            foo: #M6
+        exportedTopLevels
+          A: #M0
+        interfaces
+          A
+            requestedConstructors
+              foo: #M2
+            methods
+              foo: #M5
 [status] idle
 ''',
     );
@@ -8801,18 +8534,12 @@ void f(B b) {
     declaredFunctions
       f: #M5
   requirements
-    topLevels
-      dart:core
-        int: #M6
 [operation] analyzeFile
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
 [operation] analyzedLibrary
   file: /home/test/lib/test.dart
   requirements
-    topLevels
-      dart:core
-        int: #M6
 [status] idle
 ''',
       updateFiles: () {
@@ -8836,16 +8563,13 @@ void f(B b) {
     declaredClasses
       A: #M0
         declaredMethods
-          _foo: #M7
+          _foo: #M6
         interface: #M2
       B: #M3
         interface: #M4
     declaredFunctions
       f: #M5
   requirements
-    topLevels
-      dart:core
-        double: #M8
 [future] getErrors T2
   ErrorsResult #1
     path: /home/test/lib/test.dart
@@ -8857,9 +8581,6 @@ void f(B b) {
 [operation] analyzedLibrary
   file: /home/test/lib/test.dart
   requirements
-    topLevels
-      dart:core
-        double: #M8
 [status] idle
 ''',
     );
@@ -8916,21 +8637,16 @@ void f(B b) {
     declaredFunctions
       f: #M5
   requirements
-    topLevels
-      dart:core
-        A: <null>
-        B: <null>
 [operation] analyzeFile
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
 [operation] analyzedLibrary
   file: /home/test/lib/test.dart
   requirements
-    topLevels
-      dart:core
-        B: <null>
+    libraries
       package:test/a.dart
-        B: #M0
+        exportedTopLevels
+          B: #M0
 [status] idle
 ''',
       updateFiles: () {
@@ -8963,10 +8679,6 @@ void f(B b) {
     declaredFunctions
       f: #M5
   requirements
-    topLevels
-      dart:core
-        A: <null>
-        B: <null>
 [future] getErrors T2
   ErrorsResult #1
     path: /home/test/lib/test.dart
@@ -8981,21 +8693,17 @@ void f(B b) {
 [operation] analyzedLibrary
   file: /home/test/lib/test.dart
   requirements
-    topLevels
-      dart:core
-        B: <null>
+    libraries
       package:test/a.dart
-        B: #M0
-    instances
-      package:test/a.dart
-        B
-          requestedGetters
-            _foo: <null>
-          requestedMethods
-            _foo: <null>
-    exportedExtensions
-      dart:core: #M7
-      package:test/a.dart: []
+        exportedTopLevels
+          B: #M0
+        instances
+          B
+            requestedDeclaredGetters
+              _foo: <null>
+            requestedDeclaredMethods
+              _foo: <null>
+        exportedExtensions: []
 [status] idle
 ''',
     );
@@ -9036,19 +8744,15 @@ void f(A a) {
             bar: #M1
             foo: #M2
   requirements
-    topLevels
-      dart:core
-        int: #M4
 [operation] linkLibraryCycle
   package:test/test.dart
     declaredFunctions
-      f: #M5
+      f: #M4
   requirements
-    topLevels
-      dart:core
-        A: <null>
+    libraries
       package:test/a.dart
-        A: #M0
+        exportedTopLevels
+          A: #M0
 [operation] analyzeFile
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
@@ -9060,16 +8764,14 @@ void f(A a) {
 [operation] analyzedLibrary
   file: /home/test/lib/test.dart
   requirements
-    topLevels
-      dart:core
-        A: <null>
+    libraries
       package:test/a.dart
-        A: #M0
-    interfaces
-      package:test/a.dart
-        A
-          methods
-            foo: #M2
+        exportedTopLevels
+          A: #M0
+        interfaces
+          A
+            methods
+              foo: #M2
 [status] idle
 ''',
       updatedA: r'''
@@ -9085,17 +8787,13 @@ class A {
     declaredClasses
       A: #M0
         declaredMethods
-          bar: #M6
+          bar: #M5
           foo: #M2
-        interface: #M7
+        interface: #M6
           map
-            bar: #M6
+            bar: #M5
             foo: #M2
   requirements
-    topLevels
-      dart:core
-        double: #M8
-        int: #M4
 [future] getErrors T2
   ErrorsResult #2
     path: /home/test/lib/test.dart
@@ -9156,35 +8854,29 @@ void f(C c) {
           map
             foo: #M1
   requirements
-    topLevels
-      dart:core
-        int: #M7
 [operation] linkLibraryCycle
   package:test/test.dart
     declaredFunctions
-      f: #M8
+      f: #M7
   requirements
-    topLevels
-      dart:core
-        C: <null>
+    libraries
       package:test/a.dart
-        C: #M5
+        exportedTopLevels
+          C: #M5
 [operation] analyzeFile
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
 [operation] analyzedLibrary
   file: /home/test/lib/test.dart
   requirements
-    topLevels
-      dart:core
-        C: <null>
+    libraries
       package:test/a.dart
-        C: #M5
-    interfaces
-      package:test/a.dart
-        C
-          methods
-            foo: #M1
+        exportedTopLevels
+          C: #M5
+        interfaces
+          C
+            methods
+              foo: #M1
 [status] idle
 ''',
       updatedA: r'''
@@ -9207,18 +8899,15 @@ class C extends B {}
         interface: #M2
           map
             foo: #M1
-      B: #M9
-        interface: #M10
+      B: #M8
+        interface: #M9
           map
             foo: #M1
-      C: #M11
-        interface: #M12
+      C: #M10
+        interface: #M11
           map
             foo: #M1
   requirements
-    topLevels
-      dart:core
-        double: #M13
 [future] getErrors T2
   ErrorsResult #1
     path: /home/test/lib/test.dart
@@ -9229,39 +8918,36 @@ class C extends B {}
     libraryUri: package:test/a.dart
     name: C
     expectedId: #M5
-    actualId: #M11
+    actualId: #M10
 [operation] linkLibraryCycle
   package:test/test.dart
     declaredFunctions
-      f: #M14
+      f: #M12
   requirements
-    topLevels
-      dart:core
-        C: <null>
+    libraries
       package:test/a.dart
-        C: #M11
+        exportedTopLevels
+          C: #M10
 [operation] getErrorsCannotReuse
   topLevelIdMismatch
     libraryUri: package:test/a.dart
     name: C
     expectedId: #M5
-    actualId: #M11
+    actualId: #M10
 [operation] analyzeFile
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
 [operation] analyzedLibrary
   file: /home/test/lib/test.dart
   requirements
-    topLevels
-      dart:core
-        C: <null>
+    libraries
       package:test/a.dart
-        C: #M11
-    interfaces
-      package:test/a.dart
-        C
-          methods
-            foo: #M1
+        exportedTopLevels
+          C: #M10
+        interfaces
+          C
+            methods
+              foo: #M1
 [status] idle
 ''',
     );
@@ -9306,35 +8992,29 @@ void f(B b) {
           map
             foo: #M1
   requirements
-    topLevels
-      dart:core
-        int: #M5
 [operation] linkLibraryCycle
   package:test/test.dart
     declaredFunctions
-      f: #M6
+      f: #M5
   requirements
-    topLevels
-      dart:core
-        B: <null>
+    libraries
       package:test/a.dart
-        B: #M3
+        exportedTopLevels
+          B: #M3
 [operation] analyzeFile
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
 [operation] analyzedLibrary
   file: /home/test/lib/test.dart
   requirements
-    topLevels
-      dart:core
-        B: <null>
+    libraries
       package:test/a.dart
-        B: #M3
-    interfaces
-      package:test/a.dart
-        B
-          methods
-            foo: #M1
+        exportedTopLevels
+          B: #M3
+        interfaces
+          B
+            methods
+              foo: #M1
 [status] idle
 ''',
       updatedA: r'''
@@ -9355,14 +9035,11 @@ class B extends A<double> {}
         interface: #M2
           map
             foo: #M1
-      B: #M7
-        interface: #M8
+      B: #M6
+        interface: #M7
           map
             foo: #M1
   requirements
-    topLevels
-      dart:core
-        double: #M9
 [future] getErrors T2
   ErrorsResult #1
     path: /home/test/lib/test.dart
@@ -9373,39 +9050,36 @@ class B extends A<double> {}
     libraryUri: package:test/a.dart
     name: B
     expectedId: #M3
-    actualId: #M7
+    actualId: #M6
 [operation] linkLibraryCycle
   package:test/test.dart
     declaredFunctions
-      f: #M10
+      f: #M8
   requirements
-    topLevels
-      dart:core
-        B: <null>
+    libraries
       package:test/a.dart
-        B: #M7
+        exportedTopLevels
+          B: #M6
 [operation] getErrorsCannotReuse
   topLevelIdMismatch
     libraryUri: package:test/a.dart
     name: B
     expectedId: #M3
-    actualId: #M7
+    actualId: #M6
 [operation] analyzeFile
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
 [operation] analyzedLibrary
   file: /home/test/lib/test.dart
   requirements
-    topLevels
-      dart:core
-        B: <null>
+    libraries
       package:test/a.dart
-        B: #M7
-    interfaces
-      package:test/a.dart
-        B
-          methods
-            foo: #M1
+        exportedTopLevels
+          B: #M6
+        interfaces
+          B
+            methods
+              foo: #M1
 [status] idle
 ''',
     );
@@ -9450,35 +9124,29 @@ void f(B b) {
           map
             foo: #M1
   requirements
-    topLevels
-      dart:core
-        int: #M5
 [operation] linkLibraryCycle
   package:test/test.dart
     declaredFunctions
-      f: #M6
+      f: #M5
   requirements
-    topLevels
-      dart:core
-        B: <null>
+    libraries
       package:test/a.dart
-        B: #M3
+        exportedTopLevels
+          B: #M3
 [operation] analyzeFile
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
 [operation] analyzedLibrary
   file: /home/test/lib/test.dart
   requirements
-    topLevels
-      dart:core
-        B: <null>
+    libraries
       package:test/a.dart
-        B: #M3
-    interfaces
-      package:test/a.dart
-        B
-          methods
-            foo: #M1
+        exportedTopLevels
+          B: #M3
+        interfaces
+          B
+            methods
+              foo: #M1
 [status] idle
 ''',
       updatedA: r'''
@@ -9499,14 +9167,11 @@ class B implements A<double> {}
         interface: #M2
           map
             foo: #M1
-      B: #M7
-        interface: #M8
+      B: #M6
+        interface: #M7
           map
             foo: #M1
   requirements
-    topLevels
-      dart:core
-        double: #M9
 [future] getErrors T2
   ErrorsResult #1
     path: /home/test/lib/test.dart
@@ -9517,39 +9182,36 @@ class B implements A<double> {}
     libraryUri: package:test/a.dart
     name: B
     expectedId: #M3
-    actualId: #M7
+    actualId: #M6
 [operation] linkLibraryCycle
   package:test/test.dart
     declaredFunctions
-      f: #M10
+      f: #M8
   requirements
-    topLevels
-      dart:core
-        B: <null>
+    libraries
       package:test/a.dart
-        B: #M7
+        exportedTopLevels
+          B: #M6
 [operation] getErrorsCannotReuse
   topLevelIdMismatch
     libraryUri: package:test/a.dart
     name: B
     expectedId: #M3
-    actualId: #M7
+    actualId: #M6
 [operation] analyzeFile
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
 [operation] analyzedLibrary
   file: /home/test/lib/test.dart
   requirements
-    topLevels
-      dart:core
-        B: <null>
+    libraries
       package:test/a.dart
-        B: #M7
-    interfaces
-      package:test/a.dart
-        B
-          methods
-            foo: #M1
+        exportedTopLevels
+          B: #M6
+        interfaces
+          B
+            methods
+              foo: #M1
 [status] idle
 ''',
     );
@@ -9594,35 +9256,29 @@ void f(B b) {
           map
             foo: #M1
   requirements
-    topLevels
-      dart:core
-        int: #M5
 [operation] linkLibraryCycle
   package:test/test.dart
     declaredFunctions
-      f: #M6
+      f: #M5
   requirements
-    topLevels
-      dart:core
-        B: <null>
+    libraries
       package:test/a.dart
-        B: #M3
+        exportedTopLevels
+          B: #M3
 [operation] analyzeFile
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
 [operation] analyzedLibrary
   file: /home/test/lib/test.dart
   requirements
-    topLevels
-      dart:core
-        B: <null>
+    libraries
       package:test/a.dart
-        B: #M3
-    interfaces
-      package:test/a.dart
-        B
-          methods
-            foo: #M1
+        exportedTopLevels
+          B: #M3
+        interfaces
+          B
+            methods
+              foo: #M1
 [status] idle
 ''',
       updatedA: r'''
@@ -9643,14 +9299,11 @@ class B with A<double> {}
         interface: #M2
           map
             foo: #M1
-      B: #M7
-        interface: #M8
+      B: #M6
+        interface: #M7
           map
             foo: #M1
   requirements
-    topLevels
-      dart:core
-        double: #M9
 [future] getErrors T2
   ErrorsResult #1
     path: /home/test/lib/test.dart
@@ -9661,39 +9314,36 @@ class B with A<double> {}
     libraryUri: package:test/a.dart
     name: B
     expectedId: #M3
-    actualId: #M7
+    actualId: #M6
 [operation] linkLibraryCycle
   package:test/test.dart
     declaredFunctions
-      f: #M10
+      f: #M8
   requirements
-    topLevels
-      dart:core
-        B: <null>
+    libraries
       package:test/a.dart
-        B: #M7
+        exportedTopLevels
+          B: #M6
 [operation] getErrorsCannotReuse
   topLevelIdMismatch
     libraryUri: package:test/a.dart
     name: B
     expectedId: #M3
-    actualId: #M7
+    actualId: #M6
 [operation] analyzeFile
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
 [operation] analyzedLibrary
   file: /home/test/lib/test.dart
   requirements
-    topLevels
-      dart:core
-        B: <null>
+    libraries
       package:test/a.dart
-        B: #M7
-    interfaces
-      package:test/a.dart
-        B
-          methods
-            foo: #M1
+        exportedTopLevels
+          B: #M6
+        interfaces
+          B
+            methods
+              foo: #M1
 [status] idle
 ''',
     );
@@ -9740,18 +9390,12 @@ void f (B b) {
     declaredFunctions
       f: #M5
   requirements
-    topLevels
-      dart:core
-        int: #M6
 [operation] analyzeFile
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
 [operation] analyzedLibrary
   file: /home/test/lib/test.dart
   requirements
-    topLevels
-      dart:core
-        int: #M6
 [status] idle
 ''',
       updateFiles: () {
@@ -9775,16 +9419,13 @@ void f (B b) {
     declaredClasses
       A: #M0
         declaredMethods
-          _foo: #M7
+          _foo: #M6
         interface: #M2
       B: #M3
         interface: #M4
     declaredFunctions
       f: #M5
   requirements
-    topLevels
-      dart:core
-        String: #M8
 [future] getErrors T2
   ErrorsResult #1
     path: /home/test/lib/test.dart
@@ -9798,11 +9439,6 @@ void f (B b) {
 [operation] analyzedLibrary
   file: /home/test/lib/test.dart
   requirements
-    topLevels
-      dart:core
-        String: #M8
-    exportedExtensions
-      dart:core: #M9
 [status] idle
 ''',
     );
@@ -9846,27 +9482,24 @@ void f(A a) {
     declaredFunctions
       f: #M3
   requirements
-    topLevels
-      dart:core
-        A: <null>
+    libraries
       package:test/a.dart
-        A: #M0
+        exportedTopLevels
+          A: #M0
 [operation] analyzeFile
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
 [operation] analyzedLibrary
   file: /home/test/lib/test.dart
   requirements
-    topLevels
-      dart:core
-        A: <null>
+    libraries
       package:test/a.dart
-        A: #M0
-    interfaces
-      package:test/a.dart
-        A
-          methods
-            foo: #M1
+        exportedTopLevels
+          A: #M0
+        interfaces
+          A
+            methods
+              foo: #M1
 [status] idle
 ''',
       updatedA: r'''
@@ -9902,27 +9535,22 @@ class A {}
 [operation] analyzedLibrary
   file: /home/test/lib/test.dart
   requirements
-    topLevels
-      dart:core
-        A: <null>
+    libraries
       package:test/a.dart
-        A: #M0
-    instances
-      package:test/a.dart
-        A
-          requestedGetters
-            foo: <null>
-          requestedMethods
-            foo: <null>
-    interfaces
-      package:test/a.dart
-        A
-          methods
-            foo: <null>
-            foo=: <null>
-    exportedExtensions
-      dart:core: #M5
-      package:test/a.dart: []
+        exportedTopLevels
+          A: #M0
+        instances
+          A
+            requestedDeclaredGetters
+              foo: <null>
+            requestedDeclaredMethods
+              foo: <null>
+        interfaces
+          A
+            methods
+              foo: <null>
+              foo=: <null>
+        exportedExtensions: []
 [status] idle
 ''',
     );
@@ -9961,11 +9589,10 @@ void f(A a) {
     declaredFunctions
       f: #M2
   requirements
-    topLevels
-      dart:core
-        A: <null>
+    libraries
       package:test/a.dart
-        A: #M0
+        exportedTopLevels
+          A: #M0
 [operation] analyzeFile
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
@@ -9979,29 +9606,24 @@ void f(A a) {
 [operation] analyzedLibrary
   file: /home/test/lib/test.dart
   requirements
-    topLevels
-      dart:core
-        A: <null>
+    libraries
       package:test/a.dart
-        A: #M0
-    instances
-      package:test/a.dart
-        A
-          requestedGetters
-            foo: <null>
-          requestedSetters
-            foo=: <null>
-          requestedMethods
-            foo: <null>
-    interfaces
-      package:test/a.dart
-        A
-          methods
-            foo: <null>
-            foo=: <null>
-    exportedExtensions
-      dart:core: #M3
-      package:test/a.dart: []
+        exportedTopLevels
+          A: #M0
+        instances
+          A
+            requestedDeclaredGetters
+              foo: <null>
+            requestedDeclaredSetters
+              foo=: <null>
+            requestedDeclaredMethods
+              foo: <null>
+        interfaces
+          A
+            methods
+              foo: <null>
+              foo=: <null>
+        exportedExtensions: []
 [status] idle
 ''',
       updatedA: r'''
@@ -10016,16 +9638,13 @@ class A {
     declaredClasses
       A: #M0
         declaredFields
-          foo: #M4
+          foo: #M3
         declaredSetters
-          foo=: #M5
-        interface: #M6
+          foo=: #M4
+        interface: #M5
           map
-            foo=: #M5
+            foo=: #M4
   requirements
-    topLevels
-      dart:core
-        int: #M7
 [future] getErrors T2
   ErrorsResult #2
     path: /home/test/lib/test.dart
@@ -10039,7 +9658,7 @@ class A {
     interfaceName: A
     methodName: foo=
     expectedId: <null>
-    actualId: #M5
+    actualId: #M4
 [operation] analyzeFile
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
@@ -10051,21 +9670,18 @@ class A {
 [operation] analyzedLibrary
   file: /home/test/lib/test.dart
   requirements
-    topLevels
-      dart:core
-        A: <null>
+    libraries
       package:test/a.dart
-        A: #M0
-    instances
-      package:test/a.dart
-        A
-          requestedFields
-            foo: #M4
-    interfaces
-      package:test/a.dart
-        A
-          methods
-            foo=: #M5
+        exportedTopLevels
+          A: #M0
+        instances
+          A
+            requestedDeclaredFields
+              foo: #M3
+        interfaces
+          A
+            methods
+              foo=: #M4
 [status] idle
 ''',
     );
@@ -10113,9 +9729,6 @@ import 'a.dart';
             foo: #M2
             foo=: #M3
   requirements
-    topLevels
-      dart:core
-        int: #M5
 [operation] linkLibraryCycle
   package:test/test.dart
   requirements
@@ -10132,18 +9745,16 @@ import 'a.dart';
 [operation] analyzedLibrary
   file: /home/test/lib/test.dart
   requirements
-    topLevels
-      dart:core
-        A: <null>
+    libraries
       package:test/a.dart
-        A: #M0
-    instances
-      package:test/a.dart
-        A
-          requestedFields
-            foo: #M1
-          requestedSetters
-            foo=: #M3
+        exportedTopLevels
+          A: #M0
+        instances
+          A
+            requestedDeclaredFields
+              foo: #M1
+            requestedDeclaredSetters
+              foo=: #M3
 [status] idle
 ''',
       updatedA: r'''
@@ -10163,16 +9774,12 @@ class A {
         declaredGetters
           foo: #M2
         declaredSetters
-          foo=: #M6
-        interface: #M7
+          foo=: #M5
+        interface: #M6
           map
             foo: #M2
-            foo=: #M6
+            foo=: #M5
   requirements
-    topLevels
-      dart:core
-        double: #M8
-        int: #M5
 [future] getErrors T2
   ErrorsResult #2
     path: /home/test/lib/test.dart
@@ -10188,7 +9795,7 @@ class A {
     interfaceName: A
     methodName: foo=
     expectedId: #M3
-    actualId: #M6
+    actualId: #M5
 [operation] analyzeFile
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
@@ -10202,18 +9809,16 @@ class A {
 [operation] analyzedLibrary
   file: /home/test/lib/test.dart
   requirements
-    topLevels
-      dart:core
-        A: <null>
+    libraries
       package:test/a.dart
-        A: #M0
-    instances
-      package:test/a.dart
-        A
-          requestedFields
-            foo: #M1
-          requestedSetters
-            foo=: #M6
+        exportedTopLevels
+          A: #M0
+        instances
+          A
+            requestedDeclaredFields
+              foo: #M1
+            requestedDeclaredSetters
+              foo=: #M5
 [status] idle
 ''',
     );
@@ -10257,9 +9862,6 @@ import 'a.dart';
           map
             foo=: #M2
   requirements
-    topLevels
-      dart:core
-        int: #M4
 [operation] linkLibraryCycle
   package:test/test.dart
   requirements
@@ -10276,16 +9878,14 @@ import 'a.dart';
 [operation] analyzedLibrary
   file: /home/test/lib/test.dart
   requirements
-    topLevels
-      dart:core
-        A: <null>
+    libraries
       package:test/a.dart
-        A: #M0
-    instances
-      package:test/a.dart
-        A
-          requestedSetters
-            foo=: #M2
+        exportedTopLevels
+          A: #M0
+        instances
+          A
+            requestedDeclaredSetters
+              foo=: #M2
 [status] idle
 ''',
       updatedA: r'''
@@ -10300,16 +9900,13 @@ class A {
     declaredClasses
       A: #M0
         declaredFields
-          foo: #M5
+          foo: #M4
         declaredSetters
-          foo=: #M6
-        interface: #M7
+          foo=: #M5
+        interface: #M6
           map
-            foo=: #M6
+            foo=: #M5
   requirements
-    topLevels
-      dart:core
-        double: #M8
 [future] getErrors T2
   ErrorsResult #2
     path: /home/test/lib/test.dart
@@ -10325,7 +9922,7 @@ class A {
     interfaceName: A
     methodName: foo=
     expectedId: #M2
-    actualId: #M6
+    actualId: #M5
 [operation] analyzeFile
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
@@ -10339,16 +9936,14 @@ class A {
 [operation] analyzedLibrary
   file: /home/test/lib/test.dart
   requirements
-    topLevels
-      dart:core
-        A: <null>
+    libraries
       package:test/a.dart
-        A: #M0
-    instances
-      package:test/a.dart
-        A
-          requestedSetters
-            foo=: #M6
+        exportedTopLevels
+          A: #M0
+        instances
+          A
+            requestedDeclaredSetters
+              foo=: #M5
 [status] idle
 ''',
     );
@@ -10396,9 +9991,6 @@ import 'a.dart';
             bar=: #M3
             foo=: #M4
   requirements
-    topLevels
-      dart:core
-        int: #M6
 [operation] linkLibraryCycle
   package:test/test.dart
   requirements
@@ -10415,16 +10007,14 @@ import 'a.dart';
 [operation] analyzedLibrary
   file: /home/test/lib/test.dart
   requirements
-    topLevels
-      dart:core
-        A: <null>
+    libraries
       package:test/a.dart
-        A: #M0
-    instances
-      package:test/a.dart
-        A
-          requestedSetters
-            foo=: #M4
+        exportedTopLevels
+          A: #M0
+        instances
+          A
+            requestedDeclaredSetters
+              foo=: #M4
 [status] idle
 ''',
       updatedA: r'''
@@ -10440,20 +10030,16 @@ class A {
     declaredClasses
       A: #M0
         declaredFields
-          bar: #M7
+          bar: #M6
           foo: #M2
         declaredSetters
-          bar=: #M8
+          bar=: #M7
           foo=: #M4
-        interface: #M9
+        interface: #M8
           map
-            bar=: #M8
+            bar=: #M7
             foo=: #M4
   requirements
-    topLevels
-      dart:core
-        double: #M10
-        int: #M6
 [future] getErrors T2
   ErrorsResult #2
     path: /home/test/lib/test.dart
@@ -10505,19 +10091,15 @@ void f(A a) {
           map
             foo=: #M2
   requirements
-    topLevels
-      dart:core
-        int: #M4
 [operation] linkLibraryCycle
   package:test/test.dart
     declaredFunctions
-      f: #M5
+      f: #M4
   requirements
-    topLevels
-      dart:core
-        A: <null>
+    libraries
       package:test/a.dart
-        A: #M0
+        exportedTopLevels
+          A: #M0
 [operation] analyzeFile
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
@@ -10529,21 +10111,18 @@ void f(A a) {
 [operation] analyzedLibrary
   file: /home/test/lib/test.dart
   requirements
-    topLevels
-      dart:core
-        A: <null>
+    libraries
       package:test/a.dart
-        A: #M0
-    instances
-      package:test/a.dart
-        A
-          requestedFields
-            foo: #M1
-    interfaces
-      package:test/a.dart
-        A
-          methods
-            foo=: #M2
+        exportedTopLevels
+          A: #M0
+        instances
+          A
+            requestedDeclaredFields
+              foo: #M1
+        interfaces
+          A
+            methods
+              foo=: #M2
 [status] idle
 ''',
       updatedA: r'''
@@ -10558,16 +10137,13 @@ class A {
     declaredClasses
       A: #M0
         declaredFields
-          foo: #M6
+          foo: #M5
         declaredSetters
-          foo=: #M7
-        interface: #M8
+          foo=: #M6
+        interface: #M7
           map
-            foo=: #M7
+            foo=: #M6
   requirements
-    topLevels
-      dart:core
-        double: #M9
 [future] getErrors T2
   ErrorsResult #2
     path: /home/test/lib/test.dart
@@ -10581,7 +10157,7 @@ class A {
     interfaceName: A
     fieldName: foo
     expectedId: #M1
-    actualId: #M6
+    actualId: #M5
 [operation] analyzeFile
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
@@ -10593,21 +10169,18 @@ class A {
 [operation] analyzedLibrary
   file: /home/test/lib/test.dart
   requirements
-    topLevels
-      dart:core
-        A: <null>
+    libraries
       package:test/a.dart
-        A: #M0
-    instances
-      package:test/a.dart
-        A
-          requestedFields
-            foo: #M6
-    interfaces
-      package:test/a.dart
-        A
-          methods
-            foo=: #M7
+        exportedTopLevels
+          A: #M0
+        instances
+          A
+            requestedDeclaredFields
+              foo: #M5
+        interfaces
+          A
+            methods
+              foo=: #M6
 [status] idle
 ''',
     );
@@ -10657,13 +10230,10 @@ void f() {
             foo: #M2
             foo=: #M3
   requirements
-    topLevels
-      dart:core
-        int: #M6
 [operation] linkLibraryCycle
   package:test/test.dart
     declaredFunctions
-      f: #M7
+      f: #M6
   requirements
 [operation] analyzeFile
   file: /home/test/lib/test.dart
@@ -10671,24 +10241,21 @@ void f() {
 [operation] analyzedLibrary
   file: /home/test/lib/test.dart
   requirements
-    topLevels
-      dart:core
-        A: <null>
+    libraries
       package:test/a.dart
-        A: #M0
-    instances
-      package:test/a.dart
-        A
-          requestedFields
-            foo: #M1
-    interfaces
-      package:test/a.dart
-        A
-          constructors
-            foo: #M4
-          methods
-            foo: #M2
-            foo=: #M3
+        exportedTopLevels
+          A: #M0
+        instances
+          A
+            requestedDeclaredFields
+              foo: #M1
+        interfaces
+          A
+            requestedConstructors
+              foo: #M4
+            methods
+              foo: #M2
+              foo=: #M3
 [status] idle
 ''',
       updatedA: r'''
@@ -10709,18 +10276,14 @@ class A {
         declaredGetters
           foo: #M2
         declaredSetters
-          foo=: #M8
+          foo=: #M7
         declaredConstructors
           foo: #M4
-        interface: #M9
+        interface: #M8
           map
             foo: #M2
-            foo=: #M8
+            foo=: #M7
   requirements
-    topLevels
-      dart:core
-        double: #M10
-        int: #M6
 [future] getErrors T2
   ErrorsResult #1
     path: /home/test/lib/test.dart
@@ -10734,31 +10297,28 @@ class A {
     interfaceName: A
     methodName: foo=
     expectedId: #M3
-    actualId: #M8
+    actualId: #M7
 [operation] analyzeFile
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
 [operation] analyzedLibrary
   file: /home/test/lib/test.dart
   requirements
-    topLevels
-      dart:core
-        A: <null>
+    libraries
       package:test/a.dart
-        A: #M0
-    instances
-      package:test/a.dart
-        A
-          requestedFields
-            foo: #M1
-    interfaces
-      package:test/a.dart
-        A
-          constructors
-            foo: #M4
-          methods
-            foo: #M2
-            foo=: #M8
+        exportedTopLevels
+          A: #M0
+        instances
+          A
+            requestedDeclaredFields
+              foo: #M1
+        interfaces
+          A
+            requestedConstructors
+              foo: #M4
+            methods
+              foo: #M2
+              foo=: #M7
 [status] idle
 ''',
     );
@@ -10802,19 +10362,15 @@ void f(A a) {
             bar=: #M3
             foo=: #M4
   requirements
-    topLevels
-      dart:core
-        int: #M6
 [operation] linkLibraryCycle
   package:test/test.dart
     declaredFunctions
-      f: #M7
+      f: #M6
   requirements
-    topLevels
-      dart:core
-        A: <null>
+    libraries
       package:test/a.dart
-        A: #M0
+        exportedTopLevels
+          A: #M0
 [operation] analyzeFile
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
@@ -10826,21 +10382,18 @@ void f(A a) {
 [operation] analyzedLibrary
   file: /home/test/lib/test.dart
   requirements
-    topLevels
-      dart:core
-        A: <null>
+    libraries
       package:test/a.dart
-        A: #M0
-    instances
-      package:test/a.dart
-        A
-          requestedFields
-            foo: #M2
-    interfaces
-      package:test/a.dart
-        A
-          methods
-            foo=: #M4
+        exportedTopLevels
+          A: #M0
+        instances
+          A
+            requestedDeclaredFields
+              foo: #M2
+        interfaces
+          A
+            methods
+              foo=: #M4
 [status] idle
 ''',
       updatedA: r'''
@@ -10856,20 +10409,16 @@ class A {
     declaredClasses
       A: #M0
         declaredFields
-          bar: #M8
+          bar: #M7
           foo: #M2
         declaredSetters
-          bar=: #M9
+          bar=: #M8
           foo=: #M4
-        interface: #M10
+        interface: #M9
           map
-            bar=: #M9
+            bar=: #M8
             foo=: #M4
   requirements
-    topLevels
-      dart:core
-        double: #M11
-        int: #M6
 [future] getErrors T2
   ErrorsResult #2
     path: /home/test/lib/test.dart
@@ -10926,40 +10475,33 @@ void f(B b) {
           map
             foo=: #M2
   requirements
-    topLevels
-      dart:core
-        int: #M6
 [operation] linkLibraryCycle
   package:test/test.dart
     declaredFunctions
-      f: #M7
+      f: #M6
   requirements
-    topLevels
-      dart:core
-        B: <null>
+    libraries
       package:test/a.dart
-        B: #M4
+        exportedTopLevels
+          B: #M4
 [operation] analyzeFile
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
 [operation] analyzedLibrary
   file: /home/test/lib/test.dart
   requirements
-    topLevels
-      dart:core
-        B: <null>
+    libraries
       package:test/a.dart
-        B: #M4
-    instances
-      package:test/a.dart
-        A
-          requestedFields
-            foo: #M1
-    interfaces
-      package:test/a.dart
-        B
-          methods
-            foo=: #M2
+        exportedTopLevels
+          B: #M4
+        instances
+          A
+            requestedDeclaredFields
+              foo: #M1
+        interfaces
+          B
+            methods
+              foo=: #M2
 [status] idle
 ''',
       updatedA: r'''
@@ -10982,14 +10524,11 @@ class B extends A<double> {}
         interface: #M3
           map
             foo=: #M2
-      B: #M8
-        interface: #M9
+      B: #M7
+        interface: #M8
           map
             foo=: #M2
   requirements
-    topLevels
-      dart:core
-        double: #M10
 [future] getErrors T2
   ErrorsResult #1
     path: /home/test/lib/test.dart
@@ -11000,44 +10539,40 @@ class B extends A<double> {}
     libraryUri: package:test/a.dart
     name: B
     expectedId: #M4
-    actualId: #M8
+    actualId: #M7
 [operation] linkLibraryCycle
   package:test/test.dart
     declaredFunctions
-      f: #M11
+      f: #M9
   requirements
-    topLevels
-      dart:core
-        B: <null>
+    libraries
       package:test/a.dart
-        B: #M8
+        exportedTopLevels
+          B: #M7
 [operation] getErrorsCannotReuse
   topLevelIdMismatch
     libraryUri: package:test/a.dart
     name: B
     expectedId: #M4
-    actualId: #M8
+    actualId: #M7
 [operation] analyzeFile
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
 [operation] analyzedLibrary
   file: /home/test/lib/test.dart
   requirements
-    topLevels
-      dart:core
-        B: <null>
+    libraries
       package:test/a.dart
-        B: #M8
-    instances
-      package:test/a.dart
-        A
-          requestedFields
-            foo: #M1
-    interfaces
-      package:test/a.dart
-        B
-          methods
-            foo=: #M2
+        exportedTopLevels
+          B: #M7
+        instances
+          A
+            requestedDeclaredFields
+              foo: #M1
+        interfaces
+          B
+            methods
+              foo=: #M2
 [status] idle
 ''',
     );
@@ -11084,40 +10619,33 @@ void f(B b) {
           map
             foo=: #M2
   requirements
-    topLevels
-      dart:core
-        int: #M6
 [operation] linkLibraryCycle
   package:test/test.dart
     declaredFunctions
-      f: #M7
+      f: #M6
   requirements
-    topLevels
-      dart:core
-        B: <null>
+    libraries
       package:test/a.dart
-        B: #M4
+        exportedTopLevels
+          B: #M4
 [operation] analyzeFile
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
 [operation] analyzedLibrary
   file: /home/test/lib/test.dart
   requirements
-    topLevels
-      dart:core
-        B: <null>
+    libraries
       package:test/a.dart
-        B: #M4
-    instances
-      package:test/a.dart
-        A
-          requestedFields
-            foo: #M1
-    interfaces
-      package:test/a.dart
-        B
-          methods
-            foo=: #M2
+        exportedTopLevels
+          B: #M4
+        instances
+          A
+            requestedDeclaredFields
+              foo: #M1
+        interfaces
+          B
+            methods
+              foo=: #M2
 [status] idle
 ''',
       updatedA: r'''
@@ -11140,14 +10668,11 @@ class B implements A<double> {}
         interface: #M3
           map
             foo=: #M2
-      B: #M8
-        interface: #M9
+      B: #M7
+        interface: #M8
           map
             foo=: #M2
   requirements
-    topLevels
-      dart:core
-        double: #M10
 [future] getErrors T2
   ErrorsResult #1
     path: /home/test/lib/test.dart
@@ -11158,44 +10683,40 @@ class B implements A<double> {}
     libraryUri: package:test/a.dart
     name: B
     expectedId: #M4
-    actualId: #M8
+    actualId: #M7
 [operation] linkLibraryCycle
   package:test/test.dart
     declaredFunctions
-      f: #M11
+      f: #M9
   requirements
-    topLevels
-      dart:core
-        B: <null>
+    libraries
       package:test/a.dart
-        B: #M8
+        exportedTopLevels
+          B: #M7
 [operation] getErrorsCannotReuse
   topLevelIdMismatch
     libraryUri: package:test/a.dart
     name: B
     expectedId: #M4
-    actualId: #M8
+    actualId: #M7
 [operation] analyzeFile
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
 [operation] analyzedLibrary
   file: /home/test/lib/test.dart
   requirements
-    topLevels
-      dart:core
-        B: <null>
+    libraries
       package:test/a.dart
-        B: #M8
-    instances
-      package:test/a.dart
-        A
-          requestedFields
-            foo: #M1
-    interfaces
-      package:test/a.dart
-        B
-          methods
-            foo=: #M2
+        exportedTopLevels
+          B: #M7
+        instances
+          A
+            requestedDeclaredFields
+              foo: #M1
+        interfaces
+          B
+            methods
+              foo=: #M2
 [status] idle
 ''',
     );
@@ -11242,40 +10763,33 @@ void f(B b) {
           map
             foo=: #M2
   requirements
-    topLevels
-      dart:core
-        int: #M6
 [operation] linkLibraryCycle
   package:test/test.dart
     declaredFunctions
-      f: #M7
+      f: #M6
   requirements
-    topLevels
-      dart:core
-        B: <null>
+    libraries
       package:test/a.dart
-        B: #M4
+        exportedTopLevels
+          B: #M4
 [operation] analyzeFile
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
 [operation] analyzedLibrary
   file: /home/test/lib/test.dart
   requirements
-    topLevels
-      dart:core
-        B: <null>
+    libraries
       package:test/a.dart
-        B: #M4
-    instances
-      package:test/a.dart
-        A
-          requestedFields
-            foo: #M1
-    interfaces
-      package:test/a.dart
-        B
-          methods
-            foo=: #M2
+        exportedTopLevels
+          B: #M4
+        instances
+          A
+            requestedDeclaredFields
+              foo: #M1
+        interfaces
+          B
+            methods
+              foo=: #M2
 [status] idle
 ''',
       updatedA: r'''
@@ -11298,14 +10812,11 @@ class B with A<double> {}
         interface: #M3
           map
             foo=: #M2
-      B: #M8
-        interface: #M9
+      B: #M7
+        interface: #M8
           map
             foo=: #M2
   requirements
-    topLevels
-      dart:core
-        double: #M10
 [future] getErrors T2
   ErrorsResult #1
     path: /home/test/lib/test.dart
@@ -11316,44 +10827,40 @@ class B with A<double> {}
     libraryUri: package:test/a.dart
     name: B
     expectedId: #M4
-    actualId: #M8
+    actualId: #M7
 [operation] linkLibraryCycle
   package:test/test.dart
     declaredFunctions
-      f: #M11
+      f: #M9
   requirements
-    topLevels
-      dart:core
-        B: <null>
+    libraries
       package:test/a.dart
-        B: #M8
+        exportedTopLevels
+          B: #M7
 [operation] getErrorsCannotReuse
   topLevelIdMismatch
     libraryUri: package:test/a.dart
     name: B
     expectedId: #M4
-    actualId: #M8
+    actualId: #M7
 [operation] analyzeFile
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
 [operation] analyzedLibrary
   file: /home/test/lib/test.dart
   requirements
-    topLevels
-      dart:core
-        B: <null>
+    libraries
       package:test/a.dart
-        B: #M8
-    instances
-      package:test/a.dart
-        A
-          requestedFields
-            foo: #M1
-    interfaces
-      package:test/a.dart
-        B
-          methods
-            foo=: #M2
+        exportedTopLevels
+          B: #M7
+        instances
+          A
+            requestedDeclaredFields
+              foo: #M1
+        interfaces
+          B
+            methods
+              foo=: #M2
 [status] idle
 ''',
     );
@@ -11402,18 +10909,12 @@ void f (B b) {
     declaredFunctions
       f: #M6
   requirements
-    topLevels
-      dart:core
-        int: #M7
 [operation] analyzeFile
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
 [operation] analyzedLibrary
   file: /home/test/lib/test.dart
   requirements
-    topLevels
-      dart:core
-        int: #M7
 [status] idle
 ''',
       updateFiles: () {
@@ -11437,18 +10938,15 @@ void f (B b) {
     declaredClasses
       A: #M0
         declaredFields
-          _foo: #M8
+          _foo: #M7
         declaredSetters
-          _foo=: #M9
+          _foo=: #M8
         interface: #M3
       B: #M4
         interface: #M5
     declaredFunctions
       f: #M6
   requirements
-    topLevels
-      dart:core
-        String: #M10
 [future] getErrors T2
   ErrorsResult #1
     path: /home/test/lib/test.dart
@@ -11462,9 +10960,6 @@ void f (B b) {
 [operation] analyzedLibrary
   file: /home/test/lib/test.dart
   requirements
-    topLevels
-      dart:core
-        String: #M10
 [status] idle
 ''',
     );
@@ -11504,19 +10999,15 @@ void f(A a) {
           map
             foo=: #M2
   requirements
-    topLevels
-      dart:core
-        int: #M4
 [operation] linkLibraryCycle
   package:test/test.dart
     declaredFunctions
-      f: #M5
+      f: #M4
   requirements
-    topLevels
-      dart:core
-        A: <null>
+    libraries
       package:test/a.dart
-        A: #M0
+        exportedTopLevels
+          A: #M0
 [operation] analyzeFile
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
@@ -11528,21 +11019,18 @@ void f(A a) {
 [operation] analyzedLibrary
   file: /home/test/lib/test.dart
   requirements
-    topLevels
-      dart:core
-        A: <null>
+    libraries
       package:test/a.dart
-        A: #M0
-    instances
-      package:test/a.dart
-        A
-          requestedFields
-            foo: #M1
-    interfaces
-      package:test/a.dart
-        A
-          methods
-            foo=: #M2
+        exportedTopLevels
+          A: #M0
+        instances
+          A
+            requestedDeclaredFields
+              foo: #M1
+        interfaces
+          A
+            methods
+              foo=: #M2
 [status] idle
 ''',
       updatedA: r'''
@@ -11554,7 +11042,7 @@ class A {}
   package:test/a.dart
     declaredClasses
       A: #M0
-        interface: #M6
+        interface: #M5
   requirements
 [future] getErrors T2
   ErrorsResult #2
@@ -11585,29 +11073,24 @@ class A {}
 [operation] analyzedLibrary
   file: /home/test/lib/test.dart
   requirements
-    topLevels
-      dart:core
-        A: <null>
+    libraries
       package:test/a.dart
-        A: #M0
-    instances
-      package:test/a.dart
-        A
-          requestedGetters
-            foo: <null>
-          requestedSetters
-            foo=: <null>
-          requestedMethods
-            foo: <null>
-    interfaces
-      package:test/a.dart
-        A
-          methods
-            foo: <null>
-            foo=: <null>
-    exportedExtensions
-      dart:core: #M7
-      package:test/a.dart: []
+        exportedTopLevels
+          A: #M0
+        instances
+          A
+            requestedDeclaredGetters
+              foo: <null>
+            requestedDeclaredSetters
+              foo=: <null>
+            requestedDeclaredMethods
+              foo: <null>
+        interfaces
+          A
+            methods
+              foo: <null>
+              foo=: <null>
+        exportedExtensions: []
 [status] idle
 ''',
     );
@@ -11651,9 +11134,6 @@ import 'a.dart';
           map
             foo=: #M2
   requirements
-    topLevels
-      dart:core
-        int: #M4
 [operation] linkLibraryCycle
   package:test/test.dart
   requirements
@@ -11670,15 +11150,13 @@ import 'a.dart';
 [operation] analyzedLibrary
   file: /home/test/lib/test.dart
   requirements
-    topLevels
-      dart:core
-        A: <null>
+    libraries
       package:test/a.dart
-        A: #M0
-    instances
-      package:test/a.dart
-        A
-          allDeclaredSetters: #M2
+        exportedTopLevels
+          A: #M0
+        instances
+          A
+            allDeclaredSetters: #M2
 [status] idle
 ''',
       updatedA: r'''
@@ -11694,19 +11172,16 @@ class A {
     declaredClasses
       A: #M0
         declaredFields
-          bar: #M5
+          bar: #M4
           foo: #M1
         declaredSetters
-          bar=: #M6
+          bar=: #M5
           foo=: #M2
-        interface: #M7
+        interface: #M6
           map
-            bar=: #M6
+            bar=: #M5
             foo=: #M2
   requirements
-    topLevels
-      dart:core
-        int: #M4
 [future] getErrors T2
   ErrorsResult #2
     path: /home/test/lib/test.dart
@@ -11722,7 +11197,7 @@ class A {
     instanceName: A
     childrenPropertyName: setters
     expectedIds: #M2
-    actualIds: #M2 #M6
+    actualIds: #M2 #M5
 [operation] analyzeFile
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
@@ -11736,15 +11211,13 @@ class A {
 [operation] analyzedLibrary
   file: /home/test/lib/test.dart
   requirements
-    topLevels
-      dart:core
-        A: <null>
+    libraries
       package:test/a.dart
-        A: #M0
-    instances
-      package:test/a.dart
-        A
-          allDeclaredSetters: #M2 #M6
+        exportedTopLevels
+          A: #M0
+        instances
+          A
+            allDeclaredSetters: #M2 #M5
 [status] idle
 ''',
     );
@@ -11776,11 +11249,10 @@ A foo() {}
     declaredFunctions
       foo: #M0
   requirements
-    topLevels
-      dart:core
-        A: <null>
+    libraries
       package:test/a.dart
-        A: <null>
+        exportedTopLevels
+          A: <null>
 [operation] analyzeFile
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
@@ -11794,11 +11266,10 @@ A foo() {}
 [operation] analyzedLibrary
   file: /home/test/lib/test.dart
   requirements
-    topLevels
-      dart:core
-        A: <null>
+    libraries
       package:test/a.dart
-        A: <null>
+        exportedTopLevels
+          A: <null>
 [status] idle
 ''',
       updatedA: r'''
@@ -11830,11 +11301,10 @@ class A {}
     declaredFunctions
       foo: #M3
   requirements
-    topLevels
-      dart:core
-        A: <null>
+    libraries
       package:test/a.dart
-        A: #M1
+        exportedTopLevels
+          A: #M1
 [operation] getErrorsCannotReuse
   topLevelIdMismatch
     libraryUri: package:test/a.dart
@@ -11854,11 +11324,10 @@ class A {}
 [operation] analyzedLibrary
   file: /home/test/lib/test.dart
   requirements
-    topLevels
-      dart:core
-        A: <null>
+    libraries
       package:test/a.dart
-        A: #M1
+        exportedTopLevels
+          A: #M1
 [status] idle
 ''',
     );
@@ -11895,11 +11364,10 @@ A foo() {}
     declaredFunctions
       foo: #M2
   requirements
-    topLevels
-      dart:core
-        A: <null>
+    libraries
       package:test/a.dart
-        A: #M0
+        exportedTopLevels
+          A: #M0
 [operation] analyzeFile
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
@@ -11913,11 +11381,10 @@ A foo() {}
 [operation] analyzedLibrary
   file: /home/test/lib/test.dart
   requirements
-    topLevels
-      dart:core
-        A: <null>
+    libraries
       package:test/a.dart
-        A: #M0
+        exportedTopLevels
+          A: #M0
 [status] idle
 ''',
       updatedA: r'''
@@ -11985,11 +11452,10 @@ A foo() {}
     declaredFunctions
       foo: #M4
   requirements
-    topLevels
-      dart:core
-        A: <null>
+    libraries
       package:test/a.dart
-        A: #M0
+        exportedTopLevels
+          A: #M0
 [operation] analyzeFile
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
@@ -12003,11 +11469,10 @@ A foo() {}
 [operation] analyzedLibrary
   file: /home/test/lib/test.dart
   requirements
-    topLevels
-      dart:core
-        A: <null>
+    libraries
       package:test/a.dart
-        A: #M0
+        exportedTopLevels
+          A: #M0
 [status] idle
 ''',
       updatedA: r'''
@@ -12042,11 +11507,10 @@ class B {}
     declaredFunctions
       foo: #M7
   requirements
-    topLevels
-      dart:core
-        A: <null>
+    libraries
       package:test/a.dart
-        A: #M5
+        exportedTopLevels
+          A: #M5
 [operation] getErrorsCannotReuse
   topLevelIdMismatch
     libraryUri: package:test/a.dart
@@ -12066,11 +11530,10 @@ class B {}
 [operation] analyzedLibrary
   file: /home/test/lib/test.dart
   requirements
-    topLevels
-      dart:core
-        A: <null>
+    libraries
       package:test/a.dart
-        A: #M5
+        exportedTopLevels
+          A: #M5
 [status] idle
 ''',
     );
@@ -12113,11 +11576,10 @@ A foo() {}
     declaredFunctions
       foo: #M6
   requirements
-    topLevels
-      dart:core
-        A: <null>
+    libraries
       package:test/a.dart
-        A: #M0
+        exportedTopLevels
+          A: #M0
 [operation] analyzeFile
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
@@ -12131,11 +11593,10 @@ A foo() {}
 [operation] analyzedLibrary
   file: /home/test/lib/test.dart
   requirements
-    topLevels
-      dart:core
-        A: <null>
+    libraries
       package:test/a.dart
-        A: #M0
+        exportedTopLevels
+          A: #M0
 [status] idle
 ''',
       updatedA: r'''
@@ -12201,11 +11662,10 @@ A foo() => throw 0;
     declaredFunctions
       foo: #M2
   requirements
-    topLevels
-      dart:core
-        A: <null>
+    libraries
       package:test/a.dart
-        A: #M0
+        exportedTopLevels
+          A: #M0
 [operation] analyzeFile
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
@@ -12217,11 +11677,10 @@ A foo() => throw 0;
 [operation] analyzedLibrary
   file: /home/test/lib/test.dart
   requirements
-    topLevels
-      dart:core
-        A: <null>
+    libraries
       package:test/a.dart
-        A: #M0
+        exportedTopLevels
+          A: #M0
 [status] idle
 ''',
       updatedA: '',
@@ -12248,11 +11707,10 @@ A foo() => throw 0;
     declaredFunctions
       foo: #M3
   requirements
-    topLevels
-      dart:core
-        A: <null>
+    libraries
       package:test/a.dart
-        A: <null>
+        exportedTopLevels
+          A: <null>
 [operation] getErrorsCannotReuse
   topLevelIdMismatch
     libraryUri: package:test/a.dart
@@ -12272,11 +11730,10 @@ A foo() => throw 0;
 [operation] analyzedLibrary
   file: /home/test/lib/test.dart
   requirements
-    topLevels
-      dart:core
-        A: <null>
+    libraries
       package:test/a.dart
-        A: <null>
+        exportedTopLevels
+          A: <null>
 [status] idle
 ''',
     );
@@ -12314,11 +11771,10 @@ A foo() => throw 0;
     declaredFunctions
       foo: #M4
   requirements
-    topLevels
-      dart:core
-        A: <null>
+    libraries
       package:test/a.dart
-        A: #M0
+        exportedTopLevels
+          A: #M0
 [operation] analyzeFile
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
@@ -12330,11 +11786,10 @@ A foo() => throw 0;
 [operation] analyzedLibrary
   file: /home/test/lib/test.dart
   requirements
-    topLevels
-      dart:core
-        A: <null>
+    libraries
       package:test/a.dart
-        A: #M0
+        exportedTopLevels
+          A: #M0
 [status] idle
 ''',
       updatedA: r'''
@@ -12407,23 +11862,20 @@ void f() {
 [operation] analyzedLibrary
   file: /home/test/lib/test.dart
   requirements
-    topLevels
-      dart:core
-        A: <null>
+    libraries
       package:test/a.dart
-        A: #M0
-    instances
-      package:test/a.dart
-        A
-          requestedGetters
-            c2: <null>
-          requestedMethods
-            c2: <null>
-    interfaces
-      package:test/a.dart
-        A
-          constructors
-            c2: <null>
+        exportedTopLevels
+          A: #M0
+        instances
+          A
+            requestedDeclaredGetters
+              c2: <null>
+            requestedDeclaredMethods
+              c2: <null>
+        interfaces
+          A
+            requestedConstructors
+              c2: <null>
 [status] idle
 ''',
       updatedA: r'''
@@ -12463,16 +11915,14 @@ class A {
 [operation] analyzedLibrary
   file: /home/test/lib/test.dart
   requirements
-    topLevels
-      dart:core
-        A: <null>
+    libraries
       package:test/a.dart
-        A: #M0
-    interfaces
-      package:test/a.dart
-        A
-          constructors
-            c2: #M4
+        exportedTopLevels
+          A: #M0
+        interfaces
+          A
+            requestedConstructors
+              c2: #M4
 [status] idle
 ''',
     );
@@ -12516,9 +11966,6 @@ import 'a.dart';
           new: #M2
         interface: #M3
   requirements
-    topLevels
-      dart:core
-        int: #M4
 [operation] linkLibraryCycle
   package:test/test.dart
   requirements
@@ -12535,15 +11982,13 @@ import 'a.dart';
 [operation] analyzedLibrary
   file: /home/test/lib/test.dart
   requirements
-    topLevels
-      dart:core
-        A: <null>
+    libraries
       package:test/a.dart
-        A: #M0
-    interfaces
-      package:test/a.dart
-        A
-          allDeclaredConstructors: #M2 #M1
+        exportedTopLevels
+          A: #M0
+        interfaces
+          A
+            allConstructors: #M2 #M1
 [status] idle
 ''',
       updatedA: r'''
@@ -12559,14 +12004,10 @@ class A {
     declaredClasses
       A: #M0
         declaredConstructors
-          named: #M5
+          named: #M4
           new: #M2
         interface: #M3
   requirements
-    topLevels
-      dart:core
-        double: #M6
-        int: #M4
 [future] getErrors T2
   ErrorsResult #2
     path: /home/test/lib/test.dart
@@ -12582,7 +12023,7 @@ class A {
     interfaceName: A
     childrenPropertyName: constructors
     expectedIds: #M2 #M1
-    actualIds: #M2 #M5
+    actualIds: #M2 #M4
 [operation] analyzeFile
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
@@ -12596,15 +12037,13 @@ class A {
 [operation] analyzedLibrary
   file: /home/test/lib/test.dart
   requirements
-    topLevels
-      dart:core
-        A: <null>
+    libraries
       package:test/a.dart
-        A: #M0
-    interfaces
-      package:test/a.dart
-        A
-          allDeclaredConstructors: #M2 #M5
+        exportedTopLevels
+          A: #M0
+        interfaces
+          A
+            allConstructors: #M2 #M4
 [status] idle
 ''',
     );
@@ -12644,9 +12083,6 @@ import 'a.dart';
           foo: #M1
         interface: #M2
   requirements
-    topLevels
-      dart:core
-        int: #M3
 [operation] linkLibraryCycle
   package:test/test.dart
   requirements
@@ -12663,16 +12099,14 @@ import 'a.dart';
 [operation] analyzedLibrary
   file: /home/test/lib/test.dart
   requirements
-    topLevels
-      dart:core
-        A: <null>
+    libraries
       package:test/a.dart
-        A: #M0
-    interfaces
-      package:test/a.dart
-        A
-          constructors
-            foo: #M1
+        exportedTopLevels
+          A: #M0
+        interfaces
+          A
+            requestedConstructors
+              foo: #M1
 [status] idle
 ''',
       updatedA: r'''
@@ -12687,12 +12121,9 @@ class A {
     declaredClasses
       A: #M0
         declaredConstructors
-          foo: #M4
+          foo: #M3
         interface: #M2
   requirements
-    topLevels
-      dart:core
-        double: #M5
 [future] getErrors T2
   ErrorsResult #2
     path: /home/test/lib/test.dart
@@ -12708,7 +12139,7 @@ class A {
     interfaceName: A
     constructorName: foo
     expectedId: #M1
-    actualId: #M4
+    actualId: #M3
 [operation] analyzeFile
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
@@ -12722,16 +12153,14 @@ class A {
 [operation] analyzedLibrary
   file: /home/test/lib/test.dart
   requirements
-    topLevels
-      dart:core
-        A: <null>
+    libraries
       package:test/a.dart
-        A: #M0
-    interfaces
-      package:test/a.dart
-        A
-          constructors
-            foo: #M4
+        exportedTopLevels
+          A: #M0
+        interfaces
+          A
+            requestedConstructors
+              foo: #M3
 [status] idle
 ''',
     );
@@ -12773,9 +12202,6 @@ import 'a.dart';
           foo: #M2
         interface: #M3
   requirements
-    topLevels
-      dart:core
-        int: #M4
 [operation] linkLibraryCycle
   package:test/test.dart
   requirements
@@ -12792,16 +12218,14 @@ import 'a.dart';
 [operation] analyzedLibrary
   file: /home/test/lib/test.dart
   requirements
-    topLevels
-      dart:core
-        A: <null>
+    libraries
       package:test/a.dart
-        A: #M0
-    interfaces
-      package:test/a.dart
-        A
-          constructors
-            foo: #M2
+        exportedTopLevels
+          A: #M0
+        interfaces
+          A
+            requestedConstructors
+              foo: #M2
 [status] idle
 ''',
       updatedA: r'''
@@ -12817,14 +12241,10 @@ class A {
     declaredClasses
       A: #M0
         declaredConstructors
-          bar: #M5
+          bar: #M4
           foo: #M2
         interface: #M3
   requirements
-    topLevels
-      dart:core
-        double: #M6
-        int: #M4
 [future] getErrors T2
   ErrorsResult #2
     path: /home/test/lib/test.dart
@@ -12880,9 +12300,6 @@ import 'a.dart';
           new: #M2
         interface: #M3
   requirements
-    topLevels
-      dart:core
-        int: #M4
 [operation] linkLibraryCycle
   package:test/test.dart
   requirements
@@ -12899,16 +12316,14 @@ import 'a.dart';
 [operation] analyzedLibrary
   file: /home/test/lib/test.dart
   requirements
-    topLevels
-      dart:core
-        A: <null>
+    libraries
       package:test/a.dart
-        A: #M0
-    interfaces
-      package:test/a.dart
-        A
-          constructors
-            new: #M2
+        exportedTopLevels
+          A: #M0
+        interfaces
+          A
+            requestedConstructors
+              new: #M2
 [status] idle
 ''',
       updatedA: r'''
@@ -12924,13 +12339,10 @@ class A {
     declaredClasses
       A: #M0
         declaredConstructors
-          named: #M5
+          named: #M4
           new: #M2
         interface: #M3
   requirements
-    topLevels
-      dart:core
-        double: #M6
 [future] getErrors T2
   ErrorsResult #2
     path: /home/test/lib/test.dart
@@ -12979,13 +12391,10 @@ void f() {
           named: #M1
         interface: #M2
   requirements
-    topLevels
-      dart:core
-        int: #M3
 [operation] linkLibraryCycle
   package:test/test.dart
     declaredFunctions
-      f: #M4
+      f: #M3
   requirements
 [operation] analyzeFile
   file: /home/test/lib/test.dart
@@ -12993,16 +12402,14 @@ void f() {
 [operation] analyzedLibrary
   file: /home/test/lib/test.dart
   requirements
-    topLevels
-      dart:core
-        A: <null>
+    libraries
       package:test/a.dart
-        A: #M0
-    interfaces
-      package:test/a.dart
-        A
-          constructors
-            named: #M1
+        exportedTopLevels
+          A: #M0
+        interfaces
+          A
+            requestedConstructors
+              named: #M1
 [status] idle
 ''',
       updatedA: r'''
@@ -13017,12 +12424,9 @@ class A {
     declaredClasses
       A: #M0
         declaredConstructors
-          named: #M5
+          named: #M4
         interface: #M2
   requirements
-    topLevels
-      dart:core
-        double: #M6
 [future] getErrors T2
   ErrorsResult #1
     path: /home/test/lib/test.dart
@@ -13036,23 +12440,21 @@ class A {
     interfaceName: A
     constructorName: named
     expectedId: #M1
-    actualId: #M5
+    actualId: #M4
 [operation] analyzeFile
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
 [operation] analyzedLibrary
   file: /home/test/lib/test.dart
   requirements
-    topLevels
-      dart:core
-        A: <null>
+    libraries
       package:test/a.dart
-        A: #M0
-    interfaces
-      package:test/a.dart
-        A
-          constructors
-            named: #M5
+        exportedTopLevels
+          A: #M0
+        interfaces
+          A
+            requestedConstructors
+              named: #M4
 [status] idle
 ''',
     );
@@ -13103,13 +12505,10 @@ void f() {
             foo: #M2
             foo=: #M3
   requirements
-    topLevels
-      dart:core
-        int: #M6
 [operation] linkLibraryCycle
   package:test/test.dart
     declaredFunctions
-      f: #M7
+      f: #M6
   requirements
 [operation] analyzeFile
   file: /home/test/lib/test.dart
@@ -13117,24 +12516,21 @@ void f() {
 [operation] analyzedLibrary
   file: /home/test/lib/test.dart
   requirements
-    topLevels
-      dart:core
-        A: <null>
+    libraries
       package:test/a.dart
-        A: #M0
-    instances
-      package:test/a.dart
-        A
-          requestedFields
-            foo: #M1
-    interfaces
-      package:test/a.dart
-        A
-          constructors
-            foo: #M4
-          methods
-            foo: #M2
-            foo=: #M3
+        exportedTopLevels
+          A: #M0
+        instances
+          A
+            requestedDeclaredFields
+              foo: #M1
+        interfaces
+          A
+            requestedConstructors
+              foo: #M4
+            methods
+              foo: #M2
+              foo=: #M3
 [status] idle
 ''',
       updatedA: r'''
@@ -13157,16 +12553,12 @@ class A {
         declaredSetters
           foo=: #M3
         declaredConstructors
-          foo: #M8
+          foo: #M7
         interface: #M5
           map
             foo: #M2
             foo=: #M3
   requirements
-    topLevels
-      dart:core
-        double: #M9
-        int: #M6
 [future] getErrors T2
   ErrorsResult #1
     path: /home/test/lib/test.dart
@@ -13180,31 +12572,28 @@ class A {
     interfaceName: A
     constructorName: foo
     expectedId: #M4
-    actualId: #M8
+    actualId: #M7
 [operation] analyzeFile
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
 [operation] analyzedLibrary
   file: /home/test/lib/test.dart
   requirements
-    topLevels
-      dart:core
-        A: <null>
+    libraries
       package:test/a.dart
-        A: #M0
-    instances
-      package:test/a.dart
-        A
-          requestedFields
-            foo: #M1
-    interfaces
-      package:test/a.dart
-        A
-          constructors
-            foo: #M8
-          methods
-            foo: #M2
-            foo=: #M3
+        exportedTopLevels
+          A: #M0
+        instances
+          A
+            requestedDeclaredFields
+              foo: #M1
+        interfaces
+          A
+            requestedConstructors
+              foo: #M7
+            methods
+              foo: #M2
+              foo=: #M3
 [status] idle
 ''',
     );
@@ -13246,13 +12635,10 @@ void f() {
           map
             foo: #M1
   requirements
-    topLevels
-      dart:core
-        int: #M4
 [operation] linkLibraryCycle
   package:test/test.dart
     declaredFunctions
-      f: #M5
+      f: #M4
   requirements
 [operation] analyzeFile
   file: /home/test/lib/test.dart
@@ -13260,18 +12646,16 @@ void f() {
 [operation] analyzedLibrary
   file: /home/test/lib/test.dart
   requirements
-    topLevels
-      dart:core
-        A: <null>
+    libraries
       package:test/a.dart
-        A: #M0
-    interfaces
-      package:test/a.dart
-        A
-          constructors
-            foo: #M2
-          methods
-            foo: #M1
+        exportedTopLevels
+          A: #M0
+        interfaces
+          A
+            requestedConstructors
+              foo: #M2
+            methods
+              foo: #M1
 [status] idle
 ''',
       updatedA: r'''
@@ -13289,15 +12673,11 @@ class A {
         declaredMethods
           foo: #M1
         declaredConstructors
-          foo: #M6
+          foo: #M5
         interface: #M3
           map
             foo: #M1
   requirements
-    topLevels
-      dart:core
-        double: #M7
-        int: #M4
 [future] getErrors T2
   ErrorsResult #1
     path: /home/test/lib/test.dart
@@ -13311,25 +12691,23 @@ class A {
     interfaceName: A
     constructorName: foo
     expectedId: #M2
-    actualId: #M6
+    actualId: #M5
 [operation] analyzeFile
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
 [operation] analyzedLibrary
   file: /home/test/lib/test.dart
   requirements
-    topLevels
-      dart:core
-        A: <null>
+    libraries
       package:test/a.dart
-        A: #M0
-    interfaces
-      package:test/a.dart
-        A
-          constructors
-            foo: #M6
-          methods
-            foo: #M1
+        exportedTopLevels
+          A: #M0
+        interfaces
+          A
+            requestedConstructors
+              foo: #M5
+            methods
+              foo: #M1
 [status] idle
 ''',
     );
@@ -13366,52 +12744,42 @@ class B extends A {
           named: #M1
         interface: #M2
   requirements
-    topLevels
-      dart:core
-        int: #M3
 [operation] linkLibraryCycle
   package:test/test.dart
     declaredClasses
-      B: #M4
+      B: #M3
         declaredConstructors
-          foo: #M5
-        interface: #M6
+          foo: #M4
+        interface: #M5
   requirements
-    topLevels
-      dart:core
-        A: <null>
-        named: <null>
+    libraries
       package:test/a.dart
-        A: #M0
-        named: <null>
-    interfaces
-      package:test/a.dart
-        A
-          interfaceId: #M2
-          constructors
-            named: #M1
+        exportedTopLevels
+          A: #M0
+          named: <null>
+        interfaces
+          A
+            interfaceId: #M2
+            requestedConstructors
+              named: #M1
 [operation] analyzeFile
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
 [operation] analyzedLibrary
   file: /home/test/lib/test.dart
   requirements
-    topLevels
-      dart:core
-        A: <null>
-        named: <null>
+    libraries
       package:test/a.dart
-        A: #M0
-        named: <null>
-    instances
-      package:test/a.dart
-        A
-    interfaces
-      package:test/a.dart
-        A
-          allDeclaredConstructors: #M1
-          constructors
-            named: #M1
+        exportedTopLevels
+          A: #M0
+          named: <null>
+        instances
+          A
+        interfaces
+          A
+            allConstructors: #M1
+            requestedConstructors
+              named: #M1
 [status] idle
 ''',
       updatedA: r'''
@@ -13426,12 +12794,9 @@ class A {
     declaredClasses
       A: #M0
         declaredConstructors
-          named: #M7
+          named: #M6
         interface: #M2
   requirements
-    topLevels
-      dart:core
-        double: #M8
 [future] getErrors T2
   ErrorsResult #1
     path: /home/test/lib/test.dart
@@ -13443,57 +12808,50 @@ class A {
     interfaceName: A
     constructorName: named
     expectedId: #M1
-    actualId: #M7
+    actualId: #M6
 [operation] linkLibraryCycle
   package:test/test.dart
     declaredClasses
-      B: #M4
+      B: #M3
         declaredConstructors
-          foo: #M5
-        interface: #M6
+          foo: #M4
+        interface: #M5
   requirements
-    topLevels
-      dart:core
-        A: <null>
-        named: <null>
+    libraries
       package:test/a.dart
-        A: #M0
-        named: <null>
-    interfaces
-      package:test/a.dart
-        A
-          interfaceId: #M2
-          constructors
-            named: #M7
+        exportedTopLevels
+          A: #M0
+          named: <null>
+        interfaces
+          A
+            interfaceId: #M2
+            requestedConstructors
+              named: #M6
 [operation] getErrorsCannotReuse
   interfaceChildrenIdsMismatch
     libraryUri: package:test/a.dart
     interfaceName: A
     childrenPropertyName: constructors
     expectedIds: #M1
-    actualIds: #M7
+    actualIds: #M6
 [operation] analyzeFile
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
 [operation] analyzedLibrary
   file: /home/test/lib/test.dart
   requirements
-    topLevels
-      dart:core
-        A: <null>
-        named: <null>
+    libraries
       package:test/a.dart
-        A: #M0
-        named: <null>
-    instances
-      package:test/a.dart
-        A
-    interfaces
-      package:test/a.dart
-        A
-          allDeclaredConstructors: #M7
-          constructors
-            named: #M7
+        exportedTopLevels
+          A: #M0
+          named: <null>
+        instances
+          A
+        interfaces
+          A
+            allConstructors: #M6
+            requestedConstructors
+              named: #M6
 [status] idle
 ''',
     );
@@ -13532,13 +12890,10 @@ void f() {
           c2: #M2
         interface: #M3
   requirements
-    topLevels
-      dart:core
-        int: #M4
 [operation] linkLibraryCycle
   package:test/test.dart
     declaredFunctions
-      f: #M5
+      f: #M4
   requirements
 [operation] analyzeFile
   file: /home/test/lib/test.dart
@@ -13546,16 +12901,14 @@ void f() {
 [operation] analyzedLibrary
   file: /home/test/lib/test.dart
   requirements
-    topLevels
-      dart:core
-        A: <null>
+    libraries
       package:test/a.dart
-        A: #M0
-    interfaces
-      package:test/a.dart
-        A
-          constructors
-            c1: #M1
+        exportedTopLevels
+          A: #M0
+        interfaces
+          A
+            requestedConstructors
+              c1: #M1
 [status] idle
 ''',
       updatedA: r'''
@@ -13572,12 +12925,9 @@ class A {
       A: #M0
         declaredConstructors
           c1: #M1
-          c2: #M6
+          c2: #M5
         interface: #M3
   requirements
-    topLevels
-      dart:core
-        double: #M7
 [future] getErrors T2
   ErrorsResult #1
     path: /home/test/lib/test.dart
@@ -13637,16 +12987,14 @@ void f() {
 [operation] analyzedLibrary
   file: /home/test/lib/test.dart
   requirements
-    topLevels
-      dart:core
-        A: <null>
+    libraries
       package:test/a.dart
-        A: #M0
-    interfaces
-      package:test/a.dart
-        A
-          constructors
-            c2: #M2
+        exportedTopLevels
+          A: #M0
+        interfaces
+          A
+            requestedConstructors
+              c2: #M2
 [status] idle
 ''',
       updatedA: r'''
@@ -13686,23 +13034,20 @@ class A {
 [operation] analyzedLibrary
   file: /home/test/lib/test.dart
   requirements
-    topLevels
-      dart:core
-        A: <null>
+    libraries
       package:test/a.dart
-        A: #M0
-    instances
-      package:test/a.dart
-        A
-          requestedGetters
-            c2: <null>
-          requestedMethods
-            c2: <null>
-    interfaces
-      package:test/a.dart
-        A
-          constructors
-            c2: <null>
+        exportedTopLevels
+          A: #M0
+        instances
+          A
+            requestedDeclaredGetters
+              c2: <null>
+            requestedDeclaredMethods
+              c2: <null>
+        interfaces
+          A
+            requestedConstructors
+              c2: <null>
 [status] idle
 ''',
     );
@@ -13744,9 +13089,6 @@ import 'a.dart';
           foo: #M2
         interface: #M3
   requirements
-    topLevels
-      dart:core
-        int: #M4
 [operation] linkLibraryCycle
   package:test/test.dart
   requirements
@@ -13763,15 +13105,13 @@ import 'a.dart';
 [operation] analyzedLibrary
   file: /home/test/lib/test.dart
   requirements
-    topLevels
-      dart:core
-        A: <null>
+    libraries
       package:test/a.dart
-        A: #M0
-    instances
-      package:test/a.dart
-        A
-          allDeclaredFields: #M1
+        exportedTopLevels
+          A: #M0
+        instances
+          A
+            allDeclaredFields: #M1
 [status] idle
 ''',
       updatedA: r'''
@@ -13787,16 +13127,13 @@ class A {
     declaredClasses
       A: #M0
         declaredFields
-          bar: #M5
+          bar: #M4
           foo: #M1
         declaredGetters
-          bar: #M6
+          bar: #M5
           foo: #M2
         interface: #M3
   requirements
-    topLevels
-      dart:core
-        int: #M4
 [future] getErrors T2
   ErrorsResult #2
     path: /home/test/lib/test.dart
@@ -13812,7 +13149,7 @@ class A {
     instanceName: A
     childrenPropertyName: fields
     expectedIds: #M1
-    actualIds: #M1 #M5
+    actualIds: #M1 #M4
 [operation] analyzeFile
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
@@ -13826,15 +13163,13 @@ class A {
 [operation] analyzedLibrary
   file: /home/test/lib/test.dart
   requirements
-    topLevels
-      dart:core
-        A: <null>
+    libraries
       package:test/a.dart
-        A: #M0
-    instances
-      package:test/a.dart
-        A
-          allDeclaredFields: #M1 #M5
+        exportedTopLevels
+          A: #M0
+        instances
+          A
+            allDeclaredFields: #M1 #M4
 [status] idle
 ''',
     );
@@ -13872,13 +13207,10 @@ void f() {
           foo: #M2
         interface: #M3
   requirements
-    topLevels
-      dart:core
-        int: #M4
 [operation] linkLibraryCycle
   package:test/test.dart
     declaredFunctions
-      f: #M5
+      f: #M4
   requirements
 [operation] analyzeFile
   file: /home/test/lib/test.dart
@@ -13891,23 +13223,20 @@ void f() {
 [operation] analyzedLibrary
   file: /home/test/lib/test.dart
   requirements
-    topLevels
-      dart:core
-        A: <null>
+    libraries
       package:test/a.dart
-        A: #M0
-    instances
-      package:test/a.dart
-        A
-          requestedFields
-            foo: #M1
-          requestedGetters
-            foo: #M2
-    interfaces
-      package:test/a.dart
-        A
-          constructors
-            foo: <null>
+        exportedTopLevels
+          A: #M0
+        instances
+          A
+            requestedDeclaredFields
+              foo: #M1
+            requestedDeclaredGetters
+              foo: #M2
+        interfaces
+          A
+            requestedConstructors
+              foo: <null>
 [status] idle
 ''',
       updatedA: r'''
@@ -13922,14 +13251,11 @@ class A {
     declaredClasses
       A: #M0
         declaredFields
-          foo: #M6
+          foo: #M5
         declaredGetters
-          foo: #M7
+          foo: #M6
         interface: #M3
   requirements
-    topLevels
-      dart:core
-        double: #M8
 [future] getErrors T2
   ErrorsResult #2
     path: /home/test/lib/test.dart
@@ -13943,7 +13269,7 @@ class A {
     interfaceName: A
     fieldName: foo
     expectedId: #M1
-    actualId: #M6
+    actualId: #M5
 [operation] analyzeFile
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
@@ -13955,23 +13281,20 @@ class A {
 [operation] analyzedLibrary
   file: /home/test/lib/test.dart
   requirements
-    topLevels
-      dart:core
-        A: <null>
+    libraries
       package:test/a.dart
-        A: #M0
-    instances
-      package:test/a.dart
-        A
-          requestedFields
-            foo: #M6
-          requestedGetters
-            foo: #M7
-    interfaces
-      package:test/a.dart
-        A
-          constructors
-            foo: <null>
+        exportedTopLevels
+          A: #M0
+        instances
+          A
+            requestedDeclaredFields
+              foo: #M5
+            requestedDeclaredGetters
+              foo: #M6
+        interfaces
+          A
+            requestedConstructors
+              foo: <null>
 [status] idle
 ''',
     );
@@ -14012,13 +13335,10 @@ void f() {
           foo: #M4
         interface: #M5
   requirements
-    topLevels
-      dart:core
-        int: #M6
 [operation] linkLibraryCycle
   package:test/test.dart
     declaredFunctions
-      f: #M7
+      f: #M6
   requirements
 [operation] analyzeFile
   file: /home/test/lib/test.dart
@@ -14031,23 +13351,20 @@ void f() {
 [operation] analyzedLibrary
   file: /home/test/lib/test.dart
   requirements
-    topLevels
-      dart:core
-        A: <null>
+    libraries
       package:test/a.dart
-        A: #M0
-    instances
-      package:test/a.dart
-        A
-          requestedFields
-            foo: #M2
-          requestedGetters
-            foo: #M4
-    interfaces
-      package:test/a.dart
-        A
-          constructors
-            foo: <null>
+        exportedTopLevels
+          A: #M0
+        instances
+          A
+            requestedDeclaredFields
+              foo: #M2
+            requestedDeclaredGetters
+              foo: #M4
+        interfaces
+          A
+            requestedConstructors
+              foo: <null>
 [status] idle
 ''',
       updatedA: r'''
@@ -14063,17 +13380,13 @@ class A {
     declaredClasses
       A: #M0
         declaredFields
-          bar: #M8
+          bar: #M7
           foo: #M2
         declaredGetters
-          bar: #M9
+          bar: #M8
           foo: #M4
         interface: #M5
   requirements
-    topLevels
-      dart:core
-        double: #M10
-        int: #M6
 [future] getErrors T2
   ErrorsResult #2
     path: /home/test/lib/test.dart
@@ -14119,13 +13432,10 @@ void f() {
           foo: #M1
         interface: #M2
   requirements
-    topLevels
-      dart:core
-        int: #M3
 [operation] linkLibraryCycle
   package:test/test.dart
     declaredFunctions
-      f: #M4
+      f: #M3
   requirements
 [operation] analyzeFile
   file: /home/test/lib/test.dart
@@ -14138,23 +13448,20 @@ void f() {
 [operation] analyzedLibrary
   file: /home/test/lib/test.dart
   requirements
-    topLevels
-      dart:core
-        A: <null>
+    libraries
       package:test/a.dart
-        A: #M0
-    instances
-      package:test/a.dart
-        A
-          requestedGetters
-            foo: <null>
-          requestedMethods
-            foo: #M1
-    interfaces
-      package:test/a.dart
-        A
-          constructors
-            foo: <null>
+        exportedTopLevels
+          A: #M0
+        instances
+          A
+            requestedDeclaredGetters
+              foo: <null>
+            requestedDeclaredMethods
+              foo: #M1
+        interfaces
+          A
+            requestedConstructors
+              foo: <null>
 [status] idle
 ''',
       updatedA: r'''
@@ -14169,12 +13476,9 @@ class A {
     declaredClasses
       A: #M0
         declaredMethods
-          foo: #M5
+          foo: #M4
         interface: #M2
   requirements
-    topLevels
-      dart:core
-        double: #M6
 [future] getErrors T2
   ErrorsResult #2
     path: /home/test/lib/test.dart
@@ -14188,7 +13492,7 @@ class A {
     interfaceName: A
     methodName: foo
     expectedId: #M1
-    actualId: #M5
+    actualId: #M4
 [operation] analyzeFile
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
@@ -14200,23 +13504,20 @@ class A {
 [operation] analyzedLibrary
   file: /home/test/lib/test.dart
   requirements
-    topLevels
-      dart:core
-        A: <null>
+    libraries
       package:test/a.dart
-        A: #M0
-    instances
-      package:test/a.dart
-        A
-          requestedGetters
-            foo: <null>
-          requestedMethods
-            foo: #M5
-    interfaces
-      package:test/a.dart
-        A
-          constructors
-            foo: <null>
+        exportedTopLevels
+          A: #M0
+        instances
+          A
+            requestedDeclaredGetters
+              foo: <null>
+            requestedDeclaredMethods
+              foo: #M4
+        interfaces
+          A
+            requestedConstructors
+              foo: <null>
 [status] idle
 ''',
     );
@@ -14254,13 +13555,10 @@ void f() {
           foo: #M2
         interface: #M3
   requirements
-    topLevels
-      dart:core
-        int: #M4
 [operation] linkLibraryCycle
   package:test/test.dart
     declaredFunctions
-      f: #M5
+      f: #M4
   requirements
 [operation] analyzeFile
   file: /home/test/lib/test.dart
@@ -14273,23 +13571,20 @@ void f() {
 [operation] analyzedLibrary
   file: /home/test/lib/test.dart
   requirements
-    topLevels
-      dart:core
-        A: <null>
+    libraries
       package:test/a.dart
-        A: #M0
-    instances
-      package:test/a.dart
-        A
-          requestedGetters
-            foo: <null>
-          requestedMethods
-            foo: #M2
-    interfaces
-      package:test/a.dart
-        A
-          constructors
-            foo: <null>
+        exportedTopLevels
+          A: #M0
+        instances
+          A
+            requestedDeclaredGetters
+              foo: <null>
+            requestedDeclaredMethods
+              foo: #M2
+        interfaces
+          A
+            requestedConstructors
+              foo: <null>
 [status] idle
 ''',
       updatedA: r'''
@@ -14305,14 +13600,10 @@ class A {
     declaredClasses
       A: #M0
         declaredMethods
-          bar: #M6
+          bar: #M5
           foo: #M2
         interface: #M3
   requirements
-    topLevels
-      dart:core
-        double: #M7
-        int: #M4
 [future] getErrors T2
   ErrorsResult #2
     path: /home/test/lib/test.dart
@@ -14360,13 +13651,10 @@ void f() {
           foo=: #M2
         interface: #M3
   requirements
-    topLevels
-      dart:core
-        int: #M4
 [operation] linkLibraryCycle
   package:test/test.dart
     declaredFunctions
-      f: #M5
+      f: #M4
   requirements
 [operation] analyzeFile
   file: /home/test/lib/test.dart
@@ -14379,18 +13667,16 @@ void f() {
 [operation] analyzedLibrary
   file: /home/test/lib/test.dart
   requirements
-    topLevels
-      dart:core
-        A: <null>
+    libraries
       package:test/a.dart
-        A: #M0
-    instances
-      package:test/a.dart
-        A
-          requestedFields
-            foo: #M1
-          requestedSetters
-            foo=: #M2
+        exportedTopLevels
+          A: #M0
+        instances
+          A
+            requestedDeclaredFields
+              foo: #M1
+            requestedDeclaredSetters
+              foo=: #M2
 [status] idle
 ''',
       updatedA: r'''
@@ -14405,14 +13691,11 @@ class A {
     declaredClasses
       A: #M0
         declaredFields
-          foo: #M6
+          foo: #M5
         declaredSetters
-          foo=: #M7
+          foo=: #M6
         interface: #M3
   requirements
-    topLevels
-      dart:core
-        double: #M8
 [future] getErrors T2
   ErrorsResult #2
     path: /home/test/lib/test.dart
@@ -14426,7 +13709,7 @@ class A {
     interfaceName: A
     fieldName: foo
     expectedId: #M1
-    actualId: #M6
+    actualId: #M5
 [operation] analyzeFile
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
@@ -14438,18 +13721,16 @@ class A {
 [operation] analyzedLibrary
   file: /home/test/lib/test.dart
   requirements
-    topLevels
-      dart:core
-        A: <null>
+    libraries
       package:test/a.dart
-        A: #M0
-    instances
-      package:test/a.dart
-        A
-          requestedFields
-            foo: #M6
-          requestedSetters
-            foo=: #M7
+        exportedTopLevels
+          A: #M0
+        instances
+          A
+            requestedDeclaredFields
+              foo: #M5
+            requestedDeclaredSetters
+              foo=: #M6
 [status] idle
 ''',
     );
@@ -14490,13 +13771,10 @@ void f() {
           foo=: #M4
         interface: #M5
   requirements
-    topLevels
-      dart:core
-        int: #M6
 [operation] linkLibraryCycle
   package:test/test.dart
     declaredFunctions
-      f: #M7
+      f: #M6
   requirements
 [operation] analyzeFile
   file: /home/test/lib/test.dart
@@ -14509,18 +13787,16 @@ void f() {
 [operation] analyzedLibrary
   file: /home/test/lib/test.dart
   requirements
-    topLevels
-      dart:core
-        A: <null>
+    libraries
       package:test/a.dart
-        A: #M0
-    instances
-      package:test/a.dart
-        A
-          requestedFields
-            foo: #M2
-          requestedSetters
-            foo=: #M4
+        exportedTopLevels
+          A: #M0
+        instances
+          A
+            requestedDeclaredFields
+              foo: #M2
+            requestedDeclaredSetters
+              foo=: #M4
 [status] idle
 ''',
       updatedA: r'''
@@ -14536,17 +13812,13 @@ class A {
     declaredClasses
       A: #M0
         declaredFields
-          bar: #M8
+          bar: #M7
           foo: #M2
         declaredSetters
-          bar=: #M9
+          bar=: #M8
           foo=: #M4
         interface: #M5
   requirements
-    topLevels
-      dart:core
-        double: #M10
-        int: #M6
 [future] getErrors T2
   ErrorsResult #2
     path: /home/test/lib/test.dart
@@ -14600,9 +13872,6 @@ import 'a.dart';
           new: #M2
         interface: #M3
   requirements
-    topLevels
-      dart:core
-        int: #M4
 [operation] linkLibraryCycle
   package:test/test.dart
   requirements
@@ -14619,15 +13888,13 @@ import 'a.dart';
 [operation] analyzedLibrary
   file: /home/test/lib/test.dart
   requirements
-    topLevels
-      dart:core
-        A: <null>
+    libraries
       package:test/a.dart
-        A: #M0
-    interfaces
-      package:test/a.dart
-        A
-          allDeclaredConstructors: #M2 #M1
+        exportedTopLevels
+          A: #M0
+        interfaces
+          A
+            allConstructors: #M2 #M1
 [status] idle
 ''',
       updatedA: r'''
@@ -14644,13 +13911,9 @@ class A {
       A: #M0
         declaredConstructors
           named: #M1
-          new: #M5
+          new: #M4
         interface: #M3
   requirements
-    topLevels
-      dart:core
-        double: #M6
-        int: #M4
 [future] getErrors T2
   ErrorsResult #2
     path: /home/test/lib/test.dart
@@ -14666,7 +13929,7 @@ class A {
     interfaceName: A
     childrenPropertyName: constructors
     expectedIds: #M2 #M1
-    actualIds: #M5 #M1
+    actualIds: #M4 #M1
 [operation] analyzeFile
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
@@ -14680,15 +13943,13 @@ class A {
 [operation] analyzedLibrary
   file: /home/test/lib/test.dart
   requirements
-    topLevels
-      dart:core
-        A: <null>
+    libraries
       package:test/a.dart
-        A: #M0
-    interfaces
-      package:test/a.dart
-        A
-          allDeclaredConstructors: #M5 #M1
+        exportedTopLevels
+          A: #M0
+        interfaces
+          A
+            allConstructors: #M4 #M1
 [status] idle
 ''',
     );
@@ -14730,9 +13991,6 @@ import 'a.dart';
           new: #M1
         interface: #M2
   requirements
-    topLevels
-      dart:core
-        int: #M3
 [operation] linkLibraryCycle
   package:test/test.dart
   requirements
@@ -14749,16 +14007,14 @@ import 'a.dart';
 [operation] analyzedLibrary
   file: /home/test/lib/test.dart
   requirements
-    topLevels
-      dart:core
-        A: <null>
+    libraries
       package:test/a.dart
-        A: #M0
-    interfaces
-      package:test/a.dart
-        A
-          constructors
-            new: #M1
+        exportedTopLevels
+          A: #M0
+        interfaces
+          A
+            requestedConstructors
+              new: #M1
 [status] idle
 ''',
       updatedA: r'''
@@ -14820,13 +14076,10 @@ void f() {
           new: #M1
         interface: #M2
   requirements
-    topLevels
-      dart:core
-        int: #M3
 [operation] linkLibraryCycle
   package:test/test.dart
     declaredFunctions
-      f: #M4
+      f: #M3
   requirements
 [operation] analyzeFile
   file: /home/test/lib/test.dart
@@ -14834,16 +14087,14 @@ void f() {
 [operation] analyzedLibrary
   file: /home/test/lib/test.dart
   requirements
-    topLevels
-      dart:core
-        A: <null>
+    libraries
       package:test/a.dart
-        A: #M0
-    interfaces
-      package:test/a.dart
-        A
-          constructors
-            new: #M1
+        exportedTopLevels
+          A: #M0
+        interfaces
+          A
+            requestedConstructors
+              new: #M1
 [status] idle
 ''',
       updatedA: r'''
@@ -14858,12 +14109,9 @@ class A {
     declaredClasses
       A: #M0
         declaredConstructors
-          new: #M5
+          new: #M4
         interface: #M2
   requirements
-    topLevels
-      dart:core
-        double: #M6
 [future] getErrors T2
   ErrorsResult #1
     path: /home/test/lib/test.dart
@@ -14877,23 +14125,21 @@ class A {
     interfaceName: A
     constructorName: new
     expectedId: #M1
-    actualId: #M5
+    actualId: #M4
 [operation] analyzeFile
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
 [operation] analyzedLibrary
   file: /home/test/lib/test.dart
   requirements
-    topLevels
-      dart:core
-        A: <null>
+    libraries
       package:test/a.dart
-        A: #M0
-    interfaces
-      package:test/a.dart
-        A
-          constructors
-            new: #M5
+        exportedTopLevels
+          A: #M0
+        interfaces
+          A
+            requestedConstructors
+              new: #M4
 [status] idle
 ''',
     );
@@ -14934,13 +14180,10 @@ void f() {
           new: #M2
         interface: #M3
   requirements
-    topLevels
-      dart:core
-        int: #M4
 [operation] linkLibraryCycle
   package:test/test.dart
     declaredFunctions
-      f: #M5
+      f: #M4
   requirements
 [operation] analyzeFile
   file: /home/test/lib/test.dart
@@ -14948,16 +14191,14 @@ void f() {
 [operation] analyzedLibrary
   file: /home/test/lib/test.dart
   requirements
-    topLevels
-      dart:core
-        A: <null>
+    libraries
       package:test/a.dart
-        A: #M0
-    interfaces
-      package:test/a.dart
-        A
-          constructors
-            named: #M1
+        exportedTopLevels
+          A: #M0
+        interfaces
+          A
+            requestedConstructors
+              named: #M1
 [status] idle
 ''',
       updatedA: r'''
@@ -14974,13 +14215,9 @@ class A {
       A: #M0
         declaredConstructors
           named: #M1
-          new: #M6
+          new: #M5
         interface: #M3
   requirements
-    topLevels
-      dart:core
-        double: #M7
-        int: #M4
 [future] getErrors T2
   ErrorsResult #1
     path: /home/test/lib/test.dart
@@ -15036,13 +14273,10 @@ void f() {
       M: #M5
         interface: #M6
   requirements
-    topLevels
-      dart:core
-        int: #M7
 [operation] linkLibraryCycle
   package:test/test.dart
     declaredFunctions
-      f: #M8
+      f: #M7
   requirements
 [operation] analyzeFile
   file: /home/test/lib/test.dart
@@ -15050,16 +14284,14 @@ void f() {
 [operation] analyzedLibrary
   file: /home/test/lib/test.dart
   requirements
-    topLevels
-      dart:core
-        B: <null>
+    libraries
       package:test/a.dart
-        B: #M3
-    interfaces
-      package:test/a.dart
-        B
-          constructors
-            named: #M1
+        exportedTopLevels
+          B: #M3
+        interfaces
+          B
+            requestedConstructors
+              named: #M1
 [status] idle
 ''',
       updatedA: r'''
@@ -15076,19 +14308,16 @@ class B = A with M;
     declaredClasses
       A: #M0
         declaredConstructors
-          named: #M9
+          named: #M8
         interface: #M2
       B: #M3
         inheritedConstructors
-          named: #M9
+          named: #M8
         interface: #M4
     declaredMixins
       M: #M5
         interface: #M6
   requirements
-    topLevels
-      dart:core
-        double: #M10
 [future] getErrors T2
   ErrorsResult #1
     path: /home/test/lib/test.dart
@@ -15102,23 +14331,21 @@ class B = A with M;
     interfaceName: B
     constructorName: named
     expectedId: #M1
-    actualId: #M9
+    actualId: #M8
 [operation] analyzeFile
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
 [operation] analyzedLibrary
   file: /home/test/lib/test.dart
   requirements
-    topLevels
-      dart:core
-        B: <null>
+    libraries
       package:test/a.dart
-        B: #M3
-    interfaces
-      package:test/a.dart
-        B
-          constructors
-            named: #M9
+        exportedTopLevels
+          B: #M3
+        interfaces
+          B
+            requestedConstructors
+              named: #M8
 [status] idle
 ''',
     );
@@ -15161,13 +14388,10 @@ void f() {
           map
             index: #M6
   requirements
-    topLevels
-      dart:core
-        int: #M7
 [operation] linkLibraryCycle
   package:test/test.dart
     declaredFunctions
-      f: #M8
+      f: #M7
   requirements
 [operation] analyzeFile
   file: /home/test/lib/test.dart
@@ -15180,23 +14404,20 @@ void f() {
 [operation] analyzedLibrary
   file: /home/test/lib/test.dart
   requirements
-    topLevels
-      dart:core
-        A: <null>
+    libraries
       package:test/a.dart
-        A: #M0
-    instances
-      package:test/a.dart
-        A
-          requestedFields
-            foo: #M1
-          requestedGetters
-            foo: #M3
-    interfaces
-      package:test/a.dart
-        A
-          constructors
-            foo: <null>
+        exportedTopLevels
+          A: #M0
+        instances
+          A
+            requestedDeclaredFields
+              foo: #M1
+            requestedDeclaredGetters
+              foo: #M3
+        interfaces
+          A
+            requestedConstructors
+              foo: <null>
 [status] idle
 ''',
       updatedA: r'''
@@ -15212,8 +14433,8 @@ enum A {
     declaredEnums
       A: #M0
         declaredFields
-          foo: #M9
-          values: #M10
+          foo: #M8
+          values: #M9
         declaredGetters
           foo: #M3
           values: #M4
@@ -15221,9 +14442,6 @@ enum A {
           map
             index: #M6
   requirements
-    topLevels
-      dart:core
-        int: #M7
 [future] getErrors T2
   ErrorsResult #2
     path: /home/test/lib/test.dart
@@ -15237,7 +14455,7 @@ enum A {
     interfaceName: A
     fieldName: foo
     expectedId: #M1
-    actualId: #M9
+    actualId: #M8
 [operation] analyzeFile
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
@@ -15249,23 +14467,20 @@ enum A {
 [operation] analyzedLibrary
   file: /home/test/lib/test.dart
   requirements
-    topLevels
-      dart:core
-        A: <null>
+    libraries
       package:test/a.dart
-        A: #M0
-    instances
-      package:test/a.dart
-        A
-          requestedFields
-            foo: #M9
-          requestedGetters
-            foo: #M3
-    interfaces
-      package:test/a.dart
-        A
-          constructors
-            foo: <null>
+        exportedTopLevels
+          A: #M0
+        instances
+          A
+            requestedDeclaredFields
+              foo: #M8
+            requestedDeclaredGetters
+              foo: #M3
+        interfaces
+          A
+            requestedConstructors
+              foo: <null>
 [status] idle
 ''',
     );
@@ -15311,19 +14526,15 @@ void f(A a) {
             foo: #M4
             index: #M8
   requirements
-    topLevels
-      dart:core
-        int: #M9
 [operation] linkLibraryCycle
   package:test/test.dart
     declaredFunctions
-      f: #M10
+      f: #M9
   requirements
-    topLevels
-      dart:core
-        A: <null>
+    libraries
       package:test/a.dart
-        A: #M0
+        exportedTopLevels
+          A: #M0
 [operation] analyzeFile
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
@@ -15335,21 +14546,18 @@ void f(A a) {
 [operation] analyzedLibrary
   file: /home/test/lib/test.dart
   requirements
-    topLevels
-      dart:core
-        A: <null>
+    libraries
       package:test/a.dart
-        A: #M0
-    instances
-      package:test/a.dart
-        A
-          requestedFields
-            foo: #M1
-    interfaces
-      package:test/a.dart
-        A
-          methods
-            foo: #M4
+        exportedTopLevels
+          A: #M0
+        instances
+          A
+            requestedDeclaredFields
+              foo: #M1
+        interfaces
+          A
+            methods
+              foo: #M4
 [status] idle
 ''',
       updatedA: r'''
@@ -15365,21 +14573,18 @@ enum A {
     declaredEnums
       A: #M0
         declaredFields
-          foo: #M11
+          foo: #M10
           v: #M2
           values: #M3
         declaredGetters
-          foo: #M12
+          foo: #M11
           v: #M5
           values: #M6
-        interface: #M13
+        interface: #M12
           map
-            foo: #M12
+            foo: #M11
             index: #M8
   requirements
-    topLevels
-      dart:core
-        double: #M14
 [future] getErrors T2
   ErrorsResult #2
     path: /home/test/lib/test.dart
@@ -15393,7 +14598,7 @@ enum A {
     interfaceName: A
     fieldName: foo
     expectedId: #M1
-    actualId: #M11
+    actualId: #M10
 [operation] analyzeFile
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
@@ -15405,21 +14610,18 @@ enum A {
 [operation] analyzedLibrary
   file: /home/test/lib/test.dart
   requirements
-    topLevels
-      dart:core
-        A: <null>
+    libraries
       package:test/a.dart
-        A: #M0
-    instances
-      package:test/a.dart
-        A
-          requestedFields
-            foo: #M11
-    interfaces
-      package:test/a.dart
-        A
-          methods
-            foo: #M12
+        exportedTopLevels
+          A: #M0
+        instances
+          A
+            requestedDeclaredFields
+              foo: #M10
+        interfaces
+          A
+            methods
+              foo: #M11
 [status] idle
 ''',
     );
@@ -15469,19 +14671,15 @@ void f(A a) {
             foo: #M6
             index: #M10
   requirements
-    topLevels
-      dart:core
-        int: #M11
 [operation] linkLibraryCycle
   package:test/test.dart
     declaredFunctions
-      f: #M12
+      f: #M11
   requirements
-    topLevels
-      dart:core
-        A: <null>
+    libraries
       package:test/a.dart
-        A: #M0
+        exportedTopLevels
+          A: #M0
 [operation] analyzeFile
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
@@ -15493,21 +14691,18 @@ void f(A a) {
 [operation] analyzedLibrary
   file: /home/test/lib/test.dart
   requirements
-    topLevels
-      dart:core
-        A: <null>
+    libraries
       package:test/a.dart
-        A: #M0
-    instances
-      package:test/a.dart
-        A
-          requestedFields
-            foo: #M2
-    interfaces
-      package:test/a.dart
-        A
-          methods
-            foo: #M6
+        exportedTopLevels
+          A: #M0
+        instances
+          A
+            requestedDeclaredFields
+              foo: #M2
+        interfaces
+          A
+            methods
+              foo: #M6
 [status] idle
 ''',
       updatedA: r'''
@@ -15524,25 +14719,21 @@ enum A {
     declaredEnums
       A: #M0
         declaredFields
-          bar: #M13
+          bar: #M12
           foo: #M2
           v: #M3
           values: #M4
         declaredGetters
-          bar: #M14
+          bar: #M13
           foo: #M6
           v: #M7
           values: #M8
-        interface: #M15
+        interface: #M14
           map
-            bar: #M14
+            bar: #M13
             foo: #M6
             index: #M10
   requirements
-    topLevels
-      dart:core
-        double: #M16
-        int: #M11
 [future] getErrors T2
   ErrorsResult #2
     path: /home/test/lib/test.dart
@@ -15598,19 +14789,15 @@ void f(A a) {
             foo: #M5
             index: #M7
   requirements
-    topLevels
-      dart:core
-        int: #M8
 [operation] linkLibraryCycle
   package:test/test.dart
     declaredFunctions
-      f: #M9
+      f: #M8
   requirements
-    topLevels
-      dart:core
-        A: <null>
+    libraries
       package:test/a.dart
-        A: #M0
+        exportedTopLevels
+          A: #M0
 [operation] analyzeFile
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
@@ -15622,16 +14809,14 @@ void f(A a) {
 [operation] analyzedLibrary
   file: /home/test/lib/test.dart
   requirements
-    topLevels
-      dart:core
-        A: <null>
+    libraries
       package:test/a.dart
-        A: #M0
-    interfaces
-      package:test/a.dart
-        A
-          methods
-            foo: #M5
+        exportedTopLevels
+          A: #M0
+        interfaces
+          A
+            methods
+              foo: #M5
 [status] idle
 ''',
       updatedA: r'''
@@ -15653,15 +14838,12 @@ enum A {
           v: #M3
           values: #M4
         declaredMethods
-          foo: #M10
-        interface: #M11
+          foo: #M9
+        interface: #M10
           map
-            foo: #M10
+            foo: #M9
             index: #M7
   requirements
-    topLevels
-      dart:core
-        double: #M12
 [future] getErrors T2
   ErrorsResult #2
     path: /home/test/lib/test.dart
@@ -15675,7 +14857,7 @@ enum A {
     interfaceName: A
     methodName: foo
     expectedId: #M5
-    actualId: #M10
+    actualId: #M9
 [operation] analyzeFile
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
@@ -15687,16 +14869,14 @@ enum A {
 [operation] analyzedLibrary
   file: /home/test/lib/test.dart
   requirements
-    topLevels
-      dart:core
-        A: <null>
+    libraries
       package:test/a.dart
-        A: #M0
-    interfaces
-      package:test/a.dart
-        A
-          methods
-            foo: #M10
+        exportedTopLevels
+          A: #M0
+        interfaces
+          A
+            methods
+              foo: #M9
 [status] idle
 ''',
     );
@@ -15745,19 +14925,15 @@ void f(A a) {
             foo: #M6
             index: #M8
   requirements
-    topLevels
-      dart:core
-        int: #M9
 [operation] linkLibraryCycle
   package:test/test.dart
     declaredFunctions
-      f: #M10
+      f: #M9
   requirements
-    topLevels
-      dart:core
-        A: <null>
+    libraries
       package:test/a.dart
-        A: #M0
+        exportedTopLevels
+          A: #M0
 [operation] analyzeFile
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
@@ -15769,16 +14945,14 @@ void f(A a) {
 [operation] analyzedLibrary
   file: /home/test/lib/test.dart
   requirements
-    topLevels
-      dart:core
-        A: <null>
+    libraries
       package:test/a.dart
-        A: #M0
-    interfaces
-      package:test/a.dart
-        A
-          methods
-            foo: #M6
+        exportedTopLevels
+          A: #M0
+        interfaces
+          A
+            methods
+              foo: #M6
 [status] idle
 ''',
       updatedA: r'''
@@ -15801,18 +14975,14 @@ enum A {
           v: #M3
           values: #M4
         declaredMethods
-          bar: #M11
+          bar: #M10
           foo: #M6
-        interface: #M12
+        interface: #M11
           map
-            bar: #M11
+            bar: #M10
             foo: #M6
             index: #M8
   requirements
-    topLevels
-      dart:core
-        double: #M13
-        int: #M9
 [future] getErrors T2
   ErrorsResult #2
     path: /home/test/lib/test.dart
@@ -15869,19 +15039,15 @@ void f(A a) {
             foo=: #M6
             index: #M8
   requirements
-    topLevels
-      dart:core
-        int: #M9
 [operation] linkLibraryCycle
   package:test/test.dart
     declaredFunctions
-      f: #M10
+      f: #M9
   requirements
-    topLevels
-      dart:core
-        A: <null>
+    libraries
       package:test/a.dart
-        A: #M0
+        exportedTopLevels
+          A: #M0
 [operation] analyzeFile
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
@@ -15893,21 +15059,18 @@ void f(A a) {
 [operation] analyzedLibrary
   file: /home/test/lib/test.dart
   requirements
-    topLevels
-      dart:core
-        A: <null>
+    libraries
       package:test/a.dart
-        A: #M0
-    instances
-      package:test/a.dart
-        A
-          requestedFields
-            foo: #M1
-    interfaces
-      package:test/a.dart
-        A
-          methods
-            foo=: #M6
+        exportedTopLevels
+          A: #M0
+        instances
+          A
+            requestedDeclaredFields
+              foo: #M1
+        interfaces
+          A
+            methods
+              foo=: #M6
 [status] idle
 ''',
       updatedA: r'''
@@ -15923,22 +15086,19 @@ enum A {
     declaredEnums
       A: #M0
         declaredFields
-          foo: #M11
+          foo: #M10
           v: #M2
           values: #M3
         declaredGetters
           v: #M4
           values: #M5
         declaredSetters
-          foo=: #M12
-        interface: #M13
+          foo=: #M11
+        interface: #M12
           map
-            foo=: #M12
+            foo=: #M11
             index: #M8
   requirements
-    topLevels
-      dart:core
-        double: #M14
 [future] getErrors T2
   ErrorsResult #2
     path: /home/test/lib/test.dart
@@ -15952,7 +15112,7 @@ enum A {
     interfaceName: A
     fieldName: foo
     expectedId: #M1
-    actualId: #M11
+    actualId: #M10
 [operation] analyzeFile
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
@@ -15964,21 +15124,18 @@ enum A {
 [operation] analyzedLibrary
   file: /home/test/lib/test.dart
   requirements
-    topLevels
-      dart:core
-        A: <null>
+    libraries
       package:test/a.dart
-        A: #M0
-    instances
-      package:test/a.dart
-        A
-          requestedFields
-            foo: #M11
-    interfaces
-      package:test/a.dart
-        A
-          methods
-            foo=: #M12
+        exportedTopLevels
+          A: #M0
+        instances
+          A
+            requestedDeclaredFields
+              foo: #M10
+        interfaces
+          A
+            methods
+              foo=: #M11
 [status] idle
 ''',
     );
@@ -16029,19 +15186,15 @@ void f(A a) {
             foo=: #M8
             index: #M10
   requirements
-    topLevels
-      dart:core
-        int: #M11
 [operation] linkLibraryCycle
   package:test/test.dart
     declaredFunctions
-      f: #M12
+      f: #M11
   requirements
-    topLevels
-      dart:core
-        A: <null>
+    libraries
       package:test/a.dart
-        A: #M0
+        exportedTopLevels
+          A: #M0
 [operation] analyzeFile
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
@@ -16053,21 +15206,18 @@ void f(A a) {
 [operation] analyzedLibrary
   file: /home/test/lib/test.dart
   requirements
-    topLevels
-      dart:core
-        A: <null>
+    libraries
       package:test/a.dart
-        A: #M0
-    instances
-      package:test/a.dart
-        A
-          requestedFields
-            foo: #M2
-    interfaces
-      package:test/a.dart
-        A
-          methods
-            foo=: #M8
+        exportedTopLevels
+          A: #M0
+        instances
+          A
+            requestedDeclaredFields
+              foo: #M2
+        interfaces
+          A
+            methods
+              foo=: #M8
 [status] idle
 ''',
       updatedA: r'''
@@ -16084,7 +15234,7 @@ enum A {
     declaredEnums
       A: #M0
         declaredFields
-          bar: #M13
+          bar: #M12
           foo: #M2
           v: #M3
           values: #M4
@@ -16092,18 +15242,14 @@ enum A {
           v: #M5
           values: #M6
         declaredSetters
-          bar=: #M14
+          bar=: #M13
           foo=: #M8
-        interface: #M15
+        interface: #M14
           map
-            bar=: #M14
+            bar=: #M13
             foo=: #M8
             index: #M10
   requirements
-    topLevels
-      dart:core
-        double: #M16
-        int: #M11
 [future] getErrors T2
   ErrorsResult #2
     path: /home/test/lib/test.dart
@@ -16158,13 +15304,10 @@ void f() {
           map
             index: #M8
   requirements
-    topLevels
-      dart:core
-        int: #M9
 [operation] linkLibraryCycle
   package:test/test.dart
     declaredFunctions
-      f: #M10
+      f: #M9
   requirements
 [operation] analyzeFile
   file: /home/test/lib/test.dart
@@ -16177,23 +15320,20 @@ void f() {
 [operation] analyzedLibrary
   file: /home/test/lib/test.dart
   requirements
-    topLevels
-      dart:core
-        A: <null>
+    libraries
       package:test/a.dart
-        A: #M0
-    instances
-      package:test/a.dart
-        A
-          requestedFields
-            foo: #M1
-          requestedGetters
-            foo: #M4
-    interfaces
-      package:test/a.dart
-        A
-          constructors
-            foo: <null>
+        exportedTopLevels
+          A: #M0
+        instances
+          A
+            requestedDeclaredFields
+              foo: #M1
+            requestedDeclaredGetters
+              foo: #M4
+        interfaces
+          A
+            requestedConstructors
+              foo: <null>
 [status] idle
 ''',
       updatedA: r'''
@@ -16209,20 +15349,17 @@ enum A {
     declaredEnums
       A: #M0
         declaredFields
-          foo: #M11
+          foo: #M10
           v: #M2
           values: #M3
         declaredGetters
-          foo: #M12
+          foo: #M11
           v: #M5
           values: #M6
         interface: #M7
           map
             index: #M8
   requirements
-    topLevels
-      dart:core
-        double: #M13
 [future] getErrors T2
   ErrorsResult #2
     path: /home/test/lib/test.dart
@@ -16236,7 +15373,7 @@ enum A {
     interfaceName: A
     fieldName: foo
     expectedId: #M1
-    actualId: #M11
+    actualId: #M10
 [operation] analyzeFile
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
@@ -16248,23 +15385,20 @@ enum A {
 [operation] analyzedLibrary
   file: /home/test/lib/test.dart
   requirements
-    topLevels
-      dart:core
-        A: <null>
+    libraries
       package:test/a.dart
-        A: #M0
-    instances
-      package:test/a.dart
-        A
-          requestedFields
-            foo: #M11
-          requestedGetters
-            foo: #M12
-    interfaces
-      package:test/a.dart
-        A
-          constructors
-            foo: <null>
+        exportedTopLevels
+          A: #M0
+        instances
+          A
+            requestedDeclaredFields
+              foo: #M10
+            requestedDeclaredGetters
+              foo: #M11
+        interfaces
+          A
+            requestedConstructors
+              foo: <null>
 [status] idle
 ''',
     );
@@ -16312,13 +15446,10 @@ void f() {
           map
             index: #M10
   requirements
-    topLevels
-      dart:core
-        int: #M11
 [operation] linkLibraryCycle
   package:test/test.dart
     declaredFunctions
-      f: #M12
+      f: #M11
   requirements
 [operation] analyzeFile
   file: /home/test/lib/test.dart
@@ -16331,23 +15462,20 @@ void f() {
 [operation] analyzedLibrary
   file: /home/test/lib/test.dart
   requirements
-    topLevels
-      dart:core
-        A: <null>
+    libraries
       package:test/a.dart
-        A: #M0
-    instances
-      package:test/a.dart
-        A
-          requestedFields
-            foo: #M2
-          requestedGetters
-            foo: #M6
-    interfaces
-      package:test/a.dart
-        A
-          constructors
-            foo: <null>
+        exportedTopLevels
+          A: #M0
+        instances
+          A
+            requestedDeclaredFields
+              foo: #M2
+            requestedDeclaredGetters
+              foo: #M6
+        interfaces
+          A
+            requestedConstructors
+              foo: <null>
 [status] idle
 ''',
       updatedA: r'''
@@ -16364,12 +15492,12 @@ enum A {
     declaredEnums
       A: #M0
         declaredFields
-          bar: #M13
+          bar: #M12
           foo: #M2
           v: #M3
           values: #M4
         declaredGetters
-          bar: #M14
+          bar: #M13
           foo: #M6
           v: #M7
           values: #M8
@@ -16377,10 +15505,6 @@ enum A {
           map
             index: #M10
   requirements
-    topLevels
-      dart:core
-        double: #M15
-        int: #M11
 [future] getErrors T2
   ErrorsResult #2
     path: /home/test/lib/test.dart
@@ -16435,13 +15559,10 @@ void f() {
           map
             index: #M7
   requirements
-    topLevels
-      dart:core
-        int: #M8
 [operation] linkLibraryCycle
   package:test/test.dart
     declaredFunctions
-      f: #M9
+      f: #M8
   requirements
 [operation] analyzeFile
   file: /home/test/lib/test.dart
@@ -16454,23 +15575,20 @@ void f() {
 [operation] analyzedLibrary
   file: /home/test/lib/test.dart
   requirements
-    topLevels
-      dart:core
-        A: <null>
+    libraries
       package:test/a.dart
-        A: #M0
-    instances
-      package:test/a.dart
-        A
-          requestedGetters
-            foo: <null>
-          requestedMethods
-            foo: #M5
-    interfaces
-      package:test/a.dart
-        A
-          constructors
-            foo: <null>
+        exportedTopLevels
+          A: #M0
+        instances
+          A
+            requestedDeclaredGetters
+              foo: <null>
+            requestedDeclaredMethods
+              foo: #M5
+        interfaces
+          A
+            requestedConstructors
+              foo: <null>
 [status] idle
 ''',
       updatedA: r'''
@@ -16492,14 +15610,11 @@ enum A {
           v: #M3
           values: #M4
         declaredMethods
-          foo: #M10
+          foo: #M9
         interface: #M6
           map
             index: #M7
   requirements
-    topLevels
-      dart:core
-        double: #M11
 [future] getErrors T2
   ErrorsResult #2
     path: /home/test/lib/test.dart
@@ -16513,7 +15628,7 @@ enum A {
     interfaceName: A
     methodName: foo
     expectedId: #M5
-    actualId: #M10
+    actualId: #M9
 [operation] analyzeFile
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
@@ -16525,23 +15640,20 @@ enum A {
 [operation] analyzedLibrary
   file: /home/test/lib/test.dart
   requirements
-    topLevels
-      dart:core
-        A: <null>
+    libraries
       package:test/a.dart
-        A: #M0
-    instances
-      package:test/a.dart
-        A
-          requestedGetters
-            foo: <null>
-          requestedMethods
-            foo: #M10
-    interfaces
-      package:test/a.dart
-        A
-          constructors
-            foo: <null>
+        exportedTopLevels
+          A: #M0
+        instances
+          A
+            requestedDeclaredGetters
+              foo: <null>
+            requestedDeclaredMethods
+              foo: #M9
+        interfaces
+          A
+            requestedConstructors
+              foo: <null>
 [status] idle
 ''',
     );
@@ -16588,13 +15700,10 @@ void f() {
           map
             index: #M8
   requirements
-    topLevels
-      dart:core
-        int: #M9
 [operation] linkLibraryCycle
   package:test/test.dart
     declaredFunctions
-      f: #M10
+      f: #M9
   requirements
 [operation] analyzeFile
   file: /home/test/lib/test.dart
@@ -16607,23 +15716,20 @@ void f() {
 [operation] analyzedLibrary
   file: /home/test/lib/test.dart
   requirements
-    topLevels
-      dart:core
-        A: <null>
+    libraries
       package:test/a.dart
-        A: #M0
-    instances
-      package:test/a.dart
-        A
-          requestedGetters
-            foo: <null>
-          requestedMethods
-            foo: #M6
-    interfaces
-      package:test/a.dart
-        A
-          constructors
-            foo: <null>
+        exportedTopLevels
+          A: #M0
+        instances
+          A
+            requestedDeclaredGetters
+              foo: <null>
+            requestedDeclaredMethods
+              foo: #M6
+        interfaces
+          A
+            requestedConstructors
+              foo: <null>
 [status] idle
 ''',
       updatedA: r'''
@@ -16646,16 +15752,12 @@ enum A {
           v: #M3
           values: #M4
         declaredMethods
-          bar: #M11
+          bar: #M10
           foo: #M6
         interface: #M7
           map
             index: #M8
   requirements
-    topLevels
-      dart:core
-        double: #M12
-        int: #M9
 [future] getErrors T2
   ErrorsResult #2
     path: /home/test/lib/test.dart
@@ -16711,13 +15813,10 @@ void f() {
           map
             index: #M8
   requirements
-    topLevels
-      dart:core
-        int: #M9
 [operation] linkLibraryCycle
   package:test/test.dart
     declaredFunctions
-      f: #M10
+      f: #M9
   requirements
 [operation] analyzeFile
   file: /home/test/lib/test.dart
@@ -16730,18 +15829,16 @@ void f() {
 [operation] analyzedLibrary
   file: /home/test/lib/test.dart
   requirements
-    topLevels
-      dart:core
-        A: <null>
+    libraries
       package:test/a.dart
-        A: #M0
-    instances
-      package:test/a.dart
-        A
-          requestedFields
-            foo: #M1
-          requestedSetters
-            foo=: #M6
+        exportedTopLevels
+          A: #M0
+        instances
+          A
+            requestedDeclaredFields
+              foo: #M1
+            requestedDeclaredSetters
+              foo=: #M6
 [status] idle
 ''',
       updatedA: r'''
@@ -16757,21 +15854,18 @@ enum A {
     declaredEnums
       A: #M0
         declaredFields
-          foo: #M11
+          foo: #M10
           v: #M2
           values: #M3
         declaredGetters
           v: #M4
           values: #M5
         declaredSetters
-          foo=: #M12
+          foo=: #M11
         interface: #M7
           map
             index: #M8
   requirements
-    topLevels
-      dart:core
-        double: #M13
 [future] getErrors T2
   ErrorsResult #2
     path: /home/test/lib/test.dart
@@ -16785,7 +15879,7 @@ enum A {
     interfaceName: A
     fieldName: foo
     expectedId: #M1
-    actualId: #M11
+    actualId: #M10
 [operation] analyzeFile
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
@@ -16797,18 +15891,16 @@ enum A {
 [operation] analyzedLibrary
   file: /home/test/lib/test.dart
   requirements
-    topLevels
-      dart:core
-        A: <null>
+    libraries
       package:test/a.dart
-        A: #M0
-    instances
-      package:test/a.dart
-        A
-          requestedFields
-            foo: #M11
-          requestedSetters
-            foo=: #M12
+        exportedTopLevels
+          A: #M0
+        instances
+          A
+            requestedDeclaredFields
+              foo: #M10
+            requestedDeclaredSetters
+              foo=: #M11
 [status] idle
 ''',
     );
@@ -16857,13 +15949,10 @@ void f() {
           map
             index: #M10
   requirements
-    topLevels
-      dart:core
-        int: #M11
 [operation] linkLibraryCycle
   package:test/test.dart
     declaredFunctions
-      f: #M12
+      f: #M11
   requirements
 [operation] analyzeFile
   file: /home/test/lib/test.dart
@@ -16876,18 +15965,16 @@ void f() {
 [operation] analyzedLibrary
   file: /home/test/lib/test.dart
   requirements
-    topLevels
-      dart:core
-        A: <null>
+    libraries
       package:test/a.dart
-        A: #M0
-    instances
-      package:test/a.dart
-        A
-          requestedFields
-            foo: #M2
-          requestedSetters
-            foo=: #M8
+        exportedTopLevels
+          A: #M0
+        instances
+          A
+            requestedDeclaredFields
+              foo: #M2
+            requestedDeclaredSetters
+              foo=: #M8
 [status] idle
 ''',
       updatedA: r'''
@@ -16904,7 +15991,7 @@ enum A {
     declaredEnums
       A: #M0
         declaredFields
-          bar: #M13
+          bar: #M12
           foo: #M2
           v: #M3
           values: #M4
@@ -16912,16 +15999,12 @@ enum A {
           v: #M5
           values: #M6
         declaredSetters
-          bar=: #M14
+          bar=: #M13
           foo=: #M8
         interface: #M9
           map
             index: #M10
   requirements
-    topLevels
-      dart:core
-        double: #M15
-        int: #M11
 [future] getErrors T2
   ErrorsResult #2
     path: /home/test/lib/test.dart
@@ -17460,9 +16543,6 @@ export 'a.dart';
       _E: #M1
     exportedExtensions: #M0
   requirements
-    topLevels
-      dart:core
-        int: #M2
 [operation] linkLibraryCycle
   package:test/test.dart
     reExportMap
@@ -17489,12 +16569,9 @@ extension _E2 on int {}
   package:test/a.dart
     declaredExtensions
       E: #M0
-      _E2: #M3
+      _E2: #M2
     exportedExtensions: #M0
   requirements
-    topLevels
-      dart:core
-        int: #M2
 [future] getLibraryByUri T2
   library
     exportedReferences
@@ -17546,9 +16623,6 @@ export 'a.dart';
             returnType: int @ dart:core
     exportedExtensions: #M0
   requirements
-    topLevels
-      dart:core
-        int: #M3
 [operation] linkLibraryCycle
   package:test/test.dart
     reExportMap
@@ -17579,20 +16653,17 @@ extension E on int {
       E: #M0
         extendedType: int @ dart:core
         declaredFields
-          bar: #M4
+          bar: #M3
             type: int @ dart:core
           foo: #M1
             type: int @ dart:core
         declaredGetters
-          bar: #M5
+          bar: #M4
             returnType: int @ dart:core
           foo: #M2
             returnType: int @ dart:core
     exportedExtensions: #M0
   requirements
-    topLevels
-      dart:core
-        int: #M3
 [future] getLibraryByUri T2
   library
     exportedReferences
@@ -17649,9 +16720,6 @@ export 'a.dart';
             returnType: int @ dart:core
     exportedExtensions: #M0
   requirements
-    topLevels
-      dart:core
-        int: #M5
 [operation] linkLibraryCycle
   package:test/test.dart
     reExportMap
@@ -17682,21 +16750,17 @@ extension E on int {
       E: #M0
         extendedType: int @ dart:core
         declaredFields
-          bar: #M6
+          bar: #M5
             type: double @ dart:core
           foo: #M2
             type: int @ dart:core
         declaredGetters
-          bar: #M7
+          bar: #M6
             returnType: double @ dart:core
           foo: #M4
             returnType: int @ dart:core
     exportedExtensions: #M0
   requirements
-    topLevels
-      dart:core
-        double: #M8
-        int: #M5
 [future] getLibraryByUri T2
   library
     exportedReferences
@@ -17753,9 +16817,6 @@ export 'a.dart';
             returnType: int @ dart:core
     exportedExtensions: #M0
   requirements
-    topLevels
-      dart:core
-        int: #M5
 [operation] linkLibraryCycle
   package:test/test.dart
     reExportMap
@@ -17792,9 +16853,6 @@ extension E on int {
             returnType: int @ dart:core
     exportedExtensions: #M0
   requirements
-    topLevels
-      dart:core
-        int: #M5
 [future] getLibraryByUri T2
   library
     exportedReferences
@@ -17838,9 +16896,6 @@ export 'a.dart';
         extendedType: int @ dart:core
     exportedExtensions: #M0
   requirements
-    topLevels
-      dart:core
-        int: #M1
 [operation] linkLibraryCycle
   package:test/test.dart
     reExportMap
@@ -17868,13 +16923,10 @@ extension E2 on int {}
     declaredExtensions
       E1: #M0
         extendedType: int @ dart:core
-      E2: #M2
+      E2: #M1
         extendedType: int @ dart:core
-    exportedExtensions: #M0 #M2
+    exportedExtensions: #M0 #M1
   requirements
-    topLevels
-      dart:core
-        int: #M1
 [future] getLibraryByUri T2
   library
     exportedReferences
@@ -17889,20 +16941,20 @@ extension E2 on int {}
     exportedUri: package:test/a.dart
     name: E2
     expectedId: <null>
-    actualId: #M2
+    actualId: #M1
 [operation] linkLibraryCycle
   package:test/test.dart
     reExportMap
       E1: #M0
-      E2: #M2
-    exportedExtensions: #M0 #M2
+      E2: #M1
+    exportedExtensions: #M0 #M1
   requirements
     exportRequirements
       package:test/test.dart
         exports
           package:test/a.dart
             E1: #M0
-            E2: #M2
+            E2: #M1
 [status] idle
 ''',
     );
@@ -17943,9 +16995,6 @@ export 'a.dart';
         extendedType: int @ dart:core
     exportedExtensions: #M0 #M1
   requirements
-    topLevels
-      dart:core
-        int: #M2
 [operation] linkLibraryCycle
   package:test/test.dart
     reExportMap
@@ -17976,9 +17025,6 @@ extension E1 on int {}
         extendedType: int @ dart:core
     exportedExtensions: #M0
   requirements
-    topLevels
-      dart:core
-        int: #M2
 [future] getLibraryByUri T2
   library
     exportedReferences
@@ -18043,9 +17089,6 @@ export 'a.dart';
               returnType: void
     exportedExtensions: #M0
   requirements
-    topLevels
-      dart:core
-        int: #M2
 [operation] linkLibraryCycle
   package:test/test.dart
     reExportMap
@@ -18076,7 +17119,7 @@ extension E on int {
       E: #M0
         extendedType: int @ dart:core
         declaredMethods
-          bar: #M3
+          bar: #M2
             functionType: FunctionType
               returnType: void
           foo: #M1
@@ -18084,9 +17127,6 @@ extension E on int {
               returnType: void
     exportedExtensions: #M0
   requirements
-    topLevels
-      dart:core
-        int: #M2
 [future] getLibraryByUri T2
   library
     exportedReferences
@@ -18140,9 +17180,6 @@ export 'a.dart';
               returnType: void
     exportedExtensions: #M0
   requirements
-    topLevels
-      dart:core
-        int: #M3
 [operation] linkLibraryCycle
   package:test/test.dart
     reExportMap
@@ -18173,7 +17210,7 @@ extension E on int {
       E: #M0
         extendedType: int @ dart:core
         declaredMethods
-          bar: #M4
+          bar: #M3
             functionType: FunctionType
               positional
                 required int @ dart:core
@@ -18183,9 +17220,6 @@ extension E on int {
               returnType: void
     exportedExtensions: #M0
   requirements
-    topLevels
-      dart:core
-        int: #M3
 [future] getLibraryByUri T2
   library
     exportedReferences
@@ -18239,9 +17273,6 @@ export 'a.dart';
               returnType: void
     exportedExtensions: #M0
   requirements
-    topLevels
-      dart:core
-        int: #M3
 [operation] linkLibraryCycle
   package:test/test.dart
     reExportMap
@@ -18276,9 +17307,6 @@ extension E on int {
               returnType: void
     exportedExtensions: #M0
   requirements
-    topLevels
-      dart:core
-        int: #M3
 [future] getLibraryByUri T2
   library
     exportedReferences
@@ -18330,9 +17358,6 @@ export 'a.dart';
             valueType: int @ dart:core
     exportedExtensions: #M0
   requirements
-    topLevels
-      dart:core
-        int: #M3
 [operation] linkLibraryCycle
   package:test/test.dart
     reExportMap
@@ -18363,20 +17388,17 @@ extension E on int {
       E: #M0
         extendedType: int @ dart:core
         declaredFields
-          bar: #M4
+          bar: #M3
             type: int @ dart:core
           foo: #M1
             type: int @ dart:core
         declaredSetters
-          bar=: #M5
+          bar=: #M4
             valueType: int @ dart:core
           foo=: #M2
             valueType: int @ dart:core
     exportedExtensions: #M0
   requirements
-    topLevels
-      dart:core
-        int: #M3
 [future] getLibraryByUri T2
   library
     exportedReferences
@@ -18433,9 +17455,6 @@ export 'a.dart';
             valueType: int @ dart:core
     exportedExtensions: #M0
   requirements
-    topLevels
-      dart:core
-        int: #M5
 [operation] linkLibraryCycle
   package:test/test.dart
     reExportMap
@@ -18466,21 +17485,17 @@ extension E on int {
       E: #M0
         extendedType: int @ dart:core
         declaredFields
-          bar: #M6
+          bar: #M5
             type: double @ dart:core
           foo: #M2
             type: int @ dart:core
         declaredSetters
-          bar=: #M7
+          bar=: #M6
             valueType: double @ dart:core
           foo=: #M4
             valueType: int @ dart:core
     exportedExtensions: #M0
   requirements
-    topLevels
-      dart:core
-        double: #M8
-        int: #M5
 [future] getLibraryByUri T2
   library
     exportedReferences
@@ -18537,9 +17552,6 @@ export 'a.dart';
             valueType: int @ dart:core
     exportedExtensions: #M0
   requirements
-    topLevels
-      dart:core
-        int: #M5
 [operation] linkLibraryCycle
   package:test/test.dart
     reExportMap
@@ -18576,9 +17588,6 @@ extension E on int {
             valueType: int @ dart:core
     exportedExtensions: #M0
   requirements
-    topLevels
-      dart:core
-        int: #M5
 [future] getLibraryByUri T2
   library
     exportedReferences
@@ -18634,9 +17643,6 @@ export 'a.dart';
           map
             it: #M6
   requirements
-    topLevels
-      dart:core
-        int: #M8
 [operation] linkLibraryCycle
   package:test/test.dart
     reExportMap
@@ -18669,18 +17675,15 @@ extension type _E2(int it) {}
         interface: #M3
           map
             it: #M2
-      _E2: #M9
+      _E2: #M8
         declaredFields
-          it: #M10
+          it: #M9
         declaredGetters
-          it: #M11
-        interface: #M12
+          it: #M10
+        interface: #M11
           map
-            it: #M11
+            it: #M10
   requirements
-    topLevels
-      dart:core
-        int: #M8
 [future] getLibraryByUri T2
   library
     exportedReferences
@@ -19739,11 +18742,10 @@ final x = a;
     declaredVariables
       x: #M3
   requirements
-    topLevels
-      dart:core
-        a: <null>
+    libraries
       package:test/b.dart
-        a: #M0
+        exportedTopLevels
+          a: #M0
 [status] idle
 ''',
       // Change the initializer, now `double`.
@@ -19802,11 +18804,10 @@ final a = 1.2;
     declaredVariables
       x: #M7
   requirements
-    topLevels
-      dart:core
-        a: <null>
+    libraries
       package:test/b.dart
-        a: #M4
+        exportedTopLevels
+          a: #M4
 [status] idle
 ''',
     );
@@ -19840,9 +18841,6 @@ export 'a.dart';
       A: #M0
       _A: #M1
   requirements
-    topLevels
-      dart:core
-        int: #M2
 [operation] linkLibraryCycle
   package:test/test.dart
     reExportMap
@@ -19868,11 +18866,8 @@ typedef _A2 = int;
   package:test/a.dart
     declaredTypeAliases
       A: #M0
-      _A2: #M3
+      _A2: #M2
   requirements
-    topLevels
-      dart:core
-        int: #M2
 [future] getLibraryByUri T2
   library
     exportedReferences
@@ -19915,9 +18910,6 @@ import 'a.dart';
       E1: #M0
     exportedExtensions: #M0
   requirements
-    topLevels
-      dart:core
-        Object: #M1
 [operation] linkLibraryCycle
   package:test/test.dart
   requirements
@@ -19934,9 +18926,9 @@ import 'a.dart';
 [operation] analyzedLibrary
   file: /home/test/lib/test.dart
   requirements
-    exportedExtensions
-      dart:core: #M2
-      package:test/a.dart: #M0
+    libraries
+      package:test/a.dart
+        exportedExtensions: #M0
 [status] idle
 ''',
       updatedA: r'''
@@ -19949,12 +18941,9 @@ extension E2 on Object {}
   package:test/a.dart
     declaredExtensions
       E1: #M0
-      E2: #M3
-    exportedExtensions: #M0 #M3
+      E2: #M1
+    exportedExtensions: #M0 #M1
   requirements
-    topLevels
-      dart:core
-        Object: #M1
 [future] getErrors T2
   ErrorsResult #2
     path: /home/test/lib/test.dart
@@ -19968,7 +18957,7 @@ extension E2 on Object {}
   exportedExtensionsMismatch
     libraryUri: package:test/a.dart
     expectedIds: #M0
-    actualIds: #M0 #M3
+    actualIds: #M0 #M1
 [operation] analyzeFile
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
@@ -19982,9 +18971,9 @@ extension E2 on Object {}
 [operation] analyzedLibrary
   file: /home/test/lib/test.dart
   requirements
-    exportedExtensions
-      dart:core: #M2
-      package:test/a.dart: #M0 #M3
+    libraries
+      package:test/a.dart
+        exportedExtensions: #M0 #M1
 [status] idle
 ''',
     );
@@ -20019,9 +19008,6 @@ import 'a.dart';
       E: #M0
     exportedExtensions: #M0
   requirements
-    topLevels
-      dart:core
-        Object: #M1
 [operation] linkLibraryCycle
   package:test/test.dart
   requirements
@@ -20038,9 +19024,9 @@ import 'a.dart';
 [operation] analyzedLibrary
   file: /home/test/lib/test.dart
   requirements
-    exportedExtensions
-      dart:core: #M2
-      package:test/a.dart: #M0
+    libraries
+      package:test/a.dart
+        exportedExtensions: #M0
 [status] idle
 ''',
       updatedA: r'''
@@ -20053,12 +19039,9 @@ extension _E on Object {}
   package:test/a.dart
     declaredExtensions
       E: #M0
-      _E: #M3
+      _E: #M1
     exportedExtensions: #M0
   requirements
-    topLevels
-      dart:core
-        Object: #M1
 [future] getErrors T2
   ErrorsResult #2
     path: /home/test/lib/test.dart
@@ -20107,9 +19090,6 @@ import 'a.dart';
       E2: #M1
     exportedExtensions: #M0 #M1
   requirements
-    topLevels
-      dart:core
-        Object: #M2
 [operation] linkLibraryCycle
   package:test/test.dart
   requirements
@@ -20126,9 +19106,9 @@ import 'a.dart';
 [operation] analyzedLibrary
   file: /home/test/lib/test.dart
   requirements
-    exportedExtensions
-      dart:core: #M3
-      package:test/a.dart: #M0 #M1
+    libraries
+      package:test/a.dart
+        exportedExtensions: #M0 #M1
 [status] idle
 ''',
       updatedA: r'''
@@ -20142,9 +19122,6 @@ extension E1 on Object {}
       E1: #M0
     exportedExtensions: #M0
   requirements
-    topLevels
-      dart:core
-        Object: #M2
 [future] getErrors T2
   ErrorsResult #2
     path: /home/test/lib/test.dart
@@ -20172,9 +19149,9 @@ extension E1 on Object {}
 [operation] analyzedLibrary
   file: /home/test/lib/test.dart
   requirements
-    exportedExtensions
-      dart:core: #M3
-      package:test/a.dart: #M0
+    libraries
+      package:test/a.dart
+        exportedExtensions: #M0
 [status] idle
 ''',
     );
@@ -20218,14 +19195,10 @@ void f() {
           foo=: #M5
     exportedExtensions: #M0
   requirements
-    topLevels
-      dart:core
-        Object: #M6
-        int: #M7
 [operation] linkLibraryCycle
   package:test/test.dart
     declaredFunctions
-      f: #M8
+      f: #M6
   requirements
 [operation] analyzeFile
   file: /home/test/lib/test.dart
@@ -20238,20 +19211,19 @@ void f() {
 [operation] analyzedLibrary
   file: /home/test/lib/test.dart
   requirements
-    instances
+    libraries
       package:test/a.dart
-        E
-          requestedFields
-            foo: #M2
-          requestedGetters
-            foo: #M4
-          requestedSetters
-            foo=: #M5
-          requestedMethods
-            foo: <null>
-    exportedExtensions
-      dart:core: #M9
-      package:test/a.dart: #M0
+        instances
+          E
+            requestedDeclaredFields
+              foo: #M2
+            requestedDeclaredGetters
+              foo: #M4
+            requestedDeclaredSetters
+              foo=: #M5
+            requestedDeclaredMethods
+              foo: <null>
+        exportedExtensions: #M0
 [status] idle
 ''',
       updatedA: r'''
@@ -20268,20 +19240,15 @@ extension E on Object {
     declaredExtensions
       E: #M0
         declaredFields
-          bar: #M10
+          bar: #M7
           foo: #M2
         declaredGetters
-          bar: #M11
+          bar: #M8
           foo: #M4
         declaredSetters
           foo=: #M5
     exportedExtensions: #M0
   requirements
-    topLevels
-      dart:core
-        Object: #M6
-        double: #M12
-        int: #M7
 [future] getErrors T2
   ErrorsResult #2
     path: /home/test/lib/test.dart
@@ -20332,14 +19299,10 @@ void f() {
           foo=: #M3
     exportedExtensions: #M0
   requirements
-    topLevels
-      dart:core
-        Object: #M4
-        int: #M5
 [operation] linkLibraryCycle
   package:test/test.dart
     declaredFunctions
-      f: #M6
+      f: #M4
   requirements
 [operation] analyzeFile
   file: /home/test/lib/test.dart
@@ -20352,20 +19315,19 @@ void f() {
 [operation] analyzedLibrary
   file: /home/test/lib/test.dart
   requirements
-    instances
+    libraries
       package:test/a.dart
-        E
-          requestedFields
-            foo: #M1
-          requestedGetters
-            foo: #M2
-          requestedSetters
-            foo=: #M3
-          requestedMethods
-            foo: <null>
-    exportedExtensions
-      dart:core: #M7
-      package:test/a.dart: #M0
+        instances
+          E
+            requestedDeclaredFields
+              foo: #M1
+            requestedDeclaredGetters
+              foo: #M2
+            requestedDeclaredSetters
+              foo=: #M3
+            requestedDeclaredMethods
+              foo: <null>
+        exportedExtensions: #M0
 [status] idle
 ''',
       updatedA: r'''
@@ -20381,18 +19343,13 @@ extension E on Object {
     declaredExtensions
       E: #M0
         declaredFields
-          foo: #M8
+          foo: #M5
         declaredGetters
-          foo: #M9
+          foo: #M6
         declaredSetters
           foo=: #M3
     exportedExtensions: #M0
   requirements
-    topLevels
-      dart:core
-        Object: #M4
-        double: #M10
-        int: #M5
 [future] getErrors T2
   ErrorsResult #2
     path: /home/test/lib/test.dart
@@ -20406,7 +19363,7 @@ extension E on Object {
     interfaceName: E
     fieldName: foo
     expectedId: #M1
-    actualId: #M8
+    actualId: #M5
 [operation] analyzeFile
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
@@ -20418,20 +19375,19 @@ extension E on Object {
 [operation] analyzedLibrary
   file: /home/test/lib/test.dart
   requirements
-    instances
+    libraries
       package:test/a.dart
-        E
-          requestedFields
-            foo: #M8
-          requestedGetters
-            foo: #M9
-          requestedSetters
-            foo=: #M3
-          requestedMethods
-            foo: <null>
-    exportedExtensions
-      dart:core: #M7
-      package:test/a.dart: #M0
+        instances
+          E
+            requestedDeclaredFields
+              foo: #M5
+            requestedDeclaredGetters
+              foo: #M6
+            requestedDeclaredSetters
+              foo=: #M3
+            requestedDeclaredMethods
+              foo: <null>
+        exportedExtensions: #M0
 [status] idle
 ''',
     );
@@ -20476,29 +19432,23 @@ void f() {
           _foo: #M2
     exportedExtensions: #M0
   requirements
-    topLevels
-      dart:core
-        Object: #M3
-        int: #M4
 [operation] linkLibraryCycle
   package:test/test.dart
     declaredExtensions
-      B: #M5
+      B: #M3
         declaredFields
-          _foo: #M6
+          _foo: #M4
         declaredGetters
-          _foo: #M7
+          _foo: #M5
     declaredFunctions
-      f: #M8
-    exportedExtensions: #M5
+      f: #M6
+    exportedExtensions: #M3
   requirements
-    topLevels
-      dart:core
-        Object: #M3
-        int: #M4
+    libraries
       package:test/a.dart
-        Object: <null>
-        int: <null>
+        exportedTopLevels
+          Object: <null>
+          int: <null>
 [operation] analyzeFile
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
@@ -20512,16 +19462,12 @@ void f() {
 [operation] analyzedLibrary
   file: /home/test/lib/test.dart
   requirements
-    topLevels
-      dart:core
-        Object: #M3
-        int: #M4
+    libraries
       package:test/a.dart
-        Object: <null>
-        int: <null>
-    exportedExtensions
-      dart:core: #M9
-      package:test/a.dart: #M0
+        exportedTopLevels
+          Object: <null>
+          int: <null>
+        exportedExtensions: #M0
 [status] idle
 ''',
       updatedA: r'''
@@ -20536,15 +19482,11 @@ extension A on Object {
     declaredExtensions
       A: #M0
         declaredFields
-          _foo: #M10
+          _foo: #M7
         declaredGetters
-          _foo: #M11
+          _foo: #M8
     exportedExtensions: #M0
   requirements
-    topLevels
-      dart:core
-        Object: #M3
-        double: #M12
 [future] getErrors T2
   ErrorsResult #2
     path: /home/test/lib/test.dart
@@ -20598,14 +19540,10 @@ void f() {
           bar: #M3
     exportedExtensions: #M0 #M2
   requirements
-    topLevels
-      dart:core
-        Object: #M4
-        int: #M5
 [operation] linkLibraryCycle
   package:test/test.dart
     declaredFunctions
-      f: #M6
+      f: #M4
   requirements
 [operation] analyzeFile
   file: /home/test/lib/test.dart
@@ -20618,21 +19556,20 @@ void f() {
 [operation] analyzedLibrary
   file: /home/test/lib/test.dart
   requirements
-    instances
+    libraries
       package:test/a.dart
-        E1
-          requestedFields
-            foo: <null>
-          requestedMethods
-            foo: #M1
-        E2
-          requestedFields
-            foo: <null>
-          requestedMethods
-            foo: <null>
-    exportedExtensions
-      dart:core: #M7
-      package:test/a.dart: #M0 #M2
+        instances
+          E1
+            requestedDeclaredFields
+              foo: <null>
+            requestedDeclaredMethods
+              foo: #M1
+          E2
+            requestedDeclaredFields
+              foo: <null>
+            requestedDeclaredMethods
+              foo: <null>
+        exportedExtensions: #M0 #M2
 [status] idle
 ''',
       updatedA: r'''
@@ -20653,14 +19590,9 @@ extension E2 on Object {
           foo: #M1
       E2: #M2
         declaredMethods
-          bar: #M8
+          bar: #M5
     exportedExtensions: #M0 #M2
   requirements
-    topLevels
-      dart:core
-        Object: #M4
-        double: #M9
-        int: #M5
 [future] getErrors T2
   ErrorsResult #2
     path: /home/test/lib/test.dart
@@ -20712,14 +19644,10 @@ void f() {
           bar: #M3
     exportedExtensions: #M0 #M2
   requirements
-    topLevels
-      dart:core
-        Object: #M4
-        int: #M5
 [operation] linkLibraryCycle
   package:test/test.dart
     declaredFunctions
-      f: #M6
+      f: #M4
   requirements
 [operation] analyzeFile
   file: /home/test/lib/test.dart
@@ -20732,21 +19660,20 @@ void f() {
 [operation] analyzedLibrary
   file: /home/test/lib/test.dart
   requirements
-    instances
+    libraries
       package:test/a.dart
-        E1
-          requestedFields
-            foo: <null>
-          requestedMethods
-            foo: #M1
-        E2
-          requestedFields
-            foo: <null>
-          requestedMethods
-            foo: <null>
-    exportedExtensions
-      dart:core: #M7
-      package:test/a.dart: #M0 #M2
+        instances
+          E1
+            requestedDeclaredFields
+              foo: <null>
+            requestedDeclaredMethods
+              foo: #M1
+          E2
+            requestedDeclaredFields
+              foo: <null>
+            requestedDeclaredMethods
+              foo: <null>
+        exportedExtensions: #M0 #M2
 [status] idle
 ''',
       updatedA: r'''
@@ -20764,17 +19691,12 @@ extension E2 on Object {
     declaredExtensions
       E1: #M0
         declaredMethods
-          foo: #M8
+          foo: #M5
       E2: #M2
         declaredMethods
           bar: #M3
     exportedExtensions: #M0 #M2
   requirements
-    topLevels
-      dart:core
-        Object: #M4
-        double: #M9
-        int: #M5
 [future] getErrors T2
   ErrorsResult #2
     path: /home/test/lib/test.dart
@@ -20788,7 +19710,7 @@ extension E2 on Object {
     interfaceName: E1
     methodName: foo
     expectedId: #M1
-    actualId: #M8
+    actualId: #M5
 [operation] analyzeFile
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
@@ -20800,21 +19722,20 @@ extension E2 on Object {
 [operation] analyzedLibrary
   file: /home/test/lib/test.dart
   requirements
-    instances
+    libraries
       package:test/a.dart
-        E1
-          requestedFields
-            foo: <null>
-          requestedMethods
-            foo: #M8
-        E2
-          requestedFields
-            foo: <null>
-          requestedMethods
-            foo: <null>
-    exportedExtensions
-      dart:core: #M7
-      package:test/a.dart: #M0 #M2
+        instances
+          E1
+            requestedDeclaredFields
+              foo: <null>
+            requestedDeclaredMethods
+              foo: #M5
+          E2
+            requestedDeclaredFields
+              foo: <null>
+            requestedDeclaredMethods
+              foo: <null>
+        exportedExtensions: #M0 #M2
 [status] idle
 ''',
     );
@@ -20851,14 +19772,10 @@ void f() {
           foo: #M1
     exportedExtensions: #M0
   requirements
-    topLevels
-      dart:core
-        Object: #M2
-        int: #M3
 [operation] linkLibraryCycle
   package:test/test.dart
     declaredFunctions
-      f: #M4
+      f: #M2
   requirements
 [operation] analyzeFile
   file: /home/test/lib/test.dart
@@ -20871,16 +19788,15 @@ void f() {
 [operation] analyzedLibrary
   file: /home/test/lib/test.dart
   requirements
-    instances
+    libraries
       package:test/a.dart
-        E
-          requestedFields
-            foo: <null>
-          requestedMethods
-            foo: #M1
-    exportedExtensions
-      dart:core: #M5
-      package:test/a.dart: #M0
+        instances
+          E
+            requestedDeclaredFields
+              foo: <null>
+            requestedDeclaredMethods
+              foo: #M1
+        exportedExtensions: #M0
 [status] idle
 ''',
       updatedA: r'''
@@ -20895,13 +19811,9 @@ extension E on Object {
     declaredExtensions
       E: #M0
         declaredMethods
-          foo: #M6
+          foo: #M3
     exportedExtensions: #M0
   requirements
-    topLevels
-      dart:core
-        Object: #M2
-        double: #M7
 [future] getErrors T2
   ErrorsResult #2
     path: /home/test/lib/test.dart
@@ -20915,7 +19827,7 @@ extension E on Object {
     interfaceName: E
     methodName: foo
     expectedId: #M1
-    actualId: #M6
+    actualId: #M3
 [operation] analyzeFile
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
@@ -20927,16 +19839,15 @@ extension E on Object {
 [operation] analyzedLibrary
   file: /home/test/lib/test.dart
   requirements
-    instances
+    libraries
       package:test/a.dart
-        E
-          requestedFields
-            foo: <null>
-          requestedMethods
-            foo: #M6
-    exportedExtensions
-      dart:core: #M5
-      package:test/a.dart: #M0
+        instances
+          E
+            requestedDeclaredFields
+              foo: <null>
+            requestedDeclaredMethods
+              foo: #M3
+        exportedExtensions: #M0
 [status] idle
 ''',
     );
@@ -20977,14 +19888,10 @@ void f() {
           foo=: #M3
     exportedExtensions: #M0
   requirements
-    topLevels
-      dart:core
-        Object: #M4
-        int: #M5
 [operation] linkLibraryCycle
   package:test/test.dart
     declaredFunctions
-      f: #M6
+      f: #M4
   requirements
 [operation] analyzeFile
   file: /home/test/lib/test.dart
@@ -20997,20 +19904,19 @@ void f() {
 [operation] analyzedLibrary
   file: /home/test/lib/test.dart
   requirements
-    instances
+    libraries
       package:test/a.dart
-        E
-          requestedFields
-            foo: #M1
-          requestedGetters
-            foo: #M2
-          requestedSetters
-            foo=: #M3
-          requestedMethods
-            foo: <null>
-    exportedExtensions
-      dart:core: #M7
-      package:test/a.dart: #M0
+        instances
+          E
+            requestedDeclaredFields
+              foo: #M1
+            requestedDeclaredGetters
+              foo: #M2
+            requestedDeclaredSetters
+              foo=: #M3
+            requestedDeclaredMethods
+              foo: <null>
+        exportedExtensions: #M0
 [status] idle
 ''',
       updatedA: r'''
@@ -21030,14 +19936,9 @@ extension E on Object {
         declaredGetters
           foo: #M2
         declaredSetters
-          foo=: #M8
+          foo=: #M5
     exportedExtensions: #M0
   requirements
-    topLevels
-      dart:core
-        Object: #M4
-        double: #M9
-        int: #M5
 [future] getErrors T2
   ErrorsResult #2
     path: /home/test/lib/test.dart
@@ -21051,7 +19952,7 @@ extension E on Object {
     interfaceName: E
     methodName: foo=
     expectedId: #M3
-    actualId: #M8
+    actualId: #M5
 [operation] analyzeFile
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
@@ -21063,20 +19964,19 @@ extension E on Object {
 [operation] analyzedLibrary
   file: /home/test/lib/test.dart
   requirements
-    instances
+    libraries
       package:test/a.dart
-        E
-          requestedFields
-            foo: #M1
-          requestedGetters
-            foo: #M2
-          requestedSetters
-            foo=: #M8
-          requestedMethods
-            foo: <null>
-    exportedExtensions
-      dart:core: #M7
-      package:test/a.dart: #M0
+        instances
+          E
+            requestedDeclaredFields
+              foo: #M1
+            requestedDeclaredGetters
+              foo: #M2
+            requestedDeclaredSetters
+              foo=: #M5
+            requestedDeclaredMethods
+              foo: <null>
+        exportedExtensions: #M0
 [status] idle
 ''',
     );
@@ -21112,13 +20012,10 @@ void f() {
           foo: #M1
     exportedExtensions: #M0
   requirements
-    topLevels
-      dart:core
-        Object: #M2
 [operation] linkLibraryCycle
   package:test/test.dart
     declaredFunctions
-      f: #M3
+      f: #M2
   requirements
 [operation] analyzeFile
   file: /home/test/lib/test.dart
@@ -21131,16 +20028,15 @@ void f() {
 [operation] analyzedLibrary
   file: /home/test/lib/test.dart
   requirements
-    instances
+    libraries
       package:test/a.dart
-        E1
-          requestedFields
-            foo: <null>
-          requestedMethods
-            foo: #M1
-    exportedExtensions
-      dart:core: #M4
-      package:test/a.dart: #M0
+        instances
+          E1
+            requestedDeclaredFields
+              foo: <null>
+            requestedDeclaredMethods
+              foo: #M1
+        exportedExtensions: #M0
 [status] idle
 ''',
       updatedA: r'''
@@ -21159,15 +20055,11 @@ extension E2 on int {
       E1: #M0
         declaredMethods
           foo: #M1
-      E2: #M5
+      E2: #M3
         declaredMethods
-          bar: #M6
-    exportedExtensions: #M0 #M5
+          bar: #M4
+    exportedExtensions: #M0 #M3
   requirements
-    topLevels
-      dart:core
-        Object: #M2
-        int: #M7
 [future] getErrors T2
   ErrorsResult #2
     path: /home/test/lib/test.dart
@@ -21179,7 +20071,7 @@ extension E2 on int {
   exportedExtensionsMismatch
     libraryUri: package:test/a.dart
     expectedIds: #M0
-    actualIds: #M0 #M5
+    actualIds: #M0 #M3
 [operation] analyzeFile
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
@@ -21191,21 +20083,20 @@ extension E2 on int {
 [operation] analyzedLibrary
   file: /home/test/lib/test.dart
   requirements
-    instances
+    libraries
       package:test/a.dart
-        E1
-          requestedFields
-            foo: <null>
-          requestedMethods
-            foo: #M1
-        E2
-          requestedFields
-            foo: <null>
-          requestedMethods
-            foo: <null>
-    exportedExtensions
-      dart:core: #M4
-      package:test/a.dart: #M0 #M5
+        instances
+          E1
+            requestedDeclaredFields
+              foo: <null>
+            requestedDeclaredMethods
+              foo: #M1
+          E2
+            requestedDeclaredFields
+              foo: <null>
+            requestedDeclaredMethods
+              foo: <null>
+        exportedExtensions: #M0 #M3
 [status] idle
 ''',
     );
@@ -21241,13 +20132,10 @@ void f() {
           foo: #M1
     exportedExtensions: #M0
   requirements
-    topLevels
-      dart:core
-        Object: #M2
 [operation] linkLibraryCycle
   package:test/test.dart
     declaredFunctions
-      f: #M3
+      f: #M2
   requirements
 [operation] analyzeFile
   file: /home/test/lib/test.dart
@@ -21260,16 +20148,15 @@ void f() {
 [operation] analyzedLibrary
   file: /home/test/lib/test.dart
   requirements
-    instances
+    libraries
       package:test/a.dart
-        E1
-          requestedFields
-            foo: <null>
-          requestedMethods
-            foo: #M1
-    exportedExtensions
-      dart:core: #M4
-      package:test/a.dart: #M0
+        instances
+          E1
+            requestedDeclaredFields
+              foo: <null>
+            requestedDeclaredMethods
+              foo: #M1
+        exportedExtensions: #M0
 [status] idle
 ''',
       updatedA: r'''
@@ -21285,13 +20172,10 @@ extension E1 on Object {
     declaredExtensions
       E1: #M0
         declaredMethods
-          _bar: #M5
+          _bar: #M3
           foo: #M1
     exportedExtensions: #M0
   requirements
-    topLevels
-      dart:core
-        Object: #M2
 [future] getErrors T2
   ErrorsResult #2
     path: /home/test/lib/test.dart
@@ -21337,13 +20221,10 @@ void f() {
           foo: #M1
     exportedExtensions: #M0
   requirements
-    topLevels
-      dart:core
-        Object: #M2
 [operation] linkLibraryCycle
   package:test/test.dart
     declaredFunctions
-      f: #M3
+      f: #M2
   requirements
 [operation] analyzeFile
   file: /home/test/lib/test.dart
@@ -21356,16 +20237,15 @@ void f() {
 [operation] analyzedLibrary
   file: /home/test/lib/test.dart
   requirements
-    instances
+    libraries
       package:test/a.dart
-        E1
-          requestedFields
-            foo: <null>
-          requestedMethods
-            foo: #M1
-    exportedExtensions
-      dart:core: #M4
-      package:test/a.dart: #M0
+        instances
+          E1
+            requestedDeclaredFields
+              foo: <null>
+            requestedDeclaredMethods
+              foo: #M1
+        exportedExtensions: #M0
 [status] idle
 ''',
       updatedA: r'''
@@ -21384,15 +20264,11 @@ extension E2 on int {
       E1: #M0
         declaredMethods
           foo: #M1
-      E2: #M5
+      E2: #M3
         declaredMethods
-          foo: #M6
-    exportedExtensions: #M0 #M5
+          foo: #M4
+    exportedExtensions: #M0 #M3
   requirements
-    topLevels
-      dart:core
-        Object: #M2
-        int: #M7
 [future] getErrors T2
   ErrorsResult #2
     path: /home/test/lib/test.dart
@@ -21404,7 +20280,7 @@ extension E2 on int {
   exportedExtensionsMismatch
     libraryUri: package:test/a.dart
     expectedIds: #M0
-    actualIds: #M0 #M5
+    actualIds: #M0 #M3
 [operation] analyzeFile
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
@@ -21416,21 +20292,20 @@ extension E2 on int {
 [operation] analyzedLibrary
   file: /home/test/lib/test.dart
   requirements
-    instances
+    libraries
       package:test/a.dart
-        E1
-          requestedFields
-            foo: <null>
-          requestedMethods
-            foo: #M1
-        E2
-          requestedFields
-            foo: <null>
-          requestedMethods
-            foo: #M6
-    exportedExtensions
-      dart:core: #M4
-      package:test/a.dart: #M0 #M5
+        instances
+          E1
+            requestedDeclaredFields
+              foo: <null>
+            requestedDeclaredMethods
+              foo: #M1
+          E2
+            requestedDeclaredFields
+              foo: <null>
+            requestedDeclaredMethods
+              foo: #M4
+        exportedExtensions: #M0 #M3
 [status] idle
 ''',
     );
@@ -21465,13 +20340,10 @@ void f() {
       E: #M0
     exportedExtensions: #M0
   requirements
-    topLevels
-      dart:core
-        Object: #M1
 [operation] linkLibraryCycle
   package:test/test.dart
     declaredFunctions
-      f: #M2
+      f: #M1
   requirements
 [operation] analyzeFile
   file: /home/test/lib/test.dart
@@ -21487,16 +20359,15 @@ void f() {
 [operation] analyzedLibrary
   file: /home/test/lib/test.dart
   requirements
-    instances
+    libraries
       package:test/a.dart
-        E
-          requestedFields
-            foo: <null>
-          requestedMethods
-            foo: <null>
-    exportedExtensions
-      dart:core: #M3
-      package:test/a.dart: #M0
+        instances
+          E
+            requestedDeclaredFields
+              foo: <null>
+            requestedDeclaredMethods
+              foo: <null>
+        exportedExtensions: #M0
 [status] idle
 ''',
       updatedA: r'''
@@ -21511,12 +20382,9 @@ extension E on Object {
     declaredExtensions
       E: #M0
         declaredMethods
-          foo: #M4
+          foo: #M2
     exportedExtensions: #M0
   requirements
-    topLevels
-      dart:core
-        Object: #M1
 [future] getErrors T2
   ErrorsResult #2
     path: /home/test/lib/test.dart
@@ -21530,7 +20398,7 @@ extension E on Object {
     interfaceName: E
     methodName: foo
     expectedId: <null>
-    actualId: #M4
+    actualId: #M2
 [operation] analyzeFile
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
@@ -21542,16 +20410,15 @@ extension E on Object {
 [operation] analyzedLibrary
   file: /home/test/lib/test.dart
   requirements
-    instances
+    libraries
       package:test/a.dart
-        E
-          requestedFields
-            foo: <null>
-          requestedMethods
-            foo: #M4
-    exportedExtensions
-      dart:core: #M3
-      package:test/a.dart: #M0
+        instances
+          E
+            requestedDeclaredFields
+              foo: <null>
+            requestedDeclaredMethods
+              foo: #M2
+        exportedExtensions: #M0
 [status] idle
 ''',
     );
@@ -21593,14 +20460,10 @@ void f() {
           bar: #M3
     exportedExtensions: #M0 #M2
   requirements
-    topLevels
-      dart:core
-        Object: #M4
-        int: #M5
 [operation] linkLibraryCycle
   package:test/test.dart
     declaredFunctions
-      f: #M6
+      f: #M4
   requirements
 [operation] analyzeFile
   file: /home/test/lib/test.dart
@@ -21613,21 +20476,20 @@ void f() {
 [operation] analyzedLibrary
   file: /home/test/lib/test.dart
   requirements
-    instances
+    libraries
       package:test/a.dart
-        E1
-          requestedFields
-            foo: <null>
-          requestedMethods
-            foo: #M1
-        E2
-          requestedFields
-            foo: <null>
-          requestedMethods
-            foo: <null>
-    exportedExtensions
-      dart:core: #M7
-      package:test/a.dart: #M0 #M2
+        instances
+          E1
+            requestedDeclaredFields
+              foo: <null>
+            requestedDeclaredMethods
+              foo: #M1
+          E2
+            requestedDeclaredFields
+              foo: <null>
+            requestedDeclaredMethods
+              foo: <null>
+        exportedExtensions: #M0 #M2
 [status] idle
 ''',
       updatedA: r'''
@@ -21645,9 +20507,6 @@ extension E1 on Object {
           foo: #M1
     exportedExtensions: #M0
   requirements
-    topLevels
-      dart:core
-        Object: #M4
 [future] getErrors T2
   ErrorsResult #2
     path: /home/test/lib/test.dart
@@ -21670,16 +20529,15 @@ extension E1 on Object {
 [operation] analyzedLibrary
   file: /home/test/lib/test.dart
   requirements
-    instances
+    libraries
       package:test/a.dart
-        E1
-          requestedFields
-            foo: <null>
-          requestedMethods
-            foo: #M1
-    exportedExtensions
-      dart:core: #M7
-      package:test/a.dart: #M0
+        instances
+          E1
+            requestedDeclaredFields
+              foo: <null>
+            requestedDeclaredMethods
+              foo: #M1
+        exportedExtensions: #M0
 [status] idle
 ''',
     );
@@ -21721,14 +20579,10 @@ void f() {
           foo: #M3
     exportedExtensions: #M0 #M2
   requirements
-    topLevels
-      dart:core
-        Object: #M4
-        int: #M5
 [operation] linkLibraryCycle
   package:test/test.dart
     declaredFunctions
-      f: #M6
+      f: #M4
   requirements
 [operation] analyzeFile
   file: /home/test/lib/test.dart
@@ -21741,21 +20595,20 @@ void f() {
 [operation] analyzedLibrary
   file: /home/test/lib/test.dart
   requirements
-    instances
+    libraries
       package:test/a.dart
-        E1
-          requestedFields
-            foo: <null>
-          requestedMethods
-            foo: #M1
-        E2
-          requestedFields
-            foo: <null>
-          requestedMethods
-            foo: #M3
-    exportedExtensions
-      dart:core: #M7
-      package:test/a.dart: #M0 #M2
+        instances
+          E1
+            requestedDeclaredFields
+              foo: <null>
+            requestedDeclaredMethods
+              foo: #M1
+          E2
+            requestedDeclaredFields
+              foo: <null>
+            requestedDeclaredMethods
+              foo: #M3
+        exportedExtensions: #M0 #M2
 [status] idle
 ''',
       updatedA: r'''
@@ -21773,9 +20626,6 @@ extension E1 on Object {
           foo: #M1
     exportedExtensions: #M0
   requirements
-    topLevels
-      dart:core
-        Object: #M4
 [future] getErrors T2
   ErrorsResult #2
     path: /home/test/lib/test.dart
@@ -21798,16 +20648,15 @@ extension E1 on Object {
 [operation] analyzedLibrary
   file: /home/test/lib/test.dart
   requirements
-    instances
+    libraries
       package:test/a.dart
-        E1
-          requestedFields
-            foo: <null>
-          requestedMethods
-            foo: #M1
-    exportedExtensions
-      dart:core: #M7
-      package:test/a.dart: #M0
+        instances
+          E1
+            requestedDeclaredFields
+              foo: <null>
+            requestedDeclaredMethods
+              foo: #M1
+        exportedExtensions: #M0
 [status] idle
 ''',
     );
@@ -21849,14 +20698,10 @@ void f() {
           foo: #M3
     exportedExtensions: #M0 #M2
   requirements
-    topLevels
-      dart:core
-        Object: #M4
-        int: #M5
 [operation] linkLibraryCycle
   package:test/test.dart
     declaredFunctions
-      f: #M6
+      f: #M4
   requirements
 [operation] analyzeFile
   file: /home/test/lib/test.dart
@@ -21869,21 +20714,20 @@ void f() {
 [operation] analyzedLibrary
   file: /home/test/lib/test.dart
   requirements
-    instances
+    libraries
       package:test/a.dart
-        E1
-          requestedFields
-            foo: <null>
-          requestedMethods
-            foo: #M1
-        E2
-          requestedFields
-            foo: <null>
-          requestedMethods
-            foo: #M3
-    exportedExtensions
-      dart:core: #M7
-      package:test/a.dart: #M0 #M2
+        instances
+          E1
+            requestedDeclaredFields
+              foo: <null>
+            requestedDeclaredMethods
+              foo: #M1
+          E2
+            requestedDeclaredFields
+              foo: <null>
+            requestedDeclaredMethods
+              foo: #M3
+        exportedExtensions: #M0 #M2
 [status] idle
 ''',
       updatedA: r'''
@@ -21901,9 +20745,6 @@ extension E1 on Object {
           foo: #M1
     exportedExtensions: #M0
   requirements
-    topLevels
-      dart:core
-        Object: #M4
 [future] getErrors T2
   ErrorsResult #2
     path: /home/test/lib/test.dart
@@ -21926,16 +20767,15 @@ extension E1 on Object {
 [operation] analyzedLibrary
   file: /home/test/lib/test.dart
   requirements
-    instances
+    libraries
       package:test/a.dart
-        E1
-          requestedFields
-            foo: <null>
-          requestedMethods
-            foo: #M1
-    exportedExtensions
-      dart:core: #M7
-      package:test/a.dart: #M0
+        instances
+          E1
+            requestedDeclaredFields
+              foo: <null>
+            requestedDeclaredMethods
+              foo: #M1
+        exportedExtensions: #M0
 [status] idle
 ''',
     );
@@ -21973,14 +20813,10 @@ void f() {
           []=: #M2
     exportedExtensions: #M0
   requirements
-    topLevels
-      dart:core
-        Object: #M3
-        int: #M4
 [operation] linkLibraryCycle
   package:test/test.dart
     declaredFunctions
-      f: #M5
+      f: #M3
   requirements
 [operation] analyzeFile
   file: /home/test/lib/test.dart
@@ -21993,15 +20829,14 @@ void f() {
 [operation] analyzedLibrary
   file: /home/test/lib/test.dart
   requirements
-    instances
+    libraries
       package:test/a.dart
-        E1
-          requestedMethods
-            []: #M1
-            []=: #M2
-    exportedExtensions
-      dart:core: #M6
-      package:test/a.dart: #M0
+        instances
+          E1
+            requestedDeclaredMethods
+              []: #M1
+              []=: #M2
+        exportedExtensions: #M0
 [status] idle
 ''',
       updatedA: r'''
@@ -22017,15 +20852,10 @@ extension E1 on Object {
     declaredExtensions
       E1: #M0
         declaredMethods
-          []: #M7
+          []: #M4
           []=: #M2
     exportedExtensions: #M0
   requirements
-    topLevels
-      dart:core
-        Object: #M3
-        double: #M8
-        int: #M4
 [future] getErrors T2
   ErrorsResult #2
     path: /home/test/lib/test.dart
@@ -22039,7 +20869,7 @@ extension E1 on Object {
     interfaceName: E1
     methodName: []
     expectedId: #M1
-    actualId: #M7
+    actualId: #M4
 [operation] analyzeFile
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
@@ -22051,15 +20881,14 @@ extension E1 on Object {
 [operation] analyzedLibrary
   file: /home/test/lib/test.dart
   requirements
-    instances
+    libraries
       package:test/a.dart
-        E1
-          requestedMethods
-            []: #M7
-            []=: #M2
-    exportedExtensions
-      dart:core: #M6
-      package:test/a.dart: #M0
+        instances
+          E1
+            requestedDeclaredMethods
+              []: #M4
+              []=: #M2
+        exportedExtensions: #M0
 [status] idle
 ''',
     );
@@ -22097,14 +20926,10 @@ void f() {
           []=: #M2
     exportedExtensions: #M0
   requirements
-    topLevels
-      dart:core
-        Object: #M3
-        int: #M4
 [operation] linkLibraryCycle
   package:test/test.dart
     declaredFunctions
-      f: #M5
+      f: #M3
   requirements
 [operation] analyzeFile
   file: /home/test/lib/test.dart
@@ -22117,15 +20942,14 @@ void f() {
 [operation] analyzedLibrary
   file: /home/test/lib/test.dart
   requirements
-    instances
+    libraries
       package:test/a.dart
-        E1
-          requestedMethods
-            []: #M1
-            []=: #M2
-    exportedExtensions
-      dart:core: #M6
-      package:test/a.dart: #M0
+        instances
+          E1
+            requestedDeclaredMethods
+              []: #M1
+              []=: #M2
+        exportedExtensions: #M0
 [status] idle
 ''',
       updatedA: r'''
@@ -22141,15 +20965,10 @@ extension E1 on Object {
     declaredExtensions
       E1: #M0
         declaredMethods
-          []: #M7
+          []: #M4
           []=: #M2
     exportedExtensions: #M0
   requirements
-    topLevels
-      dart:core
-        Object: #M3
-        double: #M8
-        int: #M4
 [future] getErrors T2
   ErrorsResult #2
     path: /home/test/lib/test.dart
@@ -22163,7 +20982,7 @@ extension E1 on Object {
     interfaceName: E1
     methodName: []
     expectedId: #M1
-    actualId: #M7
+    actualId: #M4
 [operation] analyzeFile
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
@@ -22175,15 +20994,14 @@ extension E1 on Object {
 [operation] analyzedLibrary
   file: /home/test/lib/test.dart
   requirements
-    instances
+    libraries
       package:test/a.dart
-        E1
-          requestedMethods
-            []: #M7
-            []=: #M2
-    exportedExtensions
-      dart:core: #M6
-      package:test/a.dart: #M0
+        instances
+          E1
+            requestedDeclaredMethods
+              []: #M4
+              []=: #M2
+        exportedExtensions: #M0
 [status] idle
 ''',
     );
@@ -22221,14 +21039,10 @@ void f() {
           []=: #M2
     exportedExtensions: #M0
   requirements
-    topLevels
-      dart:core
-        Object: #M3
-        int: #M4
 [operation] linkLibraryCycle
   package:test/test.dart
     declaredFunctions
-      f: #M5
+      f: #M3
   requirements
 [operation] analyzeFile
   file: /home/test/lib/test.dart
@@ -22241,15 +21055,14 @@ void f() {
 [operation] analyzedLibrary
   file: /home/test/lib/test.dart
   requirements
-    instances
+    libraries
       package:test/a.dart
-        E1
-          requestedMethods
-            []: #M1
-            []=: #M2
-    exportedExtensions
-      dart:core: #M6
-      package:test/a.dart: #M0
+        instances
+          E1
+            requestedDeclaredMethods
+              []: #M1
+              []=: #M2
+        exportedExtensions: #M0
 [status] idle
 ''',
       updatedA: r'''
@@ -22266,14 +21079,9 @@ extension E1 on Object {
       E1: #M0
         declaredMethods
           []: #M1
-          []=: #M7
+          []=: #M4
     exportedExtensions: #M0
   requirements
-    topLevels
-      dart:core
-        Object: #M3
-        double: #M8
-        int: #M4
 [future] getErrors T2
   ErrorsResult #2
     path: /home/test/lib/test.dart
@@ -22287,7 +21095,7 @@ extension E1 on Object {
     interfaceName: E1
     methodName: []=
     expectedId: #M2
-    actualId: #M7
+    actualId: #M4
 [operation] analyzeFile
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
@@ -22299,15 +21107,14 @@ extension E1 on Object {
 [operation] analyzedLibrary
   file: /home/test/lib/test.dart
   requirements
-    instances
+    libraries
       package:test/a.dart
-        E1
-          requestedMethods
-            []: #M1
-            []=: #M7
-    exportedExtensions
-      dart:core: #M6
-      package:test/a.dart: #M0
+        instances
+          E1
+            requestedDeclaredMethods
+              []: #M1
+              []=: #M4
+        exportedExtensions: #M0
 [status] idle
 ''',
     );
@@ -22345,14 +21152,10 @@ void f() {
           []=: #M2
     exportedExtensions: #M0
   requirements
-    topLevels
-      dart:core
-        Object: #M3
-        int: #M4
 [operation] linkLibraryCycle
   package:test/test.dart
     declaredFunctions
-      f: #M5
+      f: #M3
   requirements
 [operation] analyzeFile
   file: /home/test/lib/test.dart
@@ -22365,15 +21168,14 @@ void f() {
 [operation] analyzedLibrary
   file: /home/test/lib/test.dart
   requirements
-    instances
+    libraries
       package:test/a.dart
-        E1
-          requestedMethods
-            []: #M1
-            []=: #M2
-    exportedExtensions
-      dart:core: #M6
-      package:test/a.dart: #M0
+        instances
+          E1
+            requestedDeclaredMethods
+              []: #M1
+              []=: #M2
+        exportedExtensions: #M0
 [status] idle
 ''',
       updatedA: r'''
@@ -22390,14 +21192,9 @@ extension E1 on Object {
       E1: #M0
         declaredMethods
           []: #M1
-          []=: #M7
+          []=: #M4
     exportedExtensions: #M0
   requirements
-    topLevels
-      dart:core
-        Object: #M3
-        double: #M8
-        int: #M4
 [future] getErrors T2
   ErrorsResult #2
     path: /home/test/lib/test.dart
@@ -22411,7 +21208,7 @@ extension E1 on Object {
     interfaceName: E1
     methodName: []=
     expectedId: #M2
-    actualId: #M7
+    actualId: #M4
 [operation] analyzeFile
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
@@ -22423,15 +21220,14 @@ extension E1 on Object {
 [operation] analyzedLibrary
   file: /home/test/lib/test.dart
   requirements
-    instances
+    libraries
       package:test/a.dart
-        E1
-          requestedMethods
-            []: #M1
-            []=: #M7
-    exportedExtensions
-      dart:core: #M6
-      package:test/a.dart: #M0
+        instances
+          E1
+            requestedDeclaredMethods
+              []: #M1
+              []=: #M4
+        exportedExtensions: #M0
 [status] idle
 ''',
     );
@@ -22469,13 +21265,10 @@ void f() {
           foo: #M2
     exportedExtensions: #M0
   requirements
-    topLevels
-      dart:core
-        int: #M3
 [operation] linkLibraryCycle
   package:test/test.dart
     declaredFunctions
-      f: #M4
+      f: #M3
   requirements
 [operation] analyzeFile
   file: /home/test/lib/test.dart
@@ -22488,18 +21281,16 @@ void f() {
 [operation] analyzedLibrary
   file: /home/test/lib/test.dart
   requirements
-    topLevels
-      dart:core
-        A: <null>
+    libraries
       package:test/a.dart
-        A: #M0
-    instances
-      package:test/a.dart
-        A
-          requestedFields
-            foo: #M1
-          requestedGetters
-            foo: #M2
+        exportedTopLevels
+          A: #M0
+        instances
+          A
+            requestedDeclaredFields
+              foo: #M1
+            requestedDeclaredGetters
+              foo: #M2
 [status] idle
 ''',
       updatedA: r'''
@@ -22514,15 +21305,11 @@ extension A on int {
     declaredExtensions
       A: #M0
         declaredFields
-          foo: #M5
+          foo: #M4
         declaredGetters
-          foo: #M6
+          foo: #M5
     exportedExtensions: #M0
   requirements
-    topLevels
-      dart:core
-        double: #M7
-        int: #M3
 [future] getErrors T2
   ErrorsResult #2
     path: /home/test/lib/test.dart
@@ -22536,7 +21323,7 @@ extension A on int {
     interfaceName: A
     fieldName: foo
     expectedId: #M1
-    actualId: #M5
+    actualId: #M4
 [operation] analyzeFile
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
@@ -22548,18 +21335,16 @@ extension A on int {
 [operation] analyzedLibrary
   file: /home/test/lib/test.dart
   requirements
-    topLevels
-      dart:core
-        A: <null>
+    libraries
       package:test/a.dart
-        A: #M0
-    instances
-      package:test/a.dart
-        A
-          requestedFields
-            foo: #M5
-          requestedGetters
-            foo: #M6
+        exportedTopLevels
+          A: #M0
+        instances
+          A
+            requestedDeclaredFields
+              foo: #M4
+            requestedDeclaredGetters
+              foo: #M5
 [status] idle
 ''',
     );
@@ -22600,13 +21385,10 @@ void f() {
           foo: #M4
     exportedExtensions: #M0
   requirements
-    topLevels
-      dart:core
-        int: #M5
 [operation] linkLibraryCycle
   package:test/test.dart
     declaredFunctions
-      f: #M6
+      f: #M5
   requirements
 [operation] analyzeFile
   file: /home/test/lib/test.dart
@@ -22619,18 +21401,16 @@ void f() {
 [operation] analyzedLibrary
   file: /home/test/lib/test.dart
   requirements
-    topLevels
-      dart:core
-        A: <null>
+    libraries
       package:test/a.dart
-        A: #M0
-    instances
-      package:test/a.dart
-        A
-          requestedFields
-            foo: #M2
-          requestedGetters
-            foo: #M4
+        exportedTopLevels
+          A: #M0
+        instances
+          A
+            requestedDeclaredFields
+              foo: #M2
+            requestedDeclaredGetters
+              foo: #M4
 [status] idle
 ''',
       updatedA: r'''
@@ -22646,17 +21426,13 @@ extension A on int {
     declaredExtensions
       A: #M0
         declaredFields
-          bar: #M7
+          bar: #M6
           foo: #M2
         declaredGetters
-          bar: #M8
+          bar: #M7
           foo: #M4
     exportedExtensions: #M0
   requirements
-    topLevels
-      dart:core
-        double: #M9
-        int: #M5
 [future] getErrors T2
   ErrorsResult #2
     path: /home/test/lib/test.dart
@@ -22702,13 +21478,10 @@ void f() {
           foo: #M1
     exportedExtensions: #M0
   requirements
-    topLevels
-      dart:core
-        int: #M2
 [operation] linkLibraryCycle
   package:test/test.dart
     declaredFunctions
-      f: #M3
+      f: #M2
   requirements
 [operation] analyzeFile
   file: /home/test/lib/test.dart
@@ -22721,18 +21494,16 @@ void f() {
 [operation] analyzedLibrary
   file: /home/test/lib/test.dart
   requirements
-    topLevels
-      dart:core
-        A: <null>
+    libraries
       package:test/a.dart
-        A: #M0
-    instances
-      package:test/a.dart
-        A
-          requestedGetters
-            foo: <null>
-          requestedMethods
-            foo: #M1
+        exportedTopLevels
+          A: #M0
+        instances
+          A
+            requestedDeclaredGetters
+              foo: <null>
+            requestedDeclaredMethods
+              foo: #M1
 [status] idle
 ''',
       updatedA: r'''
@@ -22747,13 +21518,9 @@ extension A on int {
     declaredExtensions
       A: #M0
         declaredMethods
-          foo: #M4
+          foo: #M3
     exportedExtensions: #M0
   requirements
-    topLevels
-      dart:core
-        double: #M5
-        int: #M2
 [future] getErrors T2
   ErrorsResult #2
     path: /home/test/lib/test.dart
@@ -22767,7 +21534,7 @@ extension A on int {
     interfaceName: A
     methodName: foo
     expectedId: #M1
-    actualId: #M4
+    actualId: #M3
 [operation] analyzeFile
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
@@ -22779,18 +21546,16 @@ extension A on int {
 [operation] analyzedLibrary
   file: /home/test/lib/test.dart
   requirements
-    topLevels
-      dart:core
-        A: <null>
+    libraries
       package:test/a.dart
-        A: #M0
-    instances
-      package:test/a.dart
-        A
-          requestedGetters
-            foo: <null>
-          requestedMethods
-            foo: #M4
+        exportedTopLevels
+          A: #M0
+        instances
+          A
+            requestedDeclaredGetters
+              foo: <null>
+            requestedDeclaredMethods
+              foo: #M3
 [status] idle
 ''',
     );
@@ -22828,13 +21593,10 @@ void f() {
           foo: #M2
     exportedExtensions: #M0
   requirements
-    topLevels
-      dart:core
-        int: #M3
 [operation] linkLibraryCycle
   package:test/test.dart
     declaredFunctions
-      f: #M4
+      f: #M3
   requirements
 [operation] analyzeFile
   file: /home/test/lib/test.dart
@@ -22847,18 +21609,16 @@ void f() {
 [operation] analyzedLibrary
   file: /home/test/lib/test.dart
   requirements
-    topLevels
-      dart:core
-        A: <null>
+    libraries
       package:test/a.dart
-        A: #M0
-    instances
-      package:test/a.dart
-        A
-          requestedGetters
-            foo: <null>
-          requestedMethods
-            foo: #M2
+        exportedTopLevels
+          A: #M0
+        instances
+          A
+            requestedDeclaredGetters
+              foo: <null>
+            requestedDeclaredMethods
+              foo: #M2
 [status] idle
 ''',
       updatedA: r'''
@@ -22874,14 +21634,10 @@ extension A on int {
     declaredExtensions
       A: #M0
         declaredMethods
-          bar: #M5
+          bar: #M4
           foo: #M2
     exportedExtensions: #M0
   requirements
-    topLevels
-      dart:core
-        double: #M6
-        int: #M3
 [future] getErrors T2
   ErrorsResult #2
     path: /home/test/lib/test.dart
@@ -22929,13 +21685,10 @@ void f() {
           foo=: #M2
     exportedExtensions: #M0
   requirements
-    topLevels
-      dart:core
-        int: #M3
 [operation] linkLibraryCycle
   package:test/test.dart
     declaredFunctions
-      f: #M4
+      f: #M3
   requirements
 [operation] analyzeFile
   file: /home/test/lib/test.dart
@@ -22948,18 +21701,16 @@ void f() {
 [operation] analyzedLibrary
   file: /home/test/lib/test.dart
   requirements
-    topLevels
-      dart:core
-        A: <null>
+    libraries
       package:test/a.dart
-        A: #M0
-    instances
-      package:test/a.dart
-        A
-          requestedFields
-            foo: #M1
-          requestedSetters
-            foo=: #M2
+        exportedTopLevels
+          A: #M0
+        instances
+          A
+            requestedDeclaredFields
+              foo: #M1
+            requestedDeclaredSetters
+              foo=: #M2
 [status] idle
 ''',
       updatedA: r'''
@@ -22974,15 +21725,11 @@ extension A on int {
     declaredExtensions
       A: #M0
         declaredFields
-          foo: #M5
+          foo: #M4
         declaredSetters
-          foo=: #M6
+          foo=: #M5
     exportedExtensions: #M0
   requirements
-    topLevels
-      dart:core
-        double: #M7
-        int: #M3
 [future] getErrors T2
   ErrorsResult #2
     path: /home/test/lib/test.dart
@@ -22996,7 +21743,7 @@ extension A on int {
     interfaceName: A
     fieldName: foo
     expectedId: #M1
-    actualId: #M5
+    actualId: #M4
 [operation] analyzeFile
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
@@ -23008,18 +21755,16 @@ extension A on int {
 [operation] analyzedLibrary
   file: /home/test/lib/test.dart
   requirements
-    topLevels
-      dart:core
-        A: <null>
+    libraries
       package:test/a.dart
-        A: #M0
-    instances
-      package:test/a.dart
-        A
-          requestedFields
-            foo: #M5
-          requestedSetters
-            foo=: #M6
+        exportedTopLevels
+          A: #M0
+        instances
+          A
+            requestedDeclaredFields
+              foo: #M4
+            requestedDeclaredSetters
+              foo=: #M5
 [status] idle
 ''',
     );
@@ -23060,13 +21805,10 @@ void f() {
           foo=: #M4
     exportedExtensions: #M0
   requirements
-    topLevels
-      dart:core
-        int: #M5
 [operation] linkLibraryCycle
   package:test/test.dart
     declaredFunctions
-      f: #M6
+      f: #M5
   requirements
 [operation] analyzeFile
   file: /home/test/lib/test.dart
@@ -23079,18 +21821,16 @@ void f() {
 [operation] analyzedLibrary
   file: /home/test/lib/test.dart
   requirements
-    topLevels
-      dart:core
-        A: <null>
+    libraries
       package:test/a.dart
-        A: #M0
-    instances
-      package:test/a.dart
-        A
-          requestedFields
-            foo: #M2
-          requestedSetters
-            foo=: #M4
+        exportedTopLevels
+          A: #M0
+        instances
+          A
+            requestedDeclaredFields
+              foo: #M2
+            requestedDeclaredSetters
+              foo=: #M4
 [status] idle
 ''',
       updatedA: r'''
@@ -23106,17 +21846,13 @@ extension A on int {
     declaredExtensions
       A: #M0
         declaredFields
-          bar: #M7
+          bar: #M6
           foo: #M2
         declaredSetters
-          bar=: #M8
+          bar=: #M7
           foo=: #M4
     exportedExtensions: #M0
   requirements
-    topLevels
-      dart:core
-        double: #M9
-        int: #M5
 [future] getErrors T2
   ErrorsResult #2
     path: /home/test/lib/test.dart
@@ -23169,19 +21905,15 @@ void f(A a) {
             foo: #M3
             it: #M4
   requirements
-    topLevels
-      dart:core
-        int: #M6
 [operation] linkLibraryCycle
   package:test/test.dart
     declaredFunctions
-      f: #M7
+      f: #M6
   requirements
-    topLevels
-      dart:core
-        A: <null>
+    libraries
       package:test/a.dart
-        A: #M0
+        exportedTopLevels
+          A: #M0
 [operation] analyzeFile
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
@@ -23193,21 +21925,18 @@ void f(A a) {
 [operation] analyzedLibrary
   file: /home/test/lib/test.dart
   requirements
-    topLevels
-      dart:core
-        A: <null>
+    libraries
       package:test/a.dart
-        A: #M0
-    instances
-      package:test/a.dart
-        A
-          requestedFields
-            foo: #M1
-    interfaces
-      package:test/a.dart
-        A
-          methods
-            foo: #M3
+        exportedTopLevels
+          A: #M0
+        instances
+          A
+            requestedDeclaredFields
+              foo: #M1
+        interfaces
+          A
+            methods
+              foo: #M3
 [status] idle
 ''',
       updatedA: r'''
@@ -23222,20 +21951,16 @@ extension type A(int it) {
     declaredExtensionTypes
       A: #M0
         declaredFields
-          foo: #M8
+          foo: #M7
           it: #M2
         declaredGetters
-          foo: #M9
+          foo: #M8
           it: #M4
-        interface: #M10
+        interface: #M9
           map
-            foo: #M9
+            foo: #M8
             it: #M4
   requirements
-    topLevels
-      dart:core
-        double: #M11
-        int: #M6
 [future] getErrors T2
   ErrorsResult #2
     path: /home/test/lib/test.dart
@@ -23249,7 +21974,7 @@ extension type A(int it) {
     interfaceName: A
     fieldName: foo
     expectedId: #M1
-    actualId: #M8
+    actualId: #M7
 [operation] analyzeFile
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
@@ -23261,21 +21986,18 @@ extension type A(int it) {
 [operation] analyzedLibrary
   file: /home/test/lib/test.dart
   requirements
-    topLevels
-      dart:core
-        A: <null>
+    libraries
       package:test/a.dart
-        A: #M0
-    instances
-      package:test/a.dart
-        A
-          requestedFields
-            foo: #M8
-    interfaces
-      package:test/a.dart
-        A
-          methods
-            foo: #M9
+        exportedTopLevels
+          A: #M0
+        instances
+          A
+            requestedDeclaredFields
+              foo: #M7
+        interfaces
+          A
+            methods
+              foo: #M8
 [status] idle
 ''',
     );
@@ -23322,19 +22044,15 @@ void f(A a) {
             foo: #M5
             it: #M6
   requirements
-    topLevels
-      dart:core
-        int: #M8
 [operation] linkLibraryCycle
   package:test/test.dart
     declaredFunctions
-      f: #M9
+      f: #M8
   requirements
-    topLevels
-      dart:core
-        A: <null>
+    libraries
       package:test/a.dart
-        A: #M0
+        exportedTopLevels
+          A: #M0
 [operation] analyzeFile
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
@@ -23346,21 +22064,18 @@ void f(A a) {
 [operation] analyzedLibrary
   file: /home/test/lib/test.dart
   requirements
-    topLevels
-      dart:core
-        A: <null>
+    libraries
       package:test/a.dart
-        A: #M0
-    instances
-      package:test/a.dart
-        A
-          requestedFields
-            foo: #M2
-    interfaces
-      package:test/a.dart
-        A
-          methods
-            foo: #M5
+        exportedTopLevels
+          A: #M0
+        instances
+          A
+            requestedDeclaredFields
+              foo: #M2
+        interfaces
+          A
+            methods
+              foo: #M5
 [status] idle
 ''',
       updatedA: r'''
@@ -23376,23 +22091,19 @@ extension type A(int it) {
     declaredExtensionTypes
       A: #M0
         declaredFields
-          bar: #M10
+          bar: #M9
           foo: #M2
           it: #M3
         declaredGetters
-          bar: #M11
+          bar: #M10
           foo: #M5
           it: #M6
-        interface: #M12
+        interface: #M11
           map
-            bar: #M11
+            bar: #M10
             foo: #M5
             it: #M6
   requirements
-    topLevels
-      dart:core
-        double: #M13
-        int: #M8
 [future] getErrors T2
   ErrorsResult #2
     path: /home/test/lib/test.dart
@@ -23445,19 +22156,15 @@ void f(A a) {
             foo: #M3
             it: #M2
   requirements
-    topLevels
-      dart:core
-        int: #M5
 [operation] linkLibraryCycle
   package:test/test.dart
     declaredFunctions
-      f: #M6
+      f: #M5
   requirements
-    topLevels
-      dart:core
-        A: <null>
+    libraries
       package:test/a.dart
-        A: #M0
+        exportedTopLevels
+          A: #M0
 [operation] analyzeFile
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
@@ -23469,16 +22176,14 @@ void f(A a) {
 [operation] analyzedLibrary
   file: /home/test/lib/test.dart
   requirements
-    topLevels
-      dart:core
-        A: <null>
+    libraries
       package:test/a.dart
-        A: #M0
-    interfaces
-      package:test/a.dart
-        A
-          methods
-            foo: #M3
+        exportedTopLevels
+          A: #M0
+        interfaces
+          A
+            methods
+              foo: #M3
 [status] idle
 ''',
       updatedA: r'''
@@ -23497,16 +22202,12 @@ extension type A(int it) {
         declaredGetters
           it: #M2
         declaredMethods
-          foo: #M7
-        interface: #M8
+          foo: #M6
+        interface: #M7
           map
-            foo: #M7
+            foo: #M6
             it: #M2
   requirements
-    topLevels
-      dart:core
-        double: #M9
-        int: #M5
 [future] getErrors T2
   ErrorsResult #2
     path: /home/test/lib/test.dart
@@ -23520,7 +22221,7 @@ extension type A(int it) {
     interfaceName: A
     methodName: foo
     expectedId: #M3
-    actualId: #M7
+    actualId: #M6
 [operation] analyzeFile
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
@@ -23532,16 +22233,14 @@ extension type A(int it) {
 [operation] analyzedLibrary
   file: /home/test/lib/test.dart
   requirements
-    topLevels
-      dart:core
-        A: <null>
+    libraries
       package:test/a.dart
-        A: #M0
-    interfaces
-      package:test/a.dart
-        A
-          methods
-            foo: #M7
+        exportedTopLevels
+          A: #M0
+        interfaces
+          A
+            methods
+              foo: #M6
 [status] idle
 ''',
     );
@@ -23587,19 +22286,15 @@ void f(A a) {
             foo: #M4
             it: #M2
   requirements
-    topLevels
-      dart:core
-        int: #M6
 [operation] linkLibraryCycle
   package:test/test.dart
     declaredFunctions
-      f: #M7
+      f: #M6
   requirements
-    topLevels
-      dart:core
-        A: <null>
+    libraries
       package:test/a.dart
-        A: #M0
+        exportedTopLevels
+          A: #M0
 [operation] analyzeFile
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
@@ -23611,16 +22306,14 @@ void f(A a) {
 [operation] analyzedLibrary
   file: /home/test/lib/test.dart
   requirements
-    topLevels
-      dart:core
-        A: <null>
+    libraries
       package:test/a.dart
-        A: #M0
-    interfaces
-      package:test/a.dart
-        A
-          methods
-            foo: #M4
+        exportedTopLevels
+          A: #M0
+        interfaces
+          A
+            methods
+              foo: #M4
 [status] idle
 ''',
       updatedA: r'''
@@ -23640,18 +22333,14 @@ extension type A(int it) {
         declaredGetters
           it: #M2
         declaredMethods
-          bar: #M8
+          bar: #M7
           foo: #M4
-        interface: #M9
+        interface: #M8
           map
-            bar: #M8
+            bar: #M7
             foo: #M4
             it: #M2
   requirements
-    topLevels
-      dart:core
-        double: #M10
-        int: #M6
 [future] getErrors T2
   ErrorsResult #2
     path: /home/test/lib/test.dart
@@ -23705,19 +22394,15 @@ void f(A a) {
             foo=: #M4
             it: #M3
   requirements
-    topLevels
-      dart:core
-        int: #M6
 [operation] linkLibraryCycle
   package:test/test.dart
     declaredFunctions
-      f: #M7
+      f: #M6
   requirements
-    topLevels
-      dart:core
-        A: <null>
+    libraries
       package:test/a.dart
-        A: #M0
+        exportedTopLevels
+          A: #M0
 [operation] analyzeFile
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
@@ -23729,21 +22414,18 @@ void f(A a) {
 [operation] analyzedLibrary
   file: /home/test/lib/test.dart
   requirements
-    topLevels
-      dart:core
-        A: <null>
+    libraries
       package:test/a.dart
-        A: #M0
-    instances
-      package:test/a.dart
-        A
-          requestedFields
-            foo: #M1
-    interfaces
-      package:test/a.dart
-        A
-          methods
-            foo=: #M4
+        exportedTopLevels
+          A: #M0
+        instances
+          A
+            requestedDeclaredFields
+              foo: #M1
+        interfaces
+          A
+            methods
+              foo=: #M4
 [status] idle
 ''',
       updatedA: r'''
@@ -23758,21 +22440,17 @@ extension type A(int it) {
     declaredExtensionTypes
       A: #M0
         declaredFields
-          foo: #M8
+          foo: #M7
           it: #M2
         declaredGetters
           it: #M3
         declaredSetters
-          foo=: #M9
-        interface: #M10
+          foo=: #M8
+        interface: #M9
           map
-            foo=: #M9
+            foo=: #M8
             it: #M3
   requirements
-    topLevels
-      dart:core
-        double: #M11
-        int: #M6
 [future] getErrors T2
   ErrorsResult #2
     path: /home/test/lib/test.dart
@@ -23786,7 +22464,7 @@ extension type A(int it) {
     interfaceName: A
     fieldName: foo
     expectedId: #M1
-    actualId: #M8
+    actualId: #M7
 [operation] analyzeFile
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
@@ -23798,21 +22476,18 @@ extension type A(int it) {
 [operation] analyzedLibrary
   file: /home/test/lib/test.dart
   requirements
-    topLevels
-      dart:core
-        A: <null>
+    libraries
       package:test/a.dart
-        A: #M0
-    instances
-      package:test/a.dart
-        A
-          requestedFields
-            foo: #M8
-    interfaces
-      package:test/a.dart
-        A
-          methods
-            foo=: #M9
+        exportedTopLevels
+          A: #M0
+        instances
+          A
+            requestedDeclaredFields
+              foo: #M7
+        interfaces
+          A
+            methods
+              foo=: #M8
 [status] idle
 ''',
     );
@@ -23860,19 +22535,15 @@ void f(A a) {
             foo=: #M6
             it: #M4
   requirements
-    topLevels
-      dart:core
-        int: #M8
 [operation] linkLibraryCycle
   package:test/test.dart
     declaredFunctions
-      f: #M9
+      f: #M8
   requirements
-    topLevels
-      dart:core
-        A: <null>
+    libraries
       package:test/a.dart
-        A: #M0
+        exportedTopLevels
+          A: #M0
 [operation] analyzeFile
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
@@ -23884,21 +22555,18 @@ void f(A a) {
 [operation] analyzedLibrary
   file: /home/test/lib/test.dart
   requirements
-    topLevels
-      dart:core
-        A: <null>
+    libraries
       package:test/a.dart
-        A: #M0
-    instances
-      package:test/a.dart
-        A
-          requestedFields
-            foo: #M2
-    interfaces
-      package:test/a.dart
-        A
-          methods
-            foo=: #M6
+        exportedTopLevels
+          A: #M0
+        instances
+          A
+            requestedDeclaredFields
+              foo: #M2
+        interfaces
+          A
+            methods
+              foo=: #M6
 [status] idle
 ''',
       updatedA: r'''
@@ -23914,24 +22582,20 @@ extension type A(int it) {
     declaredExtensionTypes
       A: #M0
         declaredFields
-          bar: #M10
+          bar: #M9
           foo: #M2
           it: #M3
         declaredGetters
           it: #M4
         declaredSetters
-          bar=: #M11
+          bar=: #M10
           foo=: #M6
-        interface: #M12
+        interface: #M11
           map
-            bar=: #M11
+            bar=: #M10
             foo=: #M6
             it: #M4
   requirements
-    topLevels
-      dart:core
-        double: #M13
-        int: #M8
 [future] getErrors T2
   ErrorsResult #2
     path: /home/test/lib/test.dart
@@ -23990,9 +22654,6 @@ import 'a.dart';
           map
             it: #M2
   requirements
-    topLevels
-      dart:core
-        int: #M6
 [operation] linkLibraryCycle
   package:test/test.dart
   requirements
@@ -24009,15 +22670,13 @@ import 'a.dart';
 [operation] analyzedLibrary
   file: /home/test/lib/test.dart
   requirements
-    topLevels
-      dart:core
-        A: <null>
+    libraries
       package:test/a.dart
-        A: #M0
-    interfaces
-      package:test/a.dart
-        A
-          allDeclaredConstructors: #M4 #M3
+        exportedTopLevels
+          A: #M0
+        interfaces
+          A
+            allConstructors: #M4 #M3
 [status] idle
 ''',
       updatedA: r'''
@@ -24036,16 +22695,12 @@ extension type A(int it) {
         declaredGetters
           it: #M2
         declaredConstructors
-          named: #M7
+          named: #M6
           new: #M4
         interface: #M5
           map
             it: #M2
   requirements
-    topLevels
-      dart:core
-        double: #M8
-        int: #M6
 [future] getErrors T2
   ErrorsResult #2
     path: /home/test/lib/test.dart
@@ -24061,7 +22716,7 @@ extension type A(int it) {
     interfaceName: A
     childrenPropertyName: constructors
     expectedIds: #M4 #M3
-    actualIds: #M4 #M7
+    actualIds: #M4 #M6
 [operation] analyzeFile
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
@@ -24075,15 +22730,13 @@ extension type A(int it) {
 [operation] analyzedLibrary
   file: /home/test/lib/test.dart
   requirements
-    topLevels
-      dart:core
-        A: <null>
+    libraries
       package:test/a.dart
-        A: #M0
-    interfaces
-      package:test/a.dart
-        A
-          allDeclaredConstructors: #M4 #M7
+        exportedTopLevels
+          A: #M0
+        interfaces
+          A
+            allConstructors: #M4 #M6
 [status] idle
 ''',
     );
@@ -24127,13 +22780,10 @@ void f() {
           map
             it: #M2
   requirements
-    topLevels
-      dart:core
-        int: #M6
 [operation] linkLibraryCycle
   package:test/test.dart
     declaredFunctions
-      f: #M7
+      f: #M6
   requirements
 [operation] analyzeFile
   file: /home/test/lib/test.dart
@@ -24146,16 +22796,14 @@ void f() {
 [operation] analyzedLibrary
   file: /home/test/lib/test.dart
   requirements
-    topLevels
-      dart:core
-        A: <null>
+    libraries
       package:test/a.dart
-        A: #M0
-    interfaces
-      package:test/a.dart
-        A
-          constructors
-            named: #M3
+        exportedTopLevels
+          A: #M0
+        interfaces
+          A
+            requestedConstructors
+              named: #M3
 [status] idle
 ''',
       updatedA: r'''
@@ -24174,16 +22822,12 @@ extension type A(int it) {
         declaredGetters
           it: #M2
         declaredConstructors
-          named: #M8
+          named: #M7
           new: #M4
         interface: #M5
           map
             it: #M2
   requirements
-    topLevels
-      dart:core
-        double: #M9
-        int: #M6
 [future] getErrors T2
   ErrorsResult #2
     path: /home/test/lib/test.dart
@@ -24197,7 +22841,7 @@ extension type A(int it) {
     interfaceName: A
     constructorName: named
     expectedId: #M3
-    actualId: #M8
+    actualId: #M7
 [operation] analyzeFile
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
@@ -24209,16 +22853,14 @@ extension type A(int it) {
 [operation] analyzedLibrary
   file: /home/test/lib/test.dart
   requirements
-    topLevels
-      dart:core
-        A: <null>
+    libraries
       package:test/a.dart
-        A: #M0
-    interfaces
-      package:test/a.dart
-        A
-          constructors
-            named: #M8
+        exportedTopLevels
+          A: #M0
+        interfaces
+          A
+            requestedConstructors
+              named: #M7
 [status] idle
 ''',
     );
@@ -24262,13 +22904,10 @@ void f() {
           map
             it: #M2
   requirements
-    topLevels
-      dart:core
-        int: #M6
 [operation] linkLibraryCycle
   package:test/test.dart
     declaredFunctions
-      f: #M7
+      f: #M6
   requirements
 [operation] analyzeFile
   file: /home/test/lib/test.dart
@@ -24281,16 +22920,14 @@ void f() {
 [operation] analyzedLibrary
   file: /home/test/lib/test.dart
   requirements
-    topLevels
-      dart:core
-        A: <null>
+    libraries
       package:test/a.dart
-        A: #M0
-    interfaces
-      package:test/a.dart
-        A
-          constructors
-            new: #M4
+        exportedTopLevels
+          A: #M0
+        interfaces
+          A
+            requestedConstructors
+              new: #M4
 [status] idle
 ''',
       updatedA: r'''
@@ -24309,16 +22946,12 @@ extension type A(int it) {
         declaredGetters
           it: #M2
         declaredConstructors
-          named: #M8
+          named: #M7
           new: #M4
         interface: #M5
           map
             it: #M2
   requirements
-    topLevels
-      dart:core
-        double: #M9
-        int: #M6
 [future] getErrors T2
   ErrorsResult #2
     path: /home/test/lib/test.dart
@@ -24370,13 +23003,10 @@ void f() {
           map
             it: #M4
   requirements
-    topLevels
-      dart:core
-        int: #M6
 [operation] linkLibraryCycle
   package:test/test.dart
     declaredFunctions
-      f: #M7
+      f: #M6
   requirements
 [operation] analyzeFile
   file: /home/test/lib/test.dart
@@ -24389,23 +23019,20 @@ void f() {
 [operation] analyzedLibrary
   file: /home/test/lib/test.dart
   requirements
-    topLevels
-      dart:core
-        A: <null>
+    libraries
       package:test/a.dart
-        A: #M0
-    instances
-      package:test/a.dart
-        A
-          requestedFields
-            foo: #M1
-          requestedGetters
-            foo: #M3
-    interfaces
-      package:test/a.dart
-        A
-          constructors
-            foo: <null>
+        exportedTopLevels
+          A: #M0
+        instances
+          A
+            requestedDeclaredFields
+              foo: #M1
+            requestedDeclaredGetters
+              foo: #M3
+        interfaces
+          A
+            requestedConstructors
+              foo: <null>
 [status] idle
 ''',
       updatedA: r'''
@@ -24420,19 +23047,15 @@ extension type A(int it) {
     declaredExtensionTypes
       A: #M0
         declaredFields
-          foo: #M8
+          foo: #M7
           it: #M2
         declaredGetters
-          foo: #M9
+          foo: #M8
           it: #M4
         interface: #M5
           map
             it: #M4
   requirements
-    topLevels
-      dart:core
-        double: #M10
-        int: #M6
 [future] getErrors T2
   ErrorsResult #2
     path: /home/test/lib/test.dart
@@ -24446,7 +23069,7 @@ extension type A(int it) {
     interfaceName: A
     fieldName: foo
     expectedId: #M1
-    actualId: #M8
+    actualId: #M7
 [operation] analyzeFile
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
@@ -24458,23 +23081,20 @@ extension type A(int it) {
 [operation] analyzedLibrary
   file: /home/test/lib/test.dart
   requirements
-    topLevels
-      dart:core
-        A: <null>
+    libraries
       package:test/a.dart
-        A: #M0
-    instances
-      package:test/a.dart
-        A
-          requestedFields
-            foo: #M8
-          requestedGetters
-            foo: #M9
-    interfaces
-      package:test/a.dart
-        A
-          constructors
-            foo: <null>
+        exportedTopLevels
+          A: #M0
+        instances
+          A
+            requestedDeclaredFields
+              foo: #M7
+            requestedDeclaredGetters
+              foo: #M8
+        interfaces
+          A
+            requestedConstructors
+              foo: <null>
 [status] idle
 ''',
     );
@@ -24519,13 +23139,10 @@ void f() {
           map
             it: #M6
   requirements
-    topLevels
-      dart:core
-        int: #M8
 [operation] linkLibraryCycle
   package:test/test.dart
     declaredFunctions
-      f: #M9
+      f: #M8
   requirements
 [operation] analyzeFile
   file: /home/test/lib/test.dart
@@ -24538,23 +23155,20 @@ void f() {
 [operation] analyzedLibrary
   file: /home/test/lib/test.dart
   requirements
-    topLevels
-      dart:core
-        A: <null>
+    libraries
       package:test/a.dart
-        A: #M0
-    instances
-      package:test/a.dart
-        A
-          requestedFields
-            foo: #M2
-          requestedGetters
-            foo: #M5
-    interfaces
-      package:test/a.dart
-        A
-          constructors
-            foo: <null>
+        exportedTopLevels
+          A: #M0
+        instances
+          A
+            requestedDeclaredFields
+              foo: #M2
+            requestedDeclaredGetters
+              foo: #M5
+        interfaces
+          A
+            requestedConstructors
+              foo: <null>
 [status] idle
 ''',
       updatedA: r'''
@@ -24570,21 +23184,17 @@ extension type A(int it) {
     declaredExtensionTypes
       A: #M0
         declaredFields
-          bar: #M10
+          bar: #M9
           foo: #M2
           it: #M3
         declaredGetters
-          bar: #M11
+          bar: #M10
           foo: #M5
           it: #M6
         interface: #M7
           map
             it: #M6
   requirements
-    topLevels
-      dart:core
-        double: #M12
-        int: #M8
 [future] getErrors T2
   ErrorsResult #2
     path: /home/test/lib/test.dart
@@ -24636,13 +23246,10 @@ void f() {
           map
             it: #M2
   requirements
-    topLevels
-      dart:core
-        int: #M5
 [operation] linkLibraryCycle
   package:test/test.dart
     declaredFunctions
-      f: #M6
+      f: #M5
   requirements
 [operation] analyzeFile
   file: /home/test/lib/test.dart
@@ -24655,23 +23262,20 @@ void f() {
 [operation] analyzedLibrary
   file: /home/test/lib/test.dart
   requirements
-    topLevels
-      dart:core
-        A: <null>
+    libraries
       package:test/a.dart
-        A: #M0
-    instances
-      package:test/a.dart
-        A
-          requestedGetters
-            foo: <null>
-          requestedMethods
-            foo: #M3
-    interfaces
-      package:test/a.dart
-        A
-          constructors
-            foo: <null>
+        exportedTopLevels
+          A: #M0
+        instances
+          A
+            requestedDeclaredGetters
+              foo: <null>
+            requestedDeclaredMethods
+              foo: #M3
+        interfaces
+          A
+            requestedConstructors
+              foo: <null>
 [status] idle
 ''',
       updatedA: r'''
@@ -24690,15 +23294,11 @@ extension type A(int it) {
         declaredGetters
           it: #M2
         declaredMethods
-          foo: #M7
+          foo: #M6
         interface: #M4
           map
             it: #M2
   requirements
-    topLevels
-      dart:core
-        double: #M8
-        int: #M5
 [future] getErrors T2
   ErrorsResult #2
     path: /home/test/lib/test.dart
@@ -24712,7 +23312,7 @@ extension type A(int it) {
     interfaceName: A
     methodName: foo
     expectedId: #M3
-    actualId: #M7
+    actualId: #M6
 [operation] analyzeFile
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
@@ -24724,23 +23324,20 @@ extension type A(int it) {
 [operation] analyzedLibrary
   file: /home/test/lib/test.dart
   requirements
-    topLevels
-      dart:core
-        A: <null>
+    libraries
       package:test/a.dart
-        A: #M0
-    instances
-      package:test/a.dart
-        A
-          requestedGetters
-            foo: <null>
-          requestedMethods
-            foo: #M7
-    interfaces
-      package:test/a.dart
-        A
-          constructors
-            foo: <null>
+        exportedTopLevels
+          A: #M0
+        instances
+          A
+            requestedDeclaredGetters
+              foo: <null>
+            requestedDeclaredMethods
+              foo: #M6
+        interfaces
+          A
+            requestedConstructors
+              foo: <null>
 [status] idle
 ''',
     );
@@ -24784,13 +23381,10 @@ void f() {
           map
             it: #M2
   requirements
-    topLevels
-      dart:core
-        int: #M6
 [operation] linkLibraryCycle
   package:test/test.dart
     declaredFunctions
-      f: #M7
+      f: #M6
   requirements
 [operation] analyzeFile
   file: /home/test/lib/test.dart
@@ -24803,23 +23397,20 @@ void f() {
 [operation] analyzedLibrary
   file: /home/test/lib/test.dart
   requirements
-    topLevels
-      dart:core
-        A: <null>
+    libraries
       package:test/a.dart
-        A: #M0
-    instances
-      package:test/a.dart
-        A
-          requestedGetters
-            foo: <null>
-          requestedMethods
-            foo: #M4
-    interfaces
-      package:test/a.dart
-        A
-          constructors
-            foo: <null>
+        exportedTopLevels
+          A: #M0
+        instances
+          A
+            requestedDeclaredGetters
+              foo: <null>
+            requestedDeclaredMethods
+              foo: #M4
+        interfaces
+          A
+            requestedConstructors
+              foo: <null>
 [status] idle
 ''',
       updatedA: r'''
@@ -24839,16 +23430,12 @@ extension type A(int it) {
         declaredGetters
           it: #M2
         declaredMethods
-          bar: #M8
+          bar: #M7
           foo: #M4
         interface: #M5
           map
             it: #M2
   requirements
-    topLevels
-      dart:core
-        double: #M9
-        int: #M6
 [future] getErrors T2
   ErrorsResult #2
     path: /home/test/lib/test.dart
@@ -24901,13 +23488,10 @@ void f() {
           map
             it: #M3
   requirements
-    topLevels
-      dart:core
-        int: #M6
 [operation] linkLibraryCycle
   package:test/test.dart
     declaredFunctions
-      f: #M7
+      f: #M6
   requirements
 [operation] analyzeFile
   file: /home/test/lib/test.dart
@@ -24920,18 +23504,16 @@ void f() {
 [operation] analyzedLibrary
   file: /home/test/lib/test.dart
   requirements
-    topLevels
-      dart:core
-        A: <null>
+    libraries
       package:test/a.dart
-        A: #M0
-    instances
-      package:test/a.dart
-        A
-          requestedFields
-            foo: #M1
-          requestedSetters
-            foo=: #M4
+        exportedTopLevels
+          A: #M0
+        instances
+          A
+            requestedDeclaredFields
+              foo: #M1
+            requestedDeclaredSetters
+              foo=: #M4
 [status] idle
 ''',
       updatedA: r'''
@@ -24946,20 +23528,16 @@ extension type A(int it) {
     declaredExtensionTypes
       A: #M0
         declaredFields
-          foo: #M8
+          foo: #M7
           it: #M2
         declaredGetters
           it: #M3
         declaredSetters
-          foo=: #M9
+          foo=: #M8
         interface: #M5
           map
             it: #M3
   requirements
-    topLevels
-      dart:core
-        double: #M10
-        int: #M6
 [future] getErrors T2
   ErrorsResult #2
     path: /home/test/lib/test.dart
@@ -24973,7 +23551,7 @@ extension type A(int it) {
     interfaceName: A
     fieldName: foo
     expectedId: #M1
-    actualId: #M8
+    actualId: #M7
 [operation] analyzeFile
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
@@ -24985,18 +23563,16 @@ extension type A(int it) {
 [operation] analyzedLibrary
   file: /home/test/lib/test.dart
   requirements
-    topLevels
-      dart:core
-        A: <null>
+    libraries
       package:test/a.dart
-        A: #M0
-    instances
-      package:test/a.dart
-        A
-          requestedFields
-            foo: #M8
-          requestedSetters
-            foo=: #M9
+        exportedTopLevels
+          A: #M0
+        instances
+          A
+            requestedDeclaredFields
+              foo: #M7
+            requestedDeclaredSetters
+              foo=: #M8
 [status] idle
 ''',
     );
@@ -25042,13 +23618,10 @@ void f() {
           map
             it: #M4
   requirements
-    topLevels
-      dart:core
-        int: #M8
 [operation] linkLibraryCycle
   package:test/test.dart
     declaredFunctions
-      f: #M9
+      f: #M8
   requirements
 [operation] analyzeFile
   file: /home/test/lib/test.dart
@@ -25061,18 +23634,16 @@ void f() {
 [operation] analyzedLibrary
   file: /home/test/lib/test.dart
   requirements
-    topLevels
-      dart:core
-        A: <null>
+    libraries
       package:test/a.dart
-        A: #M0
-    instances
-      package:test/a.dart
-        A
-          requestedFields
-            foo: #M2
-          requestedSetters
-            foo=: #M6
+        exportedTopLevels
+          A: #M0
+        instances
+          A
+            requestedDeclaredFields
+              foo: #M2
+            requestedDeclaredSetters
+              foo=: #M6
 [status] idle
 ''',
       updatedA: r'''
@@ -25088,22 +23659,18 @@ extension type A(int it) {
     declaredExtensionTypes
       A: #M0
         declaredFields
-          bar: #M10
+          bar: #M9
           foo: #M2
           it: #M3
         declaredGetters
           it: #M4
         declaredSetters
-          bar=: #M11
+          bar=: #M10
           foo=: #M6
         interface: #M7
           map
             it: #M4
   requirements
-    topLevels
-      dart:core
-        double: #M12
-        int: #M8
 [future] getErrors T2
   ErrorsResult #2
     path: /home/test/lib/test.dart
@@ -25162,9 +23729,6 @@ import 'a.dart';
           map
             it: #M2
   requirements
-    topLevels
-      dart:core
-        int: #M6
 [operation] linkLibraryCycle
   package:test/test.dart
   requirements
@@ -25181,15 +23745,13 @@ import 'a.dart';
 [operation] analyzedLibrary
   file: /home/test/lib/test.dart
   requirements
-    topLevels
-      dart:core
-        A: <null>
+    libraries
       package:test/a.dart
-        A: #M0
-    interfaces
-      package:test/a.dart
-        A
-          allDeclaredConstructors: #M4 #M3
+        exportedTopLevels
+          A: #M0
+        interfaces
+          A
+            allConstructors: #M4 #M3
 [status] idle
 ''',
       updatedA: r'''
@@ -25204,20 +23766,16 @@ extension type A(double it) {
     declaredExtensionTypes
       A: #M0
         declaredFields
-          it: #M7
+          it: #M6
         declaredGetters
-          it: #M8
+          it: #M7
         declaredConstructors
           named: #M3
-          new: #M9
-        interface: #M10
+          new: #M8
+        interface: #M9
           map
-            it: #M8
+            it: #M7
   requirements
-    topLevels
-      dart:core
-        double: #M11
-        int: #M6
 [future] getErrors T2
   ErrorsResult #2
     path: /home/test/lib/test.dart
@@ -25233,7 +23791,7 @@ extension type A(double it) {
     interfaceName: A
     childrenPropertyName: constructors
     expectedIds: #M4 #M3
-    actualIds: #M9 #M3
+    actualIds: #M8 #M3
 [operation] analyzeFile
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
@@ -25247,15 +23805,13 @@ extension type A(double it) {
 [operation] analyzedLibrary
   file: /home/test/lib/test.dart
   requirements
-    topLevels
-      dart:core
-        A: <null>
+    libraries
       package:test/a.dart
-        A: #M0
-    interfaces
-      package:test/a.dart
-        A
-          allDeclaredConstructors: #M9 #M3
+        exportedTopLevels
+          A: #M0
+        interfaces
+          A
+            allConstructors: #M8 #M3
 [status] idle
 ''',
     );
@@ -25296,13 +23852,10 @@ void f() {
           map
             it: #M2
   requirements
-    topLevels
-      dart:core
-        int: #M5
 [operation] linkLibraryCycle
   package:test/test.dart
     declaredFunctions
-      f: #M6
+      f: #M5
   requirements
 [operation] analyzeFile
   file: /home/test/lib/test.dart
@@ -25315,16 +23868,14 @@ void f() {
 [operation] analyzedLibrary
   file: /home/test/lib/test.dart
   requirements
-    topLevels
-      dart:core
-        A: <null>
+    libraries
       package:test/a.dart
-        A: #M0
-    interfaces
-      package:test/a.dart
-        A
-          constructors
-            new: #M3
+        exportedTopLevels
+          A: #M0
+        interfaces
+          A
+            requestedConstructors
+              new: #M3
 [status] idle
 ''',
       updatedA: r'''
@@ -25337,18 +23888,15 @@ extension type A(double it) {}
     declaredExtensionTypes
       A: #M0
         declaredFields
-          it: #M7
+          it: #M6
         declaredGetters
-          it: #M8
+          it: #M7
         declaredConstructors
-          new: #M9
-        interface: #M10
+          new: #M8
+        interface: #M9
           map
-            it: #M8
+            it: #M7
   requirements
-    topLevels
-      dart:core
-        double: #M11
 [future] getErrors T2
   ErrorsResult #2
     path: /home/test/lib/test.dart
@@ -25362,7 +23910,7 @@ extension type A(double it) {}
     interfaceName: A
     constructorName: new
     expectedId: #M3
-    actualId: #M9
+    actualId: #M8
 [operation] analyzeFile
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
@@ -25374,16 +23922,14 @@ extension type A(double it) {}
 [operation] analyzedLibrary
   file: /home/test/lib/test.dart
   requirements
-    topLevels
-      dart:core
-        A: <null>
+    libraries
       package:test/a.dart
-        A: #M0
-    interfaces
-      package:test/a.dart
-        A
-          constructors
-            new: #M9
+        exportedTopLevels
+          A: #M0
+        interfaces
+          A
+            requestedConstructors
+              new: #M8
 [status] idle
 ''',
     );
@@ -25427,13 +23973,10 @@ void f() {
           map
             it: #M2
   requirements
-    topLevels
-      dart:core
-        int: #M6
 [operation] linkLibraryCycle
   package:test/test.dart
     declaredFunctions
-      f: #M7
+      f: #M6
   requirements
 [operation] analyzeFile
   file: /home/test/lib/test.dart
@@ -25446,16 +23989,14 @@ void f() {
 [operation] analyzedLibrary
   file: /home/test/lib/test.dart
   requirements
-    topLevels
-      dart:core
-        A: <null>
+    libraries
       package:test/a.dart
-        A: #M0
-    interfaces
-      package:test/a.dart
-        A
-          constructors
-            named: #M3
+        exportedTopLevels
+          A: #M0
+        interfaces
+          A
+            requestedConstructors
+              named: #M3
 [status] idle
 ''',
       updatedA: r'''
@@ -25470,20 +24011,16 @@ extension type A(double it) {
     declaredExtensionTypes
       A: #M0
         declaredFields
-          it: #M8
+          it: #M7
         declaredGetters
-          it: #M9
+          it: #M8
         declaredConstructors
           named: #M3
-          new: #M10
-        interface: #M11
+          new: #M9
+        interface: #M10
           map
-            it: #M9
+            it: #M8
   requirements
-    topLevels
-      dart:core
-        double: #M12
-        int: #M6
 [future] getErrors T2
   ErrorsResult #2
     path: /home/test/lib/test.dart
@@ -25533,19 +24070,15 @@ void f(A a) {
           map
             foo: #M2
   requirements
-    topLevels
-      dart:core
-        int: #M4
 [operation] linkLibraryCycle
   package:test/test.dart
     declaredFunctions
-      f: #M5
+      f: #M4
   requirements
-    topLevels
-      dart:core
-        A: <null>
+    libraries
       package:test/a.dart
-        A: #M0
+        exportedTopLevels
+          A: #M0
 [operation] analyzeFile
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
@@ -25557,21 +24090,18 @@ void f(A a) {
 [operation] analyzedLibrary
   file: /home/test/lib/test.dart
   requirements
-    topLevels
-      dart:core
-        A: <null>
+    libraries
       package:test/a.dart
-        A: #M0
-    instances
-      package:test/a.dart
-        A
-          requestedFields
-            foo: #M1
-    interfaces
-      package:test/a.dart
-        A
-          methods
-            foo: #M2
+        exportedTopLevels
+          A: #M0
+        instances
+          A
+            requestedDeclaredFields
+              foo: #M1
+        interfaces
+          A
+            methods
+              foo: #M2
 [status] idle
 ''',
       updatedA: r'''
@@ -25586,16 +24116,13 @@ mixin A {
     declaredMixins
       A: #M0
         declaredFields
-          foo: #M6
+          foo: #M5
         declaredGetters
-          foo: #M7
-        interface: #M8
+          foo: #M6
+        interface: #M7
           map
-            foo: #M7
+            foo: #M6
   requirements
-    topLevels
-      dart:core
-        double: #M9
 [future] getErrors T2
   ErrorsResult #2
     path: /home/test/lib/test.dart
@@ -25609,7 +24136,7 @@ mixin A {
     interfaceName: A
     fieldName: foo
     expectedId: #M1
-    actualId: #M6
+    actualId: #M5
 [operation] analyzeFile
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
@@ -25621,21 +24148,18 @@ mixin A {
 [operation] analyzedLibrary
   file: /home/test/lib/test.dart
   requirements
-    topLevels
-      dart:core
-        A: <null>
+    libraries
       package:test/a.dart
-        A: #M0
-    instances
-      package:test/a.dart
-        A
-          requestedFields
-            foo: #M6
-    interfaces
-      package:test/a.dart
-        A
-          methods
-            foo: #M7
+        exportedTopLevels
+          A: #M0
+        instances
+          A
+            requestedDeclaredFields
+              foo: #M5
+        interfaces
+          A
+            methods
+              foo: #M6
 [status] idle
 ''',
     );
@@ -25679,19 +24203,15 @@ void f(A a) {
             bar: #M3
             foo: #M4
   requirements
-    topLevels
-      dart:core
-        int: #M6
 [operation] linkLibraryCycle
   package:test/test.dart
     declaredFunctions
-      f: #M7
+      f: #M6
   requirements
-    topLevels
-      dart:core
-        A: <null>
+    libraries
       package:test/a.dart
-        A: #M0
+        exportedTopLevels
+          A: #M0
 [operation] analyzeFile
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
@@ -25703,21 +24223,18 @@ void f(A a) {
 [operation] analyzedLibrary
   file: /home/test/lib/test.dart
   requirements
-    topLevels
-      dart:core
-        A: <null>
+    libraries
       package:test/a.dart
-        A: #M0
-    instances
-      package:test/a.dart
-        A
-          requestedFields
-            foo: #M2
-    interfaces
-      package:test/a.dart
-        A
-          methods
-            foo: #M4
+        exportedTopLevels
+          A: #M0
+        instances
+          A
+            requestedDeclaredFields
+              foo: #M2
+        interfaces
+          A
+            methods
+              foo: #M4
 [status] idle
 ''',
       updatedA: r'''
@@ -25735,13 +24252,10 @@ mixin A {
           foo: #M2
         declaredGetters
           foo: #M4
-        interface: #M8
+        interface: #M7
           map
             foo: #M4
   requirements
-    topLevels
-      dart:core
-        int: #M6
 [future] getErrors T2
   ErrorsResult #2
     path: /home/test/lib/test.dart
@@ -25798,40 +24312,33 @@ void f(B b) {
           map
             foo: #M2
   requirements
-    topLevels
-      dart:core
-        int: #M6
 [operation] linkLibraryCycle
   package:test/test.dart
     declaredFunctions
-      f: #M7
+      f: #M6
   requirements
-    topLevels
-      dart:core
-        B: <null>
+    libraries
       package:test/a.dart
-        B: #M4
+        exportedTopLevels
+          B: #M4
 [operation] analyzeFile
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
 [operation] analyzedLibrary
   file: /home/test/lib/test.dart
   requirements
-    topLevels
-      dart:core
-        B: <null>
+    libraries
       package:test/a.dart
-        B: #M4
-    instances
-      package:test/a.dart
-        A
-          requestedFields
-            foo: #M1
-    interfaces
-      package:test/a.dart
-        B
-          methods
-            foo: #M2
+        exportedTopLevels
+          B: #M4
+        instances
+          A
+            requestedDeclaredFields
+              foo: #M1
+        interfaces
+          B
+            methods
+              foo: #M2
 [status] idle
 ''',
       updatedA: r'''
@@ -25854,14 +24361,11 @@ mixin B on A<double> {}
         interface: #M3
           map
             foo: #M2
-      B: #M8
-        interface: #M9
+      B: #M7
+        interface: #M8
           map
             foo: #M2
   requirements
-    topLevels
-      dart:core
-        double: #M10
 [future] getErrors T2
   ErrorsResult #1
     path: /home/test/lib/test.dart
@@ -25872,44 +24376,40 @@ mixin B on A<double> {}
     libraryUri: package:test/a.dart
     name: B
     expectedId: #M4
-    actualId: #M8
+    actualId: #M7
 [operation] linkLibraryCycle
   package:test/test.dart
     declaredFunctions
-      f: #M11
+      f: #M9
   requirements
-    topLevels
-      dart:core
-        B: <null>
+    libraries
       package:test/a.dart
-        B: #M8
+        exportedTopLevels
+          B: #M7
 [operation] getErrorsCannotReuse
   topLevelIdMismatch
     libraryUri: package:test/a.dart
     name: B
     expectedId: #M4
-    actualId: #M8
+    actualId: #M7
 [operation] analyzeFile
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
 [operation] analyzedLibrary
   file: /home/test/lib/test.dart
   requirements
-    topLevels
-      dart:core
-        B: <null>
+    libraries
       package:test/a.dart
-        B: #M8
-    instances
-      package:test/a.dart
-        A
-          requestedFields
-            foo: #M1
-    interfaces
-      package:test/a.dart
-        B
-          methods
-            foo: #M2
+        exportedTopLevels
+          B: #M7
+        instances
+          A
+            requestedDeclaredFields
+              foo: #M1
+        interfaces
+          B
+            methods
+              foo: #M2
 [status] idle
 ''',
     );
@@ -25949,38 +24449,32 @@ void f(A a) {
     declaredFunctions
       f: #M2
   requirements
-    topLevels
-      dart:core
-        A: <null>
+    libraries
       package:test/a.dart
-        A: #M0
+        exportedTopLevels
+          A: #M0
 [operation] analyzeFile
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
 [operation] analyzedLibrary
   file: /home/test/lib/test.dart
   requirements
-    topLevels
-      dart:core
-        A: <null>
+    libraries
       package:test/a.dart
-        A: #M0
-    instances
-      package:test/a.dart
-        A
-          requestedGetters
-            foo: <null>
-          requestedMethods
-            foo: <null>
-    interfaces
-      package:test/a.dart
-        A
-          methods
-            foo: <null>
-            foo=: <null>
-    exportedExtensions
-      dart:core: #M3
-      package:test/a.dart: []
+        exportedTopLevels
+          A: #M0
+        instances
+          A
+            requestedDeclaredGetters
+              foo: <null>
+            requestedDeclaredMethods
+              foo: <null>
+        interfaces
+          A
+            methods
+              foo: <null>
+              foo=: <null>
+        exportedExtensions: []
 [status] idle
 ''',
       updatedA: r'''
@@ -25995,14 +24489,11 @@ mixin A {
     declaredMixins
       A: #M0
         declaredMethods
-          foo: #M4
-        interface: #M5
+          foo: #M3
+        interface: #M4
           map
-            foo: #M4
+            foo: #M3
   requirements
-    topLevels
-      dart:core
-        int: #M6
 [future] getErrors T2
   ErrorsResult #1
     path: /home/test/lib/test.dart
@@ -26016,23 +24507,21 @@ mixin A {
     interfaceName: A
     methodName: foo
     expectedId: <null>
-    actualId: #M4
+    actualId: #M3
 [operation] analyzeFile
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
 [operation] analyzedLibrary
   file: /home/test/lib/test.dart
   requirements
-    topLevels
-      dart:core
-        A: <null>
+    libraries
       package:test/a.dart
-        A: #M0
-    interfaces
-      package:test/a.dart
-        A
-          methods
-            foo: #M4
+        exportedTopLevels
+          A: #M0
+        interfaces
+          A
+            methods
+              foo: #M3
 [status] idle
 ''',
     );
@@ -26070,19 +24559,15 @@ void f(A a) {
           map
             foo: #M1
   requirements
-    topLevels
-      dart:core
-        int: #M3
 [operation] linkLibraryCycle
   package:test/test.dart
     declaredFunctions
-      f: #M4
+      f: #M3
   requirements
-    topLevels
-      dart:core
-        A: <null>
+    libraries
       package:test/a.dart
-        A: #M0
+        exportedTopLevels
+          A: #M0
 [operation] analyzeFile
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
@@ -26094,16 +24579,14 @@ void f(A a) {
 [operation] analyzedLibrary
   file: /home/test/lib/test.dart
   requirements
-    topLevels
-      dart:core
-        A: <null>
+    libraries
       package:test/a.dart
-        A: #M0
-    interfaces
-      package:test/a.dart
-        A
-          methods
-            foo: #M1
+        exportedTopLevels
+          A: #M0
+        interfaces
+          A
+            methods
+              foo: #M1
 [status] idle
 ''',
       updatedA: r'''
@@ -26118,14 +24601,11 @@ mixin A {
     declaredMixins
       A: #M0
         declaredMethods
-          foo: #M5
-        interface: #M6
+          foo: #M4
+        interface: #M5
           map
-            foo: #M5
+            foo: #M4
   requirements
-    topLevels
-      dart:core
-        double: #M7
 [future] getErrors T2
   ErrorsResult #2
     path: /home/test/lib/test.dart
@@ -26139,7 +24619,7 @@ mixin A {
     interfaceName: A
     methodName: foo
     expectedId: #M1
-    actualId: #M5
+    actualId: #M4
 [operation] analyzeFile
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
@@ -26151,16 +24631,14 @@ mixin A {
 [operation] analyzedLibrary
   file: /home/test/lib/test.dart
   requirements
-    topLevels
-      dart:core
-        A: <null>
+    libraries
       package:test/a.dart
-        A: #M0
-    interfaces
-      package:test/a.dart
-        A
-          methods
-            foo: #M5
+        exportedTopLevels
+          A: #M0
+        interfaces
+          A
+            methods
+              foo: #M4
 [status] idle
 ''',
     );
@@ -26201,19 +24679,15 @@ void f(A a) {
             bar: #M1
             foo: #M2
   requirements
-    topLevels
-      dart:core
-        int: #M4
 [operation] linkLibraryCycle
   package:test/test.dart
     declaredFunctions
-      f: #M5
+      f: #M4
   requirements
-    topLevels
-      dart:core
-        A: <null>
+    libraries
       package:test/a.dart
-        A: #M0
+        exportedTopLevels
+          A: #M0
 [operation] analyzeFile
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
@@ -26225,16 +24699,14 @@ void f(A a) {
 [operation] analyzedLibrary
   file: /home/test/lib/test.dart
   requirements
-    topLevels
-      dart:core
-        A: <null>
+    libraries
       package:test/a.dart
-        A: #M0
-    interfaces
-      package:test/a.dart
-        A
-          methods
-            foo: #M2
+        exportedTopLevels
+          A: #M0
+        interfaces
+          A
+            methods
+              foo: #M2
 [status] idle
 ''',
       updatedA: r'''
@@ -26250,17 +24722,13 @@ mixin A {
     declaredMixins
       A: #M0
         declaredMethods
-          bar: #M6
+          bar: #M5
           foo: #M2
-        interface: #M7
+        interface: #M6
           map
-            bar: #M6
+            bar: #M5
             foo: #M2
   requirements
-    topLevels
-      dart:core
-        double: #M8
-        int: #M4
 [future] getErrors T2
   ErrorsResult #2
     path: /home/test/lib/test.dart
@@ -26315,35 +24783,29 @@ void f(B b) {
           map
             foo: #M1
   requirements
-    topLevels
-      dart:core
-        int: #M5
 [operation] linkLibraryCycle
   package:test/test.dart
     declaredFunctions
-      f: #M6
+      f: #M5
   requirements
-    topLevels
-      dart:core
-        B: <null>
+    libraries
       package:test/a.dart
-        B: #M3
+        exportedTopLevels
+          B: #M3
 [operation] analyzeFile
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
 [operation] analyzedLibrary
   file: /home/test/lib/test.dart
   requirements
-    topLevels
-      dart:core
-        B: <null>
+    libraries
       package:test/a.dart
-        B: #M3
-    interfaces
-      package:test/a.dart
-        B
-          methods
-            foo: #M1
+        exportedTopLevels
+          B: #M3
+        interfaces
+          B
+            methods
+              foo: #M1
 [status] idle
 ''',
       updatedA: r'''
@@ -26364,14 +24826,11 @@ mixin B implements A<double> {}
         interface: #M2
           map
             foo: #M1
-      B: #M7
-        interface: #M8
+      B: #M6
+        interface: #M7
           map
             foo: #M1
   requirements
-    topLevels
-      dart:core
-        double: #M9
 [future] getErrors T2
   ErrorsResult #1
     path: /home/test/lib/test.dart
@@ -26382,39 +24841,36 @@ mixin B implements A<double> {}
     libraryUri: package:test/a.dart
     name: B
     expectedId: #M3
-    actualId: #M7
+    actualId: #M6
 [operation] linkLibraryCycle
   package:test/test.dart
     declaredFunctions
-      f: #M10
+      f: #M8
   requirements
-    topLevels
-      dart:core
-        B: <null>
+    libraries
       package:test/a.dart
-        B: #M7
+        exportedTopLevels
+          B: #M6
 [operation] getErrorsCannotReuse
   topLevelIdMismatch
     libraryUri: package:test/a.dart
     name: B
     expectedId: #M3
-    actualId: #M7
+    actualId: #M6
 [operation] analyzeFile
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
 [operation] analyzedLibrary
   file: /home/test/lib/test.dart
   requirements
-    topLevels
-      dart:core
-        B: <null>
+    libraries
       package:test/a.dart
-        B: #M7
-    interfaces
-      package:test/a.dart
-        B
-          methods
-            foo: #M1
+        exportedTopLevels
+          B: #M6
+        interfaces
+          B
+            methods
+              foo: #M1
 [status] idle
 ''',
     );
@@ -26459,35 +24915,29 @@ void f(B b) {
           map
             foo: #M1
   requirements
-    topLevels
-      dart:core
-        int: #M5
 [operation] linkLibraryCycle
   package:test/test.dart
     declaredFunctions
-      f: #M6
+      f: #M5
   requirements
-    topLevels
-      dart:core
-        B: <null>
+    libraries
       package:test/a.dart
-        B: #M3
+        exportedTopLevels
+          B: #M3
 [operation] analyzeFile
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
 [operation] analyzedLibrary
   file: /home/test/lib/test.dart
   requirements
-    topLevels
-      dart:core
-        B: <null>
+    libraries
       package:test/a.dart
-        B: #M3
-    interfaces
-      package:test/a.dart
-        B
-          methods
-            foo: #M1
+        exportedTopLevels
+          B: #M3
+        interfaces
+          B
+            methods
+              foo: #M1
 [status] idle
 ''',
       updatedA: r'''
@@ -26508,14 +24958,11 @@ mixin B on A<double> {}
         interface: #M2
           map
             foo: #M1
-      B: #M7
-        interface: #M8
+      B: #M6
+        interface: #M7
           map
             foo: #M1
   requirements
-    topLevels
-      dart:core
-        double: #M9
 [future] getErrors T2
   ErrorsResult #1
     path: /home/test/lib/test.dart
@@ -26526,39 +24973,36 @@ mixin B on A<double> {}
     libraryUri: package:test/a.dart
     name: B
     expectedId: #M3
-    actualId: #M7
+    actualId: #M6
 [operation] linkLibraryCycle
   package:test/test.dart
     declaredFunctions
-      f: #M10
+      f: #M8
   requirements
-    topLevels
-      dart:core
-        B: <null>
+    libraries
       package:test/a.dart
-        B: #M7
+        exportedTopLevels
+          B: #M6
 [operation] getErrorsCannotReuse
   topLevelIdMismatch
     libraryUri: package:test/a.dart
     name: B
     expectedId: #M3
-    actualId: #M7
+    actualId: #M6
 [operation] analyzeFile
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
 [operation] analyzedLibrary
   file: /home/test/lib/test.dart
   requirements
-    topLevels
-      dart:core
-        B: <null>
+    libraries
       package:test/a.dart
-        B: #M7
-    interfaces
-      package:test/a.dart
-        B
-          methods
-            foo: #M1
+        exportedTopLevels
+          B: #M6
+        interfaces
+          B
+            methods
+              foo: #M1
 [status] idle
 ''',
     );
@@ -26602,27 +25046,24 @@ void f(A a) {
     declaredFunctions
       f: #M3
   requirements
-    topLevels
-      dart:core
-        A: <null>
+    libraries
       package:test/a.dart
-        A: #M0
+        exportedTopLevels
+          A: #M0
 [operation] analyzeFile
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
 [operation] analyzedLibrary
   file: /home/test/lib/test.dart
   requirements
-    topLevels
-      dart:core
-        A: <null>
+    libraries
       package:test/a.dart
-        A: #M0
-    interfaces
-      package:test/a.dart
-        A
-          methods
-            foo: #M1
+        exportedTopLevels
+          A: #M0
+        interfaces
+          A
+            methods
+              foo: #M1
 [status] idle
 ''',
       updatedA: r'''
@@ -26658,27 +25099,22 @@ mixin A {}
 [operation] analyzedLibrary
   file: /home/test/lib/test.dart
   requirements
-    topLevels
-      dart:core
-        A: <null>
+    libraries
       package:test/a.dart
-        A: #M0
-    instances
-      package:test/a.dart
-        A
-          requestedGetters
-            foo: <null>
-          requestedMethods
-            foo: <null>
-    interfaces
-      package:test/a.dart
-        A
-          methods
-            foo: <null>
-            foo=: <null>
-    exportedExtensions
-      dart:core: #M5
-      package:test/a.dart: []
+        exportedTopLevels
+          A: #M0
+        instances
+          A
+            requestedDeclaredGetters
+              foo: <null>
+            requestedDeclaredMethods
+              foo: <null>
+        interfaces
+          A
+            methods
+              foo: <null>
+              foo=: <null>
+        exportedExtensions: []
 [status] idle
 ''',
     );
@@ -26717,11 +25153,10 @@ void f(A a) {
     declaredFunctions
       f: #M2
   requirements
-    topLevels
-      dart:core
-        A: <null>
+    libraries
       package:test/a.dart
-        A: #M0
+        exportedTopLevels
+          A: #M0
 [operation] analyzeFile
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
@@ -26735,29 +25170,24 @@ void f(A a) {
 [operation] analyzedLibrary
   file: /home/test/lib/test.dart
   requirements
-    topLevels
-      dart:core
-        A: <null>
+    libraries
       package:test/a.dart
-        A: #M0
-    instances
-      package:test/a.dart
-        A
-          requestedGetters
-            foo: <null>
-          requestedSetters
-            foo=: <null>
-          requestedMethods
-            foo: <null>
-    interfaces
-      package:test/a.dart
-        A
-          methods
-            foo: <null>
-            foo=: <null>
-    exportedExtensions
-      dart:core: #M3
-      package:test/a.dart: []
+        exportedTopLevels
+          A: #M0
+        instances
+          A
+            requestedDeclaredGetters
+              foo: <null>
+            requestedDeclaredSetters
+              foo=: <null>
+            requestedDeclaredMethods
+              foo: <null>
+        interfaces
+          A
+            methods
+              foo: <null>
+              foo=: <null>
+        exportedExtensions: []
 [status] idle
 ''',
       updatedA: r'''
@@ -26772,16 +25202,13 @@ mixin A {
     declaredMixins
       A: #M0
         declaredFields
-          foo: #M4
+          foo: #M3
         declaredSetters
-          foo=: #M5
-        interface: #M6
+          foo=: #M4
+        interface: #M5
           map
-            foo=: #M5
+            foo=: #M4
   requirements
-    topLevels
-      dart:core
-        int: #M7
 [future] getErrors T2
   ErrorsResult #2
     path: /home/test/lib/test.dart
@@ -26795,7 +25222,7 @@ mixin A {
     interfaceName: A
     methodName: foo=
     expectedId: <null>
-    actualId: #M5
+    actualId: #M4
 [operation] analyzeFile
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
@@ -26807,21 +25234,18 @@ mixin A {
 [operation] analyzedLibrary
   file: /home/test/lib/test.dart
   requirements
-    topLevels
-      dart:core
-        A: <null>
+    libraries
       package:test/a.dart
-        A: #M0
-    instances
-      package:test/a.dart
-        A
-          requestedFields
-            foo: #M4
-    interfaces
-      package:test/a.dart
-        A
-          methods
-            foo=: #M5
+        exportedTopLevels
+          A: #M0
+        instances
+          A
+            requestedDeclaredFields
+              foo: #M3
+        interfaces
+          A
+            methods
+              foo=: #M4
 [status] idle
 ''',
     );
@@ -26861,19 +25285,15 @@ void f(A a) {
           map
             foo=: #M2
   requirements
-    topLevels
-      dart:core
-        int: #M4
 [operation] linkLibraryCycle
   package:test/test.dart
     declaredFunctions
-      f: #M5
+      f: #M4
   requirements
-    topLevels
-      dart:core
-        A: <null>
+    libraries
       package:test/a.dart
-        A: #M0
+        exportedTopLevels
+          A: #M0
 [operation] analyzeFile
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
@@ -26885,21 +25305,18 @@ void f(A a) {
 [operation] analyzedLibrary
   file: /home/test/lib/test.dart
   requirements
-    topLevels
-      dart:core
-        A: <null>
+    libraries
       package:test/a.dart
-        A: #M0
-    instances
-      package:test/a.dart
-        A
-          requestedFields
-            foo: #M1
-    interfaces
-      package:test/a.dart
-        A
-          methods
-            foo=: #M2
+        exportedTopLevels
+          A: #M0
+        instances
+          A
+            requestedDeclaredFields
+              foo: #M1
+        interfaces
+          A
+            methods
+              foo=: #M2
 [status] idle
 ''',
       updatedA: r'''
@@ -26914,16 +25331,13 @@ mixin A {
     declaredMixins
       A: #M0
         declaredFields
-          foo: #M6
+          foo: #M5
         declaredSetters
-          foo=: #M7
-        interface: #M8
+          foo=: #M6
+        interface: #M7
           map
-            foo=: #M7
+            foo=: #M6
   requirements
-    topLevels
-      dart:core
-        double: #M9
 [future] getErrors T2
   ErrorsResult #2
     path: /home/test/lib/test.dart
@@ -26937,7 +25351,7 @@ mixin A {
     interfaceName: A
     fieldName: foo
     expectedId: #M1
-    actualId: #M6
+    actualId: #M5
 [operation] analyzeFile
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
@@ -26949,21 +25363,18 @@ mixin A {
 [operation] analyzedLibrary
   file: /home/test/lib/test.dart
   requirements
-    topLevels
-      dart:core
-        A: <null>
+    libraries
       package:test/a.dart
-        A: #M0
-    instances
-      package:test/a.dart
-        A
-          requestedFields
-            foo: #M6
-    interfaces
-      package:test/a.dart
-        A
-          methods
-            foo=: #M7
+        exportedTopLevels
+          A: #M0
+        instances
+          A
+            requestedDeclaredFields
+              foo: #M5
+        interfaces
+          A
+            methods
+              foo=: #M6
 [status] idle
 ''',
     );
@@ -27007,19 +25418,15 @@ void f(A a) {
             bar=: #M3
             foo=: #M4
   requirements
-    topLevels
-      dart:core
-        int: #M6
 [operation] linkLibraryCycle
   package:test/test.dart
     declaredFunctions
-      f: #M7
+      f: #M6
   requirements
-    topLevels
-      dart:core
-        A: <null>
+    libraries
       package:test/a.dart
-        A: #M0
+        exportedTopLevels
+          A: #M0
 [operation] analyzeFile
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
@@ -27031,21 +25438,18 @@ void f(A a) {
 [operation] analyzedLibrary
   file: /home/test/lib/test.dart
   requirements
-    topLevels
-      dart:core
-        A: <null>
+    libraries
       package:test/a.dart
-        A: #M0
-    instances
-      package:test/a.dart
-        A
-          requestedFields
-            foo: #M2
-    interfaces
-      package:test/a.dart
-        A
-          methods
-            foo=: #M4
+        exportedTopLevels
+          A: #M0
+        instances
+          A
+            requestedDeclaredFields
+              foo: #M2
+        interfaces
+          A
+            methods
+              foo=: #M4
 [status] idle
 ''',
       updatedA: r'''
@@ -27061,20 +25465,16 @@ mixin A {
     declaredMixins
       A: #M0
         declaredFields
-          bar: #M8
+          bar: #M7
           foo: #M2
         declaredSetters
-          bar=: #M9
+          bar=: #M8
           foo=: #M4
-        interface: #M10
+        interface: #M9
           map
-            bar=: #M9
+            bar=: #M8
             foo=: #M4
   requirements
-    topLevels
-      dart:core
-        double: #M11
-        int: #M6
 [future] getErrors T2
   ErrorsResult #2
     path: /home/test/lib/test.dart
@@ -27131,40 +25531,33 @@ void f(B b) {
           map
             foo=: #M2
   requirements
-    topLevels
-      dart:core
-        int: #M6
 [operation] linkLibraryCycle
   package:test/test.dart
     declaredFunctions
-      f: #M7
+      f: #M6
   requirements
-    topLevels
-      dart:core
-        B: <null>
+    libraries
       package:test/a.dart
-        B: #M4
+        exportedTopLevels
+          B: #M4
 [operation] analyzeFile
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
 [operation] analyzedLibrary
   file: /home/test/lib/test.dart
   requirements
-    topLevels
-      dart:core
-        B: <null>
+    libraries
       package:test/a.dart
-        B: #M4
-    instances
-      package:test/a.dart
-        A
-          requestedFields
-            foo: #M1
-    interfaces
-      package:test/a.dart
-        B
-          methods
-            foo=: #M2
+        exportedTopLevels
+          B: #M4
+        instances
+          A
+            requestedDeclaredFields
+              foo: #M1
+        interfaces
+          B
+            methods
+              foo=: #M2
 [status] idle
 ''',
       updatedA: r'''
@@ -27187,14 +25580,11 @@ mixin B on A<double> {}
         interface: #M3
           map
             foo=: #M2
-      B: #M8
-        interface: #M9
+      B: #M7
+        interface: #M8
           map
             foo=: #M2
   requirements
-    topLevels
-      dart:core
-        double: #M10
 [future] getErrors T2
   ErrorsResult #1
     path: /home/test/lib/test.dart
@@ -27205,44 +25595,40 @@ mixin B on A<double> {}
     libraryUri: package:test/a.dart
     name: B
     expectedId: #M4
-    actualId: #M8
+    actualId: #M7
 [operation] linkLibraryCycle
   package:test/test.dart
     declaredFunctions
-      f: #M11
+      f: #M9
   requirements
-    topLevels
-      dart:core
-        B: <null>
+    libraries
       package:test/a.dart
-        B: #M8
+        exportedTopLevels
+          B: #M7
 [operation] getErrorsCannotReuse
   topLevelIdMismatch
     libraryUri: package:test/a.dart
     name: B
     expectedId: #M4
-    actualId: #M8
+    actualId: #M7
 [operation] analyzeFile
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
 [operation] analyzedLibrary
   file: /home/test/lib/test.dart
   requirements
-    topLevels
-      dart:core
-        B: <null>
+    libraries
       package:test/a.dart
-        B: #M8
-    instances
-      package:test/a.dart
-        A
-          requestedFields
-            foo: #M1
-    interfaces
-      package:test/a.dart
-        B
-          methods
-            foo=: #M2
+        exportedTopLevels
+          B: #M7
+        instances
+          A
+            requestedDeclaredFields
+              foo: #M1
+        interfaces
+          B
+            methods
+              foo=: #M2
 [status] idle
 ''',
     );
@@ -27282,19 +25668,15 @@ void f(A a) {
           map
             foo=: #M2
   requirements
-    topLevels
-      dart:core
-        int: #M4
 [operation] linkLibraryCycle
   package:test/test.dart
     declaredFunctions
-      f: #M5
+      f: #M4
   requirements
-    topLevels
-      dart:core
-        A: <null>
+    libraries
       package:test/a.dart
-        A: #M0
+        exportedTopLevels
+          A: #M0
 [operation] analyzeFile
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
@@ -27306,21 +25688,18 @@ void f(A a) {
 [operation] analyzedLibrary
   file: /home/test/lib/test.dart
   requirements
-    topLevels
-      dart:core
-        A: <null>
+    libraries
       package:test/a.dart
-        A: #M0
-    instances
-      package:test/a.dart
-        A
-          requestedFields
-            foo: #M1
-    interfaces
-      package:test/a.dart
-        A
-          methods
-            foo=: #M2
+        exportedTopLevels
+          A: #M0
+        instances
+          A
+            requestedDeclaredFields
+              foo: #M1
+        interfaces
+          A
+            methods
+              foo=: #M2
 [status] idle
 ''',
       updatedA: r'''
@@ -27332,7 +25711,7 @@ mixin A {}
   package:test/a.dart
     declaredMixins
       A: #M0
-        interface: #M6
+        interface: #M5
   requirements
 [future] getErrors T2
   ErrorsResult #2
@@ -27363,29 +25742,24 @@ mixin A {}
 [operation] analyzedLibrary
   file: /home/test/lib/test.dart
   requirements
-    topLevels
-      dart:core
-        A: <null>
+    libraries
       package:test/a.dart
-        A: #M0
-    instances
-      package:test/a.dart
-        A
-          requestedGetters
-            foo: <null>
-          requestedSetters
-            foo=: <null>
-          requestedMethods
-            foo: <null>
-    interfaces
-      package:test/a.dart
-        A
-          methods
-            foo: <null>
-            foo=: <null>
-    exportedExtensions
-      dart:core: #M7
-      package:test/a.dart: []
+        exportedTopLevels
+          A: #M0
+        instances
+          A
+            requestedDeclaredGetters
+              foo: <null>
+            requestedDeclaredSetters
+              foo=: <null>
+            requestedDeclaredMethods
+              foo: <null>
+        interfaces
+          A
+            methods
+              foo: <null>
+              foo=: <null>
+        exportedExtensions: []
 [status] idle
 ''',
     );
@@ -27417,11 +25791,10 @@ A foo() {}
     declaredFunctions
       foo: #M0
   requirements
-    topLevels
-      dart:core
-        A: <null>
+    libraries
       package:test/a.dart
-        A: <null>
+        exportedTopLevels
+          A: <null>
 [operation] analyzeFile
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
@@ -27435,11 +25808,10 @@ A foo() {}
 [operation] analyzedLibrary
   file: /home/test/lib/test.dart
   requirements
-    topLevels
-      dart:core
-        A: <null>
+    libraries
       package:test/a.dart
-        A: <null>
+        exportedTopLevels
+          A: <null>
 [status] idle
 ''',
       updatedA: r'''
@@ -27471,11 +25843,10 @@ mixin A {}
     declaredFunctions
       foo: #M3
   requirements
-    topLevels
-      dart:core
-        A: <null>
+    libraries
       package:test/a.dart
-        A: #M1
+        exportedTopLevels
+          A: #M1
 [operation] getErrorsCannotReuse
   topLevelIdMismatch
     libraryUri: package:test/a.dart
@@ -27495,11 +25866,10 @@ mixin A {}
 [operation] analyzedLibrary
   file: /home/test/lib/test.dart
   requirements
-    topLevels
-      dart:core
-        A: <null>
+    libraries
       package:test/a.dart
-        A: #M1
+        exportedTopLevels
+          A: #M1
 [status] idle
 ''',
     );
@@ -27536,11 +25906,10 @@ A foo() {}
     declaredFunctions
       foo: #M2
   requirements
-    topLevels
-      dart:core
-        A: <null>
+    libraries
       package:test/a.dart
-        A: #M0
+        exportedTopLevels
+          A: #M0
 [operation] analyzeFile
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
@@ -27554,11 +25923,10 @@ A foo() {}
 [operation] analyzedLibrary
   file: /home/test/lib/test.dart
   requirements
-    topLevels
-      dart:core
-        A: <null>
+    libraries
       package:test/a.dart
-        A: #M0
+        exportedTopLevels
+          A: #M0
 [status] idle
 ''',
       updatedA: r'''
@@ -27626,11 +25994,10 @@ A foo() {}
     declaredFunctions
       foo: #M4
   requirements
-    topLevels
-      dart:core
-        A: <null>
+    libraries
       package:test/a.dart
-        A: #M0
+        exportedTopLevels
+          A: #M0
 [operation] analyzeFile
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
@@ -27644,11 +26011,10 @@ A foo() {}
 [operation] analyzedLibrary
   file: /home/test/lib/test.dart
   requirements
-    topLevels
-      dart:core
-        A: <null>
+    libraries
       package:test/a.dart
-        A: #M0
+        exportedTopLevels
+          A: #M0
 [status] idle
 ''',
       updatedA: r'''
@@ -27683,11 +26049,10 @@ mixin B {}
     declaredFunctions
       foo: #M7
   requirements
-    topLevels
-      dart:core
-        A: <null>
+    libraries
       package:test/a.dart
-        A: #M5
+        exportedTopLevels
+          A: #M5
 [operation] getErrorsCannotReuse
   topLevelIdMismatch
     libraryUri: package:test/a.dart
@@ -27707,11 +26072,10 @@ mixin B {}
 [operation] analyzedLibrary
   file: /home/test/lib/test.dart
   requirements
-    topLevels
-      dart:core
-        A: <null>
+    libraries
       package:test/a.dart
-        A: #M5
+        exportedTopLevels
+          A: #M5
 [status] idle
 ''',
     );
@@ -27754,11 +26118,10 @@ A foo() {}
     declaredFunctions
       foo: #M6
   requirements
-    topLevels
-      dart:core
-        A: <null>
+    libraries
       package:test/a.dart
-        A: #M0
+        exportedTopLevels
+          A: #M0
 [operation] analyzeFile
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
@@ -27772,11 +26135,10 @@ A foo() {}
 [operation] analyzedLibrary
   file: /home/test/lib/test.dart
   requirements
-    topLevels
-      dart:core
-        A: <null>
+    libraries
       package:test/a.dart
-        A: #M0
+        exportedTopLevels
+          A: #M0
 [status] idle
 ''',
       updatedA: r'''
@@ -27842,11 +26204,10 @@ A foo() => throw 0;
     declaredFunctions
       foo: #M2
   requirements
-    topLevels
-      dart:core
-        A: <null>
+    libraries
       package:test/a.dart
-        A: #M0
+        exportedTopLevels
+          A: #M0
 [operation] analyzeFile
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
@@ -27858,11 +26219,10 @@ A foo() => throw 0;
 [operation] analyzedLibrary
   file: /home/test/lib/test.dart
   requirements
-    topLevels
-      dart:core
-        A: <null>
+    libraries
       package:test/a.dart
-        A: #M0
+        exportedTopLevels
+          A: #M0
 [status] idle
 ''',
       updatedA: '',
@@ -27889,11 +26249,10 @@ A foo() => throw 0;
     declaredFunctions
       foo: #M3
   requirements
-    topLevels
-      dart:core
-        A: <null>
+    libraries
       package:test/a.dart
-        A: <null>
+        exportedTopLevels
+          A: <null>
 [operation] getErrorsCannotReuse
   topLevelIdMismatch
     libraryUri: package:test/a.dart
@@ -27913,11 +26272,10 @@ A foo() => throw 0;
 [operation] analyzedLibrary
   file: /home/test/lib/test.dart
   requirements
-    topLevels
-      dart:core
-        A: <null>
+    libraries
       package:test/a.dart
-        A: <null>
+        exportedTopLevels
+          A: <null>
 [status] idle
 ''',
     );
@@ -27955,11 +26313,10 @@ A foo() => throw 0;
     declaredFunctions
       foo: #M4
   requirements
-    topLevels
-      dart:core
-        A: <null>
+    libraries
       package:test/a.dart
-        A: #M0
+        exportedTopLevels
+          A: #M0
 [operation] analyzeFile
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
@@ -27971,11 +26328,10 @@ A foo() => throw 0;
 [operation] analyzedLibrary
   file: /home/test/lib/test.dart
   requirements
-    topLevels
-      dart:core
-        A: <null>
+    libraries
       package:test/a.dart
-        A: #M0
+        exportedTopLevels
+          A: #M0
 [status] idle
 ''',
       updatedA: r'''
@@ -28036,13 +26392,10 @@ void f() {
           foo: #M2
         interface: #M3
   requirements
-    topLevels
-      dart:core
-        int: #M4
 [operation] linkLibraryCycle
   package:test/test.dart
     declaredFunctions
-      f: #M5
+      f: #M4
   requirements
 [operation] analyzeFile
   file: /home/test/lib/test.dart
@@ -28055,23 +26408,20 @@ void f() {
 [operation] analyzedLibrary
   file: /home/test/lib/test.dart
   requirements
-    topLevels
-      dart:core
-        A: <null>
+    libraries
       package:test/a.dart
-        A: #M0
-    instances
-      package:test/a.dart
-        A
-          requestedFields
-            foo: #M1
-          requestedGetters
-            foo: #M2
-    interfaces
-      package:test/a.dart
-        A
-          constructors
-            foo: <null>
+        exportedTopLevels
+          A: #M0
+        instances
+          A
+            requestedDeclaredFields
+              foo: #M1
+            requestedDeclaredGetters
+              foo: #M2
+        interfaces
+          A
+            requestedConstructors
+              foo: <null>
 [status] idle
 ''',
       updatedA: r'''
@@ -28086,14 +26436,11 @@ mixin A {
     declaredMixins
       A: #M0
         declaredFields
-          foo: #M6
+          foo: #M5
         declaredGetters
-          foo: #M7
+          foo: #M6
         interface: #M3
   requirements
-    topLevels
-      dart:core
-        double: #M8
 [future] getErrors T2
   ErrorsResult #2
     path: /home/test/lib/test.dart
@@ -28107,7 +26454,7 @@ mixin A {
     interfaceName: A
     fieldName: foo
     expectedId: #M1
-    actualId: #M6
+    actualId: #M5
 [operation] analyzeFile
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
@@ -28119,23 +26466,20 @@ mixin A {
 [operation] analyzedLibrary
   file: /home/test/lib/test.dart
   requirements
-    topLevels
-      dart:core
-        A: <null>
+    libraries
       package:test/a.dart
-        A: #M0
-    instances
-      package:test/a.dart
-        A
-          requestedFields
-            foo: #M6
-          requestedGetters
-            foo: #M7
-    interfaces
-      package:test/a.dart
-        A
-          constructors
-            foo: <null>
+        exportedTopLevels
+          A: #M0
+        instances
+          A
+            requestedDeclaredFields
+              foo: #M5
+            requestedDeclaredGetters
+              foo: #M6
+        interfaces
+          A
+            requestedConstructors
+              foo: <null>
 [status] idle
 ''',
     );
@@ -28176,13 +26520,10 @@ void f() {
           foo: #M4
         interface: #M5
   requirements
-    topLevels
-      dart:core
-        int: #M6
 [operation] linkLibraryCycle
   package:test/test.dart
     declaredFunctions
-      f: #M7
+      f: #M6
   requirements
 [operation] analyzeFile
   file: /home/test/lib/test.dart
@@ -28195,23 +26536,20 @@ void f() {
 [operation] analyzedLibrary
   file: /home/test/lib/test.dart
   requirements
-    topLevels
-      dart:core
-        A: <null>
+    libraries
       package:test/a.dart
-        A: #M0
-    instances
-      package:test/a.dart
-        A
-          requestedFields
-            foo: #M2
-          requestedGetters
-            foo: #M4
-    interfaces
-      package:test/a.dart
-        A
-          constructors
-            foo: <null>
+        exportedTopLevels
+          A: #M0
+        instances
+          A
+            requestedDeclaredFields
+              foo: #M2
+            requestedDeclaredGetters
+              foo: #M4
+        interfaces
+          A
+            requestedConstructors
+              foo: <null>
 [status] idle
 ''',
       updatedA: r'''
@@ -28227,17 +26565,13 @@ mixin A {
     declaredMixins
       A: #M0
         declaredFields
-          bar: #M8
+          bar: #M7
           foo: #M2
         declaredGetters
-          bar: #M9
+          bar: #M8
           foo: #M4
         interface: #M5
   requirements
-    topLevels
-      dart:core
-        double: #M10
-        int: #M6
 [future] getErrors T2
   ErrorsResult #2
     path: /home/test/lib/test.dart
@@ -28283,13 +26617,10 @@ void f() {
           foo: #M1
         interface: #M2
   requirements
-    topLevels
-      dart:core
-        int: #M3
 [operation] linkLibraryCycle
   package:test/test.dart
     declaredFunctions
-      f: #M4
+      f: #M3
   requirements
 [operation] analyzeFile
   file: /home/test/lib/test.dart
@@ -28302,23 +26633,20 @@ void f() {
 [operation] analyzedLibrary
   file: /home/test/lib/test.dart
   requirements
-    topLevels
-      dart:core
-        A: <null>
+    libraries
       package:test/a.dart
-        A: #M0
-    instances
-      package:test/a.dart
-        A
-          requestedGetters
-            foo: <null>
-          requestedMethods
-            foo: #M1
-    interfaces
-      package:test/a.dart
-        A
-          constructors
-            foo: <null>
+        exportedTopLevels
+          A: #M0
+        instances
+          A
+            requestedDeclaredGetters
+              foo: <null>
+            requestedDeclaredMethods
+              foo: #M1
+        interfaces
+          A
+            requestedConstructors
+              foo: <null>
 [status] idle
 ''',
       updatedA: r'''
@@ -28333,12 +26661,9 @@ mixin A {
     declaredMixins
       A: #M0
         declaredMethods
-          foo: #M5
+          foo: #M4
         interface: #M2
   requirements
-    topLevels
-      dart:core
-        double: #M6
 [future] getErrors T2
   ErrorsResult #2
     path: /home/test/lib/test.dart
@@ -28352,7 +26677,7 @@ mixin A {
     interfaceName: A
     methodName: foo
     expectedId: #M1
-    actualId: #M5
+    actualId: #M4
 [operation] analyzeFile
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
@@ -28364,23 +26689,20 @@ mixin A {
 [operation] analyzedLibrary
   file: /home/test/lib/test.dart
   requirements
-    topLevels
-      dart:core
-        A: <null>
+    libraries
       package:test/a.dart
-        A: #M0
-    instances
-      package:test/a.dart
-        A
-          requestedGetters
-            foo: <null>
-          requestedMethods
-            foo: #M5
-    interfaces
-      package:test/a.dart
-        A
-          constructors
-            foo: <null>
+        exportedTopLevels
+          A: #M0
+        instances
+          A
+            requestedDeclaredGetters
+              foo: <null>
+            requestedDeclaredMethods
+              foo: #M4
+        interfaces
+          A
+            requestedConstructors
+              foo: <null>
 [status] idle
 ''',
     );
@@ -28418,13 +26740,10 @@ void f() {
           foo: #M2
         interface: #M3
   requirements
-    topLevels
-      dart:core
-        int: #M4
 [operation] linkLibraryCycle
   package:test/test.dart
     declaredFunctions
-      f: #M5
+      f: #M4
   requirements
 [operation] analyzeFile
   file: /home/test/lib/test.dart
@@ -28437,23 +26756,20 @@ void f() {
 [operation] analyzedLibrary
   file: /home/test/lib/test.dart
   requirements
-    topLevels
-      dart:core
-        A: <null>
+    libraries
       package:test/a.dart
-        A: #M0
-    instances
-      package:test/a.dart
-        A
-          requestedGetters
-            foo: <null>
-          requestedMethods
-            foo: #M2
-    interfaces
-      package:test/a.dart
-        A
-          constructors
-            foo: <null>
+        exportedTopLevels
+          A: #M0
+        instances
+          A
+            requestedDeclaredGetters
+              foo: <null>
+            requestedDeclaredMethods
+              foo: #M2
+        interfaces
+          A
+            requestedConstructors
+              foo: <null>
 [status] idle
 ''',
       updatedA: r'''
@@ -28469,14 +26785,10 @@ mixin A {
     declaredMixins
       A: #M0
         declaredMethods
-          bar: #M6
+          bar: #M5
           foo: #M2
         interface: #M3
   requirements
-    topLevels
-      dart:core
-        double: #M7
-        int: #M4
 [future] getErrors T2
   ErrorsResult #2
     path: /home/test/lib/test.dart
@@ -28524,13 +26836,10 @@ void f() {
           foo=: #M2
         interface: #M3
   requirements
-    topLevels
-      dart:core
-        int: #M4
 [operation] linkLibraryCycle
   package:test/test.dart
     declaredFunctions
-      f: #M5
+      f: #M4
   requirements
 [operation] analyzeFile
   file: /home/test/lib/test.dart
@@ -28543,18 +26852,16 @@ void f() {
 [operation] analyzedLibrary
   file: /home/test/lib/test.dart
   requirements
-    topLevels
-      dart:core
-        A: <null>
+    libraries
       package:test/a.dart
-        A: #M0
-    instances
-      package:test/a.dart
-        A
-          requestedFields
-            foo: #M1
-          requestedSetters
-            foo=: #M2
+        exportedTopLevels
+          A: #M0
+        instances
+          A
+            requestedDeclaredFields
+              foo: #M1
+            requestedDeclaredSetters
+              foo=: #M2
 [status] idle
 ''',
       updatedA: r'''
@@ -28569,14 +26876,11 @@ mixin A {
     declaredMixins
       A: #M0
         declaredFields
-          foo: #M6
+          foo: #M5
         declaredSetters
-          foo=: #M7
+          foo=: #M6
         interface: #M3
   requirements
-    topLevels
-      dart:core
-        double: #M8
 [future] getErrors T2
   ErrorsResult #2
     path: /home/test/lib/test.dart
@@ -28590,7 +26894,7 @@ mixin A {
     interfaceName: A
     fieldName: foo
     expectedId: #M1
-    actualId: #M6
+    actualId: #M5
 [operation] analyzeFile
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
@@ -28602,18 +26906,16 @@ mixin A {
 [operation] analyzedLibrary
   file: /home/test/lib/test.dart
   requirements
-    topLevels
-      dart:core
-        A: <null>
+    libraries
       package:test/a.dart
-        A: #M0
-    instances
-      package:test/a.dart
-        A
-          requestedFields
-            foo: #M6
-          requestedSetters
-            foo=: #M7
+        exportedTopLevels
+          A: #M0
+        instances
+          A
+            requestedDeclaredFields
+              foo: #M5
+            requestedDeclaredSetters
+              foo=: #M6
 [status] idle
 ''',
     );
@@ -28654,13 +26956,10 @@ void f() {
           foo=: #M4
         interface: #M5
   requirements
-    topLevels
-      dart:core
-        int: #M6
 [operation] linkLibraryCycle
   package:test/test.dart
     declaredFunctions
-      f: #M7
+      f: #M6
   requirements
 [operation] analyzeFile
   file: /home/test/lib/test.dart
@@ -28673,18 +26972,16 @@ void f() {
 [operation] analyzedLibrary
   file: /home/test/lib/test.dart
   requirements
-    topLevels
-      dart:core
-        A: <null>
+    libraries
       package:test/a.dart
-        A: #M0
-    instances
-      package:test/a.dart
-        A
-          requestedFields
-            foo: #M2
-          requestedSetters
-            foo=: #M4
+        exportedTopLevels
+          A: #M0
+        instances
+          A
+            requestedDeclaredFields
+              foo: #M2
+            requestedDeclaredSetters
+              foo=: #M4
 [status] idle
 ''',
       updatedA: r'''
@@ -28700,17 +26997,13 @@ mixin A {
     declaredMixins
       A: #M0
         declaredFields
-          bar: #M8
+          bar: #M7
           foo: #M2
         declaredSetters
-          bar=: #M9
+          bar=: #M8
           foo=: #M4
         interface: #M5
   requirements
-    topLevels
-      dart:core
-        double: #M10
-        int: #M6
 [future] getErrors T2
   ErrorsResult #2
     path: /home/test/lib/test.dart
@@ -28772,11 +27065,10 @@ import 'a.dart';
 [operation] analyzedLibrary
   file: /home/test/lib/test.dart
   requirements
-    topLevels
-      dart:core
-        A: <null>
+    libraries
       package:test/a.dart
-        A: #M0
+        exportedTopLevels
+          A: #M0
     opaqueApiUses
       ClassElementImpl.firstFragment
         targetElementLibraryUri: package:test/a.dart
@@ -28824,11 +27116,10 @@ class B {}
 [operation] analyzedLibrary
   file: /home/test/lib/test.dart
   requirements
-    topLevels
-      dart:core
-        A: <null>
+    libraries
       package:test/a.dart
-        A: #M0
+        exportedTopLevels
+          A: #M0
     opaqueApiUses
       ClassElementImpl.firstFragment
         targetElementLibraryUri: package:test/a.dart
@@ -28861,21 +27152,17 @@ final x = foo();
     declaredFunctions
       foo: #M0
   requirements
-    topLevels
-      dart:core
-        int: #M1
 [operation] linkLibraryCycle
   package:test/test.dart
     declaredGetters
-      x: #M2
+      x: #M1
     declaredVariables
-      x: #M3
+      x: #M2
   requirements
-    topLevels
-      dart:core
-        foo: <null>
+    libraries
       package:test/a.dart
-        foo: #M0
+        exportedTopLevels
+          foo: #M0
 [status] idle
 ''',
       updatedA: r'''
@@ -28886,11 +27173,8 @@ double foo() {}
 [operation] linkLibraryCycle
   package:test/a.dart
     declaredFunctions
-      foo: #M4
+      foo: #M3
   requirements
-    topLevels
-      dart:core
-        double: #M5
 [future] getLibraryByUri T2
   library
     topLevelVariables
@@ -28901,19 +27185,18 @@ double foo() {}
     libraryUri: package:test/a.dart
     name: foo
     expectedId: #M0
-    actualId: #M4
+    actualId: #M3
 [operation] linkLibraryCycle
   package:test/test.dart
     declaredGetters
-      x: #M6
+      x: #M4
     declaredVariables
-      x: #M7
+      x: #M5
   requirements
-    topLevels
-      dart:core
-        foo: <null>
+    libraries
       package:test/a.dart
-        foo: #M4
+        exportedTopLevels
+          foo: #M3
 [status] idle
 ''',
     );
@@ -28944,21 +27227,17 @@ final x = foo();
       bar: #M0
       foo: #M1
   requirements
-    topLevels
-      dart:core
-        int: #M2
 [operation] linkLibraryCycle
   package:test/test.dart
     declaredGetters
-      x: #M3
+      x: #M2
     declaredVariables
-      x: #M4
+      x: #M3
   requirements
-    topLevels
-      dart:core
-        foo: <null>
+    libraries
       package:test/a.dart
-        foo: #M1
+        exportedTopLevels
+          foo: #M1
 [status] idle
 ''',
       updatedA: r'''
@@ -28970,13 +27249,9 @@ double bar() {}
 [operation] linkLibraryCycle
   package:test/a.dart
     declaredFunctions
-      bar: #M5
+      bar: #M4
       foo: #M1
   requirements
-    topLevels
-      dart:core
-        double: #M6
-        int: #M2
 [future] getLibraryByUri T2
   library
     topLevelVariables
@@ -29014,21 +27289,17 @@ final x = a;
     declaredVariables
       a: #M1
   requirements
-    topLevels
-      dart:core
-        int: #M2
 [operation] linkLibraryCycle
   package:test/test.dart
     declaredGetters
-      x: #M3
+      x: #M2
     declaredVariables
-      x: #M4
+      x: #M3
   requirements
-    topLevels
-      dart:core
-        a: <null>
+    libraries
       package:test/a.dart
-        a: #M0
+        exportedTopLevels
+          a: #M0
 [status] idle
 ''',
       updatedA: r'''
@@ -29039,13 +27310,10 @@ double get a => 1.2;
 [operation] linkLibraryCycle
   package:test/a.dart
     declaredGetters
-      a: #M5
+      a: #M4
     declaredVariables
-      a: #M6
+      a: #M5
   requirements
-    topLevels
-      dart:core
-        double: #M7
 [future] getLibraryByUri T2
   library
     topLevelVariables
@@ -29056,19 +27324,18 @@ double get a => 1.2;
     libraryUri: package:test/a.dart
     name: a
     expectedId: #M0
-    actualId: #M5
+    actualId: #M4
 [operation] linkLibraryCycle
   package:test/test.dart
     declaredGetters
-      x: #M8
+      x: #M6
     declaredVariables
-      x: #M9
+      x: #M7
   requirements
-    topLevels
-      dart:core
-        a: <null>
+    libraries
       package:test/a.dart
-        a: #M5
+        exportedTopLevels
+          a: #M4
 [status] idle
 ''',
     );
@@ -29102,21 +27369,17 @@ final x = a;
       a: #M2
       b: #M3
   requirements
-    topLevels
-      dart:core
-        int: #M4
 [operation] linkLibraryCycle
   package:test/test.dart
     declaredGetters
-      x: #M5
+      x: #M4
     declaredVariables
-      x: #M6
+      x: #M5
   requirements
-    topLevels
-      dart:core
-        a: <null>
+    libraries
       package:test/a.dart
-        a: #M0
+        exportedTopLevels
+          a: #M0
 [status] idle
 ''',
       updatedA: r'''
@@ -29129,15 +27392,11 @@ double get b => 1.2;
   package:test/a.dart
     declaredGetters
       a: #M0
-      b: #M7
+      b: #M6
     declaredVariables
       a: #M2
-      b: #M8
+      b: #M7
   requirements
-    topLevels
-      dart:core
-        double: #M9
-        int: #M4
 [future] getLibraryByUri T2
   library
     topLevelVariables
@@ -29199,11 +27458,10 @@ final x = a;
     declaredVariables
       x: #M3
   requirements
-    topLevels
-      dart:core
-        a: <null>
+    libraries
       package:test/b.dart
-        a: #M0
+        exportedTopLevels
+          a: #M0
 [status] idle
 ''',
       // Change the initializer, now `double`.
@@ -29258,11 +27516,10 @@ final a = 1.2;
     declaredVariables
       x: #M7
   requirements
-    topLevels
-      dart:core
-        a: <null>
+    libraries
       package:test/b.dart
-        a: #M4
+        exportedTopLevels
+          a: #M4
 [status] idle
 ''',
     );
@@ -29300,11 +27557,10 @@ final x = a;
     declaredVariables
       x: #M3
   requirements
-    topLevels
-      dart:core
-        a: <null>
+    libraries
       package:test/a.dart
-        a: #M0
+        exportedTopLevels
+          a: #M0
 [status] idle
 ''',
       // Change the initializer, now `double`.
@@ -29339,11 +27595,10 @@ final a = 1.2;
     declaredVariables
       x: #M7
   requirements
-    topLevels
-      dart:core
-        a: <null>
+    libraries
       package:test/a.dart
-        a: #M4
+        exportedTopLevels
+          a: #M4
 [status] idle
 ''',
     );
@@ -29374,19 +27629,15 @@ void foo(A _) {}
       A: #M0
       B: #M1
   requirements
-    topLevels
-      dart:core
-        int: #M2
 [operation] linkLibraryCycle
   package:test/test.dart
     declaredFunctions
-      foo: #M3
+      foo: #M2
   requirements
-    topLevels
-      dart:core
-        A: <null>
+    libraries
       package:test/a.dart
-        A: #M0
+        exportedTopLevels
+          A: #M0
 [operation] analyzeFile
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
@@ -29398,11 +27649,10 @@ void foo(A _) {}
 [operation] analyzedLibrary
   file: /home/test/lib/test.dart
   requirements
-    topLevels
-      dart:core
-        A: <null>
+    libraries
       package:test/a.dart
-        A: #M0
+        exportedTopLevels
+          A: #M0
 [status] idle
 ''',
       updatedA: r'''
@@ -29415,12 +27665,8 @@ typedef B = double;
   package:test/a.dart
     declaredTypeAliases
       A: #M0
-      B: #M4
+      B: #M3
   requirements
-    topLevels
-      dart:core
-        double: #M5
-        int: #M2
 [future] getErrors T2
   ErrorsResult #2
     path: /home/test/lib/test.dart
@@ -29459,19 +27705,15 @@ void foo(A _) {}
     declaredTypeAliases
       A: #M0
   requirements
-    topLevels
-      dart:core
-        int: #M1
 [operation] linkLibraryCycle
   package:test/test.dart
     declaredFunctions
-      foo: #M2
+      foo: #M1
   requirements
-    topLevels
-      dart:core
-        A: <null>
+    libraries
       package:test/a.dart
-        A: #M0
+        exportedTopLevels
+          A: #M0
 [operation] analyzeFile
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
@@ -29483,11 +27725,10 @@ void foo(A _) {}
 [operation] analyzedLibrary
   file: /home/test/lib/test.dart
   requirements
-    topLevels
-      dart:core
-        A: <null>
+    libraries
       package:test/a.dart
-        A: #M0
+        exportedTopLevels
+          A: #M0
 [status] idle
 ''',
       updatedA: r'''
@@ -29498,11 +27739,8 @@ typedef A = double;
 [operation] linkLibraryCycle
   package:test/a.dart
     declaredTypeAliases
-      A: #M3
+      A: #M2
   requirements
-    topLevels
-      dart:core
-        double: #M4
 [future] getErrors T2
   ErrorsResult #2
     path: /home/test/lib/test.dart
@@ -29513,23 +27751,22 @@ typedef A = double;
     libraryUri: package:test/a.dart
     name: A
     expectedId: #M0
-    actualId: #M3
+    actualId: #M2
 [operation] linkLibraryCycle
   package:test/test.dart
     declaredFunctions
-      foo: #M5
+      foo: #M3
   requirements
-    topLevels
-      dart:core
-        A: <null>
+    libraries
       package:test/a.dart
-        A: #M3
+        exportedTopLevels
+          A: #M2
 [operation] getErrorsCannotReuse
   topLevelIdMismatch
     libraryUri: package:test/a.dart
     name: A
     expectedId: #M0
-    actualId: #M3
+    actualId: #M2
 [operation] analyzeFile
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
@@ -29541,11 +27778,10 @@ typedef A = double;
 [operation] analyzedLibrary
   file: /home/test/lib/test.dart
   requirements
-    topLevels
-      dart:core
-        A: <null>
+    libraries
       package:test/a.dart
-        A: #M3
+        exportedTopLevels
+          A: #M2
 [status] idle
 ''',
     );
@@ -29584,13 +27820,10 @@ void foo() {
     declaredTypeAliases
       B: #M3
   requirements
-    topLevels
-      dart:core
-        int: #M4
 [operation] linkLibraryCycle
   package:test/test.dart
     declaredFunctions
-      foo: #M5
+      foo: #M4
   requirements
 [operation] analyzeFile
   file: /home/test/lib/test.dart
@@ -29603,16 +27836,14 @@ void foo() {
 [operation] analyzedLibrary
   file: /home/test/lib/test.dart
   requirements
-    topLevels
-      dart:core
-        B: <null>
+    libraries
       package:test/a.dart
-        B: #M3
-    interfaces
-      package:test/a.dart
-        A
-          constructors
-            named: #M1
+        exportedTopLevels
+          B: #M3
+        interfaces
+          A
+            requestedConstructors
+              named: #M1
 [status] idle
 ''',
       updatedA: r'''
@@ -29628,14 +27859,11 @@ typedef B = A;
     declaredClasses
       A: #M0
         declaredConstructors
-          named: #M6
+          named: #M5
         interface: #M2
     declaredTypeAliases
       B: #M3
   requirements
-    topLevels
-      dart:core
-        double: #M7
 [future] getErrors T2
   ErrorsResult #2
     path: /home/test/lib/test.dart
@@ -29649,7 +27877,7 @@ typedef B = A;
     interfaceName: A
     constructorName: named
     expectedId: #M1
-    actualId: #M6
+    actualId: #M5
 [operation] analyzeFile
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
@@ -29661,16 +27889,14 @@ typedef B = A;
 [operation] analyzedLibrary
   file: /home/test/lib/test.dart
   requirements
-    topLevels
-      dart:core
-        B: <null>
+    libraries
       package:test/a.dart
-        B: #M3
-    interfaces
-      package:test/a.dart
-        A
-          constructors
-            named: #M6
+        exportedTopLevels
+          B: #M3
+        interfaces
+          A
+            requestedConstructors
+              named: #M5
 [status] idle
 ''',
     );
@@ -57224,21 +55450,17 @@ final x = a;
     declaredVariables
       a: #M1
   requirements
-    topLevels
-      dart:core
-        int: #M2
 [operation] linkLibraryCycle
   package:test/test.dart
     declaredGetters
-      x: #M3
+      x: #M2
     declaredVariables
-      x: #M4
+      x: #M3
   requirements
-    topLevels
-      dart:core
-        a: <null>
+    libraries
       package:test/a.dart
-        a: #M0
+        exportedTopLevels
+          a: #M0
 [operation] analyzeFile
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
@@ -57250,11 +55472,10 @@ final x = a;
 [operation] analyzedLibrary
   file: /home/test/lib/test.dart
   requirements
-    topLevels
-      dart:core
-        a: <null>
+    libraries
       package:test/a.dart
-        a: #M0
+        exportedTopLevels
+          a: #M0
 [status] idle
 ''',
       updatedA: r'''
@@ -57265,37 +55486,33 @@ double get a => 0;
 [operation] linkLibraryCycle
   package:test/a.dart
     declaredGetters
-      a: #M5
+      a: #M4
     declaredVariables
-      a: #M6
+      a: #M5
   requirements
-    topLevels
-      dart:core
-        double: #M7
 [operation] cannotReuseLinkedBundle
   topLevelIdMismatch
     libraryUri: package:test/a.dart
     name: a
     expectedId: #M0
-    actualId: #M5
+    actualId: #M4
 [operation] linkLibraryCycle
   package:test/test.dart
     declaredGetters
-      x: #M8
+      x: #M6
     declaredVariables
-      x: #M9
+      x: #M7
   requirements
-    topLevels
-      dart:core
-        a: <null>
+    libraries
       package:test/a.dart
-        a: #M5
+        exportedTopLevels
+          a: #M4
 [operation] produceErrorsCannotReuse
   topLevelIdMismatch
     libraryUri: package:test/a.dart
     name: a
     expectedId: #M0
-    actualId: #M5
+    actualId: #M4
 [operation] analyzeFile
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
@@ -57307,11 +55524,10 @@ double get a => 0;
 [operation] analyzedLibrary
   file: /home/test/lib/test.dart
   requirements
-    topLevels
-      dart:core
-        a: <null>
+    libraries
       package:test/a.dart
-        a: #M5
+        exportedTopLevels
+          a: #M4
 [status] idle
 ''',
     );
@@ -57337,21 +55553,17 @@ final x = a;
     declaredVariables
       a: #M1
   requirements
-    topLevels
-      dart:core
-        int: #M2
 [operation] linkLibraryCycle
   package:test/test.dart
     declaredGetters
-      x: #M3
+      x: #M2
     declaredVariables
-      x: #M4
+      x: #M3
   requirements
-    topLevels
-      dart:core
-        a: <null>
+    libraries
       package:test/a.dart
-        a: #M0
+        exportedTopLevels
+          a: #M0
 [operation] analyzeFile
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
@@ -57363,11 +55575,10 @@ final x = a;
 [operation] analyzedLibrary
   file: /home/test/lib/test.dart
   requirements
-    topLevels
-      dart:core
-        a: <null>
+    libraries
       package:test/a.dart
-        a: #M0
+        exportedTopLevels
+          a: #M0
 [status] idle
 ''',
       updatedA: r'''
@@ -57380,14 +55591,11 @@ int get b => 0;
   package:test/a.dart
     declaredGetters
       a: #M0
-      b: #M5
+      b: #M4
     declaredVariables
       a: #M1
-      b: #M6
+      b: #M5
   requirements
-    topLevels
-      dart:core
-        int: #M2
 [operation] readLibraryCycleBundle
   package:test/test.dart
 [operation] getErrorsFromBytes
@@ -57428,21 +55636,17 @@ final x = a;
     declaredVariables
       a: #M1
   requirements
-    topLevels
-      dart:core
-        int: #M2
 [operation] linkLibraryCycle
   package:test/test.dart
     declaredGetters
-      x: #M3
+      x: #M2
     declaredVariables
-      x: #M4
+      x: #M3
   requirements
-    topLevels
-      dart:core
-        a: <null>
+    libraries
       package:test/a.dart
-        a: #M0
+        exportedTopLevels
+          a: #M0
 [operation] analyzeFile
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
@@ -57454,11 +55658,10 @@ final x = a;
 [operation] analyzedLibrary
   file: /home/test/lib/test.dart
   requirements
-    topLevels
-      dart:core
-        a: <null>
+    libraries
       package:test/a.dart
-        a: #M0
+        exportedTopLevels
+          a: #M0
 [status] idle
 ''',
       updatedA: r'''
@@ -57469,13 +55672,10 @@ double get a => 0;
 [operation] linkLibraryCycle
   package:test/a.dart
     declaredGetters
-      a: #M5
+      a: #M4
     declaredVariables
-      a: #M6
+      a: #M5
   requirements
-    topLevels
-      dart:core
-        double: #M7
 [future] getErrors T2
   ErrorsResult #2
     path: /home/test/lib/test.dart
@@ -57486,25 +55686,24 @@ double get a => 0;
     libraryUri: package:test/a.dart
     name: a
     expectedId: #M0
-    actualId: #M5
+    actualId: #M4
 [operation] linkLibraryCycle
   package:test/test.dart
     declaredGetters
-      x: #M8
+      x: #M6
     declaredVariables
-      x: #M9
+      x: #M7
   requirements
-    topLevels
-      dart:core
-        a: <null>
+    libraries
       package:test/a.dart
-        a: #M5
+        exportedTopLevels
+          a: #M4
 [operation] getErrorsCannotReuse
   topLevelIdMismatch
     libraryUri: package:test/a.dart
     name: a
     expectedId: #M0
-    actualId: #M5
+    actualId: #M4
 [operation] analyzeFile
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
@@ -57516,11 +55715,10 @@ double get a => 0;
 [operation] analyzedLibrary
   file: /home/test/lib/test.dart
   requirements
-    topLevels
-      dart:core
-        a: <null>
+    libraries
       package:test/a.dart
-        a: #M5
+        exportedTopLevels
+          a: #M4
 [status] idle
 ''',
     );
@@ -57551,21 +55749,17 @@ final x = a;
     declaredVariables
       a: #M1
   requirements
-    topLevels
-      dart:core
-        int: #M2
 [operation] linkLibraryCycle
   package:test/test.dart
     declaredGetters
-      x: #M3
+      x: #M2
     declaredVariables
-      x: #M4
+      x: #M3
   requirements
-    topLevels
-      dart:core
-        a: <null>
+    libraries
       package:test/a.dart
-        a: #M0
+        exportedTopLevels
+          a: #M0
 [operation] analyzeFile
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
@@ -57577,11 +55771,10 @@ final x = a;
 [operation] analyzedLibrary
   file: /home/test/lib/test.dart
   requirements
-    topLevels
-      dart:core
-        a: <null>
+    libraries
       package:test/a.dart
-        a: #M0
+        exportedTopLevels
+          a: #M0
 [status] idle
 ''',
       updatedA: r'''
@@ -57594,14 +55787,11 @@ int get b => 0;
   package:test/a.dart
     declaredGetters
       a: #M0
-      b: #M5
+      b: #M4
     declaredVariables
       a: #M1
-      b: #M6
+      b: #M5
   requirements
-    topLevels
-      dart:core
-        int: #M2
 [future] getErrors T2
   ErrorsResult #2
     path: /home/test/lib/test.dart
@@ -57642,21 +55832,17 @@ final x = a;
     declaredVariables
       a: #M1
   requirements
-    topLevels
-      dart:core
-        int: #M2
 [operation] linkLibraryCycle
   package:test/test.dart
     declaredGetters
-      x: #M3
+      x: #M2
     declaredVariables
-      x: #M4
+      x: #M3
   requirements
-    topLevels
-      dart:core
-        a: <null>
+    libraries
       package:test/a.dart
-        a: #M0
+        exportedTopLevels
+          a: #M0
 [status] idle
 ''',
       updatedA: r'''
@@ -57667,13 +55853,10 @@ double get a => 1.2;
 [operation] linkLibraryCycle
   package:test/a.dart
     declaredGetters
-      a: #M5
+      a: #M4
     declaredVariables
-      a: #M6
+      a: #M5
   requirements
-    topLevels
-      dart:core
-        double: #M7
 [future] getLibraryByUri T2
   library
     topLevelVariables
@@ -57684,19 +55867,18 @@ double get a => 1.2;
     libraryUri: package:test/a.dart
     name: a
     expectedId: #M0
-    actualId: #M5
+    actualId: #M4
 [operation] linkLibraryCycle
   package:test/test.dart
     declaredGetters
-      x: #M8
+      x: #M6
     declaredVariables
-      x: #M9
+      x: #M7
   requirements
-    topLevels
-      dart:core
-        a: <null>
+    libraries
       package:test/a.dart
-        a: #M5
+        exportedTopLevels
+          a: #M4
 [status] idle
 ''',
     );
@@ -57727,21 +55909,17 @@ final x = a;
     declaredVariables
       a: #M1
   requirements
-    topLevels
-      dart:core
-        int: #M2
 [operation] linkLibraryCycle
   package:test/test.dart
     declaredGetters
-      x: #M3
+      x: #M2
     declaredVariables
-      x: #M4
+      x: #M3
   requirements
-    topLevels
-      dart:core
-        a: <null>
+    libraries
       package:test/a.dart
-        a: #M0
+        exportedTopLevels
+          a: #M0
 [status] idle
 ''',
       updatedA: r'''
@@ -57754,14 +55932,11 @@ int get b => 0;
   package:test/a.dart
     declaredGetters
       a: #M0
-      b: #M5
+      b: #M4
     declaredVariables
       a: #M1
-      b: #M6
+      b: #M5
   requirements
-    topLevels
-      dart:core
-        int: #M2
 [future] getLibraryByUri T2
   library
     topLevelVariables
@@ -57818,15 +55993,9 @@ extension on int {
 [operation] linkLibraryCycle
   package:test/test.dart
   requirements
-    topLevels
-      dart:core
-        int: #M0
 [operation] analyzedLibrary
   file: /home/test/lib/test.dart
   requirements
-    topLevels
-      dart:core
-        int: #M0
 [status] idle
 ''',
     );
@@ -57862,24 +56031,19 @@ import 'a.dart';
           foo: #M2
         interface: #M3
   requirements
-    topLevels
-      dart:core
-        int: #M4
 [operation] linkLibraryCycle
   package:test/test.dart
   requirements
 [operation] analyzedLibrary
   file: /home/test/lib/test.dart
   requirements
-    topLevels
-      dart:core
-        A: <null>
+    libraries
       package:test/a.dart
-        A: #M0
-    instances
-      package:test/a.dart
-        A
-          allDeclaredFields: #M1
+        exportedTopLevels
+          A: #M0
+        instances
+          A
+            allDeclaredFields: #M1
 [status] idle
 ''',
     );
@@ -57917,25 +56081,20 @@ import 'a.dart';
           map
             foo: #M2
   requirements
-    topLevels
-      dart:core
-        int: #M4
 [operation] linkLibraryCycle
   package:test/test.dart
   requirements
 [operation] analyzedLibrary
   file: /home/test/lib/test.dart
   requirements
-    topLevels
-      dart:core
-        A: <null>
+    libraries
       package:test/a.dart
-        A: #M0
-    instances
-      package:test/a.dart
-        A
-          requestedFields
-            foo: #M1
+        exportedTopLevels
+          A: #M0
+        instances
+          A
+            requestedDeclaredFields
+              foo: #M1
 [status] idle
 ''',
     );
@@ -57971,25 +56130,20 @@ import 'a.dart';
           foo: #M2
         interface: #M3
   requirements
-    topLevels
-      dart:core
-        int: #M4
 [operation] linkLibraryCycle
   package:test/test.dart
   requirements
 [operation] analyzedLibrary
   file: /home/test/lib/test.dart
   requirements
-    topLevels
-      dart:core
-        A: <null>
+    libraries
       package:test/a.dart
-        A: #M0
-    instances
-      package:test/a.dart
-        A
-          requestedGetters
-            foo: #M2
+        exportedTopLevels
+          A: #M0
+        instances
+          A
+            requestedDeclaredGetters
+              foo: #M2
 [status] idle
 ''',
     );
@@ -58023,25 +56177,20 @@ import 'a.dart';
           foo: #M1
         interface: #M2
   requirements
-    topLevels
-      dart:core
-        int: #M3
 [operation] linkLibraryCycle
   package:test/test.dart
   requirements
 [operation] analyzedLibrary
   file: /home/test/lib/test.dart
   requirements
-    topLevels
-      dart:core
-        A: <null>
+    libraries
       package:test/a.dart
-        A: #M0
-    instances
-      package:test/a.dart
-        A
-          requestedMethods
-            foo: #M1
+        exportedTopLevels
+          A: #M0
+        instances
+          A
+            requestedDeclaredMethods
+              foo: #M1
 [status] idle
 ''',
     );
@@ -58077,16 +56226,14 @@ import 'a.dart';
 [operation] analyzedLibrary
   file: /home/test/lib/test.dart
   requirements
-    topLevels
-      dart:core
-        A: <null>
+    libraries
       package:test/a.dart
-        A: #M0
-    instances
-      package:test/a.dart
-        A
-          requestedMethods
-            foo: <null>
+        exportedTopLevels
+          A: #M0
+        instances
+          A
+            requestedDeclaredMethods
+              foo: <null>
 [status] idle
 ''',
     );
@@ -58122,25 +56269,20 @@ import 'a.dart';
           foo=: #M2
         interface: #M3
   requirements
-    topLevels
-      dart:core
-        int: #M4
 [operation] linkLibraryCycle
   package:test/test.dart
   requirements
 [operation] analyzedLibrary
   file: /home/test/lib/test.dart
   requirements
-    topLevels
-      dart:core
-        A: <null>
+    libraries
       package:test/a.dart
-        A: #M0
-    instances
-      package:test/a.dart
-        A
-          requestedSetters
-            foo=: #M2
+        exportedTopLevels
+          A: #M0
+        instances
+          A
+            requestedDeclaredSetters
+              foo=: #M2
 [status] idle
 ''',
     );
@@ -58181,27 +56323,22 @@ import 'a.dart';
             foo: #M2
             foo=: #M3
   requirements
-    topLevels
-      dart:core
-        int: #M5
 [operation] linkLibraryCycle
   package:test/test.dart
   requirements
 [operation] analyzedLibrary
   file: /home/test/lib/test.dart
   requirements
-    topLevels
-      dart:core
-        A: <null>
+    libraries
       package:test/a.dart
-        A: #M0
-    instances
-      package:test/a.dart
-        A
-          requestedFields
-            foo: #M1
-          requestedGetters
-            foo: #M2
+        exportedTopLevels
+          A: #M0
+        instances
+          A
+            requestedDeclaredFields
+              foo: #M1
+            requestedDeclaredGetters
+              foo: #M2
 [status] idle
 ''',
     );
@@ -58239,27 +56376,22 @@ import 'a.dart';
           map
             foo: #M2
   requirements
-    topLevels
-      dart:core
-        int: #M4
 [operation] linkLibraryCycle
   package:test/test.dart
   requirements
 [operation] analyzedLibrary
   file: /home/test/lib/test.dart
   requirements
-    topLevels
-      dart:core
-        A: <null>
+    libraries
       package:test/a.dart
-        A: #M0
-    instances
-      package:test/a.dart
-        A
-          requestedFields
-            foo: #M1
-          requestedGetters
-            foo: #M2
+        exportedTopLevels
+          A: #M0
+        instances
+          A
+            requestedDeclaredFields
+              foo: #M1
+            requestedDeclaredGetters
+              foo: #M2
 [status] idle
 ''',
     );
@@ -58297,24 +56429,19 @@ import 'a.dart';
           map
             foo: #M2
   requirements
-    topLevels
-      dart:core
-        int: #M4
 [operation] linkLibraryCycle
   package:test/test.dart
   requirements
 [operation] analyzedLibrary
   file: /home/test/lib/test.dart
   requirements
-    topLevels
-      dart:core
-        A: <null>
+    libraries
       package:test/a.dart
-        A: #M0
-    instances
-      package:test/a.dart
-        A
-          allDeclaredGetters: #M2
+        exportedTopLevels
+          A: #M0
+        instances
+          A
+            allDeclaredGetters: #M2
 [status] idle
 ''',
     );
@@ -58348,24 +56475,19 @@ import 'a.dart';
           foo: #M1
         interface: #M2
   requirements
-    topLevels
-      dart:core
-        int: #M3
 [operation] linkLibraryCycle
   package:test/test.dart
   requirements
 [operation] analyzedLibrary
   file: /home/test/lib/test.dart
   requirements
-    topLevels
-      dart:core
-        A: <null>
+    libraries
       package:test/a.dart
-        A: #M0
-    instances
-      package:test/a.dart
-        A
-          allDeclaredMethods: #M1
+        exportedTopLevels
+          A: #M0
+        instances
+          A
+            allDeclaredMethods: #M1
 [status] idle
 ''',
     );
@@ -58406,27 +56528,22 @@ import 'a.dart';
             foo: #M2
             foo=: #M3
   requirements
-    topLevels
-      dart:core
-        int: #M5
 [operation] linkLibraryCycle
   package:test/test.dart
   requirements
 [operation] analyzedLibrary
   file: /home/test/lib/test.dart
   requirements
-    topLevels
-      dart:core
-        A: <null>
+    libraries
       package:test/a.dart
-        A: #M0
-    instances
-      package:test/a.dart
-        A
-          requestedFields
-            foo: #M1
-          requestedSetters
-            foo=: #M3
+        exportedTopLevels
+          A: #M0
+        instances
+          A
+            requestedDeclaredFields
+              foo: #M1
+            requestedDeclaredSetters
+              foo=: #M3
 [status] idle
 ''',
     );
@@ -58464,27 +56581,22 @@ import 'a.dart';
           map
             foo=: #M2
   requirements
-    topLevels
-      dart:core
-        int: #M4
 [operation] linkLibraryCycle
   package:test/test.dart
   requirements
 [operation] analyzedLibrary
   file: /home/test/lib/test.dart
   requirements
-    topLevels
-      dart:core
-        A: <null>
+    libraries
       package:test/a.dart
-        A: #M0
-    instances
-      package:test/a.dart
-        A
-          requestedFields
-            foo: #M1
-          requestedSetters
-            foo=: #M2
+        exportedTopLevels
+          A: #M0
+        instances
+          A
+            requestedDeclaredFields
+              foo: #M1
+            requestedDeclaredSetters
+              foo=: #M2
 [status] idle
 ''',
     );
@@ -58522,24 +56634,19 @@ import 'a.dart';
           map
             foo=: #M2
   requirements
-    topLevels
-      dart:core
-        int: #M4
 [operation] linkLibraryCycle
   package:test/test.dart
   requirements
 [operation] analyzedLibrary
   file: /home/test/lib/test.dart
   requirements
-    topLevels
-      dart:core
-        A: <null>
+    libraries
       package:test/a.dart
-        A: #M0
-    instances
-      package:test/a.dart
-        A
-          allDeclaredSetters: #M2
+        exportedTopLevels
+          A: #M0
+        instances
+          A
+            allDeclaredSetters: #M2
 [status] idle
 ''',
     );
@@ -58579,16 +56686,14 @@ import 'a.dart';
 [operation] analyzedLibrary
   file: /home/test/lib/test.dart
   requirements
-    topLevels
-      dart:core
-        A: <null>
+    libraries
       package:test/a.dart
-        A: #M0
-    interfaces
-      package:test/a.dart
-        A
-          constructors
-            named: #M1
+        exportedTopLevels
+          A: #M0
+        interfaces
+          A
+            requestedConstructors
+              named: #M1
 [status] idle
 ''',
     );

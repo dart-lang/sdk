@@ -45,10 +45,56 @@ class BundleRequirementsPrinter {
   void write(RequirementsManifest requirements) {
     sink.writelnWithIndent('requirements');
     sink.withIndent(() {
-      _writeTopLevels(requirements);
-      _writeInstanceItems(requirements);
-      _writeInterfaceItems(requirements);
-      _writeExportedExtensions(requirements);
+      // Group requirements by library URI into a temporary structure.
+      var libraries = <Uri, _LibraryRequirementsTemp>{};
+
+      _LibraryRequirementsTemp getOrCreate(Uri uri) =>
+          libraries.putIfAbsent(uri, _LibraryRequirementsTemp.new);
+
+      for (var libEntry in requirements.topLevels.entries) {
+        if (!configuration.requirements.ignoredLibraries.contains(
+          libEntry.key,
+        )) {
+          getOrCreate(libEntry.key).topLevels.addAll(libEntry.value);
+        }
+      }
+      for (var libEntry in requirements.instances.entries) {
+        if (!configuration.requirements.ignoredLibraries.contains(
+          libEntry.key,
+        )) {
+          getOrCreate(libEntry.key).instances.addAll(libEntry.value);
+        }
+      }
+      for (var libEntry in requirements.interfaces.entries) {
+        if (!configuration.requirements.ignoredLibraries.contains(
+          libEntry.key,
+        )) {
+          getOrCreate(libEntry.key).interfaces.addAll(libEntry.value);
+        }
+      }
+      for (var libEntry in requirements.exportedExtensions.entries) {
+        if (!configuration.requirements.ignoredLibraries.contains(
+          libEntry.key,
+        )) {
+          getOrCreate(libEntry.key).exportedExtensions = libEntry.value;
+        }
+      }
+
+      var libEntries = libraries.entries.sortedBy((e) => e.key.toString());
+
+      // Print the grouped and sorted requirements.
+      sink.writeElements('libraries', libEntries, (libEntry) {
+        var libraryUri = libEntry.key;
+        var libraryRequirements = libEntry.value;
+        sink.writelnWithIndent('$libraryUri');
+        sink.withIndent(() {
+          _writeExportedTopLevels(libraryRequirements.topLevels);
+          _writeInstanceItems(libraryRequirements.instances);
+          _writeInterfaceItems(libraryRequirements.interfaces);
+          _writeExportedExtensions(libraryRequirements.exportedExtensions);
+        });
+      });
+
       _writeExportRequirements(requirements);
       _writeOpaqueApiUses(requirements);
     });
@@ -67,20 +113,21 @@ class BundleRequirementsPrinter {
     });
   }
 
-  void _writeExportedExtensions(RequirementsManifest requirements) {
-    sink.writeElements(
-      'exportedExtensions',
-      requirements.exportedExtensions.entries.sortedBy(
-        (export) => export.key.toString(),
-      ),
-      (entry) {
-        var idListStr = entry.value.asString(idProvider);
-        if (idListStr.isEmpty) {
-          idListStr = '[]';
-        }
-        sink.writelnWithIndent('${entry.key}: $idListStr');
-      },
-    );
+  void _writeExportedExtensions(ManifestItemIdList? extensions) {
+    if (extensions != null) {
+      var idListStr = extensions.asString(idProvider);
+      if (idListStr.isEmpty) {
+        idListStr = '[]';
+      }
+      sink.writelnWithIndent('exportedExtensions: $idListStr');
+    }
+  }
+
+  void _writeExportedTopLevels(Map<LookupName, ManifestItemId?> topLevels) {
+    var entries = topLevels.sorted;
+    sink.writeElements('exportedTopLevels', entries, (entry) {
+      _writeNamedId(entry);
+    });
   }
 
   void _writeExportRequirements(RequirementsManifest requirements) {
@@ -118,110 +165,96 @@ class BundleRequirementsPrinter {
     });
   }
 
-  void _writeInstanceItems(RequirementsManifest requirements) {
-    var libEntries = requirements.instances.sorted;
+  void _writeInstanceItems(
+    Map<LookupName, InstanceItemRequirements> instances,
+  ) {
+    var instanceEntries = instances.sorted;
+    sink.writeElements('instances', instanceEntries, (instanceEntry) {
+      var instanceRequirements = instanceEntry.value;
+      sink.writelnWithIndent(instanceEntry.key.asString);
 
-    libEntries.removeWhere((entry) {
-      var ignored = configuration.requirements.ignoredLibraries;
-      return ignored.contains(entry.key);
-    });
+      sink.withIndent(() {
+        void writeRequestedDeclared(
+          String name,
+          Map<LookupName, ManifestItemId?> nameToIdMap,
+        ) {
+          sink.writeElements(name, nameToIdMap.sorted, _writeNamedId);
+        }
 
-    sink.writeElements('instances', libEntries, (libEntry) {
-      var interfaceEntries = libEntry.value.sorted;
-      sink.writeElements('${libEntry.key}', interfaceEntries, (instanceEntry) {
-        var instanceRequirements = instanceEntry.value;
-        sink.writelnWithIndent(instanceEntry.key.asString);
+        writeRequestedDeclared(
+          'requestedDeclaredFields', // Renamed from requestedFields
+          instanceRequirements.requestedFields,
+        );
+        writeRequestedDeclared(
+          'requestedDeclaredGetters', // Renamed from requestedGetters
+          instanceRequirements.requestedGetters,
+        );
+        writeRequestedDeclared(
+          'requestedDeclaredSetters', // Renamed from requestedSetters
+          instanceRequirements.requestedSetters,
+        );
+        writeRequestedDeclared(
+          'requestedDeclaredMethods', // Renamed from requestedMethods
+          instanceRequirements.requestedMethods,
+        );
+      });
 
-        sink.withIndent(() {
-          void writeRequested(
-            String name,
-            Map<LookupName, ManifestItemId?> nameToIdMap,
-          ) {
-            sink.writeElements(name, nameToIdMap.sorted, _writeNamedId);
+      sink.withIndent(() {
+        void writeAllDeclared(String name, ManifestItemIdList? idList) {
+          if (idList != null && idList.ids.isNotEmpty) {
+            var idListStr = idList.asString(idProvider);
+            sink.writelnWithIndent('$name: $idListStr');
           }
+        }
 
-          writeRequested(
-            'requestedFields',
-            instanceRequirements.requestedFields,
-          );
-          writeRequested(
-            'requestedGetters',
-            instanceRequirements.requestedGetters,
-          );
-          writeRequested(
-            'requestedSetters',
-            instanceRequirements.requestedSetters,
-          );
-          writeRequested(
-            'requestedMethods',
-            instanceRequirements.requestedMethods,
-          );
-        });
-
-        sink.withIndent(() {
-          void writeAllDeclared(String name, ManifestItemIdList? idList) {
-            if (idList != null && idList.ids.isNotEmpty) {
-              var idListStr = idList.asString(idProvider);
-              sink.writelnWithIndent('$name: $idListStr');
-            }
-          }
-
-          writeAllDeclared(
-            'allDeclaredFields',
-            instanceRequirements.allDeclaredFields,
-          );
-          writeAllDeclared(
-            'allDeclaredGetters',
-            instanceRequirements.allDeclaredGetters,
-          );
-          writeAllDeclared(
-            'allDeclaredSetters',
-            instanceRequirements.allDeclaredSetters,
-          );
-          writeAllDeclared(
-            'allDeclaredMethods',
-            instanceRequirements.allDeclaredMethods,
-          );
-        });
+        writeAllDeclared(
+          'allDeclaredFields',
+          instanceRequirements.allDeclaredFields,
+        );
+        writeAllDeclared(
+          'allDeclaredGetters',
+          instanceRequirements.allDeclaredGetters,
+        );
+        writeAllDeclared(
+          'allDeclaredSetters',
+          instanceRequirements.allDeclaredSetters,
+        );
+        writeAllDeclared(
+          'allDeclaredMethods',
+          instanceRequirements.allDeclaredMethods,
+        );
       });
     });
   }
 
-  void _writeInterfaceItems(RequirementsManifest requirements) {
-    var libEntries = requirements.interfaces.sorted;
-
-    libEntries.removeWhere((entry) {
-      var ignored = configuration.requirements.ignoredLibraries;
-      return ignored.contains(entry.key);
-    });
-
-    sink.writeElements('interfaces', libEntries, (libEntry) {
-      var interfaceEntries = libEntry.value.sorted;
-      sink.writeElements('${libEntry.key}', interfaceEntries, (interfaceEntry) {
-        sink.writelnWithIndent(interfaceEntry.key.asString);
-        sink.withIndent(() {
-          var requirements = interfaceEntry.value;
-          if (requirements.interfaceId case var id?) {
-            var idStr = idProvider.manifestId(id);
-            sink.writelnWithIndent('interfaceId: $idStr');
+  void _writeInterfaceItems(
+    Map<LookupName, InterfaceItemRequirements> interfaces,
+  ) {
+    var interfaceEntries = interfaces.sorted;
+    sink.writeElements('interfaces', interfaceEntries, (interfaceEntry) {
+      sink.writelnWithIndent(interfaceEntry.key.asString);
+      sink.withIndent(() {
+        var requirements = interfaceEntry.value;
+        if (requirements.interfaceId case var id?) {
+          var idStr = idProvider.manifestId(id);
+          sink.writelnWithIndent('interfaceId: $idStr');
+        }
+        if (requirements.allDeclaredConstructors case var allConstructors?) {
+          if (allConstructors.ids.isNotEmpty) {
+            var idListStr = allConstructors.asString(idProvider);
+            sink.writelnWithIndent('allConstructors: $idListStr'); // Renamed
           }
-          if (requirements.allDeclaredConstructors case var allConstructors?) {
-            if (allConstructors.ids.isNotEmpty) {
-              var idListStr = allConstructors.asString(idProvider);
-              sink.writelnWithIndent('allDeclaredConstructors: $idListStr');
-            }
-          }
-          sink.writeElements(
-            'constructors',
-            requirements.requestedConstructors.sorted,
-            _writeNamedId,
-          );
-          sink.writeElements(
-            'methods',
-            requirements.methods.sorted,
-            _writeNamedId,
-          );
-        });
+        }
+        sink.writeElements(
+          'requestedConstructors', // Renamed from constructors
+          requirements.requestedConstructors.sorted,
+          _writeNamedId,
+        );
+        sink.writeElements(
+          'methods',
+          requirements.methods.sorted,
+          _writeNamedId,
+        );
       });
     });
   }
@@ -248,16 +281,6 @@ class BundleRequirementsPrinter {
         if (usage.targetElementName case var elementName?) {
           sink.writelnWithIndent('targetElementName: $elementName');
         }
-      });
-    });
-  }
-
-  void _writeTopLevels(RequirementsManifest requirements) {
-    var libEntries = requirements.topLevels.sorted;
-    sink.writeElements('topLevels', libEntries, (libEntry) {
-      var topEntries = libEntry.value.sorted;
-      sink.writeElements('${libEntry.key}', topEntries, (entry) {
-        _writeNamedId(entry);
       });
     });
   }
@@ -1722,6 +1745,15 @@ class UnitElementPrinterConfiguration {
   List<Element> Function(LibraryFragment) elementSelector = (_) => [];
 }
 
+/// A temporary data structure to hold requirements grouped by library,
+/// mimicking the new format for printing purposes.
+class _LibraryRequirementsTemp {
+  final Map<LookupName, ManifestItemId?> topLevels = {};
+  final Map<LookupName, InstanceItemRequirements> instances = {};
+  final Map<LookupName, InterfaceItemRequirements> interfaces = {};
+  ManifestItemIdList? exportedExtensions;
+}
+
 extension on ManifestItemIdList {
   String asString(IdProvider idProvider) {
     return ids.map((id) => idProvider.manifestId(id)).join(' ');
@@ -1737,11 +1769,5 @@ extension on LibraryCycle {
 extension<V> on Map<LookupName, V> {
   List<MapEntry<LookupName, V>> get sorted {
     return entries.sortedByCompare((entry) => entry.key, LookupName.compare);
-  }
-}
-
-extension<V> on Map<Uri, V> {
-  List<MapEntry<Uri, V>> get sorted {
-    return entries.sortedBy((entry) => entry.key.toString());
   }
 }
