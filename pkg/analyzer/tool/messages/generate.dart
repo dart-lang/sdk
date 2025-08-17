@@ -142,7 +142,7 @@ library;
           out.writeln('/// $line');
         });
       }
-      out.write('class ${errorClass.name} extends ${errorClass.superclass} {');
+      out.write('class ${errorClass.name} extends DiagnosticCode {');
       var entries = [
         ...analyzerMessages[errorClass.name]!.entries,
         if (errorClass.includeCfeMessages)
