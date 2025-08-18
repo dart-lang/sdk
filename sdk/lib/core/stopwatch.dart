@@ -49,6 +49,7 @@ class Stopwatch {
   /// Cached frequency of the system in Hz (ticks per second).
   ///
   /// Value must be returned by [_initTicker], which is called only once.
+  @pragma("vm:shared")
   static final int _frequency = _initTicker();
 
   // The _start and _stop fields capture the time when [start] and [stop]

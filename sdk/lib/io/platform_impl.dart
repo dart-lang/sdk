@@ -33,8 +33,11 @@ class _Platform {
   external static String _localeName();
   external static Uri _script();
 
+  @pragma("vm:shared")
   static String executable = _executable();
+  @pragma("vm:shared")
   static String resolvedExecutable = _resolvedExecutable();
+  @pragma("vm:shared")
   static String? packageConfig = _packageConfig();
 
   @pragma("vm:entry-point")

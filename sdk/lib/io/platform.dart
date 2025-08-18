@@ -80,6 +80,7 @@ abstract final class Platform {
   /// Note that this list may change over time so platform-specific logic
   /// should be guarded by the appropriate Boolean getter e.g. [isMacOS].
   @pragma("vm:platform-const")
+  @pragma("vm:shared")
   static final operatingSystem = _Platform.operatingSystem;
 
   /// A string representing the version of the operating system or platform.
@@ -89,6 +90,7 @@ abstract final class Platform {
   ///   "Linux 5.11.0-1018-gcp #20~20.04.2-Ubuntu SMP Fri Sep 3 01:01:37 UTC 2021"
   ///   "Version 14.5 (Build 18E182)"
   ///   '"Windows 10 Pro" 10.0 (Build 19043)'
+  @pragma("vm:shared")
   static final operatingSystemVersion = _Platform.operatingSystemVersion;
 
   /// The local hostname for the system.
@@ -100,6 +102,7 @@ abstract final class Platform {
   /// Uses the platform
   /// [`gethostname`](https://pubs.opengroup.org/onlinepubs/9699919799/functions/gethostname.html)
   /// implementation.
+  @pragma("vm:shared")
   static final localHostname = _Platform.localHostname;
 
   /// The version of the current Dart runtime.
@@ -108,6 +111,7 @@ abstract final class Platform {
   /// string representing the version of the current Dart runtime,
   /// possibly followed by whitespace and other version and
   /// build details.
+  @pragma("vm:shared")
   static final version = _Platform.version;
 
   /// Get the name of the current locale.
@@ -138,11 +142,13 @@ abstract final class Platform {
   /// version of Linux that identifies itself by a different name,
   /// for example Android (see [isAndroid]).
   @pragma("vm:platform-const")
+  @pragma("vm:shared")
   static final bool isLinux = (operatingSystem == "linux");
 
   /// Whether the operating system is a version of
   /// [macOS](https://en.wikipedia.org/wiki/MacOS).
   @pragma("vm:platform-const")
+  @pragma("vm:shared")
   static final bool isMacOS = (operatingSystem == "macos");
 
   /// Whether the operating system is a version of
@@ -154,16 +160,19 @@ abstract final class Platform {
   /// Whether the operating system is a version of
   /// [Android](https://en.wikipedia.org/wiki/Android_%28operating_system%29).
   @pragma("vm:platform-const")
+  @pragma("vm:shared")
   static final bool isAndroid = (operatingSystem == "android");
 
   /// Whether the operating system is a version of
   /// [iOS](https://en.wikipedia.org/wiki/IOS).
   @pragma("vm:platform-const")
+  @pragma("vm:shared")
   static final bool isIOS = (operatingSystem == "ios");
 
   /// Whether the operating system is a version of
   /// [Fuchsia](https://en.wikipedia.org/wiki/Google_Fuchsia).
   @pragma("vm:platform-const")
+  @pragma("vm:shared")
   static final bool isFuchsia = (operatingSystem == "fuchsia");
 
   /// The environment for this process as a map from string key to string value.
