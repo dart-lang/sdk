@@ -229,6 +229,7 @@ class PubspecWarningCode extends DiagnosticCode {
         "file paths.",
     correctionMessage:
         "Try converting the value to be a list of relative file paths.",
+    hasPublishedDocs: true,
   );
 
   /// No parameters.
@@ -236,6 +237,7 @@ class PubspecWarningCode extends DiagnosticCode {
     'WORKSPACE_VALUE_NOT_STRING',
     "Workspace entries are required to be directory paths (strings).",
     correctionMessage: "Try converting the value to be a string.",
+    hasPublishedDocs: true,
   );
 
   /// Parameters:
