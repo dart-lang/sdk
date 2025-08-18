@@ -260,13 +260,15 @@ class Address : public ValueObject {
     kind_ = Immediate;
     base_ = rn;
     offset_ = offset;
-    // If the offset can't be encoded in fewer bits, then it'll conflict with
-    // the encoding of the mode and we won't be able to retrieve it later.
-    ASSERT(Utils::MagnitudeIsUint(kOpcodeShift, offset));
+    // The offset might overflow what can be encoded temporarily before being
+    // split by PrepareLargeAddress. Make sure this doesn't lead to corruption
+    // of the mode.
+    constexpr int32_t kOffsetMask = (1 << kOpcodeShift) - 1;
     if (offset < 0) {
-      encoding_ = (am ^ (1 << kUShift)) | -offset;  // Flip U to adjust sign.
+      // Flip U to adjust sign.
+      encoding_ = (am ^ (1 << kUShift)) | ((-offset) & kOffsetMask);
     } else {
-      encoding_ = am | offset;
+      encoding_ = am | (offset & kOffsetMask);
     }
     encoding_ |= ArmEncode::Rn(rn);
   }

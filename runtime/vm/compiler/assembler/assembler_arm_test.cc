@@ -4077,6 +4077,30 @@ intptr_t RegRegImmTests::Asr(intptr_t value, intptr_t shift, OperandSize sz) {
   return ExtendValue(SignExtendValue(value, sz) >> shift, sz);
 }
 
+// Regression test for https://github.com/flutter/flutter/issues/172626.
+ASSEMBLER_TEST_GENERATE(LargeOffsets, assembler) {
+  __ LoadFromOffset(R0, PP, 0x208577);  // Has bit 21 set.
+  __ LoadDFromOffset(D0, PP, 0x208577);
+  __ StoreToOffset(R0, PP, 0x208577);
+  __ StoreDToOffset(D0, PP, 0x208577);
+}
+
+ASSEMBLER_TEST_RUN(LargeOffsets, test) {
+  EXPECT_DISASSEMBLY(
+      "e285c982 add tmp, pp, #2129920\n"
+      "e59c0577 ldr r0, [tmp, #+1399]\n"
+      "e308c403 movw tmp, #0x8403\n"
+      "e340c020 movt tmp, #0x20\n"
+      "e085c00c add tmp, pp, tmp\n"
+      "ed9c0b5d vldrd d0, [tmp, #+372]\n"
+      "e285c982 add tmp, pp, #2129920\n"
+      "e58c0577 str r0, [tmp, #+1399]\n"
+      "e308c403 movw tmp, #0x8403\n"
+      "e340c020 movt tmp, #0x20\n"
+      "e085c00c add tmp, pp, tmp\n"
+      "ed8c0b5d vstrd d0, [tmp, #+372]\n");
+}
+
 }  // namespace compiler
 }  // namespace dart
 

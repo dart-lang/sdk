@@ -4,8 +4,10 @@ This is a patch release that:
 
 - Fixes an issue in DevTools when users click 'Clear' on the Network Screen.
   The terminal can be spammed with assertion errors (#442260).
+- Fixes miscompilation on ARM32 with large numbers of literals (issue [flutter/flutter#172626])
 
 [#442260]: https://dart-review.googlesource.com/c/sdk/+/442260
+[flutter/flutter#172626]: https://github.com/flutter/flutter/issues/172626
 
 ## 3.9.0
 
