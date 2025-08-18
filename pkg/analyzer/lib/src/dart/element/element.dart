@@ -67,7 +67,7 @@ typedef ConstVariableElement = VariableFragmentImpl;
 
 class BindPatternVariableElementImpl extends PatternVariableElementImpl
     implements BindPatternVariableElement {
-  BindPatternVariableElementImpl(super._wrappedElement);
+  BindPatternVariableElementImpl(super.firstFragment);
 
   @override
   BindPatternVariableFragmentImpl get firstFragment =>
@@ -87,17 +87,13 @@ class BindPatternVariableElementImpl extends PatternVariableElementImpl
 
   /// Whether this variable clashes with another pattern variable with the same
   /// name within the same pattern.
-  bool get isDuplicate => _wrappedElement.isDuplicate;
+  bool get isDuplicate => firstFragment.isDuplicate;
 
   /// Set whether this variable clashes with another pattern variable with the
   /// same name within the same pattern.
-  set isDuplicate(bool value) => _wrappedElement.isDuplicate = value;
+  set isDuplicate(bool value) => firstFragment.isDuplicate = value;
 
-  DeclaredVariablePatternImpl get node => _wrappedElement.node;
-
-  @override
-  BindPatternVariableFragmentImpl get _wrappedElement =>
-      super._wrappedElement as BindPatternVariableFragmentImpl;
+  DeclaredVariablePatternImpl get node => firstFragment.node;
 }
 
 class BindPatternVariableFragmentImpl extends PatternVariableFragmentImpl
@@ -2906,7 +2902,8 @@ class FieldFragmentImpl extends PropertyInducingFragmentImpl
 
 class FormalParameterElementImpl extends PromotableElementImpl
     with InternalFormalParameterElement {
-  final FormalParameterFragmentImpl wrappedElement;
+  @override
+  final FormalParameterFragmentImpl firstFragment;
 
   @override
   TypeImpl type = InvalidTypeImpl.instance;
@@ -2916,8 +2913,8 @@ class FormalParameterElementImpl extends PromotableElementImpl
   /// corresponding covariant formal parameter.
   bool inheritsCovariant = false;
 
-  FormalParameterElementImpl(this.wrappedElement) {
-    FormalParameterFragmentImpl? fragment = wrappedElement;
+  FormalParameterElementImpl(this.firstFragment) {
+    FormalParameterFragmentImpl? fragment = firstFragment;
     while (fragment != null) {
       fragment.element = this;
       fragment = fragment.nextFragment;
@@ -2945,7 +2942,7 @@ class FormalParameterElementImpl extends PromotableElementImpl
 
   @override
   Element? get enclosingElement {
-    return wrappedElement.enclosingFragment?.element;
+    return firstFragment.enclosingFragment?.element;
   }
 
   @Deprecated('Use enclosingElement instead')
@@ -2953,12 +2950,9 @@ class FormalParameterElementImpl extends PromotableElementImpl
   Element? get enclosingElement2 => enclosingElement;
 
   @override
-  FormalParameterFragmentImpl get firstFragment => wrappedElement;
-
-  @override
   // TODO(augmentations): Implement the merge of formal parameters.
   List<FormalParameterElementImpl> get formalParameters =>
-      wrappedElement.formalParameters
+      firstFragment.formalParameters
           .map((fragment) => fragment.element)
           .toList();
 
@@ -2980,11 +2974,11 @@ class FormalParameterElementImpl extends PromotableElementImpl
 
   @override
   // TODO(augmentations): Implement the merge of formal parameters.
-  bool get hasImplicitType => wrappedElement.hasImplicitType;
+  bool get hasImplicitType => firstFragment.hasImplicitType;
 
   @override
   // TODO(augmentations): Implement the merge of formal parameters.
-  bool get isConst => wrappedElement.isConst;
+  bool get isConst => firstFragment.isConst;
 
   @override
   bool get isCovariant {
@@ -2996,46 +2990,46 @@ class FormalParameterElementImpl extends PromotableElementImpl
 
   @override
   // TODO(augmentations): Implement the merge of formal parameters.
-  bool get isFinal => wrappedElement.isFinal;
+  bool get isFinal => firstFragment.isFinal;
 
   @override
-  bool get isInitializingFormal => wrappedElement.isInitializingFormal;
-
-  @override
-  // TODO(augmentations): Implement the merge of formal parameters.
-  bool get isLate => wrappedElement.isLate;
-
-  @override
-  bool get isNamed => wrappedElement.isNamed;
-
-  @override
-  bool get isOptional => wrappedElement.isOptional;
-
-  @override
-  bool get isOptionalNamed => wrappedElement.isOptionalNamed;
-
-  @override
-  bool get isOptionalPositional => wrappedElement.isOptionalPositional;
-
-  @override
-  bool get isPositional => wrappedElement.isPositional;
-
-  @override
-  bool get isRequired => wrappedElement.isRequired;
-
-  @override
-  bool get isRequiredNamed => wrappedElement.isRequiredNamed;
-
-  @override
-  bool get isRequiredPositional => wrappedElement.isRequiredPositional;
+  bool get isInitializingFormal => firstFragment.isInitializingFormal;
 
   @override
   // TODO(augmentations): Implement the merge of formal parameters.
-  bool get isStatic => wrappedElement.isStatic;
+  bool get isLate => firstFragment.isLate;
+
+  @override
+  bool get isNamed => firstFragment.isNamed;
+
+  @override
+  bool get isOptional => firstFragment.isOptional;
+
+  @override
+  bool get isOptionalNamed => firstFragment.isOptionalNamed;
+
+  @override
+  bool get isOptionalPositional => firstFragment.isOptionalPositional;
+
+  @override
+  bool get isPositional => firstFragment.isPositional;
+
+  @override
+  bool get isRequired => firstFragment.isRequired;
+
+  @override
+  bool get isRequiredNamed => firstFragment.isRequiredNamed;
+
+  @override
+  bool get isRequiredPositional => firstFragment.isRequiredPositional;
 
   @override
   // TODO(augmentations): Implement the merge of formal parameters.
-  bool get isSuperFormal => wrappedElement.isSuperFormal;
+  bool get isStatic => firstFragment.isStatic;
+
+  @override
+  // TODO(augmentations): Implement the merge of formal parameters.
+  bool get isSuperFormal => firstFragment.isSuperFormal;
 
   @override
   bool get isSynthetic {
@@ -3064,7 +3058,7 @@ class FormalParameterElementImpl extends PromotableElementImpl
 
   @override
   String? get name {
-    return wrappedElement.name;
+    return firstFragment.name;
   }
 
   @Deprecated('Use name instead')
@@ -3074,7 +3068,7 @@ class FormalParameterElementImpl extends PromotableElementImpl
   }
 
   @override
-  String get nameShared => wrappedElement.name ?? '';
+  String get nameShared => firstFragment.name ?? '';
 
   @override
   ParameterKind get parameterKind {
@@ -3555,12 +3549,13 @@ class GenerateFragmentImpl {
 /// Clients may not extend, implement or mix-in this class.
 class GenericFunctionTypeElementImpl extends FunctionTypedElementImpl
     implements GenericFunctionTypeElement {
-  final GenericFunctionTypeFragmentImpl _wrappedElement;
+  @override
+  final GenericFunctionTypeFragmentImpl firstFragment;
 
-  GenericFunctionTypeElementImpl(this._wrappedElement);
+  GenericFunctionTypeElementImpl(this.firstFragment);
 
   @override
-  String? get documentationComment => _wrappedElement.documentationComment;
+  String? get documentationComment => firstFragment.documentationComment;
 
   @override
   Element? get enclosingElement => firstFragment.enclosingFragment?.element;
@@ -3570,11 +3565,8 @@ class GenericFunctionTypeElementImpl extends FunctionTypedElementImpl
   Element? get enclosingElement2 => enclosingElement;
 
   @override
-  GenericFunctionTypeFragmentImpl get firstFragment => _wrappedElement;
-
-  @override
   List<FormalParameterElementImpl> get formalParameters =>
-      _wrappedElement.formalParameters
+      firstFragment.formalParameters
           .map((fragment) => fragment.element)
           .toList();
 
@@ -3591,10 +3583,10 @@ class GenericFunctionTypeElementImpl extends FunctionTypedElementImpl
   }
 
   @override
-  bool get isSimplyBounded => _wrappedElement.isSimplyBounded;
+  bool get isSimplyBounded => firstFragment.isSimplyBounded;
 
   @override
-  bool get isSynthetic => _wrappedElement.isSynthetic;
+  bool get isSynthetic => firstFragment.isSynthetic;
 
   @override
   ElementKind get kind => ElementKind.GENERIC_FUNCTION_TYPE;
@@ -3604,30 +3596,28 @@ class GenericFunctionTypeElementImpl extends FunctionTypedElementImpl
   LibraryElementImpl get library2 => library;
 
   @override
-  MetadataImpl get metadata => _wrappedElement.metadata;
+  MetadataImpl get metadata => firstFragment.metadata;
 
   @Deprecated('Use metadata instead')
   @override
   MetadataImpl get metadata2 => metadata;
 
   @override
-  String? get name => _wrappedElement.name;
+  String? get name => firstFragment.name;
 
   @Deprecated('Use name instead')
   @override
   String? get name3 => name;
 
   @override
-  TypeImpl get returnType => _wrappedElement.returnType;
+  TypeImpl get returnType => firstFragment.returnType;
 
   @override
-  FunctionType get type => _wrappedElement.type;
+  FunctionType get type => firstFragment.type;
 
   @override
   List<TypeParameterElement> get typeParameters =>
-      _wrappedElement.typeParameters
-          .map((fragment) => fragment.element)
-          .toList();
+      firstFragment.typeParameters.map((fragment) => fragment.element).toList();
 
   @Deprecated('Use typeParameters2 instead')
   @override
@@ -5189,7 +5179,7 @@ mixin InternalVariableElement implements VariableElement {
 
 class JoinPatternVariableElementImpl extends PatternVariableElementImpl
     implements JoinPatternVariableElement {
-  JoinPatternVariableElementImpl(super._wrappedElement);
+  JoinPatternVariableElementImpl(super.firstFragment);
 
   @override
   JoinPatternVariableFragmentImpl get firstFragment =>
@@ -5208,21 +5198,21 @@ class JoinPatternVariableElementImpl extends PatternVariableElementImpl
   }
 
   shared.JoinedPatternVariableInconsistency get inconsistency =>
-      _wrappedElement.inconsistency;
+      firstFragment.inconsistency;
 
   set inconsistency(shared.JoinedPatternVariableInconsistency value) =>
-      _wrappedElement.inconsistency = value;
+      firstFragment.inconsistency = value;
 
   @override
   bool get isConsistent {
-    return _wrappedElement.inconsistency ==
+    return firstFragment.inconsistency ==
         shared.JoinedPatternVariableInconsistency.none;
   }
 
-  set isFinal(bool value) => _wrappedElement.isFinal = value;
+  set isFinal(bool value) => firstFragment.isFinal = value;
 
   /// The identifiers that reference this element.
-  List<SimpleIdentifier> get references => _wrappedElement.references;
+  List<SimpleIdentifier> get references => firstFragment.references;
 
   /// Returns this variable, and variables that join into it.
   List<PatternVariableElementImpl> get transitiveVariables {
@@ -5243,7 +5233,7 @@ class JoinPatternVariableElementImpl extends PatternVariableElementImpl
 
   @override
   List<PatternVariableElementImpl> get variables =>
-      _wrappedElement.variables.map((fragment) => fragment.element).toList();
+      firstFragment.variables.map((fragment) => fragment.element).toList();
 
   /// The variables that join into this variable.
   @Deprecated('Use variables instead')
@@ -5251,10 +5241,6 @@ class JoinPatternVariableElementImpl extends PatternVariableElementImpl
   List<PatternVariableElementImpl> get variables2 {
     return variables;
   }
-
-  @override
-  JoinPatternVariableFragmentImpl get _wrappedElement =>
-      super._wrappedElement as JoinPatternVariableFragmentImpl;
 }
 
 class JoinPatternVariableFragmentImpl extends PatternVariableFragmentImpl
@@ -6708,9 +6694,9 @@ final class LoadLibraryFunctionProvider {
 
 class LocalFunctionElementImpl extends ExecutableElementImpl
     implements LocalFunctionElement {
-  final LocalFunctionFragmentImpl _wrappedFragment;
+  final LocalFunctionFragmentImpl firstFragment;
 
-  LocalFunctionElementImpl(this._wrappedFragment);
+  LocalFunctionElementImpl(this.firstFragment);
 
   @override
   // Local functions belong to Fragments, not Elements.
@@ -6719,9 +6705,6 @@ class LocalFunctionElementImpl extends ExecutableElementImpl
   @Deprecated('Use enclosingElement instead')
   @override
   Element? get enclosingElement2 => enclosingElement;
-
-  @override
-  LocalFunctionFragmentImpl get firstFragment => _wrappedFragment;
 
   @override
   List<LocalFunctionFragmentImpl> get fragments {
@@ -6739,15 +6722,11 @@ class LocalFunctionElementImpl extends ExecutableElementImpl
   ElementKind get kind => ElementKind.FUNCTION;
 
   @override
-  String? get name => _wrappedFragment.name;
+  String? get name => firstFragment.name;
 
   @Deprecated('Use name instead')
   @override
   String? get name3 => name;
-
-  FunctionFragmentImpl get wrappedElement {
-    return _wrappedFragment;
-  }
 
   @override
   T? accept<T>(ElementVisitor2<T> visitor) {
@@ -6799,12 +6778,13 @@ class LocalFunctionFragmentImpl extends FunctionFragmentImpl
 
 class LocalVariableElementImpl extends PromotableElementImpl
     implements LocalVariableElement {
-  final LocalVariableFragmentImpl _wrappedElement;
+  @override
+  final LocalVariableFragmentImpl firstFragment;
 
   @override
   TypeImpl type = InvalidTypeImpl.instance;
 
-  LocalVariableElementImpl(this._wrappedElement);
+  LocalVariableElementImpl(this.firstFragment);
 
   @override
   LocalVariableElement get baseElement => this;
@@ -6814,7 +6794,7 @@ class LocalVariableElementImpl extends PromotableElementImpl
 
   @override
   Element? get enclosingElement {
-    return _wrappedElement.enclosingFragment.element;
+    return firstFragment.enclosingFragment.element;
   }
 
   @Deprecated('Use enclosingElement instead')
@@ -6822,30 +6802,27 @@ class LocalVariableElementImpl extends PromotableElementImpl
   Element? get enclosingElement2 => enclosingElement;
 
   @override
-  LocalVariableFragmentImpl get firstFragment => _wrappedElement;
-
-  @override
   List<LocalVariableFragmentImpl> get fragments {
     return [firstFragment];
   }
 
   @override
-  bool get hasImplicitType => _wrappedElement.hasImplicitType;
+  bool get hasImplicitType => firstFragment.hasImplicitType;
 
   @override
-  bool get isConst => _wrappedElement.isConst;
+  bool get isConst => firstFragment.isConst;
 
   @override
-  bool get isFinal => _wrappedElement.isFinal;
+  bool get isFinal => firstFragment.isFinal;
 
   @override
-  bool get isLate => _wrappedElement.isLate;
+  bool get isLate => firstFragment.isLate;
 
   @override
-  bool get isStatic => _wrappedElement.isStatic;
+  bool get isStatic => firstFragment.isStatic;
 
   @override
-  bool get isSynthetic => _wrappedElement.isSynthetic;
+  bool get isSynthetic => firstFragment.isSynthetic;
 
   @override
   ElementKind get kind => ElementKind.LOCAL_VARIABLE;
@@ -6858,14 +6835,14 @@ class LocalVariableElementImpl extends PromotableElementImpl
   LibraryElementImpl get library2 => library;
 
   @override
-  MetadataImpl get metadata => _wrappedElement.metadata;
+  MetadataImpl get metadata => firstFragment.metadata;
 
   @Deprecated('Use metadata instead')
   @override
   MetadataImpl get metadata2 => metadata;
 
   @override
-  String? get name => _wrappedElement.name;
+  String? get name => firstFragment.name;
 
   @Deprecated('Use name instead')
   @override
@@ -8197,7 +8174,7 @@ class PartIncludeImpl extends ElementDirectiveImpl implements PartInclude {
 
 class PatternVariableElementImpl extends LocalVariableElementImpl
     implements PatternVariableElement {
-  PatternVariableElementImpl(super._wrappedElement);
+  PatternVariableElementImpl(super.firstFragment);
 
   @override
   PatternVariableFragmentImpl get firstFragment =>
@@ -8217,16 +8194,16 @@ class PatternVariableElementImpl extends LocalVariableElementImpl
 
   /// This flag is set to `true` while we are visiting the [WhenClause] of
   /// the [GuardedPattern] that declares this variable.
-  bool get isVisitingWhenClause => _wrappedElement.isVisitingWhenClause;
+  bool get isVisitingWhenClause => firstFragment.isVisitingWhenClause;
 
   /// This flag is set to `true` while we are visiting the [WhenClause] of
   /// the [GuardedPattern] that declares this variable.
   set isVisitingWhenClause(bool value) =>
-      _wrappedElement.isVisitingWhenClause = value;
+      firstFragment.isVisitingWhenClause = value;
 
   @override
   JoinPatternVariableElementImpl? get join {
-    return _wrappedElement.join?.asElement2;
+    return firstFragment.join?.asElement2;
   }
 
   @Deprecated('Use join instead')
@@ -8239,10 +8216,6 @@ class PatternVariableElementImpl extends LocalVariableElementImpl
   PatternVariableElementImpl get rootVariable {
     return join?.rootVariable ?? this;
   }
-
-  @override
-  PatternVariableFragmentImpl get _wrappedElement =>
-      super._wrappedElement as PatternVariableFragmentImpl;
 
   static PatternVariableElement fromElement(
     PatternVariableFragmentImpl element,
