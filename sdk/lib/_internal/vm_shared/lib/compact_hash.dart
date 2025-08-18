@@ -337,6 +337,7 @@ mixin _IdenticalAndIdentityHashCode implements _EqualsAndHashCode {
 }
 
 mixin _OperatorEqualsAndCanonicalHashCode implements _EqualsAndHashCode {
+  @pragma('vm:shared')
   static final int cidSymbol = ClassID.getID(#a);
 
   int _hashCode(Object? e) {

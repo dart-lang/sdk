@@ -13434,13 +13434,14 @@ TypePtr Class::GetInstantiationOf(Zone* zone, const Type& type) const {
 void Field::SetStaticValue(const Object& value) const {
   auto thread = Thread::Current();
   ASSERT(thread->IsDartMutatorThread());
-  ASSERT(value.IsNull() || value.IsSentinel() || value.IsInstance());
+  ASSERT(value.IsNull() || value.IsSentinel() || value.IsInstance() ||
+         value.IsSmi());
 
   ASSERT(is_static());  // Valid only for static dart fields.
   const intptr_t id = field_id();
   ASSERT(id >= 0);
 
-  if (is_shared() && !value.IsImmutable() &&
+  if (is_shared() && !value.IsSmi() && !value.IsImmutable() &&
       !IsTypedDataBaseClassId(value.GetClassId())) {
     const String& error = String::Handle(
         thread->zone(),

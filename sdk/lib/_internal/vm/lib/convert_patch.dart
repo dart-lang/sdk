@@ -1577,6 +1577,7 @@ class _JsonStringDecoderSink extends StringConversionSinkBase {
  */
 class _JsonUtf8Parser extends _JsonParserWithListener
     with _ChunkedJsonParser<Uint8List> {
+  @pragma("vm:shared")
   static final Uint8List emptyChunk = Uint8List(0);
 
   final _Utf8Decoder decoder;

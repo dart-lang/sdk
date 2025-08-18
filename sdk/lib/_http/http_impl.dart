@@ -290,6 +290,7 @@ class _CopyingBytesBuilder implements BytesBuilder {
   // Start with 1024 bytes.
   static const int _INIT_SIZE = 1024;
 
+  @pragma("vm:shared")
   static final _emptyList = Uint8List(0);
 
   int _length = 0;
