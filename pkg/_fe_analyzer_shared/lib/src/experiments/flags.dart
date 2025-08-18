@@ -68,9 +68,9 @@ enum ExperimentalFlag {
 
   dotShorthands(
     name: 'dot-shorthands',
-    isEnabledByDefault: false,
+    isEnabledByDefault: true,
     isExpired: false,
-    experimentEnabledVersion: defaultLanguageVersion,
+    experimentEnabledVersion: const Version(3, 10),
     experimentReleasedVersion: const Version(3, 9),
   ),
 

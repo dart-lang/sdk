@@ -403,6 +403,7 @@ analysisOptions
       constructor-tearoffs
       control-flow-collections
       digit-separators
+      dot-shorthands
       enhanced-enums
       extension-methods
       generic-metadata
@@ -484,6 +485,7 @@ analysisOptions
       constructor-tearoffs
       control-flow-collections
       digit-separators
+      dot-shorthands
       enhanced-enums
       extension-methods
       generic-metadata

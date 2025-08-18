@@ -269,7 +269,7 @@ class ExperimentalFeatures {
     isExpired: IsExpired.dot_shorthands,
     documentation: 'Shorter dot syntax for static accesses.',
     experimentalReleaseVersion: Version.parse('3.9.0'),
-    releaseVersion: null,
+    releaseVersion: Version.parse('3.10.0'),
     channels: ["stable", "beta", "dev", "main"],
   );
 
@@ -648,7 +648,7 @@ class IsEnabledByDefault {
   static const bool digit_separators = true;
 
   /// Default state of the experiment "dot-shorthands"
-  static const bool dot_shorthands = false;
+  static const bool dot_shorthands = true;
 
   /// Default state of the experiment "enhanced-enums"
   static const bool enhanced_enums = true;
