@@ -512,12 +512,16 @@ class GenericInferrer {
         inferredTypes[i] = previouslyInferredType;
       } else if (preliminary) {
         var inferredType =
-            _inferTypeParameterFromContext(
+            _typeSystemOperations.inferTypeParameterFromContext(
+                  previouslyInferredType,
                   constraint,
-                  extendsClause,
+                  extendsClause?.upper.unwrapTypeSchemaView(),
                   isContravariant: typeParam.variance.isContravariant,
                   typeParameterToInfer: typeParam,
-                  inferencePhaseConstraints: inferencePhaseConstraints,
+                  typeParametersToInfer: _typeFormals,
+                  constraints: inferencePhaseConstraints,
+                  dataForTesting: null,
+                  inferenceUsingBoundsIsEnabled: inferenceUsingBoundsIsEnabled,
                 )
                 as TypeImpl;
 
@@ -605,67 +609,6 @@ class GenericInferrer {
 
     return '\n\n$intro\n$unsatisfied$satisfied\n\n'
         'Consider passing explicit type argument(s) to the generic.\n\n';
-  }
-
-  SharedType _inferTypeParameterFromContext(
-    MergedTypeConstraint constraint,
-    MergedTypeConstraint? extendsClause, {
-    required bool isContravariant,
-    required TypeParameterElementImpl typeParameterToInfer,
-    required Map<TypeParameterElementImpl, MergedTypeConstraint>
-    inferencePhaseConstraints,
-  }) {
-    // Both bits of the bound information should be available at the same time.
-    assert(extendsClause == null || typeParameterToInfer.bound != null);
-
-    SharedType t = _typeSystemOperations.chooseTypeFromConstraint(
-      constraint,
-      grounded: false,
-      isContravariant: isContravariant,
-    );
-    if (!_typeSystemOperations.isKnownType(SharedTypeSchemaView(t))) {
-      return t;
-    }
-
-    // If we're about to make our final choice, apply the extends clause.
-    // This gives us a chance to refine the choice, in case it would violate
-    // the `extends` clause. For example:
-    //
-    //     Object obj = math.min/*<infer Object, error>*/(1, 2);
-    //
-    // If we consider the `T extends num` we conclude `<num>`, which works.
-    if (extendsClause != null) {
-      MergedTypeConstraint? boundConstraint;
-      if (inferenceUsingBoundsIsEnabled) {
-        if (!identical(
-          constraint.lower.unwrapTypeSchemaView(),
-          UnknownInferredType.instance,
-        )) {
-          boundConstraint = _typeSystemOperations.mergeInConstraintsFromBound(
-            typeParameterToInfer: typeParameterToInfer,
-            typeParametersToInfer: _typeFormals.cast<SharedTypeParameterView>(),
-            lower: constraint.lower.unwrapTypeSchemaView(),
-            inferencePhaseConstraints: inferencePhaseConstraints,
-            dataForTesting: dataForTesting,
-            inferenceUsingBoundsIsEnabled: inferenceUsingBoundsIsEnabled,
-          );
-        }
-      }
-
-      constraint = _squashConstraints([
-        constraint,
-        extendsClause,
-        if (boundConstraint != null &&
-            !boundConstraint.isEmpty(_typeSystemOperations))
-          boundConstraint,
-      ]);
-      return _typeSystemOperations.chooseTypeFromConstraint(
-        constraint,
-        grounded: false,
-        isContravariant: isContravariant,
-      );
-    }
-    return t;
   }
 
   /// Reports an inference failure on [errorEntity] according to its type.

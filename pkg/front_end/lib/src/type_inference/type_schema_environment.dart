@@ -168,10 +168,11 @@ class TypeSchemaEnvironment extends HierarchyBasedTypeEnvironment
 
       MergedTypeConstraint constraint = constraints[typeParam]!;
       if (preliminary) {
-        inferredTypes[i] = _inferTypeParameterFromContext(
+        inferredTypes[i] = operations.inferTypeParameterFromContext(
                 previouslyInferredTypes?[i], constraint, extendsConstraint,
+                isContravariant:
+                    typeParam.variance == shared.Variance.contravariant,
                 isLegacyCovariant: typeParam.isLegacyCovariant,
-                operations: operations,
                 constraints: constraints,
                 typeParameterToInfer: typeParam,
                 typeParametersToInfer: typeParametersToInfer,
@@ -348,68 +349,6 @@ class TypeSchemaEnvironment extends HierarchyBasedTypeEnvironment
       inferredTypes[i] = demoteTypeInLibrary(inferredTypes[i]);
     }
     return inferredTypes;
-  }
-
-  SharedType _inferTypeParameterFromContext(DartType? typeFromPreviousInference,
-      MergedTypeConstraint constraint, DartType? extendsConstraint,
-      {bool isLegacyCovariant = true,
-      required OperationsCfe operations,
-      required Map<StructuralParameter, MergedTypeConstraint> constraints,
-      required List<StructuralParameter> typeParametersToInfer,
-      required StructuralParameter typeParameterToInfer,
-      required InferenceDataForTesting? dataForTesting,
-      required bool inferenceUsingBoundsIsEnabled}) {
-    // See if we already fixed this type in a previous inference step.
-    // If so, then we aren't allowed to change it unless [isLegacyCovariant] is
-    // false.
-    if (isLegacyCovariant &&
-        typeFromPreviousInference != null &&
-        operations
-            .isKnownType(new SharedTypeSchemaView(typeFromPreviousInference))) {
-      return typeFromPreviousInference;
-    }
-
-    SharedType t = operations.chooseTypeFromConstraint(constraint,
-        grounded: false, isContravariant: false);
-    if (!operations.isKnownType(new SharedTypeSchemaView(t))) {
-      return t;
-    }
-
-    // If we're about to make our final choice, apply the extends clause.
-    // This gives us a chance to refine the choice, in case it would violate
-    // the `extends` clause. For example:
-    //
-    //     Object obj = math.min/*<infer Object, error>*/(1, 2);
-    //
-    // If we consider the `T extends num` we conclude `<num>`, which works.
-
-    if (inferenceUsingBoundsIsEnabled &&
-        constraint.lower is! SharedUnknownTypeSchemaView &&
-        !operations.isBoundOmitted(typeParameterToInfer)) {
-      // Coverage-ignore-block(suite): Not run.
-      MergedTypeConstraint constraintFromBound =
-          operations.mergeInConstraintsFromBound(
-              typeParameterToInfer: typeParameterToInfer,
-              typeParametersToInfer:
-                  typeParametersToInfer.cast<SharedTypeParameterView>(),
-              lower: constraint.lower.unwrapTypeSchemaView<DartType>(),
-              inferencePhaseConstraints: constraints,
-              dataForTesting: dataForTesting,
-              inferenceUsingBoundsIsEnabled: inferenceUsingBoundsIsEnabled);
-
-      constraint.mergeInTypeSchemaUpper(constraintFromBound.upper, operations);
-      constraint.mergeInTypeSchemaLower(constraintFromBound.lower, operations);
-    }
-
-    if (extendsConstraint != null) {
-      constraint = constraint.clone();
-      constraint.mergeInTypeSchemaUpper(
-          new SharedTypeSchemaView(extendsConstraint), operations);
-      return operations.chooseTypeFromConstraint(constraint,
-          grounded: false, isContravariant: false);
-    }
-
-    return t;
   }
 }
 
