@@ -67,7 +67,7 @@ class LinterLintCode extends LintCode {
           out.writeln('  @Deprecated("$deprecatedMessage")');
         }
         var constantName = errorName.toCamelCase();
-        out.writeln('  static const LintCode $constantName =');
+        out.writeln('  static const LinterLintCode $constantName =');
         out.writeln(
           codeInfo.toAnalyzerCode(
             linterLintCodeInfo,
