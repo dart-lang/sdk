@@ -3402,6 +3402,9 @@ abstract class FragmentImpl with _FragmentImplMixin implements Fragment {
   /// is `f=`, instead of `f`.
   String get displayName => name ?? '';
 
+  @override
+  ElementImpl get element;
+
   /// Return the enclosing unit element (which might be the same as `this`), or
   /// `null` if this element is not contained in any compilation unit.
   LibraryFragmentImpl get enclosingUnit {
@@ -5463,7 +5466,8 @@ class LabelElementImpl extends ElementImpl implements LabelElement {
 }
 
 class LabelFragmentImpl extends FragmentImpl implements LabelFragment {
-  late final LabelElementImpl element2 = LabelElementImpl(this);
+  @override
+  late final LabelElementImpl element = LabelElementImpl(this);
 
   @override
   final String? name;
@@ -5491,9 +5495,6 @@ class LabelFragmentImpl extends FragmentImpl implements LabelFragment {
 
   @override
   String get displayName => name ?? '';
-
-  @override
-  LabelElement get element => element2;
 
   @override
   ExecutableFragmentImpl get enclosingFragment =>

@@ -324,7 +324,7 @@ class DuplicateDefinitionVerifier {
             ),
           );
         } else {
-          setterScope[lookupName] = fragment.element as ElementImpl;
+          setterScope[lookupName] = fragment.element;
         }
       }
     } else {
@@ -340,7 +340,7 @@ class DuplicateDefinitionVerifier {
           ),
         );
       } else {
-        getterScope[lookupName] = fragment.element as ElementImpl;
+        getterScope[lookupName] = fragment.element;
       }
     }
   }
@@ -599,7 +599,7 @@ class MemberDuplicateDefinitionVerifier {
     var scopeEntry = scope[name];
     switch (scopeEntry) {
       case null:
-        scope[name] = _ScopeEntryElement(fragment.element as ElementImpl);
+        scope[name] = _ScopeEntryElement(fragment.element);
       case _ScopeEntryElement(element: GetterElementImpl previous)
           when fragment is SetterFragmentImpl:
         scope[name] = _ScopeEntryGetterSetterPair(
