@@ -399,20 +399,6 @@ class AliasErrorCodeInfo extends AnalyzerErrorCodeInfo {
 /// In-memory representation of error code information obtained from the
 /// analyzer's `messages.yaml` file.
 class AnalyzerErrorCodeInfo extends ErrorCodeInfo {
-  AnalyzerErrorCodeInfo({
-    super.comment,
-    super.correctionMessage,
-    super.deprecatedMessage,
-    super.documentation,
-    super.hasPublishedDocs,
-    super.isUnresolvedIdentifier,
-    required super.problemMessage,
-    super.removedIn,
-    super.sharedName,
-  }) {
-    _check();
-  }
-
   factory AnalyzerErrorCodeInfo.fromYaml(Map<Object?, Object?> yaml) {
     if (yaml['aliasFor'] case var aliasFor?) {
       return AliasErrorCodeInfo._fromYaml(yaml, aliasFor: aliasFor as String);
