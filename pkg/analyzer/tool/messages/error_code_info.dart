@@ -749,7 +749,7 @@ abstract class ErrorCodeInfo {
         if (commentLines.isNotEmpty) commentLines.add('');
         commentLines.add('Parameters:');
         for (var p in parameters) {
-          var prefix = '${p.type} ${p.name}: ';
+          var prefix = '${p.type.analyzerName} ${p.name}: ';
           var extraIndent = ' ' * prefix.length;
           var firstLineWidth = 80 - 4 - indent.length;
           var lines = _splitText(
@@ -800,7 +800,7 @@ abstract class ErrorCodeInfo {
         case [var type, var name]:
           result.add(
             ErrorCodeParameter(
-              type: type,
+              type: ErrorCodeParameterType.fromMessagesYamlName(type),
               name: name,
               comment: value as String,
             ),
@@ -819,7 +819,7 @@ abstract class ErrorCodeInfo {
 /// In-memory representation of a single key/value pair from the `parameters`
 /// map for an error code.
 class ErrorCodeParameter {
-  final String type;
+  final ErrorCodeParameterType type;
   final String name;
   final String comment;
 
@@ -828,6 +828,40 @@ class ErrorCodeParameter {
     required this.name,
     required this.comment,
   });
+}
+
+/// In-memory representation of the type of a single diagnostic code's
+/// parameter.
+enum ErrorCodeParameterType {
+  element(messagesYamlName: 'Element', analyzerName: 'Element'),
+  int(messagesYamlName: 'int', analyzerName: 'int'),
+  object(messagesYamlName: 'Object', analyzerName: 'Object'),
+  string(messagesYamlName: 'String', analyzerName: 'String'),
+  type(messagesYamlName: 'Type', analyzerName: 'DartType'),
+  uri(messagesYamlName: 'Uri', analyzerName: 'Uri');
+
+  /// Map from [messagesYamlName] to the enum constant.
+  ///
+  /// Used for decoding parameter types from `messages.yaml`.
+  static final _messagesYamlNameToValue = {
+    for (var value in values) value.messagesYamlName: value,
+  };
+
+  /// Name of this type as it appears in `messages.yaml`.
+  final String messagesYamlName;
+
+  /// Name of this type as it appears in Dart source code.
+  final String analyzerName;
+
+  const ErrorCodeParameterType({
+    required this.messagesYamlName,
+    required this.analyzerName,
+  });
+
+  /// Decodes a type name from `messages.yaml` into an [ErrorCodeParameterName].
+  factory ErrorCodeParameterType.fromMessagesYamlName(String name) =>
+      _messagesYamlNameToValue[name] ??
+      (throw StateError('Unknown type name: $name'));
 }
 
 /// In-memory representation of error code information obtained from the front
