@@ -249,7 +249,7 @@ class _PropertyInducingElementTypeInference
     var analysisOptions = _libraryBuilder.kind.file.analysisOptions;
     var astResolver = AstResolver(
       _linker,
-      initializerFragment.libraryFragment as LibraryFragmentImpl,
+      initializerFragment.libraryFragment,
       scope,
       analysisOptions,
       enclosingClassElement: enclosingInterfaceElement,

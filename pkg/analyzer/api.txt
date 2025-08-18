@@ -3588,9 +3588,9 @@ package:analyzer/dart/element/element.dart:
     element (getter: ExtensionTypeElement)
     nextFragment (getter: ExtensionTypeFragment?)
     previousFragment (getter: ExtensionTypeFragment?)
-    primaryConstructor (getter: ConstructorFragment)
+    primaryConstructor (getter: ConstructorFragment, deprecated)
     primaryConstructor2 (getter: ConstructorFragment, deprecated)
-    representation (getter: FieldFragment)
+    representation (getter: FieldFragment, deprecated)
     representation2 (getter: FieldFragment, deprecated)
   FieldElement (class extends Object implements PropertyInducingElement):
     new (constructor: FieldElement Function())

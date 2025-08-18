@@ -153,21 +153,16 @@ class _Node extends graph.Node<_Node> {
   void _evaluateWithType(TypeImpl type) {
     var typeSystem = element.library.typeSystem;
 
-    var representationFragment = element.firstFragment.representation;
-    var representationElement = representationFragment.element;
-    representationElement.type = type;
+    element.representation.type = type;
+    element.primaryFormalParameter.type = type;
 
-    element.firstFragment.typeErasure = type.extensionTypeErasure;
+    element.typeErasure = type.extensionTypeErasure;
     element.interfaces =
         element.interfaces
             .whereType<InterfaceType>()
             .where(typeSystem.isValidExtensionTypeSuperinterface)
             .toFixedList();
 
-    var primaryConstructor = element.constructors.first;
-    var primaryFormalParameter = primaryConstructor.formalParameters.first;
-    primaryFormalParameter as FieldFormalParameterElementImpl;
-    primaryFormalParameter.type = type;
     isEvaluated = true;
   }
 

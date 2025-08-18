@@ -18733,7 +18733,7 @@ FfiCode:
   ADDRESS_POSITION:
     parameters: none
     problemMessage: "The '.address' expression can only be used as argument to a leaf native external call."
-    hasPublishedDocs: false
+    hasPublishedDocs: true
     documentation: |-
       #### Description
 
@@ -18785,7 +18785,7 @@ FfiCode:
     parameters: none
     problemMessage: "The receiver of '.address' must be a concrete 'TypedData', a concrete 'TypedData' '[]', an 'Array', an 'Array' '[]', a Struct field, or a Union field."
     correctionMessage: Change the receiver of '.address' to one of the allowed kinds.
-    hasPublishedDocs: false
+    hasPublishedDocs: true
     documentation: |-
       #### Description
 
@@ -19498,7 +19498,7 @@ FfiCode:
     parameters: none
     problemMessage: Only classes extending NativeFieldWrapperClass1 can be passed as Pointer.
     correctionMessage: Pass as Handle instead.
-    hasPublishedDocs: false
+    hasPublishedDocs: true
     documentation: |-
       #### Description
 
@@ -22713,7 +22713,7 @@ PubspecWarningCode:
     parameters: none
     problemMessage: "The value of the 'workspace' field is required to be a list of relative file paths."
     correctionMessage: Try converting the value to be a list of relative file paths.
-    hasPublishedDocs: false
+    hasPublishedDocs: true
     documentation: |-
       #### Description
 
@@ -22747,7 +22747,7 @@ PubspecWarningCode:
     parameters: none
     problemMessage: Workspace entries are required to be directory paths (strings).
     correctionMessage: Try converting the value to be a string.
-    hasPublishedDocs: false
+    hasPublishedDocs: true
     documentation: |-
       #### Description
 
@@ -23905,7 +23905,7 @@ WarningCode:
       Object p0: the name of the member
     problemMessage: "Extending '#p0' is deprecated."
     correctionMessage: Try removing the 'extends' clause.
-    hasPublishedDocs: false
+    hasPublishedDocs: true
     documentation: |-
       #### Description
 
@@ -23980,7 +23980,7 @@ WarningCode:
       Object p0: the name of the member
     problemMessage: "Implementing '#p0' is deprecated."
     correctionMessage: Try removing '#p0' from the 'implements' clause.
-    hasPublishedDocs: false
+    hasPublishedDocs: true
     documentation: |-
       #### Description
 
@@ -24029,7 +24029,7 @@ WarningCode:
       Object p0: the name of the member
     problemMessage: "Instantiating '#p0' is deprecated."
     correctionMessage: Try instantiating a non-abstract class.
-    hasPublishedDocs: false
+    hasPublishedDocs: true
     documentation: |-
       #### Description
 
@@ -24126,7 +24126,7 @@ WarningCode:
       Object p0: the name of the member
     problemMessage: "Subclassing '#p0' is deprecated."
     correctionMessage: Try removing the 'extends' clause, or removing '#p0' from the 'implements' clause.
-    hasPublishedDocs: false
+    hasPublishedDocs: true
     documentation: |-
       #### Description
 
@@ -24943,7 +24943,7 @@ WarningCode:
   INVALID_AWAIT_NOT_REQUIRED_ANNOTATION:
     parameters: none
     problemMessage: "The annotation 'awaitNotRequired' can only be applied to a Future-returning function, or a Future-typed field."
-    hasPublishedDocs: false
+    hasPublishedDocs: true
     documentation: |-
       #### Description
 
@@ -24974,7 +24974,7 @@ WarningCode:
     parameters: none
     problemMessage: "The annotation '@Deprecated.extend' can only be applied to extendable classes."
     correctionMessage: Try removing the '@Deprecated.extend' annotation.
-    hasPublishedDocs: false
+    hasPublishedDocs: true
     # TODO(srawlins): link Deprecated.extend below with:
     # [`Deprecated.extend`][meta-deprecated-extend]
     documentation: |-
@@ -25007,7 +25007,7 @@ WarningCode:
     parameters: none
     problemMessage: "The annotation '@Deprecated.implement' can only be applied to implementable classes."
     correctionMessage: Try removing the '@Deprecated.implement' annotation.
-    hasPublishedDocs: false
+    hasPublishedDocs: true
     # TODO(srawlins): link Deprecated.implement below with:
     # [`Deprecated.implement`][meta-deprecated-implement]
     documentation: |-
@@ -25040,7 +25040,7 @@ WarningCode:
     parameters: none
     problemMessage: "The annotation '@Deprecated.instantiate' can only be applied to classes."
     correctionMessage: Try removing the '@Deprecated.instantiate' annotation.
-    hasPublishedDocs: false
+    hasPublishedDocs: true
     documentation: |-
       #### Description
 
@@ -25070,7 +25070,7 @@ WarningCode:
     parameters: none
     problemMessage: "The annotation '@Deprecated.subclass' can only be applied to subclassable classes and mixins."
     correctionMessage: Try removing the '@Deprecated.subclass' annotation.
-    hasPublishedDocs: false
+    hasPublishedDocs: true
     # TODO(srawlins): link Deprecated.subclass below with:
     # [`Deprecated.subclass`][meta-deprecated-subclass]
     documentation: |-

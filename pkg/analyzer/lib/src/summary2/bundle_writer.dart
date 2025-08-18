@@ -367,6 +367,7 @@ class BundleWriter {
 
       _writeElementResolution(() {
         _resolutionSink.withTypeParameters(element.typeParameters, () {
+          _resolutionSink.writeType(element.typeErasure);
           _resolutionSink._writeTypeList(element.interfaces);
         });
       });
@@ -380,7 +381,6 @@ class BundleWriter {
       _sink.writeBool(fragment.hasImplementsSelfReference);
       _writeTypeParameters(fragment.typeParameters, () {
         _resolutionSink._writeMetadata(fragment.metadata);
-        _resolutionSink.writeType(fragment.typeErasure);
 
         // TODO(scheglov): consider reading lazily
         _sink.writeList(fragment.fields, _writeFieldFragment);

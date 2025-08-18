@@ -160,7 +160,7 @@ extension ElementOrNullExtension on FragmentImpl? {
     } else if (self is InterfaceFragmentImpl) {
       return self.element;
     } else if (self is LabelFragmentImpl) {
-      return self.element2;
+      return self.element;
     } else if (self is LocalVariableFragmentImpl) {
       return self.element;
     } else if (self is NeverFragmentImpl) {

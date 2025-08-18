@@ -12,6 +12,8 @@
 * Deprecate `InterfaceFragment.interfaces`, use `InterfaceElement.interfaces` instead.
 * Deprecate `InterfaceFragment.mixins`, use `InterfaceElement.mixins` instead.
 * Deprecate `InterfaceFragment.supertype`, use `InterfaceElement.supertype` instead.
+* Deprecate `ExtensionTypeFragment.primaryConstructor`, use `ExtensionTypeElement.primaryConstructor`.
+* Deprecate `ExtensionTypeFragment.representation`, use `ExtensionTypeElement.representation`.
 
 ## 8.1.1
 * Fix for `EnumSet` usage when compiled to JavaScript.

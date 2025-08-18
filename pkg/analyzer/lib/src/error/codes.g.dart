@@ -6461,6 +6461,7 @@ class WarningCode extends DiagnosticCode {
     'DEPRECATED_EXTEND',
     "Extending '{0}' is deprecated.",
     correctionMessage: "Try removing the 'extends' clause.",
+    hasPublishedDocs: true,
   );
 
   /// No parameters.
@@ -6478,6 +6479,7 @@ class WarningCode extends DiagnosticCode {
     'DEPRECATED_IMPLEMENT',
     "Implementing '{0}' is deprecated.",
     correctionMessage: "Try removing '{0}' from the 'implements' clause.",
+    hasPublishedDocs: true,
   );
 
   /// No parameters.
@@ -6495,6 +6497,7 @@ class WarningCode extends DiagnosticCode {
     'DEPRECATED_INSTANTIATE',
     "Instantiating '{0}' is deprecated.",
     correctionMessage: "Try instantiating a non-abstract class.",
+    hasPublishedDocs: true,
   );
 
   /// No parameters.
@@ -6522,6 +6525,7 @@ class WarningCode extends DiagnosticCode {
     correctionMessage:
         "Try removing the 'extends' clause, or removing '{0}' from the "
         "'implements' clause.",
+    hasPublishedDocs: true,
   );
 
   /// Parameters:
@@ -6816,6 +6820,7 @@ class WarningCode extends DiagnosticCode {
     'INVALID_AWAIT_NOT_REQUIRED_ANNOTATION',
     "The annotation 'awaitNotRequired' can only be applied to a "
         "Future-returning function, or a Future-typed field.",
+    hasPublishedDocs: true,
   );
 
   /// No parameters.
@@ -6824,6 +6829,7 @@ class WarningCode extends DiagnosticCode {
     "The annotation '@Deprecated.extend' can only be applied to extendable "
         "classes.",
     correctionMessage: "Try removing the '@Deprecated.extend' annotation.",
+    hasPublishedDocs: true,
   );
 
   /// No parameters.
@@ -6832,6 +6838,7 @@ class WarningCode extends DiagnosticCode {
     "The annotation '@Deprecated.implement' can only be applied to "
         "implementable classes.",
     correctionMessage: "Try removing the '@Deprecated.implement' annotation.",
+    hasPublishedDocs: true,
   );
 
   /// No parameters.
@@ -6839,6 +6846,7 @@ class WarningCode extends DiagnosticCode {
     'INVALID_DEPRECATED_INSTANTIATE_ANNOTATION',
     "The annotation '@Deprecated.instantiate' can only be applied to classes.",
     correctionMessage: "Try removing the '@Deprecated.instantiate' annotation.",
+    hasPublishedDocs: true,
   );
 
   /// No parameters.
@@ -6847,6 +6855,7 @@ class WarningCode extends DiagnosticCode {
     "The annotation '@Deprecated.subclass' can only be applied to subclassable "
         "classes and mixins.",
     correctionMessage: "Try removing the '@Deprecated.subclass' annotation.",
+    hasPublishedDocs: true,
   );
 
   /// Parameters:

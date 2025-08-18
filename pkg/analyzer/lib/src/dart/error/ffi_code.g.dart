@@ -75,6 +75,7 @@ class FfiCode extends DiagnosticCode {
     'ADDRESS_POSITION',
     "The '.address' expression can only be used as argument to a leaf native "
         "external call.",
+    hasPublishedDocs: true,
   );
 
   /// No parameters.
@@ -85,6 +86,7 @@ class FfiCode extends DiagnosticCode {
         "Union field.",
     correctionMessage:
         "Change the receiver of '.address' to one of the allowed kinds.",
+    hasPublishedDocs: true,
   );
 
   /// No parameters.
@@ -191,6 +193,7 @@ class FfiCode extends DiagnosticCode {
     'FFI_NATIVE_ONLY_CLASSES_EXTENDING_NATIVEFIELDWRAPPERCLASS1_CAN_BE_POINTER',
     "Only classes extending NativeFieldWrapperClass1 can be passed as Pointer.",
     correctionMessage: "Pass as Handle instead.",
+    hasPublishedDocs: true,
   );
 
   /// Parameters:

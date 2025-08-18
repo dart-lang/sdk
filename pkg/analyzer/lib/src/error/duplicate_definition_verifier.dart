@@ -324,7 +324,7 @@ class DuplicateDefinitionVerifier {
             ),
           );
         } else {
-          setterScope[lookupName] = fragment.element as ElementImpl;
+          setterScope[lookupName] = fragment.element;
         }
       }
     } else {
@@ -340,7 +340,7 @@ class DuplicateDefinitionVerifier {
           ),
         );
       } else {
-        getterScope[lookupName] = fragment.element as ElementImpl;
+        getterScope[lookupName] = fragment.element;
       }
     }
   }
@@ -599,7 +599,7 @@ class MemberDuplicateDefinitionVerifier {
     var scopeEntry = scope[name];
     switch (scopeEntry) {
       case null:
-        scope[name] = _ScopeEntryElement(fragment.element as ElementImpl);
+        scope[name] = _ScopeEntryElement(fragment.element);
       case _ScopeEntryElement(element: GetterElementImpl previous)
           when fragment is SetterFragmentImpl:
         scope[name] = _ScopeEntryGetterSetterPair(
@@ -799,9 +799,10 @@ class MemberDuplicateDefinitionVerifier {
 
   void _checkExtensionType(ExtensionTypeDeclarationImpl node) {
     var fragment = node.declaredFragment!;
-    var firstFragment = fragment.element.firstFragment;
-    var primaryConstructorName = firstFragment.constructors.first.name;
-    var representationGetter = firstFragment.representation.element.getter!;
+    var element = fragment.element;
+    var firstFragment = element.firstFragment;
+    var primaryConstructorName = element.primaryConstructor.name!;
+    var representationGetter = element.representation.getter!;
     var elementContext = _getElementContext(firstFragment);
     elementContext.constructorNames.add(primaryConstructorName);
     if (representationGetter.name case var getterName?) {
