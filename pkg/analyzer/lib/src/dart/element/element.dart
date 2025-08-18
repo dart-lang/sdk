@@ -3268,7 +3268,7 @@ class FormalParameterFragmentImpl extends VariableFragmentImpl
   bool get isSuperFormal => false;
 
   @override
-  LibraryFragment? get libraryFragment {
+  LibraryFragmentImpl? get libraryFragment {
     return enclosingFragment?.libraryFragment;
   }
 
@@ -3390,6 +3390,9 @@ abstract class FragmentImpl with _FragmentImplMixin implements Fragment {
   /// Public elements are visible within any library that imports the library
   /// in which they are declared.
   bool get isPublic => !isPrivate;
+
+  @override
+  LibraryFragmentImpl? get libraryFragment;
 
   String? get lookupName {
     return name;
@@ -6299,7 +6302,7 @@ class LibraryFragmentImpl extends FragmentImpl
   List<LibraryExport> get libraryExports2 => libraryExports;
 
   @override
-  LibraryFragment get libraryFragment => this;
+  LibraryFragmentImpl get libraryFragment => this;
 
   @override
   List<LibraryImportImpl> get libraryImports {
@@ -8698,7 +8701,7 @@ abstract class PropertyInducingFragmentImpl
   }
 
   @override
-  LibraryFragment get libraryFragment {
+  LibraryFragmentImpl get libraryFragment {
     return enclosingFragment.libraryFragment!;
   }
 
@@ -9899,7 +9902,7 @@ class TypeParameterFragmentImpl extends FragmentImpl
   }
 
   @override
-  LibraryFragment? get libraryFragment {
+  LibraryFragmentImpl? get libraryFragment {
     return enclosingFragment?.libraryFragment;
   }
 
