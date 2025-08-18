@@ -312,43 +312,6 @@ class ClassElementImpl extends InterfaceElementImpl implements ClassElement {
     return name == 'Record' && library.isDartCore;
   }
 
-  @trackedDirectlyExpensive
-  bool get isEnumLike {
-    globalResultRequirements?.record_classElement_isEnumLike(element: this);
-
-    // Must be a concrete class.
-    if (isAbstract) {
-      return false;
-    }
-
-    // With only private non-factory constructors.
-    for (var constructor in constructors) {
-      if (constructor.isPublic || constructor.isFactory) {
-        return false;
-      }
-    }
-
-    // With 2+ static const fields with the type of this class.
-    var numberOfElements = 0;
-    for (var field in fields) {
-      if (field.isStatic && field.isConst && field.type == thisType) {
-        numberOfElements++;
-      }
-    }
-    if (numberOfElements < 2) {
-      return false;
-    }
-
-    // No subclasses in the library.
-    for (var class_ in library.classes) {
-      if (class_.supertype?.element == this) {
-        return false;
-      }
-    }
-
-    return true;
-  }
-
   @override
   @trackedIncludedInId
   bool get isExhaustive => _firstFragment.isExhaustive;
