@@ -7,7 +7,6 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/field_name_non_promotability_info.dart';
-import 'package:analyzer/src/dart/element/member.dart';
 import 'package:analyzer/src/summary2/export.dart';
 import 'package:analyzer_utilities/testing/tree_string_sink.dart';
 import 'package:collection/collection.dart';
@@ -458,9 +457,9 @@ class _Element2Writer extends _AbstractElementWriter {
     }
   }
 
-  void _writeElementList<E extends Element>(
+  void _writeElementList<E extends ElementImpl>(
     String name,
-    Element expectedEnclosingElement,
+    ElementImpl expectedEnclosingElement,
     List<E> elements,
     void Function(E) write,
   ) {
@@ -469,19 +468,7 @@ class _Element2Writer extends _AbstractElementWriter {
       _sink.writelnWithIndent(name);
       _sink.withIndent(() {
         for (var element in filtered) {
-          if (element is LibraryImport || element is LibraryExport) {
-            // These are only accidentally subtypes of `Element2` and don't have
-            // an enclosing element.
-          } else if (element is PrefixElement) {
-            // Asking a `PrefixElement2` for it's enclosing element currently
-            // throws an exception (because it doesn't have an enclosing
-            // element, only an enclosing fragment).
-          } else {
-            if (expectedEnclosingElement is SubstitutedElementImpl) {
-              expectedEnclosingElement = expectedEnclosingElement.baseElement;
-            }
-            expect(element.enclosingElement, expectedEnclosingElement);
-          }
+          expect(element.enclosingElement, expectedEnclosingElement);
           write(element);
         }
       });
@@ -1220,7 +1207,7 @@ class _Element2Writer extends _AbstractElementWriter {
             }).toList();
         _writeList('libraryImports', imports, _writeLibraryImport);
       }
-      _writeElementList('prefixes', f.element, f.prefixes, _writePrefixElement);
+      _writeList('prefixes', f.prefixes, _writePrefixElement);
       _writeList('libraryExports', f.libraryExports, _writeLibraryExport);
       _writeList('parts', f.parts, _writePartInclude);
 
