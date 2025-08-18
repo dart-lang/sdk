@@ -925,9 +925,6 @@ class ConstructorFragmentImpl extends ExecutableFragmentImpl
   }
 
   @override
-  ConstructorFragmentImpl get declaration => this;
-
-  @override
   String get displayName {
     var className = enclosingFragment.name;
     var name = this.name;
@@ -2278,9 +2275,6 @@ abstract class ExecutableFragmentImpl extends FragmentImpl
   List<Fragment> get children3 => children;
 
   @override
-  ExecutableFragmentImpl get declaration => this;
-
-  @override
   ExecutableElementImpl get element;
 
   @override
@@ -2871,9 +2865,6 @@ class FieldFragmentImpl extends PropertyInducingFragmentImpl
   }
 
   @override
-  FieldFragmentImpl get declaration => this;
-
-  @override
   InstanceFragmentImpl get enclosingFragment {
     return super.enclosingFragment as InstanceFragmentImpl;
   }
@@ -3193,9 +3184,6 @@ class FormalParameterFragmentImpl extends VariableFragmentImpl
   List<Fragment> get children3 => children;
 
   @override
-  FormalParameterFragmentImpl get declaration => this;
-
-  @override
   FormalParameterElementImpl get element {
     if (_element != null) {
       return _element!;
@@ -3377,15 +3365,6 @@ abstract class FragmentImpl with _FragmentImplMixin implements Fragment {
   /// contains the element, or `null` if the element is synthetic.
   int? get codeOffset => _codeOffset;
 
-  /// The declaration of this element.
-  ///
-  /// If the element is a view on an element, e.g. a method from an interface
-  /// type, with substituted type parameters, return the corresponding element
-  /// from the class, without any substitutions. If this element is already a
-  /// declaration (or a synthetic element, e.g. a synthetic property accessor),
-  /// return itself.
-  FragmentImpl get declaration => this;
-
   /// The display name of this element, possibly the empty string if the
   /// element does not have a name.
   ///
@@ -3530,9 +3509,6 @@ sealed class FunctionFragmentImpl extends ExecutableFragmentImpl
   /// Initialize a newly created function element to have the given [name] and
   /// [offset].
   FunctionFragmentImpl({required this.name, super.firstTokenOffset});
-
-  @override
-  ExecutableFragmentImpl get declaration => this;
 }
 
 abstract class FunctionTypedElementImpl extends ElementImpl
@@ -7486,9 +7462,6 @@ class MethodFragmentImpl extends ExecutableFragmentImpl
   MethodFragmentImpl({required this.name});
 
   @override
-  MethodFragmentImpl get declaration => this;
-
-  @override
   String get displayName {
     String displayName = super.displayName;
     if ("unary-" == displayName) {
@@ -8557,9 +8530,6 @@ sealed class PropertyAccessorFragmentImpl extends ExecutableFragmentImpl
   }
 
   @override
-  PropertyAccessorFragmentImpl get declaration => this;
-
-  @override
   PropertyAccessorElementImpl get element;
 
   @override
@@ -9350,9 +9320,6 @@ class TopLevelVariableFragmentImpl extends PropertyInducingFragmentImpl
   }
 
   @override
-  TopLevelVariableFragmentImpl get declaration => this;
-
-  @override
   bool get isStatic => true;
 
   @override
@@ -9936,9 +9903,6 @@ class TypeParameterFragmentImpl extends FragmentImpl
   List<Fragment> get children3 => children;
 
   @override
-  TypeParameterFragmentImpl get declaration => this;
-
-  @override
   String get displayName => name ?? '';
 
   @override
@@ -10126,9 +10090,6 @@ abstract class VariableFragmentImpl extends FragmentImpl
   /// Initialize a newly created variable element to have the given [name] and
   /// [offset].
   VariableFragmentImpl({required super.firstTokenOffset});
-
-  @override
-  VariableFragmentImpl get declaration => this;
 
   @override
   String get displayName => name ?? '';
