@@ -142,7 +142,7 @@ vars = {
   "material_color_utilities_rev": "799b6ba2f3f1c28c67cc7e0b4f18e0c7d7f3c03e",
   "native_rev": "16ae2d8619e23fc2bd83fbff087a26ac032a1145", # rolled manually while native assets are experimental
   "protobuf_rev": "6e9c9f4637bc0db8a855c7b26e8f87a2279307cc",
-  "pub_rev": "619db737b4aba0a43beaf16ffa141ee70d7bbd9e", # rolled manually
+  "pub_rev": "469eb6193c0a49495ea2ce7432cf749f077ad596", # rolled manually
   "shelf_rev": "400fc396b9fd07b3dced5c6a0d7567072598f2d9",
   "sync_http_rev": "c07f96f89a7eec7e3daac641fa6c587224fcfbaa",
   "tar_rev": "d511a1dc4f197a29bc06479f4614135abb168b6e",
