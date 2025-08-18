@@ -2149,9 +2149,7 @@ abstract class ExecutableElementImpl extends FunctionTypedElementImpl
   }
 
   @override
-  bool get isSimplyBounded {
-    return firstFragment.isSimplyBounded;
-  }
+  bool get isSimplyBounded => true;
 
   @override
   bool get isStatic {
@@ -2250,11 +2248,10 @@ abstract class ExecutableElementImpl extends FunctionTypedElementImpl
 
 @GenerateFragmentImpl(modifiers: _ExecutableFragmentImplModifiers.values)
 abstract class ExecutableFragmentImpl extends FragmentImpl
-    with
-        DeferredResolutionReadingMixin,
-        TypeParameterizedFragmentMixin,
-        _ExecutableFragmentImplMixin
+    with DeferredResolutionReadingMixin, _ExecutableFragmentImplMixin
     implements ExecutableFragment {
+  List<TypeParameterFragmentImpl> _typeParameters = const [];
+
   /// A list containing all of the parameters defined by this executable
   /// element.
   List<FormalParameterFragmentImpl> _formalParameters = const [];
@@ -2312,13 +2309,37 @@ abstract class ExecutableFragmentImpl extends FragmentImpl
   bool get isSynchronous => !isAsynchronous;
 
   @override
+  LibraryFragmentImpl get libraryFragment => enclosingUnit;
+
+  @override
   MetadataImpl get metadata {
     _ensureReadResolution();
     return super.metadata;
   }
 
+  @Deprecated('Use metadata instead')
+  @override
+  MetadataImpl get metadata2 => metadata;
+
   @override
   int get offset => nameOffset ?? firstTokenOffset!;
+
+  @override
+  List<TypeParameterFragmentImpl> get typeParameters {
+    _ensureReadResolution();
+    return _typeParameters;
+  }
+
+  set typeParameters(List<TypeParameterFragmentImpl> typeParameters) {
+    for (var typeParameter in typeParameters) {
+      typeParameter.enclosingFragment = this;
+    }
+    _typeParameters = typeParameters;
+  }
+
+  @Deprecated('Use typeParameters instead')
+  @override
+  List<TypeParameterFragmentImpl> get typeParameters2 => typeParameters;
 }
 
 class ExtensionElementImpl extends InstanceElementImpl
@@ -3600,7 +3621,7 @@ class GenericFunctionTypeElementImpl extends FunctionTypedElementImpl
   }
 
   @override
-  bool get isSimplyBounded => firstFragment.isSimplyBounded;
+  bool get isSimplyBounded => true;
 
   @override
   bool get isSynthetic => firstFragment.isSynthetic;
@@ -3659,8 +3680,10 @@ class GenericFunctionTypeElementImpl extends FunctionTypedElementImpl
 ///
 /// Clients may not extend, implement or mix-in this class.
 class GenericFunctionTypeFragmentImpl extends FragmentImpl
-    with DeferredResolutionReadingMixin, TypeParameterizedFragmentMixin
+    with DeferredResolutionReadingMixin
     implements FunctionTypedFragmentImpl, GenericFunctionTypeFragment {
+  List<TypeParameterFragmentImpl> _typeParameters = const [];
+
   /// The declared return type of the function.
   TypeImpl? _returnType;
 
@@ -3703,6 +3726,13 @@ class GenericFunctionTypeFragmentImpl extends FragmentImpl
     }
     _formalParameters = formalParameters;
   }
+
+  @override
+  LibraryFragmentImpl get libraryFragment => enclosingUnit;
+
+  @Deprecated('Use metadata instead')
+  @override
+  MetadataImpl get metadata2 => metadata;
 
   @override
   String? get name => null;
@@ -3753,6 +3783,23 @@ class GenericFunctionTypeFragmentImpl extends FragmentImpl
   set type(FunctionTypeImpl type) {
     _type = type;
   }
+
+  @override
+  List<TypeParameterFragmentImpl> get typeParameters {
+    _ensureReadResolution();
+    return _typeParameters;
+  }
+
+  set typeParameters(List<TypeParameterFragmentImpl> typeParameters) {
+    for (var typeParameter in typeParameters) {
+      typeParameter.enclosingFragment = this;
+    }
+    _typeParameters = typeParameters;
+  }
+
+  @Deprecated('Use typeParameters instead')
+  @override
+  List<TypeParameterFragmentImpl> get typeParameters2 => typeParameters;
 }
 
 class GetterElementImpl extends PropertyAccessorElementImpl
@@ -4350,10 +4397,7 @@ abstract class InstanceElementImpl extends ElementImpl
 }
 
 abstract class InstanceFragmentImpl extends FragmentImpl
-    with
-        DeferredMembersReadingMixin,
-        DeferredResolutionReadingMixin,
-        TypeParameterizedFragmentMixin
+    with DeferredMembersReadingMixin, DeferredResolutionReadingMixin
     implements InstanceFragment {
   @override
   final String? name;
@@ -4367,6 +4411,7 @@ abstract class InstanceFragmentImpl extends FragmentImpl
   @override
   InstanceFragmentImpl? nextFragment;
 
+  List<TypeParameterFragmentImpl> _typeParameters = const [];
   List<FieldFragmentImpl> _fields = _Sentinel.fieldFragment;
   List<GetterFragmentImpl> _getters = _Sentinel.getterFragment;
   List<SetterFragmentImpl> _setters = _Sentinel.setterFragment;
@@ -4425,11 +4470,25 @@ abstract class InstanceFragmentImpl extends FragmentImpl
     _getters = getters;
   }
 
+  /// If the element defines a type, indicates whether the type may safely
+  /// appear without explicit type parameters as the bounds of a type parameter
+  /// declaration.
+  ///
+  /// If the element does not define a type, returns `true`.
+  bool get isSimplyBounded;
+
+  @override
+  LibraryFragmentImpl get libraryFragment => enclosingUnit;
+
   @override
   MetadataImpl get metadata {
     _ensureReadResolution();
     return super.metadata;
   }
+
+  @Deprecated('Use metadata instead')
+  @override
+  MetadataImpl get metadata2 => metadata;
 
   @override
   List<MethodFragmentImpl> get methods {
@@ -4473,6 +4532,23 @@ abstract class InstanceFragmentImpl extends FragmentImpl
     }
     _setters = setters;
   }
+
+  @override
+  List<TypeParameterFragmentImpl> get typeParameters {
+    _ensureReadResolution();
+    return _typeParameters;
+  }
+
+  set typeParameters(List<TypeParameterFragmentImpl> typeParameters) {
+    for (var typeParameter in typeParameters) {
+      typeParameter.enclosingFragment = this;
+    }
+    _typeParameters = typeParameters;
+  }
+
+  @Deprecated('Use typeParameters instead')
+  @override
+  List<TypeParameterFragmentImpl> get typeParameters2 => typeParameters;
 
   void addField(FieldFragmentImpl fragment) {
     if (identical(_fields, _Sentinel.fieldFragment)) {
@@ -9610,16 +9686,15 @@ class TypeAliasElementImpl extends ElementImpl
 /// Clients may not extend, implement or mix-in this class.
 @GenerateFragmentImpl(modifiers: _TypeAliasFragmentImplModifiers.values)
 class TypeAliasFragmentImpl extends FragmentImpl
-    with
-        DeferredResolutionReadingMixin,
-        TypeParameterizedFragmentMixin,
-        _TypeAliasFragmentImplMixin
+    with DeferredResolutionReadingMixin, _TypeAliasFragmentImplMixin
     implements TypeAliasFragment {
   @override
   final String? name;
 
   @override
   int? nameOffset;
+
+  List<TypeParameterFragmentImpl> _typeParameters = const [];
 
   @override
   TypeAliasFragmentImpl? previousFragment;
@@ -9669,13 +9744,37 @@ class TypeAliasFragmentImpl extends FragmentImpl
       super.enclosingFragment as LibraryFragmentImpl;
 
   @override
+  LibraryFragmentImpl get libraryFragment => enclosingUnit;
+
+  @override
   MetadataImpl get metadata {
     _ensureReadResolution();
     return super.metadata;
   }
 
+  @Deprecated('Use metadata instead')
+  @override
+  MetadataImpl get metadata2 => metadata;
+
   @override
   int get offset => nameOffset ?? firstTokenOffset!;
+
+  @override
+  List<TypeParameterFragmentImpl> get typeParameters {
+    _ensureReadResolution();
+    return _typeParameters;
+  }
+
+  set typeParameters(List<TypeParameterFragmentImpl> typeParameters) {
+    for (var typeParameter in typeParameters) {
+      typeParameter.enclosingFragment = this;
+    }
+    _typeParameters = typeParameters;
+  }
+
+  @Deprecated('Use typeParameters instead')
+  @override
+  List<TypeParameterFragmentImpl> get typeParameters2 => typeParameters;
 
   void addFragment(TypeAliasFragmentImpl fragment) {
     fragment.element = element;
@@ -9934,45 +10033,6 @@ class TypeParameterFragmentImpl extends FragmentImpl
   @override
   // TODO(augmentations): Support chaining between the fragments.
   TypeParameterFragmentImpl? get previousFragment => null;
-}
-
-/// Mixin representing an element which can have type parameters.
-mixin TypeParameterizedFragmentMixin on FragmentImpl
-    implements TypeParameterizedFragment {
-  List<TypeParameterFragmentImpl> _typeParameters = const [];
-
-  /// If the element defines a type, indicates whether the type may safely
-  /// appear without explicit type parameters as the bounds of a type parameter
-  /// declaration.
-  ///
-  /// If the element does not define a type, returns `true`.
-  bool get isSimplyBounded => true;
-
-  @override
-  LibraryFragmentImpl get libraryFragment => enclosingUnit;
-
-  @Deprecated('Use metadata instead')
-  @override
-  MetadataImpl get metadata2 => metadata;
-
-  @override
-  List<TypeParameterFragmentImpl> get typeParameters {
-    _ensureReadResolution();
-    return _typeParameters;
-  }
-
-  set typeParameters(List<TypeParameterFragmentImpl> typeParameters) {
-    for (var typeParameter in typeParameters) {
-      typeParameter.enclosingFragment = this;
-    }
-    _typeParameters = typeParameters;
-  }
-
-  @Deprecated('Use typeParameters instead')
-  @override
-  List<TypeParameterFragmentImpl> get typeParameters2 => typeParameters;
-
-  void _ensureReadResolution();
 }
 
 abstract class VariableElementImpl extends ElementImpl
