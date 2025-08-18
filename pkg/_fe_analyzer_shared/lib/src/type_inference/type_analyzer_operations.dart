@@ -828,6 +828,26 @@ abstract interface class TypeAnalyzerOperations<
     required bool inferenceUsingBoundsIsEnabled,
   });
 
+  /// Chooses types from the current inference context in preliminary stages.
+  SharedType inferTypeParameterFromContext(
+    SharedType? typeFromPreviousInference,
+    MergedTypeConstraint<Variable, TypeDeclarationType, TypeDeclaration>
+    constraint,
+    SharedType? extendsConstraint, {
+    required bool isContravariant,
+    bool isLegacyCovariant = true,
+    required Map<
+      SharedTypeParameter,
+      MergedTypeConstraint<Variable, TypeDeclarationType, TypeDeclaration>
+    >
+    constraints,
+    required List<SharedTypeParameter> typeParametersToInfer,
+    required SharedTypeParameter typeParameterToInfer,
+    required TypeConstraintGenerationDataForTesting<Variable, Object>?
+    dataForTesting,
+    required bool inferenceUsingBoundsIsEnabled,
+  });
+
   /// True if [typeParameter] doesn't have an explicit bound.
   bool isBoundOmitted(SharedTypeParameter typeParameter);
 }
@@ -1260,6 +1280,85 @@ mixin TypeAnalyzerOperationsMixin<
       grounded: true,
       isContravariant: isContravariant,
     );
+  }
+
+  @override
+  SharedType inferTypeParameterFromContext(
+    SharedType? typeFromPreviousInference,
+    MergedTypeConstraint<Variable, TypeDeclarationType, TypeDeclaration>
+    constraint,
+    SharedType? extendsConstraint, {
+    required bool isContravariant,
+    bool isLegacyCovariant = true,
+    required Map<
+      SharedTypeParameter,
+      MergedTypeConstraint<Variable, TypeDeclarationType, TypeDeclaration>
+    >
+    constraints,
+    required List<SharedTypeParameter> typeParametersToInfer,
+    required SharedTypeParameter typeParameterToInfer,
+    required TypeConstraintGenerationDataForTesting<Variable, Object>?
+    dataForTesting,
+    required bool inferenceUsingBoundsIsEnabled,
+  }) {
+    // See if we already fixed this type in a previous inference step.
+    // If so, then we aren't allowed to change it unless [isLegacyCovariant] is
+    // false.
+    if (isLegacyCovariant &&
+        typeFromPreviousInference != null &&
+        isKnownType(new SharedTypeSchemaView(typeFromPreviousInference))) {
+      return typeFromPreviousInference;
+    }
+
+    SharedType t = chooseTypeFromConstraint(
+      constraint,
+      grounded: false,
+      isContravariant: isContravariant,
+    );
+    if (!isKnownType(new SharedTypeSchemaView(t))) {
+      return t;
+    }
+
+    // If we're about to make our final choice, apply the extends clause.
+    // This gives us a chance to refine the choice, in case it would violate
+    // the `extends` clause. For example:
+    //
+    //     Object obj = math.min/*<infer Object, error>*/(1, 2);
+    //
+    // If we consider the `T extends num` we conclude `<num>`, which works.
+
+    if (inferenceUsingBoundsIsEnabled &&
+        constraint.lower is! SharedUnknownTypeSchemaView &&
+        !isBoundOmitted(typeParameterToInfer)) {
+      // Coverage-ignore-block(suite): Not run.
+      MergedTypeConstraint constraintFromBound = mergeInConstraintsFromBound(
+        typeParameterToInfer: typeParameterToInfer,
+        typeParametersToInfer:
+            typeParametersToInfer.cast<SharedTypeParameterView>(),
+        lower: constraint.lower.unwrapTypeSchemaView(),
+        inferencePhaseConstraints: constraints,
+        dataForTesting: dataForTesting,
+        inferenceUsingBoundsIsEnabled: inferenceUsingBoundsIsEnabled,
+      );
+
+      constraint.mergeInTypeSchemaUpper(constraintFromBound.upper, this);
+      constraint.mergeInTypeSchemaLower(constraintFromBound.lower, this);
+    }
+
+    if (extendsConstraint != null) {
+      constraint = constraint.clone();
+      constraint.mergeInTypeSchemaUpper(
+        new SharedTypeSchemaView(extendsConstraint),
+        this,
+      );
+      return chooseTypeFromConstraint(
+        constraint,
+        grounded: false,
+        isContravariant: false,
+      );
+    }
+
+    return t;
   }
 }
 
