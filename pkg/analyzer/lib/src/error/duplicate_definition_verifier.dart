@@ -799,9 +799,10 @@ class MemberDuplicateDefinitionVerifier {
 
   void _checkExtensionType(ExtensionTypeDeclarationImpl node) {
     var fragment = node.declaredFragment!;
-    var firstFragment = fragment.element.firstFragment;
-    var primaryConstructorName = firstFragment.constructors.first.name;
-    var representationGetter = firstFragment.representation.element.getter!;
+    var element = fragment.element;
+    var firstFragment = element.firstFragment;
+    var primaryConstructorName = element.primaryConstructor.name!;
+    var representationGetter = element.representation.getter!;
     var elementContext = _getElementContext(firstFragment);
     elementContext.constructorNames.add(primaryConstructorName);
     if (representationGetter.name case var getterName?) {

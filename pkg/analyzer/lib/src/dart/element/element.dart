@@ -2455,6 +2455,8 @@ class ExtensionTypeElementImpl extends InterfaceElementImpl
   @override
   final ExtensionTypeFragmentImpl firstFragment;
 
+  late DartType _typeErasure;
+
   ExtensionTypeElementImpl(this.reference, this.firstFragment) {
     reference.element = this;
     firstFragment.element = this;
@@ -2501,7 +2503,7 @@ class ExtensionTypeElementImpl extends InterfaceElementImpl
 
   @override
   ConstructorElement get primaryConstructor {
-    return firstFragment.primaryConstructor.element;
+    return constructors.first;
   }
 
   @Deprecated('Use primaryConstructor instead')
@@ -2510,9 +2512,14 @@ class ExtensionTypeElementImpl extends InterfaceElementImpl
     return primaryConstructor;
   }
 
+  FieldFormalParameterElementImpl get primaryFormalParameter {
+    return primaryConstructor.formalParameters.first
+        as FieldFormalParameterElementImpl;
+  }
+
   @override
   FieldElementImpl get representation {
-    return firstFragment.representation.element;
+    return fields.first;
   }
 
   @Deprecated('Use representation instead')
@@ -2522,7 +2529,14 @@ class ExtensionTypeElementImpl extends InterfaceElementImpl
   }
 
   @override
-  DartType get typeErasure => firstFragment.typeErasure;
+  DartType get typeErasure {
+    _ensureReadResolution();
+    return _typeErasure;
+  }
+
+  set typeErasure(DartType value) {
+    _typeErasure = value;
+  }
 
   @override
   T? accept<T>(ElementVisitor2<T> visitor) {
@@ -2552,8 +2566,6 @@ class ExtensionTypeFragmentImpl extends InterfaceFragmentImpl
   @override
   late final ExtensionTypeElementImpl element;
 
-  late DartType typeErasure;
-
   /// Whether the element has direct or indirect reference to itself,
   /// in representation.
   bool hasRepresentationSelfReference = false;
@@ -2572,6 +2584,7 @@ class ExtensionTypeFragmentImpl extends InterfaceFragmentImpl
   ExtensionTypeFragmentImpl? get previousFragment =>
       super.previousFragment as ExtensionTypeFragmentImpl?;
 
+  @Deprecated('Use ExtensionTypeElement.primaryConstructor instead')
   @override
   ConstructorFragmentImpl get primaryConstructor {
     return constructors.first;
@@ -2581,6 +2594,7 @@ class ExtensionTypeFragmentImpl extends InterfaceFragmentImpl
   @override
   ConstructorFragmentImpl get primaryConstructor2 => primaryConstructor;
 
+  @Deprecated('Use ExtensionTypeElement.representation instead')
   @override
   FieldFragmentImpl get representation {
     return fields.first;

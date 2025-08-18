@@ -250,9 +250,8 @@ mixin ElementsTypesMixin {
     fieldElement.type = representationType;
     fragment.fields = [fieldFragment];
 
-    fragment.typeErasure = representationType;
-
     var element = ExtensionTypeElementImpl(Reference.root(), fragment);
+    element.typeErasure = representationType;
     element.interfaces = interfaces;
 
     return fragment;
@@ -278,10 +277,10 @@ mixin ElementsTypesMixin {
     );
     fieldElement.type = representationType;
 
-    fragment.typeErasure = representationType;
-
     var element = ExtensionTypeElementImpl(Reference.root(), fragment);
+    element.typeErasure = representationType;
     element.interfaces = interfaces;
+    element.fields = [fieldElement];
 
     return element;
   }

@@ -630,6 +630,7 @@ class LibraryReader {
       element.deferReadResolution(
         _createDeferredReadResolutionCallback((reader) {
           reader._addTypeParameters2(element.typeParameters);
+          element.typeErasure = reader.readRequiredType();
           element.interfaces = reader._readInterfaceTypeList();
         }),
       );
@@ -663,7 +664,6 @@ class LibraryReader {
             fragment.typeParameters,
           );
           fragment.metadata = reader._readMetadata();
-          fragment.typeErasure = reader.readRequiredType();
         },
       );
     });

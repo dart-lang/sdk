@@ -1506,6 +1506,7 @@ abstract class ExtensionTypeFragment implements InterfaceFragment {
   ExtensionTypeFragment? get previousFragment;
 
   /// The primary constructor of this extension.
+  @Deprecated('Use ExtensionTypeElement.primaryConstructor instead')
   ConstructorFragment get primaryConstructor;
 
   /// The primary constructor of this extension.
@@ -1513,6 +1514,7 @@ abstract class ExtensionTypeFragment implements InterfaceFragment {
   ConstructorFragment get primaryConstructor2;
 
   /// The representation of this extension.
+  @Deprecated('Use ExtensionTypeElement.representation instead')
   FieldFragment get representation;
 
   /// The representation of this extension.
