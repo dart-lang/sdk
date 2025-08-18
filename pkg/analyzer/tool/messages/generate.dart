@@ -103,32 +103,13 @@ class _AnalyzerErrorGenerator {
 ''');
     out.writeln();
     out.write('''
-/// @docImport 'package:analyzer/src/dart/error/syntactic_errors.g.dart';
-/// @docImport 'package:analyzer/src/error/inference_error.dart';
-@Deprecated(
-  // This library is deprecated to prevent it from being accidentally imported
-  // It should only be imported by the corresponding non-code-generated library
-  // (which suppresses the deprecation warning using an "ignore" comment).
-  'Use ${file.preferredImportUri} instead',
-)
-library;
+part of ${json.encode(file.parentLibrary)};
 ''');
-    var imports = {'package:_fe_analyzer_shared/src/base/errors.dart'};
     bool shouldGenerateFastaAnalyzerErrorCodes = false;
     for (var errorClass in errorClasses) {
-      imports.addAll(errorClass.extraImports);
       if (errorClass.includeCfeMessages) {
         shouldGenerateFastaAnalyzerErrorCodes = true;
       }
-      analyzerMessages[errorClass.name]!.forEach((_, errorCodeInfo) {
-        if (errorCodeInfo is AliasErrorCodeInfo) {
-          imports.add(errorCodeInfo.aliasForFilePath.toPackageUri);
-        }
-      });
-    }
-    out.writeln();
-    for (var importPath in imports.toList()..sort()) {
-      out.writeln("import ${json.encode(importPath)};");
     }
     if (shouldGenerateFastaAnalyzerErrorCodes) {
       out.writeln();
@@ -407,11 +388,4 @@ class _SyntacticErrorGenerator {
       }
     }
   }
-}
-
-extension on String {
-  String get toPackageUri => switch (this.split('/')) {
-    [var pkgName, 'lib', ...var rest] => 'package:$pkgName/${rest.join('/')}',
-    _ => 'Cannot convert to a package URI: $this',
-  };
 }

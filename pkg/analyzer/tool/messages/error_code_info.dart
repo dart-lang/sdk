@@ -11,7 +11,7 @@ import 'package:yaml/yaml.dart' show loadYaml;
 
 const codesFile = GeneratedErrorCodeFile(
   path: 'analyzer/lib/src/error/codes.g.dart',
-  preferredImportUri: 'package:analyzer/src/error/codes.dart',
+  parentLibrary: 'package:analyzer/src/error/codes.dart',
 );
 
 /// Information about all the classes derived from `DiagnosticCode` that are
@@ -112,52 +112,51 @@ transform set.
 
 const ffiCodesFile = GeneratedErrorCodeFile(
   path: 'analyzer/lib/src/dart/error/ffi_code.g.dart',
-  preferredImportUri: 'package:analyzer/src/dart/error/ffi_code.dart',
+  parentLibrary: 'package:analyzer/src/dart/error/ffi_code.dart',
 );
 
 const hintCodesFile = GeneratedErrorCodeFile(
   path: 'analyzer/lib/src/dart/error/hint_codes.g.dart',
-  preferredImportUri: 'package:analyzer/src/dart/error/hint_codes.dart',
+  parentLibrary: 'package:analyzer/src/dart/error/hint_codes.dart',
 );
 
 const manifestWarningCodeFile = GeneratedErrorCodeFile(
   path: 'analyzer/lib/src/manifest/manifest_warning_code.g.dart',
-  preferredImportUri:
-      'package:analyzer/src/manifest/manifest_warning_code.dart',
+  parentLibrary: 'package:analyzer/src/manifest/manifest_warning_code.dart',
 );
 
 const optionCodesFile = GeneratedErrorCodeFile(
   path: 'analyzer/lib/src/analysis_options/error/option_codes.g.dart',
-  preferredImportUri:
+  parentLibrary:
       'package:analyzer/src/analysis_options/error/option_codes.dart',
 );
 
 const pubspecWarningCodeFile = GeneratedErrorCodeFile(
   path: 'analyzer/lib/src/pubspec/pubspec_warning_code.g.dart',
-  preferredImportUri: 'package:analyzer/src/pubspec/pubspec_warning_code.dart',
+  parentLibrary: 'package:analyzer/src/pubspec/pubspec_warning_code.dart',
 );
 
 const scannerErrorFile = GeneratedErrorCodeFile(
   path: '_fe_analyzer_shared/lib/src/scanner/errors.g.dart',
-  preferredImportUri: 'package:_fe_analyzer_shared/src/scanner/errors.dart',
+  parentLibrary: 'package:_fe_analyzer_shared/src/scanner/errors.dart',
   shouldUseExplicitConst: true,
 );
 
 const syntacticErrorsFile = GeneratedErrorCodeFile(
   path: 'analyzer/lib/src/dart/error/syntactic_errors.g.dart',
-  preferredImportUri: 'package:analyzer/src/dart/error/syntactic_errors.dart',
+  parentLibrary: 'package:analyzer/src/dart/error/syntactic_errors.dart',
 );
 
 const todoCodesFile = GeneratedErrorCodeFile(
   path: 'analyzer/lib/src/dart/error/todo_codes.g.dart',
-  preferredImportUri: 'package:analyzer/src/dart/error/todo_codes.dart',
+  parentLibrary: 'package:analyzer/src/dart/error/todo_codes.dart',
 );
 
 const transformSetErrorCodeFile = GeneratedErrorCodeFile(
   path:
       'analysis_server/lib/src/services/correction/fix/data_driven/'
       'transform_set_error_code.g.dart',
-  preferredImportUri:
+  parentLibrary:
       'package:analysis_server/src/services/correction/fix/data_driven/'
       'transform_set_error_code.dart',
   shouldIgnorePreferSingleQuotes: true,
@@ -511,10 +510,6 @@ pkg/front_end/tool/fasta generate-messages
 
 /// Information about a code generated class derived from `ErrorCode`.
 class ErrorClassInfo {
-  /// A list of additional import URIs that are needed by the code generated
-  /// for this class.
-  final List<String> extraImports;
-
   /// The generated file containing this class.
   final GeneratedErrorCodeFile file;
 
@@ -550,7 +545,6 @@ class ErrorClassInfo {
   final String comment;
 
   const ErrorClassInfo({
-    this.extraImports = const [],
     required this.file,
     this.includeCfeMessages = false,
     required this.name,
@@ -900,12 +894,8 @@ class GeneratedErrorCodeFile {
   /// file.
   final String path;
 
-  /// The URI that should be imported instead of importing the generated file
-  /// directly.
-  ///
-  /// The generated file will include a deprecation warning to tell users which
-  /// file they should import.
-  final String preferredImportUri;
+  /// The URI of the library that the generated file will be a part of.
+  final String parentLibrary;
 
   /// Whether the generated file should use the `const` keyword when generating
   /// constructor invocations.
@@ -915,7 +905,7 @@ class GeneratedErrorCodeFile {
 
   const GeneratedErrorCodeFile({
     required this.path,
-    required this.preferredImportUri,
+    required this.parentLibrary,
     this.shouldUseExplicitConst = false,
     this.shouldIgnorePreferSingleQuotes = false,
   });

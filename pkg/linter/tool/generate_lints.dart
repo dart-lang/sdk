@@ -26,7 +26,7 @@ const String generatedNamesPath = 'linter/lib/src/lint_names.g.dart';
 
 const lintCodesFile = GeneratedErrorCodeFile(
   path: generatedCodesPath,
-  preferredImportUri: 'package:linter/src/lint_codes.dart',
+  parentLibrary: 'package:linter/src/lint_codes.dart',
 );
 
 const linterLintCodeInfo = ErrorClassInfo(
@@ -53,7 +53,7 @@ GeneratedFile get generatedCodesFile =>
 // Generator currently outputs double quotes for simplicity.
 // ignore_for_file: prefer_single_quotes
 
-import 'analyzer.dart';
+part of 'lint_codes.dart';
 
 class LinterLintCode extends LintCode {
 ''');

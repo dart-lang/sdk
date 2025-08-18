@@ -15,17 +15,7 @@
 // Generated comments don't quite align with flutter style.
 // ignore_for_file: flutter_style_todos
 
-/// @docImport 'package:analyzer/src/dart/error/syntactic_errors.g.dart';
-/// @docImport 'package:analyzer/src/error/inference_error.dart';
-@Deprecated(
-  // This library is deprecated to prevent it from being accidentally imported
-  // It should only be imported by the corresponding non-code-generated library
-  // (which suppresses the deprecation warning using an "ignore" comment).
-  'Use package:analysis_server/src/services/correction/fix/data_driven/transform_set_error_code.dart instead',
-)
-library;
-
-import "package:_fe_analyzer_shared/src/base/errors.dart";
+part of "package:analysis_server/src/services/correction/fix/data_driven/transform_set_error_code.dart";
 
 /// An error code representing a problem in a file containing an encoding of a
 /// transform set.
