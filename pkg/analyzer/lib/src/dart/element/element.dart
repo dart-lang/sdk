@@ -417,7 +417,18 @@ class ClassElementImpl extends InterfaceElementImpl implements ClassElement {
 
   @override
   @trackedIncludedInId
-  bool get isValidMixin => firstFragment.isValidMixin;
+  bool get isValidMixin {
+    var supertype = this.supertype;
+    if (supertype != null && !supertype.isDartCoreObject) {
+      return false;
+    }
+    for (var constructor in constructors) {
+      if (!constructor.isSynthetic && !constructor.isFactory) {
+        return false;
+      }
+    }
+    return true;
+  }
 
   @override
   ElementKind get kind => ElementKind.CLASS;
@@ -632,19 +643,6 @@ class ClassFragmentImpl extends InterfaceFragmentImpl
   bool get isConstructable => !isSealed && !isAbstract;
 
   bool get isExhaustive => isSealed;
-
-  bool get isValidMixin {
-    var supertype = this.supertype;
-    if (supertype != null && !supertype.isDartCoreObject) {
-      return false;
-    }
-    for (var constructor in constructors) {
-      if (!constructor.isSynthetic && !constructor.isFactory) {
-        return false;
-      }
-    }
-    return true;
-  }
 
   @override
   ClassFragmentImpl? get nextFragment {
@@ -4998,10 +4996,11 @@ abstract class InterfaceFragmentImpl extends InstanceFragmentImpl
   @override
   InterfaceElementImpl get element;
 
+  @Deprecated('Use InterfaceElement.interfaces instead')
   @override
   List<InterfaceTypeImpl> get interfaces => element.interfaces;
 
-
+  @Deprecated('Use InterfaceElement.mixins instead')
   @override
   List<InterfaceTypeImpl> get mixins => element.mixins;
 
@@ -5015,6 +5014,7 @@ abstract class InterfaceFragmentImpl extends InstanceFragmentImpl
     return super.previousFragment as InterfaceFragmentImpl?;
   }
 
+  @Deprecated('Use InterfaceElement.supertype instead')
   @override
   InterfaceTypeImpl? get supertype => element.supertype;
 
@@ -7652,6 +7652,7 @@ class MixinFragmentImpl extends InterfaceFragmentImpl
   /// given [offset] in the file that contains the declaration of this element.
   MixinFragmentImpl({required super.name});
 
+  @Deprecated('Use InterfaceElement.mixins instead')
   @override
   List<InterfaceTypeImpl> get mixins => const [];
 
@@ -7668,6 +7669,7 @@ class MixinFragmentImpl extends InterfaceFragmentImpl
     return element.superclassConstraints;
   }
 
+  @Deprecated('Use InterfaceElement.supertype instead')
   @override
   InterfaceTypeImpl? get supertype => null;
 

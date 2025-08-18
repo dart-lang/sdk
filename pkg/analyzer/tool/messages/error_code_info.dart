@@ -532,9 +532,6 @@ class ErrorClassInfo {
   /// based on the [type] of the error.
   final String? severity;
 
-  /// The superclass of this class.
-  final String superclass;
-
   /// The type of errors in this class.
   final String type;
 
@@ -558,7 +555,6 @@ class ErrorClassInfo {
     this.includeCfeMessages = false,
     required this.name,
     this.severity,
-    this.superclass = 'DiagnosticCode',
     required this.type,
     this.deprecatedSnakeCaseNames = const {},
     this.includeInDiagnosticCodeValues = true,

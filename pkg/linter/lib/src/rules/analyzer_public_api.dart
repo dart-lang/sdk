@@ -161,16 +161,13 @@ class _Visitor extends SimpleAstVisitor<void> {
         for (var typeParameter in typeParameters) {
           _checkTypeParameter(typeParameter, fragment: fragment);
         }
-        if (fragment case InterfaceFragment(
-          :var supertype,
-          :var interfaces,
-          :var mixins,
-        )) {
-          _checkType(supertype, fragment: fragment);
-          for (var t in interfaces) {
+        if (fragment is InterfaceFragment) {
+          var element = fragment.element;
+          _checkType(element.supertype, fragment: fragment);
+          for (var t in element.interfaces) {
             _checkType(t, fragment: fragment);
           }
-          for (var t in mixins) {
+          for (var t in element.mixins) {
             _checkType(t, fragment: fragment);
           }
         }

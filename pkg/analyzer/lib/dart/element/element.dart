@@ -2516,6 +2516,7 @@ abstract class InterfaceFragment implements InstanceFragment {
   InterfaceElement get element;
 
   /// The interfaces that are implemented by this fragment.
+  @Deprecated('Use InterfaceElement.interfaces instead')
   List<InterfaceType> get interfaces;
 
   /// The mixins that are applied by this fragment.
@@ -2523,6 +2524,7 @@ abstract class InterfaceFragment implements InstanceFragment {
   /// [ClassFragment] and [EnumFragment] can have mixins.
   ///
   /// [MixinFragment] cannot have mixins, so the empty list is returned.
+  @Deprecated('Use InterfaceElement.mixins instead')
   List<InterfaceType> get mixins;
 
   @override
@@ -2532,6 +2534,7 @@ abstract class InterfaceFragment implements InstanceFragment {
   InterfaceFragment? get previousFragment;
 
   /// The superclass declared by this fragment.
+  @Deprecated('Use InterfaceElement.supertype instead')
   InterfaceType? get supertype;
 }
 
