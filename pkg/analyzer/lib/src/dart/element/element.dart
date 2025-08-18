@@ -70,14 +70,13 @@ class BindPatternVariableElementImpl extends PatternVariableElementImpl
   BindPatternVariableElementImpl(super.firstFragment);
 
   @override
-  BindPatternVariableFragmentImpl get firstFragment =>
-      super.firstFragment as BindPatternVariableFragmentImpl;
+  BindPatternVariableFragmentImpl get firstFragment => _firstFragment;
 
   @override
   List<BindPatternVariableFragmentImpl> get fragments {
     return [
       for (
-        BindPatternVariableFragmentImpl? fragment = firstFragment;
+        BindPatternVariableFragmentImpl? fragment = _firstFragment;
         fragment != null;
         fragment = fragment.nextFragment
       )
@@ -87,13 +86,17 @@ class BindPatternVariableElementImpl extends PatternVariableElementImpl
 
   /// Whether this variable clashes with another pattern variable with the same
   /// name within the same pattern.
-  bool get isDuplicate => firstFragment.isDuplicate;
+  bool get isDuplicate => _firstFragment.isDuplicate;
 
   /// Set whether this variable clashes with another pattern variable with the
   /// same name within the same pattern.
-  set isDuplicate(bool value) => firstFragment.isDuplicate = value;
+  set isDuplicate(bool value) => _firstFragment.isDuplicate = value;
 
-  DeclaredVariablePatternImpl get node => firstFragment.node;
+  DeclaredVariablePatternImpl get node => _firstFragment.node;
+
+  @override
+  BindPatternVariableFragmentImpl get _firstFragment =>
+      super._firstFragment as BindPatternVariableFragmentImpl;
 }
 
 class BindPatternVariableFragmentImpl extends PatternVariableFragmentImpl
@@ -131,18 +134,19 @@ class ClassElementImpl extends InterfaceElementImpl implements ClassElement {
   @trackedIncludedInId
   final Reference reference;
 
+  @override
   final ClassFragmentImpl _firstFragment;
 
   ClassElementImpl(this.reference, this._firstFragment) {
     reference.element = this;
-    firstFragment.element = this;
+    _firstFragment.element = this;
 
-    isAbstract = firstFragment.isAbstract;
-    isBase = firstFragment.isBase;
-    isFinal = firstFragment.isFinal;
-    isInterface = firstFragment.isInterface;
-    isMixinClass = firstFragment.isMixinClass;
-    isSealed = firstFragment.isSealed;
+    isAbstract = _firstFragment.isAbstract;
+    isBase = _firstFragment.isBase;
+    isFinal = _firstFragment.isFinal;
+    isInterface = _firstFragment.isInterface;
+    isMixinClass = _firstFragment.isMixinClass;
+    isSealed = _firstFragment.isSealed;
   }
 
   /// If we can find all possible subtypes of this class, return them.
@@ -212,7 +216,7 @@ class ClassElementImpl extends InterfaceElementImpl implements ClassElement {
     globalResultRequirements?.recordOpaqueApiUse(this, 'fragments');
     return [
       for (
-        ClassFragmentImpl? fragment = firstFragment;
+        ClassFragmentImpl? fragment = _firstFragment;
         fragment != null;
         fragment = fragment.nextFragment
       )
@@ -283,7 +287,7 @@ class ClassElementImpl extends InterfaceElementImpl implements ClassElement {
 
   @override
   @trackedIncludedInId
-  bool get isConstructable => firstFragment.isConstructable;
+  bool get isConstructable => _firstFragment.isConstructable;
 
   @override
   @trackedIncludedInId
@@ -347,7 +351,7 @@ class ClassElementImpl extends InterfaceElementImpl implements ClassElement {
 
   @override
   @trackedIncludedInId
-  bool get isExhaustive => firstFragment.isExhaustive;
+  bool get isExhaustive => _firstFragment.isExhaustive;
 
   @override
   bool get isExtendableOutside => !isInterface && !isFinal && !isSealed;
@@ -386,9 +390,7 @@ class ClassElementImpl extends InterfaceElementImpl implements ClassElement {
   @override
   @trackedIncludedInId
   bool get isMixinApplication {
-    return globalResultRequirements.includedInId(() {
-      return firstFragment.isMixinApplication;
-    });
+    return _firstFragment.isMixinApplication;
   }
 
   @override
@@ -488,7 +490,7 @@ class ClassElementImpl extends InterfaceElementImpl implements ClassElement {
   }
 
   void linkFragments(List<ClassFragmentImpl> fragments) {
-    assert(identical(fragments[0], firstFragment));
+    assert(identical(fragments[0], _firstFragment));
     fragments.reduce((previous, current) {
       previous.addFragment(current);
       return current;
@@ -532,7 +534,7 @@ class ClassElementImpl extends InterfaceElementImpl implements ClassElement {
           constructorFragment.typeName = name;
           constructorFragment.isConst =
               superConstructor.isConst && !mixins.any(typeHasInstanceVariables);
-          constructorFragment.enclosingFragment = firstFragment;
+          constructorFragment.enclosingFragment = _firstFragment;
 
           var constructorElement = ConstructorElementImpl(
             name: constructorFragment.name,
@@ -557,7 +559,7 @@ class ClassElementImpl extends InterfaceElementImpl implements ClassElement {
               ..constantInitializer =
                   superFormalParameter
                       .baseElement
-                      .firstFragment
+                      ._firstFragment
                       .constantInitializer;
 
             formalParameterFragment.isConst = superFormalParameter.isConst;
@@ -614,8 +616,8 @@ class ClassElementImpl extends InterfaceElementImpl implements ClassElement {
           return constructorElement;
         }).toFixedList();
 
-    firstFragment.constructors =
-        _constructors.map((e) => e.firstFragment).toFixedList();
+    _firstFragment.constructors =
+        _constructors.map((e) => e._firstFragment).toFixedList();
   }
 }
 
@@ -675,7 +677,7 @@ class ConstructorElementImpl extends ExecutableElementImpl
   final String? name;
 
   @override
-  final ConstructorFragmentImpl firstFragment;
+  final ConstructorFragmentImpl _firstFragment;
 
   /// The constructor to which this constructor is redirecting.
   InternalConstructorElement? _redirectedConstructor;
@@ -691,10 +693,10 @@ class ConstructorElementImpl extends ExecutableElementImpl
   ConstructorElementImpl({
     required this.name,
     required this.reference,
-    required this.firstFragment,
-  }) {
+    required ConstructorFragmentImpl firstFragment,
+  }) : _firstFragment = firstFragment {
     reference.element = this;
-    firstFragment.element = this;
+    _firstFragment.element = this;
   }
 
   @override
@@ -720,17 +722,20 @@ class ConstructorElementImpl extends ExecutableElementImpl
 
   @override
   InterfaceElementImpl get enclosingElement =>
-      firstFragment.enclosingFragment.element;
+      _firstFragment.enclosingFragment.element;
 
   @Deprecated('Use enclosingElement instead')
   @override
   InterfaceElementImpl get enclosingElement2 => enclosingElement;
 
   @override
+  ConstructorFragmentImpl get firstFragment => _firstFragment;
+
+  @override
   List<ConstructorFragmentImpl> get fragments {
     return [
       for (
-        ConstructorFragmentImpl? fragment = firstFragment;
+        ConstructorFragmentImpl? fragment = _firstFragment;
         fragment != null;
         fragment = fragment.nextFragment
       )
@@ -739,19 +744,19 @@ class ConstructorElementImpl extends ExecutableElementImpl
   }
 
   @override
-  bool get isConst => firstFragment.isConst;
+  bool get isConst => _firstFragment.isConst;
 
   @override
-  bool get isConstantEvaluated => firstFragment.isConstantEvaluated;
+  bool get isConstantEvaluated => _firstFragment.isConstantEvaluated;
 
   @override
-  bool get isDefaultConstructor => firstFragment.isDefaultConstructor;
+  bool get isDefaultConstructor => _firstFragment.isDefaultConstructor;
 
   @override
-  bool get isFactory => firstFragment.isFactory;
+  bool get isFactory => _firstFragment.isFactory;
 
   @override
-  bool get isGenerative => firstFragment.isGenerative;
+  bool get isGenerative => _firstFragment.isGenerative;
 
   @override
   ElementKind get kind => ElementKind.CONSTRUCTOR;
@@ -762,7 +767,7 @@ class ConstructorElementImpl extends ExecutableElementImpl
   }
 
   @override
-  LibraryFragmentImpl get libraryFragment => firstFragment.libraryFragment;
+  LibraryFragmentImpl get libraryFragment => _firstFragment.libraryFragment;
 
   @Deprecated('Use name instead')
   @override
@@ -847,7 +852,7 @@ class ConstructorElementImpl extends ExecutableElementImpl
   }
 
   void linkFragments(List<ConstructorFragmentImpl> fragments) {
-    assert(identical(fragments[0], firstFragment));
+    assert(identical(fragments[0], _firstFragment));
     fragments.reduce((previous, current) {
       previous.addFragment(current);
       return current;
@@ -1145,13 +1150,13 @@ class DynamicElementImpl extends ElementImpl implements TypeDefiningElement {
   Element? get enclosingElement2 => enclosingElement;
 
   @override
-  DynamicFragmentImpl get firstFragment => DynamicFragmentImpl.instance;
+  DynamicFragmentImpl get firstFragment => _firstFragment;
 
   @override
   List<DynamicFragmentImpl> get fragments {
     return [
       for (
-        DynamicFragmentImpl? fragment = firstFragment;
+        DynamicFragmentImpl? fragment = _firstFragment;
         fragment != null;
         fragment = fragment.nextFragment
       )
@@ -1187,6 +1192,9 @@ class DynamicElementImpl extends ElementImpl implements TypeDefiningElement {
   @Deprecated('Use name instead')
   @override
   String get name3 => name;
+
+  @override
+  DynamicFragmentImpl get _firstFragment => DynamicFragmentImpl.instance;
 
   @override
   T? accept<T>(ElementVisitor2<T> visitor) => null;
@@ -1760,7 +1768,7 @@ abstract class ElementImpl implements Element {
   List<Fragment> get fragments {
     return [
       for (
-        Fragment? fragment = firstFragment;
+        Fragment? fragment = _firstFragment;
         fragment != null;
         fragment = fragment.nextFragment
       )
@@ -1783,9 +1791,7 @@ abstract class ElementImpl implements Element {
   @override
   @trackedIncludedInId
   LibraryElementImpl? get library {
-    return globalResultRequirements.includedInId(() {
-      return firstFragment.libraryFragment?.element as LibraryElementImpl?;
-    });
+    return _firstFragment.libraryFragment?.element;
   }
 
   @override
@@ -1831,6 +1837,12 @@ abstract class ElementImpl implements Element {
     return null;
   }
 
+  /// See [firstFragment].
+  ///
+  /// This getter is used internally to access data from the first fragment,
+  /// without triggering "opaque" requirements.
+  FragmentImpl get _firstFragment;
+
   @override
   bool operator ==(Object other) {
     return identical(this, other);
@@ -1866,7 +1878,7 @@ abstract class ElementImpl implements Element {
   @override
   String getExtendedDisplayName({String? shortName}) {
     shortName ??= displayName;
-    var source = firstFragment.libraryFragment?.source;
+    var source = _firstFragment.libraryFragment?.source;
     return "$shortName (${source?.fullName})";
   }
 
@@ -1967,11 +1979,11 @@ class EnumElementImpl extends InterfaceElementImpl implements EnumElement {
   final Reference reference;
 
   @override
-  final EnumFragmentImpl firstFragment;
+  final EnumFragmentImpl _firstFragment;
 
-  EnumElementImpl(this.reference, this.firstFragment) {
+  EnumElementImpl(this.reference, this._firstFragment) {
     reference.element = this;
-    firstFragment.element = this;
+    _firstFragment.element = this;
   }
 
   @override
@@ -1986,10 +1998,13 @@ class EnumElementImpl extends InterfaceElementImpl implements EnumElement {
   }
 
   @override
+  EnumFragmentImpl get firstFragment => _firstFragment;
+
+  @override
   List<EnumFragmentImpl> get fragments {
     return [
       for (
-        EnumFragmentImpl? fragment = firstFragment;
+        EnumFragmentImpl? fragment = _firstFragment;
         fragment != null;
         fragment = fragment.nextFragment
       )
@@ -2022,7 +2037,7 @@ class EnumElementImpl extends InterfaceElementImpl implements EnumElement {
   }
 
   void linkFragments(List<EnumFragmentImpl> fragments) {
-    assert(identical(fragments[0], firstFragment));
+    assert(identical(fragments[0], _firstFragment));
     fragments.reduce((previous, current) {
       previous.addFragment(current);
       return current;
@@ -2090,7 +2105,7 @@ abstract class ExecutableElementImpl extends FunctionTypedElementImpl
   @override
   List<FormalParameterElementImpl> get formalParameters {
     _ensureReadResolution();
-    return firstFragment.formalParameters
+    return _firstFragment.formalParameters
         .map((fragment) => fragment.asElement2)
         .toList();
   }
@@ -2105,8 +2120,7 @@ abstract class ExecutableElementImpl extends FunctionTypedElementImpl
   /// Top-level declarations don't have enclosing element type parameters,
   /// so for them this flag is always `false`.
   bool get hasEnclosingTypeParameterReference {
-    var firstFragment = this.firstFragment;
-    return firstFragment.hasEnclosingTypeParameterReference;
+    return _firstFragment.hasEnclosingTypeParameterReference;
   }
 
   @override
@@ -2120,8 +2134,7 @@ abstract class ExecutableElementImpl extends FunctionTypedElementImpl
   }
 
   bool get invokesSuperSelf {
-    var firstFragment = this.firstFragment;
-    return firstFragment.hasModifier(Modifier.INVOKES_SUPER_SELF);
+    return _firstFragment.hasModifier(Modifier.INVOKES_SUPER_SELF);
   }
 
   @override
@@ -2145,7 +2158,7 @@ abstract class ExecutableElementImpl extends FunctionTypedElementImpl
 
   @override
   bool get isExternal {
-    return firstFragment.isExternal;
+    return _firstFragment.isExternal;
   }
 
   @override
@@ -2153,16 +2166,16 @@ abstract class ExecutableElementImpl extends FunctionTypedElementImpl
 
   @override
   bool get isStatic {
-    return firstFragment.isStatic;
+    return _firstFragment.isStatic;
   }
 
   @override
   bool get isSynthetic {
-    return firstFragment.isSynthetic;
+    return _firstFragment.isSynthetic;
   }
 
   ExecutableFragmentImpl get lastFragment {
-    var result = firstFragment;
+    var result = _firstFragment;
     while (true) {
       if (result.nextFragment case ExecutableFragmentImpl nextFragment) {
         result = nextFragment;
@@ -2229,7 +2242,7 @@ abstract class ExecutableElementImpl extends FunctionTypedElementImpl
 
   @override
   List<TypeParameterElementImpl> get typeParameters {
-    return firstFragment.typeParameters
+    return _firstFragment.typeParameters
         .map((fragment) => fragment.element)
         .toList();
   }
@@ -2239,6 +2252,9 @@ abstract class ExecutableElementImpl extends FunctionTypedElementImpl
   List<TypeParameterElementImpl> get typeParameters2 {
     return typeParameters;
   }
+
+  @override
+  ExecutableFragmentImpl get _firstFragment;
 
   @override
   void appendTo(ElementDisplayStringBuilder builder) {
@@ -2348,13 +2364,13 @@ class ExtensionElementImpl extends InstanceElementImpl
   final Reference reference;
 
   @override
-  final ExtensionFragmentImpl firstFragment;
+  final ExtensionFragmentImpl _firstFragment;
 
   TypeImpl _extendedType = InvalidTypeImpl.instance;
 
-  ExtensionElementImpl(this.reference, this.firstFragment) {
+  ExtensionElementImpl(this.reference, this._firstFragment) {
     reference.element = this;
-    firstFragment.element = this;
+    _firstFragment.element = this;
   }
 
   @override
@@ -2368,10 +2384,13 @@ class ExtensionElementImpl extends InstanceElementImpl
   }
 
   @override
+  ExtensionFragmentImpl get firstFragment => _firstFragment;
+
+  @override
   List<ExtensionFragmentImpl> get fragments {
     return [
       for (
-        ExtensionFragmentImpl? fragment = firstFragment;
+        ExtensionFragmentImpl? fragment = _firstFragment;
         fragment != null;
         fragment = fragment.nextFragment
       )
@@ -2400,7 +2419,7 @@ class ExtensionElementImpl extends InstanceElementImpl
   }
 
   void linkFragments(List<ExtensionFragmentImpl> fragments) {
-    assert(identical(fragments[0], firstFragment));
+    assert(identical(fragments[0], _firstFragment));
     fragments.reduce((previous, current) {
       previous.addFragment(current);
       return current;
@@ -2474,20 +2493,23 @@ class ExtensionTypeElementImpl extends InterfaceElementImpl
   final Reference reference;
 
   @override
-  final ExtensionTypeFragmentImpl firstFragment;
+  final ExtensionTypeFragmentImpl _firstFragment;
 
   late DartType _typeErasure;
 
-  ExtensionTypeElementImpl(this.reference, this.firstFragment) {
+  ExtensionTypeElementImpl(this.reference, this._firstFragment) {
     reference.element = this;
-    firstFragment.element = this;
+    _firstFragment.element = this;
   }
+
+  @override
+  ExtensionTypeFragmentImpl get firstFragment => _firstFragment;
 
   @override
   List<ExtensionTypeFragmentImpl> get fragments {
     return [
       for (
-        ExtensionTypeFragmentImpl? fragment = firstFragment;
+        ExtensionTypeFragmentImpl? fragment = _firstFragment;
         fragment != null;
         fragment = fragment.nextFragment
       )
@@ -2498,25 +2520,25 @@ class ExtensionTypeElementImpl extends InterfaceElementImpl
   /// Whether the element has direct or indirect reference to itself,
   /// in implemented superinterfaces.
   bool get hasImplementsSelfReference {
-    return firstFragment.hasImplementsSelfReference;
+    return _firstFragment.hasImplementsSelfReference;
   }
 
   /// Whether the element has direct or indirect reference to itself,
   /// in implemented superinterfaces.
   set hasImplementsSelfReference(bool value) {
-    firstFragment.hasImplementsSelfReference = value;
+    _firstFragment.hasImplementsSelfReference = value;
   }
 
   /// Whether the element has direct or indirect reference to itself,
   /// in representation.
   bool get hasRepresentationSelfReference {
-    return firstFragment.hasRepresentationSelfReference;
+    return _firstFragment.hasRepresentationSelfReference;
   }
 
   /// Whether the element has direct or indirect reference to itself,
   /// in representation.
   set hasRepresentationSelfReference(bool value) {
-    firstFragment.hasRepresentationSelfReference = value;
+    _firstFragment.hasRepresentationSelfReference = value;
   }
 
   @override
@@ -2574,7 +2596,7 @@ class ExtensionTypeElementImpl extends InterfaceElementImpl
   }
 
   void linkFragments(List<ExtensionTypeFragmentImpl> fragments) {
-    assert(identical(fragments[0], firstFragment));
+    assert(identical(fragments[0], _firstFragment));
     fragments.reduce((previous, current) {
       previous.addFragment(current);
       return current;
@@ -2638,11 +2660,14 @@ class FieldElementImpl extends PropertyInducingElementImpl
   final Reference reference;
 
   @override
-  final FieldFragmentImpl firstFragment;
+  final FieldFragmentImpl _firstFragment;
 
-  FieldElementImpl({required this.reference, required this.firstFragment}) {
+  FieldElementImpl({
+    required this.reference,
+    required FieldFragmentImpl firstFragment,
+  }) : _firstFragment = firstFragment {
     reference.element = this;
-    firstFragment.element = this;
+    _firstFragment.element = this;
   }
 
   @override
@@ -2650,7 +2675,7 @@ class FieldElementImpl extends PropertyInducingElementImpl
 
   @override
   InstanceElementImpl get enclosingElement {
-    return firstFragment.enclosingFragment.element;
+    return _firstFragment.enclosingFragment.element;
   }
 
   @Deprecated('Use enclosingElement instead')
@@ -2658,10 +2683,13 @@ class FieldElementImpl extends PropertyInducingElementImpl
   InstanceElement get enclosingElement2 => enclosingElement;
 
   @override
+  FieldFragmentImpl get firstFragment => _firstFragment;
+
+  @override
   List<FieldFragmentImpl> get fragments {
     return [
       for (
-        FieldFragmentImpl? fragment = firstFragment;
+        FieldFragmentImpl? fragment = _firstFragment;
         fragment != null;
         fragment = fragment.nextFragment
       )
@@ -2683,45 +2711,45 @@ class FieldElementImpl extends PropertyInducingElementImpl
   /// enclosing element. This includes not only explicitly specified type
   /// annotations, but also inferred types.
   bool get hasEnclosingTypeParameterReference {
-    return firstFragment.hasEnclosingTypeParameterReference;
+    return _firstFragment.hasEnclosingTypeParameterReference;
   }
 
   @override
-  bool get hasImplicitType => firstFragment.hasImplicitType;
+  bool get hasImplicitType => _firstFragment.hasImplicitType;
 
   @override
-  bool get isAbstract => firstFragment.isAbstract;
+  bool get isAbstract => _firstFragment.isAbstract;
 
   @override
-  bool get isConst => firstFragment.isConst;
+  bool get isConst => _firstFragment.isConst;
 
   @override
-  bool get isCovariant => firstFragment.isExplicitlyCovariant;
+  bool get isCovariant => _firstFragment.isExplicitlyCovariant;
 
   @override
-  bool get isEnumConstant => firstFragment.isEnumConstant;
+  bool get isEnumConstant => _firstFragment.isEnumConstant;
 
   bool get isEnumValues {
     return enclosingElement is EnumElementImpl && name == 'values';
   }
 
   @override
-  bool get isExternal => firstFragment.isExternal;
+  bool get isExternal => _firstFragment.isExternal;
 
   @override
-  bool get isFinal => firstFragment.isFinal;
+  bool get isFinal => _firstFragment.isFinal;
 
   @override
-  bool get isLate => firstFragment.isLate;
+  bool get isLate => _firstFragment.isLate;
 
   @override
-  bool get isPromotable => firstFragment.isPromotable;
+  bool get isPromotable => _firstFragment.isPromotable;
 
   @override
-  bool get isStatic => firstFragment.isStatic;
+  bool get isStatic => _firstFragment.isStatic;
 
   @override
-  bool get isSynthetic => firstFragment.isSynthetic;
+  bool get isSynthetic => _firstFragment.isSynthetic;
 
   /// Return `true` if this element is a synthetic enum field.
   ///
@@ -2758,7 +2786,7 @@ class FieldElementImpl extends PropertyInducingElementImpl
   MetadataImpl get metadata2 => metadata;
 
   @override
-  String? get name => firstFragment.name;
+  String? get name => _firstFragment.name;
 
   @Deprecated('Use name instead')
   @override
@@ -2787,7 +2815,7 @@ class FieldElementImpl extends PropertyInducingElementImpl
   T? accept2<T>(ElementVisitor2<T> visitor) => accept(visitor);
 
   void linkFragments(List<FieldFragmentImpl> fragments) {
-    assert(identical(fragments[0], firstFragment));
+    assert(identical(fragments[0], _firstFragment));
     fragments.reduce((previous, current) {
       previous.addFragment(current);
       return current;
@@ -2800,7 +2828,7 @@ class FieldFormalParameterElementImpl extends FormalParameterElementImpl
   FieldFormalParameterElementImpl(super.firstFragment);
 
   @override
-  FieldElementImpl? get field => switch (firstFragment) {
+  FieldElementImpl? get field => switch (_firstFragment) {
     FieldFormalParameterFragmentImpl(:FieldFragmentImpl field) => field.element,
     _ => null,
   };
@@ -2810,20 +2838,23 @@ class FieldFormalParameterElementImpl extends FormalParameterElementImpl
   FieldElementImpl? get field2 => field;
 
   @override
-  FieldFormalParameterFragmentImpl get firstFragment =>
-      super.firstFragment as FieldFormalParameterFragmentImpl;
+  FieldFormalParameterFragmentImpl get firstFragment => _firstFragment;
 
   @override
   List<FieldFormalParameterFragmentImpl> get fragments {
     return [
       for (
-        FieldFormalParameterFragmentImpl? fragment = firstFragment;
+        FieldFormalParameterFragmentImpl? fragment = _firstFragment;
         fragment != null;
         fragment = fragment.nextFragment
       )
         fragment,
     ];
   }
+
+  @override
+  FieldFormalParameterFragmentImpl get _firstFragment =>
+      super._firstFragment as FieldFormalParameterFragmentImpl;
 }
 
 class FieldFormalParameterFragmentImpl extends FormalParameterFragmentImpl
@@ -2938,7 +2969,7 @@ class FieldFragmentImpl extends PropertyInducingFragmentImpl
 class FormalParameterElementImpl extends PromotableElementImpl
     with InternalFormalParameterElement {
   @override
-  final FormalParameterFragmentImpl firstFragment;
+  final FormalParameterFragmentImpl _firstFragment;
 
   @override
   TypeImpl type = InvalidTypeImpl.instance;
@@ -2948,8 +2979,8 @@ class FormalParameterElementImpl extends PromotableElementImpl
   /// corresponding covariant formal parameter.
   bool inheritsCovariant = false;
 
-  FormalParameterElementImpl(this.firstFragment) {
-    FormalParameterFragmentImpl? fragment = firstFragment;
+  FormalParameterElementImpl(this._firstFragment) {
+    FormalParameterFragmentImpl? fragment = _firstFragment;
     while (fragment != null) {
       fragment.element = this;
       fragment = fragment.nextFragment;
@@ -2977,7 +3008,7 @@ class FormalParameterElementImpl extends PromotableElementImpl
 
   @override
   Element? get enclosingElement {
-    return firstFragment.enclosingFragment?.element;
+    return _firstFragment.enclosingFragment?.element;
   }
 
   @Deprecated('Use enclosingElement instead')
@@ -2985,9 +3016,12 @@ class FormalParameterElementImpl extends PromotableElementImpl
   Element? get enclosingElement2 => enclosingElement;
 
   @override
+  FormalParameterFragmentImpl get firstFragment => _firstFragment;
+
+  @override
   // TODO(augmentations): Implement the merge of formal parameters.
   List<FormalParameterElementImpl> get formalParameters =>
-      firstFragment.formalParameters
+      _firstFragment.formalParameters
           .map((fragment) => fragment.element)
           .toList();
 
@@ -2995,7 +3029,7 @@ class FormalParameterElementImpl extends PromotableElementImpl
   List<FormalParameterFragmentImpl> get fragments {
     return [
       for (
-        FormalParameterFragmentImpl? fragment = firstFragment;
+        FormalParameterFragmentImpl? fragment = _firstFragment;
         fragment != null;
         fragment = fragment.nextFragment
       )
@@ -3009,15 +3043,15 @@ class FormalParameterElementImpl extends PromotableElementImpl
 
   @override
   // TODO(augmentations): Implement the merge of formal parameters.
-  bool get hasImplicitType => firstFragment.hasImplicitType;
+  bool get hasImplicitType => _firstFragment.hasImplicitType;
 
   @override
   // TODO(augmentations): Implement the merge of formal parameters.
-  bool get isConst => firstFragment.isConst;
+  bool get isConst => _firstFragment.isConst;
 
   @override
   bool get isCovariant {
-    if (firstFragment.isExplicitlyCovariant || inheritsCovariant) {
+    if (_firstFragment.isExplicitlyCovariant || inheritsCovariant) {
       return true;
     }
     return false;
@@ -3025,50 +3059,50 @@ class FormalParameterElementImpl extends PromotableElementImpl
 
   @override
   // TODO(augmentations): Implement the merge of formal parameters.
-  bool get isFinal => firstFragment.isFinal;
+  bool get isFinal => _firstFragment.isFinal;
 
   @override
-  bool get isInitializingFormal => firstFragment.isInitializingFormal;
-
-  @override
-  // TODO(augmentations): Implement the merge of formal parameters.
-  bool get isLate => firstFragment.isLate;
-
-  @override
-  bool get isNamed => firstFragment.isNamed;
-
-  @override
-  bool get isOptional => firstFragment.isOptional;
-
-  @override
-  bool get isOptionalNamed => firstFragment.isOptionalNamed;
-
-  @override
-  bool get isOptionalPositional => firstFragment.isOptionalPositional;
-
-  @override
-  bool get isPositional => firstFragment.isPositional;
-
-  @override
-  bool get isRequired => firstFragment.isRequired;
-
-  @override
-  bool get isRequiredNamed => firstFragment.isRequiredNamed;
-
-  @override
-  bool get isRequiredPositional => firstFragment.isRequiredPositional;
+  bool get isInitializingFormal => _firstFragment.isInitializingFormal;
 
   @override
   // TODO(augmentations): Implement the merge of formal parameters.
-  bool get isStatic => firstFragment.isStatic;
+  bool get isLate => _firstFragment.isLate;
+
+  @override
+  bool get isNamed => _firstFragment.isNamed;
+
+  @override
+  bool get isOptional => _firstFragment.isOptional;
+
+  @override
+  bool get isOptionalNamed => _firstFragment.isOptionalNamed;
+
+  @override
+  bool get isOptionalPositional => _firstFragment.isOptionalPositional;
+
+  @override
+  bool get isPositional => _firstFragment.isPositional;
+
+  @override
+  bool get isRequired => _firstFragment.isRequired;
+
+  @override
+  bool get isRequiredNamed => _firstFragment.isRequiredNamed;
+
+  @override
+  bool get isRequiredPositional => _firstFragment.isRequiredPositional;
 
   @override
   // TODO(augmentations): Implement the merge of formal parameters.
-  bool get isSuperFormal => firstFragment.isSuperFormal;
+  bool get isStatic => _firstFragment.isStatic;
+
+  @override
+  // TODO(augmentations): Implement the merge of formal parameters.
+  bool get isSuperFormal => _firstFragment.isSuperFormal;
 
   @override
   bool get isSynthetic {
-    return firstFragment.isSynthetic;
+    return _firstFragment.isSynthetic;
   }
 
   @override
@@ -3093,7 +3127,7 @@ class FormalParameterElementImpl extends PromotableElementImpl
 
   @override
   String? get name {
-    return firstFragment.name;
+    return _firstFragment.name;
   }
 
   @Deprecated('Use name instead')
@@ -3103,17 +3137,19 @@ class FormalParameterElementImpl extends PromotableElementImpl
   }
 
   @override
-  String get nameShared => firstFragment.name ?? '';
+  String get nameShared => _firstFragment.name ?? '';
 
   @override
   ParameterKind get parameterKind {
-    return firstFragment.parameterKind;
+    return _firstFragment.parameterKind;
   }
 
   @override
   // TODO(augmentations): Implement the merge of formal parameters.
   List<TypeParameterElementImpl> get typeParameters =>
-      firstFragment.typeParameters.map((fragment) => fragment.element).toList();
+      _firstFragment.typeParameters
+          .map((fragment) => fragment.element)
+          .toList();
 
   @Deprecated('Use typeParameters instead')
   @override
@@ -3591,23 +3627,26 @@ class GenerateFragmentImpl {
 class GenericFunctionTypeElementImpl extends FunctionTypedElementImpl
     implements GenericFunctionTypeElement {
   @override
-  final GenericFunctionTypeFragmentImpl firstFragment;
+  final GenericFunctionTypeFragmentImpl _firstFragment;
 
-  GenericFunctionTypeElementImpl(this.firstFragment);
-
-  @override
-  String? get documentationComment => firstFragment.documentationComment;
+  GenericFunctionTypeElementImpl(this._firstFragment);
 
   @override
-  Element? get enclosingElement => firstFragment.enclosingFragment?.element;
+  String? get documentationComment => _firstFragment.documentationComment;
+
+  @override
+  Element? get enclosingElement => _firstFragment.enclosingFragment?.element;
 
   @Deprecated('Use enclosingElement instead')
   @override
   Element? get enclosingElement2 => enclosingElement;
 
   @override
+  GenericFunctionTypeFragmentImpl get firstFragment => _firstFragment;
+
+  @override
   List<FormalParameterElementImpl> get formalParameters =>
-      firstFragment.formalParameters
+      _firstFragment.formalParameters
           .map((fragment) => fragment.element)
           .toList();
 
@@ -3615,7 +3654,7 @@ class GenericFunctionTypeElementImpl extends FunctionTypedElementImpl
   List<GenericFunctionTypeFragmentImpl> get fragments {
     return [
       for (
-        GenericFunctionTypeFragmentImpl? fragment = firstFragment;
+        GenericFunctionTypeFragmentImpl? fragment = _firstFragment;
         fragment != null;
         fragment = fragment.nextFragment
       )
@@ -3627,7 +3666,7 @@ class GenericFunctionTypeElementImpl extends FunctionTypedElementImpl
   bool get isSimplyBounded => true;
 
   @override
-  bool get isSynthetic => firstFragment.isSynthetic;
+  bool get isSynthetic => _firstFragment.isSynthetic;
 
   @override
   ElementKind get kind => ElementKind.GENERIC_FUNCTION_TYPE;
@@ -3637,28 +3676,30 @@ class GenericFunctionTypeElementImpl extends FunctionTypedElementImpl
   LibraryElementImpl get library2 => library;
 
   @override
-  MetadataImpl get metadata => firstFragment.metadata;
+  MetadataImpl get metadata => _firstFragment.metadata;
 
   @Deprecated('Use metadata instead')
   @override
   MetadataImpl get metadata2 => metadata;
 
   @override
-  String? get name => firstFragment.name;
+  String? get name => _firstFragment.name;
 
   @Deprecated('Use name instead')
   @override
   String? get name3 => name;
 
   @override
-  TypeImpl get returnType => firstFragment.returnType;
+  TypeImpl get returnType => _firstFragment.returnType;
 
   @override
-  FunctionType get type => firstFragment.type;
+  FunctionType get type => _firstFragment.type;
 
   @override
   List<TypeParameterElement> get typeParameters =>
-      firstFragment.typeParameters.map((fragment) => fragment.element).toList();
+      _firstFragment.typeParameters
+          .map((fragment) => fragment.element)
+          .toList();
 
   @Deprecated('Use typeParameters2 instead')
   @override
@@ -3811,11 +3852,11 @@ class GetterElementImpl extends PropertyAccessorElementImpl
   Reference reference;
 
   @override
-  final GetterFragmentImpl firstFragment;
+  final GetterFragmentImpl _firstFragment;
 
-  GetterElementImpl(this.reference, this.firstFragment) {
+  GetterElementImpl(this.reference, this._firstFragment) {
     reference.element = this;
-    GetterFragmentImpl? fragment = firstFragment;
+    GetterFragmentImpl? fragment = _firstFragment;
     while (fragment != null) {
       fragment.element = this;
       fragment = fragment.nextFragment;
@@ -3837,10 +3878,13 @@ class GetterElementImpl extends PropertyAccessorElementImpl
   }
 
   @override
+  GetterFragmentImpl get firstFragment => _firstFragment;
+
+  @override
   List<GetterFragmentImpl> get fragments {
     return [
       for (
-        GetterFragmentImpl? fragment = firstFragment;
+        GetterFragmentImpl? fragment = _firstFragment;
         fragment != null;
         fragment = fragment.nextFragment
       )
@@ -3888,7 +3932,7 @@ class GetterElementImpl extends PropertyAccessorElementImpl
   }
 
   void linkFragments(List<GetterFragmentImpl> fragments) {
-    assert(identical(fragments[0], firstFragment));
+    assert(identical(fragments[0], _firstFragment));
     fragments.reduce((previous, current) {
       previous.addFragment(current);
       return current;
@@ -3970,13 +4014,11 @@ abstract class InstanceElementImpl extends ElementImpl
   @override
   @trackedIncludedInId
   String get displayName {
-    return globalResultRequirements.includedInId(() {
-      return firstFragment.displayName;
-    });
+    return _firstFragment.displayName;
   }
 
   @override
-  String? get documentationComment => firstFragment.documentationComment;
+  String? get documentationComment => _firstFragment.documentationComment;
 
   @override
   LibraryElementImpl get enclosingElement => library;
@@ -4019,25 +4061,21 @@ abstract class InstanceElementImpl extends ElementImpl
   List<GetterElementImpl> get getters2 => getters;
 
   @override
-  bool get isPrivate => firstFragment.isPrivate;
+  bool get isPrivate => _firstFragment.isPrivate;
 
   @override
-  bool get isPublic => firstFragment.isPublic;
+  bool get isPublic => _firstFragment.isPublic;
 
   @override
   @trackedIncludedInId
   bool get isSimplyBounded {
-    return globalResultRequirements.includedInId(() {
-      return firstFragment.isSimplyBounded;
-    });
+    return _firstFragment.isSimplyBounded;
   }
 
   @override
   @trackedIncludedInId
   bool get isSynthetic {
-    return globalResultRequirements.includedInId(() {
-      return firstFragment.isSynthetic;
-    });
+    return _firstFragment.isSynthetic;
   }
 
   @override
@@ -4050,9 +4088,7 @@ abstract class InstanceElementImpl extends ElementImpl
   @override
   @trackedIncludedInId
   MetadataImpl get metadata {
-    return globalResultRequirements.includedInId(() {
-      return firstFragment.metadata;
-    });
+    return _firstFragment.metadata;
   }
 
   @Deprecated('Use metadata instead')
@@ -4078,9 +4114,7 @@ abstract class InstanceElementImpl extends ElementImpl
   @override
   @trackedIncludedInId
   String? get name {
-    return globalResultRequirements.includedInId(() {
-      return firstFragment.name;
-    });
+    return _firstFragment.name;
   }
 
   @Deprecated('Use name instead')
@@ -4091,7 +4125,7 @@ abstract class InstanceElementImpl extends ElementImpl
   Element get nonSynthetic => isSynthetic ? enclosingElement : this as Element;
 
   @override
-  AnalysisSession? get session => firstFragment.session;
+  AnalysisSession? get session => _firstFragment.session;
 
   @override
   List<SetterElementImpl> get setters {
@@ -4111,16 +4145,17 @@ abstract class InstanceElementImpl extends ElementImpl
   @override
   @trackedIncludedInId
   List<TypeParameterElementImpl> get typeParameters {
-    return globalResultRequirements.includedInId(() {
-      return firstFragment.typeParameters
-          .map((fragment) => fragment.element)
-          .toList();
-    });
+    return _firstFragment.typeParameters
+        .map((fragment) => fragment.element)
+        .toList();
   }
 
   @Deprecated('Use typeParameters instead')
   @override
   List<TypeParameterElementImpl> get typeParameters2 => typeParameters;
+
+  @override
+  InstanceFragmentImpl get _firstFragment;
 
   void addField(FieldElementImpl element) {
     _fields.add(element);
@@ -4663,7 +4698,7 @@ abstract class InterfaceElementImpl extends InstanceElementImpl
   List<InterfaceFragmentImpl> get fragments {
     return [
       for (
-        InterfaceFragmentImpl? fragment = firstFragment;
+        InterfaceFragmentImpl? fragment = _firstFragment;
         fragment != null;
         fragment = fragment.nextFragment
       )
@@ -4776,6 +4811,9 @@ abstract class InterfaceElementImpl extends InstanceElementImpl
   ConstructorElementImpl? get unnamedConstructor2 {
     return unnamedConstructor;
   }
+
+  @override
+  InterfaceFragmentImpl get _firstFragment;
 
   void addConstructor(ConstructorElementImpl element) {
     if (identical(_constructors, _Sentinel.constructorElement)) {
@@ -5278,14 +5316,13 @@ class JoinPatternVariableElementImpl extends PatternVariableElementImpl
   JoinPatternVariableElementImpl(super.firstFragment);
 
   @override
-  JoinPatternVariableFragmentImpl get firstFragment =>
-      super.firstFragment as JoinPatternVariableFragmentImpl;
+  JoinPatternVariableFragmentImpl get firstFragment => _firstFragment;
 
   @override
   List<JoinPatternVariableFragmentImpl> get fragments {
     return [
       for (
-        JoinPatternVariableFragmentImpl? fragment = firstFragment;
+        JoinPatternVariableFragmentImpl? fragment = _firstFragment;
         fragment != null;
         fragment = fragment.nextFragment
       )
@@ -5294,21 +5331,21 @@ class JoinPatternVariableElementImpl extends PatternVariableElementImpl
   }
 
   shared.JoinedPatternVariableInconsistency get inconsistency =>
-      firstFragment.inconsistency;
+      _firstFragment.inconsistency;
 
   set inconsistency(shared.JoinedPatternVariableInconsistency value) =>
-      firstFragment.inconsistency = value;
+      _firstFragment.inconsistency = value;
 
   @override
   bool get isConsistent {
-    return firstFragment.inconsistency ==
+    return _firstFragment.inconsistency ==
         shared.JoinedPatternVariableInconsistency.none;
   }
 
-  set isFinal(bool value) => firstFragment.isFinal = value;
+  set isFinal(bool value) => _firstFragment.isFinal = value;
 
   /// The identifiers that reference this element.
-  List<SimpleIdentifier> get references => firstFragment.references;
+  List<SimpleIdentifier> get references => _firstFragment.references;
 
   /// Returns this variable, and variables that join into it.
   List<PatternVariableElementImpl> get transitiveVariables {
@@ -5329,7 +5366,7 @@ class JoinPatternVariableElementImpl extends PatternVariableElementImpl
 
   @override
   List<PatternVariableElementImpl> get variables =>
-      firstFragment.variables.map((fragment) => fragment.element).toList();
+      _firstFragment.variables.map((fragment) => fragment.element).toList();
 
   /// The variables that join into this variable.
   @Deprecated('Use variables instead')
@@ -5337,6 +5374,10 @@ class JoinPatternVariableElementImpl extends PatternVariableElementImpl
   List<PatternVariableElementImpl> get variables2 {
     return variables;
   }
+
+  @override
+  JoinPatternVariableFragmentImpl get _firstFragment =>
+      super._firstFragment as JoinPatternVariableFragmentImpl;
 }
 
 class JoinPatternVariableFragmentImpl extends PatternVariableFragmentImpl
@@ -5394,9 +5435,10 @@ class JoinPatternVariableFragmentImpl extends PatternVariableFragmentImpl
 }
 
 class LabelElementImpl extends ElementImpl implements LabelElement {
-  final LabelFragmentImpl _wrappedFragment;
+  @override
+  final LabelFragmentImpl _firstFragment;
 
-  LabelElementImpl(this._wrappedFragment);
+  LabelElementImpl(this._firstFragment);
 
   @override
   LabelElement get baseElement => this;
@@ -5409,19 +5451,19 @@ class LabelElementImpl extends ElementImpl implements LabelElement {
   ExecutableElement? get enclosingElement2 => enclosingElement;
 
   @override
-  LabelFragmentImpl get firstFragment => _wrappedFragment;
+  LabelFragmentImpl get firstFragment => _firstFragment;
 
   @override
   List<LabelFragmentImpl> get fragments {
-    return [firstFragment];
+    return [_firstFragment];
   }
 
   /// Return `true` if this label is associated with a `switch` member (`case`
   /// or `default`).
-  bool get isOnSwitchMember => _wrappedFragment.isOnSwitchMember;
+  bool get isOnSwitchMember => _firstFragment.isOnSwitchMember;
 
   @override
-  bool get isSynthetic => _wrappedFragment.isSynthetic;
+  bool get isSynthetic => _firstFragment.isSynthetic;
 
   @override
   ElementKind get kind => ElementKind.LABEL;
@@ -5434,7 +5476,7 @@ class LabelElementImpl extends ElementImpl implements LabelElement {
   LibraryElement get library2 => library;
 
   @override
-  String? get name => _wrappedFragment.name;
+  String? get name => _firstFragment.name;
 
   @Deprecated('Use name instead')
   @override
@@ -5888,7 +5930,10 @@ class LibraryElementImpl extends ElementImpl
   }
 
   @override
-  Uri get uri => firstFragment.source.uri;
+  Uri get uri => _firstFragment.source.uri;
+
+  @override
+  LibraryFragmentImpl get _firstFragment => definingCompilationUnit;
 
   List<LibraryFragmentImpl> get _partUnits {
     var result = <LibraryFragmentImpl>[];
@@ -6788,9 +6833,10 @@ final class LoadLibraryFunctionProvider {
 
 class LocalFunctionElementImpl extends ExecutableElementImpl
     implements LocalFunctionElement {
-  final LocalFunctionFragmentImpl firstFragment;
+  @override
+  final LocalFunctionFragmentImpl _firstFragment;
 
-  LocalFunctionElementImpl(this.firstFragment);
+  LocalFunctionElementImpl(this._firstFragment);
 
   @override
   // Local functions belong to Fragments, not Elements.
@@ -6801,10 +6847,13 @@ class LocalFunctionElementImpl extends ExecutableElementImpl
   Element? get enclosingElement2 => enclosingElement;
 
   @override
+  LocalFunctionFragmentImpl get firstFragment => _firstFragment;
+
+  @override
   List<LocalFunctionFragmentImpl> get fragments {
     return [
       for (
-        LocalFunctionFragmentImpl? fragment = firstFragment;
+        LocalFunctionFragmentImpl? fragment = _firstFragment;
         fragment != null;
         fragment = fragment.nextFragment
       )
@@ -6816,7 +6865,7 @@ class LocalFunctionElementImpl extends ExecutableElementImpl
   ElementKind get kind => ElementKind.FUNCTION;
 
   @override
-  String? get name => firstFragment.name;
+  String? get name => _firstFragment.name;
 
   @Deprecated('Use name instead')
   @override
@@ -6873,12 +6922,12 @@ class LocalFunctionFragmentImpl extends FunctionFragmentImpl
 class LocalVariableElementImpl extends PromotableElementImpl
     implements LocalVariableElement {
   @override
-  final LocalVariableFragmentImpl firstFragment;
+  final LocalVariableFragmentImpl _firstFragment;
 
   @override
   TypeImpl type = InvalidTypeImpl.instance;
 
-  LocalVariableElementImpl(this.firstFragment);
+  LocalVariableElementImpl(this._firstFragment);
 
   @override
   LocalVariableElement get baseElement => this;
@@ -6888,7 +6937,7 @@ class LocalVariableElementImpl extends PromotableElementImpl
 
   @override
   Element? get enclosingElement {
-    return firstFragment.enclosingFragment.element;
+    return _firstFragment.enclosingFragment.element;
   }
 
   @Deprecated('Use enclosingElement instead')
@@ -6896,27 +6945,30 @@ class LocalVariableElementImpl extends PromotableElementImpl
   Element? get enclosingElement2 => enclosingElement;
 
   @override
+  LocalVariableFragmentImpl get firstFragment => _firstFragment;
+
+  @override
   List<LocalVariableFragmentImpl> get fragments {
-    return [firstFragment];
+    return [_firstFragment];
   }
 
   @override
-  bool get hasImplicitType => firstFragment.hasImplicitType;
+  bool get hasImplicitType => _firstFragment.hasImplicitType;
 
   @override
-  bool get isConst => firstFragment.isConst;
+  bool get isConst => _firstFragment.isConst;
 
   @override
-  bool get isFinal => firstFragment.isFinal;
+  bool get isFinal => _firstFragment.isFinal;
 
   @override
-  bool get isLate => firstFragment.isLate;
+  bool get isLate => _firstFragment.isLate;
 
   @override
-  bool get isStatic => firstFragment.isStatic;
+  bool get isStatic => _firstFragment.isStatic;
 
   @override
-  bool get isSynthetic => firstFragment.isSynthetic;
+  bool get isSynthetic => _firstFragment.isSynthetic;
 
   @override
   ElementKind get kind => ElementKind.LOCAL_VARIABLE;
@@ -6929,14 +6981,14 @@ class LocalVariableElementImpl extends PromotableElementImpl
   LibraryElementImpl get library2 => library;
 
   @override
-  MetadataImpl get metadata => firstFragment.metadata;
+  MetadataImpl get metadata => _firstFragment.metadata;
 
   @Deprecated('Use metadata instead')
   @override
   MetadataImpl get metadata2 => metadata;
 
   @override
-  String? get name => firstFragment.name;
+  String? get name => _firstFragment.name;
 
   @Deprecated('Use name instead')
   @override
@@ -7416,7 +7468,7 @@ class MethodElementImpl extends ExecutableElementImpl
   final String? name;
 
   @override
-  final MethodFragmentImpl firstFragment;
+  final MethodFragmentImpl _firstFragment;
 
   /// Is `true` if this method is `operator==`, and there is no explicit
   /// type specified for its formal parameter, in this method or in any
@@ -7430,10 +7482,10 @@ class MethodElementImpl extends ExecutableElementImpl
   MethodElementImpl({
     required this.name,
     required this.reference,
-    required this.firstFragment,
-  }) {
+    required MethodFragmentImpl firstFragment,
+  }) : _firstFragment = firstFragment {
     reference.element = this;
-    firstFragment.element = this;
+    _firstFragment.element = this;
   }
 
   @override
@@ -7446,7 +7498,7 @@ class MethodElementImpl extends ExecutableElementImpl
 
   @override
   InstanceElementImpl get enclosingElement {
-    return firstFragment.enclosingFragment.element;
+    return _firstFragment.enclosingFragment.element;
   }
 
   @Deprecated('Use enclosingElement instead')
@@ -7454,10 +7506,13 @@ class MethodElementImpl extends ExecutableElementImpl
   Element? get enclosingElement2 => enclosingElement;
 
   @override
+  MethodFragmentImpl get firstFragment => _firstFragment;
+
+  @override
   List<MethodFragmentImpl> get fragments {
     return [
       for (
-        MethodFragmentImpl? fragment = firstFragment;
+        MethodFragmentImpl? fragment = _firstFragment;
         fragment != null;
         fragment = fragment.nextFragment
       )
@@ -7466,7 +7521,7 @@ class MethodElementImpl extends ExecutableElementImpl
   }
 
   @override
-  bool get isOperator => firstFragment.isOperator;
+  bool get isOperator => _firstFragment.isOperator;
 
   @override
   ElementKind get kind => ElementKind.METHOD;
@@ -7503,7 +7558,7 @@ class MethodElementImpl extends ExecutableElementImpl
   }
 
   void linkFragments(List<MethodFragmentImpl> fragments) {
-    assert(identical(fragments[0], firstFragment));
+    assert(identical(fragments[0], _firstFragment));
     fragments.reduce((previous, current) {
       previous.addFragment(current);
       return current;
@@ -7578,22 +7633,25 @@ class MixinElementImpl extends InterfaceElementImpl implements MixinElement {
   final Reference reference;
 
   @override
-  final MixinFragmentImpl firstFragment;
+  final MixinFragmentImpl _firstFragment;
 
   List<InterfaceTypeImpl> _superclassConstraints = const [];
 
-  MixinElementImpl(this.reference, this.firstFragment) {
+  MixinElementImpl(this.reference, this._firstFragment) {
     reference.element = this;
-    firstFragment.element = this;
+    _firstFragment.element = this;
 
-    isBase = firstFragment.isBase;
+    isBase = _firstFragment.isBase;
   }
+
+  @override
+  MixinFragmentImpl get firstFragment => _firstFragment;
 
   @override
   List<MixinFragmentImpl> get fragments {
     return [
       for (
-        MixinFragmentImpl? fragment = firstFragment;
+        MixinFragmentImpl? fragment = _firstFragment;
         fragment != null;
         fragment = fragment.nextFragment
       )
@@ -7634,7 +7692,7 @@ class MixinElementImpl extends InterfaceElementImpl implements MixinElement {
   /// Names of methods, getters, setters, and operators that this mixin
   /// declaration super-invokes.  For setters this includes the trailing "=".
   /// The list will be empty if this class is not a mixin declaration.
-  List<String> get superInvokedNames => firstFragment.superInvokedNames;
+  List<String> get superInvokedNames => _firstFragment.superInvokedNames;
 
   @override
   set supertype(InterfaceType? supertype) {
@@ -7671,7 +7729,7 @@ class MixinElementImpl extends InterfaceElementImpl implements MixinElement {
   }
 
   void linkFragments(List<MixinFragmentImpl> fragments) {
-    assert(identical(fragments[0], firstFragment));
+    assert(identical(fragments[0], _firstFragment));
     fragments.reduce((previous, current) {
       previous.addFragment(current);
       return current;
@@ -7866,7 +7924,7 @@ class MultiplyDefinedElementImpl extends ElementImpl
   final List<Element> conflictingElements;
 
   @override
-  late final MultiplyDefinedFragmentImpl firstFragment =
+  late final MultiplyDefinedFragmentImpl _firstFragment =
       MultiplyDefinedFragmentImpl(this);
 
   MultiplyDefinedElementImpl(
@@ -7900,8 +7958,11 @@ class MultiplyDefinedElementImpl extends ElementImpl
   Null get enclosingElement2 => enclosingElement;
 
   @override
+  MultiplyDefinedFragmentImpl get firstFragment => _firstFragment;
+
+  @override
   List<MultiplyDefinedFragmentImpl> get fragments {
-    return [firstFragment];
+    return [_firstFragment];
   }
 
   @override
@@ -8035,7 +8096,8 @@ class MultiplyDefinedElementImpl extends ElementImpl
   }
 }
 
-class MultiplyDefinedFragmentImpl implements MultiplyDefinedFragment {
+class MultiplyDefinedFragmentImpl extends FragmentImpl
+    implements MultiplyDefinedFragment {
   @override
   final MultiplyDefinedElementImpl element;
 
@@ -8052,10 +8114,10 @@ class MultiplyDefinedFragmentImpl implements MultiplyDefinedFragment {
   String? get documentationComment => null;
 
   @override
-  LibraryFragment get enclosingFragment => element.libraryFragment;
+  LibraryFragmentImpl get enclosingFragment => element.libraryFragment;
 
   @override
-  LibraryFragment get libraryFragment => enclosingFragment;
+  LibraryFragmentImpl get libraryFragment => enclosingFragment;
 
   @override
   MetadataImpl get metadata => MetadataImpl.empty;
@@ -8102,11 +8164,11 @@ class NeverElementImpl extends ElementImpl implements TypeDefiningElement {
   Element? get enclosingElement2 => enclosingElement;
 
   @override
-  NeverFragmentImpl get firstFragment => NeverFragmentImpl.instance;
+  NeverFragmentImpl get firstFragment => _firstFragment;
 
   @override
   List<NeverFragmentImpl> get fragments {
-    return [firstFragment];
+    return [_firstFragment];
   }
 
   @override
@@ -8137,6 +8199,9 @@ class NeverElementImpl extends ElementImpl implements TypeDefiningElement {
   @Deprecated('Use name instead')
   @override
   String get name3 => name;
+
+  @override
+  NeverFragmentImpl get _firstFragment => NeverFragmentImpl.instance;
 
   @override
   T? accept<T>(ElementVisitor2<T> visitor) {
@@ -8271,14 +8336,13 @@ class PatternVariableElementImpl extends LocalVariableElementImpl
   PatternVariableElementImpl(super.firstFragment);
 
   @override
-  PatternVariableFragmentImpl get firstFragment =>
-      super.firstFragment as PatternVariableFragmentImpl;
+  PatternVariableFragmentImpl get firstFragment => _firstFragment;
 
   @override
   List<PatternVariableFragmentImpl> get fragments {
     return [
       for (
-        PatternVariableFragmentImpl? fragment = firstFragment;
+        PatternVariableFragmentImpl? fragment = _firstFragment;
         fragment != null;
         fragment = fragment.nextFragment
       )
@@ -8288,16 +8352,16 @@ class PatternVariableElementImpl extends LocalVariableElementImpl
 
   /// This flag is set to `true` while we are visiting the [WhenClause] of
   /// the [GuardedPattern] that declares this variable.
-  bool get isVisitingWhenClause => firstFragment.isVisitingWhenClause;
+  bool get isVisitingWhenClause => _firstFragment.isVisitingWhenClause;
 
   /// This flag is set to `true` while we are visiting the [WhenClause] of
   /// the [GuardedPattern] that declares this variable.
   set isVisitingWhenClause(bool value) =>
-      firstFragment.isVisitingWhenClause = value;
+      _firstFragment.isVisitingWhenClause = value;
 
   @override
   JoinPatternVariableElementImpl? get join {
-    return firstFragment.join?.asElement2;
+    return _firstFragment.join?.asElement2;
   }
 
   @Deprecated('Use join instead')
@@ -8310,6 +8374,10 @@ class PatternVariableElementImpl extends LocalVariableElementImpl
   PatternVariableElementImpl get rootVariable {
     return join?.rootVariable ?? this;
   }
+
+  @override
+  PatternVariableFragmentImpl get _firstFragment =>
+      super._firstFragment as PatternVariableFragmentImpl;
 
   static PatternVariableElement fromElement(
     PatternVariableFragmentImpl element,
@@ -8364,15 +8432,18 @@ class PrefixElementImpl extends ElementImpl implements PrefixElement {
   final Reference reference;
 
   @override
-  final PrefixFragmentImpl firstFragment;
+  final PrefixFragmentImpl _firstFragment;
 
   PrefixFragmentImpl lastFragment;
 
   /// The scope of this prefix, `null` if not set yet.
   PrefixScope? _scope;
 
-  PrefixElementImpl({required this.reference, required this.firstFragment})
-    : lastFragment = firstFragment {
+  PrefixElementImpl({
+    required this.reference,
+    required PrefixFragmentImpl firstFragment,
+  }) : _firstFragment = firstFragment,
+       lastFragment = firstFragment {
     reference.element = this;
   }
 
@@ -8384,10 +8455,13 @@ class PrefixElementImpl extends ElementImpl implements PrefixElement {
   Null get enclosingElement2 => enclosingElement;
 
   @override
+  PrefixFragmentImpl get firstFragment => _firstFragment;
+
+  @override
   List<PrefixFragmentImpl> get fragments {
     return [
       for (
-        PrefixFragmentImpl? fragment = firstFragment;
+        PrefixFragmentImpl? fragment = _firstFragment;
         fragment != null;
         fragment = fragment.nextFragment
       )
@@ -8397,7 +8471,7 @@ class PrefixElementImpl extends ElementImpl implements PrefixElement {
 
   @override
   List<LibraryImportImpl> get imports {
-    return firstFragment.enclosingFragment.libraryImports
+    return _firstFragment.enclosingFragment.libraryImports
         .where((import) => import.prefix?.element == this)
         .toList();
   }
@@ -8416,7 +8490,7 @@ class PrefixElementImpl extends ElementImpl implements PrefixElement {
   LibraryElementImpl get library2 => library;
 
   @override
-  String? get name => firstFragment.name;
+  String? get name => _firstFragment.name;
 
   @Deprecated('Use name instead')
   @override
@@ -8424,7 +8498,7 @@ class PrefixElementImpl extends ElementImpl implements PrefixElement {
 
   @override
   PrefixScope get scope {
-    firstFragment.enclosingFragment.scope;
+    _firstFragment.enclosingFragment.scope;
     // SAFETY: The previous statement initializes this field.
     return _scope!;
   }
@@ -8523,7 +8597,7 @@ abstract class PropertyAccessorElementImpl extends ExecutableElementImpl
   PropertyAccessorElementImpl get baseElement => this;
 
   @override
-  Element get enclosingElement => firstFragment.enclosingFragment.element;
+  Element get enclosingElement => _firstFragment.enclosingFragment.element;
 
   @Deprecated('Use enclosingElement instead')
   @override
@@ -8541,7 +8615,7 @@ abstract class PropertyAccessorElementImpl extends ExecutableElementImpl
   }
 
   @override
-  String? get name => firstFragment.name;
+  String? get name => _firstFragment.name;
 
   @Deprecated('Use name instead')
   @override
@@ -8615,7 +8689,7 @@ sealed class PropertyAccessorFragmentImpl extends ExecutableFragmentImpl
       if (variable.isSynthetic) {
         return enclosingFragment.offset;
       }
-      return variable.firstFragment.offset;
+      return variable._firstFragment.offset;
     }
     return firstTokenOffset!;
   }
@@ -8642,7 +8716,7 @@ abstract class PropertyInducingElementImpl extends VariableElementImpl
   List<PropertyInducingFragmentImpl> get fragments {
     return [
       for (
-        PropertyInducingFragmentImpl? fragment = firstFragment;
+        PropertyInducingFragmentImpl? fragment = _firstFragment;
         fragment != null;
         fragment = fragment.nextFragment
       )
@@ -8700,7 +8774,7 @@ abstract class PropertyInducingElementImpl extends VariableElementImpl
     }
 
     // We must be linking, and the type has not been set yet.
-    var type = firstFragment.typeInference?.perform();
+    var type = _firstFragment.typeInference?.perform();
     type ??= InvalidTypeImpl.instance;
     this.type = type;
     shouldUseTypeForInitializerInference = false;
@@ -8725,6 +8799,9 @@ abstract class PropertyInducingElementImpl extends VariableElementImpl
       }
     }
   }
+
+  @override
+  PropertyInducingFragmentImpl get _firstFragment;
 
   List<PropertyInducingFragmentImpl> get _fragments;
 
@@ -8807,11 +8884,11 @@ class SetterElementImpl extends PropertyAccessorElementImpl
   Reference reference;
 
   @override
-  final SetterFragmentImpl firstFragment;
+  final SetterFragmentImpl _firstFragment;
 
-  SetterElementImpl(this.reference, this.firstFragment) {
+  SetterElementImpl(this.reference, this._firstFragment) {
     reference.element = this;
-    SetterFragmentImpl? fragment = firstFragment;
+    SetterFragmentImpl? fragment = _firstFragment;
     while (fragment != null) {
       fragment.element = this;
       fragment = fragment.nextFragment;
@@ -8833,17 +8910,20 @@ class SetterElementImpl extends PropertyAccessorElementImpl
   }
 
   @override
-  Element get enclosingElement => firstFragment.enclosingFragment.element;
+  Element get enclosingElement => _firstFragment.enclosingFragment.element;
 
   @Deprecated('Use enclosingElement instead')
   @override
   Element get enclosingElement2 => enclosingElement;
 
   @override
+  SetterFragmentImpl get firstFragment => _firstFragment;
+
+  @override
   List<SetterFragmentImpl> get fragments {
     return [
       for (
-        SetterFragmentImpl? fragment = firstFragment;
+        SetterFragmentImpl? fragment = _firstFragment;
         fragment != null;
         fragment = fragment.nextFragment
       )
@@ -8903,7 +8983,7 @@ class SetterElementImpl extends PropertyAccessorElementImpl
   }
 
   void linkFragments(List<SetterFragmentImpl> fragments) {
-    assert(identical(fragments[0], firstFragment));
+    assert(identical(fragments[0], _firstFragment));
     fragments.reduce((previous, current) {
       previous.addFragment(current);
       return current;
@@ -9008,14 +9088,13 @@ class SuperFormalParameterElementImpl extends FormalParameterElementImpl
   }
 
   @override
-  SuperFormalParameterFragmentImpl get firstFragment =>
-      super.firstFragment as SuperFormalParameterFragmentImpl;
+  SuperFormalParameterFragmentImpl get firstFragment => _firstFragment;
 
   @override
   List<SuperFormalParameterFragmentImpl> get fragments {
     return [
       for (
-        SuperFormalParameterFragmentImpl? fragment = firstFragment;
+        SuperFormalParameterFragmentImpl? fragment = _firstFragment;
         fragment != null;
         fragment = fragment.nextFragment
       )
@@ -9052,6 +9131,10 @@ class SuperFormalParameterElementImpl extends FormalParameterElementImpl
   InternalFormalParameterElement? get superConstructorParameter2 {
     return superConstructorParameter;
   }
+
+  @override
+  SuperFormalParameterFragmentImpl get _firstFragment =>
+      super._firstFragment as SuperFormalParameterFragmentImpl;
 
   DartObject? get _superConstructorParameterDefaultValue {
     var superDefault = superConstructorParameter?.computeConstantValue();
@@ -9147,11 +9230,11 @@ class TopLevelFunctionElementImpl extends ExecutableElementImpl
   final Reference reference;
 
   @override
-  final TopLevelFunctionFragmentImpl firstFragment;
+  final TopLevelFunctionFragmentImpl _firstFragment;
 
-  TopLevelFunctionElementImpl(this.reference, this.firstFragment) {
+  TopLevelFunctionElementImpl(this.reference, this._firstFragment) {
     reference.element = this;
-    firstFragment.element = this;
+    _firstFragment.element = this;
   }
 
   @override
@@ -9165,10 +9248,13 @@ class TopLevelFunctionElementImpl extends ExecutableElementImpl
   LibraryElementImpl get enclosingElement2 => enclosingElement;
 
   @override
+  TopLevelFunctionFragmentImpl get firstFragment => _firstFragment;
+
+  @override
   List<TopLevelFunctionFragmentImpl> get fragments {
     return [
       for (
-        TopLevelFunctionFragmentImpl? fragment = firstFragment;
+        TopLevelFunctionFragmentImpl? fragment = _firstFragment;
         fragment != null;
         fragment = fragment.nextFragment
       )
@@ -9199,7 +9285,7 @@ class TopLevelFunctionElementImpl extends ExecutableElementImpl
   LibraryElementImpl get library2 => library;
 
   @override
-  String? get name => firstFragment.name;
+  String? get name => _firstFragment.name;
 
   @Deprecated('Use name instead')
   @override
@@ -9220,7 +9306,7 @@ class TopLevelFunctionElementImpl extends ExecutableElementImpl
   }
 
   void linkFragments(List<TopLevelFunctionFragmentImpl> fragments) {
-    assert(identical(fragments[0], firstFragment));
+    assert(identical(fragments[0], _firstFragment));
     fragments.reduce((previous, current) {
       previous.addFragment(current);
       return current;
@@ -9263,11 +9349,11 @@ class TopLevelVariableElementImpl extends PropertyInducingElementImpl
   final Reference reference;
 
   @override
-  final TopLevelVariableFragmentImpl firstFragment;
+  final TopLevelVariableFragmentImpl _firstFragment;
 
-  TopLevelVariableElementImpl(this.reference, this.firstFragment) {
+  TopLevelVariableElementImpl(this.reference, this._firstFragment) {
     reference.element = this;
-    firstFragment.element = this;
+    _firstFragment.element = this;
   }
 
   @override
@@ -9281,10 +9367,13 @@ class TopLevelVariableElementImpl extends PropertyInducingElementImpl
   LibraryElement get enclosingElement2 => enclosingElement;
 
   @override
+  TopLevelVariableFragmentImpl get firstFragment => _firstFragment;
+
+  @override
   List<TopLevelVariableFragmentImpl> get fragments {
     return [
       for (
-        TopLevelVariableFragmentImpl? fragment = firstFragment;
+        TopLevelVariableFragmentImpl? fragment = _firstFragment;
         fragment != null;
         fragment = fragment.nextFragment
       )
@@ -9293,26 +9382,26 @@ class TopLevelVariableElementImpl extends PropertyInducingElementImpl
   }
 
   @override
-  bool get hasImplicitType => firstFragment.hasImplicitType;
+  bool get hasImplicitType => _firstFragment.hasImplicitType;
 
   @override
-  bool get isConst => firstFragment.isConst;
+  bool get isConst => _firstFragment.isConst;
 
   @override
-  bool get isExternal => firstFragment.isExternal;
+  bool get isExternal => _firstFragment.isExternal;
 
   @override
-  bool get isFinal => firstFragment.isFinal;
+  bool get isFinal => _firstFragment.isFinal;
 
   @override
-  bool get isLate => firstFragment.isLate;
+  bool get isLate => _firstFragment.isLate;
 
   @override
-  bool get isStatic => firstFragment.isStatic;
+  bool get isStatic => _firstFragment.isStatic;
 
   @override
   bool get isSynthetic {
-    return firstFragment.isSynthetic;
+    return _firstFragment.isSynthetic;
   }
 
   @override
@@ -9336,7 +9425,7 @@ class TopLevelVariableElementImpl extends PropertyInducingElementImpl
   MetadataImpl get metadata2 => metadata;
 
   @override
-  String? get name => firstFragment.name;
+  String? get name => _firstFragment.name;
 
   @Deprecated('Use name instead')
   @override
@@ -9345,7 +9434,7 @@ class TopLevelVariableElementImpl extends PropertyInducingElementImpl
   @override
   List<TopLevelVariableFragmentImpl> get _fragments {
     var result = <TopLevelVariableFragmentImpl>[];
-    TopLevelVariableFragmentImpl? current = firstFragment;
+    TopLevelVariableFragmentImpl? current = _firstFragment;
     while (current != null) {
       result.add(current);
       current = current.nextFragment;
@@ -9363,7 +9452,7 @@ class TopLevelVariableElementImpl extends PropertyInducingElementImpl
   T? accept2<T>(ElementVisitor2<T> visitor) => accept(visitor);
 
   void linkFragments(List<TopLevelVariableFragmentImpl> fragments) {
-    assert(identical(fragments[0], firstFragment));
+    assert(identical(fragments[0], _firstFragment));
     fragments.reduce((previous, current) {
       previous.addFragment(current);
       return current;
@@ -9420,18 +9509,18 @@ class TypeAliasElementImpl extends ElementImpl
   final Reference reference;
 
   @override
-  final TypeAliasFragmentImpl firstFragment;
+  final TypeAliasFragmentImpl _firstFragment;
 
   TypeImpl? _aliasedType;
 
-  TypeAliasElementImpl(this.reference, this.firstFragment) {
+  TypeAliasElementImpl(this.reference, this._firstFragment) {
     reference.element = this;
-    firstFragment.element = this;
+    _firstFragment.element = this;
   }
 
   @override
   ElementImpl? get aliasedElement {
-    switch (firstFragment.aliasedElement) {
+    switch (_firstFragment.aliasedElement) {
       case InstanceFragmentImpl instance:
         return instance.element;
       case GenericFunctionTypeFragmentImpl instance:
@@ -9472,10 +9561,13 @@ class TypeAliasElementImpl extends ElementImpl
   LibraryElement get enclosingElement2 => enclosingElement;
 
   @override
+  TypeAliasFragmentImpl get firstFragment => _firstFragment;
+
+  @override
   List<TypeAliasFragmentImpl> get fragments {
     return [
       for (
-        TypeAliasFragmentImpl? fragment = firstFragment;
+        TypeAliasFragmentImpl? fragment = _firstFragment;
         fragment != null;
         fragment = fragment.nextFragment
       )
@@ -9520,7 +9612,7 @@ class TypeAliasElementImpl extends ElementImpl
   }
 
   @override
-  bool get isSimplyBounded => firstFragment.isSimplyBounded;
+  bool get isSimplyBounded => _firstFragment.isSimplyBounded;
 
   set isSimplyBounded(bool value) {
     for (var fragment in fragments) {
@@ -9530,7 +9622,7 @@ class TypeAliasElementImpl extends ElementImpl
 
   @override
   bool get isSynthetic {
-    return firstFragment.isSynthetic;
+    return _firstFragment.isSynthetic;
   }
 
   @override
@@ -9557,15 +9649,18 @@ class TypeAliasElementImpl extends ElementImpl
   MetadataImpl get metadata2 => metadata;
 
   @override
-  String? get name => firstFragment.name;
+  String? get name => _firstFragment.name;
 
   @Deprecated('Use name instead')
   @override
   String? get name3 => name;
 
   @override
-  List<TypeParameterElementImpl> get typeParameters =>
-      firstFragment.typeParameters.map((fragment) => fragment.element).toList();
+  List<TypeParameterElementImpl> get typeParameters {
+    return _firstFragment.typeParameters
+        .map((fragment) => fragment.element)
+        .toList();
+  }
 
   @Deprecated('Use typeParameters instead')
   @override
@@ -9574,7 +9669,7 @@ class TypeAliasElementImpl extends ElementImpl
   /// A list of all of the fragments from which this element is composed.
   List<TypeAliasFragmentImpl> get _fragments {
     var result = <TypeAliasFragmentImpl>[];
-    TypeAliasFragmentImpl? current = firstFragment;
+    TypeAliasFragmentImpl? current = _firstFragment;
     while (current != null) {
       result.add(current);
       current = current.nextFragment;
@@ -9611,7 +9706,7 @@ class TypeAliasElementImpl extends ElementImpl
     required List<TypeImpl> typeArguments,
     required NullabilitySuffix nullabilitySuffix,
   }) {
-    if (firstFragment.hasSelfReference) {
+    if (_firstFragment.hasSelfReference) {
       if (isNonFunctionTypeAliasesEnabled) {
         return DynamicTypeImpl.instance;
       } else {
@@ -9787,10 +9882,7 @@ class TypeAliasFragmentImpl extends FragmentImpl
 class TypeParameterElementImpl extends ElementImpl
     implements TypeParameterElement, SharedTypeParameter {
   @override
-  final TypeParameterFragmentImpl firstFragment;
-
-  @override
-  final String? name;
+  final TypeParameterFragmentImpl _firstFragment;
 
   /// The value representing the variance modifier keyword, or `null` if
   /// there is no explicit variance modifier, meaning legacy covariance.
@@ -9809,9 +9901,9 @@ class TypeParameterElementImpl extends ElementImpl
   /// fall-back type value in type inference.
   TypeImpl? defaultType;
 
-  TypeParameterElementImpl({required this.firstFragment})
-    : name = firstFragment.name {
-    firstFragment.element = this;
+  TypeParameterElementImpl({required TypeParameterFragmentImpl firstFragment})
+    : _firstFragment = firstFragment {
+    _firstFragment.element = this;
   }
 
   factory TypeParameterElementImpl.synthetic({required String name}) {
@@ -9827,7 +9919,7 @@ class TypeParameterElementImpl extends ElementImpl
 
   @override
   Element? get enclosingElement {
-    return firstFragment.enclosingFragment?.element;
+    return _firstFragment.enclosingFragment?.element;
   }
 
   @Deprecated('Use enclosingElement instead')
@@ -9835,10 +9927,13 @@ class TypeParameterElementImpl extends ElementImpl
   Element? get enclosingElement2 => enclosingElement;
 
   @override
+  TypeParameterFragmentImpl get firstFragment => _firstFragment;
+
+  @override
   List<TypeParameterFragmentImpl> get fragments {
     return [
       for (
-        TypeParameterFragmentImpl? fragment = firstFragment;
+        TypeParameterFragmentImpl? fragment = _firstFragment;
         fragment != null;
         fragment = fragment.nextFragment
       )
@@ -9852,7 +9947,7 @@ class TypeParameterElementImpl extends ElementImpl
 
   @override
   bool get isSynthetic {
-    return firstFragment.isSynthetic;
+    return _firstFragment.isSynthetic;
   }
 
   @override
@@ -9874,6 +9969,9 @@ class TypeParameterElementImpl extends ElementImpl
   @Deprecated('Use metadata instead')
   @override
   MetadataImpl get metadata2 => metadata;
+
+  @override
+  String? get name => _firstFragment.name;
 
   @Deprecated('Use name instead')
   @override
@@ -10075,8 +10173,7 @@ abstract class VariableElementImpl extends ElementImpl
   bool get isConstantEvaluated => evaluationResult != null;
 
   @override
-  LibraryFragmentImpl? get libraryFragment =>
-      firstFragment.libraryFragment as LibraryFragmentImpl?;
+  LibraryFragmentImpl? get libraryFragment => _firstFragment.libraryFragment;
 
   set type(TypeImpl type) {
     // TODO(scheglov): eventually move logic from PropertyInducingElementImpl
@@ -10159,8 +10256,8 @@ abstract class VariableFragmentImpl extends FragmentImpl
       return result;
     }
     if (this case PropertyInducingFragmentImpl property) {
-      var getter = property.element.getter?.firstFragment;
-      var setter = property.element.setter?.firstFragment;
+      var getter = property.element.getter?._firstFragment;
+      var setter = property.element.setter?._firstFragment;
       return (getter ?? setter)!.offset;
     }
     if (this case FormalParameterFragmentImpl()) {
