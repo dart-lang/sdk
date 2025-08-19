@@ -948,7 +948,7 @@ library
             #F18 value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:62)
               element: <testLibrary>::@setter::t2::@formalParameter::value
   classes
-    class A
+    hasNonFinalField class A
       reference: <testLibrary>::@class::A
       firstFragment: #F1
       fields
@@ -1116,7 +1116,7 @@ library
             #F20 value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:83)
               element: <testLibrary>::@setter::t2::@formalParameter::value
   classes
-    class I
+    hasNonFinalField class I
       reference: <testLibrary>::@class::I
       firstFragment: #F1
       fields
@@ -1287,7 +1287,7 @@ library
         #F17 getC (nameOffset:56) (firstTokenOffset:54) (offset:56)
           element: <testLibrary>::@function::getC
   classes
-    class I
+    hasNonFinalField class I
       reference: <testLibrary>::@class::I
       firstFragment: #F1
       fields
@@ -1711,7 +1711,7 @@ library
             #F19 value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:105)
               element: <testLibrary>::@setter::vBoth::@formalParameter::value
   classes
-    class A
+    hasNonFinalField class A
       reference: <testLibrary>::@class::A
       firstFragment: #F1
       fields
@@ -2031,7 +2031,7 @@ library
         #F71 newC (nameOffset:374) (firstTokenOffset:372) (offset:374)
           element: <testLibrary>::@function::newC
   classes
-    class A
+    hasNonFinalField class A
       reference: <testLibrary>::@class::A
       firstFragment: #F1
       fields
@@ -2061,7 +2061,7 @@ library
               type: int
           returnType: void
           variable: <testLibrary>::@class::A::@field::f
-    class B
+    hasNonFinalField class B
       reference: <testLibrary>::@class::B
       firstFragment: #F7
       fields
@@ -2091,7 +2091,7 @@ library
               type: A
           returnType: void
           variable: <testLibrary>::@class::B::@field::a
-    class C
+    hasNonFinalField class C
       reference: <testLibrary>::@class::C
       firstFragment: #F13
       fields
@@ -2121,7 +2121,7 @@ library
               type: B
           returnType: void
           variable: <testLibrary>::@class::C::@field::b
-    class X
+    hasNonFinalField class X
       reference: <testLibrary>::@class::X
       firstFragment: #F19
       fields
@@ -2848,7 +2848,7 @@ library
             #F10 value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:29)
               element: <testLibrary>::@setter::x::@formalParameter::value
   classes
-    class C
+    hasNonFinalField class C
       reference: <testLibrary>::@class::C
       firstFragment: #F1
       fields
@@ -3062,7 +3062,7 @@ library
             #F10 value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:29)
               element: <testLibrary>::@setter::x::@formalParameter::value
   classes
-    class C
+    hasNonFinalField class C
       reference: <testLibrary>::@class::C
       firstFragment: #F1
       fields
@@ -3228,7 +3228,7 @@ library
                 #F12 value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:44)
                   element: <testLibrary>::@class::B::@setter::t::@formalParameter::value
   classes
-    class A
+    hasNonFinalField class A
       reference: <testLibrary>::@class::A
       firstFragment: #F1
       fields
@@ -3346,7 +3346,7 @@ library
             #F14 value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:31)
               element: <testLibrary>::@setter::x::@formalParameter::value
   classes
-    class C
+    hasNonFinalField class C
       reference: <testLibrary>::@class::C
       firstFragment: #F1
       fields
@@ -3484,7 +3484,7 @@ library
             #F16 value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:64)
               element: <testLibrary>::@setter::x::@formalParameter::value
   classes
-    class I
+    hasNonFinalField class I
       reference: <testLibrary>::@class::I
       firstFragment: #F1
       fields
@@ -3625,7 +3625,7 @@ library
         #F13 f (nameOffset:57) (firstTokenOffset:55) (offset:57)
           element: <testLibrary>::@function::f
   classes
-    class I
+    hasNonFinalField class I
       reference: <testLibrary>::@class::I
       firstFragment: #F1
       fields
@@ -7857,7 +7857,7 @@ library
               type: D
           returnType: void
           variable: <testLibrary>::@class::C::@field::d
-    class D
+    hasNonFinalField class D
       reference: <testLibrary>::@class::D
       firstFragment: #F7
       fields
@@ -7981,7 +7981,7 @@ library
           firstFragment: #F4
           returnType: D
           variable: <testLibrary>::@class::C::@field::d
-    class D
+    hasNonFinalField class D
       reference: <testLibrary>::@class::D
       firstFragment: #F5
       fields
@@ -8235,7 +8235,7 @@ library
                 #F11 <null-name> (nameOffset:<null>) (firstTokenOffset:61) (offset:61)
                   element: <testLibrary>::@class::B::@setter::x::@formalParameter::<null-name>
   classes
-    abstract class A
+    abstract hasNonFinalField class A
       reference: <testLibrary>::@class::A
       firstFragment: #F1
       fields
@@ -8333,7 +8333,7 @@ library
                 #F7 value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
                   element: <testLibrary>::@class::A::@setter::f::@formalParameter::value
   classes
-    class A
+    hasNonFinalField class A
       reference: <testLibrary>::@class::A
       firstFragment: #F1
       fields
@@ -8459,7 +8459,7 @@ library
                 #F25 _ (nameOffset:105) (firstTokenOffset:105) (offset:105)
                   element: <testLibrary>::@class::B::@setter::z::@formalParameter::_
   classes
-    abstract class A
+    abstract hasNonFinalField class A
       reference: <testLibrary>::@class::A
       firstFragment: #F1
       fields
@@ -8529,7 +8529,7 @@ library
               type: int
           returnType: void
           variable: <testLibrary>::@class::A::@field::z
-    class B
+    hasNonFinalField class B
       reference: <testLibrary>::@class::B
       firstFragment: #F15
       interfaces
@@ -8641,7 +8641,7 @@ library
                 #F12 value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:63)
                   element: <testLibrary>::@class::B::@setter::x::@formalParameter::value
   classes
-    abstract class A
+    abstract hasNonFinalField class A
       reference: <testLibrary>::@class::A
       firstFragment: #F1
       fields
@@ -8671,7 +8671,7 @@ library
               type: dynamic
           returnType: void
           variable: <testLibrary>::@class::A::@field::x
-    class B
+    hasNonFinalField class B
       reference: <testLibrary>::@class::B
       firstFragment: #F7
       interfaces
@@ -8760,7 +8760,7 @@ library
                 #F12 _ (nameOffset:83) (firstTokenOffset:83) (offset:83)
                   element: <testLibrary>::@class::B::@setter::foo::@formalParameter::_
   classes
-    abstract class A
+    abstract hasNonFinalField class A
       reference: <testLibrary>::@class::A
       firstFragment: #F1
       fields
@@ -8917,7 +8917,7 @@ library
                 #F27 _ (nameOffset:108) (firstTokenOffset:108) (offset:108)
                   element: <testLibrary>::@class::B::@setter::z::@formalParameter::_
   classes
-    abstract class A
+    abstract hasNonFinalField class A
       reference: <testLibrary>::@class::A
       firstFragment: #F1
       typeParameters
@@ -8999,7 +8999,7 @@ library
               type: E
           returnType: void
           variable: <testLibrary>::@class::A::@field::z
-    class B
+    hasNonFinalField class B
       reference: <testLibrary>::@class::B
       firstFragment: #F16
       typeParameters
@@ -9121,7 +9121,7 @@ library
                 #F12 value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:59)
                   element: <testLibrary>::@class::B::@setter::x::@formalParameter::value
   classes
-    abstract class A
+    abstract hasNonFinalField class A
       reference: <testLibrary>::@class::A
       firstFragment: #F1
       fields
@@ -9151,7 +9151,7 @@ library
               type: dynamic
           returnType: void
           variable: <testLibrary>::@class::A::@field::x
-    class B
+    hasNonFinalField class B
       reference: <testLibrary>::@class::B
       firstFragment: #F7
       interfaces
@@ -9239,7 +9239,7 @@ library
                 #F12 value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:59)
                   element: <testLibrary>::@class::B::@setter::x::@formalParameter::value
   classes
-    abstract class A
+    abstract hasNonFinalField class A
       reference: <testLibrary>::@class::A
       firstFragment: #F1
       fields
@@ -9269,7 +9269,7 @@ library
               type: num
           returnType: void
           variable: <testLibrary>::@class::A::@field::x
-    class B
+    hasNonFinalField class B
       reference: <testLibrary>::@class::B
       firstFragment: #F7
       interfaces
@@ -9413,7 +9413,7 @@ library
           firstFragment: #F8
           returnType: int
           variable: <testLibrary>::@class::A::@field::z
-    class B
+    hasNonFinalField class B
       reference: <testLibrary>::@class::B
       firstFragment: #F9
       interfaces
@@ -9596,7 +9596,7 @@ library
           hasEnclosingTypeParameterReference: true
           returnType: E
           variable: <testLibrary>::@class::A::@field::z
-    class B
+    hasNonFinalField class B
       reference: <testLibrary>::@class::B
       firstFragment: #F10
       typeParameters
@@ -10396,7 +10396,7 @@ library
               type: String
           returnType: void
           variable: <testLibrary>::@class::B::@field::y
-    class C
+    hasNonFinalField class C
       reference: <testLibrary>::@class::C
       firstFragment: #F15
       interfaces
@@ -10809,7 +10809,7 @@ library
               type: int
           returnType: void
           variable: <testLibrary>::@class::B::@field::x
-    class C
+    hasNonFinalField class C
       reference: <testLibrary>::@class::C
       firstFragment: #F10
       interfaces
@@ -11234,7 +11234,7 @@ library
               type: int
           returnType: void
           variable: <testLibrary>::@class::A::@field::z
-    class B
+    hasNonFinalField class B
       reference: <testLibrary>::@class::B
       firstFragment: #F12
       interfaces
@@ -11798,7 +11798,7 @@ library
               type: num
           returnType: void
           variable: <testLibrary>::@class::A::@field::x
-    class B
+    hasNonFinalField class B
       reference: <testLibrary>::@class::B
       firstFragment: #F7
       interfaces
@@ -11994,7 +11994,7 @@ library
                 #F14 value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:46)
                   element: <testLibrary>::@class::A::@setter::t3::@formalParameter::value
   classes
-    class A
+    hasNonFinalField class A
       reference: <testLibrary>::@class::A
       firstFragment: #F1
       fields
@@ -13093,7 +13093,7 @@ library
                 #F10 a (nameOffset:50) (firstTokenOffset:50) (offset:50)
                   element: <testLibrary>::@class::B::@method::m::@formalParameter::a
   classes
-    class A
+    hasNonFinalField class A
       reference: <testLibrary>::@class::A
       firstFragment: #F1
       fields
@@ -13123,7 +13123,7 @@ library
               type: int
           returnType: void
           variable: <testLibrary>::@class::A::@field::m
-    class B
+    hasNonFinalField class B
       reference: <testLibrary>::@class::B
       firstFragment: #F7
       supertype: A

@@ -14,6 +14,7 @@ import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/dart/resolver/flow_analysis_visitor.dart';
 import 'package:analyzer/src/summary2/default_types_builder.dart';
 import 'package:analyzer/src/summary2/extension_type.dart';
+import 'package:analyzer/src/summary2/interface_cycles.dart';
 import 'package:analyzer/src/summary2/link.dart';
 import 'package:analyzer/src/summary2/type_builder.dart';
 import 'package:analyzer/src/utilities/extensions/collection.dart';
@@ -94,6 +95,7 @@ class TypesBuilder {
 
     buildExtensionTypes(_linker, nodes.declarations);
     _MixinsInference(_toInferMixins).perform();
+    breakInterfaceCycles(_linker, nodes.declarations);
   }
 
   void _addFragmentWithClause(

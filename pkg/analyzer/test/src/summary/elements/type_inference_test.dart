@@ -622,7 +622,7 @@ library
             #F24 value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:128)
               element: <testLibrary>::@setter::x::@formalParameter::value
   classes
-    class A
+    hasNonFinalField class A
       reference: <testLibrary>::@class::A
       firstFragment: #F1
       fields
@@ -908,7 +908,7 @@ library
             #F14 value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:40)
               element: <testLibrary>::@setter::y::@formalParameter::value
   classes
-    class C
+    hasNonFinalField class C
       reference: <testLibrary>::@class::C
       firstFragment: #F1
       fields
@@ -1911,7 +1911,7 @@ library
         #F11 F (nameOffset:12) (firstTokenOffset:0) (offset:12)
           element: <testLibrary>::@typeAlias::F
   classes
-    class C
+    hasNonFinalField class C
       reference: <testLibrary>::@class::C
       firstFragment: #F1
       supertype: D
@@ -2238,7 +2238,7 @@ library
             #F13 v (nameOffset:83) (firstTokenOffset:69) (offset:83)
               element: <testLibrary>::@class::D::@getter::v
   classes
-    class C
+    hasNonFinalField class C
       reference: <testLibrary>::@class::C
       firstFragment: #F1
       typeParameters
@@ -3363,7 +3363,7 @@ library
         synthetic new
           reference: <testLibrary>::@class::C::@constructor::new
           firstFragment: #F8
-    abstract class D
+    abstract hasNonFinalField class D
       reference: <testLibrary>::@class::D
       firstFragment: #F9
       supertype: C
@@ -3467,7 +3467,7 @@ library
           reference: <testLibrary>::@class::A::@method::call
           firstFragment: #F3
           returnType: double
-    class B
+    hasNonFinalField class B
       reference: <testLibrary>::@class::B
       firstFragment: #F4
       fields
@@ -4012,7 +4012,7 @@ library
                 #F14 value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:61)
                   element: <testLibrary>::@class::B::@setter::a::@formalParameter::value
   classes
-    class A
+    hasNonFinalField class A
       reference: <testLibrary>::@class::A
       firstFragment: #F1
       typeParameters
@@ -4052,7 +4052,7 @@ library
               type: T
           returnType: void
           variable: <testLibrary>::@class::A::@field::value
-    class B
+    hasNonFinalField class B
       reference: <testLibrary>::@class::B
       firstFragment: #F9
       fields
@@ -4167,7 +4167,7 @@ library
         #F19 mixin M (nameOffset:112) (firstTokenOffset:106) (offset:112)
           element: <testLibrary>::@mixin::M
   classes
-    class A
+    hasNonFinalField class A
       reference: <testLibrary>::@class::A
       firstFragment: #F1
       typeParameters
@@ -4207,7 +4207,7 @@ library
               type: T
           returnType: void
           variable: <testLibrary>::@class::A::@field::value
-    class alias B
+    hasNonFinalField class alias B
       reference: <testLibrary>::@class::B
       firstFragment: #F9
       typeParameters
@@ -4239,7 +4239,7 @@ library
           superConstructor: ConstructorMember
             baseElement: <testLibrary>::@class::A::@constructor::new
             substitution: {T: T}
-    class C
+    hasNonFinalField class C
       reference: <testLibrary>::@class::C
       firstFragment: #F13
       fields
@@ -4318,7 +4318,7 @@ library
                 #F8 value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:19)
                   element: <testLibrary>::@class::A::@setter::f::@formalParameter::value
   classes
-    class A
+    hasNonFinalField class A
       reference: <testLibrary>::@class::A
       firstFragment: #F1
       typeParameters
@@ -5493,7 +5493,7 @@ library
                 #F7 value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:17)
                   element: <testLibrary>::@class::C::@setter::t::@formalParameter::value
   classes
-    class C
+    hasNonFinalField class C
       reference: <testLibrary>::@class::C
       firstFragment: #F1
       typeParameters
@@ -5567,7 +5567,7 @@ library
                 #F7 value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:18)
                   element: <testLibrary>::@class::C::@setter::t::@formalParameter::value
   classes
-    class C
+    hasNonFinalField class C
       reference: <testLibrary>::@class::C
       firstFragment: #F1
       typeParameters

@@ -101,7 +101,7 @@ class X extends A {}
       ],
     );
 
-    assertElementTypes(findElement2.class_('X').allSupertypes, ['A', 'B', 'C']);
+    assertElementTypes(findElement2.class_('X').allSupertypes, ['A', 'Object']);
   }
 
   test_element_typeFunction_extends() async {
@@ -170,11 +170,6 @@ main() {
       [
         error(CompileTimeErrorCode.recursiveInterfaceInheritance, 6, 1),
         error(CompileTimeErrorCode.recursiveInterfaceInheritance, 33, 1),
-        error(
-          CompileTimeErrorCode.nonAbstractClassInheritsAbstractMemberFivePlus,
-          60,
-          1,
-        ),
         error(WarningCode.unusedLocalVariable, 150, 1),
       ],
     );

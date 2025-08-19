@@ -799,12 +799,6 @@ class RequirementsManifest {
     // TODO(scheglov): implement.
   }
 
-  void record_classElement_hasNonFinalField({
-    required ClassElementImpl element,
-  }) {
-    // TODO(scheglov): implement.
-  }
-
   void record_fieldElement_getter({
     required FieldElementImpl element,
     String? name,
@@ -1069,6 +1063,12 @@ class RequirementsManifest {
     var constructorName = name.asLookupName;
     var constructorId = item.getConstructorId(constructorName);
     requirements.requestedConstructors[constructorName] = constructorId;
+  }
+
+  void record_interfaceElement_hasNonFinalField({
+    required InterfaceElementImpl element,
+  }) {
+    // TODO(scheglov): implement.
   }
 
   /// Record that all accessible extensions inside a [LibraryFragmentImpl]

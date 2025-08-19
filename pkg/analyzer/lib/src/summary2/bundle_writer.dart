@@ -160,6 +160,7 @@ class BundleWriter {
           _resolutionSink.writeType(element.supertype);
           _resolutionSink._writeTypeList(element.mixins);
           _resolutionSink._writeTypeList(element.interfaces);
+          _resolutionSink.writeOptionalElementList(element.interfaceCycle);
         });
       });
     });
@@ -275,6 +276,7 @@ class BundleWriter {
           _resolutionSink.writeType(element.supertype);
           _resolutionSink._writeTypeList(element.mixins);
           _resolutionSink._writeTypeList(element.interfaces);
+          _resolutionSink.writeOptionalElementList(element.interfaceCycle);
         });
       });
     });
@@ -355,6 +357,10 @@ class BundleWriter {
       _writeReference(element.reference);
       _writeFragments(element.fragments);
 
+      // TODO(fshcheglov): Put these separate flags into modifiers
+      _sink.writeBool(element.hasRepresentationSelfReference);
+      _sink.writeBool(element.hasImplementsSelfReference);
+
       // TODO(scheglov): consider reading lazily
       _resolutionSink.withTypeParameters(element.typeParameters, () {
         _writeFieldElements(element.fields);
@@ -369,6 +375,7 @@ class BundleWriter {
         _resolutionSink.withTypeParameters(element.typeParameters, () {
           _resolutionSink.writeType(element.typeErasure);
           _resolutionSink._writeTypeList(element.interfaces);
+          _resolutionSink.writeOptionalElementList(element.interfaceCycle);
         });
       });
     });
@@ -376,9 +383,6 @@ class BundleWriter {
 
   void _writeExtensionTypeFragment(ExtensionTypeFragmentImpl fragment) {
     _writeTemplateFragment(fragment, () {
-      // TODO(fshcheglov): Put these separate flags into modifiers
-      _sink.writeBool(fragment.hasRepresentationSelfReference);
-      _sink.writeBool(fragment.hasImplementsSelfReference);
       _writeTypeParameters(fragment.typeParameters, () {
         _resolutionSink._writeMetadata(fragment.metadata);
 
@@ -572,6 +576,7 @@ class BundleWriter {
         _resolutionSink.withTypeParameters(element.typeParameters, () {
           _resolutionSink._writeTypeList(element.superclassConstraints);
           _resolutionSink._writeTypeList(element.interfaces);
+          _resolutionSink.writeOptionalElementList(element.interfaceCycle);
         });
       });
     });
@@ -911,6 +916,10 @@ class ResolutionSink extends _SummaryDataWriter {
       default:
         throw StateError('${element.runtimeType}');
     }
+  }
+
+  void writeOptionalElementList(List<Element>? elements) {
+    writeOptionalObject(elements, (it) => _writeElementList(it));
   }
 
   void writeOptionalTypeList(List<DartType>? types) {

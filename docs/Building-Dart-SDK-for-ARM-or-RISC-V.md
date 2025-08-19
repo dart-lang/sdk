@@ -61,8 +61,7 @@ $ ./tools/build.py --mode=release --arch=riscv64 --os=android create_sdk
 You can create Debian packages targeting ARM or RISC-V as follows:
 
 ```
-$ ./tools/linux_dist_support/create_tarball.py
-$ ./tools/linux_dist_support/create_debian_packages.py -a {x64, arm, arm64, riscv64}
+$ ./tools/build.py --mode=release --arch=arm,arm64,riscv64 debian_package
 ```
 
 # Testing

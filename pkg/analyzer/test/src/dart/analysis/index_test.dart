@@ -1241,7 +1241,7 @@ void f() {
   test_isReferencedBy_ConstructorElement_classTypeAlias() async {
     await _indexTestUnit('''
 class M {}
-class A implements B {
+class A {
   A() {}
   A.named() {}
 }
@@ -1256,14 +1256,14 @@ void f() {
 ''');
     var constructor = findElement2.unnamedConstructor('A');
     assertElementIndexText(constructor, r'''
-118 9:8 || IS_INVOKED_BY qualified
-158 11:8 || IS_INVOKED_BY qualified
+105 9:8 || IS_INVOKED_BY qualified
+145 11:8 || IS_INVOKED_BY qualified
 ''');
 
     var constructor_named = findElement2.constructor('named', of: 'A');
     assertElementIndexText(constructor_named, r'''
-135 10:8 |.named| IS_INVOKED_BY qualified
-175 12:8 |.named| IS_INVOKED_BY qualified
+122 10:8 |.named| IS_INVOKED_BY qualified
+162 12:8 |.named| IS_INVOKED_BY qualified
 ''');
   }
 

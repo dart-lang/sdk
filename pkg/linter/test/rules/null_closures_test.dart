@@ -124,7 +124,6 @@ void test_cycle() {
         // No lint
         error(CompileTimeErrorCode.recursiveInterfaceInheritance, 6, 1),
         error(CompileTimeErrorCode.recursiveInterfaceInheritance, 41, 1),
-        error(CompileTimeErrorCode.noDefaultSuperConstructorImplicit, 41, 1),
         error(CompileTimeErrorCode.argumentTypeNotAssignable, 81, 4),
       ],
     );

@@ -229,43 +229,6 @@ class ClassElementImpl extends InterfaceElementImpl implements ClassElement {
   }
 
   @override
-  @trackedDirectlyExpensive
-  bool get hasNonFinalField {
-    globalResultRequirements?.record_classElement_hasNonFinalField(
-      element: this,
-    );
-
-    var classesToVisit = <InterfaceElementImpl>[];
-    var visitedClasses = <InterfaceElementImpl>{};
-    classesToVisit.add(this);
-    while (classesToVisit.isNotEmpty) {
-      var currentElement = classesToVisit.removeAt(0);
-      if (visitedClasses.add(currentElement)) {
-        // check fields
-        for (var field in currentElement.fields) {
-          if (!field.isFinal &&
-              !field.isConst &&
-              !field.isStatic &&
-              !field.isSynthetic) {
-            return true;
-          }
-        }
-        // check mixins
-        for (var mixinType in currentElement.mixins) {
-          classesToVisit.add(mixinType.element);
-        }
-        // check super
-        var supertype = currentElement.supertype;
-        if (supertype != null) {
-          classesToVisit.add(supertype.element);
-        }
-      }
-    }
-    // not found
-    return false;
-  }
-
-  @override
   @trackedIncludedInId
   bool get isAbstract {
     return hasModifier(Modifier.ABSTRACT);
@@ -2458,6 +2421,14 @@ class ExtensionTypeElementImpl extends InterfaceElementImpl
   @override
   final ExtensionTypeFragmentImpl _firstFragment;
 
+  /// Whether the element has direct or indirect reference to itself,
+  /// in representation.
+  bool hasRepresentationSelfReference = false;
+
+  /// Whether the element has direct or indirect reference to itself,
+  /// in implemented superinterfaces.
+  bool hasImplementsSelfReference = false;
+
   late DartType _typeErasure;
 
   ExtensionTypeElementImpl(this.reference, this._firstFragment) {
@@ -2478,30 +2449,6 @@ class ExtensionTypeElementImpl extends InterfaceElementImpl
       )
         fragment,
     ];
-  }
-
-  /// Whether the element has direct or indirect reference to itself,
-  /// in implemented superinterfaces.
-  bool get hasImplementsSelfReference {
-    return _firstFragment.hasImplementsSelfReference;
-  }
-
-  /// Whether the element has direct or indirect reference to itself,
-  /// in implemented superinterfaces.
-  set hasImplementsSelfReference(bool value) {
-    _firstFragment.hasImplementsSelfReference = value;
-  }
-
-  /// Whether the element has direct or indirect reference to itself,
-  /// in representation.
-  bool get hasRepresentationSelfReference {
-    return _firstFragment.hasRepresentationSelfReference;
-  }
-
-  /// Whether the element has direct or indirect reference to itself,
-  /// in representation.
-  set hasRepresentationSelfReference(bool value) {
-    _firstFragment.hasRepresentationSelfReference = value;
   }
 
   @override
@@ -2571,14 +2518,6 @@ class ExtensionTypeFragmentImpl extends InterfaceFragmentImpl
     implements ExtensionTypeFragment {
   @override
   late final ExtensionTypeElementImpl element;
-
-  /// Whether the element has direct or indirect reference to itself,
-  /// in representation.
-  bool hasRepresentationSelfReference = false;
-
-  /// Whether the element has direct or indirect reference to itself,
-  /// in implemented superinterfaces.
-  bool hasImplementsSelfReference = false;
 
   ExtensionTypeFragmentImpl({required super.name});
 
@@ -4600,6 +4539,10 @@ abstract class InterfaceElementImpl extends InstanceElementImpl
 
   InterfaceTypeImpl? _thisType;
 
+  /// If not `null`, this element was part of a supertypes cycle. The cycle
+  /// is broken by clearing supertypes for all cycle elements.
+  List<InterfaceElementImpl>? interfaceCycle;
+
   /// The cached result of [allSupertypes].
   List<InterfaceTypeImpl>? _allSupertypes;
 
@@ -4667,6 +4610,42 @@ abstract class InterfaceElementImpl extends InstanceElementImpl
       )
         fragment,
     ];
+  }
+
+  @trackedDirectlyExpensive
+  bool get hasNonFinalField {
+    globalResultRequirements?.record_interfaceElement_hasNonFinalField(
+      element: this,
+    );
+
+    var classesToVisit = <InterfaceElementImpl>[];
+    var visitedClasses = <InterfaceElementImpl>{};
+    classesToVisit.add(this);
+    while (classesToVisit.isNotEmpty) {
+      var currentElement = classesToVisit.removeAt(0);
+      if (visitedClasses.add(currentElement)) {
+        // check fields
+        for (var field in currentElement.fields) {
+          if (!field.isFinal &&
+              !field.isConst &&
+              !field.isStatic &&
+              !field.isSynthetic) {
+            return true;
+          }
+        }
+        // check mixins
+        for (var mixinType in currentElement.mixins) {
+          classesToVisit.add(mixinType.element);
+        }
+        // check super
+        var supertype = currentElement.supertype;
+        if (supertype != null) {
+          classesToVisit.add(supertype.element);
+        }
+      }
+    }
+    // not found
+    return false;
   }
 
   InheritanceManager3 get inheritanceManager {

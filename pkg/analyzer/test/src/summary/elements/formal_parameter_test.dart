@@ -716,7 +716,7 @@ library
                 #F9 value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
                   element: <testLibrary>::@class::C::@setter::x::@formalParameter::value
   classes
-    class C
+    hasNonFinalField class C
       reference: <testLibrary>::@class::C
       firstFragment: #F1
       fields

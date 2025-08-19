@@ -293,6 +293,7 @@ class LibraryReader {
           element.supertype = reader._readOptionalInterfaceType();
           element.mixins = reader._readInterfaceTypeList();
           element.interfaces = reader._readInterfaceTypeList();
+          element.interfaceCycle = reader.readOptionalElementList();
         }),
       );
 
@@ -493,6 +494,7 @@ class LibraryReader {
           element.supertype = reader._readOptionalInterfaceType();
           element.mixins = reader._readInterfaceTypeList();
           element.interfaces = reader._readInterfaceTypeList();
+          element.interfaceCycle = reader.readOptionalElementList();
         }),
       );
 
@@ -615,6 +617,9 @@ class LibraryReader {
       var element = ExtensionTypeElementImpl(reference, fragments.first);
       element.linkFragments(fragments);
 
+      element.hasRepresentationSelfReference = _reader.readBool();
+      element.hasImplementsSelfReference = _reader.readBool();
+
       // TODO(scheglov): consider reading lazily
       for (var fragment in element.fragments) {
         fragment.ensureReadMembers();
@@ -632,6 +637,7 @@ class LibraryReader {
           reader._addTypeParameters2(element.typeParameters);
           element.typeErasure = reader.readRequiredType();
           element.interfaces = reader._readInterfaceTypeList();
+          element.interfaceCycle = reader.readOptionalElementList();
         }),
       );
 
@@ -645,8 +651,6 @@ class LibraryReader {
         create: (name) {
           var fragment = ExtensionTypeFragmentImpl(name: name);
           fragment.readModifiers(_reader);
-          fragment.hasRepresentationSelfReference = _reader.readBool();
-          fragment.hasImplementsSelfReference = _reader.readBool();
           fragment.typeParameters = _readTypeParameters();
 
           // TODO(scheglov): consider reading lazily
@@ -967,6 +971,7 @@ class LibraryReader {
           reader._addTypeParameters2(element.typeParameters);
           element.superclassConstraints = reader._readInterfaceTypeList();
           element.interfaces = reader._readInterfaceTypeList();
+          element.interfaceCycle = reader.readOptionalElementList();
         }),
       );
 
@@ -1535,6 +1540,10 @@ class ResolutionReader {
 
   List<T> readNodeList<T>() {
     return _readNodeList();
+  }
+
+  List<T>? readOptionalElementList<T extends Element>() {
+    return _reader.readOptionalObject(readElementList);
   }
 
   ExpressionImpl? readOptionalExpression() {

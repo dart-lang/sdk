@@ -114,7 +114,7 @@ library
                 #F5 value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:57)
                   element: dart:foo::@class::A::@setter::foo::@formalParameter::value
   classes
-    class A
+    hasNonFinalField class A
       reference: dart:foo::@class::A
       firstFragment: #F1
       sinceSdkVersion: 2.15.0
