@@ -428,6 +428,7 @@ debuggable
 debugger
 dec
 decl
+deconstruct
 decoupled
 decreases
 dedupe
@@ -528,6 +529,7 @@ doc
 docs
 doesn\'t
 dom
+domain
 dominator
 dont
 doubles
@@ -1191,6 +1193,7 @@ nonzero
 noretcomp
 norm
 normalization
+normative
 notifier
 notify
 notifying
@@ -1461,6 +1464,7 @@ react
 realign
 realise
 reanalyze
+reapplied
 reapplies
 reapply
 reapplying
@@ -1556,6 +1560,7 @@ replaces
 replicated
 repo
 repositories
+reproduce
 reproduces
 repurpose
 repurposed
@@ -1893,6 +1898,7 @@ temp
 temporaries
 temps
 tempting
+tentative
 term
 termcap
 terminator
@@ -2115,6 +2121,7 @@ verbatim
 verbosity
 versa
 versus
+vi
 viable
 vice
 video
