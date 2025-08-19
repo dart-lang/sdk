@@ -875,6 +875,7 @@ indentations
 independently
 indexer
 indexing
+indicator
 indirection
 individual
 individually
@@ -1939,6 +1940,7 @@ tokenize
 tokenized
 tokenizer
 tokenizing
+told
 tolerant
 tolerate
 tolerated

@@ -40,12 +40,16 @@ static method test(dynamic value, core::bool expected) → void {
   core::bool matched = false;
   {
     final synthesized dynamic #0#0 = value;
+    final const synthesized core::int #0#3 = #C9;
+    final const synthesized core::int #0#7 = #C1;
     if(#0#0 is core::List<dynamic> && #0#0{core::List<dynamic>}.{core::List::length}{core::int} =={core::num::==}{(core::Object) → core::bool} #C9 && #C1 =={core::num::==}{(core::Object) → core::bool} #0#0{core::List<dynamic>}.{core::List::[]}(0){(core::int) → dynamic}) {
       matched = true;
     }
   }
   {
     final synthesized dynamic #1#0 = value;
+    final const synthesized core::int #1#3 = #C9;
+    final const synthesized core::int #1#7 = #C1;
     if(#1#0 is core::List<core::num> && #1#0{core::List<core::num>}.{core::List::length}{core::int} =={core::num::==}{(core::Object) → core::bool} #C9 && #C1 =={core::num::==}{(core::Object) → core::bool} #1#0{core::List<core::num>}.{core::List::[]}(0){(core::int) → core::num}) {
       matched = true;
     }
@@ -54,6 +58,8 @@ static method test(dynamic value, core::bool expected) → void {
     final synthesized dynamic #2#0 = value;
     synthesized dynamic #2#4;
     synthesized core::bool #2#4#isSet = false;
+    final const synthesized core::int #2#2 = #C1;
+    final const synthesized core::String #2#5 = #C4;
     if(#2#0 is core::Map<dynamic, dynamic> && (!((#2#4#isSet ?{dynamic} #2#4 : let final dynamic #t1 = #2#4#isSet = true in #2#4 = #2#0{core::Map<dynamic, dynamic>}.{core::Map::[]}(#C1){(core::Object?) → dynamic}) == null) || null is dynamic && #2#0{core::Map<dynamic, dynamic>}.{core::Map::containsKey}(#C1){(core::Object?) → core::bool}) && #C4 =={core::String::==}{(core::Object) → core::bool} (#2#4#isSet ?{dynamic} #2#4 : let final dynamic #t2 = #2#4#isSet = true in #2#4 = #2#0{core::Map<dynamic, dynamic>}.{core::Map::[]}(#C1){(core::Object?) → dynamic})) {
       matched = true;
     }
@@ -62,6 +68,8 @@ static method test(dynamic value, core::bool expected) → void {
     final synthesized dynamic #3#0 = value;
     synthesized core::Object? #3#4;
     synthesized core::bool #3#4#isSet = false;
+    final const synthesized core::int #3#2 = #C1;
+    final const synthesized core::String #3#5 = #C4;
     if(#3#0 is core::Map<core::num, core::Object> && (!((#3#4#isSet ?{core::Object?} #3#4 : let final dynamic #t3 = #3#4#isSet = true in #3#4 = #3#0{core::Map<core::num, core::Object>}.{core::Map::[]}(#C1){(core::Object?) → core::Object?}) == null) || null is core::Object && #3#0{core::Map<core::num, core::Object>}.{core::Map::containsKey}(#C1){(core::Object?) → core::bool}) && #C4 =={core::String::==}{(core::Object) → core::bool} (let core::Object? #t4 = #3#4#isSet ?{core::Object?} #3#4 : let final dynamic #t5 = #3#4#isSet = true in #3#4 = #3#0{core::Map<core::num, core::Object>}.{core::Map::[]}(#C1){(core::Object?) → core::Object?} in #t4 == null ?{core::Object} #t4 as{Unchecked} core::Object : #t4{core::Object})) {
       matched = true;
     }

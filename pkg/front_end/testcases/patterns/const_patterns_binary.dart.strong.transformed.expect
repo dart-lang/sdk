@@ -258,26 +258,38 @@ static method method<T extends core::Object? = dynamic>(dynamic o) → dynamic {
     final synthesized dynamic #0#0 = o;
     synthesized core::bool #0#2;
     synthesized core::bool #0#2#isSet = false;
+    final const synthesized core::int #0#1 = #C2;
     synthesized core::bool #0#4;
     synthesized core::bool #0#4#isSet = false;
+    final const synthesized core::int #0#3 = #C1;
     synthesized core::bool #0#6;
     synthesized core::bool #0#6#isSet = false;
+    final const synthesized core::Object #0#7 = #C3;
     synthesized core::bool #0#10;
     synthesized core::bool #0#10#isSet = false;
+    final const synthesized core::int #0#9 = #C4;
     synthesized core::bool #0#12;
     synthesized core::bool #0#12#isSet = false;
+    final const synthesized core::int #0#11 = #C5;
     synthesized core::bool #0#14;
     synthesized core::bool #0#14#isSet = false;
+    final const synthesized core::double #0#13 = #C6;
     synthesized core::bool #0#16;
     synthesized core::bool #0#16#isSet = false;
+    final const synthesized core::int #0#15 = #C7;
     synthesized core::bool #0#18;
     synthesized core::bool #0#18#isSet = false;
+    final const synthesized core::bool #0#17 = #C8;
     synthesized core::bool #0#20;
     synthesized core::bool #0#20#isSet = false;
+    final const synthesized core::bool #0#19 = #C9;
     synthesized core::bool #0#22;
     synthesized core::bool #0#22#isSet = false;
+    final const synthesized core::int #0#21 = #C10;
     synthesized core::bool #0#24;
     synthesized core::bool #0#24#isSet = false;
+    final const synthesized core::int #0#23 = #C11;
+    final const synthesized core::List<core::int> #0#29 = #C12;
     final const synthesized invalid-type #0#31 = invalid-expression "pkg/front_end/testcases/patterns/const_patterns_binary.dart:82:10: Error: Not a constant expression.
     case o++: // Error
          ^";

@@ -13,6 +13,7 @@ static method f<A extends core::Object? = dynamic>(core::List<self::f::A%> list)
   return block {
     core::List<self::f::A%> #t1;
     final synthesized core::List<self::f::A%> #0#0 = list;
+    final const synthesized core::int #0#2 = #C1;
     #L1:
     {
       {
@@ -35,6 +36,8 @@ static method subs<A extends core::Object? = dynamic>(core::List<self::subs::A%>
     final synthesized core::List<self::subs::A%> #0#0 = list;
     synthesized core::int #0#1;
     synthesized core::bool #0#1#isSet = false;
+    final const synthesized core::int #0#2 = #C1;
+    final const synthesized core::int #0#4 = #C2;
     #L2:
     {
       {
@@ -66,6 +69,8 @@ static method perms<A extends core::Object? = dynamic>(core::List<self::perms::A
     final synthesized core::List<self::perms::A%> #0#0 = list;
     synthesized core::int #0#1;
     synthesized core::bool #0#1#isSet = false;
+    final const synthesized core::int #0#2 = #C1;
+    final const synthesized core::int #0#4 = #C2;
     #L3:
     {
       {
@@ -105,6 +110,7 @@ static method equals<A extends core::Object? = dynamic>(core::List<self::equals:
     synthesized core::bool #0#2#isSet = false;
     synthesized core::List<self::equals::A%> #0#1;
     synthesized core::bool #0#1#isSet = false;
+    final const synthesized core::int #0#3 = #C1;
     synthesized core::bool #0#7;
     synthesized core::bool #0#7#isSet = false;
     synthesized core::int #0#6;
@@ -113,6 +119,7 @@ static method equals<A extends core::Object? = dynamic>(core::List<self::equals:
     synthesized core::bool #0#5#isSet = false;
     synthesized core::bool #0#9;
     synthesized core::bool #0#9#isSet = false;
+    final const synthesized core::int #0#8 = #C2;
     synthesized core::bool #0#11;
     synthesized core::bool #0#11#isSet = false;
     #L4:

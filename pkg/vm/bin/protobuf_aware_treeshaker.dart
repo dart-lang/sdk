@@ -130,11 +130,16 @@ Future main(List<String> args) async {
   final component = loadComponentFromBytes(bytes);
 
   installAdditionalTargets();
+  final aot = argResults['aot'];
 
-  final target = getTarget(argResults['target'], TargetFlags())!;
+  final target =
+      getTarget(
+        argResults['target'],
+        TargetFlags(constKeepLocalsIndicator: !aot),
+      )!;
 
   // The [component] is treeshaken and has TFA annotations. Write output.
-  if (argResults['aot']) {
+  if (aot) {
     final nopErrorDetector = ErrorDetector();
     runGlobalTransformations(
       target,

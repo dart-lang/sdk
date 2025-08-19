@@ -4,6 +4,10 @@ method /* from org-dartlang-debug:synthetic_debug_expression */ debugExpr() → 
   return block {
     #lib1::Color #t1;
     final synthesized #lib1::_Type #0#0 = this.{#lib1::Class::_type}{#lib1::_Type};
+    final const synthesized #lib1::_Type #0#1 = #C3;
+    final const synthesized #lib1::_Type #0#3 = #C6;
+    final const synthesized #lib1::_Type #0#5 = #C9;
+    final const synthesized #lib1::_Type #0#7 = #C12;
     #L1:
     {
       {

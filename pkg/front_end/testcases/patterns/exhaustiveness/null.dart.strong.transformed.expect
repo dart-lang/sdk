@@ -70,6 +70,7 @@ static method nonExhaustiveRestrictedField(Null n) → dynamic
   return block {
     core::int #t4;
     final synthesized Null #0#0 = n;
+    final const synthesized core::int #0#2 = #C2;
     #L5:
     {
       {
@@ -118,6 +119,7 @@ static method nonExhaustiveNullableRestricted(core::Object? o) → dynamic
   return block {
     core::int #t7;
     final synthesized core::Object? #0#0 = o;
+    final const synthesized core::int #0#2 = #C2;
     #L8:
     {
       {

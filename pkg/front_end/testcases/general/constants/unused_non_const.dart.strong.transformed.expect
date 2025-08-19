@@ -28,6 +28,14 @@ class Class extends core::Object {
     ;
   method test(final core::int nonConstParameter) → void {
     final core::int nonConstLocal = 2;
+    const wildcard core::Set<dynamic> _#wc0#var = #C1;
+    const wildcard core::Set<dynamic> _#wc1#var = #C1;
+    const wildcard core::Set<dynamic> _#wc2#var = #C1;
+    const wildcard core::Set<dynamic> _#wc3#var = #C1;
   }
 }
 static final field core::int nonConstTopLevel = 0;
+
+constants  {
+  #C1 = <dynamic>{}
+}

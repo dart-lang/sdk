@@ -1587,7 +1587,10 @@ class BodyBuilder extends StackListenerImpl
 
   // Coverage-ignore(suite): Only used in expression compilation.
   Expression parseSingleExpression(
-      Parser parser, Token token, FunctionNode parameters) {
+      Parser parser,
+      Token token,
+      FunctionNode parameters,
+      List<VariableDeclarationImpl> extraKnownVariables) {
     int fileOffset = offsetForToken(token);
     List<NominalParameterBuilder>? typeParameterBuilders;
     for (TypeParameter typeParameter in parameters.typeParameters) {
@@ -1629,6 +1632,17 @@ class BodyBuilder extends StackListenerImpl
       wildcardVariablesEnabled: libraryFeatures.wildcardVariables.isEnabled,
     ));
 
+    if (extraKnownVariables.isNotEmpty) {
+      LocalScope extraKnownVariablesScope = _localScope.createNestedScope(
+          debugName: "expression compilation extra known variables scope",
+          kind: ScopeKind.ifElement);
+      enterLocalScope(extraKnownVariablesScope);
+      for (VariableDeclarationImpl extraVariable in extraKnownVariables) {
+        declareVariable(extraVariable, _localScope);
+        typeInferrer.assignedVariables.declare(extraVariable);
+      }
+    }
+
     Token endToken =
         parser.parseExpression(parser.syntheticPreviousToken(token));
 
@@ -1657,6 +1671,12 @@ class BodyBuilder extends StackListenerImpl
             initialized: true);
       }
     }
+    for (VariableDeclarationImpl extraVariable in extraKnownVariables) {
+      typeInferrer.flowAnalysis.declare(
+          extraVariable, new SharedTypeView(extraVariable.type),
+          initialized: true);
+    }
+
     InferredFunctionBody inferredFunctionBody = typeInferrer.inferFunctionBody(
         this, fileOffset, const DynamicType(), AsyncMarker.Sync, fakeReturn);
     assert(

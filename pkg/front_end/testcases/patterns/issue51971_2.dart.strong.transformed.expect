@@ -159,6 +159,7 @@ static method test6(dynamic x6) → dynamic {
     hoisted core::int n6;
     {
       final synthesized dynamic #0#0 = x6 as{TypeError,ForDynamic} core::List<core::int>;
+      final const synthesized core::int #0#3 = #C1;
       synthesized dynamic #0#6;
       synthesized core::bool #0#6#isSet = false;
       synthesized dynamic #0#7;
@@ -178,6 +179,7 @@ static method test7(dynamic x7) → dynamic {
     hoisted core::int n7;
     {
       final synthesized dynamic #0#0 = x7 as{TypeError,ForDynamic} core::List<core::int>;
+      final const synthesized core::int #0#3 = #C1;
       synthesized dynamic #0#6;
       synthesized core::bool #0#6#isSet = false;
       synthesized dynamic #0#7;

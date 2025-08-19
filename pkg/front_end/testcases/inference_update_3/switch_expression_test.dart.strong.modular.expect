@@ -37,6 +37,7 @@ static method test(core::int i) → dynamic {
   self::contextB1<dynamic>( block {
     self::B1<dynamic> #t1;
     final synthesized core::int #0#0 = i;
+    final const synthesized core::int #0#1 = #C1;
     #L1:
     {
       {
@@ -58,6 +59,7 @@ static method test(core::int i) → dynamic {
   self::contextIterable<core::num>( block {
     core::Iterable<core::num> #t2;
     final synthesized core::int #1#0 = i;
+    final const synthesized core::int #1#1 = #C1;
     #L2:
     {
       {

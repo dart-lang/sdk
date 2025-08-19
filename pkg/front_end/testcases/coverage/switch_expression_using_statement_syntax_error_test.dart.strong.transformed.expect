@@ -46,6 +46,8 @@ static method f(dynamic x) → dynamic
   return block {
     core::String #t1;
     final synthesized dynamic #0#0 = x;
+    final const synthesized core::int #0#1 = #C1;
+    final const synthesized core::int #0#3 = #C2;
     #L1:
     {
       {

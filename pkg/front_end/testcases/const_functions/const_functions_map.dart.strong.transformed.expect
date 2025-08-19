@@ -17,6 +17,7 @@ static method fn(core::Map<core::Object, core::Object> map, core::Object key) �
   return map.{core::Map::[]}(key){(core::Object?) → core::Object?};
 }
 static method fn2() → core::int? {
+  const core::Map<core::String, core::int> y = #C11;
   return #C11.{core::Map::[]}("key"){(core::Object?) → core::int?};
 }
 static method main() → void {

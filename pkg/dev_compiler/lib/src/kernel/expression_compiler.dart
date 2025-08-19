@@ -125,12 +125,11 @@ class ExpressionCompiler {
       // extracted from the lowering.
       // See https://github.com/dart-lang/sdk/issues/55918
       var dartLateLocals = [
-        for (var name in dartScope.definitions.keys)
+        for (var name in dartScope.variables.keys)
           if (isLateLoweredLocalName(name)) name,
       ];
       for (var localName in dartLateLocals) {
-        dartScope.definitions[extractLocalName(localName)] = dartScope
-            .definitions
+        dartScope.variables[extractLocalName(localName)] = dartScope.variables
             .remove(localName)!;
       }
 
@@ -151,7 +150,7 @@ class ExpressionCompiler {
       // shorter Dart name. Since longer Dart names can't incorrectly match a
       // shorter JS name (JS names are always at least as long as the Dart
       // name), we process them from longest to shortest.
-      final dartNames = [...dartScope.definitions.keys]..sort(nameCompare);
+      final dartNames = [...dartScope.variables.keys]..sort(nameCompare);
 
       // Sort JS names so that the highest suffix value gets assigned to the
       // corresponding Dart name first. Since names are suffixed in ascending
@@ -245,15 +244,15 @@ class ExpressionCompiler {
         }
       }
 
-      dartScope.definitions.removeWhere(
-        (variable, type) =>
+      dartScope.variables.removeWhere(
+        (variableName, _) =>
             // Remove undefined js variables (this allows us to get a reference
             // error from chrome on evaluation).
-            !dartNameToJsValue.containsKey(variable) ||
+            !dartNameToJsValue.containsKey(variableName) ||
             // Remove wildcard method arguments which are lowered to have Dart
             // names that are invalid for Dart compilations.
             // Wildcard local variables are not appearing here at this time.
-            isWildcardLoweredFormalParameter(variable),
+            isWildcardLoweredFormalParameter(variableName),
       );
 
       // Wildcard type parameters already matched by this existing test.
@@ -265,7 +264,7 @@ class ExpressionCompiler {
       // captured variables optimized away in chrome)
       var localJsScope = [
         ...dartScope.typeParameters.map((parameter) => jsScope[parameter.name]),
-        ...dartScope.definitions.keys.map(
+        ...dartScope.variables.keys.map(
           (variable) => dartNameToJsValue[variable],
         ),
       ];
@@ -412,7 +411,7 @@ class ExpressionCompiler {
     }
     var procedure = await _compiler.compileExpression(
       expression,
-      scope.definitions,
+      scope.variablesAsMapToType(),
       scope.typeParameters,
       debugProcedureName,
       scope.library.importUri,

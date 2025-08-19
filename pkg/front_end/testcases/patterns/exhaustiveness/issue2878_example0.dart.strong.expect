@@ -22,6 +22,8 @@ static method main() → void {
     final synthesized core::List<core::int> #1#0 = list;
     synthesized core::int #1#1;
     synthesized core::bool #1#1#isSet = false;
+    final const synthesized core::int #1#2 = #C1;
+    final const synthesized core::int #1#4 = #C2;
     #L2:
     {
       {
@@ -43,6 +45,9 @@ static method main() → void {
     final synthesized core::List<core::int> #2#0 = list;
     synthesized core::int #2#1;
     synthesized core::bool #2#1#isSet = false;
+    final const synthesized core::int #2#2 = #C1;
+    final const synthesized core::int #2#4 = #C2;
+    final const synthesized core::int #2#7 = #C3;
     #L3:
     {
       {

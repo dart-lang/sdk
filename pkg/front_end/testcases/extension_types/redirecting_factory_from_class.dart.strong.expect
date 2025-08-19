@@ -55,6 +55,7 @@ static extension-type-member method E1|constructor#redir(self::A1 it) → self::
 static extension-type-member synthetic method E1|constructor#_#redir#tearOff(self::A1 it) → self::E1 /* erasure=self::A1 */
   return self::E1|constructor#(it);
 static method test1() → dynamic {
+  const self::A1 a1 = #C4;
   self::expectIdentical(#C4, #C4);
 }
 static extension-type-member method E2|constructor#(self::A2 it) → self::E2 /* erasure=self::A2 */ {

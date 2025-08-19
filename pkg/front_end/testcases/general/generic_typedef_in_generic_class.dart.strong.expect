@@ -8,6 +8,7 @@ class Class<A extends core::Object? = dynamic> extends core::Object {
     : super core::Object::•()
     ;
   method method() → dynamic {
+    const core::Type G = #C1;
     core::print(#C1);
     core::print(#C1);
   }

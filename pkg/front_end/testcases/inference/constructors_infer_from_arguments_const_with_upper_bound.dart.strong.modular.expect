@@ -14,12 +14,15 @@ class D<T extends core::num> extends core::Object /*hasConstConstructor*/  {
     ;
 }
 static method main() → void {
+  const self::C<core::int> c = #C2;
   self::C<core::int> c2 = #C2;
+  const self::D<core::int> d = #C3;
 }
 
 constants  {
   #C1 = 0
   #C2 = self::C<core::int> {x:#C1}
+  #C3 = self::D<core::int> {}
 }
 
 

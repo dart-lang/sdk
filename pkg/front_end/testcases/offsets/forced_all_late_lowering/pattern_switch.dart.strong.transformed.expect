@@ -8,6 +8,8 @@ import "dart:core" as core;
 [239]    [239] final synthesized dynamic #0#0 = [239] [239] o;
 [-1]    [-1] synthesized core::int #0#2;
 [-1]    [-1] synthesized core::bool #0#2#isSet = [253] [253] false;
+[253]    [253] final const synthesized core::int #0#3 = [253] [253] #C1;
+[282]    [282] final const synthesized core::int #0#7 = [282] [282] #C2;
 [-1]    [-1] dynamic #t1;
 [248]    {
 [258]      [258] lowered hoisted dynamic a#case#0;

@@ -14,4 +14,9 @@ static extension-type-member synthetic method N|constructor#_#new#tearOff(Null _
   return self::N|constructor#(_);
 static method main() → void {
   self::N% /* erasure=Null, declared=! */ n = self::N|constructor#(null);
+  const has-declared-initializer self::N% /* erasure=Null, declared=! */ cn = #C1;
+}
+
+constants  {
+  #C1 = null
 }

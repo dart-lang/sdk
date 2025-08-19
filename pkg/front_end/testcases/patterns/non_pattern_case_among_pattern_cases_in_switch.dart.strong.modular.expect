@@ -13,6 +13,7 @@ static method test(dynamic x) → dynamic {
   #L1:
   {
     final synthesized dynamic #0#0 = x;
+    final const synthesized core::int #0#1 = #C1;
     dynamic #t1;
     {
       lowered final hoisted dynamic a#case#0;

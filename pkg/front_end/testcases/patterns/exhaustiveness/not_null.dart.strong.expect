@@ -8,6 +8,7 @@ static method method(core::int? i) → dynamic
     final synthesized core::int? #0#0 = i;
     synthesized core::bool #0#2;
     synthesized core::bool #0#2#isSet = false;
+    final const synthesized has-declared-initializer Null #0#1 = #C1;
     #L1:
     {
       {
@@ -30,3 +31,7 @@ static method method(core::int? i) → dynamic
       }
     }
   } =>#t1;
+
+constants  {
+  #C1 = null
+}

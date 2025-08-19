@@ -30,5 +30,15 @@ static method test() → dynamic {
   function test2() → core::int
     return 1;
   test2(){() → core::int};
+  const wildcard core::int _#wc5#var = #C1;
+  const wildcard core::int _#wc6#var = #C2;
+  const wildcard core::int _#wc7#var = #C2;
+  const dynamic d = #C3;
   const wildcard core::num _#wc8#var = invalid-expression "Expected constant '\"string\"' to be of type 'num', but was of type 'String'.";
+}
+
+constants  {
+  #C1 = 5
+  #C2 = 3
+  #C3 = "string"
 }

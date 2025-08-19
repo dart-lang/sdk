@@ -43,6 +43,7 @@ static method foo(self::Wrapper wrapper) → void {
     synthesized core::bool #0#3#isSet = false;
     synthesized core::bool #0#5;
     synthesized core::bool #0#5#isSet = false;
+    final const synthesized has-declared-initializer Null #0#4 = #C1;
     #L1:
     {
       {
@@ -75,4 +76,8 @@ static method foo(self::Wrapper wrapper) → void {
       }
     }
   } =>#t1);
+}
+
+constants  {
+  #C1 = null
 }

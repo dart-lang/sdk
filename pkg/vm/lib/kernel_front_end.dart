@@ -429,6 +429,7 @@ Future<int> runCompiler(ArgResults options, String usage) async {
     targetName,
     trackWidgetCreation: options['track-widget-creation'],
     supportMirrors: supportMirrors ?? !(aot || minimalKernel),
+    constKeepLocalsIndicator: !(aot || minimalKernel),
   );
   if (compilerOptions.target == null) {
     print('Failed to create front-end target $targetName.');
@@ -958,6 +959,7 @@ Target? createFrontEndTarget(
   String targetName, {
   bool trackWidgetCreation = false,
   bool supportMirrors = true,
+  bool? constKeepLocalsIndicator,
 }) {
   // Make sure VM-specific targets are available.
   installAdditionalTargets();
@@ -965,6 +967,7 @@ Target? createFrontEndTarget(
   final TargetFlags targetFlags = new TargetFlags(
     trackWidgetCreation: trackWidgetCreation,
     supportMirrors: supportMirrors,
+    constKeepLocalsIndicator: constKeepLocalsIndicator,
   );
   return getTarget(targetName, targetFlags);
 }

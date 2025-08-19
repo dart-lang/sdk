@@ -5,14 +5,19 @@ import "dart:core" as core;
 static method test1(dynamic x) → dynamic {
   {
     final synthesized dynamic #0#0 = x;
+    final const synthesized core::int #0#3 = #C1;
+    final const synthesized core::int #0#7 = #C2;
+    final const synthesized core::int #0#10 = #C3;
     if(#0#0 is core::List<core::num> && #0#0{core::List<core::num>}.{core::List::length}{core::int} =={core::num::==}{(core::Object) → core::bool} #C1 && #C2 =={core::num::==}{(core::Object) → core::bool} #0#0{core::List<core::num>}.{core::List::[]}(0){(core::int) → core::num} && #C3 =={core::num::==}{(core::Object) → core::bool} #0#0{core::List<core::num>}.{core::List::[]}(1){(core::int) → core::num} && #0#0{core::List<core::num>}.{core::List::[]}(2){(core::int) → core::num}.{core::num::<}(#C1){(core::num) → core::bool}) {
       return 0;
     }
   }
   {
     final synthesized dynamic #1#0 = x;
+    final const synthesized core::int #1#3 = #C1;
     synthesized core::String? #1#7;
     synthesized core::bool #1#7#isSet = false;
+    final const synthesized core::String #1#10 = #C4;
     {
       hoisted core::String? a;
       hoisted core::String b;
@@ -23,10 +28,12 @@ static method test1(dynamic x) → dynamic {
   }
   {
     final synthesized dynamic #2#0 = x;
+    final const synthesized core::int #2#3 = #C3;
     synthesized dynamic #2#6;
     synthesized core::bool #2#6#isSet = false;
     synthesized core::String? #2#11;
     synthesized core::bool #2#11#isSet = false;
+    final const synthesized core::int #2#15 = #C5;
     {
       hoisted core::String a;
       hoisted core::String? b;
@@ -37,6 +44,7 @@ static method test1(dynamic x) → dynamic {
   }
   {
     final synthesized dynamic #3#0 = x;
+    final const synthesized core::int #3#3 = #C2;
     synthesized dynamic #3#6;
     synthesized core::bool #3#6#isSet = false;
     synthesized dynamic #3#11;
@@ -55,6 +63,9 @@ static method test1(dynamic x) → dynamic {
   }
   {
     final synthesized dynamic #4#0 = x;
+    final const synthesized core::int #4#4 = #C1;
+    final const synthesized core::int #4#8 = #C2;
+    final const synthesized core::int #4#11 = #C3;
     if(!(#4#0 == null) && (#4#0 is core::List<dynamic> && #4#0{core::List<dynamic>}.{core::List::length}{core::int} =={core::num::==}{(core::Object) → core::bool} #C1 && #C2 =={core::num::==}{(core::Object) → core::bool} #4#0{core::List<dynamic>}.{core::List::[]}(0){(core::int) → dynamic} && #C3 =={core::num::==}{(core::Object) → core::bool} #4#0{core::List<dynamic>}.{core::List::[]}(1){(core::int) → dynamic} && #C1 =={core::num::==}{(core::Object) → core::bool} #4#0{core::List<dynamic>}.{core::List::[]}(2){(core::int) → dynamic})) {
       return 4;
     }
@@ -63,14 +74,19 @@ static method test1(dynamic x) → dynamic {
 static method test2(core::List<core::Object?> x) → dynamic {
   {
     final synthesized core::List<core::Object?> #0#0 = x;
+    final const synthesized core::int #0#3 = #C1;
+    final const synthesized core::int #0#7 = #C2;
+    final const synthesized core::int #0#10 = #C3;
     if(#0#0 is core::List<core::num> && #0#0{core::List<core::num>}.{core::List::length}{core::int} =={core::num::==}{(core::Object) → core::bool} #C1 && #C2 =={core::num::==}{(core::Object) → core::bool} #0#0{core::List<core::num>}.{core::List::[]}(0){(core::int) → core::num} && #C3 =={core::num::==}{(core::Object) → core::bool} #0#0{core::List<core::num>}.{core::List::[]}(1){(core::int) → core::num} && #0#0{core::List<core::num>}.{core::List::[]}(2){(core::int) → core::num}.{core::num::<}(#C1){(core::num) → core::bool}) {
       return 0;
     }
   }
   {
     final synthesized core::List<core::Object?> #1#0 = x;
+    final const synthesized core::int #1#3 = #C1;
     synthesized core::String? #1#7;
     synthesized core::bool #1#7#isSet = false;
+    final const synthesized core::String #1#10 = #C4;
     {
       hoisted core::String? a;
       hoisted core::String b;
@@ -81,10 +97,12 @@ static method test2(core::List<core::Object?> x) → dynamic {
   }
   {
     final synthesized core::List<core::Object?> #2#0 = x;
+    final const synthesized core::int #2#2 = #C3;
     synthesized core::Object? #2#4;
     synthesized core::bool #2#4#isSet = false;
     synthesized core::String? #2#9;
     synthesized core::bool #2#9#isSet = false;
+    final const synthesized core::int #2#13 = #C5;
     {
       hoisted core::String a;
       hoisted core::String? b;
@@ -95,6 +113,7 @@ static method test2(core::List<core::Object?> x) → dynamic {
   }
   {
     final synthesized core::List<core::Object?> #3#0 = x;
+    final const synthesized core::int #3#2 = #C2;
     synthesized core::Object? #3#4;
     synthesized core::bool #3#4#isSet = false;
     synthesized core::Object? #3#9;
@@ -113,6 +132,9 @@ static method test2(core::List<core::Object?> x) → dynamic {
   }
   {
     final synthesized core::List<core::Object?> #4#0 = x;
+    final const synthesized core::int #4#3 = #C1;
+    final const synthesized core::int #4#6 = #C2;
+    final const synthesized core::int #4#9 = #C3;
     if(!(#4#0 == null) && (#4#0.{core::List::length}{core::int} =={core::num::==}{(core::Object) → core::bool} #C1 && #C2 =={core::num::==}{(core::Object) → core::bool} #4#0.{core::List::[]}(0){(core::int) → core::Object?} && #C3 =={core::num::==}{(core::Object) → core::bool} #4#0.{core::List::[]}(1){(core::int) → core::Object?} && #C1 =={core::num::==}{(core::Object) → core::bool} #4#0.{core::List::[]}(2){(core::int) → core::Object?})) {
       return 4;
     }

@@ -41,6 +41,7 @@ static method method(self::S s) → core::int?
   return block {
     core::int? #t1;
     final synthesized self::S #0#0 = s;
+    final const synthesized core::bool #0#3 = #C1;
     #L1:
     {
       {

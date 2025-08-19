@@ -14,6 +14,7 @@ class A extends core::Object {
 static method test(dynamic x) → dynamic {
   {
     final synthesized dynamic #0#0 = x;
+    final const synthesized core::String #0#3 = #C1;
     synthesized core::Object? #0#5;
     synthesized core::bool #0#5#isSet = false;
     {

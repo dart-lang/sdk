@@ -131,6 +131,7 @@ static method main() → void {
     self::testStringLiteral();
   }
   final core::String s2 = [@vm.inferred-type.metadata=dart.core::bool] self::runtimeTrue ?{core::String} "1234" : "asdf";
+  const core::String sConst = #C2;
   if([@vm.inferred-type.metadata=dart.core::bool (receiver not int)] s2 =={core::String::==}{(core::Object) → core::bool} #C2) {
     self::testStringConstant();
   }
@@ -139,6 +140,7 @@ static method main() → void {
     self::testIntLiteral();
   }
   final core::int i2 = [@vm.inferred-type.metadata=dart.core::bool] self::runtimeTrue ?{core::int} 456 : 789;
+  const core::int iConst = #C4;
   if([@vm.direct-call.metadata=dart.core::_IntegerImplementation.==] [@vm.inferred-type.metadata=dart.core::bool (skip check)] i2 =={core::num::==}{(core::Object) → core::bool} #C4) {
     self::testIntConstant();
   }
@@ -160,6 +162,7 @@ static method main() → void {
   if([@vm.direct-call.metadata=dart.core::_Double.==] [@vm.inferred-type.metadata=dart.core::bool (skip check) (receiver not int)] d1 =={core::num::==}{(core::Object) → core::bool} 1.2) {
     self::testDoubleLiteral1();
   }
+  const core::double d1Const = #C8;
   if([@vm.direct-call.metadata=dart.core::_Double.==] [@vm.inferred-type.metadata=dart.core::bool (skip check) (receiver not int)] d1 =={core::num::==}{(core::Object) → core::bool} #C8) {
     self::testDoubleConstant1();
   }
@@ -167,6 +170,7 @@ static method main() → void {
   if([@vm.direct-call.metadata=dart.core::_Double.==] [@vm.inferred-type.metadata=dart.core::bool (skip check) (receiver not int)] d2 =={core::num::==}{(core::Object) → core::bool} #C10) {
     self::testDoubleLiteral2(d2);
   }
+  const core::double d2Const = #C10;
   if([@vm.direct-call.metadata=dart.core::_Double.==] [@vm.inferred-type.metadata=dart.core::bool (skip check) (receiver not int)] d2 =={core::num::==}{(core::Object) → core::bool} #C10) {
     self::testDoubleConstant2(d2);
   }
@@ -174,6 +178,7 @@ static method main() → void {
   if([@vm.direct-call.metadata=dart.core::_Double.==] [@vm.inferred-type.metadata=dart.core::bool (skip check) (receiver not int)] d3 =={core::num::==}{(core::Object) → core::bool} [@vm.direct-call.metadata=dart.core::_Double.unary-] [@vm.inferred-type.metadata=dart.core::_Double (skip check)] 0.0.{core::double::unary-}(){() → core::double}) {
     self::testDoubleLiteral3(d3);
   }
+  const core::double d3Const = #C11;
   if([@vm.direct-call.metadata=dart.core::_Double.==] [@vm.inferred-type.metadata=dart.core::bool (skip check) (receiver not int)] d3 =={core::num::==}{(core::Object) → core::bool} #C11) {
     self::testDoubleConstant3(d3);
   }

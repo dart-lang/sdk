@@ -38,6 +38,8 @@ import "dart:core" as core;
 [630]    [630] final synthesized dynamic #0#0 = [630] [630] o;
 [-1]    [-1] synthesized core::int #0#2;
 [-1]    [-1] synthesized core::bool #0#2#isSet = [644] [644] false;
+[644]    [644] final const synthesized core::int #0#3 = [644] [644] #C4;
+[673]    [673] final const synthesized core::int #0#7 = [673] [673] #C7;
 [-1]    [-1] synthesized dynamic #0#13;
 [-1]    [-1] synthesized core::bool #0#13#isSet = [723] [723] false;
 [-1]    [-1] dynamic #t1;
@@ -68,6 +70,8 @@ import "dart:core" as core;
 [796]    [796] final synthesized dynamic #0#0 = [796] [796] o;
 [-1]    [-1] synthesized core::int #0#2;
 [-1]    [-1] synthesized core::bool #0#2#isSet = [810] [810] false;
+[810]    [810] final const synthesized core::int #0#3 = [810] [810] #C4;
+[839]    [839] final const synthesized core::int #0#7 = [839] [839] #C7;
 [-1]    [-1] synthesized dynamic #0#13;
 [-1]    [-1] synthesized core::bool #0#13#isSet = [889] [889] false;
 [-1]    [-1] dynamic #t11;
@@ -107,8 +111,11 @@ import "dart:core" as core;
 [1004]    [1004] final synthesized dynamic #0#0 = [1004] [1004] o;
 [-1]    [-1] synthesized core::int #0#2;
 [-1]    [-1] synthesized core::bool #0#2#isSet = [1018] [1018] false;
+[1018]    [1018] final const synthesized core::int #0#3 = [1018] [1018] #C4;
+[1047]    [1047] final const synthesized core::int #0#7 = [1047] [1047] #C7;
 [-1]    [-1] synthesized dynamic #0#13;
 [-1]    [-1] synthesized core::bool #0#13#isSet = [1097] [1097] false;
+[1155]    [1155] final const synthesized core::int #0#14 = [1155] [1155] #C1;
 [-1]    [-1] dynamic #t22;
 [996]    #L4:
 [996]    {
@@ -178,8 +185,11 @@ import "dart:core" as core;
 [1330]  {
 [1330]    [1330] core::int #t32 = [1330] [1330] [1330] [1330] 1.{core::int::unary-}[1330](){() → core::int};
 [1338]    [1338] final synthesized dynamic #2#0 = [1338] [1338] o1;
+[1353]    [1353] final const synthesized core::int #2#3 = [1353] [1353] #C4;
 [-1]    [-1] synthesized dynamic #2#9;
 [-1]    [-1] synthesized core::bool #2#9#isSet = [1389] [1389] false;
+[1841]    [1841] final const synthesized core::int #2#10 = [1841] [1841] #C1;
+[1948]    [1948] final const synthesized core::int #2#13 = [1948] [1948] #C7;
 [1330]    #L8:
 [1330]    {
 [1348]      {
@@ -202,8 +212,11 @@ import "dart:core" as core;
 [1429]              [1429] final synthesized dynamic #0#0 = [1429] [1429] o2;
 [-1]              [-1] synthesized core::int #0#2;
 [-1]              [-1] synthesized core::bool #0#2#isSet = [1448] [1448] false;
+[1448]              [1448] final const synthesized core::int #0#3 = [1448] [1448] #C4;
+[1481]              [1481] final const synthesized core::int #0#7 = [1481] [1481] #C7;
 [-1]              [-1] synthesized dynamic #0#13;
 [-1]              [-1] synthesized core::bool #0#13#isSet = [1539] [1539] false;
+[1610]              [1610] final const synthesized core::int #0#14 = [1610] [1610] #C1;
 [-1]              [-1] dynamic #t38;
 [1421]              #L10:
 [1421]              {
@@ -315,8 +328,11 @@ import "dart:core" as core;
 [1981]              [1981] final synthesized dynamic #1#0 = [1981] [1981] o2;
 [-1]              [-1] synthesized core::int #1#2;
 [-1]              [-1] synthesized core::bool #1#2#isSet = [2000] [2000] false;
+[2000]              [2000] final const synthesized core::int #1#3 = [2000] [2000] #C4;
+[2033]              [2033] final const synthesized core::int #1#7 = [2033] [2033] #C7;
 [-1]              [-1] synthesized dynamic #1#13;
 [-1]              [-1] synthesized core::bool #1#13#isSet = [2091] [2091] false;
+[2162]              [2162] final const synthesized core::int #1#14 = [2162] [2162] #C1;
 [-1]              [-1] dynamic #t49;
 [1973]              #L16:
 [1973]              {
@@ -412,6 +428,8 @@ import "dart:core" as core;
 [2574]  #L23:
 [2574]  {
 [2582]    [2582] final synthesized self::E #0#0 = [2582] [2582] o;
+[2598]    [2598] final const synthesized self::E #0#1 = [2598] [2598] #C3;
+[2640]    [2640] final const synthesized self::E #0#3 = [2640] [2640] #C6;
 [2591]    {
 [2591]      if([-1] [-1] [2598] [2598] [-1] [-1] #C3 =={core::Object::==}{(core::Object) → core::bool} [-1] [-1] #0#0 && [2605] [2605] true) {
 [2591]        {
@@ -498,6 +516,8 @@ import "dart:core" as core;
 [3277]  #L35:
 [3277]  {
 [3285]    [3285] final synthesized dynamic #0#0 = [3285] [3285] o;
+[3305]    [3305] final const synthesized self::NonPrimitiveEquals #0#1 = [3305] [3305] #C13;
+[3361]    [3361] final const synthesized self::NonPrimitiveEquals #0#3 = [3361] [3361] #C14;
 [3294]    {
 [3294]      if([3305] [3305] [-1] [-1] #C13 =={self::NonPrimitiveEquals::==}{(core::Object) → core::bool} [-1] [-1] #0#0) {
 [3294]        {
@@ -519,6 +539,7 @@ import "dart:core" as core;
 [3433]  return [3440] [3440] block {
 [-1]    [-1] dynamic #t59;
 [3448]    [3448] final synthesized dynamic #0#0 = [3448] [3448] o;
+[3457]    [3457] final const synthesized core::int #0#3 = [3457] [3457] #C4;
 [-1]    [-1] synthesized dynamic #0#9;
 [-1]    [-1] synthesized core::bool #0#9#isSet = [3477] [3477] false;
 [3440]    #L36:
@@ -578,6 +599,8 @@ import "dart:core" as core;
 [3654]  return [3661] [3661] block {
 [-1]    [-1] core::int #t63;
 [3669]    [3669] final synthesized self::E #0#0 = [3669] [3669] o;
+[3680]    [3680] final const synthesized self::E #0#1 = [3680] [3680] #C3;
+[3704]    [3704] final const synthesized self::E #0#3 = [3704] [3704] #C6;
 [3661]    #L41:
 [3661]    {
 [3692]      {
@@ -605,6 +628,8 @@ import "dart:core" as core;
 [3771]  return [3778] [3778] block {
 [-1]    [-1] core::int #t64;
 [3786]    [3786] final synthesized dynamic #0#0 = [3786] [3786] o;
+[3801]    [3801] final const synthesized self::PrimitiveEquals #0#1 = [3801] [3801] #C11;
+[3836]    [3836] final const synthesized self::PrimitiveEquals #0#3 = [3836] [3836] #C12;
 [3778]    #L42:
 [3778]    {
 [3820]      {
@@ -632,6 +657,8 @@ import "dart:core" as core;
 [3923]  return [3930] [3930] block {
 [-1]    [-1] core::int #t65;
 [3938]    [3938] final synthesized dynamic #0#0 = [3938] [3938] o;
+[3953]    [3953] final const synthesized self::NonPrimitiveEquals #0#1 = [3953] [3953] #C13;
+[3991]    [3991] final const synthesized self::NonPrimitiveEquals #0#3 = [3991] [3991] #C14;
 [3930]    #L43:
 [3930]    {
 [3975]      {
@@ -659,6 +686,8 @@ import "dart:core" as core;
 [4075]  #L44:
 [4075]  {
 [4083]    [4083] final synthesized core::Symbol #0#0 = [4083] [4083] s;
+[4097]    [4097] final const synthesized core::Symbol #0#1 = [4097] [4097] #C15;
+[4132]    [4132] final const synthesized core::Symbol #0#3 = [4132] [4132] #C16;
 [4092]    {
 [4092]      if([4097] [4097] [-1] [-1] #C15 =={core::Symbol::==}{(core::Object) → core::bool} [-1] [-1] #0#0) {
 [4092]        {
@@ -686,6 +715,8 @@ import "dart:core" as core;
 [4234]  return [4241] [4241] block {
 [-1]    [-1] core::int #t66;
 [4249]    [4249] final synthesized core::Symbol #0#0 = [4249] [4249] s;
+[4258]    [4258] final const synthesized core::Symbol #0#1 = [4258] [4258] #C15;
+[4277]    [4277] final const synthesized core::Symbol #0#3 = [4277] [4277] #C16;
 [4241]    #L45:
 [4241]    {
 [4261]      {

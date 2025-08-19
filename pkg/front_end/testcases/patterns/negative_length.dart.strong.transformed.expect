@@ -530,6 +530,9 @@ static method switchList(core::List<core::int> list) → core::int
     final synthesized core::List<core::int> #0#0 = list;
     synthesized core::int #0#1;
     synthesized core::bool #0#1#isSet = false;
+    final const synthesized core::int #0#2 = #C8;
+    final const synthesized core::int #0#6 = #C9;
+    final const synthesized core::int #0#8 = #C7;
     #L1:
     {
       {

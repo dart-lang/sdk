@@ -21,8 +21,10 @@ class Compare extends self::CompareBase {
 static method id<T extends core::Object? = dynamic>(self::id::T% t) → self::id::T%
   return t;
 static method test1(self::CompareBase x) → dynamic {
+  const <T extends core::Object? = dynamic>(T%) → T% c = #C2;
   {
     final synthesized self::CompareBase #0#0 = x;
+    final const synthesized (core::int) → core::int #0#1 = #C3;
     if(#0#0.{self::CompareBase::<}(#C3){((core::int) → core::int) → dynamic} as core::bool) {
       throw "\"<\" should receive instantiation, not generic function.";
     }

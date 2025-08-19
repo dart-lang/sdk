@@ -278,7 +278,9 @@ Try calling using ?. instead.
   core::print(invalid-expression "pkg/front_end/testcases/none/method_invocation.dart:152:22: Error: Not a constant expression.
   const int call_f = f();
                      ^");
-  core::print(#C4);
+  const core::int? nullable = #C4;
+  const core::bool equals_null = #C5;
+  core::print(#C5);
   const core::bool equals = invalid-expression "pkg/front_end/testcases/none/method_invocation.dart:157:23: Error: Not a constant expression.
   const bool equals = i == j;
                       ^";
@@ -292,7 +294,8 @@ constants  {
   #C1 = 4
   #C2 = 24
   #C3 = 96
-  #C4 = false
+  #C4 = 0
+  #C5 = false
 }
 
 Extra constant evaluation status:

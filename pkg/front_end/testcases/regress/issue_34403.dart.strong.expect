@@ -139,9 +139,13 @@ static method main() → dynamic {
   c3.{core::Object::toString}(){() → core::String};
   self::C<core::String> c4 = new self::C::bar<core::String>();
   c4.{core::Object::toString}(){() → core::String};
+  const self::D<core::int> d1 = #C1;
   #C1.{core::Object::toString}(){() → core::String};
+  const self::D<core::int> d2 = #C1;
   #C1.{core::Object::toString}(){() → core::String};
+  const self::D<core::int> d3 = #C1;
   #C1.{core::Object::toString}(){() → core::String};
+  const self::D<core::String> d4 = #C2;
   #C2.{core::Object::toString}(){() → core::String};
   iss::E<core::int> e1 = new iss::E::bar<core::int>();
   e1.{core::Object::toString}(){() → core::String};
@@ -151,9 +155,13 @@ static method main() → dynamic {
   e3.{core::Object::toString}(){() → core::String};
   iss::E<core::String> e4 = new iss::E::bar<core::String>();
   e4.{core::Object::toString}(){() → core::String};
+  const iss::F<core::int> f1 = #C3;
   #C3.{core::Object::toString}(){() → core::String};
+  const iss::F<dynamic> f2 = #C4;
   #C4.{core::Object::toString}(){() → core::String};
+  const iss::F<core::int> f3 = #C3;
   #C3.{core::Object::toString}(){() → core::String};
+  const iss::F<core::String> f4 = #C5;
   #C5.{core::Object::toString}(){() → core::String};
 }
 

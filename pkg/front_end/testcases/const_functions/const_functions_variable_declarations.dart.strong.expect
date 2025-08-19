@@ -34,6 +34,7 @@ static method function4() → core::int {
   return first.{core::num::+}(second){(core::num) → core::int};
 }
 static method function5() → core::int {
+  const core::int constant = #C6;
   return #C6;
 }
 static method function6() → core::int {

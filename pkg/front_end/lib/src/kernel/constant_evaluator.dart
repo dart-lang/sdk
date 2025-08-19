@@ -407,7 +407,10 @@ class ConstantsTransformer extends RemovingTransformer {
             makeConstantExpression(constant, initializer)..parent = node;
 
         // If this constant is inlined, remove it.
-        if (!keepLocals && shouldInline(initializer)) {
+        if (!keepLocals &&
+            // Coverage-ignore(suite): Not run.
+            shouldInline(initializer)) {
+          // Coverage-ignore-block(suite): Not run.
           if (constant is! UnevaluatedConstant) {
             // If the constant is unevaluated we need to keep the expression,
             // so that, in the case the constant contains error but the local
@@ -590,6 +593,7 @@ class ConstantsTransformer extends RemovingTransformer {
       }
     }
     if (storeIndex < node.statements.length) {
+      // Coverage-ignore-block(suite): Not run.
       node.statements.length = storeIndex;
     }
     return node;

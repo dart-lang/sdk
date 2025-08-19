@@ -22,6 +22,7 @@ library from "org-dartlang-test:///main.dart" as main {
   import "org-dartlang-test:///lib.dart";
 
   static method main() → dynamic {
+    const lib::C c = #C2;
     dart.core::print(#C2);
   }
 }

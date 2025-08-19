@@ -12,8 +12,10 @@ import 'package:path/path.dart' as path;
 
 void expect<T>(T value, T expected) {
   if (value != expected) {
+    stderr.writeln('------------------------');
     stderr.writeln('Expected: $expected');
     stderr.writeln('Actual:   $value');
+    stderr.writeln('------------------------');
     exitCode = -1;
   }
 }
@@ -36,8 +38,16 @@ void expectInstances(dynamic value, dynamic expected, Compiler compiler) {
     equality = const DeepCollectionEquality();
   }
   if (!equality.equals(value, expected)) {
-    stderr.writeln('Expected: ${jsonEncode(expected)}');
-    stderr.writeln('Actual:   ${jsonEncode(value)}');
+    JsonEncoder encoder = new JsonEncoder.withIndent("  ");
+    stderr.writeln('------------------------');
+    stderr.writeln('Expected:');
+    stderr.writeln(encoder.convert(expected));
+    stderr.writeln('');
+    stderr.writeln('Actual:');
+    stderr.writeln(encoder.convert(value));
+    stderr.writeln('');
+    stderr.writeln(StackTrace.current);
+    stderr.writeln('------------------------');
     exitCode = -1;
   }
 }
