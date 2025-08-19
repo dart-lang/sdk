@@ -1612,31 +1612,6 @@
     },
     {
       "builders": [
-        "vm-checked-mac-release-arm64"
-      ],
-      "meta": {
-        "description": "This configuration is for the VM in checked mode."
-      },
-      "steps": [
-        {
-          "name": "build dart",
-          "script": "tools/build.py",
-          "arguments": [
-            "runtime"
-          ]
-        },
-        {
-          "name": "vm tests",
-          "arguments": [
-            "-nvm-checked-${system}-${mode}-${arch}"
-          ],
-          "fileset": "vm",
-          "shards": 4
-        }
-      ]
-    },
-    {
-      "builders": [
         "vm-fuchsia-release-x64"
       ],
       "meta": {
@@ -1722,7 +1697,10 @@
         {
           "name": "vm tests",
           "arguments": [
-            "-nvm-${system}-${mode}-${arch}"
+            "-nvm-${system}-${mode}-${arch}",
+            "--default-suites",
+            "co19",
+            "pkg/pkg/vm_service/"
           ],
           "fileset": "vm",
           "shards": 6
@@ -1749,7 +1727,10 @@
         {
           "name": "vm tests",
           "arguments": [
-            "-nvm-aot-${system}-${mode}-${arch}"
+            "-nvm-aot-${system}-${mode}-${arch}",
+            "--default-suites",
+            "co19",
+            "pkg/pkg/vm_service/"
           ],
           "fileset": "vm",
           "shards": 6
