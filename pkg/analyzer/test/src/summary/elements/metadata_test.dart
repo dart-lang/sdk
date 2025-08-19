@@ -248,7 +248,7 @@ library
         #F8 synthetic a (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
           element: <testLibrary>::@getter::a
   classes
-    class C
+    hasNonFinalField class C
       reference: <testLibrary>::@class::C
       firstFragment: #F1
       fields
@@ -1765,7 +1765,7 @@ library
         #F8 synthetic a (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
           element: <testLibrary>::@getter::a
   classes
-    class C
+    hasNonFinalField class C
       reference: <testLibrary>::@class::C
       firstFragment: #F1
       fields
@@ -1869,7 +1869,7 @@ library
         #F9 synthetic a (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
           element: <testLibrary>::@getter::a
   classes
-    class C
+    hasNonFinalField class C
       reference: <testLibrary>::@class::C
       firstFragment: #F1
       fields
@@ -1985,7 +1985,7 @@ library
         #F9 synthetic a (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
           element: <testLibrary>::@getter::a
   classes
-    class C
+    hasNonFinalField class C
       reference: <testLibrary>::@class::C
       firstFragment: #F1
       fields
@@ -4481,7 +4481,7 @@ library
         #F14 synthetic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
           element: <testLibrary>::@getter::foo
   classes
-    class A
+    hasNonFinalField class A
       reference: <testLibrary>::@class::A
       firstFragment: #F1
       fields

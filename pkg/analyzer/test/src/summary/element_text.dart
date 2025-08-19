@@ -987,6 +987,7 @@ class _Element2Writer extends _AbstractElementWriter {
           _sink.writeIf(e.isInterface, 'interface ');
           _sink.writeIf(e.isFinal, 'final ');
           _writeNotSimplyBounded(e);
+          _sink.writeIf(e.hasNonFinalField, 'hasNonFinalField ');
           _sink.writeIf(e.isMixinClass, 'mixin ');
           _sink.write('class ');
           _sink.writeIf(e.isMixinApplication, 'alias ');
@@ -1009,6 +1010,7 @@ class _Element2Writer extends _AbstractElementWriter {
         case MixinElementImpl():
           _sink.writeIf(e.isBase, 'base ');
           _writeNotSimplyBounded(e);
+          _sink.writeIf(e.hasNonFinalField, 'hasNonFinalField ');
           _sink.write('mixin ');
       }
 

@@ -309,7 +309,7 @@ library
                 #F10 value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:30)
                   element: <testLibrary>::@class::A::@setter::foo::@def::1::@formalParameter::value
   classes
-    class A
+    hasNonFinalField class A
       reference: <testLibrary>::@class::A
       firstFragment: #F1
       fields
@@ -1164,7 +1164,7 @@ library
       firstFragment: #F1
       superclassConstraints
         Object
-    mixin A
+    hasNonFinalField mixin A
       reference: <testLibrary>::@mixin::A::@def::1
       firstFragment: #F2
       superclassConstraints
@@ -1192,7 +1192,7 @@ library
               type: dynamic
           returnType: void
           variable: <testLibrary>::@mixin::A::@def::1::@field::x
-    mixin A
+    hasNonFinalField mixin A
       reference: <testLibrary>::@mixin::A::@def::2
       firstFragment: #F7
       superclassConstraints

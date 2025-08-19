@@ -1777,7 +1777,7 @@ library
             #F8 S (nameOffset:12) (firstTokenOffset:12) (offset:12)
               element: #E0 S
   classes
-    class A
+    hasNonFinalField class A
       reference: <testLibrary>::@class::A
       firstFragment: #F1
       fields

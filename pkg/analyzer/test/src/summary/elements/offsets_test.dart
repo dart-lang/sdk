@@ -948,7 +948,7 @@ library
                 #F22 value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:94)
                   element: <testLibrary>::@class::C::@setter::multiWithInit2::@formalParameter::value
   classes
-    class C
+    hasNonFinalField class C
       reference: <testLibrary>::@class::C
       firstFragment: #F1
       fields
@@ -1195,7 +1195,7 @@ library
                 #F42 value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:409)
                   element: <testLibrary>::@class::C::@setter::commentAroundAnnotation2::@formalParameter::value
   classes
-    class C
+    hasNonFinalField class C
       reference: <testLibrary>::@class::C
       firstFragment: #F1
       fields
@@ -2765,7 +2765,7 @@ library
                 #F6 value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
                   element: <testLibrary>::@class::A::@setter::foo::@formalParameter::value
   classes
-    class A
+    hasNonFinalField class A
       reference: <testLibrary>::@class::A
       firstFragment: #F1
       fields
