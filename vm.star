@@ -449,6 +449,14 @@ _nightly_builder(
     channels = ["try"],
     location_filters = paths.to_location_filters(paths.dart2bytecode),
 )
+_nightly_builder(
+    "vm-dyn-mac-debug-arm64",
+    category = "vm|misc|dyn|ja",
+    channels = ["try"],
+    dimensions = [mac, arm64],
+    properties = [no_android, slow_shards],
+    location_filters = paths.to_location_filters(paths.dart2bytecode),
+)
 
 # vm|ffi
 _vm_builder(
