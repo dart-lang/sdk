@@ -75,6 +75,8 @@ To learn more about the feature, check out the
 - `JSArray.add` is added to avoid cases where during migration from `List` to
   `JSArray`, `JSAnyOperatorExtension.add` is accidentally used. See [#59830][]
   for more details.
+- `isA<JSBoxedDartObject>` now checks that the value was the result of a
+  `toJSBox` operation instead of returning true for all objects.
 
 [#59830]: https://github.com/dart-lang/sdk/issues/59830
 

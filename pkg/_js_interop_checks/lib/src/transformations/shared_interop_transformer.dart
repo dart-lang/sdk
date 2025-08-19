@@ -41,6 +41,7 @@ class SharedInteropTransformer extends Transformer {
   late StaticInvocation? _invocation;
   final Procedure _isA;
   final Procedure _isATearoff;
+  final Procedure _isJSBoxedDartObject;
   final ExtensionTypeDeclaration _jsAny;
   final ExtensionTypeDeclaration _jsFunction;
   final ExtensionTypeDeclaration _jsObject;
@@ -100,6 +101,8 @@ class SharedInteropTransformer extends Transformer {
         'dart:js_interop',
         'JSAnyUtilityExtension|${LibraryIndex.tearoffPrefix}isA',
       ),
+      _isJSBoxedDartObject = _typeEnvironment.coreTypes.index
+          .getTopLevelProcedure('dart:js_interop', '_isJSBoxedDartObject'),
       _jsAny = _typeEnvironment.coreTypes.index.getExtensionType(
         'dart:js_interop',
         'JSAny',
@@ -549,20 +552,30 @@ class SharedInteropTransformer extends Transformer {
         typeofString = 'symbol';
         break;
       case 'JSTypedArray' when interopTypeDecl == jsType:
-        // Only do this special case when users are referring directly to
-        // the `dart:js_interop` type and not some wrapper.
+        // Only do this special case when users are referring directly to the
+        // `dart:js_interop` type and not some wrapper.
 
         // `TypedArray` doesn't exist as a property in JS, but rather as a
         // superclass of all typed arrays. In order to do the most sensible
-        // thing here, we can use the prototype of some typed array, and
-        // check that the receiver is an `instanceof` that prototype.
-        // See https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/TypedArray#description
+        // thing here, we can use the prototype of some typed array, and check
+        // that the receiver is an `instanceof` that prototype. See
+        // https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/TypedArray#description
         // for more details.
         check = StaticInvocation(
           _instanceof,
           Arguments([VariableGet(any), getInt8ArrayPrototype()]),
         );
         break;
+      case 'JSBoxedDartObject' when interopTypeDecl == jsType:
+        // Only do this special case when users are referring directly to the
+        // `dart:js_interop` type and not some wrapper.
+
+        // Check whether the given value is the result of a previous call to
+        // `toJSBox`.
+        check = StaticInvocation(
+          _isJSBoxedDartObject,
+          Arguments([VariableGet(any)]),
+        );
       default:
         for (final descriptor in interopTypeDecl.memberDescriptors) {
           final descriptorNode = descriptor.memberReference!.node;

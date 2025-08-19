@@ -119,17 +119,26 @@ extension FunctionToJSExportedDartFunction on Function {
 final WasmExternRef? _jsBoxedDartObjectPropertyExternRef = js_helper
     .JS<WasmExternRef?>('() => Symbol("jsBoxedDartObjectProperty")');
 
+// Returns the value of the property we embed in every `JSBoxedDartObject` in
+// `any`.
+WasmExternRef? _getJSBoxedDartObjectPropertyValue(JSAny any) =>
+    js_helper.JS<WasmExternRef?>(
+      '(o,s) => o[s]',
+      any.toExternRef,
+      _jsBoxedDartObjectPropertyExternRef,
+    );
+
+// Used in the `isA` transform.
+bool _isJSBoxedDartObject(JSAny any) =>
+    !isDartNull(_getJSBoxedDartObjectPropertyValue(any));
+
 // -----------------------------------------------------------------------------
 // JSBoxedDartObject <-> Object
 @patch
 extension JSBoxedDartObjectToObject on JSBoxedDartObject {
   @patch
   Object get toDart {
-    final val = js_helper.JS<WasmExternRef?>(
-      '(o,s) => o[s]',
-      this.toExternRef,
-      _jsBoxedDartObjectPropertyExternRef,
-    );
+    final val = _getJSBoxedDartObjectPropertyValue(this);
     if (isDartNull(val)) {
       throw 'Expected a wrapped Dart object, but got a JS object or a wrapped '
           'Dart object from a separate runtime instead.';
