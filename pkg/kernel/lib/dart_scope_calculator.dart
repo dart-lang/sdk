@@ -12,12 +12,20 @@ class DartScope {
   final Class? cls;
   final Member? member;
   final bool isStatic;
-  final Map<String, DartType> definitions;
+  final Map<String, VariableDeclaration> variables;
   final List<TypeParameter> typeParameters;
 
-  DartScope(this.library, this.cls, this.member, this.definitions,
-      this.typeParameters)
+  DartScope(
+      this.library, this.cls, this.member, this.variables, this.typeParameters)
       : isStatic = member is Procedure ? member.isStatic : false;
+
+  Map<String, DartType> variablesAsMapToType() {
+    Map<String, DartType> result = {};
+    for (MapEntry<String, VariableDeclaration> entry in variables.entries) {
+      result[entry.key] = entry.value.type;
+    }
+    return result;
+  }
 
   @override
   String toString() {
@@ -26,7 +34,7 @@ class DartScope {
       Class: ${cls?.name},
       Procedure: $member,
       isStatic: $isStatic,
-      Scope: $definitions,
+      Scope: $variables,
       typeParameters: $typeParameters
     }
     ''';
@@ -42,10 +50,10 @@ class DartScope2 {
   final Class? cls;
   final Member? member;
   final bool isStatic;
-  final Map<String, VariableDeclaration> definitions;
+  final Map<String, VariableDeclaration> variables;
   final List<TypeParameter> typeParameters;
 
-  DartScope2(this.node, this.library, this.cls, this.member, this.definitions,
+  DartScope2(this.node, this.library, this.cls, this.member, this.variables,
       this.typeParameters)
       : isStatic = member is Procedure ? member.isStatic : false;
 
@@ -56,7 +64,7 @@ class DartScope2 {
       Class: ${cls?.name},
       Procedure: $member,
       isStatic: $isStatic,
-      Scope: $definitions,
+      Scope: $variables,
       typeParameters: $typeParameters
     }
     ''';
@@ -83,7 +91,7 @@ class DartScopeBuilder extends VisitorDefault<void> with VisitorVoidMixin {
   int _offset = -1;
 
   final List<FunctionNode> _functions = [];
-  final Map<String, DartType> _definitions = {};
+  final Map<String, VariableDeclaration> _variables = {};
   final List<TypeParameter> _typeParameters = [];
 
   DartScopeBuilder._(this._component, this._line, this._column);
@@ -98,7 +106,7 @@ class DartScopeBuilder extends VisitorDefault<void> with VisitorVoidMixin {
   DartScope? build() {
     if (_offset < 0 || _library == null) return null;
 
-    return DartScope(_library!, _cls, _member, _definitions, _typeParameters);
+    return DartScope(_library!, _cls, _member, _variables, _typeParameters);
   }
 
   @override
@@ -163,7 +171,7 @@ class DartScopeBuilder extends VisitorDefault<void> with VisitorVoidMixin {
     if ((decl.fileOffset < 0 || decl.fileOffset < _offset) &&
         !decl.isWildcard &&
         name != null) {
-      _definitions[name] = decl.type;
+      _variables[name] = decl;
     }
     super.visitVariableDeclaration(decl);
   }
@@ -600,13 +608,8 @@ class DartScopeBuilder2 extends VisitorDefault<void> with VisitorVoidMixin {
       }
     }
 
-    Map<String, DartType> definitions = {};
-    for (MapEntry<String, VariableDeclaration> entry
-        in scope.definitions.entries) {
-      definitions[entry.key] = entry.value.type;
-    }
-    return new DartScope(scope.library, scope.cls, scope.member, definitions,
-        scope.typeParameters);
+    return new DartScope(scope.library, scope.cls, scope.member,
+        scope.variables, scope.typeParameters);
   }
 
   static DartScope findScopeFromOffset(
@@ -685,13 +688,13 @@ class DartScopeBuilder2 extends VisitorDefault<void> with VisitorVoidMixin {
 
   static bool _allHaveTheSameDefinitions(List<DartScope2> scopes) {
     if (scopes.isEmpty) return false;
-    Map<String, VariableDeclaration> definitions = scopes.first.definitions;
+    Map<String, VariableDeclaration> variables = scopes.first.variables;
     for (int i = 1; i < scopes.length; i++) {
       DartScope2 scope = scopes[i];
-      if (scope.definitions.length != definitions.length) return false;
+      if (scope.variables.length != variables.length) return false;
       for (MapEntry<String, VariableDeclaration> entry
-          in scope.definitions.entries) {
-        VariableDeclaration? existing = definitions[entry.key];
+          in scope.variables.entries) {
+        VariableDeclaration? existing = variables[entry.key];
         if (existing == null) {
           return false;
         } else {

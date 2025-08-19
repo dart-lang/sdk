@@ -19,6 +19,8 @@ import 'package:_fe_analyzer_shared/src/scanner/scanner.dart'
         ScannerResult,
         Token,
         scan;
+import 'package:front_end/src/kernel/internal_ast.dart'
+    show VariableDeclarationImpl;
 import 'package:kernel/ast.dart';
 import 'package:kernel/class_hierarchy.dart' show ClassHierarchy;
 import 'package:kernel/core_types.dart' show CoreTypes;
@@ -1246,7 +1248,8 @@ severity: $severity
       String? enclosingClassOrExtension,
       bool isClassInstanceMember,
       Procedure procedure,
-      VariableDeclaration? extensionThis) async {
+      VariableDeclaration? extensionThis,
+      List<VariableDeclarationImpl> extraKnownVariables) async {
     // TODO(johnniwinther): Support expression compilation in a specific
     //  compilation unit.
     LookupScope memberScope =
@@ -1311,7 +1314,8 @@ severity: $severity
             enableFeatureEnhancedParts:
                 libraryBuilder.libraryFeatures.enhancedParts.isEnabled),
         token,
-        procedure.function);
+        procedure.function,
+        extraKnownVariables);
   }
 
   DietListener createDietListener(SourceLibraryBuilder library,

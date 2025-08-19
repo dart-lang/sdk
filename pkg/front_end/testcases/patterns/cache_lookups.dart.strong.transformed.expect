@@ -19,10 +19,13 @@ static method test(dynamic o) → dynamic {
   #L1:
   {
     final synthesized dynamic #0#0 = o;
+    final const synthesized core::int #0#3 = #C1;
     synthesized core::int #0#2;
     synthesized core::bool #0#2#isSet = false;
+    final const synthesized core::int #0#5 = #C2;
     synthesized core::bool #0#10;
     synthesized core::bool #0#10#isSet = false;
+    final const synthesized core::int #0#9 = #C3;
     synthesized dynamic #0#12;
     synthesized core::bool #0#12#isSet = false;
     synthesized dynamic #0#13;

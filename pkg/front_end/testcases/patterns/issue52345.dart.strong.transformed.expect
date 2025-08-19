@@ -15,8 +15,10 @@ static method main() → void {
           final synthesized core::List<core::String> #0#0 = test;
           synthesized core::int #0#1;
           synthesized core::bool #0#1#isSet = false;
+          final const synthesized core::int #0#2 = #C1;
           synthesized core::String #0#4;
           synthesized core::bool #0#4#isSet = false;
+          final const synthesized core::int #0#7 = #C2;
           #L1:
           {
             {

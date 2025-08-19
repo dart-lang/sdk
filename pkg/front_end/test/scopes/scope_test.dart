@@ -85,7 +85,7 @@ class ScopeDataExtractor extends CfeDataExtractor<Features> {
           printer.writeTypeParameterName(typeParameter);
           features.addElement(Tags.typeParameter, printer.getText());
         }
-        for (String variable in scope.definitions.keys) {
+        for (String variable in scope.variables.keys) {
           features.addElement(Tags.variables, variable);
         }
         return features;

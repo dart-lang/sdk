@@ -16,9 +16,12 @@ import self as self;
 import "dart:core" as core;
 
 static method method1(core::int i) → dynamic {
+  const dynamic d = #C1;
+  const dynamic s = #C2;
   return block {
     core::int #t1;
     final synthesized core::int #0#0 = i;
+    final const synthesized dynamic #0#1 = #C1;
     final const synthesized dynamic #0#3 = invalid-expression "Expected constant '\"\"' to be of type 'num', but was of type 'String'.";
     #L1:
     {
@@ -44,9 +47,13 @@ static method method1(core::int i) → dynamic {
   } =>#t1;
 }
 static method method2(core::int i) → dynamic {
+  const dynamic d = #C1;
+  const dynamic p = #C3;
   return block {
     core::int #t2;
     final synthesized core::int #0#0 = i;
+    final const synthesized dynamic #0#1 = #C1;
+    final const synthesized dynamic #0#3 = #C3;
     #L2:
     {
       {
@@ -56,7 +63,7 @@ static method method2(core::int i) → dynamic {
         }
       }
       {
-        if(#0#0.{core::num::>}(#C2 as core::num){(core::num) → core::bool}) {
+        if(#0#0.{core::num::>}(#C3 as core::num){(core::num) → core::bool}) {
           #t2 = 1;
           break #L2;
         }
@@ -73,7 +80,8 @@ static method method2(core::int i) → dynamic {
 
 constants  {
   #C1 = 0
-  #C2 = 3.14
+  #C2 = ""
+  #C3 = 3.14
 }
 
 Extra constant evaluation status:

@@ -69,7 +69,7 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   /// Returns `true` if the [type] is assignable to [Type].
   bool _isAssignableToType(DartType? type) {
-    if (type == null) return false;
+    if (type == null || type is DynamicType) return false;
     return context.typeSystem.isAssignableTo(type, _typeType);
   }
 

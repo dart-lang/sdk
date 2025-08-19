@@ -13,6 +13,10 @@ static method id<X extends core::Object? = dynamic>(self::id::X% x) → self::id
 static method other<X extends core::Object? = dynamic>(self::other::X% x) → self::other::X%
   return throw "${x}";
 static method main() → void {
+  const (core::int) → core::int c1 = #C3;
+  const <X extends core::Object? = dynamic>(X%) → X% c2 = #C1;
+  const (core::int) → core::int c3 = #C3;
+  const self::A c4 = #C4;
   core::print("${#C3}, ${#C1}, ${#C3}, ${#C4}");
 }
 

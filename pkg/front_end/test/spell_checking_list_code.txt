@@ -428,6 +428,7 @@ debuggable
 debugger
 dec
 decl
+deconstruct
 decoupled
 decreases
 dedupe
@@ -528,6 +529,7 @@ doc
 docs
 doesn\'t
 dom
+domain
 dominator
 dont
 doubles
@@ -875,6 +877,7 @@ indentations
 independently
 indexer
 indexing
+indicator
 indirection
 individual
 individually
@@ -1190,6 +1193,7 @@ nonzero
 noretcomp
 norm
 normalization
+normative
 notifier
 notify
 notifying
@@ -1460,6 +1464,7 @@ react
 realign
 realise
 reanalyze
+reapplied
 reapplies
 reapply
 reapplying
@@ -1555,6 +1560,7 @@ replaces
 replicated
 repo
 repositories
+reproduce
 reproduces
 repurpose
 repurposed
@@ -1892,6 +1898,7 @@ temp
 temporaries
 temps
 tempting
+tentative
 term
 termcap
 terminator
@@ -1939,6 +1946,7 @@ tokenize
 tokenized
 tokenizer
 tokenizing
+told
 tolerant
 tolerate
 tolerated
@@ -2113,6 +2121,7 @@ verbatim
 verbosity
 versa
 versus
+vi
 viable
 vice
 video

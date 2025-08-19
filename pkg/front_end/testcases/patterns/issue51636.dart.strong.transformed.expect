@@ -17,6 +17,8 @@ int f<A>() => switch (unknownName) {
                       ^^^^^^^^^^^";
     synthesized core::int #0#2;
     synthesized core::bool #0#2#isSet = false;
+    final const synthesized core::int #0#3 = #C1;
+    final const synthesized core::int #0#6 = #C2;
     #L1:
     {
       {

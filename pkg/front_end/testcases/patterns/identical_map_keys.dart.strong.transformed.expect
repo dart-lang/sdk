@@ -208,18 +208,23 @@ static method test1(core::Map<dynamic, dynamic> map) → core::String {
     final synthesized core::Map<dynamic, dynamic> #0#0 = map;
     synthesized dynamic #0#3;
     synthesized core::bool #0#3#isSet = false;
+    final const synthesized self::C #0#1 = #C1;
     synthesized core::bool #0#2;
     synthesized core::bool #0#2#isSet = false;
+    final const synthesized core::int #0#4 = #C2;
+    final const synthesized core::int #0#6 = #C3;
     synthesized dynamic #0#9;
     synthesized core::bool #0#9#isSet = false;
     synthesized core::bool #0#8;
     synthesized core::bool #0#8#isSet = false;
     synthesized dynamic #0#14;
     synthesized core::bool #0#14#isSet = false;
+    final const synthesized core::double #0#12 = #C4;
     synthesized core::bool #0#13;
     synthesized core::bool #0#13#isSet = false;
     synthesized dynamic #0#17;
     synthesized core::bool #0#17#isSet = false;
+    final const synthesized core::String #0#15 = #C5;
     synthesized core::bool #0#16;
     synthesized core::bool #0#16#isSet = false;
     #L1:
@@ -278,18 +283,23 @@ static method test2(core::Map<dynamic, dynamic> map) → void {
     final synthesized core::Map<dynamic, dynamic> #0#0 = map;
     synthesized dynamic #0#3;
     synthesized core::bool #0#3#isSet = false;
+    final const synthesized self::C #0#1 = #C1;
     synthesized core::bool #0#2;
     synthesized core::bool #0#2#isSet = false;
+    final const synthesized core::int #0#4 = #C2;
+    final const synthesized core::int #0#6 = #C3;
     synthesized dynamic #0#9;
     synthesized core::bool #0#9#isSet = false;
     synthesized core::bool #0#8;
     synthesized core::bool #0#8#isSet = false;
     synthesized dynamic #0#14;
     synthesized core::bool #0#14#isSet = false;
+    final const synthesized core::double #0#12 = #C4;
     synthesized core::bool #0#13;
     synthesized core::bool #0#13#isSet = false;
     synthesized dynamic #0#17;
     synthesized core::bool #0#17#isSet = false;
+    final const synthesized core::String #0#15 = #C5;
     synthesized core::bool #0#16;
     synthesized core::bool #0#16#isSet = false;
     {
@@ -333,8 +343,11 @@ static method test3(core::Map<dynamic, dynamic> map) → void {
     final synthesized core::Map<dynamic, dynamic> #0#0 = map;
     synthesized dynamic #0#3;
     synthesized core::bool #0#3#isSet = false;
+    final const synthesized self::C #0#1 = #C1;
     synthesized core::bool #0#2;
     synthesized core::bool #0#2#isSet = false;
+    final const synthesized core::int #0#4 = #C2;
+    final const synthesized core::int #0#6 = #C3;
     if((!((#0#3#isSet ?{dynamic} #0#3 : let final dynamic #t71 = #0#3#isSet = true in #0#3 = #0#0.{core::Map::[]}(#C1){(core::Object?) → dynamic}) == null) || null is dynamic && (#0#2#isSet ?{core::bool} #0#2 : let final dynamic #t72 = #0#2#isSet = true in #0#2 = #0#0.{core::Map::containsKey}(#C1){(core::Object?) → core::bool})) && #C2 =={core::num::==}{(core::Object) → core::bool} (#0#3#isSet ?{dynamic} #0#3 : let final dynamic #t73 = #0#3#isSet = true in #0#3 = #0#0.{core::Map::[]}(#C1){(core::Object?) → dynamic}) && (!((#0#3#isSet ?{dynamic} #0#3 : let final dynamic #t74 = #0#3#isSet = true in #0#3 = #0#0.{core::Map::[]}(#C1){(core::Object?) → dynamic}) == null) || null is dynamic && (#0#2#isSet ?{core::bool} #0#2 : let final dynamic #t75 = #0#2#isSet = true in #0#2 = #0#0.{core::Map::containsKey}(#C1){(core::Object?) → core::bool})) && #C3 =={core::num::==}{(core::Object) → core::bool} (#0#3#isSet ?{dynamic} #0#3 : let final dynamic #t76 = #0#3#isSet = true in #0#3 = #0#0.{core::Map::[]}(#C1){(core::Object?) → dynamic})) {
     }
   }
@@ -342,8 +355,10 @@ static method test3(core::Map<dynamic, dynamic> map) → void {
     final synthesized core::Map<dynamic, dynamic> #1#0 = map;
     synthesized dynamic #1#3;
     synthesized core::bool #1#3#isSet = false;
+    final const synthesized core::int #1#1 = #C2;
     synthesized core::bool #1#2;
     synthesized core::bool #1#2#isSet = false;
+    final const synthesized core::int #1#5 = #C3;
     if((!((#1#3#isSet ?{dynamic} #1#3 : let final dynamic #t77 = #1#3#isSet = true in #1#3 = #1#0.{core::Map::[]}(#C2){(core::Object?) → dynamic}) == null) || null is dynamic && (#1#2#isSet ?{core::bool} #1#2 : let final dynamic #t78 = #1#2#isSet = true in #1#2 = #1#0.{core::Map::containsKey}(#C2){(core::Object?) → core::bool})) && #C2 =={core::num::==}{(core::Object) → core::bool} (#1#3#isSet ?{dynamic} #1#3 : let final dynamic #t79 = #1#3#isSet = true in #1#3 = #1#0.{core::Map::[]}(#C2){(core::Object?) → dynamic}) && (!((#1#3#isSet ?{dynamic} #1#3 : let final dynamic #t80 = #1#3#isSet = true in #1#3 = #1#0.{core::Map::[]}(#C2){(core::Object?) → dynamic}) == null) || null is dynamic && (#1#2#isSet ?{core::bool} #1#2 : let final dynamic #t81 = #1#2#isSet = true in #1#2 = #1#0.{core::Map::containsKey}(#C2){(core::Object?) → core::bool})) && #C3 =={core::num::==}{(core::Object) → core::bool} (#1#3#isSet ?{dynamic} #1#3 : let final dynamic #t82 = #1#3#isSet = true in #1#3 = #1#0.{core::Map::[]}(#C2){(core::Object?) → dynamic})) {
     }
   }
@@ -351,6 +366,7 @@ static method test3(core::Map<dynamic, dynamic> map) → void {
     final synthesized core::Map<dynamic, dynamic> #2#0 = map;
     synthesized dynamic #2#3;
     synthesized core::bool #2#3#isSet = false;
+    final const synthesized self::C #2#1 = #C1;
     synthesized core::bool #2#2;
     synthesized core::bool #2#2#isSet = false;
     {
@@ -366,6 +382,7 @@ static method test3(core::Map<dynamic, dynamic> map) → void {
     final synthesized core::Map<dynamic, dynamic> #3#0 = map;
     synthesized dynamic #3#3;
     synthesized core::bool #3#3#isSet = false;
+    final const synthesized core::double #3#1 = #C4;
     synthesized core::bool #3#2;
     synthesized core::bool #3#2#isSet = false;
     {
@@ -381,6 +398,7 @@ static method test3(core::Map<dynamic, dynamic> map) → void {
     final synthesized core::Map<dynamic, dynamic> #4#0 = map;
     synthesized dynamic #4#3;
     synthesized core::bool #4#3#isSet = false;
+    final const synthesized core::String #4#1 = #C5;
     synthesized core::bool #4#2;
     synthesized core::bool #4#2#isSet = false;
     {
@@ -400,6 +418,7 @@ static method test() → dynamic {
     final synthesized core::Map<self::C, core::int> #0#0 = <self::C, core::int>{#C1: 1};
     synthesized core::int? #0#3;
     synthesized core::bool #0#3#isSet = false;
+    final const synthesized self::C #0#1 = #C1;
     synthesized core::bool #0#2;
     synthesized core::bool #0#2#isSet = false;
     if(!((!((#0#3#isSet ?{core::int?} #0#3 : let final dynamic #t104 = #0#3#isSet = true in #0#3 = #0#0.{core::Map::[]}(#C1){(core::Object?) → core::int?}) == null) || null is core::int && (#0#2#isSet ?{core::bool} #0#2 : let final dynamic #t105 = #0#2#isSet = true in #0#2 = #0#0.{core::Map::containsKey}(#C1){(core::Object?) → core::bool})) && (let final dynamic #t106 = a = let core::int? #t107 = #0#3#isSet ?{core::int?} #0#3 : let final dynamic #t108 = #0#3#isSet = true in #0#3 = #0#0.{core::Map::[]}(#C1){(core::Object?) → core::int?} in #t107 == null ?{core::int} #t107 as{Unchecked} core::int : #t107{core::int} in true) && (!((#0#3#isSet ?{core::int?} #0#3 : let final dynamic #t109 = #0#3#isSet = true in #0#3 = #0#0.{core::Map::[]}(#C1){(core::Object?) → core::int?}) == null) || null is core::int && (#0#2#isSet ?{core::bool} #0#2 : let final dynamic #t110 = #0#2#isSet = true in #0#2 = #0#0.{core::Map::containsKey}(#C1){(core::Object?) → core::bool})) && (let final dynamic #t111 = b = let core::int? #t112 = #0#3#isSet ?{core::int?} #0#3 : let final dynamic #t113 = #0#3#isSet = true in #0#3 = #0#0.{core::Map::[]}(#C1){(core::Object?) → core::int?} in #t112 == null ?{core::int} #t112 as{Unchecked} core::int : #t112{core::int} in true)))
@@ -411,6 +430,7 @@ static method test() → dynamic {
     final synthesized core::Map<core::int, core::int> #1#0 = <core::int, core::int>{1: 2};
     synthesized core::int? #1#3;
     synthesized core::bool #1#3#isSet = false;
+    final const synthesized core::int #1#1 = #C2;
     synthesized core::bool #1#2;
     synthesized core::bool #1#2#isSet = false;
     if(!((!((#1#3#isSet ?{core::int?} #1#3 : let final dynamic #t114 = #1#3#isSet = true in #1#3 = #1#0.{core::Map::[]}(#C2){(core::Object?) → core::int?}) == null) || null is core::int && (#1#2#isSet ?{core::bool} #1#2 : let final dynamic #t115 = #1#2#isSet = true in #1#2 = #1#0.{core::Map::containsKey}(#C2){(core::Object?) → core::bool})) && (let final dynamic #t116 = c = let core::int? #t117 = #1#3#isSet ?{core::int?} #1#3 : let final dynamic #t118 = #1#3#isSet = true in #1#3 = #1#0.{core::Map::[]}(#C2){(core::Object?) → core::int?} in #t117 == null ?{core::int} #t117 as{Unchecked} core::int : #t117{core::int} in true) && (!((#1#3#isSet ?{core::int?} #1#3 : let final dynamic #t119 = #1#3#isSet = true in #1#3 = #1#0.{core::Map::[]}(#C2){(core::Object?) → core::int?}) == null) || null is core::int && (#1#2#isSet ?{core::bool} #1#2 : let final dynamic #t120 = #1#2#isSet = true in #1#2 = #1#0.{core::Map::containsKey}(#C2){(core::Object?) → core::bool})) && (let final dynamic #t121 = d = let core::int? #t122 = #1#3#isSet ?{core::int?} #1#3 : let final dynamic #t123 = #1#3#isSet = true in #1#3 = #1#0.{core::Map::[]}(#C2){(core::Object?) → core::int?} in #t122 == null ?{core::int} #t122 as{Unchecked} core::int : #t122{core::int} in true)))
@@ -422,6 +442,7 @@ static method test() → dynamic {
     final synthesized core::Map<self::C, core::int> #2#0 = <self::C, core::int>{#C1: 2};
     synthesized core::int? #2#3;
     synthesized core::bool #2#3#isSet = false;
+    final const synthesized self::C #2#1 = #C1;
     synthesized core::bool #2#2;
     synthesized core::bool #2#2#isSet = false;
     if(!((!((#2#3#isSet ?{core::int?} #2#3 : let final dynamic #t124 = #2#3#isSet = true in #2#3 = #2#0.{core::Map::[]}(#C1){(core::Object?) → core::int?}) == null) || null is core::int && (#2#2#isSet ?{core::bool} #2#2 : let final dynamic #t125 = #2#2#isSet = true in #2#2 = #2#0.{core::Map::containsKey}(#C1){(core::Object?) → core::bool})) && (let final dynamic #t126 = a1 = let core::int? #t127 = #2#3#isSet ?{core::int?} #2#3 : let final dynamic #t128 = #2#3#isSet = true in #2#3 = #2#0.{core::Map::[]}(#C1){(core::Object?) → core::int?} in #t127 == null ?{core::int} #t127 as{Unchecked} core::int : #t127{core::int} in true) && (!((#2#3#isSet ?{core::int?} #2#3 : let final dynamic #t129 = #2#3#isSet = true in #2#3 = #2#0.{core::Map::[]}(#C1){(core::Object?) → core::int?}) == null) || null is core::int && (#2#2#isSet ?{core::bool} #2#2 : let final dynamic #t130 = #2#2#isSet = true in #2#2 = #2#0.{core::Map::containsKey}(#C1){(core::Object?) → core::bool})) && (let final dynamic #t131 = b1 = let core::int? #t132 = #2#3#isSet ?{core::int?} #2#3 : let final dynamic #t133 = #2#3#isSet = true in #2#3 = #2#0.{core::Map::[]}(#C1){(core::Object?) → core::int?} in #t132 == null ?{core::int} #t132 as{Unchecked} core::int : #t132{core::int} in true)))
@@ -433,6 +454,7 @@ static method test() → dynamic {
     final synthesized core::Map<core::double, core::int> #3#0 = <core::double, core::int>{3.14: 1};
     synthesized core::int? #3#3;
     synthesized core::bool #3#3#isSet = false;
+    final const synthesized core::double #3#1 = #C4;
     synthesized core::bool #3#2;
     synthesized core::bool #3#2#isSet = false;
     if(!((!((#3#3#isSet ?{core::int?} #3#3 : let final dynamic #t134 = #3#3#isSet = true in #3#3 = #3#0.{core::Map::[]}(#C4){(core::Object?) → core::int?}) == null) || null is core::int && (#3#2#isSet ?{core::bool} #3#2 : let final dynamic #t135 = #3#2#isSet = true in #3#2 = #3#0.{core::Map::containsKey}(#C4){(core::Object?) → core::bool})) && (let final dynamic #t136 = a2 = let core::int? #t137 = #3#3#isSet ?{core::int?} #3#3 : let final dynamic #t138 = #3#3#isSet = true in #3#3 = #3#0.{core::Map::[]}(#C4){(core::Object?) → core::int?} in #t137 == null ?{core::int} #t137 as{Unchecked} core::int : #t137{core::int} in true) && (!((#3#3#isSet ?{core::int?} #3#3 : let final dynamic #t139 = #3#3#isSet = true in #3#3 = #3#0.{core::Map::[]}(#C4){(core::Object?) → core::int?}) == null) || null is core::int && (#3#2#isSet ?{core::bool} #3#2 : let final dynamic #t140 = #3#2#isSet = true in #3#2 = #3#0.{core::Map::containsKey}(#C4){(core::Object?) → core::bool})) && (let final dynamic #t141 = b2 = let core::int? #t142 = #3#3#isSet ?{core::int?} #3#3 : let final dynamic #t143 = #3#3#isSet = true in #3#3 = #3#0.{core::Map::[]}(#C4){(core::Object?) → core::int?} in #t142 == null ?{core::int} #t142 as{Unchecked} core::int : #t142{core::int} in true)))
@@ -444,6 +466,7 @@ static method test() → dynamic {
     final synthesized core::Map<core::String, core::int> #4#0 = <core::String, core::int>{"x": 1};
     synthesized core::int? #4#3;
     synthesized core::bool #4#3#isSet = false;
+    final const synthesized core::String #4#1 = #C5;
     synthesized core::bool #4#2;
     synthesized core::bool #4#2#isSet = false;
     if(!((!((#4#3#isSet ?{core::int?} #4#3 : let final dynamic #t144 = #4#3#isSet = true in #4#3 = #4#0.{core::Map::[]}(#C5){(core::Object?) → core::int?}) == null) || null is core::int && (#4#2#isSet ?{core::bool} #4#2 : let final dynamic #t145 = #4#2#isSet = true in #4#2 = #4#0.{core::Map::containsKey}(#C5){(core::Object?) → core::bool})) && (let final dynamic #t146 = a3 = let core::int? #t147 = #4#3#isSet ?{core::int?} #4#3 : let final dynamic #t148 = #4#3#isSet = true in #4#3 = #4#0.{core::Map::[]}(#C5){(core::Object?) → core::int?} in #t147 == null ?{core::int} #t147 as{Unchecked} core::int : #t147{core::int} in true) && (!((#4#3#isSet ?{core::int?} #4#3 : let final dynamic #t149 = #4#3#isSet = true in #4#3 = #4#0.{core::Map::[]}(#C5){(core::Object?) → core::int?}) == null) || null is core::int && (#4#2#isSet ?{core::bool} #4#2 : let final dynamic #t150 = #4#2#isSet = true in #4#2 = #4#0.{core::Map::containsKey}(#C5){(core::Object?) → core::bool})) && (let final dynamic #t151 = b3 = let core::int? #t152 = #4#3#isSet ?{core::int?} #4#3 : let final dynamic #t153 = #4#3#isSet = true in #4#3 = #4#0.{core::Map::[]}(#C5){(core::Object?) → core::int?} in #t152 == null ?{core::int} #t152 as{Unchecked} core::int : #t152{core::int} in true)))

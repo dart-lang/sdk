@@ -28,6 +28,7 @@ static method test(core::Map<dynamic, dynamic> map) → core::String {
     final synthesized core::Map<dynamic, dynamic> #0#0 = map;
     synthesized dynamic #0#3;
     synthesized core::bool #0#3#isSet = false;
+    final const synthesized core::int #0#1 = #C1;
     #L1:
     {
       {

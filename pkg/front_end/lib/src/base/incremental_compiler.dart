@@ -26,6 +26,7 @@ import 'package:kernel/kernel.dart'
     show
         Class,
         Component,
+        ConstantExpression,
         DartType,
         DynamicType,
         Expression,
@@ -1644,6 +1645,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
         return null;
       }
       LibraryBuilder libraryBuilder = compilationUnit.libraryBuilder;
+      List<VariableDeclarationImpl> extraKnownVariables = [];
       if (scriptUri != null && offset != TreeNode.noOffset) {
         Uri? scriptUriAsUri = Uri.tryParse(scriptUri);
         if (scriptUriAsUri != null) {
@@ -1667,19 +1669,35 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
           }
           DartScope foundScope = DartScopeBuilder2.findScopeFromOffsetAndClass(
               library, scriptUriAsUri, cls, offset);
+          final bool alwaysInlineConstants = lastGoodKernelTarget
+              .backendTarget.constantsBackend.alwaysInlineConstants;
           // For now, if any definition is (or contains) an Extension Type,
           // we'll overwrite the given (runtime?) definitions so we know about
           // the extension type. If any definition is said to be dynamic we'll
           // overwrite as well because that mostly means that the value is
           // currently null. This can also mean that the VM can't send over the
           // information - this for instance happens for function types.
-          for (MapEntry<String, DartType> def
-              in foundScope.definitions.entries) {
+          for (MapEntry<String, VariableDeclaration> def
+              in foundScope.variables.entries) {
             DartType? existingType = usedDefinitions[def.key];
-            if (existingType == null) continue;
-            if (existingType is DynamicType ||
-                _ExtensionTypeFinder.isOrContainsExtensionType(def.value)) {
-              usedDefinitions[def.key] = def.value;
+            if (existingType == null) {
+              // We found a variable, but we weren't told about it.
+              // For now we'll only do something special if it's a const
+              // variable that will be inlined.
+              if (alwaysInlineConstants &&
+                  def.value.isConst &&
+                  def.value.initializer is ConstantExpression) {
+                extraKnownVariables.add(new VariableDeclarationImpl(def.key,
+                    type: def.value.type,
+                    isConst: true,
+                    hasDeclaredInitializer: true,
+                    initializer: def.value.initializer)
+                  ..fileOffset = def.value.fileOffset);
+              }
+            } else if (existingType is DynamicType ||
+                _ExtensionTypeFinder.isOrContainsExtensionType(
+                    def.value.type)) {
+              usedDefinitions[def.key] = def.value.type;
             }
           }
         }
@@ -1920,7 +1938,8 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
               className ?? extensionName,
               (className != null && !isStatic) || extensionThis != null,
               procedure,
-              extensionThis);
+              extensionThis,
+              extraKnownVariables);
 
       parameters.body = new ReturnStatement(compiledExpression)
         ..parent = parameters;

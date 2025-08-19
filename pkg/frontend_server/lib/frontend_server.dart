@@ -614,11 +614,13 @@ class FrontendCompiler implements CompilerInterface {
 
     // Initialize additional supported kernel targets.
     _installDartdevcTarget();
+    final bool aot = options['aot'];
+    final bool minimalKernel = options['minimal-kernel'];
     compilerOptions.target = createFrontEndTarget(
       options['target'],
       trackWidgetCreation: options['track-widget-creation'],
-      supportMirrors: options['support-mirrors'] ??
-          !(options['aot'] || options['minimal-kernel']),
+      supportMirrors: options['support-mirrors'] ?? !(aot || minimalKernel),
+      constKeepLocalsIndicator: !(aot || minimalKernel),
     );
     if (compilerOptions.target == null) {
       print('Failed to create front-end target ${options['target']}.');

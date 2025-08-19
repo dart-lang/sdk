@@ -109,7 +109,7 @@ class ScopeDataExtractor extends DdcDataExtractor<Features> {
             printer.writeTypeParameterName(typeParameter);
             features.addElement(Tags.typeParameter, printer.getText());
           }
-          for (var variable in scope.definitions.keys) {
+          for (var variable in scope.variables.keys) {
             features.addElement(Tags.variables, variable);
           }
           return features;

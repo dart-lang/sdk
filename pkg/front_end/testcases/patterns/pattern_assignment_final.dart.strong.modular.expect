@@ -58,6 +58,7 @@ static method method(dynamic x, dynamic y, dynamic z) → dynamic {
   }
   {
     final synthesized dynamic #1#0 = y as{TypeError,ForDynamic} core::List<core::int>;
+    final const synthesized core::int #1#3 = #C1;
     if(!(#1#0 is core::List<dynamic> && #1#0{core::List<dynamic>}.{core::List::length}{core::int} =={core::num::==}{(core::Object) → core::bool} #C1 && (let final dynamic #t2 = definitelyUnassignedLateFinal = #1#0{core::List<dynamic>}.{core::List::[]}(0){(core::int) → dynamic} as core::int in true) && invalid-expression "pkg/front_end/testcases/patterns/pattern_assignment_final.dart:35:5: Error: Final variable 'definitelyAssignedFinal' might already be assigned at this point.
     definitelyAssignedFinal] = y; // Error
     ^^^^^^^^^^^^^^^^^^^^^^^"))
@@ -67,6 +68,7 @@ static method method(dynamic x, dynamic y, dynamic z) → dynamic {
     final synthesized dynamic #2#0 = z as{TypeError,ForDynamic} self::Class;
     synthesized dynamic #2#3;
     synthesized core::bool #2#3#isSet = false;
+    final const synthesized core::int #2#6 = #C1;
     synthesized dynamic #2#9;
     synthesized core::bool #2#9#isSet = false;
     synthesized dynamic #2#16;

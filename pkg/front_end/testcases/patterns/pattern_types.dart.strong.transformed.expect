@@ -301,81 +301,97 @@ Try correcting the name to the name of an existing getter, or defining a getter 
 static method relationalPattern(dynamic dyn, Never never, self::Class cls, self::Class? cls_, invalid-type invalid, core::String string, self::Class2 cls2, self::Class2? cls2_) → dynamic {
   {
     final synthesized dynamic #0#0 = dyn;
+    final const synthesized core::int #0#1 = #C1;
     if(#0#0 =={core::Object::==}{(core::Object) → core::bool} #C1) {
     }
   }
   {
     final synthesized dynamic #1#0 = dyn;
+    final const synthesized core::int #1#1 = #C1;
     if(!(#1#0 =={core::Object::==}{(core::Object) → core::bool} #C1)) {
     }
   }
   {
     final synthesized dynamic #2#0 = dyn;
+    final const synthesized core::int #2#1 = #C1;
     if(#2#0{dynamic}.<(#C1) as core::bool) {
     }
   }
   {
     final synthesized dynamic #3#0 = dyn;
+    final const synthesized core::int #3#1 = #C1;
     if(#3#0{dynamic}.<=(#C1) as core::bool) {
     }
   }
   {
     final synthesized dynamic #4#0 = dyn;
+    final const synthesized core::int #4#1 = #C1;
     if(#4#0{dynamic}.>(#C1) as core::bool) {
     }
   }
   {
     final synthesized dynamic #5#0 = dyn;
+    final const synthesized core::int #5#1 = #C1;
     if(#5#0{dynamic}.>=(#C1) as core::bool) {
     }
   }
   {
     final synthesized Never #6#0 = never;
+    final const synthesized core::int #6#1 = #C1;
     if(#6#0 =={core::Object::==}{(dynamic) → Never} #C1) {
     }
   }
   {
     final synthesized Never #7#0 = never;
+    final const synthesized core::int #7#1 = #C1;
     if(!(#7#0 =={core::Object::==}{(dynamic) → Never} #C1)) {
     }
   }
   {
     final synthesized Never #8#0 = never;
+    final const synthesized core::int #8#1 = #C1;
     if(#8#0{Never}.<(#C1)) {
     }
   }
   {
     final synthesized Never #9#0 = never;
+    final const synthesized core::int #9#1 = #C1;
     if(#9#0{Never}.<=(#C1)) {
     }
   }
   {
     final synthesized Never #10#0 = never;
+    final const synthesized core::int #10#1 = #C1;
     if(#10#0{Never}.>(#C1)) {
     }
   }
   {
     final synthesized Never #11#0 = never;
+    final const synthesized core::int #11#1 = #C1;
     if(#11#0{Never}.>=(#C1)) {
     }
   }
   {
     final synthesized self::Class #12#0 = cls;
+    final const synthesized core::int #12#1 = #C1;
     if(#12#0 =={self::Class::==}{(core::Object) → core::bool} #C1) {
     }
   }
   {
     final synthesized self::Class #13#0 = cls;
+    final const synthesized core::int #13#1 = #C1;
     if(!(#13#0 =={self::Class::==}{(core::Object) → core::bool} #C1)) {
     }
   }
   {
     final synthesized self::Class #14#0 = cls;
+    final const synthesized core::int #14#1 = #C1;
     if(#14#0.{self::Class::<}(#C1){(core::int) → core::bool}) {
     }
   }
   {
     final synthesized self::Class #15#0 = cls;
+    final const synthesized core::int #15#1 = #C1;
     if(self::_extension#0|<=(#15#0, #C1)) {
     }
   }
@@ -388,6 +404,7 @@ static method relationalPattern(dynamic dyn, Never never, self::Class cls, self:
   }
   {
     final synthesized self::Class #17#0 = cls;
+    final const synthesized core::String #17#1 = #C2;
     if(self::_extension#0|<=(#17#0, #C2 as core::int)) {
     }
   }
@@ -400,16 +417,19 @@ static method relationalPattern(dynamic dyn, Never never, self::Class cls, self:
   }
   {
     final synthesized self::Class #19#0 = cls;
+    final const synthesized core::int #19#1 = #C1;
     if(self::_extension#0|>=(#19#0, #C1) as core::bool) {
     }
   }
   {
     final synthesized self::Class? #20#0 = cls_;
+    final const synthesized core::int #20#1 = #C1;
     if(#20#0 =={self::Class::==}{(core::Object) → core::bool} #C1) {
     }
   }
   {
     final synthesized self::Class? #21#0 = cls_;
+    final const synthesized core::int #21#1 = #C1;
     if(!(#21#0 =={self::Class::==}{(core::Object) → core::bool} #C1)) {
     }
   }
@@ -449,11 +469,13 @@ Try correcting the name to the name of an existing method, or defining a method 
   }
   {
     final synthesized invalid-type #26#0 = invalid;
+    final const synthesized core::int #26#1 = #C1;
     if(#26#0 =={core::Object::==}{(core::Object) → core::bool} #C1) {
     }
   }
   {
     final synthesized invalid-type #27#0 = invalid;
+    final const synthesized core::int #27#1 = #C1;
     if(#27#0{<invalid>}.<(#C1)) {
     }
   }
@@ -519,6 +541,7 @@ Try using a constructor or factory that is 'const'.
   }
   {
     final synthesized self::Class2? #34#0 = cls2_;
+    final const synthesized has-declared-initializer Null #34#1 = #C3;
     if(#34#0 == null) {
     }
   }
@@ -557,4 +580,5 @@ class Invalid extends core::Object {
 constants  {
   #C1 = 0
   #C2 = "0"
+  #C3 = null
 }

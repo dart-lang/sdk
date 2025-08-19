@@ -25,12 +25,17 @@ static method expectEqual(dynamic x, dynamic y) → void {
   }
 }
 static method test1() → dynamic {
+  const core::Type c = #C1;
   core::Type v = #C1;
   self::expectEqual(#C1, #C1);
   self::expectEqual(#C1, #C1);
   self::expectEqual(#C1, #C1);
   self::expectEqual(v, v);
   self::expectEqual(v, #C1);
+  const core::Type cf1 = #C2;
+  const core::Type cf2 = #C2;
+  const core::Type cf3 = #C2;
+  const core::Type cf4 = #C2;
   core::Type vf1 = #C2;
   core::Type vf2 = #C2;
   core::Type vf3 = #C2;
@@ -42,7 +47,11 @@ static method test1() → dynamic {
   self::expectEqual(vf1, vf2);
   self::expectEqual(vf2, vf3);
   self::expectEqual(vf3, vf4);
-  return #C5;
+  const self::A<core::List<() → self::A<FutureOr<dynamic>>>> a1 = #C3;
+  const self::A<core::List<() → self::A<dynamic>>> a2 = #C3;
+  const self::A<core::List<() → self::A<FutureOr<FutureOr<dynamic>?>>>> a3 = #C3;
+  const self::A<core::List<() → self::A<dynamic>>> a4 = #C3;
+  return #C6;
 }
 static method main() → dynamic {
   self::test1();
@@ -51,9 +60,10 @@ static method main() → dynamic {
 constants  {
   #C1 = TypeLiteralConstant(self::A<dynamic>)
   #C2 = TypeLiteralConstant(() → self::A<dynamic>)
-  #C3 = 42
-  #C4 = self::Check {_ignored:#C3}
-  #C5 = <dynamic>[#C4, #C4, #C4, #C4, #C4, #C4, #C4, #C4, #C4, #C4, #C4, #C4, #C4, #C4]
+  #C3 = self::A<core::List<() → self::A<dynamic>>> {}
+  #C4 = 42
+  #C5 = self::Check {_ignored:#C4}
+  #C6 = <dynamic>[#C5, #C5, #C5, #C5, #C5, #C5, #C5, #C5, #C5, #C5, #C5, #C5, #C5, #C5]
 }
 
 

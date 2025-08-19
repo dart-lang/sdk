@@ -17,6 +17,7 @@ static method localTest() → core::int {
       return 1;
     return a.{core::num::*}(fnLocal(a.{core::num::-}(1){(core::num) → core::int}){(core::int) → core::int}){(core::num) → core::int};
   }
+  const core::int c = #C1;
   return #C1;
 }
 static method main() → void {

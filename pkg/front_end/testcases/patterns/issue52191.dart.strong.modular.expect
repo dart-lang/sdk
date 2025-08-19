@@ -6,6 +6,8 @@ static method printBugsSwitch(core::int n) → void
   return block {
     void #t1;
     final synthesized core::int #0#0 = n;
+    final const synthesized core::int #0#1 = #C1;
+    final const synthesized core::int #0#3 = #C2;
     #L1:
     {
       {

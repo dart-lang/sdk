@@ -3,6 +3,7 @@ import self as self;
 import "dart:core" as core;
 
 static method test(dynamic x) → dynamic {
+  const core::int y = #C1;
   #L1:
   switch(x) /* dynamic */ {
     #L2:

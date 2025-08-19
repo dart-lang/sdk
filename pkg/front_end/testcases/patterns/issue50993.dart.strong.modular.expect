@@ -6,6 +6,7 @@ static method test1(core::int value) → core::String {
   #L1:
   {
     final synthesized core::int #0#0 = value;
+    final const synthesized core::int #0#1 = #C1;
     {
       if(#0#0.{core::num::<}(#C1){(core::num) → core::bool}) {
         {
@@ -27,6 +28,7 @@ static method test2(core::int value) → core::String {
   #L2:
   {
     final synthesized core::int #0#0 = value;
+    final const synthesized core::int #0#1 = #C1;
     {
       if(#0#0.{core::num::<}(#C1){(core::num) → core::bool}) {
         {
@@ -48,6 +50,7 @@ static method test3(core::int value) → core::String {
   #L3:
   {
     final synthesized core::int #0#0 = value;
+    final const synthesized core::int #0#1 = #C1;
     {
       if(#C1 =={core::num::==}{(core::Object) → core::bool} #0#0) {
         {
@@ -69,6 +72,7 @@ static method test4(core::int value) → core::String {
   #L4:
   {
     final synthesized core::int #0#0 = value;
+    final const synthesized core::int #0#1 = #C1;
     {
       if(#C1 =={core::num::==}{(core::Object) → core::bool} #0#0) {
         {
@@ -96,6 +100,8 @@ static method test5(core::int value) → core::String {
   #L5:
   {
     final synthesized core::int #0#0 = value;
+    final const synthesized core::int #0#1 = #C1;
+    final const synthesized core::int #0#4 = #C2;
     {
       if(#C1 =={core::num::==}{(core::Object) → core::bool} #0#0) {
         {

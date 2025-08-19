@@ -8,15 +8,17 @@ class Foo extends core::Object /*hasConstConstructor*/  {
     ;
 }
 static method test() → void {
-  @#C1 dynamic y;
-  @#C1
+  const core::int x = #C1;
+  @#C2 dynamic y;
+  @#C2
   function bar() → void {}
-  function baz(@#C1 dynamic formal) → void {}
+  function baz(@#C2 dynamic formal) → void {}
 }
 static method main() → dynamic {}
 
 constants  {
-  #C1 = self::Foo {}
+  #C1 = 0
+  #C2 = self::Foo {}
 }
 
 

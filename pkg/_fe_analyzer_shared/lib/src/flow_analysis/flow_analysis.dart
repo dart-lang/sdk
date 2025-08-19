@@ -2,6 +2,16 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+/// Implementation of flow analysis.
+///
+/// See the specification document:
+/// https://github.com/dart-lang/language/blob/main/resources/type-system/flow-analysis.md
+///
+/// Throughout this file, differences from the normative text of the spec are
+/// noted in parentheses with the prefix "OPTIMIZATION:" (for optimizations that
+/// don't affect behavior) or "UNSPECIFIED:" (for behaviors that aren't
+/// documented in the spec yet).
+///
 /// @docImport 'package:_fe_analyzer_shared/src/type_inference/null_shorting.dart';
 library;
 
@@ -2678,188 +2688,6 @@ class FlowModel<Type extends Object> {
   @visibleForTesting
   FlowModel.withInfo(this.reachable, this.promotionInfo);
 
-  /// Computes the effect of executing a try/finally's `try` and `finally`
-  /// blocks in sequence.  `this` is the flow analysis state from the end of the
-  /// `try` block; [beforeFinally] and [afterFinally] are the flow analysis
-  /// states from the top and bottom of the `finally` block, respectively.
-  ///
-  /// Initially the `finally` block is analyzed under the conservative
-  /// assumption that the `try` block might have been interrupted at any point
-  /// by an exception occurring, therefore no variable assignments or promotions
-  /// that occurred in the `try` block can be relied upon.  As a result, when we
-  /// get to the end of processing the `finally` block, the only promotions and
-  /// variable assignments accounted for by flow analysis are the ones performed
-  /// within the `finally` block itself.  However, when we analyze code that
-  /// follows the `finally` block, we know that the `try` block did *not* throw
-  /// an exception, so we want to reinstate the results of any promotions and
-  /// assignments that occurred during the `try` block, to the extent that they
-  /// weren't invalidated by later assignments in the `finally` block.
-  FlowModel<Type> attachFinally(
-    FlowModelHelper<Type> helper, {
-    required FlowModel<Type> beforeFinally,
-    required FlowModel<Type> afterFinally,
-    required FlowModel<Type> ancestor,
-  }) {
-    // If nothing happened in the `finally` block, then nothing needs to be
-    // done.
-    if (beforeFinally == afterFinally) return this;
-    // If nothing happened in the `try` block, then no rebase is needed.
-    if (beforeFinally == ancestor && ancestor == this) return afterFinally;
-
-    // Code that follows the `try/finally` is reachable iff the end of the `try`
-    // block is reachable _and_ the end of the `finally` block is reachable.
-    assert(identical(reachable.parent, afterFinally.reachable.parent));
-    Reachability newReachable =
-        afterFinally.reachable.locallyReachable
-            ? reachable
-            : reachable.setUnreachable();
-
-    // Consider each promotion key that is common to all three models.
-    FlowModel<Type> result = setReachability(newReachable);
-    List<(SsaNode<Type>?, SsaNode<Type>?)> fieldPromotionsToReapply = [];
-    var (
-      ancestor: PromotionInfo<Type>? ancestorInfo,
-      :List<FlowLinkDiffEntry<PromotionInfo<Type>>> entries,
-    ) = helper.reader.diff(promotionInfo, afterFinally.promotionInfo);
-    assert(ancestor.promotionInfo == ancestorInfo);
-    for (var FlowLinkDiffEntry(
-          key: int promotionKey,
-          :PromotionInfo<Type>? left,
-          :PromotionInfo<Type>? right,
-        )
-        in entries) {
-      PromotionModel<Type>? thisModel = left?.model;
-      PromotionModel<Type>? beforeFinallyModel = beforeFinally.promotionInfo
-          ?.get(helper, promotionKey);
-      PromotionModel<Type>? afterFinallyModel = right?.model;
-      if (thisModel == null) {
-        if (afterFinallyModel == null) {
-          // This should never happen, because we are iterating through
-          // promotion keys that are different between the `this` and
-          // `afterFinally` models.
-          assert(false);
-          continue;
-        }
-        // The promotion key is in the `afterFinally` model but not in `this`
-        // model.  This happens when either:
-        // - There is a variable declared inside the `finally` block, or:
-        // - A field is promoted inside the `finally` block that wasn't
-        //   previously promoted (and isn't promoted in the `try` block).
-        //
-        // In the first case, it doesn't matter what we do, because the variable
-        // won't be in scope after the try/finally statement. But in the second
-        // case, we need to preserve the promotion from the `finally` block.
-        result = result.updatePromotionInfo(
-          helper,
-          promotionKey,
-          afterFinallyModel,
-        );
-        continue;
-      }
-      if (afterFinallyModel == null) {
-        // The promotion key is in `this` model but not in the `afterFinally`
-        // model.  This happens when either:
-        // - There is a variable declared inside the `try` block, or:
-        // - A field is promoted inside the `try` block that wasn't previously
-        //   promoted (and isn't promoted in the `finally` block).
-        //
-        // In the first case, it doesn't matter what we do, because the variable
-        // won't be in scope after the try/finally statement. But in the second
-        // case, we need to preserve the promotion from the `try` block.
-        result = result.updatePromotionInfo(helper, promotionKey, thisModel);
-        continue;
-      }
-      // We can just use the "write captured" state from the `finally` block,
-      // because any write captures in the `try` block are conservatively
-      // considered to take effect in the `finally` block too.
-      List<Type> newPromotedTypes;
-      SsaNode<Type>? newSsaNode;
-      if (beforeFinallyModel == null ||
-          beforeFinallyModel.ssaNode == afterFinallyModel.ssaNode) {
-        // The promotion key is in `this` model and in the `afterFinally` model,
-        // and either:
-        // - It is absent from the `beforeFinally` model. This means that there
-        //   is a field that is accessed (and possibly promoted) in both the
-        //   `try` and `finally` blocks, but wasn't known about before the
-        //   try/finally statement, OR:
-        // - It is present in the `beforeFinally` model, and has the same SSA
-        //   node in both the `beforeFinally` and `afterFinally` models. This
-        //   means that there is either a variable, or a field of a variable,
-        //   that is accessed (and possibly promoted) in both the `try` and
-        //   `finally` blocks, which *was* known about before the try/finally
-        //   statement, and furthermore, if it was a variable, the variable
-        //   wasn't assigned within the `finally` block.
-        //
-        // In all of these cases, the correct thing to do is to keep all
-        // promotions that were done in both the `try` and `finally` blocks.
-        newPromotedTypes =
-            helper.typeAnalyzerOptions.soundFlowAnalysisEnabled
-                ? PromotionModel.rebasePromotedTypes(
-                  basePromotions: thisModel.promotedTypes,
-                  newPromotions: afterFinallyModel.promotedTypes,
-                  helper: helper,
-                )
-                : PromotionModel.rebasePromotedTypes(
-                  basePromotions: afterFinallyModel.promotedTypes,
-                  newPromotions: thisModel.promotedTypes,
-                  helper: helper,
-                );
-        // And we can safely restore the SSA node from the end of the try block.
-        newSsaNode = thisModel.ssaNode;
-        if (newSsaNode != afterFinallyModel.ssaNode) {
-          // The `try` block did write to the variable, so any field promotions
-          // that were applied in the finally block need to be re-applied to the
-          // new promotion keys. We postpone that until after everything else is
-          // done so that when we re-apply the promotions, we'll be applying
-          // them to the state established by the `try` block.
-          fieldPromotionsToReapply.add((newSsaNode, afterFinallyModel.ssaNode));
-        }
-      } else {
-        // A write to the variable occurred in the finally block, so promotions
-        // from the try block aren't necessarily valid.
-        newPromotedTypes = afterFinallyModel.promotedTypes;
-        // And we can't safely restore the SSA node from the end of the try
-        // block; we need to keep the one from the end of the finally block.
-        newSsaNode = afterFinallyModel.ssaNode;
-      }
-      // The `finally` block inherited all tests from the `try` block so we can
-      // just inherit tests from it.
-      List<Type> newTested = afterFinallyModel.tested;
-      // The variable is definitely assigned if it was definitely assigned in
-      // either the `try` or the `finally` block.
-      bool newAssigned = thisModel.assigned || afterFinallyModel.assigned;
-      // The `finally` block inherited the "unassigned" state from the `try`
-      // block so we can just inherit from it.
-      bool newUnassigned = afterFinallyModel.unassigned;
-      PromotionModel<Type> newModel = PromotionModel._identicalOrNew(
-        thisModel,
-        afterFinallyModel,
-        newPromotedTypes,
-        newTested,
-        newAssigned,
-        newUnassigned,
-        newSsaNode,
-      );
-      result = result.updatePromotionInfo(helper, promotionKey, newModel);
-    }
-    for (var (SsaNode<Type>? thisSsaNode, SsaNode<Type>? afterFinallySsaNode)
-        in fieldPromotionsToReapply) {
-      if (thisSsaNode == null || afterFinallySsaNode == null) {
-        // Variable was write-captured, so no fields can be promoted anymore.
-        continue;
-      }
-      result = thisSsaNode._applyPropertyPromotions(
-        helper,
-        thisSsaNode,
-        afterFinallySsaNode,
-        beforeFinally.promotionInfo,
-        afterFinally.promotionInfo,
-        result,
-      );
-    }
-    return result;
-  }
-
   /// Updates the state to indicate that the given [writtenVariables] are no
   /// longer promoted and are no longer definitely unassigned, and the given
   /// [capturedVariables] have been captured by closures.
@@ -4617,6 +4445,9 @@ class Reachability {
 /// This is similar to the nodes used in traditional single assignment analysis
 /// (https://en.wikipedia.org/wiki/Static_single_assignment_form) except that it
 /// does not store a complete IR of the code being analyzed.
+///
+/// TODO(paulberry): rename to avoid confusion with other attributes of static
+/// single assignment analysis. Tentative new name: "Version".
 @visibleForTesting
 class SsaNode<Type extends Object> {
   /// Expando mapping SSA nodes to debug ids.  Only used by `toString`.
@@ -4712,6 +4543,7 @@ class SsaNode<Type extends Object> {
     PromotionInfo<Type>? afterFinallyInfo,
     FlowModel<Type> newFlowModel,
   ) {
+    // TODO(paulberry): fix nomenclature to align with caller.
     for (var MapEntry(
           key: String propertyName,
           value: _PropertySsaNode<Type> finallyPropertySsaNode,
@@ -6835,13 +6667,38 @@ class _FlowAnalysisImpl<
 
   @override
   void tryFinallyStatement_end() {
-    _TryFinallyContext<Type> context =
-        _stack.removeLast() as _TryFinallyContext<Type>;
-    _current = context._afterBodyAndCatches!.attachFinally(
-      this,
-      beforeFinally: context._beforeFinally!,
-      afterFinally: _current,
-      ancestor: context._previous,
+    // See the "try finally" bullet in
+    // https://github.com/dart-lang/language/blob/main/resources/type-system/flow-analysis.md#statements.
+
+    var _TryFinallyContext(
+      _beforeTry: beforeTry,
+      _afterTry: afterTry!,
+      _beforeFinally: beforeFinally!,
+    ) = _stack.removeLast() as _TryFinallyContext<Type>;
+    FlowModel<Type> afterFinally = _current;
+
+    // (OPTIMIZATION: the computation of `attachFinally` may be skipped in two
+    // circumstances:
+    // - If `before(B2)` and `after(B2)` are identical flow models (meaning
+    //   nothing of consequence to flow analysis occurred in `B2`), then
+    //   `after(N) = after(B1)`.
+    if (beforeFinally == afterFinally) {
+      _current = afterTry;
+      return;
+    }
+    // - If `before(B1)`, `after(B1)`, and `before(B2)` are identical flow
+    //   models (meaning nothing of consequence to flow analysis happened in
+    //   `B1`), then `after(N) = after(B2)`.)
+    if (beforeFinally == beforeTry && beforeTry == afterTry) {
+      _current = afterFinally;
+      return;
+    }
+
+    // - Let `after(N) = attachFinally(after(B1), before(B2), after(B2))`.
+    _current = _attachFinally(
+      afterTry: afterTry,
+      beforeFinally: beforeFinally,
+      afterFinally: afterFinally,
     );
   }
 
@@ -6849,10 +6706,10 @@ class _FlowAnalysisImpl<
   void tryFinallyStatement_finallyBegin(Node body) {
     AssignedVariablesNodeInfo info = _assignedVariables.getInfoForNode(body);
     _TryFinallyContext<Type> context = _stack.last as _TryFinallyContext<Type>;
-    context._afterBodyAndCatches = _current;
+    context._afterTry = _current;
     _current = _join(
       _current,
-      context._previous.conservativeJoin(this, info.written, info.captured),
+      context._beforeTry.conservativeJoin(this, info.written, info.captured),
     );
     context._beforeFinally = _current;
   }
@@ -6958,6 +6815,227 @@ class _FlowAnalysisImpl<
     Expression? writtenExpression,
   ) {
     _write(node, variable, writtenType, _getExpressionInfo(writtenExpression));
+  }
+
+  /// Computes a [FlowModel] representing the state of execution after the
+  /// statement `try B1 finally B2`.
+  ///
+  /// [afterTry] is the flow models from `B1` after the `try` block (`B1`).
+  ///
+  /// [beforeFinally] and [afterFinally] are the flow models from before and
+  /// after the `finally` block (`B2`), respectively.
+  FlowModel<Type> _attachFinally({
+    required FlowModel<Type> afterTry,
+    required FlowModel<Type> beforeFinally,
+    required FlowModel<Type> afterFinally,
+  }) {
+    // See the `attachFinally` function in
+    // https://github.com/dart-lang/language/blob/main/resources/type-system/flow-analysis.md#models.
+
+    // Let `afterTry = FlowModel(r1, VI1)`,
+    // `beforeFinally = FlowModel(r2, VI2)`, and
+    // `afterFinally = FlowModel(r3, VI3)`.
+    var FlowModel(reachable: r1, promotionInfo: VI1) = afterTry;
+    var FlowModel(promotionInfo: VI2) = beforeFinally;
+    var FlowModel(reachable: r3, promotionInfo: VI3) = afterFinally;
+
+    // Let `r4` be defined as follows:
+    // - If `top(r3)` is `true`, then let `r4 = r1`.
+    // - Otherwise, let `r4 = unreachable(r1)`.
+    assert(identical(r1.parent, r3.parent));
+    Reachability r4 = r3.locallyReachable ? r1 : r1.setUnreachable();
+
+    // Let `VI4` be the map which maps each variable `v` in the domain of either
+    // `VI1` or `VI3` as follows (OPTIMIZATION: we implement this by using
+    // `afterTry` as a starting point, and iterating through the promotion keys
+    // that differ between `VI1` and `VI3`):
+    FlowModel<Type> result = afterTry.setReachability(r4);
+    List<({SsaNode<Type> from, SsaNode<Type> to})> fieldPromotionsToReapply =
+        [];
+    for (var FlowLinkDiffEntry(
+          key: int promotionKey,
+          :PromotionInfo<Type>? left,
+          :PromotionInfo<Type>? right,
+        )
+        in reader.diff(VI1, VI3).entries) {
+      PromotionModel<Type>? v1 = left?.model;
+      PromotionModel<Type>? v3 = right?.model;
+
+      // - If `v` is in the domain of `VI1` but not `VI3`, then
+      //   `VI4(v) = VI1(v)`.
+      if (v3 == null) {
+        if (v1 == null) {
+          // This should never happen, because we are iterating through
+          // promotion keys that are different between the `afterTry` and
+          // `afterFinally` models.
+          assert(false);
+        } else {
+          result = result.updatePromotionInfo(this, promotionKey, v1);
+        }
+        continue;
+      }
+
+      // - If `v` is in the domain of `VI3` but not `VI1`, then
+      //   `VI4(v) = VI3(v)`.
+      if (v1 == null) {
+        // Spec: If `v` is in the domain of `VI3` but not `VI1`, then `VI4(v) =
+        // VI3(v)`.
+        result = result.updatePromotionInfo(this, promotionKey, v3);
+        continue;
+      }
+
+      // - If `v` is in the domain of both `VI1` and `VI3`, then
+      //   `VI4(v) = attachFinallyV(VI1(v), VI2(v), VI3(v))`. Note that if `v`
+      //   is in the domain of both `VI1` and `VI3`, it must have been declared
+      //   before the `try-finally` statement, therefore it must also be in the
+      //   domain of `VI2`.
+      //   (UNSPECIFIED: however, field promotion breaks this, because there
+      //   could be a field that's accessed, and promoted, in both the `try` and
+      //   `finally` blocks, but not accessed before the `try-finally`
+      //   statement, and in that case its promotion key would appear in `VI1`
+      //   and `VI3` but not `VI2`.)
+      PromotionModel<Type>? v2 = VI2?.get(this, promotionKey);
+
+      PromotionModel<Type> newModel = _attachFinallyV(
+        afterTry: v1,
+        beforeFinally: v2,
+        afterFinally: v3,
+        fieldPromotionsToReapply: fieldPromotionsToReapply,
+      );
+      result = result.updatePromotionInfo(this, promotionKey, newModel);
+    }
+
+    // (UNSPECIFIED: if any variable was written in the try block but not the
+    // finally block, then it has a different SSA node now than it had in the
+    // finally block. Hence, if any fields of that variable were promoted in the
+    // finally block, those field promotions need to be reapplied to the new SSA
+    // node for the variable.)
+    for (var (from: SsaNode<Type>? from, to: SsaNode<Type>? to)
+        in fieldPromotionsToReapply) {
+      result = to._applyPropertyPromotions(
+        this,
+        to,
+        from,
+        beforeFinally.promotionInfo,
+        afterFinally.promotionInfo,
+        result,
+      );
+    }
+    return result;
+  }
+
+  PromotionModel<Type> _attachFinallyV({
+    required PromotionModel<Type> afterTry,
+    required PromotionModel<Type>? beforeFinally,
+    required PromotionModel<Type> afterFinally,
+    required List<({SsaNode<Type> from, SsaNode<Type> to})>
+    fieldPromotionsToReapply,
+  }) {
+    // See the `attachFinally` function in
+    // https://github.com/dart-lang/language/blob/main/resources/type-system/flow-analysis.md#models.
+
+    // (UNSPECIFIED: the spec is inconsistent about how it refers to the
+    // "tested" booleans. Sometimes it uses `s1`, `s2`, and `s3`, and other
+    // times `t1`, `t2`, and `t3`. `t1`, `t2`, and `t3` is better.)
+
+    // Let `afterTry = VariableModel(d1, p1, t1, a1, u1, c1)`.
+    // (UNSPECIFIED: and we denote the SSA node of the variable in `afterTry` as
+    // `v1`, since the plan is to rename "SSA node" to "version").
+    var PromotionModel(promotedTypes: p1, assigned: a1, ssaNode: v1) = afterTry;
+    // Let `beforeFinally = VariableModel(d2, p2, t2, a2, u2, c2)`.
+    // (UNSPECIFIED: beforeFinally may be `null` when fields are promoted, so
+    // we can't use pattern syntax to deconstruct this. Instead we deconstruct
+    // it after null checking `beforeFinally`, below.)
+    // Let `afterFinally = VariableModel(d3, p3, t3, a3, u3, c3)`.
+    // (UNSPECIFIED: and we denote the SSA node of the variable in
+    // `afterFinally` as `v3`, since the plan is to rename "SSA node" to
+    // "version").
+    var PromotionModel(
+      promotedTypes: p3,
+      tested: t3,
+      assigned: a3,
+      unassigned: u3,
+      ssaNode: v3,
+    ) = afterFinally;
+
+    // Let `d4 = d3`.
+    // (OPTIMIZATION: flow analysis doesn't store the declared types of
+    // variables, so we don't need to do anything here.)
+
+    // Let `p4` be determined as follows:
+    List<Type> p4;
+    // (UNSPECIFIED: and also let `v4`, the SSA node after the `try-finally`
+    // statement, be determined as follows.)
+    SsaNode<Type>? v4;
+    // - If the variable's value might have been changed by the `finally`
+    //   block, then `p4 = p3`.
+    // (UNSPECIFIED: a necessary and sufficient check for whether the variable
+    // might have been changed by the `finally` block is to see if (a) the
+    // variable was write captured at some point before the conclusion of the
+    // `finally` block (this is represented using a `null` SSA node), or (b) the
+    // variable's SSA node after the `finally` block is different from its SSA
+    // node before the `finally` block.)
+    bool variableWasWriteCaptured = v3 == null;
+    bool variableMightHaveChanged =
+        variableWasWriteCaptured ||
+        (beforeFinally != null && beforeFinally.ssaNode != v3);
+    if (variableMightHaveChanged) {
+      p4 = p3;
+      // (UNSPECIFIED: and the SSA node after the `try-finally` statement is the
+      // SSA node after the `finally` block.)
+      v4 = v3;
+    } else {
+      // UNSPECIFIED: the variable must not have been write captured, so its SSA
+      // node can't be `null`.
+      v1!;
+      // - Otherwise, `p4 = rebasePromotedTypes(p1, p3)`.
+      p4 =
+          typeAnalyzerOptions.soundFlowAnalysisEnabled
+              ? PromotionModel.rebasePromotedTypes(
+                basePromotions: p1,
+                newPromotions: p3,
+                helper: this,
+              )
+              :
+              // (UNSPECIFIED: reproduce old buggy behavior prior to the fix for
+              // https://github.com/dart-lang/language/issues/4382.)
+              PromotionModel.rebasePromotedTypes(
+                basePromotions: p3,
+                newPromotions: p1,
+                helper: this,
+              );
+      // (UNSPECIFIED: and the SSA node after the `try-finally` statement is the
+      // SSA node after the `try` block.)
+      v4 = v1;
+      if (v4 != v3) {
+        // (UNSPECIFIED: if the `try` block wrote to the variable, any field
+        // promotions that were applied in the `finally` block should be
+        // reapplied to the new SSA node for the variable.)
+        fieldPromotionsToReapply.add((from: v3, to: v4));
+      }
+    }
+    // Let `t4 = t3`.
+    List<Type> t4 = t3;
+    // Let `a4 = a1 || a3`.
+    bool a4 = a1 || a3;
+    // Let `u4 = u3`.
+    bool u4 = u3;
+    // Let `c4 = c3`.
+    // (OPTIMIZATION: write-captured variables are represented using a `null`
+    // SSA node. So this is handled implicitly: if the variable was write
+    // captured at some point before the conclusion of the `finally` block, then
+    // `v3` is `null` and `variableMightHaveChanged` is `true`, therefore `v4`
+    // was set to `v3` above, and hence `v4` is `null`.)
+    PromotionModel<Type> newModel = PromotionModel._identicalOrNew(
+      afterTry,
+      afterFinally,
+      p4,
+      t4,
+      a4,
+      u4,
+      v4,
+    );
+    return newModel;
   }
 
   @override
@@ -8153,16 +8231,26 @@ class _TryContext<Type extends Object> extends _SimpleContext<Type> {
   String get _debugType => '_TryContext';
 }
 
-class _TryFinallyContext<Type extends Object> extends _TryContext<Type> {
+class _TryFinallyContext<Type extends Object> extends _FlowContext {
+  /// The flow model representing program state at the top of the `try` block.
+  FlowModel<Type> _beforeTry;
+
+  /// The flow model representing program state at the bottom of the `try`
+  /// block.
+  FlowModel<Type>? _afterTry;
+
   /// The flow model representing program state at the top of the `finally`
   /// block.
   FlowModel<Type>? _beforeFinally;
 
-  _TryFinallyContext(super.previous);
+  _TryFinallyContext(this._beforeTry);
 
   @override
   Map<String, Object?> get _debugFields =>
-      super._debugFields..['beforeFinally'] = _beforeFinally;
+      super._debugFields
+        ..['beforeTry'] = _beforeTry
+        ..['afterTry'] = _afterTry
+        ..['beforeFinally'] = _beforeFinally;
 
   @override
   String get _debugType => '_TryFinallyContext';

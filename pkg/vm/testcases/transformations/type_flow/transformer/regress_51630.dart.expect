@@ -25,6 +25,7 @@ static method listEquals<E extends core::Object? = dynamic>([@vm.inferred-arg-ty
 [@vm.inferred-return-type.metadata=dart.core::Null? (value: null)]
 static method main() → void {
   math::Random random = [@vm.inferred-type.metadata=dart.math::_Random] math::Random::•();
+  const core::int n = #C1;
   core::List<core::int> list1 = block {
     final core::List<core::int> #t1 = [@vm.inferred-type.metadata=dart.core::_GrowableList<dart.core::int>] core::_GrowableList::•<core::int>(0);
     for (core::int i = 0; [@vm.direct-call.metadata=dart.core::_IntegerImplementation.<] [@vm.inferred-type.metadata=dart.core::bool (skip check)] i.{core::num::<}(#C1){(core::num) → core::bool}; i = [@vm.direct-call.metadata=dart.core::_IntegerImplementation.+] [@vm.inferred-type.metadata=int (skip check)] i.{core::num::+}(1){(core::num) → core::int})

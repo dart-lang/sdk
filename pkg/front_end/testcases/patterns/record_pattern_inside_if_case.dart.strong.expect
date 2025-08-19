@@ -5,21 +5,29 @@ import "dart:core" as core;
 static method test(dynamic x) → dynamic {
   {
     final synthesized dynamic #0#0 = x;
+    final const synthesized core::int #0#3 = #C1;
+    final const synthesized core::int #0#6 = #C2;
     if(#0#0 is (core::Object?, core::Object?) && #C1 =={core::num::==}{(core::Object) → core::bool} #0#0{(core::Object?, core::Object?)}.$1{core::Object?} && #C2 =={core::num::==}{(core::Object) → core::bool} #0#0{(core::Object?, core::Object?)}.$2{core::Object?}) {
     }
   }
   {
     final synthesized dynamic #1#0 = x;
+    final const synthesized core::int #1#3 = #C1;
+    final const synthesized core::int #1#6 = #C2;
     if(#1#0 is (core::Object?, {a: core::Object?}) && #C1 =={core::num::==}{(core::Object) → core::bool} #1#0{(core::Object?, {a: core::Object?})}.$1{core::Object?} && #C2 =={core::num::==}{(core::Object) → core::bool} #1#0{(core::Object?, {a: core::Object?})}.a{core::Object?}) {
     }
   }
   {
     final synthesized dynamic #2#0 = x;
+    final const synthesized core::int #2#3 = #C1;
+    final const synthesized core::int #2#6 = #C2;
     if(#2#0 is (core::Object?, {a: core::Object?}) && #C1 =={core::num::==}{(core::Object) → core::bool} #2#0{(core::Object?, {a: core::Object?})}.a{core::Object?} && #C2 =={core::num::==}{(core::Object) → core::bool} #2#0{(core::Object?, {a: core::Object?})}.$1{core::Object?}) {
     }
   }
   {
     final synthesized dynamic #3#0 = x;
+    final const synthesized core::int #3#3 = #C1;
+    final const synthesized core::int #3#6 = #C2;
     if(#3#0 is ({a: core::Object?, b: core::Object?}) && #C1 =={core::num::==}{(core::Object) → core::bool} #3#0{({a: core::Object?, b: core::Object?})}.a{core::Object?} && #C2 =={core::num::==}{(core::Object) → core::bool} #3#0{({a: core::Object?, b: core::Object?})}.b{core::Object?}) {
     }
   }

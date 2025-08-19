@@ -6,6 +6,7 @@ static method test(dynamic x) → dynamic {
   #L1:
   {
     final synthesized dynamic #0#0 = x;
+    final const synthesized has-declared-initializer Null #0#2 = #C1;
     {
       if(let final dynamic #t1 = let dynamic #t2 = #0#0 in #t2 == null ?{core::Object} #t2 as core::Object : #t2{core::Object} in (let dynamic #t3 = #0#0 in #t3 == null ?{core::Object} #t3 as core::Object : #t3{core::Object}) == null) {
         {
@@ -14,4 +15,8 @@ static method test(dynamic x) → dynamic {
       }
     }
   }
+}
+
+constants  {
+  #C1 = null
 }

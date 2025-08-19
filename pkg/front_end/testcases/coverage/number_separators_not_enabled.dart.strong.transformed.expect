@@ -224,8 +224,11 @@ static method foo() → void {
   self::equals(#C3, Infinity);
   core::double a = 1000.0;
   self::equals(1000.0, a);
+  const core::int b = #C4;
   self::equals(2000, #C4);
+  const core::double c = #C5;
   self::equals(3000.3, #C5);
+  const core::double d = #C6;
   self::equals(4000, #C6);
 }
 static method equals(dynamic a, dynamic b) → void {

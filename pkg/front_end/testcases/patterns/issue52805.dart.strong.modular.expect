@@ -7,6 +7,7 @@ static method f(core::List<core::int> list) → () → void {
   return block {
     () → void #t1;
     final synthesized core::List<core::int> #0#0 = list;
+    final const synthesized core::int #0#2 = #C1;
     #L1:
     {
       {

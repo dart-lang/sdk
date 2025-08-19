@@ -507,19 +507,19 @@ class ScopeTestingBinaryPrinter extends BinaryPrinter {
       }
     }
 
-    if (expectedVariablesMap.length != compareWith.definitions.length) {
+    if (expectedVariablesMap.length != compareWith.variables.length) {
       compareOk = false;
       if (doPrint) {
         print("Failure on definitions for "
             "${currentLibrary!.fileUri} $currentUri and "
             "$offsetForErrorMessage -- "
-            "${compareWith.definitions} vs $expectedVariablesMap");
+            "${compareWith.variables} vs $expectedVariablesMap");
       }
     } else {
       // Do they agree?
       for (String variableName in expectedVariablesMap.keys) {
         DartType? a = expectedVariablesMap[variableName];
-        DartType? b = compareWith.definitions[variableName]?.type;
+        DartType? b = compareWith.variables[variableName]?.type;
         if (a != b) {
           compareOk = false;
           if (doPrint) {

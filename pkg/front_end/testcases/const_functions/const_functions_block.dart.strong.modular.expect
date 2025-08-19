@@ -8,17 +8,21 @@ import "package:expect/expect.dart";
 static method blockTest() → void {
   function x() → core::int
     return 1;
+  const core::int i = #C1;
   exp::Expect::equals(#C1, 1);
   {
     function x() → core::int
       return 2;
+    const core::int y = #C2;
     exp::Expect::equals(#C2, 2);
     {
       function x() → core::int
         return 3;
+      const core::int y = #C3;
       exp::Expect::equals(#C3, 3);
     }
   }
+  const core::int z = #C1;
   exp::Expect::equals(#C1, 1);
 }
 static method blockTest1() → void {
@@ -29,6 +33,7 @@ static method blockTest1() → void {
     }
     return z;
   }
+  const core::int i = #C3;
   exp::Expect::equals(#C3, 3);
 }
 static method main() → void {

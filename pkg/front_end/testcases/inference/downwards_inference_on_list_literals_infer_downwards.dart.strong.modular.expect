@@ -114,6 +114,8 @@ static method test() → void {
                                                  ^" in "hello" as{TypeError} core::int, 3];
   }
   {
+    const core::List<core::int> c0 = #C2;
+    const core::List<core::int> c1 = #C4;
     const core::List<core::int> c2 = invalid-expression "pkg/front_end/testcases/inference/downwards_inference_on_list_literals_infer_downwards.dart:58:89: Error: A value of type 'String' can't be assigned to a variable of type 'int'.
       /*error:LIST_ELEMENT_TYPE_NOT_ASSIGNABLE,error:LIST_ELEMENT_TYPE_NOT_ASSIGNABLE*/ \"hello\"
                                                                                         ^";
@@ -125,4 +127,7 @@ static method test() → void {
 
 constants  {
   #C1 = <core::String>[]
+  #C2 = <core::int>[]
+  #C3 = 3
+  #C4 = <core::int>[#C3]
 }

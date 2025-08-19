@@ -7,6 +7,7 @@ static method test(core::Symbol value) → core::String {
   #L1:
   {
     final synthesized core::Symbol #0#0 = value;
+    final const synthesized core::Symbol #0#1 = #C1;
     {
       if(#C1 =={core::Symbol::==}{(core::Object) → core::bool} #0#0) {
         {

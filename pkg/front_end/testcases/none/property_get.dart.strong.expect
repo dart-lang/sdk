@@ -94,6 +94,7 @@ static method test<T1 extends core::Function, T2 extends () → core::int>(self:
   core::print("StaticTearOff");
   #C3;
   #C4;
+  const dynamic static_tearOff = #C4;
   core::print(#C4);
   core::print("DynamicGet");
   dyn{dynamic}.field;

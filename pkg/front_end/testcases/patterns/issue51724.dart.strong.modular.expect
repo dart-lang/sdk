@@ -12,6 +12,7 @@ static method main() → dynamic {
     (core::int) r = (10);
     {
       final synthesized(core::int) #0#0 = r;
+      final const synthesized core::int #0#2 = #C1;
       if(#C1 =={core::num::==}{(core::Object) → core::bool} #0#0.$1{core::int} && self::guard(42) as{TypeError} core::bool) {
         core::print("missing cast on conditions allows this code to execute");
       }

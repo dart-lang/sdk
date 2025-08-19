@@ -7,8 +7,11 @@ static method test(core::Object? o) → core::String {
   #L1:
   {
     final synthesized core::Object? #0#0 = o;
+    final const synthesized core::int #0#3 = #C1;
+    final const synthesized core::int #0#7 = #C2;
     synthesized core::Object? #0#14;
     synthesized core::bool #0#14#isSet = false;
+    final const synthesized core::String #0#12 = #C3;
     {
       if(#0#0 is core::List<core::Object?> && #0#0{core::List<core::Object?>}.{core::List::length}{core::int} =={core::num::==}{(core::Object) → core::bool} #C1 && #C2 =={core::num::==}{(core::Object) → core::bool} #0#0{core::List<core::Object?>}.{core::List::[]}(0){(core::int) → core::Object?} && #C1 =={core::num::==}{(core::Object) → core::bool} #0#0{core::List<core::Object?>}.{core::List::[]}(1){(core::int) → core::Object?}) {
         {

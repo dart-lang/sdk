@@ -88,6 +88,7 @@ static method ifCase(dynamic o) → dynamic {
   }
   {
     final synthesized dynamic #5#0 = o;
+    final const synthesized core::int #5#3 = #C1;
     {
       hoisted self::B b;
       if(#5#0 is self::A && #C1 =={core::num::==}{(core::Object) → core::bool} #5#0{self::A}.{self::A::i}{core::int}) {
@@ -100,6 +101,7 @@ static method ifCase(dynamic o) → dynamic {
   }
   {
     final synthesized dynamic #6#0 = o;
+    final const synthesized core::int #6#4 = #C1;
     {
       hoisted self::B b;
       if(#6#0 is self::A && (let final dynamic #t1 = b = #6#0{self::A}.{self::A::b}{self::B} in true) && #C1 =={core::num::==}{(core::Object) → core::bool} #6#0{self::A}.{self::A::i}{core::int}) {
@@ -111,6 +113,8 @@ static method ifCase(dynamic o) → dynamic {
     final synthesized dynamic #7#0 = o;
     synthesized self::B #7#2;
     synthesized core::bool #7#2#isSet = false;
+    final const synthesized core::int #7#4 = #C1;
+    final const synthesized core::int #7#8 = #C2;
     {
       hoisted self::B b;
       hoisted self::C c;
@@ -133,6 +137,8 @@ static method switchExpression(dynamic o) → dynamic
     synthesized core::bool #0#5#isSet = false;
     synthesized core::bool #0#7;
     synthesized core::bool #0#7#isSet = false;
+    final const synthesized core::int #0#6 = #C1;
+    final const synthesized core::int #0#9 = #C2;
     #L1:
     {
       {
@@ -221,6 +227,8 @@ static method switchStatement(dynamic o) → dynamic {
     synthesized core::bool #0#5#isSet = false;
     synthesized core::bool #0#7;
     synthesized core::bool #0#7#isSet = false;
+    final const synthesized core::int #0#6 = #C1;
+    final const synthesized core::int #0#9 = #C2;
     {
       hoisted self::A a;
       if(#0#0 is self::A && (let final dynamic #t30 = a = #0#0{self::A} in true)) {

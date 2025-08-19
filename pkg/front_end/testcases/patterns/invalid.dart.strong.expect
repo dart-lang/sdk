@@ -19,8 +19,12 @@ static method method(invalid-type o) → dynamic {
     final synthesized invalid-type #0#0 = o;
     synthesized core::int #0#2;
     synthesized core::bool #0#2#isSet = false;
+    final const synthesized core::int #0#3 = #C1;
+    final const synthesized core::int #0#7 = #C2;
     synthesized invalid-type #0#15;
     synthesized core::bool #0#15#isSet = false;
+    final const synthesized core::int #0#13 = #C3;
+    final const synthesized core::int #0#18 = #C4;
     {
       lowered hoisted core::List<invalid-type> a#case#0;
       lowered hoisted invalid-type a#case#1;

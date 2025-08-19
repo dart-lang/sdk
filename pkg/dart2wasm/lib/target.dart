@@ -41,7 +41,7 @@ enum Mode {
 }
 
 class Dart2WasmConstantsBackend extends ConstantsBackend {
-  const Dart2WasmConstantsBackend();
+  const Dart2WasmConstantsBackend() : super(keepLocals: false);
 
   @override
   bool get supportsUnevaluatedConstants => true;

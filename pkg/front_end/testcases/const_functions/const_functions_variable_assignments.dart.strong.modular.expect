@@ -21,6 +21,7 @@ static method function() → core::int {
     x = x.{core::num::+}(1){(core::num) → core::int};
     return x;
   }
+  const core::int var2 = #C1;
   return #C1;
 }
 static method varAssignmentTest3(core::int a) → core::int {

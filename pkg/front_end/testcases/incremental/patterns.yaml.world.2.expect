@@ -4,6 +4,7 @@ library from "org-dartlang-test:///main.dart" as main {
   static field dart.core::int value = block {
     dart.core::int #t1;
     final synthesized dart.core::int #0#0 = 0;
+    final const synthesized dart.core::int #0#1 = #C1;
     #L1:
     {
       {

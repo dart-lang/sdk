@@ -10,9 +10,15 @@ library;
 //         ^^^
 //
 import self as self;
+import "dart:core" as core;
 
 static method test() → void {
+  const core::int c07 = #C1;
   const invalid-type c07 = invalid-expression "pkg/front_end/testcases/coverage/duplicate_local_const.dart:7:9: Error: 'c07' is already declared in this scope.
   const c07 = 2;
         ^^^";
+}
+
+constants  {
+  #C1 = 1
 }

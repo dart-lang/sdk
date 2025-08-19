@@ -6,6 +6,7 @@ static method main() → dynamic {
   core::List<dynamic> value = #C2;
   {
     final synthesized core::List<dynamic> #0#0 = value;
+    final const synthesized core::List<dynamic> #0#1 = #C2;
     if(#C2 =={core::List::==}{(core::Object) → core::bool} #0#0) {
       core::print("OK");
     }

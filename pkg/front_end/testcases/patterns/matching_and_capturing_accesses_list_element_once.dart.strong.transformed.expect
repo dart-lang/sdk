@@ -526,6 +526,7 @@ static method main() → dynamic {
   self::A a = new self::A::•();
   {
     final synthesized self::A #0#0 = a;
+    final const synthesized core::int #0#2 = #C8;
     synthesized core::int #0#4;
     synthesized core::bool #0#4#isSet = false;
     synthesized core::int #0#5;
