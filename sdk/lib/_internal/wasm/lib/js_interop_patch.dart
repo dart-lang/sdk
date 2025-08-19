@@ -116,11 +116,8 @@ extension FunctionToJSExportedDartFunction on Function {
 // This is a Symbol so that different Dart applications don't share Dart
 // objects from different Dart runtimes. We expect all JSBoxedDartObjects to
 // have this Symbol.
-final JSSymbol _jsBoxedDartObjectProperty = JSSymbol._(
-  JSValue(
-    js_helper.JS<WasmExternRef?>('() => Symbol("jsBoxedDartObjectProperty")'),
-  ),
-);
+final WasmExternRef? _jsBoxedDartObjectPropertyExternRef = js_helper
+    .JS<WasmExternRef?>('() => Symbol("jsBoxedDartObjectProperty")');
 
 // -----------------------------------------------------------------------------
 // JSBoxedDartObject <-> Object
@@ -131,7 +128,7 @@ extension JSBoxedDartObjectToObject on JSBoxedDartObject {
     final val = js_helper.JS<WasmExternRef?>(
       '(o,s) => o[s]',
       this.toExternRef,
-      _jsBoxedDartObjectProperty.toExternRef,
+      _jsBoxedDartObjectPropertyExternRef,
     );
     if (isDartNull(val)) {
       throw 'Expected a wrapped Dart object, but got a JS object or a wrapped '
@@ -152,7 +149,7 @@ extension ObjectToJSBoxedDartObject on Object {
     js_helper.JS<WasmExternRef?>(
       '(o,s,v) => o[s] = v',
       box.toExternRef,
-      _jsBoxedDartObjectProperty.toExternRef,
+      _jsBoxedDartObjectPropertyExternRef,
       jsObjectFromDartObject(this),
     );
     return JSBoxedDartObject._(box._jsObject);
