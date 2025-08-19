@@ -2,6 +2,46 @@
 
 **Released on:** Unreleased
 
+### Language
+
+Dart 3.10 adds [dot shorthands][dot-shorthand-spec] to the language. To use
+them, set your package's [SDK constraint][language version] lower bound to 3.10
+or greater (`sdk: '^3.10.0'`).
+
+#### Dot shorthands
+
+Dot shorthands allow you to omit the type name when accessing a static member
+in a context where that type is expected.
+
+These are some examples of ways you can use dot shorthands:
+
+```dart
+Color color = .blue;
+switch (color) {
+  case .blue:
+    print('blue');
+  case .red:
+    print('red');
+  case .green:
+    print('green');
+}
+```
+
+```dart
+Column(
+  crossAxisAlignment: .start,
+  mainAxisSize: .min,
+  children: widgets,
+)
+```
+
+To learn more about the feature, check out the
+[feature specification][dot-shorthand-spec].
+
+[dot-shorthand-spec]: https://github.com/dart-lang/language/blob/main/working/3616%20-%20enum%20value%20shorthand/proposal-simple-lrhn.md
+
+### Tools
+
 #### Dart CLI and Dart VM
 
 - The Dart CLI and Dart VM have been split into two seperate executables.

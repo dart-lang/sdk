@@ -2,9 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/error/error.dart';
+
 export 'package:analyzer/src/analysis_options/error/option_codes.dart';
 export 'package:analyzer/src/dart/error/hint_codes.dart';
 export 'package:analyzer/src/dart/error/lint_codes.dart';
 export 'package:analyzer/src/dart/error/todo_codes.dart';
-// ignore: deprecated_member_use_from_same_package
-export 'package:analyzer/src/error/codes.g.dart';
+
+part 'package:analyzer/src/error/codes.g.dart';

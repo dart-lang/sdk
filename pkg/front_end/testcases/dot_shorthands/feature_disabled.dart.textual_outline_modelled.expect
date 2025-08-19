@@ -1,0 +1,5 @@
+// @dart = 3.8
+
+enum Color { red, blue, green }
+
+void main() {}

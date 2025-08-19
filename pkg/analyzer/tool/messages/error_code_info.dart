@@ -11,7 +11,7 @@ import 'package:yaml/yaml.dart' show loadYaml;
 
 const codesFile = GeneratedErrorCodeFile(
   path: 'analyzer/lib/src/error/codes.g.dart',
-  preferredImportUri: 'package:analyzer/src/error/codes.dart',
+  parentLibrary: 'package:analyzer/src/error/codes.dart',
 );
 
 /// Information about all the classes derived from `DiagnosticCode` that are
@@ -112,52 +112,51 @@ transform set.
 
 const ffiCodesFile = GeneratedErrorCodeFile(
   path: 'analyzer/lib/src/dart/error/ffi_code.g.dart',
-  preferredImportUri: 'package:analyzer/src/dart/error/ffi_code.dart',
+  parentLibrary: 'package:analyzer/src/dart/error/ffi_code.dart',
 );
 
 const hintCodesFile = GeneratedErrorCodeFile(
   path: 'analyzer/lib/src/dart/error/hint_codes.g.dart',
-  preferredImportUri: 'package:analyzer/src/dart/error/hint_codes.dart',
+  parentLibrary: 'package:analyzer/src/dart/error/hint_codes.dart',
 );
 
 const manifestWarningCodeFile = GeneratedErrorCodeFile(
   path: 'analyzer/lib/src/manifest/manifest_warning_code.g.dart',
-  preferredImportUri:
-      'package:analyzer/src/manifest/manifest_warning_code.dart',
+  parentLibrary: 'package:analyzer/src/manifest/manifest_warning_code.dart',
 );
 
 const optionCodesFile = GeneratedErrorCodeFile(
   path: 'analyzer/lib/src/analysis_options/error/option_codes.g.dart',
-  preferredImportUri:
+  parentLibrary:
       'package:analyzer/src/analysis_options/error/option_codes.dart',
 );
 
 const pubspecWarningCodeFile = GeneratedErrorCodeFile(
   path: 'analyzer/lib/src/pubspec/pubspec_warning_code.g.dart',
-  preferredImportUri: 'package:analyzer/src/pubspec/pubspec_warning_code.dart',
+  parentLibrary: 'package:analyzer/src/pubspec/pubspec_warning_code.dart',
 );
 
 const scannerErrorFile = GeneratedErrorCodeFile(
   path: '_fe_analyzer_shared/lib/src/scanner/errors.g.dart',
-  preferredImportUri: 'package:_fe_analyzer_shared/src/scanner/errors.dart',
+  parentLibrary: 'package:_fe_analyzer_shared/src/scanner/errors.dart',
   shouldUseExplicitConst: true,
 );
 
 const syntacticErrorsFile = GeneratedErrorCodeFile(
   path: 'analyzer/lib/src/dart/error/syntactic_errors.g.dart',
-  preferredImportUri: 'package:analyzer/src/dart/error/syntactic_errors.dart',
+  parentLibrary: 'package:analyzer/src/dart/error/syntactic_errors.dart',
 );
 
 const todoCodesFile = GeneratedErrorCodeFile(
   path: 'analyzer/lib/src/dart/error/todo_codes.g.dart',
-  preferredImportUri: 'package:analyzer/src/dart/error/todo_codes.dart',
+  parentLibrary: 'package:analyzer/src/dart/error/todo_codes.dart',
 );
 
 const transformSetErrorCodeFile = GeneratedErrorCodeFile(
   path:
       'analysis_server/lib/src/services/correction/fix/data_driven/'
       'transform_set_error_code.g.dart',
-  preferredImportUri:
+  parentLibrary:
       'package:analysis_server/src/services/correction/fix/data_driven/'
       'transform_set_error_code.dart',
   shouldIgnorePreferSingleQuotes: true,
@@ -400,20 +399,6 @@ class AliasErrorCodeInfo extends AnalyzerErrorCodeInfo {
 /// In-memory representation of error code information obtained from the
 /// analyzer's `messages.yaml` file.
 class AnalyzerErrorCodeInfo extends ErrorCodeInfo {
-  AnalyzerErrorCodeInfo({
-    super.comment,
-    super.correctionMessage,
-    super.deprecatedMessage,
-    super.documentation,
-    super.hasPublishedDocs,
-    super.isUnresolvedIdentifier,
-    required super.problemMessage,
-    super.removedIn,
-    super.sharedName,
-  }) {
-    _check();
-  }
-
   factory AnalyzerErrorCodeInfo.fromYaml(Map<Object?, Object?> yaml) {
     if (yaml['aliasFor'] case var aliasFor?) {
       return AliasErrorCodeInfo._fromYaml(yaml, aliasFor: aliasFor as String);
@@ -511,10 +496,6 @@ pkg/front_end/tool/fasta generate-messages
 
 /// Information about a code generated class derived from `ErrorCode`.
 class ErrorClassInfo {
-  /// A list of additional import URIs that are needed by the code generated
-  /// for this class.
-  final List<String> extraImports;
-
   /// The generated file containing this class.
   final GeneratedErrorCodeFile file;
 
@@ -550,7 +531,6 @@ class ErrorClassInfo {
   final String comment;
 
   const ErrorClassInfo({
-    this.extraImports = const [],
     required this.file,
     this.includeCfeMessages = false,
     required this.name,
@@ -769,7 +749,7 @@ abstract class ErrorCodeInfo {
         if (commentLines.isNotEmpty) commentLines.add('');
         commentLines.add('Parameters:');
         for (var p in parameters) {
-          var prefix = '${p.type} ${p.name}: ';
+          var prefix = '${p.type.analyzerName} ${p.name}: ';
           var extraIndent = ' ' * prefix.length;
           var firstLineWidth = 80 - 4 - indent.length;
           var lines = _splitText(
@@ -820,7 +800,7 @@ abstract class ErrorCodeInfo {
         case [var type, var name]:
           result.add(
             ErrorCodeParameter(
-              type: type,
+              type: ErrorCodeParameterType.fromMessagesYamlName(type),
               name: name,
               comment: value as String,
             ),
@@ -839,7 +819,7 @@ abstract class ErrorCodeInfo {
 /// In-memory representation of a single key/value pair from the `parameters`
 /// map for an error code.
 class ErrorCodeParameter {
-  final String type;
+  final ErrorCodeParameterType type;
   final String name;
   final String comment;
 
@@ -848,6 +828,40 @@ class ErrorCodeParameter {
     required this.name,
     required this.comment,
   });
+}
+
+/// In-memory representation of the type of a single diagnostic code's
+/// parameter.
+enum ErrorCodeParameterType {
+  element(messagesYamlName: 'Element', analyzerName: 'Element'),
+  int(messagesYamlName: 'int', analyzerName: 'int'),
+  object(messagesYamlName: 'Object', analyzerName: 'Object'),
+  string(messagesYamlName: 'String', analyzerName: 'String'),
+  type(messagesYamlName: 'Type', analyzerName: 'DartType'),
+  uri(messagesYamlName: 'Uri', analyzerName: 'Uri');
+
+  /// Map from [messagesYamlName] to the enum constant.
+  ///
+  /// Used for decoding parameter types from `messages.yaml`.
+  static final _messagesYamlNameToValue = {
+    for (var value in values) value.messagesYamlName: value,
+  };
+
+  /// Name of this type as it appears in `messages.yaml`.
+  final String messagesYamlName;
+
+  /// Name of this type as it appears in Dart source code.
+  final String analyzerName;
+
+  const ErrorCodeParameterType({
+    required this.messagesYamlName,
+    required this.analyzerName,
+  });
+
+  /// Decodes a type name from `messages.yaml` into an [ErrorCodeParameterName].
+  factory ErrorCodeParameterType.fromMessagesYamlName(String name) =>
+      _messagesYamlNameToValue[name] ??
+      (throw StateError('Unknown type name: $name'));
 }
 
 /// In-memory representation of error code information obtained from the front
@@ -900,12 +914,8 @@ class GeneratedErrorCodeFile {
   /// file.
   final String path;
 
-  /// The URI that should be imported instead of importing the generated file
-  /// directly.
-  ///
-  /// The generated file will include a deprecation warning to tell users which
-  /// file they should import.
-  final String preferredImportUri;
+  /// The URI of the library that the generated file will be a part of.
+  final String parentLibrary;
 
   /// Whether the generated file should use the `const` keyword when generating
   /// constructor invocations.
@@ -915,7 +925,7 @@ class GeneratedErrorCodeFile {
 
   const GeneratedErrorCodeFile({
     required this.path,
-    required this.preferredImportUri,
+    required this.parentLibrary,
     this.shouldUseExplicitConst = false,
     this.shouldIgnorePreferSingleQuotes = false,
   });

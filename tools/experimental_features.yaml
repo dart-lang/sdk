@@ -158,10 +158,6 @@ features:
   inference-update-4:
     help: "A bundle of updates to type inference."
 
-  dot-shorthands:
-    experimentalReleaseVersion: '3.9.0'
-    help: "Shorter dot syntax for static accesses."
-
 # Experiment flag only used for testing.
   test-experiment:
     help: >-
@@ -174,6 +170,18 @@ features:
 #
 # Shipped flags should be marked retired the following stable release.
 #
+
+  dot-shorthands:
+    enabledIn: '3.10.0'
+    experimentalReleaseVersion: '3.9.0'
+    validation: |
+      enum E { a }
+      main() {
+        if (E.a == .a) {
+          print('feature enabled');
+        }
+      }
+    help: "Shorter dot syntax for static accesses."
 
 
   getter-setter-error:

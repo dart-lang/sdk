@@ -2,16 +2,13 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// ignore: deprecated_member_use_from_same_package
-import 'package:_fe_analyzer_shared/src/scanner/errors.g.dart';
-
+import '../base/errors.dart';
 import '../messages/codes.dart';
 import 'error_token.dart';
 import 'token.dart' show Token, TokenType;
 import 'token_constants.dart';
 
-// ignore: deprecated_member_use_from_same_package
-export 'package:_fe_analyzer_shared/src/scanner/errors.g.dart';
+part 'errors.g.dart';
 
 /**
  *  Translates the given error [token] into an analyzer error and reports it

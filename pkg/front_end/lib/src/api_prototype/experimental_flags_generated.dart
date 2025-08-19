@@ -118,10 +118,10 @@ class ExperimentalFlag {
 
   static const ExperimentalFlag dotShorthands = const ExperimentalFlag(
       name: 'dot-shorthands',
-      isEnabledByDefault: false,
+      isEnabledByDefault: true,
       isExpired: false,
-      enabledVersion: defaultLanguageVersion,
-      experimentEnabledVersion: defaultLanguageVersion,
+      enabledVersion: const Version(3, 10),
+      experimentEnabledVersion: const Version(3, 10),
       experimentReleasedVersion: const Version(3, 9));
 
   static const ExperimentalFlag enhancedEnums = const ExperimentalFlag(

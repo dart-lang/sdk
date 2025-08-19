@@ -17,7 +17,7 @@ import 'package:kernel/ast.dart';
 import 'package:kernel/class_hierarchy.dart';
 import 'package:kernel/core_types.dart';
 import 'package:kernel/target/targets.dart' show DiagnosticReporter;
-import 'package:linter/src/lint_codes.g.dart';
+import 'package:linter/src/lint_codes.dart';
 import 'package:linter/src/rules/avoid_double_and_int_checks.dart';
 import 'package:linter/src/rules/invalid_runtime_check_with_js_interop_types.dart';
 import 'package:path/path.dart' as p;

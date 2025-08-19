@@ -14,17 +14,7 @@
 // Generated comments don't quite align with flutter style.
 // ignore_for_file: flutter_style_todos
 
-/// @docImport 'package:analyzer/src/dart/error/syntactic_errors.g.dart';
-/// @docImport 'package:analyzer/src/error/inference_error.dart';
-@Deprecated(
-  // This library is deprecated to prevent it from being accidentally imported
-  // It should only be imported by the corresponding non-code-generated library
-  // (which suppresses the deprecation warning using an "ignore" comment).
-  'Use package:analyzer/src/dart/error/ffi_code.dart instead',
-)
-library;
-
-import "package:_fe_analyzer_shared/src/base/errors.dart";
+part of "package:analyzer/src/dart/error/ffi_code.dart";
 
 class FfiCode extends DiagnosticCode {
   /// No parameters.
@@ -291,7 +281,7 @@ class FfiCode extends DiagnosticCode {
   );
 
   /// Parameters:
-  /// Type p0: the type that is missing a native type annotation
+  /// DartType p0: the type that is missing a native type annotation
   /// String p1: the superclass which is extended by this field's class
   static const FfiCode missingAnnotationOnStructField = FfiCode(
     'MISSING_ANNOTATION_ON_STRUCT_FIELD',
@@ -345,8 +335,8 @@ class FfiCode extends DiagnosticCode {
   );
 
   /// Parameters:
-  /// Type p0: the type that should be a subtype
-  /// Type p1: the supertype that the subtype is compared to
+  /// DartType p0: the type that should be a subtype
+  /// DartType p1: the supertype that the subtype is compared to
   /// String p2: the name of the function whose invocation depends on this
   ///            relationship
   static const FfiCode mustBeASubtype = FfiCode(
@@ -357,7 +347,7 @@ class FfiCode extends DiagnosticCode {
   );
 
   /// Parameters:
-  /// Type p0: the return type that should be 'void'.
+  /// DartType p0: the return type that should be 'void'.
   static const FfiCode mustReturnVoid = FfiCode(
     'MUST_RETURN_VOID',
     "The return type of the function passed to 'NativeCallable.listener' must "
@@ -367,7 +357,7 @@ class FfiCode extends DiagnosticCode {
   );
 
   /// Parameters:
-  /// Type p0: The invalid type.
+  /// DartType p0: The invalid type.
   static const FfiCode nativeFieldInvalidType = FfiCode(
     'NATIVE_FIELD_INVALID_TYPE',
     "'{0}' is an unsupported type for native fields. Native fields only "
@@ -428,7 +418,7 @@ class FfiCode extends DiagnosticCode {
   );
 
   /// Parameters:
-  /// Type p0: the type that should be a valid dart:ffi native type.
+  /// DartType p0: the type that should be a valid dart:ffi native type.
   static const FfiCode nonNativeFunctionTypeArgumentToPointer = FfiCode(
     'NON_NATIVE_FUNCTION_TYPE_ARGUMENT_TO_POINTER',
     "Can't invoke 'asFunction' because the function signature '{0}' for the "
@@ -449,7 +439,7 @@ class FfiCode extends DiagnosticCode {
 
   /// Parameters:
   /// String p0: the name of the field
-  /// Type p1: the type of the field
+  /// DartType p1: the type of the field
   static const FfiCode nonSizedTypeArgument = FfiCode(
     'NON_SIZED_TYPE_ARGUMENT',
     "The type '{1}' isn't a valid type argument for '{0}'. The type argument "

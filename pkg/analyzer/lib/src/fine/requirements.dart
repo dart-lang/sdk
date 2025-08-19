@@ -805,10 +805,6 @@ class RequirementsManifest {
     // TODO(scheglov): implement.
   }
 
-  void record_classElement_isEnumLike({required ClassElementImpl element}) {
-    // TODO(scheglov): implement.
-  }
-
   void record_fieldElement_getter({
     required FieldElementImpl element,
     String? name,

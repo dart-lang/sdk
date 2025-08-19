@@ -483,11 +483,7 @@ class B = Object with A {}''',
   void test_dotShorthand_missing_identifier() {
     var result = parseExpression(
       ".",
-      codes: [
-        ParserErrorCode.missingIdentifier,
-        ParserErrorCode.experimentNotEnabled,
-        ParserErrorCode.experimentNotEnabled,
-      ],
+      codes: [ParserErrorCode.missingIdentifier],
     );
     var expression = result as DotShorthandPropertyAccess;
     expect(expression.period.lexeme, '.');

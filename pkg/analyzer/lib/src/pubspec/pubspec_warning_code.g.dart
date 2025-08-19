@@ -14,17 +14,7 @@
 // Generated comments don't quite align with flutter style.
 // ignore_for_file: flutter_style_todos
 
-/// @docImport 'package:analyzer/src/dart/error/syntactic_errors.g.dart';
-/// @docImport 'package:analyzer/src/error/inference_error.dart';
-@Deprecated(
-  // This library is deprecated to prevent it from being accidentally imported
-  // It should only be imported by the corresponding non-code-generated library
-  // (which suppresses the deprecation warning using an "ignore" comment).
-  'Use package:analyzer/src/pubspec/pubspec_warning_code.dart instead',
-)
-library;
-
-import "package:_fe_analyzer_shared/src/base/errors.dart";
+part of "package:analyzer/src/pubspec/pubspec_warning_code.dart";
 
 class PubspecWarningCode extends DiagnosticCode {
   /// Parameters:

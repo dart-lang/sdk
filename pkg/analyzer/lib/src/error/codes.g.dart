@@ -14,17 +14,7 @@
 // Generated comments don't quite align with flutter style.
 // ignore_for_file: flutter_style_todos
 
-/// @docImport 'package:analyzer/src/dart/error/syntactic_errors.g.dart';
-/// @docImport 'package:analyzer/src/error/inference_error.dart';
-@Deprecated(
-  // This library is deprecated to prevent it from being accidentally imported
-  // It should only be imported by the corresponding non-code-generated library
-  // (which suppresses the deprecation warning using an "ignore" comment).
-  'Use package:analyzer/src/error/codes.dart instead',
-)
-library;
-
-import "package:_fe_analyzer_shared/src/base/errors.dart";
+part of "package:analyzer/src/error/codes.dart";
 
 class CompileTimeErrorCode extends DiagnosticCode {
   /// No parameters.
@@ -140,8 +130,8 @@ class CompileTimeErrorCode extends DiagnosticCode {
   );
 
   /// Parameters:
-  /// Type p0: the name of the actual argument type
-  /// Type p1: the name of the expected type
+  /// DartType p0: the name of the actual argument type
+  /// DartType p1: the name of the expected type
   /// String p2: additional information, if any, when problem is associated with
   ///            records
   static const CompileTimeErrorCode
@@ -406,7 +396,7 @@ class CompileTimeErrorCode extends DiagnosticCode {
   );
 
   /// Parameters:
-  /// Type p0: the name of the return type
+  /// DartType p0: the name of the return type
   static const CompileTimeErrorCode
   bodyMightCompleteNormally = CompileTimeErrorCode(
     'BODY_MIGHT_COMPLETE_NORMALLY',
@@ -503,7 +493,7 @@ class CompileTimeErrorCode extends DiagnosticCode {
       );
 
   /// Parameters:
-  /// Type p0: the this of the switch case expression
+  /// DartType p0: the this of the switch case expression
   static const CompileTimeErrorCode
   caseExpressionTypeImplementsEquals = CompileTimeErrorCode(
     'CASE_EXPRESSION_TYPE_IMPLEMENTS_EQUALS',
@@ -512,8 +502,8 @@ class CompileTimeErrorCode extends DiagnosticCode {
   );
 
   /// Parameters:
-  /// Type p0: the type of the case expression
-  /// Type p1: the type of the switch expression
+  /// DartType p0: the type of the case expression
+  /// DartType p1: the type of the switch expression
   static const CompileTimeErrorCode
   caseExpressionTypeIsNotSwitchExpressionSubtype = CompileTimeErrorCode(
     'CASE_EXPRESSION_TYPE_IS_NOT_SWITCH_EXPRESSION_SUBTYPE',
@@ -1170,8 +1160,8 @@ class CompileTimeErrorCode extends DiagnosticCode {
   );
 
   /// Parameters:
-  /// Type p0: the name of the type of the initializer expression
-  /// Type p1: the name of the type of the field
+  /// DartType p0: the name of the type of the initializer expression
+  /// DartType p1: the name of the type of the field
   static const CompileTimeErrorCode
   constFieldInitializerNotAssignable = CompileTimeErrorCode(
     'FIELD_INITIALIZER_NOT_ASSIGNABLE',
@@ -1215,7 +1205,7 @@ class CompileTimeErrorCode extends DiagnosticCode {
   );
 
   /// Parameters:
-  /// Type p0: the type of the entry's key
+  /// DartType p0: the type of the entry's key
   static const CompileTimeErrorCode
   constMapKeyNotPrimitiveEquality = CompileTimeErrorCode(
     'CONST_MAP_KEY_NOT_PRIMITIVE_EQUALITY',
@@ -1237,7 +1227,7 @@ class CompileTimeErrorCode extends DiagnosticCode {
   );
 
   /// Parameters:
-  /// Type p0: the type of the element
+  /// DartType p0: the type of the element
   static const CompileTimeErrorCode
   constSetElementNotPrimitiveEquality = CompileTimeErrorCode(
     'CONST_SET_ELEMENT_NOT_PRIMITIVE_EQUALITY',
@@ -1767,7 +1757,7 @@ class CompileTimeErrorCode extends DiagnosticCode {
   );
 
   /// Parameters:
-  /// Type p0: the name of the disallowed type
+  /// DartType p0: the name of the disallowed type
   static const CompileTimeErrorCode extendsDisallowedClass =
       CompileTimeErrorCode(
         'SUBTYPE_OF_DISALLOWED_TYPE',
@@ -1855,8 +1845,8 @@ class CompileTimeErrorCode extends DiagnosticCode {
       );
 
   /// Parameters:
-  /// Type p0: the type of the argument
-  /// Type p1: the extended type
+  /// DartType p0: the type of the argument
+  /// DartType p1: the extended type
   static const CompileTimeErrorCode
   extensionOverrideArgumentNotAssignable = CompileTimeErrorCode(
     'EXTENSION_OVERRIDE_ARGUMENT_NOT_ASSIGNABLE',
@@ -1922,7 +1912,7 @@ class CompileTimeErrorCode extends DiagnosticCode {
       );
 
   /// Parameters:
-  /// Type p0: the display string of the disallowed type
+  /// DartType p0: the display string of the disallowed type
   static const CompileTimeErrorCode
   extensionTypeImplementsDisallowedType = CompileTimeErrorCode(
     'EXTENSION_TYPE_IMPLEMENTS_DISALLOWED_TYPE',
@@ -1943,8 +1933,8 @@ class CompileTimeErrorCode extends DiagnosticCode {
   );
 
   /// Parameters:
-  /// Type p0: the implemented not extension type
-  /// Type p1: the ultimate representation type
+  /// DartType p0: the implemented not extension type
+  /// DartType p1: the ultimate representation type
   static const CompileTimeErrorCode
   extensionTypeImplementsNotSupertype = CompileTimeErrorCode(
     'EXTENSION_TYPE_IMPLEMENTS_NOT_SUPERTYPE',
@@ -1955,9 +1945,9 @@ class CompileTimeErrorCode extends DiagnosticCode {
   );
 
   /// Parameters:
-  /// Type p0: the representation type of the implemented extension type
+  /// DartType p0: the representation type of the implemented extension type
   /// String p1: the name of the implemented extension type
-  /// Type p2: the representation type of the this extension type
+  /// DartType p2: the representation type of the this extension type
   /// String p3: the name of the this extension type
   static const CompileTimeErrorCode
   extensionTypeImplementsRepresentationNotSupertype = CompileTimeErrorCode(
@@ -2109,8 +2099,8 @@ class CompileTimeErrorCode extends DiagnosticCode {
       );
 
   /// Parameters:
-  /// Type p0: the name of the type of the initializer expression
-  /// Type p1: the name of the type of the field
+  /// DartType p0: the name of the type of the initializer expression
+  /// DartType p1: the name of the type of the field
   static const CompileTimeErrorCode fieldInitializerNotAssignable =
       CompileTimeErrorCode(
         'FIELD_INITIALIZER_NOT_ASSIGNABLE',
@@ -2138,8 +2128,8 @@ class CompileTimeErrorCode extends DiagnosticCode {
   );
 
   /// Parameters:
-  /// Type p0: the name of the type of the field formal parameter
-  /// Type p1: the name of the type of the field
+  /// DartType p0: the name of the type of the field formal parameter
+  /// DartType p1: the name of the type of the field
   static const CompileTimeErrorCode fieldInitializingFormalNotAssignable =
       CompileTimeErrorCode(
         'FIELD_INITIALIZING_FORMAL_NOT_ASSIGNABLE',
@@ -2243,10 +2233,10 @@ class CompileTimeErrorCode extends DiagnosticCode {
   );
 
   /// Parameters:
-  /// Type p0: the type of the iterable expression.
+  /// DartType p0: the type of the iterable expression.
   /// String p1: the sequence type -- Iterable for `for` or Stream for `await
   ///            for`.
-  /// Type p2: the loop variable type.
+  /// DartType p2: the loop variable type.
   static const CompileTimeErrorCode
   forInOfInvalidElementType = CompileTimeErrorCode(
     'FOR_IN_OF_INVALID_ELEMENT_TYPE',
@@ -2256,7 +2246,7 @@ class CompileTimeErrorCode extends DiagnosticCode {
   );
 
   /// Parameters:
-  /// Type p0: the type of the iterable expression.
+  /// DartType p0: the type of the iterable expression.
   /// String p1: the sequence type -- Iterable for `for` or Stream for `await
   ///            for`.
   static const CompileTimeErrorCode forInOfInvalidType = CompileTimeErrorCode(
@@ -2458,7 +2448,7 @@ class CompileTimeErrorCode extends DiagnosticCode {
       );
 
   /// Parameters:
-  /// Type p0: the name of the disallowed type
+  /// DartType p0: the name of the disallowed type
   static const CompileTimeErrorCode
   implementsDisallowedClass = CompileTimeErrorCode(
     'SUBTYPE_OF_DISALLOWED_TYPE',
@@ -2510,7 +2500,7 @@ class CompileTimeErrorCode extends DiagnosticCode {
       );
 
   /// Parameters:
-  /// Type p0: the name of the superclass
+  /// DartType p0: the name of the superclass
   static const CompileTimeErrorCode
   implicitSuperInitializerMissingArguments = CompileTimeErrorCode(
     'IMPLICIT_SUPER_INITIALIZER_MISSING_ARGUMENTS',
@@ -2804,8 +2794,8 @@ class CompileTimeErrorCode extends DiagnosticCode {
       );
 
   /// Parameters:
-  /// Type p0: the name of the right hand side type
-  /// Type p1: the name of the left hand side type
+  /// DartType p0: the name of the right hand side type
+  /// DartType p1: the name of the left hand side type
   static const CompileTimeErrorCode invalidAssignment = CompileTimeErrorCode(
     'INVALID_ASSIGNMENT',
     "A value of type '{0}' can't be assigned to a variable of type '{1}'.",
@@ -3044,9 +3034,9 @@ class CompileTimeErrorCode extends DiagnosticCode {
   /// Parameters:
   /// String p0: the name of the declared member that is not a valid override.
   /// String p1: the name of the interface that declares the member.
-  /// Type p2: the type of the declared member in the interface.
+  /// DartType p2: the type of the declared member in the interface.
   /// String p3: the name of the interface with the overridden member.
-  /// Type p4: the type of the overridden member.
+  /// DartType p4: the type of the overridden member.
   static const CompileTimeErrorCode invalidOverride = CompileTimeErrorCode(
     'INVALID_OVERRIDE',
     "'{1}.{0}' ('{2}') isn't a valid override of '{3}.{0}' ('{4}').",
@@ -3238,8 +3228,8 @@ class CompileTimeErrorCode extends DiagnosticCode {
       );
 
   /// Parameters:
-  /// Type p0: the actual type of the list element
-  /// Type p1: the expected type of the list element
+  /// DartType p0: the actual type of the list element
+  /// DartType p1: the expected type of the list element
   static const CompileTimeErrorCode listElementTypeNotAssignable =
       CompileTimeErrorCode(
         'LIST_ELEMENT_TYPE_NOT_ASSIGNABLE',
@@ -3248,8 +3238,8 @@ class CompileTimeErrorCode extends DiagnosticCode {
       );
 
   /// Parameters:
-  /// Type p0: the actual type of the list element
-  /// Type p1: the expected type of the list element
+  /// DartType p0: the actual type of the list element
+  /// DartType p1: the expected type of the list element
   static const CompileTimeErrorCode listElementTypeNotAssignableNullability =
       CompileTimeErrorCode(
         'LIST_ELEMENT_TYPE_NOT_ASSIGNABLE',
@@ -3309,8 +3299,8 @@ class CompileTimeErrorCode extends DiagnosticCode {
   );
 
   /// Parameters:
-  /// Type p0: the type of the expression being used as a key
-  /// Type p1: the type of keys declared for the map
+  /// DartType p0: the type of the expression being used as a key
+  /// DartType p1: the type of keys declared for the map
   static const CompileTimeErrorCode mapKeyTypeNotAssignable =
       CompileTimeErrorCode(
         'MAP_KEY_TYPE_NOT_ASSIGNABLE',
@@ -3319,8 +3309,8 @@ class CompileTimeErrorCode extends DiagnosticCode {
       );
 
   /// Parameters:
-  /// Type p0: the type of the expression being used as a key
-  /// Type p1: the type of keys declared for the map
+  /// DartType p0: the type of the expression being used as a key
+  /// DartType p1: the type of keys declared for the map
   static const CompileTimeErrorCode mapKeyTypeNotAssignableNullability =
       CompileTimeErrorCode(
         'MAP_KEY_TYPE_NOT_ASSIGNABLE',
@@ -3330,8 +3320,8 @@ class CompileTimeErrorCode extends DiagnosticCode {
       );
 
   /// Parameters:
-  /// Type p0: the type of the expression being used as a value
-  /// Type p1: the type of values declared for the map
+  /// DartType p0: the type of the expression being used as a value
+  /// DartType p1: the type of values declared for the map
   static const CompileTimeErrorCode mapValueTypeNotAssignable =
       CompileTimeErrorCode(
         'MAP_VALUE_TYPE_NOT_ASSIGNABLE',
@@ -3340,8 +3330,8 @@ class CompileTimeErrorCode extends DiagnosticCode {
       );
 
   /// Parameters:
-  /// Type p0: the type of the expression being used as a value
-  /// Type p1: the type of values declared for the map
+  /// DartType p0: the type of the expression being used as a value
+  /// DartType p1: the type of values declared for the map
   static const CompileTimeErrorCode mapValueTypeNotAssignableNullability =
       CompileTimeErrorCode(
         'MAP_VALUE_TYPE_NOT_ASSIGNABLE',
@@ -3478,9 +3468,10 @@ class CompileTimeErrorCode extends DiagnosticCode {
 
   /// Parameters:
   /// String p0: the name of the super-invoked member
-  /// Type p1: the display name of the type of the super-invoked member in the
-  ///          mixin
-  /// Type p2: the display name of the type of the concrete member in the class
+  /// DartType p1: the display name of the type of the super-invoked member in
+  ///              the mixin
+  /// DartType p2: the display name of the type of the concrete member in the
+  ///              class
   static const CompileTimeErrorCode
   mixinApplicationConcreteSuperInvokedMemberType = CompileTimeErrorCode(
     'MIXIN_APPLICATION_CONCRETE_SUPER_INVOKED_MEMBER_TYPE',
@@ -3490,9 +3481,9 @@ class CompileTimeErrorCode extends DiagnosticCode {
   );
 
   /// Parameters:
-  /// Type p0: the display name of the mixin
-  /// Type p1: the display name of the superclass
-  /// Type p2: the display name of the type that is not implemented
+  /// DartType p0: the display name of the mixin
+  /// DartType p1: the display name of the superclass
+  /// DartType p2: the display name of the type that is not implemented
   static const CompileTimeErrorCode
   mixinApplicationNotImplementedInterface = CompileTimeErrorCode(
     'MIXIN_APPLICATION_NOT_IMPLEMENTED_INTERFACE',
@@ -3574,7 +3565,7 @@ class CompileTimeErrorCode extends DiagnosticCode {
   );
 
   /// Parameters:
-  /// Type p0: the name of the disallowed type
+  /// DartType p0: the name of the disallowed type
   static const CompileTimeErrorCode mixinOfDisallowedClass =
       CompileTimeErrorCode(
         'SUBTYPE_OF_DISALLOWED_TYPE',
@@ -3644,7 +3635,7 @@ class CompileTimeErrorCode extends DiagnosticCode {
       );
 
   /// Parameters:
-  /// Type p0: the name of the disallowed type
+  /// DartType p0: the name of the disallowed type
   static const CompileTimeErrorCode
   mixinSuperClassConstraintDisallowedClass = CompileTimeErrorCode(
     'SUBTYPE_OF_DISALLOWED_TYPE',
@@ -4048,7 +4039,7 @@ class CompileTimeErrorCode extends DiagnosticCode {
   );
 
   /// Parameters:
-  /// Type p0: the type of the switch scrutinee
+  /// DartType p0: the type of the switch scrutinee
   /// String p1: the witness pattern for the unmatched value
   /// String p2: the suggested pattern for the unmatched value
   static const CompileTimeErrorCode
@@ -4062,7 +4053,7 @@ class CompileTimeErrorCode extends DiagnosticCode {
   );
 
   /// Parameters:
-  /// Type p0: the type of the switch scrutinee
+  /// DartType p0: the type of the switch scrutinee
   /// String p1: the witness pattern for the unmatched value
   /// String p2: the suggested pattern for the unmatched value
   static const CompileTimeErrorCode
@@ -4335,8 +4326,8 @@ class CompileTimeErrorCode extends DiagnosticCode {
       );
 
   /// Parameters:
-  /// Type p0: the name of the superclass that does not define an implicitly
-  ///          invoked constructor
+  /// DartType p0: the name of the superclass that does not define an implicitly
+  ///              invoked constructor
   /// String p1: the name of the subclass that does not contain any explicit
   ///            constructors
   static const CompileTimeErrorCode
@@ -4496,8 +4487,8 @@ class CompileTimeErrorCode extends DiagnosticCode {
       );
 
   /// Parameters:
-  /// Type p0: the matched type
-  /// Type p1: the required type
+  /// DartType p0: the matched type
+  /// DartType p1: the required type
   static const CompileTimeErrorCode
   patternTypeMismatchInIrrefutableContext = CompileTimeErrorCode(
     'PATTERN_TYPE_MISMATCH_IN_IRREFUTABLE_CONTEXT',
@@ -4828,8 +4819,8 @@ class CompileTimeErrorCode extends DiagnosticCode {
   );
 
   /// Parameters:
-  /// Type p0: the name of the redirected constructor
-  /// Type p1: the name of the redirecting constructor
+  /// DartType p0: the name of the redirected constructor
+  /// DartType p1: the name of the redirecting constructor
   static const CompileTimeErrorCode
   redirectToInvalidFunctionType = CompileTimeErrorCode(
     'REDIRECT_TO_INVALID_FUNCTION_TYPE',
@@ -4839,8 +4830,8 @@ class CompileTimeErrorCode extends DiagnosticCode {
   );
 
   /// Parameters:
-  /// Type p0: the name of the redirected constructor's return type
-  /// Type p1: the name of the redirecting constructor's return type
+  /// DartType p0: the name of the redirected constructor's return type
+  /// DartType p1: the name of the redirecting constructor's return type
   static const CompileTimeErrorCode
   redirectToInvalidReturnType = CompileTimeErrorCode(
     'REDIRECT_TO_INVALID_RETURN_TYPE',
@@ -4852,7 +4843,7 @@ class CompileTimeErrorCode extends DiagnosticCode {
 
   /// Parameters:
   /// String p0: the name of the constructor
-  /// Type p1: the name of the class containing the constructor
+  /// DartType p1: the name of the class containing the constructor
   static const CompileTimeErrorCode
   redirectToMissingConstructor = CompileTimeErrorCode(
     'REDIRECT_TO_MISSING_CONSTRUCTOR',
@@ -4918,8 +4909,8 @@ class CompileTimeErrorCode extends DiagnosticCode {
   );
 
   /// Parameters:
-  /// Type p0: the operand type
-  /// Type p1: the parameter type of the invoked operator
+  /// DartType p0: the operand type
+  /// DartType p1: the parameter type of the invoked operator
   /// String p2: the name of the invoked operator
   static const CompileTimeErrorCode relationalPatternOperandTypeNotAssignable =
       CompileTimeErrorCode(
@@ -4981,8 +4972,8 @@ class CompileTimeErrorCode extends DiagnosticCode {
   );
 
   /// Parameters:
-  /// Type p0: the return type as declared in the return statement
-  /// Type p1: the expected return type as defined by the method
+  /// DartType p0: the return type as declared in the return statement
+  /// DartType p1: the expected return type as defined by the method
   static const CompileTimeErrorCode returnOfInvalidTypeFromClosure =
       CompileTimeErrorCode(
         'RETURN_OF_INVALID_TYPE_FROM_CLOSURE',
@@ -4992,8 +4983,8 @@ class CompileTimeErrorCode extends DiagnosticCode {
       );
 
   /// Parameters:
-  /// Type p0: the return type as declared in the return statement
-  /// Type p1: the expected return type as defined by the enclosing class
+  /// DartType p0: the return type as declared in the return statement
+  /// DartType p1: the expected return type as defined by the enclosing class
   /// String p2: the name of the constructor
   static const CompileTimeErrorCode returnOfInvalidTypeFromConstructor =
       CompileTimeErrorCode(
@@ -5005,8 +4996,8 @@ class CompileTimeErrorCode extends DiagnosticCode {
       );
 
   /// Parameters:
-  /// Type p0: the return type as declared in the return statement
-  /// Type p1: the expected return type as defined by the method
+  /// DartType p0: the return type as declared in the return statement
+  /// DartType p1: the expected return type as defined by the method
   /// String p2: the name of the method
   static const CompileTimeErrorCode
   returnOfInvalidTypeFromFunction = CompileTimeErrorCode(
@@ -5018,8 +5009,8 @@ class CompileTimeErrorCode extends DiagnosticCode {
   );
 
   /// Parameters:
-  /// Type p0: the type of the expression in the return statement
-  /// Type p1: the expected return type as defined by the method
+  /// DartType p0: the type of the expression in the return statement
+  /// DartType p1: the expected return type as defined by the method
   /// String p2: the name of the method
   static const CompileTimeErrorCode
   returnOfInvalidTypeFromMethod = CompileTimeErrorCode(
@@ -5063,8 +5054,8 @@ class CompileTimeErrorCode extends DiagnosticCode {
   );
 
   /// Parameters:
-  /// Type p0: the actual type of the set element
-  /// Type p1: the expected type of the set element
+  /// DartType p0: the actual type of the set element
+  /// DartType p1: the expected type of the set element
   static const CompileTimeErrorCode setElementTypeNotAssignable =
       CompileTimeErrorCode(
         'SET_ELEMENT_TYPE_NOT_ASSIGNABLE',
@@ -5073,8 +5064,8 @@ class CompileTimeErrorCode extends DiagnosticCode {
       );
 
   /// Parameters:
-  /// Type p0: the actual type of the set element
-  /// Type p1: the expected type of the set element
+  /// DartType p0: the actual type of the set element
+  /// DartType p1: the expected type of the set element
   static const CompileTimeErrorCode setElementTypeNotAssignableNullability =
       CompileTimeErrorCode(
         'SET_ELEMENT_TYPE_NOT_ASSIGNABLE',
@@ -5136,8 +5127,8 @@ class CompileTimeErrorCode extends DiagnosticCode {
   );
 
   /// Parameters:
-  /// Type p0: the type of super-parameter
-  /// Type p1: the type of associated super-constructor parameter
+  /// DartType p0: the type of super-parameter
+  /// DartType p1: the type of associated super-constructor parameter
   static const CompileTimeErrorCode
   superFormalParameterTypeIsNotSubtypeOfAssociated = CompileTimeErrorCode(
     'SUPER_FORMAL_PARAMETER_TYPE_IS_NOT_SUBTYPE_OF_ASSOCIATED',
@@ -5252,7 +5243,7 @@ class CompileTimeErrorCode extends DiagnosticCode {
   );
 
   /// Parameters:
-  /// Type p0: the type that can't be thrown
+  /// DartType p0: the type that can't be thrown
   static const CompileTimeErrorCode throwOfInvalidType = CompileTimeErrorCode(
     'THROW_OF_INVALID_TYPE',
     "The type '{0}' of the thrown expression must be assignable to 'Object'.",
@@ -5296,10 +5287,11 @@ class CompileTimeErrorCode extends DiagnosticCode {
       );
 
   /// Parameters:
-  /// Type p0: the name of the type used in the instance creation that should be
-  ///          limited by the bound as specified in the class declaration
+  /// DartType p0: the name of the type used in the instance creation that
+  ///              should be limited by the bound as specified in the class
+  ///              declaration
   /// String p1: the name of the type parameter
-  /// Type p2: the substituted bound of the type parameter
+  /// DartType p2: the substituted bound of the type parameter
   static const CompileTimeErrorCode typeArgumentNotMatchingBounds =
       CompileTimeErrorCode(
         'TYPE_ARGUMENT_NOT_MATCHING_BOUNDS',
@@ -5328,7 +5320,7 @@ class CompileTimeErrorCode extends DiagnosticCode {
   ///
   /// Parameters:
   /// String p0: the name of the type parameter
-  /// Type p1: the name of the bounding type
+  /// DartType p1: the name of the bounding type
   static const CompileTimeErrorCode typeParameterSupertypeOfItsBound =
       CompileTimeErrorCode(
         'TYPE_PARAMETER_SUPERTYPE_OF_ITS_BOUND',
@@ -5499,8 +5491,8 @@ class CompileTimeErrorCode extends DiagnosticCode {
       );
 
   /// Parameters:
-  /// Type p0: the name of the superclass that does not define the invoked
-  ///          constructor
+  /// DartType p0: the name of the superclass that does not define the invoked
+  ///              constructor
   /// String p1: the name of the constructor being invoked
   static const CompileTimeErrorCode undefinedConstructorInInitializer =
       CompileTimeErrorCode(
@@ -5716,8 +5708,8 @@ class CompileTimeErrorCode extends DiagnosticCode {
 
   /// Parameters:
   /// String p0: the name of the operator
-  /// Type p1: the name of the enclosing type where the operator is being looked
-  ///          for
+  /// DartType p1: the name of the enclosing type where the operator is being
+  ///              looked for
   static const CompileTimeErrorCode undefinedOperator = CompileTimeErrorCode(
     'UNDEFINED_OPERATOR',
     "The operator '{0}' isn't defined for the type '{1}'.",
@@ -5741,8 +5733,8 @@ class CompileTimeErrorCode extends DiagnosticCode {
 
   /// Parameters:
   /// String p0: the name of the setter
-  /// Type p1: the name of the enclosing type where the setter is being looked
-  ///          for
+  /// DartType p1: the name of the enclosing type where the setter is being
+  ///              looked for
   static const CompileTimeErrorCode undefinedSetter = CompileTimeErrorCode(
     'UNDEFINED_SETTER',
     "The setter '{0}' isn't defined for the type '{1}'.",
@@ -5769,8 +5761,8 @@ class CompileTimeErrorCode extends DiagnosticCode {
 
   /// Parameters:
   /// String p0: the name of the getter
-  /// Type p1: the name of the enclosing type where the getter is being looked
-  ///          for
+  /// DartType p1: the name of the enclosing type where the getter is being
+  ///              looked for
   static const CompileTimeErrorCode undefinedSuperGetter = CompileTimeErrorCode(
     'UNDEFINED_SUPER_MEMBER',
     "The getter '{0}' isn't defined in a superclass of '{1}'.",
@@ -5796,8 +5788,8 @@ class CompileTimeErrorCode extends DiagnosticCode {
 
   /// Parameters:
   /// String p0: the name of the operator
-  /// Type p1: the name of the enclosing type where the operator is being looked
-  ///          for
+  /// DartType p1: the name of the enclosing type where the operator is being
+  ///              looked for
   static const CompileTimeErrorCode undefinedSuperOperator =
       CompileTimeErrorCode(
         'UNDEFINED_SUPER_MEMBER',
@@ -5809,8 +5801,8 @@ class CompileTimeErrorCode extends DiagnosticCode {
 
   /// Parameters:
   /// String p0: the name of the setter
-  /// Type p1: the name of the enclosing type where the setter is being looked
-  ///          for
+  /// DartType p1: the name of the enclosing type where the setter is being
+  ///              looked for
   static const CompileTimeErrorCode undefinedSuperSetter = CompileTimeErrorCode(
     'UNDEFINED_SUPER_MEMBER',
     "The setter '{0}' isn't defined in a superclass of '{1}'.",
@@ -6059,7 +6051,7 @@ class CompileTimeErrorCode extends DiagnosticCode {
       );
 
   /// Parameters:
-  /// Type p0: the name of the method being referenced (<i>G</i>)
+  /// DartType p0: the name of the method being referenced (<i>G</i>)
   /// int p1: the number of type parameters that were declared
   /// int p2: the number of type arguments provided
   static const CompileTimeErrorCode wrongNumberOfTypeArgumentsMethod =
@@ -6077,7 +6069,7 @@ class CompileTimeErrorCode extends DiagnosticCode {
   ///
   /// Parameters:
   /// String p0: the name of the type parameter
-  /// Type p1: the name of the super interface
+  /// DartType p1: the name of the super interface
   static const CompileTimeErrorCode
   wrongTypeParameterVarianceInSuperinterface = CompileTimeErrorCode(
     'WRONG_TYPE_PARAMETER_VARIANCE_IN_SUPERINTERFACE',
@@ -6127,8 +6119,8 @@ class CompileTimeErrorCode extends DiagnosticCode {
   );
 
   /// Parameters:
-  /// Type p0: the type of the expression after `yield*`
-  /// Type p1: the return type of the function containing the `yield*`
+  /// DartType p0: the type of the expression after `yield*`
+  /// DartType p1: the return type of the function containing the `yield*`
   static const CompileTimeErrorCode
   yieldEachOfInvalidType = CompileTimeErrorCode(
     'YIELD_OF_INVALID_TYPE',
@@ -6152,8 +6144,8 @@ class CompileTimeErrorCode extends DiagnosticCode {
   );
 
   /// Parameters:
-  /// Type p0: the type of the expression after `yield`
-  /// Type p1: the return type of the function containing the `yield`
+  /// DartType p0: the type of the expression after `yield`
+  /// DartType p1: the return type of the function containing the `yield`
   static const CompileTimeErrorCode yieldOfInvalidType = CompileTimeErrorCode(
     'YIELD_OF_INVALID_TYPE',
     "A yielded value of type '{0}' must be assignable to '{1}'.",
@@ -6313,8 +6305,8 @@ class StaticWarningCode extends DiagnosticCode {
 
 class WarningCode extends DiagnosticCode {
   /// Parameters:
-  /// Type p0: the name of the actual argument type
-  /// Type p1: the name of the expected function return type
+  /// DartType p0: the name of the actual argument type
+  /// DartType p1: the name of the expected function return type
   static const WarningCode argumentTypeNotAssignableToErrorHandler =
       WarningCode(
         'ARGUMENT_TYPE_NOT_ASSIGNABLE_TO_ERROR_HANDLER',
@@ -6336,7 +6328,7 @@ class WarningCode extends DiagnosticCode {
   );
 
   /// Parameters:
-  /// Type p0: the return type as derived by the type of the [Future].
+  /// DartType p0: the return type as derived by the type of the [Future].
   static const WarningCode bodyMightCompleteNormallyCatchError = WarningCode(
     'BODY_MIGHT_COMPLETE_NORMALLY_CATCH_ERROR',
     "This 'onError' handler must return a value assignable to '{0}', but ends "
@@ -6346,7 +6338,7 @@ class WarningCode extends DiagnosticCode {
   );
 
   /// Parameters:
-  /// Type p0: the name of the declared return type
+  /// DartType p0: the name of the declared return type
   static const WarningCode bodyMightCompleteNormallyNullable = WarningCode(
     'BODY_MIGHT_COMPLETE_NORMALLY_NULLABLE',
     "This function has a nullable return type of '{0}', but ends without "
@@ -6378,8 +6370,8 @@ class WarningCode extends DiagnosticCode {
   );
 
   /// Parameters:
-  /// Type p0: the matched value type
-  /// Type p1: the constant value type
+  /// DartType p0: the matched value type
+  /// DartType p1: the constant value type
   static const WarningCode constantPatternNeverMatchesValueType = WarningCode(
     'CONSTANT_PATTERN_NEVER_MATCHES_VALUE_TYPE',
     "The matched value type '{0}' can never be equal to this constant of type "
@@ -6434,8 +6426,8 @@ class WarningCode extends DiagnosticCode {
   /// `A` was already caught.
   ///
   /// Parameters:
-  /// Type p0: name of the subtype
-  /// Type p1: name of the supertype
+  /// DartType p0: name of the subtype
+  /// DartType p1: name of the supertype
   static const WarningCode deadCodeOnCatchSubtype = WarningCode(
     'DEAD_CODE_ON_CATCH_SUBTYPE',
     "Dead code: This on-catch block won't be executed because '{0}' is a "
@@ -7435,8 +7427,8 @@ class WarningCode extends DiagnosticCode {
   );
 
   /// Parameters:
-  /// Type p0: the matched value type
-  /// Type p1: the required pattern type
+  /// DartType p0: the matched value type
+  /// DartType p1: the required pattern type
   static const WarningCode patternNeverMatchesValueType = WarningCode(
     'PATTERN_NEVER_MATCHES_VALUE_TYPE',
     "The matched value type '{0}' can never match the required type '{1}'.",
@@ -7510,8 +7502,8 @@ class WarningCode extends DiagnosticCode {
   );
 
   /// Parameters:
-  /// Type p0: the return type as declared in the return statement
-  /// Type p1: the expected return type as defined by the type of the Future
+  /// DartType p0: the return type as declared in the return statement
+  /// DartType p1: the expected return type as defined by the type of the Future
   static const WarningCode returnOfInvalidTypeFromCatchError = WarningCode(
     'INVALID_RETURN_TYPE_FOR_CATCH_ERROR',
     "A value of type '{0}' can't be returned by the 'onError' handler because "
@@ -7521,8 +7513,8 @@ class WarningCode extends DiagnosticCode {
   );
 
   /// Parameters:
-  /// Type p0: the return type of the function
-  /// Type p1: the expected return type as defined by the type of the Future
+  /// DartType p0: the return type of the function
+  /// DartType p1: the expected return type as defined by the type of the Future
   static const WarningCode returnTypeInvalidForCatchError = WarningCode(
     'INVALID_RETURN_TYPE_FOR_CATCH_ERROR',
     "The return type '{0}' isn't assignable to '{1}', as required by "
@@ -7572,7 +7564,7 @@ class WarningCode extends DiagnosticCode {
   /// type arguments; instead, each type argument is instantiated to its bound.
   ///
   /// Parameters:
-  /// Type p0: the name of the generic type
+  /// DartType p0: the name of the generic type
   static const WarningCode strictRawType = WarningCode(
     'STRICT_RAW_TYPE',
     "The generic type '{0}' should have explicit type arguments but doesn't.",
