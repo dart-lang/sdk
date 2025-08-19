@@ -2421,6 +2421,14 @@ class ExtensionTypeElementImpl extends InterfaceElementImpl
   @override
   final ExtensionTypeFragmentImpl _firstFragment;
 
+  /// Whether the element has direct or indirect reference to itself,
+  /// in representation.
+  bool hasRepresentationSelfReference = false;
+
+  /// Whether the element has direct or indirect reference to itself,
+  /// in implemented superinterfaces.
+  bool hasImplementsSelfReference = false;
+
   late DartType _typeErasure;
 
   ExtensionTypeElementImpl(this.reference, this._firstFragment) {
@@ -2441,30 +2449,6 @@ class ExtensionTypeElementImpl extends InterfaceElementImpl
       )
         fragment,
     ];
-  }
-
-  /// Whether the element has direct or indirect reference to itself,
-  /// in implemented superinterfaces.
-  bool get hasImplementsSelfReference {
-    return _firstFragment.hasImplementsSelfReference;
-  }
-
-  /// Whether the element has direct or indirect reference to itself,
-  /// in implemented superinterfaces.
-  set hasImplementsSelfReference(bool value) {
-    _firstFragment.hasImplementsSelfReference = value;
-  }
-
-  /// Whether the element has direct or indirect reference to itself,
-  /// in representation.
-  bool get hasRepresentationSelfReference {
-    return _firstFragment.hasRepresentationSelfReference;
-  }
-
-  /// Whether the element has direct or indirect reference to itself,
-  /// in representation.
-  set hasRepresentationSelfReference(bool value) {
-    _firstFragment.hasRepresentationSelfReference = value;
   }
 
   @override
@@ -2534,14 +2518,6 @@ class ExtensionTypeFragmentImpl extends InterfaceFragmentImpl
     implements ExtensionTypeFragment {
   @override
   late final ExtensionTypeElementImpl element;
-
-  /// Whether the element has direct or indirect reference to itself,
-  /// in representation.
-  bool hasRepresentationSelfReference = false;
-
-  /// Whether the element has direct or indirect reference to itself,
-  /// in implemented superinterfaces.
-  bool hasImplementsSelfReference = false;
 
   ExtensionTypeFragmentImpl({required super.name});
 

@@ -617,6 +617,9 @@ class LibraryReader {
       var element = ExtensionTypeElementImpl(reference, fragments.first);
       element.linkFragments(fragments);
 
+      element.hasRepresentationSelfReference = _reader.readBool();
+      element.hasImplementsSelfReference = _reader.readBool();
+
       // TODO(scheglov): consider reading lazily
       for (var fragment in element.fragments) {
         fragment.ensureReadMembers();
@@ -648,8 +651,6 @@ class LibraryReader {
         create: (name) {
           var fragment = ExtensionTypeFragmentImpl(name: name);
           fragment.readModifiers(_reader);
-          fragment.hasRepresentationSelfReference = _reader.readBool();
-          fragment.hasImplementsSelfReference = _reader.readBool();
           fragment.typeParameters = _readTypeParameters();
 
           // TODO(scheglov): consider reading lazily

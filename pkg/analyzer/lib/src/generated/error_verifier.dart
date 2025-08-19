@@ -3334,9 +3334,9 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
 
   void _checkForExtensionTypeImplementsItself(
     ExtensionTypeDeclarationImpl node,
-    ExtensionTypeFragmentImpl element,
+    ExtensionTypeFragmentImpl fragment,
   ) {
-    if (element.hasImplementsSelfReference) {
+    if (fragment.element.hasImplementsSelfReference) {
       diagnosticReporter.atToken(
         node.name,
         CompileTimeErrorCode.extensionTypeImplementsItself,
@@ -3388,9 +3388,9 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
 
   void _checkForExtensionTypeRepresentationDependsOnItself(
     ExtensionTypeDeclarationImpl node,
-    ExtensionTypeFragmentImpl element,
+    ExtensionTypeFragmentImpl fragment,
   ) {
-    if (element.hasRepresentationSelfReference) {
+    if (fragment.element.hasRepresentationSelfReference) {
       diagnosticReporter.atToken(
         node.name,
         CompileTimeErrorCode.extensionTypeRepresentationDependsOnItself,

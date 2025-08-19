@@ -14,12 +14,6 @@ void breakInterfaceCycles(Linker linker, List<AstNode> declarations) {
   for (var declaration in declarations) {
     if (declaration is DeclarationImpl) {
       var element = declaration.declaredFragment!.element;
-
-      // Handled elsewhere.
-      if (element is ExtensionTypeElementImpl) {
-        continue;
-      }
-
       if (element is InterfaceElementImpl) {
         elements.add(element);
       }
@@ -64,9 +58,11 @@ class _ImplementsNode extends graph.Node<_ImplementsNode> {
 
     element.interfaceCycle = elements;
 
+    var typeProvider = element.library.typeProvider;
+    var typeSystem = element.library.typeSystem;
+
     switch (element) {
       case ClassElementImpl element:
-        var typeProvider = element.library.typeProvider;
         element.supertype = typeProvider.objectType;
         element.mixins = [];
         element.interfaces = [];
@@ -74,9 +70,14 @@ class _ImplementsNode extends graph.Node<_ImplementsNode> {
         element.mixins = [];
         element.interfaces = [];
       case ExtensionTypeElementImpl element:
-        element.interfaces = [];
+        element.hasImplementsSelfReference = true;
+        var representationType = element.representation.type;
+        var superInterface =
+            typeSystem.isNonNullable(representationType)
+                ? typeSystem.objectNone
+                : typeSystem.objectQuestion;
+        element.interfaces = [superInterface];
       case MixinElementImpl element:
-        var typeProvider = element.library.typeProvider;
         element.superclassConstraints = [typeProvider.objectType];
         element.interfaces = [];
       default:
