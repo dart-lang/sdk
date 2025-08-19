@@ -64,7 +64,18 @@ class B extends A {
         'superclass': 1,
         'interfaces': [],
         'mixins': [],
-        'subclasses': [1],
+        'subclasses': [2],
+      },
+      {
+        'classElement': {
+          'kind': 'CLASS',
+          'name': 'Object',
+          'location': anything,
+          'flags': 0,
+        },
+        'interfaces': [],
+        'mixins': [],
+        'subclasses': [],
       },
       {
         'classElement': {
@@ -76,7 +87,7 @@ class B extends A {
         'superclass': 0,
         'interfaces': [],
         'mixins': [],
-        'subclasses': [],
+        'subclasses': [0],
       },
     ]);
   }

@@ -4460,11 +4460,6 @@ library
           firstFragment: #F7
         #E3 U
           firstFragment: #F8
-      supertype: C<U, T>
-        alias: <testLibrary>::@typeAlias::A
-          typeArguments
-            U
-            T
       constructors
         named
           reference: <testLibrary>::@class::C::@constructor::named
@@ -6545,6 +6540,132 @@ library
         new
           reference: <testLibrary>::@class::C::@constructor::new
           firstFragment: #F2
+''');
+  }
+
+  test_class_cycle_interfaces() async {
+    var library = await buildLibrary(r'''
+class A implements B {}
+class B implements A {}
+''');
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      classes
+        #F1 class A (nameOffset:6) (firstTokenOffset:0) (offset:6)
+          element: <testLibrary>::@class::A
+          constructors
+            #F2 synthetic new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
+              element: <testLibrary>::@class::A::@constructor::new
+              typeName: A
+        #F3 class B (nameOffset:30) (firstTokenOffset:24) (offset:30)
+          element: <testLibrary>::@class::B
+          constructors
+            #F4 synthetic new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:30)
+              element: <testLibrary>::@class::B::@constructor::new
+              typeName: B
+  classes
+    class A
+      reference: <testLibrary>::@class::A
+      firstFragment: #F1
+      constructors
+        synthetic new
+          reference: <testLibrary>::@class::A::@constructor::new
+          firstFragment: #F2
+    class B
+      reference: <testLibrary>::@class::B
+      firstFragment: #F3
+      constructors
+        synthetic new
+          reference: <testLibrary>::@class::B::@constructor::new
+          firstFragment: #F4
+''');
+  }
+
+  test_class_cycle_mixins() async {
+    var library = await buildLibrary(r'''
+class A with B {}
+class B with A {}
+''');
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      classes
+        #F1 class A (nameOffset:6) (firstTokenOffset:0) (offset:6)
+          element: <testLibrary>::@class::A
+          constructors
+            #F2 synthetic new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
+              element: <testLibrary>::@class::A::@constructor::new
+              typeName: A
+        #F3 class B (nameOffset:24) (firstTokenOffset:18) (offset:24)
+          element: <testLibrary>::@class::B
+          constructors
+            #F4 synthetic new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:24)
+              element: <testLibrary>::@class::B::@constructor::new
+              typeName: B
+  classes
+    class A
+      reference: <testLibrary>::@class::A
+      firstFragment: #F1
+      constructors
+        synthetic new
+          reference: <testLibrary>::@class::A::@constructor::new
+          firstFragment: #F2
+    class B
+      reference: <testLibrary>::@class::B
+      firstFragment: #F3
+      constructors
+        synthetic new
+          reference: <testLibrary>::@class::B::@constructor::new
+          firstFragment: #F4
+''');
+  }
+
+  test_class_cycle_supertype() async {
+    var library = await buildLibrary(r'''
+class A extends B {}
+class B extends A {}
+''');
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      classes
+        #F1 class A (nameOffset:6) (firstTokenOffset:0) (offset:6)
+          element: <testLibrary>::@class::A
+          constructors
+            #F2 synthetic new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
+              element: <testLibrary>::@class::A::@constructor::new
+              typeName: A
+        #F3 class B (nameOffset:27) (firstTokenOffset:21) (offset:27)
+          element: <testLibrary>::@class::B
+          constructors
+            #F4 synthetic new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:27)
+              element: <testLibrary>::@class::B::@constructor::new
+              typeName: B
+  classes
+    class A
+      reference: <testLibrary>::@class::A
+      firstFragment: #F1
+      constructors
+        synthetic new
+          reference: <testLibrary>::@class::A::@constructor::new
+          firstFragment: #F2
+    class B
+      reference: <testLibrary>::@class::B
+      firstFragment: #F3
+      constructors
+        synthetic new
+          reference: <testLibrary>::@class::B::@constructor::new
+          firstFragment: #F4
 ''');
   }
 

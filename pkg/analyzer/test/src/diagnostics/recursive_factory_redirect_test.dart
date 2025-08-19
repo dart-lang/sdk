@@ -131,6 +131,7 @@ class C implements A, B {
 }
 ''',
       [
+        error(CompileTimeErrorCode.redirectToInvalidReturnType, 26, 1),
         error(CompileTimeErrorCode.recursiveInterfaceInheritance, 37, 1),
         error(CompileTimeErrorCode.recursiveFactoryRedirect, 70, 1),
         error(CompileTimeErrorCode.recursiveInterfaceInheritance, 81, 1),

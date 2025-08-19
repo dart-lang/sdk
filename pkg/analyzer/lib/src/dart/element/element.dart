@@ -4600,6 +4600,10 @@ abstract class InterfaceElementImpl extends InstanceElementImpl
 
   InterfaceTypeImpl? _thisType;
 
+  /// If not `null`, this element was part of a supertypes cycle. The cycle
+  /// is broken by clearing supertypes for all cycle elements.
+  List<InterfaceElementImpl>? interfaceCycle;
+
   /// The cached result of [allSupertypes].
   List<InterfaceTypeImpl>? _allSupertypes;
 

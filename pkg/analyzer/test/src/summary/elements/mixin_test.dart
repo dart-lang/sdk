@@ -233,6 +233,66 @@ library
 ''');
   }
 
+  test_mixin_cycle_interfaces() async {
+    var library = await buildLibrary(r'''
+mixin A implements B {}
+mixin B implements A {}
+''');
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      mixins
+        #F1 mixin A (nameOffset:6) (firstTokenOffset:0) (offset:6)
+          element: <testLibrary>::@mixin::A
+        #F2 mixin B (nameOffset:30) (firstTokenOffset:24) (offset:30)
+          element: <testLibrary>::@mixin::B
+  mixins
+    mixin A
+      reference: <testLibrary>::@mixin::A
+      firstFragment: #F1
+      superclassConstraints
+        Object
+    mixin B
+      reference: <testLibrary>::@mixin::B
+      firstFragment: #F2
+      superclassConstraints
+        Object
+''');
+  }
+
+  test_mixin_cycle_superclassConstraints() async {
+    var library = await buildLibrary(r'''
+mixin A on B {}
+mixin B on A {}
+''');
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      mixins
+        #F1 mixin A (nameOffset:6) (firstTokenOffset:0) (offset:6)
+          element: <testLibrary>::@mixin::A
+        #F2 mixin B (nameOffset:22) (firstTokenOffset:16) (offset:22)
+          element: <testLibrary>::@mixin::B
+  mixins
+    mixin A
+      reference: <testLibrary>::@mixin::A
+      firstFragment: #F1
+      superclassConstraints
+        Object
+    mixin B
+      reference: <testLibrary>::@mixin::B
+      firstFragment: #F2
+      superclassConstraints
+        Object
+''');
+  }
+
   test_mixin_field_inferredType_final() async {
     var library = await buildLibrary('''
 mixin M {

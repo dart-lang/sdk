@@ -160,6 +160,7 @@ class BundleWriter {
           _resolutionSink.writeType(element.supertype);
           _resolutionSink._writeTypeList(element.mixins);
           _resolutionSink._writeTypeList(element.interfaces);
+          _resolutionSink.writeOptionalElementList(element.interfaceCycle);
         });
       });
     });
@@ -275,6 +276,7 @@ class BundleWriter {
           _resolutionSink.writeType(element.supertype);
           _resolutionSink._writeTypeList(element.mixins);
           _resolutionSink._writeTypeList(element.interfaces);
+          _resolutionSink.writeOptionalElementList(element.interfaceCycle);
         });
       });
     });
@@ -369,6 +371,7 @@ class BundleWriter {
         _resolutionSink.withTypeParameters(element.typeParameters, () {
           _resolutionSink.writeType(element.typeErasure);
           _resolutionSink._writeTypeList(element.interfaces);
+          _resolutionSink.writeOptionalElementList(element.interfaceCycle);
         });
       });
     });
@@ -572,6 +575,7 @@ class BundleWriter {
         _resolutionSink.withTypeParameters(element.typeParameters, () {
           _resolutionSink._writeTypeList(element.superclassConstraints);
           _resolutionSink._writeTypeList(element.interfaces);
+          _resolutionSink.writeOptionalElementList(element.interfaceCycle);
         });
       });
     });
@@ -911,6 +915,10 @@ class ResolutionSink extends _SummaryDataWriter {
       default:
         throw StateError('${element.runtimeType}');
     }
+  }
+
+  void writeOptionalElementList(List<Element>? elements) {
+    writeOptionalObject(elements, (it) => _writeElementList(it));
   }
 
   void writeOptionalTypeList(List<DartType>? types) {

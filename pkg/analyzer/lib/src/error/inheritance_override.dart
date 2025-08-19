@@ -560,82 +560,71 @@ class _ClassVerifier {
   /// [CompileTimeErrorCode.recursiveInterfaceInheritanceImplements],
   /// [CompileTimeErrorCode.recursiveInterfaceInheritanceOn],
   /// [CompileTimeErrorCode.recursiveInterfaceInheritanceWith].
-  bool _checkForRecursiveInterfaceInheritance(
-    InterfaceElementImpl element, [
-    List<InterfaceElement>? path,
-  ]) {
-    path ??= <InterfaceElement>[];
-
-    // Detect error condition.
-    int size = path.length;
-    // If this is not the base case (size > 0), and the enclosing class is the
-    // given class element then report an error.
-    if (size > 0 && classElement == element) {
-      String className = classElement.displayName;
-      if (size > 1) {
-        // Construct a string showing the cyclic implements path:
-        // "A, B, C, D, A"
-        String separator = ", ";
-        StringBuffer buffer = StringBuffer();
-        for (int i = 0; i < size; i++) {
-          buffer.write(path[i].displayName);
-          buffer.write(separator);
-        }
-        buffer.write(element.displayName);
-        reporter.atElement2(
-          classElement,
-          CompileTimeErrorCode.recursiveInterfaceInheritance,
-          arguments: [className, buffer.toString()],
-        );
-        return true;
-      } else {
-        // RECURSIVE_INTERFACE_INHERITANCE_BASE_CASE_EXTENDS or
-        // RECURSIVE_INTERFACE_INHERITANCE_BASE_CASE_IMPLEMENTS or
-        // RECURSIVE_INTERFACE_INHERITANCE_ON or
-        // RECURSIVE_INTERFACE_INHERITANCE_BASE_CASE_WITH
-        reporter.atElement2(
-          classElement,
-          _getRecursiveErrorCode(element),
-          arguments: [className],
-        );
-        return true;
-      }
-    }
-
-    if (path.indexOf(element) > 0) {
+  bool _checkForRecursiveInterfaceInheritance(InterfaceElementImpl element) {
+    var cycle = element.interfaceCycle;
+    if (cycle == null) {
       return false;
     }
-    path.add(element);
 
-    // n-case
-    var supertype = element.supertype;
-    if (supertype != null &&
-        _checkForRecursiveInterfaceInheritance(supertype.element, path)) {
-      return true;
-    }
-
-    for (var type in element.mixins) {
-      if (_checkForRecursiveInterfaceInheritance(type.element, path)) {
+    if (superclass case var superclass?) {
+      if (superclass.element == element) {
+        reporter.atElement2(
+          element,
+          CompileTimeErrorCode.recursiveInterfaceInheritanceExtends,
+          arguments: [element.displayName],
+        );
         return true;
       }
     }
 
-    if (element is MixinElementImpl) {
-      for (var type in element.superclassConstraints) {
-        if (_checkForRecursiveInterfaceInheritance(type.element, path)) {
+    if (onClause case var onClause?) {
+      for (var typeAnnotation in onClause.superclassConstraints) {
+        if (typeAnnotation.element == element) {
+          reporter.atElement2(
+            element,
+            CompileTimeErrorCode.recursiveInterfaceInheritanceOn,
+            arguments: [element.displayName],
+          );
           return true;
         }
       }
     }
 
-    for (var type in element.interfaces) {
-      if (_checkForRecursiveInterfaceInheritance(type.element, path)) {
-        return true;
+    if (withClause case var withClause?) {
+      for (var typeAnnotation in withClause.mixinTypes) {
+        if (typeAnnotation.element == element) {
+          reporter.atElement2(
+            element,
+            CompileTimeErrorCode.recursiveInterfaceInheritanceWith,
+            arguments: [element.displayName],
+          );
+          return true;
+        }
       }
     }
 
-    path.removeAt(path.length - 1);
-    return false;
+    if (implementsClause case var implementsClause?) {
+      for (var typeAnnotation in implementsClause.interfaces) {
+        if (typeAnnotation.element == element) {
+          reporter.atElement2(
+            element,
+            CompileTimeErrorCode.recursiveInterfaceInheritanceImplements,
+            arguments: [element.displayName],
+          );
+          return true;
+        }
+      }
+    }
+
+    reporter.atElement2(
+      classElement,
+      CompileTimeErrorCode.recursiveInterfaceInheritance,
+      arguments: [
+        element.displayName,
+        cycle.map((e) => e.displayName).join(', '),
+      ],
+    );
+    return true;
   }
 
   void _checkIllegalConcreteEnumMemberDeclaration(Token name) {
@@ -740,30 +729,6 @@ class _ClassVerifier {
       CompileTimeErrorCode.enumMixinWithInstanceVariable,
     );
     return true;
-  }
-
-  /// Return the error code that should be used when the given class [element]
-  /// references itself directly.
-  DiagnosticCode _getRecursiveErrorCode(InterfaceElement element) {
-    if (element.supertype?.element == classElement) {
-      return CompileTimeErrorCode.recursiveInterfaceInheritanceExtends;
-    }
-
-    if (element is MixinElement) {
-      for (var type in element.superclassConstraints) {
-        if (type.element == classElement) {
-          return CompileTimeErrorCode.recursiveInterfaceInheritanceOn;
-        }
-      }
-    }
-
-    for (var type in element.mixins) {
-      if (type.element == classElement) {
-        return CompileTimeErrorCode.recursiveInterfaceInheritanceWith;
-      }
-    }
-
-    return CompileTimeErrorCode.recursiveInterfaceInheritanceImplements;
   }
 
   /// If [name] is not implemented in the extended concrete class, the

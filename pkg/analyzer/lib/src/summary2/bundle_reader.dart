@@ -293,6 +293,7 @@ class LibraryReader {
           element.supertype = reader._readOptionalInterfaceType();
           element.mixins = reader._readInterfaceTypeList();
           element.interfaces = reader._readInterfaceTypeList();
+          element.interfaceCycle = reader.readOptionalElementList();
         }),
       );
 
@@ -493,6 +494,7 @@ class LibraryReader {
           element.supertype = reader._readOptionalInterfaceType();
           element.mixins = reader._readInterfaceTypeList();
           element.interfaces = reader._readInterfaceTypeList();
+          element.interfaceCycle = reader.readOptionalElementList();
         }),
       );
 
@@ -632,6 +634,7 @@ class LibraryReader {
           reader._addTypeParameters2(element.typeParameters);
           element.typeErasure = reader.readRequiredType();
           element.interfaces = reader._readInterfaceTypeList();
+          element.interfaceCycle = reader.readOptionalElementList();
         }),
       );
 
@@ -967,6 +970,7 @@ class LibraryReader {
           reader._addTypeParameters2(element.typeParameters);
           element.superclassConstraints = reader._readInterfaceTypeList();
           element.interfaces = reader._readInterfaceTypeList();
+          element.interfaceCycle = reader.readOptionalElementList();
         }),
       );
 
@@ -1535,6 +1539,10 @@ class ResolutionReader {
 
   List<T> readNodeList<T>() {
     return _readNodeList();
+  }
+
+  List<T>? readOptionalElementList<T extends Element>() {
+    return _reader.readOptionalObject(readElementList);
   }
 
   ExpressionImpl? readOptionalExpression() {
