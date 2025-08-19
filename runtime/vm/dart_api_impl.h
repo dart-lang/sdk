@@ -354,6 +354,8 @@ Isolate* CreateWithinExistingIsolateGroup(IsolateGroup* group,
                                           const char* name,
                                           char** error);
 
+void ThrowCantRunWithoutIsolateError();
+
 }  // namespace dart.
 
 #endif  // RUNTIME_VM_DART_API_IMPL_H_

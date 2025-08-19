@@ -57,13 +57,6 @@ DEFINE_NATIVE_ENTRY(Capability_get_hashcode, 0, 1) {
   return Smi::New(hash);
 }
 
-static void ThrowCantRunWithoutIsolateError() {
-  const auto& error =
-      String::Handle(String::New("Only available when running in context of "
-                                 "an isolate, rather than isolate group."));
-  Exceptions::ThrowArgumentError(error);
-}
-
 DEFINE_NATIVE_ENTRY(RawReceivePort_factory, 0, 2) {
   ASSERT(
       TypeArguments::CheckedHandle(zone, arguments->NativeArgAt(0)).IsNull());

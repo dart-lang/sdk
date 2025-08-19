@@ -5344,6 +5344,10 @@ StringPtr Api::GetEnvironmentValue(Thread* thread, const String& name) {
 
 StringPtr Api::CallEnvironmentCallback(Thread* thread, const String& name) {
   Isolate* isolate = thread->isolate();
+  if (isolate == nullptr) {
+    ThrowCantRunWithoutIsolateError();
+    UNREACHABLE();
+  }
   Dart_EnvironmentCallback callback = isolate->environment_callback();
   if (callback != nullptr) {
     Scope api_scope(thread);
@@ -5372,7 +5376,10 @@ StringPtr Api::CallEnvironmentCallback(Thread* thread, const String& name) {
 DART_EXPORT Dart_Handle
 Dart_SetEnvironmentCallback(Dart_EnvironmentCallback callback) {
   Isolate* isolate = Isolate::Current();
-  CHECK_ISOLATE(isolate);
+  if (isolate == nullptr) {
+    ThrowCantRunWithoutIsolateError();
+    UNREACHABLE();
+  }
   isolate->set_environment_callback(callback);
   return Api::Success();
 }
@@ -5804,7 +5811,7 @@ static Dart_Handle LoadLibrary(Thread* T, const ExternalTypedData& td) {
       kernel::KernelLoader::LoadEntireProgram(program.get(), false);
   program.reset();
 
-  IsolateGroupSource* source = Isolate::Current()->source();
+  IsolateGroupSource* source = IsolateGroup::Current()->source();
   source->add_loaded_blob(Z, td);
 
   return Api::NewHandle(T, result.ptr());
@@ -7078,6 +7085,13 @@ DART_EXPORT char* Dart_WriteHeapSnapshot(
 #else
   return Utils::StrDup("VM is built without the heap snapshot writer.");
 #endif
+}
+
+void ThrowCantRunWithoutIsolateError() {
+  const auto& error =
+      String::Handle(String::New("Only available when running in context of "
+                                 "an isolate, rather than isolate group."));
+  Exceptions::ThrowArgumentError(error);
 }
 
 }  // namespace dart
