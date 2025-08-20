@@ -580,12 +580,12 @@
         "compiler": "app_jitk"
       }
     },
-    "vm-dyn-(linux|mac|win)-(debug|product|release)-(x64|x64c|simarm|simarm64|simarm64c)": {
+    "vm-dyn-(linux|mac|win)-(debug|product|release)-(x64|x64c|arm64|arm64c|simarm|simarm64|simarm64c)": {
       "options": {
         "compiler": "dart2bytecode"
       }
     },
-    "vm-aot-dyn-(linux|mac|win)-(debug|release|product)-(x64|x64c|simarm|simarm64|simarm64c)": {
+    "vm-aot-dyn-(linux|mac|win)-(debug|release|product)-(x64|x64c|arm64|arm64c|simarm|simarm64|simarm64c)": {
       "options": {
         "compiler": "dart2bytecode"
       }
@@ -1352,6 +1352,38 @@
             "-rjit",
             "--verbose"
           ]
+        }
+      ]
+    },
+    {
+      "builders": [
+        "vm-dyn-mac-debug-arm64"
+      ],
+      "meta": {
+        "description": "This configuration is used by the dynamic modules VM JIT builders."
+      },
+      "steps": [
+        {
+          "name": "build dart",
+          "script": "tools/build.py",
+          "arguments": [
+            "--dart-dynamic-modules",
+            "--codesigning-identity=-",
+            "runtime",
+            "runtime_precompiled",
+            "utils/gen_kernel"
+          ]
+        },
+        {
+          "name": "vm tests",
+          "arguments": [
+            "-nvm-dyn-${system}-${mode}-${arch}",
+            "--default-suites",
+            "co19",
+            "pkg/vm_service/"
+          ],
+          "fileset": "vm",
+          "shards": 16
         }
       ]
     },

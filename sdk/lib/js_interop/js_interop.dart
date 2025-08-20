@@ -62,8 +62,8 @@ export 'dart:js_util' show NullRejectionException;
 /// - Renaming external declarations by parameterizing the annotation on the
 ///   member with [name].
 ///
-/// In the case where [name] is not specified, is `null`, or is empty, the Dart
-/// name of the extension type or external declaration is used as the default.
+/// In the case where [name] is not specified, the Dart name of the extension
+/// type or external declaration is used as the default.
 ///
 /// See https://dart.dev/interop/js-interop/usage#js for more details on how to
 /// use this annotation.
@@ -567,17 +567,19 @@ extension JSAnyUtilityExtension on JSAny? {
   /// this does an `instanceOfString('JSClass')` check and not an
   /// `instanceOfString('Array')` check.
   ///
-  /// There are two exceptions to this rule. The first exception is
-  /// `JSTypedArray`. As `TypedArray` does not exist as a property in
-  /// JavaScript, this does some prototype checking to make `isA<JSTypedArray>`
-  /// do the right thing. The other exception is `JSAny`. If you do a
-  /// `isA<JSAny>` check, it will only do a `null` check.
-  ///
-  /// Using this method with a [T] that has an object literal constructor will
-  /// result in an error as you likely want to use [JSObject] instead.
-  ///
-  /// Using this method with a [T] that wraps a primitive JS type will result in
-  /// an error telling you to use the primitive JS type instead.
+  /// There are a few values for [T] that are exceptions to this rule:
+  /// - `JSTypedArray`: As `TypedArray` does not exist as a class in JavaScript,
+  ///   this does some prototype checking to make `isA<JSTypedArray>` do the
+  ///   right thing.
+  /// - `JSBoxedDartObject`: `isA<JSBoxedDartObject>` will check if the value is
+  ///   a result of a previous [ObjectToJSBoxedDartObject.toJSBox] call.
+  /// - `JSAny`: If you do an `isA<JSAny>` check, it will only check for `null`.
+  /// - User interop types whose representation types are JS primitive types:
+  ///   This will result in an error to avoid confusion on whether the user
+  ///   interop type is used in the type-check. Use the primitive JS type as the
+  ///   value for [T] instead.
+  /// - User interop types that have an object literal constructor: This will
+  ///   result in an error as you likely want to use [JSObject] instead.
   @Since('3.4')
   external bool isA<T extends JSAny?>();
 

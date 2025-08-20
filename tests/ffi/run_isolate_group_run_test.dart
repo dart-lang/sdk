@@ -17,6 +17,8 @@ import 'dart:isolate';
 
 import "package:expect/expect.dart";
 
+import "run_isolate_group_run_test.dart" deferred as lib1;
+
 var foo = 42;
 var foo_no_initializer;
 
@@ -73,6 +75,8 @@ ListMethodTearoffTest(List<String> args) {
         e is ArgumentError && e.toString().contains("Only trivially-immutable"),
   );
 }
+
+thefun() {}
 
 main(List<String> args) {
   IsolateGroup.runSync(() {
@@ -219,6 +223,20 @@ main(List<String> args) {
         e is ArgumentError && e.toString().contains("Only trivially-immutable"),
   );
   rp.close();
+
+  // deferred libraries can't be used from isolate group callbacks.
+  Expect.throws(() {
+    IsolateGroup.runSync(() {
+      lib1.thefun();
+    });
+  }, (e) => e is ArgumentError && e.toString().contains("Only available when"));
+
+  // environment can't be accessed from isolate group callbacks.
+  Expect.throws(() {
+    IsolateGroup.runSync(() {
+      new bool.hasEnvironment("Anything");
+    });
+  }, (e) => e is ArgumentError && e.toString().contains("Only available when"));
 
   print("All tests completed :)");
 }
