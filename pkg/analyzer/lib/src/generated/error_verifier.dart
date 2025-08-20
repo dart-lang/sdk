@@ -499,7 +499,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       _enclosingClass = declarationElement.asElement2;
 
       List<ClassMember> members = node.members;
-      if (!declarationElement.element.isDartCoreFunctionImpl) {
+      if (!declarationElement.element.isDartCoreFunction) {
         _checkForBuiltInIdentifierAsName(
           node.name,
           CompileTimeErrorCode.builtInIdentifierAsTypeName,

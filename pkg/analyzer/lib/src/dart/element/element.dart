@@ -258,9 +258,9 @@ class ClassElementImpl extends InterfaceElementImpl implements ClassElement {
     return name == 'Enum' && library.isDartCore;
   }
 
-  /// Return `true` if this class represents the class 'Function' defined in the
-  /// dart:core library.
-  bool get isDartCoreFunctionImpl {
+  /// Whether the class represents the class 'Function' defined in `dart:core`.
+  @trackedIncludedInId
+  bool get isDartCoreFunction {
     return name == 'Function' && library.isDartCore;
   }
 
