@@ -115,15 +115,6 @@ class UserTags : public AllStatic {
     return (tag_id >= kUserTagIdOffset) &&
            (tag_id < kUserTagIdOffset + kMaxUserTags);
   }
-  static void AddStreamableTagName(const char* tag);
-  static void RemoveStreamableTagName(const char* tag);
-  static bool IsTagNameStreamable(const char* tag);
-  static void Init();
-  static void Cleanup();
-
- private:
-  static Mutex* subscribed_tags_lock_;
-  static MallocGrowableArray<const char*> subscribed_tags_;
 };
 
 }  // namespace dart

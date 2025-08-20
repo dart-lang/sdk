@@ -27796,7 +27796,6 @@ UserTagPtr UserTag::New(const String& label, Heap::Space space) {
   // No tag with label exists, create and register with isolate tag table.
   result = Object::Allocate<UserTag>(space);
   result.set_label(label);
-  result.set_streamable(UserTags::IsTagNameStreamable(label.ToCString()));
   AddTagToIsolate(thread, result);
   return result.ptr();
 }
