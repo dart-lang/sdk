@@ -1,5 +1,7 @@
 ## 3.9.1
 
+**Released on:** 2025-08-20
+
 This is a patch release that:
 
 - Fixes an issue in DevTools when users click 'Clear' on the Network Screen.
