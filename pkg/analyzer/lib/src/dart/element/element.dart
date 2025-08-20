@@ -4010,9 +4010,6 @@ abstract class InstanceElementImpl extends ElementImpl
   String? get name3 => name;
 
   @override
-  Element get nonSynthetic => isSynthetic ? enclosingElement : this as Element;
-
-  @override
   AnalysisSessionImpl get session => library.session;
 
   @override
