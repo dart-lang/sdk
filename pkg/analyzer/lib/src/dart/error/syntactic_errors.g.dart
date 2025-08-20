@@ -339,20 +339,6 @@ class ParserErrorCode extends DiagnosticCode {
     correctionMessage: "Try removing one of the keywords.",
   );
 
-  static const ParserErrorCode constructorWithReturnType = ParserErrorCode(
-    'CONSTRUCTOR_WITH_RETURN_TYPE',
-    "Constructors can't have a return type.",
-    correctionMessage: "Try removing the return type.",
-  );
-
-  static const ParserErrorCode constructorWithTypeArguments = ParserErrorCode(
-    'CONSTRUCTOR_WITH_TYPE_ARGUMENTS',
-    "A constructor invocation can't have type arguments after the constructor "
-        "name.",
-    correctionMessage:
-        "Try removing the type arguments or placing them after the class name.",
-  );
-
   static const ParserErrorCode constAndFinal = ParserErrorCode(
     'CONST_AND_FINAL',
     "Members can't be declared to be both 'const' and 'final'.",
@@ -387,6 +373,20 @@ class ParserErrorCode extends DiagnosticCode {
     'CONST_METHOD',
     "Getters, setters and methods can't be declared to be 'const'.",
     correctionMessage: "Try removing the 'const' keyword.",
+  );
+
+  static const ParserErrorCode constructorWithReturnType = ParserErrorCode(
+    'CONSTRUCTOR_WITH_RETURN_TYPE',
+    "Constructors can't have a return type.",
+    correctionMessage: "Try removing the return type.",
+  );
+
+  static const ParserErrorCode constructorWithTypeArguments = ParserErrorCode(
+    'CONSTRUCTOR_WITH_TYPE_ARGUMENTS',
+    "A constructor invocation can't have type arguments after the constructor "
+        "name.",
+    correctionMessage:
+        "Try removing the type arguments or placing them after the class name.",
   );
 
   static const ParserErrorCode continueOutsideOfLoop = ParserErrorCode(
@@ -451,18 +451,18 @@ class ParserErrorCode extends DiagnosticCode {
     correctionMessage: "Try moving the directive before any declarations.",
   );
 
+  static const ParserErrorCode duplicateDeferred = ParserErrorCode(
+    'DUPLICATE_DEFERRED',
+    "An import directive can only have one 'deferred' keyword.",
+    correctionMessage: "Try removing all but one 'deferred' keyword.",
+  );
+
   /// Parameters:
   /// 0: the modifier that was duplicated
   static const ParserErrorCode duplicatedModifier = ParserErrorCode(
     'DUPLICATED_MODIFIER',
     "The modifier '{0}' was already specified.",
     correctionMessage: "Try removing all but one occurrence of the modifier.",
-  );
-
-  static const ParserErrorCode duplicateDeferred = ParserErrorCode(
-    'DUPLICATE_DEFERRED',
-    "An import directive can only have one 'deferred' keyword.",
-    correctionMessage: "Try removing all but one 'deferred' keyword.",
   );
 
   /// Parameters:
@@ -703,6 +703,9 @@ class ParserErrorCode extends DiagnosticCode {
     "Expected a type name.",
   );
 
+  @Deprecated("Please use experimentNotEnabled")
+  static const ParserErrorCode EXPERIMENT_NOT_ENABLED = experimentNotEnabled;
+
   static const ParserErrorCode experimentNotEnabled = ParserErrorCode(
     'EXPERIMENT_NOT_ENABLED',
     "This requires the '{0}' language feature to be enabled.",
@@ -710,9 +713,6 @@ class ParserErrorCode extends DiagnosticCode {
         "Try updating your pubspec.yaml to set the minimum SDK constraint to "
         "{1} or higher, and running 'pub get'.",
   );
-
-  @Deprecated("Please use experimentNotEnabled")
-  static const ParserErrorCode EXPERIMENT_NOT_ENABLED = experimentNotEnabled;
 
   static const ParserErrorCode experimentNotEnabledOffByDefault =
       ParserErrorCode(
@@ -883,19 +883,19 @@ class ParserErrorCode extends DiagnosticCode {
   );
 
   /// No parameters.
-  static const ParserErrorCode factoryWithoutBody = ParserErrorCode(
-    'FACTORY_WITHOUT_BODY',
-    "A non-redirecting 'factory' constructor must have a body.",
-    correctionMessage: "Try adding a body to the constructor.",
-  );
-
-  /// No parameters.
   static const ParserErrorCode factoryWithInitializers = ParserErrorCode(
     'FACTORY_WITH_INITIALIZERS',
     "A 'factory' constructor can't have initializers.",
     correctionMessage:
         "Try removing the 'factory' keyword to make this a generative "
         "constructor, or removing the initializers.",
+  );
+
+  /// No parameters.
+  static const ParserErrorCode factoryWithoutBody = ParserErrorCode(
+    'FACTORY_WITHOUT_BODY',
+    "A non-redirecting 'factory' constructor must have a body.",
+    correctionMessage: "Try adding a body to the constructor.",
   );
 
   static const ParserErrorCode
@@ -1935,12 +1935,6 @@ class ParserErrorCode extends DiagnosticCode {
         "be a function.",
   );
 
-  static const ParserErrorCode typedefInClass = ParserErrorCode(
-    'TYPEDEF_IN_CLASS',
-    "Typedefs can't be declared inside classes.",
-    correctionMessage: "Try moving the typedef to the top-level.",
-  );
-
   static const ParserErrorCode typeArgumentsOnTypeVariable = ParserErrorCode(
     'TYPE_ARGUMENTS_ON_TYPE_VARIABLE',
     "Can't use type arguments with type variable '{0}'.",
@@ -1951,6 +1945,12 @@ class ParserErrorCode extends DiagnosticCode {
     'TYPE_BEFORE_FACTORY',
     "Factory constructors cannot have a return type.",
     correctionMessage: "Try removing the type appearing before 'factory'.",
+  );
+
+  static const ParserErrorCode typedefInClass = ParserErrorCode(
+    'TYPEDEF_IN_CLASS',
+    "Typedefs can't be declared inside classes.",
+    correctionMessage: "Try moving the typedef to the top-level.",
   );
 
   static const ParserErrorCode typeParameterOnConstructor = ParserErrorCode(
@@ -1966,6 +1966,9 @@ class ParserErrorCode extends DiagnosticCode {
     "Types parameters aren't allowed when defining an operator.",
     correctionMessage: "Try removing the type parameters.",
   );
+
+  @Deprecated("Please use unexpectedToken")
+  static const ParserErrorCode UNEXPECTED_TOKEN = unexpectedToken;
 
   /// Parameters:
   /// Object p0: the starting character that was missing
@@ -1985,22 +1988,9 @@ class ParserErrorCode extends DiagnosticCode {
     correctionMessage: "Try removing the text.",
   );
 
-  @Deprecated("Please use unexpectedToken")
-  static const ParserErrorCode UNEXPECTED_TOKEN = unexpectedToken;
-
   static const ParserErrorCode unexpectedTokens = ParserErrorCode(
     'UNEXPECTED_TOKENS',
     "Unexpected tokens.",
-  );
-
-  /// No parameters.
-  static const ParserErrorCode
-  variablePatternKeywordInDeclarationContext = ParserErrorCode(
-    'VARIABLE_PATTERN_KEYWORD_IN_DECLARATION_CONTEXT',
-    "Variable patterns in declaration context can't specify 'var' or 'final' "
-        "keyword.",
-    correctionMessage: "Try removing the keyword.",
-    hasPublishedDocs: true,
   );
 
   static const ParserErrorCode varAndType = ParserErrorCode(
@@ -2026,6 +2016,16 @@ class ParserErrorCode extends DiagnosticCode {
     'VAR_ENUM',
     "Enums can't be declared to be 'var'.",
     correctionMessage: "Try removing the keyword 'var'.",
+  );
+
+  /// No parameters.
+  static const ParserErrorCode
+  variablePatternKeywordInDeclarationContext = ParserErrorCode(
+    'VARIABLE_PATTERN_KEYWORD_IN_DECLARATION_CONTEXT',
+    "Variable patterns in declaration context can't specify 'var' or 'final' "
+        "keyword.",
+    correctionMessage: "Try removing the keyword.",
+    hasPublishedDocs: true,
   );
 
   static const ParserErrorCode varReturnType = ParserErrorCode(

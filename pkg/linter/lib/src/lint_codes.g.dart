@@ -421,14 +421,6 @@ class LinterLintCode extends LintCode {
   );
 
   /// No parameters.
-  static const LinterLintCode avoidReturnTypesOnSetters = LinterLintCode(
-    LintNames.avoid_return_types_on_setters,
-    "Unnecessary return type on a setter.",
-    correctionMessage: "Try removing the return type.",
-    hasPublishedDocs: true,
-  );
-
-  /// No parameters.
   static const LinterLintCode avoidReturningNullForVoidFromFunction =
       LinterLintCode(
         LintNames.avoid_returning_null_for_void,
@@ -454,6 +446,14 @@ class LinterLintCode extends LintCode {
     "Don't return 'this' from a method.",
     correctionMessage:
         "Try changing the return type to 'void' and removing the return.",
+  );
+
+  /// No parameters.
+  static const LinterLintCode avoidReturnTypesOnSetters = LinterLintCode(
+    LintNames.avoid_return_types_on_setters,
+    "Unnecessary return type on a setter.",
+    correctionMessage: "Try removing the return type.",
+    hasPublishedDocs: true,
   );
 
   /// No parameters.
@@ -492,15 +492,6 @@ class LinterLintCode extends LintCode {
     hasPublishedDocs: true,
   );
 
-  /// No parameters.
-  static const LinterLintCode avoidTypeToString = LinterLintCode(
-    LintNames.avoid_type_to_string,
-    "Using 'toString' on a 'Type' is not safe in production code.",
-    correctionMessage:
-        "Try a normal type check or compare the 'runtimeType' directly.",
-    hasPublishedDocs: true,
-  );
-
   /// Parameters:
   /// Object p0: undocumented
   static const LinterLintCode
@@ -531,6 +522,15 @@ class LinterLintCode extends LintCode {
     LintNames.avoid_types_on_closure_parameters,
     "Unnecessary type annotation on a function expression parameter.",
     correctionMessage: "Try removing the type annotation.",
+  );
+
+  /// No parameters.
+  static const LinterLintCode avoidTypeToString = LinterLintCode(
+    LintNames.avoid_type_to_string,
+    "Using 'toString' on a 'Type' is not safe in production code.",
+    correctionMessage:
+        "Try a normal type check or compare the 'runtimeType' directly.",
+    hasPublishedDocs: true,
   );
 
   /// No parameters.
@@ -815,18 +815,18 @@ class LinterLintCode extends LintCode {
   );
 
   /// No parameters.
-  static const LinterLintCode doNotUseEnvironment = LinterLintCode(
-    LintNames.do_not_use_environment,
-    "Invalid use of an environment declaration.",
-    correctionMessage: "Try removing the environment declaration usage.",
-  );
-
-  /// No parameters.
   static const LinterLintCode documentIgnores = LinterLintCode(
     LintNames.document_ignores,
     "Missing documentation explaining why the diagnostic is ignored.",
     correctionMessage:
         "Try adding a comment immediately above the ignore comment.",
+  );
+
+  /// No parameters.
+  static const LinterLintCode doNotUseEnvironment = LinterLintCode(
+    LintNames.do_not_use_environment,
+    "Invalid use of an environment declaration.",
+    correctionMessage: "Try removing the environment declaration usage.",
   );
 
   /// No parameters.
@@ -1206,6 +1206,23 @@ class LinterLintCode extends LintCode {
     hasPublishedDocs: true,
   );
 
+  /// Parameters:
+  /// Object p0: undocumented
+  static const LinterLintCode nonConstantIdentifierNames = LinterLintCode(
+    LintNames.non_constant_identifier_names,
+    "The variable name '{0}' isn't a lowerCamelCase identifier.",
+    correctionMessage:
+        "Try changing the name to follow the lowerCamelCase style.",
+    hasPublishedDocs: true,
+  );
+
+  /// No parameters.
+  static const LinterLintCode noopPrimitiveOperations = LinterLintCode(
+    LintNames.noop_primitive_operations,
+    "The expression has no effect and can be removed.",
+    correctionMessage: "Try removing the expression.",
+  );
+
   /// No parameters.
   static const LinterLintCode noRuntimetypeTostring = LinterLintCode(
     LintNames.no_runtimeType_toString,
@@ -1244,23 +1261,6 @@ class LinterLintCode extends LintCode {
     "The referenced identifier is a wildcard.",
     correctionMessage: "Use an identifier name that is not a wildcard.",
     hasPublishedDocs: true,
-  );
-
-  /// Parameters:
-  /// Object p0: undocumented
-  static const LinterLintCode nonConstantIdentifierNames = LinterLintCode(
-    LintNames.non_constant_identifier_names,
-    "The variable name '{0}' isn't a lowerCamelCase identifier.",
-    correctionMessage:
-        "Try changing the name to follow the lowerCamelCase style.",
-    hasPublishedDocs: true,
-  );
-
-  /// No parameters.
-  static const LinterLintCode noopPrimitiveOperations = LinterLintCode(
-    LintNames.noop_primitive_operations,
-    "The expression has no effect and can be removed.",
-    correctionMessage: "Try removing the expression.",
   );
 
   /// No parameters.
@@ -1530,16 +1530,6 @@ class LinterLintCode extends LintCode {
   );
 
   /// No parameters.
-  static const LinterLintCode preferForElementsToMapFromiterable =
-      LinterLintCode(
-        LintNames.prefer_for_elements_to_map_fromIterable,
-        "Use 'for' elements when building maps from iterables.",
-        correctionMessage:
-            "Try using a collection literal with a 'for' element.",
-        hasPublishedDocs: true,
-      );
-
-  /// No parameters.
   static const LinterLintCode preferForeach = LinterLintCode(
     LintNames.prefer_foreach,
     "Use 'forEach' and a tear-off rather than a 'for' loop to apply a function "
@@ -1548,6 +1538,16 @@ class LinterLintCode extends LintCode {
         "Try using 'forEach' and a tear-off rather than a 'for' loop.",
     hasPublishedDocs: true,
   );
+
+  /// No parameters.
+  static const LinterLintCode preferForElementsToMapFromiterable =
+      LinterLintCode(
+        LintNames.prefer_for_elements_to_map_fromIterable,
+        "Use 'for' elements when building maps from iterables.",
+        correctionMessage:
+            "Try using a collection literal with a 'for' element.",
+        hasPublishedDocs: true,
+      );
 
   /// No parameters.
   static const LinterLintCode
@@ -1615,13 +1615,6 @@ class LinterLintCode extends LintCode {
   );
 
   /// No parameters.
-  static const LinterLintCode preferIntLiterals = LinterLintCode(
-    LintNames.prefer_int_literals,
-    "Unnecessary use of a 'double' literal.",
-    correctionMessage: "Try using an 'int' literal.",
-  );
-
-  /// No parameters.
   static const LinterLintCode preferInterpolationToComposeStrings =
       LinterLintCode(
         LintNames.prefer_interpolation_to_compose_strings,
@@ -1630,6 +1623,13 @@ class LinterLintCode extends LintCode {
             "Try using string interpolation to build the composite string.",
         hasPublishedDocs: true,
       );
+
+  /// No parameters.
+  static const LinterLintCode preferIntLiterals = LinterLintCode(
+    LintNames.prefer_int_literals,
+    "Unnecessary use of a 'double' literal.",
+    correctionMessage: "Try using an 'int' literal.",
+  );
 
   /// No parameters.
   static const LinterLintCode preferIsEmptyAlwaysFalse = LinterLintCode(
@@ -1795,6 +1795,14 @@ class LinterLintCode extends LintCode {
     "The getter '{0}' recursively returns itself.",
     correctionMessage: "Try changing the value being returned.",
     hasPublishedDocs: true,
+  );
+
+  /// A lint code that removed lints can specify as their `lintCode`.
+  ///
+  /// Avoid other usages as it should be made unnecessary and removed.
+  static const LintCode removedLint = LinterLintCode(
+    'removed_lint',
+    'Removed lint.',
   );
 
   /// No parameters.
@@ -2044,20 +2052,20 @@ class LinterLintCode extends LintCode {
   );
 
   /// No parameters.
+  static const LinterLintCode unnecessaryFinalWithoutType = LinterLintCode(
+    LintNames.unnecessary_final,
+    "Local variables should not be marked as 'final'.",
+    correctionMessage: "Replace 'final' with 'var'.",
+    uniqueName: 'unnecessary_final_without_type',
+  );
+
+  /// No parameters.
   static const LinterLintCode unnecessaryFinalWithType = LinterLintCode(
     LintNames.unnecessary_final,
     "Local variables should not be marked as 'final'.",
     correctionMessage: "Remove the 'final'.",
     hasPublishedDocs: true,
     uniqueName: 'unnecessary_final_with_type',
-  );
-
-  /// No parameters.
-  static const LinterLintCode unnecessaryFinalWithoutType = LinterLintCode(
-    LintNames.unnecessary_final,
-    "Local variables should not be marked as 'final'.",
-    correctionMessage: "Replace 'final' with 'var'.",
-    uniqueName: 'unnecessary_final_without_type',
   );
 
   /// No parameters.
@@ -2150,6 +2158,15 @@ class LinterLintCode extends LintCode {
   );
 
   /// No parameters.
+  static const LinterLintCode unnecessaryNullableForFinalVariableDeclarations =
+      LinterLintCode(
+        LintNames.unnecessary_nullable_for_final_variable_declarations,
+        "Type could be non-nullable.",
+        correctionMessage: "Try changing the type to be non-nullable.",
+        hasPublishedDocs: true,
+      );
+
+  /// No parameters.
   static const LinterLintCode unnecessaryNullAwareAssignments = LinterLintCode(
     LintNames.unnecessary_null_aware_assignments,
     "Unnecessary assignment of 'null'.",
@@ -2182,15 +2199,6 @@ class LinterLintCode extends LintCode {
     correctionMessage: "Try removing the '??' operator and the 'null' operand.",
     hasPublishedDocs: true,
   );
-
-  /// No parameters.
-  static const LinterLintCode unnecessaryNullableForFinalVariableDeclarations =
-      LinterLintCode(
-        LintNames.unnecessary_nullable_for_final_variable_declarations,
-        "Type could be non-nullable.",
-        correctionMessage: "Try changing the type to be non-nullable.",
-        hasPublishedDocs: true,
-      );
 
   /// No parameters.
   static const LinterLintCode unnecessaryOverrides = LinterLintCode(
@@ -2551,14 +2559,6 @@ class LinterLintCode extends LintCode {
     correctionMessage:
         "Try removing the assignment or changing the type of the variable.",
     hasPublishedDocs: true,
-  );
-
-  /// A lint code that removed lints can specify as their `lintCode`.
-  ///
-  /// Avoid other usages as it should be made unnecessary and removed.
-  static const LintCode removedLint = LinterLintCode(
-    'removed_lint',
-    'Removed lint.',
   );
 
   const LinterLintCode(

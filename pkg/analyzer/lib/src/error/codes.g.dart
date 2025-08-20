@@ -1616,13 +1616,6 @@ class CompileTimeErrorCode extends DiagnosticCode {
         hasPublishedDocs: true,
       );
 
-  /// No parameters.
-  static const CompileTimeErrorCode enumWithoutConstants = CompileTimeErrorCode(
-    'ENUM_WITHOUT_CONSTANTS',
-    "The enum must have at least one enum constant.",
-    correctionMessage: "Try declaring an enum constant.",
-  );
-
   /// Parameters:
   /// String p0: the name of the abstract method
   /// String p1: the name of the enclosing enum
@@ -1640,6 +1633,13 @@ class CompileTimeErrorCode extends DiagnosticCode {
     "The name 'values' is not a valid name for an enum.",
     correctionMessage: "Try using a different name.",
     hasPublishedDocs: true,
+  );
+
+  /// No parameters.
+  static const CompileTimeErrorCode enumWithoutConstants = CompileTimeErrorCode(
+    'ENUM_WITHOUT_CONSTANTS',
+    "The enum must have at least one enum constant.",
+    correctionMessage: "Try declaring an enum constant.",
   );
 
   /// No parameters.
@@ -1856,15 +1856,6 @@ class CompileTimeErrorCode extends DiagnosticCode {
   );
 
   /// No parameters.
-  static const CompileTimeErrorCode extensionOverrideWithoutAccess =
-      CompileTimeErrorCode(
-        'EXTENSION_OVERRIDE_WITHOUT_ACCESS',
-        "An extension override can only be used to access instance members.",
-        correctionMessage: "Consider adding an access to an instance member.",
-        hasPublishedDocs: true,
-      );
-
-  /// No parameters.
   static const CompileTimeErrorCode
   extensionOverrideWithCascade = CompileTimeErrorCode(
     'EXTENSION_OVERRIDE_WITH_CASCADE',
@@ -1873,6 +1864,15 @@ class CompileTimeErrorCode extends DiagnosticCode {
     correctionMessage: "Try using '.' instead of '..'.",
     hasPublishedDocs: true,
   );
+
+  /// No parameters.
+  static const CompileTimeErrorCode extensionOverrideWithoutAccess =
+      CompileTimeErrorCode(
+        'EXTENSION_OVERRIDE_WITHOUT_ACCESS',
+        "An extension override can only be used to access instance members.",
+        correctionMessage: "Consider adding an access to an instance member.",
+        hasPublishedDocs: true,
+      );
 
   /// No parameters.
   static const CompileTimeErrorCode
@@ -2649,6 +2649,10 @@ class CompileTimeErrorCode extends DiagnosticCode {
         hasPublishedDocs: true,
       );
 
+  @Deprecated("Please use instanceAccessToStaticMember")
+  static const CompileTimeErrorCode INSTANCE_ACCESS_TO_STATIC_MEMBER =
+      instanceAccessToStaticMember;
+
   /// Parameters:
   /// String p0: the name of the static member
   /// String p1: the kind of the static member (field, getter, setter, or
@@ -2663,10 +2667,6 @@ class CompileTimeErrorCode extends DiagnosticCode {
         correctionMessage: "Try using the {3} '{2}' to access the {1}.",
         hasPublishedDocs: true,
       );
-
-  @Deprecated("Please use instanceAccessToStaticMember")
-  static const CompileTimeErrorCode INSTANCE_ACCESS_TO_STATIC_MEMBER =
-      instanceAccessToStaticMember;
 
   /// Parameters:
   /// Object p0: the name of the static member
@@ -2762,6 +2762,9 @@ class CompileTimeErrorCode extends DiagnosticCode {
     hasPublishedDocs: true,
     uniqueName: 'INTERFACE_CLASS_EXTENDED_OUTSIDE_OF_LIBRARY',
   );
+
+  @Deprecated("Please use invalidOverride")
+  static const CompileTimeErrorCode INVALID_OVERRIDE = invalidOverride;
 
   /// No parameters.
   static const CompileTimeErrorCode invalidAnnotation = CompileTimeErrorCode(
@@ -3042,9 +3045,6 @@ class CompileTimeErrorCode extends DiagnosticCode {
     "'{1}.{0}' ('{2}') isn't a valid override of '{3}.{0}' ('{4}').",
     hasPublishedDocs: true,
   );
-
-  @Deprecated("Please use invalidOverride")
-  static const CompileTimeErrorCode INVALID_OVERRIDE = invalidOverride;
 
   /// Parameters:
   /// Object p0: the name of the declared setter that is not a valid override.
@@ -3456,17 +3456,6 @@ class CompileTimeErrorCode extends DiagnosticCode {
       );
 
   /// Parameters:
-  /// Element p0: the name of the class that appears in both "extends" and
-  ///             "with" clauses
-  static const CompileTimeErrorCode mixinsSuperClass = CompileTimeErrorCode(
-    'IMPLEMENTS_SUPER_CLASS',
-    "'{0}' can't be used in both the 'extends' and 'with' clauses.",
-    correctionMessage: "Try removing one of the occurrences.",
-    hasPublishedDocs: true,
-    uniqueName: 'MIXINS_SUPER_CLASS',
-  );
-
-  /// Parameters:
   /// String p0: the name of the super-invoked member
   /// DartType p1: the display name of the type of the super-invoked member in
   ///              the mixin
@@ -3477,18 +3466,6 @@ class CompileTimeErrorCode extends DiagnosticCode {
     'MIXIN_APPLICATION_CONCRETE_SUPER_INVOKED_MEMBER_TYPE',
     "The super-invoked member '{0}' has the type '{1}', and the concrete "
         "member in the class has the type '{2}'.",
-    hasPublishedDocs: true,
-  );
-
-  /// Parameters:
-  /// DartType p0: the display name of the mixin
-  /// DartType p1: the display name of the superclass
-  /// DartType p2: the display name of the type that is not implemented
-  static const CompileTimeErrorCode
-  mixinApplicationNotImplementedInterface = CompileTimeErrorCode(
-    'MIXIN_APPLICATION_NOT_IMPLEMENTED_INTERFACE',
-    "'{0}' can't be mixed onto '{1}' because '{1}' doesn't implement '{2}'.",
-    correctionMessage: "Try extending the class '{0}'.",
     hasPublishedDocs: true,
   );
 
@@ -3513,6 +3490,18 @@ class CompileTimeErrorCode extends DiagnosticCode {
         "setter '{0}'.",
     hasPublishedDocs: true,
     uniqueName: 'MIXIN_APPLICATION_NO_CONCRETE_SUPER_INVOKED_SETTER',
+  );
+
+  /// Parameters:
+  /// DartType p0: the display name of the mixin
+  /// DartType p1: the display name of the superclass
+  /// DartType p2: the display name of the type that is not implemented
+  static const CompileTimeErrorCode
+  mixinApplicationNotImplementedInterface = CompileTimeErrorCode(
+    'MIXIN_APPLICATION_NOT_IMPLEMENTED_INTERFACE',
+    "'{0}' can't be mixed onto '{1}' because '{1}' doesn't implement '{2}'.",
+    correctionMessage: "Try extending the class '{0}'.",
+    hasPublishedDocs: true,
   );
 
   /// Parameters:
@@ -3602,6 +3591,17 @@ class CompileTimeErrorCode extends DiagnosticCode {
         hasPublishedDocs: true,
         uniqueName: 'MIXIN_ON_TYPE_ALIAS_EXPANDS_TO_TYPE_PARAMETER',
       );
+
+  /// Parameters:
+  /// Element p0: the name of the class that appears in both "extends" and
+  ///             "with" clauses
+  static const CompileTimeErrorCode mixinsSuperClass = CompileTimeErrorCode(
+    'IMPLEMENTS_SUPER_CLASS',
+    "'{0}' can't be used in both the 'extends' and 'with' clauses.",
+    correctionMessage: "Try removing one of the occurrences.",
+    hasPublishedDocs: true,
+    uniqueName: 'MIXINS_SUPER_CLASS',
+  );
 
   /// Parameters:
   /// String p0: the name of the mixin that is not 'base'
@@ -3729,6 +3729,72 @@ class CompileTimeErrorCode extends DiagnosticCode {
             "Try using one of the named constructors defined in '{0}'.",
         hasPublishedDocs: true,
       );
+
+  /// No parameters.
+  static const CompileTimeErrorCode noAnnotationConstructorArguments =
+      CompileTimeErrorCode(
+        'NO_ANNOTATION_CONSTRUCTOR_ARGUMENTS',
+        "Annotation creation must have arguments.",
+        correctionMessage: "Try adding an empty argument list.",
+        hasPublishedDocs: true,
+      );
+
+  /// Parameters:
+  /// String p0: the name of the class where override error was detected
+  /// String p1: the list of candidate signatures which cannot be combined
+  static const CompileTimeErrorCode
+  noCombinedSuperSignature = CompileTimeErrorCode(
+    'NO_COMBINED_SUPER_SIGNATURE',
+    "Can't infer missing types in '{0}' from overridden methods: {1}.",
+    correctionMessage:
+        "Try providing explicit types for this method's parameters and return "
+        "type.",
+    hasPublishedDocs: true,
+  );
+
+  /// Parameters:
+  /// Object p0: the name of the superclass that does not define an implicitly
+  ///            invoked constructor
+  static const CompileTimeErrorCode noDefaultSuperConstructorExplicit =
+      CompileTimeErrorCode(
+        'NO_DEFAULT_SUPER_CONSTRUCTOR',
+        "The superclass '{0}' doesn't have a zero argument constructor.",
+        correctionMessage:
+            "Try declaring a zero argument constructor in '{0}', or explicitly "
+            "invoking a different constructor in '{0}'.",
+        uniqueName: 'NO_DEFAULT_SUPER_CONSTRUCTOR_EXPLICIT',
+      );
+
+  /// Parameters:
+  /// DartType p0: the name of the superclass that does not define an implicitly
+  ///              invoked constructor
+  /// String p1: the name of the subclass that does not contain any explicit
+  ///            constructors
+  static const CompileTimeErrorCode
+  noDefaultSuperConstructorImplicit = CompileTimeErrorCode(
+    'NO_DEFAULT_SUPER_CONSTRUCTOR',
+    "The superclass '{0}' doesn't have a zero argument constructor.",
+    correctionMessage:
+        "Try declaring a zero argument constructor in '{0}', or declaring a "
+        "constructor in {1} that explicitly invokes a constructor in '{0}'.",
+    uniqueName: 'NO_DEFAULT_SUPER_CONSTRUCTOR_IMPLICIT',
+  );
+
+  /// Parameters:
+  /// String p0: the name of the subclass
+  /// String p1: the name of the superclass
+  static const CompileTimeErrorCode
+  noGenerativeConstructorsInSuperclass = CompileTimeErrorCode(
+    'NO_GENERATIVE_CONSTRUCTORS_IN_SUPERCLASS',
+    "The class '{0}' can't extend '{1}' because '{1}' only has factory "
+        "constructors (no generative constructors), and '{0}' has at least one "
+        "generative constructor.",
+    correctionMessage:
+        "Try implementing the class instead, adding a generative (not factory) "
+        "constructor to the superclass '{1}', or a factory constructor to the "
+        "subclass.",
+    hasPublishedDocs: true,
+  );
 
   /// Parameters:
   /// String p0: the name of the first member
@@ -4289,72 +4355,6 @@ class CompileTimeErrorCode extends DiagnosticCode {
         'NOT_NULL_AWARE_NULL_SPREAD',
         "The Null-typed expression can't be used with a non-null-aware spread.",
       );
-
-  /// No parameters.
-  static const CompileTimeErrorCode noAnnotationConstructorArguments =
-      CompileTimeErrorCode(
-        'NO_ANNOTATION_CONSTRUCTOR_ARGUMENTS',
-        "Annotation creation must have arguments.",
-        correctionMessage: "Try adding an empty argument list.",
-        hasPublishedDocs: true,
-      );
-
-  /// Parameters:
-  /// String p0: the name of the class where override error was detected
-  /// String p1: the list of candidate signatures which cannot be combined
-  static const CompileTimeErrorCode
-  noCombinedSuperSignature = CompileTimeErrorCode(
-    'NO_COMBINED_SUPER_SIGNATURE',
-    "Can't infer missing types in '{0}' from overridden methods: {1}.",
-    correctionMessage:
-        "Try providing explicit types for this method's parameters and return "
-        "type.",
-    hasPublishedDocs: true,
-  );
-
-  /// Parameters:
-  /// Object p0: the name of the superclass that does not define an implicitly
-  ///            invoked constructor
-  static const CompileTimeErrorCode noDefaultSuperConstructorExplicit =
-      CompileTimeErrorCode(
-        'NO_DEFAULT_SUPER_CONSTRUCTOR',
-        "The superclass '{0}' doesn't have a zero argument constructor.",
-        correctionMessage:
-            "Try declaring a zero argument constructor in '{0}', or explicitly "
-            "invoking a different constructor in '{0}'.",
-        uniqueName: 'NO_DEFAULT_SUPER_CONSTRUCTOR_EXPLICIT',
-      );
-
-  /// Parameters:
-  /// DartType p0: the name of the superclass that does not define an implicitly
-  ///              invoked constructor
-  /// String p1: the name of the subclass that does not contain any explicit
-  ///            constructors
-  static const CompileTimeErrorCode
-  noDefaultSuperConstructorImplicit = CompileTimeErrorCode(
-    'NO_DEFAULT_SUPER_CONSTRUCTOR',
-    "The superclass '{0}' doesn't have a zero argument constructor.",
-    correctionMessage:
-        "Try declaring a zero argument constructor in '{0}', or declaring a "
-        "constructor in {1} that explicitly invokes a constructor in '{0}'.",
-    uniqueName: 'NO_DEFAULT_SUPER_CONSTRUCTOR_IMPLICIT',
-  );
-
-  /// Parameters:
-  /// String p0: the name of the subclass
-  /// String p1: the name of the superclass
-  static const CompileTimeErrorCode
-  noGenerativeConstructorsInSuperclass = CompileTimeErrorCode(
-    'NO_GENERATIVE_CONSTRUCTORS_IN_SUPERCLASS',
-    "The class '{0}' can't extend '{1}' because '{1}' only has factory "
-        "constructors (no generative constructors), and '{0}' has at least one "
-        "generative constructor.",
-    correctionMessage:
-        "Try implementing the class instead, adding a generative (not factory) "
-        "constructor to the superclass '{1}', or a factory constructor to the "
-        "subclass.",
-    hasPublishedDocs: true,
-  );
 
   /// No parameters.
   static const CompileTimeErrorCode nullableTypeInExtendsClause =
@@ -5161,26 +5161,6 @@ class CompileTimeErrorCode extends DiagnosticCode {
     hasPublishedDocs: true,
   );
 
-  /// 7.6.1 Generative Constructors: Let <i>k</i> be a generative constructor. It
-  /// is a compile-time error if a generative constructor of class Object
-  /// includes a superinitializer.
-  ///
-  /// No parameters.
-  static const CompileTimeErrorCode superInitializerInObject =
-      CompileTimeErrorCode(
-        'SUPER_INITIALIZER_IN_OBJECT',
-        "The class 'Object' can't invoke a constructor from a superclass.",
-      );
-
-  /// Parameters:
-  /// String p0: the superinitializer
-  static const CompileTimeErrorCode superInvocationNotLast =
-      CompileTimeErrorCode(
-        'SUPER_INVOCATION_NOT_LAST',
-        "The superconstructor call must be last in an initializer list: '{0}'.",
-        hasPublishedDocs: true,
-      );
-
   /// No parameters.
   static const CompileTimeErrorCode superInEnumConstructor =
       CompileTimeErrorCode(
@@ -5214,11 +5194,31 @@ class CompileTimeErrorCode extends DiagnosticCode {
         hasPublishedDocs: true,
       );
 
+  /// 7.6.1 Generative Constructors: Let <i>k</i> be a generative constructor. It
+  /// is a compile-time error if a generative constructor of class Object
+  /// includes a superinitializer.
+  ///
+  /// No parameters.
+  static const CompileTimeErrorCode superInitializerInObject =
+      CompileTimeErrorCode(
+        'SUPER_INITIALIZER_IN_OBJECT',
+        "The class 'Object' can't invoke a constructor from a superclass.",
+      );
+
   /// No parameters.
   static const CompileTimeErrorCode superInRedirectingConstructor =
       CompileTimeErrorCode(
         'SUPER_IN_REDIRECTING_CONSTRUCTOR',
         "The redirecting constructor can't have a 'super' initializer.",
+        hasPublishedDocs: true,
+      );
+
+  /// Parameters:
+  /// String p0: the superinitializer
+  static const CompileTimeErrorCode superInvocationNotLast =
+      CompileTimeErrorCode(
+        'SUPER_INVOCATION_NOT_LAST',
+        "The superconstructor call must be last in an initializer list: '{0}'.",
         hasPublishedDocs: true,
       );
 
@@ -5263,6 +5263,10 @@ class CompileTimeErrorCode extends DiagnosticCode {
     hasPublishedDocs: true,
   );
 
+  @Deprecated("Please use typeArgumentNotMatchingBounds")
+  static const CompileTimeErrorCode TYPE_ARGUMENT_NOT_MATCHING_BOUNDS =
+      typeArgumentNotMatchingBounds;
+
   /// No parameters.
   static const CompileTimeErrorCode
   typeAliasCannotReferenceItself = CompileTimeErrorCode(
@@ -5300,10 +5304,6 @@ class CompileTimeErrorCode extends DiagnosticCode {
             "Try using a type that is or is a subclass of '{2}'.",
         hasPublishedDocs: true,
       );
-
-  @Deprecated("Please use typeArgumentNotMatchingBounds")
-  static const CompileTimeErrorCode TYPE_ARGUMENT_NOT_MATCHING_BOUNDS =
-      typeArgumentNotMatchingBounds;
 
   /// No parameters.
   static const CompileTimeErrorCode typeParameterReferencedByStatic =
@@ -5449,6 +5449,9 @@ class CompileTimeErrorCode extends DiagnosticCode {
         uniqueName: 'UNCHECKED_USE_OF_NULLABLE_VALUE_IN_YIELD_EACH',
       );
 
+  @Deprecated("Please use undefinedClass")
+  static const CompileTimeErrorCode UNDEFINED_CLASS = undefinedClass;
+
   /// Parameters:
   /// String p0: the name of the annotation
   static const CompileTimeErrorCode undefinedAnnotation = CompileTimeErrorCode(
@@ -5471,9 +5474,6 @@ class CompileTimeErrorCode extends DiagnosticCode {
     hasPublishedDocs: true,
     isUnresolvedIdentifier: true,
   );
-
-  @Deprecated("Please use undefinedClass")
-  static const CompileTimeErrorCode UNDEFINED_CLASS = undefinedClass;
 
   /// Same as [CompileTimeErrorCode.UNDEFINED_CLASS], but to catch using
   /// "boolean" instead of "bool" in order to improve the correction message.

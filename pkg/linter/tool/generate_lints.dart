@@ -65,26 +65,21 @@ part of 'lint_codes.dart';
 
 class LinterLintCode extends LintCode {
 ''');
-
+      var memberAccumulator = MemberAccumulator();
       for (var MapEntry(key: errorName, value: codeInfo)
           in lintMessages['LintCode']!.entries) {
         var lintName = codeInfo.sharedName ?? errorName;
         if (messagesRuleInfo[lintName]!.removed) continue;
-        out.write(codeInfo.toAnalyzerComments(indent: '  '));
-        if (codeInfo.deprecatedMessage case var deprecatedMessage?) {
-          out.writeln('  @Deprecated("$deprecatedMessage")');
-        }
         codeInfo.toAnalyzerCode(
-          out,
           linterLintCodeInfo,
           errorName,
           sharedNameReference: 'LintNames.$lintName',
+          memberAccumulator: memberAccumulator,
         );
-        out.writeln();
       }
 
       var removedLintName = 'removedLint';
-      out.writeln('''
+      memberAccumulator.constants[removedLintName] = '''
   /// A lint code that removed lints can specify as their `lintCode`.
   ///
   /// Avoid other usages as it should be made unnecessary and removed.
@@ -92,9 +87,9 @@ class LinterLintCode extends LintCode {
     'removed_lint',
     'Removed lint.',
   );
-''');
+''';
 
-      out.writeln('''
+      memberAccumulator.constructors[''] = '''
   const LinterLintCode(
     super.name,
     super.problemMessage, {
@@ -102,7 +97,9 @@ class LinterLintCode extends LintCode {
     super.hasPublishedDocs,
     String? uniqueName,
   }) : super(uniqueName: 'LintCode.\${uniqueName ?? name}');
+''';
 
+      memberAccumulator.accessors['url'] = '''
   @override
   String get url {
     if (hasPublishedDocs) {
@@ -110,8 +107,10 @@ class LinterLintCode extends LintCode {
     }
     return 'https://dart.dev/lints/\$name';
   }
-}
-''');
+''';
+      memberAccumulator.writeTo(out);
+      out.writeln('}');
+
       if (literateApiEnabled) {
         out.write('''
 

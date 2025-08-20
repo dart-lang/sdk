@@ -7,6 +7,7 @@ import 'dart:io';
 
 import 'package:analyzer/src/utilities/extensions/string.dart';
 import 'package:analyzer_testing/package_root.dart' as pkg_root;
+import 'package:analyzer_utilities/tools.dart';
 import 'package:path/path.dart';
 import 'package:yaml/yaml.dart' show loadYaml;
 
@@ -409,6 +410,20 @@ class AliasErrorCodeInfo extends AnalyzerErrorCodeInfo {
           .firstWhere((element) => element.name == aliasForClass)
           .file
           .path;
+
+  @override
+  void toAnalyzerCode(
+    ErrorClassInfo errorClassInfo,
+    String diagnosticCode, {
+    String? sharedNameReference,
+    required MemberAccumulator memberAccumulator,
+  }) {
+    var constant = StringBuffer();
+    _outputConstantHeader(constant);
+    constant.writeln('  static const $aliasForClass $diagnosticCode =');
+    constant.writeln('$aliasFor;');
+    memberAccumulator.constants[diagnosticCode] = constant.toString();
+  }
 }
 
 /// In-memory representation of error code information obtained from the
@@ -719,10 +734,10 @@ abstract class ErrorCodeInfo {
   ///
   /// [diagnosticCode] is the name of the error code to be generated.
   void toAnalyzerCode(
-    StringBuffer out,
     ErrorClassInfo errorClassInfo,
     String diagnosticCode, {
     String? sharedNameReference,
+    required MemberAccumulator memberAccumulator,
   }) {
     var correctionMessage = this.correctionMessage;
     var parameters = this.parameters;
@@ -734,7 +749,6 @@ abstract class ErrorCodeInfo {
     String className;
     String templateParameters = '';
     String? withArgumentsName;
-    String? withArgumentsText;
     if (parameters != null && parameters.isNotEmpty && !usesParameters) {
       throw StateError(
         "Error code declares parameters using a `parameters` entry, but "
@@ -757,7 +771,7 @@ abstract class ErrorCodeInfo {
           '<LocatableDiagnostic Function({$withArgumentsParams})>';
       var newIfNeeded =
           errorClassInfo.file.shouldUseExplicitNewOrConst ? 'new ' : '';
-      withArgumentsText = '''
+      memberAccumulator.staticMethods[withArgumentsName] = '''
 static LocatableDiagnostic $withArgumentsName({$withArgumentsParams}) {
   return ${newIfNeeded}LocatableDiagnosticImpl($constantName, [$argumentNames]);
 }''';
@@ -766,10 +780,16 @@ static LocatableDiagnostic $withArgumentsName({$withArgumentsParams}) {
       className = errorClassInfo.withoutArgumentsName;
     }
 
-    out.writeln('  static const $className$templateParameters $constantName =');
-    if (errorClassInfo.file.shouldUseExplicitNewOrConst) out.writeln('const ');
-    out.writeln('$className(');
-    out.writeln(
+    var constant = StringBuffer();
+    _outputConstantHeader(constant);
+    constant.writeln(
+      '  static const $className$templateParameters $constantName =',
+    );
+    if (errorClassInfo.file.shouldUseExplicitNewOrConst) {
+      constant.writeln('const ');
+    }
+    constant.writeln('$className(');
+    constant.writeln(
       '${sharedNameReference ?? "'${sharedName ?? diagnosticCode}'"},',
     );
     var maxWidth = 80 - 8 /* indentation */ - 2 /* quotes */ - 1 /* comma */;
@@ -780,37 +800,33 @@ static LocatableDiagnostic $withArgumentsName({$withArgumentsParams}) {
       maxWidth: maxWidth,
       firstLineWidth: maxWidth + 4,
     );
-    out.writeln('${messageLines.map(_encodeString).join('\n')},');
+    constant.writeln('${messageLines.map(_encodeString).join('\n')},');
     if (correctionMessage is String) {
-      out.write('correctionMessage: ');
+      constant.write('correctionMessage: ');
       var code = convertTemplate(placeholderToIndexMap, correctionMessage);
       var codeLines = _splitText(code, maxWidth: maxWidth);
-      out.writeln('${codeLines.map(_encodeString).join('\n')},');
+      constant.writeln('${codeLines.map(_encodeString).join('\n')},');
     }
     if (hasPublishedDocs ?? false) {
-      out.writeln('hasPublishedDocs:true,');
+      constant.writeln('hasPublishedDocs:true,');
     }
     if (isUnresolvedIdentifier) {
-      out.writeln('isUnresolvedIdentifier:true,');
+      constant.writeln('isUnresolvedIdentifier:true,');
     }
     if (sharedName != null) {
-      out.writeln("uniqueName: '$diagnosticCode',");
+      constant.writeln("uniqueName: '$diagnosticCode',");
     }
     if (withArgumentsName != null) {
-      out.writeln('withArguments: $withArgumentsName,');
+      constant.writeln('withArguments: $withArgumentsName,');
     }
-    out.writeln(');');
-    if (withArgumentsText != null) {
-      out.writeln();
-      out.writeln(withArgumentsText);
-    }
+    constant.writeln(');');
+    memberAccumulator.constants[constantName] = constant.toString();
 
     if (errorClassInfo.deprecatedSnakeCaseNames.contains(diagnosticCode)) {
-      out.writeln();
-      out.writeln('  @Deprecated("Please use $constantName")');
-      out.writeln(
-        '  static const ${errorClassInfo.name} $diagnosticCode = $constantName;',
-      );
+      memberAccumulator.constants[diagnosticCode] = '''
+  @Deprecated("Please use $constantName")
+  static const ${errorClassInfo.name} $diagnosticCode = $constantName;
+''';
     }
   }
 
@@ -871,6 +887,13 @@ static LocatableDiagnostic $withArgumentsName({$withArgumentsParams}) {
     var jsonEncoded = json.encode(s);
     // But we also need to escape `$`.
     return jsonEncoded.replaceAll(r'$', r'\$');
+  }
+
+  void _outputConstantHeader(StringSink out) {
+    out.write(toAnalyzerComments(indent: '  '));
+    if (deprecatedMessage != null) {
+      out.writeln('  @Deprecated("$deprecatedMessage")');
+    }
   }
 
   static List<ErrorCodeParameter>? _decodeParameters(Object? yaml) {

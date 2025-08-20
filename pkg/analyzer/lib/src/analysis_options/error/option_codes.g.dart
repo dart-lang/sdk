@@ -253,18 +253,6 @@ class AnalysisOptionsWarningCode extends DiagnosticCode {
         "'{0}' isn't a recognized error code.",
       );
 
-  /// An error code indicating that a plugin is being configured with an
-  /// unsupported option and legal options are provided.
-  ///
-  /// Parameters:
-  /// String p0: the plugin name
-  /// String p1: the unsupported option key
-  static const AnalysisOptionsWarningCode unsupportedOptionWithoutValues =
-      AnalysisOptionsWarningCode(
-        'UNSUPPORTED_OPTION_WITHOUT_VALUES',
-        "The option '{1}' isn't supported by '{0}'.",
-      );
-
   /// An error code indicating that a YAML section is being configured with an
   /// unsupported option where there is just one legal value.
   ///
@@ -291,6 +279,18 @@ class AnalysisOptionsWarningCode extends DiagnosticCode {
         'UNSUPPORTED_OPTION_WITH_LEGAL_VALUES',
         "The option '{1}' isn't supported by '{0}'.",
         correctionMessage: "Try using one of the supported options: {2}.",
+      );
+
+  /// An error code indicating that a plugin is being configured with an
+  /// unsupported option and legal options are provided.
+  ///
+  /// Parameters:
+  /// String p0: the plugin name
+  /// String p1: the unsupported option key
+  static const AnalysisOptionsWarningCode unsupportedOptionWithoutValues =
+      AnalysisOptionsWarningCode(
+        'UNSUPPORTED_OPTION_WITHOUT_VALUES',
+        "The option '{1}' isn't supported by '{0}'.",
       );
 
   /// An error code indicating that an option entry is being configured with an
