@@ -3393,11 +3393,6 @@ abstract class FragmentImpl with _FragmentImplMixin implements Fragment {
   @Deprecated('Use nameOffset instead')
   int? get nameOffset2 => nameOffset;
 
-  /// The analysis session in which this element is defined.
-  AnalysisSession? get session {
-    return enclosingFragment?.session;
-  }
-
   /// The version where this SDK API was added.
   ///
   /// A `@Since()` annotation can be applied to a library declaration,
@@ -4027,7 +4022,7 @@ abstract class InstanceElementImpl extends ElementImpl
   Element get nonSynthetic => isSynthetic ? enclosingElement : this as Element;
 
   @override
-  AnalysisSession? get session => _firstFragment.session;
+  AnalysisSessionImpl get session => library.session;
 
   @override
   List<SetterElementImpl> get setters {
@@ -4621,18 +4616,15 @@ abstract class InterfaceElementImpl extends InstanceElementImpl
 
   @override
   Map<Name, ExecutableElement> get inheritedConcreteMembers =>
-      (session as AnalysisSessionImpl).inheritanceManager
-          .getInheritedConcreteMap(this);
+      session.inheritanceManager.getInheritedConcreteMap(this);
 
   @override
   Map<Name, ExecutableElement> get inheritedMembers =>
-      (session as AnalysisSessionImpl).inheritanceManager.getInheritedMap(this);
+      session.inheritanceManager.getInheritedMap(this);
 
   @override
   Map<Name, ExecutableElement> get interfaceMembers =>
-      (session as AnalysisSessionImpl).inheritanceManager
-          .getInterface(this)
-          .map;
+      session.inheritanceManager.getInterface(this).map;
 
   @override
   @trackedIncludedInId
@@ -4737,14 +4729,11 @@ abstract class InterfaceElementImpl extends InstanceElementImpl
 
   @override
   ExecutableElement? getInheritedMember(Name name) =>
-      (session as AnalysisSessionImpl).inheritanceManager.getInherited(
-        this,
-        name,
-      );
+      session.inheritanceManager.getInherited(this, name);
 
   @override
   ExecutableElement? getInterfaceMember(Name name) =>
-      (session as AnalysisSessionImpl).inheritanceManager.getMember(this, name);
+      session.inheritanceManager.getMember(this, name);
 
   @override
   ConstructorElementImpl? getNamedConstructor(String name) {
@@ -4766,10 +4755,7 @@ abstract class InterfaceElementImpl extends InstanceElementImpl
 
   @override
   List<ExecutableElement>? getOverridden(Name name) =>
-      (session as AnalysisSessionImpl).inheritanceManager.getOverridden(
-        this,
-        name,
-      );
+      session.inheritanceManager.getOverridden(this, name);
 
   @override
   InterfaceTypeImpl instantiate({
@@ -6448,9 +6434,6 @@ class LibraryFragmentImpl extends FragmentImpl
   }
 
   @override
-  AnalysisSession get session => library.session;
-
-  @override
   List<SetterFragmentImpl> get setters => _setters;
 
   set setters(List<SetterFragmentImpl> setters) {
@@ -7903,9 +7886,6 @@ class MultiplyDefinedElementImpl extends ElementImpl
 
   @override
   Element get nonSynthetic => this;
-
-  @override
-  AnalysisSession get session => libraryFragment.session;
 
   @override
   T? accept<T>(ElementVisitor2<T> visitor) {
