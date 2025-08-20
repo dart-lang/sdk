@@ -4556,6 +4556,9 @@ abstract class InterfaceElementImpl extends InstanceElementImpl
   /// of this class have been inferred.
   bool hasBeenInferred = false;
 
+  /// Whether the class or its superclass declares a non-final instance field.
+  bool hasNonFinalField = false;
+
   @override
   List<InterfaceTypeImpl> get allSupertypes {
     return _allSupertypes ??= library.session.classHierarchy
@@ -4610,42 +4613,6 @@ abstract class InterfaceElementImpl extends InstanceElementImpl
       )
         fragment,
     ];
-  }
-
-  @trackedDirectlyExpensive
-  bool get hasNonFinalField {
-    globalResultRequirements?.record_interfaceElement_hasNonFinalField(
-      element: this,
-    );
-
-    var classesToVisit = <InterfaceElementImpl>[];
-    var visitedClasses = <InterfaceElementImpl>{};
-    classesToVisit.add(this);
-    while (classesToVisit.isNotEmpty) {
-      var currentElement = classesToVisit.removeAt(0);
-      if (visitedClasses.add(currentElement)) {
-        // check fields
-        for (var field in currentElement.fields) {
-          if (!field.isFinal &&
-              !field.isConst &&
-              !field.isStatic &&
-              !field.isSynthetic) {
-            return true;
-          }
-        }
-        // check mixins
-        for (var mixinType in currentElement.mixins) {
-          classesToVisit.add(mixinType.element);
-        }
-        // check super
-        var supertype = currentElement.supertype;
-        if (supertype != null) {
-          classesToVisit.add(supertype.element);
-        }
-      }
-    }
-    // not found
-    return false;
   }
 
   InheritanceManager3 get inheritanceManager {

@@ -232,6 +232,7 @@ class Linker {
 
     _createTypeSystem();
     _resolveTypes();
+    _computeHasNonFinalField();
     _setDefaultSupertypes();
 
     _buildClassSyntheticConstructors();
@@ -262,6 +263,44 @@ class Linker {
   void _computeFieldPromotability() {
     for (var library in builders.values) {
       library.computeFieldPromotability();
+    }
+  }
+
+  /// Set [InterfaceElementImpl.hasNonFinalField] for classes and mixins.
+  ///
+  /// We actually use it only for classes (which can have `const` constructors),
+  /// but mixins contribute to it.
+  void _computeHasNonFinalField() {
+    var linkingElements =
+        builders.values
+            .expand((builder) => builder.element.children)
+            .whereType<InterfaceElementImpl>()
+            .toSet();
+
+    var alreadyComputed = Set<InterfaceElementImpl>.identity();
+
+    bool computeFor(InterfaceElementImpl element) {
+      if (!linkingElements.contains(element) || !alreadyComputed.add(element)) {
+        return element.hasNonFinalField;
+      }
+
+      var hasNonFinalField = [
+        element.supertype,
+        ...element.mixins,
+      ].nonNulls.any((type) => computeFor(type.element));
+
+      hasNonFinalField |= element.fields.any((field) {
+        return !field.isFinal &&
+            !field.isConst &&
+            !field.isStatic &&
+            !field.isSynthetic;
+      });
+
+      return element.hasNonFinalField = hasNonFinalField;
+    }
+
+    for (var element in linkingElements) {
+      computeFor(element);
     }
   }
 

@@ -266,6 +266,7 @@ class LibraryReader {
       var element = ClassElementImpl(reference, fragments.first);
       element.linkFragments(fragments);
       element.readModifiers(_reader);
+      element.hasNonFinalField = _reader.readBool();
 
       // Configure for reading members lazily.
       _lazyRead((offset) {
@@ -953,6 +954,7 @@ class LibraryReader {
       var element = MixinElementImpl(reference, fragments.first);
       element.linkFragments(fragments);
       element.readModifiers(_reader);
+      element.hasNonFinalField = _reader.readBool();
 
       // TODO(scheglov): consider reading lazily
       for (var fragment in element.fragments) {

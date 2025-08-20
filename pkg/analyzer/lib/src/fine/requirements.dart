@@ -1065,12 +1065,6 @@ class RequirementsManifest {
     requirements.requestedConstructors[constructorName] = constructorId;
   }
 
-  void record_interfaceElement_hasNonFinalField({
-    required InterfaceElementImpl element,
-  }) {
-    // TODO(scheglov): implement.
-  }
-
   /// Record that all accessible extensions inside a [LibraryFragmentImpl]
   /// are requested, which means dependency on all extensions exported
   /// from [importedLibraries].
