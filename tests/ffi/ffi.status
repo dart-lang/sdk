@@ -114,3 +114,4 @@ data_not_asan_test: SkipByDesign # This test tries to allocate too much memory o
 
 [ $hot_reload || $hot_reload_rollback ]
 isolate_group_bound_callback_test: SkipSlow # shared_slow_path_triggers_gc in combination with reload makes this test very slow
+many_listener_callbacks_test/*: Skip # Starts many background threads that are leaked by hot reloading
