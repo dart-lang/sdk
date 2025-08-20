@@ -373,7 +373,6 @@ char* Dart::DartInit(const Dart_InitializeParams* params) {
 #endif
   IsolateGroup::Init();
   Isolate::InitVM();
-  UserTags::Init();
   PortMap::Init();
   NativeMessageHandler::Init();
   Service::Init();
@@ -779,7 +778,6 @@ char* Dart::Cleanup() {
   ASSERT(Isolate::IsolateListLength() == 0);
   Service::Cleanup();
   PortMap::Cleanup();
-  UserTags::Cleanup();
   IsolateGroup::Cleanup();
   ICData::Cleanup();
   ArgumentsDescriptor::Cleanup();

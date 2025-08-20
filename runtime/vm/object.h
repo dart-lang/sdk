@@ -13370,11 +13370,6 @@ class UserTag : public Instance {
     StoreNonPointer(&untag()->tag_, t);
   }
 
-  bool streamable() const { return untag()->streamable(); }
-  void set_streamable(bool streamable) {
-    StoreNonPointer(&untag()->streamable_, streamable);
-  }
-
   static intptr_t tag_offset() { return OFFSET_OF(UntaggedUserTag, tag_); }
 
   StringPtr label() const { return untag()->label(); }

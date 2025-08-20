@@ -293,8 +293,6 @@ namespace dart {
   V(VMService_OnServerAddressChange, 1)                                        \
   V(VMService_ListenStream, 2)                                                 \
   V(VMService_CancelStream, 1)                                                 \
-  V(VMService_AddUserTagsToStreamableSampleList, 1)                            \
-  V(VMService_RemoveUserTagsFromStreamableSampleList, 1)                       \
   V(Ffi_createNativeCallableListener, 2)                                       \
   V(Ffi_createNativeCallableIsolateLocal, 3)                                   \
   V(Ffi_createNativeCallableIsolateGroupBound, 2)                              \

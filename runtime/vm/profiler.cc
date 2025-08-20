@@ -775,21 +775,6 @@ void SampleBlockBuffer::FreeCompletedBlocks() {
   }
 }
 
-bool SampleBlock::HasStreamableSamples(const GrowableObjectArray& tag_table,
-                                       UserTag* tag) {
-  for (intptr_t i = 0; i < capacity_; ++i) {
-    Sample* sample = At(i);
-    uword sample_tag = sample->user_tag();
-    for (intptr_t j = 0; j < tag_table.Length(); ++j) {
-      *tag ^= tag_table.At(j);
-      if (tag->tag() == sample_tag && tag->streamable()) {
-        return true;
-      }
-    }
-  }
-  return false;
-}
-
 static void FlushSampleBlocks(Isolate* isolate) {
   ASSERT(isolate != nullptr);
 
@@ -1910,37 +1895,7 @@ void SampleBlockProcessor::Cleanup() {
   ASSERT(!thread_running_);
 }
 
-class StreamableSampleFilter : public SampleFilter {
- public:
-  StreamableSampleFilter(Dart_Port port, const Isolate* isolate)
-      : SampleFilter(port, kNoTaskFilter, -1, -1, true), isolate_(isolate) {}
-
-  bool FilterSample(Sample* sample) override {
-    const UserTag& tag =
-        UserTag::Handle(UserTag::FindTagById(isolate_, sample->user_tag()));
-    return tag.streamable();
-  }
-
- private:
-  const Isolate* isolate_;
-};
-
-void Profiler::ProcessCompletedBlocks(Isolate* isolate) {
-  if (!Service::profiler_stream.enabled()) return;
-  auto thread = Thread::Current();
-  if (Isolate::IsSystemIsolate(isolate)) return;
-
-  TIMELINE_DURATION(thread, Isolate, "Profiler::ProcessCompletedBlocks")
-  DisableThreadInterruptsScope dtis(thread);
-  StackZone zone(thread);
-  HandleScope handle_scope(thread);
-  StreamableSampleFilter filter(isolate->main_port(), isolate);
-  Profile profile;
-  profile.Build(thread, isolate, &filter, Profiler::sample_block_buffer());
-  ServiceEvent event(isolate, ServiceEvent::kCpuSamples);
-  event.set_cpu_profile(&profile);
-  Service::HandleEvent(&event);
-}
+void Profiler::ProcessCompletedBlocks(Isolate* isolate) {}
 
 void Profiler::IsolateShutdown(Thread* thread) {
   FlushSampleBlocks(thread->isolate());

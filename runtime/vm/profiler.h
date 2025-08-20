@@ -95,6 +95,9 @@ class Profiler : public AllStatic {
   }
   inline static intptr_t Size();
 
+  // This function is currently a no-op, but should not be fully deleted
+  // because it will be used to implement
+  // go/dart-universal-observability-for-tools.
   static void ProcessCompletedBlocks(Isolate* isolate);
   static void IsolateShutdown(Thread* thread);
 
@@ -722,8 +725,6 @@ class SampleBlock : public SampleBuffer {
   }
 
  protected:
-  bool HasStreamableSamples(const GrowableObjectArray& tag_table, UserTag* tag);
-
   enum State : uint32_t {
     kFree,
     kSampling,  // I.e., writing.
