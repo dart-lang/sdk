@@ -250,7 +250,7 @@ class ClassElementImpl extends InterfaceElementImpl implements ClassElement {
 
   @override
   @trackedIncludedInId
-  bool get isConstructable => _firstFragment.isConstructable;
+  bool get isConstructable => !isSealed && !isAbstract;
 
   @override
   @trackedIncludedInId
@@ -277,7 +277,7 @@ class ClassElementImpl extends InterfaceElementImpl implements ClassElement {
 
   @override
   @trackedIncludedInId
-  bool get isExhaustive => _firstFragment.isExhaustive;
+  bool get isExhaustive => isSealed;
 
   @override
   bool get isExtendableOutside => !isInterface && !isFinal && !isSealed;
@@ -558,15 +558,6 @@ class ClassFragmentImpl extends InterfaceFragmentImpl
   /// Initialize a newly created class element to have the given [name] at the
   /// given [offset] in the file that contains the declaration of this element.
   ClassFragmentImpl({required super.name});
-
-  bool get hasGenerativeConstConstructor {
-    _ClassFragmentImplModifiers.hasExtendsClause;
-    return constructors.any((c) => !c.isFactory && c.isConst);
-  }
-
-  bool get isConstructable => !isSealed && !isAbstract;
-
-  bool get isExhaustive => isSealed;
 
   @override
   ClassFragmentImpl? get nextFragment {

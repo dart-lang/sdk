@@ -1661,8 +1661,8 @@ extension on Expression {
               !declarationListParent.isStatic) {
             var container = declarationListParent.parent;
             if (container is ClassDeclaration) {
-              var enclosingClass = container.declaredFragment;
-              if (enclosingClass is ClassFragmentImpl) {
+              var enclosingClass = container.declaredFragment!.element;
+              if (enclosingClass is ClassElementImpl) {
                 // A field initializer of a class with at least one generative
                 // const constructor does not constitute a constant context, but
                 // must be a constant expression.
