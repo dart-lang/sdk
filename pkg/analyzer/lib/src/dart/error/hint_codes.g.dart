@@ -21,7 +21,8 @@ class HintCode extends DiagnosticCode {
   /// plan to go through the exercise of converting it to a Warning.
   ///
   /// No parameters.
-  static const HintCode deprecatedColonForDefaultValue = HintCode(
+  static const HintWithoutArguments
+  deprecatedColonForDefaultValue = HintWithoutArguments(
     'DEPRECATED_COLON_FOR_DEFAULT_VALUE',
     "Using a colon as the separator before a default value is deprecated and "
         "will not be supported in language version 3.0 and later.",
@@ -31,12 +32,14 @@ class HintCode extends DiagnosticCode {
 
   /// Parameters:
   /// String p0: the name of the member
-  static const HintCode deprecatedMemberUse = HintCode(
+  static const HintTemplate<LocatableDiagnostic Function({required String p0})>
+  deprecatedMemberUse = HintTemplate(
     'DEPRECATED_MEMBER_USE',
     "'{0}' is deprecated and shouldn't be used.",
     correctionMessage:
         "Try replacing the use of the deprecated member with the replacement.",
     hasPublishedDocs: true,
+    withArguments: _withArgumentsDeprecatedMemberUse,
   );
 
   /// This code is deprecated in favor of the
@@ -44,12 +47,14 @@ class HintCode extends DiagnosticCode {
   ///
   /// Parameters:
   /// String p0: the name of the member
-  static const HintCode deprecatedMemberUseFromSamePackage = HintCode(
+  static const HintTemplate<LocatableDiagnostic Function({required String p0})>
+  deprecatedMemberUseFromSamePackage = HintTemplate(
     'DEPRECATED_MEMBER_USE_FROM_SAME_PACKAGE',
     "'{0}' is deprecated and shouldn't be used.",
     correctionMessage:
         "Try replacing the use of the deprecated member with the replacement.",
     hasPublishedDocs: true,
+    withArguments: _withArgumentsDeprecatedMemberUseFromSamePackage,
   );
 
   /// This code is deprecated in favor of the
@@ -58,30 +63,38 @@ class HintCode extends DiagnosticCode {
   /// Parameters:
   /// Object p0: the name of the member
   /// Object p1: message details
-  static const HintCode
-  deprecatedMemberUseFromSamePackageWithMessage = HintCode(
+  static const HintTemplate<
+    LocatableDiagnostic Function({required Object p0, required Object p1})
+  >
+  deprecatedMemberUseFromSamePackageWithMessage = HintTemplate(
     'DEPRECATED_MEMBER_USE_FROM_SAME_PACKAGE',
     "'{0}' is deprecated and shouldn't be used. {1}",
     correctionMessage:
         "Try replacing the use of the deprecated member with the replacement.",
     hasPublishedDocs: true,
     uniqueName: 'DEPRECATED_MEMBER_USE_FROM_SAME_PACKAGE_WITH_MESSAGE',
+    withArguments: _withArgumentsDeprecatedMemberUseFromSamePackageWithMessage,
   );
 
   /// Parameters:
   /// String p0: the name of the member
   /// String p1: message details
-  static const HintCode deprecatedMemberUseWithMessage = HintCode(
+  static const HintTemplate<
+    LocatableDiagnostic Function({required String p0, required String p1})
+  >
+  deprecatedMemberUseWithMessage = HintTemplate(
     'DEPRECATED_MEMBER_USE',
     "'{0}' is deprecated and shouldn't be used. {1}",
     correctionMessage:
         "Try replacing the use of the deprecated member with the replacement.",
     hasPublishedDocs: true,
     uniqueName: 'DEPRECATED_MEMBER_USE_WITH_MESSAGE',
+    withArguments: _withArgumentsDeprecatedMemberUseWithMessage,
   );
 
   /// No parameters.
-  static const HintCode importDeferredLibraryWithLoadFunction = HintCode(
+  static const HintWithoutArguments
+  importDeferredLibraryWithLoadFunction = HintWithoutArguments(
     'IMPORT_DEFERRED_LIBRARY_WITH_LOAD_FUNCTION',
     "The imported library defines a top-level function named 'loadLibrary' "
         "that is hidden by deferring this library.",
@@ -94,12 +107,16 @@ class HintCode extends DiagnosticCode {
   /// Parameters:
   /// String p0: the URI that is not necessary
   /// String p1: the URI that makes it unnecessary
-  static const HintCode unnecessaryImport = HintCode(
+  static const HintTemplate<
+    LocatableDiagnostic Function({required String p0, required String p1})
+  >
+  unnecessaryImport = HintTemplate(
     'UNNECESSARY_IMPORT',
     "The import of '{0}' is unnecessary because all of the used elements are "
         "also provided by the import of '{1}'.",
     correctionMessage: "Try removing the import directive.",
     hasPublishedDocs: true,
+    withArguments: _withArgumentsUnnecessaryImport,
   );
 
   /// Initialize a newly created error code to have the given [name].
@@ -121,4 +138,69 @@ class HintCode extends DiagnosticCode {
 
   @override
   DiagnosticType get type => DiagnosticType.HINT;
+
+  static LocatableDiagnostic _withArgumentsDeprecatedMemberUse({
+    required String p0,
+  }) {
+    return LocatableDiagnosticImpl(deprecatedMemberUse, [p0]);
+  }
+
+  static LocatableDiagnostic _withArgumentsDeprecatedMemberUseFromSamePackage({
+    required String p0,
+  }) {
+    return LocatableDiagnosticImpl(deprecatedMemberUseFromSamePackage, [p0]);
+  }
+
+  static LocatableDiagnostic
+  _withArgumentsDeprecatedMemberUseFromSamePackageWithMessage({
+    required Object p0,
+    required Object p1,
+  }) {
+    return LocatableDiagnosticImpl(
+      deprecatedMemberUseFromSamePackageWithMessage,
+      [p0, p1],
+    );
+  }
+
+  static LocatableDiagnostic _withArgumentsDeprecatedMemberUseWithMessage({
+    required String p0,
+    required String p1,
+  }) {
+    return LocatableDiagnosticImpl(deprecatedMemberUseWithMessage, [p0, p1]);
+  }
+
+  static LocatableDiagnostic _withArgumentsUnnecessaryImport({
+    required String p0,
+    required String p1,
+  }) {
+    return LocatableDiagnosticImpl(unnecessaryImport, [p0, p1]);
+  }
+}
+
+final class HintTemplate<T extends Function> extends HintCode {
+  final T withArguments;
+
+  /// Initialize a newly created error code to have the given [name].
+  const HintTemplate(
+    super.name,
+    super.problemMessage, {
+    super.correctionMessage,
+    super.hasPublishedDocs = false,
+    super.isUnresolvedIdentifier = false,
+    super.uniqueName,
+    required this.withArguments,
+  });
+}
+
+final class HintWithoutArguments extends HintCode
+    with DiagnosticWithoutArguments {
+  /// Initialize a newly created error code to have the given [name].
+  const HintWithoutArguments(
+    super.name,
+    super.problemMessage, {
+    super.correctionMessage,
+    super.hasPublishedDocs = false,
+    super.isUnresolvedIdentifier = false,
+    super.uniqueName,
+  });
 }

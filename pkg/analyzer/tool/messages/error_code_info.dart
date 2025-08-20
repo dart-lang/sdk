@@ -134,7 +134,7 @@ const hintCodesFile = GeneratedErrorCodeFile(
 ///   that this change is safe by inspecting the code that refers to this
 ///   constant.
 /// - Then, this constant is inlined.
-const literateApiEnabled = false;
+const literateApiEnabled = true;
 
 const manifestWarningCodeFile = GeneratedErrorCodeFile(
   path: 'analyzer/lib/src/manifest/manifest_warning_code.g.dart',

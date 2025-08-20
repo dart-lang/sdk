@@ -23,25 +23,37 @@ class TodoCode extends DiagnosticCode {
   ///
   /// Parameters:
   /// String message: the user-supplied problem message
-  static const TodoCode fixme = TodoCode('FIXME', "{0}");
+  static const TodoTemplate<
+    LocatableDiagnostic Function({required String message})
+  >
+  fixme = TodoTemplate('FIXME', "{0}", withArguments: _withArgumentsFixme);
 
   /// A TODO comment marked as HACK.
   ///
   /// Parameters:
   /// String message: the user-supplied problem message
-  static const TodoCode hack = TodoCode('HACK', "{0}");
+  static const TodoTemplate<
+    LocatableDiagnostic Function({required String message})
+  >
+  hack = TodoTemplate('HACK', "{0}", withArguments: _withArgumentsHack);
 
   /// A standard TODO comment marked as TODO.
   ///
   /// Parameters:
   /// String message: the user-supplied problem message
-  static const TodoCode todo = TodoCode('TODO', "{0}");
+  static const TodoTemplate<
+    LocatableDiagnostic Function({required String message})
+  >
+  todo = TodoTemplate('TODO', "{0}", withArguments: _withArgumentsTodo);
 
   /// A TODO comment marked as UNDONE.
   ///
   /// Parameters:
   /// String message: the user-supplied problem message
-  static const TodoCode undone = TodoCode('UNDONE', "{0}");
+  static const TodoTemplate<
+    LocatableDiagnostic Function({required String message})
+  >
+  undone = TodoTemplate('UNDONE', "{0}", withArguments: _withArgumentsUndone);
 
   /// Initialize a newly created error code to have the given [name].
   const TodoCode(
@@ -62,4 +74,48 @@ class TodoCode extends DiagnosticCode {
 
   @override
   DiagnosticType get type => DiagnosticType.TODO;
+
+  static LocatableDiagnostic _withArgumentsFixme({required String message}) {
+    return LocatableDiagnosticImpl(fixme, [message]);
+  }
+
+  static LocatableDiagnostic _withArgumentsHack({required String message}) {
+    return LocatableDiagnosticImpl(hack, [message]);
+  }
+
+  static LocatableDiagnostic _withArgumentsTodo({required String message}) {
+    return LocatableDiagnosticImpl(todo, [message]);
+  }
+
+  static LocatableDiagnostic _withArgumentsUndone({required String message}) {
+    return LocatableDiagnosticImpl(undone, [message]);
+  }
+}
+
+final class TodoTemplate<T extends Function> extends TodoCode {
+  final T withArguments;
+
+  /// Initialize a newly created error code to have the given [name].
+  const TodoTemplate(
+    super.name,
+    super.problemMessage, {
+    super.correctionMessage,
+    super.hasPublishedDocs = false,
+    super.isUnresolvedIdentifier = false,
+    super.uniqueName,
+    required this.withArguments,
+  });
+}
+
+final class TodoWithoutArguments extends TodoCode
+    with DiagnosticWithoutArguments {
+  /// Initialize a newly created error code to have the given [name].
+  const TodoWithoutArguments(
+    super.name,
+    super.problemMessage, {
+    super.correctionMessage,
+    super.hasPublishedDocs = false,
+    super.isUnresolvedIdentifier = false,
+    super.uniqueName,
+  });
 }

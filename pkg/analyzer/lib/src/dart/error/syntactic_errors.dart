@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/error/error.dart';
+import 'package:analyzer/src/error/codes.dart';
 
 export 'package:_fe_analyzer_shared/src/scanner/errors.dart'
     show ScannerErrorCode;
