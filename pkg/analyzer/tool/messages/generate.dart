@@ -149,23 +149,7 @@ part of ${json.encode(file.parentLibrary)};
             if (errorClass.includeInDiagnosticCodeValues) {
               generatedCodes.add((errorClass.name, errorName));
             }
-            var constantName = errorName.toCamelCase();
-            out.writeln('  static const ${errorClass.name} $constantName =');
-            out.writeln(
-              errorCodeInfo.toAnalyzerCode(
-                errorClass,
-                errorName,
-                useExplicitConst: file.shouldUseExplicitConst,
-              ),
-            );
-
-            if (errorClass.deprecatedSnakeCaseNames.contains(errorName)) {
-              out.writeln();
-              out.writeln('  @Deprecated("Please use $constantName")');
-              out.writeln(
-                '  static const ${errorClass.name} $errorName = $constantName;',
-              );
-            }
+            errorCodeInfo.toAnalyzerCode(out, errorClass, errorName);
           }
         } catch (e, st) {
           Error.throwWithStackTrace(
@@ -201,6 +185,12 @@ part of ${json.encode(file.parentLibrary)};
       out.writeln('@override');
       out.writeln('DiagnosticType get type => ${errorClass.typeCode};');
       out.writeln('}');
+      if (literateApiEnabled) {
+        out.writeln();
+        _outputDerivedClass(errorClass, withArguments: true);
+        out.writeln();
+        _outputDerivedClass(errorClass, withArguments: false);
+      }
     }
   }
 
@@ -212,6 +202,39 @@ part of ${json.encode(file.parentLibrary)};
       out.writeln('${name == null ? 'null' : 'ParserErrorCode.$name'},');
     }
     out.writeln('];');
+  }
+
+  void _outputDerivedClass(
+    ErrorClassInfo errorClass, {
+    required bool withArguments,
+  }) {
+    var className =
+        withArguments
+            ? errorClass.templateName
+            : errorClass.withoutArgumentsName;
+    out.writeln('final class $className');
+    if (withArguments) out.writeln('<T extends Function>');
+    out.writeln('    extends ${errorClass.name}');
+    if (!withArguments) out.writeln('    with DiagnosticWithoutArguments');
+    out.writeln('{');
+    if (withArguments) {
+      out.writeln('final T withArguments;');
+      out.writeln();
+    }
+    out.writeln(
+      '/// Initialize a newly created error code to have the given '
+      '[name].',
+    );
+    out.writeln('const $className(');
+    out.writeln('super.name,');
+    out.writeln('super.problemMessage, {');
+    out.writeln('super.correctionMessage,');
+    out.writeln('super.hasPublishedDocs = false,');
+    out.writeln('super.isUnresolvedIdentifier = false,');
+    out.writeln('super.uniqueName,');
+    if (withArguments) out.writeln('required this.withArguments,');
+    out.writeln('});');
+    out.writeln('}');
   }
 }
 

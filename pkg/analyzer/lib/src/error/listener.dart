@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:_fe_analyzer_shared/src/base/analyzer_public_api.dart';
+import 'package:_fe_analyzer_shared/src/base/errors.dart';
 import 'package:analyzer/dart/ast/ast.dart'
     show AstNode, ConstructorDeclaration;
 import 'package:analyzer/dart/ast/syntactic_entity.dart';
@@ -10,7 +11,6 @@ import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/diagnostic/diagnostic.dart';
-import 'package:analyzer/error/error.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/source/source.dart';
 import 'package:analyzer/src/dart/element/extensions.dart';
@@ -274,16 +274,13 @@ class DiagnosticReporter {
       }
     }
 
-    contextMessages ??= [];
-    contextMessages.addAll(convertTypeNames(arguments));
-    var diagnostic = Diagnostic.tmp(
-      source: _source,
+    var diagnostic = _createDiagnostic(
       offset: offset,
       length: length,
       diagnosticCode: diagnosticCode,
       arguments: arguments ?? const [],
-      contextMessages: contextMessages,
-      // ignore: deprecated_member_use
+      contextMessages: contextMessages ?? [],
+      // ignore: deprecated_member_use_from_same_package
       data: data,
     );
     reportError(diagnostic);
@@ -344,6 +341,27 @@ class DiagnosticReporter {
       return;
     }
     _diagnosticListener.onDiagnostic(diagnostic);
+  }
+
+  Diagnostic _createDiagnostic({
+    required int offset,
+    required int length,
+    required DiagnosticCode diagnosticCode,
+    required List<Object> arguments,
+    required List<DiagnosticMessage> contextMessages,
+    @Deprecated('Use an expando instead') Object? data,
+  }) {
+    contextMessages.addAll(convertTypeNames(arguments));
+    return Diagnostic.tmp(
+      source: _source,
+      offset: offset,
+      length: length,
+      diagnosticCode: diagnosticCode,
+      arguments: arguments,
+      contextMessages: contextMessages,
+      // ignore: deprecated_member_use
+      data: data,
+    );
   }
 }
 
@@ -420,4 +438,22 @@ class _TypeToConvert implements _ToConvert {
   }();
 
   _TypeToConvert(this.index, this._type, this.displayName);
+}
+
+/// Code that will be added to [DiagnosticReporter] when the new literate API
+/// for diagnostic reporting is exposed publicly.
+extension LiterateDiagnosticReporter on DiagnosticReporter {
+  /// Reports the given [diagnostic].
+  void report(LocatedDiagnostic diagnostic) {
+    var locatableDiagnostic = diagnostic.locatableDiagnostic;
+    reportError(
+      _createDiagnostic(
+        offset: diagnostic.offset,
+        length: diagnostic.length,
+        diagnosticCode: locatableDiagnostic.code,
+        arguments: locatableDiagnostic.arguments,
+        contextMessages: locatableDiagnostic.contextMessages.toList(),
+      ),
+    );
+  }
 }
