@@ -1803,7 +1803,7 @@ DART_EXPORT void Dart_SetCurrentThreadOwnsIsolate(void);
  * The port can be the isolate's main port, or any other port owned by the
  * isolate.
  *
- * \param port_id The port to be checked.
+ * \param port The port to be checked.
  */
 DART_EXPORT bool Dart_GetCurrentThreadOwnsIsolate(Dart_Port port);
 
@@ -3363,7 +3363,7 @@ typedef void* (*Dart_NativeAssetsDlopenCallbackNoPath)(char** error);
  *
  * If provided, takes prescedence over `Dart_NativeAssetsDlopenCallback`.
  *
- * \param path The asset id requested in the `@Native` external function.
+ * \param asset_id The asset id requested in the `@Native` external function.
  *
  * \param error Returns NULL if successful, an error message otherwise. The
  *   caller is responsible for calling free() on the error message.
@@ -3381,7 +3381,7 @@ typedef void* (*Dart_NativeAssetsDlopenAssetId)(const char* asset_id,
  * \return A malloced string containing all asset ids. The caller must free this
  *   string.
  */
-typedef char* (*Dart_NativeAssetsAvailableAssets)();
+typedef char* (*Dart_NativeAssetsAvailableAssets)(void);
 
 /**
  * Callback provided by the embedder that is used by the VM to lookup symbols
