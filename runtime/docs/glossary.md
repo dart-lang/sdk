@@ -85,6 +85,14 @@ An optimization based on some property that has held so far in the execution of 
 
 Transitioning from a stack frame running optimized code to a frame or multiple frames running the corresponding unoptimized code. Usually because a speculative assumption made by the optimized code has been discovered to no longer hold.
 
+## Eager deoptimization
+
+Deoptimization triggered when the currently executing function discovers a speculative assumption no longer holds.
+
+## Lazy deoptimization
+
+Deoptimization scheduled when a function on the stack may depend on an assumption that no longer holds, which is applied later when a return or throw would return to that function.
+
 ## Deopt id
 
 An identifier that matches a position in optimized code to a position in unoptimized code.
@@ -100,11 +108,15 @@ A source position within a script, usually a file. It is a UTF-8 offset unrelate
 
 ## [Executable and Linkable Format, ELF](https://en.wikipedia.org/wiki/Executable_and_Linkable_Format)
 
-The format of executables on Linux, Android and Fuchsia. The Dart AOT compiler can directly produce an ELF shared library as output.
+The format of executables on Linux, Android and Fuchsia. The Dart AOT compiler can directly produce an ELF shared library as output. It can also produce assembly that the GCC or LLVM assemblers can translate into ELF.
 
 ## [Mach-O](https://en.wikipedia.org/wiki/Mach-O)
 
-The format of executables on macOS and iOS. The Dart AOT compiler can produce assembly that the GCC or LLVM assemblers can translate into Mach-O.
+The format of executables on macOS and iOS. The Dart AOT compiler can directly produce a Mach-O shared library as output. It can also produce assembly that the GCC or LLVM assemblers can translate into Mach-O.
+
+## [Portable Executable, PE](https://en.wikipedia.org/wiki/Portable_Executable)
+
+The format of executables on Windows. The Dart AOT compiler can produce assembly that the LLVM assembler can translate into a DLL.
 
 ## [DWARF](https://en.wikipedia.org/wiki/DWARF)
 
@@ -158,7 +170,7 @@ Not to be confused with [DIL](#kernel-dart-intermediate-language-dil-dill).
 
 ## [Control flow graph, CFG, flow graph](https://en.wikipedia.org/wiki/Control-flow_graph)
 
-## [Loop-invariant code mode, LICM](../vm/compiler/backend/redundancy_elimination.h#:~:text=class%20LICM)
+## [Loop-invariant code motion, LICM](../vm/compiler/backend/redundancy_elimination.h#:~:text=class%20LICM)
 
 ## Common subexpression elimination, CSE
 
@@ -179,3 +191,7 @@ A commonly used sequence of machine code that has been factored out into a separ
 ## [Type arguments, type argument vector](types.md#typearguments)
 
 [debugging-asan]: https://github.com/dart-lang/sdk/tree/main/docs/Debugging-Dart-VM-with-AddressSanitizer.md
+
+## Zone
+
+[Arena allocation](https://en.wikipedia.org/wiki/Region-based_memory_management) in the C++ runtime: allocations into a zone are not freed individually but all at once when the zone ends. Major uses of zone allocation include local handles and flow-graph instructions.
