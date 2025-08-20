@@ -6546,7 +6546,8 @@ class BodyBuilder extends StackListenerImpl
                 allowPotentiallyConstantType: true));
       }
       return forest.createMethodInvocation(invocationOffset, receiver,
-          new Name(constructorName, libraryBuilder.nameOrigin), arguments);
+          new Name(constructorName, libraryBuilder.nameOrigin), arguments,
+          isNullAware: false);
     } else {
       if (typeArguments != null) {
         assert(forest.argumentsTypeArguments(arguments).isEmpty);
@@ -9534,20 +9535,8 @@ class BodyBuilder extends StackListenerImpl
           offset,
           name.text.length);
     }
-    if (isNullAware) {
-      VariableDeclarationImpl variable =
-          createVariableDeclarationForValue(receiver);
-      return new NullAwareMethodInvocation(
-          variable,
-          forest.createMethodInvocation(
-              offset,
-              createVariableGet(variable, receiver.fileOffset),
-              name,
-              arguments))
-        ..fileOffset = receiver.fileOffset;
-    } else {
-      return forest.createMethodInvocation(offset, receiver, name, arguments);
-    }
+    return forest.createMethodInvocation(offset, receiver, name, arguments,
+        isNullAware: isNullAware);
   }
 
   @override

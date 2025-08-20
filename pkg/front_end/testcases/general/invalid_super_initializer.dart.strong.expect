@@ -7,9 +7,9 @@ library;
 //   B(): super()?.foo() {}
 //        ^
 //
-// pkg/front_end/testcases/general/invalid_super_initializer.dart:8:8: Error: Expected an initializer.
+// pkg/front_end/testcases/general/invalid_super_initializer.dart:8:17: Error: Expected an initializer.
 //   B(): super()?.foo() {}
-//        ^
+//                 ^
 //
 import self as self;
 import "dart:core" as core;

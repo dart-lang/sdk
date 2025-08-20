@@ -509,6 +509,7 @@ class Cascade extends InternalExpression {
   /// initializer;
   VariableDeclaration variable;
 
+  /// `true` if the access is null-aware, i.e. of the form `a?..b()`.
   final bool isNullAware;
 
   /// The expressions performed on [variable].
@@ -999,120 +1000,6 @@ class NullAwareMethodInvocation extends InternalExpression {
     printer.writeVariableDeclaration(variable);
     printer.write(' in null-aware ');
     printer.writeExpression(methodInvocation);
-  }
-}
-
-/// Internal expression representing a null-aware read from a property.
-///
-/// A null-aware property get of the form `a?.b` is encoded as:
-///
-///     let v = a in v == null ? null : v.b
-///
-class NullAwarePropertyGet extends InternalExpression {
-  /// The synthetic variable whose initializer hold the receiver.
-  VariableDeclarationImpl variable;
-
-  /// The expression that reads the property from [variable].
-  Expression read;
-
-  NullAwarePropertyGet(this.variable, this.read) {
-    variable.parent = this;
-    read.parent = this;
-  }
-
-  @override
-  ExpressionInferenceResult acceptInference(
-      InferenceVisitorImpl visitor, DartType typeContext) {
-    return visitor.visitNullAwarePropertyGet(this, typeContext);
-  }
-
-  @override
-  String toString() {
-    return "NullAwarePropertyGet(${toStringInternal()})";
-  }
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  void toTextInternal(AstPrinter printer) {
-    Expression propertyGet = read;
-    if (propertyGet is PropertyGet) {
-      Expression receiver = propertyGet.receiver;
-      if (receiver is VariableGet && receiver.variable == variable) {
-        // Special-case the usual use of this node.
-        printer.writeExpression(variable.initializer!);
-        printer.write('?.');
-        printer.writeName(propertyGet.name);
-        return;
-      }
-    }
-    printer.write('let ');
-    printer.writeVariableDeclaration(variable);
-    printer.write(' in null-aware ');
-    printer.writeExpression(propertyGet);
-  }
-}
-
-/// Internal expression representing a null-aware read from a property.
-///
-/// A null-aware property get of the form `a?.b = c` is encoded as:
-///
-///     let v = a in v == null ? null : v.b = c
-///
-class NullAwarePropertySet extends InternalExpression {
-  /// The synthetic variable whose initializer hold the receiver.
-  VariableDeclarationImpl variable;
-
-  /// The expression that writes the value to the property in [variable].
-  Expression write;
-
-  NullAwarePropertySet(this.variable, this.write) {
-    variable.parent = this;
-    write.parent = this;
-  }
-
-  @override
-  ExpressionInferenceResult acceptInference(
-      InferenceVisitorImpl visitor, DartType typeContext) {
-    return visitor.visitNullAwarePropertySet(this, typeContext);
-  }
-
-  @override
-  String toString() {
-    return "NullAwarePropertySet(${toStringInternal()})";
-  }
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  void toTextInternal(AstPrinter printer) {
-    Expression propertySet = write;
-    if (propertySet is InstanceSet) {
-      Expression receiver = propertySet.receiver;
-      if (receiver is VariableGet && receiver.variable == variable) {
-        // Special-case the usual use of this node.
-        printer.writeExpression(variable.initializer!);
-        printer.write('?.');
-        printer.writeInterfaceMemberName(
-            propertySet.interfaceTargetReference, propertySet.name);
-        printer.write(' = ');
-        printer.writeExpression(propertySet.value);
-        return;
-      }
-    } else if (propertySet is DynamicSet) {
-      Expression receiver = propertySet.receiver;
-      if (receiver is VariableGet && receiver.variable == variable) {
-        // Special-case the usual use of this node.
-        printer.writeExpression(variable.initializer!);
-        printer.write('?.');
-        printer.writeName(propertySet.name);
-        printer.write(' = ');
-        printer.writeExpression(propertySet.value);
-        return;
-      }
-    }
-    printer.write('let ');
-    printer.writeVariableDeclaration(variable);
-    printer.write(' in null-aware ');
-    printer.writeExpression(propertySet);
   }
 }
 
@@ -1709,7 +1596,7 @@ class StaticPostIncDec extends InternalExpression {
   }
 }
 
-/// Internal expression representing an index get expression.
+/// Internal expression representing an index get expression, `o[a]`.
 class IndexGet extends InternalExpression {
   /// The receiver on which the index set operation is performed.
   Expression receiver;
@@ -1717,7 +1604,10 @@ class IndexGet extends InternalExpression {
   /// The index expression of the operation.
   Expression index;
 
-  IndexGet(this.receiver, this.index) {
+  /// `true` if the access is null-aware, i.e. of the form `o?[a]`.
+  final bool isNullAware;
+
+  IndexGet(this.receiver, this.index, {required this.isNullAware}) {
     receiver.parent = this;
     index.parent = this;
   }
@@ -1737,13 +1627,16 @@ class IndexGet extends InternalExpression {
   // Coverage-ignore(suite): Not run.
   void toTextInternal(AstPrinter printer) {
     printer.writeExpression(receiver);
+    if (isNullAware) {
+      printer.write('?');
+    }
     printer.write('[');
     printer.writeExpression(index);
     printer.write(']');
   }
 }
 
-/// Internal expression representing an index set expression.
+/// Internal expression representing an index set expression, `o[a] = b`.
 ///
 /// An index set expression of the form `o[a] = b` used for value is encoded as
 /// the expression:
@@ -1754,7 +1647,7 @@ class IndexGet extends InternalExpression {
 ///
 ///    o.[]=(a, b)
 ///
-/// using [MethodInvocationImpl].
+/// using [InstanceInvocation] or [DynamicInvocation].
 ///
 class IndexSet extends InternalExpression {
   /// The receiver on which the index set operation is performed.
@@ -1766,9 +1659,15 @@ class IndexSet extends InternalExpression {
   /// The value expression of the operation.
   Expression value;
 
+  /// `true` if the assignment is for effect only, i.e the result value of the
+  /// assignment is _not_ used.
   final bool forEffect;
 
-  IndexSet(this.receiver, this.index, this.value, {required this.forEffect}) {
+  /// `true` if the access is null-aware, i.e. of the form `o?[a] = b`.
+  final bool isNullAware;
+
+  IndexSet(this.receiver, this.index, this.value,
+      {required this.forEffect, required this.isNullAware}) {
     receiver.parent = this;
     index.parent = this;
     value.parent = this;
@@ -1789,6 +1688,9 @@ class IndexSet extends InternalExpression {
   // Coverage-ignore(suite): Not run.
   void toTextInternal(AstPrinter printer) {
     printer.writeExpression(receiver);
+    if (isNullAware) {
+      printer.write('?');
+    }
     printer.write('[');
     printer.writeExpression(index);
     printer.write('] = ');
@@ -2842,19 +2744,26 @@ Expression clonePureExpression(Expression node) {
   throw new UnsupportedError("Clone not supported for ${node.runtimeType}.");
 }
 
-/// A dynamically bound method invocation of the form `o.foo()`.
+/// A dynamically bound method invocation of the form `o.a()`.
 ///
 /// This will be transformed into an [InstanceInvocation], [DynamicInvocation],
 /// [FunctionInvocation] or [StaticInvocation] (for implicit extension method
 /// invocation) after type inference.
 class MethodInvocation extends InternalExpression {
+  /// The receiver of the invocation.
   Expression receiver;
 
+  /// The name of the invoked method or property.
   Name name;
 
+  /// The arguments applied at the invocation.
   Arguments arguments;
 
-  MethodInvocation(this.receiver, this.name, this.arguments) {
+  /// `true` if the access is null-aware, i.e. of the form `o?.a()`.
+  final bool isNullAware;
+
+  MethodInvocation(this.receiver, this.name, this.arguments,
+      {required this.isNullAware}) {
     receiver.parent = this;
     arguments.parent = this;
   }
@@ -2878,23 +2787,31 @@ class MethodInvocation extends InternalExpression {
   // Coverage-ignore(suite): Not run.
   void toTextInternal(AstPrinter printer) {
     printer.writeExpression(receiver, minimumPrecedence: Precedence.PRIMARY);
+    if (isNullAware) {
+      printer.write('?');
+    }
     printer.write('.');
     printer.writeName(name);
     printer.writeArguments(arguments);
   }
 }
 
-/// A dynamically bound property read of the form `o.foo`.
+/// A dynamically bound property read of the form `o.a`.
 ///
 /// This will be transformed into an [InstanceGet], [InstanceTearOff],
 /// [DynamicGet], [FunctionTearOff] or [StaticInvocation] (for implicit
 /// extension member access) after type inference.
 class PropertyGet extends InternalExpression {
+  /// The receiver of the property access.
   Expression receiver;
 
-  Name name;
+  /// The name of the accessed property.
+  final Name name;
 
-  PropertyGet(this.receiver, this.name) {
+  /// `true` if the access is null-aware, i.e. of the form `o?.a`.
+  final bool isNullAware;
+
+  PropertyGet(this.receiver, this.name, {required this.isNullAware}) {
     receiver.parent = this;
   }
 
@@ -2917,19 +2834,27 @@ class PropertyGet extends InternalExpression {
   // Coverage-ignore(suite): Not run.
   void toTextInternal(AstPrinter printer) {
     printer.writeExpression(receiver, minimumPrecedence: Precedence.PRIMARY);
+    if (isNullAware) {
+      printer.write('?');
+    }
     printer.write('.');
     printer.writeName(name);
   }
 }
 
-/// A dynamically bound property write of the form `o.foo = e`.
+/// A dynamically bound property write of the form `o.a = b`.
 ///
 /// This will be transformed into an [InstanceSet], [DynamicSet], or
 /// [StaticInvocation] (for implicit extension member access) after type
 /// inference.
 class PropertySet extends InternalExpression {
+  /// The receiver of the assigned property.
   Expression receiver;
+
+  /// The name of the assigned property.
   Name name;
+
+  /// The value assigned to the property.
   Expression value;
 
   /// If `true` the assignment is need for its effect and not for its value.
@@ -2939,8 +2864,13 @@ class PropertySet extends InternalExpression {
   /// for multiple reads.
   final bool readOnlyReceiver;
 
+  /// `true` if the access is null-aware, i.e. of the form `o?.a = b`.
+  final bool isNullAware;
+
   PropertySet(this.receiver, this.name, this.value,
-      {required this.forEffect, required this.readOnlyReceiver}) {
+      {required this.forEffect,
+      required this.readOnlyReceiver,
+      required this.isNullAware}) {
     receiver.parent = this;
     value.parent = this;
   }
@@ -2960,6 +2890,9 @@ class PropertySet extends InternalExpression {
   // Coverage-ignore(suite): Not run.
   void toTextInternal(AstPrinter printer) {
     printer.writeExpression(receiver, minimumPrecedence: Precedence.PRIMARY);
+    if (isNullAware) {
+      printer.write('?');
+    }
     printer.write('.');
     printer.writeName(name);
     printer.write(' = ');

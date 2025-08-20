@@ -243,6 +243,28 @@ class InferenceVisitorImpl extends InferenceVisitorBase
 
   ClosureContext get closureContext => _closureContext!;
 
+  /// Helper that creates a variable, a variable get, and a null aware guard
+  /// for a null aware access on [receiver] with static type [receiverType] and
+  /// non-null type [nonNullReceiverType].
+  ///
+  /// Returns the [VariableGet] expression to be used as the receiver in the
+  /// null aware access.
+  Expression _createNonNullReceiver(Expression receiver, DartType receiverType,
+      DartType nonNullReceiverType) {
+    if (receiver is ThisExpression) {
+      // Null-aware access is not needed on `this`.
+      return receiver;
+    }
+    VariableDeclaration? receiverVariable =
+        createVariable(receiver, receiverType);
+    createNullAwareGuard(receiverVariable);
+    Expression variableGet =
+        createVariableGet(receiverVariable, promotedType: nonNullReceiverType);
+
+    flowAnalysis.forwardExpression(variableGet, receiver);
+    return variableGet;
+  }
+
   void createNullAwareGuard(VariableDeclaration variable) {
     startNullShorting(new NullAwareGuard(variable, variable.fileOffset, this),
         variable.initializer!, new SharedTypeView(variable.type),
@@ -5434,6 +5456,14 @@ class InferenceVisitorImpl extends InferenceVisitorBase
         continueNullShorting: true);
     Expression receiver = result.expression;
     DartType receiverType = result.inferredType;
+
+    if (node.isNullAware) {
+      DartType nonNullReceiverType = receiverType.toNonNull();
+      receiver =
+          _createNonNullReceiver(receiver, receiverType, nonNullReceiverType);
+      receiverType = nonNullReceiverType;
+    }
+
     return inferMethodInvocation(this, node.fileOffset, receiver, receiverType,
         node.name, node.arguments as ArgumentsImpl, typeContext,
         isExpressionInvocation: false, isImplicitCall: false);
@@ -5540,26 +5570,6 @@ class InferenceVisitorImpl extends InferenceVisitorBase
         inferExpression(node.invocation, typeContext, isVoidAllowed: true);
     return new ExpressionInferenceResult(
         invocationResult.inferredType, invocationResult.expression);
-  }
-
-  ExpressionInferenceResult visitNullAwarePropertyGet(
-      NullAwarePropertyGet node, DartType typeContext) {
-    inferSyntheticVariable(node.variable, continueNullShorting: true);
-    createNullAwareGuard(node.variable);
-    ExpressionInferenceResult readResult =
-        inferExpression(node.read, typeContext);
-    return new ExpressionInferenceResult(
-        readResult.inferredType, readResult.expression);
-  }
-
-  ExpressionInferenceResult visitNullAwarePropertySet(
-      NullAwarePropertySet node, DartType typeContext) {
-    inferSyntheticVariable(node.variable, continueNullShorting: true);
-    createNullAwareGuard(node.variable);
-    ExpressionInferenceResult writeResult =
-        inferExpression(node.write, typeContext, isVoidAllowed: true);
-    return new ExpressionInferenceResult(
-        writeResult.inferredType, writeResult.expression);
   }
 
   ExpressionInferenceResult visitNullAwareExtension(
@@ -5890,6 +5900,13 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     Expression receiver = receiverResult.expression;
     DartType receiverType = receiverResult.inferredType;
 
+    if (node.isNullAware) {
+      DartType nonNullReceiverType = receiverType.toNonNull();
+      receiver =
+          _createNonNullReceiver(receiver, receiverType, nonNullReceiverType);
+      receiverType = nonNullReceiverType;
+    }
+
     ObjectAccessTarget indexGetTarget = findInterfaceMember(
         receiverType, indexGetName, node.fileOffset,
         includeExtensionMethods: true, isSetter: false);
@@ -5925,6 +5942,13 @@ class InferenceVisitorImpl extends InferenceVisitorBase
 
     Expression receiver = receiverResult.expression;
     DartType receiverType = receiverResult.inferredType;
+
+    if (node.isNullAware) {
+      DartType nonNullReceiverType = receiverType.toNonNull();
+      receiver =
+          _createNonNullReceiver(receiver, receiverType, nonNullReceiverType);
+      receiverType = nonNullReceiverType;
+    }
 
     VariableDeclaration? receiverVariable;
     if (!node.forEffect && !isPureExpression(receiver)) {
@@ -8116,6 +8140,13 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     Expression receiver = receiverResult.expression;
     DartType receiverType = receiverResult.inferredType;
 
+    if (node.isNullAware) {
+      DartType nonNullReceiverType = receiverType.toNonNull();
+      receiver =
+          _createNonNullReceiver(receiver, receiverType, nonNullReceiverType);
+      receiverType = nonNullReceiverType;
+    }
+
     ObjectAccessTarget target = findInterfaceMember(
         receiverType, node.name, node.fileOffset,
         isSetter: true, instrumented: true, includeExtensionMethods: true);
@@ -8309,7 +8340,12 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     Expression receiver = receiverResult.expression;
     DartType receiverType = receiverResult.inferredType;
 
-    node.receiver = receiver..parent = node;
+    if (node.isNullAware) {
+      DartType nonNullReceiverType = receiverType.toNonNull();
+      receiver =
+          _createNonNullReceiver(receiver, receiverType, nonNullReceiverType);
+      receiverType = nonNullReceiverType;
+    }
 
     PropertyGetInferenceResult propertyGetInferenceResult = _computePropertyGet(
         node.fileOffset, receiver, receiverType, node.name, typeContext,

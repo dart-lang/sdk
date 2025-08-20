@@ -1,0 +1,13 @@
+class C {
+  C([this._field]);
+  final Object? _field;
+  void f([_]) {}
+}
+
+extension StaticType<T> on T {
+  T expectStaticType<R extends Exactly<T>>() {}
+}
+
+typedef Exactly<T> = T Function(T);
+
+void fieldsPromotableWithinCascade(C c) {}

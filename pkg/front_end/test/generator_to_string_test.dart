@@ -191,8 +191,7 @@ Future<void> main() async {
         new ThisPropertyAccessGenerator(helper, token, name));
     check(
         "NullAwarePropertyAccessGenerator(offset: 4,"
-        " receiver: final dynamic #t1 = expression;\n,"
-        " receiverExpression: expression, name: bar)",
+        " receiver: expression, name: bar)",
         new NullAwarePropertyAccessGenerator(helper, token, expression, name));
     check(
         "SuperPropertyAccessGenerator(offset: 4, name: bar,"

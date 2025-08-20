@@ -51,6 +51,7 @@ inference_update_2/abstract_field: semiFuzzFailureOnForceRebuildBodies # privacy
 inference_update_2/basic_field_promotion: semiFuzzFailureOnForceRebuildBodies # Private fields.
 inference_update_2/call_invocation_with_hoisting: semiFuzzFailureOnForceRebuildBodies # privacy
 inference_update_2/cascaded_field_promotion: semiFuzzFailureOnForceRebuildBodies # privacy
+inference_update_2/cascade: semiFuzzFailureOnForceRebuildBodies # privacy
 inference_update_2/disabled: semiFuzzFailureOnForceRebuildBodies # Private fields.
 inference_update_2/external_field: semiFuzzFailureOnForceRebuildBodies # privacy.
 inference_update_2/field_promotion_and_no_such_method: semiFuzzFailureOnForceRebuildBodies # Private fields.

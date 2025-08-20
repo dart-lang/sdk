@@ -10,6 +10,6 @@ class Class {
 }
 
 test(Class? c) {
-  num Function()? f = /*@type=Class?*/ /*@promotedType=Class*/ c
+  num Function()? f =   c
       ?. /*@target=Class.method*/ method;
 }

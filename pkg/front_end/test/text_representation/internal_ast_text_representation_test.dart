@@ -81,12 +81,10 @@ void main() {
     _testIfNullExpression();
     _testIntLiterals();
     _testInternalMethodInvocation();
-    _testInternalPropertyGet();
-    _testInternalPropertySet();
     _testExpressionInvocation();
-    _testNullAwareMethodInvocation();
-    _testNullAwarePropertyGet();
-    _testNullAwarePropertySet();
+    _testMethodInvocation();
+    _testPropertyGet();
+    _testPropertySet();
     _testReturnStatementImpl();
     _testVariableDeclarationImpl();
     _testVariableGetImpl();
@@ -677,7 +675,8 @@ void _testIntLiterals() {
 void _testInternalMethodInvocation() {
   testExpression(
       new MethodInvocation(
-          new IntLiteral(0), new Name('boz'), new ArgumentsImpl([])),
+          new IntLiteral(0), new Name('boz'), new ArgumentsImpl([]),
+          isNullAware: false),
       '''
 0.boz()''');
   testExpression(
@@ -692,22 +691,58 @@ void _testInternalMethodInvocation() {
           ], named: [
             new NamedExpression('foo', new IntLiteral(2)),
             new NamedExpression('bar', new IntLiteral(3))
-          ])),
+          ]),
+          isNullAware: false),
       '''
 0.boz<void, dynamic>(1, foo: 2, bar: 3)''');
+  testExpression(
+      new MethodInvocation(
+          new IntLiteral(0), new Name('boz'), new ArgumentsImpl([]),
+          isNullAware: true),
+      '''
+0?.boz()''');
+  testExpression(
+      new MethodInvocation(
+          new IntLiteral(0),
+          new Name('boz'),
+          new ArgumentsImpl([
+            new IntLiteral(1)
+          ], types: [
+            const VoidType(),
+            const DynamicType()
+          ], named: [
+            new NamedExpression('foo', new IntLiteral(2)),
+            new NamedExpression('bar', new IntLiteral(3))
+          ]),
+          isNullAware: true),
+      '''
+0?.boz<void, dynamic>(1, foo: 2, bar: 3)''');
 }
 
-void _testInternalPropertyGet() {
-  testExpression(new PropertyGet(new IntLiteral(0), new Name('boz')), '''
+void _testPropertyGet() {
+  testExpression(
+      new PropertyGet(new IntLiteral(0), new Name('boz'), isNullAware: false),
+      '''
 0.boz''');
+
+  testExpression(
+      new PropertyGet(new IntLiteral(0), new Name('boz'), isNullAware: true),
+      '''
+0?.boz''');
 }
 
-void _testInternalPropertySet() {
+void _testPropertySet() {
   testExpression(
       new PropertySet(new IntLiteral(0), new Name('boz'), new IntLiteral(1),
-          forEffect: false, readOnlyReceiver: false),
+          forEffect: false, readOnlyReceiver: false, isNullAware: false),
       '''
 0.boz = 1''');
+
+  testExpression(
+      new PropertySet(new IntLiteral(0), new Name('boz'), new IntLiteral(1),
+          forEffect: false, readOnlyReceiver: false, isNullAware: true),
+      '''
+0?.boz = 1''');
 }
 
 void _testExpressionInvocation() {
@@ -730,81 +765,20 @@ void _testExpressionInvocation() {
 0<void, dynamic>(1, foo: 2, bar: 3)''');
 }
 
-void _testNullAwareMethodInvocation() {
-  VariableDeclarationImpl variable =
-      new VariableDeclarationImpl.forValue(new IntLiteral(0));
-
-  // The usual use of this node.
+void _testMethodInvocation() {
   testExpression(
-      new NullAwareMethodInvocation(
-          variable,
-          new DynamicInvocation(
-              DynamicAccessKind.Dynamic,
-              new VariableGet(variable),
-              new Name('foo'),
-              new ArgumentsImpl([]))),
+      new MethodInvocation(
+          new IntLiteral(0), new Name('foo'), new ArgumentsImpl([]),
+          isNullAware: false),
+      '''
+0.foo()''');
+
+  testExpression(
+      new MethodInvocation(
+          new IntLiteral(0), new Name('foo'), new ArgumentsImpl([]),
+          isNullAware: true),
       '''
 0?.foo()''');
-
-  // TODO(johnniwinther): Add a test using InstanceInvocation instead of
-  // DynamicInvocation.
-
-  // An unusual use of this node.
-  testExpression(
-      new NullAwareMethodInvocation(variable,
-          new PropertyGet(new VariableGet(variable), new Name('foo'))),
-      '''
-let final dynamic #0 = 0 in null-aware #0.foo''');
-}
-
-void _testNullAwarePropertyGet() {
-  VariableDeclarationImpl variable =
-      new VariableDeclarationImpl.forValue(new IntLiteral(0));
-
-  // The usual use of this node.
-  testExpression(
-      new NullAwarePropertyGet(variable,
-          new PropertyGet(new VariableGet(variable), new Name('foo'))),
-      '''
-0?.foo''');
-
-  // An unusual use of this node.
-  testExpression(
-      new NullAwarePropertyGet(
-          variable,
-          new DynamicInvocation(
-              DynamicAccessKind.Dynamic,
-              new VariableGet(variable),
-              new Name('foo'),
-              new ArgumentsImpl([]))),
-      '''
-let final dynamic #0 = 0 in null-aware #0.foo()''');
-}
-
-void _testNullAwarePropertySet() {
-  VariableDeclarationImpl variable =
-      new VariableDeclarationImpl.forValue(new IntLiteral(0));
-
-  testExpression(
-      new NullAwarePropertySet(
-          variable,
-          new DynamicSet(DynamicAccessKind.Dynamic, new VariableGet(variable),
-              new Name('foo'), new IntLiteral(1))),
-      '''
-0?.foo = 1''');
-
-  // TODO(johnniwinther): Add a test using InstanceSet instead of DynamicSet.
-
-  testExpression(
-      new NullAwarePropertySet(
-          variable,
-          new DynamicInvocation(
-              DynamicAccessKind.Dynamic,
-              new VariableGet(variable),
-              new Name('foo'),
-              new ArgumentsImpl([]))),
-      '''
-let final dynamic #0 = 0 in null-aware #0.foo()''');
 }
 
 void _testReturnStatementImpl() {
@@ -942,16 +916,28 @@ void _testStaticPostIncDec() {}
 void _testSuperPostIncDec() {}
 
 void _testIndexGet() {
-  testExpression(new IndexGet(new IntLiteral(0), new IntLiteral(1)), '''
+  testExpression(
+      new IndexGet(new IntLiteral(0), new IntLiteral(1), isNullAware: false),
+      '''
 0[1]''');
+
+  testExpression(
+      new IndexGet(new IntLiteral(0), new IntLiteral(1), isNullAware: true), '''
+0?[1]''');
 }
 
 void _testIndexSet() {
   testExpression(
       new IndexSet(new IntLiteral(0), new IntLiteral(1), new IntLiteral(2),
-          forEffect: false),
+          forEffect: false, isNullAware: false),
       '''
 0[1] = 2''');
+
+  testExpression(
+      new IndexSet(new IntLiteral(0), new IntLiteral(1), new IntLiteral(2),
+          forEffect: false, isNullAware: true),
+      '''
+0?[1] = 2''');
 }
 
 void _testSuperIndexSet() {}
