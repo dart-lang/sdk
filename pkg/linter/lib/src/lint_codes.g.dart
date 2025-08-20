@@ -123,6 +123,25 @@ class LinterLintCode extends LintCode {
         hasPublishedDocs: true,
       );
 
+  /// No parameters.
+  static const LinterLintCode analyzerElementModelTrackingBad = LinterLintCode(
+    LintNames.analyzer_element_model_tracking_bad,
+    "Bad tracking annotation for this member.",
+  );
+
+  /// No parameters.
+  static const LinterLintCode analyzerElementModelTrackingMoreThanOne =
+      LinterLintCode(
+        LintNames.analyzer_element_model_tracking_more_than_one,
+        "There can be only one tracking annotation.",
+      );
+
+  /// No parameters.
+  static const LinterLintCode analyzerElementModelTrackingZero = LinterLintCode(
+    LintNames.analyzer_element_model_tracking_zero,
+    "No required tracking annotation.",
+  );
+
   /// Lint issued if a file in the analyzer public API contains a `part`
   /// directive that points to a file that's not in the analyzer public API.
   ///

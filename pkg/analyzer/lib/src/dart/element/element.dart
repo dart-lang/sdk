@@ -224,6 +224,7 @@ class ClassElementImpl extends InterfaceElementImpl implements ClassElement {
     ];
   }
 
+  @trackedIndirectly
   bool get hasGenerativeConstConstructor {
     return constructors.any((c) => !c.isFactory && c.isConst);
   }
@@ -280,6 +281,7 @@ class ClassElementImpl extends InterfaceElementImpl implements ClassElement {
   bool get isExhaustive => isSealed;
 
   @override
+  @trackedIncludedInId
   bool get isExtendableOutside => !isInterface && !isFinal && !isSealed;
 
   @override
@@ -293,6 +295,7 @@ class ClassElementImpl extends InterfaceElementImpl implements ClassElement {
   }
 
   @override
+  @trackedIncludedInId
   bool get isImplementableOutside => !isBase && !isFinal && !isSealed;
 
   @override
@@ -306,6 +309,7 @@ class ClassElementImpl extends InterfaceElementImpl implements ClassElement {
   }
 
   @override
+  @trackedIncludedInId
   bool get isMixableOutside {
     if (library.featureSet.isEnabled(Feature.class_modifiers)) {
       return isMixinClass && !isInterface && !isFinal && !isSealed;
@@ -355,6 +359,7 @@ class ClassElementImpl extends InterfaceElementImpl implements ClassElement {
   }
 
   @override
+  @trackedIncludedInId
   ElementKind get kind => ElementKind.CLASS;
 
   @override
@@ -385,6 +390,7 @@ class ClassElementImpl extends InterfaceElementImpl implements ClassElement {
 
   @Deprecated('Use isExtendableOutside instead')
   @override
+  @trackedIndirectly
   bool isExtendableIn2(LibraryElement library) {
     return isExtendableIn(library);
   }
@@ -398,6 +404,7 @@ class ClassElementImpl extends InterfaceElementImpl implements ClassElement {
 
   @Deprecated('Use isImplementableOutside instead')
   @override
+  @trackedIndirectly
   bool isImplementableIn2(LibraryElement library) {
     return isImplementableIn(library);
   }
@@ -411,6 +418,7 @@ class ClassElementImpl extends InterfaceElementImpl implements ClassElement {
 
   @Deprecated('Use isMixableOutside instead')
   @override
+  @trackedIndirectly
   bool isMixableIn2(LibraryElement library) {
     return isMixableIn(library);
   }
@@ -3886,15 +3894,18 @@ abstract class InstanceElementImpl extends ElementImpl
   List<MethodElementImpl> _methods = [];
 
   @override
+  @trackedIncludedInId
   InstanceElement get baseElement => this;
 
   @override
+  @trackedIndirectly
   List<Element> get children {
     return [...fields, ...getters, ...setters, ...methods];
   }
 
   @Deprecated('Use children instead')
   @override
+  @trackedIndirectly
   List<Element> get children2 {
     return children;
   }
@@ -3906,16 +3917,23 @@ abstract class InstanceElementImpl extends ElementImpl
   }
 
   @override
-  String? get documentationComment => _firstFragment.documentationComment;
+  @trackedDirectlyOpaque
+  String? get documentationComment {
+    globalResultRequirements?.recordOpaqueApiUse(this, 'documentationComment');
+    return _firstFragment.documentationComment;
+  }
 
   @override
+  @trackedIncludedInId
   LibraryElementImpl get enclosingElement => library;
 
   @Deprecated('Use enclosingElement instead')
   @override
+  @trackedIndirectly
   LibraryElement get enclosingElement2 => enclosingElement;
 
   @override
+  @trackedDirectlyExpensive
   List<FieldElementImpl> get fields {
     globalResultRequirements?.record_instanceElement_fields(element: this);
     ensureReadMembers();
@@ -3928,12 +3946,14 @@ abstract class InstanceElementImpl extends ElementImpl
 
   @Deprecated('Use fields instead')
   @override
+  @trackedIndirectly
   List<FieldElementImpl> get fields2 => fields;
 
   @override
   InstanceFragmentImpl get firstFragment;
 
   @override
+  @trackedDirectlyExpensive
   List<GetterElementImpl> get getters {
     globalResultRequirements?.record_instanceElement_getters(element: this);
     ensureReadMembers();
@@ -3946,12 +3966,15 @@ abstract class InstanceElementImpl extends ElementImpl
 
   @Deprecated('Use getters instead')
   @override
+  @trackedIndirectly
   List<GetterElementImpl> get getters2 => getters;
 
   @override
+  @trackedIncludedInId
   bool get isPrivate => _firstFragment.isPrivate;
 
   @override
+  @trackedIncludedInId
   bool get isPublic => _firstFragment.isPublic;
 
   @override
@@ -3967,10 +3990,12 @@ abstract class InstanceElementImpl extends ElementImpl
   }
 
   @override
+  @trackedIncludedInId
   LibraryElementImpl get library => super.library!;
 
   @Deprecated('Use library instead')
   @override
+  @trackedIndirectly
   LibraryElementImpl get library2 => library;
 
   @override
@@ -3981,6 +4006,7 @@ abstract class InstanceElementImpl extends ElementImpl
 
   @Deprecated('Use metadata instead')
   @override
+  @trackedIndirectly
   MetadataImpl get metadata2 => metadata;
 
   @override
@@ -3997,6 +4023,7 @@ abstract class InstanceElementImpl extends ElementImpl
 
   @Deprecated('Use methods instead')
   @override
+  @trackedIndirectly
   List<MethodElementImpl> get methods2 => methods;
 
   @override
@@ -4007,12 +4034,18 @@ abstract class InstanceElementImpl extends ElementImpl
 
   @Deprecated('Use name instead')
   @override
+  @trackedIndirectly
   String? get name3 => name;
 
   @override
-  AnalysisSessionImpl get session => library.session;
+  @trackedDirectlyOpaque
+  AnalysisSessionImpl get session {
+    globalResultRequirements?.recordOpaqueApiUse(this, 'session');
+    return library.session;
+  }
 
   @override
+  @trackedDirectlyExpensive
   List<SetterElementImpl> get setters {
     globalResultRequirements?.record_instanceElement_setters(element: this);
     ensureReadMembers();
@@ -4025,6 +4058,7 @@ abstract class InstanceElementImpl extends ElementImpl
 
   @Deprecated('Use setters instead')
   @override
+  @trackedIndirectly
   List<SetterElementImpl> get setters2 => setters;
 
   @override
@@ -4037,6 +4071,7 @@ abstract class InstanceElementImpl extends ElementImpl
 
   @Deprecated('Use typeParameters instead')
   @override
+  @trackedIndirectly
   List<TypeParameterElementImpl> get typeParameters2 => typeParameters;
 
   @override
@@ -4060,6 +4095,7 @@ abstract class InstanceElementImpl extends ElementImpl
 
   @Deprecated('Use displayString instead')
   @override
+  @trackedIndirectly
   String displayString2({
     bool multiline = false,
     bool preferTypeAlias = false,
@@ -4080,6 +4116,7 @@ abstract class InstanceElementImpl extends ElementImpl
 
   @Deprecated('Use getField instead')
   @override
+  @trackedIndirectly
   FieldElementImpl? getField2(String name) => getField(name);
 
   @override
@@ -4097,6 +4134,7 @@ abstract class InstanceElementImpl extends ElementImpl
 
   @Deprecated('Use getGetter instead')
   @override
+  @trackedIndirectly
   GetterElementImpl? getGetter2(String name) => getGetter(name);
 
   @override
@@ -4114,6 +4152,7 @@ abstract class InstanceElementImpl extends ElementImpl
 
   @Deprecated('Use getMethod instead')
   @override
+  @trackedIndirectly
   MethodElementImpl? getMethod2(String name) => getMethod(name);
 
   @override
@@ -4131,9 +4170,11 @@ abstract class InstanceElementImpl extends ElementImpl
 
   @Deprecated('Use getSetter instead')
   @override
+  @trackedIndirectly
   SetterElementImpl? getSetter2(String name) => getSetter(name);
 
   @override
+  @trackedIncludedInId
   bool isAccessibleIn(LibraryElement library) {
     var name = this.name;
     if (name != null && Identifier.isPrivateName(name)) {
@@ -4144,15 +4185,18 @@ abstract class InstanceElementImpl extends ElementImpl
 
   @Deprecated('Use isAccessibleIn instead')
   @override
+  @trackedIndirectly
   bool isAccessibleIn2(LibraryElement library) {
     return isAccessibleIn(library);
   }
 
   @override
+  @trackedDirectlyOpaque
   GetterElement? lookUpGetter({
     required String name,
     required LibraryElement library,
   }) {
+    globalResultRequirements?.recordOpaqueApiUse(this, 'lookUpGetter');
     return _implementationsOfGetter(
           name,
         ).firstWhereOrNull((getter) => getter.isAccessibleIn(library))
@@ -4161,6 +4205,7 @@ abstract class InstanceElementImpl extends ElementImpl
 
   @Deprecated('Use lookUpGetter instead')
   @override
+  @trackedIndirectly
   GetterElement? lookUpGetter2({
     required String name,
     required LibraryElement library,
@@ -4169,10 +4214,12 @@ abstract class InstanceElementImpl extends ElementImpl
   }
 
   @override
+  @trackedDirectlyOpaque
   MethodElement? lookUpMethod({
     required String name,
     required LibraryElement library,
   }) {
+    globalResultRequirements?.recordOpaqueApiUse(this, 'lookUpMethod');
     return _implementationsOfMethod(
       name,
     ).firstWhereOrNull((method) => method.isAccessibleIn(library));
@@ -4180,6 +4227,7 @@ abstract class InstanceElementImpl extends ElementImpl
 
   @Deprecated('Use lookUpMethod instead')
   @override
+  @trackedIndirectly
   MethodElement? lookUpMethod2({
     required String name,
     required LibraryElement library,
@@ -4188,10 +4236,12 @@ abstract class InstanceElementImpl extends ElementImpl
   }
 
   @override
+  @trackedDirectlyOpaque
   SetterElement? lookUpSetter({
     required String name,
     required LibraryElement library,
   }) {
+    globalResultRequirements?.recordOpaqueApiUse(this, 'lookUpSetter');
     return _implementationsOfSetter(
           name,
         ).firstWhereOrNull((setter) => setter.isAccessibleIn(library))
@@ -4200,6 +4250,7 @@ abstract class InstanceElementImpl extends ElementImpl
 
   @Deprecated('Use lookUpSetter instead')
   @override
+  @trackedIndirectly
   SetterElement? lookUpSetter2({
     required String name,
     required LibraryElement library,
@@ -4208,7 +4259,12 @@ abstract class InstanceElementImpl extends ElementImpl
   }
 
   @override
+  @trackedDirectlyOpaque
   Element? thisOrAncestorMatching(bool Function(Element) predicate) {
+    globalResultRequirements?.recordOpaqueApiUse(
+      this,
+      'thisOrAncestorMatching',
+    );
     if (predicate(this)) {
       return this;
     }
@@ -4217,12 +4273,15 @@ abstract class InstanceElementImpl extends ElementImpl
 
   @Deprecated('Use thisOrAncestorMatching instead')
   @override
+  @trackedIndirectly
   Element? thisOrAncestorMatching2(bool Function(Element) predicate) {
     return thisOrAncestorMatching(predicate);
   }
 
   @override
+  @trackedDirectlyOpaque
   E? thisOrAncestorOfType<E extends Element>() {
+    globalResultRequirements?.recordOpaqueApiUse(this, 'thisOrAncestorOfType');
     if (this case E result) {
       return result;
     }
@@ -4231,12 +4290,14 @@ abstract class InstanceElementImpl extends ElementImpl
 
   @Deprecated('Use thisOrAncestorOfType instead')
   @override
+  @trackedIndirectly
   E? thisOrAncestorOfType2<E extends Element>() {
     return thisOrAncestorOfType();
   }
 
   @override
   void visitChildren<T>(ElementVisitor2<T> visitor) {
+    globalResultRequirements?.recordOpaqueApiUse(this, 'visitChildren');
     for (var child in children) {
       child.accept(visitor);
     }
