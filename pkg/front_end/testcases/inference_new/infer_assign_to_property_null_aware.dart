@@ -23,7 +23,7 @@ class Test {
   B? member2;
 
   static void test(Test? t) {
-    /*@type=Test?*/ /*@promotedType=Test*/ t
+      t
         ?. /*@target=Test.member*/ member = /*@typeArgs=B*/ f();
 
     t?. /*@target=Test.member2*/ /*@target=Test.member2*/ member2 ??= /*@typeArgs=B?*/ f();
@@ -39,7 +39,7 @@ class Test {
 
     t?. /*@target=Test.member*/ /*@target=Test.member*/ member /*@target=B.-*/ --;
 
-    var /*@type=B?*/ v1 = /*@type=Test?*/ /*@promotedType=Test*/ t
+    var /*@type=B?*/ v1 =   t
         ?. /*@target=Test.member*/ member = /*@typeArgs=B*/ f();
 
     var /*@type=B?*/ v2 = t

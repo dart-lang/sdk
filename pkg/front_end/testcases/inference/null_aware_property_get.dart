@@ -10,8 +10,8 @@ class C {
 }
 
 void f(C? c) {
-  var /*@type=int?*/ x = /*@type=C?*/ /*@promotedType=C*/ c?. /*@target=C.x*/ x;
-  /*@type=C?*/ /*@promotedType=C*/ c?. /*@target=C.x*/ x;
+  var /*@type=int?*/ x =   c?. /*@target=C.x*/ x;
+    c?. /*@target=C.x*/ x;
 }
 
 main() {}

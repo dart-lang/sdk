@@ -14,7 +14,7 @@ class Test1 {
   int? prop2;
 
   static void test(Test1? t) {
-    var /*@type=int?*/ v1 = /*@type=Test1?*/ /*@promotedType=Test1*/ t
+    var /*@type=int?*/ v1 =   t
         ?. /*@target=Test1.prop*/ prop = getInt();
 
     var /*@type=int?*/ v4 =
@@ -37,13 +37,13 @@ class Test2 {
   num? prop2;
 
   static void test(Test2? t) {
-    var /*@type=int?*/ v1 = /*@type=Test2?*/ /*@promotedType=Test2*/ t
+    var /*@type=int?*/ v1 =   t
         ?. /*@target=Test2.prop*/ prop = getInt();
 
-    var /*@type=num?*/ v2 = /*@type=Test2?*/ /*@promotedType=Test2*/ t
+    var /*@type=num?*/ v2 =   t
         ?. /*@target=Test2.prop*/ prop = getNum();
 
-    var /*@type=double?*/ v3 = /*@type=Test2?*/ /*@promotedType=Test2*/ t
+    var /*@type=double?*/ v3 =   t
         ?. /*@target=Test2.prop*/ prop = getDouble();
 
     var /*@type=num?*/ v4 =
@@ -81,7 +81,7 @@ class Test3 {
   double? prop2;
 
   static void test3(Test3? t) {
-    var /*@type=double?*/ v3 = /*@type=Test3?*/ /*@promotedType=Test3*/ t
+    var /*@type=double?*/ v3 =   t
         ?. /*@target=Test3.prop*/ prop = getDouble();
 
     var /*@type=double?*/ v6 =

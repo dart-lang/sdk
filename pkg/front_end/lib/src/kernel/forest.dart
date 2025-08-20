@@ -681,8 +681,10 @@ class Forest {
   }
 
   Expression createMethodInvocation(
-      int fileOffset, Expression expression, Name name, Arguments arguments) {
-    return new MethodInvocation(expression, name, arguments)
+      int fileOffset, Expression expression, Name name, Arguments arguments,
+      {required bool isNullAware}) {
+    return new MethodInvocation(expression, name, arguments,
+        isNullAware: isNullAware)
       ..fileOffset = fileOffset;
   }
 
@@ -696,27 +698,35 @@ class Forest {
     return new NullCheck(expression)..fileOffset = fileOffset;
   }
 
-  Expression createPropertyGet(int fileOffset, Expression receiver, Name name) {
-    return new PropertyGet(receiver, name)..fileOffset = fileOffset;
+  Expression createPropertyGet(int fileOffset, Expression receiver, Name name,
+      {required bool isNullAware}) {
+    return new PropertyGet(receiver, name, isNullAware: isNullAware)
+      ..fileOffset = fileOffset;
   }
 
   Expression createPropertySet(
       int fileOffset, Expression receiver, Name name, Expression value,
-      {required bool forEffect, bool readOnlyReceiver = false}) {
+      {required bool forEffect,
+      bool readOnlyReceiver = false,
+      required bool isNullAware}) {
     return new PropertySet(receiver, name, value,
-        forEffect: forEffect, readOnlyReceiver: readOnlyReceiver)
+        forEffect: forEffect,
+        readOnlyReceiver: readOnlyReceiver,
+        isNullAware: isNullAware)
       ..fileOffset = fileOffset;
   }
 
-  IndexGet createIndexGet(
-      int fileOffset, Expression receiver, Expression index) {
-    return new IndexGet(receiver, index)..fileOffset = fileOffset;
+  IndexGet createIndexGet(int fileOffset, Expression receiver, Expression index,
+      {required bool isNullAware}) {
+    return new IndexGet(receiver, index, isNullAware: isNullAware)
+      ..fileOffset = fileOffset;
   }
 
   IndexSet createIndexSet(
       int fileOffset, Expression receiver, Expression index, Expression value,
-      {required bool forEffect}) {
-    return new IndexSet(receiver, index, value, forEffect: forEffect)
+      {required bool forEffect, required bool isNullAware}) {
+    return new IndexSet(receiver, index, value,
+        forEffect: forEffect, isNullAware: isNullAware)
       ..fileOffset = fileOffset;
   }
 

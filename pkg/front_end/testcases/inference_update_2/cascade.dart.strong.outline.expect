@@ -1,0 +1,22 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+typedef Exactly<invariant T extends core::Object? = dynamic> = (T%) → T%;
+class C extends core::Object {
+  final field core::Object? _field;
+  constructor •([core::Object? _field = null]) → self::C
+    ;
+  method f([wildcard dynamic _#wc0#formal = null]) → void
+    ;
+}
+extension StaticType<T extends core::Object? = dynamic> on T% {
+  method expectStaticType = self::StaticType|expectStaticType;
+  method tearoff expectStaticType = self::StaticType|get#expectStaticType;
+}
+static method fieldsPromotableWithinCascade(self::C c) → void
+  ;
+static extension-member method StaticType|expectStaticType<T extends core::Object? = dynamic, R extends (self::StaticType|expectStaticType::T%) → self::StaticType|expectStaticType::T% = (dynamic) → dynamic>(lowered final self::StaticType|expectStaticType::T% #this) → self::StaticType|expectStaticType::T%
+  ;
+static extension-member method StaticType|get#expectStaticType<T extends core::Object? = dynamic>(lowered final self::StaticType|get#expectStaticType::T% #this) → <R extends (self::StaticType|get#expectStaticType::T%) → self::StaticType|get#expectStaticType::T% = (dynamic) → dynamic>() → self::StaticType|get#expectStaticType::T%
+  return <R extends (self::StaticType|get#expectStaticType::T%) → self::StaticType|get#expectStaticType::T% = (dynamic) → dynamic>() → self::StaticType|get#expectStaticType::T% => self::StaticType|expectStaticType<self::StaticType|get#expectStaticType::T%, R>(#this);
