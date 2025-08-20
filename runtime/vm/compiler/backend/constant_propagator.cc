@@ -307,6 +307,8 @@ void ConstantPropagator::VisitDeoptimize(DeoptimizeInstr* instr) {
   // TODO(vegorov) remove all code after DeoptimizeInstr as dead.
 }
 
+void ConstantPropagator::VisitTsanReadWrite(TsanReadWriteInstr* instr) {}
+
 Definition* ConstantPropagator::UnwrapPhi(Definition* defn) {
   if (defn->IsPhi()) {
     JoinEntryInstr* block = defn->AsPhi()->block();

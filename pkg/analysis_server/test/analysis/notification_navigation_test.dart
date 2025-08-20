@@ -941,7 +941,7 @@ void f() {
 ''');
     await prepareNavigation();
     assertHasRegion('index');
-    assertHasTargetInDartCore('index; // Enum');
+    assertHasTargetInDartCore('index => -1; // Enum');
   }
 
   Future<void> test_enum_method() async {

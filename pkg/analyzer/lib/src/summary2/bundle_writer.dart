@@ -140,6 +140,7 @@ class BundleWriter {
       _writeReference(element.reference);
       _writeFragments(element.fragments);
       element.writeModifiers(_sink);
+      _sink.writeBool(element.hasNonFinalField);
 
       // We read members lazily.
       _writeForLazyRead(() {
@@ -561,6 +562,7 @@ class BundleWriter {
       _writeReference(element.reference);
       _writeFragments(element.fragments);
       element.writeModifiers(_sink);
+      _sink.writeBool(element.hasNonFinalField);
 
       // TODO(scheglov): consider reading lazily
       _resolutionSink.withTypeParameters(element.typeParameters, () {

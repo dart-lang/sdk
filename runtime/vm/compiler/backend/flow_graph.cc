@@ -2673,6 +2673,36 @@ void FlowGraph::ExtractNonInternalTypedDataPayloads() {
   }
 }
 
+void FlowGraph::AddTsanInstrumentation() {
+  if (!FLAG_target_thread_sanitizer) return;
+
+  for (BlockIterator block_it = reverse_postorder_iterator(); !block_it.Done();
+       block_it.Advance()) {
+    BlockEntryInstr* block = block_it.Current();
+    for (ForwardInstructionIterator it(block); !it.Done(); it.Advance()) {
+      Instruction* current = it.Current();
+
+      if (LoadFieldInstr* load = current->AsLoadField()) {
+        if (!load->slot().is_no_sanitize_thread() &&
+            load->memory_order() == compiler::Assembler::kRelaxedNonAtomic) {
+          auto* tsan_read = new (Z) TsanReadWriteInstr(
+              TsanReadWriteInstr::Kind::kRead, load->slot(),
+              new (Z) Value(load->instance()->definition()), load->source());
+          InsertBefore(load, tsan_read, /*env=*/nullptr, kEffect);
+        }
+      } else if (StoreFieldInstr* store = current->AsStoreField()) {
+        if (!store->slot().is_no_sanitize_thread() &&
+            store->memory_order() == compiler::Assembler::kRelaxedNonAtomic) {
+          auto* tsan_write = new (Z) TsanReadWriteInstr(
+              TsanReadWriteInstr::Kind::kWrite, store->slot(),
+              new (Z) Value(store->instance()->definition()), store->source());
+          InsertBefore(store, tsan_write, /*env=*/nullptr, kEffect);
+        }
+      }
+    }
+  }
+}
+
 bool FlowGraph::Canonicalize() {
   bool changed = false;
 

@@ -250,7 +250,7 @@ class ClassElementImpl extends InterfaceElementImpl implements ClassElement {
 
   @override
   @trackedIncludedInId
-  bool get isConstructable => _firstFragment.isConstructable;
+  bool get isConstructable => !isSealed && !isAbstract;
 
   @override
   @trackedIncludedInId
@@ -258,9 +258,9 @@ class ClassElementImpl extends InterfaceElementImpl implements ClassElement {
     return name == 'Enum' && library.isDartCore;
   }
 
-  /// Return `true` if this class represents the class 'Function' defined in the
-  /// dart:core library.
-  bool get isDartCoreFunctionImpl {
+  /// Whether the class represents the class 'Function' defined in `dart:core`.
+  @trackedIncludedInId
+  bool get isDartCoreFunction {
     return name == 'Function' && library.isDartCore;
   }
 
@@ -277,7 +277,7 @@ class ClassElementImpl extends InterfaceElementImpl implements ClassElement {
 
   @override
   @trackedIncludedInId
-  bool get isExhaustive => _firstFragment.isExhaustive;
+  bool get isExhaustive => isSealed;
 
   @override
   bool get isExtendableOutside => !isInterface && !isFinal && !isSealed;
@@ -558,15 +558,6 @@ class ClassFragmentImpl extends InterfaceFragmentImpl
   /// Initialize a newly created class element to have the given [name] at the
   /// given [offset] in the file that contains the declaration of this element.
   ClassFragmentImpl({required super.name});
-
-  bool get hasGenerativeConstConstructor {
-    _ClassFragmentImplModifiers.hasExtendsClause;
-    return constructors.any((c) => !c.isFactory && c.isConst);
-  }
-
-  bool get isConstructable => !isSealed && !isAbstract;
-
-  bool get isExhaustive => isSealed;
 
   @override
   ClassFragmentImpl? get nextFragment {
@@ -3393,11 +3384,6 @@ abstract class FragmentImpl with _FragmentImplMixin implements Fragment {
   @Deprecated('Use nameOffset instead')
   int? get nameOffset2 => nameOffset;
 
-  /// The analysis session in which this element is defined.
-  AnalysisSession? get session {
-    return enclosingFragment?.session;
-  }
-
   /// The version where this SDK API was added.
   ///
   /// A `@Since()` annotation can be applied to a library declaration,
@@ -4027,7 +4013,7 @@ abstract class InstanceElementImpl extends ElementImpl
   Element get nonSynthetic => isSynthetic ? enclosingElement : this as Element;
 
   @override
-  AnalysisSession? get session => _firstFragment.session;
+  AnalysisSessionImpl get session => library.session;
 
   @override
   List<SetterElementImpl> get setters {
@@ -4556,6 +4542,9 @@ abstract class InterfaceElementImpl extends InstanceElementImpl
   /// of this class have been inferred.
   bool hasBeenInferred = false;
 
+  /// Whether the class or its superclass declares a non-final instance field.
+  bool hasNonFinalField = false;
+
   @override
   List<InterfaceTypeImpl> get allSupertypes {
     return _allSupertypes ??= library.session.classHierarchy
@@ -4612,60 +4601,21 @@ abstract class InterfaceElementImpl extends InstanceElementImpl
     ];
   }
 
-  @trackedDirectlyExpensive
-  bool get hasNonFinalField {
-    globalResultRequirements?.record_interfaceElement_hasNonFinalField(
-      element: this,
-    );
-
-    var classesToVisit = <InterfaceElementImpl>[];
-    var visitedClasses = <InterfaceElementImpl>{};
-    classesToVisit.add(this);
-    while (classesToVisit.isNotEmpty) {
-      var currentElement = classesToVisit.removeAt(0);
-      if (visitedClasses.add(currentElement)) {
-        // check fields
-        for (var field in currentElement.fields) {
-          if (!field.isFinal &&
-              !field.isConst &&
-              !field.isStatic &&
-              !field.isSynthetic) {
-            return true;
-          }
-        }
-        // check mixins
-        for (var mixinType in currentElement.mixins) {
-          classesToVisit.add(mixinType.element);
-        }
-        // check super
-        var supertype = currentElement.supertype;
-        if (supertype != null) {
-          classesToVisit.add(supertype.element);
-        }
-      }
-    }
-    // not found
-    return false;
-  }
-
   InheritanceManager3 get inheritanceManager {
     return library.session.inheritanceManager;
   }
 
   @override
   Map<Name, ExecutableElement> get inheritedConcreteMembers =>
-      (session as AnalysisSessionImpl).inheritanceManager
-          .getInheritedConcreteMap(this);
+      session.inheritanceManager.getInheritedConcreteMap(this);
 
   @override
   Map<Name, ExecutableElement> get inheritedMembers =>
-      (session as AnalysisSessionImpl).inheritanceManager.getInheritedMap(this);
+      session.inheritanceManager.getInheritedMap(this);
 
   @override
   Map<Name, ExecutableElement> get interfaceMembers =>
-      (session as AnalysisSessionImpl).inheritanceManager
-          .getInterface(this)
-          .map;
+      session.inheritanceManager.getInterface(this).map;
 
   @override
   @trackedIncludedInId
@@ -4770,14 +4720,11 @@ abstract class InterfaceElementImpl extends InstanceElementImpl
 
   @override
   ExecutableElement? getInheritedMember(Name name) =>
-      (session as AnalysisSessionImpl).inheritanceManager.getInherited(
-        this,
-        name,
-      );
+      session.inheritanceManager.getInherited(this, name);
 
   @override
   ExecutableElement? getInterfaceMember(Name name) =>
-      (session as AnalysisSessionImpl).inheritanceManager.getMember(this, name);
+      session.inheritanceManager.getMember(this, name);
 
   @override
   ConstructorElementImpl? getNamedConstructor(String name) {
@@ -4799,10 +4746,7 @@ abstract class InterfaceElementImpl extends InstanceElementImpl
 
   @override
   List<ExecutableElement>? getOverridden(Name name) =>
-      (session as AnalysisSessionImpl).inheritanceManager.getOverridden(
-        this,
-        name,
-      );
+      session.inheritanceManager.getOverridden(this, name);
 
   @override
   InterfaceTypeImpl instantiate({
@@ -6481,9 +6425,6 @@ class LibraryFragmentImpl extends FragmentImpl
   }
 
   @override
-  AnalysisSession get session => library.session;
-
-  @override
   List<SetterFragmentImpl> get setters => _setters;
 
   set setters(List<SetterFragmentImpl> setters) {
@@ -7936,9 +7877,6 @@ class MultiplyDefinedElementImpl extends ElementImpl
 
   @override
   Element get nonSynthetic => this;
-
-  @override
-  AnalysisSession get session => libraryFragment.session;
 
   @override
   T? accept<T>(ElementVisitor2<T> visitor) {

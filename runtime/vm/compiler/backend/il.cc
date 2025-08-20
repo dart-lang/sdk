@@ -4684,16 +4684,6 @@ void LoadFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   ASSERT(OffsetInBytes() != 0 || slot().has_untagged_instance());
   auto const rep = slot().representation();
 
-#if defined(TARGET_ARCH_ARM64) || defined(TARGET_ARCH_RISCV64) ||              \
-    defined(TARGET_ARCH_X64)
-  if (FLAG_target_thread_sanitizer && !slot().is_no_sanitize_thread() &&
-      memory_order_ == compiler::Assembler::kRelaxedNonAtomic) {
-    intptr_t tag = slot().has_untagged_instance() ? 0 : kHeapObjectTag;
-    __ AddImmediate(TMP, instance_reg, slot().offset_in_bytes() - tag);
-    __ TsanRead(TMP, RepresentationUtils::ValueSize(rep));
-  }
-#endif
-
   if (calls_initializer()) {
     __ LoadFromSlot(locs()->out(0).reg(), instance_reg, slot(), memory_order_);
     EmitNativeCodeForInitializerCall(compiler);
@@ -7293,6 +7283,91 @@ Definition* InvokeMathCFunctionInstr::Canonicalize(FlowGraph* flow_graph) {
   return this;
 }
 
+LocationSummary* TsanReadWriteInstr::MakeLocationSummary(Zone* zone,
+                                                         bool opt) const {
+  const intptr_t kNumTemps = 1;
+  LocationSummary* result = new (zone) LocationSummary(
+      zone, InputCount(), kNumTemps, LocationSummary::kNativeLeafCall);
+  result->set_temp(0, Location::RegisterLocation(CALLEE_SAVED_TEMP));
+  result->set_in(0, Location::RequiresRegister());
+  return result;
+}
+
+const RuntimeEntry& TsanReadWriteInstr::RuntimeEntry() const {
+  intptr_t size = RepresentationUtils::ValueSize(slot().representation());
+  if (kind_ == Kind::kRead) {
+    switch (size) {
+      case 1:
+        return kTsanRead1RuntimeEntry;
+      case 2:
+        return kTsanRead2RuntimeEntry;
+      case 4:
+        return kTsanRead4RuntimeEntry;
+      case 8:
+        return kTsanRead8RuntimeEntry;
+      case 16:
+        return kTsanRead16RuntimeEntry;
+      default:
+        UNREACHABLE();
+    }
+  } else if (kind_ == kWrite) {
+    switch (size) {
+      case 1:
+        return kTsanWrite1RuntimeEntry;
+      case 2:
+        return kTsanWrite2RuntimeEntry;
+      case 4:
+        return kTsanWrite4RuntimeEntry;
+      case 8:
+        return kTsanWrite8RuntimeEntry;
+      case 16:
+        return kTsanWrite16RuntimeEntry;
+      default:
+        UNREACHABLE();
+    }
+  }
+  UNREACHABLE();
+}
+
+void TsanReadWriteInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+#if defined(TARGET_ARCH_ARM64) || defined(TARGET_ARCH_RISCV64) ||              \
+    defined(TARGET_ARCH_X64)
+  const Register saved_sp = locs()->temp(0).reg();
+  ASSERT(IsAbiPreservedRegister(saved_sp));
+  ASSERT(IsAbiPreservedRegister(THR));
+  ASSERT(IsAbiPreservedRegister(PP));
+  ASSERT(IsAbiPreservedRegister(CODE_REG));
+#if defined(TARGET_ARCH_ARM64)
+  ASSERT(IsAbiPreservedRegister(NULL_REG));
+  ASSERT(IsAbiPreservedRegister(HEAP_BITS));
+  ASSERT(IsAbiPreservedRegister(DISPATCH_TABLE_REG));
+#endif
+  __ MoveRegister(saved_sp, SPREG);
+#if defined(TARGET_ARCH_ARM64)
+  __ andi(CSP, SP, compiler::Immediate(~(OS::ActivationFrameAlignment() - 1)));
+#else
+  __ ReserveAlignedFrameSpace(0);
+#endif
+  const Register instance_reg = locs()->in(0).reg();
+  intptr_t tag = slot().has_untagged_instance() ? 0 : kHeapObjectTag;
+  __ AddImmediate(CallingConventions::ArgumentRegisters[0], instance_reg,
+                  slot().offset_in_bytes() - tag);
+  __ Load(TMP, compiler::Address(THR, RuntimeEntry().OffsetFromThread()));
+  __ Store(TMP,
+           compiler::Address(THR, compiler::target::Thread::vm_tag_offset()));
+  __ CallCFunction(TMP);
+  __ LoadImmediate(TMP, VMTag::kDartTagId);
+  __ Store(TMP,
+           compiler::Address(THR, compiler::target::Thread::vm_tag_offset()));
+  __ MoveRegister(SPREG, saved_sp);
+#if defined(TARGET_ARCH_ARM64)
+  __ SetupCSPFromThread(THR);
+#endif
+#else
+  UNREACHABLE();
+#endif
+}
+
 bool DoubleToIntegerInstr::SupportsFloorAndCeil() {
 #if defined(TARGET_ARCH_X64)
   return CompilerState::Current().is_aot() || FLAG_target_unknown_cpu;
@@ -7820,16 +7895,6 @@ void StoreFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   // For fields on Dart objects, the offset must point after the header.
   ASSERT(OffsetInBytes() != 0 || slot().has_untagged_instance());
   const Representation rep = slot().representation();
-
-#if defined(TARGET_ARCH_ARM64) || defined(TARGET_ARCH_RISCV64) ||              \
-    defined(TARGET_ARCH_X64)
-  if (FLAG_target_thread_sanitizer && !slot().is_no_sanitize_thread() &&
-      memory_order_ == compiler::Assembler::kRelaxedNonAtomic) {
-    intptr_t tag = slot().has_untagged_instance() ? 0 : kHeapObjectTag;
-    __ AddImmediate(TMP, instance_reg, slot().offset_in_bytes() - tag);
-    __ TsanWrite(TMP, RepresentationUtils::ValueSize(rep));
-  }
-#endif
 
 #if defined(TARGET_ARCH_ARM64) || defined(TARGET_ARCH_RISCV32) ||              \
     defined(TARGET_ARCH_RISCV64)
