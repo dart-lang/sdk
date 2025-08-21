@@ -17,9 +17,6 @@ class PluginData {
   /// associated with each of the plugins.
   Map<String, PercentileCalculator> usageCounts = {};
 
-  /// Initialize a newly created holder of plugin data.
-  PluginData();
-
   String get usageCountData {
     return json.encode({
       'recordCount': recordCount,
@@ -27,31 +24,25 @@ class PluginData {
     });
   }
 
-  /// Use the [pluginManager] to record data about the plugins that are
-  /// currently running.
+  /// Records data about the plugins that are currently running, via info from
+  /// [pluginManager].
   void recordPlugins(PluginManager pluginManager) {
     recordCount++;
-    var plugins = pluginManager.plugins;
-    for (var i = 0; i < plugins.length; i++) {
-      var info = plugins[i];
+    for (var info in pluginManager.plugins) {
       usageCounts
           .putIfAbsent(info.safePluginId, () => PercentileCalculator())
           .addValue(info.contextRoots.length);
     }
   }
 
-  /// Return an encoding of the [usageCounts].
-  Map<String, Object> _encodeUsageCounts() {
-    var encoded = <String, Object>{};
-    for (var entry in usageCounts.entries) {
-      encoded[entry.key] = entry.value.toJson();
-    }
-    return encoded;
-  }
+  /// Returns an encoding of the [usageCounts].
+  Map<String, Object> _encodeUsageCounts() => {
+    for (var entry in usageCounts.entries) entry.key: entry.value.toJson(),
+  };
 }
 
 extension PluginInfoExtension on PluginInfo {
-  /// Return an id for this plugin that doesn't contain any PII.
+  /// An ID for this plugin that doesn't contain any PII.
   ///
   /// If the plugin is installed in the pub cache and hosted on `pub.dev`, then
   /// the returned name will be the name and version of the containing package
