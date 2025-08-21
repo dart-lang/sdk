@@ -17,8 +17,7 @@ class C2 = S with C2;
 //    ^^
 // [analyzer] COMPILE_TIME_ERROR.RECURSIVE_INTERFACE_INHERITANCE
 // [cfe] 'C2' is a supertype of itself.
-//                ^^
-// [analyzer] COMPILE_TIME_ERROR.MIXIN_INHERITS_FROM_NOT_OBJECT
+
 class C3 = S with M implements A;
 class C4 = S with M implements C4;
 //    ^^
