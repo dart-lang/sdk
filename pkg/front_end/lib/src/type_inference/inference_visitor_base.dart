@@ -1007,13 +1007,14 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
       treeNodeForTesting: treeNodeForTesting,
     );
     inferredTypes = typeSchemaEnvironment.chooseFinalTypes(
-      gatherer,
+      gatherer.computeConstraints(),
       typeParameters,
       inferredTypes,
       inferenceUsingBoundsIsEnabled:
           libraryFeatures.inferenceUsingBounds.isEnabled,
       dataForTesting: dataForTesting,
       treeNodeForTesting: treeNodeForTesting,
+      typeOperations: cfeOperations,
     );
     return inferredTypes;
   }
@@ -1864,13 +1865,14 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
         treeNodeForTesting: arguments,
       );
       inferredTypes = typeSchemaEnvironment.choosePreliminaryTypes(
-        gatherer,
+        gatherer.computeConstraints(),
         calleeTypeParameters,
         /* previouslyInferredTypes= */ null,
         inferenceUsingBoundsIsEnabled:
             libraryFeatures.inferenceUsingBounds.isEnabled,
         dataForTesting: dataForTesting,
         treeNodeForTesting: arguments,
+        typeOperations: cfeOperations,
       );
       instantiator = new FunctionTypeInstantiator.fromIterables(
         calleeTypeParameters,
@@ -2070,13 +2072,14 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
         List<_DeferredParamInfo> stage = stages[i];
         if (gatherer != null && !isFirstStage) {
           inferredTypes = typeSchemaEnvironment.choosePreliminaryTypes(
-            gatherer,
+            gatherer.computeConstraints(),
             calleeTypeParameters,
             inferredTypes,
             inferenceUsingBoundsIsEnabled:
                 libraryFeatures.inferenceUsingBounds.isEnabled,
             dataForTesting: dataForTesting,
             treeNodeForTesting: arguments,
+            typeOperations: cfeOperations,
           );
           instantiator = new FunctionTypeInstantiator.fromIterables(
             calleeTypeParameters,
@@ -2314,13 +2317,14 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
 
     if (inferenceNeeded) {
       inferredTypes = typeSchemaEnvironment.chooseFinalTypes(
-        gatherer!,
+        gatherer!.computeConstraints(),
         calleeTypeParameters,
         inferredTypes!,
         inferenceUsingBoundsIsEnabled:
             libraryFeatures.inferenceUsingBounds.isEnabled,
         dataForTesting: dataForTesting,
         treeNodeForTesting: arguments,
+        typeOperations: cfeOperations,
       );
       assert(
         inferredTypes.every((type) => isKnown(type)),
@@ -4248,13 +4252,14 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
           treeNodeForTesting: treeNodeForTesting,
         );
         inferredTypes = typeSchemaEnvironment.chooseFinalTypes(
-          gatherer,
+          gatherer.computeConstraints(),
           typeParameters,
           inferredTypes,
           inferenceUsingBoundsIsEnabled:
               libraryFeatures.inferenceUsingBounds.isEnabled,
           dataForTesting: dataForTesting,
           treeNodeForTesting: treeNodeForTesting,
+          typeOperations: cfeOperations,
         );
         FunctionTypeInstantiator instantiator =
             new FunctionTypeInstantiator.fromIterables(

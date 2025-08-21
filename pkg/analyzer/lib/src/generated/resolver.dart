@@ -442,7 +442,8 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   shared.TypeAnalyzerOperations<
     PromotableElementImpl,
     InterfaceTypeImpl,
-    InterfaceElementImpl
+    InterfaceElementImpl,
+    AstNodeImpl
   >
   get operations => flowAnalysis.typeOperations;
 

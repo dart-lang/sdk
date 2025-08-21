@@ -246,7 +246,7 @@ abstract interface class SharedInferenceLogWriter {
   /// type schema to another.
   void recordGeneratedConstraint(
     SharedTypeParameter parameter,
-    MergedTypeConstraint<Object, SharedType, Object> constraint,
+    MergedTypeConstraint<Object, SharedType, Object, Object> constraint,
   );
 
   /// Records that type inference has resolved a method name.
@@ -751,7 +751,7 @@ abstract class SharedInferenceLogWriterImpl
   @override
   void recordGeneratedConstraint(
     SharedTypeParameter parameter,
-    MergedTypeConstraint<Object, SharedType, Object> constraint,
+    MergedTypeConstraint<Object, SharedType, Object, Object> constraint,
   ) {
     checkCall(
       method: 'recordGeneratedConstraint',

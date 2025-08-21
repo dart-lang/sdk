@@ -22,7 +22,8 @@ import 'type_constraint.dart';
 abstract interface class TypeAnalyzerOperations<
   Variable extends Object,
   TypeDeclarationType extends Object,
-  TypeDeclaration extends Object
+  TypeDeclaration extends Object,
+  AstNode extends Object
 >
     implements FlowAnalysisOperations<Variable, SharedTypeView> {
   /// Returns the type `double`.
@@ -56,16 +57,17 @@ abstract interface class TypeAnalyzerOperations<
     Variable,
     TypeDeclarationType,
     TypeDeclaration,
-    Object
+    AstNode
   >
   createTypeConstraintGenerator({
-    required TypeConstraintGenerationDataForTesting<Variable, Object>?
+    required TypeConstraintGenerationDataForTesting<Variable, AstNode>?
     typeConstraintGenerationDataForTesting,
     required List<SharedTypeParameterView> typeParametersToInfer,
     required TypeAnalyzerOperations<
       Variable,
       TypeDeclarationType,
-      TypeDeclaration
+      TypeDeclaration,
+      AstNode
     >
     typeAnalyzerOperations,
     required bool inferenceUsingBoundsIsEnabled,
@@ -577,17 +579,22 @@ abstract interface class TypeAnalyzerOperations<
     SharedTypeSchemaView typeSchema,
   );
 
-  MergedTypeConstraint<Variable, TypeDeclarationType, TypeDeclaration>
+  MergedTypeConstraint<Variable, TypeDeclarationType, TypeDeclaration, AstNode>
   mergeInConstraintsFromBound({
     required SharedTypeParameter typeParameterToInfer,
     required List<SharedTypeParameterView> typeParametersToInfer,
     required SharedType lower,
     required Map<
       SharedTypeParameter,
-      MergedTypeConstraint<Variable, TypeDeclarationType, TypeDeclaration>
+      MergedTypeConstraint<
+        Variable,
+        TypeDeclarationType,
+        TypeDeclaration,
+        AstNode
+      >
     >
     inferencePhaseConstraints,
-    required TypeConstraintGenerationDataForTesting<Variable, Object>?
+    required TypeConstraintGenerationDataForTesting<Variable, AstNode>?
     dataForTesting,
     required bool inferenceUsingBoundsIsEnabled,
   });
@@ -802,7 +809,12 @@ abstract interface class TypeAnalyzerOperations<
   /// is described in
   /// https://github.com/dart-lang/language/blob/main/resources/type-system/inference.md#constraint-solution-for-a-type-variable.
   SharedType chooseTypeFromConstraint(
-    MergedTypeConstraint<Variable, TypeDeclarationType, TypeDeclaration>
+    MergedTypeConstraint<
+      Variable,
+      TypeDeclarationType,
+      TypeDeclaration,
+      AstNode
+    >
     constraint, {
     required bool grounded,
     required bool isContravariant,
@@ -811,19 +823,29 @@ abstract interface class TypeAnalyzerOperations<
   /// Chooses types from all available sources at the final stage of inference.
   SharedType inferTypeParameterFromAll(
     SharedType? typeFromPreviousInference,
-    MergedTypeConstraint<Variable, TypeDeclarationType, TypeDeclaration>
+    MergedTypeConstraint<
+      Variable,
+      TypeDeclarationType,
+      TypeDeclaration,
+      AstNode
+    >
     constraint,
     SharedType? extendsConstraint, {
     bool isContravariant = false,
     bool isLegacyCovariant = true,
     required Map<
       SharedTypeParameter,
-      MergedTypeConstraint<Variable, TypeDeclarationType, TypeDeclaration>
+      MergedTypeConstraint<
+        Variable,
+        TypeDeclarationType,
+        TypeDeclaration,
+        AstNode
+      >
     >
     constraints,
     required SharedTypeParameter typeParameterToInfer,
     required List<SharedTypeParameter> typeParametersToInfer,
-    required TypeConstraintGenerationDataForTesting<Variable, Object>?
+    required TypeConstraintGenerationDataForTesting<Variable, AstNode>?
     dataForTesting,
     required bool inferenceUsingBoundsIsEnabled,
   });
@@ -831,34 +853,72 @@ abstract interface class TypeAnalyzerOperations<
   /// Chooses types from the current inference context in preliminary stages.
   SharedType inferTypeParameterFromContext(
     SharedType? typeFromPreviousInference,
-    MergedTypeConstraint<Variable, TypeDeclarationType, TypeDeclaration>
+    MergedTypeConstraint<
+      Variable,
+      TypeDeclarationType,
+      TypeDeclaration,
+      AstNode
+    >
     constraint,
     SharedType? extendsConstraint, {
     required bool isContravariant,
     bool isLegacyCovariant = true,
     required Map<
       SharedTypeParameter,
-      MergedTypeConstraint<Variable, TypeDeclarationType, TypeDeclaration>
+      MergedTypeConstraint<
+        Variable,
+        TypeDeclarationType,
+        TypeDeclaration,
+        AstNode
+      >
     >
     constraints,
     required List<SharedTypeParameter> typeParametersToInfer,
     required SharedTypeParameter typeParameterToInfer,
-    required TypeConstraintGenerationDataForTesting<Variable, Object>?
+    required TypeConstraintGenerationDataForTesting<Variable, AstNode>?
     dataForTesting,
     required bool inferenceUsingBoundsIsEnabled,
   });
 
   /// True if [typeParameter] doesn't have an explicit bound.
   bool isBoundOmitted(SharedTypeParameter typeParameter);
+
+  /// Computes (or recomputes) a set of inferred types based on the constraints
+  /// that have been recorded so far.
+  List<SharedType> chooseTypes(
+    List<SharedTypeParameter> typeParametersToInfer,
+    Map<
+      SharedTypeParameter,
+      MergedTypeConstraint<
+        Variable,
+        TypeDeclarationType,
+        TypeDeclaration,
+        AstNode
+      >
+    >
+    constraints,
+    List<SharedType>? previouslyInferredTypes, {
+    required bool preliminary,
+    required bool inferenceUsingBoundsIsEnabled,
+    required TypeConstraintGenerationDataForTesting<Variable, AstNode>?
+    dataForTesting,
+    required AstNode? treeNodeForTesting,
+  });
 }
 
 mixin TypeAnalyzerOperationsMixin<
   Variable extends Object,
   TypeDeclarationType extends Object,
-  TypeDeclaration extends Object
+  TypeDeclaration extends Object,
+  AstNode extends Object
 >
     implements
-        TypeAnalyzerOperations<Variable, TypeDeclarationType, TypeDeclaration> {
+        TypeAnalyzerOperations<
+          Variable,
+          TypeDeclarationType,
+          TypeDeclaration,
+          AstNode
+        > {
   @override
   SharedTypeView futureType(SharedTypeView argumentType) {
     return new SharedTypeView(
@@ -990,17 +1050,22 @@ mixin TypeAnalyzerOperationsMixin<
   }
 
   @override
-  MergedTypeConstraint<Variable, TypeDeclarationType, TypeDeclaration>
+  MergedTypeConstraint<Variable, TypeDeclarationType, TypeDeclaration, AstNode>
   mergeInConstraintsFromBound({
     required SharedTypeParameter typeParameterToInfer,
     required List<SharedTypeParameterView> typeParametersToInfer,
     required SharedType lower,
     required Map<
       SharedTypeParameter,
-      MergedTypeConstraint<Variable, TypeDeclarationType, TypeDeclaration>
+      MergedTypeConstraint<
+        Variable,
+        TypeDeclarationType,
+        TypeDeclaration,
+        AstNode
+      >
     >
     inferencePhaseConstraints,
-    required TypeConstraintGenerationDataForTesting<Variable, Object>?
+    required TypeConstraintGenerationDataForTesting<Variable, AstNode>?
     dataForTesting,
     required bool inferenceUsingBoundsIsEnabled,
   }) {
@@ -1034,7 +1099,7 @@ mixin TypeAnalyzerOperationsMixin<
       Variable,
       TypeDeclarationType,
       TypeDeclaration,
-      Object
+      AstNode
     >
     typeConstraintGatherer = createTypeConstraintGenerator(
       typeConstraintGenerationDataForTesting: null,
@@ -1050,11 +1115,21 @@ mixin TypeAnalyzerOperationsMixin<
     );
     Map<
       SharedTypeParameter,
-      MergedTypeConstraint<Variable, TypeDeclarationType, TypeDeclaration>
+      MergedTypeConstraint<
+        Variable,
+        TypeDeclarationType,
+        TypeDeclaration,
+        AstNode
+      >
     >
     constraintsPerTypeVariable = typeConstraintGatherer.computeConstraints();
     for (SharedTypeParameter typeParameter in constraintsPerTypeVariable.keys) {
-      MergedTypeConstraint<Variable, TypeDeclarationType, TypeDeclaration>
+      MergedTypeConstraint<
+        Variable,
+        TypeDeclarationType,
+        TypeDeclaration,
+        AstNode
+      >
       constraint = constraintsPerTypeVariable[typeParameter]!;
       constraint.origin = new TypeConstraintFromExtendsClause(
         typeParameterName: typeParameterToInfer.displayName,
@@ -1167,7 +1242,12 @@ mixin TypeAnalyzerOperationsMixin<
 
   @override
   SharedType chooseTypeFromConstraint(
-    MergedTypeConstraint<Variable, TypeDeclarationType, TypeDeclaration>
+    MergedTypeConstraint<
+      Variable,
+      TypeDeclarationType,
+      TypeDeclaration,
+      AstNode
+    >
     constraint, {
     required bool grounded,
     required bool isContravariant,
@@ -1225,19 +1305,29 @@ mixin TypeAnalyzerOperationsMixin<
   @override
   SharedType inferTypeParameterFromAll(
     SharedType? typeFromPreviousInference,
-    MergedTypeConstraint<Variable, TypeDeclarationType, TypeDeclaration>
+    MergedTypeConstraint<
+      Variable,
+      TypeDeclarationType,
+      TypeDeclaration,
+      AstNode
+    >
     constraint,
     SharedType? extendsConstraint, {
     bool isContravariant = false,
     bool isLegacyCovariant = true,
     required Map<
       SharedTypeParameter,
-      MergedTypeConstraint<Variable, TypeDeclarationType, TypeDeclaration>
+      MergedTypeConstraint<
+        Variable,
+        TypeDeclarationType,
+        TypeDeclaration,
+        AstNode
+      >
     >
     constraints,
     required SharedTypeParameter typeParameterToInfer,
     required List<SharedTypeParameter> typeParametersToInfer,
-    required TypeConstraintGenerationDataForTesting<Variable, Object>?
+    required TypeConstraintGenerationDataForTesting<Variable, AstNode>?
     dataForTesting,
     required bool inferenceUsingBoundsIsEnabled,
   }) {
@@ -1285,19 +1375,29 @@ mixin TypeAnalyzerOperationsMixin<
   @override
   SharedType inferTypeParameterFromContext(
     SharedType? typeFromPreviousInference,
-    MergedTypeConstraint<Variable, TypeDeclarationType, TypeDeclaration>
+    MergedTypeConstraint<
+      Variable,
+      TypeDeclarationType,
+      TypeDeclaration,
+      AstNode
+    >
     constraint,
     SharedType? extendsConstraint, {
     required bool isContravariant,
     bool isLegacyCovariant = true,
     required Map<
       SharedTypeParameter,
-      MergedTypeConstraint<Variable, TypeDeclarationType, TypeDeclaration>
+      MergedTypeConstraint<
+        Variable,
+        TypeDeclarationType,
+        TypeDeclaration,
+        AstNode
+      >
     >
     constraints,
     required List<SharedTypeParameter> typeParametersToInfer,
     required SharedTypeParameter typeParameterToInfer,
-    required TypeConstraintGenerationDataForTesting<Variable, Object>?
+    required TypeConstraintGenerationDataForTesting<Variable, AstNode>?
     dataForTesting,
     required bool inferenceUsingBoundsIsEnabled,
   }) {
@@ -1391,7 +1491,12 @@ abstract class TypeConstraintGenerator<
   bool get enableDiscrepantObliviousnessOfNullabilitySuffixOfFutureOr;
 
   /// Abstract type operations to be used in the matching methods.
-  TypeAnalyzerOperations<Variable, TypeDeclarationType, TypeDeclaration>
+  TypeAnalyzerOperations<
+    Variable,
+    TypeDeclarationType,
+    TypeDeclaration,
+    AstNode
+  >
   get typeAnalyzerOperations;
 
   /// Type parameters being constrained by [TypeConstraintGenerator].
@@ -1414,7 +1519,12 @@ abstract class TypeConstraintGenerator<
   /// Returns the set of type constraints that was gathered.
   Map<
     SharedTypeParameter,
-    MergedTypeConstraint<Variable, TypeDeclarationType, TypeDeclaration>
+    MergedTypeConstraint<
+      Variable,
+      TypeDeclarationType,
+      TypeDeclaration,
+      AstNode
+    >
   >
   computeConstraints();
 

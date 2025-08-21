@@ -57,7 +57,7 @@ class TypeConstraintGatherer
   }
 
   @override
-  Map<TypeParameter, MergedTypeConstraint<Var, Type, String>>
+  Map<TypeParameter, MergedTypeConstraint<Var, Type, String, Node>>
   computeConstraints() {
     // TODO(cstefantsova): implement computeConstraints
     throw UnimplementedError();

@@ -21,6 +21,7 @@ import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
+import 'package:analyzer/src/dart/element/type_algebra.dart';
 import 'package:analyzer/src/dart/element/type_constraint_gatherer.dart';
 import 'package:analyzer/src/dart/element/type_schema.dart';
 import 'package:analyzer/src/dart/element/type_system.dart' show TypeSystemImpl;
@@ -447,13 +448,15 @@ class TypeSystemOperations
         TypeAnalyzerOperationsMixin<
           PromotableElementImpl,
           InterfaceTypeImpl,
-          InterfaceElementImpl
+          InterfaceElementImpl,
+          AstNodeImpl
         >
     implements
         TypeAnalyzerOperations<
           PromotableElementImpl,
           InterfaceTypeImpl,
-          InterfaceElementImpl
+          InterfaceElementImpl,
+          AstNodeImpl
         > {
   final bool strictCasts;
   final TypeSystemImpl typeSystem;
@@ -508,6 +511,78 @@ class TypeSystemOperations
   @override
   SharedTypeSchemaView get unknownType {
     return SharedTypeSchemaView(UnknownInferredType.instance);
+  }
+
+  @override
+  List<TypeImpl> chooseTypes(
+    covariant List<TypeParameterElementImpl> typeFormals,
+    covariant Map<TypeParameterElementImpl, MergedTypeConstraint> constraints,
+    covariant List<TypeImpl> typesInferredSoFar, {
+    required bool preliminary,
+    required bool inferenceUsingBoundsIsEnabled,
+    required covariant TypeConstraintGenerationDataForTesting? dataForTesting,
+    required AstNodeImpl? treeNodeForTesting,
+  }) {
+    var inferredTypes = List<TypeImpl>.filled(
+      typeFormals.length,
+      UnknownInferredType.instance,
+    );
+    for (int i = 0; i < typeFormals.length; i++) {
+      // TODO(kallentu): Clean up TypeParameterElementImpl casting once
+      // variance is added to the interface.
+      var typeParam = typeFormals[i];
+      MergedTypeConstraint? extendsClause;
+      var name = typeParam.name;
+      var bound = typeParam.bound;
+      if (name != null && bound != null) {
+        extendsClause = MergedTypeConstraint.fromExtends(
+          typeParameterName: name,
+          boundType: SharedTypeView(bound),
+          extendsType: SharedTypeView(
+            Substitution.fromPairs2(
+              typeFormals,
+              inferredTypes,
+            ).substituteType(bound),
+          ),
+          typeAnalyzerOperations: this,
+        );
+      }
+
+      var constraint = constraints[typeParam]!;
+      if (preliminary) {
+        var inferredType =
+            inferTypeParameterFromContext(
+                  typesInferredSoFar[i],
+                  constraint,
+                  extendsClause?.upper.unwrapTypeSchemaView(),
+                  isContravariant: typeParam.variance.isContravariant,
+                  typeParameterToInfer: typeParam,
+                  typeParametersToInfer: typeFormals,
+                  constraints: constraints,
+                  dataForTesting: null,
+                  inferenceUsingBoundsIsEnabled: inferenceUsingBoundsIsEnabled,
+                )
+                as TypeImpl;
+
+        inferredTypes[i] = inferredType;
+      } else {
+        inferredTypes[i] =
+            inferTypeParameterFromAll(
+                  typesInferredSoFar[i],
+                  constraint,
+                  extendsClause?.upper.unwrapTypeSchemaView(),
+                  isContravariant: typeParam.variance.isContravariant,
+                  typeParameterToInfer: typeParam,
+                  constraints: constraints,
+                  dataForTesting: null,
+                  inferenceUsingBoundsIsEnabled: inferenceUsingBoundsIsEnabled,
+                  typeParametersToInfer: typeFormals,
+                )
+                as TypeImpl;
+      }
+    }
+
+    return inferredTypes;
   }
 
   @override

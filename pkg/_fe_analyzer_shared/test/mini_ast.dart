@@ -2972,8 +2972,8 @@ class MapPatternEntry extends Node implements MapPatternElement {
 }
 
 class MiniAstOperations
-    with TypeAnalyzerOperationsMixin<Var, Type, String>
-    implements TypeAnalyzerOperations<Var, Type, String> {
+    with TypeAnalyzerOperationsMixin<Var, Type, String, Node>
+    implements TypeAnalyzerOperations<Var, Type, String, Node> {
   static const Map<String, bool> _coreExhaustiveness = const {
     '()': true,
     '(int, int?)': false,
@@ -3163,7 +3163,8 @@ class MiniAstOperations
     required TypeConstraintGenerationDataForTesting?
     typeConstraintGenerationDataForTesting,
     required List<SharedTypeParameterView> typeParametersToInfer,
-    required TypeAnalyzerOperations<Var, Type, String> typeAnalyzerOperations,
+    required TypeAnalyzerOperations<Var, Type, String, Node>
+    typeAnalyzerOperations,
     required bool inferenceUsingBoundsIsEnabled,
   }) {
     return TypeConstraintGatherer({
@@ -3717,6 +3718,21 @@ class MiniAstOperations
   @override
   bool isBoundOmitted(SharedTypeParameter typeParameter) {
     // TODO(paulberry): Implement isBoundOmitted in mini ast.
+    throw UnimplementedError();
+  }
+
+  @override
+  List<SharedType> chooseTypes(
+    List<SharedTypeParameter> typeParametersToInfer,
+    Map<SharedTypeParameter, MergedTypeConstraint<Var, Type, String, Node>>
+    constraints,
+    List<SharedType>? previouslyInferredTypes, {
+    required bool preliminary,
+    required bool inferenceUsingBoundsIsEnabled,
+    required TypeConstraintGenerationDataForTesting<Var, Node>? dataForTesting,
+    required Node? treeNodeForTesting,
+  }) {
+    // TODO(paulberry): Implement chooseTypes.
     throw UnimplementedError();
   }
 }

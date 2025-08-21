@@ -38,7 +38,8 @@ typedef MergedTypeConstraint =
     shared.MergedTypeConstraint<
       PromotableElementImpl,
       InterfaceTypeImpl,
-      InterfaceElementImpl
+      InterfaceElementImpl,
+      AstNodeImpl
     >;
 
 /// Instance of [shared.TypeConstraintFromArgument] specific to the Analyzer.
@@ -46,7 +47,8 @@ typedef TypeConstraintFromArgument =
     shared.TypeConstraintFromArgument<
       PromotableElementImpl,
       InterfaceTypeImpl,
-      InterfaceElementImpl
+      InterfaceElementImpl,
+      AstNodeImpl
     >;
 
 /// Instance of [shared.TypeConstraintFromExtendsClause] specific to the Analyzer.
@@ -54,7 +56,8 @@ typedef TypeConstraintFromExtendsClause =
     shared.TypeConstraintFromExtendsClause<
       PromotableElementImpl,
       InterfaceTypeImpl,
-      InterfaceElementImpl
+      InterfaceElementImpl,
+      AstNodeImpl
     >;
 
 /// Instance of [shared.TypeConstraintFromFunctionContext] specific to the Analyzer.
@@ -62,7 +65,8 @@ typedef TypeConstraintFromFunctionContext =
     shared.TypeConstraintFromFunctionContext<
       PromotableElementImpl,
       InterfaceTypeImpl,
-      InterfaceElementImpl
+      InterfaceElementImpl,
+      AstNodeImpl
     >;
 
 /// Instance of [shared.TypeConstraintFromReturnType] specific to the Analyzer.
@@ -70,7 +74,8 @@ typedef TypeConstraintFromReturnType =
     shared.TypeConstraintFromReturnType<
       PromotableElementImpl,
       InterfaceTypeImpl,
-      InterfaceElementImpl
+      InterfaceElementImpl,
+      AstNodeImpl
     >;
 
 typedef TypeConstraintGenerationDataForTesting =
@@ -84,7 +89,8 @@ typedef TypeConstraintOrigin =
     shared.TypeConstraintOrigin<
       PromotableElementImpl,
       InterfaceTypeImpl,
-      InterfaceElementImpl
+      InterfaceElementImpl,
+      AstNodeImpl
     >;
 
 /// Instance of [shared.UnknownTypeConstraintOrigin] specific to the Analyzer.
@@ -92,7 +98,8 @@ typedef UnknownTypeConstraintOrigin =
     shared.UnknownTypeConstraintOrigin<
       PromotableElementImpl,
       InterfaceTypeImpl,
-      InterfaceElementImpl
+      InterfaceElementImpl,
+      AstNodeImpl
     >;
 
 /// Creates sets of [GeneratedTypeConstraint]s for type parameters, based on an
