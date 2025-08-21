@@ -15,7 +15,7 @@ group("deps") {
 }
 
 config("sanitizer_options_link_helper") {
-  ldflags = [ "-Wl,-u_sanitizer_options_link_helper" ]
+  ldflags = [ "-Wl,-u,_sanitizer_options_link_helper" ]
 }
 
 source_set("options_sources") {
