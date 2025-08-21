@@ -33,7 +33,19 @@ external set _identity(JSFunction _);
 @JS()
 external T identity<T extends ExternalDartReference?>(T t);
 
-extension type ObjectLiteral(JSObject _) {
+extension type ObjectLiteral._(JSObject _) {
+  external ObjectLiteral({ExternalDartReference<Object> ref});
+  external void operator []=(String key, ExternalDartReference<Object> value);
+}
+
+@JS()
+@staticInterop
+@anonymous
+class AnonymousObjectLiteral {
+  external factory AnonymousObjectLiteral({ExternalDartReference<Object> ref});
+}
+
+extension on AnonymousObjectLiteral {
   external void operator []=(String key, ExternalDartReference<Object> value);
 }
 
@@ -143,9 +155,17 @@ void generalTest() {
   );
 
   // Functions should not trigger `assertInterop`.
-  externalDartReference = () {}.toExternalReference;
-  identity(EExternalDartReference(() {}.toExternalReference));
-  ObjectLiteral(JSObject())['ref'] = externalDartReference;
+  final externalDartRefFunction = () {}.toExternalReference;
+  externalDartReference = externalDartRefFunction;
+  identity(EExternalDartReference(externalDartRefFunction));
+  // Test object literal constructors as well, as they are handled by the
+  // compiler backends when compiling to JS.
+  final objectLiteral = ObjectLiteral(ref: externalDartRefFunction);
+  objectLiteral['ref'] = externalDartRefFunction;
+  final anonymousObjectLiteral = AnonymousObjectLiteral(
+    ref: externalDartRefFunction,
+  );
+  anonymousObjectLiteral['ref'] = externalDartRefFunction;
 }
 
 // An example interface for a generic `WritableSignal` from
