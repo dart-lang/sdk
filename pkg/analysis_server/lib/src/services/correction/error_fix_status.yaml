@@ -1859,6 +1859,12 @@ LintCode.always_specify_types_split_to_types:
   status: hasFix
 LintCode.always_use_package_imports:
   status: hasFix
+LintCode.analyzer_element_model_tracking_bad:
+  status: noFix
+LintCode.analyzer_element_model_tracking_more_than_one:
+  status: noFix
+LintCode.analyzer_element_model_tracking_zero:
+  status: noFix
 LintCode.analyzer_public_api_bad_part_directive:
   status: noFix
 LintCode.analyzer_public_api_bad_type:

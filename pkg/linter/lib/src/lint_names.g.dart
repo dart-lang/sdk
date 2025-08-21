@@ -29,6 +29,15 @@ abstract final class LintNames {
 
   static const String always_use_package_imports = 'always_use_package_imports';
 
+  static const String analyzer_element_model_tracking_bad =
+      'analyzer_element_model_tracking_bad';
+
+  static const String analyzer_element_model_tracking_more_than_one =
+      'analyzer_element_model_tracking_more_than_one';
+
+  static const String analyzer_element_model_tracking_zero =
+      'analyzer_element_model_tracking_zero';
+
   static const String analyzer_public_api_bad_part_directive =
       'analyzer_public_api_bad_part_directive';
 

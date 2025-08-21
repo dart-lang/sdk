@@ -394,6 +394,30 @@ LintCode:
       import 'package:foo/src/baz.dart';
       ...
       ```
+  analyzer_element_model_tracking_bad:
+    parameters: none
+    problemMessage: "Bad tracking annotation for this member."
+    state:
+      internal: "3.10"
+    categories: [publicInterface]
+    deprecatedDetails: "For internal use only."
+    hasPublishedDocs: false
+  analyzer_element_model_tracking_more_than_one:
+    parameters: none
+    problemMessage: "There can be only one tracking annotation."
+    state:
+      internal: "3.10"
+    categories: [publicInterface]
+    deprecatedDetails: "For internal use only."
+    hasPublishedDocs: false
+  analyzer_element_model_tracking_zero:
+    parameters: none
+    problemMessage: "No required tracking annotation."
+    state:
+      internal: "3.10"
+    categories: [publicInterface]
+    deprecatedDetails: "For internal use only."
+    hasPublishedDocs: false
   analyzer_public_api_bad_part_directive:
     parameters: none
     problemMessage: "Part directives in the analyzer public API should point to files in the analyzer public API."

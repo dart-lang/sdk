@@ -305,7 +305,7 @@ void FfiCallbackMetadata::DeleteCallbackLocked(MetadataEntry* entry) {
 }
 
 void FfiCallbackMetadata::DeleteAllCallbacks(MetadataEntry** list_head) {
-  SafepointMutexLocker locker(&lock_);
+  MutexLocker locker(&lock_);
   for (MetadataEntry* entry = *list_head; entry != nullptr;) {
     MetadataEntry* next = entry->list_next();
     DeleteCallbackLocked(entry);
