@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/lsp_protocol/protocol.dart';
-import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/lsp/extensions/code_action.dart';
 import 'package:analyzer/src/test_utilities/test_code_format.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart' as plugin;
@@ -92,17 +91,14 @@ bar
   }
 
   Future<void> test_plugin_dart() async {
-    if (!AnalysisServer.supportsPlugins) return;
     return await checkPluginResults(testFilePath);
   }
 
   Future<void> test_plugin_nonDart() async {
-    if (!AnalysisServer.supportsPlugins) return;
     return await checkPluginResults(join(projectFolderPath, 'lib', 'foo.foo'));
   }
 
   Future<void> test_plugin_sortsWithServer() async {
-    if (!AnalysisServer.supportsPlugins) return;
     // Produces a server fix for removing unused import with a default
     // priority of 50.
     var code = TestCode.parse('''
