@@ -51,8 +51,13 @@ abstract class TypeInferrer {
       InferenceHelper helper, DartType declaredType, Expression initializer);
 
   /// Performs type inference on the given function body.
-  InferredFunctionBody inferFunctionBody(InferenceHelper helper, int fileOffset,
-      DartType returnType, AsyncMarker asyncMarker, Statement body);
+  InferredFunctionBody inferFunctionBody(
+      InferenceHelper helper,
+      int fileOffset,
+      DartType returnType,
+      AsyncMarker asyncMarker,
+      Statement body,
+      ExpressionEvaluationHelper? expressionEvaluationHelper);
 
   /// Performs type inference on the given constructor initializer.
   InitializerInferenceResult inferInitializer(InferenceHelper helper,
@@ -155,11 +160,12 @@ class TypeInferrerImpl implements TypeInferrer {
                 libraryBuilder.libraryFeatures.soundFlowAnalysis.isEnabled);
 
   InferenceVisitorBase _createInferenceVisitor(InferenceHelper helper,
-      [SourceConstructorBuilder? constructorBuilder]) {
+      {SourceConstructorBuilder? constructorBuilder,
+      ExpressionEvaluationHelper? expressionEvaluationHelper}) {
     // For full (non-top level) inference, we need access to the
     // InferenceHelper so that we can perform error reporting.
-    return new InferenceVisitorImpl(
-        this, helper, constructorBuilder, operations, typeAnalyzerOptions);
+    return new InferenceVisitorImpl(this, helper, constructorBuilder,
+        operations, typeAnalyzerOptions, expressionEvaluationHelper);
   }
 
   @override
@@ -188,9 +194,16 @@ class TypeInferrerImpl implements TypeInferrer {
   }
 
   @override
-  InferredFunctionBody inferFunctionBody(InferenceHelper helper, int fileOffset,
-      DartType returnType, AsyncMarker asyncMarker, Statement body) {
-    InferenceVisitorBase visitor = _createInferenceVisitor(helper);
+  InferredFunctionBody inferFunctionBody(
+    InferenceHelper helper,
+    int fileOffset,
+    DartType returnType,
+    AsyncMarker asyncMarker,
+    Statement body,
+    ExpressionEvaluationHelper? expressionEvaluationHelper,
+  ) {
+    InferenceVisitorBase visitor = _createInferenceVisitor(helper,
+        expressionEvaluationHelper: expressionEvaluationHelper);
     ClosureContext closureContext =
         new ClosureContext(visitor, asyncMarker, returnType, false);
     StatementInferenceResult result =
@@ -268,7 +281,7 @@ class TypeInferrerImpl implements TypeInferrer {
     // so that the type hierarchy will be simpler (which may speed up "is"
     // checks).
     InferenceVisitorBase visitor =
-        _createInferenceVisitor(helper, constructorBuilder);
+        _createInferenceVisitor(helper, constructorBuilder: constructorBuilder);
     InitializerInferenceResult result = visitor.inferInitializer(initializer);
     visitor.checkCleanState();
     return result;
@@ -361,11 +374,17 @@ class TypeInferrerImplBenchmarked implements TypeInferrer {
   }
 
   @override
-  InferredFunctionBody inferFunctionBody(InferenceHelper helper, int fileOffset,
-      DartType returnType, AsyncMarker asyncMarker, Statement body) {
+  InferredFunctionBody inferFunctionBody(
+    InferenceHelper helper,
+    int fileOffset,
+    DartType returnType,
+    AsyncMarker asyncMarker,
+    Statement body,
+    ExpressionEvaluationHelper? expressionEvaluationHelper,
+  ) {
     benchmarker.beginSubdivide(BenchmarkSubdivides.inferFunctionBody);
-    InferredFunctionBody result = impl.inferFunctionBody(
-        helper, fileOffset, returnType, asyncMarker, body);
+    InferredFunctionBody result = impl.inferFunctionBody(helper, fileOffset,
+        returnType, asyncMarker, body, expressionEvaluationHelper);
     benchmarker.endSubdivide();
     return result;
   }

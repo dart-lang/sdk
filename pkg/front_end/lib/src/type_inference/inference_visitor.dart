@@ -174,8 +174,17 @@ class InferenceVisitorImpl extends InferenceVisitorBase
   // variable was declared outside the try statement or local function.
   bool _inTryOrLocalFunction = false;
 
-  InferenceVisitorImpl(TypeInferrerImpl inferrer, InferenceHelper helper,
-      this._constructorBuilder, this.operations, this.typeAnalyzerOptions)
+  /// Helper used to issue correct error messages and avoid access to
+  /// unavailable variables upon expression evaluation.
+  final ExpressionEvaluationHelper? expressionEvaluationHelper;
+
+  InferenceVisitorImpl(
+      TypeInferrerImpl inferrer,
+      InferenceHelper helper,
+      this._constructorBuilder,
+      this.operations,
+      this.typeAnalyzerOptions,
+      this.expressionEvaluationHelper)
       : super(inferrer, helper);
 
   @override
@@ -9252,6 +9261,14 @@ class InferenceVisitorImpl extends InferenceVisitorBase
   @override
   ExpressionInferenceResult visitVariableSet(
       VariableSet node, DartType typeContext) {
+    if (expressionEvaluationHelper != null) {
+      // Coverage-ignore-block(suite): Not run.
+      ExpressionInferenceResult? result = expressionEvaluationHelper
+          ?.visitVariableSet(node, typeContext, helper);
+      if (result != null) {
+        return result;
+      }
+    }
     VariableDeclarationImpl variable = node.variable as VariableDeclarationImpl;
     bool isDefinitelyAssigned = flowAnalysis.isAssigned(variable);
     bool isDefinitelyUnassigned = flowAnalysis.isUnassigned(variable);
@@ -9551,6 +9568,14 @@ class InferenceVisitorImpl extends InferenceVisitorBase
   @override
   ExpressionInferenceResult visitVariableGet(
       VariableGet node, DartType typeContext) {
+    if (expressionEvaluationHelper != null) {
+      // Coverage-ignore-block(suite): Not run.
+      ExpressionInferenceResult? result = expressionEvaluationHelper
+          ?.visitVariableGet(node, typeContext, helper);
+      if (result != null) {
+        return result;
+      }
+    }
     if (node is! VariableGetImpl) {
       // Coverage-ignore-block(suite): Not run.
       // This node is created as part of a lowering and doesn't need inference.
@@ -12374,4 +12399,12 @@ class MapEntryInferenceContext extends CollectionElementInferenceContext {
       : super(
             inferredSpreadTypes: inferredSpreadTypes,
             inferredConditionTypes: inferredConditionTypes);
+}
+
+abstract class ExpressionEvaluationHelper {
+  ExpressionInferenceResult? visitVariableGet(
+      VariableGet node, DartType typeContext, InferenceHelper helper);
+
+  ExpressionInferenceResult? visitVariableSet(
+      VariableSet node, DartType typeContext, InferenceHelper helper);
 }

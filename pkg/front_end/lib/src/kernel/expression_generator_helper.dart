@@ -149,7 +149,7 @@ abstract class ExpressionGeneratorHelper implements InferenceHelper {
       Message message, int charOffset, int length);
 
   Expression wrapInLocatedProblem(Expression expression, LocatedMessage message,
-      {List<LocatedMessage>? context});
+      {List<LocatedMessage>? context, bool includeExpression = true});
 
   Expression evaluateArgumentsBefore(
       Arguments arguments, Expression expression);

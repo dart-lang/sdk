@@ -1,0 +1,62 @@
+# Copyright (c) 2025, the Dart project authors.  Please see the AUTHORS file
+# for details. All rights reserved. Use of this source code is governed by a
+# BSD-style license that can be found in the LICENSE file.
+
+# https://github.com/dart-lang/sdk/issues/53996
+
+# Definition, offset, method etc extracted by starting the VM with
+# `-DDFE_VERBOSE=true`, e.g.
+# ```
+# out/ReleaseX64/dart -DDFE_VERBOSE=true --enable-vm-service \
+# --disable-service-auth-codes --pause_isolates_on_start inputFile.dart
+# ```
+# and then issuing the expression compilation.
+
+sources: |
+  import "dart:developer";
+
+  bool debug = false;
+
+  String data = "hello from top level field";
+
+  main() {
+    for(int i = 0; i < 50000; i++) {
+      foo();
+    }
+    debug = true;
+    foo();
+    print(data);
+  }
+
+  foo() {
+    List<int> data = [1, 2, 3];
+    for(int i in data) {
+      if (bar(i)) {
+        break;
+      }
+    }
+  }
+
+  bool bar(int i) {
+    if (i == 2) {
+      if (debug) {
+        debugger();
+        print("set a breakpoint here!");
+        print("woke up");
+      }
+      return true;
+    }
+    return false;
+  }
+
+definitions: []
+definition_types: []
+type_definitions: []
+type_bounds: []
+type_defaults: []
+method: "foo"
+static: true
+offset: 279
+scriptUri: main.dart
+expression: |
+  data.length

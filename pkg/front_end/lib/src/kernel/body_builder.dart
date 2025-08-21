@@ -112,6 +112,8 @@ import '../source/type_parameter_factory.dart';
 import '../source/value_kinds.dart';
 import '../type_inference/inference_results.dart'
     show InitializerInferenceResult;
+import '../type_inference/inference_visitor.dart'
+    show ExpressionEvaluationHelper;
 import '../type_inference/type_inferrer.dart'
     show TypeInferrer, InferredFunctionBody;
 import '../type_inference/type_schema.dart' show UnknownType;
@@ -1253,7 +1255,8 @@ class BodyBuilder extends StackListenerImpl
           _context.memberNameOffset,
           _context.returnTypeContext,
           asyncModifier,
-          body);
+          body,
+          null);
       body = inferredFunctionBody.body;
       function.emittedValueType = inferredFunctionBody.emittedValueType;
       assert(function.asyncMarker == AsyncMarker.Sync ||
@@ -1590,7 +1593,8 @@ class BodyBuilder extends StackListenerImpl
       Parser parser,
       Token token,
       FunctionNode parameters,
-      List<VariableDeclarationImpl> extraKnownVariables) {
+      List<VariableDeclarationImpl> extraKnownVariables,
+      ExpressionEvaluationHelper expressionEvaluationHelper) {
     int fileOffset = offsetForToken(token);
     List<NominalParameterBuilder>? typeParameterBuilders;
     for (TypeParameter typeParameter in parameters.typeParameters) {
@@ -1678,7 +1682,12 @@ class BodyBuilder extends StackListenerImpl
     }
 
     InferredFunctionBody inferredFunctionBody = typeInferrer.inferFunctionBody(
-        this, fileOffset, const DynamicType(), AsyncMarker.Sync, fakeReturn);
+        this,
+        fileOffset,
+        const DynamicType(),
+        AsyncMarker.Sync,
+        fakeReturn,
+        expressionEvaluationHelper);
     assert(
         fakeReturn == inferredFunctionBody.body,
         "Previously implicit assumption about inferFunctionBody "
@@ -9085,13 +9094,17 @@ class BodyBuilder extends StackListenerImpl
   @override
   Expression wrapInProblem(
       Expression expression, Message message, int fileOffset, int length,
-      {List<LocatedMessage>? context}) {
+      {List<LocatedMessage>? context,
+      bool? errorHasBeenReported,
+      bool includeExpression = true}) {
     CfeSeverity severity = message.code.severity;
     if (severity == CfeSeverity.error) {
       return wrapInLocatedProblem(
           expression, message.withLocation(uri, fileOffset, length),
           context: context,
-          errorHasBeenReported: expression is InvalidExpression);
+          errorHasBeenReported:
+              errorHasBeenReported ?? expression is InvalidExpression,
+          includeExpression: includeExpression);
     } else {
       // Coverage-ignore-block(suite): Not run.
       if (expression is! InvalidExpression) {
@@ -9103,7 +9116,9 @@ class BodyBuilder extends StackListenerImpl
 
   @override
   Expression wrapInLocatedProblem(Expression expression, LocatedMessage message,
-      {List<LocatedMessage>? context, bool errorHasBeenReported = false}) {
+      {List<LocatedMessage>? context,
+      bool errorHasBeenReported = false,
+      bool includeExpression = true}) {
     // TODO(askesc): Produce explicit error expression wrapping the original.
     // See [issue 29717](https://github.com/dart-lang/sdk/issues/29717)
     int offset = expression.fileOffset;
@@ -9113,7 +9128,7 @@ class BodyBuilder extends StackListenerImpl
     return buildProblem(
         message.messageObject, message.charOffset, message.length,
         context: context,
-        expression: expression,
+        expression: includeExpression ? expression : null,
         errorHasBeenReported: errorHasBeenReported);
   }
 

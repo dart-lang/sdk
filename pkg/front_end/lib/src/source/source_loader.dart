@@ -70,6 +70,8 @@ import '../kernel/kernel_helper.dart'
     show DelayedDefaultValueCloner, TypeDependency;
 import '../kernel/kernel_target.dart' show KernelTarget;
 import '../kernel/type_builder_computer.dart' show TypeBuilderComputer;
+import '../type_inference/inference_visitor.dart'
+    show ExpressionEvaluationHelper;
 import '../type_inference/type_inference_engine.dart';
 import '../type_inference/type_inferrer.dart';
 import '../util/reference_map.dart';
@@ -1249,7 +1251,8 @@ severity: $severity
       bool isClassInstanceMember,
       Procedure procedure,
       VariableDeclaration? extensionThis,
-      List<VariableDeclarationImpl> extraKnownVariables) async {
+      List<VariableDeclarationImpl> extraKnownVariables,
+      ExpressionEvaluationHelper expressionEvaluationHelper) async {
     // TODO(johnniwinther): Support expression compilation in a specific
     //  compilation unit.
     LookupScope memberScope =
@@ -1308,14 +1311,16 @@ severity: $severity
     }
 
     return listener.parseSingleExpression(
-        new Parser(listener,
-            useImplicitCreationExpression: useImplicitCreationExpressionInCfe,
-            allowPatterns: libraryBuilder.libraryFeatures.patterns.isEnabled,
-            enableFeatureEnhancedParts:
-                libraryBuilder.libraryFeatures.enhancedParts.isEnabled),
-        token,
-        procedure.function,
-        extraKnownVariables);
+      new Parser(listener,
+          useImplicitCreationExpression: useImplicitCreationExpressionInCfe,
+          allowPatterns: libraryBuilder.libraryFeatures.patterns.isEnabled,
+          enableFeatureEnhancedParts:
+              libraryBuilder.libraryFeatures.enhancedParts.isEnabled),
+      token,
+      procedure.function,
+      extraKnownVariables,
+      expressionEvaluationHelper,
+    );
   }
 
   DietListener createDietListener(SourceLibraryBuilder library,

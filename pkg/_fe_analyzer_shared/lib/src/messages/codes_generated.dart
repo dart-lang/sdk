@@ -3733,6 +3733,31 @@ const MessageCode codeExportedMain = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<Message Function(String name)>
+codeExpressionEvaluationKnownVariableUnavailable = const Template<
+  Message Function(String name)
+>(
+  "ExpressionEvaluationKnownVariableUnavailable",
+  problemMessageTemplate:
+      r"""The variable '#name' is unavailable in this expression evaluation.""",
+  withArguments: _withArgumentsExpressionEvaluationKnownVariableUnavailable,
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsExpressionEvaluationKnownVariableUnavailable(
+  String name,
+) {
+  if (name.isEmpty) throw 'No name provided';
+  name = demangleMixinApplicationName(name);
+  return new Message(
+    codeExpressionEvaluationKnownVariableUnavailable,
+    problemMessage:
+        """The variable '${name}' is unavailable in this expression evaluation.""",
+    arguments: {'name': name},
+  );
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode codeExpressionNotMetadata = const MessageCode(
   "ExpressionNotMetadata",
   problemMessage:
