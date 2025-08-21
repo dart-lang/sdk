@@ -29,10 +29,8 @@ config("no_tsan_config") {
 
 library_for_all_configs("libdart_platform_no_tsan") {
   target_type = "source_set"
-  public_configs = [
-    "../vm:libdart_vm_config",
-    ":no_tsan_config",
-  ]
+  public_configs = [ "../vm:libdart_vm_config" ]
+  extra_configs = [ ":no_tsan_config" ]
   sources = [
     "no_tsan.cc",
     "no_tsan.h",

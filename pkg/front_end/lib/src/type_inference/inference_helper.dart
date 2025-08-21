@@ -24,7 +24,9 @@ abstract class InferenceHelper {
 
   Expression wrapInProblem(
       Expression expression, Message message, int fileOffset, int length,
-      {List<LocatedMessage>? context});
+      {List<LocatedMessage>? context,
+      bool? errorHasBeenReported,
+      bool includeExpression = true});
 
   String superConstructorNameForDiagnostics(String name);
 

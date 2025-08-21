@@ -67,7 +67,11 @@ final tests = <IsolateTest>[
     } on RPCError catch (e) {
       expect(e.code, RPCErrorKind.kExpressionCompilationError.code);
       expect(e.message, 'Expression compilation error');
-      expect(e.details, contains("Error: Undefined name 'data'."));
+      expect(
+        e.details,
+        contains("Error: The variable 'data' "
+            'is unavailable in this expression evaluation.'),
+      );
     }
   },
 ];

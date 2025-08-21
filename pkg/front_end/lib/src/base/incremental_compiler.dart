@@ -9,6 +9,7 @@ import 'dart:typed_data';
 import 'package:_fe_analyzer_shared/src/scanner/abstract_scanner.dart'
     show ScannerConfiguration;
 import 'package:front_end/src/base/name_space.dart';
+import 'package:front_end/src/type_inference/inference_results.dart';
 import 'package:kernel/binary/ast_from_binary.dart'
     show
         BinaryBuilderWithMetadata,
@@ -50,7 +51,9 @@ import 'package:kernel/kernel.dart'
         TypeParameter,
         VariableDeclaration,
         VisitorDefault,
-        VisitorVoidMixin;
+        VisitorVoidMixin,
+        VariableGet,
+        VariableSet;
 import 'package:kernel/kernel.dart' as kernel show Combinator;
 import 'package:kernel/reference_from_index.dart';
 import 'package:kernel/target/changed_structure_notifier.dart'
@@ -87,6 +90,9 @@ import '../source/source_compilation_unit.dart' show SourceCompilationUnitImpl;
 import '../source/source_library_builder.dart'
     show ImplicitLanguageVersion, SourceLibraryBuilder;
 import '../source/source_loader.dart';
+import '../type_inference/inference_helper.dart' show InferenceHelper;
+import '../type_inference/inference_visitor.dart'
+    show ExpressionEvaluationHelper;
 import '../util/error_reporter_file_copier.dart' show saveAsGzip;
 import '../util/experiment_environment_getter.dart'
     show enableIncrementalCompilerBenchmarking, getExperimentEnvironment;
@@ -1693,6 +1699,21 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
                     hasDeclaredInitializer: true,
                     initializer: def.value.initializer)
                   ..fileOffset = def.value.fileOffset);
+              } else if (def.value.isInitializingFormal ||
+                  def.value.isSuperInitializingFormal) {
+                // An (super) initializing formal parameter of a constructor
+                // should not shadow the field it was used to initialize,
+                // so we'll ignore it.
+              } else {
+                // Non-const variable we should know about but wasn't told
+                // about. Maybe the variable was optimized out? Maybe it wasn't
+                // captured? Either way there's something shadowing any fields
+                // etc.
+                extraKnownVariables.add(new VariableDeclarationImpl(
+                  def.key,
+                  type: def.value.type,
+                  isConst: false,
+                )..fileOffset = def.value.fileOffset);
               }
             } else if (existingType is DynamicType ||
                 _ExtensionTypeFinder.isOrContainsExtensionType(
@@ -1932,6 +1953,9 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
           new Name(syntheticProcedureName), ProcedureKind.Method, parameters,
           isStatic: isStatic, fileUri: debugLibrary.fileUri);
 
+      ExpressionEvaluationHelper expressionEvaluationHelper =
+          new ExpressionEvaluationHelperImpl(extraKnownVariables);
+
       Expression compiledExpression = await lastGoodKernelTarget.loader
           .buildExpression(
               debugLibrary,
@@ -1939,7 +1963,8 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
               (className != null && !isStatic) || extensionThis != null,
               procedure,
               extensionThis,
-              extraKnownVariables);
+              extraKnownVariables,
+              expressionEvaluationHelper);
 
       parameters.body = new ReturnStatement(compiledExpression)
         ..parent = parameters;
@@ -2157,6 +2182,55 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
   // Coverage-ignore(suite): Not run.
   void setModulesToLoadOnNextComputeDelta(List<Component> components) {
     _modulesToLoad = components.toList();
+  }
+}
+
+// Coverage-ignore(suite): Not run.
+class ExpressionEvaluationHelperImpl implements ExpressionEvaluationHelper {
+  final Set<VariableDeclarationImpl> knownButUnavailable = {};
+
+  ExpressionEvaluationHelperImpl(List<VariableDeclarationImpl> extraKnown) {
+    for (VariableDeclarationImpl variable in extraKnown) {
+      if (variable.isConst) {
+        // We allow const variables - these are inlined (we check
+        // `alwaysInlineConstants` in `compileExpression`).
+        continue;
+      }
+      knownButUnavailable.add(variable);
+    }
+  }
+
+  @override
+  ExpressionInferenceResult? visitVariableGet(
+      VariableGet node, DartType typeContext, InferenceHelper helper) {
+    if (knownButUnavailable.contains(node.variable)) {
+      return _returnKnownVariableUnavailable(node, node.variable, helper);
+    }
+    return null;
+  }
+
+  @override
+  ExpressionInferenceResult? visitVariableSet(
+      VariableSet node, DartType typeContext, InferenceHelper helper) {
+    if (knownButUnavailable.contains(node.variable)) {
+      return _returnKnownVariableUnavailable(node, node.variable, helper);
+    }
+    return null;
+  }
+
+  ExpressionInferenceResult _returnKnownVariableUnavailable(
+      Expression node, VariableDeclaration variable, InferenceHelper helper) {
+    return new ExpressionInferenceResult(
+        variable.type,
+        helper.wrapInProblem(
+          node,
+          codeExpressionEvaluationKnownVariableUnavailable
+              .withArguments(variable.name!),
+          node.fileOffset,
+          variable.name!.length,
+          errorHasBeenReported: false,
+          includeExpression: false,
+        ));
   }
 }
 

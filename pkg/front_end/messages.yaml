@@ -8346,3 +8346,6 @@ DotShorthandsUndefinedInvocation:
     void main() {
       C c = .foo();
     }
+
+ExpressionEvaluationKnownVariableUnavailable:
+  problemMessage: "The variable '#name' is unavailable in this expression evaluation."

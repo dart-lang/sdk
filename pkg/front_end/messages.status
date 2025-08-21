@@ -41,6 +41,7 @@ ExperimentExpiredDisabled/example: missingExample # Uncovered.
 ExperimentExpiredEnabled/example: missingExample # Uncovered.
 ExperimentNotEnabled/example: missingExample # issued via the parser, but overridden by StackListenerImpl --- so likely not possible via CFE outside of special tests?
 ExplicitExtensionAsLvalue/example: missingExample # Uncovered.
+ExpressionEvaluationKnownVariableUnavailable/example: missingExample # Expression compilation.
 ExtensionAugmentationHasOnClause/part_wrapped_script: hasOnlyUnrelatedMessages # Doesn't seem to be any (direct?) way to get this for now
 ExtensionAugmentationHasOnClause/script: hasOnlyUnrelatedMessages # Doesn't seem to be any (direct?) way to get this for now
 ExtensionTypeShouldBeListedAsCallableInDynamicInterface/example: missingExample # Can't do dynamic modules stuff in messages suite.
@@ -249,6 +250,7 @@ ExplicitExtensionArgumentMismatch/analyzerCode: missingAnalyzerCode
 ExplicitExtensionAsExpression/analyzerCode: missingAnalyzerCode
 ExplicitExtensionAsLvalue/analyzerCode: missingAnalyzerCode
 ExplicitExtensionTypeArgumentMismatch/analyzerCode: missingAnalyzerCode
+ExpressionEvaluationKnownVariableUnavailable/analyzerCode: missingAnalyzerCode
 ExpressionNotMetadata/analyzerCode: missingAnalyzerCode
 ExtendsNever/analyzerCode: missingAnalyzerCode # Feature not yet in analyzer.
 ExtensionMemberConflictsWithObjectMember/analyzerCode: missingAnalyzerCode
