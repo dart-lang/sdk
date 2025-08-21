@@ -5,7 +5,9 @@
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:analyzer/src/utilities/extensions/string.dart';
 import 'package:analyzer_testing/package_root.dart' as pkg_root;
+import 'package:analyzer_utilities/tools.dart';
 import 'package:path/path.dart';
 import 'package:yaml/yaml.dart' show loadYaml;
 
@@ -120,6 +122,20 @@ const hintCodesFile = GeneratedErrorCodeFile(
   parentLibrary: 'package:analyzer/src/dart/error/hint_codes.dart',
 );
 
+/// If `true`, the new literate API should be generated.
+///
+/// This flag exists as a temporary measure, so that the literate API generation
+/// logic can be introduced in steps:
+/// - First, the logic to generate templates is introduced, but disabled; it can
+///   be easily verified that this change is safe because it doesn't change the
+///   generated code.
+/// - Then, this constant is turned on, causing templates to be generated;
+///   although this causes a lot of generated code to change, it can be verified
+///   that this change is safe by inspecting the code that refers to this
+///   constant.
+/// - Then, this constant is inlined.
+const literateApiEnabled = true;
+
 const manifestWarningCodeFile = GeneratedErrorCodeFile(
   path: 'analyzer/lib/src/manifest/manifest_warning_code.g.dart',
   parentLibrary: 'package:analyzer/src/manifest/manifest_warning_code.dart',
@@ -139,7 +155,7 @@ const pubspecWarningCodeFile = GeneratedErrorCodeFile(
 const scannerErrorFile = GeneratedErrorCodeFile(
   path: '_fe_analyzer_shared/lib/src/scanner/errors.g.dart',
   parentLibrary: 'package:_fe_analyzer_shared/src/scanner/errors.dart',
-  shouldUseExplicitConst: true,
+  shouldUseExplicitNewOrConst: true,
 );
 
 const syntacticErrorsFile = GeneratedErrorCodeFile(
@@ -394,6 +410,20 @@ class AliasErrorCodeInfo extends AnalyzerErrorCodeInfo {
           .firstWhere((element) => element.name == aliasForClass)
           .file
           .path;
+
+  @override
+  void toAnalyzerCode(
+    ErrorClassInfo errorClassInfo,
+    String diagnosticCode, {
+    String? sharedNameReference,
+    required MemberAccumulator memberAccumulator,
+  }) {
+    var constant = StringBuffer();
+    _outputConstantHeader(constant);
+    constant.writeln('  static const $aliasForClass $diagnosticCode =');
+    constant.writeln('$aliasFor;');
+    memberAccumulator.constants[diagnosticCode] = constant.toString();
+  }
 }
 
 /// In-memory representation of error code information obtained from the
@@ -551,8 +581,21 @@ class ErrorClassInfo {
     }
   }
 
+  String get templateName => '${_baseName}Template';
+
   /// Generates the code to compute the type of errors of this class.
   String get typeCode => 'DiagnosticType.$type';
+
+  String get withoutArgumentsName => '${_baseName}WithoutArguments';
+
+  String get _baseName {
+    const suffix = 'Code';
+    if (name.endsWith(suffix)) {
+      return name.substring(0, name.length - suffix.length);
+    } else {
+      throw StateError("Can't infer base name for class $name");
+    }
+  }
 }
 
 /// In-memory representation of error code information obtained from either the
@@ -690,16 +733,63 @@ abstract class ErrorCodeInfo {
   /// in the error class [className].
   ///
   /// [diagnosticCode] is the name of the error code to be generated.
-  String toAnalyzerCode(
+  void toAnalyzerCode(
     ErrorClassInfo errorClassInfo,
     String diagnosticCode, {
     String? sharedNameReference,
-    required bool useExplicitConst,
+    required MemberAccumulator memberAccumulator,
   }) {
-    var out = StringBuffer();
-    if (useExplicitConst) out.writeln('const ');
-    out.writeln('${errorClassInfo.name}(');
-    out.writeln(
+    var correctionMessage = this.correctionMessage;
+    var parameters = this.parameters;
+    var usesParameters = [
+      problemMessage,
+      correctionMessage,
+    ].any((value) => value != null && value.contains(placeholderPattern));
+    var constantName = diagnosticCode.toCamelCase();
+    String className;
+    String templateParameters = '';
+    String? withArgumentsName;
+    if (parameters != null && parameters.isNotEmpty && !usesParameters) {
+      throw StateError(
+        "Error code declares parameters using a `parameters` entry, but "
+        "doesn't use them",
+      );
+    } else if (!literateApiEnabled || parameters == null) {
+      // Do not generate literate API yet.
+      className = errorClassInfo.name;
+    } else if (parameters.isNotEmpty) {
+      // Parameters are present so generate a diagnostic template (with
+      // `.withArguments` support).
+      className = errorClassInfo.templateName;
+      var withArgumentsParams = parameters
+          .map((p) => 'required ${p.type.analyzerName} ${p.name}')
+          .join(', ');
+      var argumentNames = parameters.map((p) => p.name).join(', ');
+      var pascalCaseName = diagnosticCode.toPascalCase();
+      withArgumentsName = '_withArguments$pascalCaseName';
+      templateParameters =
+          '<LocatableDiagnostic Function({$withArgumentsParams})>';
+      var newIfNeeded =
+          errorClassInfo.file.shouldUseExplicitNewOrConst ? 'new ' : '';
+      memberAccumulator.staticMethods[withArgumentsName] = '''
+static LocatableDiagnostic $withArgumentsName({$withArgumentsParams}) {
+  return ${newIfNeeded}LocatableDiagnosticImpl($constantName, [$argumentNames]);
+}''';
+    } else {
+      // Parameters are not present so generate a "withoutArguments" constant.
+      className = errorClassInfo.withoutArgumentsName;
+    }
+
+    var constant = StringBuffer();
+    _outputConstantHeader(constant);
+    constant.writeln(
+      '  static const $className$templateParameters $constantName =',
+    );
+    if (errorClassInfo.file.shouldUseExplicitNewOrConst) {
+      constant.writeln('const ');
+    }
+    constant.writeln('$className(');
+    constant.writeln(
       '${sharedNameReference ?? "'${sharedName ?? diagnosticCode}'"},',
     );
     var maxWidth = 80 - 8 /* indentation */ - 2 /* quotes */ - 1 /* comma */;
@@ -710,25 +800,34 @@ abstract class ErrorCodeInfo {
       maxWidth: maxWidth,
       firstLineWidth: maxWidth + 4,
     );
-    out.writeln('${messageLines.map(_encodeString).join('\n')},');
-    var correctionMessage = this.correctionMessage;
+    constant.writeln('${messageLines.map(_encodeString).join('\n')},');
     if (correctionMessage is String) {
-      out.write('correctionMessage: ');
+      constant.write('correctionMessage: ');
       var code = convertTemplate(placeholderToIndexMap, correctionMessage);
       var codeLines = _splitText(code, maxWidth: maxWidth);
-      out.writeln('${codeLines.map(_encodeString).join('\n')},');
+      constant.writeln('${codeLines.map(_encodeString).join('\n')},');
     }
     if (hasPublishedDocs ?? false) {
-      out.writeln('hasPublishedDocs:true,');
+      constant.writeln('hasPublishedDocs:true,');
     }
     if (isUnresolvedIdentifier) {
-      out.writeln('isUnresolvedIdentifier:true,');
+      constant.writeln('isUnresolvedIdentifier:true,');
     }
     if (sharedName != null) {
-      out.writeln("uniqueName: '$diagnosticCode',");
+      constant.writeln("uniqueName: '$diagnosticCode',");
     }
-    out.write(');');
-    return out.toString();
+    if (withArgumentsName != null) {
+      constant.writeln('withArguments: $withArgumentsName,');
+    }
+    constant.writeln(');');
+    memberAccumulator.constants[constantName] = constant.toString();
+
+    if (errorClassInfo.deprecatedSnakeCaseNames.contains(diagnosticCode)) {
+      memberAccumulator.constants[diagnosticCode] = '''
+  @Deprecated("Please use $constantName")
+  static const ${errorClassInfo.name} $diagnosticCode = $constantName;
+''';
+    }
   }
 
   /// Generates doc comments for this error code.
@@ -788,6 +887,13 @@ abstract class ErrorCodeInfo {
     var jsonEncoded = json.encode(s);
     // But we also need to escape `$`.
     return jsonEncoded.replaceAll(r'$', r'\$');
+  }
+
+  void _outputConstantHeader(StringSink out) {
+    out.write(toAnalyzerComments(indent: '  '));
+    if (deprecatedMessage != null) {
+      out.writeln('  @Deprecated("$deprecatedMessage")');
+    }
   }
 
   static List<ErrorCodeParameter>? _decodeParameters(Object? yaml) {
@@ -917,16 +1023,16 @@ class GeneratedErrorCodeFile {
   /// The URI of the library that the generated file will be a part of.
   final String parentLibrary;
 
-  /// Whether the generated file should use the `const` keyword when generating
-  /// constructor invocations.
-  final bool shouldUseExplicitConst;
+  /// Whether the generated file should use the `new` and `const` keywords when
+  /// generating constructor invocations.
+  final bool shouldUseExplicitNewOrConst;
 
   final bool shouldIgnorePreferSingleQuotes;
 
   const GeneratedErrorCodeFile({
     required this.path,
     required this.parentLibrary,
-    this.shouldUseExplicitConst = false,
+    this.shouldUseExplicitNewOrConst = false,
     this.shouldIgnorePreferSingleQuotes = false,
   });
 }

@@ -3,5 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/error/error.dart';
+import 'package:analyzer/src/error/codes.dart';
 
 part 'package:analyzer/src/analysis_options/error/option_codes.g.dart';

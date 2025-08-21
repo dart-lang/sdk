@@ -209,6 +209,18 @@ class StringExtensionTest {
     expect('FOO_BAR_'.toCamelCase(), 'fooBar');
   }
 
+  void test_toPascalCase() {
+    expect('PASCAL_CASE'.toPascalCase(), 'PascalCase');
+    expect('AlreadyPascal_case'.toPascalCase(), 'AlreadypascalCase');
+    expect('FOO_123_BAR'.toPascalCase(), 'Foo123Bar');
+    expect('FOO'.toPascalCase(), 'Foo');
+    expect('___'.toPascalCase(), '___');
+    expect(''.toPascalCase(), '');
+    expect('_FOO_BAR'.toPascalCase(), '_FooBar');
+    expect('FOO__BAR'.toPascalCase(), 'FooBar');
+    expect('FOO_BAR_'.toPascalCase(), 'FooBar');
+  }
+
   void test_toScreamingSnake() {
     expect('camelCase'.toScreamingSnake(), 'CAMEL_CASE');
     expect('HTTPRequest'.toScreamingSnake(), 'HTTP_REQUEST');

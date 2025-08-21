@@ -8,6 +8,12 @@ library;
 import 'package:_fe_analyzer_shared/src/base/analyzer_public_api.dart';
 import 'package:analyzer/error/error.dart';
 
+export 'package:_fe_analyzer_shared/src/base/errors.dart'
+    show
+        DiagnosticWithoutArguments,
+        LocatableDiagnostic,
+        LocatableDiagnosticImpl;
+
 /// Diagnostic codes which are not reported by default.
 ///
 /// Lint codes are only reported when a lint rule (either a first-party lint

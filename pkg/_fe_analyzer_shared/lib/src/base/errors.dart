@@ -2,11 +2,15 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+/// @docImport 'package:analyzer/error/listener.dart';
+library;
+
 import 'dart:math';
 
 import 'package:_fe_analyzer_shared/src/base/analyzer_public_api.dart';
 import 'package:_fe_analyzer_shared/src/base/diagnostic_message.dart';
 import 'package:_fe_analyzer_shared/src/base/source.dart';
+import 'package:_fe_analyzer_shared/src/base/syntactic_entity.dart';
 
 import 'customized_codes.dart';
 
@@ -566,4 +570,127 @@ class DiagnosticType implements Comparable<DiagnosticType> {
 
   @override
   String toString() => name;
+}
+
+/// Common functionality for [DiagnosticCode]-derived classes that represent
+/// errors that do not take arguments.
+///
+/// This class implements [LocatableDiagnostic], which means that instances can
+/// be associated with a location in the source code using the [at] method, and
+/// then the result can be passed to [DiagnosticReporter.reportError].
+base mixin DiagnosticWithoutArguments on DiagnosticCode
+    implements LocatableDiagnostic {
+  @override
+  List<Object> get arguments => const [];
+
+  @override
+  DiagnosticCode get code => this;
+
+  @override
+  Iterable<DiagnosticMessage> get contextMessages => const [];
+
+  @override
+  LocatedDiagnostic at(SyntacticEntity node) =>
+      atOffset(offset: node.offset, length: node.length);
+
+  @override
+  LocatedDiagnostic atOffset({required int offset, required int length}) =>
+      new LocatedDiagnostic(this, offset, length);
+
+  @override
+  LocatableDiagnostic withContextMessages(List<DiagnosticMessage> messages) =>
+      new LocatableDiagnosticImpl(code, arguments, contextMessages: messages);
+}
+
+/// Interface for a diagnostic that does not have any unfilled template
+/// parameters, and hence is ready to be associated with a location in the
+/// source code.
+///
+/// This could either be the result of calling `withArguments` on a diagnostic
+/// code that requires arguments, or it could be a diagnostic code that doesn't
+/// require arguments.
+abstract final class LocatableDiagnostic {
+  /// The arguments that were applied to the diagnostic, or the empty list if
+  /// [code] doesn't accept any arguments.
+  List<Object> get arguments;
+
+  /// The [DiagnosticCode] associated with the diagnostic.
+  DiagnosticCode get code;
+
+  /// The context messages that were applied to the diagnostic.
+  Iterable<DiagnosticMessage> get contextMessages;
+
+  /// Converts this diagnostic to a [LocatedDiagnostic] by applying it to a
+  /// syntactic entity in the source code.
+  ///
+  /// The result may be passed to [DiagnosticReporter.reportError].
+  LocatedDiagnostic at(SyntacticEntity node);
+
+  /// Converts this diagnostic to a [LocatedDiagnostic] by applying it to a
+  /// location in the source code.
+  ///
+  /// The result may be passed to [DiagnosticReporter.reportError].
+  LocatedDiagnostic atOffset({required int offset, required int length});
+
+  /// Attaches context messages to this diagnostic.
+  ///
+  /// The return value is a fresh instance of [LocatableDiagnostic]. This allows
+  /// for a literate style of error reporting, e.g.:
+  /// ```dart
+  /// // For an diagnostic code that doesn't take arguments:
+  /// diagnosticReporter.reportError(
+  ///   diagnosticCode.withContextMessages(messages).at(astNode));
+  ///
+  /// // For a diagnostic code that does take arguments:
+  /// diagnosticReporter.reportError(
+  ///   diagnosticCode
+  ///     .withArguments(...)
+  ///     .withContextMessages(messages)
+  ///     .at(astNode));
+  /// ```
+  LocatableDiagnostic withContextMessages(List<DiagnosticMessage> messages);
+}
+
+/// Concrete implementation of [LocatableDiagnostic].
+final class LocatableDiagnosticImpl implements LocatableDiagnostic {
+  @override
+  final DiagnosticCode code;
+
+  @override
+  final List<Object> arguments;
+
+  @override
+  final Iterable<DiagnosticMessage> contextMessages;
+
+  LocatableDiagnosticImpl(
+    this.code,
+    this.arguments, {
+    this.contextMessages = const [],
+  });
+
+  @override
+  LocatedDiagnostic at(SyntacticEntity node) =>
+      atOffset(offset: node.offset, length: node.length);
+
+  @override
+  LocatedDiagnostic atOffset({required int offset, required int length}) =>
+      new LocatedDiagnostic(this, offset, length);
+
+  @override
+  LocatableDiagnostic withContextMessages(List<DiagnosticMessage> messages) =>
+      new LocatableDiagnosticImpl(
+        code,
+        arguments,
+        contextMessages: [...contextMessages, ...messages],
+      );
+}
+
+/// A diagnostic that does not have any unfilled template parameters, and has
+/// been associated with a location in the source code.
+final class LocatedDiagnostic {
+  final LocatableDiagnostic locatableDiagnostic;
+  final int offset;
+  final int length;
+
+  LocatedDiagnostic(this.locatableDiagnostic, this.offset, this.length);
 }

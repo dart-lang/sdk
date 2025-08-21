@@ -6,7 +6,6 @@
 /// the entries in `pkg/linter/messages.yaml`.
 library;
 
-import 'package:analyzer/src/utilities/extensions/string.dart';
 import 'package:analyzer_testing/package_root.dart' as pkg_root;
 import 'package:analyzer_utilities/tools.dart';
 
@@ -52,35 +51,35 @@ GeneratedFile get generatedCodesFile =>
 
 // Generator currently outputs double quotes for simplicity.
 // ignore_for_file: prefer_single_quotes
+''');
+      if (literateApiEnabled) {
+        out.write('''
+
+// Generated `withArguments` methods always use block bodies for simplicity.
+// ignore_for_file: prefer_expression_function_bodies
+''');
+      }
+      out.write('''
 
 part of 'lint_codes.dart';
 
 class LinterLintCode extends LintCode {
 ''');
-
+      var memberAccumulator = MemberAccumulator();
       for (var MapEntry(key: errorName, value: codeInfo)
           in lintMessages['LintCode']!.entries) {
         var lintName = codeInfo.sharedName ?? errorName;
         if (messagesRuleInfo[lintName]!.removed) continue;
-        out.write(codeInfo.toAnalyzerComments(indent: '  '));
-        if (codeInfo.deprecatedMessage case var deprecatedMessage?) {
-          out.writeln('  @Deprecated("$deprecatedMessage")');
-        }
-        var constantName = errorName.toCamelCase();
-        out.writeln('  static const LinterLintCode $constantName =');
-        out.writeln(
-          codeInfo.toAnalyzerCode(
-            linterLintCodeInfo,
-            errorName,
-            sharedNameReference: 'LintNames.$lintName',
-            useExplicitConst: false,
-          ),
+        codeInfo.toAnalyzerCode(
+          linterLintCodeInfo,
+          errorName,
+          sharedNameReference: 'LintNames.$lintName',
+          memberAccumulator: memberAccumulator,
         );
-        out.writeln();
       }
 
       var removedLintName = 'removedLint';
-      out.writeln('''
+      memberAccumulator.constants[removedLintName] = '''
   /// A lint code that removed lints can specify as their `lintCode`.
   ///
   /// Avoid other usages as it should be made unnecessary and removed.
@@ -88,9 +87,9 @@ class LinterLintCode extends LintCode {
     'removed_lint',
     'Removed lint.',
   );
-''');
+''';
 
-      out.writeln('''
+      memberAccumulator.constructors[''] = '''
   const LinterLintCode(
     super.name,
     super.problemMessage, {
@@ -98,7 +97,9 @@ class LinterLintCode extends LintCode {
     super.hasPublishedDocs,
     String? uniqueName,
   }) : super(uniqueName: 'LintCode.\${uniqueName ?? name}');
+''';
 
+      memberAccumulator.accessors['url'] = '''
   @override
   String get url {
     if (hasPublishedDocs) {
@@ -106,8 +107,40 @@ class LinterLintCode extends LintCode {
     }
     return 'https://dart.dev/lints/\$name';
   }
+''';
+      memberAccumulator.writeTo(out);
+      out.writeln('}');
+
+      if (literateApiEnabled) {
+        out.write('''
+
+final class LinterLintTemplate<T extends Function> extends LinterLintCode {
+  final T withArguments;
+
+  /// Initialize a newly created error code to have the given [name].
+  const LinterLintTemplate(
+    super.name,
+    super.problemMessage, {
+    required this.withArguments,
+    super.correctionMessage,
+    super.hasPublishedDocs = false,
+    super.uniqueName,
+  });
+}
+
+final class LinterLintWithoutArguments extends LinterLintCode
+    with DiagnosticWithoutArguments {
+  /// Initialize a newly created error code to have the given [name].
+  const LinterLintWithoutArguments(
+    super.name,
+    super.problemMessage, {
+    super.correctionMessage,
+    super.hasPublishedDocs = false,
+    super.uniqueName,
+  });
 }
 ''');
+      }
       return out.toString();
     });
 

@@ -124,49 +124,26 @@ part of ${json.encode(file.parentLibrary)};
         });
       }
       out.write('class ${errorClass.name} extends DiagnosticCode {');
+      var memberAccumulator = MemberAccumulator();
       var entries = [
         ...analyzerMessages[errorClass.name]!.entries,
         if (errorClass.includeCfeMessages)
           ...cfeToAnalyzerErrorCodeTables.analyzerCodeToInfo.entries,
-      ].where((error) => !error.value.isRemoved).sortedBy((e) => e.key);
+      ].where((error) => !error.value.isRemoved);
       for (var entry in entries) {
         var errorName = entry.key;
         var errorCodeInfo = entry.value;
 
         try {
-          out.writeln();
-          out.write(errorCodeInfo.toAnalyzerComments(indent: '  '));
-          var deprecatedMessage = errorCodeInfo.deprecatedMessage;
-          if (deprecatedMessage != null) {
-            out.writeln('  @Deprecated("$deprecatedMessage")');
+          if (errorCodeInfo is! AliasErrorCodeInfo &&
+              errorClass.includeInDiagnosticCodeValues) {
+            generatedCodes.add((errorClass.name, errorName));
           }
-          if (errorCodeInfo is AliasErrorCodeInfo) {
-            out.writeln(
-              '  static const ${errorCodeInfo.aliasForClass} $errorName =',
-            );
-            out.writeln('${errorCodeInfo.aliasFor};');
-          } else {
-            if (errorClass.includeInDiagnosticCodeValues) {
-              generatedCodes.add((errorClass.name, errorName));
-            }
-            var constantName = errorName.toCamelCase();
-            out.writeln('  static const ${errorClass.name} $constantName =');
-            out.writeln(
-              errorCodeInfo.toAnalyzerCode(
-                errorClass,
-                errorName,
-                useExplicitConst: file.shouldUseExplicitConst,
-              ),
-            );
-
-            if (errorClass.deprecatedSnakeCaseNames.contains(errorName)) {
-              out.writeln();
-              out.writeln('  @Deprecated("Please use $constantName")');
-              out.writeln(
-                '  static const ${errorClass.name} $errorName = $constantName;',
-              );
-            }
-          }
+          errorCodeInfo.toAnalyzerCode(
+            errorClass,
+            errorName,
+            memberAccumulator: memberAccumulator,
+          );
         } catch (e, st) {
           Error.throwWithStackTrace(
             'While processing ${errorClass.name}.$errorName: $e',
@@ -174,33 +151,46 @@ part of ${json.encode(file.parentLibrary)};
           );
         }
       }
-      out.writeln();
-      out.writeln(
+
+      var constructor = StringBuffer();
+      constructor.writeln(
         '/// Initialize a newly created error code to have the given '
         '[name].',
       );
-      out.writeln(
+      constructor.writeln(
         'const ${errorClass.name}(String name, String problemMessage, {',
       );
-      out.writeln('super.correctionMessage,');
-      out.writeln('super.hasPublishedDocs = false,');
-      out.writeln('super.isUnresolvedIdentifier = false,');
-      out.writeln('String? uniqueName,');
-      out.writeln('}) : super(');
-      out.writeln('name: name,');
-      out.writeln('problemMessage: problemMessage,');
-      out.writeln("uniqueName: '${errorClass.name}.\${uniqueName ?? name}',");
-      out.writeln(');');
-      out.writeln();
-      out.writeln('@override');
-      out.writeln(
-        'DiagnosticSeverity get severity => '
-        '${errorClass.severityCode};',
+      constructor.writeln('super.correctionMessage,');
+      constructor.writeln('super.hasPublishedDocs = false,');
+      constructor.writeln('super.isUnresolvedIdentifier = false,');
+      constructor.writeln('String? uniqueName,');
+      constructor.writeln('}) : super(');
+      constructor.writeln('name: name,');
+      constructor.writeln('problemMessage: problemMessage,');
+      constructor.writeln(
+        "uniqueName: '${errorClass.name}.\${uniqueName ?? name}',",
       );
-      out.writeln();
-      out.writeln('@override');
-      out.writeln('DiagnosticType get type => ${errorClass.typeCode};');
+      constructor.writeln(');');
+      memberAccumulator.constructors[''] = constructor.toString();
+
+      memberAccumulator.accessors['severity'] = '''
+@override
+DiagnosticSeverity get severity => ${errorClass.severityCode};
+''';
+      memberAccumulator.accessors['type'] = '''
+@override
+DiagnosticType get type => ${errorClass.typeCode};
+''';
+
+      memberAccumulator.writeTo(out);
       out.writeln('}');
+
+      if (literateApiEnabled) {
+        out.writeln();
+        _outputDerivedClass(errorClass, withArguments: true);
+        out.writeln();
+        _outputDerivedClass(errorClass, withArguments: false);
+      }
     }
   }
 
@@ -212,6 +202,39 @@ part of ${json.encode(file.parentLibrary)};
       out.writeln('${name == null ? 'null' : 'ParserErrorCode.$name'},');
     }
     out.writeln('];');
+  }
+
+  void _outputDerivedClass(
+    ErrorClassInfo errorClass, {
+    required bool withArguments,
+  }) {
+    var className =
+        withArguments
+            ? errorClass.templateName
+            : errorClass.withoutArgumentsName;
+    out.writeln('final class $className');
+    if (withArguments) out.writeln('<T extends Function>');
+    out.writeln('    extends ${errorClass.name}');
+    if (!withArguments) out.writeln('    with DiagnosticWithoutArguments');
+    out.writeln('{');
+    if (withArguments) {
+      out.writeln('final T withArguments;');
+      out.writeln();
+    }
+    out.writeln(
+      '/// Initialize a newly created error code to have the given '
+      '[name].',
+    );
+    out.writeln('const $className(');
+    out.writeln('super.name,');
+    out.writeln('super.problemMessage, {');
+    out.writeln('super.correctionMessage,');
+    out.writeln('super.hasPublishedDocs = false,');
+    out.writeln('super.isUnresolvedIdentifier = false,');
+    out.writeln('super.uniqueName,');
+    if (withArguments) out.writeln('required this.withArguments,');
+    out.writeln('});');
+    out.writeln('}');
   }
 }
 
