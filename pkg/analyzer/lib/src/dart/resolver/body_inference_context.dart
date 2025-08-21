@@ -10,6 +10,7 @@ import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_provider.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
 
+/// See https://github.com/dart-lang/language/blob/main/resources/type-system/inference.md#function-literal-return-type-inference
 class BodyInferenceContext {
   final TypeSystemImpl _typeSystem;
   final bool isAsynchronous;
@@ -67,7 +68,12 @@ class BodyInferenceContext {
 
   void addReturnExpression(Expression? expression) {
     if (expression == null) {
-      _returnTypes.add(_typeProvider.nullType);
+      // If the enclosing function is not marked `sync*` or `async*`:
+      //   For each `return;` statement in the block, update
+      //   `T` to be `UP(Null, T)`.
+      if (!isGenerator) {
+        _returnTypes.add(_typeProvider.nullType);
+      }
     } else {
       var type = expression.typeOrThrow;
       if (isAsynchronous) {
