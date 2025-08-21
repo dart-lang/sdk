@@ -661,6 +661,55 @@ var v = () async* {
     _assertReturnType('() async* {', 'Stream<int>');
   }
 
+  test_noContext_returnType_asyncStar_blockBody_hasReturn_empty() async {
+    await resolveTestCode(r'''
+var v = () async* {
+  yield 0;
+  return;
+};
+''');
+    _assertReturnType('() async* {', 'Stream<int>');
+  }
+
+  test_noContext_returnType_asyncStar_blockBody_hasReturn_noYield() async {
+    await resolveTestCode(r'''
+var v = () async* {
+  return;
+};
+''');
+    _assertReturnType('() async* {', 'Stream<dynamic>');
+  }
+
+  test_noContext_returnType_asyncStar_blockBody_lubNum() async {
+    await resolveTestCode(r'''
+var v = () async* {
+  yield 0;
+  yield 1.1;
+};
+''');
+    _assertReturnType('() async* {', 'Stream<num>');
+  }
+
+  test_noContext_returnType_asyncStar_blockBody_lubObject() async {
+    await resolveTestCode(r'''
+var v = () async* {
+  yield 0;
+  yield '';
+};
+''');
+    _assertReturnType('() async* {', 'Stream<Object>');
+  }
+
+  test_noContext_returnType_asyncStar_blockBody_lubWithNull() async {
+    await resolveTestCode(r'''
+var v = () async* {
+  yield 0;
+  yield null;
+};
+''');
+    _assertReturnType('() async* {', 'Stream<int?>');
+  }
+
   test_noContext_returnType_sync_blockBody() async {
     await resolveTestCode('''
 var v = () {
@@ -873,6 +922,55 @@ var v = () sync* {
 };
 ''');
     _assertReturnType('() sync* {', 'Iterable<int>');
+  }
+
+  test_noContext_returnType_syncStar_blockBody_hasReturn_empty() async {
+    await resolveTestCode(r'''
+var v = () sync* {
+  yield 0;
+  return;
+};
+''');
+    _assertReturnType('() sync* {', 'Iterable<int>');
+  }
+
+  test_noContext_returnType_syncStar_blockBody_hasReturn_noYield() async {
+    await resolveTestCode(r'''
+var v = () sync* {
+  return;
+};
+''');
+    _assertReturnType('() sync* {', 'Iterable<dynamic>');
+  }
+
+  test_noContext_returnType_syncStar_blockBody_lubNum() async {
+    await resolveTestCode(r'''
+var v = () sync* {
+  yield 0;
+  yield 1.1;
+};
+''');
+    _assertReturnType('() sync* {', 'Iterable<num>');
+  }
+
+  test_noContext_returnType_syncStar_blockBody_lubObject() async {
+    await resolveTestCode(r'''
+var v = () sync* {
+  yield 0;
+  yield '';
+};
+''');
+    _assertReturnType('() sync* {', 'Iterable<Object>');
+  }
+
+  test_noContext_returnType_syncStar_blockBody_lubWithNull() async {
+    await resolveTestCode(r'''
+var v = () sync* {
+  yield 0;
+  yield null;
+};
+''');
+    _assertReturnType('() sync* {', 'Iterable<int?>');
   }
 
   test_targetBoundedByFunctionType_argumentTypeMismatch() async {
