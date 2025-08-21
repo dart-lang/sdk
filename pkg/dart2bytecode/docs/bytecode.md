@@ -647,7 +647,7 @@ type ClosureDeclaration {
   UInt flags = (hasOptionalPositionalParams, hasOptionalNamedParams,
                 hasTypeParams, hasSourcePositions,
                 isAsync, isAsyncStar, isSyncStar, isDebuggable,
-                hasParameterFlags)
+                hasParameterFlags, hasAnnotations, hasPragma)
 
   // Member or Closure.
   PackedObject parent;
@@ -672,6 +672,11 @@ type ClosureDeclaration {
     List<UInt> parameterFlags;
 
   PackedObject returnType;
+
+ if hasAnnotations
+   // Offset of closure annotations in ‘annotations’ section of
+   // component, followed by parameter annotations.
+   UInt annotationsOffset;
 }
 
 type ClosureCode {

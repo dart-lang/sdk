@@ -11,8 +11,6 @@ class M0 extends Object with M0 {}
 // [analyzer] COMPILE_TIME_ERROR.RECURSIVE_INTERFACE_INHERITANCE
 // [cfe] 'M0' is a supertype of itself.
 // [cfe] 'Object with M0' is a supertype of itself.
-//                           ^^
-// [analyzer] COMPILE_TIME_ERROR.MIXIN_INHERITS_FROM_NOT_OBJECT
 
 class M1 = Object with M1;
 //    ^^
@@ -46,16 +44,12 @@ class M7 extends Object with M8 {}
 // [analyzer] COMPILE_TIME_ERROR.RECURSIVE_INTERFACE_INHERITANCE
 // [cfe] 'M7' is a supertype of itself.
 // [cfe] 'Object with M8' is a supertype of itself.
-//                           ^^
-// [analyzer] COMPILE_TIME_ERROR.MIXIN_INHERITS_FROM_NOT_OBJECT
 
 class M8 extends Object with M7 {}
 //    ^^
 // [analyzer] COMPILE_TIME_ERROR.RECURSIVE_INTERFACE_INHERITANCE
 // [cfe] 'M8' is a supertype of itself.
 // [cfe] 'Object with M7' is a supertype of itself.
-//                           ^^
-// [analyzer] COMPILE_TIME_ERROR.MIXIN_INHERITS_FROM_NOT_OBJECT
 
 class M9 = Object with M91;
 //    ^

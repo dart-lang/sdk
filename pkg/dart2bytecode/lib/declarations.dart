@@ -947,6 +947,8 @@ class ClosureDeclaration {
   static const isSyncStarFlag = 1 << 6;
   static const isDebuggableFlag = 1 << 7;
   static const hasParameterFlagsFlag = 1 << 8;
+  static const hasAnnotationsFlag = 1 << 9;
+  static const hasPragmaFlag = 1 << 10;
 
   int flags;
   final ObjectHandle parent;
@@ -960,6 +962,7 @@ class ClosureDeclaration {
   // Only contains the required flag for named parameters when present.
   final List<int>? parameterFlags;
   final ObjectHandle returnType;
+  final AnnotationsDeclaration? annotations;
   ClosureCode? code;
 
   ClosureDeclaration(
@@ -973,7 +976,8 @@ class ClosureDeclaration {
       this.numNamedParams,
       this.parameters,
       this.parameterFlags,
-      this.returnType);
+      this.returnType,
+      this.annotations);
 
   void write(BufferedWriter writer) {
     writer.writePackedUInt30(flags);
@@ -1006,6 +1010,9 @@ class ClosureDeclaration {
       }
     }
     writer.writePackedObject(returnType);
+    if ((flags & hasAnnotationsFlag) != 0) {
+      writer.writeLinkOffset(annotations!);
+    }
   }
 
   factory ClosureDeclaration.read(BufferedReader reader) {
@@ -1043,6 +1050,9 @@ class ClosureDeclaration {
           numParameterFlags, (_) => reader.readPackedUInt30());
     }
     final ObjectHandle returnType = reader.readPackedObject();
+    final annotations = ((flags & hasAnnotationsFlag) != 0)
+        ? reader.readLinkOffset<AnnotationsDeclaration>()
+        : null;
     return new ClosureDeclaration(
         flags,
         parent,
@@ -1054,7 +1064,8 @@ class ClosureDeclaration {
         numNamedParams,
         parameters,
         parameterFlags,
-        returnType);
+        returnType,
+        annotations);
   }
 
   void _writeParamsToBuffer(
@@ -1087,6 +1098,9 @@ class ClosureDeclaration {
     }
     if (position != TreeNode.noOffset) {
       sb.write(' pos = $position, end-pos = $endPosition');
+    }
+    if ((flags & hasAnnotationsFlag) != 0) {
+      sb.write(' annotations $annotations\n');
     }
     if ((flags & hasTypeParamsFlag) != 0) {
       sb.write(' type-params $typeParameters');

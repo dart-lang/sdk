@@ -322,8 +322,11 @@ void BytecodeReaderHelper::ReadClosureDeclaration(const Function& function,
   const int kIsSyncStarFlag = 1 << 6;
   const int kIsDebuggableFlag = 1 << 7;
   const int kHasParameterFlagsFlag = 1 << 8;
+  const int kHasAnnotationsFlag = 1 << 9;
+  const int kHasPragmaFlag = 1 << 10;
 
   const intptr_t flags = reader_.ReadUInt();
+  const bool has_pragma = (flags & kHasPragmaFlag) != 0;
 
   Object& parent = Object::Handle(Z, ReadObject());
   if (!parent.IsFunction()) {
@@ -359,6 +362,7 @@ void BytecodeReaderHelper::ReadClosureDeclaration(const Function& function,
     closure.set_is_inlinable(false);
   }
   closure.set_is_debuggable((flags & kIsDebuggableFlag) != 0);
+  closure.set_has_pragma(has_pragma);
 
   closures_->SetAt(closureIndex, closure);
 
@@ -371,6 +375,11 @@ void BytecodeReaderHelper::ReadClosureDeclaration(const Function& function,
       (flags & kHasParameterFlagsFlag) != 0);
 
   closure.SetSignature(signature);
+
+  if ((flags & kHasAnnotationsFlag) != 0) {
+    ReadAnnotations(Class::Handle(Z, Function::Cast(parent).Owner()), closure,
+                    has_pragma);
+  }
 }
 
 FunctionTypePtr BytecodeReaderHelper::ReadFunctionSignature(
