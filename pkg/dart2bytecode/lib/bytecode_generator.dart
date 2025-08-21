@@ -403,23 +403,22 @@ class BytecodeGenerator extends RecursiveVisitor {
   // section. Return the annotations for the function only. The bytecode reader
   // will implicitly find the parameter annotations by reading N packed objects
   // after reading the function's annotations, one for each parameter.
-  Annotations getFunctionAnnotations(Member member) {
-    final functionNodes = member.annotations;
+  Annotations getFunctionAnnotations(
+      List<Expression> annotations, FunctionNode function) {
     final parameterNodeLists = <List<Expression>>[];
-    for (VariableDeclaration variable
-        in member.function!.positionalParameters) {
+    for (VariableDeclaration variable in function.positionalParameters) {
       parameterNodeLists.add(variable.annotations);
     }
-    for (VariableDeclaration variable in member.function!.namedParameters) {
+    for (VariableDeclaration variable in function.namedParameters) {
       parameterNodeLists.add(variable.annotations);
     }
 
-    if (functionNodes.isEmpty &&
+    if (annotations.isEmpty &&
         parameterNodeLists.every((nodes) => nodes.isEmpty)) {
       return const Annotations(null, false);
     }
 
-    List<Constant> functionConstants = functionNodes.map(_getConstant).toList();
+    List<Constant> functionConstants = annotations.map(_getConstant).toList();
     bool hasPragma = functionConstants.any(_isPragma);
     if (!options.emitAnnotations && !hasPragma) {
       return const Annotations(null, false);
@@ -677,7 +676,8 @@ class BytecodeGenerator extends RecursiveVisitor {
       }
       endPosition = member.fileEndOffset;
     }
-    final Annotations annotations = getFunctionAnnotations(member);
+    final Annotations annotations =
+        getFunctionAnnotations(member.annotations, function);
     if (annotations.object != null) {
       flags |= FunctionDeclaration.hasAnnotationsFlag;
       if (annotations.hasPragma) {
@@ -2548,6 +2548,18 @@ class BytecodeGenerator extends RecursiveVisitor {
       flags |= ClosureDeclaration.hasParameterFlagsFlag;
     }
 
+    final Annotations annotations = getFunctionAnnotations(
+        node is ast.FunctionDeclaration
+            ? node.variable.annotations
+            : const <Expression>[],
+        function);
+    if (annotations.object != null) {
+      flags |= ClosureDeclaration.hasAnnotationsFlag;
+      if (annotations.hasPragma) {
+        flags |= ClosureDeclaration.hasPragmaFlag;
+      }
+    }
+
     return new ClosureDeclaration(
         flags,
         objectTable.getHandle(parent)!,
@@ -2559,7 +2571,8 @@ class BytecodeGenerator extends RecursiveVisitor {
         function.namedParameters.length,
         parameters,
         parameterFlags,
-        objectTable.getHandle(function.returnType)!);
+        objectTable.getHandle(function.returnType)!,
+        annotations.object);
   }
 
   void _genAllocateClosureInstance(
