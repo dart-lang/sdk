@@ -2,15 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:_fe_analyzer_shared/src/type_inference/type_analyzer_operations.dart'
-    as shared;
 import 'package:_fe_analyzer_shared/src/type_inference/type_constraint.dart'
     as shared;
-import 'package:_fe_analyzer_shared/src/types/shared_type.dart';
 import 'package:kernel/ast.dart';
 import 'package:kernel/class_hierarchy.dart' show ClassHierarchy;
 import 'package:kernel/core_types.dart' show CoreTypes;
-import 'package:kernel/src/bounds_checks.dart' show calculateBounds;
 import 'package:kernel/src/hierarchy_based_type_environment.dart'
     show HierarchyBasedTypeEnvironment;
 import 'package:kernel/type_algebra.dart';
@@ -18,7 +14,6 @@ import 'package:kernel/type_environment.dart';
 
 import 'standard_bounds.dart' show TypeSchemaStandardBounds;
 import 'type_constraint_gatherer.dart' show TypeConstraintGatherer;
-import 'type_demotion.dart';
 import 'type_inference_engine.dart';
 import 'type_schema.dart' show UnknownType;
 
@@ -26,10 +21,10 @@ typedef GeneratedTypeConstraint
     = shared.GeneratedTypeConstraint<VariableDeclaration>;
 
 typedef MergedTypeConstraint = shared.MergedTypeConstraint<VariableDeclaration,
-    TypeDeclarationType, TypeDeclaration>;
+    TypeDeclarationType, TypeDeclaration, TreeNode>;
 
 typedef UnknownTypeConstraintOrigin = shared.UnknownTypeConstraintOrigin<
-    VariableDeclaration, TypeDeclarationType, TypeDeclaration>;
+    VariableDeclaration, TypeDeclarationType, TypeDeclaration, TreeNode>;
 
 /// Given a [FunctionType], gets the type of the named parameter with the given
 /// [name], or `dynamic` if there is no parameter with the given name.
@@ -63,13 +58,16 @@ class TypeSchemaEnvironment extends HierarchyBasedTypeEnvironment
   /// Performs partial (either downwards or horizontal) inference, producing a
   /// set of inferred types that may contain references to the "unknown type".
   List<DartType> choosePreliminaryTypes(
-          TypeConstraintGatherer gatherer,
-          List<StructuralParameter> typeParametersToInfer,
-          List<DartType>? previouslyInferredTypes,
-          {required bool inferenceUsingBoundsIsEnabled,
-          required InferenceDataForTesting? dataForTesting,
-          required TreeNode? treeNodeForTesting}) =>
-      _chooseTypes(gatherer, typeParametersToInfer, previouslyInferredTypes,
+    Map<StructuralParameter, MergedTypeConstraint> constraints,
+    List<StructuralParameter> typeParametersToInfer,
+    List<DartType>? previouslyInferredTypes, {
+    required bool inferenceUsingBoundsIsEnabled,
+    required InferenceDataForTesting? dataForTesting,
+    required TreeNode? treeNodeForTesting,
+    required OperationsCfe typeOperations,
+  }) =>
+      typeOperations.chooseTypes(
+          typeParametersToInfer, constraints, previouslyInferredTypes,
           preliminary: true,
           inferenceUsingBoundsIsEnabled: inferenceUsingBoundsIsEnabled,
           dataForTesting: dataForTesting,
@@ -128,109 +126,6 @@ class TypeSchemaEnvironment extends HierarchyBasedTypeEnvironment
       }
     }
     return operandType;
-  }
-
-  /// Use the given [constraints] to substitute for type parameters.
-  ///
-  /// [typeParametersToInfer] is the set of type parameters that should be
-  /// substituted for.  [previouslyInferredTypes], if present, should be the set
-  /// of types inferred by the last call to this method; it should be a list of
-  /// the same length.
-  ///
-  /// If [preliminary] is `true`, then we not in the final pass of inference.
-  /// This means we are allowed to return `?` to precisely represent an unknown
-  /// type.
-  ///
-  /// If [preliminary] is `false`, then we are in the final pass of inference,
-  /// and must not conclude `?` for any type formal.
-  List<DartType> inferTypeFromConstraints(
-      Map<StructuralParameter, MergedTypeConstraint> constraints,
-      List<StructuralParameter> typeParametersToInfer,
-      List<DartType>? previouslyInferredTypes,
-      {bool preliminary = false,
-      required OperationsCfe operations,
-      required InferenceDataForTesting? dataForTesting,
-      required bool inferenceUsingBoundsIsEnabled}) {
-    List<DartType> inferredTypes =
-        previouslyInferredTypes?.toList(growable: false) ??
-            new List.filled(typeParametersToInfer.length, const UnknownType());
-
-    for (int i = 0; i < typeParametersToInfer.length; i++) {
-      StructuralParameter typeParam = typeParametersToInfer[i];
-
-      DartType typeParamBound = typeParam.bound;
-      DartType? extendsConstraint;
-      if (!operations.isBoundOmitted(typeParam)) {
-        extendsConstraint = new FunctionTypeInstantiator.fromIterables(
-                typeParametersToInfer, inferredTypes)
-            .substitute(typeParamBound);
-      }
-
-      MergedTypeConstraint constraint = constraints[typeParam]!;
-      if (preliminary) {
-        inferredTypes[i] = operations.inferTypeParameterFromContext(
-                previouslyInferredTypes?[i], constraint, extendsConstraint,
-                isContravariant:
-                    typeParam.variance == shared.Variance.contravariant,
-                isLegacyCovariant: typeParam.isLegacyCovariant,
-                constraints: constraints,
-                typeParameterToInfer: typeParam,
-                typeParametersToInfer: typeParametersToInfer,
-                dataForTesting: dataForTesting,
-                inferenceUsingBoundsIsEnabled: inferenceUsingBoundsIsEnabled)
-            as DartType;
-      } else {
-        inferredTypes[i] = operations.inferTypeParameterFromAll(
-                previouslyInferredTypes?[i], constraint, extendsConstraint,
-                isContravariant:
-                    typeParam.variance == shared.Variance.contravariant,
-                isLegacyCovariant: typeParam.isLegacyCovariant,
-                constraints: constraints,
-                typeParameterToInfer: typeParam,
-                typeParametersToInfer: typeParametersToInfer,
-                dataForTesting: dataForTesting,
-                inferenceUsingBoundsIsEnabled: inferenceUsingBoundsIsEnabled)
-            as DartType;
-      }
-    }
-
-    if (!preliminary) {
-      assert(typeParametersToInfer.length == inferredTypes.length);
-      FreshTypeParametersFromStructuralParameters freshTypeParameters =
-          getFreshTypeParametersFromStructuralParameters(typeParametersToInfer);
-      List<TypeParameter> helperTypeParameters =
-          freshTypeParameters.freshTypeParameters;
-
-      Map<TypeParameter, DartType> inferredSubstitution = {};
-      for (int i = 0; i < helperTypeParameters.length; ++i) {
-        if (inferredTypes[i] is UnknownType) {
-          inferredSubstitution[helperTypeParameters[i]] =
-              new TypeParameterType.withDefaultNullability(
-                  helperTypeParameters[i]);
-        } else {
-          assert(operations
-              .isKnownType(new SharedTypeSchemaView(inferredTypes[i])));
-          inferredSubstitution[helperTypeParameters[i]] = inferredTypes[i];
-        }
-      }
-      for (int i = 0; i < helperTypeParameters.length; ++i) {
-        if (inferredTypes[i] is UnknownType) {
-          helperTypeParameters[i].bound =
-              substitute(helperTypeParameters[i].bound, inferredSubstitution);
-        } else {
-          helperTypeParameters[i].bound = inferredTypes[i];
-        }
-      }
-      List<DartType> instantiatedTypes =
-          calculateBounds(helperTypeParameters, coreTypes.objectClass);
-      for (int i = 0; i < instantiatedTypes.length; ++i) {
-        if (inferredTypes[i] is UnknownType) {
-          inferredTypes[i] = instantiatedTypes[i];
-        }
-      }
-    }
-
-    return inferredTypes;
   }
 
   @override
@@ -314,42 +209,20 @@ class TypeSchemaEnvironment extends HierarchyBasedTypeEnvironment
   /// Performs upwards inference, producing a final set of inferred types that
   /// does not  contain references to the "unknown type".
   List<DartType> chooseFinalTypes(
-          TypeConstraintGatherer gatherer,
-          List<StructuralParameter> typeParametersToInfer,
-          List<DartType>? previouslyInferredTypes,
-          {required bool inferenceUsingBoundsIsEnabled,
-          required InferenceDataForTesting? dataForTesting,
-          required TreeNode? treeNodeForTesting}) =>
-      _chooseTypes(gatherer, typeParametersToInfer, previouslyInferredTypes,
+    Map<StructuralParameter, MergedTypeConstraint> constraints,
+    List<StructuralParameter> typeParametersToInfer,
+    List<DartType>? previouslyInferredTypes, {
+    required bool inferenceUsingBoundsIsEnabled,
+    required InferenceDataForTesting? dataForTesting,
+    required TreeNode? treeNodeForTesting,
+    required OperationsCfe typeOperations,
+  }) =>
+      typeOperations.chooseTypes(
+          typeParametersToInfer, constraints, previouslyInferredTypes,
           preliminary: false,
           inferenceUsingBoundsIsEnabled: inferenceUsingBoundsIsEnabled,
           dataForTesting: dataForTesting,
           treeNodeForTesting: treeNodeForTesting);
-
-  /// Computes (or recomputes) a set of [inferredTypes] based on the constraints
-  /// that have been recorded so far.
-  List<DartType> _chooseTypes(
-      TypeConstraintGatherer gatherer,
-      List<StructuralParameter> typeParametersToInfer,
-      List<DartType>? previouslyInferredTypes,
-      {required bool preliminary,
-      required bool inferenceUsingBoundsIsEnabled,
-      required InferenceDataForTesting? dataForTesting,
-      required TreeNode? treeNodeForTesting}) {
-    List<DartType> inferredTypes = inferTypeFromConstraints(
-        gatherer.computeConstraints(),
-        typeParametersToInfer,
-        previouslyInferredTypes,
-        preliminary: preliminary,
-        operations: gatherer.typeOperations,
-        dataForTesting: dataForTesting,
-        inferenceUsingBoundsIsEnabled: inferenceUsingBoundsIsEnabled);
-
-    for (int i = 0; i < inferredTypes.length; i++) {
-      inferredTypes[i] = demoteTypeInLibrary(inferredTypes[i]);
-    }
-    return inferredTypes;
-  }
 }
 
 class AllTypeParameterEliminator extends Substitution {

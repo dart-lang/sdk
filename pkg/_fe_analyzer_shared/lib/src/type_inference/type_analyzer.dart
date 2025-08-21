@@ -311,7 +311,7 @@ mixin TypeAnalyzer<
   bool get isDotShorthandContextEmpty => _dotShorthands.isEmpty;
 
   @override
-  TypeAnalyzerOperations<Variable, TypeDeclarationType, TypeDeclaration>
+  TypeAnalyzerOperations<Variable, TypeDeclarationType, TypeDeclaration, Node>
   get operations;
 
   /// Options affecting the behavior of [TypeAnalyzer].
