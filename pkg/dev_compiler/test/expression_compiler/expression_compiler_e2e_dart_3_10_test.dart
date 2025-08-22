@@ -41,7 +41,7 @@ void runSharedTests(
   ExpressionEvaluationTestDriver driver,
 ) {
   group('local consts', () {
-    const recordsSource = '''
+    const localConstsSource = '''
     void main() {
       topLevelMethod();
 
@@ -66,7 +66,7 @@ void runSharedTests(
     ''';
 
     setUpAll(() async {
-      await driver.initSource(setup, recordsSource);
+      await driver.initSource(setup, localConstsSource);
     });
 
     tearDownAll(() async {
@@ -86,6 +86,120 @@ void runSharedTests(
         breakpointId: 'bp2',
         expression: 'methodLocalConst.toString()',
         expectedResult: '0:00:03.000000',
+      );
+    });
+  });
+  group('dot shorthands', () {
+    const dotShorthandsSource = '''
+    enum Color {
+      red,
+      green,
+      blue;
+
+      int get lengthOfName => name.length;
+    }
+
+    class C {
+      final int i;
+      C(this.i);
+      C.namedConstructor() : i = 2;
+      const C.constConstructor() : i = 1;
+      factory C.factoryConstructor() => C(42);
+      static C staticMethod() => C(99);
+    }
+
+    String enumContext(Color c) => c.name;
+
+    int classContext(C c) => c.i;
+
+    T genericContext<T>(T val) => val;
+
+    void main() {
+      // Breakpoint: bp
+      print('hello world');
+    }
+    ''';
+
+    setUpAll(() async {
+      await driver.initSource(setup, dotShorthandsSource);
+    });
+
+    tearDownAll(() async {
+      await driver.cleanupTest();
+    });
+    group('enum context', () {
+      test('name', () async {
+        await driver.checkInFrame(
+          breakpointId: 'bp',
+          expression: 'enumContext(.red)',
+          expectedResult: 'red',
+        );
+      });
+      test('equals method', () async {
+        await driver.checkInFrame(
+          breakpointId: 'bp',
+          expression: 'genericContext<bool>(Color.green == .green)',
+          expectedResult: 'true',
+        );
+      });
+      test('generic context', () async {
+        await driver.checkInFrame(
+          breakpointId: 'bp',
+          expression: 'genericContext<Color>(.blue)',
+          expectedResult: 'blue',
+        );
+      });
+    });
+
+    group('class context', () {
+      test('new', () async {
+        await driver.checkInFrame(
+          breakpointId: 'bp',
+          expression: 'classContext(.new(123))',
+          expectedResult: '123',
+        );
+      });
+      test('named constructor', () async {
+        await driver.checkInFrame(
+          breakpointId: 'bp',
+          expression: 'classContext(.namedConstructor())',
+          expectedResult: '2',
+        );
+      });
+      test('const constructor', () async {
+        await driver.checkInFrame(
+          breakpointId: 'bp',
+          expression: 'const <C>[.constConstructor()].single.i',
+          expectedResult: '1',
+        );
+      });
+      test('factory constructor', () async {
+        await driver.checkInFrame(
+          breakpointId: 'bp',
+          expression: 'classContext(.factoryConstructor())',
+          expectedResult: '42',
+        );
+      });
+      test('static method', () async {
+        await driver.checkInFrame(
+          breakpointId: 'bp',
+          expression: 'classContext(.staticMethod())',
+          expectedResult: '99',
+        );
+      });
+    });
+    test('equals method', () async {
+      await driver.checkInFrame(
+        breakpointId: 'bp',
+        expression: 'genericContext<bool>(C(99) == .namedConstructor())',
+        expectedResult: 'false',
+      );
+    });
+    test('generic context', () async {
+      await driver.checkInFrame(
+        breakpointId: 'bp',
+        expression: 'genericContext<C>(.namedConstructor()).i',
+        expectedResult: '2',
       );
     });
   });
