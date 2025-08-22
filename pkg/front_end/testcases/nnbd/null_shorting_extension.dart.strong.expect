@@ -269,14 +269,14 @@ static method operatorAccess(self::Class1? n1, self::Class2? n2) → void {
  - 'Class1' is from 'pkg/front_end/testcases/nnbd/null_shorting_extension.dart'.
   throws(() => -n1?.nonNullable1);
                ^" in self::Extension1|unary-(let final self::Class1? #t326 = n1 in #t326 == null ?{self::Class1?} null : self::Extension1|get#nonNullable1(#t326{self::Class1})));
-  let final self::Class2? #t327 = n2 in #t327 == null ?{self::Class2?} null : self::Extension2|set#nonNullable2(#t327, self::Extension2|+(self::Extension2|get#nonNullable2(#t327), 0));
-  nullable2 = let final self::Class2? #t328 = n2 in #t328 == null ?{self::Class2?} null : let final self::Class2 #t329 = self::Extension2|+(self::Extension2|get#nonNullable2(#t328), 0) in let final void #t330 = self::Extension2|set#nonNullable2(#t328, #t329) in #t329;
+  let final self::Class2? #t327 = n2 in #t327 == null ?{self::Class2?} null : self::Extension2|set#nonNullable2(#t327{self::Class2}, self::Extension2|+(self::Extension2|get#nonNullable2(#t327{self::Class2}), 0));
+  nullable2 = let final self::Class2? #t328 = n2 in #t328 == null ?{self::Class2?} null : let final self::Class2 #t329 = self::Extension2|+(self::Extension2|get#nonNullable2(#t328{self::Class2}), 0) in let final void #t330 = self::Extension2|set#nonNullable2(#t328{self::Class2}, #t329) in #t329;
   let final self::Class2? #t331 = n2 in #t331 == null ?{self::Class2?} null : let final self::Class2 #t332 = self::Extension2|get#nonNullable2(#t331{self::Class2}) in self::Extension2|set#nonNullable2(#t332, self::Extension2|+(self::Extension2|get#nonNullable2(#t332), 0));
   nullable2 = let final self::Class2? #t333 = n2 in #t333 == null ?{self::Class2?} null : let final self::Class2 #t334 = self::Extension2|get#nonNullable2(#t333{self::Class2}) in let final self::Class2 #t335 = self::Extension2|+(self::Extension2|get#nonNullable2(#t334), 0) in let final void #t336 = self::Extension2|set#nonNullable2(#t334, #t335) in #t335;
-  let final self::Class2? #t337 = n2 in #t337 == null ?{self::Class2?} null : self::Extension2|set#nonNullable2(#t337, self::Extension2|+(self::Extension2|get#nonNullable2(#t337), 1));
-  nullable2 = let final self::Class2? #t338 = n2 in #t338 == null ?{self::Class2?} null : let final self::Class2 #t339 = self::Extension2|get#nonNullable2(#t338) in let final void #t340 = self::Extension2|set#nonNullable2(#t338, self::Extension2|+(#t339, 1)) in #t339;
-  let final self::Class2? #t341 = n2 in #t341 == null ?{self::Class2?} null : let final self::Class2 #t342 = self::Extension2|+(self::Extension2|get#nonNullable2(#t341), 1) in let final void #t343 = self::Extension2|set#nonNullable2(#t341, #t342) in #t342;
-  nullable2 = let final self::Class2? #t344 = n2 in #t344 == null ?{self::Class2?} null : let final self::Class2 #t345 = self::Extension2|+(self::Extension2|get#nonNullable2(#t344), 1) in let final void #t346 = self::Extension2|set#nonNullable2(#t344, #t345) in #t345;
+  let final self::Class2? #t337 = n2 in #t337 == null ?{self::Class2?} null : self::Extension2|set#nonNullable2(#t337{self::Class2}, self::Extension2|+(self::Extension2|get#nonNullable2(#t337{self::Class2}), 1));
+  nullable2 = let final self::Class2? #t338 = n2 in #t338 == null ?{self::Class2?} null : let final self::Class2 #t339 = self::Extension2|get#nonNullable2(#t338{self::Class2}) in let final void #t340 = self::Extension2|set#nonNullable2(#t338{self::Class2}, self::Extension2|+(#t339, 1)) in #t339;
+  let final self::Class2? #t341 = n2 in #t341 == null ?{self::Class2?} null : let final self::Class2 #t342 = self::Extension2|+(self::Extension2|get#nonNullable2(#t341{self::Class2}), 1) in let final void #t343 = self::Extension2|set#nonNullable2(#t341{self::Class2}, #t342) in #t342;
+  nullable2 = let final self::Class2? #t344 = n2 in #t344 == null ?{self::Class2?} null : let final self::Class2 #t345 = self::Extension2|+(self::Extension2|get#nonNullable2(#t344{self::Class2}), 1) in let final void #t346 = self::Extension2|set#nonNullable2(#t344{self::Class2}, #t345) in #t345;
 }
 static method ifNull(self::Class1? n1) → void {
   self::Class1? nullable1 = n1;

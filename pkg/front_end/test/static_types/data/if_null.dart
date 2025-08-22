@@ -77,12 +77,12 @@ class A7 {
 }
 
 test7(A7? a) {
-  var s = (/*A7?|String?|String!*/ a
-      ?. /*String!*/ /*update: String!*/ foo ??= /*String!*/ "bar");
+  var s = (/*A7?|String?*/ a
+      ?. /*String!*/ /*update: String!*/ foo /*String!*/??= /*String!*/ "bar");
   /*String?*/ s;
 
-  var s2 = (/*A7?|String?|String!*/ a
-      ?. /*String?*/ /*update: String!*/ bar ??= /*String!*/ "bar");
+  var s2 = (/*A7?|String?*/ a
+      ?. /*String?*/ /*update: String!*/ bar /*String!*/??= /*String!*/ "bar");
   /*String?*/ s2;
 }
 

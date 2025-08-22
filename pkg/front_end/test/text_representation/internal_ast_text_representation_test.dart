@@ -107,7 +107,6 @@ void main() {
     _testIfNullExtensionIndexSet();
     _testCompoundIndexSet();
     _testNullAwareCompoundSet();
-    _testNullAwareIfNullSet();
     _testCompoundSuperIndexSet();
     _testCompoundExtensionIndexSet();
     _testExtensionSet();
@@ -866,14 +865,29 @@ void _testIfNullPropertySet() {
   testExpression(
       new IfNullPropertySet(
           new IntLiteral(0), new Name('foo'), new IntLiteral(1),
-          readOffset: -1, writeOffset: -1, forEffect: false),
+          readOffset: -1,
+          writeOffset: -1,
+          forEffect: false,
+          isNullAware: false),
       '0.foo ??= 1');
 
   testExpression(
       new IfNullPropertySet(
           new IntLiteral(0), new Name('foo'), new IntLiteral(1),
-          readOffset: -1, writeOffset: -1, forEffect: true),
+          readOffset: -1, writeOffset: -1, forEffect: true, isNullAware: false),
       '0.foo ??= 1');
+
+  testExpression(
+      new IfNullPropertySet(
+          new IntLiteral(0), new Name('foo'), new IntLiteral(1),
+          readOffset: -1, writeOffset: -1, forEffect: false, isNullAware: true),
+      '0?.foo ??= 1');
+
+  testExpression(
+      new IfNullPropertySet(
+          new IntLiteral(0), new Name('foo'), new IntLiteral(1),
+          readOffset: -1, writeOffset: -1, forEffect: true, isNullAware: true),
+      '0?.foo ??= 1');
 }
 
 void _testIfNullSet() {
@@ -981,7 +995,8 @@ void _testCompoundIndexSet() {
           binaryOffset: -1,
           writeOffset: -1,
           forEffect: false,
-          forPostIncDec: false),
+          forPostIncDec: false,
+          isNullAware: false),
       '''
 0[1] += 2''');
   testExpression(
@@ -991,7 +1006,8 @@ void _testCompoundIndexSet() {
           binaryOffset: -1,
           writeOffset: -1,
           forEffect: false,
-          forPostIncDec: true),
+          forPostIncDec: true,
+          isNullAware: false),
       '''
 0[1]++''');
   testExpression(
@@ -1001,7 +1017,8 @@ void _testCompoundIndexSet() {
           binaryOffset: -1,
           writeOffset: -1,
           forEffect: false,
-          forPostIncDec: true),
+          forPostIncDec: true,
+          isNullAware: false),
       '''
 0[1]--''');
   testExpression(
@@ -1011,7 +1028,8 @@ void _testCompoundIndexSet() {
           binaryOffset: -1,
           writeOffset: -1,
           forEffect: false,
-          forPostIncDec: true),
+          forPostIncDec: true,
+          isNullAware: false),
       '''
 0[1] *= 1''');
   testExpression(
@@ -1021,9 +1039,43 @@ void _testCompoundIndexSet() {
           binaryOffset: -1,
           writeOffset: -1,
           forEffect: false,
-          forPostIncDec: true),
+          forPostIncDec: true,
+          isNullAware: false),
       '''
 0[1] += 2''');
+  testExpression(
+      new CompoundIndexSet(new IntLiteral(0), new IntLiteral(1), new Name('+'),
+          new IntLiteral(2),
+          readOffset: -1,
+          binaryOffset: -1,
+          writeOffset: -1,
+          forEffect: false,
+          forPostIncDec: false,
+          isNullAware: true),
+      '''
+0?[1] += 2''');
+  testExpression(
+      new CompoundIndexSet(new IntLiteral(0), new IntLiteral(1), new Name('+'),
+          new IntLiteral(1),
+          readOffset: -1,
+          binaryOffset: -1,
+          writeOffset: -1,
+          forEffect: false,
+          forPostIncDec: true,
+          isNullAware: true),
+      '''
+0?[1]++''');
+  testExpression(
+      new CompoundIndexSet(new IntLiteral(0), new IntLiteral(1), new Name('-'),
+          new IntLiteral(1),
+          readOffset: -1,
+          binaryOffset: -1,
+          writeOffset: -1,
+          forEffect: false,
+          forPostIncDec: true,
+          isNullAware: true),
+      '''
+0?[1]--''');
 }
 
 void _testNullAwareCompoundSet() {
@@ -1047,18 +1099,6 @@ void _testNullAwareCompoundSet() {
           forEffect: false),
       '''
 0?.foo++''');
-}
-
-void _testNullAwareIfNullSet() {
-  testExpression(
-      new NullAwareIfNullSet(
-          new IntLiteral(0), new Name('foo'), new IntLiteral(1),
-          readOffset: TreeNode.noOffset,
-          testOffset: TreeNode.noOffset,
-          writeOffset: TreeNode.noOffset,
-          forEffect: false),
-      '''
-0?.foo ??= 1''');
 }
 
 void _testCompoundSuperIndexSet() {}

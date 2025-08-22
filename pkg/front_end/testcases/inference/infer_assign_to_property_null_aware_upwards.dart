@@ -18,8 +18,8 @@ class Test1 {
         ?. /*@target=Test1.prop*/ prop = getInt();
 
     var /*@type=int?*/ v4 =
-         t
-                ?. /*@target=Test1.prop2*/ /*@target=Test1.prop2*/ prop2
+         /*@type=Test1*//*@target=Test1.prop2*/t
+                ?. /*@target=Test1.prop2*/  prop2
              ??= getInt();
 
     var /*@type=int?*/ v7 =
@@ -52,17 +52,17 @@ class Test2 {
         ?. /*@target=Test2.prop*/ prop = getDouble();
 
     var /*@type=num?*/ v4 =
-         t
-                ?. /*@target=Test2.prop2*/ /*@target=Test2.prop2*/ prop2
+         /*@type=Test2*//*@target=Test2.prop2*/t
+                ?. /*@target=Test2.prop2*/  prop2
              ??= getInt();
 
     var /*@type=num?*/ v5 =
-         t
-                ?. /*@target=Test2.prop*/ /*@target=Test2.prop*/ prop
+         /*@type=Test2*//*@target=Test2.prop*/t
+                ?. /*@target=Test2.prop*/  prop
              ??= getNum();
 
-    var /*@type=num?*/ v6 =  t
-            ?. /*@target=Test2.prop*/ /*@target=Test2.prop*/ prop
+    var /*@type=num?*/ v6 =  /*@type=Test2*//*@target=Test2.prop*/t
+            ?. /*@target=Test2.prop*/  prop
          ??= getDouble();
 
     var /*@type=num?*/ v7 =
@@ -100,8 +100,8 @@ class Test3 {
             ?. /*@target=Test3.prop*/ prop = getDouble();
 
     var /*@type=double?*/ v6 =
-         t?.
-                /*@target=Test3.prop2*/ /*@target=Test3.prop2*/ prop2
+         /*@type=Test3*//*@target=Test3.prop2*/t?.
+                /*@target=Test3.prop2*/  prop2
              ??= getDouble();
 
     var /*@type=double?*/ v7 =

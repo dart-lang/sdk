@@ -524,7 +524,10 @@ class PropertyAccessGenerator extends Generator {
   Expression buildIfNullAssignment(Expression value, DartType type, int offset,
       {bool voidContext = false}) {
     return new IfNullPropertySet(receiver, name, value,
-        forEffect: voidContext, readOffset: fileOffset, writeOffset: fileOffset)
+        forEffect: voidContext,
+        readOffset: fileOffset,
+        writeOffset: fileOffset,
+        isNullAware: false)
       ..fileOffset = offset;
   }
 
@@ -765,11 +768,11 @@ class NullAwarePropertyAccessGenerator extends Generator {
   @override
   Expression buildIfNullAssignment(Expression value, DartType type, int offset,
       {bool voidContext = false}) {
-    return new NullAwareIfNullSet(receiver, name, value,
+    return new IfNullPropertySet(receiver, name, value,
         forEffect: voidContext,
         readOffset: fileOffset,
-        testOffset: offset,
-        writeOffset: fileOffset)
+        writeOffset: fileOffset,
+        isNullAware: true)
       ..fileOffset = offset;
   }
 
@@ -982,27 +985,13 @@ class IndexedAccessGenerator extends Generator {
   @override
   Expression buildIfNullAssignment(Expression value, DartType type, int offset,
       {bool voidContext = false}) {
-    VariableDeclarationImpl? variable;
-    Expression receiverValue;
-    if (isNullAware) {
-      variable = _helper.createVariableDeclarationForValue(receiver);
-      receiverValue = _helper.createVariableGet(variable, fileOffset,
-          forNullGuardedAccess: true);
-    } else {
-      receiverValue = receiver;
-    }
-
-    Expression result = new IfNullIndexSet(receiverValue, index, value,
+    return new IfNullIndexSet(receiver, index, value,
         readOffset: fileOffset,
         testOffset: offset,
         writeOffset: fileOffset,
-        forEffect: voidContext)
+        forEffect: voidContext,
+        isNullAware: isNullAware)
       ..fileOffset = offset;
-    if (isNullAware) {
-      result = new NullAwareMethodInvocation(variable!, result)
-        ..fileOffset = fileOffset;
-    }
-    return result;
   }
 
   @override
@@ -1011,28 +1000,14 @@ class IndexedAccessGenerator extends Generator {
       bool voidContext = false,
       bool isPreIncDec = false,
       bool isPostIncDec = false}) {
-    VariableDeclarationImpl? variable;
-    Expression receiverValue;
-    if (isNullAware) {
-      variable = _helper.createVariableDeclarationForValue(receiver);
-      receiverValue = _helper.createVariableGet(variable, fileOffset,
-          forNullGuardedAccess: true);
-    } else {
-      receiverValue = receiver;
-    }
-
-    Expression result = new CompoundIndexSet(
-        receiverValue, index, binaryOperator, value,
+    return new CompoundIndexSet(receiver, index, binaryOperator, value,
         readOffset: fileOffset,
         binaryOffset: offset,
         writeOffset: fileOffset,
         forEffect: voidContext,
-        forPostIncDec: isPostIncDec);
-    if (isNullAware) {
-      result = new NullAwareMethodInvocation(variable!, result)
-        ..fileOffset = fileOffset;
-    }
-    return result;
+        forPostIncDec: isPostIncDec,
+        isNullAware: isNullAware)
+      ..fileOffset = offset;
   }
 
   @override
@@ -1127,7 +1102,8 @@ class ThisIndexedAccessGenerator extends Generator {
         readOffset: fileOffset,
         testOffset: offset,
         writeOffset: fileOffset,
-        forEffect: voidContext)
+        forEffect: voidContext,
+        isNullAware: isNullAware)
       ..fileOffset = offset;
   }
 
@@ -1143,7 +1119,9 @@ class ThisIndexedAccessGenerator extends Generator {
         binaryOffset: offset,
         writeOffset: fileOffset,
         forEffect: voidContext,
-        forPostIncDec: isPostIncDec);
+        forPostIncDec: isPostIncDec,
+        isNullAware: isNullAware)
+      ..fileOffset = offset;
   }
 
   @override
@@ -2077,7 +2055,8 @@ class ExplicitExtensionInstanceAccessGenerator extends Generator {
       return new IfNullPropertySet(receiver, targetName, value,
           forEffect: voidContext,
           readOffset: fileOffset,
-          writeOffset: fileOffset)
+          writeOffset: fileOffset,
+          isNullAware: false)
         ..fileOffset = offset;
     }
   }

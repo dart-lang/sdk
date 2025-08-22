@@ -25,7 +25,7 @@ class Test {
       t?. /*@target=Test.member*/
         member = /*@typeArgs=B*/ f();
 
-    t?. /*@target=Test.member*/ /*@target=Test.member*/ member ??= /*@typeArgs=B*/ f();
+    /*@type=Test*//*@target=Test.member*/t?. /*@target=Test.member*/  member ??= /*@typeArgs=B*/ f();
 
     t?. /*@target=Test.member*/ /*@target=Test.member*/ member /*@target=B.+*/ += /*@typeArgs=C*/ f();
 
@@ -42,8 +42,8 @@ class Test {
           t?. /*@target=Test.member*/
             member = /*@typeArgs=B*/ f();
 
-    var /*@type=B?*/ v2 = t
-        ?. /*@target=Test.member*/ /*@target=Test.member*/ member ??= /*@typeArgs=B*/ f();
+    var /*@type=B?*/ v2 = /*@type=Test*//*@target=Test.member*/t
+        ?. /*@target=Test.member*/  member ??= /*@typeArgs=B*/ f();
 
     var /*@type=B?*/ v3 = t
         ?. /*@target=Test.member*/ /*@target=Test.member*/ member /*@target=B.+*/ += /*@typeArgs=C*/ f();

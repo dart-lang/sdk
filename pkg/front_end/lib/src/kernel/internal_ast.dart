@@ -1253,10 +1253,14 @@ class IfNullPropertySet extends InternalExpression {
   /// The file offset for the write operation.
   final int writeOffset;
 
+  /// `true` if the access is null-aware, i.e. of the form `o?.a ??= b`.
+  final bool isNullAware;
+
   IfNullPropertySet(this.receiver, this.propertyName, this.rhs,
       {required this.forEffect,
       required this.readOffset,
-      required this.writeOffset}) {
+      required this.writeOffset,
+      required this.isNullAware}) {
     receiver.parent = this;
     rhs.parent = this;
   }
@@ -1276,6 +1280,9 @@ class IfNullPropertySet extends InternalExpression {
   // Coverage-ignore(suite): Not run.
   void toTextInternal(AstPrinter printer) {
     printer.writeExpression(receiver);
+    if (isNullAware) {
+      printer.write('?');
+    }
     printer.write('.');
     printer.writeName(propertyName);
     printer.write(' ??= ');
@@ -1857,11 +1864,15 @@ class IfNullIndexSet extends InternalExpression {
   /// If `true`, the expression is only need for effect and not for its value.
   final bool forEffect;
 
+  /// `true` if the access is null-aware, i.e. of the form `o?[a] ??= b`.
+  final bool isNullAware;
+
   IfNullIndexSet(this.receiver, this.index, this.value,
       {required this.readOffset,
       required this.testOffset,
       required this.writeOffset,
-      required this.forEffect}) {
+      required this.forEffect,
+      required this.isNullAware}) {
     receiver.parent = this;
     index.parent = this;
     value.parent = this;
@@ -2062,12 +2073,16 @@ class CompoundIndexSet extends InternalExpression {
   /// If `true`, the expression is a post-fix inc/dec expression.
   final bool forPostIncDec;
 
+  /// `true` if the access is null-aware, i.e. of the form `o?[a] += b`.
+  final bool isNullAware;
+
   CompoundIndexSet(this.receiver, this.index, this.binaryName, this.rhs,
       {required this.readOffset,
       required this.binaryOffset,
       required this.writeOffset,
       required this.forEffect,
-      required this.forPostIncDec}) {
+      required this.forPostIncDec,
+      required this.isNullAware}) {
     receiver.parent = this;
     index.parent = this;
     rhs.parent = this;
@@ -2089,6 +2104,9 @@ class CompoundIndexSet extends InternalExpression {
   // Coverage-ignore(suite): Not run.
   void toTextInternal(AstPrinter printer) {
     printer.writeExpression(receiver);
+    if (isNullAware) {
+      printer.write('?');
+    }
     printer.write('[');
     printer.writeExpression(index);
     printer.write(']');
@@ -2215,81 +2233,6 @@ class NullAwareCompoundSet extends InternalExpression {
       printer.write('= ');
       printer.writeExpression(rhs);
     }
-  }
-}
-
-/// Internal expression representing an null-aware if-null property set.
-///
-/// A null-aware if-null property set of the form
-///
-///    receiver?.name ??= value
-///
-/// is, if used for value, encoded as the expression:
-///
-///     let receiverVariable = receiver in
-///       receiverVariable == null ? null :
-///         (let readVariable = receiverVariable.name in
-///           readVariable == null ?
-///             receiverVariable.name = value : readVariable)
-///
-/// and, if used for effect, encoded as the expression:
-///
-///     let receiverVariable = receiver in
-///       receiverVariable == null ? null :
-///         (receiverVariable.name == null ?
-///           receiverVariable.name = value : null)
-///
-///
-class NullAwareIfNullSet extends InternalExpression {
-  /// The synthetic variable whose initializer hold the receiver.
-  Expression receiver;
-
-  /// The expression that reads the property from [variable].
-  Name name;
-
-  /// The expression that writes the value to the property on [variable].
-  Expression value;
-
-  /// The file offset for the read operation.
-  final int readOffset;
-
-  /// The file offset for the write operation.
-  final int writeOffset;
-
-  /// The file offset for the == operation.
-  final int testOffset;
-
-  /// If `true`, the expression is only need for effect and not for its value.
-  final bool forEffect;
-
-  NullAwareIfNullSet(this.receiver, this.name, this.value,
-      {required this.readOffset,
-      required this.writeOffset,
-      required this.testOffset,
-      required this.forEffect}) {
-    receiver.parent = this;
-    value.parent = this;
-  }
-
-  @override
-  ExpressionInferenceResult acceptInference(
-      InferenceVisitorImpl visitor, DartType typeContext) {
-    return visitor.visitNullAwareIfNullSet(this, typeContext);
-  }
-
-  @override
-  String toString() {
-    return "NullAwareIfNullSet(${toStringInternal()})";
-  }
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  void toTextInternal(AstPrinter printer) {
-    printer.writeExpression(receiver);
-    printer.write('?.');
-    printer.writeName(name);
-    printer.write(' ??= ');
-    printer.writeExpression(value);
   }
 }
 
