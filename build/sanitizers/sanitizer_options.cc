@@ -8,7 +8,7 @@
 // Functions returning default options are declared weak in the tools' runtime
 // libraries. To make the linker pick the strong replacements for those
 // functions from this module, we explicitly force its inclusion by passing
-// -Wl,-u_sanitizer_options_link_helper
+// -Wl,-u,_sanitizer_options_link_helper
 extern "C" void _sanitizer_options_link_helper() {}
 
 // The callbacks we define here will be called from the sanitizer runtime, but

@@ -5,7 +5,6 @@
 import 'dart:async';
 
 import 'package:analysis_server/protocol/protocol_generated.dart';
-import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/plugin/plugin_manager.dart';
 import 'package:analysis_server/src/services/correction/fix_internal.dart';
 import 'package:analyzer/file_system/file_system.dart';
@@ -97,7 +96,6 @@ void f() {
   }
 
   Future<void> test_fromPlugins() async {
-    if (!AnalysisServer.supportsPlugins) return;
     PluginInfo info = PluginInfo(
       'a',
       'b',

@@ -7,6 +7,8 @@ import 'dart:convert';
 import 'dart:io' as io;
 import 'dart:math' show max, min;
 
+import 'package:_js_interop_checks/src/js_interop.dart'
+    show hasDartJSInteropAnnotation;
 import 'package:_js_interop_checks/src/transformations/js_util_optimizer.dart'
     show ExtensionIndex;
 import 'package:front_end/src/api_unstable/ddc.dart';
@@ -6935,14 +6937,10 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
       // JS interop checks assert that only external extension type constructors
       // and factories have named parameters.
       assert(target.function.positionalParameters.isEmpty);
-      return _emitObjectLiteral(
-        Arguments(
-          node.arguments.positional,
-          types: node.arguments.types,
-          named: node.arguments.named,
-        ),
-        target,
-      );
+      var namedProperties = {
+        for (final named in node.arguments.named) named.name: named.value,
+      };
+      return _emitObjectLiteral(namedProperties, isDartJsInterop: true);
     }
     if (target == _coreTypes.identicalProcedure) {
       return _emitCoreIdenticalCall(node.arguments.positional);
@@ -7110,10 +7108,10 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     return _emitTopLevelName(target);
   }
 
-  /// Returns all parts of [arguments] flattened into a list so they can be
-  /// passed in the calling convention for calls with no runtime checks.
+  /// Returns all parts of [node] flattened into a list so they can be passed in
+  /// the calling convention for calls with no runtime checks.
   ///
-  /// When [types] is `false` any type arguments present in [arguments] will be
+  /// When [types] is `false` any type arguments present in [node] will be
   /// omitted.
   ///
   /// Passing [target] when applicable allows for detection of an annotation to
@@ -7140,8 +7138,8 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     ];
   }
 
-  /// Returns all [arguments] but kept in separate packets so they can be
-  /// further processed.
+  /// Returns all arguments from [node] but kept in separate packets so they can
+  /// be further processed.
   ///
   /// Facilitates passing arguments in the calling convention used by runtime
   /// helpers that check arguments.
@@ -7168,9 +7166,14 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
               else
                 _visitExpression(arg),
           ];
+    // Named arguments with JS interop are only allowed in object literal
+    // constructors. Invocations to those are always transformed by
+    // `_emitObjectLiteral` and therefore we should never expect to see a JS
+    // interop invocation with named arguments here.
+    if (node.named.isNotEmpty) assert(!isJSInterop);
     var namedArguments = node.named.isEmpty
         ? null
-        : [for (var arg in node.named) _emitNamedExpression(arg, isJSInterop)];
+        : [for (var arg in node.named) _emitNamedExpression(arg)];
 
     return (
       typeArguments: typeArguments,
@@ -7179,13 +7182,8 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     );
   }
 
-  js_ast.Property _emitNamedExpression(
-    NamedExpression arg, [
-    bool isJsInterop = false,
-  ]) {
-    var value = isJsInterop ? _assertInterop(arg.value) : arg.value;
-    return js_ast.Property(_propertyName(arg.name), _visitExpression(value));
-  }
+  js_ast.Property _emitNamedExpression(NamedExpression arg) =>
+      js_ast.Property(_propertyName(arg.name), _visitExpression(arg.value));
 
   /// Emits code for the `JS(...)` macro.
   js_ast.Node _emitInlineJSCode(StaticInvocation node) {
@@ -7411,7 +7409,15 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     var ctor = node.target;
     var ctorClass = ctor.enclosingClass;
     var args = node.arguments;
-    if (isJSAnonymousType(ctorClass)) return _emitObjectLiteral(args, ctor);
+    if (isJSAnonymousType(ctorClass)) {
+      var namedProperties = {
+        for (final named in node.arguments.named) named.name: named.value,
+      };
+      return _emitObjectLiteral(
+        namedProperties,
+        isDartJsInterop: hasDartJSInteropAnnotation(ctorClass),
+      );
+    }
     // JS interop constructor calls do not provide an RTI at the call site.
     var shouldProvideRti =
         !isJSInteropMember(ctor) && _requiresRtiForInstantiation(ctorClass);
@@ -7499,7 +7505,15 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
 
   js_ast.Expression _emitJSInteropNew(Member ctor, Arguments args) {
     var ctorClass = ctor.enclosingClass!;
-    if (isJSAnonymousType(ctorClass)) return _emitObjectLiteral(args, ctor);
+    if (isJSAnonymousType(ctorClass)) {
+      var namedProperties = {
+        for (final named in args.named) named.name: named.value,
+      };
+      return _emitObjectLiteral(
+        namedProperties,
+        isDartJsInterop: hasDartJSInteropAnnotation(ctorClass),
+      );
+    }
     // JS interop constructor calls do not require an RTI at the call site.
     return js_ast.New(
       _emitConstructorName(_coreTypes.nonNullableRawType(ctorClass), ctor),
@@ -7527,11 +7541,34 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     return InterfaceType(c, Nullability.nonNullable, typeArgs);
   }
 
-  js_ast.Expression _emitObjectLiteral(Arguments node, Member ctor) {
-    var args = _emitArgumentList(node, types: false, target: ctor);
-    if (args.isEmpty) return js.call('{}');
-    assert(args.single is js_ast.ObjectInitializer);
-    return args.single;
+  /// Given a mapping [namedProperties] between names and their associated
+  /// expressions, returns an object literal with the same names mapped to the
+  /// transformed expressions.
+  ///
+  /// This is used for object literal constructors in JS interop.
+  ///
+  /// If [isDartJsInterop] is true, it implies that this is an object literal
+  /// constructor using `dart:js_interop`. If false, this method wraps the
+  /// expressions with an [_assertInterop] call.
+  js_ast.Expression _emitObjectLiteral(
+    Map<String, Expression> namedProperties, {
+    required bool isDartJsInterop,
+  }) {
+    if (namedProperties.isEmpty) return js.call('{}');
+    var properties = <js_ast.Property>[];
+    for (var name in namedProperties.keys) {
+      // `assertInterop` is not needed for `dart:js_interop`. It statically
+      // disallows `Function`s from being passed unless they were explicitly
+      // passed as an opaque reference, in which case, we shouldn't require the
+      // user to wrap them anyways.
+      var value = isDartJsInterop
+          ? namedProperties[name]!
+          : _assertInterop(namedProperties[name]!);
+      properties.add(
+        js_ast.Property(_propertyName(name), _visitExpression(value)),
+      );
+    }
+    return js_ast.ObjectInitializer([...properties]);
   }
 
   @override

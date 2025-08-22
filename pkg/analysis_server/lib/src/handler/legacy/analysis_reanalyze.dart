@@ -5,7 +5,6 @@
 import 'dart:async';
 
 import 'package:analysis_server/protocol/protocol_generated.dart';
-import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/handler/legacy/legacy_handler.dart';
 
 /// The handler for the `analysis.reanalyze` request.
@@ -26,12 +25,8 @@ class AnalysisReanalyzeHandler extends LegacyHandler {
     sendResult(AnalysisReanalyzeResult());
 
     await server.reanalyze();
-    if (AnalysisServer.supportsPlugins) {
-      //
-      // Restart all of the plugins. This is an async operation that will happen
-      // in the background.
-      //
-      unawaited(server.pluginManager.restartPlugins());
-    }
+    // Restart all of the plugins. This is an async operation that will happen
+    // in the background.
+    unawaited(server.pluginManager.restartPlugins());
   }
 }
