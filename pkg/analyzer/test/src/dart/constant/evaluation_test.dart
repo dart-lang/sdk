@@ -6436,6 +6436,68 @@ A
 ''');
   }
 
+  test_dotShorthand_constructor_import_namedParameter() async {
+    newFile('$testPackageLibPath/a.dart', '''
+class C {
+  final int one;
+  const C({this.one = 1});
+}
+''');
+    await assertNoErrorsInCode('''
+import 'a.dart';
+const C c = .new();
+''');
+
+    var result = _topLevelVar('c');
+    assertDartObjectText(result, '''
+C
+  one: int 1
+  constructorInvocation
+    constructor: package:test/a.dart::@class::C::@constructor::new
+  variable: <testLibrary>::@topLevelVariable::c
+''');
+  }
+
+  test_dotShorthand_constructor_import_namedParameter_positional() async {
+    newFile('$testPackageLibPath/a.dart', '''
+class C {
+  final int one;
+  const C(int x, {this.one = 1});
+}
+''');
+    await assertNoErrorsInCode('''
+import 'a.dart';
+const C c = .new(1);
+''');
+
+    var result = _topLevelVar('c');
+    assertDartObjectText(result, '''
+C
+  one: int 1
+  constructorInvocation
+    constructor: package:test/a.dart::@class::C::@constructor::new
+    positionalArguments
+      0: int 1
+  variable: <testLibrary>::@topLevelVariable::c
+''');
+  }
+
+  test_dotShorthand_constructor_import_namedParameter_required() async {
+    newFile('$testPackageLibPath/a.dart', '''
+class C {
+  final int one;
+  const C({required this.one});
+}
+''');
+    await assertErrorsInCode(
+      '''
+import 'a.dart';
+const C c = .new();
+''',
+      [error(CompileTimeErrorCode.missingRequiredArgument, 30, 3)],
+    );
+  }
+
   test_dotShorthand_nonConstantArgument_issue60963() async {
     await assertErrorsInCode(
       '''

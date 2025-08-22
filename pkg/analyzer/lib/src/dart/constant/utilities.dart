@@ -27,6 +27,17 @@ class ConstantExpressionsDependenciesFinder extends RecursiveAstVisitor {
   }
 
   @override
+  void visitDotShorthandConstructorInvocation(
+    DotShorthandConstructorInvocation node,
+  ) {
+    if (node.isConst) {
+      _find(node);
+    } else {
+      super.visitDotShorthandConstructorInvocation(node);
+    }
+  }
+
+  @override
   void visitInstanceCreationExpression(InstanceCreationExpression node) {
     if (node.isConst) {
       _find(node);
@@ -220,6 +231,19 @@ class ReferenceFinder extends RecursiveAstVisitor<void> {
   /// given variable to other variables and to add those references to the given
   /// graph. The [_callback] will be invoked for every dependency found.
   ReferenceFinder(this._callback);
+
+  @override
+  void visitDotShorthandConstructorInvocation(
+    covariant DotShorthandConstructorInvocationImpl node,
+  ) {
+    if (node.isConst) {
+      var constructor = node.constructorName.element?.baseElement;
+      if (constructor is ConstructorElementImpl && constructor.isConst) {
+        _callback(constructor);
+      }
+    }
+    super.visitDotShorthandConstructorInvocation(node);
+  }
 
   @override
   void visitInstanceCreationExpression(
