@@ -1579,10 +1579,12 @@ declareClass(library, classIdentifier, classDeclaration) {
 ///
 /// Called from generated code.
 void deleteClassMembers(Object oldClass, Object newClass) {
-  for (var name in getOwnNamesAndSymbols(oldClass)) {
-    if (JS<Object?>('', '#.#', newClass, name) == null &&
-        !isStateBearingSymbol(name)) {
-      JS('', 'delete #.#', oldClass, name);
+  var oldClassNamesAndSymbols = getOwnNamesAndSymbols(oldClass);
+  var newClassNamesAndSymbols = getOwnNamesAndSymbols(newClass);
+  for (var property in oldClassNamesAndSymbols) {
+    if (JS<bool>('', '!#.includes(#)', newClassNamesAndSymbols, property) &&
+        !isStateBearingSymbol(property)) {
+      JS('', 'delete #.#', oldClass, property);
     }
   }
 }
