@@ -9,7 +9,7 @@ import 'package:_fe_analyzer_shared/src/messages/codes.dart'
 import 'package:_fe_analyzer_shared/src/messages/diagnostic_message.dart'
     show CfeDiagnosticMessage, DiagnosticMessageHandler;
 import 'package:front_end/src/api_unstable/ddc.dart';
-import 'package:kernel/ast.dart' show Component, Library;
+import 'package:kernel/ast.dart' show Component, Library, TreeNode;
 import 'package:kernel/dart_scope_calculator.dart';
 
 import '../compiler/js_names.dart' as js_ast;
@@ -105,6 +105,7 @@ class ExpressionCompiler {
         scriptUri == null ? null : Uri.parse(scriptUri),
         line,
         column,
+        jsScope,
       );
       if (dartScope == null) {
         _log('Scope not found at $libraryUri:$line:$column');
@@ -323,6 +324,7 @@ class ExpressionCompiler {
     Uri? scriptFileUri,
     int line,
     int column,
+    Map<String, String> jsScope,
   ) {
     if (line < 0) {
       onDiagnostic(
@@ -349,48 +351,65 @@ class ExpressionCompiler {
       return null;
     }
 
-    // TODO(jensj): Eventually make the scriptUri required and always use this,
-    // but for now use the old mechanism when no script is provided.
+    // TODO(jensj): Eventually make the scriptUri required.
     if (scriptFileUri != null) {
-      final offset = _component.getOffset(library.fileUri, line, column);
-      final scope2 = DartScopeBuilder2.findScopeFromOffset(
+      final offset = _component.getOffset(scriptFileUri, line, column);
+      final scope = DartScopeBuilder2.findScopeFromOffset(
         library,
         scriptFileUri,
         offset,
       );
-      return scope2;
+      return scope;
     }
 
-    var scope = DartScopeBuilder.findScope(_component, library, line, column);
-    if (scope == null) {
-      // Fallback mechanism to allow a evaluation of an expression at the
-      // library level within the Dart SDK.
-      //
-      // Currently we lack the full dill and metadata for the Dart SDK module to
-      // be able to use the same mechanism of expression evaluation as the rest
-      // of a program. Because of that, expression evaluation at arbitrary
-      // scopes is not supported in the Dart SDK. However, we can still support
-      // compiling expressions that will be evaluated at the library level. We
-      // determine if that's the case by recognizing that all such requests use
-      // line 1 and column 1.
-      if (line <= 1 && column <= 1 && library.importUri.isScheme('dart')) {
-        _log('Fallback: use library scope for the Dart SDK');
-        scope = DartScope(library, null, null, {}, []);
-      } else {
-        onDiagnostic(
-          _createInternalError(
-            libraryUri,
-            line,
-            column,
-            'Dart scope not found for location',
-          ),
+    // No scriptUri provided. Find - and try - all of the possible ones.
+    final fileUris = [library.fileUri];
+    for (final part in library.parts) {
+      try {
+        final partUriIsh = library.fileUri.resolve(part.partUri);
+        if (partUriIsh.isScheme('package')) {
+          for (final source in _component.uriToSource.values) {
+            if (source.importUri == partUriIsh && source.importUri != null) {
+              fileUris.add(source.importUri!);
+              break;
+            }
+          }
+        } else {
+          fileUris.add(partUriIsh);
+        }
+      } catch (e) {
+        // Bad url.
+        _log(
+          "Got exception '$e' when resolving ${part.partUri} "
+          'against ${library.fileUri}',
         );
-        return null;
       }
     }
 
-    _log('Detected expression compilation scope');
-    return scope;
+    final foundScopes = <DartScope>[];
+    for (final fileUri in fileUris) {
+      final offset = _component.getOffset(fileUri, line, column);
+      foundScopes.add(
+        DartScopeBuilder2.findScopeFromOffset(library, fileUri, offset),
+      );
+    }
+    if (foundScopes.length == 1) {
+      return foundScopes[0];
+    }
+
+    // Pick the "best" (most likely) scope based on content compare to js.
+    final jsKeys = jsScope.keys.toSet();
+    var bestIntersectionCount = -1;
+    var bestScope = foundScopes[0];
+    for (final scope in foundScopes) {
+      final intersection = jsKeys.intersection(scope.variables.keys.toSet());
+      if (intersection.length > bestIntersectionCount) {
+        bestIntersectionCount = intersection.length;
+        bestScope = scope;
+      }
+    }
+
+    return bestScope;
   }
 
   Library? _getLibrary(Uri libraryUri) {
@@ -418,6 +437,8 @@ class ExpressionCompiler {
       methodName: methodName,
       className: scope.cls?.name,
       isStatic: scope.isStatic,
+      offset: scope.offset ?? TreeNode.noOffset,
+      scriptUri: scope.fileUri?.toString(),
     );
 
     _log('Compiled expression to kernel');

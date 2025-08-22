@@ -80,40 +80,41 @@ class ScopeDataExtractor extends DdcDataExtractor<Features> {
     if (node is StaticGet && node.target.name.text == 'x') {
       var location = node.location;
       if (location != null) {
-        var scope = DartScopeBuilder.findScope(
-          component,
-          library,
+        final offset = component.getOffset(
+          library.fileUri,
           location.line,
           location.column,
         );
-        if (scope != null) {
-          var features = Features();
-          if (scope.cls != null) {
-            features[Tags.cls] = scope.cls!.name;
-          }
-          if (scope.member != null) {
-            features[Tags.member] = scope.member!.name.text;
-          }
-          if (scope.isStatic) {
-            features.add(Tags.isStatic);
-          }
-          for (var typeParameter in scope.typeParameters) {
-            var printer = AstPrinter(
-              const AstTextStrategy(
-                useQualifiedTypeParameterNames: true,
-                useQualifiedTypeParameterNamesRecurseOnNamedLocalFunctions:
-                    true,
-                includeLibraryNamesInTypes: false,
-              ),
-            );
-            printer.writeTypeParameterName(typeParameter);
-            features.addElement(Tags.typeParameter, printer.getText());
-          }
-          for (var variable in scope.variables.keys) {
-            features.addElement(Tags.variables, variable);
-          }
-          return features;
+        var scope = DartScopeBuilder2.findScopeFromOffset(
+          library,
+          library.fileUri,
+          offset,
+        );
+        var features = Features();
+        if (scope.cls != null) {
+          features[Tags.cls] = scope.cls!.name;
         }
+        if (scope.member != null) {
+          features[Tags.member] = scope.member!.name.text;
+        }
+        if (scope.isStatic) {
+          features.add(Tags.isStatic);
+        }
+        for (var typeParameter in scope.typeParameters) {
+          var printer = AstPrinter(
+            const AstTextStrategy(
+              useQualifiedTypeParameterNames: true,
+              useQualifiedTypeParameterNamesRecurseOnNamedLocalFunctions: true,
+              includeLibraryNamesInTypes: false,
+            ),
+          );
+          printer.writeTypeParameterName(typeParameter);
+          features.addElement(Tags.typeParameter, printer.getText());
+        }
+        for (var variable in scope.variables.keys) {
+          features.addElement(Tags.variables, variable);
+        }
+        return features;
       }
     }
     return super.computeNodeValue(id, node);
