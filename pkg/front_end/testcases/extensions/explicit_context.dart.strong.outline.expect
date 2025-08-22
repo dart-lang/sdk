@@ -1,0 +1,26 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+extension E<T extends core::Object? = dynamic> on core::Set<T%> {
+  get property = self::E|get#property;
+  set property = self::E|set#property;
+  method method = self::E|method;
+  method tearoff method = self::E|get#method;
+  operator [] = self::E|[];
+  operator []= = self::E|[]=;
+}
+static extension-member method E|get#property<T extends core::Object? = dynamic>(lowered final core::Set<self::E|get#property::T%> #this) → core::int
+  ;
+static extension-member method E|set#property<T extends core::Object? = dynamic>(lowered final core::Set<self::E|set#property::T%> #this, core::int value) → void
+  ;
+static extension-member method E|method<T extends core::Object? = dynamic>(lowered final core::Set<self::E|method::T%> #this) → core::int
+  ;
+static extension-member method E|get#method<T extends core::Object? = dynamic>(lowered final core::Set<self::E|get#method::T%> #this) → () → core::int
+  return () → core::int => self::E|method<self::E|get#method::T%>(#this);
+static extension-member method E|[]<T extends core::Object? = dynamic>(lowered final core::Set<self::E|[]::T%> #this, core::int index) → core::int
+  ;
+static extension-member method E|[]=<T extends core::Object? = dynamic>(lowered final core::Set<self::E|[]=::T%> #this, core::int index, core::int value) → void
+  ;
+static method main() → dynamic
+  ;

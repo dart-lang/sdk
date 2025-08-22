@@ -1137,6 +1137,10 @@ class BodyBuilder extends StackListenerImpl
     } else {
       Expression value = toValue(node);
       if (!forest.isThrow(node)) {
+        // TODO(johnniwinther): Derive the message position from the [node]
+        // and not the [value].  For instance this occurs for `super()?.foo()`
+        // in an initializer list, pointing to `foo` as expecting an
+        // initializer.
         value = wrapInProblem(
             value, cfe.codeExpectedAnInitializer, value.fileOffset, noLength);
       }
@@ -1161,13 +1165,11 @@ class BodyBuilder extends StackListenerImpl
         if (formal.isNamed) {
           (superParametersAsArguments ??= <Object>[]).add(new NamedExpression(
               formal.name,
-              createVariableGet(formal.variable!, formal.fileOffset,
-                  forNullGuardedAccess: false))
+              createVariableGet(formal.variable!, formal.fileOffset))
             ..fileOffset = formal.fileOffset);
         } else {
-          (superParametersAsArguments ??= <Object>[]).add(createVariableGet(
-              formal.variable!, formal.fileOffset,
-              forNullGuardedAccess: false));
+          (superParametersAsArguments ??= <Object>[])
+              .add(createVariableGet(formal.variable!, formal.fileOffset));
         }
       }
     }
@@ -1853,8 +1855,7 @@ class BodyBuilder extends StackListenerImpl
           if (formal.isNamed) {
             NamedExpression superParameterAsArgument = new NamedExpression(
                 formal.name,
-                createVariableGet(formal.variable!, formal.fileOffset,
-                    forNullGuardedAccess: false))
+                createVariableGet(formal.variable!, formal.fileOffset))
               ..fileOffset = formal.fileOffset;
             (namedSuperParametersAsArguments ??= <NamedExpression>[])
                 .add(superParameterAsArgument);
@@ -1862,9 +1863,8 @@ class BodyBuilder extends StackListenerImpl
             (superParametersAsArguments ??= <Object>[])
                 .add(superParameterAsArgument);
           } else {
-            Expression superParameterAsArgument = createVariableGet(
-                formal.variable!, formal.fileOffset,
-                forNullGuardedAccess: false);
+            Expression superParameterAsArgument =
+                createVariableGet(formal.variable!, formal.fileOffset);
             (positionalSuperParametersAsArguments ??= <Expression>[])
                 .add(superParameterAsArgument);
             (superParametersAsArguments ??= <Object>[])
@@ -1929,11 +1929,9 @@ class BodyBuilder extends StackListenerImpl
         if (_context.isEnumClass && libraryFeatures.enhancedEnums.isEnabled) {
           ArgumentsImpl arguments = last.arguments as ArgumentsImpl;
           List<Expression> enumSyntheticArguments = [
-            new VariableGetImpl(function.positionalParameters[0],
-                forNullGuardedAccess: false)
+            new VariableGet(function.positionalParameters[0])
               ..parent = last.arguments,
-            new VariableGetImpl(function.positionalParameters[1],
-                forNullGuardedAccess: false)
+            new VariableGet(function.positionalParameters[1])
               ..parent = last.arguments
           ];
           arguments.positional.insertAll(0, enumSyntheticArguments);
@@ -1981,10 +1979,8 @@ class BodyBuilder extends StackListenerImpl
             function.positionalParameters[0].name == "#index" &&
             function.positionalParameters[1].name == "#name");
         (positionalArguments ??= <Expression>[]).insertAll(0, [
-          new VariableGetImpl(function.positionalParameters[0],
-              forNullGuardedAccess: false),
-          new VariableGetImpl(function.positionalParameters[1],
-              forNullGuardedAccess: false)
+          new VariableGet(function.positionalParameters[0]),
+          new VariableGet(function.positionalParameters[1])
         ]);
       }
 
@@ -3227,15 +3223,12 @@ class BodyBuilder extends StackListenerImpl
   /// Helper method to create a [VariableGet] of the [variable] using
   /// [charOffset] as the file offset.
   @override
-  VariableGet createVariableGet(VariableDeclaration variable, int charOffset,
-      {bool forNullGuardedAccess = false}) {
+  VariableGet createVariableGet(VariableDeclaration variable, int charOffset) {
     if (!(variable as VariableDeclarationImpl).isLocalFunction &&
         !variable.isWildcard) {
       typeInferrer.assignedVariables.read(variable);
     }
-    return new VariableGetImpl(variable,
-        forNullGuardedAccess: forNullGuardedAccess)
-      ..fileOffset = charOffset;
+    return new VariableGet(variable)..fileOffset = charOffset;
   }
 
   /// Helper method to create a [ReadOnlyAccessGenerator] on the [variable]
@@ -3433,7 +3426,7 @@ class BodyBuilder extends StackListenerImpl
                 this,
                 nameToken,
                 extensionBuilder.extension,
-                name,
+                memberName,
                 thisVariable!,
                 thisTypeParameters,
                 getable as MemberBuilder?,
@@ -3516,7 +3509,7 @@ class BodyBuilder extends StackListenerImpl
                 this,
                 nameToken,
                 extensionBuilder.extension,
-                name,
+                memberName,
                 thisVariable!,
                 thisTypeParameters,
                 getable as MemberBuilder?,
@@ -6249,59 +6242,28 @@ class BodyBuilder extends StackListenerImpl
   }
 
   @override
-  Expression buildExtensionMethodInvocation(
-      int fileOffset, Procedure target, Arguments arguments,
-      {required bool isTearOff}) {
-    List<TypeParameter> typeParameters = target.function.typeParameters;
-    LocatedMessage? argMessage = checkArgumentsForFunction(
-        target.function, arguments, fileOffset, typeParameters,
-        isExtensionMemberInvocation: true);
-    if (argMessage != null) {
-      return buildUnresolvedError(target.name.text, fileOffset,
-          arguments: arguments,
-          candidate: target,
-          message: argMessage,
-          kind: UnresolvedKind.Method);
-    }
-
-    Expression node;
-    if (isTearOff) {
-      node = new ExtensionTearOff(target, arguments);
-    } else {
-      node = new StaticInvocation(target, arguments);
-    }
-    node.fileOffset = fileOffset;
-    return node;
-  }
-
-  @override
   LocatedMessage? checkArgumentsForFunction(FunctionNode function,
       Arguments arguments, int offset, List<TypeParameter> typeParameters,
-      {bool isExtensionMemberInvocation = false}) {
-    int requiredPositionalParameterCountToReport =
-        function.requiredParameterCount;
-    int positionalParameterCountToReport = function.positionalParameters.length;
-    int positionalArgumentCountToReport =
-        forest.argumentsPositional(arguments).length;
-    if (isExtensionMemberInvocation) {
+      {Extension? extension}) {
+    int typeParameterCount = typeParameters.length;
+    int requiredParameterCount = function.requiredParameterCount;
+    int positionalParameterCount = function.positionalParameters.length;
+    int positionalArgumentsCount = arguments.positional.length;
+    if (extension != null) {
       // Extension member invocations have additional synthetic parameter for
       // `this`.
-      --requiredPositionalParameterCountToReport;
-      --positionalParameterCountToReport;
-      --positionalArgumentCountToReport;
+      --requiredParameterCount;
+      --positionalParameterCount;
+      typeParameterCount -= extension.typeParameters.length;
     }
-    if (forest.argumentsPositional(arguments).length <
-        function.requiredParameterCount) {
+    if (positionalArgumentsCount < requiredParameterCount) {
       return cfe.codeTooFewArguments
-          .withArguments(requiredPositionalParameterCountToReport,
-              positionalArgumentCountToReport)
+          .withArguments(requiredParameterCount, positionalArgumentsCount)
           .withLocation(uri, arguments.fileOffset, noLength);
     }
-    if (forest.argumentsPositional(arguments).length >
-        function.positionalParameters.length) {
+    if (positionalArgumentsCount > positionalParameterCount) {
       return cfe.codeTooManyArguments
-          .withArguments(
-              positionalParameterCountToReport, positionalArgumentCountToReport)
+          .withArguments(positionalParameterCount, positionalArgumentsCount)
           .withLocation(uri, arguments.fileOffset, noLength);
     }
     List<NamedExpression> named = forest.argumentsNamed(arguments);
@@ -6329,8 +6291,8 @@ class BodyBuilder extends StackListenerImpl
       }
     }
 
-    List<DartType> types = forest.argumentsTypeArguments(arguments);
-    if (typeParameters.length != types.length) {
+    List<DartType> types = arguments.types;
+    if (typeParameterCount != types.length) {
       if (types.length == 0) {
         // Expected `typeParameters.length` type arguments, but none given, so
         // we use type inference.
@@ -6338,7 +6300,7 @@ class BodyBuilder extends StackListenerImpl
         // A wrong (non-zero) amount of type arguments given. That's an error.
         // TODO(jensj): Position should be on type arguments instead.
         return cfe.codeTypeArgumentMismatch
-            .withArguments(typeParameters.length)
+            .withArguments(typeParameterCount)
             .withLocation(uri, offset, noLength);
       }
     }
@@ -7808,8 +7770,7 @@ class BodyBuilder extends StackListenerImpl
         ///       body;
         ///     }
         elements.syntheticAssignment = lvalue.buildAssignment(
-            new VariableGetImpl(variable, forNullGuardedAccess: false)
-              ..fileOffset = inToken.offset,
+            new VariableGet(variable)..fileOffset = inToken.offset,
             voidContext: true);
       } else if (lvalue is Pattern) {
         /// We are in the case where `lvalue` is a pattern:
@@ -7824,9 +7785,7 @@ class BodyBuilder extends StackListenerImpl
         ///     }
         elements.syntheticAssignment = null;
         elements.expressionEffects = forest.createPatternVariableDeclaration(
-            inToken.offset,
-            lvalue,
-            new VariableGetImpl(variable, forNullGuardedAccess: false),
+            inToken.offset, lvalue, new VariableGet(variable),
             isFinal: false);
       } else if (lvalue is InvalidExpression) {
         // Coverage-ignore-block(suite): Not run.

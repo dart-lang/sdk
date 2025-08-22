@@ -57,8 +57,8 @@ static method test(self::Class? c) → dynamic {
   self::throwsInStrong(() → void => invalid-expression "pkg/front_end/testcases/nnbd/shorting_stop.dart:18:33: Error: Operator '+' cannot be called on 'int?' because it is potentially null.
   throwsInStrong(() => c?.field + 2); // error
                                 ^" in (let final self::Class? #t2 = c in #t2 == null ?{core::int?} null : #t2{self::Class}.{self::Class::field}{core::int}).{core::num::+}(2){(core::num) → core::num});
-  let final self::Class? #t3 = c in #t3 == null ?{core::int?} null : let final core::int #t4 = #t3.{self::Class::field}{core::int}.{core::num::+}(1){(core::num) → core::int} in let final void #t5 = #t3.{self::Class::field} = #t4 in #t4;
-  let final self::Class? #t6 = c in #t6 == null ?{core::int?} null : #t6.{self::Class::field} = #t6.{self::Class::field}{core::int}.{core::num::+}(1){(core::num) → core::int};
+  let final self::Class? #t3 = c in #t3 == null ?{core::int?} null : let final core::int #t4 = #t3{self::Class}.{self::Class::field}{core::int}.{core::num::+}(1){(core::num) → core::int} in let final void #t5 = #t3{self::Class}.{self::Class::field} = #t4 in #t4;
+  let final self::Class? #t6 = c in #t6 == null ?{core::int?} null : #t6{self::Class}.{self::Class::field} = #t6{self::Class}.{self::Class::field}{core::int}.{core::num::+}(1){(core::num) → core::int};
   self::throwsInStrong(() → void => invalid-expression "pkg/front_end/testcases/nnbd/shorting_stop.dart:21:34: Error: Property 'field' cannot be accessed on 'Class?' because it is potentially null.
  - 'Class' is from 'pkg/front_end/testcases/nnbd/shorting_stop.dart'.
 Try accessing using ?. instead.

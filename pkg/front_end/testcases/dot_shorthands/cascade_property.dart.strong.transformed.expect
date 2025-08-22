@@ -33,7 +33,7 @@ constants  {
 }
 
 Extra constant evaluation status:
-Evaluated: VariableGetImpl @ org-dartlang-testcase:///cascade_property.dart:8:17 -> InstanceConstant(const Color{_Enum.index: 1, _Enum._name: "blue"})
+Evaluated: VariableGet @ org-dartlang-testcase:///cascade_property.dart:8:17 -> InstanceConstant(const Color{_Enum.index: 1, _Enum._name: "blue"})
 Evaluated: VariableGet @ org-dartlang-testcase:///cascade_property.dart:8:17 -> InstanceConstant(const Color{_Enum.index: 1, _Enum._name: "blue"})
 Extra constant evaluation: evaluated: 10, effectively constant: 2
 

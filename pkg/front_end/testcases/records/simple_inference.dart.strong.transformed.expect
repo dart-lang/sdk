@@ -52,7 +52,7 @@ static method main() → dynamic {}
 
 Extra constant evaluation status:
 Evaluated: RecordLiteral @ org-dartlang-testcase:///simple_inference.dart:14:18 -> RecordConstant(const (3, 3.5))
-Evaluated: VariableGetImpl @ org-dartlang-testcase:///simple_inference.dart:14:18 -> RecordConstant(const (3, 3.5))
+Evaluated: VariableGet @ org-dartlang-testcase:///simple_inference.dart:14:18 -> RecordConstant(const (3, 3.5))
 Evaluated: VariableGet @ org-dartlang-testcase:///simple_inference.dart:14:18 -> RecordConstant(const (3, 3.5))
 Evaluated: RecordLiteral @ org-dartlang-testcase:///simple_inference.dart:18:18 -> RecordConstant(const (3, 3.5))
 Extra constant evaluation: evaluated: 27, effectively constant: 4

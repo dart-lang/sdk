@@ -97,7 +97,7 @@ constants  {
 }
 
 Extra constant evaluation status:
-Evaluated: VariableGetImpl @ org-dartlang-testcase:///expressions.dart:72:9 -> TypeLiteralConstant(int)
+Evaluated: VariableGet @ org-dartlang-testcase:///expressions.dart:72:9 -> TypeLiteralConstant(int)
 Evaluated: VariableGet @ org-dartlang-testcase:///expressions.dart:72:9 -> TypeLiteralConstant(int)
 Extra constant evaluation: evaluated: 132, effectively constant: 2
 

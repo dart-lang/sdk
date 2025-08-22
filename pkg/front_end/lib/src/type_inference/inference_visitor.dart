@@ -1175,42 +1175,132 @@ class InferenceVisitorImpl extends InferenceVisitorBase
 
   ExpressionInferenceResult visitExtensionTearOff(
       ExtensionTearOff node, DartType typeContext) {
-    FunctionType calleeType =
-        node.target.function.computeFunctionType(Nullability.nonNullable);
-    TypeArgumentsInfo typeArgumentsInfo = getTypeArgumentsInfo(node.arguments);
-    InvocationInferenceResult result = inferInvocation(
-        this,
-        typeContext,
-        node.fileOffset,
-        new InvocationTargetFunctionType(calleeType),
-        node.arguments as ArgumentsImpl,
-        staticTarget: node.target);
-    StaticInvocation replacement =
-        new StaticInvocation(node.target, node.arguments);
+    DartType receiverContextType = computeExplicitExtensionReceiverContextType(
+        node.extension, node.knownTypeArguments);
+
+    ExpressionInferenceResult receiverResult = inferExpression(
+        node.receiver, receiverContextType,
+        isVoidAllowed: false);
+
+    Expression receiver = receiverResult.expression;
+    DartType receiverType = receiverResult.inferredType;
+
+    if (node.isNullAware) {
+      DartType nonNullReceiverType = receiverType.toNonNull();
+      receiver =
+          _createNonNullReceiver(receiver, receiverType, nonNullReceiverType);
+      receiverType = nonNullReceiverType;
+    }
+
+    List<DartType> extensionTypeArguments = computeExtensionTypeArgument(
+        node.extension, node.knownTypeArguments, receiverType,
+        treeNodeForTesting: node);
+    DartType extensionOnType =
+        getExtensionReceiverType(node.extension, extensionTypeArguments);
+    ObjectAccessTarget target = new ExtensionAccessTarget(extensionOnType,
+        node.tearOff, null, ClassMemberKind.Method, extensionTypeArguments);
+
+    receiver = ensureAssignable(extensionOnType, receiverType, receiver);
+    receiverType = extensionOnType;
+
+    StaticInvocation replacement = createStaticInvocation(
+        node.tearOff,
+        new Arguments([receiver], types: extensionTypeArguments)
+          ..fileOffset = node.fileOffset,
+        fileOffset: node.fileOffset);
+
     libraryBuilder.checkBoundsInStaticInvocation(
-        replacement, typeSchemaEnvironment, helper.uri, typeArgumentsInfo);
+        replacement,
+        node.name,
+        typeSchemaEnvironment,
+        helper.uri,
+        node.knownTypeArguments != null
+            ? const NoneInferredTypeArgumentsInfo()
+            : const AllInferredTypeArgumentsInfo());
+
     return instantiateTearOff(
-        result.inferredType, typeContext, result.applyResult(replacement));
+        target.getReturnType(this), typeContext, replacement);
+  }
+
+  ExpressionInferenceResult visitExtensionGet(
+      ExtensionGet node, DartType typeContext) {
+    DartType receiverContextType = computeExplicitExtensionReceiverContextType(
+        node.extension, node.knownTypeArguments);
+
+    ExpressionInferenceResult receiverResult = inferExpression(
+        node.receiver, receiverContextType,
+        isVoidAllowed: false);
+
+    Expression receiver = receiverResult.expression;
+    DartType receiverType = receiverResult.inferredType;
+
+    if (node.isNullAware) {
+      DartType nonNullReceiverType = receiverType.toNonNull();
+      receiver =
+          _createNonNullReceiver(receiver, receiverType, nonNullReceiverType);
+      receiverType = nonNullReceiverType;
+    }
+
+    List<DartType> extensionTypeArguments = computeExtensionTypeArgument(
+        node.extension, node.knownTypeArguments, receiverType,
+        treeNodeForTesting: node);
+    DartType extensionOnType =
+        getExtensionReceiverType(node.extension, extensionTypeArguments);
+    ObjectAccessTarget target = new ExtensionAccessTarget(extensionOnType,
+        node.getter, null, ClassMemberKind.Getter, extensionTypeArguments);
+
+    receiver = ensureAssignable(extensionOnType, receiverType, receiver);
+    receiverType = extensionOnType;
+
+    DartType resultType = target.getGetterType(this);
+
+    StaticInvocation replacement = createStaticInvocation(
+        node.getter,
+        new Arguments([receiver], types: extensionTypeArguments)
+          ..fileOffset = node.fileOffset,
+        fileOffset: node.fileOffset);
+
+    libraryBuilder.checkBoundsInStaticInvocation(
+        replacement,
+        node.name,
+        typeSchemaEnvironment,
+        helper.uri,
+        node.knownTypeArguments != null
+            ? const NoneInferredTypeArgumentsInfo()
+            : const AllInferredTypeArgumentsInfo());
+
+    return new ExpressionInferenceResult(resultType, replacement);
   }
 
   ExpressionInferenceResult visitExtensionSet(
       ExtensionSet node, DartType typeContext) {
+    DartType receiverContextType = computeExplicitExtensionReceiverContextType(
+        node.extension, node.knownTypeArguments);
+
     ExpressionInferenceResult receiverResult = inferExpression(
-        node.receiver, const UnknownType(),
+        node.receiver, receiverContextType,
         isVoidAllowed: false);
 
+    Expression receiver = receiverResult.expression;
+    DartType receiverType = receiverResult.inferredType;
+
+    if (node.isNullAware) {
+      DartType nonNullReceiverType = receiverType.toNonNull();
+      receiver =
+          _createNonNullReceiver(receiver, receiverType, nonNullReceiverType);
+      receiverType = nonNullReceiverType;
+    }
+
     List<DartType> extensionTypeArguments = computeExtensionTypeArgument(
-        node.extension, node.explicitTypeArguments, receiverResult.inferredType,
+        node.extension, node.knownTypeArguments, receiverType,
         treeNodeForTesting: node);
-
-    DartType receiverType =
+    DartType extensionOnType =
         getExtensionReceiverType(node.extension, extensionTypeArguments);
+    ObjectAccessTarget target = new ExtensionAccessTarget(extensionOnType,
+        node.setter, null, ClassMemberKind.Setter, extensionTypeArguments);
 
-    Expression receiver =
-        ensureAssignableResult(receiverType, receiverResult).expression;
-
-    ObjectAccessTarget target = new ExtensionAccessTarget(receiverType,
-        node.target, null, ClassMemberKind.Setter, extensionTypeArguments);
+    receiver = ensureAssignable(extensionOnType, receiverType, receiver);
+    receiverType = extensionOnType;
 
     DartType valueType = target.getSetterType(this);
 
@@ -1234,12 +1324,21 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       receiverVariable = createVariable(receiver, receiverResult.inferredType);
       receiver = createVariableGet(receiverVariable);
     }
-    Expression assignment = new StaticInvocation(
-        node.target,
-        new Arguments(<Expression>[receiver, value],
-            types: extensionTypeArguments)
-          ..fileOffset = node.fileOffset)
-      ..fileOffset = node.fileOffset;
+
+    StaticInvocation assignment = createStaticInvocation(
+        node.setter,
+        new Arguments([receiver, value], types: extensionTypeArguments)
+          ..fileOffset = node.fileOffset,
+        fileOffset: node.fileOffset);
+
+    libraryBuilder.checkBoundsInStaticInvocation(
+        assignment,
+        node.name,
+        typeSchemaEnvironment,
+        helper.uri,
+        node.knownTypeArguments != null
+            ? const NoneInferredTypeArgumentsInfo()
+            : const AllInferredTypeArgumentsInfo());
 
     Expression replacement;
     if (node.forEffect) {
@@ -1260,27 +1359,38 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     return new ExpressionInferenceResult(valueResult.inferredType, replacement);
   }
 
-  ExpressionInferenceResult visitCompoundExtensionSet(
-      CompoundExtensionSet node, DartType typeContext) {
+  ExpressionInferenceResult visitExtensionPostIncDec(
+      ExtensionPostIncDec node, DartType typeContext) {
+    DartType receiverContextType = computeExplicitExtensionReceiverContextType(
+        node.extension, node.knownTypeArguments);
+
     ExpressionInferenceResult receiverResult = inferExpression(
-        node.receiver, const UnknownType(),
+        node.receiver, receiverContextType,
         isVoidAllowed: false);
 
-    List<DartType> extensionTypeArguments = computeExtensionTypeArgument(
-        node.extension, node.explicitTypeArguments, receiverResult.inferredType,
-        treeNodeForTesting: node);
+    Expression receiver = receiverResult.expression;
+    DartType receiverType = receiverResult.inferredType;
 
-    DartType receiverType =
+    if (node.isNullAware) {
+      DartType nonNullReceiverType = receiverType.toNonNull();
+      receiver =
+          _createNonNullReceiver(receiver, receiverType, nonNullReceiverType);
+      receiverType = nonNullReceiverType;
+    }
+
+    List<DartType> extensionTypeArguments = computeExtensionTypeArgument(
+        node.extension, node.knownTypeArguments, receiverType,
+        treeNodeForTesting: node);
+    DartType extensionOnType =
         getExtensionReceiverType(node.extension, extensionTypeArguments);
 
-    Expression receiver =
-        ensureAssignableResult(receiverType, receiverResult).expression;
+    receiver = ensureAssignable(extensionOnType, receiverType, receiver);
+    receiverType = extensionOnType;
 
     VariableDeclaration? receiverVariable;
     Expression readReceiver;
     Expression writeReceiver;
     if (isPureExpression(receiver)) {
-      // Coverage-ignore-block(suite): Not run.
       readReceiver = receiver;
       writeReceiver = clonePureExpression(receiver);
     } else {
@@ -1289,34 +1399,358 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       writeReceiver = createVariableGet(receiverVariable);
     }
 
-    ObjectAccessTarget readTarget = node.getter == null
-        ? const ObjectAccessTarget.missing()
-        : new ExtensionAccessTarget(receiverType, node.getter!, null,
-            ClassMemberKind.Getter, extensionTypeArguments);
+    ObjectAccessTarget readTarget = new ExtensionAccessTarget(extensionOnType,
+        node.getter, null, ClassMemberKind.Getter, extensionTypeArguments);
+    ObjectAccessTarget writeTarget = new ExtensionAccessTarget(extensionOnType,
+        node.setter, null, ClassMemberKind.Setter, extensionTypeArguments);
+
+    StaticInvocation read = createStaticInvocation(
+        node.getter,
+        new Arguments([readReceiver], types: extensionTypeArguments)
+          ..fileOffset = node.fileOffset,
+        fileOffset: node.fileOffset);
+
+    libraryBuilder.checkBoundsInStaticInvocation(
+        read,
+        node.name,
+        typeSchemaEnvironment,
+        helper.uri,
+        node.knownTypeArguments != null
+            ? const NoneInferredTypeArgumentsInfo()
+            : const AllInferredTypeArgumentsInfo());
+
+    Expression value = read;
+
+    DartType readType = readTarget.getGetterType(this);
+    DartType valueType = writeTarget.getSetterType(this);
+
+    VariableDeclaration? valueVariable;
+    if (node.forEffect) {
+      // No need for value variable.
+    } else {
+      valueVariable = createVariable(value, valueType);
+      value = createVariableGet(valueVariable);
+    }
+
+    ExpressionInferenceResult binaryResult = _computeBinaryExpression(
+        node.fileOffset,
+        valueType,
+        value,
+        readType,
+        node.isInc ? plusName : minusName,
+        createIntLiteral(coreTypes, 1, fileOffset: node.fileOffset),
+        null);
+
+    binaryResult =
+        ensureAssignableResult(valueType, binaryResult, isVoidAllowed: true);
+    Expression result = binaryResult.expression;
+
+    StaticInvocation write = createStaticInvocation(
+        node.setter,
+        new Arguments([writeReceiver, result], types: extensionTypeArguments)
+          ..fileOffset = node.fileOffset,
+        fileOffset: node.fileOffset);
+
+    Expression replacement;
+    if (node.forEffect) {
+      assert(valueVariable == null);
+      replacement = write;
+    } else {
+      assert(valueVariable != null);
+      VariableDeclaration writeVariable =
+          createVariable(write, const VoidType());
+      replacement = createLet(valueVariable!,
+          createLet(writeVariable, createVariableGet(valueVariable)));
+    }
+    if (receiverVariable != null) {
+      replacement = createLet(receiverVariable, replacement);
+    }
+    replacement.fileOffset = node.fileOffset;
+    return new ExpressionInferenceResult(valueType, replacement);
+  }
+
+  ExpressionInferenceResult visitExtensionGetterInvocation(
+      ExtensionGetterInvocation node, DartType typeContext) {
+    DartType receiverContextType = computeExplicitExtensionReceiverContextType(
+        node.extension, node.knownTypeArguments);
+
+    ExpressionInferenceResult receiverResult = inferExpression(
+        node.receiver, receiverContextType,
+        isVoidAllowed: false);
+
+    Expression receiver = receiverResult.expression;
+    DartType receiverType = receiverResult.inferredType;
+
+    if (node.isNullAware) {
+      DartType nonNullReceiverType = receiverType.toNonNull();
+      receiver =
+          _createNonNullReceiver(receiver, receiverType, nonNullReceiverType);
+      receiverType = nonNullReceiverType;
+    }
+
+    List<DartType> extensionTypeArguments = computeExtensionTypeArgument(
+        node.extension, node.knownTypeArguments, receiverType,
+        treeNodeForTesting: node);
+    DartType extensionOnType =
+        getExtensionReceiverType(node.extension, extensionTypeArguments);
+    ObjectAccessTarget target = new ExtensionAccessTarget(extensionOnType,
+        node.getter, null, ClassMemberKind.Getter, extensionTypeArguments);
+
+    receiver = ensureAssignable(extensionOnType, receiverType, receiver);
+    receiverType = extensionOnType;
+
+    DartType getterType = target.getGetterType(this);
+
+    StaticInvocation getterAccess = createStaticInvocation(
+        node.getter,
+        new Arguments([receiver], types: extensionTypeArguments)
+          ..fileOffset = node.fileOffset,
+        fileOffset: node.fileOffset);
+
+    return inferMethodInvocation(this, node.fileOffset, getterAccess,
+        getterType, callName, node.arguments, typeContext,
+        isExpressionInvocation: true, isImplicitCall: true);
+  }
+
+  ExpressionInferenceResult visitExtensionMethodInvocation(
+      ExtensionMethodInvocation node, DartType typeContext) {
+    DartType receiverContextType = computeExplicitExtensionReceiverContextType(
+        node.extension, node.knownTypeArguments);
+
+    ExpressionInferenceResult receiverResult = inferExpression(
+        node.receiver, receiverContextType,
+        isVoidAllowed: false);
+
+    Expression receiver = receiverResult.expression;
+    DartType receiverType = receiverResult.inferredType;
+
+    if (node.isNullAware) {
+      DartType nonNullReceiverType = receiverType.toNonNull();
+      receiver =
+          _createNonNullReceiver(receiver, receiverType, nonNullReceiverType);
+      receiverType = nonNullReceiverType;
+    }
+
+    List<DartType> extensionTypeArguments = computeExtensionTypeArgument(
+        node.extension, node.knownTypeArguments, receiverType,
+        treeNodeForTesting: node);
+    DartType extensionOnType =
+        getExtensionReceiverType(node.extension, extensionTypeArguments);
+    ObjectAccessTarget target = new ExtensionAccessTarget(extensionOnType,
+        node.method, null, ClassMemberKind.Method, extensionTypeArguments);
+
+    receiver = ensureAssignable(extensionOnType, receiverType, receiver);
+    receiverType = extensionOnType;
+
+    ArgumentsImpl extensionInvocationArguments =
+        createExtensionInvocationArgument(target, receiver, node.arguments);
+
+    InvocationTargetType invocationTargetType = target.getFunctionType(this);
+    TypeArgumentsInfo typeArgumentsInfo =
+        getTypeArgumentsInfo(extensionInvocationArguments);
+    InvocationInferenceResult result = inferInvocation(this, typeContext,
+        node.fileOffset, invocationTargetType, extensionInvocationArguments,
+        staticTarget: node.method,
+        receiverType: receiverType,
+        isExtensionMemberInvocation: true);
+
+    StaticInvocation replacement = createStaticInvocation(
+        node.method, extensionInvocationArguments,
+        fileOffset: node.fileOffset);
+
+    libraryBuilder.checkBoundsInStaticInvocation(replacement, node.name,
+        typeSchemaEnvironment, helper.uri, typeArgumentsInfo);
+
+    return new ExpressionInferenceResult(
+        result.inferredType, result.applyResult(replacement));
+  }
+
+  ExpressionInferenceResult visitExtensionIfNullSet(
+      ExtensionIfNullSet node, DartType typeContext) {
+    DartType receiverContextType = computeExplicitExtensionReceiverContextType(
+        node.extension, node.knownTypeArguments);
+
+    ExpressionInferenceResult receiverResult = inferExpression(
+        node.receiver, receiverContextType,
+        isVoidAllowed: false);
+
+    Expression receiver = receiverResult.expression;
+    DartType receiverType = receiverResult.inferredType;
+
+    VariableDeclaration? receiverVariable;
+    if (node.isNullAware) {
+      DartType nonNullReceiverType = receiverType.toNonNull();
+      receiverVariable = createVariable(receiver, receiverType);
+      createNullAwareGuard(receiverVariable);
+      receiverType = nonNullReceiverType;
+    } else if (!isPureExpression(receiver)) {
+      receiverVariable = createVariable(receiver, receiverType);
+    }
+
+    List<DartType> extensionTypeArguments = computeExtensionTypeArgument(
+        node.extension, node.knownTypeArguments, receiverType,
+        treeNodeForTesting: node);
+
+    DartType extensionOnType =
+        getExtensionReceiverType(node.extension, extensionTypeArguments);
+
+    receiver = ensureAssignable(extensionOnType, receiverType, receiver);
+    receiverType = extensionOnType;
+
+    instrumentation?.record(uriForInstrumentation, node.receiver.fileOffset,
+        'type', new InstrumentationValueForType(receiverType));
+
+    Expression readReceiver;
+    Expression writeReceiver;
+    if (receiverVariable != null) {
+      readReceiver =
+          createVariableGet(receiverVariable, promotedType: receiverType);
+      writeReceiver =
+          createVariableGet(receiverVariable, promotedType: receiverType);
+    } else {
+      readReceiver = receiver;
+      writeReceiver = clonePureExpression(receiver);
+    }
+
+    ExpressionInferenceResult readResult = _computePropertyGet(node.readOffset,
+            readReceiver, receiverType, node.propertyName, const UnknownType(),
+            isThisReceiver: node.receiver is ThisExpression)
+        .expressionInferenceResult;
+
+    Expression read = readResult.expression;
+    DartType readType = readResult.inferredType;
+
+    flowAnalysis.ifNullExpression_rightBegin(
+        read, new SharedTypeView(readType));
+
+    ObjectAccessTarget writeTarget = findInterfaceMember(
+        receiverType, node.propertyName, receiver.fileOffset,
+        isSetter: true, instrumented: true, includeExtensionMethods: true);
+    DartType writeContext = writeTarget.getSetterType(this);
+    ExpressionInferenceResult rhsResult =
+        inferExpression(node.rhs, writeContext, isVoidAllowed: true);
+    flowAnalysis.ifNullExpression_end();
+
+    rhsResult = ensureAssignableResult(writeContext, rhsResult);
+    Expression rhs = rhsResult.expression;
+
+    DartType writeType = rhsResult.inferredType;
+    ExpressionInferenceResult writeResult = _computePropertySet(
+        node.writeOffset,
+        writeReceiver,
+        receiverType,
+        node.propertyName,
+        writeTarget,
+        rhs,
+        forEffect: node.forEffect,
+        valueType: writeType);
+    Expression write = writeResult.expression;
+
+    DartType nonNullableReadType = readType.toNonNull();
+    DartType inferredType = _analyzeIfNullTypes(
+        nonNullableReadType: nonNullableReadType,
+        rhsType: writeType,
+        typeContext: typeContext);
+
+    Expression replacement;
+    if (node.forEffect) {
+      // Encode `o.a ??= b` as:
+      //
+      //     let v1 = o in v1.a == null ? v1.a = b : null
+      //
+      Expression equalsNull =
+          createEqualsNull(read, fileOffset: node.fileOffset);
+      replacement = _createConditionalExpression(
+          node.fileOffset,
+          equalsNull,
+          write,
+          new NullLiteral()..fileOffset = node.fileOffset,
+          computeNullable(inferredType));
+    } else {
+      // Encode `o.a ??= b` as:
+      //
+      //     let v1 = o in let v2 = v1.a in v2 == null ? v1.a = b : v2
+      //
+      VariableDeclaration readVariable = createVariable(read, readType);
+      Expression equalsNull = createEqualsNull(createVariableGet(readVariable),
+          fileOffset: node.fileOffset);
+      VariableGet variableGet = createVariableGet(readVariable);
+      if (!identical(nonNullableReadType, readType)) {
+        variableGet.promotedType = nonNullableReadType;
+      }
+      ConditionalExpression conditional = _createConditionalExpression(
+          node.fileOffset, equalsNull, write, variableGet, inferredType);
+      replacement = createLet(readVariable, conditional);
+    }
+    if (receiverVariable != null) {
+      if (!node.isNullAware) {
+        // When the node is null-aware, the receiver variable is used as a
+        // null-aware guard and is automatically inserted by the shorting
+        // system. Otherwise, we have to manually insert the receiver variable
+        // here.
+        replacement = createLet(receiverVariable, replacement);
+      }
+    }
+
+    return new ExpressionInferenceResult(inferredType, replacement);
+  }
+
+  ExpressionInferenceResult visitExtensionCompoundSet(
+      ExtensionCompoundSet node, DartType typeContext) {
+    DartType receiverContextType = computeExplicitExtensionReceiverContextType(
+        node.extension, node.knownTypeArguments);
+
+    ExpressionInferenceResult receiverResult = inferExpression(
+        node.receiver, receiverContextType,
+        isVoidAllowed: false);
+
+    Expression receiver = receiverResult.expression;
+    DartType receiverType = receiverResult.inferredType;
+
+    if (node.isNullAware) {
+      DartType nonNullReceiverType = receiverType.toNonNull();
+      receiver =
+          _createNonNullReceiver(receiver, receiverType, nonNullReceiverType);
+      receiverType = nonNullReceiverType;
+    }
+
+    List<DartType> extensionTypeArguments = computeExtensionTypeArgument(
+        node.extension, node.knownTypeArguments, receiverType,
+        treeNodeForTesting: node);
+
+    DartType extensionOnType =
+        getExtensionReceiverType(node.extension, extensionTypeArguments);
+
+    receiver = ensureAssignable(extensionOnType, receiverType, receiver);
+    receiverType = extensionOnType;
+
+    VariableDeclaration? receiverVariable;
+    Expression readReceiver;
+    Expression writeReceiver;
+    if (isPureExpression(receiver)) {
+      readReceiver = receiver;
+      writeReceiver = clonePureExpression(receiver);
+    } else {
+      receiverVariable = createVariable(receiver, receiverType);
+      readReceiver = createVariableGet(receiverVariable);
+      writeReceiver = createVariableGet(receiverVariable);
+    }
+
+    ObjectAccessTarget readTarget = new ExtensionAccessTarget(receiverType,
+        node.getter, null, ClassMemberKind.Getter, extensionTypeArguments);
 
     DartType readType = readTarget.getGetterType(this);
 
-    Expression read;
-    if (readTarget.isMissing) {
-      // Coverage-ignore-block(suite): Not run.
-      read = createMissingPropertyGet(
-          node.readOffset, readType, node.propertyName,
-          receiver: readReceiver);
-    } else {
-      assert(readTarget.isExtensionMember);
-      read = new StaticInvocation(
-          readTarget.member as Procedure,
-          new Arguments(<Expression>[
-            readReceiver,
-          ], types: readTarget.receiverTypeArguments)
-            ..fileOffset = node.readOffset)
-        ..fileOffset = node.readOffset;
-    }
+    Expression read = new StaticInvocation(
+        readTarget.member as Procedure,
+        new Arguments(<Expression>[
+          readReceiver,
+        ], types: readTarget.receiverTypeArguments)
+          ..fileOffset = node.readOffset)
+      ..fileOffset = node.readOffset;
 
-    ObjectAccessTarget writeTarget = node.setter == null
-        ? const ObjectAccessTarget.missing()
-        : new ExtensionAccessTarget(receiverType, node.setter!, null,
-            ClassMemberKind.Setter, extensionTypeArguments);
+    ObjectAccessTarget writeTarget = new ExtensionAccessTarget(receiverType,
+        node.setter, null, ClassMemberKind.Setter, extensionTypeArguments);
 
     DartType valueType = writeTarget.getSetterType(this);
 
@@ -1341,22 +1775,14 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       value = createVariableGet(valueVariable);
     }
 
-    Expression write;
-    if (writeTarget.isMissing) {
-      write = createMissingPropertySet(
-          node.writeOffset, writeReceiver, readType, node.propertyName, value,
-          forEffect: node.forEffect);
-    } else {
-      assert(writeTarget.isExtensionMember);
-      write = new StaticInvocation(
-          writeTarget.member as Procedure,
-          new Arguments(<Expression>[
-            writeReceiver,
-            value,
-          ], types: writeTarget.receiverTypeArguments)
-            ..fileOffset = node.writeOffset)
-        ..fileOffset = node.writeOffset;
-    }
+    Expression write = new StaticInvocation(
+        writeTarget.member as Procedure,
+        new Arguments(<Expression>[
+          writeReceiver,
+          value,
+        ], types: writeTarget.receiverTypeArguments)
+          ..fileOffset = node.writeOffset)
+      ..fileOffset = node.writeOffset;
 
     Expression replacement;
     if (node.forEffect) {
@@ -2107,9 +2533,12 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       if (!identical(nonNullT1, t1)) {
         variableGet.promotedType = nonNullT1;
       }
-      ConditionalExpression conditional = new ConditionalExpression(
-          equalsNull, rhsResult.expression, variableGet, inferredType)
-        ..fileOffset = node.fileOffset;
+      ConditionalExpression conditional = _createConditionalExpression(
+          node.fileOffset,
+          equalsNull,
+          rhsResult.expression,
+          variableGet,
+          inferredType);
       replacement = new Let(variable, conditional)
         ..fileOffset = node.fileOffset;
     }
@@ -5527,8 +5956,8 @@ class InferenceVisitorImpl extends InferenceVisitorBase
           staticTarget: node.target);
       StaticInvocation invocation =
           new StaticInvocation(member, node.arguments);
-      libraryBuilder.checkBoundsInStaticInvocation(
-          invocation, typeSchemaEnvironment, helper.uri, typeArgumentsInfo);
+      libraryBuilder.checkBoundsInStaticInvocation(invocation, member.name,
+          typeSchemaEnvironment, helper.uri, typeArgumentsInfo);
       return new ExpressionInferenceResult(
           result.inferredType, result.applyResult(invocation));
     } else {
@@ -5583,26 +6012,6 @@ class InferenceVisitorImpl extends InferenceVisitorBase
         .promoteToNonNull(new SharedTypeView(operandType))
         .unwrapTypeView();
     return new ExpressionInferenceResult(nonNullableResultType, node);
-  }
-
-  ExpressionInferenceResult visitNullAwareMethodInvocation(
-      NullAwareMethodInvocation node, DartType typeContext) {
-    inferSyntheticVariable(node.variable, continueNullShorting: true);
-    createNullAwareGuard(node.variable);
-    ExpressionInferenceResult invocationResult =
-        inferExpression(node.invocation, typeContext, isVoidAllowed: true);
-    return new ExpressionInferenceResult(
-        invocationResult.inferredType, invocationResult.expression);
-  }
-
-  ExpressionInferenceResult visitNullAwareExtension(
-      NullAwareExtension node, DartType typeContext) {
-    inferSyntheticVariable(node.variable);
-    createNullAwareGuard(node.variable);
-    ExpressionInferenceResult expressionResult =
-        inferExpression(node.expression, typeContext);
-    return new ExpressionInferenceResult(
-        expressionResult.inferredType, expressionResult.expression);
   }
 
   ExpressionInferenceResult visitStaticPostIncDec(
@@ -5732,12 +6141,22 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     Expression receiver = receiverResult.expression;
     DartType receiverType = receiverResult.inferredType;
 
-    VariableDeclaration receiverVariable =
-        createVariable(receiver, receiverType);
+    VariableDeclaration receiverVariable;
+    if (node.isNullAware) {
+      receiverVariable = createVariable(receiver, receiverType);
+      createNullAwareGuard(receiverVariable);
+      receiverType = receiverType.toNonNull();
+    } else {
+      receiverVariable = createVariable(receiver, receiverType);
+    }
+
     instrumentation?.record(uriForInstrumentation, receiverVariable.fileOffset,
         'type', new InstrumentationValueForType(receiverType));
-    Expression readReceiver = createVariableGet(receiverVariable);
-    Expression writeReceiver = createVariableGet(receiverVariable);
+
+    Expression readReceiver =
+        createVariableGet(receiverVariable, promotedType: receiverType);
+    Expression writeReceiver =
+        createVariableGet(receiverVariable, promotedType: receiverType);
 
     ExpressionInferenceResult readResult = _computePropertyGet(node.readOffset,
             readReceiver, receiverType, node.propertyName, const UnknownType(),
@@ -5747,13 +6166,13 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     Expression read = readResult.expression;
     DartType readType = readResult.inferredType;
 
+    flowAnalysis.ifNullExpression_rightBegin(
+        read, new SharedTypeView(readType));
+
     ObjectAccessTarget writeTarget = findInterfaceMember(
         receiverType, node.propertyName, receiver.fileOffset,
         isSetter: true, instrumented: true, includeExtensionMethods: true);
     DartType writeContext = writeTarget.getSetterType(this);
-
-    flowAnalysis.ifNullExpression_rightBegin(
-        read, new SharedTypeView(readType));
     ExpressionInferenceResult rhsResult =
         inferExpression(node.rhs, writeContext, isVoidAllowed: true);
     flowAnalysis.ifNullExpression_end();
@@ -5787,15 +6206,12 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       //
       Expression equalsNull =
           createEqualsNull(read, fileOffset: node.fileOffset);
-      ConditionalExpression conditional = new ConditionalExpression(
+      replacement = _createConditionalExpression(
+          node.fileOffset,
           equalsNull,
           write,
           new NullLiteral()..fileOffset = node.fileOffset,
-          computeNullable(inferredType))
-        ..fileOffset = node.fileOffset;
-      replacement =
-          new Let(receiverVariable, conditional..fileOffset = node.fileOffset)
-            ..fileOffset = node.fileOffset;
+          computeNullable(inferredType));
     } else {
       // Encode `o.a ??= b` as:
       //
@@ -5808,12 +6224,15 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       if (!identical(nonNullableReadType, readType)) {
         variableGet.promotedType = nonNullableReadType;
       }
-      ConditionalExpression conditional = new ConditionalExpression(
-          equalsNull, write, variableGet, inferredType)
-        ..fileOffset = node.fileOffset;
-      replacement =
-          new Let(receiverVariable, createLet(readVariable, conditional))
-            ..fileOffset = node.fileOffset;
+      ConditionalExpression conditional = _createConditionalExpression(
+          node.fileOffset, equalsNull, write, variableGet, inferredType);
+      replacement = createLet(readVariable, conditional);
+    }
+    if (!node.isNullAware) {
+      // When the node is null-aware, the receiver variable is used as a
+      // null-aware guard and is automatically inserted by the shorting system.
+      // Otherwise, we have to manually insert the receiver variable here.
+      replacement = createLet(receiverVariable, replacement);
     }
 
     return new ExpressionInferenceResult(inferredType, replacement);
@@ -5882,12 +6301,12 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       //
       Expression equalsNull =
           createEqualsNull(read, fileOffset: node.fileOffset);
-      replacement = new ConditionalExpression(
+      replacement = _createConditionalExpression(
+          node.fileOffset,
           equalsNull,
           writeResult.expression,
           new NullLiteral()..fileOffset = node.fileOffset,
-          computeNullable(inferredType))
-        ..fileOffset = node.fileOffset;
+          computeNullable(inferredType));
     } else {
       // Encode `a ??= b` as:
       //
@@ -5900,9 +6319,12 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       if (!identical(nonNullableReadType, originalReadType)) {
         variableGet.promotedType = nonNullableReadType;
       }
-      ConditionalExpression conditional = new ConditionalExpression(
-          equalsNull, writeResult.expression, variableGet, inferredType)
-        ..fileOffset = node.fileOffset;
+      ConditionalExpression conditional = _createConditionalExpression(
+          node.fileOffset,
+          equalsNull,
+          writeResult.expression,
+          variableGet,
+          inferredType);
       replacement = new Let(readVariable, conditional)
         ..fileOffset = node.fileOffset;
     }
@@ -6107,30 +6529,99 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     return new ExpressionInferenceResult(inferredType, replacement);
   }
 
-  ExpressionInferenceResult visitExtensionIndexSet(
-      ExtensionIndexSet node, DartType typeContext) {
+  ExpressionInferenceResult visitExtensionIndexGet(
+      ExtensionIndexGet node, DartType typeContext) {
+    DartType receiverContextType = computeExplicitExtensionReceiverContextType(
+        node.extension, node.explicitTypeArguments);
+
     ExpressionInferenceResult receiverResult = inferExpression(
-        node.receiver, const UnknownType(),
+        node.receiver, receiverContextType,
         isVoidAllowed: false);
 
+    Expression receiver = receiverResult.expression;
+    DartType receiverType = receiverResult.inferredType;
+
+    if (node.isNullAware) {
+      DartType nonNullReceiverType = receiverType.toNonNull();
+      receiver =
+          _createNonNullReceiver(receiver, receiverType, nonNullReceiverType);
+      receiverType = nonNullReceiverType;
+    }
+
     List<DartType> extensionTypeArguments = computeExtensionTypeArgument(
-        node.extension, node.explicitTypeArguments, receiverResult.inferredType,
+        node.extension, node.explicitTypeArguments, receiverType,
         treeNodeForTesting: node);
-
-    DartType receiverType =
+    DartType extensionOnType =
         getExtensionReceiverType(node.extension, extensionTypeArguments);
+    ObjectAccessTarget target = new ExtensionAccessTarget(extensionOnType,
+        node.getter, null, ClassMemberKind.Method, extensionTypeArguments);
 
-    Expression receiver =
-        ensureAssignableResult(receiverType, receiverResult).expression;
+    receiver = ensureAssignable(extensionOnType, receiverType, receiver);
+    receiverType = extensionOnType;
+
+    DartType indexType = target.getIndexKeyType(this);
+    DartType resultType = target.getReturnType(this);
+
+    ExpressionInferenceResult indexResult =
+        inferExpression(node.index, indexType, isVoidAllowed: true);
+
+    Expression index =
+        ensureAssignableResult(indexType, indexResult).expression;
+
+    StaticInvocation replacement = createStaticInvocation(
+        node.getter,
+        new Arguments(<Expression>[receiver, index],
+            types: extensionTypeArguments)
+          ..fileOffset = node.fileOffset,
+        fileOffset: node.fileOffset);
+
+    libraryBuilder.checkBoundsInStaticInvocation(
+        replacement,
+        indexSetName,
+        typeSchemaEnvironment,
+        helper.uri,
+        node.explicitTypeArguments != null
+            ? const NoneInferredTypeArgumentsInfo()
+            : const AllInferredTypeArgumentsInfo());
+
+    return new ExpressionInferenceResult(resultType, replacement);
+  }
+
+  ExpressionInferenceResult visitExtensionIndexSet(
+      ExtensionIndexSet node, DartType typeContext) {
+    DartType receiverContextType = computeExplicitExtensionReceiverContextType(
+        node.extension, node.explicitTypeArguments);
+
+    ExpressionInferenceResult receiverResult = inferExpression(
+        node.receiver, receiverContextType,
+        isVoidAllowed: false);
+
+    Expression receiver = receiverResult.expression;
+    DartType receiverType = receiverResult.inferredType;
+
+    if (node.isNullAware) {
+      DartType nonNullReceiverType = receiverType.toNonNull();
+      receiver =
+          _createNonNullReceiver(receiver, receiverType, nonNullReceiverType);
+      receiverType = nonNullReceiverType;
+    }
+
+    List<DartType> extensionTypeArguments = computeExtensionTypeArgument(
+        node.extension, node.explicitTypeArguments, receiverType,
+        treeNodeForTesting: node);
+    DartType extensionOnType =
+        getExtensionReceiverType(node.extension, extensionTypeArguments);
+    ObjectAccessTarget target = new ExtensionAccessTarget(extensionOnType,
+        node.setter, null, ClassMemberKind.Method, extensionTypeArguments);
+
+    receiver = ensureAssignable(extensionOnType, receiverType, receiver);
+    receiverType = extensionOnType;
 
     VariableDeclaration? receiverVariable;
-    if (!isPureExpression(receiver)) {
+    if (!node.forEffect && !isPureExpression(receiver)) {
       receiverVariable = createVariable(receiver, receiverType);
       receiver = createVariableGet(receiverVariable);
     }
-
-    ObjectAccessTarget target = new ExtensionAccessTarget(receiverType,
-        node.setter, null, ClassMemberKind.Method, extensionTypeArguments);
 
     DartType indexType = target.getIndexKeyType(this);
     DartType valueType = target.getIndexSetValueType(this);
@@ -6147,8 +6638,10 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     Expression value = valueResult.expression;
 
     VariableDeclaration? valueVariable;
-    Expression returnedValue;
-    if (isPureExpression(value)) {
+    Expression? returnedValue;
+    if (node.forEffect) {
+      // Returned value is not needed.
+    } else if (isPureExpression(value)) {
       returnedValue = clonePureExpression(value);
     } else {
       valueVariable = createVariable(value, valueResult.inferredType);
@@ -6160,12 +6653,29 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     // the type of the value parameter.
     DartType inferredType = valueResult.inferredType;
 
-    Expression assignment = _computeIndexSet(node.fileOffset, receiver,
-        receiverType, target, index, indexType, value, valueType);
+    StaticInvocation assignment = createStaticInvocation(
+        node.setter,
+        new Arguments(<Expression>[receiver, index, value],
+            types: extensionTypeArguments)
+          ..fileOffset = node.fileOffset,
+        fileOffset: node.fileOffset);
 
-    VariableDeclaration assignmentVariable =
-        createVariable(assignment, const VoidType());
-    Expression replacement = createLet(assignmentVariable, returnedValue);
+    libraryBuilder.checkBoundsInStaticInvocation(
+        assignment,
+        indexSetName,
+        typeSchemaEnvironment,
+        helper.uri,
+        node.explicitTypeArguments != null
+            ? const NoneInferredTypeArgumentsInfo()
+            : const AllInferredTypeArgumentsInfo());
+
+    Expression replacement = assignment;
+    if (returnedValue != null) {
+      assert(!node.forEffect);
+      VariableDeclaration assignmentVariable =
+          createVariable(assignment, const VoidType());
+      replacement = createLet(assignmentVariable, returnedValue);
+    }
     if (valueVariable != null) {
       replacement = createLet(valueVariable, replacement);
     }
@@ -6185,6 +6695,13 @@ class InferenceVisitorImpl extends InferenceVisitorBase
 
     Expression receiver = receiverResult.expression;
     DartType receiverType = receiverResult.inferredType;
+
+    if (node.isNullAware) {
+      DartType nonNullReceiverType = receiverType.toNonNull();
+      receiver =
+          _createNonNullReceiver(receiver, receiverType, nonNullReceiverType);
+      receiverType = nonNullReceiverType;
+    }
 
     VariableDeclaration? receiverVariable;
     Expression readReceiver = receiver;
@@ -6287,43 +6804,22 @@ class InferenceVisitorImpl extends InferenceVisitorBase
 
     Expression inner;
     if (node.forEffect) {
-      // Encode `Extension(o)[a] ??= b`, if `node.readOnlyReceiver` is false,
-      // as:
-      //
-      //     let receiverVariable = o in
-      //     let indexVariable = a in
-      //        receiverVariable[indexVariable]  == null
-      //          ? receiverVariable.[]=(indexVariable, b) : null
-      //
-      // and if `node.readOnlyReceiver` is true as:
+      // Encode `o[a] ??= b` as:
       //
       //     let indexVariable = a in
       //         o[indexVariable] == null ? o.[]=(indexVariable, b) : null
       //
       Expression equalsNull =
           createEqualsNull(read, fileOffset: node.testOffset);
-      ConditionalExpression conditional = new ConditionalExpression(
+      ConditionalExpression conditional = _createConditionalExpression(
+          node.testOffset,
           equalsNull,
           write,
           new NullLiteral()..fileOffset = node.testOffset,
-          computeNullable(inferredType))
-        ..fileOffset = node.testOffset;
+          computeNullable(inferredType));
       inner = conditional;
     } else {
-      // Encode `Extension(o)[a] ??= b` as, if `node.readOnlyReceiver` is false,
-      // as:
-      //
-      //     let receiverVariable = o in
-      //     let indexVariable = a in
-      //     let readVariable = receiverVariable[indexVariable] in
-      //       readVariable == null
-      //        ? (let valueVariable = b in
-      //           let writeVariable =
-      //             receiverVariable.[]=(indexVariable, valueVariable) in
-      //               valueVariable)
-      //        : readVariable
-      //
-      // and if `node.readOnlyReceiver` is true as:
+      // Encode `o[a] ??= b` as:
       //
       //     let indexVariable = a in
       //     let readVariable = o[indexVariable] in
@@ -6347,9 +6843,8 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       if (valueVariable != null) {
         result = createLet(valueVariable, result);
       }
-      ConditionalExpression conditional = new ConditionalExpression(
-          equalsNull, result, variableGet, inferredType)
-        ..fileOffset = node.fileOffset;
+      ConditionalExpression conditional = _createConditionalExpression(
+          node.testOffset, equalsNull, result, variableGet, inferredType);
       inner = createLet(readVariable, conditional);
     }
     if (indexVariable != null) {
@@ -6359,7 +6854,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     Expression replacement;
     if (receiverVariable != null) {
       replacement = new Let(receiverVariable, inner)
-        ..fileOffset = node.fileOffset;
+        ..fileOffset = receiverVariable.fileOffset;
     } else {
       replacement = inner;
     }
@@ -6466,12 +6961,12 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       assert(valueVariable == null);
       Expression equalsNull =
           createEqualsNull(read, fileOffset: node.testOffset);
-      replacement = new ConditionalExpression(
+      replacement = _createConditionalExpression(
+          node.testOffset,
           equalsNull,
           write,
           new NullLiteral()..fileOffset = node.testOffset,
-          computeNullable(inferredType))
-        ..fileOffset = node.testOffset;
+          computeNullable(inferredType));
     } else {
       // Encode `o[a] ??= b` as:
       //
@@ -6497,9 +6992,8 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       if (valueVariable != null) {
         result = createLet(valueVariable, result);
       }
-      ConditionalExpression conditional = new ConditionalExpression(
-          equalsNull, result, readVariableGet, inferredType)
-        ..fileOffset = node.fileOffset;
+      ConditionalExpression conditional = _createConditionalExpression(
+          node.fileOffset, equalsNull, result, readVariableGet, inferredType);
       replacement = createLet(readVariable, conditional);
     }
     if (indexVariable != null) {
@@ -6508,21 +7002,34 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     return new ExpressionInferenceResult(inferredType, replacement);
   }
 
-  ExpressionInferenceResult visitIfNullExtensionIndexSet(
-      IfNullExtensionIndexSet node, DartType typeContext) {
+  ExpressionInferenceResult visitExtensionIfNullIndexSet(
+      ExtensionIfNullIndexSet node, DartType typeContext) {
+    DartType receiverContextType = computeExplicitExtensionReceiverContextType(
+        node.extension, node.knownTypeArguments);
+
     ExpressionInferenceResult receiverResult = inferExpression(
-        node.receiver, const UnknownType(),
+        node.receiver, receiverContextType,
         isVoidAllowed: false);
 
     List<DartType> extensionTypeArguments = computeExtensionTypeArgument(
-        node.extension, node.explicitTypeArguments, receiverResult.inferredType,
+        node.extension, node.knownTypeArguments, receiverResult.inferredType,
         treeNodeForTesting: node);
 
-    DartType receiverType =
+    Expression receiver = receiverResult.expression;
+    DartType receiverType = receiverResult.inferredType;
+
+    if (node.isNullAware) {
+      DartType nonNullReceiverType = receiverType.toNonNull();
+      receiver =
+          _createNonNullReceiver(receiver, receiverType, nonNullReceiverType);
+      receiverType = nonNullReceiverType;
+    }
+
+    DartType extensionOnType =
         getExtensionReceiverType(node.extension, extensionTypeArguments);
 
-    Expression receiver =
-        ensureAssignableResult(receiverType, receiverResult).expression;
+    receiver = ensureAssignable(extensionOnType, receiverType, receiver);
+    receiverType = extensionOnType;
 
     VariableDeclaration? receiverVariable;
     Expression readReceiver;
@@ -6536,17 +7043,13 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       writeReceiver = createVariableGet(receiverVariable);
     }
 
-    ObjectAccessTarget readTarget = node.getter != null
-        ? new ExtensionAccessTarget(receiverType, node.getter!, null,
-            ClassMemberKind.Method, extensionTypeArguments)
-        : const ObjectAccessTarget.missing();
+    ObjectAccessTarget readTarget = new ExtensionAccessTarget(receiverType,
+        node.getter, null, ClassMemberKind.Method, extensionTypeArguments);
 
     DartType readIndexType = readTarget.getIndexKeyType(this);
 
-    ObjectAccessTarget writeTarget = node.setter != null
-        ? new ExtensionAccessTarget(receiverType, node.setter!, null,
-            ClassMemberKind.Method, extensionTypeArguments)
-        : const ObjectAccessTarget.missing();
+    ObjectAccessTarget writeTarget = new ExtensionAccessTarget(receiverType,
+        node.setter, null, ClassMemberKind.Method, extensionTypeArguments);
 
     DartType writeIndexType = writeTarget.getIndexKeyType(this);
     DartType valueType = writeTarget.getIndexSetValueType(this);
@@ -6630,12 +7133,12 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       assert(valueVariable == null);
       Expression equalsNull =
           createEqualsNull(read, fileOffset: node.testOffset);
-      replacement = new ConditionalExpression(
+      replacement = _createConditionalExpression(
+          node.testOffset,
           equalsNull,
           write,
           new NullLiteral()..fileOffset = node.testOffset,
-          computeNullable(inferredType))
-        ..fileOffset = node.testOffset;
+          computeNullable(inferredType));
     } else {
       // Encode `Extension(o)[a] ??= b` as:
       //
@@ -6662,9 +7165,8 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       if (valueVariable != null) {
         result = createLet(valueVariable, result);
       }
-      ConditionalExpression conditional = new ConditionalExpression(
-          equalsNull, result, readVariableGet, inferredType)
-        ..fileOffset = node.fileOffset;
+      ConditionalExpression conditional = _createConditionalExpression(
+          node.fileOffset, equalsNull, result, readVariableGet, inferredType);
       replacement = createLet(readVariable, conditional);
     }
     if (indexVariable != null) {
@@ -7517,6 +8019,13 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     Expression receiver = receiverResult.expression;
     DartType receiverType = receiverResult.inferredType;
 
+    if (node.isNullAware) {
+      DartType nonNullReceiverType = receiverType.toNonNull();
+      receiver =
+          _createNonNullReceiver(receiver, receiverType, nonNullReceiverType);
+      receiverType = nonNullReceiverType;
+    }
+
     VariableDeclaration? receiverVariable;
     Expression readReceiver = receiver;
     Expression writeReceiver;
@@ -7692,9 +8201,12 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     VariableDeclaration? receiverVariable =
         createVariable(receiver, receiverType);
     createNullAwareGuard(receiverVariable);
-    Expression readReceiver = createVariableGet(receiverVariable);
-    Expression writeReceiver = createVariableGet(receiverVariable);
     DartType nonNullReceiverType = receiverType.toNonNull();
+
+    Expression readReceiver =
+        createVariableGet(receiverVariable, promotedType: nonNullReceiverType);
+    Expression writeReceiver =
+        createVariableGet(receiverVariable, promotedType: nonNullReceiverType);
 
     ExpressionInferenceResult readResult = _computePropertyGet(
             node.readOffset,
@@ -7956,26 +8468,37 @@ class InferenceVisitorImpl extends InferenceVisitorBase
         node.forPostIncDec ? readType : binaryType, replacement);
   }
 
-  ExpressionInferenceResult visitCompoundExtensionIndexSet(
-      CompoundExtensionIndexSet node, DartType typeContext) {
+  ExpressionInferenceResult visitExtensionCompoundIndexSet(
+      ExtensionCompoundIndexSet node, DartType typeContext) {
+    DartType receiverContextType = computeExplicitExtensionReceiverContextType(
+        node.extension, node.explicitTypeArguments);
+
     ExpressionInferenceResult receiverResult = inferExpression(
-        node.receiver, const UnknownType(),
+        node.receiver, receiverContextType,
         isVoidAllowed: false);
 
+    Expression receiver = receiverResult.expression;
+    DartType receiverType = receiverResult.inferredType;
+
+    if (node.isNullAware) {
+      DartType nonNullReceiverType = receiverType.toNonNull();
+      receiver =
+          _createNonNullReceiver(receiver, receiverType, nonNullReceiverType);
+      receiverType = nonNullReceiverType;
+    }
+
     List<DartType> extensionTypeArguments = computeExtensionTypeArgument(
-        node.extension, node.explicitTypeArguments, receiverResult.inferredType,
+        node.extension, node.explicitTypeArguments, receiverType,
         treeNodeForTesting: node);
 
-    DartType receiverType =
+    DartType extensionOnType =
         getExtensionReceiverType(node.extension, extensionTypeArguments);
 
-    ObjectAccessTarget readTarget = node.getter != null
-        ? new ExtensionAccessTarget(receiverType, node.getter!, null,
-            ClassMemberKind.Method, extensionTypeArguments)
-        : const ObjectAccessTarget.missing();
+    receiver = ensureAssignable(extensionOnType, receiverType, receiver);
+    receiverType = extensionOnType;
 
-    Expression receiver =
-        ensureAssignableResult(receiverType, receiverResult).expression;
+    ObjectAccessTarget readTarget = new ExtensionAccessTarget(receiverType,
+        node.getter, null, ClassMemberKind.Method, extensionTypeArguments);
 
     VariableDeclaration? receiverVariable;
     Expression readReceiver;
@@ -8030,10 +8553,8 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       left = read;
     }
 
-    ObjectAccessTarget writeTarget = node.setter != null
-        ? new ExtensionAccessTarget(receiverType, node.setter!, null,
-            ClassMemberKind.Method, extensionTypeArguments)
-        : const ObjectAccessTarget.missing();
+    ObjectAccessTarget writeTarget = new ExtensionAccessTarget(receiverType,
+        node.setter, null, ClassMemberKind.Method, extensionTypeArguments);
 
     DartType writeIndexType = writeTarget.getIndexKeyType(this);
 
@@ -8243,115 +8764,6 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       DartType rhsType = rhsResult.inferredType;
       return new ExpressionInferenceResult(rhsType, result);
     }
-  }
-
-  ExpressionInferenceResult visitNullAwareIfNullSet(
-      NullAwareIfNullSet node, DartType typeContext) {
-    ExpressionInferenceResult receiverResult = inferExpression(
-        node.receiver, const UnknownType(),
-        isVoidAllowed: false, continueNullShorting: true);
-
-    Expression receiver = receiverResult.expression;
-    DartType receiverType = receiverResult.inferredType;
-
-    VariableDeclaration receiverVariable =
-        createVariable(receiver, receiverType);
-    createNullAwareGuard(receiverVariable);
-    DartType nonNullReceiverType = receiverType.toNonNull();
-
-    Expression readReceiver =
-        createVariableGet(receiverVariable, promotedType: nonNullReceiverType);
-    Expression writeReceiver =
-        createVariableGet(receiverVariable, promotedType: nonNullReceiverType);
-
-    ExpressionInferenceResult readResult = _computePropertyGet(node.readOffset,
-            readReceiver, nonNullReceiverType, node.name, typeContext,
-            isThisReceiver: node.receiver is ThisExpression)
-        .expressionInferenceResult;
-    Expression read = readResult.expression;
-    DartType readType = readResult.inferredType;
-    flowAnalysis.ifNullExpression_rightBegin(
-        read, new SharedTypeView(readType));
-
-    VariableDeclaration? readVariable;
-    if (!node.forEffect) {
-      readVariable = createVariable(read, readType);
-      read = createVariableGet(readVariable);
-    }
-
-    ObjectAccessTarget writeTarget = findInterfaceMember(
-        nonNullReceiverType, node.name, node.writeOffset,
-        isSetter: true, includeExtensionMethods: true);
-
-    DartType valueType = writeTarget.getSetterType(this);
-
-    ExpressionInferenceResult valueResult =
-        inferExpression(node.value, valueType, isVoidAllowed: true);
-    valueResult = ensureAssignableResult(valueType, valueResult);
-    Expression value = valueResult.expression;
-
-    ExpressionInferenceResult writeResult = _computePropertySet(
-        node.writeOffset,
-        writeReceiver,
-        nonNullReceiverType,
-        node.name,
-        writeTarget,
-        value,
-        valueType: valueResult.inferredType,
-        forEffect: node.forEffect);
-    Expression write = writeResult.expression;
-
-    flowAnalysis.ifNullExpression_end();
-
-    DartType nonNullableReadType = readType.toNonNull();
-    DartType inferredType = _analyzeIfNullTypes(
-        nonNullableReadType: nonNullableReadType,
-        rhsType: valueResult.inferredType,
-        typeContext: typeContext);
-
-    Expression replacement;
-    if (node.forEffect) {
-      assert(readVariable == null);
-      // Encode `receiver?.name ??= value` as:
-      //
-      //     let receiverVariable = receiver in
-      //       receiverVariable == null ? null :
-      //         (receiverVariable.name == null ?
-      //           receiverVariable.name = value : null)
-      //
-
-      Expression readEqualsNull =
-          createEqualsNull(read, fileOffset: node.readOffset);
-      replacement = new ConditionalExpression(
-          readEqualsNull,
-          write,
-          new NullLiteral()..fileOffset = node.writeOffset,
-          computeNullable(inferredType))
-        ..fileOffset = node.writeOffset;
-    } else {
-      // Encode `receiver?.name ??= value` as:
-      //
-      //     let receiverVariable = receiver in
-      //       receiverVariable == null ? null :
-      //         (let readVariable = receiverVariable.name in
-      //           readVariable == null ?
-      //             receiverVariable.name = value : readVariable)
-      //
-      assert(readVariable != null);
-
-      Expression readEqualsNull =
-          createEqualsNull(read, fileOffset: receiverVariable.fileOffset);
-      VariableGet variableGet = createVariableGet(readVariable!);
-      if (!identical(nonNullableReadType, readType)) {
-        variableGet.promotedType = nonNullableReadType;
-      }
-      ConditionalExpression condition = new ConditionalExpression(
-          readEqualsNull, write, variableGet, inferredType)
-        ..fileOffset = receiverVariable.fileOffset;
-      replacement = createLet(readVariable, condition);
-    }
-
-    return new ExpressionInferenceResult(inferredType, replacement);
   }
 
   ExpressionInferenceResult visitPropertyGet(
@@ -8784,7 +9196,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
         node.arguments as ArgumentsImpl,
         staticTarget: node.target);
     libraryBuilder.checkBoundsInStaticInvocation(
-        node, typeSchemaEnvironment, helper.uri, typeArgumentsInfo);
+        node, node.name, typeSchemaEnvironment, helper.uri, typeArgumentsInfo);
     return new ExpressionInferenceResult(
         result.inferredType, result.applyResult(node));
   }
@@ -9594,26 +10006,12 @@ class InferenceVisitorImpl extends InferenceVisitorBase
         return result;
       }
     }
-    if (node is! VariableGetImpl) {
-      // Coverage-ignore-block(suite): Not run.
-      // This node is created as part of a lowering and doesn't need inference.
-      return new ExpressionInferenceResult(
-          node.promotedType ?? node.variable.type, node);
-    }
     VariableDeclarationImpl variable = node.variable as VariableDeclarationImpl;
     DartType? promotedType;
     DartType declaredOrInferredType = variable.lateType ?? variable.type;
     if (isExtensionThis(variable)) {
       flowAnalysis.thisOrSuper(node, new SharedTypeView(variable.type),
           isSuper: true);
-    } else if (node.forNullGuardedAccess) {
-      DartType nonNullableType = variable.type.toNonNull();
-      if (nonNullableType != variable.type) {
-        promotedType = nonNullableType;
-      }
-      // It's still necessary to inform flow analysis about the read so that it
-      // can track field promotions.
-      flowAnalysis.variableRead(node, variable);
     } else if (!variable.isLocalFunction) {
       // Don't promote local functions.
       promotedType =

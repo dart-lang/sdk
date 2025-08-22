@@ -1106,7 +1106,8 @@ class ExtensionAccessTarget extends ObjectAccessTarget {
       // Coverage-ignore(suite): Not run.
       case ClassMemberKind.Method:
       case ClassMemberKind.Getter:
-        throw unexpected('$this', 'getSetterType', -1, null);
+        throw new UnsupportedError(
+            'Unexpected declaration kind $declarationMethodKind on $this.');
     }
   }
 

@@ -46,7 +46,7 @@ static method testNativeCallableListenerClosure() → void {
   final ffi::NativeCallable<(ffi::Int32) → ffi::Void> callback = block {
     final ffi::NativeCallable<(ffi::Int32) → ffi::Void> #t2 = new ffi::_NativeCallableListener::•<(ffi::Int32) → ffi::Void>([@vm.closure-id=2](final core::List<dynamic> args) → void
       [@vm.direct-call.metadata=closure 1 in #lib::testNativeCallableListenerClosure] [@vm.inferred-type.metadata=? (receiver not int)] closure(args.{core::List::[]}(0){(core::int) → dynamic}){(ffi::Int32) → ffi::Void};
-, "NativeCallable(VariableGetImpl(closure))");
+, "NativeCallable(VariableGet(closure))");
     [@vm.call-site-attributes.metadata=receiverType:dart.ffi::NativeCallable<dart.ffi::Void Function(dart.ffi::Int32)>] [@vm.direct-call.metadata=dart.ffi::_NativeCallableBase._pointer] #t2.{ffi::_NativeCallableBase::_pointer} = [@vm.inferred-type.metadata=dart.ffi::Pointer] ffi::_createNativeCallableListener<ffi::NativeFunction<(ffi::Int32) → ffi::Void>>(ffi::_nativeAsyncCallbackFunction<(ffi::Int32) → ffi::Void>(), [@vm.direct-call.metadata=dart.ffi::_NativeCallableListener._port] [@vm.inferred-type.metadata=dart.isolate::_RawReceivePort] #t2.{ffi::_NativeCallableListener::_port}{iso::RawReceivePort});
   } =>#t2;
   core::print([@vm.direct-call.metadata=dart.ffi::_NativeCallableBase.nativeFunction] [@vm.inferred-type.metadata=dart.ffi::Pointer] callback.{ffi::NativeCallable::nativeFunction}{ffi::Pointer<ffi::NativeFunction<(ffi::Int32) → ffi::Void>>});

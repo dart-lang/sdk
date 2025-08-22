@@ -19,4 +19,16 @@ extension Extension2 on Class {
   void set field(int value) {}
 }
 
+extension on int {
+  method1() {}
+  method2<T>(
+    List<T> a,
+    List<int> b,
+    void Function(T) c,
+    void Function()? d,
+  ) {}
+}
+
 main() {}
+
+test(Class c) {}

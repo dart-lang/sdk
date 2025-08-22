@@ -49,8 +49,8 @@ constants  {
 
 Extra constant evaluation status:
 Evaluated: StaticGet @ org-dartlang-testcase:///main.dart:9:22 -> InstanceConstant(const SomeEnum{_Enum.index: 0.0, _Enum._name: "value"})
-Evaluated: VariableGetImpl @ org-dartlang-testcase:///main.dart:11:20 -> InstanceConstant(const SomeEnum{_Enum.index: 0.0, _Enum._name: "value"})
-Evaluated: VariableGetImpl @ org-dartlang-testcase:///main.dart:12:20 -> InstanceConstant(const SomeEnum{_Enum.index: 0.0, _Enum._name: "value"})
+Evaluated: VariableGet @ org-dartlang-testcase:///main.dart:11:20 -> InstanceConstant(const SomeEnum{_Enum.index: 0.0, _Enum._name: "value"})
+Evaluated: VariableGet @ org-dartlang-testcase:///main.dart:12:20 -> InstanceConstant(const SomeEnum{_Enum.index: 0.0, _Enum._name: "value"})
 Extra constant evaluation: evaluated: 21, effectively constant: 3
 
 

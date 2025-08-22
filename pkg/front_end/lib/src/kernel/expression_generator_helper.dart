@@ -95,10 +95,6 @@ abstract class ExpressionGeneratorHelper implements InferenceHelper {
       int charOffset = TreeNode.noOffset,
       required bool isConstructorInvocation});
 
-  Expression buildExtensionMethodInvocation(
-      int fileOffset, Procedure target, Arguments arguments,
-      {required bool isTearOff});
-
   Expression buildUnresolvedError(String name, int charOffset,
       {Member candidate,
       bool isSuper,
@@ -111,7 +107,8 @@ abstract class ExpressionGeneratorHelper implements InferenceHelper {
       bool errorHasBeenReported});
 
   LocatedMessage? checkArgumentsForFunction(FunctionNode function,
-      Arguments arguments, int offset, List<TypeParameter> typeParameters);
+      Arguments arguments, int offset, List<TypeParameter> typeParameters,
+      {Extension? extension});
 
   Expression wrapInDeferredCheck(
       Expression expression, PrefixBuilder prefix, int charOffset);
@@ -170,8 +167,7 @@ abstract class ExpressionGeneratorHelper implements InferenceHelper {
 
   /// Creates a [VariableGet] of the [variable] using [charOffset] as the file
   /// offset of the created node.
-  Expression createVariableGet(VariableDeclaration variable, int charOffset,
-      {bool forNullGuardedAccess = false});
+  Expression createVariableGet(VariableDeclaration variable, int charOffset);
 
   /// Registers that [variable] is assigned to.
   ///

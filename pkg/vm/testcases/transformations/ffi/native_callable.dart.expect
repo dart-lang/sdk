@@ -35,7 +35,7 @@ static method testNativeCallableListenerClosure() → void {
   final ffi::NativeCallable<(ffi::Int32) → ffi::Void> callback = block {
     final ffi::NativeCallable<(ffi::Int32) → ffi::Void> #t2 = new ffi::_NativeCallableListener::•<(ffi::Int32) → ffi::Void>((final core::List<dynamic> args) → void
       closure(args.{core::List::[]}(0){(core::int) → dynamic}){(ffi::Int32) → ffi::Void};
-, "NativeCallable(VariableGetImpl(closure))");
+, "NativeCallable(VariableGet(closure))");
     [@vm.call-site-attributes.metadata=receiverType:dart.ffi::NativeCallable<dart.ffi::Void Function(dart.ffi::Int32)>] #t2.{ffi::_NativeCallableBase::_pointer} = ffi::_createNativeCallableListener<ffi::NativeFunction<(ffi::Int32) → ffi::Void>>(ffi::_nativeAsyncCallbackFunction<(ffi::Int32) → ffi::Void>(), #t2.{ffi::_NativeCallableListener::_port}{iso::RawReceivePort});
   } =>#t2;
   core::print(callback.{ffi::NativeCallable::nativeFunction}{ffi::Pointer<ffi::NativeFunction<(ffi::Int32) → ffi::Void>>});

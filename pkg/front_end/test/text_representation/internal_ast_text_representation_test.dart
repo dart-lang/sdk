@@ -87,12 +87,11 @@ void main() {
     _testPropertySet();
     _testReturnStatementImpl();
     _testVariableDeclarationImpl();
-    _testVariableGetImpl();
     _testLoadLibraryImpl();
     _testLoadLibraryTearOff();
     _testIfNullPropertySet();
     _testIfNullSet();
-    _testCompoundExtensionSet();
+    _testExtensionCompoundSet();
     _testCompoundPropertySet();
     _testPropertyPostIncDec();
     _testLocalPostIncDec();
@@ -101,17 +100,21 @@ void main() {
     _testIndexGet();
     _testIndexSet();
     _testSuperIndexSet();
+    _testExtensionGet();
+    _testExtensionSet();
+    _testExtensionGetterInvocation();
+    _testExtensionMethodInvocation();
+    _testExtensionPostIncDec();
+    _testExtensionIndexGet();
     _testExtensionIndexSet();
     _testIfNullIndexSet();
     _testIfNullSuperIndexSet();
     _testIfNullExtensionIndexSet();
     _testCompoundIndexSet();
     _testNullAwareCompoundSet();
-    _testNullAwareIfNullSet();
     _testCompoundSuperIndexSet();
-    _testCompoundExtensionIndexSet();
+    _testExtensionCompoundIndexSet();
     _testExtensionSet();
-    _testNullAwareExtension();
     _testPropertySetImpl();
     _testExtensionTearOff();
     _testEqualsExpression();
@@ -826,19 +829,6 @@ late void foo = 0;''');
 late dynamic foo = 0;''');
 }
 
-void _testVariableGetImpl() {
-  VariableDeclaration variable = new VariableDeclaration('foo');
-  testExpression(new VariableGetImpl(variable, forNullGuardedAccess: false), '''
-foo''');
-  testExpression(new VariableGetImpl(variable, forNullGuardedAccess: true), '''
-foo''');
-  testExpression(
-      new VariableGetImpl(variable, forNullGuardedAccess: false)
-        ..promotedType = const VoidType(),
-      '''
-foo{void}''');
-}
-
 void _testLoadLibraryImpl() {
   Library library = new Library(dummyUri, fileUri: dummyUri);
   LibraryDependency dependency =
@@ -866,14 +856,29 @@ void _testIfNullPropertySet() {
   testExpression(
       new IfNullPropertySet(
           new IntLiteral(0), new Name('foo'), new IntLiteral(1),
-          readOffset: -1, writeOffset: -1, forEffect: false),
+          readOffset: -1,
+          writeOffset: -1,
+          forEffect: false,
+          isNullAware: false),
       '0.foo ??= 1');
 
   testExpression(
       new IfNullPropertySet(
           new IntLiteral(0), new Name('foo'), new IntLiteral(1),
-          readOffset: -1, writeOffset: -1, forEffect: true),
+          readOffset: -1, writeOffset: -1, forEffect: true, isNullAware: false),
       '0.foo ??= 1');
+
+  testExpression(
+      new IfNullPropertySet(
+          new IntLiteral(0), new Name('foo'), new IntLiteral(1),
+          readOffset: -1, writeOffset: -1, forEffect: false, isNullAware: true),
+      '0?.foo ??= 1');
+
+  testExpression(
+      new IfNullPropertySet(
+          new IntLiteral(0), new Name('foo'), new IntLiteral(1),
+          readOffset: -1, writeOffset: -1, forEffect: true, isNullAware: true),
+      '0?.foo ??= 1');
 }
 
 void _testIfNullSet() {
@@ -893,7 +898,114 @@ foo ?? foo = 1''');
 foo ?? foo = 1''');
 }
 
-void _testCompoundExtensionSet() {}
+void _testExtensionCompoundSet() {
+  Library library = new Library(dummyUri, fileUri: dummyUri);
+  Extension extension = new Extension(
+      name: 'Extension',
+      typeParameters: [new TypeParameter('T')],
+      fileUri: dummyUri);
+  library.addExtension(extension);
+  Name name = new Name('foo');
+  Procedure getter = new Procedure(
+      new Name('E|get#foo'), ProcedureKind.Method, new FunctionNode(null),
+      fileUri: dummyUri);
+  Procedure setter = new Procedure(
+      new Name('E|set#foo'), ProcedureKind.Method, new FunctionNode(null),
+      fileUri: dummyUri);
+  library.addProcedure(setter);
+
+  testExpression(
+      new ExtensionCompoundSet.explicit(
+          extension: extension,
+          explicitTypeArguments: null,
+          receiver: new IntLiteral(0),
+          propertyName: name,
+          getter: getter,
+          setter: setter,
+          binaryName: new Name('-'),
+          rhs: new IntLiteral(1),
+          isNullAware: false,
+          forEffect: false,
+          readOffset: -1,
+          binaryOffset: -1,
+          writeOffset: -1),
+      '''
+Extension(0).foo -= 1''');
+
+  testExpression(
+      new ExtensionCompoundSet.explicit(
+          extension: extension,
+          explicitTypeArguments: null,
+          receiver: new IntLiteral(0),
+          propertyName: name,
+          getter: getter,
+          setter: setter,
+          binaryName: new Name('+'),
+          rhs: new IntLiteral(1),
+          isNullAware: true,
+          forEffect: false,
+          readOffset: -1,
+          binaryOffset: -1,
+          writeOffset: -1),
+      '''
+Extension(0)?.foo += 1''');
+
+  testExpression(
+      new ExtensionCompoundSet.explicit(
+          extension: extension,
+          explicitTypeArguments: [const VoidType()],
+          receiver: new IntLiteral(0),
+          propertyName: name,
+          getter: getter,
+          setter: setter,
+          binaryName: new Name('+'),
+          rhs: new IntLiteral(1),
+          isNullAware: false,
+          forEffect: false,
+          readOffset: -1,
+          binaryOffset: -1,
+          writeOffset: -1),
+      '''
+Extension<void>(0).foo += 1''');
+
+  testExpression(
+      new ExtensionCompoundSet.explicit(
+          extension: extension,
+          explicitTypeArguments: [const VoidType()],
+          receiver: new IntLiteral(0),
+          propertyName: name,
+          getter: getter,
+          setter: setter,
+          binaryName: new Name('-'),
+          rhs: new IntLiteral(1),
+          isNullAware: true,
+          forEffect: false,
+          readOffset: -1,
+          binaryOffset: -1,
+          writeOffset: -1),
+      '''
+Extension<void>(0)?.foo -= 1''');
+
+  testExpression(
+      new ExtensionCompoundSet.implicit(
+          extension: extension,
+          thisTypeArguments: [
+            new TypeParameterType(
+                extension.typeParameters.single, Nullability.undetermined)
+          ],
+          thisAccess: new IntLiteral(0),
+          propertyName: name,
+          getter: getter,
+          setter: setter,
+          binaryName: new Name('+'),
+          rhs: new IntLiteral(1),
+          forEffect: false,
+          readOffset: -1,
+          binaryOffset: -1,
+          writeOffset: -1),
+      '''
+0.foo += 1''');
+}
 
 void _testCompoundPropertySet() {
   testExpression(
@@ -942,6 +1054,47 @@ void _testIndexSet() {
 
 void _testSuperIndexSet() {}
 
+void _testExtensionIndexGet() {
+  Library library = new Library(dummyUri, fileUri: dummyUri);
+  Extension extension = new Extension(
+      name: 'Extension',
+      typeParameters: [new TypeParameter('T')],
+      fileUri: dummyUri);
+  library.addExtension(extension);
+  Procedure getter = new Procedure(
+      new Name(''), ProcedureKind.Method, new FunctionNode(null),
+      fileUri: dummyUri);
+  library.addProcedure(getter);
+
+  testExpression(
+      new ExtensionIndexGet(
+          extension, null, new IntLiteral(0), getter, new IntLiteral(1),
+          isNullAware: false),
+      '''
+Extension(0)[1]''');
+
+  testExpression(
+      new ExtensionIndexGet(
+          extension, null, new IntLiteral(0), getter, new IntLiteral(1),
+          isNullAware: true),
+      '''
+Extension(0)?[1]''');
+
+  testExpression(
+      new ExtensionIndexGet(extension, [const VoidType()], new IntLiteral(0),
+          getter, new IntLiteral(1),
+          isNullAware: false),
+      '''
+Extension<void>(0)[1]''');
+
+  testExpression(
+      new ExtensionIndexGet(extension, [const VoidType()], new IntLiteral(0),
+          getter, new IntLiteral(1),
+          isNullAware: true),
+      '''
+Extension<void>(0)?[1]''');
+}
+
 void _testExtensionIndexSet() {
   Library library = new Library(dummyUri, fileUri: dummyUri);
   Extension extension = new Extension(
@@ -956,15 +1109,31 @@ void _testExtensionIndexSet() {
 
   testExpression(
       new ExtensionIndexSet(extension, null, new IntLiteral(0), setter,
-          new IntLiteral(1), new IntLiteral(2)),
+          new IntLiteral(1), new IntLiteral(2),
+          isNullAware: false, forEffect: true),
       '''
 Extension(0)[1] = 2''');
 
   testExpression(
+      new ExtensionIndexSet(extension, null, new IntLiteral(0), setter,
+          new IntLiteral(1), new IntLiteral(2),
+          isNullAware: true, forEffect: false),
+      '''
+Extension(0)?[1] = 2''');
+
+  testExpression(
       new ExtensionIndexSet(extension, [const VoidType()], new IntLiteral(0),
-          setter, new IntLiteral(1), new IntLiteral(2)),
+          setter, new IntLiteral(1), new IntLiteral(2),
+          isNullAware: false, forEffect: false),
       '''
 Extension<void>(0)[1] = 2''');
+
+  testExpression(
+      new ExtensionIndexSet(extension, [const VoidType()], new IntLiteral(0),
+          setter, new IntLiteral(1), new IntLiteral(2),
+          isNullAware: true, forEffect: true),
+      '''
+Extension<void>(0)?[1] = 2''');
 }
 
 void _testIfNullIndexSet() {}
@@ -981,7 +1150,8 @@ void _testCompoundIndexSet() {
           binaryOffset: -1,
           writeOffset: -1,
           forEffect: false,
-          forPostIncDec: false),
+          forPostIncDec: false,
+          isNullAware: false),
       '''
 0[1] += 2''');
   testExpression(
@@ -991,7 +1161,8 @@ void _testCompoundIndexSet() {
           binaryOffset: -1,
           writeOffset: -1,
           forEffect: false,
-          forPostIncDec: true),
+          forPostIncDec: true,
+          isNullAware: false),
       '''
 0[1]++''');
   testExpression(
@@ -1001,7 +1172,8 @@ void _testCompoundIndexSet() {
           binaryOffset: -1,
           writeOffset: -1,
           forEffect: false,
-          forPostIncDec: true),
+          forPostIncDec: true,
+          isNullAware: false),
       '''
 0[1]--''');
   testExpression(
@@ -1011,7 +1183,8 @@ void _testCompoundIndexSet() {
           binaryOffset: -1,
           writeOffset: -1,
           forEffect: false,
-          forPostIncDec: true),
+          forPostIncDec: true,
+          isNullAware: false),
       '''
 0[1] *= 1''');
   testExpression(
@@ -1021,9 +1194,43 @@ void _testCompoundIndexSet() {
           binaryOffset: -1,
           writeOffset: -1,
           forEffect: false,
-          forPostIncDec: true),
+          forPostIncDec: true,
+          isNullAware: false),
       '''
 0[1] += 2''');
+  testExpression(
+      new CompoundIndexSet(new IntLiteral(0), new IntLiteral(1), new Name('+'),
+          new IntLiteral(2),
+          readOffset: -1,
+          binaryOffset: -1,
+          writeOffset: -1,
+          forEffect: false,
+          forPostIncDec: false,
+          isNullAware: true),
+      '''
+0?[1] += 2''');
+  testExpression(
+      new CompoundIndexSet(new IntLiteral(0), new IntLiteral(1), new Name('+'),
+          new IntLiteral(1),
+          readOffset: -1,
+          binaryOffset: -1,
+          writeOffset: -1,
+          forEffect: false,
+          forPostIncDec: true,
+          isNullAware: true),
+      '''
+0?[1]++''');
+  testExpression(
+      new CompoundIndexSet(new IntLiteral(0), new IntLiteral(1), new Name('-'),
+          new IntLiteral(1),
+          readOffset: -1,
+          binaryOffset: -1,
+          writeOffset: -1,
+          forEffect: false,
+          forPostIncDec: true,
+          isNullAware: true),
+      '''
+0?[1]--''');
 }
 
 void _testNullAwareCompoundSet() {
@@ -1049,29 +1256,650 @@ void _testNullAwareCompoundSet() {
 0?.foo++''');
 }
 
-void _testNullAwareIfNullSet() {
-  testExpression(
-      new NullAwareIfNullSet(
-          new IntLiteral(0), new Name('foo'), new IntLiteral(1),
-          readOffset: TreeNode.noOffset,
-          testOffset: TreeNode.noOffset,
-          writeOffset: TreeNode.noOffset,
-          forEffect: false),
-      '''
-0?.foo ??= 1''');
-}
-
 void _testCompoundSuperIndexSet() {}
 
-void _testCompoundExtensionIndexSet() {}
+void _testExtensionCompoundIndexSet() {
+  Library library = new Library(dummyUri, fileUri: dummyUri);
+  Extension extension = new Extension(
+      name: 'Extension',
+      typeParameters: [new TypeParameter('T')],
+      fileUri: dummyUri);
+  library.addExtension(extension);
+  Procedure getter = new Procedure(
+      new Name('[]'), ProcedureKind.Method, new FunctionNode(null),
+      fileUri: dummyUri);
+  Procedure setter = new Procedure(
+      new Name('[]='), ProcedureKind.Method, new FunctionNode(null),
+      fileUri: dummyUri);
+  library.addProcedure(setter);
 
-void _testExtensionSet() {}
+  testExpression(
+      new ExtensionCompoundIndexSet(
+          extension: extension,
+          explicitTypeArguments: null,
+          receiver: new IntLiteral(0),
+          getter: getter,
+          setter: setter,
+          binaryName: new Name('-'),
+          index: new IntLiteral(1),
+          rhs: new IntLiteral(2),
+          isNullAware: false,
+          forEffect: false,
+          readOffset: -1,
+          binaryOffset: -1,
+          writeOffset: -1,
+          forPostIncDec: false),
+      '''
+Extension(0)[1] -= 2''');
 
-void _testNullAwareExtension() {}
+  testExpression(
+      new ExtensionCompoundIndexSet(
+          extension: extension,
+          explicitTypeArguments: null,
+          receiver: new IntLiteral(0),
+          getter: getter,
+          setter: setter,
+          binaryName: new Name('+'),
+          index: new IntLiteral(1),
+          rhs: new IntLiteral(2),
+          isNullAware: true,
+          forEffect: false,
+          readOffset: -1,
+          binaryOffset: -1,
+          writeOffset: -1,
+          forPostIncDec: false),
+      '''
+Extension(0)?[1] += 2''');
+
+  testExpression(
+      new ExtensionCompoundIndexSet(
+          extension: extension,
+          explicitTypeArguments: null,
+          receiver: new IntLiteral(0),
+          getter: getter,
+          setter: setter,
+          binaryName: new Name('-'),
+          index: new IntLiteral(1),
+          rhs: new IntLiteral(1),
+          isNullAware: false,
+          forEffect: false,
+          readOffset: -1,
+          binaryOffset: -1,
+          writeOffset: -1,
+          forPostIncDec: true),
+      '''
+Extension(0)[1]--''');
+
+  testExpression(
+      new ExtensionCompoundIndexSet(
+          extension: extension,
+          explicitTypeArguments: null,
+          receiver: new IntLiteral(0),
+          getter: getter,
+          setter: setter,
+          binaryName: new Name('+'),
+          index: new IntLiteral(1),
+          rhs: new IntLiteral(1),
+          isNullAware: true,
+          forEffect: false,
+          readOffset: -1,
+          binaryOffset: -1,
+          writeOffset: -1,
+          forPostIncDec: true),
+      '''
+Extension(0)?[1]++''');
+
+  testExpression(
+      new ExtensionCompoundIndexSet(
+          extension: extension,
+          explicitTypeArguments: [const VoidType()],
+          receiver: new IntLiteral(0),
+          getter: getter,
+          setter: setter,
+          binaryName: new Name('+'),
+          index: new IntLiteral(1),
+          rhs: new IntLiteral(2),
+          isNullAware: false,
+          forEffect: false,
+          readOffset: -1,
+          binaryOffset: -1,
+          writeOffset: -1,
+          forPostIncDec: false),
+      '''
+Extension<void>(0)[1] += 2''');
+
+  testExpression(
+      new ExtensionCompoundIndexSet(
+          extension: extension,
+          explicitTypeArguments: [const VoidType()],
+          receiver: new IntLiteral(0),
+          getter: getter,
+          setter: setter,
+          binaryName: new Name('-'),
+          index: new IntLiteral(1),
+          rhs: new IntLiteral(2),
+          isNullAware: true,
+          forEffect: false,
+          readOffset: -1,
+          binaryOffset: -1,
+          writeOffset: -1,
+          forPostIncDec: false),
+      '''
+Extension<void>(0)?[1] -= 2''');
+
+  testExpression(
+      new ExtensionCompoundIndexSet(
+          extension: extension,
+          explicitTypeArguments: [const VoidType()],
+          receiver: new IntLiteral(0),
+          getter: getter,
+          setter: setter,
+          binaryName: new Name('+'),
+          index: new IntLiteral(1),
+          rhs: new IntLiteral(1),
+          isNullAware: false,
+          forEffect: false,
+          readOffset: -1,
+          binaryOffset: -1,
+          writeOffset: -1,
+          forPostIncDec: true),
+      '''
+Extension<void>(0)[1]++''');
+
+  testExpression(
+      new ExtensionCompoundIndexSet(
+          extension: extension,
+          explicitTypeArguments: [const VoidType()],
+          receiver: new IntLiteral(0),
+          getter: getter,
+          setter: setter,
+          binaryName: new Name('-'),
+          index: new IntLiteral(1),
+          rhs: new IntLiteral(1),
+          isNullAware: true,
+          forEffect: false,
+          readOffset: -1,
+          binaryOffset: -1,
+          writeOffset: -1,
+          forPostIncDec: true),
+      '''
+Extension<void>(0)?[1]--''');
+}
+
+void _testExtensionGet() {
+  Library library = new Library(dummyUri, fileUri: dummyUri);
+  Extension extension = new Extension(
+      name: 'Extension',
+      typeParameters: [new TypeParameter('T')],
+      fileUri: dummyUri);
+  library.addExtension(extension);
+  Name name = new Name('foo');
+  Procedure getter = new Procedure(new Name('Extension|get#foo'),
+      ProcedureKind.Method, new FunctionNode(null),
+      fileUri: dummyUri);
+  library.addProcedure(getter);
+
+  testExpression(
+      new ExtensionGet.explicit(
+          extension: extension,
+          explicitTypeArguments: null,
+          receiver: new IntLiteral(0),
+          name: name,
+          getter: getter,
+          isNullAware: false),
+      '''
+Extension(0).foo''');
+
+  testExpression(
+      new ExtensionGet.explicit(
+          extension: extension,
+          explicitTypeArguments: null,
+          receiver: new IntLiteral(0),
+          name: name,
+          getter: getter,
+          isNullAware: true),
+      '''
+Extension(0)?.foo''');
+
+  testExpression(
+      new ExtensionGet.explicit(
+          extension: extension,
+          explicitTypeArguments: [const VoidType()],
+          receiver: new IntLiteral(0),
+          name: name,
+          getter: getter,
+          isNullAware: false),
+      '''
+Extension<void>(0).foo''');
+
+  testExpression(
+      new ExtensionGet.explicit(
+          extension: extension,
+          explicitTypeArguments: [const VoidType()],
+          receiver: new IntLiteral(0),
+          name: name,
+          getter: getter,
+          isNullAware: true),
+      '''
+Extension<void>(0)?.foo''');
+
+  testExpression(
+      new ExtensionGet.implicit(
+          extension: extension,
+          thisTypeArguments: [
+            new TypeParameterType(
+                extension.typeParameters.single, Nullability.undetermined)
+          ],
+          thisAccess: new IntLiteral(0),
+          name: name,
+          getter: getter),
+      '''
+0.foo''');
+}
+
+void _testExtensionGetterInvocation() {
+  Library library = new Library(dummyUri, fileUri: dummyUri);
+  Extension extension = new Extension(
+      name: 'Extension',
+      typeParameters: [new TypeParameter('T')],
+      fileUri: dummyUri);
+  library.addExtension(extension);
+  Name name = new Name('foo');
+  Procedure method = new Procedure(
+      new Name('Extension|foo'), ProcedureKind.Getter, new FunctionNode(null),
+      fileUri: dummyUri);
+  library.addProcedure(method);
+
+  testExpression(
+      new ExtensionGetterInvocation.explicit(
+          extension: extension,
+          explicitTypeArguments: null,
+          extensionTypeArgumentOffset: -1,
+          receiver: new IntLiteral(0),
+          name: name,
+          target: method,
+          arguments: new ArgumentsImpl([new IntLiteral(1)]),
+          isNullAware: false),
+      '''
+Extension(0).foo(1)''');
+
+  testExpression(
+      new ExtensionGetterInvocation.explicit(
+          extension: extension,
+          explicitTypeArguments: null,
+          extensionTypeArgumentOffset: -1,
+          receiver: new IntLiteral(0),
+          name: name,
+          target: method,
+          arguments: new ArgumentsImpl([new IntLiteral(1)]),
+          isNullAware: true),
+      '''
+Extension(0)?.foo(1)''');
+
+  testExpression(
+      new ExtensionGetterInvocation.explicit(
+          extension: extension,
+          explicitTypeArguments: [const VoidType()],
+          extensionTypeArgumentOffset: -1,
+          receiver: new IntLiteral(0),
+          name: name,
+          target: method,
+          arguments: new ArgumentsImpl([new IntLiteral(1)]),
+          isNullAware: false),
+      '''
+Extension<void>(0).foo(1)''');
+
+  testExpression(
+      new ExtensionGetterInvocation.explicit(
+          extension: extension,
+          explicitTypeArguments: [const VoidType()],
+          extensionTypeArgumentOffset: -1,
+          receiver: new IntLiteral(0),
+          name: name,
+          target: method,
+          arguments: new ArgumentsImpl([new IntLiteral(1)]),
+          isNullAware: true),
+      '''
+Extension<void>(0)?.foo(1)''');
+
+  testExpression(
+      new ExtensionGetterInvocation.implicit(
+          extension: extension,
+          thisTypeArguments: [
+            new TypeParameterType(
+                extension.typeParameters.single, Nullability.undetermined)
+          ],
+          thisAccess: new IntLiteral(0),
+          name: name,
+          target: method,
+          arguments: new ArgumentsImpl([new IntLiteral(1)])),
+      '''
+0.foo(1)''');
+}
+
+void _testExtensionMethodInvocation() {
+  Library library = new Library(dummyUri, fileUri: dummyUri);
+  Extension extension = new Extension(
+      name: 'Extension',
+      typeParameters: [new TypeParameter('T')],
+      fileUri: dummyUri);
+  library.addExtension(extension);
+  Name name = new Name('foo');
+  Procedure method = new Procedure(
+      new Name('Extension|foo'), ProcedureKind.Method, new FunctionNode(null),
+      fileUri: dummyUri);
+  library.addProcedure(method);
+
+  testExpression(
+      new ExtensionMethodInvocation.explicit(
+          extension: extension,
+          explicitTypeArguments: null,
+          extensionTypeArgumentOffset: -1,
+          receiver: new IntLiteral(0),
+          name: name,
+          target: method,
+          arguments: new ArgumentsImpl([new IntLiteral(1)]),
+          isNullAware: false),
+      '''
+Extension(0).foo(1)''');
+
+  testExpression(
+      new ExtensionMethodInvocation.explicit(
+          extension: extension,
+          explicitTypeArguments: null,
+          extensionTypeArgumentOffset: -1,
+          receiver: new IntLiteral(0),
+          name: name,
+          target: method,
+          arguments: new ArgumentsImpl([new IntLiteral(1)]),
+          isNullAware: true),
+      '''
+Extension(0)?.foo(1)''');
+
+  testExpression(
+      new ExtensionMethodInvocation.explicit(
+          extension: extension,
+          explicitTypeArguments: [const VoidType()],
+          extensionTypeArgumentOffset: -1,
+          receiver: new IntLiteral(0),
+          name: name,
+          target: method,
+          arguments: new ArgumentsImpl([new IntLiteral(1)]),
+          isNullAware: false),
+      '''
+Extension<void>(0).foo(1)''');
+
+  testExpression(
+      new ExtensionMethodInvocation.explicit(
+          extension: extension,
+          explicitTypeArguments: [const VoidType()],
+          extensionTypeArgumentOffset: -1,
+          receiver: new IntLiteral(0),
+          name: name,
+          target: method,
+          arguments: new ArgumentsImpl([new IntLiteral(1)]),
+          isNullAware: true),
+      '''
+Extension<void>(0)?.foo(1)''');
+
+  testExpression(
+      new ExtensionMethodInvocation.implicit(
+          extension: extension,
+          thisTypeArguments: [
+            new TypeParameterType(
+                extension.typeParameters.single, Nullability.undetermined)
+          ],
+          thisAccess: new IntLiteral(0),
+          name: name,
+          target: method,
+          arguments: new ArgumentsImpl([new IntLiteral(1)])),
+      '''
+0.foo(1)''');
+}
+
+void _testExtensionPostIncDec() {
+  Library library = new Library(dummyUri, fileUri: dummyUri);
+  Extension extension = new Extension(
+      name: 'Extension',
+      typeParameters: [new TypeParameter('T')],
+      fileUri: dummyUri);
+  library.addExtension(extension);
+  Name name = new Name('foo');
+  Procedure getter = new Procedure(
+      new Name('Extension|foo'), ProcedureKind.Method, new FunctionNode(null),
+      fileUri: dummyUri);
+  Procedure setter = new Procedure(
+      new Name('Extension|foo'), ProcedureKind.Method, new FunctionNode(null),
+      fileUri: dummyUri);
+  library.addProcedure(getter);
+  library.addProcedure(setter);
+
+  testExpression(
+      new ExtensionPostIncDec.explicit(
+          extension: extension,
+          explicitTypeArguments: null,
+          receiver: new IntLiteral(0),
+          name: name,
+          getter: getter,
+          setter: setter,
+          forEffect: false,
+          isInc: true,
+          isNullAware: false),
+      '''
+Extension(0).foo++''');
+
+  testExpression(
+      new ExtensionPostIncDec.explicit(
+          extension: extension,
+          explicitTypeArguments: null,
+          receiver: new IntLiteral(0),
+          name: name,
+          getter: getter,
+          setter: setter,
+          forEffect: false,
+          isInc: false,
+          isNullAware: true),
+      '''
+Extension(0)?.foo--''');
+
+  testExpression(
+      new ExtensionPostIncDec.explicit(
+          extension: extension,
+          explicitTypeArguments: [const VoidType()],
+          receiver: new IntLiteral(0),
+          name: name,
+          getter: getter,
+          setter: setter,
+          forEffect: false,
+          isInc: false,
+          isNullAware: false),
+      '''
+Extension<void>(0).foo--''');
+
+  testExpression(
+      new ExtensionPostIncDec.explicit(
+          extension: extension,
+          explicitTypeArguments: [const VoidType()],
+          receiver: new IntLiteral(0),
+          name: name,
+          getter: getter,
+          setter: setter,
+          forEffect: false,
+          isInc: true,
+          isNullAware: true),
+      '''
+Extension<void>(0)?.foo++''');
+
+  testExpression(
+      new ExtensionPostIncDec.implicit(
+          extension: extension,
+          thisTypeArguments: [
+            new TypeParameterType(
+                extension.typeParameters.single, Nullability.undetermined)
+          ],
+          thisAccess: new IntLiteral(0),
+          name: name,
+          getter: getter,
+          setter: setter,
+          forEffect: false,
+          isInc: true),
+      '''
+0.foo++''');
+}
+
+void _testExtensionSet() {
+  Library library = new Library(dummyUri, fileUri: dummyUri);
+  Extension extension = new Extension(
+      name: 'Extension',
+      typeParameters: [new TypeParameter('T')],
+      fileUri: dummyUri);
+  library.addExtension(extension);
+  Name name = new Name('foo');
+  Procedure setter = new Procedure(new Name('Extension|set#foo'),
+      ProcedureKind.Method, new FunctionNode(null),
+      fileUri: dummyUri);
+  library.addProcedure(setter);
+
+  testExpression(
+      new ExtensionSet.explicit(
+          extension: extension,
+          explicitTypeArguments: null,
+          receiver: new IntLiteral(0),
+          name: name,
+          setter: setter,
+          value: new IntLiteral(1),
+          isNullAware: false,
+          forEffect: true),
+      '''
+Extension(0).foo = 1''');
+
+  testExpression(
+      new ExtensionSet.explicit(
+          extension: extension,
+          explicitTypeArguments: null,
+          receiver: new IntLiteral(0),
+          name: name,
+          setter: setter,
+          value: new IntLiteral(1),
+          isNullAware: true,
+          forEffect: false),
+      '''
+Extension(0)?.foo = 1''');
+
+  testExpression(
+      new ExtensionSet.explicit(
+          extension: extension,
+          explicitTypeArguments: [const VoidType()],
+          receiver: new IntLiteral(0),
+          name: name,
+          setter: setter,
+          value: new IntLiteral(1),
+          isNullAware: false,
+          forEffect: false),
+      '''
+Extension<void>(0).foo = 1''');
+
+  testExpression(
+      new ExtensionSet.explicit(
+          extension: extension,
+          explicitTypeArguments: [const VoidType()],
+          receiver: new IntLiteral(0),
+          name: name,
+          setter: setter,
+          value: new IntLiteral(1),
+          isNullAware: true,
+          forEffect: true),
+      '''
+Extension<void>(0)?.foo = 1''');
+
+  testExpression(
+      new ExtensionSet.implicit(
+          extension: extension,
+          thisTypeArguments: [
+            new TypeParameterType(
+                extension.typeParameters.single, Nullability.undetermined)
+          ],
+          thisAccess: new IntLiteral(0),
+          name: name,
+          setter: setter,
+          value: new IntLiteral(1),
+          forEffect: true),
+      '''
+0.foo = 1''');
+}
 
 void _testPropertySetImpl() {}
 
-void _testExtensionTearOff() {}
+void _testExtensionTearOff() {
+  Library library = new Library(dummyUri, fileUri: dummyUri);
+  Extension extension = new Extension(
+      name: 'Extension',
+      typeParameters: [new TypeParameter('T')],
+      fileUri: dummyUri);
+  library.addExtension(extension);
+  Name name = new Name('foo');
+  Procedure tearOff = new Procedure(new Name('Extension|get#foo'),
+      ProcedureKind.Method, new FunctionNode(null),
+      fileUri: dummyUri);
+  library.addProcedure(tearOff);
+
+  testExpression(
+      new ExtensionTearOff.explicit(
+          extension: extension,
+          explicitTypeArguments: null,
+          receiver: new IntLiteral(0),
+          name: name,
+          tearOff: tearOff,
+          isNullAware: false),
+      '''
+Extension(0).foo''');
+
+  testExpression(
+      new ExtensionTearOff.explicit(
+          extension: extension,
+          explicitTypeArguments: null,
+          receiver: new IntLiteral(0),
+          name: name,
+          tearOff: tearOff,
+          isNullAware: true),
+      '''
+Extension(0)?.foo''');
+
+  testExpression(
+      new ExtensionTearOff.explicit(
+          extension: extension,
+          explicitTypeArguments: [const VoidType()],
+          receiver: new IntLiteral(0),
+          name: name,
+          tearOff: tearOff,
+          isNullAware: false),
+      '''
+Extension<void>(0).foo''');
+
+  testExpression(
+      new ExtensionTearOff.explicit(
+          extension: extension,
+          explicitTypeArguments: [const VoidType()],
+          receiver: new IntLiteral(0),
+          name: name,
+          tearOff: tearOff,
+          isNullAware: true),
+      '''
+Extension<void>(0)?.foo''');
+
+  testExpression(
+      new ExtensionTearOff.implicit(
+          extension: extension,
+          thisTypeArguments: [
+            new TypeParameterType(
+                extension.typeParameters.single, Nullability.undetermined)
+          ],
+          thisAccess: new IntLiteral(0),
+          name: name,
+          tearOff: tearOff),
+      '''
+0.foo''');
+}
 
 void _testEqualsExpression() {
   testExpression(
