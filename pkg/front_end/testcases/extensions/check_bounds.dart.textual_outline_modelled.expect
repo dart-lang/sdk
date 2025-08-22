@@ -8,7 +8,12 @@ class Class<T extends A> {}
 
 extension Extension<T extends B> on Class<T> {
   genericMethod<S extends B>(S s) {}
+  genericMethod2<S extends B>() {}
+  get property => 0;
   method() {}
+  operator [](_) {}
+  operator []=(_, _) {}
+  set property(_) {}
 }
 
 final A a = new A();

@@ -67,7 +67,7 @@ static extension-member method Foo|set#foo(lowered final core::int #this, dynami
 static extension-member method Foo|get#foo(lowered final core::int #this) → core::int
   return 42;
 static extension-member method Foo|bar(lowered final core::int #this) → void {
-  let final core::int #t1 = self::Foo|get#foo(#this).{core::num::-}(1){(core::num) → core::int} in let final void #t2 = self::Foo|set#foo(#this, #t1) in #t1;
+  let final dynamic #t1 = self::Foo|get#foo(#this).{core::num::-}(1){(core::num) → core::int} in let final void #t2 = self::Foo|set#foo(#this, #t1) in #t1;
 }
 static extension-member method Foo|get#bar(lowered final core::int #this) → () → void
   return () → void => self::Foo|bar(#this);

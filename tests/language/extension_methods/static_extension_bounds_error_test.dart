@@ -37,12 +37,12 @@ void main() {
   E1(s).e1;
   // ^
   // [analyzer] COMPILE_TIME_ERROR.EXTENSION_OVERRIDE_ARGUMENT_NOT_ASSIGNABLE
-  // [cfe] The argument type 'String' can't be assigned to the parameter type 'num'.
+  // [cfe] A value of type 'String' can't be assigned to a variable of type 'num'.
   E1<String>(s).e1;
-  // [error column 3]
-  // [cfe] Type argument 'String' doesn't conform to the bound 'num' of the type variable 'T' on 'E1|get#e1'.
   // ^^^^^^
   // [analyzer] COMPILE_TIME_ERROR.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS
+  //            ^
+  // [cfe] Type argument 'String' doesn't conform to the bound 'num' of the type variable 'T' on 'e1'.
 
   // Inferred types of int and double are ok
   i.e1;
@@ -60,12 +60,13 @@ void main() {
   E2(s).e2;
   // [error column 3, length 2]
   // [analyzer] COMPILE_TIME_ERROR.COULD_NOT_INFER
-  // [cfe] Inferred type argument 'String' doesn't conform to the bound 'S' of the type variable 'T' on 'E2|get#e2'.
+  //    ^
+  // [cfe] Inferred type argument 'String' doesn't conform to the bound 'S' of the type variable 'T' on 'e2'.
   E2<String, num>(s).e2;
-  // [error column 3]
-  // [cfe] Type argument 'String' doesn't conform to the bound 'S' of the type variable 'T' on 'E2|get#e2'.
   // ^^^^^^
   // [analyzer] COMPILE_TIME_ERROR.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS
+  //                 ^
+  // [cfe] Type argument 'String' doesn't conform to the bound 'S' of the type variable 'T' on 'e2'.
 
   // Inferred types of int and double are ok
   i.e2;
@@ -126,10 +127,11 @@ void main() {
   E4(superRec).e4;
   // [error column 3, length 2]
   // [analyzer] COMPILE_TIME_ERROR.COULD_NOT_INFER
-  // [cfe] Inferred type argument 'Rec<dynamic>' doesn't conform to the bound 'Rec<T>' of the type variable 'T' on 'E4|get#e4'.
+  //           ^
+  // [cfe] Inferred type argument 'Rec<dynamic>' doesn't conform to the bound 'Rec<T>' of the type variable 'T' on 'e4'.
   E4<Rec<dynamic>>(superRec).e4;
-  // [error column 3]
-  // [cfe] Type argument 'Rec<dynamic>' doesn't conform to the bound 'Rec<T>' of the type variable 'T' on 'E4|get#e4'.
   // ^^^^^^^^^^^^
   // [analyzer] COMPILE_TIME_ERROR.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS
+  //                         ^
+  // [cfe] Type argument 'Rec<dynamic>' doesn't conform to the bound 'Rec<T>' of the type variable 'T' on 'e4'.
 }

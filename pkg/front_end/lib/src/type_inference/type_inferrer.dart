@@ -239,16 +239,15 @@ class TypeInferrerImpl implements TypeInferrer {
         in redirectingFactoryFunction.positionalParameters) {
       flowAnalysis.declare(parameter, new SharedTypeView(parameter.type),
           initialized: true);
-      positionalArguments
-          .add(new VariableGetImpl(parameter, forNullGuardedAccess: false));
+      positionalArguments.add(new VariableGet(parameter));
     }
     List<NamedExpression> namedArguments = <NamedExpression>[];
     for (VariableDeclaration parameter
         in redirectingFactoryFunction.namedParameters) {
       flowAnalysis.declare(parameter, new SharedTypeView(parameter.type),
           initialized: true);
-      namedArguments.add(new NamedExpression(parameter.name!,
-          new VariableGetImpl(parameter, forNullGuardedAccess: false)));
+      namedArguments.add(
+          new NamedExpression(parameter.name!, new VariableGet(parameter)));
     }
     // If arguments are created using [ArgumentsImpl], and the
     // type arguments are omitted, they are to be inferred.

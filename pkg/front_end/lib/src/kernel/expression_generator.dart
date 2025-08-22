@@ -1531,7 +1531,7 @@ class ExtensionInstanceAccessGenerator extends Generator {
   final Extension extension;
 
   /// The original name of the target.
-  final String targetName;
+  final Name targetName;
 
   /// The static [Member] generated for an instance extension member which is
   /// used for performing a read on this subexpression.
@@ -1584,7 +1584,7 @@ class ExtensionInstanceAccessGenerator extends Generator {
       ExpressionGeneratorHelper helper,
       Token token,
       Extension extension,
-      String? targetName,
+      Name targetName,
       VariableDeclaration extensionThis,
       List<TypeParameter>? extensionTypeParameters,
       MemberBuilder? getterBuilder,
@@ -1617,8 +1617,6 @@ class ExtensionInstanceAccessGenerator extends Generator {
       if (setterBuilder is PropertyBuilder) {
         assert(!setterBuilder.isStatic && !setterBuilder.hasConcreteField);
         writeTarget = setterBuilder.writeTarget as Procedure?;
-        // Coverage-ignore-block(suite): Not run.
-        targetName ??= setterBuilder.name;
       } else {
         return unhandled(
             "${setterBuilder.runtimeType}",
@@ -1631,7 +1629,7 @@ class ExtensionInstanceAccessGenerator extends Generator {
         helper,
         token,
         extension,
-        targetName!,
+        targetName,
         readTarget,
         invokeTarget,
         writeTarget,
@@ -1644,12 +1642,16 @@ class ExtensionInstanceAccessGenerator extends Generator {
   String get _debugName => "InstanceExtensionAccessGenerator";
 
   @override
-  String get _plainNameForRead => targetName;
+  String get _plainNameForRead => targetName.text;
 
-  int get _extensionTypeParameterCount => extensionTypeParameters?.length ?? 0;
+  /// Creates an access to the implicit `this` variable.
+  Expression _createThisAccess() =>
+      _helper.createVariableGet(extensionThis, fileOffset);
 
-  List<DartType> _createExtensionTypeArguments() {
-    List<DartType> extensionTypeArguments = const <DartType>[];
+  /// Creates the implicit type arguments for the extension access. These
+  /// are the type parameter type of the extension type parameters.
+  List<DartType>? _createThisTypeArguments() {
+    List<DartType>? extensionTypeArguments;
     if (extensionTypeParameters != null) {
       extensionTypeArguments = [];
       for (TypeParameter typeParameter in extensionTypeParameters!) {
@@ -1661,26 +1663,39 @@ class ExtensionInstanceAccessGenerator extends Generator {
     return extensionTypeArguments;
   }
 
+  /// Returns `true` if performing a read operation is a tear off.
+  ///
+  /// This is the case if [invokeTarget] is non-null, since extension methods
+  /// have both a [readTarget] and an [invokeTarget], whereas extension getters
+  /// only have a [readTarget].
+  bool get isReadTearOff => invokeTarget != null;
+
   @override
   Expression buildSimpleRead() {
     return _createRead();
   }
 
   Expression _createRead() {
+    Procedure? getter = readTarget;
     Expression read;
-    if (readTarget == null) {
+    if (getter == null) {
       read = _makeInvalidRead(unresolvedKind: UnresolvedKind.Getter);
+    } else if (isReadTearOff) {
+      read = new ExtensionTearOff.implicit(
+          extension: extension,
+          thisTypeArguments: _createThisTypeArguments(),
+          thisAccess: _createThisAccess(),
+          name: targetName,
+          tearOff: getter)
+        ..fileOffset = fileOffset;
     } else {
-      read = _helper.buildExtensionMethodInvocation(
-          fileOffset,
-          readTarget!,
-          _helper.forest.createArgumentsForExtensionMethod(
-              fileOffset,
-              _extensionTypeParameterCount,
-              0,
-              _helper.createVariableGet(extensionThis, fileOffset),
-              extensionTypeArguments: _createExtensionTypeArguments()),
-          isTearOff: invokeTarget != null);
+      read = new ExtensionGet.implicit(
+          extension: extension,
+          thisTypeArguments: _createThisTypeArguments(),
+          thisAccess: _createThisAccess(),
+          name: targetName,
+          getter: getter)
+        ..fileOffset = fileOffset;
     }
     return read;
   }
@@ -1692,28 +1707,45 @@ class ExtensionInstanceAccessGenerator extends Generator {
 
   Expression _createWrite(int offset, Expression value,
       {required bool forEffect}) {
-    Expression write;
-    if (writeTarget == null) {
-      write = _makeInvalidWrite(value: value);
+    Procedure? setter = writeTarget;
+    if (setter == null) {
+      return _makeInvalidWrite(value: value);
     } else {
-      write = new ExtensionSet(
-          extension,
-          _createExtensionTypeArguments(),
-          _helper.createVariableGet(extensionThis, fileOffset),
-          writeTarget!,
-          value,
-          forEffect: forEffect);
+      return new ExtensionSet.implicit(
+          extension: extension,
+          thisTypeArguments: _createThisTypeArguments(),
+          thisAccess: _createThisAccess(),
+          name: targetName,
+          setter: setter,
+          value: value,
+          forEffect: forEffect)
+        ..fileOffset = offset;
     }
-    write.fileOffset = offset;
-    return write;
   }
 
   @override
   Expression buildIfNullAssignment(Expression value, DartType type, int offset,
       {bool voidContext = false}) {
-    return new IfNullSet(
-        _createRead(), _createWrite(fileOffset, value, forEffect: voidContext),
-        forEffect: voidContext)
+    Procedure? getter = readTarget;
+    Procedure? setter = writeTarget;
+    // Coverage-ignore(suite): Not run.
+    if (getter == null) {
+      return _makeInvalidRead(unresolvedKind: UnresolvedKind.Getter);
+    } else if (setter == null) {
+      return _makeInvalidRead(unresolvedKind: UnresolvedKind.Setter);
+    }
+    return new ExtensionIfNullSet.implicit(
+        extension: extension,
+        thisTypeArguments: _createThisTypeArguments(),
+        thisAccess: _createThisAccess(),
+        propertyName: targetName,
+        getter: getter,
+        rhs: value,
+        setter: setter,
+        forEffect: voidContext,
+        readOffset: fileOffset,
+        binaryOffset: offset,
+        writeOffset: fileOffset)
       ..fileOffset = offset;
   }
 
@@ -1723,56 +1755,92 @@ class ExtensionInstanceAccessGenerator extends Generator {
       bool voidContext = false,
       bool isPreIncDec = false,
       bool isPostIncDec = false}) {
-    Expression binary = _helper.forest
-        .createBinary(offset, _createRead(), binaryOperator, value);
-    return _createWrite(fileOffset, binary, forEffect: voidContext);
+    Procedure? getter = readTarget;
+    Procedure? setter = writeTarget;
+    // Coverage-ignore(suite): Not run.
+    if (getter == null) {
+      return _makeInvalidRead(unresolvedKind: UnresolvedKind.Getter);
+    } else if (setter == null) {
+      return _makeInvalidRead(unresolvedKind: UnresolvedKind.Setter);
+    }
+    return new ExtensionCompoundSet.implicit(
+        extension: extension,
+        thisTypeArguments: _createThisTypeArguments(),
+        thisAccess: _createThisAccess(),
+        propertyName: targetName,
+        getter: getter,
+        binaryName: binaryOperator,
+        rhs: value,
+        setter: setter,
+        forEffect: voidContext,
+        readOffset: fileOffset,
+        binaryOffset: offset,
+        writeOffset: fileOffset);
   }
 
   @override
   Expression buildPostfixIncrement(Name binaryOperator,
       {int offset = TreeNode.noOffset, bool voidContext = false}) {
-    Expression value = _forest.createIntLiteral(offset, 1);
-    if (voidContext) {
-      return buildCompoundAssignment(binaryOperator, value,
-          offset: offset, voidContext: voidContext, isPostIncDec: true);
+    Procedure? getter = readTarget;
+    Procedure? setter = writeTarget;
+    // Coverage-ignore(suite): Not run.
+    if (getter == null) {
+      return _makeInvalidRead(unresolvedKind: UnresolvedKind.Getter);
+    } else if (setter == null) {
+      return _makeInvalidRead(unresolvedKind: UnresolvedKind.Setter);
     }
-    VariableDeclarationImpl read =
-        _helper.createVariableDeclarationForValue(_createRead());
-    Expression binary = _helper.forest.createBinary(offset,
-        _helper.createVariableGet(read, fileOffset), binaryOperator, value);
-    VariableDeclarationImpl write = _helper.createVariableDeclarationForValue(
-        _createWrite(fileOffset, binary, forEffect: true));
-    return new PropertyPostIncDec.onReadOnly(read, write)..fileOffset = offset;
+    return new ExtensionPostIncDec.implicit(
+        extension: extension,
+        thisTypeArguments: _createThisTypeArguments(),
+        thisAccess: _createThisAccess(),
+        name: targetName,
+        getter: getter,
+        setter: setter,
+        isInc: binaryOperator == plusName,
+        forEffect: voidContext)
+      ..fileOffset = offset;
   }
 
   @override
   Expression doInvocation(
       int offset, List<TypeBuilder>? typeArguments, ArgumentsImpl arguments,
       {bool isTypeArgumentsInForest = false}) {
-    if (invokeTarget != null) {
-      Expression thisAccess = _helper.createVariableGet(extensionThis, offset);
-      return _helper.buildExtensionMethodInvocation(
-          offset,
-          invokeTarget!,
-          _forest.createArgumentsForExtensionMethod(
-              fileOffset,
-              _extensionTypeParameterCount,
-              invokeTarget!.function.typeParameters.length -
-                  _extensionTypeParameterCount,
-              thisAccess,
-              extensionTypeArguments: _createExtensionTypeArguments(),
-              typeArguments: arguments.types,
-              positionalArguments: arguments.positional,
-              namedArguments: arguments.named,
-              argumentsOriginalOrder: arguments.argumentsOriginalOrder != null
-                  ? [thisAccess, ...arguments.argumentsOriginalOrder!]
-                  : null),
-          isTearOff: false);
+    Procedure? method = invokeTarget;
+    Procedure? getter = readTarget;
+    if (method != null) {
+      Expression thisAccess = _createThisAccess();
+      List<TypeParameter> typeParameters = method.function.typeParameters;
+      LocatedMessage? argMessage = _helper.checkArgumentsForFunction(
+          method.function, arguments, offset, typeParameters,
+          extension: extension);
+      if (argMessage != null) {
+        // Coverage-ignore-block(suite): Not run.
+        return _helper.buildUnresolvedError(targetName.text, fileOffset,
+            arguments: arguments,
+            candidate: method,
+            message: argMessage,
+            kind: UnresolvedKind.Method);
+      }
+      return new ExtensionMethodInvocation.implicit(
+          extension: extension,
+          thisTypeArguments: _createThisTypeArguments(),
+          thisAccess: thisAccess,
+          name: targetName,
+          target: method,
+          arguments: arguments)
+        ..fileOffset = fileOffset;
+    } else if (getter != null) {
+      Expression thisAccess = _createThisAccess();
+      return new ExtensionGetterInvocation.implicit(
+          extension: extension,
+          thisTypeArguments: _createThisTypeArguments(),
+          thisAccess: thisAccess,
+          name: targetName,
+          target: getter,
+          arguments: arguments)
+        ..fileOffset = fileOffset;
     } else {
-      return _helper.forest.createExpressionInvocation(
-          adjustForImplicitCall(_plainNameForRead, offset),
-          buildSimpleRead(),
-          arguments);
+      return _makeInvalidRead(unresolvedKind: UnresolvedKind.Getter);
     }
   }
 
@@ -1953,10 +2021,6 @@ class ExplicitExtensionInstanceAccessGenerator extends Generator {
   @override
   String get _plainNameForRead => targetName.text;
 
-  List<DartType> _createExtensionTypeArguments() {
-    return explicitTypeArguments ?? const <DartType>[];
-  }
-
   /// Returns `true` if performing a read operation is a tear off.
   ///
   /// This is the case if [invokeTarget] is non-null, since extension methods
@@ -1966,99 +2030,86 @@ class ExplicitExtensionInstanceAccessGenerator extends Generator {
 
   @override
   Expression buildSimpleRead() {
-    if (isNullAware) {
-      VariableDeclarationImpl variable =
-          _helper.createVariableDeclarationForValue(receiver);
-      return new NullAwareExtension(
-          variable,
-          _createRead(_helper.createVariableGet(variable, variable.fileOffset,
-              forNullGuardedAccess: true)))
-        ..fileOffset = fileOffset;
-    } else {
-      return _createRead(receiver);
-    }
+    return _createRead(receiver, isNullAware: isNullAware);
   }
 
-  Expression _createRead(Expression receiver) {
-    Expression read;
-    if (readTarget == null) {
+  Expression _createRead(Expression receiver, {required bool isNullAware}) {
+    Procedure? getter = readTarget;
+    if (getter == null) {
       // Coverage-ignore-block(suite): Not run.
-      read = _makeInvalidRead(unresolvedKind: UnresolvedKind.Getter);
+      return _makeInvalidRead(unresolvedKind: UnresolvedKind.Getter);
+    } else if (isReadTearOff) {
+      return new ExtensionTearOff.explicit(
+          extension: extension,
+          explicitTypeArguments: explicitTypeArguments,
+          receiver: receiver,
+          name: targetName,
+          tearOff: getter,
+          isNullAware: isNullAware)
+        ..fileOffset = fileOffset;
     } else {
-      read = _helper.buildExtensionMethodInvocation(
-          fileOffset,
-          readTarget!,
-          _helper.forest.createArgumentsForExtensionMethod(
-              fileOffset, extensionTypeParameterCount, 0, receiver,
-              extensionTypeArguments: _createExtensionTypeArguments(),
-              extensionTypeArgumentOffset: extensionTypeArgumentOffset),
-          isTearOff: isReadTearOff);
+      return new ExtensionGet.explicit(
+          extension: extension,
+          explicitTypeArguments: explicitTypeArguments,
+          receiver: receiver,
+          name: targetName,
+          getter: getter,
+          isNullAware: isNullAware)
+        ..fileOffset = fileOffset;
     }
-    return read;
   }
 
   @override
   Expression buildAssignment(Expression value, {bool voidContext = false}) {
-    if (isNullAware) {
-      VariableDeclarationImpl variable =
-          _helper.createVariableDeclarationForValue(receiver);
-      return new NullAwareExtension(
-          variable,
-          _createWrite(
-              fileOffset,
-              _helper.createVariableGet(variable, variable.fileOffset,
-                  forNullGuardedAccess: true),
-              value,
-              forEffect: voidContext))
-        ..fileOffset = fileOffset;
-    } else {
-      return _createWrite(fileOffset, receiver, value, forEffect: voidContext);
-    }
+    return _createWrite(fileOffset, receiver, value,
+        forEffect: voidContext, isNullAware: isNullAware);
   }
 
   Expression _createWrite(int offset, Expression receiver, Expression value,
-      {required bool forEffect}) {
-    Expression write;
-    if (writeTarget == null) {
+      {required bool forEffect, required bool isNullAware}) {
+    Procedure? setter = writeTarget;
+    if (setter == null) {
       // Coverage-ignore-block(suite): Not run.
-      write = _makeInvalidWrite(value: value);
+      return _makeInvalidWrite(value: value);
     } else {
-      write = new ExtensionSet(
-          extension, explicitTypeArguments, receiver, writeTarget!, value,
-          forEffect: forEffect);
+      return new ExtensionSet.explicit(
+          extension: extension,
+          explicitTypeArguments: explicitTypeArguments,
+          receiver: receiver,
+          name: targetName,
+          setter: setter,
+          value: value,
+          forEffect: forEffect,
+          isNullAware: isNullAware)
+        ..fileOffset = offset;
     }
-    write.fileOffset = offset;
-    return write;
   }
 
   @override
   Expression buildIfNullAssignment(Expression value, DartType type, int offset,
       {bool voidContext = false}) {
-    if (isNullAware) {
-      VariableDeclarationImpl variable =
-          _helper.createVariableDeclarationForValue(receiver);
-      Expression read = _createRead(_helper.createVariableGet(
-          variable, receiver.fileOffset,
-          forNullGuardedAccess: true));
-      Expression write = _createWrite(
-          fileOffset,
-          _helper.createVariableGet(variable, receiver.fileOffset,
-              forNullGuardedAccess: true),
-          value,
-          forEffect: voidContext);
-      return new NullAwareExtension(
-          variable,
-          new IfNullSet(read, write, forEffect: voidContext)
-            ..fileOffset = offset)
-        ..fileOffset = fileOffset;
-    } else {
-      return new IfNullPropertySet(receiver, targetName, value,
-          forEffect: voidContext,
-          readOffset: fileOffset,
-          writeOffset: fileOffset,
-          isNullAware: false)
-        ..fileOffset = offset;
+    Procedure? getter = readTarget;
+    Procedure? setter = writeTarget;
+    // Coverage-ignore(suite): Not run.
+    if (getter == null) {
+      return _makeInvalidRead(unresolvedKind: UnresolvedKind.Getter);
+    } else if (setter == null) {
+      return _makeInvalidRead(unresolvedKind: UnresolvedKind.Setter);
     }
+    return new ExtensionIfNullSet.explicit(
+        extension: extension,
+        explicitTypeArguments: explicitTypeArguments,
+        receiver: receiver,
+        propertyName: targetName,
+        getter: getter,
+        rhs: value,
+        setter: setter,
+        forEffect: voidContext,
+        readOffset: fileOffset,
+        binaryOffset: offset,
+        writeOffset: fileOffset,
+        isNullAware: isNullAware)
+      ..fileOffset = offset;
   }
 
   @override
@@ -2067,117 +2118,96 @@ class ExplicitExtensionInstanceAccessGenerator extends Generator {
       bool voidContext = false,
       bool isPreIncDec = false,
       bool isPostIncDec = false}) {
-    if (isNullAware) {
-      VariableDeclarationImpl variable =
-          _helper.createVariableDeclarationForValue(receiver);
-      Expression binary = _helper.forest.createBinary(
-          offset,
-          _createRead(_helper.createVariableGet(variable, receiver.fileOffset,
-              forNullGuardedAccess: true)),
-          binaryOperator,
-          value);
-      Expression write = _createWrite(
-          fileOffset,
-          _helper.createVariableGet(variable, receiver.fileOffset,
-              forNullGuardedAccess: true),
-          binary,
-          forEffect: voidContext);
-      return new NullAwareExtension(variable, write)..fileOffset = offset;
-    } else {
-      return new CompoundExtensionSet(extension, explicitTypeArguments,
-          receiver, targetName, readTarget, binaryOperator, value, writeTarget,
-          forEffect: voidContext,
-          readOffset: fileOffset,
-          binaryOffset: offset,
-          writeOffset: fileOffset)
-        ..fileOffset = offset;
+    Procedure? getter = readTarget;
+    Procedure? setter = writeTarget;
+    // Coverage-ignore(suite): Not run.
+    if (getter == null) {
+      return _makeInvalidRead(unresolvedKind: UnresolvedKind.Getter);
+    } else if (setter == null) {
+      return _makeInvalidRead(unresolvedKind: UnresolvedKind.Setter);
     }
+    return new ExtensionCompoundSet.explicit(
+        extension: extension,
+        explicitTypeArguments: explicitTypeArguments,
+        receiver: receiver,
+        propertyName: targetName,
+        getter: getter,
+        binaryName: binaryOperator,
+        rhs: value,
+        setter: setter,
+        forEffect: voidContext,
+        readOffset: fileOffset,
+        binaryOffset: offset,
+        writeOffset: fileOffset,
+        isNullAware: isNullAware)
+      ..fileOffset = offset;
   }
 
   @override
   Expression buildPostfixIncrement(Name binaryOperator,
       {int offset = TreeNode.noOffset, bool voidContext = false}) {
-    Expression value = _forest.createIntLiteral(offset, 1);
-    if (voidContext) {
-      return buildCompoundAssignment(binaryOperator, value,
-          offset: offset, voidContext: voidContext, isPostIncDec: true);
-    } else if (isNullAware) {
-      VariableDeclarationImpl variable =
-          _helper.createVariableDeclarationForValue(receiver);
-      VariableDeclarationImpl read = _helper.createVariableDeclarationForValue(
-          _createRead(_helper.createVariableGet(variable, receiver.fileOffset,
-              forNullGuardedAccess: true)));
-      Expression binary = _helper.forest.createBinary(offset,
-          _helper.createVariableGet(read, fileOffset), binaryOperator, value);
-      VariableDeclarationImpl write = _helper.createVariableDeclarationForValue(
-          _createWrite(
-              fileOffset,
-              _helper.createVariableGet(variable, receiver.fileOffset,
-                  forNullGuardedAccess: true),
-              binary,
-              forEffect: voidContext)
-            ..fileOffset = fileOffset);
-      return new NullAwareExtension(
-          variable, new LocalPostIncDec(read, write)..fileOffset = offset)
-        ..fileOffset = fileOffset;
-    } else {
-      VariableDeclarationImpl variable =
-          _helper.createVariableDeclarationForValue(receiver);
-      VariableDeclarationImpl read = _helper.createVariableDeclarationForValue(
-          _createRead(
-              _helper.createVariableGet(variable, receiver.fileOffset)));
-      Expression binary = _helper.forest.createBinary(offset,
-          _helper.createVariableGet(read, fileOffset), binaryOperator, value);
-      VariableDeclarationImpl write = _helper.createVariableDeclarationForValue(
-          _createWrite(fileOffset,
-              _helper.createVariableGet(variable, receiver.fileOffset), binary,
-              forEffect: voidContext)
-            ..fileOffset = fileOffset);
-      return new PropertyPostIncDec(variable, read, write)..fileOffset = offset;
+    Procedure? getter = readTarget;
+    Procedure? setter = writeTarget;
+    if (getter == null) {
+      // Coverage-ignore-block(suite): Not run.
+      return _makeInvalidRead(unresolvedKind: UnresolvedKind.Getter);
+    } else if (setter == null) {
+      return _makeInvalidRead(unresolvedKind: UnresolvedKind.Setter);
     }
+    return new ExtensionPostIncDec.explicit(
+        extension: extension,
+        explicitTypeArguments: explicitTypeArguments,
+        receiver: receiver,
+        name: targetName,
+        getter: getter,
+        setter: setter,
+        isInc: binaryOperator == plusName,
+        forEffect: voidContext,
+        isNullAware: isNullAware)
+      ..fileOffset = offset;
   }
 
   @override
   Expression doInvocation(
       int offset, List<TypeBuilder>? typeArguments, Arguments arguments,
       {bool isTypeArgumentsInForest = false}) {
-    VariableDeclarationImpl? receiverVariable;
-    Expression receiverExpression = receiver;
-    if (isNullAware) {
-      receiverVariable = _helper.createVariableDeclarationForValue(receiver);
-      receiverExpression = _helper.createVariableGet(
-          receiverVariable, receiverVariable.fileOffset,
-          forNullGuardedAccess: true);
-    }
-    Expression invocation;
-    if (invokeTarget != null) {
-      invocation = _helper.buildExtensionMethodInvocation(
-          fileOffset,
-          invokeTarget!,
-          _forest.createArgumentsForExtensionMethod(
-              fileOffset,
-              extensionTypeParameterCount,
-              invokeTarget!.function.typeParameters.length -
-                  extensionTypeParameterCount,
-              receiverExpression,
-              extensionTypeArguments: _createExtensionTypeArguments(),
-              extensionTypeArgumentOffset: extensionTypeArgumentOffset,
-              typeArguments: arguments.types,
-              positionalArguments: arguments.positional,
-              namedArguments: arguments.named),
-          isTearOff: false);
-    } else {
-      invocation = _helper.forest.createExpressionInvocation(
-          adjustForImplicitCall(_plainNameForRead, offset),
-          _createRead(receiverExpression),
-          arguments);
-    }
-    if (isNullAware) {
-      assert(receiverVariable != null);
-      return new NullAwareExtension(receiverVariable!, invocation)
+    Procedure? method = invokeTarget;
+    Procedure? getter = readTarget;
+    if (method != null) {
+      List<TypeParameter> typeParameters = method.function.typeParameters;
+      LocatedMessage? argMessage = _helper.checkArgumentsForFunction(
+          method.function, arguments, offset, typeParameters,
+          extension: extension);
+      if (argMessage != null) {
+        return _helper.buildUnresolvedError(targetName.text, offset,
+            arguments: arguments,
+            candidate: method,
+            message: argMessage,
+            kind: UnresolvedKind.Method);
+      }
+      return new ExtensionMethodInvocation.explicit(
+          extension: extension,
+          explicitTypeArguments: explicitTypeArguments,
+          receiver: receiver,
+          name: targetName,
+          target: method,
+          arguments: arguments as ArgumentsImpl,
+          isNullAware: isNullAware,
+          extensionTypeArgumentOffset: extensionTypeArgumentOffset)
+        ..fileOffset = fileOffset;
+    } else if (getter != null) {
+      return new ExtensionGetterInvocation.explicit(
+          extension: extension,
+          explicitTypeArguments: explicitTypeArguments,
+          receiver: receiver,
+          name: targetName,
+          target: getter,
+          arguments: arguments as ArgumentsImpl,
+          isNullAware: isNullAware,
+          extensionTypeArgumentOffset: extensionTypeArgumentOffset)
         ..fileOffset = fileOffset;
     } else {
-      return invocation;
+      return _makeInvalidRead(unresolvedKind: UnresolvedKind.Getter);
     }
   }
 
@@ -2276,10 +2306,6 @@ class ExplicitExtensionIndexedAccessGenerator extends Generator {
         isNullAware: isNullAware);
   }
 
-  List<DartType> _createExtensionTypeArguments() {
-    return explicitTypeArguments ?? const <DartType>[];
-  }
-
   @override
   // Coverage-ignore(suite): Not run.
   String get _plainNameForRead => "[]";
@@ -2290,103 +2316,50 @@ class ExplicitExtensionIndexedAccessGenerator extends Generator {
 
   @override
   Expression buildSimpleRead() {
-    if (readTarget == null) {
+    Procedure? getter = readTarget;
+    if (getter == null) {
       // Coverage-ignore-block(suite): Not run.
       return _makeInvalidRead(unresolvedKind: UnresolvedKind.Method);
     }
-    VariableDeclarationImpl? variable;
-    Expression receiverValue;
-    if (isNullAware) {
-      variable = _helper.createVariableDeclarationForValue(receiver);
-      receiverValue = _helper.createVariableGet(variable, fileOffset,
-          forNullGuardedAccess: true);
-    } else {
-      receiverValue = receiver;
-    }
-    Expression result = _helper.buildExtensionMethodInvocation(
-        fileOffset,
-        readTarget!,
-        _forest.createArgumentsForExtensionMethod(
-            fileOffset, extensionTypeParameterCount, 0, receiverValue,
-            extensionTypeArguments: _createExtensionTypeArguments(),
-            extensionTypeArgumentOffset: extensionTypeArgumentOffset,
-            positionalArguments: <Expression>[index]),
-        isTearOff: false);
-    if (isNullAware) {
-      result = new NullAwareMethodInvocation(variable!, result)
-        ..fileOffset = fileOffset;
-    }
-    return result;
+    return new ExtensionIndexGet(
+        extension, explicitTypeArguments, receiver, getter, index,
+        isNullAware: isNullAware)
+      ..fileOffset = fileOffset;
   }
 
   @override
   Expression buildAssignment(Expression value, {bool voidContext = false}) {
-    if (writeTarget == null) {
+    Procedure? setter = writeTarget;
+    if (setter == null) {
       // Coverage-ignore-block(suite): Not run.
       return _makeInvalidWrite(value: value);
     }
-    VariableDeclarationImpl? variable;
-    Expression receiverValue;
-    if (isNullAware) {
-      variable = _helper.createVariableDeclarationForValue(receiver);
-      receiverValue = _helper.createVariableGet(variable, fileOffset,
-          forNullGuardedAccess: true);
-    } else {
-      receiverValue = receiver;
-    }
-    Expression result;
-    if (voidContext) {
-      result = _helper.buildExtensionMethodInvocation(
-          fileOffset,
-          writeTarget!,
-          _forest.createArgumentsForExtensionMethod(
-              fileOffset, extensionTypeParameterCount, 0, receiverValue,
-              extensionTypeArguments: _createExtensionTypeArguments(),
-              extensionTypeArgumentOffset: extensionTypeArgumentOffset,
-              positionalArguments: <Expression>[index, value]),
-          isTearOff: false);
-    } else {
-      result = new ExtensionIndexSet(extension, explicitTypeArguments,
-          receiverValue, writeTarget!, index, value)
-        ..fileOffset = fileOffset;
-    }
-    if (isNullAware) {
-      result = new NullAwareMethodInvocation(variable!, result)
-        ..fileOffset = fileOffset;
-    }
-    return result;
+    return new ExtensionIndexSet(
+        extension, explicitTypeArguments, receiver, setter, index, value,
+        isNullAware: isNullAware, forEffect: voidContext)
+      ..fileOffset = fileOffset;
   }
 
   @override
   Expression buildIfNullAssignment(Expression value, DartType type, int offset,
       {bool voidContext = false}) {
-    VariableDeclarationImpl? variable;
-    Expression receiverValue;
-    if (isNullAware) {
-      variable = _helper.createVariableDeclarationForValue(receiver);
-      receiverValue = _helper.createVariableGet(variable, fileOffset,
-          forNullGuardedAccess: true);
-    } else {
-      receiverValue = receiver;
+    Procedure? getter = readTarget;
+    Procedure? setter = writeTarget;
+    // Coverage-ignore(suite): Not run.
+    if (getter == null) {
+      return _makeInvalidRead(unresolvedKind: UnresolvedKind.Member);
+    } else if (setter == null) {
+      return _makeInvalidRead(unresolvedKind: UnresolvedKind.Member);
     }
-    Expression result = new IfNullExtensionIndexSet(
-        extension,
-        explicitTypeArguments,
-        receiverValue,
-        readTarget,
-        writeTarget,
-        index,
-        value,
+
+    return new ExtensionIfNullIndexSet(extension, explicitTypeArguments,
+        receiver, getter, setter, index, value,
         readOffset: fileOffset,
         testOffset: offset,
         writeOffset: fileOffset,
-        forEffect: voidContext)
+        forEffect: voidContext,
+        isNullAware: isNullAware)
       ..fileOffset = offset;
-    if (isNullAware) {
-      result = new NullAwareMethodInvocation(variable!, result)
-        ..fileOffset = fileOffset;
-    }
-    return result;
   }
 
   @override
@@ -2395,34 +2368,30 @@ class ExplicitExtensionIndexedAccessGenerator extends Generator {
       bool voidContext = false,
       bool isPreIncDec = false,
       bool isPostIncDec = false}) {
-    VariableDeclarationImpl? variable;
-    Expression receiverValue;
-    if (isNullAware) {
-      variable = _helper.createVariableDeclarationForValue(receiver);
-      receiverValue = _helper.createVariableGet(variable, fileOffset,
-          forNullGuardedAccess: true);
-    } else {
-      receiverValue = receiver;
+    Procedure? getter = readTarget;
+    Procedure? setter = writeTarget;
+    // Coverage-ignore(suite): Not run.
+    if (getter == null) {
+      return _makeInvalidRead(unresolvedKind: UnresolvedKind.Member);
+    } else if (setter == null) {
+      return _makeInvalidRead(unresolvedKind: UnresolvedKind.Member);
     }
-    Expression result = new CompoundExtensionIndexSet(
-        extension,
-        explicitTypeArguments,
-        receiverValue,
-        readTarget,
-        writeTarget,
-        index,
-        binaryOperator,
-        value,
+
+    return new ExtensionCompoundIndexSet(
+        extension: extension,
+        explicitTypeArguments: explicitTypeArguments,
+        receiver: receiver,
+        getter: getter,
+        setter: setter,
+        index: index,
+        binaryName: binaryOperator,
+        rhs: value,
         readOffset: fileOffset,
         binaryOffset: offset,
         writeOffset: fileOffset,
         forEffect: voidContext,
-        forPostIncDec: isPostIncDec);
-    if (isNullAware) {
-      result = new NullAwareMethodInvocation(variable!, result)
-        ..fileOffset = fileOffset;
-    }
-    return result;
+        forPostIncDec: isPostIncDec,
+        isNullAware: isNullAware);
   }
 
   @override

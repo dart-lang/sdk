@@ -34,41 +34,41 @@ library;
 //   Extension(c1).foo();
 //                 ^^^
 //
-// pkg/front_end/testcases/extensions/invalid_explicit_access.dart:32:17: Error: Too few positional arguments: 1 required, 0 given.
+// pkg/front_end/testcases/extensions/invalid_explicit_access.dart:32:23: Error: Too few positional arguments: 1 required, 0 given.
 //   Extension(c1).method();
-//                 ^
+//                       ^
 // pkg/front_end/testcases/extensions/invalid_explicit_access.dart:8:3: Context: Found this candidate, but the arguments don't match.
 //   method(a) {}
-//   ^^^^^^^^^^^^^...
+//   ^^^^^^
 //
-// pkg/front_end/testcases/extensions/invalid_explicit_access.dart:36:17: Error: Too many positional arguments: 1 allowed, but 2 found.
+// pkg/front_end/testcases/extensions/invalid_explicit_access.dart:36:23: Error: Too many positional arguments: 1 allowed, but 2 found.
 // Try removing the extra positional arguments.
 //   Extension(c1).method(1, 2);
-//                 ^
+//                       ^
 // pkg/front_end/testcases/extensions/invalid_explicit_access.dart:8:3: Context: Found this candidate, but the arguments don't match.
 //   method(a) {}
-//   ^^^^^^^^^^^^^...
+//   ^^^^^^
 //
-// pkg/front_end/testcases/extensions/invalid_explicit_access.dart:37:17: Error: Too few positional arguments: 1 required, 0 given.
+// pkg/front_end/testcases/extensions/invalid_explicit_access.dart:37:23: Error: Too few positional arguments: 1 required, 0 given.
 //   Extension(c1).method(a: 1);
-//                 ^
+//                       ^
 // pkg/front_end/testcases/extensions/invalid_explicit_access.dart:8:3: Context: Found this candidate, but the arguments don't match.
 //   method(a) {}
-//   ^^^^^^^^^^^^^...
+//   ^^^^^^
 //
 // pkg/front_end/testcases/extensions/invalid_explicit_access.dart:38:27: Error: No named parameter with the name 'a'.
 //   Extension(c1).method(1, a: 2);
 //                           ^
 // pkg/front_end/testcases/extensions/invalid_explicit_access.dart:8:3: Context: Found this candidate, but the arguments don't match.
 //   method(a) {}
-//   ^^^^^^^^^^^^^...
+//   ^^^^^^
 //
 // pkg/front_end/testcases/extensions/invalid_explicit_access.dart:39:17: Error: Expected 0 type arguments.
 //   Extension(c1).method<int>(null);
 //                 ^
 // pkg/front_end/testcases/extensions/invalid_explicit_access.dart:8:3: Context: Found this candidate, but the arguments don't match.
 //   method(a) {}
-//   ^^^^^^^^^^^^^...
+//   ^^^^^^
 //
 // pkg/front_end/testcases/extensions/invalid_explicit_access.dart:42:3: Error: Explicit extension application requires exactly 1 positional argument.
 //   GenericExtension().method();
@@ -106,17 +106,17 @@ library;
 //   GenericExtension<int, String>(c2).method();
 //   ^^^^^^^^^^^^^^^^
 //
-// pkg/front_end/testcases/extensions/invalid_explicit_access.dart:28:13: Error: The argument type 'String' can't be assigned to the parameter type 'Class'.
+// pkg/front_end/testcases/extensions/invalid_explicit_access.dart:28:13: Error: A value of type 'String' can't be assigned to a variable of type 'Class'.
 //  - 'Class' is from 'pkg/front_end/testcases/extensions/invalid_explicit_access.dart'.
 //   Extension(s).method(null);
 //             ^
 //
-// pkg/front_end/testcases/extensions/invalid_explicit_access.dart:51:20: Error: The argument type 'String' can't be assigned to the parameter type 'GenericClass<dynamic>'.
+// pkg/front_end/testcases/extensions/invalid_explicit_access.dart:51:20: Error: A value of type 'String' can't be assigned to a variable of type 'GenericClass<dynamic>'.
 //  - 'GenericClass' is from 'pkg/front_end/testcases/extensions/invalid_explicit_access.dart'.
 //   GenericExtension(s).method();
 //                    ^
 //
-// pkg/front_end/testcases/extensions/invalid_explicit_access.dart:52:25: Error: The argument type 'String' can't be assigned to the parameter type 'GenericClass<int>'.
+// pkg/front_end/testcases/extensions/invalid_explicit_access.dart:52:25: Error: A value of type 'String' can't be assigned to a variable of type 'GenericClass<int>'.
 //  - 'GenericClass' is from 'pkg/front_end/testcases/extensions/invalid_explicit_access.dart'.
 //   GenericExtension<int>(s).method();
 //                         ^
@@ -166,7 +166,7 @@ static method main() → dynamic {
   invalid-expression "pkg/front_end/testcases/extensions/invalid_explicit_access.dart:27:3: Error: Explicit extension application of extension 'Extension' takes '0' type argument(s).
   Extension<int>(c1).method(null);
   ^^^^^^^^^"{dynamic}.method(null);
-  self::Extension|method(invalid-expression "pkg/front_end/testcases/extensions/invalid_explicit_access.dart:28:13: Error: The argument type 'String' can't be assigned to the parameter type 'Class'.
+  self::Extension|method(invalid-expression "pkg/front_end/testcases/extensions/invalid_explicit_access.dart:28:13: Error: A value of type 'String' can't be assigned to a variable of type 'Class'.
  - 'Class' is from 'pkg/front_end/testcases/extensions/invalid_explicit_access.dart'.
   Extension(s).method(null);
             ^" in s as{TypeError} self::Class, null);
@@ -179,16 +179,16 @@ static method main() → dynamic {
   invalid-expression "pkg/front_end/testcases/extensions/invalid_explicit_access.dart:31:17: Error: Method not found: 'foo'.
   Extension(c1).foo();
                 ^^^";
-  invalid-expression "pkg/front_end/testcases/extensions/invalid_explicit_access.dart:32:17: Error: Too few positional arguments: 1 required, 0 given.
+  invalid-expression "pkg/front_end/testcases/extensions/invalid_explicit_access.dart:32:23: Error: Too few positional arguments: 1 required, 0 given.
   Extension(c1).method();
-                ^";
-  invalid-expression "pkg/front_end/testcases/extensions/invalid_explicit_access.dart:36:17: Error: Too many positional arguments: 1 allowed, but 2 found.
+                      ^";
+  invalid-expression "pkg/front_end/testcases/extensions/invalid_explicit_access.dart:36:23: Error: Too many positional arguments: 1 allowed, but 2 found.
 Try removing the extra positional arguments.
   Extension(c1).method(1, 2);
-                ^";
-  invalid-expression "pkg/front_end/testcases/extensions/invalid_explicit_access.dart:37:17: Error: Too few positional arguments: 1 required, 0 given.
+                      ^";
+  invalid-expression "pkg/front_end/testcases/extensions/invalid_explicit_access.dart:37:23: Error: Too few positional arguments: 1 required, 0 given.
   Extension(c1).method(a: 1);
-                ^";
+                      ^";
   invalid-expression "pkg/front_end/testcases/extensions/invalid_explicit_access.dart:38:27: Error: No named parameter with the name 'a'.
   Extension(c1).method(1, a: 2);
                           ^";
@@ -223,11 +223,11 @@ Try removing the extra positional arguments.
   invalid-expression "pkg/front_end/testcases/extensions/invalid_explicit_access.dart:50:3: Error: Explicit extension application of extension 'GenericExtension' takes '1' type argument(s).
   GenericExtension<int, String>(c2).method();
   ^^^^^^^^^^^^^^^^"{dynamic}.method();
-  self::GenericExtension|method<dynamic>(invalid-expression "pkg/front_end/testcases/extensions/invalid_explicit_access.dart:51:20: Error: The argument type 'String' can't be assigned to the parameter type 'GenericClass<dynamic>'.
+  self::GenericExtension|method<dynamic>(invalid-expression "pkg/front_end/testcases/extensions/invalid_explicit_access.dart:51:20: Error: A value of type 'String' can't be assigned to a variable of type 'GenericClass<dynamic>'.
  - 'GenericClass' is from 'pkg/front_end/testcases/extensions/invalid_explicit_access.dart'.
   GenericExtension(s).method();
                    ^" in s as{TypeError} self::GenericClass<dynamic>);
-  self::GenericExtension|method<core::int>(invalid-expression "pkg/front_end/testcases/extensions/invalid_explicit_access.dart:52:25: Error: The argument type 'String' can't be assigned to the parameter type 'GenericClass<int>'.
+  self::GenericExtension|method<core::int>(invalid-expression "pkg/front_end/testcases/extensions/invalid_explicit_access.dart:52:25: Error: A value of type 'String' can't be assigned to a variable of type 'GenericClass<int>'.
  - 'GenericClass' is from 'pkg/front_end/testcases/extensions/invalid_explicit_access.dart'.
   GenericExtension<int>(s).method();
                         ^" in s as{TypeError} self::GenericClass<core::int>);

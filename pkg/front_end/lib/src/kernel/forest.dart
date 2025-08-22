@@ -52,28 +52,6 @@ class Forest {
     }
   }
 
-  Arguments createArgumentsForExtensionMethod(
-      int fileOffset,
-      int extensionTypeParameterCount,
-      int typeParameterCount,
-      Expression receiver,
-      {List<DartType> extensionTypeArguments = const <DartType>[],
-      int? extensionTypeArgumentOffset,
-      List<DartType> typeArguments = const <DartType>[],
-      List<Expression> positionalArguments = const <Expression>[],
-      List<NamedExpression> namedArguments = const <NamedExpression>[],
-      List<Object?>? argumentsOriginalOrder}) {
-    return new ArgumentsImpl.forExtensionMethod(
-        extensionTypeParameterCount, typeParameterCount, receiver,
-        extensionTypeArguments: extensionTypeArguments,
-        extensionTypeArgumentOffset: extensionTypeArgumentOffset,
-        typeArguments: typeArguments,
-        positionalArguments: positionalArguments,
-        namedArguments: namedArguments,
-        argumentsOriginalOrder: argumentsOriginalOrder)
-      ..fileOffset = fileOffset;
-  }
-
   ArgumentsImpl createArgumentsEmpty(int fileOffset) {
     return createArguments(fileOffset, <Expression>[]);
   }
@@ -731,8 +709,7 @@ class Forest {
   }
 
   VariableGet createVariableGet(int fileOffset, VariableDeclaration variable) {
-    return new VariableGetImpl(variable, forNullGuardedAccess: false)
-      ..fileOffset = fileOffset;
+    return new VariableGet(variable)..fileOffset = fileOffset;
   }
 
   EqualsExpression createEquals(

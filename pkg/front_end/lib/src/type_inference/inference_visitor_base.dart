@@ -949,6 +949,29 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
   /// on [extension] with the static [receiverType]. If [explicitTypeArguments]
   /// are provided, these are returned, otherwise type arguments are inferred
   /// using [receiverType].
+  DartType computeExplicitExtensionReceiverContextType(
+      Extension extension, List<DartType>? explicitTypeArguments) {
+    if (extension.typeParameters.isEmpty) {
+      assert(explicitTypeArguments == null);
+      return extension.onType;
+    } else {
+      List<DartType> typeArguments;
+      if (explicitTypeArguments != null) {
+        assert(explicitTypeArguments.length == extension.typeParameters.length);
+        typeArguments = explicitTypeArguments;
+      } else {
+        typeArguments = new List.filled(
+            extension.typeParameters.length, const UnknownType());
+      }
+      return Substitution.fromPairs(extension.typeParameters, typeArguments)
+          .substituteType(extension.onType);
+    }
+  }
+
+  /// Computes the type arguments for an access to an extension instance member
+  /// on [extension] with the static [receiverType]. If [explicitTypeArguments]
+  /// are provided, these are returned, otherwise type arguments are inferred
+  /// using [receiverType].
   List<DartType> computeExtensionTypeArgument(
     Extension extension,
     List<DartType>? explicitTypeArguments,
@@ -1641,7 +1664,6 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
     DartType? receiverType,
     bool skipTypeArgumentInference = false,
     bool isConst = false,
-    bool isImplicitExtensionMember = false,
     bool isImplicitCall = false,
     Member? staticTarget,
     bool isExtensionMemberInvocation = false,
@@ -1663,7 +1685,6 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
         receiverType: receiverType,
         skipTypeArgumentInference: skipTypeArgumentInference,
         isConst: isConst,
-        isImplicitExtensionMember: isImplicitExtensionMember,
       );
     }
     return _inferInvocation(
@@ -1678,7 +1699,6 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
       receiverType: receiverType,
       skipTypeArgumentInference: skipTypeArgumentInference,
       isConst: isConst,
-      isImplicitExtensionMember: isImplicitExtensionMember,
       isImplicitCall: isImplicitCall,
       staticTarget: staticTarget,
       isExtensionMemberInvocation: isExtensionMemberInvocation,
@@ -1698,7 +1718,6 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
     DartType? receiverType,
     bool skipTypeArgumentInference = false,
     bool isConst = false,
-    bool isImplicitExtensionMember = false,
     bool isImplicitCall = false,
     Member? staticTarget,
   }) {
@@ -1723,7 +1742,6 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
       hoistedExpressions,
       skipTypeArgumentInference: skipTypeArgumentInference,
       receiverType: receiverType,
-      isImplicitExtensionMember: isImplicitExtensionMember,
       isImplicitCall: isImplicitCall,
       staticTarget: staticTarget,
       isExtensionMemberInvocation: true,
@@ -1796,7 +1814,6 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
     DartType? receiverType,
     bool skipTypeArgumentInference = false,
     bool isConst = false,
-    bool isImplicitExtensionMember = false,
     required bool isImplicitCall,
     Member? staticTarget,
     bool isExtensionMemberInvocation = false,
@@ -1994,12 +2011,20 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
         formalType = getNamedParameterType(calleeType, namedArgument.name);
         argumentExpression = namedArgument.value;
       }
-      if (isExpression && isImplicitExtensionMember && index == 0) {
+      if (isExpression && isExtensionMemberInvocation && index == 0) {
         assert(
           receiverType != null,
           "No receiver type provided for implicit extension member "
           "invocation.",
         );
+        Expression expression = _hoist(
+          argumentExpression,
+          receiverType!,
+          hoistedExpressions,
+        );
+        formalTypes.add(formalType);
+        actualTypes.add(receiverType);
+        arguments.positional[index] = expression..parent = arguments;
         continue;
       }
       Expression unparenthesizedExpression = argumentExpression;
@@ -2014,9 +2039,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
             argumentExpression: argumentExpression,
             unparenthesizedExpression: unparenthesizedExpression,
             isNamed: !isExpression,
-            evaluationOrderIndex: isImplicitExtensionMember
-                ? evaluationOrderIndex - 1
-                : evaluationOrderIndex,
+            evaluationOrderIndex: evaluationOrderIndex,
             index: index,
           ),
         );
@@ -2221,9 +2244,9 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
       }) argumentHandlingCallback,
     ) {
       // Argument counts and names match. Compare types.
-      int positionalShift = isImplicitExtensionMember ? 1 : 0;
       int positionalIndex = 0;
       int namedIndex = 0;
+      int overallArgumentIndex = 0;
       for (int i = 0; i < formalTypes.length; i++) {
         DartType formalType = formalTypes[i];
         DartType expectedType = instantiator != null
@@ -2233,10 +2256,9 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
         Expression expression;
         NamedExpression? namedExpression;
         bool coerceExpression;
-        Object? argumentInEvaluationOrder =
-            argumentsEvaluationOrder[i + positionalShift];
+        Object? argumentInEvaluationOrder = argumentsEvaluationOrder[i];
         if (argumentInEvaluationOrder is Expression) {
-          expression = arguments.positional[positionalShift + positionalIndex];
+          expression = arguments.positional[positionalIndex];
           coerceExpression = !arguments.positionalAreSuperParameters;
         } else {
           namedExpression = arguments.named[namedIndex];
@@ -2246,17 +2268,19 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
               ) ??
               false);
         }
-
-        argumentHandlingCallback(
-          actualType: actualType,
-          expectedType: expectedType,
-          formalType: formalType,
-          argumentExpression: expression,
-          namedArgumentExpression: namedExpression,
-          coerceExpression: coerceExpression,
-          positionalArgumentIndex: positionalShift + positionalIndex,
-          overallArgumentIndex: i,
-        );
+        if (!(isExtensionMemberInvocation && positionalIndex == 0)) {
+          argumentHandlingCallback(
+            actualType: actualType,
+            expectedType: expectedType,
+            formalType: formalType,
+            argumentExpression: expression,
+            namedArgumentExpression: namedExpression,
+            coerceExpression: coerceExpression,
+            positionalArgumentIndex: positionalIndex,
+            overallArgumentIndex: overallArgumentIndex,
+          );
+          overallArgumentIndex++;
+        }
 
         if (namedExpression == null) {
           positionalIndex++;
@@ -2668,11 +2692,34 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
     }
   }
 
-  StaticInvocation transformExtensionMethodInvocation(
+  ArgumentsImpl createExtensionInvocationArgument(
+      ObjectAccessTarget target, Expression receiver, ArgumentsImpl arguments) {
+    assert(
+      target.isExtensionMember ||
+          target.isNullableExtensionMember ||
+          target.isExtensionTypeMember ||
+          target.isNullableExtensionTypeMember,
+    );
+    Procedure procedure = target.member as Procedure;
+    return new ArgumentsImpl.forExtensionMethod(
+        target.receiverTypeArguments.length,
+        procedure.function.typeParameters.length -
+            target.receiverTypeArguments.length,
+        receiver,
+        extensionTypeArguments: target.receiverTypeArguments,
+        positionalArguments: arguments.positional,
+        namedArguments: arguments.named,
+        typeArguments: arguments.types,
+        argumentsOriginalOrder: arguments.argumentsOriginalOrder != null
+            ? [receiver, ...arguments.argumentsOriginalOrder!]
+            : null)
+      ..fileOffset = arguments.fileOffset;
+  }
+
+  StaticInvocation createExtensionInvocation(
     int fileOffset,
     ObjectAccessTarget target,
-    Expression receiver,
-    Arguments arguments,
+    ArgumentsImpl arguments,
   ) {
     assert(
       target.isExtensionMember ||
@@ -2683,16 +2730,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
     Procedure procedure = target.member as Procedure;
     return createStaticInvocation(
       procedure,
-      new ArgumentsImpl.forExtensionMethod(
-        target.receiverTypeArguments.length,
-        procedure.function.typeParameters.length -
-            target.receiverTypeArguments.length,
-        receiver,
-        extensionTypeArguments: target.receiverTypeArguments,
-        positionalArguments: arguments.positional,
-        namedArguments: arguments.named,
-        typeArguments: arguments.types,
-      )..fileOffset = arguments.fileOffset,
+      arguments,
       fileOffset: fileOffset,
     );
   }
@@ -2829,11 +2867,13 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
     InvocationTargetType invocationTargetType = target.getFunctionType(this);
 
     if (target.declarationMethodKind == ClassMemberKind.Getter) {
-      StaticInvocation staticInvocation = transformExtensionMethodInvocation(
+      ArgumentsImpl extensionInvocationArguments =
+          createExtensionInvocationArgument(
+              target, receiver, new ArgumentsImpl.empty());
+      StaticInvocation staticInvocation = createExtensionInvocation(
         fileOffset,
         target,
-        receiver,
-        new Arguments.empty(),
+        extensionInvocationArguments,
       );
       ExpressionInferenceResult result = inferMethodInvocation(
         visitor,
@@ -2874,26 +2914,27 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
 
       return result;
     } else {
-      StaticInvocation staticInvocation = transformExtensionMethodInvocation(
-        fileOffset,
-        target,
-        receiver,
-        arguments,
-      );
+      ArgumentsImpl extensionInvocationArguments =
+          createExtensionInvocationArgument(target, receiver, arguments);
       InvocationInferenceResult result = inferInvocation(
         visitor,
         typeContext,
         fileOffset,
         invocationTargetType,
-        staticInvocation.arguments as ArgumentsImpl,
+        extensionInvocationArguments,
         hoistedExpressions: hoistedExpressions,
         receiverType: receiverType,
-        isImplicitExtensionMember: true,
         isImplicitCall: isImplicitCall,
         isExtensionMemberInvocation: true,
       );
+      StaticInvocation staticInvocation = createExtensionInvocation(
+        fileOffset,
+        target,
+        extensionInvocationArguments,
+      );
       libraryBuilder.checkBoundsInStaticInvocation(
         staticInvocation,
+        name,
         typeSchemaEnvironment,
         helper.uri,
         getTypeArgumentsInfo(arguments),
@@ -4160,7 +4201,6 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
       arguments,
       isSpecialCasedBinaryOperator: isSpecialCasedBinaryOperator,
       receiverType: receiverType,
-      isImplicitExtensionMember: false,
     );
     DartType inferredType = result.inferredType;
     if (methodName.text == '==') {

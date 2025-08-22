@@ -1446,6 +1446,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
 
   void checkBoundsInStaticInvocation(
       StaticInvocation node,
+      Name targetName,
       TypeEnvironment typeEnvironment,
       Uri fileUri,
       TypeArgumentsInfo typeArgumentsInfo) {
@@ -1475,11 +1476,10 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
         targetReceiver =
             new InterfaceType(klass, klass.enclosingLibrary.nonNullable);
       }
-      String targetName = node.target.name.text;
       _reportTypeArgumentIssues(issues, fileUri, node.fileOffset,
           typeArgumentsInfo: typeArgumentsInfo,
           targetReceiver: targetReceiver,
-          targetName: targetName);
+          targetName: targetName.text);
     }
   }
 

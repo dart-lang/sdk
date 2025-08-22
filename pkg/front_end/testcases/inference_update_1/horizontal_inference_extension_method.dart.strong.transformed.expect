@@ -53,9 +53,9 @@ static method testLaterUnnamedParameter(core::int i) → dynamic {
   });
 }
 static method testLaterUnnamedParameterDependsOnNamedParameter(core::int i) → dynamic {
-  self::_extension#0|_laterUnnamedParameterDependsOnNamedParameter<core::int>(i, (core::int x) → void {
+  let final core::int #t1 = i in let final core::int #t2 = 0 in self::_extension#0|_laterUnnamedParameterDependsOnNamedParameter<core::int>(#t1, (core::int x) → void {
     x;
-  }, a: 0);
+  }, a: #t2);
 }
 static method testEarlierUnnamedParameter(core::int i) → dynamic {
   self::_extension#0|_earlierUnnamedParameter<core::int>(i, (core::int x) → void {
@@ -73,7 +73,7 @@ static method testEarlierNamedParameter(core::int i) → dynamic {
   }, b: 0);
 }
 static method testEarlierNamedParameterDependsOnUnnamedParameter(core::int i) → dynamic {
-  self::_extension#0|_earlierNamedParameterDependsOnUnnamedParameter<core::int>(i, 0, a: (core::int x) → void {
+  let final core::int #t3 = i in self::_extension#0|_earlierNamedParameterDependsOnUnnamedParameter<core::int>(#t3, 0, a: (core::int x) → void {
     x;
   });
 }
@@ -91,15 +91,15 @@ static method testPropagateToLaterClosure(core::int i) → dynamic {
 }
 static method testLongDependencyChain(core::int i) → dynamic {
   self::_extension#0|_longDependencyChain<core::List<core::int>, core::int, core::Set<core::int>>(i, () → core::List<core::int> => core::_GrowableList::_literal1<core::int>(0), (core::List<core::int> x) → core::int => x.{core::Iterable::single}{core::int}, (core::int y) → core::Set<core::int> => block {
-    final core::Set<core::int> #t1 = new _co::_Set::•<core::int>();
-    #t1.{core::Set::add}{Invariant}(y){(core::int) → core::bool};
-  } =>#t1);
+    final core::Set<core::int> #t4 = new _co::_Set::•<core::int>();
+    #t4.{core::Set::add}{Invariant}(y){(core::int) → core::bool};
+  } =>#t4);
 }
 static method testDependencyCycle(core::int i) → dynamic {
   self::_extension#0|_dependencyCycle<core::List<core::Object?>, core::Set<core::Object?>>(i, (core::Object? x) → core::List<core::Object?> => core::_GrowableList::_literal1<core::Object?>(x), (core::Object? y) → core::Set<core::Object?> => block {
-    final core::Set<core::Object?> #t2 = new _co::_Set::•<core::Object?>();
-    #t2.{core::Set::add}{Invariant}(y){(core::Object?) → core::bool};
-  } =>#t2);
+    final core::Set<core::Object?> #t5 = new _co::_Set::•<core::Object?>();
+    #t5.{core::Set::add}{Invariant}(y){(core::Object?) → core::bool};
+  } =>#t5);
 }
 static method testPropagateFromContravariantReturnType(core::int i) → dynamic {
   self::_extension#0|_propagateFromContravariantReturnType<core::int, core::List<core::int>>(i, () → (core::int) → void => (core::int i) → void {}, (core::int x) → core::List<core::int> => core::_GrowableList::_literal1<core::int>(x));
@@ -118,7 +118,7 @@ static method testUnnecessaryDueToNoDependency(core::int i) → dynamic {
   self::_extension#0|_unnecessaryDueToNoDependency<core::int?>(i, () → core::int => 0, null);
 }
 static method testUnnecessaryDueToExplicitParameterTypeNamed(core::int i) → dynamic {
-  core::int? a = self::_extension#0|_unnecessaryDueToExplicitParameterTypeNamed<core::int?>(i, null, ({core::int? x = #C1, required core::int y}) → core::int => (let final core::int? #t3 = x in #t3 == null ?{core::int} 0 : #t3{core::int}).{core::num::+}(y){(core::num) → core::int});
+  core::int? a = self::_extension#0|_unnecessaryDueToExplicitParameterTypeNamed<core::int?>(i, null, ({core::int? x = #C1, required core::int y}) → core::int => (let final core::int? #t6 = x in #t6 == null ?{core::int} 0 : #t6{core::int}).{core::num::+}(y){(core::num) → core::int});
   a;
 }
 static method testParenthesized(core::int i) → dynamic {
@@ -230,3 +230,7 @@ static method main() → dynamic {}
 constants  {
   #C1 = null
 }
+
+Extra constant evaluation status:
+Evaluated: VariableGet @ org-dartlang-testcase:///horizontal_inference_extension_method.dart:22:54 -> IntConstant(0)
+Extra constant evaluation: evaluated: 260, effectively constant: 1

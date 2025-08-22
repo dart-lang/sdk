@@ -80,11 +80,11 @@ void test0() {
   E0(c0)[0] += 0;
   //    ^^^
   // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_EXTENSION_OPERATOR
-  // [cfe] The operator '[]' isn't defined for the type 'C0'.
+  // [cfe] Member not found: '[]'.
   E0(c0)[0]++;
   //    ^^^
   // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_EXTENSION_OPERATOR
-  // [cfe] The operator '[]' isn't defined for the type 'C0'.
+  // [cfe] Member not found: '[]'.
 }
 
 // Conflicting extensions.

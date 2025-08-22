@@ -248,13 +248,17 @@ class ExtensionSetForInVariable implements ForInVariable {
 
   @override
   DartType computeElementType(InferenceVisitorBase visitor) {
+    DartType receiverContextType =
+        visitor.computeExplicitExtensionReceiverContextType(
+            extensionSet.extension, extensionSet.knownTypeArguments);
+
     ExpressionInferenceResult receiverResult = visitor.inferExpression(
-        extensionSet.receiver, const UnknownType(),
+        extensionSet.receiver, receiverContextType,
         isVoidAllowed: false);
 
     List<DartType> extensionTypeArguments =
         visitor.computeExtensionTypeArgument(extensionSet.extension,
-            extensionSet.explicitTypeArguments, receiverResult.inferredType,
+            extensionSet.knownTypeArguments, receiverResult.inferredType,
             treeNodeForTesting: extensionSet);
 
     DartType receiverType = visitor.getExtensionReceiverType(
@@ -262,7 +266,7 @@ class ExtensionSetForInVariable implements ForInVariable {
 
     ObjectAccessTarget target = new ExtensionAccessTarget(
         receiverType,
-        extensionSet.target,
+        extensionSet.setter,
         null,
         ClassMemberKind.Setter,
         extensionTypeArguments);

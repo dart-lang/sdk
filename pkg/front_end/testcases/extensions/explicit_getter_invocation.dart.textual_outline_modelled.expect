@@ -1,0 +1,10 @@
+expect(expected, actual) {}
+
+extension E on int {
+  int Function(int) get f => (x) => x;
+  m() {}
+}
+
+main() {}
+
+test(int i1, int? i2, int? i3) {}
