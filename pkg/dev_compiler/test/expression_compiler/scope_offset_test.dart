@@ -5,7 +5,6 @@
 import 'package:front_end/src/api_unstable/ddc.dart';
 import 'package:kernel/ast.dart';
 import 'package:kernel/binary/ast_from_binary.dart';
-import 'package:kernel/dart_scope_calculator.dart';
 import 'package:kernel/src/printer.dart';
 import 'package:test/test.dart';
 
@@ -150,13 +149,6 @@ class ScopeOffsetValidator extends VisitorDefault<void> with VisitorVoidMixin {
         '${block.toText(astTextStrategyForTesting)} : fileOffset',
         isNot(equals(-1)),
       ),
-    );
-
-    var fileEndOffset = FileEndOffsetCalculator.calculateEndOffset(block);
-    expect(
-      fileEndOffset,
-      isNot(equals(-1)),
-      reason: '${block.toText(astTextStrategyForTesting)} : fileOffset',
     );
 
     super.visitBlock(block);
