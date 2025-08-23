@@ -1483,8 +1483,8 @@ package:analyzer/dart/ast/ast.dart:
     pattern (getter: DartPattern)
   NullLiteral (class extends Object implements Literal):
     literal (getter: Token)
-  NullShortableExpression (class extends Object implements Expression):
-    nullShortingTermination (getter: Expression)
+  NullShortableExpression (class extends Object implements Expression, deprecated):
+    nullShortingTermination (getter: Expression, deprecated)
   ObjectPattern (class extends Object implements DartPattern):
     fields (getter: NodeList<PatternField>)
     leftParenthesis (getter: Token)

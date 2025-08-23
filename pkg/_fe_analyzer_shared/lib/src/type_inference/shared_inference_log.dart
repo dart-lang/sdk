@@ -257,6 +257,13 @@ abstract interface class SharedInferenceLogWriter {
     required String methodName,
   });
 
+  /// Called when null shorting terminates, and so the type of an expression is
+  /// made nullable.
+  ///
+  /// [expression] is the expression whose type is changed, and [type] is the
+  /// type it is changed to.
+  void recordNullShortedType(Object expression, SharedType type);
+
   /// Records the preliminary types chosen during either a downwards or a
   /// horizontal inference step.
   void recordPreliminaryTypes(List<SharedType> types);
@@ -786,6 +793,17 @@ abstract class SharedInferenceLogWriterImpl
     String query =
         target != null ? '${describe(target)}.$methodName' : methodName;
     addEvent(new Event(message: 'LOOKUP $query FINDS $type'));
+  }
+
+  @override
+  void recordNullShortedType(Object expression, SharedType type) {
+    addEvent(
+      new Event(
+        message:
+            'STATIC TYPE OF ${describe(expression)} REFINED BY NULL SHORTING '
+            'TO $type',
+      ),
+    );
   }
 
   @override

@@ -14,6 +14,8 @@
 * Deprecate `InterfaceFragment.supertype`, use `InterfaceElement.supertype` instead.
 * Deprecate `ExtensionTypeFragment.primaryConstructor`, use `ExtensionTypeElement.primaryConstructor`.
 * Deprecate `ExtensionTypeFragment.representation`, use `ExtensionTypeElement.representation`.
+* Deprecate `NullShortableExpression`. This interface should not be needed by
+  analyzer clients, and is no longer supported.
 
 ## 8.1.1
 * Fix for `EnumSet` usage when compiled to JavaScript.

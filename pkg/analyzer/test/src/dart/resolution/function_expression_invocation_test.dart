@@ -6,10 +6,12 @@ import 'package:analyzer/src/error/codes.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'context_collection_resolution.dart';
+import 'node_text_expectations.dart';
 
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(FunctionExpressionInvocationTest);
+    defineReflectiveTests(UpdateNodeTextExpectations);
   });
 }
 
@@ -683,6 +685,41 @@ FunctionExpressionInvocation
       token: foo
       element: <testLibrary>::@class::A::@getter::foo
       staticType: int Function()
+    staticType: int Function()
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  element: <null>
+  staticInvokeType: int Function()
+  staticType: int?
+''');
+  }
+
+  test_nullShorting_extended() async {
+    await assertNoErrorsInCode('''
+abstract class A {
+  int Function() f();
+}
+test(A? a) => a?.f()();
+''');
+
+    var node = findNode.functionExpressionInvocation('a?.f()()');
+    assertResolvedNodeText(node, r'''
+FunctionExpressionInvocation
+  function: MethodInvocation
+    target: SimpleIdentifier
+      token: a
+      element: <testLibrary>::@function::test::@formalParameter::a
+      staticType: A?
+    operator: ?.
+    methodName: SimpleIdentifier
+      token: f
+      element: <testLibrary>::@class::A::@method::f
+      staticType: int Function() Function()
+    argumentList: ArgumentList
+      leftParenthesis: (
+      rightParenthesis: )
+    staticInvokeType: int Function() Function()
     staticType: int Function()
   argumentList: ArgumentList
     leftParenthesis: (
