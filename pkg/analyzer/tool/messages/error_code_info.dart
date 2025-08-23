@@ -36,12 +36,6 @@ const List<ErrorClassInfo> errorClasses = [
     file: codesFile,
     name: 'CompileTimeErrorCode',
     type: 'COMPILE_TIME_ERROR',
-    deprecatedSnakeCaseNames: {
-      'INSTANCE_ACCESS_TO_STATIC_MEMBER', // Referenced by `messages.yaml`.
-      'INVALID_OVERRIDE', // Referenced by `messages.yaml`.
-      'TYPE_ARGUMENT_NOT_MATCHING_BOUNDS', // Referenced by `messages.yaml`.
-      'UNDEFINED_CLASS', // Referenced by `messages.yaml`.
-    },
   ),
   ErrorClassInfo(
     file: scannerErrorFile,
@@ -73,7 +67,6 @@ const List<ErrorClassInfo> errorClasses = [
     severity: 'ERROR',
     includeCfeMessages: true,
     deprecatedSnakeCaseNames: {
-      'EXPERIMENT_NOT_ENABLED', // Referenced by `messages.yaml`.
       'UNEXPECTED_TOKEN', // Referenced by `package:dart_style`.
     },
   ),

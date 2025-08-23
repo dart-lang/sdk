@@ -8749,7 +8749,7 @@ CompileTimeErrorCode:
     hasPublishedDocs: true
     comment: |-
       The parameters of this error code must be kept in sync with those of
-      [CompileTimeErrorCode.INVALID_OVERRIDE].
+      [CompileTimeErrorCode.invalidOverride].
     documentation: |-
       #### Description
 
@@ -8844,7 +8844,7 @@ CompileTimeErrorCode:
     hasPublishedDocs: true
     comment: |-
       The parameters of this error code must be kept in sync with those of
-      [CompileTimeErrorCode.INVALID_OVERRIDE].
+      [CompileTimeErrorCode.invalidOverride].
   INVALID_INLINE_FUNCTION_TYPE:
     parameters: none
     problemMessage: "Inline function types can't be used for parameters in a generic function type."
@@ -16375,7 +16375,7 @@ CompileTimeErrorCode:
     correctionMessage: "Try using a type that is the same as or a subclass of '#p1'."
     hasPublishedDocs: true
     comment: |-
-      See [CompileTimeErrorCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS].
+      See [CompileTimeErrorCode.typeArgumentNotMatchingBounds].
     documentation: |-
       #### Description
 
@@ -16702,7 +16702,7 @@ CompileTimeErrorCode:
     isUnresolvedIdentifier: true
     hasPublishedDocs: true
     comment: |-
-      Same as [CompileTimeErrorCode.UNDEFINED_CLASS], but to catch using
+      Same as [CompileTimeErrorCode.undefinedClass], but to catch using
       "boolean" instead of "bool" in order to improve the correction message.
   UNDEFINED_CONSTRUCTOR_IN_INITIALIZER:
     parameters:
@@ -17714,7 +17714,7 @@ CompileTimeErrorCode:
     correctionMessage: "Try adding '#p0.' before the name."
     hasPublishedDocs: true
     comment: |-
-      This is a specialization of [INSTANCE_ACCESS_TO_STATIC_MEMBER] that is used
+      This is a specialization of [instanceAccessToStaticMember] that is used
       when we are able to find the name defined in a supertype. It exists to
       provide a more informative error message.
     documentation: |-
@@ -27394,7 +27394,7 @@ WarningCode:
     correctionMessage: "Try updating your pubspec.yaml to set the minimum SDK constraint to 2.15 or higher, and running 'pub get'."
     hasPublishedDocs: true
     comment: |-
-      There is also a [ParserErrorCode.EXPERIMENT_NOT_ENABLED] code which
+      There is also a [ParserErrorCode.experimentNotEnabled] code which
       catches some cases of constructor tearoff features (like
       `List<int>.filled;`). Other constructor tearoff cases are not realized
       until resolution (like `List.filled;`).

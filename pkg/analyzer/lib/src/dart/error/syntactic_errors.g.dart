@@ -728,9 +728,6 @@ class ParserErrorCode extends DiagnosticCode {
         "Expected a type name.",
       );
 
-  @Deprecated("Please use experimentNotEnabled")
-  static const ParserErrorCode EXPERIMENT_NOT_ENABLED = experimentNotEnabled;
-
   static const ParserErrorCode experimentNotEnabled = ParserErrorCode(
     'EXPERIMENT_NOT_ENABLED',
     "This requires the '{0}' language feature to be enabled.",
