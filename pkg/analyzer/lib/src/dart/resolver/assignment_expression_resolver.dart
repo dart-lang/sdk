@@ -117,8 +117,6 @@ class AssignmentExpressionResolver {
         flow.ifNullExpression_end();
       }
     }
-
-    _resolver.nullShortingTermination(node);
   }
 
   void _checkForInvalidAssignment(

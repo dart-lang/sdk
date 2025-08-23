@@ -133,7 +133,6 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
           InterfaceTypeImpl,
           InterfaceElementImpl
         >,
-        // TODO(paulberry): not yet used.
         NullShortingMixin<
           Null,
           ExpressionImpl,
@@ -272,13 +271,6 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   TypeImpl? _thisType;
 
   final FlowAnalysisHelper flowAnalysis;
-
-  /// Stack of expressions which we have not yet finished visiting, that should
-  /// terminate a null-shorting expression.
-  ///
-  /// The stack contains a `null` sentinel as its first entry so that it is
-  /// always safe to use `.last` to examine the top of the stack.
-  final List<Expression?> _unfinishedNullShorts = [null];
 
   late final FunctionReferenceResolver _functionReferenceResolver;
 
@@ -776,7 +768,6 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
       stackDepth = rewriteStackDepth;
       return true;
     }());
-    // TODO(paulberry): implement null shorting
     // Stack: ()
     pushRewrite(expression);
     // Stack: (Expression)
@@ -1153,6 +1144,13 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   void handleNoStatement(Statement node) {}
 
   @override
+  void handleNullShortingFinished(SharedTypeView inferredType) {
+    var expression = peekRewrite() as ExpressionImpl;
+    expression.recordNullShortedType(inferredType.unwrapTypeView());
+    nullSafetyDeadCodeVerifier.flowEnd(expression);
+  }
+
+  @override
   void handleSwitchBeforeAlternative(
     covariant AstNodeImpl node, {
     required int caseIndex,
@@ -1258,37 +1256,6 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
 
   @override
   bool isVariablePattern(AstNode pattern) => pattern is DeclaredVariablePattern;
-
-  /// If we reached a null-shorting termination, and the [node] has null
-  /// shorting, make the type of the [node] nullable.
-  ///
-  /// [node] should be the original expression node (before resolution). If the
-  /// resolution process rewrote [node] to some other expression, that
-  /// expression should be passed in as [rewrittenExpression].
-  void nullShortingTermination(
-    ExpressionImpl node, {
-    ExpressionImpl? rewrittenExpression,
-  }) {
-    // Verify that `rewrittenExpression` properly reflects any rewrites that
-    // were performed on `node`.
-    assert(identical(rewrittenExpression ?? node, _replacements[node] ?? node));
-
-    if (identical(_unfinishedNullShorts.last, node)) {
-      do {
-        _unfinishedNullShorts.removeLast();
-        flowAnalysis.flow!.nullAwareAccess_end();
-        nullSafetyDeadCodeVerifier.flowEnd(node);
-      } while (identical(_unfinishedNullShorts.last, node));
-      if (node is! CascadeExpression) {
-        // Make the static type of `node` (or whatever it was rewritten to)
-        // nullable.
-        rewrittenExpression ??= node;
-        rewrittenExpression.setPseudoExpressionStaticType(
-          typeSystem.makeNullable(rewrittenExpression.typeOrThrow),
-        );
-      }
-    }
-  }
 
   /// If it is appropriate to do so, override the current type of the static
   /// element associated with the given expression with the given type.
@@ -1454,12 +1421,16 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
           // valid code, but we want to prevent any crashes.
           pushDotShorthandContext(target, operations.unknownType);
         }
-        analyzeExpression(target, operations.unknownType);
+        analyzeExpression(
+          target,
+          operations.unknownType,
+          continueNullShorting: true,
+        );
         popRewrite();
       }
 
       if (node.isNullAware) {
-        _startNullAwareAccess(node, node.target);
+        _startNullAwareAccess(node.target);
         nullSafetyDeadCodeVerifier.visitNode(node.index);
       }
 
@@ -1487,7 +1458,11 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
       return result;
     } else if (node is PrefixedIdentifierImpl) {
       var prefix = node.prefix;
-      analyzeExpression(prefix, operations.unknownType);
+      analyzeExpression(
+        prefix,
+        operations.unknownType,
+        continueNullShorting: true,
+      );
       popRewrite();
 
       // TODO(scheglov): It would be nice to rewrite all such cases.
@@ -1521,11 +1496,15 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
           // type since this shouldn't be valid code.
           pushDotShorthandContext(target, operations.unknownType);
         }
-        analyzeExpression(target, operations.unknownType);
+        analyzeExpression(
+          target,
+          operations.unknownType,
+          continueNullShorting: true,
+        );
         popRewrite();
       }
       if (node.isNullAware) {
-        _startNullAwareAccess(node, node.target);
+        _startNullAwareAccess(node.target);
         nullSafetyDeadCodeVerifier.visitNode(node.propertyName);
       }
 
@@ -2086,7 +2065,6 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
         node.target,
         SharedTypeView(targetType),
       );
-      _unfinishedNullShorts.add(node.nullShortingTermination);
     }
 
     for (var cascadeSection in node.cascadeSections) {
@@ -2096,7 +2074,9 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
 
     typeAnalyzer.visitCascadeExpression(node);
 
-    nullShortingTermination(node);
+    if (node.isNullAware) {
+      flowAnalysis.flow!.nullAwareAccess_end();
+    }
     flowAnalysis.flow!.cascadeExpression_end(node);
     _insertImplicitCallReference(node, contextType: contextType);
     nullSafetyDeadCodeVerifier.verifyCascadeExpression(node);
@@ -2936,6 +2916,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     analyzeExpression(
       node.function,
       SharedTypeSchemaView(UnknownInferredType.instance),
+      continueNullShorting: true,
     );
     node.function = popRewrite()!;
 
@@ -2946,7 +2927,6 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
       whyNotPromotedArguments,
       contextType: contextType,
     );
-    nullShortingTermination(node);
     var replacement = insertGenericFunctionInstantiation(
       node,
       contextType: contextType,
@@ -3121,13 +3101,14 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
       analyzeExpression(
         target,
         SharedTypeSchemaView(UnknownInferredType.instance),
+        continueNullShorting: true,
       );
       popRewrite();
     }
     var targetType = node.realTarget.staticType;
 
     if (node.isNullAware) {
-      _startNullAwareAccess(node, node.target);
+      _startNullAwareAccess(node.target);
       nullSafetyDeadCodeVerifier.visitNode(node.index);
     }
 
@@ -3169,7 +3150,6 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
       contextType: contextType,
     );
 
-    nullShortingTermination(node, rewrittenExpression: replacement);
     _insertImplicitCallReference(replacement, contextType: contextType);
     nullSafetyDeadCodeVerifier.verifyIndexExpression(node);
 
@@ -3382,12 +3362,16 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
         <Map<SharedTypeView, NonPromotionReason> Function()>[];
     var target = node.target;
     if (target != null) {
-      analyzeExpression(target, operations.unknownType);
+      analyzeExpression(
+        target,
+        operations.unknownType,
+        continueNullShorting: true,
+      );
       target = popRewrite();
     }
 
     if (node.isNullAware) {
-      _startNullAwareAccess(node, target);
+      _startNullAwareAccess(target);
       nullSafetyDeadCodeVerifier.visitNode(node.methodName);
     }
 
@@ -3405,7 +3389,6 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
         contextType: contextType,
       );
     }
-    nullShortingTermination(node, rewrittenExpression: functionRewrite);
     var replacement = insertGenericFunctionInstantiation(
       node,
       contextType: contextType,
@@ -3707,6 +3690,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
       analyzeExpression(
         target,
         SharedTypeSchemaView(UnknownInferredType.instance),
+        continueNullShorting: true,
       );
       popRewrite();
     }
@@ -4407,7 +4391,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     TypeImpl contextType,
   ) {
     if (node.isNullAware) {
-      _startNullAwareAccess(node, node.target);
+      _startNullAwareAccess(node.target);
       nullSafetyDeadCodeVerifier.visitNode(node.propertyName);
     }
 
@@ -4477,7 +4461,6 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
       contextType: contextType,
     );
 
-    nullShortingTermination(node, rewrittenExpression: replacement);
     _insertImplicitCallReference(replacement, contextType: contextType);
   }
 
@@ -4493,20 +4476,11 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     List<WhyNotPromotedGetter> whyNotPromotedArguments, {
     required TypeImpl contextType,
   }) {
-    var function = node.function;
-
-    if (function is PropertyAccessImpl && function.isNullAware) {
-      _startNullAwareAccess(function, function.target);
-      nullSafetyDeadCodeVerifier.visitNode(node.argumentList);
-    }
-
     _functionExpressionInvocationResolver.resolve(
       node,
       whyNotPromotedArguments,
       contextType: contextType,
     );
-
-    nullShortingTermination(node);
   }
 
   void _setupThisType() {
@@ -4551,10 +4525,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     return false;
   }
 
-  void _startNullAwareAccess(
-    NullShortableExpression node,
-    ExpressionImpl? target,
-  ) {
+  void _startNullAwareAccess(ExpressionImpl? target) {
     var flow = flowAnalysis.flow;
     if (flow != null) {
       switch (target) {
@@ -4571,11 +4542,11 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
           argumentList: ArgumentListImpl(arguments: [var expression]),
         ):
         case var expression:
-          flow.nullAwareAccess_rightBegin(
+          startNullShorting(
+            null,
             expression,
             SharedTypeView(expression.staticType ?? typeProvider.dynamicType),
           );
-          _unfinishedNullShorts.add(node.nullShortingTermination);
       }
     }
   }

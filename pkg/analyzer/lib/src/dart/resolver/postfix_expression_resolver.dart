@@ -204,8 +204,6 @@ class PostfixExpressionResolver {
       }
       node.recordStaticType(receiverType, resolver: _resolver);
     }
-
-    _resolver.nullShortingTermination(node);
   }
 
   void _resolveNullCheck(
@@ -227,6 +225,7 @@ class PostfixExpressionResolver {
     _resolver.analyzeExpression(
       operand,
       SharedTypeSchemaView(_typeSystem.makeNullable(contextType)),
+      continueNullShorting: true,
     );
     operand = _resolver.popRewrite()!;
 
@@ -236,6 +235,5 @@ class PostfixExpressionResolver {
     node.recordStaticType(type, resolver: _resolver);
 
     _resolver.flowAnalysis.flow?.nonNullAssert_end(operand);
-    _resolver.nullShortingTermination(node);
   }
 }

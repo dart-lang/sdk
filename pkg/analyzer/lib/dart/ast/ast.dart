@@ -183,6 +183,7 @@ export 'package:analyzer/src/dart/ast/ast.dart'
         NullAwareElement,
         NullCheckPattern,
         NullLiteral,
+        // ignore: deprecated_member_use_from_same_package
         NullShortableExpression,
         ObjectPattern,
         ParenthesizedExpression,

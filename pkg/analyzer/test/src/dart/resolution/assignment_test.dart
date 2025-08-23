@@ -637,6 +637,111 @@ AssignmentExpression
 ''');
   }
 
+  test_indexExpression_nullShorting_assignable() async {
+    await assertNoErrorsInCode('''
+abstract class A {
+  B get b;
+}
+abstract class B {
+  operator []=(String s, int i);
+}
+test(A? a, String s) {
+  a?.b[s] = 0;
+}
+''');
+
+    var node = findNode.assignment('= 0');
+    assertResolvedNodeText(node, r'''
+AssignmentExpression
+  leftHandSide: IndexExpression
+    target: PropertyAccess
+      target: SimpleIdentifier
+        token: a
+        element: <testLibrary>::@function::test::@formalParameter::a
+        staticType: A?
+      operator: ?.
+      propertyName: SimpleIdentifier
+        token: b
+        element: <testLibrary>::@class::A::@getter::b
+        staticType: B
+      staticType: B
+    leftBracket: [
+    index: SimpleIdentifier
+      token: s
+      correspondingParameter: <testLibrary>::@class::B::@method::[]=::@formalParameter::s
+      element: <testLibrary>::@function::test::@formalParameter::s
+      staticType: String
+    rightBracket: ]
+    element: <null>
+    staticType: null
+  operator: =
+  rightHandSide: IntegerLiteral
+    literal: 0
+    correspondingParameter: <testLibrary>::@class::B::@method::[]=::@formalParameter::i
+    staticType: int
+  readElement2: <null>
+  readType: null
+  writeElement2: <testLibrary>::@class::B::@method::[]=
+  writeType: int
+  element: <null>
+  staticType: int?
+''');
+  }
+
+  test_indexExpression_nullShorting_notAssignable() async {
+    await assertErrorsInCode(
+      '''
+abstract class A {
+  B get b;
+}
+abstract class B {
+  operator []=(String s, int i);
+}
+test(A? a, String s) {
+  a?.b[s] = null;
+}
+''',
+      [error(CompileTimeErrorCode.invalidAssignment, 121, 4)],
+    );
+
+    var node = findNode.assignment('= null');
+    assertResolvedNodeText(node, r'''
+AssignmentExpression
+  leftHandSide: IndexExpression
+    target: PropertyAccess
+      target: SimpleIdentifier
+        token: a
+        element: <testLibrary>::@function::test::@formalParameter::a
+        staticType: A?
+      operator: ?.
+      propertyName: SimpleIdentifier
+        token: b
+        element: <testLibrary>::@class::A::@getter::b
+        staticType: B
+      staticType: B
+    leftBracket: [
+    index: SimpleIdentifier
+      token: s
+      correspondingParameter: <testLibrary>::@class::B::@method::[]=::@formalParameter::s
+      element: <testLibrary>::@function::test::@formalParameter::s
+      staticType: String
+    rightBracket: ]
+    element: <null>
+    staticType: null
+  operator: =
+  rightHandSide: NullLiteral
+    literal: null
+    correspondingParameter: <testLibrary>::@class::B::@method::[]=::@formalParameter::i
+    staticType: Null
+  readElement2: <null>
+  readType: null
+  writeElement2: <testLibrary>::@class::B::@method::[]=
+  writeType: int
+  element: <null>
+  staticType: Null
+''');
+  }
+
   test_indexExpression_super_compound() async {
     await assertNoErrorsInCode(r'''
 class A {
@@ -2648,6 +2753,105 @@ AssignmentExpression
   writeType: num
   element: <null>
   staticType: int
+''');
+  }
+
+  test_propertyAccess_nullShorting_assignable() async {
+    await assertNoErrorsInCode('''
+abstract class A {
+  B get b;
+}
+abstract class B {
+  set setter(int i);
+}
+test(A? a) {
+  a?.b.setter = 0;
+}
+''');
+
+    var node = findNode.assignment('= 0');
+    assertResolvedNodeText(node, r'''
+AssignmentExpression
+  leftHandSide: PropertyAccess
+    target: PropertyAccess
+      target: SimpleIdentifier
+        token: a
+        element: <testLibrary>::@function::test::@formalParameter::a
+        staticType: A?
+      operator: ?.
+      propertyName: SimpleIdentifier
+        token: b
+        element: <testLibrary>::@class::A::@getter::b
+        staticType: B
+      staticType: B
+    operator: .
+    propertyName: SimpleIdentifier
+      token: setter
+      element: <null>
+      staticType: null
+    staticType: null
+  operator: =
+  rightHandSide: IntegerLiteral
+    literal: 0
+    correspondingParameter: <testLibrary>::@class::B::@setter::setter::@formalParameter::i
+    staticType: int
+  readElement2: <null>
+  readType: null
+  writeElement2: <testLibrary>::@class::B::@setter::setter
+  writeType: int
+  element: <null>
+  staticType: int?
+''');
+  }
+
+  test_propertyAccess_nullShorting_notAssignable() async {
+    await assertErrorsInCode(
+      '''
+abstract class A {
+  B get b;
+}
+abstract class B {
+  set setter(int i);
+}
+test(A? a) {
+  a?.b.setter = null;
+}
+''',
+      [error(CompileTimeErrorCode.invalidAssignment, 103, 4)],
+    );
+
+    var node = findNode.assignment('= null');
+    assertResolvedNodeText(node, r'''
+AssignmentExpression
+  leftHandSide: PropertyAccess
+    target: PropertyAccess
+      target: SimpleIdentifier
+        token: a
+        element: <testLibrary>::@function::test::@formalParameter::a
+        staticType: A?
+      operator: ?.
+      propertyName: SimpleIdentifier
+        token: b
+        element: <testLibrary>::@class::A::@getter::b
+        staticType: B
+      staticType: B
+    operator: .
+    propertyName: SimpleIdentifier
+      token: setter
+      element: <null>
+      staticType: null
+    staticType: null
+  operator: =
+  rightHandSide: NullLiteral
+    literal: null
+    correspondingParameter: <testLibrary>::@class::B::@setter::setter::@formalParameter::i
+    staticType: Null
+  readElement2: <null>
+  readType: null
+  writeElement2: <testLibrary>::@class::B::@setter::setter
+  writeType: int
+  element: <null>
+  staticType: Null
 ''');
   }
 

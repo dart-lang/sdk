@@ -1119,6 +1119,7 @@ final class AssignedVariablePatternImpl extends VariablePatternImpl
 @AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 abstract final class AssignmentExpression
     implements
+        // ignore: deprecated_member_use_from_same_package
         NullShortableExpression,
         MethodReferenceExpression,
         CompoundAssignmentExpression {
@@ -2159,7 +2160,10 @@ final class BreakStatementImpl extends StatementImpl implements BreakStatement {
 ///      | identifier
 @AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 abstract final class CascadeExpression
-    implements Expression, NullShortableExpression {
+    implements
+        Expression,
+        // ignore: deprecated_member_use_from_same_package
+        NullShortableExpression {
   /// The cascade sections sharing the common target.
   NodeList<Expression> get cascadeSections;
 
@@ -7977,6 +7981,15 @@ sealed class ExpressionImpl extends CollectionElementImpl
     }
   }
 
+  /// Called when null shorting terminates, and so the type of an expression
+  /// needs to be made nullable.
+  ///
+  /// [type] is the new static type of the expression.
+  void recordNullShortedType(TypeImpl type) {
+    _staticType = type;
+    inferenceLogWriter?.recordNullShortedType(this, type);
+  }
+
   /// Record that the static type of the given node is the given type.
   ///
   /// @param expression the node whose type is to be recorded
@@ -11198,7 +11211,10 @@ final class FunctionExpressionImpl extends ExpressionImpl
 ///        [Expression] [TypeArgumentList]? [ArgumentList]
 @AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 abstract final class FunctionExpressionInvocation
-    implements NullShortableExpression, InvocationExpression {
+    implements
+        // ignore: deprecated_member_use_from_same_package
+        NullShortableExpression,
+        InvocationExpression {
   /// The element associated with the function being invoked based on static
   /// type information.
   ///
@@ -13365,7 +13381,10 @@ final class ImportPrefixReferenceImpl extends AstNodeImpl
 ///        [Expression] '[' [Expression] ']'
 @AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 abstract final class IndexExpression
-    implements NullShortableExpression, MethodReferenceExpression {
+    implements
+        // ignore: deprecated_member_use_from_same_package
+        NullShortableExpression,
+        MethodReferenceExpression {
   /// The expression used to compute the index.
   Expression get index;
 
@@ -16097,7 +16116,10 @@ final class MethodDeclarationImpl extends ClassMemberImpl
 ///        [ArgumentList]
 @AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 abstract final class MethodInvocation
-    implements NullShortableExpression, InvocationExpression {
+    implements
+        // ignore: deprecated_member_use_from_same_package
+        NullShortableExpression,
+        InvocationExpression {
   /// Whether this expression is cascaded.
   ///
   /// If it is, then the target of this expression isn't stored locally but is
@@ -17866,7 +17888,12 @@ final class NullLiteralImpl extends LiteralImpl implements NullLiteral {
 }
 
 /// Abstract interface for expressions that may participate in null-shorting.
+///
+/// This is an analyzer-internal interface that was exposed through the public
+/// API by mistake. It is deprecated and will be removed in analyzer version
+/// 9.0.0.
 @AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
+@Deprecated('No longer supported.')
 abstract final class NullShortableExpression implements Expression {
   /// The expression that terminates any null shorting that might occur in this
   /// expression.
@@ -17883,10 +17910,14 @@ abstract final class NullShortableExpression implements Expression {
   /// Calling [nullShortingTermination] on any of these subexpressions yields
   /// the expression `a?.b[c] = d`, indicating that the null-shorting induced by
   /// the `?.` causes the rest of the subexpression `a?.b[c] = d` to be skipped.
+  @Deprecated('No longer supported.')
   Expression get nullShortingTermination;
 }
 
-base mixin NullShortableExpressionImpl implements NullShortableExpression {
+base mixin NullShortableExpressionImpl
+    implements
+        // ignore: deprecated_member_use_from_same_package
+        NullShortableExpression {
   @override
   Expression get nullShortingTermination {
     var result = this;
@@ -19121,6 +19152,7 @@ final class PatternVariableDeclarationStatementImpl extends StatementImpl
 abstract final class PostfixExpression
     implements
         Expression,
+        // ignore: deprecated_member_use_from_same_package
         NullShortableExpression,
         MethodReferenceExpression,
         CompoundAssignmentExpression {
@@ -19398,6 +19430,7 @@ final class PrefixedIdentifierImpl extends IdentifierImpl
 abstract final class PrefixExpression
     implements
         Expression,
+        // ignore: deprecated_member_use_from_same_package
         NullShortableExpression,
         MethodReferenceExpression,
         CompoundAssignmentExpression {
@@ -19531,7 +19564,10 @@ final class PrefixExpressionImpl extends ExpressionImpl
 ///        [Expression] '.' [SimpleIdentifier]
 @AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 abstract final class PropertyAccess
-    implements NullShortableExpression, CommentReferableExpression {
+    implements
+        // ignore: deprecated_member_use_from_same_package
+        NullShortableExpression,
+        CommentReferableExpression {
   /// Whether this expression is cascaded.
   ///
   /// If it is, then the target of this expression isn't stored locally but is
