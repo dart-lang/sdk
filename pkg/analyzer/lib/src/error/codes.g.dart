@@ -3148,10 +3148,6 @@ class CompileTimeErrorCode extends DiagnosticCode {
     withArguments: _withArgumentsInitializingFormalForNonExistentField,
   );
 
-  @Deprecated("Please use instanceAccessToStaticMember")
-  static const CompileTimeErrorCode INSTANCE_ACCESS_TO_STATIC_MEMBER =
-      instanceAccessToStaticMember;
-
   /// Parameters:
   /// String p0: the name of the static member
   /// String p1: the kind of the static member (field, getter, setter, or
@@ -3282,9 +3278,6 @@ class CompileTimeErrorCode extends DiagnosticCode {
     uniqueName: 'INTERFACE_CLASS_EXTENDED_OUTSIDE_OF_LIBRARY',
     withArguments: _withArgumentsInterfaceClassExtendedOutsideOfLibrary,
   );
-
-  @Deprecated("Please use invalidOverride")
-  static const CompileTimeErrorCode INVALID_OVERRIDE = invalidOverride;
 
   /// No parameters.
   static const CompileTimeErrorWithoutArguments
@@ -3536,7 +3529,7 @@ class CompileTimeErrorCode extends DiagnosticCode {
       );
 
   /// The parameters of this error code must be kept in sync with those of
-  /// [CompileTimeErrorCode.INVALID_OVERRIDE].
+  /// [CompileTimeErrorCode.invalidOverride].
   ///
   /// Parameters:
   /// Object p0: the name of the declared member that is not a valid override.
@@ -3562,7 +3555,7 @@ class CompileTimeErrorCode extends DiagnosticCode {
   );
 
   /// The parameters of this error code must be kept in sync with those of
-  /// [CompileTimeErrorCode.INVALID_OVERRIDE].
+  /// [CompileTimeErrorCode.invalidOverride].
   ///
   /// Parameters:
   /// Object p0: the name of the declared setter that is not a valid override.
@@ -6278,10 +6271,6 @@ class CompileTimeErrorCode extends DiagnosticCode {
     withArguments: _withArgumentsTopLevelCycle,
   );
 
-  @Deprecated("Please use typeArgumentNotMatchingBounds")
-  static const CompileTimeErrorCode TYPE_ARGUMENT_NOT_MATCHING_BOUNDS =
-      typeArgumentNotMatchingBounds;
-
   /// No parameters.
   static const CompileTimeErrorWithoutArguments
   typeAliasCannotReferenceItself = CompileTimeErrorWithoutArguments(
@@ -6340,7 +6329,7 @@ class CompileTimeErrorCode extends DiagnosticCode {
     hasPublishedDocs: true,
   );
 
-  /// See [CompileTimeErrorCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS].
+  /// See [CompileTimeErrorCode.typeArgumentNotMatchingBounds].
   ///
   /// Parameters:
   /// String p0: the name of the type parameter
@@ -6492,9 +6481,6 @@ class CompileTimeErrorCode extends DiagnosticCode {
     uniqueName: 'UNCHECKED_USE_OF_NULLABLE_VALUE_IN_YIELD_EACH',
   );
 
-  @Deprecated("Please use undefinedClass")
-  static const CompileTimeErrorCode UNDEFINED_CLASS = undefinedClass;
-
   /// Parameters:
   /// String p0: the name of the annotation
   static const CompileTimeErrorTemplate<
@@ -6526,7 +6512,7 @@ class CompileTimeErrorCode extends DiagnosticCode {
     withArguments: _withArgumentsUndefinedClass,
   );
 
-  /// Same as [CompileTimeErrorCode.UNDEFINED_CLASS], but to catch using
+  /// Same as [CompileTimeErrorCode.undefinedClass], but to catch using
   /// "boolean" instead of "bool" in order to improve the correction message.
   ///
   /// Parameters:
@@ -6945,7 +6931,7 @@ class CompileTimeErrorCode extends DiagnosticCode {
     withArguments: _withArgumentsUndefinedSuperSetter,
   );
 
-  /// This is a specialization of [INSTANCE_ACCESS_TO_STATIC_MEMBER] that is used
+  /// This is a specialization of [instanceAccessToStaticMember] that is used
   /// when we are able to find the name defined in a supertype. It exists to
   /// provide a more informative error message.
   ///
@@ -11470,7 +11456,7 @@ class WarningCode extends DiagnosticCode {
     withArguments: _withArgumentsReturnTypeInvalidForCatchError,
   );
 
-  /// There is also a [ParserErrorCode.EXPERIMENT_NOT_ENABLED] code which
+  /// There is also a [ParserErrorCode.experimentNotEnabled] code which
   /// catches some cases of constructor tearoff features (like
   /// `List<int>.filled;`). Other constructor tearoff cases are not realized
   /// until resolution (like `List.filled;`).
