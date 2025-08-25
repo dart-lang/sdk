@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analysis_server/src/plugin2/analyzer_version.g.dart';
 import 'package:analyzer/dart/analysis/analysis_options.dart';
 
 /// This class can generate various files to make up the shared plugin package.
@@ -64,7 +63,9 @@ version: 0.0.1
 environment:
   sdk: ^3.6.0
 dependencies:
-  analysis_server_plugin: '$analysisServerPluginVersion'
+  # The version of the analysis_server_plugin package that matches the protocol
+  # used by the active analysis_server.
+  analysis_server_plugin: ^0.2.0
 ''');
 
     for (var configuration in _pluginConfigurations) {
