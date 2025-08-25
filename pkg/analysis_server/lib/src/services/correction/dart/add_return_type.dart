@@ -67,11 +67,7 @@ class AddReturnType extends ResolvedCorrectionProducer {
     await builder.addDartFileEdit(file, (builder) {
       if (returnType is DynamicType || builder.canWriteType(returnType)) {
         builder.addInsertion(insertBeforeEntity.offset, (builder) {
-          if (returnType is DynamicType) {
-            builder.write('dynamic');
-          } else {
-            builder.writeType(returnType);
-          }
+          builder.writeType(returnType, shouldWriteDynamic: true);
           builder.write(' ');
         });
       }

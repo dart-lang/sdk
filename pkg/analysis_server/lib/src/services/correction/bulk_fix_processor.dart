@@ -50,6 +50,7 @@ import 'package:analyzer_plugin/protocol/protocol_common.dart'
 import 'package:analyzer_plugin/src/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/change_builder/conflicting_edit_exception.dart';
+import 'package:linter/src/lint_codes.dart';
 import 'package:linter/src/lint_names.dart';
 import 'package:linter/src/rules/directives_ordering.dart';
 import 'package:meta/meta.dart';
@@ -545,7 +546,7 @@ class BulkFixProcessor {
     List<Diagnostic> originalDiagnostics,
   ) sync* {
     var diagnostics = originalDiagnostics.toList();
-    diagnostics.sort((a, b) => a.offset.compareTo(b.offset));
+    diagnostics.sort(_fixOrder);
     for (var diagnostic in diagnostics) {
       if (_codes != null &&
           !_codes.contains(diagnostic.diagnosticCode.name.toLowerCase())) {
@@ -698,6 +699,23 @@ class BulkFixProcessor {
         }
       }
     }
+  }
+
+  int _fixOrder(Diagnostic a, Diagnostic b) {
+    var result = a.offset.compareTo(b.offset);
+    if (result != 0) {
+      return result;
+    }
+    // Special casing for `annotate_overrides` fix order
+    // See https://github.com/dart-lang/sdk/issues/61301
+    // Since the output for it should be before any other fixes like editing
+    // the return type
+    if (a.diagnosticCode == LinterLintCode.annotateOverrides) {
+      return -1;
+    } else if (b.diagnosticCode == LinterLintCode.annotateOverrides) {
+      return 1;
+    }
+    return 0;
   }
 
   /// Uses the change [builder] and the [fixContext] to create a fix for the

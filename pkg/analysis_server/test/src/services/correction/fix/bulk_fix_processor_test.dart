@@ -118,7 +118,7 @@ part 'a.dart';
       lints: [LintNames.unnecessary_new],
     );
 
-    newFile('$testPackageLibPath/a.dart', '''
+    newFile('$testPackageLibPath/c.dart', '''
 part 'test.dart';
 part 'b.dart';
 
@@ -128,27 +128,28 @@ var c = C();
 ''');
 
     newFile('$testPackageLibPath/b.dart', '''
-part of 'a.dart';
+part of 'c.dart';
 
-class B { }
+class B {}
 
 var b = new B();
 ''');
 
     await resolveTestCode('''
-part of 'a.dart';
+part of 'c.dart';
 
-class A { }
+class A {}
 
 var a = new A();
 ''');
 
     expect(await computeHasFixes(), isTrue);
-    expect(processor.changeMap.libraryMap.length, 1);
+    processor = await computeFixes();
+    expect(processor.changeMap.libraryMap, hasLength(2));
   }
 
-  /// https://github.com/dart-lang/sdk/issues/59572
   Future<void> test_hasFixes_in_part_and_library2() async {
+    // https://github.com/dart-lang/sdk/issues/59572
     createAnalysisOptionsFile(
       experiments: experiments,
       lints: [LintNames.empty_statements, LintNames.prefer_const_constructors],
@@ -178,10 +179,9 @@ void a() {
 ''');
 
     expect(await computeHasFixes(), isTrue);
-    expect(processor.changeMap.libraryMap.length, 1);
-    expect(processor.fixDetails.length, 1);
-    var details = processor.fixDetails;
-    expect(details.first.fixes, hasLength(1));
+    processor = await computeFixes();
+    expect(processor.changeMap.libraryMap, hasLength(2));
+    expect(processor.fixDetails.expand((d) => d.fixes), hasLength(2));
   }
 
   Future<void> test_hasFixes_stoppedAfterFirst() async {
@@ -206,9 +206,7 @@ var a = new A();
   Future<void> test_noFixes() async {
     createAnalysisOptionsFile(
       experiments: experiments,
-      lints: [
-        'avoid_catching_errors', // NOTE: not in lintProducerMap
-      ],
+      lints: [LintNames.avoid_catching_errors],
     );
 
     await resolveTestCode('''
@@ -222,6 +220,30 @@ void bad() {
 
     expect(await computeHasFixes(), isFalse);
   }
+
+  Future<void> test_override_first() async {
+    createAnalysisOptionsFile(
+      experiments: experiments,
+      lints: [
+        LintNames.annotate_overrides,
+        LintNames.always_declare_return_types,
+      ],
+    );
+    await resolveTestCode('''
+abstract class A {
+  void foo();
+}
+
+class B extends A {
+  foo() {}
+}
+''');
+
+    expect(await computeHasFixes(), isTrue);
+    processor = await computeFixes();
+    expect(processor.fixDetails.single.fixes, hasLength(2));
+    expect(processor.builder.sourceChange.edits.single.edits, hasLength(2));
+  }
 }
 
 @reflectiveTest
@@ -230,9 +252,7 @@ class NoFixTest extends BulkFixProcessorTest {
   Future<void> test_noFix() async {
     createAnalysisOptionsFile(
       experiments: experiments,
-      lints: [
-        'avoid_catching_errors', // NOTE: not in lintProducerMap
-      ],
+      lints: [LintNames.avoid_catching_errors],
     );
 
     await resolveTestCode('''
