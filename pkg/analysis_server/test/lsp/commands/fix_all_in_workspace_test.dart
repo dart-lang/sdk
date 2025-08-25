@@ -83,6 +83,46 @@ bool f() {
     setChangeAnnotationSupport();
   }
 
+  Future<void> test_annotatate_overrides_return_types() async {
+    newFile(analysisOptionsPath, '''
+linter:
+  rules:
+    - always_declare_return_types
+    - annotate_overrides
+    ''');
+
+    newFile(join(projectFolderPath, 'lib', 'a.dart'), '''
+abstract class A {
+  void foo();
+}
+
+class B extends A {
+  foo() {}
+}
+''');
+
+    await initialize();
+    var verifier = await verifyCommandEdits(
+      Command(command: commandId, title: 'UNUSED'),
+      '''
+>>>>>>>>>> lib/a.dart
+>>>>>>>>>>   Add '@override' annotation: line 6
+>>>>>>>>>>   Add return type: line 6
+abstract class A {
+  void foo();
+}
+
+class B extends A {
+  @override
+  void foo() {}
+}
+''',
+    );
+    verifier.edit.changeAnnotations?.values.forEach((annotation) {
+      expect(annotation.needsConfirmation, expectRequiresConfirmation);
+    });
+  }
+
   Future<void> test_documentChanges_notSupported() async {
     setDocumentChangesSupport(false);
 

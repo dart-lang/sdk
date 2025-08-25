@@ -217,11 +217,19 @@ class CodeBreakpoint {
                  BreakpointLocation* loc,
                  uword pc,
                  UntaggedPcDescriptors::Kind kind);
+  CodeBreakpoint(const Bytecode& code, BreakpointLocation* loc, uword pc);
   ~CodeBreakpoint();
 
   // Used by GroupDebugger to find CodeBreakpoint associated with
   // particular function.
-  FunctionPtr function() const { return Code::Handle(code_).function(); }
+  FunctionPtr function() const {
+#if defined(DART_DYNAMIC_MODULES)
+    if (bytecode_ != Bytecode::null()) {
+      return Bytecode::Handle(bytecode_).function();
+    }
+#endif
+    return Code::Handle(code_).function();
+  }
 
   uword pc() const { return pc_; }
   bool HasBreakpointLocation(BreakpointLocation* breakpoint_location);
@@ -235,6 +243,7 @@ class CodeBreakpoint {
   bool IsEnabled() const { return enabled_count_ > 0; }
 
   CodePtr OrigStubAddress() const;
+  uint32_t OrigOpcode() const { return saved_opcode_; }
 
   const char* ToCString() const;
 
@@ -261,6 +270,7 @@ class CodeBreakpoint {
   void RestoreCode();
 
   CodePtr code_;
+  BytecodePtr bytecode_;
   uword pc_;
   int enabled_count_;  // incremented for every enabled breakpoint location
 
@@ -271,6 +281,7 @@ class CodeBreakpoint {
 
   UntaggedPcDescriptors::Kind breakpoint_kind_;
   CodePtr saved_value_;
+  uint32_t saved_opcode_;
 
   friend class Debugger;
   friend class GroupDebugger;
@@ -329,6 +340,11 @@ class ActivationFrame : public ZoneAllocated {
     return Bytecode::Cast(code_or_bytecode_);
   }
 
+  intptr_t PayloadStart() const {
+    ASSERT(!code_or_bytecode_.IsNull());
+    return IsInterpreted() ? bytecode().PayloadStart() : code().PayloadStart();
+  }
+
   bool IsInterpreted() const { return code_or_bytecode_.IsBytecode(); }
 
   enum Relation {
@@ -337,7 +353,12 @@ class ActivationFrame : public ZoneAllocated {
     kCaller,
   };
 
-  Relation CompareTo(uword other_fp) const;
+  Relation CompareTo(uword other_fp) const {
+    return CompareTo(IsInterpreted(), fp(), other_fp);
+  }
+  // Should only be called if both frame pointers come from either interpreted
+  // code or compiled code.
+  static Relation CompareTo(bool is_interpreted, uword fp, uword other_fp);
 
   StringPtr QualifiedFunctionName();
   StringPtr SourceUrl();
@@ -591,7 +612,8 @@ class GroupDebugger {
   explicit GroupDebugger(IsolateGroup* isolate_group);
   ~GroupDebugger();
 
-  void MakeCodeBreakpointAtUnsafe(const Function& func,
+  void MakeCodeBreakpointAtUnsafe(Thread* thread,
+                                  const Function& func,
                                   BreakpointLocation* bpt);
   void MakeCodeBreakpointAt(const Function& func, BreakpointLocation* bpt);
 
@@ -601,6 +623,7 @@ class GroupDebugger {
                                                uword breakpoint_address,
                                                CodeBreakpoint** pcbpt);
   CodePtr GetPatchedStubAddress(uword breakpoint_address);
+  uint32_t GetPatchedOpcode(uword breakpoint_address);
 
   void RegisterBreakpointLocation(BreakpointLocation* location);
   void UnregisterBreakpointLocation(BreakpointLocation* location);
@@ -988,6 +1011,9 @@ class Debugger {
   // frame corresponds to this fp value, or if the top frame is
   // lower on the stack.
   uword stepping_fp_;
+#if defined(DART_DYNAMIC_MODULES)
+  bool stepping_fp_from_interpreted_frame_ = false;
+#endif
 
   // When stepping through code, do not stop more than once in the same
   // token position range.

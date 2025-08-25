@@ -7293,7 +7293,7 @@ LocationSummary* TsanReadWriteInstr::MakeLocationSummary(Zone* zone,
   return result;
 }
 
-const RuntimeEntry& TsanReadWriteInstr::RuntimeEntry() const {
+const RuntimeEntry& TsanReadWriteInstr::GetRuntimeEntry() const {
   intptr_t size = RepresentationUtils::ValueSize(slot().representation());
   if (kind_ == Kind::kRead) {
     switch (size) {
@@ -7352,7 +7352,7 @@ void TsanReadWriteInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   intptr_t tag = slot().has_untagged_instance() ? 0 : kHeapObjectTag;
   __ AddImmediate(CallingConventions::ArgumentRegisters[0], instance_reg,
                   slot().offset_in_bytes() - tag);
-  __ Load(TMP, compiler::Address(THR, RuntimeEntry().OffsetFromThread()));
+  __ Load(TMP, compiler::Address(THR, GetRuntimeEntry().OffsetFromThread()));
   __ Store(TMP,
            compiler::Address(THR, compiler::target::Thread::vm_tag_offset()));
   __ CallCFunction(TMP);

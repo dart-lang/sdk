@@ -8,10 +8,10 @@ import 'package:analyzer/dart/ast/ast.dart'
     show PrefixExpression, PrefixedIdentifier, PropertyAccess, SimpleIdentifier;
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/error/error.dart';
 
 import '../analyzer.dart';
-import '../ast.dart';
 
 const _desc = r'Use `isNotEmpty` for `Iterable`s and `Map`s.';
 
@@ -66,8 +66,8 @@ class _Visitor extends SimpleAstVisitor<void> {
 
     // Element should also support "isNotEmpty".
     var propertyTarget = propertyElement.enclosingElement;
-    if (propertyTarget == null ||
-        getChildren(propertyTarget, 'isNotEmpty').isEmpty) {
+    if (propertyTarget is! InterfaceElement ||
+        propertyTarget.getGetter('isNotEmpty') == null) {
       return;
     }
 

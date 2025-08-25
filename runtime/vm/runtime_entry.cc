@@ -1879,15 +1879,18 @@ DEFINE_RUNTIME_ENTRY(BreakpointRuntimeHandler, 0) {
                              StackFrameIterator::kNoCrossThreadIteration);
   StackFrame* caller_frame = iterator.NextFrame();
   ASSERT(caller_frame != nullptr);
-  Code& orig_stub = Code::Handle(zone);
+  Object& orig_value = Object::Handle(zone);
   if (!caller_frame->is_interpreted()) {
-    orig_stub = thread->isolate_group()->debugger()->GetPatchedStubAddress(
+    orig_value = thread->isolate_group()->debugger()->GetPatchedStubAddress(
         caller_frame->pc());
+  } else {
+    orig_value = Smi::New(thread->isolate_group()->debugger()->GetPatchedOpcode(
+        caller_frame->pc()));
   }
   const Error& error =
       Error::Handle(zone, isolate->debugger()->PauseBreakpoint());
   ThrowIfError(error);
-  arguments.SetReturn(orig_stub);
+  arguments.SetReturn(orig_value);
 }
 #endif
 

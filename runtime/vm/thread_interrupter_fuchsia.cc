@@ -37,7 +37,7 @@ class ThreadSuspendScope {
  public:
   explicit ThreadSuspendScope(zx_handle_t thread_handle)
       : thread_handle_(thread_handle), suspend_token_(ZX_HANDLE_INVALID) {
-    zx_status_t status = zx_task_suspend_token(thread_handle, &suspend_token_);
+    zx_status_t status = zx_task_suspend(thread_handle, &suspend_token_);
     // If a thread is somewhere where suspend is impossible, zx_task_suspend()
     // can return ZX_ERR_NOT_SUPPORTED.
     if (status != ZX_OK) {

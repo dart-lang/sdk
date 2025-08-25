@@ -10090,7 +10090,7 @@ class TsanReadWriteInstr : public TemplateInstruction<1, NoThrow> {
                                           FIELD_LIST)
 #undef FIELD_LIST
 
-  const RuntimeEntry& RuntimeEntry() const;
+  const RuntimeEntry& GetRuntimeEntry() const;
 
  private:
   DISALLOW_COPY_AND_ASSIGN(TsanReadWriteInstr);

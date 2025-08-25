@@ -3,14 +3,17 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:async';
+import 'dart:collection';
 import 'dart:math' as math;
 
 import 'package:analysis_server/src/status/diagnostics.dart';
 import 'package:analysis_server/src/status/pages.dart';
 import 'package:analysis_server/src/status/utilities/library_cycle_extensions.dart';
 import 'package:analysis_server/src/status/utilities/string_extensions.dart';
+import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/context/source.dart';
 import 'package:analyzer/src/dart/analysis/analysis_options_map.dart';
+import 'package:analyzer/src/dart/analysis/driver.dart' as analysis;
 import 'package:analyzer/src/dart/analysis/file_state.dart';
 import 'package:analyzer/src/dart/analysis/library_graph.dart';
 import 'package:analyzer/src/dart/sdk/sdk.dart';
@@ -19,7 +22,6 @@ import 'package:analyzer/src/source/package_map_resolver.dart';
 import 'package:analyzer/src/util/file_paths.dart' as file_paths;
 import 'package:analyzer/src/workspace/pub.dart';
 import 'package:analyzer/src/workspace/workspace.dart';
-import 'package:collection/collection.dart';
 import 'package:path/path.dart' as path;
 
 class ContextsPage extends DiagnosticPageWithNav {
@@ -38,31 +40,21 @@ class ContextsPage extends DiagnosticPageWithNav {
 
   @override
   Future<void> generateContent(Map<String, String> params) async {
-    var driverMap = server.driverMap;
+    var driverMap = SplayTreeMap.of(
+      server.driverMap,
+      (a, b) => a.shortName.compareTo(b.shortName),
+    );
     if (driverMap.isEmpty) {
       blankslate('No contexts.');
       return;
     }
 
-    var contextPath = params['context'];
-    var entries = driverMap.entries.toList();
-    entries.sort(
-      (first, second) => first.key.shortName.compareTo(second.key.shortName),
-    );
-    var entry = entries.firstWhereOrNull((f) => f.key.path == contextPath);
-
-    if (entry == null) {
-      entry = entries.first;
-      contextPath = entry.key.path;
-    }
-
-    var folder = entry.key;
-    var driver = entry.value;
+    var (folder: folder, driver: driver) = _currentContext(params, driverMap);
+    var contextPath = folder.path;
 
     buf.writeln('<div class="tabnav">');
     buf.writeln('<nav class="tabnav-tabs">');
-    for (var entry in entries) {
-      var f = entry.key;
+    for (var f in driverMap.keys) {
       if (f == folder) {
         buf.writeln(
           '<a class="tabnav-tab selected">${escape(f.shortName)}</a>',
@@ -85,8 +77,11 @@ class ContextsPage extends DiagnosticPageWithNav {
     h3('Analysis options');
 
     // Display analysis options entries inside this context root.
+    var separator = folder.provider.pathContext.separator;
     var optionsInContextRoot = driver.analysisOptionsMap.entries.where(
-      (OptionsMapEntry entry) => contextPath!.startsWith(entry.folder.path),
+      (e) =>
+          contextPath == e.folder.path ||
+          contextPath.startsWith('${e.folder.path}$separator'),
     );
     ul(optionsInContextRoot, (OptionsMapEntry entry) {
       var folder = entry.folder;
@@ -97,15 +92,11 @@ class ContextsPage extends DiagnosticPageWithNav {
       buf.writeln(' <a href="$contentsPath">analysis_options.yaml</a>');
     }, classes: 'scroll-table');
 
-    String lenCounter(int length) {
-      return '<span class="counter" style="float: right;">$length</span>';
-    }
-
     h3('Workspace');
-    var workspace = driver.analysisContext?.contextRoot.workspace;
+    var workspace = driver.analysisContext!.contextRoot.workspace;
     buf.writeln('<p>');
-    buf.writeln(writeOption('Workspace root', escape(workspace?.root)));
-    var workspaceFolder = folder.provider.getFolder(workspace!.root);
+    buf.writeln(writeOption('Workspace root', escape(workspace.root)));
+    var workspaceFolder = folder.provider.getFolder(workspace.root);
 
     void writePackage(WorkspacePackageImpl package) {
       buf.writeln(writeOption('Package root', escape(package.root.path)));
@@ -127,6 +118,11 @@ class ContextsPage extends DiagnosticPageWithNav {
     buf.writeln(
       writeOption('Has package_config.json file', packageConfig.exists),
     );
+
+    String lenCounter(int length) {
+      return '<span class="counter" style="float: right;">$length</span>';
+    }
+
     if (workspace is PackageConfigWorkspace) {
       var packages = workspace.allPackages;
       h4('Packages ${lenCounter(packages.length)}', raw: true);
@@ -268,5 +264,25 @@ class ContextsPage extends DiagnosticPageWithNav {
       buf.write(',');
     }
     buf.write('<br>}');
+  }
+
+  /// Information regarding the context currently being displayed.
+  ({Folder folder, analysis.AnalysisDriver driver}) _currentContext(
+    Map<String, String> params,
+    Map<Folder, analysis.AnalysisDriver> driverMap,
+  ) {
+    var contextPath = params['context'];
+    if (contextPath == null) {
+      return (
+        folder: driverMap.entries.first.key,
+        driver: driverMap.entries.first.value,
+      );
+    } else {
+      var entry = driverMap.entries.firstWhere(
+        (e) => e.key.path == contextPath,
+        orElse: () => driverMap.entries.first,
+      );
+      return (folder: entry.key, driver: entry.value);
+    }
   }
 }

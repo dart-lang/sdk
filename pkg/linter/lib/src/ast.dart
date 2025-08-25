@@ -10,22 +10,9 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/syntactic_entity.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
-import 'package:analyzer/dart/element/visitor2.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/workspace/workspace.dart';
 import 'package:path/path.dart' as path;
-
-/// Returns direct children of [parent].
-List<Element> getChildren(Element parent, [String? name]) {
-  var children = <Element>[];
-  _visitChildren(parent, (Element element) {
-    if (name == null || element.displayName == name) {
-      children.add(element);
-    }
-    return false;
-  });
-  return children;
-}
 
 /// Return the compilation unit of a node
 CompilationUnit? getCompilationUnit(AstNode node) =>
@@ -342,31 +329,6 @@ Element? _getWriteElement(AstNode node) {
 bool _hasFieldOrMethod(ClassMember element, String name) =>
     (element is MethodDeclaration && element.name.lexeme == name) ||
     (element is FieldDeclaration && getFieldName(element, name) != null);
-
-/// Uses [processor] to visit all of the children of [element].
-/// If [processor] returns `true`, then children of a child are visited too.
-void _visitChildren(Element element, ElementProcessor processor) {
-  element.visitChildren(_ElementVisitorAdapter(processor));
-}
-
-/// An [Element] processor function type.
-/// If `true` is returned, children of [element] will be visited.
-typedef ElementProcessor = bool Function(Element element);
-
-/// A [GeneralizingElementVisitor2] adapter for [ElementProcessor].
-class _ElementVisitorAdapter extends GeneralizingElementVisitor2<void> {
-  final ElementProcessor processor;
-
-  _ElementVisitorAdapter(this.processor);
-
-  @override
-  void visitElement(Element element) {
-    var visitChildren = processor(element);
-    if (visitChildren) {
-      element.visitChildren(this);
-    }
-  }
-}
 
 extension AstNodeExtension on AstNode {
   bool get isToStringInvocationWithArguments {
