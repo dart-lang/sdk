@@ -214,14 +214,7 @@ class ClassElementImpl extends InterfaceElementImpl implements ClassElement {
   @trackedDirectlyOpaque
   List<ClassFragmentImpl> get fragments {
     globalResultRequirements?.recordOpaqueApiUse(this, 'fragments');
-    return [
-      for (
-        ClassFragmentImpl? fragment = _firstFragment;
-        fragment != null;
-        fragment = fragment.nextFragment
-      )
-        fragment,
-    ];
+    return _fragments;
   }
 
   @trackedIndirectly
@@ -362,6 +355,17 @@ class ClassElementImpl extends InterfaceElementImpl implements ClassElement {
   @trackedIncludedInId
   ElementKind get kind => ElementKind.CLASS;
 
+  List<ClassFragmentImpl> get _fragments {
+    return [
+      for (
+        ClassFragmentImpl? fragment = _firstFragment;
+        fragment != null;
+        fragment = fragment.nextFragment
+      )
+        fragment,
+    ];
+  }
+
   @override
   @trackedDirectlyOpaque
   T? accept<T>(ElementVisitor2<T> visitor) {
@@ -379,6 +383,12 @@ class ClassElementImpl extends InterfaceElementImpl implements ClassElement {
   @override
   void appendTo(ElementDisplayStringBuilder builder) {
     builder.writeClassElement(this);
+  }
+
+  void ensureReadMembersForFragments() {
+    for (var fragment in _fragments) {
+      fragment.ensureReadMembers();
+    }
   }
 
   @Deprecated('Use isExtendableOutside instead')

@@ -272,16 +272,16 @@ class LibraryReader {
       _lazyRead((offset) {
         element.deferReadMembers(() {
           _reader.runAtOffset(offset, () {
-            for (var fragment in element.fragments) {
-              fragment.ensureReadMembers();
-            }
-
+            element.ensureReadMembersForFragments();
             element.fields = _readFieldElements();
             element.getters = _readGetterElements();
             element.setters = _readSetterElements();
             _readVariableGetterSetterLinking();
             element.methods = _readMethodElements();
-            if (!element.isMixinApplication) {
+            if (element.isMixinApplication) {
+              // Create synthetic constructors and associate with references.
+              element.constructors;
+            } else {
               element.constructors = _readConstructorElements();
             }
           });

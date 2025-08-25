@@ -19065,6 +19065,70 @@ library
 ''');
   }
 
+  test_classAlias_constructors_reading() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+mixin M {}
+
+class A {
+  const A.named();
+}
+
+class B = A with M;
+''');
+
+    var library = await buildLibrary('''
+import 'a.dart';
+const x = B.named();
+''');
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      libraryImports
+        package:test/a.dart
+      topLevelVariables
+        #F1 hasInitializer x (nameOffset:23) (firstTokenOffset:23) (offset:23)
+          element: <testLibrary>::@topLevelVariable::x
+          initializer: expression_0
+            InstanceCreationExpression
+              constructorName: ConstructorName
+                type: NamedType
+                  name: B @27
+                  element2: package:test/a.dart::@class::B
+                  type: B
+                period: . @28
+                name: SimpleIdentifier
+                  token: named @29
+                  element: package:test/a.dart::@class::B::@constructor::named
+                  staticType: null
+                element: package:test/a.dart::@class::B::@constructor::named
+              argumentList: ArgumentList
+                leftParenthesis: ( @34
+                rightParenthesis: ) @35
+              staticType: B
+      getters
+        #F2 synthetic x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:23)
+          element: <testLibrary>::@getter::x
+  topLevelVariables
+    const hasInitializer x
+      reference: <testLibrary>::@topLevelVariable::x
+      firstFragment: #F1
+      type: B
+      constantInitializer
+        fragment: #F1
+        expression: expression_0
+      getter: <testLibrary>::@getter::x
+  getters
+    synthetic static x
+      reference: <testLibrary>::@getter::x
+      firstFragment: #F2
+      returnType: B
+      variable: <testLibrary>::@topLevelVariable::x
+''');
+  }
+
   test_classAlias_constructors_requiredParameters() async {
     var library = await buildLibrary('''
 class A<T extends num> {
