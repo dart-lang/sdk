@@ -812,6 +812,7 @@ static LocatableDiagnostic $withArgumentsName({$withArgumentsParams}) {
     if (withArgumentsName != null) {
       constant.writeln('withArguments: $withArgumentsName,');
     }
+    constant.writeln('expectedTypes: ${_computeExpectedTypes()},');
     constant.writeln(');');
     memberAccumulator.constants[constantName] = constant.toString();
 
@@ -874,6 +875,17 @@ static LocatableDiagnostic $withArgumentsName({$withArgumentsParams}) {
     if (comment != null) 'comment': comment,
     if (documentation != null) 'documentation': documentation,
   };
+
+  String _computeExpectedTypes() {
+    if (parameters case var parameters?) {
+      var expectedTypes = [
+        for (var parameter in parameters) 'ExpectedType.${parameter.type.name}',
+      ];
+      return '[${expectedTypes.join(', ')}]';
+    } else {
+      return 'null';
+    }
+  }
 
   String _encodeString(String s) {
     // JSON encoding gives us mostly what we need.

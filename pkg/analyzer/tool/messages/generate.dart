@@ -123,7 +123,9 @@ part of ${json.encode(file.parentLibrary)};
           out.writeln('/// $line');
         });
       }
-      out.write('class ${errorClass.name} extends DiagnosticCode {');
+      out.write(
+        'class ${errorClass.name} extends DiagnosticCodeWithExpectedTypes {',
+      );
       var memberAccumulator = MemberAccumulator();
       var entries = [
         ...analyzerMessages[errorClass.name]!.entries,
@@ -164,6 +166,7 @@ part of ${json.encode(file.parentLibrary)};
       constructor.writeln('super.hasPublishedDocs = false,');
       constructor.writeln('super.isUnresolvedIdentifier = false,');
       constructor.writeln('String? uniqueName,');
+      constructor.writeln('required super.expectedTypes,');
       constructor.writeln('}) : super(');
       constructor.writeln('name: name,');
       constructor.writeln('problemMessage: problemMessage,');
@@ -232,6 +235,7 @@ DiagnosticType get type => ${errorClass.typeCode};
     out.writeln('super.hasPublishedDocs = false,');
     out.writeln('super.isUnresolvedIdentifier = false,');
     out.writeln('super.uniqueName,');
+    out.writeln('required super.expectedTypes,');
     if (withArguments) out.writeln('required this.withArguments,');
     out.writeln('});');
     out.writeln('}');

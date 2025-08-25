@@ -248,6 +248,22 @@ class Diagnostic {
   }
 }
 
+/// Private subtype of [DiagnosticCode] that supports runtime checking of
+/// parameter types.
+abstract class DiagnosticCodeWithExpectedTypes extends DiagnosticCode {
+  final List<ExpectedType>? expectedTypes;
+
+  const DiagnosticCodeWithExpectedTypes({
+    super.correctionMessage,
+    super.hasPublishedDocs = false,
+    super.isUnresolvedIdentifier = false,
+    required super.name,
+    required super.problemMessage,
+    required super.uniqueName,
+    this.expectedTypes,
+  });
+}
+
 /// An error code associated with an `AnalysisError`.
 ///
 /// Generally, messages should follow the [Guide for Writing
@@ -601,6 +617,9 @@ base mixin DiagnosticWithoutArguments on DiagnosticCode
   LocatableDiagnostic withContextMessages(List<DiagnosticMessage> messages) =>
       new LocatableDiagnosticImpl(code, arguments, contextMessages: messages);
 }
+
+/// Expected type of a diagnostic code's parameter.
+enum ExpectedType { element, int, object, string, type, uri }
 
 /// Interface for a diagnostic that does not have any unfilled template
 /// parameters, and hence is ready to be associated with a location in the

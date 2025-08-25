@@ -16,7 +16,7 @@
 
 part of "package:_fe_analyzer_shared/src/scanner/errors.dart";
 
-class ScannerErrorCode extends DiagnosticCode {
+class ScannerErrorCode extends DiagnosticCodeWithExpectedTypes {
   /// Parameters:
   /// String p0: the token that was expected but not found
   static const ScannerErrorTemplate<
@@ -26,6 +26,7 @@ class ScannerErrorCode extends DiagnosticCode {
     'EXPECTED_TOKEN',
     "Expected to find '{0}'.",
     withArguments: _withArgumentsExpectedToken,
+    expectedTypes: [ExpectedType.string],
   );
 
   /// Parameters:
@@ -37,6 +38,7 @@ class ScannerErrorCode extends DiagnosticCode {
     'ILLEGAL_CHARACTER',
     "Illegal character '{0}'.",
     withArguments: _withArgumentsIllegalCharacter,
+    expectedTypes: [ExpectedType.object],
   );
 
   /// No parameters.
@@ -44,6 +46,7 @@ class ScannerErrorCode extends DiagnosticCode {
       const ScannerErrorWithoutArguments(
         'MISSING_DIGIT',
         "Decimal digit expected.",
+        expectedTypes: [],
       );
 
   /// No parameters.
@@ -51,6 +54,7 @@ class ScannerErrorCode extends DiagnosticCode {
       const ScannerErrorWithoutArguments(
         'MISSING_HEX_DIGIT',
         "Hexadecimal digit expected.",
+        expectedTypes: [],
       );
 
   /// No parameters.
@@ -58,6 +62,7 @@ class ScannerErrorCode extends DiagnosticCode {
       const ScannerErrorWithoutArguments(
         'MISSING_IDENTIFIER',
         "Expected an identifier.",
+        expectedTypes: [],
       );
 
   /// No parameters.
@@ -65,6 +70,7 @@ class ScannerErrorCode extends DiagnosticCode {
       const ScannerErrorWithoutArguments(
         'MISSING_QUOTE',
         "Expected quote (' or \").",
+        expectedTypes: [],
       );
 
   /// Parameters:
@@ -76,6 +82,7 @@ class ScannerErrorCode extends DiagnosticCode {
     'UNABLE_GET_CONTENT',
     "Unable to get content of '{0}'.",
     withArguments: _withArgumentsUnableGetContent,
+    expectedTypes: [ExpectedType.object],
   );
 
   /// No parameters.
@@ -85,6 +92,7 @@ class ScannerErrorCode extends DiagnosticCode {
     "A '\$' has special meaning inside a string, and must be followed by an "
         "identifier or an expression in curly braces ({}).",
     correctionMessage: "Try adding a backslash (\\) to escape the '\$'.",
+    expectedTypes: [],
   );
 
   /// No parameters.
@@ -94,6 +102,7 @@ class ScannerErrorCode extends DiagnosticCode {
     "Digit separators ('_') in a number literal can only be placed between two "
         "digits.",
     correctionMessage: "Try removing the '_'.",
+    expectedTypes: [],
   );
 
   /// Parameters:
@@ -105,6 +114,7 @@ class ScannerErrorCode extends DiagnosticCode {
     'UNSUPPORTED_OPERATOR',
     "The '{0}' operator is not supported.",
     withArguments: _withArgumentsUnsupportedOperator,
+    expectedTypes: [ExpectedType.string],
   );
 
   /// No parameters.
@@ -115,6 +125,7 @@ class ScannerErrorCode extends DiagnosticCode {
         correctionMessage:
             "Try terminating the comment with '*/', or removing any unbalanced "
             "occurrences of '/*' (because comments nest in Dart).",
+        expectedTypes: [],
       );
 
   /// No parameters.
@@ -122,6 +133,7 @@ class ScannerErrorCode extends DiagnosticCode {
       const ScannerErrorWithoutArguments(
         'UNTERMINATED_STRING_LITERAL',
         "Unterminated string literal.",
+        expectedTypes: [],
       );
 
   /// Initialize a newly created error code to have the given [name].
@@ -132,6 +144,7 @@ class ScannerErrorCode extends DiagnosticCode {
     super.hasPublishedDocs = false,
     super.isUnresolvedIdentifier = false,
     String? uniqueName,
+    required super.expectedTypes,
   }) : super(
          name: name,
          problemMessage: problemMessage,
@@ -178,6 +191,7 @@ final class ScannerErrorTemplate<T extends Function> extends ScannerErrorCode {
     super.hasPublishedDocs = false,
     super.isUnresolvedIdentifier = false,
     super.uniqueName,
+    required super.expectedTypes,
     required this.withArguments,
   });
 }
@@ -192,5 +206,6 @@ final class ScannerErrorWithoutArguments extends ScannerErrorCode
     super.hasPublishedDocs = false,
     super.isUnresolvedIdentifier = false,
     super.uniqueName,
+    required super.expectedTypes,
   });
 }
