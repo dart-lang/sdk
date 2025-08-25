@@ -217,6 +217,88 @@ void runExpressionCompilationTests(ExpressionCompilerWorkerTestDriver driver) {
       );
     });
 
+    test('does not crash on line 0 in a library', () {
+      driver.requestController.add({
+        'command': 'UpdateDeps',
+        'inputs': driver.inputs,
+      });
+
+      driver.requestController.add({
+        'command': 'CompileExpression',
+        'expression': '1 + 1',
+        'line': 0,
+        'column': 0,
+        'jsModules': {},
+        'jsScope': {},
+        'libraryUri': driver.config.getModule('testModule').libraryUris.first,
+        'moduleName': driver.config.getModule('testModule').moduleName,
+      });
+
+      expect(
+        driver.responseController.stream,
+        emitsInOrder([
+          equals({'succeeded': true}),
+          equals({
+            'succeeded': true,
+            'errors': isEmpty,
+            'warnings': isEmpty,
+            'infos': isEmpty,
+            'compiledProcedure': contains('1 + 1;'),
+          }),
+        ]),
+      );
+    });
+
+    test('does not crash on line thats too high in a library', () {
+      driver.requestController.add({
+        'command': 'UpdateDeps',
+        'inputs': driver.inputs,
+      });
+
+      driver.requestController.add({
+        'command': 'CompileExpression',
+        'expression': '1 + 1',
+        'line': 10000000,
+        'column': 1,
+        'jsModules': {},
+        'jsScope': {},
+        'libraryUri': driver.config.getModule('testModule').libraryUris.first,
+        'moduleName': driver.config.getModule('testModule').moduleName,
+      });
+
+      driver.requestController.add({
+        'command': 'CompileExpression',
+        'expression': '2 + 2',
+        'line': 1,
+        'column': 10000000,
+        'jsModules': {},
+        'jsScope': {},
+        'libraryUri': driver.config.getModule('testModule').libraryUris.first,
+        'moduleName': driver.config.getModule('testModule').moduleName,
+      });
+
+      expect(
+        driver.responseController.stream,
+        emitsInOrder([
+          equals({'succeeded': true}),
+          equals({
+            'succeeded': true,
+            'errors': isEmpty,
+            'warnings': isEmpty,
+            'infos': isEmpty,
+            'compiledProcedure': contains('1 + 1;'),
+          }),
+          equals({
+            'succeeded': true,
+            'errors': isEmpty,
+            'warnings': isEmpty,
+            'infos': isEmpty,
+            'compiledProcedure': contains('2 + 2;'),
+          }),
+        ]),
+      );
+    });
+
     test('can compile expressions in a library', () {
       driver.requestController.add({
         'command': 'UpdateDeps',

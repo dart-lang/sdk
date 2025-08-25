@@ -353,7 +353,14 @@ class ExpressionCompiler {
 
     // TODO(jensj): Eventually make the scriptUri required.
     if (scriptFileUri != null) {
-      final offset = _component.getOffset(scriptFileUri, line, column);
+      final offset = _component.getOffsetNoThrow(scriptFileUri, line, column);
+      if (offset < 0) {
+        _log(
+          'Got offset negative offset ($offset) for '
+          '$scriptFileUri:$line:$column',
+        );
+        return DartScope(library, null, null, null, null, {}, []);
+      }
       final scope = DartScopeBuilder2.findScopeFromOffset(
         library,
         scriptFileUri,
@@ -388,10 +395,18 @@ class ExpressionCompiler {
 
     final foundScopes = <DartScope>[];
     for (final fileUri in fileUris) {
-      final offset = _component.getOffset(fileUri, line, column);
+      final offset = _component.getOffsetNoThrow(fileUri, line, column);
+      if (offset < 0) continue;
       foundScopes.add(
         DartScopeBuilder2.findScopeFromOffset(library, fileUri, offset),
       );
+    }
+    if (foundScopes.isEmpty) {
+      _log(
+        'Got only negative offsets for library/parts ${library.fileUri} '
+        'at $line:$column.',
+      );
+      return DartScope(library, null, null, null, null, {}, []);
     }
     if (foundScopes.length == 1) {
       return foundScopes[0];
