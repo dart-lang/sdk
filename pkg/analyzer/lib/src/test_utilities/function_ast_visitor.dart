@@ -13,6 +13,7 @@ class FunctionAstVisitor extends RecursiveAstVisitor<void> {
   final void Function(DeclaredVariablePattern)? declaredVariablePattern;
   final void Function(ForElement)? forElement;
   final void Function(ForStatement)? forStatement;
+  final void Function(FunctionDeclaration)? functionDeclaration;
   final void Function(FunctionDeclarationStatement)?
   functionDeclarationStatement;
   final void Function(FunctionExpression, bool)? functionExpression;
@@ -20,6 +21,7 @@ class FunctionAstVisitor extends RecursiveAstVisitor<void> {
   final void Function(IfElement)? ifElement;
   final void Function(IfStatement)? ifStatement;
   final void Function(Label)? label;
+  final void Function(MethodDeclaration)? methodDeclaration;
   final void Function(MethodInvocation)? methodInvocation;
   final void Function(PatternAssignment)? patternAssignment;
   final void Function(PatternVariableDeclaration)? patternVariableDeclaration;
@@ -39,12 +41,14 @@ class FunctionAstVisitor extends RecursiveAstVisitor<void> {
     this.declaredVariablePattern,
     this.forElement,
     this.forStatement,
+    this.functionDeclaration,
     this.functionDeclarationStatement,
     this.functionExpression,
     this.guardedPattern,
     this.ifElement,
     this.ifStatement,
     this.label,
+    this.methodDeclaration,
     this.methodInvocation,
     this.patternAssignment,
     this.patternVariableDeclaration,
@@ -100,6 +104,12 @@ class FunctionAstVisitor extends RecursiveAstVisitor<void> {
   }
 
   @override
+  void visitFunctionDeclaration(FunctionDeclaration node) {
+    functionDeclaration?.call(node);
+    super.visitFunctionDeclaration(node);
+  }
+
+  @override
   void visitFunctionDeclarationStatement(FunctionDeclarationStatement node) {
     if (functionDeclarationStatement != null) {
       functionDeclarationStatement!(node);
@@ -142,6 +152,12 @@ class FunctionAstVisitor extends RecursiveAstVisitor<void> {
       label!(node);
     }
     super.visitLabel(node);
+  }
+
+  @override
+  void visitMethodDeclaration(MethodDeclaration node) {
+    methodDeclaration?.call(node);
+    super.visitMethodDeclaration(node);
   }
 
   @override
