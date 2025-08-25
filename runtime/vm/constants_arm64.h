@@ -548,10 +548,14 @@ const Register kDartLastVolatileCpuReg = R14;
 const int kDartVolatileCpuRegCount = 15;
 const int kDartVolatileFpuRegCount = 24;
 
-const RegList kAbiVolatileFpuRegs =
+const RegList kAbiFullyVolatileFpuRegs =
     R(V0) | R(V1) | R(V2) | R(V3) | R(V4) | R(V5) | R(V6) | R(V7) | R(V16) |
     R(V17) | R(V18) | R(V19) | R(V20) | R(V21) | R(V22) | R(V23) | R(V24) |
     R(V25) | R(V26) | R(V27) | R(V28) | R(V29) | R(V30) | R(V31);
+const RegList kAbiPartiallyVolatileFpuRegs =
+    R(V8) | R(V9) | R(V10) | R(V11) | R(V12) | R(V13) | R(V14) | R(V15);
+const RegList kAbiVolatileFpuRegs =
+    kAbiFullyVolatileFpuRegs | kAbiPartiallyVolatileFpuRegs;
 
 constexpr int kStoreBufferWrapperSize = 32;
 

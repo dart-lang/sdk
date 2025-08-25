@@ -4549,8 +4549,8 @@ LocationSummary* CaseInsensitiveCompareInstr::MakeLocationSummary(
     Zone* zone,
     bool opt) const {
   const intptr_t kNumTemps = 0;
-  LocationSummary* summary = new (zone)
-      LocationSummary(zone, InputCount(), kNumTemps, LocationSummary::kCall);
+  LocationSummary* summary = new (zone) LocationSummary(
+      zone, InputCount(), kNumTemps, LocationSummary::kNativeLeafCall);
   summary->set_in(0, Location::RegisterLocation(CallingConventions::kArg1Reg));
   summary->set_in(1, Location::RegisterLocation(CallingConventions::kArg2Reg));
   summary->set_in(2, Location::RegisterLocation(CallingConventions::kArg3Reg));
@@ -4926,8 +4926,8 @@ LocationSummary* InvokeMathCFunctionInstr::MakeLocationSummary(Zone* zone,
   if (recognized_kind() == MethodRecognizer::kMathDoublePow) {
     ASSERT(InputCount() == 2);
     const intptr_t kNumTemps = 4;
-    LocationSummary* result = new (zone)
-        LocationSummary(zone, InputCount(), kNumTemps, LocationSummary::kCall);
+    LocationSummary* result = new (zone) LocationSummary(
+        zone, InputCount(), kNumTemps, LocationSummary::kNativeLeafCall);
     result->set_in(0, Location::FpuRegisterLocation(XMM2));
     result->set_in(1, Location::FpuRegisterLocation(XMM1));
     result->set_temp(0, Location::RegisterLocation(R13));
@@ -4942,8 +4942,8 @@ LocationSummary* InvokeMathCFunctionInstr::MakeLocationSummary(Zone* zone,
   }
   ASSERT((InputCount() == 1) || (InputCount() == 2));
   const intptr_t kNumTemps = 1;
-  LocationSummary* result = new (zone)
-      LocationSummary(zone, InputCount(), kNumTemps, LocationSummary::kCall);
+  LocationSummary* result = new (zone) LocationSummary(
+      zone, InputCount(), kNumTemps, LocationSummary::kNativeLeafCall);
   result->set_temp(0, Location::RegisterLocation(R13));
   result->set_in(0, Location::FpuRegisterLocation(XMM0));
   if (InputCount() == 2) {

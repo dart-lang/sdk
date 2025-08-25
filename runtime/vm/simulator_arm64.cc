@@ -1931,8 +1931,12 @@ void Simulator::ClobberVolatileRegisters() {
   }
 
   for (intptr_t i = 0; i < kNumberOfFpuRegisters; i++) {
-    if ((kAbiVolatileFpuRegs & (1 << i)) != 0) {
+    if ((kAbiFullyVolatileFpuRegs & (1 << i)) != 0) {
       vregisters_[i].bits.i64[0] = icount_;
+      vregisters_[i].bits.i64[1] = icount_;
+    }
+    if ((kAbiPartiallyVolatileFpuRegs & (1 << i)) != 0) {
+      // V8-V15: Low bits preserved.
       vregisters_[i].bits.i64[1] = icount_;
     }
   }
