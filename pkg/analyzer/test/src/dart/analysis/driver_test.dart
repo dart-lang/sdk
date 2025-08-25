@@ -27019,6 +27019,91 @@ mixin A {
     );
   }
 
+  test_dependency_notOpaque_baseClassImplementedOutsideOfLibrary() async {
+    configuration.withStreamResolvedUnitResults = false;
+    await _runChangeScenarioTA(
+      initialA: r'''
+base class A {}
+''',
+      testCode: r'''
+import 'a.dart';
+base class X implements A {}
+''',
+      operation: _FineOperationTestFileGetErrors(),
+      expectedInitialEvents: r'''
+[status] working
+[operation] linkLibraryCycle SDK
+[future] getErrors T1
+  ErrorsResult #0
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
+    errors
+      41 +1 INVALID_USE_OF_TYPE_OUTSIDE_LIBRARY
+[operation] linkLibraryCycle
+  package:test/a.dart
+    declaredClasses
+      A: #M0
+        interface: #M1
+  requirements
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredClasses
+      X: #M2
+        interface: #M3
+  requirements
+    libraries
+      package:test/a.dart
+        exportedTopLevels
+          A: #M0
+        interfaces
+          A
+            interfaceId: #M1
+[operation] analyzeFile
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[operation] analyzedLibrary
+  file: /home/test/lib/test.dart
+  requirements
+    libraries
+      package:test/a.dart
+        exportedTopLevels
+          A: #M0
+        instances
+          A
+[status] idle
+''',
+      updatedA: r'''
+base class A {}
+class B {}
+''',
+      expectedUpdatedEvents: r'''
+[status] working
+[operation] linkLibraryCycle
+  package:test/a.dart
+    declaredClasses
+      A: #M0
+        interface: #M1
+      B: #M4
+        interface: #M5
+  requirements
+[future] getErrors T2
+  ErrorsResult #1
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
+    errors
+      41 +1 INVALID_USE_OF_TYPE_OUTSIDE_LIBRARY
+[operation] readLibraryCycleBundle
+  package:test/test.dart
+[operation] getErrorsFromBytes
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[status] idle
+''',
+    );
+  }
+
   test_dependency_opaqueApiUse_firstFragment() async {
     _ManualRequirements.install((state) {
       var A = state.singleUnit.scopeInterfaceElement('A');

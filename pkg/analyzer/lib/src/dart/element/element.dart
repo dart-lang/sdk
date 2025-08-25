@@ -1699,6 +1699,16 @@ abstract class ElementImpl implements Element {
     return buffer.toString();
   }
 
+  /// The location of [firstFragment], without recording opaque requirement.
+  @trackedIncludedInId
+  FirstFragmentLocation get firstFragmentLocation {
+    return FirstFragmentLocation(
+      libraryFragment: _firstFragment.libraryFragment,
+      name: _firstFragment.name,
+      nameOffset: _firstFragment.nameOffset,
+    );
+  }
+
   @override
   List<Fragment> get fragments {
     return [
@@ -2875,6 +2885,19 @@ class FieldFragmentImpl extends PropertyInducingFragmentImpl
     fragment.previousFragment = this;
     nextFragment = fragment;
   }
+}
+
+/// Location information extracted from [Element.firstFragment].
+class FirstFragmentLocation {
+  final LibraryFragmentImpl? libraryFragment;
+  final String? name;
+  final int? nameOffset;
+
+  FirstFragmentLocation({
+    required this.libraryFragment,
+    required this.name,
+    required this.nameOffset,
+  });
 }
 
 class FormalParameterElementImpl extends PromotableElementImpl
