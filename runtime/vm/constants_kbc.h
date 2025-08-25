@@ -225,6 +225,13 @@ namespace dart {
   V(VMInternal_ForwardDynamicInvocation,          0, ORDN, ___, ___, ___)      \
   V(VMInternal_ImplicitStaticClosure,             0, ORDN, ___, ___, ___)      \
   V(VMInternal_NoSuchMethodDispatcher,            0, ORDN, ___, ___, ___)      \
+  /* One breakpoint opcode for each instruction size. */                       \
+  V(VMInternal_Breakpoint_0,                      0, ORDN, ___, ___, ___)      \
+  V(VMInternal_Breakpoint_A_B_C,              A_B_C, ORDN, num, num, num)      \
+  V(VMInternal_Breakpoint_D,                      D, ORDN, num, ___, ___)      \
+  V(VMInternal_Breakpoint_D_Wide,                 D, WIDE, num, ___, ___)      \
+  V(VMInternal_Breakpoint_A_E,                  A_E, ORDN, num, num, ___)      \
+  V(VMInternal_Breakpoint_A_E_Wide,             A_E, WIDE, num, num, ___)      \
 
 #define INTERNAL_KERNEL_BYTECODES_LIST(V)                                      \
   INTERNAL_KERNEL_BYTECODES_WITH_CUSTOM_CODE(V)                                \
@@ -250,6 +257,7 @@ class KernelBytecode {
 #define DECLARE_BYTECODE(name, encoding, kind, op1, op2, op3) k##name,
     KERNEL_BYTECODES_LIST(DECLARE_BYTECODE)
 #undef DECLARE_BYTECODE
+        kNumOpcodes,
   };
 
   static const char* NameOf(Opcode op) {
@@ -274,7 +282,12 @@ class KernelBytecode {
 
   // Should be used only on instructions with wide variants.
   DART_FORCE_INLINE static bool IsWide(const KBCInstr* instr) {
-    return ((DecodeOpcode(instr) & kWideModifier) != 0);
+    return IsWide(DecodeOpcode(instr));
+  }
+
+  // Should be used only on instructions with wide variants.
+  DART_FORCE_INLINE static constexpr bool IsWide(Opcode opcode) {
+    return ((opcode & kWideModifier) != 0);
   }
 
  public:
@@ -423,7 +436,11 @@ class KernelBytecode {
   // - The bytecode generator emits a source position.
   // - The bytecode compiler may emit a DebugStepCheck call.
   DART_FORCE_INLINE static bool IsDebugCheckedOpcode(const KBCInstr* instr) {
-    switch (DecodeOpcode(instr)) {
+    return IsDebugCheckedOpcode(DecodeOpcode(instr));
+  }
+
+  DART_FORCE_INLINE static bool IsDebugCheckedOpcode(Opcode op) {
+    switch (op) {
       case KernelBytecode::kDebugCheck:
       case KernelBytecode::kDirectCall:
       case KernelBytecode::kDirectCall_Wide:
@@ -494,7 +511,42 @@ class KernelBytecode {
                                                 const KBCInstr** instructions,
                                                 intptr_t* instructions_size);
 
+  static Opcode BreakpointOpcode(Opcode opcode) {
+    Opcode replacement;
+    switch (kInstructionSize[opcode]) {
+      case 1:
+        replacement = kVMInternal_Breakpoint_0;
+        break;
+      case 2:
+        replacement = kVMInternal_Breakpoint_D;
+        break;
+      case 3:
+        replacement = kVMInternal_Breakpoint_A_E;
+        break;
+      case 4:
+        replacement = kVMInternal_Breakpoint_A_B_C;
+        break;
+      case 5:
+        replacement = kVMInternal_Breakpoint_D_Wide;
+        break;
+      case 6:
+        replacement = kVMInternal_Breakpoint_A_E_Wide;
+        break;
+      default:
+        UNREACHABLE();
+        return kTrap;
+    }
+    ASSERT_EQUAL(kInstructionSize[replacement], kInstructionSize[opcode]);
+    return replacement;
+  }
+
+  static Opcode BreakpointOpcode(const KBCInstr* instr) {
+    return BreakpointOpcode(DecodeOpcode(instr));
+  }
+
  private:
+  friend class Interpreter;  // for IsWide(Opcode) in static_asserts.
+
   DISALLOW_ALLOCATION();
   DISALLOW_IMPLICIT_CONSTRUCTORS(KernelBytecode);
 };
