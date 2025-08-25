@@ -373,6 +373,12 @@ class ModifyParameters extends Change<_Data> {
     } else if (grandParent is InstanceCreationExpression) {
       var argumentList = grandParent.argumentList;
       return _Data(argumentList);
+    } else if (parent is NamedExpression &&
+        greatGrandParent is DotShorthandInvocation) {
+      return _Data(greatGrandParent.argumentList);
+    } else if (parent is NamedExpression &&
+        greatGrandParent is DotShorthandConstructorInvocation) {
+      return _Data(greatGrandParent.argumentList);
     }
     return null;
   }

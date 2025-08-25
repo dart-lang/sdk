@@ -93,6 +93,8 @@ class BulkFixProcessor {
   nonLintMultiProducerMap = {
     CompileTimeErrorCode.argumentTypeNotAssignable: [DataDriven.new],
     CompileTimeErrorCode.castToNonType: [DataDriven.new],
+    CompileTimeErrorCode.dotShorthandUndefinedGetter: [DataDriven.new],
+    CompileTimeErrorCode.dotShorthandUndefinedInvocation: [DataDriven.new],
     CompileTimeErrorCode.extendsNonClass: [DataDriven.new],
     // TODO(brianwilkerson): The following fix fails if an invocation of the
     //  function is the argument that needs to be removed.
