@@ -1317,7 +1317,7 @@ static Sample* SetupSample(Thread* thread,
   }
 #endif
   sample->set_vm_tag(vm_tag);
-  sample->set_user_tag(isolate->user_tag());
+  sample->set_user_tag(thread->user_tag());
   sample->set_thread_task(thread->task_kind());
   return sample;
 }

@@ -1877,15 +1877,13 @@ void AsmIntrinsifier::IntrinsifyRegExpExecuteMatch(Assembler* assembler,
 
 void AsmIntrinsifier::UserTag_defaultTag(Assembler* assembler,
                                          Label* normal_ir_body) {
-  __ LoadIsolate(RAX);
-  __ movq(RAX, Address(RAX, target::Isolate::default_tag_offset()));
+  __ movq(RAX, Address(THR, target::Thread::default_tag_offset()));
   __ ret();
 }
 
 void AsmIntrinsifier::Profiler_getCurrentTag(Assembler* assembler,
                                              Label* normal_ir_body) {
-  __ LoadIsolate(RAX);
-  __ movq(RAX, Address(RAX, target::Isolate::current_tag_offset()));
+  __ movq(RAX, Address(THR, target::Thread::current_tag_offset()));
   __ ret();
 }
 

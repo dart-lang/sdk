@@ -13380,18 +13380,21 @@ class UserTag : public Instance {
     return RoundedAllocationSize(sizeof(UntaggedUserTag));
   }
 
-  static UserTagPtr New(const String& label, Heap::Space space = Heap::kOld);
-  static UserTagPtr DefaultTag();
+  static UserTagPtr New(Thread* thread,
+                        const String& label,
+                        Heap::Space space = Heap::kOld);
+  static UserTagPtr DefaultTag(Thread* thread);
 
   static bool TagTableIsFull(Thread* thread);
-  static UserTagPtr FindTagById(const Isolate* isolate, uword tag_id);
-  static UserTagPtr FindTagInIsolate(Isolate* isolate,
-                                     Thread* thread,
-                                     const String& label);
+  static UserTagPtr FindTagById(const IsolateGroup* isolate_group,
+                                uword tag_id);
+  static UserTagPtr FindTagInIsolateGroup(IsolateGroup* isolate_group,
+                                          Thread* thread,
+                                          const String& label);
+  static UserTagPtr FindTagInIsolateGroup(Thread* thread, const String& label);
 
  private:
-  static UserTagPtr FindTagInIsolate(Thread* thread, const String& label);
-  static void AddTagToIsolate(Thread* thread, const UserTag& tag);
+  static void AddTagToIsolateGroup(Thread* thread, const UserTag& tag);
 
   void set_label(const String& tag_label) const {
     untag()->set_label(tag_label.ptr());

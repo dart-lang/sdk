@@ -564,8 +564,9 @@ class SafepointTestTask : public ThreadPool::Task {
           MonitorLocker ml(monitor_);
           EXPECT_EQ(*expected_count_, counter.count());
         }
-        UserTag& tag = UserTag::Handle(zone, isolate_->current_tag());
-        if (tag.ptr() != isolate_->default_tag()) {
+        UserTag& tag =
+            UserTag::Handle(zone, isolate_->mutator_thread()->current_tag());
+        if (tag.ptr() != isolate_->mutator_thread()->default_tag()) {
           String& label = String::Handle(zone, tag.label());
           EXPECT(label.Equals("foo"));
           MonitorLocker ml(monitor_);
@@ -672,8 +673,8 @@ ISOLATE_UNIT_TEST_CASE(SafepointTestVM) {
         isolate, &monitor, &expected_count, &total_done, &exited);
   }
   String& label = String::Handle(String::New("foo"));
-  UserTag& tag = UserTag::Handle(UserTag::New(label));
-  isolate->set_current_tag(tag);
+  UserTag& tag = UserTag::Handle(UserTag::New(thread, label));
+  thread->set_current_tag(tag);
   MonitorLocker ml(&monitor);
   while (exited != SafepointTestTask::kTaskCount) {
     ml.WaitWithSafepointCheck(thread);
@@ -803,8 +804,8 @@ ISOLATE_UNIT_TEST_CASE(SafepointTestVM2) {
     }
   } while (!all_helpers);
   String& label = String::Handle(String::New("foo"));
-  UserTag& tag = UserTag::Handle(UserTag::New(label));
-  isolate->set_current_tag(tag);
+  UserTag& tag = UserTag::Handle(UserTag::New(thread, label));
+  thread->set_current_tag(tag);
   MonitorLocker ml(&monitor);
   while (exited != SafepointTestTask::kTaskCount) {
     ml.WaitWithSafepointCheck(thread);
@@ -835,8 +836,8 @@ ISOLATE_UNIT_TEST_CASE(RecursiveSafepointTest2) {
     }
   } while (!all_helpers);
   String& label = String::Handle(String::New("foo"));
-  UserTag& tag = UserTag::Handle(UserTag::New(label));
-  isolate->set_current_tag(tag);
+  UserTag& tag = UserTag::Handle(UserTag::New(thread, label));
+  thread->set_current_tag(tag);
   bool all_exited = false;
   do {
     GcSafepointOperationScope safepoint_scope(thread);

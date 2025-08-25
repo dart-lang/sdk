@@ -353,7 +353,7 @@ class MutatorThreadVisitor {
   MutatorThreadVisitor() {}
   virtual ~MutatorThreadVisitor() {}
 
-  virtual void VisitMutatorThread(Thread* isolate) = 0;
+  virtual void VisitMutatorThread(Thread* mutator) = 0;
 
  private:
   DISALLOW_COPY_AND_ASSIGN(MutatorThreadVisitor);
@@ -1350,6 +1350,25 @@ class Thread : public ThreadState {
     return &pointers_to_verify_at_exit_;
   }
 
+  uword user_tag() const { return user_tag_; }
+  static intptr_t user_tag_offset() { return OFFSET_OF(Thread, user_tag_); }
+  static intptr_t current_tag_offset() {
+    return OFFSET_OF(Thread, current_tag_);
+  }
+  static intptr_t default_tag_offset() {
+    return OFFSET_OF(Thread, default_tag_);
+  }
+
+  UserTagPtr current_tag() const { return current_tag_; }
+  void set_current_tag(const UserTag& tag);
+
+  UserTagPtr default_tag() const { return default_tag_; }
+  void set_default_tag(const UserTag& tag);
+
+  void set_user_tag(uword tag) { user_tag_ = tag; }
+
+  static void VisitMutators(MutatorThreadVisitor* visitor);
+
  private:
   template <class T>
   T* AllocateReusableHandle();
@@ -1493,6 +1512,10 @@ class Thread : public ThreadState {
   TsanUtils* tsan_utils_ = nullptr;
 
   bool single_step_ = false;
+
+  uword user_tag_ = 0;
+  UserTagPtr current_tag_;
+  UserTagPtr default_tag_;
 
   // ---- End accessed from generated code. ----
 

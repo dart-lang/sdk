@@ -133,12 +133,14 @@ void VMTagCounters::PrintToJSONObject(JSONObject* obj) {
 }
 #endif  // !PRODUCT
 
-const char* UserTags::TagName(Thread* thread, Isolate* isolate, uword tag_id) {
+const char* UserTags::TagName(Thread* thread,
+                              IsolateGroup* isolate_group,
+                              uword tag_id) {
   ASSERT(tag_id >= kUserTagIdOffset);
   ASSERT(tag_id < kUserTagIdOffset + kMaxUserTags);
   Zone* zone = thread->zone();
   const UserTag& tag =
-      UserTag::Handle(zone, UserTag::FindTagById(isolate, tag_id));
+      UserTag::Handle(zone, UserTag::FindTagById(isolate_group, tag_id));
   ASSERT(!tag.IsNull());
   const String& label = String::Handle(zone, tag.label());
   return label.ToCString();
