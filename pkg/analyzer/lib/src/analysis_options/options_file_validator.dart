@@ -1077,9 +1077,9 @@ class _TopLevelOptionValidator extends OptionsValidator {
   @override
   void validate(DiagnosticReporter reporter, YamlMap options) {
     var node = options.valueAt(pluginName);
-    if (node == null) {
-      return;
-    }
+    if (node == null) return;
+    if (node is YamlScalar && node.value == null) return;
+
     if (node is! YamlMap) {
       reporter.atSourceSpan(
         node.span,

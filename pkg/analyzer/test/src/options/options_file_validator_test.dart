@@ -143,6 +143,13 @@ analyzer:
     );
   }
 
+  test_analyzer_empty() {
+    registerLintRule(TestRule());
+    validate('''
+analyzer:
+''', []);
+  }
+
   test_analyzer_enableExperiment_badValue() {
     validate(
       '''
