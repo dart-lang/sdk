@@ -5,6 +5,7 @@
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
+import 'package:analyzer/src/dart/element/extensions.dart';
 import 'package:analyzer/src/error/codes.dart';
 
 class DeprecatedFunctionalityVerifier {
@@ -31,7 +32,7 @@ class DeprecatedFunctionalityVerifier {
   void constructorName(ConstructorName node) {
     var classElement = node.type.element;
     if (classElement == null) return;
-    if (classElement.hasDeprecatedWithField('_isInstantiate')) {
+    if (classElement.isDeprecatedWithKind('instantiate')) {
       _diagnosticReporter.atNode(
         node,
         WarningCode.deprecatedInstantiate,
@@ -57,13 +58,13 @@ class DeprecatedFunctionalityVerifier {
     if (element == null) return;
     if (node.type?.element is InterfaceElement) {
       if (element.library == _currentLibrary) return;
-      if (element.hasDeprecatedWithField('_isExtend')) {
+      if (element.isDeprecatedWithKind('extend')) {
         _diagnosticReporter.atNode(
           node,
           WarningCode.deprecatedExtend,
           arguments: [element.name!],
         );
-      } else if (element.hasDeprecatedWithField('_isSubclass')) {
+      } else if (element.isDeprecatedWithKind('subclass')) {
         _diagnosticReporter.atNode(
           node,
           WarningCode.deprecatedSubclass,
@@ -80,13 +81,13 @@ class DeprecatedFunctionalityVerifier {
       if (element == null) continue;
       if (element.library == _currentLibrary) continue;
       if (namedType.type?.element is InterfaceElement) {
-        if (element.hasDeprecatedWithField('_isImplement')) {
+        if (element.isDeprecatedWithKind('implement')) {
           _diagnosticReporter.atNode(
             namedType,
             WarningCode.deprecatedImplement,
             arguments: [element.name!],
           );
-        } else if (element.hasDeprecatedWithField('_isSubclass')) {
+        } else if (element.isDeprecatedWithKind('subclass')) {
           _diagnosticReporter.atNode(
             namedType,
             WarningCode.deprecatedSubclass,
@@ -104,7 +105,7 @@ class DeprecatedFunctionalityVerifier {
       if (element == null) continue;
       if (element.library == _currentLibrary) continue;
       if (namedType.type?.element is InterfaceElement) {
-        if (element.hasDeprecatedWithField('_isSubclass')) {
+        if (element.isDeprecatedWithKind('subclass')) {
           _diagnosticReporter.atNode(
             namedType,
             WarningCode.deprecatedSubclass,
@@ -113,16 +114,5 @@ class DeprecatedFunctionalityVerifier {
         }
       }
     }
-  }
-}
-
-extension on Element {
-  /// Whether this Element is annotated with a `Deprecated` annotation with a
-  /// `true` value for [fieldName].
-  bool hasDeprecatedWithField(String fieldName) {
-    return metadata.annotations.where((e) => e.isDeprecated).any((annotation) {
-      var value = annotation.computeConstantValue();
-      return value?.getField(fieldName)?.toBoolValue() ?? false;
-    });
   }
 }

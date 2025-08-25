@@ -117,34 +117,31 @@ class AnnotationVerifier {
 
   void _checkDeprecated(Annotation node) {
     var element = node.elementAnnotation;
-    var value = element?.computeConstantValue();
-    if (value == null) return;
+    if (element == null) return;
+    assert(element.isDeprecated);
+    var kind = element.deprecationKind;
+    if (kind == null) return;
 
     // The vast majority of deprecated annotations use the default constructor.
     // Check this case first.
-    if (value.getField('_isUse')?.toBoolValue() ?? true) return;
+    if (kind == 'use') return;
 
-    var isExtend = value.getField('_isExtend')?.toBoolValue() ?? false;
-    if (isExtend) {
+    if (kind == 'extend') {
       _checkDeprecatedExtend(node, node.parent);
       return;
     }
 
-    var isImplement = value.getField('_isImplement')?.toBoolValue() ?? false;
-    if (isImplement) {
+    if (kind == 'implement') {
       _checkDeprecatedImplement(node, node.parent);
       return;
     }
 
-    var isSubclass = value.getField('_isSubclass')?.toBoolValue() ?? false;
-    if (isSubclass) {
+    if (kind == 'subclass') {
       _checkDeprecatedSubclass(node, node.parent);
       return;
     }
 
-    var isInstantiate =
-        value.getField('_isInstantiate')?.toBoolValue() ?? false;
-    if (isInstantiate) {
+    if (kind == 'instantiate') {
       _checkDeprecatedInstantiate(node, node.parent);
       return;
     }

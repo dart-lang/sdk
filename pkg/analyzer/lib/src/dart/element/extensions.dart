@@ -86,7 +86,10 @@ extension Element2Extension on Element {
     var annotations = metadata.annotations.where((e) => e.isDeprecated);
     return annotations.any((annotation) {
       var value = annotation.computeConstantValue();
-      return value?.getField('_isUse')?.toBoolValue() ?? true;
+      var kindValue = value?.getField('_kind');
+      if (kindValue == null) return true;
+      var kind = kindValue.getField('_name')?.toStringValue();
+      return kind == 'use';
     });
   }
 
@@ -102,6 +105,12 @@ extension Element2Extension on Element {
                 this is! SuperFormalParameterElement)) &&
         library.hasWildcardVariablesFeatureEnabled;
   }
+
+  /// Whether this Element is annotated with a `Deprecated` annotation with a
+  /// `_DeprecationKind` of [kind].
+  bool isDeprecatedWithKind(String kind) => metadata.annotations
+      .where((e) => e.isDeprecated)
+      .any((e) => e.deprecationKind == kind);
 }
 
 extension Element2OrNullExtension on Element? {
@@ -111,10 +120,23 @@ extension Element2OrNullExtension on Element? {
   }
 }
 
-extension ElementAnnotationExtensions on ElementAnnotation {
+extension ElementAnnotationExtension on ElementAnnotation {
   static final Map<String, TargetKind> _targetKindsByName = {
     for (var kind in TargetKind.values) kind.name: kind,
   };
+
+  /// The kind of deprecation, if this annotation is a `Deprecated` annotation.
+  ///
+  /// `null` is returned if this is not a `Deprecated` annotation.
+  String? get deprecationKind {
+    if (!isDeprecated) return null;
+    return computeConstantValue()
+            ?.getField('_kind')
+            ?.getField('_name')
+            ?.toStringValue() ??
+        // For SDKs where the `Deprecated` class does not have a deprecation kind.
+        'use';
+  }
 
   /// Return the target kinds defined for this [ElementAnnotation].
   Set<TargetKind> get targetKinds {
