@@ -2,6 +2,7 @@
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
 
+example/*: SkipByDesign # These require to run via `dart test` to run build hooks.
 test/json_schema/*: SkipByDesign # Dev dependency not in Dart SDK.
 
 [ $runtime != vm ]
