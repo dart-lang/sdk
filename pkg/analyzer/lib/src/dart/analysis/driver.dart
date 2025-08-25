@@ -1706,108 +1706,111 @@ class AnalysisDriver {
   }
 
   void _getErrors(String path) {
-    var file = _fsState.getFileForPath(path);
+    scheduler.accumulatedPerformance.run('getErrors', (performance) {
+      var file = _fsState.getFileForPath(path);
 
-    // Prepare the library - the file itself, or the known library.
-    var kind = file.kind;
-    var library = kind.library ?? kind.asLibrary;
+      // Prepare the library - the file itself, or the known library.
+      var kind = file.kind;
+      var library = kind.library ?? kind.asLibrary;
 
-    // TODO(scheglov): this is duplicate
-    if (!_hasLibraryByUri('dart:core')) {
-      _errorsRequestedFiles.completeAll(
-        path,
-        _newMissingDartLibraryResult(file, 'dart:core'),
-      );
-      return;
-    }
-
-    // TODO(scheglov): this is duplicate
-    if (!_hasLibraryByUri('dart:async')) {
-      _errorsRequestedFiles.completeAll(
-        path,
-        _newMissingDartLibraryResult(file, 'dart:async'),
-      );
-      return;
-    }
-
-    // Errors are based on elements, so load them.
-    scheduler.accumulatedPerformance.run('libraryContext', (performance) {
-      libraryContext.load(targetLibrary: library, performance: performance);
-
-      for (var import in library.docLibraryImports) {
-        if (import is LibraryImportWithFile) {
-          if (import.importedLibrary case var libraryFileKind?) {
-            libraryContext.load(
-              targetLibrary: libraryFileKind,
-              performance: OperationPerformanceImpl('<root>'),
-            );
-          }
-        }
+      // TODO(scheglov): this is duplicate
+      if (!_hasLibraryByUri('dart:core')) {
+        _errorsRequestedFiles.completeAll(
+          path,
+          _newMissingDartLibraryResult(file, 'dart:core'),
+        );
+        return;
       }
-    });
 
-    if (withFineDependencies) {
-      var performance = OperationPerformanceImpl('<root>');
-      var fileResultBytesMap = performance.run('errors(isSatisfied)', (
-        performance,
-      ) {
-        var reqAndUnitBytes = performance.run('getBytes', (_) {
-          return _byteStore.get(library.resolvedKey);
-        });
+      // TODO(scheglov): this is duplicate
+      if (!_hasLibraryByUri('dart:async')) {
+        _errorsRequestedFiles.completeAll(
+          path,
+          _newMissingDartLibraryResult(file, 'dart:async'),
+        );
+        return;
+      }
 
-        if (reqAndUnitBytes != null) {
-          var elementFactory = libraryContext.elementFactory;
+      // Errors are based on elements, so load them.
+      performance.run('libraryContext', (performance) {
+        libraryContext.load(targetLibrary: library, performance: performance);
 
-          var reader = SummaryDataReader(reqAndUnitBytes);
-          var requirements = performance.run('readRequirements', (_) {
-            return RequirementsManifest.read(reader);
-          });
-
-          var failure = requirements.isSatisfied(
-            elementFactory: elementFactory,
-            libraryManifests: elementFactory.libraryManifests,
-          );
-          if (failure == null) {
-            var mapBytes = reader.readUint8List();
-            library.lastResolutionResult = LibraryResolutionResult(
-              requirements: requirements,
-              bytes: mapBytes,
-            );
-
-            var reader2 = SummaryDataReader(mapBytes);
-            return reader2.readMap(
-              readKey: () => reader2.readUri(),
-              readValue: () => reader2.readUint8List(),
-            );
-          } else {
-            scheduler.eventsController.add(
-              events.GetErrorsCannotReuse(library: library, failure: failure),
-            );
+        for (var import in library.docLibraryImports) {
+          if (import is LibraryImportWithFile) {
+            if (import.importedLibrary case var libraryFileKind?) {
+              libraryContext.load(
+                targetLibrary: libraryFileKind,
+                performance: OperationPerformanceImpl('<root>'),
+              );
+            }
           }
         }
-        return null;
       });
 
-      if (fileResultBytesMap != null) {
-        var bytes = fileResultBytesMap[file.uri]!;
+      if (withFineDependencies) {
+        var fileResultBytesMap = performance.run('errors(isSatisfied)', (
+          performance,
+        ) {
+          var reqAndUnitBytes = performance.run('getBytes', (_) {
+            return _byteStore.get(library.resolvedKey);
+          });
+
+          if (reqAndUnitBytes != null) {
+            var elementFactory = libraryContext.elementFactory;
+
+            var reader = SummaryDataReader(reqAndUnitBytes);
+            var requirements = performance.run('readRequirements', (_) {
+              return RequirementsManifest.read(reader);
+            });
+
+            var failure = requirements.isSatisfied(
+              elementFactory: elementFactory,
+              libraryManifests: elementFactory.libraryManifests,
+            );
+            if (failure == null) {
+              var mapBytes = reader.readUint8List();
+              library.lastResolutionResult = LibraryResolutionResult(
+                requirements: requirements,
+                bytes: mapBytes,
+              );
+
+              var reader2 = SummaryDataReader(mapBytes);
+              return reader2.readMap(
+                readKey: () => reader2.readUri(),
+                readValue: () => reader2.readUint8List(),
+              );
+            } else {
+              scheduler.eventsController.add(
+                events.GetErrorsCannotReuse(library: library, failure: failure),
+              );
+            }
+          }
+          return null;
+        });
+
+        if (fileResultBytesMap != null) {
+          var bytes = fileResultBytesMap[file.uri]!;
+          var result = _createErrorsResultFromBytes(file, library, bytes);
+          _errorsRequestedFiles.completeAll(path, result);
+          return;
+        }
+      }
+
+      // Prepare the signature and key.
+      var signature = _getResolvedUnitSignature(library, file);
+      var key = _getResolvedUnitKey(signature);
+
+      var bytes = _byteStore.get(key);
+      if (bytes != null) {
         var result = _createErrorsResultFromBytes(file, library, bytes);
         _errorsRequestedFiles.completeAll(path, result);
         return;
       }
-    }
 
-    // Prepare the signature and key.
-    var signature = _getResolvedUnitSignature(library, file);
-    var key = _getResolvedUnitKey(signature);
-
-    var bytes = _byteStore.get(key);
-    if (bytes != null) {
-      var result = _createErrorsResultFromBytes(file, library, bytes);
-      _errorsRequestedFiles.completeAll(path, result);
-      return;
-    }
-
-    _analyzeFile(path);
+      performance.run('analyzeFile', (performance) {
+        _analyzeFileImpl(path: path, performance: performance);
+      });
+    });
   }
 
   Future<void> _getFilesDefiningClassMemberName(
