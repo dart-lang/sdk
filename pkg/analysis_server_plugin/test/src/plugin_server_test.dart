@@ -300,6 +300,62 @@ bool b = false;
     expect(params.errors, isEmpty);
   }
 
+  Future<void> test_watchEvent_add() async {
+    writeAnalysisOptionsWithPlugin();
+    await channel
+        .sendRequest(protocol.AnalysisSetContextRootsParams([contextRoot]));
+
+    var paramsQueue = _analysisErrorsParams;
+
+    newFile(filePath, 'bool b = false;');
+
+    await channel.sendRequest(protocol.AnalysisHandleWatchEventsParams(
+        [WatchEvent(WatchEventType.ADD, filePath)]));
+
+    var params = await paramsQueue.next;
+    expect(params.errors, hasLength(1));
+    _expectAnalysisError(params.errors.single, message: 'No bools message');
+  }
+
+  Future<void> test_watchEvent_modify() async {
+    writeAnalysisOptionsWithPlugin();
+    newFile(filePath, 'int b = 7;');
+    await channel
+        .sendRequest(protocol.AnalysisSetContextRootsParams([contextRoot]));
+
+    var paramsQueue = _analysisErrorsParams;
+    var params = await paramsQueue.next;
+    expect(params.errors, isEmpty);
+
+    newFile(filePath, 'bool b = false;');
+
+    await channel.sendRequest(protocol.AnalysisHandleWatchEventsParams(
+        [WatchEvent(WatchEventType.MODIFY, filePath)]));
+
+    params = await paramsQueue.next;
+    expect(params.errors, hasLength(1));
+    _expectAnalysisError(params.errors.single, message: 'No bools message');
+  }
+
+  Future<void> test_watchEvent_remove() async {
+    writeAnalysisOptionsWithPlugin();
+    newFile(filePath, 'int b = 7;');
+    await channel
+        .sendRequest(protocol.AnalysisSetContextRootsParams([contextRoot]));
+
+    var paramsQueue = _analysisErrorsParams;
+    var params = await paramsQueue.next;
+    expect(params.errors, isEmpty);
+
+    deleteFile(filePath);
+
+    await channel.sendRequest(protocol.AnalysisHandleWatchEventsParams(
+        [WatchEvent(WatchEventType.REMOVE, filePath)]));
+
+    params = await paramsQueue.next;
+    expect(params.errors, isEmpty);
+  }
+
   void writeAnalysisOptionsWithPlugin(
       [Map<String, String> diagnosticConfiguration = const {}]) {
     var buffer = StringBuffer('''

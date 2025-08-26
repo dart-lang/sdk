@@ -467,7 +467,9 @@ class PluginServer {
     switch (request.method) {
       case protocol.ANALYSIS_REQUEST_GET_NAVIGATION:
       case protocol.ANALYSIS_REQUEST_HANDLE_WATCH_EVENTS:
-        result = null;
+        var params =
+            protocol.AnalysisHandleWatchEventsParams.fromRequest(request);
+        result = await _handleAnalysisWatchEvents(params);
 
       case protocol.ANALYSIS_REQUEST_SET_CONTEXT_ROOTS:
         var params =
@@ -608,21 +610,55 @@ class PluginServer {
 
       changedPaths.add(path);
     });
-    await _handleContentChanged(changedPaths.toList());
+    await _handleContentChanged(modifiedPaths: changedPaths.toList());
     return protocol.AnalysisUpdateContentResult();
   }
 
-  /// Handles the fact that files with [paths] were changed.
-  Future<void> _handleContentChanged(List<String> paths) async {
+  /// Handles an 'analysis.handleWatchEvents' request.
+  Future<protocol.AnalysisHandleWatchEventsResult> _handleAnalysisWatchEvents(
+      protocol.AnalysisHandleWatchEventsParams parameters) async {
+    final addedPaths = parameters.events
+        .where((e) => e.type == protocol.WatchEventType.ADD)
+        .map((e) => e.path)
+        .toList();
+    final modifiedPaths = parameters.events
+        .where((e) => e.type == protocol.WatchEventType.MODIFY)
+        .map((e) => e.path)
+        .toList();
+    final removedPaths = parameters.events
+        .where((e) => e.type == protocol.WatchEventType.REMOVE)
+        .map((e) => e.path)
+        .toList();
+
+    await _handleContentChanged(
+      addedPaths: addedPaths,
+      modifiedPaths: modifiedPaths,
+      removedPaths: removedPaths,
+    );
+
+    return protocol.AnalysisHandleWatchEventsResult();
+  }
+
+  /// Handles added files, modified files, and removed files.
+  Future<void> _handleContentChanged(
+      {List<String> addedPaths = const [],
+      List<String> modifiedPaths = const [],
+      List<String> removedPaths = const []}) async {
     if (_contextCollection case var contextCollection?) {
       _channel.sendNotification(
           protocol.PluginStatusParams(analysis: protocol.AnalysisStatus(true))
               .toNotification());
       await _forAnalysisContexts(contextCollection, (analysisContext) async {
-        for (var path in paths) {
+        for (var path in modifiedPaths) {
           analysisContext.changeFile(path);
         }
-        var affected = await analysisContext.applyPendingFileChanges();
+        for (var path in removedPaths) {
+          analysisContext.changeFile(path);
+        }
+        var affected = [
+          ...await analysisContext.applyPendingFileChanges(),
+          ...addedPaths,
+        ];
         await _handleAffectedFiles(
             analysisContext: analysisContext, paths: affected);
       });
