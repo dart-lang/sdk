@@ -21206,498 +21206,253 @@ library
 }
 
 abstract class ClassElementTest_augmentation extends ElementsBaseTest {
-  @SkippedTest(reason: 'implement augmentation')
   test_augmentation_constField_hasConstConstructor() async {
-    newFile('$testPackageLibPath/a.dart', r'''
-part of 'test.dart';
-augment class A {
-  static const int foo = 0;
-}
-''');
-
     var library = await buildLibrary(r'''
-part 'a.dart';
 class A {
   const A();
+}
+
+augment class A {
+  static const int foo = 0;
 }
 ''');
 
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      parts
-        part_0
-          uri: package:test/a.dart
-          enclosingElement3: <testLibraryFragment>
-          unit: <testLibrary>::@fragment::package:test/a.dart
-      classes
-        class A @21
-          reference: <testLibraryFragment>::@class::A
-          enclosingElement3: <testLibraryFragment>
-          augmentation: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A
-          constructors
-            const @33
-              reference: <testLibraryFragment>::@class::A::@constructor::new
-              enclosingElement3: <testLibraryFragment>::@class::A
-          augmented
-            fields
-              <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@field::foo
-            constructors
-              <testLibraryFragment>::@class::A::@constructor::new
-            accessors
-              <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@getter::foo
-    <testLibrary>::@fragment::package:test/a.dart
-      enclosingElement3: <testLibraryFragment>
-      classes
-        augment class A @35
-          reference: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A
-          enclosingElement3: <testLibrary>::@fragment::package:test/a.dart
-          augmentationTarget: <testLibraryFragment>::@class::A
-          fields
-            static const foo @58
-              reference: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@field::foo
-              enclosingElement3: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A
-              type: int
-              shouldUseTypeForInitializerInference: true
-              constantInitializer
-                IntegerLiteral
-                  literal: 0 @64
-                  staticType: int
-          accessors
-            synthetic static get foo @-1
-              reference: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@getter::foo
-              enclosingElement3: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A
-              returnType: int
-----------------------------------------
-library
-  reference: <testLibrary>
   fragments
-    <testLibraryFragment>
+    #F0 <testLibraryFragment>
       element: <testLibrary>
-      nextFragment: <testLibrary>::@fragment::package:test/a.dart
       classes
-        class A @21
-          reference: <testLibraryFragment>::@class::A
+        #F1 class A (nameOffset:6) (firstTokenOffset:0) (offset:6)
           element: <testLibrary>::@class::A
-          nextFragment: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A
+          nextFragment: #F2
           constructors
-            const new
-              reference: <testLibraryFragment>::@class::A::@constructor::new
-              element: <testLibraryFragment>::@class::A::@constructor::new#element
+            #F3 const new (nameOffset:<null>) (firstTokenOffset:12) (offset:18)
+              element: <testLibrary>::@class::A::@constructor::new
               typeName: A
-              typeNameOffset: 33
-    <testLibrary>::@fragment::package:test/a.dart
-      element: <testLibrary>
-      enclosingFragment: <testLibraryFragment>
-      previousFragment: <testLibraryFragment>
-      classes
-        class A @35
-          reference: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A
+              typeNameOffset: 18
+        #F2 class A (nameOffset:40) (firstTokenOffset:26) (offset:40)
           element: <testLibrary>::@class::A
-          previousFragment: <testLibraryFragment>::@class::A
+          previousFragment: #F1
           fields
-            hasInitializer foo @58
-              reference: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@field::foo
-              element: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@field::foo#element
+            #F4 hasInitializer foo (nameOffset:63) (firstTokenOffset:63) (offset:63)
+              element: <testLibrary>::@class::A::@field::foo
               initializer: expression_0
                 IntegerLiteral
-                  literal: 0 @64
+                  literal: 0 @69
                   staticType: int
-              getter2: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@getter::foo
           getters
-            synthetic get foo
-              reference: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@getter::foo
-              element: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@getter::foo#element
+            #F5 synthetic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:63)
+              element: <testLibrary>::@class::A::@getter::foo
   classes
     class A
       reference: <testLibrary>::@class::A
-      firstFragment: <testLibraryFragment>::@class::A
+      firstFragment: #F1
       fields
         static const hasInitializer foo
-          firstFragment: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@field::foo
+          reference: <testLibrary>::@class::A::@field::foo
+          firstFragment: #F4
           type: int
           constantInitializer
-            fragment: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@field::foo
+            fragment: #F4
             expression: expression_0
-          getter: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@getter::foo#element
+          getter: <testLibrary>::@class::A::@getter::foo
       constructors
         const new
-          firstFragment: <testLibraryFragment>::@class::A::@constructor::new
+          reference: <testLibrary>::@class::A::@constructor::new
+          firstFragment: #F3
       getters
-        synthetic static get foo
-          firstFragment: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@getter::foo
+        synthetic static foo
+          reference: <testLibrary>::@class::A::@getter::foo
+          firstFragment: #F5
+          returnType: int
+          variable: <testLibrary>::@class::A::@field::foo
 ''');
   }
 
-  @SkippedTest(reason: 'implement augmentation')
   test_augmentation_constField_noConstConstructor() async {
-    newFile('$testPackageLibPath/a.dart', r'''
-part of 'test.dart';
+    var library = await buildLibrary(r'''
+class A {}
+
 augment class A {
   static const int foo = 0;
 }
 ''');
 
-    var library = await buildLibrary(r'''
-part 'a.dart';
-class A {}
-''');
-
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      parts
-        part_0
-          uri: package:test/a.dart
-          enclosingElement3: <testLibraryFragment>
-          unit: <testLibrary>::@fragment::package:test/a.dart
-      classes
-        class A @21
-          reference: <testLibraryFragment>::@class::A
-          enclosingElement3: <testLibraryFragment>
-          augmentation: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A
-          constructors
-            synthetic @-1
-              reference: <testLibraryFragment>::@class::A::@constructor::new
-              enclosingElement3: <testLibraryFragment>::@class::A
-          augmented
-            fields
-              <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@field::foo
-            constructors
-              <testLibraryFragment>::@class::A::@constructor::new
-            accessors
-              <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@getter::foo
-    <testLibrary>::@fragment::package:test/a.dart
-      enclosingElement3: <testLibraryFragment>
-      classes
-        augment class A @35
-          reference: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A
-          enclosingElement3: <testLibrary>::@fragment::package:test/a.dart
-          augmentationTarget: <testLibraryFragment>::@class::A
-          fields
-            static const foo @58
-              reference: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@field::foo
-              enclosingElement3: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A
-              type: int
-              shouldUseTypeForInitializerInference: true
-              constantInitializer
-                IntegerLiteral
-                  literal: 0 @64
-                  staticType: int
-          accessors
-            synthetic static get foo @-1
-              reference: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@getter::foo
-              enclosingElement3: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A
-              returnType: int
-----------------------------------------
-library
-  reference: <testLibrary>
   fragments
-    <testLibraryFragment>
+    #F0 <testLibraryFragment>
       element: <testLibrary>
-      nextFragment: <testLibrary>::@fragment::package:test/a.dart
       classes
-        class A @21
-          reference: <testLibraryFragment>::@class::A
+        #F1 class A (nameOffset:6) (firstTokenOffset:0) (offset:6)
           element: <testLibrary>::@class::A
-          nextFragment: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A
+          nextFragment: #F2
           constructors
-            synthetic new
-              reference: <testLibraryFragment>::@class::A::@constructor::new
-              element: <testLibraryFragment>::@class::A::@constructor::new#element
+            #F3 synthetic new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
+              element: <testLibrary>::@class::A::@constructor::new
               typeName: A
-    <testLibrary>::@fragment::package:test/a.dart
-      element: <testLibrary>
-      enclosingFragment: <testLibraryFragment>
-      previousFragment: <testLibraryFragment>
-      classes
-        class A @35
-          reference: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A
+        #F2 class A (nameOffset:26) (firstTokenOffset:12) (offset:26)
           element: <testLibrary>::@class::A
-          previousFragment: <testLibraryFragment>::@class::A
+          previousFragment: #F1
           fields
-            hasInitializer foo @58
-              reference: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@field::foo
-              element: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@field::foo#element
+            #F4 hasInitializer foo (nameOffset:49) (firstTokenOffset:49) (offset:49)
+              element: <testLibrary>::@class::A::@field::foo
               initializer: expression_0
                 IntegerLiteral
-                  literal: 0 @64
+                  literal: 0 @55
                   staticType: int
-              getter2: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@getter::foo
           getters
-            synthetic get foo
-              reference: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@getter::foo
-              element: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@getter::foo#element
+            #F5 synthetic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:49)
+              element: <testLibrary>::@class::A::@getter::foo
   classes
     class A
       reference: <testLibrary>::@class::A
-      firstFragment: <testLibraryFragment>::@class::A
+      firstFragment: #F1
       fields
         static const hasInitializer foo
-          firstFragment: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@field::foo
+          reference: <testLibrary>::@class::A::@field::foo
+          firstFragment: #F4
           type: int
           constantInitializer
-            fragment: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@field::foo
+            fragment: #F4
             expression: expression_0
-          getter: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@getter::foo#element
+          getter: <testLibrary>::@class::A::@getter::foo
       constructors
         synthetic new
-          firstFragment: <testLibraryFragment>::@class::A::@constructor::new
+          reference: <testLibrary>::@class::A::@constructor::new
+          firstFragment: #F3
       getters
-        synthetic static get foo
-          firstFragment: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@getter::foo
+        synthetic static foo
+          reference: <testLibrary>::@class::A::@getter::foo
+          firstFragment: #F5
+          returnType: int
+          variable: <testLibrary>::@class::A::@field::foo
 ''');
   }
 
-  @SkippedTest(reason: 'implement augmentation')
   test_augmentation_finalField_hasConstConstructor() async {
-    newFile('$testPackageLibPath/a.dart', r'''
-part of 'test.dart';
-augment class A {
-  final int foo = 0;
-}
-''');
-
     var library = await buildLibrary(r'''
-part 'a.dart';
 class A {
   const A();
 }
-''');
 
-    checkElementText(library, r'''
-library
-  reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      parts
-        part_0
-          uri: package:test/a.dart
-          enclosingElement3: <testLibraryFragment>
-          unit: <testLibrary>::@fragment::package:test/a.dart
-      classes
-        class A @21
-          reference: <testLibraryFragment>::@class::A
-          enclosingElement3: <testLibraryFragment>
-          augmentation: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A
-          constructors
-            const @33
-              reference: <testLibraryFragment>::@class::A::@constructor::new
-              enclosingElement3: <testLibraryFragment>::@class::A
-          augmented
-            fields
-              <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@field::foo
-            constructors
-              <testLibraryFragment>::@class::A::@constructor::new
-            accessors
-              <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@getter::foo
-    <testLibrary>::@fragment::package:test/a.dart
-      enclosingElement3: <testLibraryFragment>
-      classes
-        augment class A @35
-          reference: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A
-          enclosingElement3: <testLibrary>::@fragment::package:test/a.dart
-          augmentationTarget: <testLibraryFragment>::@class::A
-          fields
-            final foo @51
-              reference: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@field::foo
-              enclosingElement3: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A
-              type: int
-              shouldUseTypeForInitializerInference: true
-              constantInitializer
-                IntegerLiteral
-                  literal: 0 @57
-                  staticType: int
-          accessors
-            synthetic get foo @-1
-              reference: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@getter::foo
-              enclosingElement3: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A
-              returnType: int
-----------------------------------------
-library
-  reference: <testLibrary>
-  fragments
-    <testLibraryFragment>
-      element: <testLibrary>
-      nextFragment: <testLibrary>::@fragment::package:test/a.dart
-      classes
-        class A @21
-          reference: <testLibraryFragment>::@class::A
-          element: <testLibrary>::@class::A
-          nextFragment: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A
-          constructors
-            const new
-              reference: <testLibraryFragment>::@class::A::@constructor::new
-              element: <testLibraryFragment>::@class::A::@constructor::new#element
-              typeName: A
-              typeNameOffset: 33
-    <testLibrary>::@fragment::package:test/a.dart
-      element: <testLibrary>
-      enclosingFragment: <testLibraryFragment>
-      previousFragment: <testLibraryFragment>
-      classes
-        class A @35
-          reference: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A
-          element: <testLibrary>::@class::A
-          previousFragment: <testLibraryFragment>::@class::A
-          fields
-            hasInitializer foo @51
-              reference: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@field::foo
-              element: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@field::foo#element
-              initializer: expression_0
-                IntegerLiteral
-                  literal: 0 @57
-                  staticType: int
-              getter2: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@getter::foo
-          getters
-            synthetic get foo
-              reference: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@getter::foo
-              element: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@getter::foo#element
-  classes
-    class A
-      reference: <testLibrary>::@class::A
-      firstFragment: <testLibraryFragment>::@class::A
-      fields
-        final hasInitializer foo
-          firstFragment: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@field::foo
-          type: int
-          constantInitializer
-            fragment: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@field::foo
-            expression: expression_0
-          getter: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@getter::foo#element
-      constructors
-        const new
-          firstFragment: <testLibraryFragment>::@class::A::@constructor::new
-      getters
-        synthetic get foo
-          firstFragment: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@getter::foo
-''');
-  }
-
-  @SkippedTest(reason: 'implement augmentation')
-  test_augmentation_finalField_noConstConstructor() async {
-    newFile('$testPackageLibPath/a.dart', r'''
-part of 'test.dart';
 augment class A {
   final int foo = 0;
 }
 ''');
 
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      classes
+        #F1 class A (nameOffset:6) (firstTokenOffset:0) (offset:6)
+          element: <testLibrary>::@class::A
+          nextFragment: #F2
+          constructors
+            #F3 const new (nameOffset:<null>) (firstTokenOffset:12) (offset:18)
+              element: <testLibrary>::@class::A::@constructor::new
+              typeName: A
+              typeNameOffset: 18
+        #F2 class A (nameOffset:40) (firstTokenOffset:26) (offset:40)
+          element: <testLibrary>::@class::A
+          previousFragment: #F1
+          fields
+            #F4 hasInitializer foo (nameOffset:56) (firstTokenOffset:56) (offset:56)
+              element: <testLibrary>::@class::A::@field::foo
+              initializer: expression_0
+                IntegerLiteral
+                  literal: 0 @62
+                  staticType: int
+          getters
+            #F5 synthetic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:56)
+              element: <testLibrary>::@class::A::@getter::foo
+  classes
+    class A
+      reference: <testLibrary>::@class::A
+      firstFragment: #F1
+      fields
+        final hasInitializer foo
+          reference: <testLibrary>::@class::A::@field::foo
+          firstFragment: #F4
+          type: int
+          constantInitializer
+            fragment: #F4
+            expression: expression_0
+          getter: <testLibrary>::@class::A::@getter::foo
+      constructors
+        const new
+          reference: <testLibrary>::@class::A::@constructor::new
+          firstFragment: #F3
+      getters
+        synthetic foo
+          reference: <testLibrary>::@class::A::@getter::foo
+          firstFragment: #F5
+          returnType: int
+          variable: <testLibrary>::@class::A::@field::foo
+''');
+  }
+
+  test_augmentation_finalField_noConstConstructor() async {
     var library = await buildLibrary(r'''
-part 'a.dart';
 class A {}
+
+augment class A {
+  final int foo = 0;
+}
 ''');
 
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      parts
-        part_0
-          uri: package:test/a.dart
-          enclosingElement3: <testLibraryFragment>
-          unit: <testLibrary>::@fragment::package:test/a.dart
-      classes
-        class A @21
-          reference: <testLibraryFragment>::@class::A
-          enclosingElement3: <testLibraryFragment>
-          augmentation: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A
-          constructors
-            synthetic @-1
-              reference: <testLibraryFragment>::@class::A::@constructor::new
-              enclosingElement3: <testLibraryFragment>::@class::A
-          augmented
-            fields
-              <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@field::foo
-            constructors
-              <testLibraryFragment>::@class::A::@constructor::new
-            accessors
-              <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@getter::foo
-    <testLibrary>::@fragment::package:test/a.dart
-      enclosingElement3: <testLibraryFragment>
-      classes
-        augment class A @35
-          reference: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A
-          enclosingElement3: <testLibrary>::@fragment::package:test/a.dart
-          augmentationTarget: <testLibraryFragment>::@class::A
-          fields
-            final foo @51
-              reference: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@field::foo
-              enclosingElement3: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A
-              type: int
-              shouldUseTypeForInitializerInference: true
-          accessors
-            synthetic get foo @-1
-              reference: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@getter::foo
-              enclosingElement3: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A
-              returnType: int
-----------------------------------------
-library
-  reference: <testLibrary>
   fragments
-    <testLibraryFragment>
+    #F0 <testLibraryFragment>
       element: <testLibrary>
-      nextFragment: <testLibrary>::@fragment::package:test/a.dart
       classes
-        class A @21
-          reference: <testLibraryFragment>::@class::A
+        #F1 class A (nameOffset:6) (firstTokenOffset:0) (offset:6)
           element: <testLibrary>::@class::A
-          nextFragment: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A
+          nextFragment: #F2
           constructors
-            synthetic new
-              reference: <testLibraryFragment>::@class::A::@constructor::new
-              element: <testLibraryFragment>::@class::A::@constructor::new#element
+            #F3 synthetic new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
+              element: <testLibrary>::@class::A::@constructor::new
               typeName: A
-    <testLibrary>::@fragment::package:test/a.dart
-      element: <testLibrary>
-      enclosingFragment: <testLibraryFragment>
-      previousFragment: <testLibraryFragment>
-      classes
-        class A @35
-          reference: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A
+        #F2 class A (nameOffset:26) (firstTokenOffset:12) (offset:26)
           element: <testLibrary>::@class::A
-          previousFragment: <testLibraryFragment>::@class::A
+          previousFragment: #F1
           fields
-            hasInitializer foo @51
-              reference: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@field::foo
-              element: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@field::foo#element
-              getter2: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@getter::foo
+            #F4 hasInitializer foo (nameOffset:42) (firstTokenOffset:42) (offset:42)
+              element: <testLibrary>::@class::A::@field::foo
           getters
-            synthetic get foo
-              reference: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@getter::foo
-              element: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@getter::foo#element
+            #F5 synthetic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:42)
+              element: <testLibrary>::@class::A::@getter::foo
   classes
     class A
       reference: <testLibrary>::@class::A
-      firstFragment: <testLibraryFragment>::@class::A
+      firstFragment: #F1
       fields
         final hasInitializer foo
-          firstFragment: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@field::foo
+          reference: <testLibrary>::@class::A::@field::foo
+          firstFragment: #F4
           type: int
-          getter: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@getter::foo#element
+          getter: <testLibrary>::@class::A::@getter::foo
       constructors
         synthetic new
-          firstFragment: <testLibraryFragment>::@class::A::@constructor::new
+          reference: <testLibrary>::@class::A::@constructor::new
+          firstFragment: #F3
       getters
-        synthetic get foo
-          firstFragment: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@getter::foo
+        synthetic foo
+          reference: <testLibrary>::@class::A::@getter::foo
+          firstFragment: #F5
+          returnType: int
+          variable: <testLibrary>::@class::A::@field::foo
 ''');
   }
 
-  @SkippedTest(reason: 'implement augmentation')
   test_augmentationTarget() async {
     newFile('$testPackageLibPath/a1.dart', r'''
 part of 'test.dart';
@@ -21743,200 +21498,120 @@ class A {}
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      nextFragment: #F1
       parts
         part_0
           uri: package:test/a1.dart
-          enclosingElement3: <testLibraryFragment>
-          unit: <testLibrary>::@fragment::package:test/a1.dart
+          partKeywordOffset: 0
+          unit: #F1
         part_1
           uri: package:test/a2.dart
-          enclosingElement3: <testLibraryFragment>
-          unit: <testLibrary>::@fragment::package:test/a2.dart
+          partKeywordOffset: 16
+          unit: #F2
       classes
-        class A @38
-          reference: <testLibraryFragment>::@class::A
-          enclosingElement3: <testLibraryFragment>
-          augmentation: <testLibrary>::@fragment::package:test/a1.dart::@classAugmentation::A
+        #F3 class A (nameOffset:38) (firstTokenOffset:32) (offset:38)
+          element: <testLibrary>::@class::A
+          nextFragment: #F4
           constructors
-            synthetic @-1
-              reference: <testLibraryFragment>::@class::A::@constructor::new
-              enclosingElement3: <testLibraryFragment>::@class::A
-          augmented
-            constructors
-              <testLibraryFragment>::@class::A::@constructor::new
-    <testLibrary>::@fragment::package:test/a1.dart
-      enclosingElement3: <testLibraryFragment>
+            #F5 synthetic new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:38)
+              element: <testLibrary>::@class::A::@constructor::new
+              typeName: A
+    #F1 package:test/a1.dart
+      element: <testLibrary>
+      enclosingFragment: #F0
+      previousFragment: #F0
+      nextFragment: #F6
       parts
         part_2
           uri: package:test/a11.dart
-          enclosingElement3: <testLibrary>::@fragment::package:test/a1.dart
-          unit: <testLibrary>::@fragment::package:test/a11.dart
+          partKeywordOffset: 21
+          unit: #F6
         part_3
           uri: package:test/a12.dart
-          enclosingElement3: <testLibrary>::@fragment::package:test/a1.dart
-          unit: <testLibrary>::@fragment::package:test/a12.dart
+          partKeywordOffset: 38
+          unit: #F7
       classes
-        augment class A @69
-          reference: <testLibrary>::@fragment::package:test/a1.dart::@classAugmentation::A
-          enclosingElement3: <testLibrary>::@fragment::package:test/a1.dart
-          augmentationTarget: <testLibraryFragment>::@class::A
-          augmentation: <testLibrary>::@fragment::package:test/a11.dart::@classAugmentation::A
-    <testLibrary>::@fragment::package:test/a11.dart
-      enclosingElement3: <testLibrary>::@fragment::package:test/a1.dart
+        #F4 class A (nameOffset:69) (firstTokenOffset:55) (offset:69)
+          element: <testLibrary>::@class::A
+          previousFragment: #F3
+          nextFragment: #F8
+    #F6 package:test/a11.dart
+      element: <testLibrary>
+      enclosingFragment: #F1
+      previousFragment: #F1
+      nextFragment: #F7
       classes
-        augment class A @33
-          reference: <testLibrary>::@fragment::package:test/a11.dart::@classAugmentation::A
-          enclosingElement3: <testLibrary>::@fragment::package:test/a11.dart
-          augmentationTarget: <testLibrary>::@fragment::package:test/a1.dart::@classAugmentation::A
-          augmentation: <testLibrary>::@fragment::package:test/a12.dart::@classAugmentation::A
-    <testLibrary>::@fragment::package:test/a12.dart
-      enclosingElement3: <testLibrary>::@fragment::package:test/a1.dart
+        #F8 class A (nameOffset:33) (firstTokenOffset:19) (offset:33)
+          element: <testLibrary>::@class::A
+          previousFragment: #F4
+          nextFragment: #F9
+    #F7 package:test/a12.dart
+      element: <testLibrary>
+      enclosingFragment: #F1
+      previousFragment: #F6
+      nextFragment: #F2
       classes
-        augment class A @33
-          reference: <testLibrary>::@fragment::package:test/a12.dart::@classAugmentation::A
-          enclosingElement3: <testLibrary>::@fragment::package:test/a12.dart
-          augmentationTarget: <testLibrary>::@fragment::package:test/a11.dart::@classAugmentation::A
-          augmentation: <testLibrary>::@fragment::package:test/a2.dart::@classAugmentation::A
-    <testLibrary>::@fragment::package:test/a2.dart
-      enclosingElement3: <testLibraryFragment>
+        #F9 class A (nameOffset:33) (firstTokenOffset:19) (offset:33)
+          element: <testLibrary>::@class::A
+          previousFragment: #F8
+          nextFragment: #F10
+    #F2 package:test/a2.dart
+      element: <testLibrary>
+      enclosingFragment: #F0
+      previousFragment: #F7
+      nextFragment: #F11
       parts
         part_4
           uri: package:test/a21.dart
-          enclosingElement3: <testLibrary>::@fragment::package:test/a2.dart
-          unit: <testLibrary>::@fragment::package:test/a21.dart
+          partKeywordOffset: 21
+          unit: #F11
         part_5
           uri: package:test/a22.dart
-          enclosingElement3: <testLibrary>::@fragment::package:test/a2.dart
-          unit: <testLibrary>::@fragment::package:test/a22.dart
+          partKeywordOffset: 38
+          unit: #F12
       classes
-        augment class A @69
-          reference: <testLibrary>::@fragment::package:test/a2.dart::@classAugmentation::A
-          enclosingElement3: <testLibrary>::@fragment::package:test/a2.dart
-          augmentationTarget: <testLibrary>::@fragment::package:test/a12.dart::@classAugmentation::A
-          augmentation: <testLibrary>::@fragment::package:test/a21.dart::@classAugmentation::A
-    <testLibrary>::@fragment::package:test/a21.dart
-      enclosingElement3: <testLibrary>::@fragment::package:test/a2.dart
-      classes
-        augment class A @33
-          reference: <testLibrary>::@fragment::package:test/a21.dart::@classAugmentation::A
-          enclosingElement3: <testLibrary>::@fragment::package:test/a21.dart
-          augmentationTarget: <testLibrary>::@fragment::package:test/a2.dart::@classAugmentation::A
-          augmentation: <testLibrary>::@fragment::package:test/a22.dart::@classAugmentation::A
-    <testLibrary>::@fragment::package:test/a22.dart
-      enclosingElement3: <testLibrary>::@fragment::package:test/a2.dart
-      classes
-        augment class A @33
-          reference: <testLibrary>::@fragment::package:test/a22.dart::@classAugmentation::A
-          enclosingElement3: <testLibrary>::@fragment::package:test/a22.dart
-          augmentationTarget: <testLibrary>::@fragment::package:test/a21.dart::@classAugmentation::A
-  exportedReferences
-    declared <testLibraryFragment>::@class::A
-  exportNamespace
-    A: <testLibraryFragment>::@class::A
-----------------------------------------
-library
-  reference: <testLibrary>
-  fragments
-    <testLibraryFragment>
-      element: <testLibrary>
-      nextFragment: <testLibrary>::@fragment::package:test/a1.dart
-      classes
-        class A @38
-          reference: <testLibraryFragment>::@class::A
+        #F10 class A (nameOffset:69) (firstTokenOffset:55) (offset:69)
           element: <testLibrary>::@class::A
-          nextFragment: <testLibrary>::@fragment::package:test/a1.dart::@classAugmentation::A
-          constructors
-            synthetic new
-              reference: <testLibraryFragment>::@class::A::@constructor::new
-              element: <testLibraryFragment>::@class::A::@constructor::new#element
-              typeName: A
-    <testLibrary>::@fragment::package:test/a1.dart
+          previousFragment: #F9
+          nextFragment: #F13
+    #F11 package:test/a21.dart
       element: <testLibrary>
-      enclosingFragment: <testLibraryFragment>
-      previousFragment: <testLibraryFragment>
-      nextFragment: <testLibrary>::@fragment::package:test/a11.dart
+      enclosingFragment: #F2
+      previousFragment: #F2
+      nextFragment: #F12
       classes
-        class A @69
-          reference: <testLibrary>::@fragment::package:test/a1.dart::@classAugmentation::A
+        #F13 class A (nameOffset:33) (firstTokenOffset:19) (offset:33)
           element: <testLibrary>::@class::A
-          previousFragment: <testLibraryFragment>::@class::A
-          nextFragment: <testLibrary>::@fragment::package:test/a11.dart::@classAugmentation::A
-    <testLibrary>::@fragment::package:test/a11.dart
+          previousFragment: #F10
+          nextFragment: #F14
+    #F12 package:test/a22.dart
       element: <testLibrary>
-      enclosingFragment: <testLibrary>::@fragment::package:test/a1.dart
-      previousFragment: <testLibrary>::@fragment::package:test/a1.dart
-      nextFragment: <testLibrary>::@fragment::package:test/a12.dart
+      enclosingFragment: #F2
+      previousFragment: #F11
       classes
-        class A @33
-          reference: <testLibrary>::@fragment::package:test/a11.dart::@classAugmentation::A
+        #F14 class A (nameOffset:33) (firstTokenOffset:19) (offset:33)
           element: <testLibrary>::@class::A
-          previousFragment: <testLibrary>::@fragment::package:test/a1.dart::@classAugmentation::A
-          nextFragment: <testLibrary>::@fragment::package:test/a12.dart::@classAugmentation::A
-    <testLibrary>::@fragment::package:test/a12.dart
-      element: <testLibrary>
-      enclosingFragment: <testLibrary>::@fragment::package:test/a1.dart
-      previousFragment: <testLibrary>::@fragment::package:test/a11.dart
-      nextFragment: <testLibrary>::@fragment::package:test/a2.dart
-      classes
-        class A @33
-          reference: <testLibrary>::@fragment::package:test/a12.dart::@classAugmentation::A
-          element: <testLibrary>::@class::A
-          previousFragment: <testLibrary>::@fragment::package:test/a11.dart::@classAugmentation::A
-          nextFragment: <testLibrary>::@fragment::package:test/a2.dart::@classAugmentation::A
-    <testLibrary>::@fragment::package:test/a2.dart
-      element: <testLibrary>
-      enclosingFragment: <testLibraryFragment>
-      previousFragment: <testLibrary>::@fragment::package:test/a12.dart
-      nextFragment: <testLibrary>::@fragment::package:test/a21.dart
-      classes
-        class A @69
-          reference: <testLibrary>::@fragment::package:test/a2.dart::@classAugmentation::A
-          element: <testLibrary>::@class::A
-          previousFragment: <testLibrary>::@fragment::package:test/a12.dart::@classAugmentation::A
-          nextFragment: <testLibrary>::@fragment::package:test/a21.dart::@classAugmentation::A
-    <testLibrary>::@fragment::package:test/a21.dart
-      element: <testLibrary>
-      enclosingFragment: <testLibrary>::@fragment::package:test/a2.dart
-      previousFragment: <testLibrary>::@fragment::package:test/a2.dart
-      nextFragment: <testLibrary>::@fragment::package:test/a22.dart
-      classes
-        class A @33
-          reference: <testLibrary>::@fragment::package:test/a21.dart::@classAugmentation::A
-          element: <testLibrary>::@class::A
-          previousFragment: <testLibrary>::@fragment::package:test/a2.dart::@classAugmentation::A
-          nextFragment: <testLibrary>::@fragment::package:test/a22.dart::@classAugmentation::A
-    <testLibrary>::@fragment::package:test/a22.dart
-      element: <testLibrary>
-      enclosingFragment: <testLibrary>::@fragment::package:test/a2.dart
-      previousFragment: <testLibrary>::@fragment::package:test/a21.dart
-      classes
-        class A @33
-          reference: <testLibrary>::@fragment::package:test/a22.dart::@classAugmentation::A
-          element: <testLibrary>::@class::A
-          previousFragment: <testLibrary>::@fragment::package:test/a21.dart::@classAugmentation::A
+          previousFragment: #F13
   classes
     class A
       reference: <testLibrary>::@class::A
-      firstFragment: <testLibraryFragment>::@class::A
+      firstFragment: #F3
       constructors
         synthetic new
-          firstFragment: <testLibraryFragment>::@class::A::@constructor::new
+          reference: <testLibrary>::@class::A::@constructor::new
+          firstFragment: #F5
   exportedReferences
-    declared <testLibraryFragment>::@class::A
+    declared <testLibrary>::@class::A
   exportNamespace
-    A: <testLibraryFragment>::@class::A
+    A: <testLibrary>::@class::A
 ''');
   }
 
-  @SkippedTest(reason: 'implement augmentation')
   test_augmentationTarget_augmentationThenDeclaration() async {
-    newFile('$testPackageLibPath/a.dart', r'''
-part of 'test.dart';
-
+    var library = await buildLibrary(r'''
 augment class A {
   void foo1() {}
 }
@@ -21950,3505 +21625,1872 @@ augment class A {
 }
 ''');
 
-    var library = await buildLibrary(r'''
-part 'a.dart';
-''');
-
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      parts
-        part_0
-          uri: package:test/a.dart
-          enclosingElement3: <testLibraryFragment>
-          unit: <testLibrary>::@fragment::package:test/a.dart
-    <testLibrary>::@fragment::package:test/a.dart
-      enclosingElement3: <testLibraryFragment>
-      classes
-        augment class A @36
-          reference: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@def::0
-          enclosingElement3: <testLibrary>::@fragment::package:test/a.dart
-          constructors
-            synthetic @-1
-              reference: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@def::0::@constructor::new
-              enclosingElement3: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@def::0
-          methods
-            foo1 @47
-              reference: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@def::0::@method::foo1
-              enclosingElement3: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@def::0
-              returnType: void
-        class A @66
-          reference: <testLibrary>::@fragment::package:test/a.dart::@class::A
-          enclosingElement3: <testLibrary>::@fragment::package:test/a.dart
-          augmentation: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@def::1
-          constructors
-            synthetic @-1
-              reference: <testLibrary>::@fragment::package:test/a.dart::@class::A::@constructor::new
-              enclosingElement3: <testLibrary>::@fragment::package:test/a.dart::@class::A
-          methods
-            foo2 @77
-              reference: <testLibrary>::@fragment::package:test/a.dart::@class::A::@method::foo2
-              enclosingElement3: <testLibrary>::@fragment::package:test/a.dart::@class::A
-              returnType: void
-          augmented
-            constructors
-              <testLibrary>::@fragment::package:test/a.dart::@class::A::@constructor::new
-            methods
-              <testLibrary>::@fragment::package:test/a.dart::@class::A::@method::foo2
-              <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@def::1::@method::foo3
-        augment class A @104
-          reference: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@def::1
-          enclosingElement3: <testLibrary>::@fragment::package:test/a.dart
-          augmentationTarget: <testLibrary>::@fragment::package:test/a.dart::@class::A
-          methods
-            foo3 @115
-              reference: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@def::1::@method::foo3
-              enclosingElement3: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@def::1
-              returnType: void
-----------------------------------------
-library
-  reference: <testLibrary>
   fragments
-    <testLibraryFragment>
+    #F0 <testLibraryFragment>
       element: <testLibrary>
-      nextFragment: <testLibrary>::@fragment::package:test/a.dart
-    <testLibrary>::@fragment::package:test/a.dart
-      element: <testLibrary>
-      enclosingFragment: <testLibraryFragment>
-      previousFragment: <testLibraryFragment>
       classes
-        class A @36
-          reference: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@def::0
+        #F1 class A (nameOffset:14) (firstTokenOffset:0) (offset:14)
           element: <testLibrary>::@class::A::@def::0
           constructors
-            synthetic new
-              reference: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@def::0::@constructor::new
-              element: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@def::0::@constructor::new#element
+            #F2 synthetic new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:14)
+              element: <testLibrary>::@class::A::@def::0::@constructor::new
               typeName: A
           methods
-            foo1 @47
-              reference: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@def::0::@method::foo1
-              element: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@def::0::@method::foo1#element
-        class A @66
-          reference: <testLibrary>::@fragment::package:test/a.dart::@class::A
+            #F3 foo1 (nameOffset:25) (firstTokenOffset:20) (offset:25)
+              element: <testLibrary>::@class::A::@def::0::@method::foo1
+        #F4 class A (nameOffset:44) (firstTokenOffset:38) (offset:44)
           element: <testLibrary>::@class::A::@def::1
-          nextFragment: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@def::1
+          nextFragment: #F5
           constructors
-            synthetic new
-              reference: <testLibrary>::@fragment::package:test/a.dart::@class::A::@constructor::new
-              element: <testLibrary>::@fragment::package:test/a.dart::@class::A::@constructor::new#element
+            #F6 synthetic new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:44)
+              element: <testLibrary>::@class::A::@def::1::@constructor::new
               typeName: A
           methods
-            foo2 @77
-              reference: <testLibrary>::@fragment::package:test/a.dart::@class::A::@method::foo2
-              element: <testLibrary>::@fragment::package:test/a.dart::@class::A::@method::foo2#element
-        class A @104
-          reference: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@def::1
+            #F7 foo2 (nameOffset:55) (firstTokenOffset:50) (offset:55)
+              element: <testLibrary>::@class::A::@def::1::@method::foo2
+        #F5 class A (nameOffset:82) (firstTokenOffset:68) (offset:82)
           element: <testLibrary>::@class::A::@def::1
-          previousFragment: <testLibrary>::@fragment::package:test/a.dart::@class::A
+          previousFragment: #F4
           methods
-            foo3 @115
-              reference: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@def::1::@method::foo3
-              element: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@def::1::@method::foo3#element
+            #F8 foo3 (nameOffset:93) (firstTokenOffset:88) (offset:93)
+              element: <testLibrary>::@class::A::@def::1::@method::foo3
   classes
     class A
       reference: <testLibrary>::@class::A::@def::0
-      firstFragment: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@def::0
+      firstFragment: #F1
       constructors
         synthetic new
-          firstFragment: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@def::0::@constructor::new
+          reference: <testLibrary>::@class::A::@def::0::@constructor::new
+          firstFragment: #F2
       methods
         foo1
           reference: <testLibrary>::@class::A::@def::0::@method::foo1
-          firstFragment: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@def::0::@method::foo1
+          firstFragment: #F3
+          returnType: void
     class A
       reference: <testLibrary>::@class::A::@def::1
-      firstFragment: <testLibrary>::@fragment::package:test/a.dart::@class::A
+      firstFragment: #F4
       constructors
         synthetic new
-          firstFragment: <testLibrary>::@fragment::package:test/a.dart::@class::A::@constructor::new
+          reference: <testLibrary>::@class::A::@def::1::@constructor::new
+          firstFragment: #F6
       methods
         foo2
           reference: <testLibrary>::@class::A::@def::1::@method::foo2
-          firstFragment: <testLibrary>::@fragment::package:test/a.dart::@class::A::@method::foo2
+          firstFragment: #F7
+          returnType: void
         foo3
           reference: <testLibrary>::@class::A::@def::1::@method::foo3
-          firstFragment: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@def::1::@method::foo3
+          firstFragment: #F8
+          returnType: void
 ''');
   }
 
-  @SkippedTest(reason: 'implement augmentation')
   test_augmentationTarget_no2() async {
-    newFile('$testPackageLibPath/a.dart', r'''
-part of 'test.dart';
-part 'b.dart';
+    var library = await buildLibrary(r'''
+part 'a.dart';
+class B {}
+
 augment class A {
   void foo1() {}
 }
-''');
 
-    newFile('$testPackageLibPath/b.dart', r'''
-part of 'a.dart';
 augment class A {
   void foo2() {}
 }
 ''');
 
-    var library = await buildLibrary(r'''
-part 'a.dart';
-class B {}
-''');
-
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
       parts
         part_0
-          uri: package:test/a.dart
-          enclosingElement3: <testLibraryFragment>
-          unit: <testLibrary>::@fragment::package:test/a.dart
+          uri: source 'package:test/a.dart'
+          partKeywordOffset: 0
       classes
-        class B @21
-          reference: <testLibraryFragment>::@class::B
-          enclosingElement3: <testLibraryFragment>
-          constructors
-            synthetic @-1
-              reference: <testLibraryFragment>::@class::B::@constructor::new
-              enclosingElement3: <testLibraryFragment>::@class::B
-    <testLibrary>::@fragment::package:test/a.dart
-      enclosingElement3: <testLibraryFragment>
-      parts
-        part_1
-          uri: package:test/b.dart
-          enclosingElement3: <testLibrary>::@fragment::package:test/a.dart
-          unit: <testLibrary>::@fragment::package:test/b.dart
-      classes
-        augment class A @50
-          reference: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A
-          enclosingElement3: <testLibrary>::@fragment::package:test/a.dart
-          augmentation: <testLibrary>::@fragment::package:test/b.dart::@classAugmentation::A
-          constructors
-            synthetic @-1
-              reference: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@constructor::new
-              enclosingElement3: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A
-          methods
-            foo1 @61
-              reference: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@method::foo1
-              enclosingElement3: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A
-              returnType: void
-          augmented
-            constructors
-              <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@constructor::new
-            methods
-              <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@method::foo1
-              <testLibrary>::@fragment::package:test/b.dart::@classAugmentation::A::@method::foo2
-    <testLibrary>::@fragment::package:test/b.dart
-      enclosingElement3: <testLibrary>::@fragment::package:test/a.dart
-      classes
-        augment class A @32
-          reference: <testLibrary>::@fragment::package:test/b.dart::@classAugmentation::A
-          enclosingElement3: <testLibrary>::@fragment::package:test/b.dart
-          augmentationTarget: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A
-          methods
-            foo2 @43
-              reference: <testLibrary>::@fragment::package:test/b.dart::@classAugmentation::A::@method::foo2
-              enclosingElement3: <testLibrary>::@fragment::package:test/b.dart::@classAugmentation::A
-              returnType: void
-----------------------------------------
-library
-  reference: <testLibrary>
-  fragments
-    <testLibraryFragment>
-      element: <testLibrary>
-      nextFragment: <testLibrary>::@fragment::package:test/a.dart
-      classes
-        class B @21
-          reference: <testLibraryFragment>::@class::B
+        #F1 class B (nameOffset:21) (firstTokenOffset:15) (offset:21)
           element: <testLibrary>::@class::B
           constructors
-            synthetic new
-              reference: <testLibraryFragment>::@class::B::@constructor::new
-              element: <testLibraryFragment>::@class::B::@constructor::new#element
+            #F2 synthetic new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:21)
+              element: <testLibrary>::@class::B::@constructor::new
               typeName: B
-    <testLibrary>::@fragment::package:test/a.dart
-      element: <testLibrary>
-      enclosingFragment: <testLibraryFragment>
-      previousFragment: <testLibraryFragment>
-      nextFragment: <testLibrary>::@fragment::package:test/b.dart
-      classes
-        class A @50
-          reference: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A
+        #F3 class A (nameOffset:41) (firstTokenOffset:27) (offset:41)
           element: <testLibrary>::@class::A
-          nextFragment: <testLibrary>::@fragment::package:test/b.dart::@classAugmentation::A
+          nextFragment: #F4
           constructors
-            synthetic new
-              reference: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@constructor::new
-              element: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@constructor::new#element
+            #F5 synthetic new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:41)
+              element: <testLibrary>::@class::A::@constructor::new
               typeName: A
           methods
-            foo1 @61
-              reference: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@method::foo1
-              element: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@method::foo1#element
-    <testLibrary>::@fragment::package:test/b.dart
-      element: <testLibrary>
-      enclosingFragment: <testLibrary>::@fragment::package:test/a.dart
-      previousFragment: <testLibrary>::@fragment::package:test/a.dart
-      classes
-        class A @32
-          reference: <testLibrary>::@fragment::package:test/b.dart::@classAugmentation::A
+            #F6 foo1 (nameOffset:52) (firstTokenOffset:47) (offset:52)
+              element: <testLibrary>::@class::A::@method::foo1
+        #F4 class A (nameOffset:79) (firstTokenOffset:65) (offset:79)
           element: <testLibrary>::@class::A
-          previousFragment: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A
+          previousFragment: #F3
           methods
-            foo2 @43
-              reference: <testLibrary>::@fragment::package:test/b.dart::@classAugmentation::A::@method::foo2
-              element: <testLibrary>::@fragment::package:test/b.dart::@classAugmentation::A::@method::foo2#element
+            #F7 foo2 (nameOffset:90) (firstTokenOffset:85) (offset:90)
+              element: <testLibrary>::@class::A::@method::foo2
   classes
     class B
       reference: <testLibrary>::@class::B
-      firstFragment: <testLibraryFragment>::@class::B
+      firstFragment: #F1
       constructors
         synthetic new
-          firstFragment: <testLibraryFragment>::@class::B::@constructor::new
+          reference: <testLibrary>::@class::B::@constructor::new
+          firstFragment: #F2
     class A
       reference: <testLibrary>::@class::A
-      firstFragment: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A
+      firstFragment: #F3
       constructors
         synthetic new
-          firstFragment: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@constructor::new
+          reference: <testLibrary>::@class::A::@constructor::new
+          firstFragment: #F5
       methods
         foo1
           reference: <testLibrary>::@class::A::@method::foo1
-          firstFragment: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@method::foo1
+          firstFragment: #F6
+          returnType: void
         foo2
           reference: <testLibrary>::@class::A::@method::foo2
-          firstFragment: <testLibrary>::@fragment::package:test/b.dart::@classAugmentation::A::@method::foo2
+          firstFragment: #F7
+          returnType: void
 ''');
   }
 
-  @SkippedTest(reason: 'implement augmentation')
   test_augmented_constructor_augment_field() async {
-    newFile('$testPackageLibPath/a.dart', r'''
-part of 'test.dart';
-augment class A {
-  augment A.foo();
-}
-''');
-
     var library = await buildLibrary(r'''
-part 'a.dart';
 class A {
   int foo = 0;
 }
-''');
 
-    checkElementText(library, r'''
-library
-  reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      parts
-        part_0
-          uri: package:test/a.dart
-          enclosingElement3: <testLibraryFragment>
-          unit: <testLibrary>::@fragment::package:test/a.dart
-      classes
-        class A @21
-          reference: <testLibraryFragment>::@class::A
-          enclosingElement3: <testLibraryFragment>
-          augmentation: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A
-          fields
-            foo @31
-              reference: <testLibraryFragment>::@class::A::@field::foo
-              enclosingElement3: <testLibraryFragment>::@class::A
-              type: int
-              shouldUseTypeForInitializerInference: true
-          accessors
-            synthetic get foo @-1
-              reference: <testLibraryFragment>::@class::A::@getter::foo
-              enclosingElement3: <testLibraryFragment>::@class::A
-              returnType: int
-            synthetic set foo= @-1
-              reference: <testLibraryFragment>::@class::A::@setter::foo
-              enclosingElement3: <testLibraryFragment>::@class::A
-              parameters
-                requiredPositional _foo @-1
-                  type: int
-              returnType: void
-          augmented
-            fields
-              <testLibraryFragment>::@class::A::@field::foo
-            constructors
-              <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@constructorAugmentation::foo
-            accessors
-              <testLibraryFragment>::@class::A::@getter::foo
-              <testLibraryFragment>::@class::A::@setter::foo
-    <testLibrary>::@fragment::package:test/a.dart
-      enclosingElement3: <testLibraryFragment>
-      classes
-        augment class A @35
-          reference: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A
-          enclosingElement3: <testLibrary>::@fragment::package:test/a.dart
-          augmentationTarget: <testLibraryFragment>::@class::A
-          constructors
-            augment foo @51
-              reference: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@constructorAugmentation::foo
-              enclosingElement3: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A
-              periodOffset: 50
-              nameEnd: 54
-              augmentationTargetAny: <testLibraryFragment>::@class::A::@getter::foo
-----------------------------------------
-library
-  reference: <testLibrary>
-  fragments
-    <testLibraryFragment>
-      element: <testLibrary>
-      nextFragment: <testLibrary>::@fragment::package:test/a.dart
-      classes
-        class A @21
-          reference: <testLibraryFragment>::@class::A
-          element: <testLibrary>::@class::A
-          nextFragment: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A
-          fields
-            hasInitializer foo @31
-              reference: <testLibraryFragment>::@class::A::@field::foo
-              element: <testLibraryFragment>::@class::A::@field::foo#element
-              getter2: <testLibraryFragment>::@class::A::@getter::foo
-              setter2: <testLibraryFragment>::@class::A::@setter::foo
-          getters
-            synthetic get foo
-              reference: <testLibraryFragment>::@class::A::@getter::foo
-              element: <testLibraryFragment>::@class::A::@getter::foo#element
-          setters
-            synthetic set foo
-              reference: <testLibraryFragment>::@class::A::@setter::foo
-              element: <testLibraryFragment>::@class::A::@setter::foo#element
-              formalParameters
-                _foo
-                  element: <testLibraryFragment>::@class::A::@setter::foo::@parameter::_foo#element
-    <testLibrary>::@fragment::package:test/a.dart
-      element: <testLibrary>
-      enclosingFragment: <testLibraryFragment>
-      previousFragment: <testLibraryFragment>
-      classes
-        class A @35
-          reference: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A
-          element: <testLibrary>::@class::A
-          previousFragment: <testLibraryFragment>::@class::A
-          constructors
-            augment foo @51
-              reference: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@constructorAugmentation::foo
-              element: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@constructorAugmentation::foo#element
-              typeName: A
-              typeNameOffset: 49
-              periodOffset: 50
-  classes
-    class A
-      reference: <testLibrary>::@class::A
-      firstFragment: <testLibraryFragment>::@class::A
-      fields
-        hasInitializer foo
-          firstFragment: <testLibraryFragment>::@class::A::@field::foo
-          type: int
-          getter: <testLibraryFragment>::@class::A::@getter::foo#element
-          setter: <testLibraryFragment>::@class::A::@setter::foo#element
-      constructors
-        foo
-          firstFragment: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@constructorAugmentation::foo
-      getters
-        synthetic get foo
-          firstFragment: <testLibraryFragment>::@class::A::@getter::foo
-      setters
-        synthetic set foo
-          firstFragment: <testLibraryFragment>::@class::A::@setter::foo
-          formalParameters
-            requiredPositional _foo
-              type: int
-''');
-  }
-
-  @SkippedTest(reason: 'implement augmentation')
-  test_augmented_constructor_augment_getter() async {
-    newFile('$testPackageLibPath/a.dart', r'''
-part of 'test.dart';
 augment class A {
   augment A.foo();
 }
 ''');
 
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      classes
+        #F1 class A (nameOffset:6) (firstTokenOffset:0) (offset:6)
+          element: <testLibrary>::@class::A
+          nextFragment: #F2
+          fields
+            #F3 hasInitializer foo (nameOffset:16) (firstTokenOffset:16) (offset:16)
+              element: <testLibrary>::@class::A::@field::foo
+          getters
+            #F4 synthetic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
+              element: <testLibrary>::@class::A::@getter::foo
+          setters
+            #F5 synthetic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
+              element: <testLibrary>::@class::A::@setter::foo
+              formalParameters
+                #F6 value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
+                  element: <testLibrary>::@class::A::@setter::foo::@formalParameter::value
+        #F2 class A (nameOffset:42) (firstTokenOffset:28) (offset:42)
+          element: <testLibrary>::@class::A
+          previousFragment: #F1
+          constructors
+            #F7 augment foo (nameOffset:58) (firstTokenOffset:48) (offset:58)
+              element: <testLibrary>::@class::A::@constructor::foo
+              typeName: A
+              typeNameOffset: 56
+              periodOffset: 57
+  classes
+    hasNonFinalField class A
+      reference: <testLibrary>::@class::A
+      firstFragment: #F1
+      fields
+        hasInitializer foo
+          reference: <testLibrary>::@class::A::@field::foo
+          firstFragment: #F3
+          type: int
+          getter: <testLibrary>::@class::A::@getter::foo
+          setter: <testLibrary>::@class::A::@setter::foo
+      constructors
+        foo
+          reference: <testLibrary>::@class::A::@constructor::foo
+          firstFragment: #F7
+      getters
+        synthetic foo
+          reference: <testLibrary>::@class::A::@getter::foo
+          firstFragment: #F4
+          returnType: int
+          variable: <testLibrary>::@class::A::@field::foo
+      setters
+        synthetic foo
+          reference: <testLibrary>::@class::A::@setter::foo
+          firstFragment: #F5
+          formalParameters
+            #E0 requiredPositional value
+              firstFragment: #F6
+              type: int
+          returnType: void
+          variable: <testLibrary>::@class::A::@field::foo
+''');
+  }
+
+  test_augmented_constructor_augment_getter() async {
     var library = await buildLibrary(r'''
-part 'a.dart';
 class A {
   int get foo => 0;
 }
-''');
 
-    checkElementText(library, r'''
-library
-  reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      parts
-        part_0
-          uri: package:test/a.dart
-          enclosingElement3: <testLibraryFragment>
-          unit: <testLibrary>::@fragment::package:test/a.dart
-      classes
-        class A @21
-          reference: <testLibraryFragment>::@class::A
-          enclosingElement3: <testLibraryFragment>
-          augmentation: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A
-          fields
-            synthetic foo @-1
-              reference: <testLibraryFragment>::@class::A::@field::foo
-              enclosingElement3: <testLibraryFragment>::@class::A
-              type: int
-          accessors
-            get foo @35
-              reference: <testLibraryFragment>::@class::A::@getter::foo
-              enclosingElement3: <testLibraryFragment>::@class::A
-              returnType: int
-          augmented
-            fields
-              <testLibraryFragment>::@class::A::@field::foo
-            constructors
-              <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@constructorAugmentation::foo
-            accessors
-              <testLibraryFragment>::@class::A::@getter::foo
-    <testLibrary>::@fragment::package:test/a.dart
-      enclosingElement3: <testLibraryFragment>
-      classes
-        augment class A @35
-          reference: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A
-          enclosingElement3: <testLibrary>::@fragment::package:test/a.dart
-          augmentationTarget: <testLibraryFragment>::@class::A
-          constructors
-            augment foo @51
-              reference: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@constructorAugmentation::foo
-              enclosingElement3: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A
-              periodOffset: 50
-              nameEnd: 54
-              augmentationTargetAny: <testLibraryFragment>::@class::A::@getter::foo
-----------------------------------------
-library
-  reference: <testLibrary>
-  fragments
-    <testLibraryFragment>
-      element: <testLibrary>
-      nextFragment: <testLibrary>::@fragment::package:test/a.dart
-      classes
-        class A @21
-          reference: <testLibraryFragment>::@class::A
-          element: <testLibrary>::@class::A
-          nextFragment: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A
-          fields
-            synthetic foo
-              reference: <testLibraryFragment>::@class::A::@field::foo
-              element: <testLibraryFragment>::@class::A::@field::foo#element
-              getter2: <testLibraryFragment>::@class::A::@getter::foo
-          getters
-            get foo @35
-              reference: <testLibraryFragment>::@class::A::@getter::foo
-              element: <testLibraryFragment>::@class::A::@getter::foo#element
-    <testLibrary>::@fragment::package:test/a.dart
-      element: <testLibrary>
-      enclosingFragment: <testLibraryFragment>
-      previousFragment: <testLibraryFragment>
-      classes
-        class A @35
-          reference: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A
-          element: <testLibrary>::@class::A
-          previousFragment: <testLibraryFragment>::@class::A
-          constructors
-            augment foo @51
-              reference: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@constructorAugmentation::foo
-              element: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@constructorAugmentation::foo#element
-              typeName: A
-              typeNameOffset: 49
-              periodOffset: 50
-  classes
-    class A
-      reference: <testLibrary>::@class::A
-      firstFragment: <testLibraryFragment>::@class::A
-      fields
-        synthetic foo
-          firstFragment: <testLibraryFragment>::@class::A::@field::foo
-          type: int
-          getter: <testLibraryFragment>::@class::A::@getter::foo#element
-      constructors
-        foo
-          firstFragment: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@constructorAugmentation::foo
-      getters
-        get foo
-          firstFragment: <testLibraryFragment>::@class::A::@getter::foo
-''');
-  }
-
-  @SkippedTest(reason: 'implement augmentation')
-  test_augmented_constructor_augment_method() async {
-    newFile('$testPackageLibPath/a.dart', r'''
-part of 'test.dart';
 augment class A {
   augment A.foo();
 }
 ''');
 
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      classes
+        #F1 class A (nameOffset:6) (firstTokenOffset:0) (offset:6)
+          element: <testLibrary>::@class::A
+          nextFragment: #F2
+          fields
+            #F3 synthetic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
+              element: <testLibrary>::@class::A::@field::foo
+          getters
+            #F4 foo (nameOffset:20) (firstTokenOffset:12) (offset:20)
+              element: <testLibrary>::@class::A::@getter::foo
+        #F2 class A (nameOffset:47) (firstTokenOffset:33) (offset:47)
+          element: <testLibrary>::@class::A
+          previousFragment: #F1
+          constructors
+            #F5 augment foo (nameOffset:63) (firstTokenOffset:53) (offset:63)
+              element: <testLibrary>::@class::A::@constructor::foo
+              typeName: A
+              typeNameOffset: 61
+              periodOffset: 62
+  classes
+    class A
+      reference: <testLibrary>::@class::A
+      firstFragment: #F1
+      fields
+        synthetic foo
+          reference: <testLibrary>::@class::A::@field::foo
+          firstFragment: #F3
+          type: int
+          getter: <testLibrary>::@class::A::@getter::foo
+      constructors
+        foo
+          reference: <testLibrary>::@class::A::@constructor::foo
+          firstFragment: #F5
+      getters
+        foo
+          reference: <testLibrary>::@class::A::@getter::foo
+          firstFragment: #F4
+          returnType: int
+          variable: <testLibrary>::@class::A::@field::foo
+''');
+  }
+
+  test_augmented_constructor_augment_method() async {
     var library = await buildLibrary(r'''
-part 'a.dart';
 class A {
   void foo() {}
 }
-''');
 
-    checkElementText(library, r'''
-library
-  reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      parts
-        part_0
-          uri: package:test/a.dart
-          enclosingElement3: <testLibraryFragment>
-          unit: <testLibrary>::@fragment::package:test/a.dart
-      classes
-        class A @21
-          reference: <testLibraryFragment>::@class::A
-          enclosingElement3: <testLibraryFragment>
-          augmentation: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A
-          methods
-            foo @32
-              reference: <testLibraryFragment>::@class::A::@method::foo
-              enclosingElement3: <testLibraryFragment>::@class::A
-              returnType: void
-          augmented
-            constructors
-              <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@constructorAugmentation::foo
-            methods
-              <testLibraryFragment>::@class::A::@method::foo
-    <testLibrary>::@fragment::package:test/a.dart
-      enclosingElement3: <testLibraryFragment>
-      classes
-        augment class A @35
-          reference: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A
-          enclosingElement3: <testLibrary>::@fragment::package:test/a.dart
-          augmentationTarget: <testLibraryFragment>::@class::A
-          constructors
-            augment foo @51
-              reference: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@constructorAugmentation::foo
-              enclosingElement3: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A
-              periodOffset: 50
-              nameEnd: 54
-              augmentationTargetAny: <testLibraryFragment>::@class::A::@method::foo
-----------------------------------------
-library
-  reference: <testLibrary>
-  fragments
-    <testLibraryFragment>
-      element: <testLibrary>
-      nextFragment: <testLibrary>::@fragment::package:test/a.dart
-      classes
-        class A @21
-          reference: <testLibraryFragment>::@class::A
-          element: <testLibrary>::@class::A
-          nextFragment: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A
-          methods
-            foo @32
-              reference: <testLibraryFragment>::@class::A::@method::foo
-              element: <testLibraryFragment>::@class::A::@method::foo#element
-    <testLibrary>::@fragment::package:test/a.dart
-      element: <testLibrary>
-      enclosingFragment: <testLibraryFragment>
-      previousFragment: <testLibraryFragment>
-      classes
-        class A @35
-          reference: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A
-          element: <testLibrary>::@class::A
-          previousFragment: <testLibraryFragment>::@class::A
-          constructors
-            augment foo @51
-              reference: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@constructorAugmentation::foo
-              element: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@constructorAugmentation::foo#element
-              typeName: A
-              typeNameOffset: 49
-              periodOffset: 50
-  classes
-    class A
-      reference: <testLibrary>::@class::A
-      firstFragment: <testLibraryFragment>::@class::A
-      constructors
-        foo
-          firstFragment: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@constructorAugmentation::foo
-      methods
-        foo
-          reference: <testLibrary>::@class::A::@method::foo
-          firstFragment: <testLibraryFragment>::@class::A::@method::foo
-''');
-  }
-
-  @SkippedTest(reason: 'implement augmentation')
-  test_augmented_constructor_augment_setter() async {
-    newFile('$testPackageLibPath/a.dart', r'''
-part of 'test.dart';
 augment class A {
   augment A.foo();
 }
 ''');
 
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      classes
+        #F1 class A (nameOffset:6) (firstTokenOffset:0) (offset:6)
+          element: <testLibrary>::@class::A
+          nextFragment: #F2
+          methods
+            #F3 foo (nameOffset:17) (firstTokenOffset:12) (offset:17)
+              element: <testLibrary>::@class::A::@method::foo
+        #F2 class A (nameOffset:43) (firstTokenOffset:29) (offset:43)
+          element: <testLibrary>::@class::A
+          previousFragment: #F1
+          constructors
+            #F4 augment foo (nameOffset:59) (firstTokenOffset:49) (offset:59)
+              element: <testLibrary>::@class::A::@constructor::foo
+              typeName: A
+              typeNameOffset: 57
+              periodOffset: 58
+  classes
+    class A
+      reference: <testLibrary>::@class::A
+      firstFragment: #F1
+      constructors
+        foo
+          reference: <testLibrary>::@class::A::@constructor::foo
+          firstFragment: #F4
+      methods
+        foo
+          reference: <testLibrary>::@class::A::@method::foo
+          firstFragment: #F3
+          returnType: void
+''');
+  }
+
+  test_augmented_constructor_augment_setter() async {
     var library = await buildLibrary(r'''
-part 'a.dart';
 class A {
   set foo(int _) {}
 }
+
+augment class A {
+  augment A.foo();
+}
 ''');
 
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      parts
-        part_0
-          uri: package:test/a.dart
-          enclosingElement3: <testLibraryFragment>
-          unit: <testLibrary>::@fragment::package:test/a.dart
-      classes
-        class A @21
-          reference: <testLibraryFragment>::@class::A
-          enclosingElement3: <testLibraryFragment>
-          augmentation: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A
-          fields
-            synthetic foo @-1
-              reference: <testLibraryFragment>::@class::A::@field::foo
-              enclosingElement3: <testLibraryFragment>::@class::A
-              type: int
-          accessors
-            set foo= @31
-              reference: <testLibraryFragment>::@class::A::@setter::foo
-              enclosingElement3: <testLibraryFragment>::@class::A
-              parameters
-                requiredPositional _ @39
-                  type: int
-              returnType: void
-          augmented
-            fields
-              <testLibraryFragment>::@class::A::@field::foo
-            constructors
-              <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@constructorAugmentation::foo
-            accessors
-              <testLibraryFragment>::@class::A::@setter::foo
-    <testLibrary>::@fragment::package:test/a.dart
-      enclosingElement3: <testLibraryFragment>
-      classes
-        augment class A @35
-          reference: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A
-          enclosingElement3: <testLibrary>::@fragment::package:test/a.dart
-          augmentationTarget: <testLibraryFragment>::@class::A
-          constructors
-            augment foo @51
-              reference: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@constructorAugmentation::foo
-              enclosingElement3: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A
-              periodOffset: 50
-              nameEnd: 54
-              augmentationTargetAny: <testLibraryFragment>::@class::A::@setter::foo
-----------------------------------------
-library
-  reference: <testLibrary>
   fragments
-    <testLibraryFragment>
+    #F0 <testLibraryFragment>
       element: <testLibrary>
-      nextFragment: <testLibrary>::@fragment::package:test/a.dart
       classes
-        class A @21
-          reference: <testLibraryFragment>::@class::A
+        #F1 class A (nameOffset:6) (firstTokenOffset:0) (offset:6)
           element: <testLibrary>::@class::A
-          nextFragment: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A
+          nextFragment: #F2
           fields
-            synthetic foo
-              reference: <testLibraryFragment>::@class::A::@field::foo
-              element: <testLibraryFragment>::@class::A::@field::foo#element
-              setter2: <testLibraryFragment>::@class::A::@setter::foo
+            #F3 synthetic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
+              element: <testLibrary>::@class::A::@field::foo
           setters
-            set foo @31
-              reference: <testLibraryFragment>::@class::A::@setter::foo
-              element: <testLibraryFragment>::@class::A::@setter::foo#element
+            #F4 foo (nameOffset:16) (firstTokenOffset:12) (offset:16)
+              element: <testLibrary>::@class::A::@setter::foo
               formalParameters
-                _ @39
-                  element: <testLibraryFragment>::@class::A::@setter::foo::@parameter::_#element
-    <testLibrary>::@fragment::package:test/a.dart
-      element: <testLibrary>
-      enclosingFragment: <testLibraryFragment>
-      previousFragment: <testLibraryFragment>
-      classes
-        class A @35
-          reference: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A
+                #F5 _ (nameOffset:24) (firstTokenOffset:20) (offset:24)
+                  element: <testLibrary>::@class::A::@setter::foo::@formalParameter::_
+        #F2 class A (nameOffset:47) (firstTokenOffset:33) (offset:47)
           element: <testLibrary>::@class::A
-          previousFragment: <testLibraryFragment>::@class::A
+          previousFragment: #F1
           constructors
-            augment foo @51
-              reference: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@constructorAugmentation::foo
-              element: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@constructorAugmentation::foo#element
+            #F6 augment foo (nameOffset:63) (firstTokenOffset:53) (offset:63)
+              element: <testLibrary>::@class::A::@constructor::foo
               typeName: A
-              typeNameOffset: 49
-              periodOffset: 50
+              typeNameOffset: 61
+              periodOffset: 62
   classes
     class A
       reference: <testLibrary>::@class::A
-      firstFragment: <testLibraryFragment>::@class::A
+      firstFragment: #F1
       fields
         synthetic foo
-          firstFragment: <testLibraryFragment>::@class::A::@field::foo
+          reference: <testLibrary>::@class::A::@field::foo
+          firstFragment: #F3
           type: int
-          setter: <testLibraryFragment>::@class::A::@setter::foo#element
+          setter: <testLibrary>::@class::A::@setter::foo
       constructors
         foo
-          firstFragment: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@constructorAugmentation::foo
+          reference: <testLibrary>::@class::A::@constructor::foo
+          firstFragment: #F6
       setters
-        set foo
-          firstFragment: <testLibraryFragment>::@class::A::@setter::foo
+        foo
+          reference: <testLibrary>::@class::A::@setter::foo
+          firstFragment: #F4
           formalParameters
-            requiredPositional _
+            #E0 requiredPositional _
+              firstFragment: #F5
               type: int
+          returnType: void
+          variable: <testLibrary>::@class::A::@field::foo
 ''');
   }
 
-  @SkippedTest(reason: 'implement augmentation')
   test_augmented_constructors_add_named() async {
-    newFile('$testPackageLibPath/a.dart', r'''
-part of 'test.dart';
+    var library = await buildLibrary(r'''
+class A {}
+
 augment class A {
   A.named();
 }
 ''');
 
-    var library = await buildLibrary(r'''
-part 'a.dart';
-class A {}
-''');
-
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      parts
-        part_0
-          uri: package:test/a.dart
-          enclosingElement3: <testLibraryFragment>
-          unit: <testLibrary>::@fragment::package:test/a.dart
-      classes
-        class A @21
-          reference: <testLibraryFragment>::@class::A
-          enclosingElement3: <testLibraryFragment>
-          augmentation: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A
-          augmented
-            constructors
-              <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@constructor::named
-    <testLibrary>::@fragment::package:test/a.dart
-      enclosingElement3: <testLibraryFragment>
-      classes
-        augment class A @35
-          reference: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A
-          enclosingElement3: <testLibrary>::@fragment::package:test/a.dart
-          augmentationTarget: <testLibraryFragment>::@class::A
-          constructors
-            named @43
-              reference: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@constructor::named
-              enclosingElement3: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A
-              periodOffset: 42
-              nameEnd: 48
-----------------------------------------
-library
-  reference: <testLibrary>
   fragments
-    <testLibraryFragment>
+    #F0 <testLibraryFragment>
       element: <testLibrary>
-      nextFragment: <testLibrary>::@fragment::package:test/a.dart
       classes
-        class A @21
-          reference: <testLibraryFragment>::@class::A
+        #F1 class A (nameOffset:6) (firstTokenOffset:0) (offset:6)
           element: <testLibrary>::@class::A
-          nextFragment: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A
-    <testLibrary>::@fragment::package:test/a.dart
-      element: <testLibrary>
-      enclosingFragment: <testLibraryFragment>
-      previousFragment: <testLibraryFragment>
-      classes
-        class A @35
-          reference: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A
+          nextFragment: #F2
+        #F2 class A (nameOffset:26) (firstTokenOffset:12) (offset:26)
           element: <testLibrary>::@class::A
-          previousFragment: <testLibraryFragment>::@class::A
+          previousFragment: #F1
           constructors
-            named @43
-              reference: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@constructor::named
-              element: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@constructor::named#element
+            #F3 named (nameOffset:34) (firstTokenOffset:32) (offset:34)
+              element: <testLibrary>::@class::A::@constructor::named
               typeName: A
-              typeNameOffset: 41
-              periodOffset: 42
+              typeNameOffset: 32
+              periodOffset: 33
   classes
     class A
       reference: <testLibrary>::@class::A
-      firstFragment: <testLibraryFragment>::@class::A
+      firstFragment: #F1
       constructors
         named
-          firstFragment: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@constructor::named
+          reference: <testLibrary>::@class::A::@constructor::named
+          firstFragment: #F3
 ''');
   }
 
-  @SkippedTest(reason: 'implement augmentation')
   test_augmented_constructors_add_named_generic() async {
-    newFile('$testPackageLibPath/a.dart', r'''
-part of 'test.dart';
-augment class A<T2> {
-  A.named(T2 a);
-}
-''');
-
     var library = await buildLibrary(r'''
-part 'a.dart';
-class A<T1> {}
+class A<T> {}
+
+augment class A<T> {
+  A.named(T  a);
+}
 ''');
 
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      parts
-        part_0
-          uri: package:test/a.dart
-          enclosingElement3: <testLibraryFragment>
-          unit: <testLibrary>::@fragment::package:test/a.dart
-      classes
-        class A @21
-          reference: <testLibraryFragment>::@class::A
-          enclosingElement3: <testLibraryFragment>
-          typeParameters
-            covariant T1 @23
-              defaultType: dynamic
-          augmentation: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A
-          augmented
-            constructors
-              ConstructorMember
-                base: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@constructor::named
-                augmentationSubstitution: {T2: T1}
-    <testLibrary>::@fragment::package:test/a.dart
-      enclosingElement3: <testLibraryFragment>
-      classes
-        augment class A @35
-          reference: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A
-          enclosingElement3: <testLibrary>::@fragment::package:test/a.dart
-          typeParameters
-            covariant T2 @37
-              defaultType: dynamic
-          augmentationTarget: <testLibraryFragment>::@class::A
-          constructors
-            named @47
-              reference: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@constructor::named
-              enclosingElement3: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A
-              periodOffset: 46
-              nameEnd: 52
-              parameters
-                requiredPositional a @56
-                  type: T2
-----------------------------------------
-library
-  reference: <testLibrary>
   fragments
-    <testLibraryFragment>
+    #F0 <testLibraryFragment>
       element: <testLibrary>
-      nextFragment: <testLibrary>::@fragment::package:test/a.dart
       classes
-        class A @21
-          reference: <testLibraryFragment>::@class::A
+        #F1 class A (nameOffset:6) (firstTokenOffset:0) (offset:6)
           element: <testLibrary>::@class::A
-          nextFragment: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A
+          nextFragment: #F2
           typeParameters
-            T1 @23
-              element: <not-implemented>
-    <testLibrary>::@fragment::package:test/a.dart
-      element: <testLibrary>
-      enclosingFragment: <testLibraryFragment>
-      previousFragment: <testLibraryFragment>
-      classes
-        class A @35
-          reference: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A
+            #F3 T (nameOffset:8) (firstTokenOffset:8) (offset:8)
+              element: #E0 T
+        #F2 class A (nameOffset:29) (firstTokenOffset:15) (offset:29)
           element: <testLibrary>::@class::A
-          previousFragment: <testLibraryFragment>::@class::A
+          previousFragment: #F1
           typeParameters
-            T2 @37
-              element: <not-implemented>
+            #F4 T (nameOffset:31) (firstTokenOffset:31) (offset:31)
+              element: #E1 T
           constructors
-            named @47
-              reference: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@constructor::named
-              element: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@constructor::named#element
+            #F5 named (nameOffset:40) (firstTokenOffset:38) (offset:40)
+              element: <testLibrary>::@class::A::@constructor::named
               typeName: A
-              typeNameOffset: 45
-              periodOffset: 46
+              typeNameOffset: 38
+              periodOffset: 39
               formalParameters
-                a @56
-                  element: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@constructor::named::@parameter::a#element
+                #F6 a (nameOffset:49) (firstTokenOffset:46) (offset:49)
+                  element: <testLibrary>::@class::A::@constructor::named::@formalParameter::a
   classes
     class A
       reference: <testLibrary>::@class::A
-      firstFragment: <testLibraryFragment>::@class::A
+      firstFragment: #F1
       typeParameters
-        T1
+        #E0 T
+          firstFragment: #F3
       constructors
         named
-          firstFragment: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@constructor::named
+          reference: <testLibrary>::@class::A::@constructor::named
+          firstFragment: #F5
           formalParameters
-            requiredPositional a
-              type: T2
+            #E2 requiredPositional a
+              firstFragment: #F6
+              type: T
 ''');
   }
 
-  @SkippedTest(reason: 'implement augmentation')
   test_augmented_constructors_add_named_hasUnnamed() async {
-    newFile('$testPackageLibPath/a.dart', r'''
-part of 'test.dart';
-augment class A {
-  A.named();
-}
-''');
-
     var library = await buildLibrary(r'''
-part 'a.dart';
 class A {
   A();
+}
+
+augment class A {
+  A.named();
 }
 ''');
 
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      parts
-        part_0
-          uri: package:test/a.dart
-          enclosingElement3: <testLibraryFragment>
-          unit: <testLibrary>::@fragment::package:test/a.dart
-      classes
-        class A @21
-          reference: <testLibraryFragment>::@class::A
-          enclosingElement3: <testLibraryFragment>
-          augmentation: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A
-          constructors
-            @27
-              reference: <testLibraryFragment>::@class::A::@constructor::new
-              enclosingElement3: <testLibraryFragment>::@class::A
-          augmented
-            constructors
-              <testLibraryFragment>::@class::A::@constructor::new
-              <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@constructor::named
-    <testLibrary>::@fragment::package:test/a.dart
-      enclosingElement3: <testLibraryFragment>
-      classes
-        augment class A @35
-          reference: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A
-          enclosingElement3: <testLibrary>::@fragment::package:test/a.dart
-          augmentationTarget: <testLibraryFragment>::@class::A
-          constructors
-            named @43
-              reference: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@constructor::named
-              enclosingElement3: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A
-              periodOffset: 42
-              nameEnd: 48
-----------------------------------------
-library
-  reference: <testLibrary>
   fragments
-    <testLibraryFragment>
+    #F0 <testLibraryFragment>
       element: <testLibrary>
-      nextFragment: <testLibrary>::@fragment::package:test/a.dart
       classes
-        class A @21
-          reference: <testLibraryFragment>::@class::A
+        #F1 class A (nameOffset:6) (firstTokenOffset:0) (offset:6)
           element: <testLibrary>::@class::A
-          nextFragment: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A
+          nextFragment: #F2
           constructors
-            new
-              reference: <testLibraryFragment>::@class::A::@constructor::new
-              element: <testLibraryFragment>::@class::A::@constructor::new#element
+            #F3 new (nameOffset:<null>) (firstTokenOffset:12) (offset:12)
+              element: <testLibrary>::@class::A::@constructor::new
               typeName: A
-              typeNameOffset: 27
-    <testLibrary>::@fragment::package:test/a.dart
-      element: <testLibrary>
-      enclosingFragment: <testLibraryFragment>
-      previousFragment: <testLibraryFragment>
-      classes
-        class A @35
-          reference: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A
+              typeNameOffset: 12
+        #F2 class A (nameOffset:34) (firstTokenOffset:20) (offset:34)
           element: <testLibrary>::@class::A
-          previousFragment: <testLibraryFragment>::@class::A
+          previousFragment: #F1
           constructors
-            named @43
-              reference: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@constructor::named
-              element: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@constructor::named#element
+            #F4 named (nameOffset:42) (firstTokenOffset:40) (offset:42)
+              element: <testLibrary>::@class::A::@constructor::named
               typeName: A
-              typeNameOffset: 41
-              periodOffset: 42
+              typeNameOffset: 40
+              periodOffset: 41
   classes
     class A
       reference: <testLibrary>::@class::A
-      firstFragment: <testLibraryFragment>::@class::A
+      firstFragment: #F1
       constructors
         new
-          firstFragment: <testLibraryFragment>::@class::A::@constructor::new
+          reference: <testLibrary>::@class::A::@constructor::new
+          firstFragment: #F3
         named
-          firstFragment: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@constructor::named
+          reference: <testLibrary>::@class::A::@constructor::named
+          firstFragment: #F4
 ''');
   }
 
-  @SkippedTest(reason: 'implement augmentation')
   test_augmented_constructors_add_unnamed() async {
-    newFile('$testPackageLibPath/a.dart', r'''
-part of 'test.dart';
+    var library = await buildLibrary(r'''
+class A {}
+
 augment class A {
   A();
 }
-''');
-
-    var library = await buildLibrary(r'''
-part 'a.dart';
-class A {}
 ''');
 
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      parts
-        part_0
-          uri: package:test/a.dart
-          enclosingElement3: <testLibraryFragment>
-          unit: <testLibrary>::@fragment::package:test/a.dart
-      classes
-        class A @21
-          reference: <testLibraryFragment>::@class::A
-          enclosingElement3: <testLibraryFragment>
-          augmentation: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A
-          augmented
-            constructors
-              <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@constructor::new
-    <testLibrary>::@fragment::package:test/a.dart
-      enclosingElement3: <testLibraryFragment>
-      classes
-        augment class A @35
-          reference: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A
-          enclosingElement3: <testLibrary>::@fragment::package:test/a.dart
-          augmentationTarget: <testLibraryFragment>::@class::A
-          constructors
-            @41
-              reference: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@constructor::new
-              enclosingElement3: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A
-----------------------------------------
-library
-  reference: <testLibrary>
   fragments
-    <testLibraryFragment>
+    #F0 <testLibraryFragment>
       element: <testLibrary>
-      nextFragment: <testLibrary>::@fragment::package:test/a.dart
       classes
-        class A @21
-          reference: <testLibraryFragment>::@class::A
+        #F1 class A (nameOffset:6) (firstTokenOffset:0) (offset:6)
           element: <testLibrary>::@class::A
-          nextFragment: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A
-    <testLibrary>::@fragment::package:test/a.dart
-      element: <testLibrary>
-      enclosingFragment: <testLibraryFragment>
-      previousFragment: <testLibraryFragment>
-      classes
-        class A @35
-          reference: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A
+          nextFragment: #F2
+        #F2 class A (nameOffset:26) (firstTokenOffset:12) (offset:26)
           element: <testLibrary>::@class::A
-          previousFragment: <testLibraryFragment>::@class::A
+          previousFragment: #F1
           constructors
-            new
-              reference: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@constructor::new
-              element: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@constructor::new#element
+            #F3 new (nameOffset:<null>) (firstTokenOffset:32) (offset:32)
+              element: <testLibrary>::@class::A::@constructor::new
               typeName: A
-              typeNameOffset: 41
+              typeNameOffset: 32
   classes
     class A
       reference: <testLibrary>::@class::A
-      firstFragment: <testLibraryFragment>::@class::A
+      firstFragment: #F1
       constructors
         new
-          firstFragment: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@constructor::new
+          reference: <testLibrary>::@class::A::@constructor::new
+          firstFragment: #F3
 ''');
   }
 
-  @SkippedTest(reason: 'implement augmentation')
   test_augmented_constructors_add_unnamed_hasNamed() async {
-    newFile('$testPackageLibPath/a.dart', r'''
-part of 'test.dart';
-augment class A {
-  A();
-}
-''');
-
     var library = await buildLibrary(r'''
-part 'a.dart';
 class A {
   A.named();
 }
+
+augment class A {
+  A();
+}
 ''');
 
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      parts
-        part_0
-          uri: package:test/a.dart
-          enclosingElement3: <testLibraryFragment>
-          unit: <testLibrary>::@fragment::package:test/a.dart
-      classes
-        class A @21
-          reference: <testLibraryFragment>::@class::A
-          enclosingElement3: <testLibraryFragment>
-          augmentation: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A
-          constructors
-            named @29
-              reference: <testLibraryFragment>::@class::A::@constructor::named
-              enclosingElement3: <testLibraryFragment>::@class::A
-              periodOffset: 28
-              nameEnd: 34
-          augmented
-            constructors
-              <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@constructor::new
-              <testLibraryFragment>::@class::A::@constructor::named
-    <testLibrary>::@fragment::package:test/a.dart
-      enclosingElement3: <testLibraryFragment>
-      classes
-        augment class A @35
-          reference: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A
-          enclosingElement3: <testLibrary>::@fragment::package:test/a.dart
-          augmentationTarget: <testLibraryFragment>::@class::A
-          constructors
-            @41
-              reference: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@constructor::new
-              enclosingElement3: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A
-----------------------------------------
-library
-  reference: <testLibrary>
   fragments
-    <testLibraryFragment>
+    #F0 <testLibraryFragment>
       element: <testLibrary>
-      nextFragment: <testLibrary>::@fragment::package:test/a.dart
       classes
-        class A @21
-          reference: <testLibraryFragment>::@class::A
+        #F1 class A (nameOffset:6) (firstTokenOffset:0) (offset:6)
           element: <testLibrary>::@class::A
-          nextFragment: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A
+          nextFragment: #F2
           constructors
-            named @29
-              reference: <testLibraryFragment>::@class::A::@constructor::named
-              element: <testLibraryFragment>::@class::A::@constructor::named#element
+            #F3 named (nameOffset:14) (firstTokenOffset:12) (offset:14)
+              element: <testLibrary>::@class::A::@constructor::named
               typeName: A
-              typeNameOffset: 27
-              periodOffset: 28
-    <testLibrary>::@fragment::package:test/a.dart
-      element: <testLibrary>
-      enclosingFragment: <testLibraryFragment>
-      previousFragment: <testLibraryFragment>
-      classes
-        class A @35
-          reference: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A
+              typeNameOffset: 12
+              periodOffset: 13
+        #F2 class A (nameOffset:40) (firstTokenOffset:26) (offset:40)
           element: <testLibrary>::@class::A
-          previousFragment: <testLibraryFragment>::@class::A
+          previousFragment: #F1
           constructors
-            new
-              reference: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@constructor::new
-              element: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@constructor::new#element
+            #F4 new (nameOffset:<null>) (firstTokenOffset:46) (offset:46)
+              element: <testLibrary>::@class::A::@constructor::new
               typeName: A
-              typeNameOffset: 41
+              typeNameOffset: 46
   classes
     class A
       reference: <testLibrary>::@class::A
-      firstFragment: <testLibraryFragment>::@class::A
+      firstFragment: #F1
       constructors
         named
-          firstFragment: <testLibraryFragment>::@class::A::@constructor::named
+          reference: <testLibrary>::@class::A::@constructor::named
+          firstFragment: #F3
         new
-          firstFragment: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@constructor::new
+          reference: <testLibrary>::@class::A::@constructor::new
+          firstFragment: #F4
 ''');
   }
 
-  @SkippedTest(reason: 'implement augmentation')
   test_augmented_constructors_add_useFieldFormal() async {
-    newFile('$testPackageLibPath/a.dart', r'''
-part of 'test.dart';
+    var library = await buildLibrary(r'''
+class A {
+  final int f;
+}
+
 augment class A {
   A.named(this.f);
 }
 ''');
 
-    var library = await buildLibrary(r'''
-part 'a.dart';
-class A {
-  final int f;
-}
-''');
-
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      parts
-        part_0
-          uri: package:test/a.dart
-          enclosingElement3: <testLibraryFragment>
-          unit: <testLibrary>::@fragment::package:test/a.dart
-      classes
-        class A @21
-          reference: <testLibraryFragment>::@class::A
-          enclosingElement3: <testLibraryFragment>
-          augmentation: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A
-          fields
-            final f @37
-              reference: <testLibraryFragment>::@class::A::@field::f
-              enclosingElement3: <testLibraryFragment>::@class::A
-              type: int
-          accessors
-            synthetic get f @-1
-              reference: <testLibraryFragment>::@class::A::@getter::f
-              enclosingElement3: <testLibraryFragment>::@class::A
-              returnType: int
-          augmented
-            fields
-              <testLibraryFragment>::@class::A::@field::f
-            constructors
-              <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@constructor::named
-            accessors
-              <testLibraryFragment>::@class::A::@getter::f
-    <testLibrary>::@fragment::package:test/a.dart
-      enclosingElement3: <testLibraryFragment>
-      classes
-        augment class A @35
-          reference: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A
-          enclosingElement3: <testLibrary>::@fragment::package:test/a.dart
-          augmentationTarget: <testLibraryFragment>::@class::A
-          constructors
-            named @43
-              reference: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@constructor::named
-              enclosingElement3: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A
-              periodOffset: 42
-              nameEnd: 48
-              parameters
-                requiredPositional final hasImplicitType this.f @54
-                  type: int
-                  field: <testLibraryFragment>::@class::A::@field::f
-----------------------------------------
-library
-  reference: <testLibrary>
   fragments
-    <testLibraryFragment>
+    #F0 <testLibraryFragment>
       element: <testLibrary>
-      nextFragment: <testLibrary>::@fragment::package:test/a.dart
       classes
-        class A @21
-          reference: <testLibraryFragment>::@class::A
+        #F1 class A (nameOffset:6) (firstTokenOffset:0) (offset:6)
           element: <testLibrary>::@class::A
-          nextFragment: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A
+          nextFragment: #F2
           fields
-            f @37
-              reference: <testLibraryFragment>::@class::A::@field::f
-              element: <testLibraryFragment>::@class::A::@field::f#element
-              getter2: <testLibraryFragment>::@class::A::@getter::f
+            #F3 f (nameOffset:22) (firstTokenOffset:22) (offset:22)
+              element: <testLibrary>::@class::A::@field::f
           getters
-            synthetic get f
-              reference: <testLibraryFragment>::@class::A::@getter::f
-              element: <testLibraryFragment>::@class::A::@getter::f#element
-    <testLibrary>::@fragment::package:test/a.dart
-      element: <testLibrary>
-      enclosingFragment: <testLibraryFragment>
-      previousFragment: <testLibraryFragment>
-      classes
-        class A @35
-          reference: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A
+            #F4 synthetic f (nameOffset:<null>) (firstTokenOffset:<null>) (offset:22)
+              element: <testLibrary>::@class::A::@getter::f
+        #F2 class A (nameOffset:42) (firstTokenOffset:28) (offset:42)
           element: <testLibrary>::@class::A
-          previousFragment: <testLibraryFragment>::@class::A
+          previousFragment: #F1
           constructors
-            named @43
-              reference: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@constructor::named
-              element: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@constructor::named#element
+            #F5 named (nameOffset:50) (firstTokenOffset:48) (offset:50)
+              element: <testLibrary>::@class::A::@constructor::named
               typeName: A
-              typeNameOffset: 41
-              periodOffset: 42
+              typeNameOffset: 48
+              periodOffset: 49
               formalParameters
-                this.f @54
-                  element: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@constructor::named::@parameter::f#element
+                #F6 this.f (nameOffset:61) (firstTokenOffset:56) (offset:61)
+                  element: <testLibrary>::@class::A::@constructor::named::@formalParameter::f
   classes
     class A
       reference: <testLibrary>::@class::A
-      firstFragment: <testLibraryFragment>::@class::A
+      firstFragment: #F1
       fields
         final f
-          firstFragment: <testLibraryFragment>::@class::A::@field::f
+          reference: <testLibrary>::@class::A::@field::f
+          firstFragment: #F3
           type: int
-          getter: <testLibraryFragment>::@class::A::@getter::f#element
+          getter: <testLibrary>::@class::A::@getter::f
       constructors
         named
-          firstFragment: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@constructor::named
+          reference: <testLibrary>::@class::A::@constructor::named
+          firstFragment: #F5
           formalParameters
-            requiredPositional final hasImplicitType f
+            #E0 requiredPositional final hasImplicitType f
+              firstFragment: #F6
               type: int
       getters
-        synthetic get f
-          firstFragment: <testLibraryFragment>::@class::A::@getter::f
+        synthetic f
+          reference: <testLibrary>::@class::A::@getter::f
+          firstFragment: #F4
+          returnType: int
+          variable: <testLibrary>::@class::A::@field::f
 ''');
   }
 
-  @SkippedTest(reason: 'implement augmentation')
   test_augmented_constructors_add_useFieldInitializer() async {
-    newFile('$testPackageLibPath/a.dart', r'''
-part of 'test.dart';
+    var library = await buildLibrary(r'''
+class A {
+  final int f;
+}
+
 augment class A {
   const A.named() : f = 0;
 }
 ''');
 
-    var library = await buildLibrary(r'''
-part 'a.dart';
-class A {
-  final int f;
-}
-''');
-
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      parts
-        part_0
-          uri: package:test/a.dart
-          enclosingElement3: <testLibraryFragment>
-          unit: <testLibrary>::@fragment::package:test/a.dart
-      classes
-        class A @21
-          reference: <testLibraryFragment>::@class::A
-          enclosingElement3: <testLibraryFragment>
-          augmentation: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A
-          fields
-            final f @37
-              reference: <testLibraryFragment>::@class::A::@field::f
-              enclosingElement3: <testLibraryFragment>::@class::A
-              type: int
-          accessors
-            synthetic get f @-1
-              reference: <testLibraryFragment>::@class::A::@getter::f
-              enclosingElement3: <testLibraryFragment>::@class::A
-              returnType: int
-          augmented
-            fields
-              <testLibraryFragment>::@class::A::@field::f
-            constructors
-              <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@constructor::named
-            accessors
-              <testLibraryFragment>::@class::A::@getter::f
-    <testLibrary>::@fragment::package:test/a.dart
-      enclosingElement3: <testLibraryFragment>
-      classes
-        augment class A @35
-          reference: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A
-          enclosingElement3: <testLibrary>::@fragment::package:test/a.dart
-          augmentationTarget: <testLibraryFragment>::@class::A
-          constructors
-            const named @49
-              reference: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@constructor::named
-              enclosingElement3: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A
-              periodOffset: 48
-              nameEnd: 54
-              constantInitializers
-                ConstructorFieldInitializer
-                  fieldName: SimpleIdentifier
-                    token: f @59
-                    staticElement: <testLibraryFragment>::@class::A::@field::f
-                    element: <testLibraryFragment>::@class::A::@field::f#element
-                    staticType: null
-                  equals: = @61
-                  expression: IntegerLiteral
-                    literal: 0 @63
-                    staticType: int
-----------------------------------------
-library
-  reference: <testLibrary>
   fragments
-    <testLibraryFragment>
+    #F0 <testLibraryFragment>
       element: <testLibrary>
-      nextFragment: <testLibrary>::@fragment::package:test/a.dart
       classes
-        class A @21
-          reference: <testLibraryFragment>::@class::A
+        #F1 class A (nameOffset:6) (firstTokenOffset:0) (offset:6)
           element: <testLibrary>::@class::A
-          nextFragment: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A
+          nextFragment: #F2
           fields
-            f @37
-              reference: <testLibraryFragment>::@class::A::@field::f
-              element: <testLibraryFragment>::@class::A::@field::f#element
-              getter2: <testLibraryFragment>::@class::A::@getter::f
+            #F3 f (nameOffset:22) (firstTokenOffset:22) (offset:22)
+              element: <testLibrary>::@class::A::@field::f
           getters
-            synthetic get f
-              reference: <testLibraryFragment>::@class::A::@getter::f
-              element: <testLibraryFragment>::@class::A::@getter::f#element
-    <testLibrary>::@fragment::package:test/a.dart
-      element: <testLibrary>
-      enclosingFragment: <testLibraryFragment>
-      previousFragment: <testLibraryFragment>
-      classes
-        class A @35
-          reference: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A
+            #F4 synthetic f (nameOffset:<null>) (firstTokenOffset:<null>) (offset:22)
+              element: <testLibrary>::@class::A::@getter::f
+        #F2 class A (nameOffset:42) (firstTokenOffset:28) (offset:42)
           element: <testLibrary>::@class::A
-          previousFragment: <testLibraryFragment>::@class::A
+          previousFragment: #F1
           constructors
-            const named @49
-              reference: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@constructor::named
-              element: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@constructor::named#element
+            #F5 const named (nameOffset:56) (firstTokenOffset:48) (offset:56)
+              element: <testLibrary>::@class::A::@constructor::named
               typeName: A
-              typeNameOffset: 47
-              periodOffset: 48
-              constantInitializers
-                ConstructorFieldInitializer
-                  fieldName: SimpleIdentifier
-                    token: f @59
-                    staticElement: <testLibraryFragment>::@class::A::@field::f
-                    element: <testLibraryFragment>::@class::A::@field::f#element
-                    staticType: null
-                  equals: = @61
-                  expression: IntegerLiteral
-                    literal: 0 @63
-                    staticType: int
+              typeNameOffset: 54
+              periodOffset: 55
   classes
     class A
       reference: <testLibrary>::@class::A
-      firstFragment: <testLibraryFragment>::@class::A
+      firstFragment: #F1
       fields
         final f
-          firstFragment: <testLibraryFragment>::@class::A::@field::f
+          reference: <testLibrary>::@class::A::@field::f
+          firstFragment: #F3
           type: int
-          getter: <testLibraryFragment>::@class::A::@getter::f#element
+          getter: <testLibrary>::@class::A::@getter::f
       constructors
         const named
-          firstFragment: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@constructor::named
+          reference: <testLibrary>::@class::A::@constructor::named
+          firstFragment: #F5
+          constantInitializers
+            ConstructorFieldInitializer
+              fieldName: SimpleIdentifier
+                token: f @66
+                element: <testLibrary>::@class::A::@field::f
+                staticType: null
+              equals: = @68
+              expression: IntegerLiteral
+                literal: 0 @70
+                staticType: int
       getters
-        synthetic get f
-          firstFragment: <testLibraryFragment>::@class::A::@getter::f
+        synthetic f
+          reference: <testLibrary>::@class::A::@getter::f
+          firstFragment: #F4
+          returnType: int
+          variable: <testLibrary>::@class::A::@field::f
 ''');
   }
 
-  @SkippedTest(reason: 'implement augmentation')
   test_augmented_field_augment_constructor() async {
-    newFile('$testPackageLibPath/a.dart', r'''
-part of 'test.dart';
-augment class A {
-  augment int foo = 1;
-}
-''');
-
     var library = await buildLibrary(r'''
-part 'a.dart';
 class A {
   A.foo();
 }
-''');
 
-    checkElementText(library, r'''
-library
-  reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      parts
-        part_0
-          uri: package:test/a.dart
-          enclosingElement3: <testLibraryFragment>
-          unit: <testLibrary>::@fragment::package:test/a.dart
-      classes
-        class A @21
-          reference: <testLibraryFragment>::@class::A
-          enclosingElement3: <testLibraryFragment>
-          augmentation: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A
-          constructors
-            foo @29
-              reference: <testLibraryFragment>::@class::A::@constructor::foo
-              enclosingElement3: <testLibraryFragment>::@class::A
-              periodOffset: 28
-              nameEnd: 32
-          augmented
-            fields
-              <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@fieldAugmentation::foo
-            constructors
-              <testLibraryFragment>::@class::A::@constructor::foo
-    <testLibrary>::@fragment::package:test/a.dart
-      enclosingElement3: <testLibraryFragment>
-      classes
-        augment class A @35
-          reference: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A
-          enclosingElement3: <testLibrary>::@fragment::package:test/a.dart
-          augmentationTarget: <testLibraryFragment>::@class::A
-          fields
-            augment foo @53
-              reference: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@fieldAugmentation::foo
-              enclosingElement3: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A
-              type: int
-              shouldUseTypeForInitializerInference: true
-              id: field_0
-              augmentationTargetAny: <testLibraryFragment>::@class::A::@constructor::foo
-----------------------------------------
-library
-  reference: <testLibrary>
-  fragments
-    <testLibraryFragment>
-      element: <testLibrary>
-      nextFragment: <testLibrary>::@fragment::package:test/a.dart
-      classes
-        class A @21
-          reference: <testLibraryFragment>::@class::A
-          element: <testLibrary>::@class::A
-          nextFragment: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A
-          constructors
-            foo @29
-              reference: <testLibraryFragment>::@class::A::@constructor::foo
-              element: <testLibraryFragment>::@class::A::@constructor::foo#element
-              typeName: A
-              typeNameOffset: 27
-              periodOffset: 28
-    <testLibrary>::@fragment::package:test/a.dart
-      element: <testLibrary>
-      enclosingFragment: <testLibraryFragment>
-      previousFragment: <testLibraryFragment>
-      classes
-        class A @35
-          reference: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A
-          element: <testLibrary>::@class::A
-          previousFragment: <testLibraryFragment>::@class::A
-          fields
-            augment hasInitializer foo @53
-              reference: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@fieldAugmentation::foo
-              element: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@fieldAugmentation::foo#element
-  classes
-    class A
-      reference: <testLibrary>::@class::A
-      firstFragment: <testLibraryFragment>::@class::A
-      fields
-        hasInitializer foo
-          firstFragment: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@fieldAugmentation::foo
-          type: int
-      constructors
-        foo
-          firstFragment: <testLibraryFragment>::@class::A::@constructor::foo
-''');
-  }
-
-  @SkippedTest(reason: 'implement augmentation')
-  test_augmented_field_augment_field() async {
-    newFile('$testPackageLibPath/a.dart', r'''
-part of 'test.dart';
 augment class A {
   augment int foo = 1;
 }
 ''');
 
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      classes
+        #F1 class A (nameOffset:6) (firstTokenOffset:0) (offset:6)
+          element: <testLibrary>::@class::A
+          nextFragment: #F2
+          constructors
+            #F3 foo (nameOffset:14) (firstTokenOffset:12) (offset:14)
+              element: <testLibrary>::@class::A::@constructor::foo
+              typeName: A
+              typeNameOffset: 12
+              periodOffset: 13
+        #F2 class A (nameOffset:38) (firstTokenOffset:24) (offset:38)
+          element: <testLibrary>::@class::A
+          previousFragment: #F1
+          fields
+            #F4 augment hasInitializer foo (nameOffset:56) (firstTokenOffset:56) (offset:56)
+              element: <testLibrary>::@class::A::@field::foo
+          getters
+            #F5 synthetic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:56)
+              element: <testLibrary>::@class::A::@getter::foo
+          setters
+            #F6 synthetic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:56)
+              element: <testLibrary>::@class::A::@setter::foo
+              formalParameters
+                #F7 value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:56)
+                  element: <testLibrary>::@class::A::@setter::foo::@formalParameter::value
+  classes
+    hasNonFinalField class A
+      reference: <testLibrary>::@class::A
+      firstFragment: #F1
+      fields
+        hasInitializer foo
+          reference: <testLibrary>::@class::A::@field::foo
+          firstFragment: #F4
+          type: int
+          getter: <testLibrary>::@class::A::@getter::foo
+          setter: <testLibrary>::@class::A::@setter::foo
+      constructors
+        foo
+          reference: <testLibrary>::@class::A::@constructor::foo
+          firstFragment: #F3
+      getters
+        synthetic foo
+          reference: <testLibrary>::@class::A::@getter::foo
+          firstFragment: #F5
+          returnType: int
+          variable: <testLibrary>::@class::A::@field::foo
+      setters
+        synthetic foo
+          reference: <testLibrary>::@class::A::@setter::foo
+          firstFragment: #F6
+          formalParameters
+            #E0 requiredPositional value
+              firstFragment: #F7
+              type: int
+          returnType: void
+          variable: <testLibrary>::@class::A::@field::foo
+''');
+  }
+
+  test_augmented_field_augment_field() async {
     var library = await buildLibrary(r'''
-part 'a.dart';
 class A {
   int foo = 0;
 }
-''');
 
-    checkElementText(library, r'''
-library
-  reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      parts
-        part_0
-          uri: package:test/a.dart
-          enclosingElement3: <testLibraryFragment>
-          unit: <testLibrary>::@fragment::package:test/a.dart
-      classes
-        class A @21
-          reference: <testLibraryFragment>::@class::A
-          enclosingElement3: <testLibraryFragment>
-          augmentation: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A
-          fields
-            foo @31
-              reference: <testLibraryFragment>::@class::A::@field::foo
-              enclosingElement3: <testLibraryFragment>::@class::A
-              type: int
-              shouldUseTypeForInitializerInference: true
-              id: field_0
-              getter: getter_0
-              setter: setter_0
-              augmentation: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@fieldAugmentation::foo
-          constructors
-            synthetic @-1
-              reference: <testLibraryFragment>::@class::A::@constructor::new
-              enclosingElement3: <testLibraryFragment>::@class::A
-          accessors
-            synthetic get foo @-1
-              reference: <testLibraryFragment>::@class::A::@getter::foo
-              enclosingElement3: <testLibraryFragment>::@class::A
-              returnType: int
-              id: getter_0
-              variable: field_0
-            synthetic set foo= @-1
-              reference: <testLibraryFragment>::@class::A::@setter::foo
-              enclosingElement3: <testLibraryFragment>::@class::A
-              parameters
-                requiredPositional _foo @-1
-                  type: int
-              returnType: void
-              id: setter_0
-              variable: field_0
-          augmented
-            fields
-              <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@fieldAugmentation::foo
-            constructors
-              <testLibraryFragment>::@class::A::@constructor::new
-            accessors
-              <testLibraryFragment>::@class::A::@getter::foo
-              <testLibraryFragment>::@class::A::@setter::foo
-    <testLibrary>::@fragment::package:test/a.dart
-      enclosingElement3: <testLibraryFragment>
-      classes
-        augment class A @35
-          reference: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A
-          enclosingElement3: <testLibrary>::@fragment::package:test/a.dart
-          augmentationTarget: <testLibraryFragment>::@class::A
-          fields
-            augment foo @53
-              reference: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@fieldAugmentation::foo
-              enclosingElement3: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A
-              type: int
-              shouldUseTypeForInitializerInference: true
-              id: field_1
-              augmentationTarget: <testLibraryFragment>::@class::A::@field::foo
-----------------------------------------
-library
-  reference: <testLibrary>
-  fragments
-    <testLibraryFragment>
-      element: <testLibrary>
-      nextFragment: <testLibrary>::@fragment::package:test/a.dart
-      classes
-        class A @21
-          reference: <testLibraryFragment>::@class::A
-          element: <testLibrary>::@class::A
-          nextFragment: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A
-          fields
-            hasInitializer foo @31
-              reference: <testLibraryFragment>::@class::A::@field::foo
-              element: <testLibraryFragment>::@class::A::@field::foo#element
-              nextFragment: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@fieldAugmentation::foo
-              getter2: <testLibraryFragment>::@class::A::@getter::foo
-              setter2: <testLibraryFragment>::@class::A::@setter::foo
-          constructors
-            synthetic new
-              reference: <testLibraryFragment>::@class::A::@constructor::new
-              element: <testLibraryFragment>::@class::A::@constructor::new#element
-              typeName: A
-          getters
-            synthetic get foo
-              reference: <testLibraryFragment>::@class::A::@getter::foo
-              element: <testLibraryFragment>::@class::A::@getter::foo#element
-          setters
-            synthetic set foo
-              reference: <testLibraryFragment>::@class::A::@setter::foo
-              element: <testLibraryFragment>::@class::A::@setter::foo#element
-              formalParameters
-                _foo
-                  element: <testLibraryFragment>::@class::A::@setter::foo::@parameter::_foo#element
-    <testLibrary>::@fragment::package:test/a.dart
-      element: <testLibrary>
-      enclosingFragment: <testLibraryFragment>
-      previousFragment: <testLibraryFragment>
-      classes
-        class A @35
-          reference: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A
-          element: <testLibrary>::@class::A
-          previousFragment: <testLibraryFragment>::@class::A
-          fields
-            augment hasInitializer foo @53
-              reference: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@fieldAugmentation::foo
-              element: <testLibraryFragment>::@class::A::@field::foo#element
-              previousFragment: <testLibraryFragment>::@class::A::@field::foo
-  classes
-    class A
-      reference: <testLibrary>::@class::A
-      firstFragment: <testLibraryFragment>::@class::A
-      fields
-        hasInitializer foo
-          firstFragment: <testLibraryFragment>::@class::A::@field::foo
-          type: int
-          getter: <testLibraryFragment>::@class::A::@getter::foo#element
-          setter: <testLibraryFragment>::@class::A::@setter::foo#element
-      constructors
-        synthetic new
-          firstFragment: <testLibraryFragment>::@class::A::@constructor::new
-      getters
-        synthetic get foo
-          firstFragment: <testLibraryFragment>::@class::A::@getter::foo
-      setters
-        synthetic set foo
-          firstFragment: <testLibraryFragment>::@class::A::@setter::foo
-          formalParameters
-            requiredPositional _foo
-              type: int
-''');
-  }
-
-  @SkippedTest(reason: 'implement augmentation')
-  test_augmented_field_augment_field2() async {
-    newFile('$testPackageLibPath/a.dart', r'''
-part of 'test.dart';
 augment class A {
   augment int foo = 1;
 }
 ''');
 
-    newFile('$testPackageLibPath/b.dart', r'''
-part of 'test.dart';
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      classes
+        #F1 class A (nameOffset:6) (firstTokenOffset:0) (offset:6)
+          element: <testLibrary>::@class::A
+          nextFragment: #F2
+          fields
+            #F3 hasInitializer foo (nameOffset:16) (firstTokenOffset:16) (offset:16)
+              element: <testLibrary>::@class::A::@field::foo
+              nextFragment: #F4
+          constructors
+            #F5 synthetic new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
+              element: <testLibrary>::@class::A::@constructor::new
+              typeName: A
+          getters
+            #F6 synthetic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
+              element: <testLibrary>::@class::A::@getter::foo
+          setters
+            #F7 synthetic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
+              element: <testLibrary>::@class::A::@setter::foo
+              formalParameters
+                #F8 value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
+                  element: <testLibrary>::@class::A::@setter::foo::@formalParameter::value
+        #F2 class A (nameOffset:42) (firstTokenOffset:28) (offset:42)
+          element: <testLibrary>::@class::A
+          previousFragment: #F1
+          fields
+            #F4 augment hasInitializer foo (nameOffset:60) (firstTokenOffset:60) (offset:60)
+              element: <testLibrary>::@class::A::@field::foo
+              previousFragment: #F3
+  classes
+    hasNonFinalField class A
+      reference: <testLibrary>::@class::A
+      firstFragment: #F1
+      fields
+        hasInitializer foo
+          reference: <testLibrary>::@class::A::@field::foo
+          firstFragment: #F3
+          type: int
+          getter: <testLibrary>::@class::A::@getter::foo
+          setter: <testLibrary>::@class::A::@setter::foo
+      constructors
+        synthetic new
+          reference: <testLibrary>::@class::A::@constructor::new
+          firstFragment: #F5
+      getters
+        synthetic foo
+          reference: <testLibrary>::@class::A::@getter::foo
+          firstFragment: #F6
+          returnType: int
+          variable: <testLibrary>::@class::A::@field::foo
+      setters
+        synthetic foo
+          reference: <testLibrary>::@class::A::@setter::foo
+          firstFragment: #F7
+          formalParameters
+            #E0 requiredPositional value
+              firstFragment: #F8
+              type: int
+          returnType: void
+          variable: <testLibrary>::@class::A::@field::foo
+''');
+  }
+
+  test_augmented_field_augment_field2() async {
+    var library = await buildLibrary(r'''
+class A {
+  int foo = 0;
+}
+
+augment class A {
+  augment int foo = 1;
+}
+
 augment class A {
   augment int foo = 2;
 }
-''');
 
-    var library = await buildLibrary(r'''
-part 'a.dart';
-part 'b.dart';
-class A {
-  int foo = 0;
-}
 ''');
 
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      parts
-        part_0
-          uri: package:test/a.dart
-          enclosingElement3: <testLibraryFragment>
-          unit: <testLibrary>::@fragment::package:test/a.dart
-        part_1
-          uri: package:test/b.dart
-          enclosingElement3: <testLibraryFragment>
-          unit: <testLibrary>::@fragment::package:test/b.dart
-      classes
-        class A @36
-          reference: <testLibraryFragment>::@class::A
-          enclosingElement3: <testLibraryFragment>
-          augmentation: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A
-          fields
-            foo @46
-              reference: <testLibraryFragment>::@class::A::@field::foo
-              enclosingElement3: <testLibraryFragment>::@class::A
-              type: int
-              shouldUseTypeForInitializerInference: true
-              id: field_0
-              getter: getter_0
-              setter: setter_0
-              augmentation: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@fieldAugmentation::foo
-          constructors
-            synthetic @-1
-              reference: <testLibraryFragment>::@class::A::@constructor::new
-              enclosingElement3: <testLibraryFragment>::@class::A
-          accessors
-            synthetic get foo @-1
-              reference: <testLibraryFragment>::@class::A::@getter::foo
-              enclosingElement3: <testLibraryFragment>::@class::A
-              returnType: int
-              id: getter_0
-              variable: field_0
-            synthetic set foo= @-1
-              reference: <testLibraryFragment>::@class::A::@setter::foo
-              enclosingElement3: <testLibraryFragment>::@class::A
-              parameters
-                requiredPositional _foo @-1
-                  type: int
-              returnType: void
-              id: setter_0
-              variable: field_0
-          augmented
-            fields
-              <testLibrary>::@fragment::package:test/b.dart::@classAugmentation::A::@fieldAugmentation::foo
-            constructors
-              <testLibraryFragment>::@class::A::@constructor::new
-            accessors
-              <testLibraryFragment>::@class::A::@getter::foo
-              <testLibraryFragment>::@class::A::@setter::foo
-    <testLibrary>::@fragment::package:test/a.dart
-      enclosingElement3: <testLibraryFragment>
-      classes
-        augment class A @35
-          reference: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A
-          enclosingElement3: <testLibrary>::@fragment::package:test/a.dart
-          augmentationTarget: <testLibraryFragment>::@class::A
-          augmentation: <testLibrary>::@fragment::package:test/b.dart::@classAugmentation::A
-          fields
-            augment foo @53
-              reference: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@fieldAugmentation::foo
-              enclosingElement3: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A
-              type: int
-              shouldUseTypeForInitializerInference: true
-              id: field_1
-              augmentationTarget: <testLibraryFragment>::@class::A::@field::foo
-              augmentation: <testLibrary>::@fragment::package:test/b.dart::@classAugmentation::A::@fieldAugmentation::foo
-    <testLibrary>::@fragment::package:test/b.dart
-      enclosingElement3: <testLibraryFragment>
-      classes
-        augment class A @35
-          reference: <testLibrary>::@fragment::package:test/b.dart::@classAugmentation::A
-          enclosingElement3: <testLibrary>::@fragment::package:test/b.dart
-          augmentationTarget: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A
-          fields
-            augment foo @53
-              reference: <testLibrary>::@fragment::package:test/b.dart::@classAugmentation::A::@fieldAugmentation::foo
-              enclosingElement3: <testLibrary>::@fragment::package:test/b.dart::@classAugmentation::A
-              type: int
-              shouldUseTypeForInitializerInference: true
-              id: field_2
-              augmentationTarget: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@fieldAugmentation::foo
-----------------------------------------
-library
-  reference: <testLibrary>
   fragments
-    <testLibraryFragment>
+    #F0 <testLibraryFragment>
       element: <testLibrary>
-      nextFragment: <testLibrary>::@fragment::package:test/a.dart
       classes
-        class A @36
-          reference: <testLibraryFragment>::@class::A
+        #F1 class A (nameOffset:6) (firstTokenOffset:0) (offset:6)
           element: <testLibrary>::@class::A
-          nextFragment: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A
+          nextFragment: #F2
           fields
-            hasInitializer foo @46
-              reference: <testLibraryFragment>::@class::A::@field::foo
-              element: <testLibraryFragment>::@class::A::@field::foo#element
-              nextFragment: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@fieldAugmentation::foo
-              getter2: <testLibraryFragment>::@class::A::@getter::foo
-              setter2: <testLibraryFragment>::@class::A::@setter::foo
+            #F3 hasInitializer foo (nameOffset:16) (firstTokenOffset:16) (offset:16)
+              element: <testLibrary>::@class::A::@field::foo
+              nextFragment: #F4
           constructors
-            synthetic new
-              reference: <testLibraryFragment>::@class::A::@constructor::new
-              element: <testLibraryFragment>::@class::A::@constructor::new#element
+            #F5 synthetic new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
+              element: <testLibrary>::@class::A::@constructor::new
               typeName: A
           getters
-            synthetic get foo
-              reference: <testLibraryFragment>::@class::A::@getter::foo
-              element: <testLibraryFragment>::@class::A::@getter::foo#element
+            #F6 synthetic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
+              element: <testLibrary>::@class::A::@getter::foo
           setters
-            synthetic set foo
-              reference: <testLibraryFragment>::@class::A::@setter::foo
-              element: <testLibraryFragment>::@class::A::@setter::foo#element
+            #F7 synthetic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
+              element: <testLibrary>::@class::A::@setter::foo
               formalParameters
-                _foo
-                  element: <testLibraryFragment>::@class::A::@setter::foo::@parameter::_foo#element
-    <testLibrary>::@fragment::package:test/a.dart
-      element: <testLibrary>
-      enclosingFragment: <testLibraryFragment>
-      previousFragment: <testLibraryFragment>
-      nextFragment: <testLibrary>::@fragment::package:test/b.dart
-      classes
-        class A @35
-          reference: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A
+                #F8 value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
+                  element: <testLibrary>::@class::A::@setter::foo::@formalParameter::value
+        #F2 class A (nameOffset:42) (firstTokenOffset:28) (offset:42)
           element: <testLibrary>::@class::A
-          previousFragment: <testLibraryFragment>::@class::A
-          nextFragment: <testLibrary>::@fragment::package:test/b.dart::@classAugmentation::A
+          previousFragment: #F1
+          nextFragment: #F9
           fields
-            augment hasInitializer foo @53
-              reference: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@fieldAugmentation::foo
-              element: <testLibraryFragment>::@class::A::@field::foo#element
-              previousFragment: <testLibraryFragment>::@class::A::@field::foo
-              nextFragment: <testLibrary>::@fragment::package:test/b.dart::@classAugmentation::A::@fieldAugmentation::foo
-    <testLibrary>::@fragment::package:test/b.dart
-      element: <testLibrary>
-      enclosingFragment: <testLibraryFragment>
-      previousFragment: <testLibrary>::@fragment::package:test/a.dart
-      classes
-        class A @35
-          reference: <testLibrary>::@fragment::package:test/b.dart::@classAugmentation::A
+            #F4 augment hasInitializer foo (nameOffset:60) (firstTokenOffset:60) (offset:60)
+              element: <testLibrary>::@class::A::@field::foo
+              previousFragment: #F3
+              nextFragment: #F10
+        #F9 class A (nameOffset:86) (firstTokenOffset:72) (offset:86)
           element: <testLibrary>::@class::A
-          previousFragment: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A
+          previousFragment: #F2
           fields
-            augment hasInitializer foo @53
-              reference: <testLibrary>::@fragment::package:test/b.dart::@classAugmentation::A::@fieldAugmentation::foo
-              element: <testLibraryFragment>::@class::A::@field::foo#element
-              previousFragment: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@fieldAugmentation::foo
+            #F10 augment hasInitializer foo (nameOffset:104) (firstTokenOffset:104) (offset:104)
+              element: <testLibrary>::@class::A::@field::foo
+              previousFragment: #F4
   classes
-    class A
+    hasNonFinalField class A
       reference: <testLibrary>::@class::A
-      firstFragment: <testLibraryFragment>::@class::A
+      firstFragment: #F1
       fields
         hasInitializer foo
-          firstFragment: <testLibraryFragment>::@class::A::@field::foo
+          reference: <testLibrary>::@class::A::@field::foo
+          firstFragment: #F3
           type: int
-          getter: <testLibraryFragment>::@class::A::@getter::foo#element
-          setter: <testLibraryFragment>::@class::A::@setter::foo#element
+          getter: <testLibrary>::@class::A::@getter::foo
+          setter: <testLibrary>::@class::A::@setter::foo
       constructors
         synthetic new
-          firstFragment: <testLibraryFragment>::@class::A::@constructor::new
+          reference: <testLibrary>::@class::A::@constructor::new
+          firstFragment: #F5
       getters
-        synthetic get foo
-          firstFragment: <testLibraryFragment>::@class::A::@getter::foo
+        synthetic foo
+          reference: <testLibrary>::@class::A::@getter::foo
+          firstFragment: #F6
+          returnType: int
+          variable: <testLibrary>::@class::A::@field::foo
       setters
-        synthetic set foo
-          firstFragment: <testLibraryFragment>::@class::A::@setter::foo
+        synthetic foo
+          reference: <testLibrary>::@class::A::@setter::foo
+          firstFragment: #F7
           formalParameters
-            requiredPositional _foo
+            #E0 requiredPositional value
+              firstFragment: #F8
               type: int
+          returnType: void
+          variable: <testLibrary>::@class::A::@field::foo
 ''');
   }
 
-  @SkippedTest(reason: 'implement augmentation')
   test_augmented_field_augment_field_afterGetter() async {
-    newFile('$testPackageLibPath/a.dart', r'''
-part of 'test.dart';
+    var library = await buildLibrary(r'''
+class A {
+  int foo = 0;
+}
+
 augment class A {
   augment int get foo => 1;
 }
-''');
 
-    newFile('$testPackageLibPath/b.dart', r'''
-part of 'test.dart';
 augment class A {
   augment int foo = 2;
-}
-''');
-
-    var library = await buildLibrary(r'''
-part 'a.dart';
-part 'b.dart';
-class A {
-  int foo = 0;
 }
 ''');
 
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      parts
-        part_0
-          uri: package:test/a.dart
-          enclosingElement3: <testLibraryFragment>
-          unit: <testLibrary>::@fragment::package:test/a.dart
-        part_1
-          uri: package:test/b.dart
-          enclosingElement3: <testLibraryFragment>
-          unit: <testLibrary>::@fragment::package:test/b.dart
-      classes
-        class A @36
-          reference: <testLibraryFragment>::@class::A
-          enclosingElement3: <testLibraryFragment>
-          augmentation: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A
-          fields
-            foo @46
-              reference: <testLibraryFragment>::@class::A::@field::foo
-              enclosingElement3: <testLibraryFragment>::@class::A
-              type: int
-              shouldUseTypeForInitializerInference: true
-              id: field_0
-              getter: getter_0
-              setter: setter_0
-              augmentation: <testLibrary>::@fragment::package:test/b.dart::@classAugmentation::A::@fieldAugmentation::foo
-          constructors
-            synthetic @-1
-              reference: <testLibraryFragment>::@class::A::@constructor::new
-              enclosingElement3: <testLibraryFragment>::@class::A
-          accessors
-            synthetic get foo @-1
-              reference: <testLibraryFragment>::@class::A::@getter::foo
-              enclosingElement3: <testLibraryFragment>::@class::A
-              returnType: int
-              id: getter_0
-              variable: field_0
-              augmentation: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@getterAugmentation::foo
-            synthetic set foo= @-1
-              reference: <testLibraryFragment>::@class::A::@setter::foo
-              enclosingElement3: <testLibraryFragment>::@class::A
-              parameters
-                requiredPositional _foo @-1
-                  type: int
-              returnType: void
-              id: setter_0
-              variable: field_0
-          augmented
-            fields
-              <testLibrary>::@fragment::package:test/b.dart::@classAugmentation::A::@fieldAugmentation::foo
-            constructors
-              <testLibraryFragment>::@class::A::@constructor::new
-            accessors
-              <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@getterAugmentation::foo
-              <testLibraryFragment>::@class::A::@setter::foo
-    <testLibrary>::@fragment::package:test/a.dart
-      enclosingElement3: <testLibraryFragment>
-      classes
-        augment class A @35
-          reference: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A
-          enclosingElement3: <testLibrary>::@fragment::package:test/a.dart
-          augmentationTarget: <testLibraryFragment>::@class::A
-          augmentation: <testLibrary>::@fragment::package:test/b.dart::@classAugmentation::A
-          accessors
-            augment get foo @57
-              reference: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@getterAugmentation::foo
-              enclosingElement3: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A
-              returnType: int
-              id: getter_1
-              variable: <null>
-              augmentationTarget: <testLibraryFragment>::@class::A::@getter::foo
-    <testLibrary>::@fragment::package:test/b.dart
-      enclosingElement3: <testLibraryFragment>
-      classes
-        augment class A @35
-          reference: <testLibrary>::@fragment::package:test/b.dart::@classAugmentation::A
-          enclosingElement3: <testLibrary>::@fragment::package:test/b.dart
-          augmentationTarget: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A
-          fields
-            augment foo @53
-              reference: <testLibrary>::@fragment::package:test/b.dart::@classAugmentation::A::@fieldAugmentation::foo
-              enclosingElement3: <testLibrary>::@fragment::package:test/b.dart::@classAugmentation::A
-              type: int
-              shouldUseTypeForInitializerInference: true
-              id: field_1
-              augmentationTarget: <testLibraryFragment>::@class::A::@field::foo
-----------------------------------------
-library
-  reference: <testLibrary>
   fragments
-    <testLibraryFragment>
+    #F0 <testLibraryFragment>
       element: <testLibrary>
-      nextFragment: <testLibrary>::@fragment::package:test/a.dart
       classes
-        class A @36
-          reference: <testLibraryFragment>::@class::A
+        #F1 class A (nameOffset:6) (firstTokenOffset:0) (offset:6)
           element: <testLibrary>::@class::A
-          nextFragment: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A
+          nextFragment: #F2
           fields
-            hasInitializer foo @46
-              reference: <testLibraryFragment>::@class::A::@field::foo
-              element: <testLibraryFragment>::@class::A::@field::foo#element
-              nextFragment: <testLibrary>::@fragment::package:test/b.dart::@classAugmentation::A::@fieldAugmentation::foo
-              getter2: <testLibraryFragment>::@class::A::@getter::foo
-              setter2: <testLibraryFragment>::@class::A::@setter::foo
+            #F3 hasInitializer foo (nameOffset:16) (firstTokenOffset:16) (offset:16)
+              element: <testLibrary>::@class::A::@field::foo::@def::0
           constructors
-            synthetic new
-              reference: <testLibraryFragment>::@class::A::@constructor::new
-              element: <testLibraryFragment>::@class::A::@constructor::new#element
+            #F4 synthetic new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
+              element: <testLibrary>::@class::A::@constructor::new
               typeName: A
           getters
-            synthetic get foo
-              reference: <testLibraryFragment>::@class::A::@getter::foo
-              element: <testLibraryFragment>::@class::A::@getter::foo#element
-              nextFragment: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@getterAugmentation::foo
+            #F5 synthetic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
+              element: <testLibrary>::@class::A::@getter::foo::@def::0
+              nextFragment: #F6
           setters
-            synthetic set foo
-              reference: <testLibraryFragment>::@class::A::@setter::foo
-              element: <testLibraryFragment>::@class::A::@setter::foo#element
+            #F7 synthetic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
+              element: <testLibrary>::@class::A::@setter::foo::@def::0
               formalParameters
-                _foo
-                  element: <testLibraryFragment>::@class::A::@setter::foo::@parameter::_foo#element
-    <testLibrary>::@fragment::package:test/a.dart
-      element: <testLibrary>
-      enclosingFragment: <testLibraryFragment>
-      previousFragment: <testLibraryFragment>
-      nextFragment: <testLibrary>::@fragment::package:test/b.dart
-      classes
-        class A @35
-          reference: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A
+                #F8 value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
+                  element: <testLibrary>::@class::A::@setter::foo::@def::0::@formalParameter::value
+        #F2 class A (nameOffset:42) (firstTokenOffset:28) (offset:42)
           element: <testLibrary>::@class::A
-          previousFragment: <testLibraryFragment>::@class::A
-          nextFragment: <testLibrary>::@fragment::package:test/b.dart::@classAugmentation::A
+          previousFragment: #F1
+          nextFragment: #F9
           getters
-            augment get foo @57
-              reference: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@getterAugmentation::foo
-              element: <testLibraryFragment>::@class::A::@getter::foo#element
-              previousFragment: <testLibraryFragment>::@class::A::@getter::foo
-    <testLibrary>::@fragment::package:test/b.dart
-      element: <testLibrary>
-      enclosingFragment: <testLibraryFragment>
-      previousFragment: <testLibrary>::@fragment::package:test/a.dart
-      classes
-        class A @35
-          reference: <testLibrary>::@fragment::package:test/b.dart::@classAugmentation::A
+            #F6 augment foo (nameOffset:64) (firstTokenOffset:48) (offset:64)
+              element: <testLibrary>::@class::A::@getter::foo::@def::0
+              previousFragment: #F5
+        #F9 class A (nameOffset:91) (firstTokenOffset:77) (offset:91)
           element: <testLibrary>::@class::A
-          previousFragment: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A
+          previousFragment: #F2
           fields
-            augment hasInitializer foo @53
-              reference: <testLibrary>::@fragment::package:test/b.dart::@classAugmentation::A::@fieldAugmentation::foo
-              element: <testLibraryFragment>::@class::A::@field::foo#element
-              previousFragment: <testLibraryFragment>::@class::A::@field::foo
+            #F10 augment hasInitializer foo (nameOffset:109) (firstTokenOffset:109) (offset:109)
+              element: <testLibrary>::@class::A::@field::foo::@def::1
+          getters
+            #F11 synthetic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:109)
+              element: <testLibrary>::@class::A::@getter::foo::@def::1
+          setters
+            #F12 synthetic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:109)
+              element: <testLibrary>::@class::A::@setter::foo::@def::1
+              formalParameters
+                #F13 value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:109)
+                  element: <testLibrary>::@class::A::@setter::foo::@def::1::@formalParameter::value
   classes
-    class A
+    hasNonFinalField class A
       reference: <testLibrary>::@class::A
-      firstFragment: <testLibraryFragment>::@class::A
+      firstFragment: #F1
       fields
         hasInitializer foo
-          firstFragment: <testLibraryFragment>::@class::A::@field::foo
+          reference: <testLibrary>::@class::A::@field::foo::@def::0
+          firstFragment: #F3
           type: int
-          getter: <testLibraryFragment>::@class::A::@getter::foo#element
-          setter: <testLibraryFragment>::@class::A::@setter::foo#element
+          getter: <testLibrary>::@class::A::@getter::foo::@def::0
+          setter: <testLibrary>::@class::A::@setter::foo::@def::0
+        hasInitializer foo
+          reference: <testLibrary>::@class::A::@field::foo::@def::1
+          firstFragment: #F10
+          type: int
+          getter: <testLibrary>::@class::A::@getter::foo::@def::1
+          setter: <testLibrary>::@class::A::@setter::foo::@def::1
       constructors
         synthetic new
-          firstFragment: <testLibraryFragment>::@class::A::@constructor::new
+          reference: <testLibrary>::@class::A::@constructor::new
+          firstFragment: #F4
       getters
-        synthetic get foo
-          firstFragment: <testLibraryFragment>::@class::A::@getter::foo
+        synthetic foo
+          reference: <testLibrary>::@class::A::@getter::foo::@def::0
+          firstFragment: #F5
+          returnType: int
+          variable: <testLibrary>::@class::A::@field::foo::@def::0
+        synthetic foo
+          reference: <testLibrary>::@class::A::@getter::foo::@def::1
+          firstFragment: #F11
+          returnType: int
+          variable: <testLibrary>::@class::A::@field::foo::@def::1
       setters
-        synthetic set foo
-          firstFragment: <testLibraryFragment>::@class::A::@setter::foo
+        synthetic foo
+          reference: <testLibrary>::@class::A::@setter::foo::@def::0
+          firstFragment: #F7
           formalParameters
-            requiredPositional _foo
+            #E0 requiredPositional value
+              firstFragment: #F8
               type: int
+          returnType: void
+          variable: <testLibrary>::@class::A::@field::foo::@def::0
+        synthetic foo
+          reference: <testLibrary>::@class::A::@setter::foo::@def::1
+          firstFragment: #F12
+          formalParameters
+            #E1 requiredPositional value
+              firstFragment: #F13
+              type: int
+          returnType: void
+          variable: <testLibrary>::@class::A::@field::foo::@def::1
 ''');
   }
 
-  @SkippedTest(reason: 'implement augmentation')
   test_augmented_field_augment_field_afterSetter() async {
-    newFile('$testPackageLibPath/a.dart', r'''
-part of 'test.dart';
+    var library = await buildLibrary(r'''
+class A {
+  int foo = 0;
+}
+
 augment class A {
   augment set foo(int _) {}
 }
-''');
 
-    newFile('$testPackageLibPath/b.dart', r'''
-part of 'test.dart';
 augment class A {
   augment int foo = 2;
-}
-''');
-
-    var library = await buildLibrary(r'''
-part 'a.dart';
-part 'b.dart';
-class A {
-  int foo = 0;
 }
 ''');
 
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      parts
-        part_0
-          uri: package:test/a.dart
-          enclosingElement3: <testLibraryFragment>
-          unit: <testLibrary>::@fragment::package:test/a.dart
-        part_1
-          uri: package:test/b.dart
-          enclosingElement3: <testLibraryFragment>
-          unit: <testLibrary>::@fragment::package:test/b.dart
-      classes
-        class A @36
-          reference: <testLibraryFragment>::@class::A
-          enclosingElement3: <testLibraryFragment>
-          augmentation: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A
-          fields
-            foo @46
-              reference: <testLibraryFragment>::@class::A::@field::foo
-              enclosingElement3: <testLibraryFragment>::@class::A
-              type: int
-              shouldUseTypeForInitializerInference: true
-              id: field_0
-              getter: getter_0
-              setter: setter_0
-              augmentation: <testLibrary>::@fragment::package:test/b.dart::@classAugmentation::A::@fieldAugmentation::foo
-          constructors
-            synthetic @-1
-              reference: <testLibraryFragment>::@class::A::@constructor::new
-              enclosingElement3: <testLibraryFragment>::@class::A
-          accessors
-            synthetic get foo @-1
-              reference: <testLibraryFragment>::@class::A::@getter::foo
-              enclosingElement3: <testLibraryFragment>::@class::A
-              returnType: int
-              id: getter_0
-              variable: field_0
-            synthetic set foo= @-1
-              reference: <testLibraryFragment>::@class::A::@setter::foo
-              enclosingElement3: <testLibraryFragment>::@class::A
-              parameters
-                requiredPositional _foo @-1
-                  type: int
-              returnType: void
-              id: setter_0
-              variable: field_0
-              augmentation: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@setterAugmentation::foo
-          augmented
-            fields
-              <testLibrary>::@fragment::package:test/b.dart::@classAugmentation::A::@fieldAugmentation::foo
-            constructors
-              <testLibraryFragment>::@class::A::@constructor::new
-            accessors
-              <testLibraryFragment>::@class::A::@getter::foo
-              <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@setterAugmentation::foo
-    <testLibrary>::@fragment::package:test/a.dart
-      enclosingElement3: <testLibraryFragment>
-      classes
-        augment class A @35
-          reference: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A
-          enclosingElement3: <testLibrary>::@fragment::package:test/a.dart
-          augmentationTarget: <testLibraryFragment>::@class::A
-          augmentation: <testLibrary>::@fragment::package:test/b.dart::@classAugmentation::A
-          accessors
-            augment set foo= @53
-              reference: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@setterAugmentation::foo
-              enclosingElement3: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A
-              parameters
-                requiredPositional _ @61
-                  type: int
-              returnType: void
-              id: setter_1
-              variable: <null>
-              augmentationTarget: <testLibraryFragment>::@class::A::@setter::foo
-    <testLibrary>::@fragment::package:test/b.dart
-      enclosingElement3: <testLibraryFragment>
-      classes
-        augment class A @35
-          reference: <testLibrary>::@fragment::package:test/b.dart::@classAugmentation::A
-          enclosingElement3: <testLibrary>::@fragment::package:test/b.dart
-          augmentationTarget: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A
-          fields
-            augment foo @53
-              reference: <testLibrary>::@fragment::package:test/b.dart::@classAugmentation::A::@fieldAugmentation::foo
-              enclosingElement3: <testLibrary>::@fragment::package:test/b.dart::@classAugmentation::A
-              type: int
-              shouldUseTypeForInitializerInference: true
-              id: field_1
-              augmentationTarget: <testLibraryFragment>::@class::A::@field::foo
-----------------------------------------
-library
-  reference: <testLibrary>
   fragments
-    <testLibraryFragment>
+    #F0 <testLibraryFragment>
       element: <testLibrary>
-      nextFragment: <testLibrary>::@fragment::package:test/a.dart
       classes
-        class A @36
-          reference: <testLibraryFragment>::@class::A
+        #F1 class A (nameOffset:6) (firstTokenOffset:0) (offset:6)
           element: <testLibrary>::@class::A
-          nextFragment: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A
+          nextFragment: #F2
           fields
-            hasInitializer foo @46
-              reference: <testLibraryFragment>::@class::A::@field::foo
-              element: <testLibraryFragment>::@class::A::@field::foo#element
-              nextFragment: <testLibrary>::@fragment::package:test/b.dart::@classAugmentation::A::@fieldAugmentation::foo
-              getter2: <testLibraryFragment>::@class::A::@getter::foo
-              setter2: <testLibraryFragment>::@class::A::@setter::foo
+            #F3 hasInitializer foo (nameOffset:16) (firstTokenOffset:16) (offset:16)
+              element: <testLibrary>::@class::A::@field::foo::@def::0
           constructors
-            synthetic new
-              reference: <testLibraryFragment>::@class::A::@constructor::new
-              element: <testLibraryFragment>::@class::A::@constructor::new#element
+            #F4 synthetic new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
+              element: <testLibrary>::@class::A::@constructor::new
               typeName: A
           getters
-            synthetic get foo
-              reference: <testLibraryFragment>::@class::A::@getter::foo
-              element: <testLibraryFragment>::@class::A::@getter::foo#element
+            #F5 synthetic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
+              element: <testLibrary>::@class::A::@getter::foo::@def::0
           setters
-            synthetic set foo
-              reference: <testLibraryFragment>::@class::A::@setter::foo
-              element: <testLibraryFragment>::@class::A::@setter::foo#element
+            #F6 synthetic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
+              element: <testLibrary>::@class::A::@setter::foo::@def::0
               formalParameters
-                _foo
-                  element: <testLibraryFragment>::@class::A::@setter::foo::@parameter::_foo#element
-              nextFragment: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@setterAugmentation::foo
-    <testLibrary>::@fragment::package:test/a.dart
-      element: <testLibrary>
-      enclosingFragment: <testLibraryFragment>
-      previousFragment: <testLibraryFragment>
-      nextFragment: <testLibrary>::@fragment::package:test/b.dart
-      classes
-        class A @35
-          reference: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A
+                #F7 value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
+                  element: <testLibrary>::@class::A::@setter::foo::@def::0::@formalParameter::value
+              nextFragment: #F8
+        #F2 class A (nameOffset:42) (firstTokenOffset:28) (offset:42)
           element: <testLibrary>::@class::A
-          previousFragment: <testLibraryFragment>::@class::A
-          nextFragment: <testLibrary>::@fragment::package:test/b.dart::@classAugmentation::A
+          previousFragment: #F1
+          nextFragment: #F9
           setters
-            augment set foo @53
-              reference: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@setterAugmentation::foo
-              element: <testLibraryFragment>::@class::A::@setter::foo#element
+            #F8 augment foo (nameOffset:60) (firstTokenOffset:48) (offset:60)
+              element: <testLibrary>::@class::A::@setter::foo::@def::0
               formalParameters
-                _ @61
-                  element: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@setterAugmentation::foo::@parameter::_#element
-              previousFragment: <testLibraryFragment>::@class::A::@setter::foo
-    <testLibrary>::@fragment::package:test/b.dart
-      element: <testLibrary>
-      enclosingFragment: <testLibraryFragment>
-      previousFragment: <testLibrary>::@fragment::package:test/a.dart
-      classes
-        class A @35
-          reference: <testLibrary>::@fragment::package:test/b.dart::@classAugmentation::A
+                #F10 _ (nameOffset:68) (firstTokenOffset:64) (offset:68)
+                  element: <testLibrary>::@class::A::@setter::foo::@def::0::@formalParameter::_
+              previousFragment: #F6
+        #F9 class A (nameOffset:91) (firstTokenOffset:77) (offset:91)
           element: <testLibrary>::@class::A
-          previousFragment: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A
+          previousFragment: #F2
           fields
-            augment hasInitializer foo @53
-              reference: <testLibrary>::@fragment::package:test/b.dart::@classAugmentation::A::@fieldAugmentation::foo
-              element: <testLibraryFragment>::@class::A::@field::foo#element
-              previousFragment: <testLibraryFragment>::@class::A::@field::foo
+            #F11 augment hasInitializer foo (nameOffset:109) (firstTokenOffset:109) (offset:109)
+              element: <testLibrary>::@class::A::@field::foo::@def::1
+          getters
+            #F12 synthetic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:109)
+              element: <testLibrary>::@class::A::@getter::foo::@def::1
+          setters
+            #F13 synthetic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:109)
+              element: <testLibrary>::@class::A::@setter::foo::@def::1
+              formalParameters
+                #F14 value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:109)
+                  element: <testLibrary>::@class::A::@setter::foo::@def::1::@formalParameter::value
   classes
-    class A
+    hasNonFinalField class A
       reference: <testLibrary>::@class::A
-      firstFragment: <testLibraryFragment>::@class::A
+      firstFragment: #F1
       fields
         hasInitializer foo
-          firstFragment: <testLibraryFragment>::@class::A::@field::foo
+          reference: <testLibrary>::@class::A::@field::foo::@def::0
+          firstFragment: #F3
           type: int
-          getter: <testLibraryFragment>::@class::A::@getter::foo#element
-          setter: <testLibraryFragment>::@class::A::@setter::foo#element
+          getter: <testLibrary>::@class::A::@getter::foo::@def::0
+          setter: <testLibrary>::@class::A::@setter::foo::@def::0
+        hasInitializer foo
+          reference: <testLibrary>::@class::A::@field::foo::@def::1
+          firstFragment: #F11
+          type: int
+          getter: <testLibrary>::@class::A::@getter::foo::@def::1
+          setter: <testLibrary>::@class::A::@setter::foo::@def::1
       constructors
         synthetic new
-          firstFragment: <testLibraryFragment>::@class::A::@constructor::new
+          reference: <testLibrary>::@class::A::@constructor::new
+          firstFragment: #F4
       getters
-        synthetic get foo
-          firstFragment: <testLibraryFragment>::@class::A::@getter::foo
+        synthetic foo
+          reference: <testLibrary>::@class::A::@getter::foo::@def::0
+          firstFragment: #F5
+          returnType: int
+          variable: <testLibrary>::@class::A::@field::foo::@def::0
+        synthetic foo
+          reference: <testLibrary>::@class::A::@getter::foo::@def::1
+          firstFragment: #F12
+          returnType: int
+          variable: <testLibrary>::@class::A::@field::foo::@def::1
       setters
-        synthetic set foo
-          firstFragment: <testLibraryFragment>::@class::A::@setter::foo
+        synthetic foo
+          reference: <testLibrary>::@class::A::@setter::foo::@def::0
+          firstFragment: #F6
           formalParameters
-            requiredPositional _foo
+            #E0 requiredPositional value
+              firstFragment: #F7
               type: int
+          returnType: void
+          variable: <testLibrary>::@class::A::@field::foo::@def::0
+        synthetic foo
+          reference: <testLibrary>::@class::A::@setter::foo::@def::1
+          firstFragment: #F13
+          formalParameters
+            #E1 requiredPositional value
+              firstFragment: #F14
+              type: int
+          returnType: void
+          variable: <testLibrary>::@class::A::@field::foo::@def::1
 ''');
   }
 
-  @SkippedTest(reason: 'implement augmentation')
   test_augmented_field_augment_field_augmentedInvocation() async {
     // This is invalid code, but it should not crash.
-    newFile('$testPackageLibPath/a.dart', r'''
-part of 'test.dart';
+    var library = await buildLibrary(r'''
+class A {
+  static const int foo = 0;
+}
+
 augment class A {;
   augment static const int foo = augmented();
 }
 ''');
 
-    var library = await buildLibrary(r'''
-part 'a.dart';
-class A {
-  static const int foo = 0;
-}
-''');
-
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      parts
-        part_0
-          uri: package:test/a.dart
-          enclosingElement3: <testLibraryFragment>
-          unit: <testLibrary>::@fragment::package:test/a.dart
-      classes
-        class A @21
-          reference: <testLibraryFragment>::@class::A
-          enclosingElement3: <testLibraryFragment>
-          augmentation: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A
-          fields
-            static const foo @44
-              reference: <testLibraryFragment>::@class::A::@field::foo
-              enclosingElement3: <testLibraryFragment>::@class::A
-              type: int
-              shouldUseTypeForInitializerInference: true
-              constantInitializer
-                IntegerLiteral
-                  literal: 0 @50
-                  staticType: int
-              augmentation: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@fieldAugmentation::foo
-          constructors
-            synthetic @-1
-              reference: <testLibraryFragment>::@class::A::@constructor::new
-              enclosingElement3: <testLibraryFragment>::@class::A
-          accessors
-            synthetic static get foo @-1
-              reference: <testLibraryFragment>::@class::A::@getter::foo
-              enclosingElement3: <testLibraryFragment>::@class::A
-              returnType: int
-          augmented
-            fields
-              <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@fieldAugmentation::foo
-            constructors
-              <testLibraryFragment>::@class::A::@constructor::new
-            accessors
-              <testLibraryFragment>::@class::A::@getter::foo
-    <testLibrary>::@fragment::package:test/a.dart
-      enclosingElement3: <testLibraryFragment>
-      classes
-        augment class A @35
-          reference: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A
-          enclosingElement3: <testLibrary>::@fragment::package:test/a.dart
-          augmentationTarget: <testLibraryFragment>::@class::A
-          fields
-            augment static const foo @67
-              reference: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@fieldAugmentation::foo
-              enclosingElement3: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A
-              type: int
-              shouldUseTypeForInitializerInference: true
-              constantInitializer
-                AugmentedInvocation
-                  augmentedKeyword: augmented @73
-                  arguments: ArgumentList
-                    leftParenthesis: ( @82
-                    rightParenthesis: ) @83
-                  element: <null>
-                  fragment: <null>
-                  staticType: InvalidType
-              augmentationTarget: <testLibraryFragment>::@class::A::@field::foo
-----------------------------------------
-library
-  reference: <testLibrary>
   fragments
-    <testLibraryFragment>
+    #F0 <testLibraryFragment>
       element: <testLibrary>
-      nextFragment: <testLibrary>::@fragment::package:test/a.dart
       classes
-        class A @21
-          reference: <testLibraryFragment>::@class::A
+        #F1 class A (nameOffset:6) (firstTokenOffset:0) (offset:6)
           element: <testLibrary>::@class::A
-          nextFragment: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A
+          nextFragment: #F2
           fields
-            hasInitializer foo @44
-              reference: <testLibraryFragment>::@class::A::@field::foo
-              element: <testLibraryFragment>::@class::A::@field::foo#element
+            #F3 hasInitializer foo (nameOffset:29) (firstTokenOffset:29) (offset:29)
+              element: <testLibrary>::@class::A::@field::foo
               initializer: expression_0
                 IntegerLiteral
-                  literal: 0 @50
-                  staticType: int
-              nextFragment: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@fieldAugmentation::foo
-              getter2: <testLibraryFragment>::@class::A::@getter::foo
+                  literal: 0 @35
+                  staticType: null
+              nextFragment: #F4
           constructors
-            synthetic new
-              reference: <testLibraryFragment>::@class::A::@constructor::new
-              element: <testLibraryFragment>::@class::A::@constructor::new#element
+            #F5 synthetic new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
+              element: <testLibrary>::@class::A::@constructor::new
               typeName: A
           getters
-            synthetic get foo
-              reference: <testLibraryFragment>::@class::A::@getter::foo
-              element: <testLibraryFragment>::@class::A::@getter::foo#element
-    <testLibrary>::@fragment::package:test/a.dart
-      element: <testLibrary>
-      enclosingFragment: <testLibraryFragment>
-      previousFragment: <testLibraryFragment>
-      classes
-        class A @35
-          reference: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A
+            #F6 synthetic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:29)
+              element: <testLibrary>::@class::A::@getter::foo
+        #F2 class A (nameOffset:55) (firstTokenOffset:41) (offset:55)
           element: <testLibrary>::@class::A
-          previousFragment: <testLibraryFragment>::@class::A
+          previousFragment: #F1
           fields
-            augment hasInitializer foo @67
-              reference: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@fieldAugmentation::foo
-              element: <testLibraryFragment>::@class::A::@field::foo#element
+            #F4 augment hasInitializer foo (nameOffset:87) (firstTokenOffset:87) (offset:87)
+              element: <testLibrary>::@class::A::@field::foo
               initializer: expression_1
-                AugmentedInvocation
-                  augmentedKeyword: augmented @73
-                  arguments: ArgumentList
-                    leftParenthesis: ( @82
-                    rightParenthesis: ) @83
-                  element: <null>
-                  fragment: <null>
+                MethodInvocation
+                  methodName: SimpleIdentifier
+                    token: augmented @93
+                    element: <null>
+                    staticType: InvalidType
+                  argumentList: ArgumentList
+                    leftParenthesis: ( @102
+                    rightParenthesis: ) @103
+                  staticInvokeType: InvalidType
                   staticType: InvalidType
-              previousFragment: <testLibraryFragment>::@class::A::@field::foo
+              previousFragment: #F3
   classes
     class A
       reference: <testLibrary>::@class::A
-      firstFragment: <testLibraryFragment>::@class::A
+      firstFragment: #F1
       fields
         static const hasInitializer foo
-          firstFragment: <testLibraryFragment>::@class::A::@field::foo
+          reference: <testLibrary>::@class::A::@field::foo
+          firstFragment: #F3
           type: int
           constantInitializer
-            fragment: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@fieldAugmentation::foo
+            fragment: #F4
             expression: expression_1
-          getter: <testLibraryFragment>::@class::A::@getter::foo#element
+          getter: <testLibrary>::@class::A::@getter::foo
       constructors
         synthetic new
-          firstFragment: <testLibraryFragment>::@class::A::@constructor::new
+          reference: <testLibrary>::@class::A::@constructor::new
+          firstFragment: #F5
       getters
-        synthetic static get foo
-          firstFragment: <testLibraryFragment>::@class::A::@getter::foo
+        synthetic static foo
+          reference: <testLibrary>::@class::A::@getter::foo
+          firstFragment: #F6
+          returnType: int
+          variable: <testLibrary>::@class::A::@field::foo
 ''');
   }
 
-  @SkippedTest(reason: 'implement augmentation')
   test_augmented_field_augment_field_differentTypes() async {
-    newFile('$testPackageLibPath/a.dart', r'''
-part of 'test.dart';
+    var library = await buildLibrary(r'''
+class A {
+  int foo = 0;
+}
+
 augment class A {
   augment double foo = 1.2;
 }
 ''');
 
-    var library = await buildLibrary(r'''
-part 'a.dart';
-class A {
-  int foo = 0;
-}
-''');
-
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      parts
-        part_0
-          uri: package:test/a.dart
-          enclosingElement3: <testLibraryFragment>
-          unit: <testLibrary>::@fragment::package:test/a.dart
-      classes
-        class A @21
-          reference: <testLibraryFragment>::@class::A
-          enclosingElement3: <testLibraryFragment>
-          augmentation: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A
-          fields
-            foo @31
-              reference: <testLibraryFragment>::@class::A::@field::foo
-              enclosingElement3: <testLibraryFragment>::@class::A
-              type: int
-              shouldUseTypeForInitializerInference: true
-              id: field_0
-              getter: getter_0
-              setter: setter_0
-              augmentation: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@fieldAugmentation::foo
-          constructors
-            synthetic @-1
-              reference: <testLibraryFragment>::@class::A::@constructor::new
-              enclosingElement3: <testLibraryFragment>::@class::A
-          accessors
-            synthetic get foo @-1
-              reference: <testLibraryFragment>::@class::A::@getter::foo
-              enclosingElement3: <testLibraryFragment>::@class::A
-              returnType: int
-              id: getter_0
-              variable: field_0
-            synthetic set foo= @-1
-              reference: <testLibraryFragment>::@class::A::@setter::foo
-              enclosingElement3: <testLibraryFragment>::@class::A
-              parameters
-                requiredPositional _foo @-1
-                  type: int
-              returnType: void
-              id: setter_0
-              variable: field_0
-          augmented
-            fields
-              <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@fieldAugmentation::foo
-            constructors
-              <testLibraryFragment>::@class::A::@constructor::new
-            accessors
-              <testLibraryFragment>::@class::A::@getter::foo
-              <testLibraryFragment>::@class::A::@setter::foo
-    <testLibrary>::@fragment::package:test/a.dart
-      enclosingElement3: <testLibraryFragment>
-      classes
-        augment class A @35
-          reference: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A
-          enclosingElement3: <testLibrary>::@fragment::package:test/a.dart
-          augmentationTarget: <testLibraryFragment>::@class::A
-          fields
-            augment foo @56
-              reference: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@fieldAugmentation::foo
-              enclosingElement3: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A
-              type: double
-              shouldUseTypeForInitializerInference: true
-              id: field_1
-              augmentationTarget: <testLibraryFragment>::@class::A::@field::foo
-----------------------------------------
-library
-  reference: <testLibrary>
   fragments
-    <testLibraryFragment>
+    #F0 <testLibraryFragment>
       element: <testLibrary>
-      nextFragment: <testLibrary>::@fragment::package:test/a.dart
       classes
-        class A @21
-          reference: <testLibraryFragment>::@class::A
+        #F1 class A (nameOffset:6) (firstTokenOffset:0) (offset:6)
           element: <testLibrary>::@class::A
-          nextFragment: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A
+          nextFragment: #F2
           fields
-            hasInitializer foo @31
-              reference: <testLibraryFragment>::@class::A::@field::foo
-              element: <testLibraryFragment>::@class::A::@field::foo#element
-              nextFragment: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@fieldAugmentation::foo
-              getter2: <testLibraryFragment>::@class::A::@getter::foo
-              setter2: <testLibraryFragment>::@class::A::@setter::foo
+            #F3 hasInitializer foo (nameOffset:16) (firstTokenOffset:16) (offset:16)
+              element: <testLibrary>::@class::A::@field::foo
+              nextFragment: #F4
           constructors
-            synthetic new
-              reference: <testLibraryFragment>::@class::A::@constructor::new
-              element: <testLibraryFragment>::@class::A::@constructor::new#element
+            #F5 synthetic new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
+              element: <testLibrary>::@class::A::@constructor::new
               typeName: A
           getters
-            synthetic get foo
-              reference: <testLibraryFragment>::@class::A::@getter::foo
-              element: <testLibraryFragment>::@class::A::@getter::foo#element
+            #F6 synthetic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
+              element: <testLibrary>::@class::A::@getter::foo
           setters
-            synthetic set foo
-              reference: <testLibraryFragment>::@class::A::@setter::foo
-              element: <testLibraryFragment>::@class::A::@setter::foo#element
+            #F7 synthetic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
+              element: <testLibrary>::@class::A::@setter::foo
               formalParameters
-                _foo
-                  element: <testLibraryFragment>::@class::A::@setter::foo::@parameter::_foo#element
-    <testLibrary>::@fragment::package:test/a.dart
-      element: <testLibrary>
-      enclosingFragment: <testLibraryFragment>
-      previousFragment: <testLibraryFragment>
-      classes
-        class A @35
-          reference: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A
+                #F8 value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
+                  element: <testLibrary>::@class::A::@setter::foo::@formalParameter::value
+        #F2 class A (nameOffset:42) (firstTokenOffset:28) (offset:42)
           element: <testLibrary>::@class::A
-          previousFragment: <testLibraryFragment>::@class::A
+          previousFragment: #F1
           fields
-            augment hasInitializer foo @56
-              reference: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@fieldAugmentation::foo
-              element: <testLibraryFragment>::@class::A::@field::foo#element
-              previousFragment: <testLibraryFragment>::@class::A::@field::foo
+            #F4 augment hasInitializer foo (nameOffset:63) (firstTokenOffset:63) (offset:63)
+              element: <testLibrary>::@class::A::@field::foo
+              previousFragment: #F3
   classes
-    class A
+    hasNonFinalField class A
       reference: <testLibrary>::@class::A
-      firstFragment: <testLibraryFragment>::@class::A
+      firstFragment: #F1
       fields
         hasInitializer foo
-          firstFragment: <testLibraryFragment>::@class::A::@field::foo
-          type: int
-          getter: <testLibraryFragment>::@class::A::@getter::foo#element
-          setter: <testLibraryFragment>::@class::A::@setter::foo#element
+          reference: <testLibrary>::@class::A::@field::foo
+          firstFragment: #F3
+          type: double
+          getter: <testLibrary>::@class::A::@getter::foo
+          setter: <testLibrary>::@class::A::@setter::foo
       constructors
         synthetic new
-          firstFragment: <testLibraryFragment>::@class::A::@constructor::new
+          reference: <testLibrary>::@class::A::@constructor::new
+          firstFragment: #F5
       getters
-        synthetic get foo
-          firstFragment: <testLibraryFragment>::@class::A::@getter::foo
+        synthetic foo
+          reference: <testLibrary>::@class::A::@getter::foo
+          firstFragment: #F6
+          returnType: double
+          variable: <testLibrary>::@class::A::@field::foo
       setters
-        synthetic set foo
-          firstFragment: <testLibraryFragment>::@class::A::@setter::foo
+        synthetic foo
+          reference: <testLibrary>::@class::A::@setter::foo
+          firstFragment: #F7
           formalParameters
-            requiredPositional _foo
-              type: int
+            #E0 requiredPositional value
+              firstFragment: #F8
+              type: double
+          returnType: void
+          variable: <testLibrary>::@class::A::@field::foo
 ''');
   }
 
-  @SkippedTest(reason: 'implement augmentation')
   test_augmented_field_augment_field_plus() async {
-    newFile('$testPackageLibPath/a.dart', r'''
-part of 'test.dart';
+    var library = await buildLibrary(r'''
+class A {
+  final int foo = 0;
+  const A();
+}
+
 augment class A {
   augment final int foo = augmented + 1;
 }
 ''');
 
-    var library = await buildLibrary(r'''
-part 'a.dart';
-class A {
-  final int foo = 0;
-  const A();
-}
-''');
-
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      parts
-        part_0
-          uri: package:test/a.dart
-          enclosingElement3: <testLibraryFragment>
-          unit: <testLibrary>::@fragment::package:test/a.dart
-      classes
-        class A @21
-          reference: <testLibraryFragment>::@class::A
-          enclosingElement3: <testLibraryFragment>
-          augmentation: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A
-          fields
-            final foo @37
-              reference: <testLibraryFragment>::@class::A::@field::foo
-              enclosingElement3: <testLibraryFragment>::@class::A
-              type: int
-              shouldUseTypeForInitializerInference: true
-              constantInitializer
-                IntegerLiteral
-                  literal: 0 @43
-                  staticType: int
-              augmentation: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@fieldAugmentation::foo
-          constructors
-            const @54
-              reference: <testLibraryFragment>::@class::A::@constructor::new
-              enclosingElement3: <testLibraryFragment>::@class::A
-          accessors
-            synthetic get foo @-1
-              reference: <testLibraryFragment>::@class::A::@getter::foo
-              enclosingElement3: <testLibraryFragment>::@class::A
-              returnType: int
-          augmented
-            fields
-              <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@fieldAugmentation::foo
-            constructors
-              <testLibraryFragment>::@class::A::@constructor::new
-            accessors
-              <testLibraryFragment>::@class::A::@getter::foo
-    <testLibrary>::@fragment::package:test/a.dart
-      enclosingElement3: <testLibraryFragment>
-      classes
-        augment class A @35
-          reference: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A
-          enclosingElement3: <testLibrary>::@fragment::package:test/a.dart
-          augmentationTarget: <testLibraryFragment>::@class::A
-          fields
-            augment final foo @59
-              reference: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@fieldAugmentation::foo
-              enclosingElement3: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A
-              type: int
-              shouldUseTypeForInitializerInference: true
-              constantInitializer
-                BinaryExpression
-                  leftOperand: AugmentedExpression
-                    augmentedKeyword: augmented @65
-                    element: <testLibraryFragment>::@class::A::@field::foo
-                    fragment: <testLibraryFragment>::@class::A::@field::foo
-                    staticType: int
-                  operator: + @75
-                  rightOperand: IntegerLiteral
-                    literal: 1 @77
-                    staticType: int
-                  staticElement: dart:core::<fragment>::@class::num::@method::+
-                  element: dart:core::<fragment>::@class::num::@method::+#element
-                  staticInvokeType: num Function(num)
-                  staticType: int
-              augmentationTarget: <testLibraryFragment>::@class::A::@field::foo
-----------------------------------------
-library
-  reference: <testLibrary>
   fragments
-    <testLibraryFragment>
+    #F0 <testLibraryFragment>
       element: <testLibrary>
-      nextFragment: <testLibrary>::@fragment::package:test/a.dart
       classes
-        class A @21
-          reference: <testLibraryFragment>::@class::A
+        #F1 class A (nameOffset:6) (firstTokenOffset:0) (offset:6)
           element: <testLibrary>::@class::A
-          nextFragment: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A
+          nextFragment: #F2
           fields
-            hasInitializer foo @37
-              reference: <testLibraryFragment>::@class::A::@field::foo
-              element: <testLibraryFragment>::@class::A::@field::foo#element
+            #F3 hasInitializer foo (nameOffset:22) (firstTokenOffset:22) (offset:22)
+              element: <testLibrary>::@class::A::@field::foo
               initializer: expression_0
                 IntegerLiteral
-                  literal: 0 @43
-                  staticType: int
-              nextFragment: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@fieldAugmentation::foo
-              getter2: <testLibraryFragment>::@class::A::@getter::foo
+                  literal: 0 @28
+                  staticType: null
+              nextFragment: #F4
           constructors
-            const new
-              reference: <testLibraryFragment>::@class::A::@constructor::new
-              element: <testLibraryFragment>::@class::A::@constructor::new#element
+            #F5 const new (nameOffset:<null>) (firstTokenOffset:33) (offset:39)
+              element: <testLibrary>::@class::A::@constructor::new
               typeName: A
-              typeNameOffset: 54
+              typeNameOffset: 39
           getters
-            synthetic get foo
-              reference: <testLibraryFragment>::@class::A::@getter::foo
-              element: <testLibraryFragment>::@class::A::@getter::foo#element
-    <testLibrary>::@fragment::package:test/a.dart
-      element: <testLibrary>
-      enclosingFragment: <testLibraryFragment>
-      previousFragment: <testLibraryFragment>
-      classes
-        class A @35
-          reference: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A
+            #F6 synthetic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:22)
+              element: <testLibrary>::@class::A::@getter::foo
+        #F2 class A (nameOffset:61) (firstTokenOffset:47) (offset:61)
           element: <testLibrary>::@class::A
-          previousFragment: <testLibraryFragment>::@class::A
+          previousFragment: #F1
           fields
-            augment hasInitializer foo @59
-              reference: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@fieldAugmentation::foo
-              element: <testLibraryFragment>::@class::A::@field::foo#element
+            #F4 augment hasInitializer foo (nameOffset:85) (firstTokenOffset:85) (offset:85)
+              element: <testLibrary>::@class::A::@field::foo
               initializer: expression_1
                 BinaryExpression
-                  leftOperand: AugmentedExpression
-                    augmentedKeyword: augmented @65
-                    element: <testLibraryFragment>::@class::A::@field::foo
-                    fragment: <testLibraryFragment>::@class::A::@field::foo
-                    staticType: int
-                  operator: + @75
+                  leftOperand: SimpleIdentifier
+                    token: augmented @91
+                    element: <null>
+                    staticType: InvalidType
+                  operator: + @101
                   rightOperand: IntegerLiteral
-                    literal: 1 @77
+                    literal: 1 @103
                     staticType: int
-                  staticElement: dart:core::<fragment>::@class::num::@method::+
-                  element: dart:core::<fragment>::@class::num::@method::+#element
-                  staticInvokeType: num Function(num)
-                  staticType: int
-              previousFragment: <testLibraryFragment>::@class::A::@field::foo
+                  element: <null>
+                  staticInvokeType: null
+                  staticType: InvalidType
+              previousFragment: #F3
   classes
     class A
       reference: <testLibrary>::@class::A
-      firstFragment: <testLibraryFragment>::@class::A
+      firstFragment: #F1
       fields
         final hasInitializer foo
-          firstFragment: <testLibraryFragment>::@class::A::@field::foo
+          reference: <testLibrary>::@class::A::@field::foo
+          firstFragment: #F3
           type: int
           constantInitializer
-            fragment: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@fieldAugmentation::foo
+            fragment: #F4
             expression: expression_1
-          getter: <testLibraryFragment>::@class::A::@getter::foo#element
+          getter: <testLibrary>::@class::A::@getter::foo
       constructors
         const new
-          firstFragment: <testLibraryFragment>::@class::A::@constructor::new
+          reference: <testLibrary>::@class::A::@constructor::new
+          firstFragment: #F5
       getters
-        synthetic get foo
-          firstFragment: <testLibraryFragment>::@class::A::@getter::foo
+        synthetic foo
+          reference: <testLibrary>::@class::A::@getter::foo
+          firstFragment: #F6
+          returnType: int
+          variable: <testLibrary>::@class::A::@field::foo
 ''');
   }
 
-  @SkippedTest(reason: 'implement augmentation')
   /// This is not allowed by the specification, but allowed syntactically,
   /// so we need a way to handle it.
   test_augmented_field_augment_getter() async {
-    newFile('$testPackageLibPath/a.dart', r'''
-part of 'test.dart';
-augment class A {
-  augment int foo = 1;
-}
-''');
-
     var library = await buildLibrary(r'''
-part 'a.dart';
 class A {
   int get foo => 0;
 }
-''');
 
-    checkElementText(library, r'''
-library
-  reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      parts
-        part_0
-          uri: package:test/a.dart
-          enclosingElement3: <testLibraryFragment>
-          unit: <testLibrary>::@fragment::package:test/a.dart
-      classes
-        class A @21
-          reference: <testLibraryFragment>::@class::A
-          enclosingElement3: <testLibraryFragment>
-          augmentation: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A
-          fields
-            synthetic foo @-1
-              reference: <testLibraryFragment>::@class::A::@field::foo
-              enclosingElement3: <testLibraryFragment>::@class::A
-              type: int
-              id: field_0
-              getter: getter_0
-              augmentation: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@fieldAugmentation::foo
-          constructors
-            synthetic @-1
-              reference: <testLibraryFragment>::@class::A::@constructor::new
-              enclosingElement3: <testLibraryFragment>::@class::A
-          accessors
-            get foo @35
-              reference: <testLibraryFragment>::@class::A::@getter::foo
-              enclosingElement3: <testLibraryFragment>::@class::A
-              returnType: int
-              id: getter_0
-              variable: field_0
-          augmented
-            fields
-              <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@fieldAugmentation::foo
-            constructors
-              <testLibraryFragment>::@class::A::@constructor::new
-            accessors
-              <testLibraryFragment>::@class::A::@getter::foo
-    <testLibrary>::@fragment::package:test/a.dart
-      enclosingElement3: <testLibraryFragment>
-      classes
-        augment class A @35
-          reference: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A
-          enclosingElement3: <testLibrary>::@fragment::package:test/a.dart
-          augmentationTarget: <testLibraryFragment>::@class::A
-          fields
-            augment foo @53
-              reference: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@fieldAugmentation::foo
-              enclosingElement3: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A
-              type: int
-              shouldUseTypeForInitializerInference: true
-              id: field_1
-              augmentationTarget: <testLibraryFragment>::@class::A::@field::foo
-----------------------------------------
-library
-  reference: <testLibrary>
-  fragments
-    <testLibraryFragment>
-      element: <testLibrary>
-      nextFragment: <testLibrary>::@fragment::package:test/a.dart
-      classes
-        class A @21
-          reference: <testLibraryFragment>::@class::A
-          element: <testLibrary>::@class::A
-          nextFragment: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A
-          fields
-            synthetic foo
-              reference: <testLibraryFragment>::@class::A::@field::foo
-              element: <testLibraryFragment>::@class::A::@field::foo#element
-              nextFragment: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@fieldAugmentation::foo
-              getter2: <testLibraryFragment>::@class::A::@getter::foo
-          constructors
-            synthetic new
-              reference: <testLibraryFragment>::@class::A::@constructor::new
-              element: <testLibraryFragment>::@class::A::@constructor::new#element
-              typeName: A
-          getters
-            get foo @35
-              reference: <testLibraryFragment>::@class::A::@getter::foo
-              element: <testLibraryFragment>::@class::A::@getter::foo#element
-    <testLibrary>::@fragment::package:test/a.dart
-      element: <testLibrary>
-      enclosingFragment: <testLibraryFragment>
-      previousFragment: <testLibraryFragment>
-      classes
-        class A @35
-          reference: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A
-          element: <testLibrary>::@class::A
-          previousFragment: <testLibraryFragment>::@class::A
-          fields
-            augment hasInitializer foo @53
-              reference: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@fieldAugmentation::foo
-              element: <testLibraryFragment>::@class::A::@field::foo#element
-              previousFragment: <testLibraryFragment>::@class::A::@field::foo
-  classes
-    class A
-      reference: <testLibrary>::@class::A
-      firstFragment: <testLibraryFragment>::@class::A
-      fields
-        synthetic hasInitializer foo
-          firstFragment: <testLibraryFragment>::@class::A::@field::foo
-          type: int
-          getter: <testLibraryFragment>::@class::A::@getter::foo#element
-      constructors
-        synthetic new
-          firstFragment: <testLibraryFragment>::@class::A::@constructor::new
-      getters
-        get foo
-          firstFragment: <testLibraryFragment>::@class::A::@getter::foo
-''');
-  }
-
-  @SkippedTest(reason: 'implement augmentation')
-  test_augmented_field_augment_method() async {
-    newFile('$testPackageLibPath/a.dart', r'''
-part of 'test.dart';
 augment class A {
   augment int foo = 1;
 }
 ''');
 
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      classes
+        #F1 class A (nameOffset:6) (firstTokenOffset:0) (offset:6)
+          element: <testLibrary>::@class::A
+          nextFragment: #F2
+          fields
+            #F3 synthetic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
+              element: <testLibrary>::@class::A::@field::foo::@def::0
+          constructors
+            #F4 synthetic new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
+              element: <testLibrary>::@class::A::@constructor::new
+              typeName: A
+          getters
+            #F5 foo (nameOffset:20) (firstTokenOffset:12) (offset:20)
+              element: <testLibrary>::@class::A::@getter::foo::@def::0
+        #F2 class A (nameOffset:47) (firstTokenOffset:33) (offset:47)
+          element: <testLibrary>::@class::A
+          previousFragment: #F1
+          fields
+            #F6 augment hasInitializer foo (nameOffset:65) (firstTokenOffset:65) (offset:65)
+              element: <testLibrary>::@class::A::@field::foo::@def::1
+          getters
+            #F7 synthetic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:65)
+              element: <testLibrary>::@class::A::@getter::foo::@def::1
+          setters
+            #F8 synthetic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:65)
+              element: <testLibrary>::@class::A::@setter::foo
+              formalParameters
+                #F9 value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:65)
+                  element: <testLibrary>::@class::A::@setter::foo::@formalParameter::value
+  classes
+    hasNonFinalField class A
+      reference: <testLibrary>::@class::A
+      firstFragment: #F1
+      fields
+        synthetic foo
+          reference: <testLibrary>::@class::A::@field::foo::@def::0
+          firstFragment: #F3
+          type: int
+          getter: <testLibrary>::@class::A::@getter::foo::@def::0
+        hasInitializer foo
+          reference: <testLibrary>::@class::A::@field::foo::@def::1
+          firstFragment: #F6
+          type: int
+          getter: <testLibrary>::@class::A::@getter::foo::@def::1
+          setter: <testLibrary>::@class::A::@setter::foo
+      constructors
+        synthetic new
+          reference: <testLibrary>::@class::A::@constructor::new
+          firstFragment: #F4
+      getters
+        foo
+          reference: <testLibrary>::@class::A::@getter::foo::@def::0
+          firstFragment: #F5
+          returnType: int
+          variable: <testLibrary>::@class::A::@field::foo::@def::0
+        synthetic foo
+          reference: <testLibrary>::@class::A::@getter::foo::@def::1
+          firstFragment: #F7
+          returnType: int
+          variable: <testLibrary>::@class::A::@field::foo::@def::1
+      setters
+        synthetic foo
+          reference: <testLibrary>::@class::A::@setter::foo
+          firstFragment: #F8
+          formalParameters
+            #E0 requiredPositional value
+              firstFragment: #F9
+              type: int
+          returnType: void
+          variable: <testLibrary>::@class::A::@field::foo::@def::1
+''');
+  }
+
+  test_augmented_field_augment_method() async {
     var library = await buildLibrary(r'''
-part 'a.dart';
 class A {
   void foo() {}
 }
-''');
 
-    checkElementText(library, r'''
-library
-  reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      parts
-        part_0
-          uri: package:test/a.dart
-          enclosingElement3: <testLibraryFragment>
-          unit: <testLibrary>::@fragment::package:test/a.dart
-      classes
-        class A @21
-          reference: <testLibraryFragment>::@class::A
-          enclosingElement3: <testLibraryFragment>
-          augmentation: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A
-          constructors
-            synthetic @-1
-              reference: <testLibraryFragment>::@class::A::@constructor::new
-              enclosingElement3: <testLibraryFragment>::@class::A
-          methods
-            foo @32
-              reference: <testLibraryFragment>::@class::A::@method::foo
-              enclosingElement3: <testLibraryFragment>::@class::A
-              returnType: void
-          augmented
-            fields
-              <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@fieldAugmentation::foo
-            constructors
-              <testLibraryFragment>::@class::A::@constructor::new
-            methods
-              <testLibraryFragment>::@class::A::@method::foo
-    <testLibrary>::@fragment::package:test/a.dart
-      enclosingElement3: <testLibraryFragment>
-      classes
-        augment class A @35
-          reference: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A
-          enclosingElement3: <testLibrary>::@fragment::package:test/a.dart
-          augmentationTarget: <testLibraryFragment>::@class::A
-          fields
-            augment foo @53
-              reference: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@fieldAugmentation::foo
-              enclosingElement3: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A
-              type: int
-              shouldUseTypeForInitializerInference: true
-              id: field_0
-              augmentationTargetAny: <testLibraryFragment>::@class::A::@method::foo
-----------------------------------------
-library
-  reference: <testLibrary>
-  fragments
-    <testLibraryFragment>
-      element: <testLibrary>
-      nextFragment: <testLibrary>::@fragment::package:test/a.dart
-      classes
-        class A @21
-          reference: <testLibraryFragment>::@class::A
-          element: <testLibrary>::@class::A
-          nextFragment: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A
-          constructors
-            synthetic new
-              reference: <testLibraryFragment>::@class::A::@constructor::new
-              element: <testLibraryFragment>::@class::A::@constructor::new#element
-              typeName: A
-          methods
-            foo @32
-              reference: <testLibraryFragment>::@class::A::@method::foo
-              element: <testLibraryFragment>::@class::A::@method::foo#element
-    <testLibrary>::@fragment::package:test/a.dart
-      element: <testLibrary>
-      enclosingFragment: <testLibraryFragment>
-      previousFragment: <testLibraryFragment>
-      classes
-        class A @35
-          reference: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A
-          element: <testLibrary>::@class::A
-          previousFragment: <testLibraryFragment>::@class::A
-          fields
-            augment hasInitializer foo @53
-              reference: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@fieldAugmentation::foo
-              element: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@fieldAugmentation::foo#element
-  classes
-    class A
-      reference: <testLibrary>::@class::A
-      firstFragment: <testLibraryFragment>::@class::A
-      fields
-        hasInitializer foo
-          firstFragment: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@fieldAugmentation::foo
-          type: int
-      constructors
-        synthetic new
-          firstFragment: <testLibraryFragment>::@class::A::@constructor::new
-      methods
-        foo
-          reference: <testLibrary>::@class::A::@method::foo
-          firstFragment: <testLibraryFragment>::@class::A::@method::foo
-''');
-  }
-
-  @SkippedTest(reason: 'implement augmentation')
-  /// This is not allowed by the specification, but allowed syntactically,
-  /// so we need a way to handle it.
-  test_augmented_field_augment_setter() async {
-    newFile('$testPackageLibPath/a.dart', r'''
-part of 'test.dart';
 augment class A {
   augment int foo = 1;
 }
 ''');
 
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      classes
+        #F1 class A (nameOffset:6) (firstTokenOffset:0) (offset:6)
+          element: <testLibrary>::@class::A
+          nextFragment: #F2
+          constructors
+            #F3 synthetic new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
+              element: <testLibrary>::@class::A::@constructor::new
+              typeName: A
+          methods
+            #F4 foo (nameOffset:17) (firstTokenOffset:12) (offset:17)
+              element: <testLibrary>::@class::A::@method::foo
+        #F2 class A (nameOffset:43) (firstTokenOffset:29) (offset:43)
+          element: <testLibrary>::@class::A
+          previousFragment: #F1
+          fields
+            #F5 augment hasInitializer foo (nameOffset:61) (firstTokenOffset:61) (offset:61)
+              element: <testLibrary>::@class::A::@field::foo
+          getters
+            #F6 synthetic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:61)
+              element: <testLibrary>::@class::A::@getter::foo
+          setters
+            #F7 synthetic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:61)
+              element: <testLibrary>::@class::A::@setter::foo
+              formalParameters
+                #F8 value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:61)
+                  element: <testLibrary>::@class::A::@setter::foo::@formalParameter::value
+  classes
+    hasNonFinalField class A
+      reference: <testLibrary>::@class::A
+      firstFragment: #F1
+      fields
+        hasInitializer foo
+          reference: <testLibrary>::@class::A::@field::foo
+          firstFragment: #F5
+          type: int
+          getter: <testLibrary>::@class::A::@getter::foo
+          setter: <testLibrary>::@class::A::@setter::foo
+      constructors
+        synthetic new
+          reference: <testLibrary>::@class::A::@constructor::new
+          firstFragment: #F3
+      getters
+        synthetic foo
+          reference: <testLibrary>::@class::A::@getter::foo
+          firstFragment: #F6
+          returnType: int
+          variable: <testLibrary>::@class::A::@field::foo
+      setters
+        synthetic foo
+          reference: <testLibrary>::@class::A::@setter::foo
+          firstFragment: #F7
+          formalParameters
+            #E0 requiredPositional value
+              firstFragment: #F8
+              type: int
+          returnType: void
+          variable: <testLibrary>::@class::A::@field::foo
+      methods
+        foo
+          reference: <testLibrary>::@class::A::@method::foo
+          firstFragment: #F4
+          returnType: void
+''');
+  }
+
+  /// This is not allowed by the specification, but allowed syntactically,
+  /// so we need a way to handle it.
+  test_augmented_field_augment_setter() async {
     var library = await buildLibrary(r'''
-part 'a.dart';
 class A {
   set foo(int _) {}
+}
+
+augment class A {
+  augment int foo = 1;
 }
 ''');
 
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      parts
-        part_0
-          uri: package:test/a.dart
-          enclosingElement3: <testLibraryFragment>
-          unit: <testLibrary>::@fragment::package:test/a.dart
-      classes
-        class A @21
-          reference: <testLibraryFragment>::@class::A
-          enclosingElement3: <testLibraryFragment>
-          augmentation: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A
-          fields
-            synthetic foo @-1
-              reference: <testLibraryFragment>::@class::A::@field::foo
-              enclosingElement3: <testLibraryFragment>::@class::A
-              type: int
-              id: field_0
-              setter: setter_0
-              augmentation: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@fieldAugmentation::foo
-          constructors
-            synthetic @-1
-              reference: <testLibraryFragment>::@class::A::@constructor::new
-              enclosingElement3: <testLibraryFragment>::@class::A
-          accessors
-            set foo= @31
-              reference: <testLibraryFragment>::@class::A::@setter::foo
-              enclosingElement3: <testLibraryFragment>::@class::A
-              parameters
-                requiredPositional _ @39
-                  type: int
-              returnType: void
-              id: setter_0
-              variable: field_0
-          augmented
-            fields
-              <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@fieldAugmentation::foo
-            constructors
-              <testLibraryFragment>::@class::A::@constructor::new
-            accessors
-              <testLibraryFragment>::@class::A::@setter::foo
-    <testLibrary>::@fragment::package:test/a.dart
-      enclosingElement3: <testLibraryFragment>
-      classes
-        augment class A @35
-          reference: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A
-          enclosingElement3: <testLibrary>::@fragment::package:test/a.dart
-          augmentationTarget: <testLibraryFragment>::@class::A
-          fields
-            augment foo @53
-              reference: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@fieldAugmentation::foo
-              enclosingElement3: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A
-              type: int
-              shouldUseTypeForInitializerInference: true
-              id: field_1
-              augmentationTarget: <testLibraryFragment>::@class::A::@field::foo
-----------------------------------------
-library
-  reference: <testLibrary>
   fragments
-    <testLibraryFragment>
+    #F0 <testLibraryFragment>
       element: <testLibrary>
-      nextFragment: <testLibrary>::@fragment::package:test/a.dart
       classes
-        class A @21
-          reference: <testLibraryFragment>::@class::A
+        #F1 class A (nameOffset:6) (firstTokenOffset:0) (offset:6)
           element: <testLibrary>::@class::A
-          nextFragment: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A
+          nextFragment: #F2
           fields
-            synthetic foo
-              reference: <testLibraryFragment>::@class::A::@field::foo
-              element: <testLibraryFragment>::@class::A::@field::foo#element
-              nextFragment: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@fieldAugmentation::foo
-              setter2: <testLibraryFragment>::@class::A::@setter::foo
+            #F3 synthetic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
+              element: <testLibrary>::@class::A::@field::foo::@def::0
           constructors
-            synthetic new
-              reference: <testLibraryFragment>::@class::A::@constructor::new
-              element: <testLibraryFragment>::@class::A::@constructor::new#element
+            #F4 synthetic new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
+              element: <testLibrary>::@class::A::@constructor::new
               typeName: A
           setters
-            set foo @31
-              reference: <testLibraryFragment>::@class::A::@setter::foo
-              element: <testLibraryFragment>::@class::A::@setter::foo#element
+            #F5 foo (nameOffset:16) (firstTokenOffset:12) (offset:16)
+              element: <testLibrary>::@class::A::@setter::foo::@def::0
               formalParameters
-                _ @39
-                  element: <testLibraryFragment>::@class::A::@setter::foo::@parameter::_#element
-    <testLibrary>::@fragment::package:test/a.dart
-      element: <testLibrary>
-      enclosingFragment: <testLibraryFragment>
-      previousFragment: <testLibraryFragment>
-      classes
-        class A @35
-          reference: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A
+                #F6 _ (nameOffset:24) (firstTokenOffset:20) (offset:24)
+                  element: <testLibrary>::@class::A::@setter::foo::@def::0::@formalParameter::_
+        #F2 class A (nameOffset:47) (firstTokenOffset:33) (offset:47)
           element: <testLibrary>::@class::A
-          previousFragment: <testLibraryFragment>::@class::A
+          previousFragment: #F1
           fields
-            augment hasInitializer foo @53
-              reference: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@fieldAugmentation::foo
-              element: <testLibraryFragment>::@class::A::@field::foo#element
-              previousFragment: <testLibraryFragment>::@class::A::@field::foo
+            #F7 augment hasInitializer foo (nameOffset:65) (firstTokenOffset:65) (offset:65)
+              element: <testLibrary>::@class::A::@field::foo::@def::1
+          getters
+            #F8 synthetic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:65)
+              element: <testLibrary>::@class::A::@getter::foo
+          setters
+            #F9 synthetic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:65)
+              element: <testLibrary>::@class::A::@setter::foo::@def::1
+              formalParameters
+                #F10 value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:65)
+                  element: <testLibrary>::@class::A::@setter::foo::@def::1::@formalParameter::value
   classes
-    class A
+    hasNonFinalField class A
       reference: <testLibrary>::@class::A
-      firstFragment: <testLibraryFragment>::@class::A
+      firstFragment: #F1
       fields
-        synthetic hasInitializer foo
-          firstFragment: <testLibraryFragment>::@class::A::@field::foo
+        synthetic foo
+          reference: <testLibrary>::@class::A::@field::foo::@def::0
+          firstFragment: #F3
           type: int
-          setter: <testLibraryFragment>::@class::A::@setter::foo#element
+          setter: <testLibrary>::@class::A::@setter::foo::@def::0
+        hasInitializer foo
+          reference: <testLibrary>::@class::A::@field::foo::@def::1
+          firstFragment: #F7
+          type: int
+          getter: <testLibrary>::@class::A::@getter::foo
+          setter: <testLibrary>::@class::A::@setter::foo::@def::1
       constructors
         synthetic new
-          firstFragment: <testLibraryFragment>::@class::A::@constructor::new
+          reference: <testLibrary>::@class::A::@constructor::new
+          firstFragment: #F4
+      getters
+        synthetic foo
+          reference: <testLibrary>::@class::A::@getter::foo
+          firstFragment: #F8
+          returnType: int
+          variable: <testLibrary>::@class::A::@field::foo::@def::1
       setters
-        set foo
-          firstFragment: <testLibraryFragment>::@class::A::@setter::foo
+        foo
+          reference: <testLibrary>::@class::A::@setter::foo::@def::0
+          firstFragment: #F5
           formalParameters
-            requiredPositional _
+            #E0 requiredPositional _
+              firstFragment: #F6
               type: int
+          returnType: void
+          variable: <testLibrary>::@class::A::@field::foo::@def::0
+        synthetic foo
+          reference: <testLibrary>::@class::A::@setter::foo::@def::1
+          firstFragment: #F9
+          formalParameters
+            #E1 requiredPositional value
+              firstFragment: #F10
+              type: int
+          returnType: void
+          variable: <testLibrary>::@class::A::@field::foo::@def::1
 ''');
   }
 
-  @SkippedTest(reason: 'implement augmentation')
   test_augmented_fields_add() async {
-    newFile('$testPackageLibPath/a.dart', r'''
-part of 'test.dart';
+    var library = await buildLibrary(r'''
+class A {
+  int foo1 = 0;
+}
+
 augment class A {
   int foo2 = 0;
 }
 ''');
 
-    var library = await buildLibrary(r'''
-part 'a.dart';
-class A {
-  int foo1 = 0;
-}
-''');
-
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      parts
-        part_0
-          uri: package:test/a.dart
-          enclosingElement3: <testLibraryFragment>
-          unit: <testLibrary>::@fragment::package:test/a.dart
-      classes
-        class A @21
-          reference: <testLibraryFragment>::@class::A
-          enclosingElement3: <testLibraryFragment>
-          augmentation: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A
-          fields
-            foo1 @31
-              reference: <testLibraryFragment>::@class::A::@field::foo1
-              enclosingElement3: <testLibraryFragment>::@class::A
-              type: int
-              shouldUseTypeForInitializerInference: true
-              id: field_0
-              getter: getter_0
-              setter: setter_0
-          constructors
-            synthetic @-1
-              reference: <testLibraryFragment>::@class::A::@constructor::new
-              enclosingElement3: <testLibraryFragment>::@class::A
-          accessors
-            synthetic get foo1 @-1
-              reference: <testLibraryFragment>::@class::A::@getter::foo1
-              enclosingElement3: <testLibraryFragment>::@class::A
-              returnType: int
-              id: getter_0
-              variable: field_0
-            synthetic set foo1= @-1
-              reference: <testLibraryFragment>::@class::A::@setter::foo1
-              enclosingElement3: <testLibraryFragment>::@class::A
-              parameters
-                requiredPositional _foo1 @-1
-                  type: int
-              returnType: void
-              id: setter_0
-              variable: field_0
-          augmented
-            fields
-              <testLibraryFragment>::@class::A::@field::foo1
-              <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@field::foo2
-            constructors
-              <testLibraryFragment>::@class::A::@constructor::new
-            accessors
-              <testLibraryFragment>::@class::A::@getter::foo1
-              <testLibraryFragment>::@class::A::@setter::foo1
-              <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@getter::foo2
-              <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@setter::foo2
-    <testLibrary>::@fragment::package:test/a.dart
-      enclosingElement3: <testLibraryFragment>
-      classes
-        augment class A @35
-          reference: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A
-          enclosingElement3: <testLibrary>::@fragment::package:test/a.dart
-          augmentationTarget: <testLibraryFragment>::@class::A
-          fields
-            foo2 @45
-              reference: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@field::foo2
-              enclosingElement3: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A
-              type: int
-              shouldUseTypeForInitializerInference: true
-              id: field_1
-              getter: getter_1
-              setter: setter_1
-          accessors
-            synthetic get foo2 @-1
-              reference: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@getter::foo2
-              enclosingElement3: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A
-              returnType: int
-              id: getter_1
-              variable: field_1
-            synthetic set foo2= @-1
-              reference: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@setter::foo2
-              enclosingElement3: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A
-              parameters
-                requiredPositional _foo2 @-1
-                  type: int
-              returnType: void
-              id: setter_1
-              variable: field_1
-----------------------------------------
-library
-  reference: <testLibrary>
   fragments
-    <testLibraryFragment>
+    #F0 <testLibraryFragment>
       element: <testLibrary>
-      nextFragment: <testLibrary>::@fragment::package:test/a.dart
       classes
-        class A @21
-          reference: <testLibraryFragment>::@class::A
+        #F1 class A (nameOffset:6) (firstTokenOffset:0) (offset:6)
           element: <testLibrary>::@class::A
-          nextFragment: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A
+          nextFragment: #F2
           fields
-            hasInitializer foo1 @31
-              reference: <testLibraryFragment>::@class::A::@field::foo1
-              element: <testLibraryFragment>::@class::A::@field::foo1#element
-              getter2: <testLibraryFragment>::@class::A::@getter::foo1
-              setter2: <testLibraryFragment>::@class::A::@setter::foo1
+            #F3 hasInitializer foo1 (nameOffset:16) (firstTokenOffset:16) (offset:16)
+              element: <testLibrary>::@class::A::@field::foo1
           constructors
-            synthetic new
-              reference: <testLibraryFragment>::@class::A::@constructor::new
-              element: <testLibraryFragment>::@class::A::@constructor::new#element
+            #F4 synthetic new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
+              element: <testLibrary>::@class::A::@constructor::new
               typeName: A
           getters
-            synthetic get foo1
-              reference: <testLibraryFragment>::@class::A::@getter::foo1
-              element: <testLibraryFragment>::@class::A::@getter::foo1#element
+            #F5 synthetic foo1 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
+              element: <testLibrary>::@class::A::@getter::foo1
           setters
-            synthetic set foo1
-              reference: <testLibraryFragment>::@class::A::@setter::foo1
-              element: <testLibraryFragment>::@class::A::@setter::foo1#element
+            #F6 synthetic foo1 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
+              element: <testLibrary>::@class::A::@setter::foo1
               formalParameters
-                _foo1
-                  element: <testLibraryFragment>::@class::A::@setter::foo1::@parameter::_foo1#element
-    <testLibrary>::@fragment::package:test/a.dart
-      element: <testLibrary>
-      enclosingFragment: <testLibraryFragment>
-      previousFragment: <testLibraryFragment>
-      classes
-        class A @35
-          reference: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A
+                #F7 value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
+                  element: <testLibrary>::@class::A::@setter::foo1::@formalParameter::value
+        #F2 class A (nameOffset:43) (firstTokenOffset:29) (offset:43)
           element: <testLibrary>::@class::A
-          previousFragment: <testLibraryFragment>::@class::A
+          previousFragment: #F1
           fields
-            hasInitializer foo2 @45
-              reference: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@field::foo2
-              element: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@field::foo2#element
-              getter2: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@getter::foo2
-              setter2: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@setter::foo2
+            #F8 hasInitializer foo2 (nameOffset:53) (firstTokenOffset:53) (offset:53)
+              element: <testLibrary>::@class::A::@field::foo2
           getters
-            synthetic get foo2
-              reference: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@getter::foo2
-              element: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@getter::foo2#element
+            #F9 synthetic foo2 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:53)
+              element: <testLibrary>::@class::A::@getter::foo2
           setters
-            synthetic set foo2
-              reference: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@setter::foo2
-              element: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@setter::foo2#element
+            #F10 synthetic foo2 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:53)
+              element: <testLibrary>::@class::A::@setter::foo2
               formalParameters
-                _foo2
-                  element: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@setter::foo2::@parameter::_foo2#element
+                #F11 value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:53)
+                  element: <testLibrary>::@class::A::@setter::foo2::@formalParameter::value
   classes
-    class A
+    hasNonFinalField class A
       reference: <testLibrary>::@class::A
-      firstFragment: <testLibraryFragment>::@class::A
+      firstFragment: #F1
       fields
         hasInitializer foo1
-          firstFragment: <testLibraryFragment>::@class::A::@field::foo1
+          reference: <testLibrary>::@class::A::@field::foo1
+          firstFragment: #F3
           type: int
-          getter: <testLibraryFragment>::@class::A::@getter::foo1#element
-          setter: <testLibraryFragment>::@class::A::@setter::foo1#element
+          getter: <testLibrary>::@class::A::@getter::foo1
+          setter: <testLibrary>::@class::A::@setter::foo1
         hasInitializer foo2
-          firstFragment: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@field::foo2
+          reference: <testLibrary>::@class::A::@field::foo2
+          firstFragment: #F8
           type: int
-          getter: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@getter::foo2#element
-          setter: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@setter::foo2#element
+          getter: <testLibrary>::@class::A::@getter::foo2
+          setter: <testLibrary>::@class::A::@setter::foo2
       constructors
         synthetic new
-          firstFragment: <testLibraryFragment>::@class::A::@constructor::new
+          reference: <testLibrary>::@class::A::@constructor::new
+          firstFragment: #F4
       getters
-        synthetic get foo1
-          firstFragment: <testLibraryFragment>::@class::A::@getter::foo1
-        synthetic get foo2
-          firstFragment: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@getter::foo2
+        synthetic foo1
+          reference: <testLibrary>::@class::A::@getter::foo1
+          firstFragment: #F5
+          returnType: int
+          variable: <testLibrary>::@class::A::@field::foo1
+        synthetic foo2
+          reference: <testLibrary>::@class::A::@getter::foo2
+          firstFragment: #F9
+          returnType: int
+          variable: <testLibrary>::@class::A::@field::foo2
       setters
-        synthetic set foo1
-          firstFragment: <testLibraryFragment>::@class::A::@setter::foo1
+        synthetic foo1
+          reference: <testLibrary>::@class::A::@setter::foo1
+          firstFragment: #F6
           formalParameters
-            requiredPositional _foo1
+            #E0 requiredPositional value
+              firstFragment: #F7
               type: int
-        synthetic set foo2
-          firstFragment: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@setter::foo2
+          returnType: void
+          variable: <testLibrary>::@class::A::@field::foo1
+        synthetic foo2
+          reference: <testLibrary>::@class::A::@setter::foo2
+          firstFragment: #F10
           formalParameters
-            requiredPositional _foo2
+            #E1 requiredPositional value
+              firstFragment: #F11
               type: int
+          returnType: void
+          variable: <testLibrary>::@class::A::@field::foo2
 ''');
   }
 
-  @SkippedTest(reason: 'implement augmentation')
+  @SkippedTest(reason: 'Causes exception')
   test_augmented_fields_add_generic() async {
     newFile('$testPackageLibPath/a.dart', r'''
 part of 'test.dart';
@@ -25668,780 +23710,411 @@ library
 ''');
   }
 
-  @SkippedTest(reason: 'implement augmentation')
   test_augmented_fields_add_useFieldFormal() async {
-    newFile('$testPackageLibPath/a.dart', r'''
-part of 'test.dart';
-augment class A {
-  final int foo;
-}
-''');
-
     var library = await buildLibrary(r'''
-part 'a.dart';
 class A {
   A(this.foo);
 }
-''');
 
-    checkElementText(library, r'''
-library
-  reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      parts
-        part_0
-          uri: package:test/a.dart
-          enclosingElement3: <testLibraryFragment>
-          unit: <testLibrary>::@fragment::package:test/a.dart
-      classes
-        class A @21
-          reference: <testLibraryFragment>::@class::A
-          enclosingElement3: <testLibraryFragment>
-          augmentation: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A
-          constructors
-            @27
-              reference: <testLibraryFragment>::@class::A::@constructor::new
-              enclosingElement3: <testLibraryFragment>::@class::A
-              parameters
-                requiredPositional final hasImplicitType this.foo @34
-                  type: int
-                  field: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@field::foo
-          augmented
-            fields
-              <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@field::foo
-            constructors
-              <testLibraryFragment>::@class::A::@constructor::new
-            accessors
-              <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@getter::foo
-    <testLibrary>::@fragment::package:test/a.dart
-      enclosingElement3: <testLibraryFragment>
-      classes
-        augment class A @35
-          reference: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A
-          enclosingElement3: <testLibrary>::@fragment::package:test/a.dart
-          augmentationTarget: <testLibraryFragment>::@class::A
-          fields
-            final foo @51
-              reference: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@field::foo
-              enclosingElement3: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A
-              type: int
-          accessors
-            synthetic get foo @-1
-              reference: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@getter::foo
-              enclosingElement3: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A
-              returnType: int
-----------------------------------------
-library
-  reference: <testLibrary>
-  fragments
-    <testLibraryFragment>
-      element: <testLibrary>
-      nextFragment: <testLibrary>::@fragment::package:test/a.dart
-      classes
-        class A @21
-          reference: <testLibraryFragment>::@class::A
-          element: <testLibrary>::@class::A
-          nextFragment: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A
-          constructors
-            new
-              reference: <testLibraryFragment>::@class::A::@constructor::new
-              element: <testLibraryFragment>::@class::A::@constructor::new#element
-              typeName: A
-              typeNameOffset: 27
-              formalParameters
-                this.foo @34
-                  element: <testLibraryFragment>::@class::A::@constructor::new::@parameter::foo#element
-    <testLibrary>::@fragment::package:test/a.dart
-      element: <testLibrary>
-      enclosingFragment: <testLibraryFragment>
-      previousFragment: <testLibraryFragment>
-      classes
-        class A @35
-          reference: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A
-          element: <testLibrary>::@class::A
-          previousFragment: <testLibraryFragment>::@class::A
-          fields
-            foo @51
-              reference: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@field::foo
-              element: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@field::foo#element
-              getter2: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@getter::foo
-          getters
-            synthetic get foo
-              reference: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@getter::foo
-              element: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@getter::foo#element
-  classes
-    class A
-      reference: <testLibrary>::@class::A
-      firstFragment: <testLibraryFragment>::@class::A
-      fields
-        final foo
-          firstFragment: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@field::foo
-          type: int
-          getter: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@getter::foo#element
-      constructors
-        new
-          firstFragment: <testLibraryFragment>::@class::A::@constructor::new
-          formalParameters
-            requiredPositional final hasImplicitType foo
-              type: int
-      getters
-        synthetic get foo
-          firstFragment: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@getter::foo
-''');
-  }
-
-  @SkippedTest(reason: 'implement augmentation')
-  test_augmented_fields_add_useFieldInitializer() async {
-    newFile('$testPackageLibPath/a.dart', r'''
-part of 'test.dart';
 augment class A {
   final int foo;
 }
 ''');
 
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      classes
+        #F1 class A (nameOffset:6) (firstTokenOffset:0) (offset:6)
+          element: <testLibrary>::@class::A
+          nextFragment: #F2
+          constructors
+            #F3 new (nameOffset:<null>) (firstTokenOffset:12) (offset:12)
+              element: <testLibrary>::@class::A::@constructor::new
+              typeName: A
+              typeNameOffset: 12
+              formalParameters
+                #F4 this.foo (nameOffset:19) (firstTokenOffset:14) (offset:19)
+                  element: <testLibrary>::@class::A::@constructor::new::@formalParameter::foo
+        #F2 class A (nameOffset:42) (firstTokenOffset:28) (offset:42)
+          element: <testLibrary>::@class::A
+          previousFragment: #F1
+          fields
+            #F5 foo (nameOffset:58) (firstTokenOffset:58) (offset:58)
+              element: <testLibrary>::@class::A::@field::foo
+          getters
+            #F6 synthetic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:58)
+              element: <testLibrary>::@class::A::@getter::foo
+  classes
+    class A
+      reference: <testLibrary>::@class::A
+      firstFragment: #F1
+      fields
+        final foo
+          reference: <testLibrary>::@class::A::@field::foo
+          firstFragment: #F5
+          type: int
+          getter: <testLibrary>::@class::A::@getter::foo
+      constructors
+        new
+          reference: <testLibrary>::@class::A::@constructor::new
+          firstFragment: #F3
+          formalParameters
+            #E0 requiredPositional final hasImplicitType foo
+              firstFragment: #F4
+              type: int
+      getters
+        synthetic foo
+          reference: <testLibrary>::@class::A::@getter::foo
+          firstFragment: #F6
+          returnType: int
+          variable: <testLibrary>::@class::A::@field::foo
+''');
+  }
+
+  test_augmented_fields_add_useFieldInitializer() async {
     var library = await buildLibrary(r'''
-part 'a.dart';
 class A {
   const A() : foo = 0;
 }
+
+augment class A {
+  final int foo;
+}
 ''');
 
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      parts
-        part_0
-          uri: package:test/a.dart
-          enclosingElement3: <testLibraryFragment>
-          unit: <testLibrary>::@fragment::package:test/a.dart
-      classes
-        class A @21
-          reference: <testLibraryFragment>::@class::A
-          enclosingElement3: <testLibraryFragment>
-          augmentation: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A
-          constructors
-            const @33
-              reference: <testLibraryFragment>::@class::A::@constructor::new
-              enclosingElement3: <testLibraryFragment>::@class::A
-              constantInitializers
-                ConstructorFieldInitializer
-                  fieldName: SimpleIdentifier
-                    token: foo @39
-                    staticElement: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@field::foo
-                    element: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@field::foo#element
-                    staticType: null
-                  equals: = @43
-                  expression: IntegerLiteral
-                    literal: 0 @45
-                    staticType: int
-          augmented
-            fields
-              <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@field::foo
-            constructors
-              <testLibraryFragment>::@class::A::@constructor::new
-            accessors
-              <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@getter::foo
-    <testLibrary>::@fragment::package:test/a.dart
-      enclosingElement3: <testLibraryFragment>
-      classes
-        augment class A @35
-          reference: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A
-          enclosingElement3: <testLibrary>::@fragment::package:test/a.dart
-          augmentationTarget: <testLibraryFragment>::@class::A
-          fields
-            final foo @51
-              reference: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@field::foo
-              enclosingElement3: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A
-              type: int
-          accessors
-            synthetic get foo @-1
-              reference: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@getter::foo
-              enclosingElement3: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A
-              returnType: int
-----------------------------------------
-library
-  reference: <testLibrary>
   fragments
-    <testLibraryFragment>
+    #F0 <testLibraryFragment>
       element: <testLibrary>
-      nextFragment: <testLibrary>::@fragment::package:test/a.dart
       classes
-        class A @21
-          reference: <testLibraryFragment>::@class::A
+        #F1 class A (nameOffset:6) (firstTokenOffset:0) (offset:6)
           element: <testLibrary>::@class::A
-          nextFragment: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A
+          nextFragment: #F2
           constructors
-            const new
-              reference: <testLibraryFragment>::@class::A::@constructor::new
-              element: <testLibraryFragment>::@class::A::@constructor::new#element
+            #F3 const new (nameOffset:<null>) (firstTokenOffset:12) (offset:18)
+              element: <testLibrary>::@class::A::@constructor::new
               typeName: A
-              typeNameOffset: 33
-              constantInitializers
-                ConstructorFieldInitializer
-                  fieldName: SimpleIdentifier
-                    token: foo @39
-                    staticElement: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@field::foo
-                    element: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@field::foo#element
-                    staticType: null
-                  equals: = @43
-                  expression: IntegerLiteral
-                    literal: 0 @45
-                    staticType: int
-    <testLibrary>::@fragment::package:test/a.dart
-      element: <testLibrary>
-      enclosingFragment: <testLibraryFragment>
-      previousFragment: <testLibraryFragment>
-      classes
-        class A @35
-          reference: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A
+              typeNameOffset: 18
+        #F2 class A (nameOffset:50) (firstTokenOffset:36) (offset:50)
           element: <testLibrary>::@class::A
-          previousFragment: <testLibraryFragment>::@class::A
+          previousFragment: #F1
           fields
-            foo @51
-              reference: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@field::foo
-              element: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@field::foo#element
-              getter2: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@getter::foo
+            #F4 foo (nameOffset:66) (firstTokenOffset:66) (offset:66)
+              element: <testLibrary>::@class::A::@field::foo
           getters
-            synthetic get foo
-              reference: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@getter::foo
-              element: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@getter::foo#element
+            #F5 synthetic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:66)
+              element: <testLibrary>::@class::A::@getter::foo
   classes
     class A
       reference: <testLibrary>::@class::A
-      firstFragment: <testLibraryFragment>::@class::A
+      firstFragment: #F1
       fields
         final foo
-          firstFragment: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@field::foo
+          reference: <testLibrary>::@class::A::@field::foo
+          firstFragment: #F4
           type: int
-          getter: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@getter::foo#element
+          getter: <testLibrary>::@class::A::@getter::foo
       constructors
         const new
-          firstFragment: <testLibraryFragment>::@class::A::@constructor::new
+          reference: <testLibrary>::@class::A::@constructor::new
+          firstFragment: #F3
+          constantInitializers
+            ConstructorFieldInitializer
+              fieldName: SimpleIdentifier
+                token: foo @24
+                element: <testLibrary>::@class::A::@field::foo
+                staticType: null
+              equals: = @28
+              expression: IntegerLiteral
+                literal: 0 @30
+                staticType: int
       getters
-        synthetic get foo
-          firstFragment: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@getter::foo
+        synthetic foo
+          reference: <testLibrary>::@class::A::@getter::foo
+          firstFragment: #F5
+          returnType: int
+          variable: <testLibrary>::@class::A::@field::foo
 ''');
   }
 
-  @SkippedTest(reason: 'implement augmentation')
   test_augmented_getter_augments_constructor() async {
-    newFile('$testPackageLibPath/a.dart', r'''
-part of 'test.dart';
-augment class A {
-  augment int get foo => 0;
-}
-''');
-
     var library = await buildLibrary(r'''
-part 'a.dart';
 class A {
   A.foo();
 }
-''');
 
-    checkElementText(library, r'''
-library
-  reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      parts
-        part_0
-          uri: package:test/a.dart
-          enclosingElement3: <testLibraryFragment>
-          unit: <testLibrary>::@fragment::package:test/a.dart
-      classes
-        class A @21
-          reference: <testLibraryFragment>::@class::A
-          enclosingElement3: <testLibraryFragment>
-          augmentation: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A
-          constructors
-            foo @29
-              reference: <testLibraryFragment>::@class::A::@constructor::foo
-              enclosingElement3: <testLibraryFragment>::@class::A
-              periodOffset: 28
-              nameEnd: 32
-          augmented
-            constructors
-              <testLibraryFragment>::@class::A::@constructor::foo
-            accessors
-              <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@getterAugmentation::foo
-    <testLibrary>::@fragment::package:test/a.dart
-      enclosingElement3: <testLibraryFragment>
-      classes
-        augment class A @35
-          reference: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A
-          enclosingElement3: <testLibrary>::@fragment::package:test/a.dart
-          augmentationTarget: <testLibraryFragment>::@class::A
-          accessors
-            augment get foo @57
-              reference: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@getterAugmentation::foo
-              enclosingElement3: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A
-              returnType: int
-              id: getter_0
-              variable: <null>
-              augmentationTargetAny: <testLibraryFragment>::@class::A::@constructor::foo
-----------------------------------------
-library
-  reference: <testLibrary>
-  fragments
-    <testLibraryFragment>
-      element: <testLibrary>
-      nextFragment: <testLibrary>::@fragment::package:test/a.dart
-      classes
-        class A @21
-          reference: <testLibraryFragment>::@class::A
-          element: <testLibrary>::@class::A
-          nextFragment: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A
-          constructors
-            foo @29
-              reference: <testLibraryFragment>::@class::A::@constructor::foo
-              element: <testLibraryFragment>::@class::A::@constructor::foo#element
-              typeName: A
-              typeNameOffset: 27
-              periodOffset: 28
-    <testLibrary>::@fragment::package:test/a.dart
-      element: <testLibrary>
-      enclosingFragment: <testLibraryFragment>
-      previousFragment: <testLibraryFragment>
-      classes
-        class A @35
-          reference: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A
-          element: <testLibrary>::@class::A
-          previousFragment: <testLibraryFragment>::@class::A
-          getters
-            augment get foo @57
-              reference: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@getterAugmentation::foo
-              element: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@getterAugmentation::foo#element
-  classes
-    class A
-      reference: <testLibrary>::@class::A
-      firstFragment: <testLibraryFragment>::@class::A
-      constructors
-        foo
-          firstFragment: <testLibraryFragment>::@class::A::@constructor::foo
-      getters
-        get foo
-          firstFragment: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@getterAugmentation::foo
-''');
-  }
-
-  @SkippedTest(reason: 'implement augmentation')
-  test_augmented_getter_augments_method() async {
-    newFile('$testPackageLibPath/a.dart', r'''
-part of 'test.dart';
 augment class A {
   augment int get foo => 0;
 }
 ''');
 
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      classes
+        #F1 class A (nameOffset:6) (firstTokenOffset:0) (offset:6)
+          element: <testLibrary>::@class::A
+          nextFragment: #F2
+          constructors
+            #F3 foo (nameOffset:14) (firstTokenOffset:12) (offset:14)
+              element: <testLibrary>::@class::A::@constructor::foo
+              typeName: A
+              typeNameOffset: 12
+              periodOffset: 13
+        #F2 class A (nameOffset:38) (firstTokenOffset:24) (offset:38)
+          element: <testLibrary>::@class::A
+          previousFragment: #F1
+          fields
+            #F4 synthetic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:38)
+              element: <testLibrary>::@class::A::@field::foo
+          getters
+            #F5 augment foo (nameOffset:60) (firstTokenOffset:44) (offset:60)
+              element: <testLibrary>::@class::A::@getter::foo
+  classes
+    class A
+      reference: <testLibrary>::@class::A
+      firstFragment: #F1
+      fields
+        synthetic foo
+          reference: <testLibrary>::@class::A::@field::foo
+          firstFragment: #F4
+          type: int
+          getter: <testLibrary>::@class::A::@getter::foo
+      constructors
+        foo
+          reference: <testLibrary>::@class::A::@constructor::foo
+          firstFragment: #F3
+      getters
+        foo
+          reference: <testLibrary>::@class::A::@getter::foo
+          firstFragment: #F5
+          returnType: int
+          variable: <testLibrary>::@class::A::@field::foo
+''');
+  }
+
+  test_augmented_getter_augments_method() async {
     var library = await buildLibrary(r'''
-part 'a.dart';
 class A {
   void foo() {}
 }
-''');
 
-    checkElementText(library, r'''
-library
-  reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      parts
-        part_0
-          uri: package:test/a.dart
-          enclosingElement3: <testLibraryFragment>
-          unit: <testLibrary>::@fragment::package:test/a.dart
-      classes
-        class A @21
-          reference: <testLibraryFragment>::@class::A
-          enclosingElement3: <testLibraryFragment>
-          augmentation: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A
-          constructors
-            synthetic @-1
-              reference: <testLibraryFragment>::@class::A::@constructor::new
-              enclosingElement3: <testLibraryFragment>::@class::A
-          methods
-            foo @32
-              reference: <testLibraryFragment>::@class::A::@method::foo
-              enclosingElement3: <testLibraryFragment>::@class::A
-              returnType: void
-          augmented
-            constructors
-              <testLibraryFragment>::@class::A::@constructor::new
-            accessors
-              <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@getterAugmentation::foo
-            methods
-              <testLibraryFragment>::@class::A::@method::foo
-    <testLibrary>::@fragment::package:test/a.dart
-      enclosingElement3: <testLibraryFragment>
-      classes
-        augment class A @35
-          reference: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A
-          enclosingElement3: <testLibrary>::@fragment::package:test/a.dart
-          augmentationTarget: <testLibraryFragment>::@class::A
-          accessors
-            augment get foo @57
-              reference: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@getterAugmentation::foo
-              enclosingElement3: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A
-              returnType: int
-              id: getter_0
-              variable: <null>
-              augmentationTargetAny: <testLibraryFragment>::@class::A::@method::foo
-----------------------------------------
-library
-  reference: <testLibrary>
-  fragments
-    <testLibraryFragment>
-      element: <testLibrary>
-      nextFragment: <testLibrary>::@fragment::package:test/a.dart
-      classes
-        class A @21
-          reference: <testLibraryFragment>::@class::A
-          element: <testLibrary>::@class::A
-          nextFragment: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A
-          constructors
-            synthetic new
-              reference: <testLibraryFragment>::@class::A::@constructor::new
-              element: <testLibraryFragment>::@class::A::@constructor::new#element
-              typeName: A
-          methods
-            foo @32
-              reference: <testLibraryFragment>::@class::A::@method::foo
-              element: <testLibraryFragment>::@class::A::@method::foo#element
-    <testLibrary>::@fragment::package:test/a.dart
-      element: <testLibrary>
-      enclosingFragment: <testLibraryFragment>
-      previousFragment: <testLibraryFragment>
-      classes
-        class A @35
-          reference: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A
-          element: <testLibrary>::@class::A
-          previousFragment: <testLibraryFragment>::@class::A
-          getters
-            augment get foo @57
-              reference: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@getterAugmentation::foo
-              element: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@getterAugmentation::foo#element
-  classes
-    class A
-      reference: <testLibrary>::@class::A
-      firstFragment: <testLibraryFragment>::@class::A
-      constructors
-        synthetic new
-          firstFragment: <testLibraryFragment>::@class::A::@constructor::new
-      getters
-        get foo
-          firstFragment: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@getterAugmentation::foo
-      methods
-        foo
-          reference: <testLibrary>::@class::A::@method::foo
-          firstFragment: <testLibraryFragment>::@class::A::@method::foo
-''');
-  }
-
-  @SkippedTest(reason: 'implement augmentation')
-  test_augmented_getter_augments_setter() async {
-    newFile('$testPackageLibPath/a.dart', r'''
-part of 'test.dart';
 augment class A {
   augment int get foo => 0;
 }
 ''');
 
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      classes
+        #F1 class A (nameOffset:6) (firstTokenOffset:0) (offset:6)
+          element: <testLibrary>::@class::A
+          nextFragment: #F2
+          constructors
+            #F3 synthetic new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
+              element: <testLibrary>::@class::A::@constructor::new
+              typeName: A
+          methods
+            #F4 foo (nameOffset:17) (firstTokenOffset:12) (offset:17)
+              element: <testLibrary>::@class::A::@method::foo
+        #F2 class A (nameOffset:43) (firstTokenOffset:29) (offset:43)
+          element: <testLibrary>::@class::A
+          previousFragment: #F1
+          fields
+            #F5 synthetic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:43)
+              element: <testLibrary>::@class::A::@field::foo
+          getters
+            #F6 augment foo (nameOffset:65) (firstTokenOffset:49) (offset:65)
+              element: <testLibrary>::@class::A::@getter::foo
+  classes
+    class A
+      reference: <testLibrary>::@class::A
+      firstFragment: #F1
+      fields
+        synthetic foo
+          reference: <testLibrary>::@class::A::@field::foo
+          firstFragment: #F5
+          type: int
+          getter: <testLibrary>::@class::A::@getter::foo
+      constructors
+        synthetic new
+          reference: <testLibrary>::@class::A::@constructor::new
+          firstFragment: #F3
+      getters
+        foo
+          reference: <testLibrary>::@class::A::@getter::foo
+          firstFragment: #F6
+          returnType: int
+          variable: <testLibrary>::@class::A::@field::foo
+      methods
+        foo
+          reference: <testLibrary>::@class::A::@method::foo
+          firstFragment: #F4
+          returnType: void
+''');
+  }
+
+  test_augmented_getter_augments_setter() async {
     var library = await buildLibrary(r'''
-part 'a.dart';
 class A {
   set foo(int _) {}
+}
+
+augment class A {
+  augment int get foo => 0;
 }
 ''');
 
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      parts
-        part_0
-          uri: package:test/a.dart
-          enclosingElement3: <testLibraryFragment>
-          unit: <testLibrary>::@fragment::package:test/a.dart
-      classes
-        class A @21
-          reference: <testLibraryFragment>::@class::A
-          enclosingElement3: <testLibraryFragment>
-          augmentation: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A
-          fields
-            synthetic foo @-1
-              reference: <testLibraryFragment>::@class::A::@field::foo
-              enclosingElement3: <testLibraryFragment>::@class::A
-              type: int
-              id: field_0
-              setter: setter_0
-          constructors
-            synthetic @-1
-              reference: <testLibraryFragment>::@class::A::@constructor::new
-              enclosingElement3: <testLibraryFragment>::@class::A
-          accessors
-            set foo= @31
-              reference: <testLibraryFragment>::@class::A::@setter::foo
-              enclosingElement3: <testLibraryFragment>::@class::A
-              parameters
-                requiredPositional _ @39
-                  type: int
-              returnType: void
-              id: setter_0
-              variable: field_0
-          augmented
-            fields
-              <testLibraryFragment>::@class::A::@field::foo
-            constructors
-              <testLibraryFragment>::@class::A::@constructor::new
-            accessors
-              <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@getterAugmentation::foo
-              <testLibraryFragment>::@class::A::@setter::foo
-    <testLibrary>::@fragment::package:test/a.dart
-      enclosingElement3: <testLibraryFragment>
-      classes
-        augment class A @35
-          reference: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A
-          enclosingElement3: <testLibrary>::@fragment::package:test/a.dart
-          augmentationTarget: <testLibraryFragment>::@class::A
-          accessors
-            augment get foo @57
-              reference: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@getterAugmentation::foo
-              enclosingElement3: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A
-              returnType: int
-              id: getter_0
-              variable: <null>
-              augmentationTargetAny: <testLibraryFragment>::@class::A::@setter::foo
-----------------------------------------
-library
-  reference: <testLibrary>
   fragments
-    <testLibraryFragment>
+    #F0 <testLibraryFragment>
       element: <testLibrary>
-      nextFragment: <testLibrary>::@fragment::package:test/a.dart
       classes
-        class A @21
-          reference: <testLibraryFragment>::@class::A
+        #F1 class A (nameOffset:6) (firstTokenOffset:0) (offset:6)
           element: <testLibrary>::@class::A
-          nextFragment: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A
+          nextFragment: #F2
           fields
-            synthetic foo
-              reference: <testLibraryFragment>::@class::A::@field::foo
-              element: <testLibraryFragment>::@class::A::@field::foo#element
-              setter2: <testLibraryFragment>::@class::A::@setter::foo
+            #F3 synthetic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
+              element: <testLibrary>::@class::A::@field::foo
           constructors
-            synthetic new
-              reference: <testLibraryFragment>::@class::A::@constructor::new
-              element: <testLibraryFragment>::@class::A::@constructor::new#element
+            #F4 synthetic new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
+              element: <testLibrary>::@class::A::@constructor::new
               typeName: A
           setters
-            set foo @31
-              reference: <testLibraryFragment>::@class::A::@setter::foo
-              element: <testLibraryFragment>::@class::A::@setter::foo#element
+            #F5 foo (nameOffset:16) (firstTokenOffset:12) (offset:16)
+              element: <testLibrary>::@class::A::@setter::foo
               formalParameters
-                _ @39
-                  element: <testLibraryFragment>::@class::A::@setter::foo::@parameter::_#element
-    <testLibrary>::@fragment::package:test/a.dart
-      element: <testLibrary>
-      enclosingFragment: <testLibraryFragment>
-      previousFragment: <testLibraryFragment>
-      classes
-        class A @35
-          reference: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A
+                #F6 _ (nameOffset:24) (firstTokenOffset:20) (offset:24)
+                  element: <testLibrary>::@class::A::@setter::foo::@formalParameter::_
+        #F2 class A (nameOffset:47) (firstTokenOffset:33) (offset:47)
           element: <testLibrary>::@class::A
-          previousFragment: <testLibraryFragment>::@class::A
+          previousFragment: #F1
           getters
-            augment get foo @57
-              reference: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@getterAugmentation::foo
-              element: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@getterAugmentation::foo#element
+            #F7 augment foo (nameOffset:69) (firstTokenOffset:53) (offset:69)
+              element: <testLibrary>::@class::A::@getter::foo
   classes
     class A
       reference: <testLibrary>::@class::A
-      firstFragment: <testLibraryFragment>::@class::A
+      firstFragment: #F1
       fields
         synthetic foo
-          firstFragment: <testLibraryFragment>::@class::A::@field::foo
+          reference: <testLibrary>::@class::A::@field::foo
+          firstFragment: #F3
           type: int
-          setter: <testLibraryFragment>::@class::A::@setter::foo#element
+          getter: <testLibrary>::@class::A::@getter::foo
+          setter: <testLibrary>::@class::A::@setter::foo
       constructors
         synthetic new
-          firstFragment: <testLibraryFragment>::@class::A::@constructor::new
+          reference: <testLibrary>::@class::A::@constructor::new
+          firstFragment: #F4
       getters
-        get foo
-          firstFragment: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@getterAugmentation::foo
+        foo
+          reference: <testLibrary>::@class::A::@getter::foo
+          firstFragment: #F7
+          returnType: int
+          variable: <testLibrary>::@class::A::@field::foo
       setters
-        set foo
-          firstFragment: <testLibraryFragment>::@class::A::@setter::foo
+        foo
+          reference: <testLibrary>::@class::A::@setter::foo
+          firstFragment: #F5
           formalParameters
-            requiredPositional _
+            #E0 requiredPositional _
+              firstFragment: #F6
               type: int
+          returnType: void
+          variable: <testLibrary>::@class::A::@field::foo
 ''');
   }
 
-  @SkippedTest(reason: 'implement augmentation')
   test_augmented_getters_add() async {
-    newFile('$testPackageLibPath/a.dart', r'''
-part of 'test.dart';
+    var library = await buildLibrary(r'''
+class A {
+  int get foo1 => 0;
+}
+
 augment class A {
   int get foo2 => 0;
 }
 ''');
 
-    var library = await buildLibrary(r'''
-part 'a.dart';
-class A {
-  int get foo1 => 0;
-}
-''');
-
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      parts
-        part_0
-          uri: package:test/a.dart
-          enclosingElement3: <testLibraryFragment>
-          unit: <testLibrary>::@fragment::package:test/a.dart
-      classes
-        class A @21
-          reference: <testLibraryFragment>::@class::A
-          enclosingElement3: <testLibraryFragment>
-          augmentation: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A
-          fields
-            synthetic foo1 @-1
-              reference: <testLibraryFragment>::@class::A::@field::foo1
-              enclosingElement3: <testLibraryFragment>::@class::A
-              type: int
-              id: field_0
-              getter: getter_0
-          constructors
-            synthetic @-1
-              reference: <testLibraryFragment>::@class::A::@constructor::new
-              enclosingElement3: <testLibraryFragment>::@class::A
-          accessors
-            get foo1 @35
-              reference: <testLibraryFragment>::@class::A::@getter::foo1
-              enclosingElement3: <testLibraryFragment>::@class::A
-              returnType: int
-              id: getter_0
-              variable: field_0
-          augmented
-            fields
-              <testLibraryFragment>::@class::A::@field::foo1
-              <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@field::foo2
-            constructors
-              <testLibraryFragment>::@class::A::@constructor::new
-            accessors
-              <testLibraryFragment>::@class::A::@getter::foo1
-              <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@getter::foo2
-    <testLibrary>::@fragment::package:test/a.dart
-      enclosingElement3: <testLibraryFragment>
-      classes
-        augment class A @35
-          reference: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A
-          enclosingElement3: <testLibrary>::@fragment::package:test/a.dart
-          augmentationTarget: <testLibraryFragment>::@class::A
-          fields
-            synthetic foo2 @-1
-              reference: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@field::foo2
-              enclosingElement3: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A
-              type: int
-              id: field_1
-              getter: getter_1
-          accessors
-            get foo2 @49
-              reference: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@getter::foo2
-              enclosingElement3: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A
-              returnType: int
-              id: getter_1
-              variable: field_1
-----------------------------------------
-library
-  reference: <testLibrary>
   fragments
-    <testLibraryFragment>
+    #F0 <testLibraryFragment>
       element: <testLibrary>
-      nextFragment: <testLibrary>::@fragment::package:test/a.dart
       classes
-        class A @21
-          reference: <testLibraryFragment>::@class::A
+        #F1 class A (nameOffset:6) (firstTokenOffset:0) (offset:6)
           element: <testLibrary>::@class::A
-          nextFragment: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A
+          nextFragment: #F2
           fields
-            synthetic foo1
-              reference: <testLibraryFragment>::@class::A::@field::foo1
-              element: <testLibraryFragment>::@class::A::@field::foo1#element
-              getter2: <testLibraryFragment>::@class::A::@getter::foo1
+            #F3 synthetic foo1 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
+              element: <testLibrary>::@class::A::@field::foo1
           constructors
-            synthetic new
-              reference: <testLibraryFragment>::@class::A::@constructor::new
-              element: <testLibraryFragment>::@class::A::@constructor::new#element
+            #F4 synthetic new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
+              element: <testLibrary>::@class::A::@constructor::new
               typeName: A
           getters
-            get foo1 @35
-              reference: <testLibraryFragment>::@class::A::@getter::foo1
-              element: <testLibraryFragment>::@class::A::@getter::foo1#element
-    <testLibrary>::@fragment::package:test/a.dart
-      element: <testLibrary>
-      enclosingFragment: <testLibraryFragment>
-      previousFragment: <testLibraryFragment>
-      classes
-        class A @35
-          reference: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A
+            #F5 foo1 (nameOffset:20) (firstTokenOffset:12) (offset:20)
+              element: <testLibrary>::@class::A::@getter::foo1
+        #F2 class A (nameOffset:48) (firstTokenOffset:34) (offset:48)
           element: <testLibrary>::@class::A
-          previousFragment: <testLibraryFragment>::@class::A
+          previousFragment: #F1
           fields
-            synthetic foo2
-              reference: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@field::foo2
-              element: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@field::foo2#element
-              getter2: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@getter::foo2
+            #F6 synthetic foo2 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:48)
+              element: <testLibrary>::@class::A::@field::foo2
           getters
-            get foo2 @49
-              reference: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@getter::foo2
-              element: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@getter::foo2#element
+            #F7 foo2 (nameOffset:62) (firstTokenOffset:54) (offset:62)
+              element: <testLibrary>::@class::A::@getter::foo2
   classes
     class A
       reference: <testLibrary>::@class::A
-      firstFragment: <testLibraryFragment>::@class::A
+      firstFragment: #F1
       fields
         synthetic foo1
-          firstFragment: <testLibraryFragment>::@class::A::@field::foo1
+          reference: <testLibrary>::@class::A::@field::foo1
+          firstFragment: #F3
           type: int
-          getter: <testLibraryFragment>::@class::A::@getter::foo1#element
+          getter: <testLibrary>::@class::A::@getter::foo1
         synthetic foo2
-          firstFragment: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@field::foo2
+          reference: <testLibrary>::@class::A::@field::foo2
+          firstFragment: #F6
           type: int
-          getter: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@getter::foo2#element
+          getter: <testLibrary>::@class::A::@getter::foo2
       constructors
         synthetic new
-          firstFragment: <testLibraryFragment>::@class::A::@constructor::new
+          reference: <testLibrary>::@class::A::@constructor::new
+          firstFragment: #F4
       getters
-        get foo1
-          firstFragment: <testLibraryFragment>::@class::A::@getter::foo1
-        get foo2
-          firstFragment: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@getter::foo2
+        foo1
+          reference: <testLibrary>::@class::A::@getter::foo1
+          firstFragment: #F5
+          returnType: int
+          variable: <testLibrary>::@class::A::@field::foo1
+        foo2
+          reference: <testLibrary>::@class::A::@getter::foo2
+          firstFragment: #F7
+          returnType: int
+          variable: <testLibrary>::@class::A::@field::foo2
 ''');
   }
 
-  @SkippedTest(reason: 'implement augmentation')
+  @SkippedTest(reason: 'Causes exception')
   test_augmented_getters_add_generic() async {
     newFile('$testPackageLibPath/a.dart', r'''
 part of 'test.dart';
@@ -26608,1266 +24281,523 @@ library
 ''');
   }
 
-  @SkippedTest(reason: 'implement augmentation')
   test_augmented_getters_augment_field() async {
-    newFile('$testPackageLibPath/a.dart', r'''
-part of 'test.dart';
-augment class A {
-  augment int get foo => 0;
-}
-''');
-
     var library = await buildLibrary(r'''
-part 'a.dart';
 class A {
   int foo = 0;
+}
+
+augment class A {
+  augment int get foo => 0;
 }
 ''');
 
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      parts
-        part_0
-          uri: package:test/a.dart
-          enclosingElement3: <testLibraryFragment>
-          unit: <testLibrary>::@fragment::package:test/a.dart
-      classes
-        class A @21
-          reference: <testLibraryFragment>::@class::A
-          enclosingElement3: <testLibraryFragment>
-          augmentation: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A
-          fields
-            foo @31
-              reference: <testLibraryFragment>::@class::A::@field::foo
-              enclosingElement3: <testLibraryFragment>::@class::A
-              type: int
-              shouldUseTypeForInitializerInference: true
-              id: field_0
-              getter: getter_0
-              setter: setter_0
-          constructors
-            synthetic @-1
-              reference: <testLibraryFragment>::@class::A::@constructor::new
-              enclosingElement3: <testLibraryFragment>::@class::A
-          accessors
-            synthetic get foo @-1
-              reference: <testLibraryFragment>::@class::A::@getter::foo
-              enclosingElement3: <testLibraryFragment>::@class::A
-              returnType: int
-              id: getter_0
-              variable: field_0
-              augmentation: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@getterAugmentation::foo
-            synthetic set foo= @-1
-              reference: <testLibraryFragment>::@class::A::@setter::foo
-              enclosingElement3: <testLibraryFragment>::@class::A
-              parameters
-                requiredPositional _foo @-1
-                  type: int
-              returnType: void
-              id: setter_0
-              variable: field_0
-          augmented
-            fields
-              <testLibraryFragment>::@class::A::@field::foo
-            constructors
-              <testLibraryFragment>::@class::A::@constructor::new
-            accessors
-              <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@getterAugmentation::foo
-              <testLibraryFragment>::@class::A::@setter::foo
-    <testLibrary>::@fragment::package:test/a.dart
-      enclosingElement3: <testLibraryFragment>
-      classes
-        augment class A @35
-          reference: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A
-          enclosingElement3: <testLibrary>::@fragment::package:test/a.dart
-          augmentationTarget: <testLibraryFragment>::@class::A
-          accessors
-            augment get foo @57
-              reference: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@getterAugmentation::foo
-              enclosingElement3: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A
-              returnType: int
-              id: getter_1
-              variable: <null>
-              augmentationTarget: <testLibraryFragment>::@class::A::@getter::foo
-----------------------------------------
-library
-  reference: <testLibrary>
   fragments
-    <testLibraryFragment>
+    #F0 <testLibraryFragment>
       element: <testLibrary>
-      nextFragment: <testLibrary>::@fragment::package:test/a.dart
       classes
-        class A @21
-          reference: <testLibraryFragment>::@class::A
+        #F1 class A (nameOffset:6) (firstTokenOffset:0) (offset:6)
           element: <testLibrary>::@class::A
-          nextFragment: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A
+          nextFragment: #F2
           fields
-            hasInitializer foo @31
-              reference: <testLibraryFragment>::@class::A::@field::foo
-              element: <testLibraryFragment>::@class::A::@field::foo#element
-              getter2: <testLibraryFragment>::@class::A::@getter::foo
-              setter2: <testLibraryFragment>::@class::A::@setter::foo
+            #F3 hasInitializer foo (nameOffset:16) (firstTokenOffset:16) (offset:16)
+              element: <testLibrary>::@class::A::@field::foo
           constructors
-            synthetic new
-              reference: <testLibraryFragment>::@class::A::@constructor::new
-              element: <testLibraryFragment>::@class::A::@constructor::new#element
+            #F4 synthetic new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
+              element: <testLibrary>::@class::A::@constructor::new
               typeName: A
           getters
-            synthetic get foo
-              reference: <testLibraryFragment>::@class::A::@getter::foo
-              element: <testLibraryFragment>::@class::A::@getter::foo#element
-              nextFragment: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@getterAugmentation::foo
+            #F5 synthetic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
+              element: <testLibrary>::@class::A::@getter::foo
+              nextFragment: #F6
           setters
-            synthetic set foo
-              reference: <testLibraryFragment>::@class::A::@setter::foo
-              element: <testLibraryFragment>::@class::A::@setter::foo#element
+            #F7 synthetic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
+              element: <testLibrary>::@class::A::@setter::foo
               formalParameters
-                _foo
-                  element: <testLibraryFragment>::@class::A::@setter::foo::@parameter::_foo#element
-    <testLibrary>::@fragment::package:test/a.dart
-      element: <testLibrary>
-      enclosingFragment: <testLibraryFragment>
-      previousFragment: <testLibraryFragment>
-      classes
-        class A @35
-          reference: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A
+                #F8 value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
+                  element: <testLibrary>::@class::A::@setter::foo::@formalParameter::value
+        #F2 class A (nameOffset:42) (firstTokenOffset:28) (offset:42)
           element: <testLibrary>::@class::A
-          previousFragment: <testLibraryFragment>::@class::A
+          previousFragment: #F1
           getters
-            augment get foo @57
-              reference: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@getterAugmentation::foo
-              element: <testLibraryFragment>::@class::A::@getter::foo#element
-              previousFragment: <testLibraryFragment>::@class::A::@getter::foo
+            #F6 augment foo (nameOffset:64) (firstTokenOffset:48) (offset:64)
+              element: <testLibrary>::@class::A::@getter::foo
+              previousFragment: #F5
   classes
-    class A
+    hasNonFinalField class A
       reference: <testLibrary>::@class::A
-      firstFragment: <testLibraryFragment>::@class::A
+      firstFragment: #F1
       fields
         hasInitializer foo
-          firstFragment: <testLibraryFragment>::@class::A::@field::foo
+          reference: <testLibrary>::@class::A::@field::foo
+          firstFragment: #F3
           type: int
-          getter: <testLibraryFragment>::@class::A::@getter::foo#element
-          setter: <testLibraryFragment>::@class::A::@setter::foo#element
+          getter: <testLibrary>::@class::A::@getter::foo
+          setter: <testLibrary>::@class::A::@setter::foo
       constructors
         synthetic new
-          firstFragment: <testLibraryFragment>::@class::A::@constructor::new
+          reference: <testLibrary>::@class::A::@constructor::new
+          firstFragment: #F4
       getters
-        synthetic get foo
-          firstFragment: <testLibraryFragment>::@class::A::@getter::foo
+        synthetic foo
+          reference: <testLibrary>::@class::A::@getter::foo
+          firstFragment: #F5
+          returnType: int
+          variable: <testLibrary>::@class::A::@field::foo
       setters
-        synthetic set foo
-          firstFragment: <testLibraryFragment>::@class::A::@setter::foo
+        synthetic foo
+          reference: <testLibrary>::@class::A::@setter::foo
+          firstFragment: #F7
           formalParameters
-            requiredPositional _foo
+            #E0 requiredPositional value
+              firstFragment: #F8
               type: int
+          returnType: void
+          variable: <testLibrary>::@class::A::@field::foo
 ''');
   }
 
-  @SkippedTest(reason: 'implement augmentation')
   test_augmented_getters_augment_field2() async {
-    newFile('$testPackageLibPath/a.dart', r'''
-part of 'test.dart';
-augment class A {
-  augment int get foo => 0;
-}
-''');
-
-    newFile('$testPackageLibPath/b.dart', r'''
-part of 'test.dart';
-augment class A {
-  augment int get foo => 0;
-}
-''');
-
     var library = await buildLibrary(r'''
-part 'a.dart';
-part 'b.dart';
 class A {
   int foo = 0;
+}
+
+augment class A {
+  augment int get foo => 0;
+}
+
+augment class A {
+  augment int get foo => 0;
 }
 ''');
 
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      parts
-        part_0
-          uri: package:test/a.dart
-          enclosingElement3: <testLibraryFragment>
-          unit: <testLibrary>::@fragment::package:test/a.dart
-        part_1
-          uri: package:test/b.dart
-          enclosingElement3: <testLibraryFragment>
-          unit: <testLibrary>::@fragment::package:test/b.dart
-      classes
-        class A @36
-          reference: <testLibraryFragment>::@class::A
-          enclosingElement3: <testLibraryFragment>
-          augmentation: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A
-          fields
-            foo @46
-              reference: <testLibraryFragment>::@class::A::@field::foo
-              enclosingElement3: <testLibraryFragment>::@class::A
-              type: int
-              shouldUseTypeForInitializerInference: true
-              id: field_0
-              getter: getter_0
-              setter: setter_0
-          constructors
-            synthetic @-1
-              reference: <testLibraryFragment>::@class::A::@constructor::new
-              enclosingElement3: <testLibraryFragment>::@class::A
-          accessors
-            synthetic get foo @-1
-              reference: <testLibraryFragment>::@class::A::@getter::foo
-              enclosingElement3: <testLibraryFragment>::@class::A
-              returnType: int
-              id: getter_0
-              variable: field_0
-              augmentation: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@getterAugmentation::foo
-            synthetic set foo= @-1
-              reference: <testLibraryFragment>::@class::A::@setter::foo
-              enclosingElement3: <testLibraryFragment>::@class::A
-              parameters
-                requiredPositional _foo @-1
-                  type: int
-              returnType: void
-              id: setter_0
-              variable: field_0
-          augmented
-            fields
-              <testLibraryFragment>::@class::A::@field::foo
-            constructors
-              <testLibraryFragment>::@class::A::@constructor::new
-            accessors
-              <testLibrary>::@fragment::package:test/b.dart::@classAugmentation::A::@getterAugmentation::foo
-              <testLibraryFragment>::@class::A::@setter::foo
-    <testLibrary>::@fragment::package:test/a.dart
-      enclosingElement3: <testLibraryFragment>
-      classes
-        augment class A @35
-          reference: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A
-          enclosingElement3: <testLibrary>::@fragment::package:test/a.dart
-          augmentationTarget: <testLibraryFragment>::@class::A
-          augmentation: <testLibrary>::@fragment::package:test/b.dart::@classAugmentation::A
-          accessors
-            augment get foo @57
-              reference: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@getterAugmentation::foo
-              enclosingElement3: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A
-              returnType: int
-              id: getter_1
-              variable: <null>
-              augmentationTarget: <testLibraryFragment>::@class::A::@getter::foo
-              augmentation: <testLibrary>::@fragment::package:test/b.dart::@classAugmentation::A::@getterAugmentation::foo
-    <testLibrary>::@fragment::package:test/b.dart
-      enclosingElement3: <testLibraryFragment>
-      classes
-        augment class A @35
-          reference: <testLibrary>::@fragment::package:test/b.dart::@classAugmentation::A
-          enclosingElement3: <testLibrary>::@fragment::package:test/b.dart
-          augmentationTarget: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A
-          accessors
-            augment get foo @57
-              reference: <testLibrary>::@fragment::package:test/b.dart::@classAugmentation::A::@getterAugmentation::foo
-              enclosingElement3: <testLibrary>::@fragment::package:test/b.dart::@classAugmentation::A
-              returnType: int
-              id: getter_2
-              variable: <null>
-              augmentationTarget: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@getterAugmentation::foo
-----------------------------------------
-library
-  reference: <testLibrary>
   fragments
-    <testLibraryFragment>
+    #F0 <testLibraryFragment>
       element: <testLibrary>
-      nextFragment: <testLibrary>::@fragment::package:test/a.dart
       classes
-        class A @36
-          reference: <testLibraryFragment>::@class::A
+        #F1 class A (nameOffset:6) (firstTokenOffset:0) (offset:6)
           element: <testLibrary>::@class::A
-          nextFragment: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A
+          nextFragment: #F2
           fields
-            hasInitializer foo @46
-              reference: <testLibraryFragment>::@class::A::@field::foo
-              element: <testLibraryFragment>::@class::A::@field::foo#element
-              getter2: <testLibraryFragment>::@class::A::@getter::foo
-              setter2: <testLibraryFragment>::@class::A::@setter::foo
+            #F3 hasInitializer foo (nameOffset:16) (firstTokenOffset:16) (offset:16)
+              element: <testLibrary>::@class::A::@field::foo
           constructors
-            synthetic new
-              reference: <testLibraryFragment>::@class::A::@constructor::new
-              element: <testLibraryFragment>::@class::A::@constructor::new#element
+            #F4 synthetic new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
+              element: <testLibrary>::@class::A::@constructor::new
               typeName: A
           getters
-            synthetic get foo
-              reference: <testLibraryFragment>::@class::A::@getter::foo
-              element: <testLibraryFragment>::@class::A::@getter::foo#element
-              nextFragment: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@getterAugmentation::foo
+            #F5 synthetic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
+              element: <testLibrary>::@class::A::@getter::foo
+              nextFragment: #F6
           setters
-            synthetic set foo
-              reference: <testLibraryFragment>::@class::A::@setter::foo
-              element: <testLibraryFragment>::@class::A::@setter::foo#element
+            #F7 synthetic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
+              element: <testLibrary>::@class::A::@setter::foo
               formalParameters
-                _foo
-                  element: <testLibraryFragment>::@class::A::@setter::foo::@parameter::_foo#element
-    <testLibrary>::@fragment::package:test/a.dart
-      element: <testLibrary>
-      enclosingFragment: <testLibraryFragment>
-      previousFragment: <testLibraryFragment>
-      nextFragment: <testLibrary>::@fragment::package:test/b.dart
-      classes
-        class A @35
-          reference: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A
+                #F8 value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
+                  element: <testLibrary>::@class::A::@setter::foo::@formalParameter::value
+        #F2 class A (nameOffset:42) (firstTokenOffset:28) (offset:42)
           element: <testLibrary>::@class::A
-          previousFragment: <testLibraryFragment>::@class::A
-          nextFragment: <testLibrary>::@fragment::package:test/b.dart::@classAugmentation::A
+          previousFragment: #F1
+          nextFragment: #F9
           getters
-            augment get foo @57
-              reference: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@getterAugmentation::foo
-              element: <testLibraryFragment>::@class::A::@getter::foo#element
-              previousFragment: <testLibraryFragment>::@class::A::@getter::foo
-              nextFragment: <testLibrary>::@fragment::package:test/b.dart::@classAugmentation::A::@getterAugmentation::foo
-    <testLibrary>::@fragment::package:test/b.dart
-      element: <testLibrary>
-      enclosingFragment: <testLibraryFragment>
-      previousFragment: <testLibrary>::@fragment::package:test/a.dart
-      classes
-        class A @35
-          reference: <testLibrary>::@fragment::package:test/b.dart::@classAugmentation::A
+            #F6 augment foo (nameOffset:64) (firstTokenOffset:48) (offset:64)
+              element: <testLibrary>::@class::A::@getter::foo
+              previousFragment: #F5
+              nextFragment: #F10
+        #F9 class A (nameOffset:91) (firstTokenOffset:77) (offset:91)
           element: <testLibrary>::@class::A
-          previousFragment: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A
+          previousFragment: #F2
           getters
-            augment get foo @57
-              reference: <testLibrary>::@fragment::package:test/b.dart::@classAugmentation::A::@getterAugmentation::foo
-              element: <testLibraryFragment>::@class::A::@getter::foo#element
-              previousFragment: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@getterAugmentation::foo
+            #F10 augment foo (nameOffset:113) (firstTokenOffset:97) (offset:113)
+              element: <testLibrary>::@class::A::@getter::foo
+              previousFragment: #F6
   classes
-    class A
+    hasNonFinalField class A
       reference: <testLibrary>::@class::A
-      firstFragment: <testLibraryFragment>::@class::A
+      firstFragment: #F1
       fields
         hasInitializer foo
-          firstFragment: <testLibraryFragment>::@class::A::@field::foo
+          reference: <testLibrary>::@class::A::@field::foo
+          firstFragment: #F3
           type: int
-          getter: <testLibraryFragment>::@class::A::@getter::foo#element
-          setter: <testLibraryFragment>::@class::A::@setter::foo#element
+          getter: <testLibrary>::@class::A::@getter::foo
+          setter: <testLibrary>::@class::A::@setter::foo
       constructors
         synthetic new
-          firstFragment: <testLibraryFragment>::@class::A::@constructor::new
+          reference: <testLibrary>::@class::A::@constructor::new
+          firstFragment: #F4
       getters
-        synthetic get foo
-          firstFragment: <testLibraryFragment>::@class::A::@getter::foo
+        synthetic foo
+          reference: <testLibrary>::@class::A::@getter::foo
+          firstFragment: #F5
+          returnType: int
+          variable: <testLibrary>::@class::A::@field::foo
       setters
-        synthetic set foo
-          firstFragment: <testLibraryFragment>::@class::A::@setter::foo
+        synthetic foo
+          reference: <testLibrary>::@class::A::@setter::foo
+          firstFragment: #F7
           formalParameters
-            requiredPositional _foo
+            #E0 requiredPositional value
+              firstFragment: #F8
               type: int
+          returnType: void
+          variable: <testLibrary>::@class::A::@field::foo
 ''');
   }
 
-  @SkippedTest(reason: 'implement augmentation')
   test_augmented_getters_augment_getter() async {
-    newFile('$testPackageLibPath/a.dart', r'''
-part of 'test.dart';
+    var library = await buildLibrary(r'''
+class A {
+  int get foo1 => 0;
+  int get foo2 => 0;
+}
+
 augment class A {
   augment int get foo1 => 0;
 }
 ''');
 
-    var library = await buildLibrary(r'''
-part 'a.dart';
-class A {
-  int get foo1 => 0;
-  int get foo2 => 0;
-}
-''');
-
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      parts
-        part_0
-          uri: package:test/a.dart
-          enclosingElement3: <testLibraryFragment>
-          unit: <testLibrary>::@fragment::package:test/a.dart
-      classes
-        class A @21
-          reference: <testLibraryFragment>::@class::A
-          enclosingElement3: <testLibraryFragment>
-          augmentation: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A
-          fields
-            synthetic foo1 @-1
-              reference: <testLibraryFragment>::@class::A::@field::foo1
-              enclosingElement3: <testLibraryFragment>::@class::A
-              type: int
-              id: field_0
-              getter: getter_0
-            synthetic foo2 @-1
-              reference: <testLibraryFragment>::@class::A::@field::foo2
-              enclosingElement3: <testLibraryFragment>::@class::A
-              type: int
-              id: field_1
-              getter: getter_1
-          constructors
-            synthetic @-1
-              reference: <testLibraryFragment>::@class::A::@constructor::new
-              enclosingElement3: <testLibraryFragment>::@class::A
-          accessors
-            get foo1 @35
-              reference: <testLibraryFragment>::@class::A::@getter::foo1
-              enclosingElement3: <testLibraryFragment>::@class::A
-              returnType: int
-              id: getter_0
-              variable: field_0
-              augmentation: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@getterAugmentation::foo1
-            get foo2 @56
-              reference: <testLibraryFragment>::@class::A::@getter::foo2
-              enclosingElement3: <testLibraryFragment>::@class::A
-              returnType: int
-              id: getter_1
-              variable: field_1
-          augmented
-            fields
-              <testLibraryFragment>::@class::A::@field::foo1
-              <testLibraryFragment>::@class::A::@field::foo2
-            constructors
-              <testLibraryFragment>::@class::A::@constructor::new
-            accessors
-              <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@getterAugmentation::foo1
-              <testLibraryFragment>::@class::A::@getter::foo2
-    <testLibrary>::@fragment::package:test/a.dart
-      enclosingElement3: <testLibraryFragment>
-      classes
-        augment class A @35
-          reference: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A
-          enclosingElement3: <testLibrary>::@fragment::package:test/a.dart
-          augmentationTarget: <testLibraryFragment>::@class::A
-          accessors
-            augment get foo1 @57
-              reference: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@getterAugmentation::foo1
-              enclosingElement3: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A
-              returnType: int
-              id: getter_2
-              variable: <null>
-              augmentationTarget: <testLibraryFragment>::@class::A::@getter::foo1
-----------------------------------------
-library
-  reference: <testLibrary>
   fragments
-    <testLibraryFragment>
+    #F0 <testLibraryFragment>
       element: <testLibrary>
-      nextFragment: <testLibrary>::@fragment::package:test/a.dart
       classes
-        class A @21
-          reference: <testLibraryFragment>::@class::A
+        #F1 class A (nameOffset:6) (firstTokenOffset:0) (offset:6)
           element: <testLibrary>::@class::A
-          nextFragment: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A
+          nextFragment: #F2
           fields
-            synthetic foo1
-              reference: <testLibraryFragment>::@class::A::@field::foo1
-              element: <testLibraryFragment>::@class::A::@field::foo1#element
-              getter2: <testLibraryFragment>::@class::A::@getter::foo1
-            synthetic foo2
-              reference: <testLibraryFragment>::@class::A::@field::foo2
-              element: <testLibraryFragment>::@class::A::@field::foo2#element
-              getter2: <testLibraryFragment>::@class::A::@getter::foo2
+            #F3 synthetic foo1 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
+              element: <testLibrary>::@class::A::@field::foo1
+            #F4 synthetic foo2 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
+              element: <testLibrary>::@class::A::@field::foo2
           constructors
-            synthetic new
-              reference: <testLibraryFragment>::@class::A::@constructor::new
-              element: <testLibraryFragment>::@class::A::@constructor::new#element
+            #F5 synthetic new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
+              element: <testLibrary>::@class::A::@constructor::new
               typeName: A
           getters
-            get foo1 @35
-              reference: <testLibraryFragment>::@class::A::@getter::foo1
-              element: <testLibraryFragment>::@class::A::@getter::foo1#element
-              nextFragment: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@getterAugmentation::foo1
-            get foo2 @56
-              reference: <testLibraryFragment>::@class::A::@getter::foo2
-              element: <testLibraryFragment>::@class::A::@getter::foo2#element
-    <testLibrary>::@fragment::package:test/a.dart
-      element: <testLibrary>
-      enclosingFragment: <testLibraryFragment>
-      previousFragment: <testLibraryFragment>
-      classes
-        class A @35
-          reference: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A
+            #F6 foo1 (nameOffset:20) (firstTokenOffset:12) (offset:20)
+              element: <testLibrary>::@class::A::@getter::foo1
+              nextFragment: #F7
+            #F8 foo2 (nameOffset:41) (firstTokenOffset:33) (offset:41)
+              element: <testLibrary>::@class::A::@getter::foo2
+        #F2 class A (nameOffset:69) (firstTokenOffset:55) (offset:69)
           element: <testLibrary>::@class::A
-          previousFragment: <testLibraryFragment>::@class::A
+          previousFragment: #F1
           getters
-            augment get foo1 @57
-              reference: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@getterAugmentation::foo1
-              element: <testLibraryFragment>::@class::A::@getter::foo1#element
-              previousFragment: <testLibraryFragment>::@class::A::@getter::foo1
+            #F7 augment foo1 (nameOffset:91) (firstTokenOffset:75) (offset:91)
+              element: <testLibrary>::@class::A::@getter::foo1
+              previousFragment: #F6
   classes
     class A
       reference: <testLibrary>::@class::A
-      firstFragment: <testLibraryFragment>::@class::A
+      firstFragment: #F1
       fields
         synthetic foo1
-          firstFragment: <testLibraryFragment>::@class::A::@field::foo1
+          reference: <testLibrary>::@class::A::@field::foo1
+          firstFragment: #F3
           type: int
-          getter: <testLibraryFragment>::@class::A::@getter::foo1#element
+          getter: <testLibrary>::@class::A::@getter::foo1
         synthetic foo2
-          firstFragment: <testLibraryFragment>::@class::A::@field::foo2
+          reference: <testLibrary>::@class::A::@field::foo2
+          firstFragment: #F4
           type: int
-          getter: <testLibraryFragment>::@class::A::@getter::foo2#element
+          getter: <testLibrary>::@class::A::@getter::foo2
       constructors
         synthetic new
-          firstFragment: <testLibraryFragment>::@class::A::@constructor::new
+          reference: <testLibrary>::@class::A::@constructor::new
+          firstFragment: #F5
       getters
-        get foo2
-          firstFragment: <testLibraryFragment>::@class::A::@getter::foo2
-        get foo1
-          firstFragment: <testLibraryFragment>::@class::A::@getter::foo1
+        foo1
+          reference: <testLibrary>::@class::A::@getter::foo1
+          firstFragment: #F6
+          returnType: int
+          variable: <testLibrary>::@class::A::@field::foo1
+        foo2
+          reference: <testLibrary>::@class::A::@getter::foo2
+          firstFragment: #F8
+          returnType: int
+          variable: <testLibrary>::@class::A::@field::foo2
 ''');
   }
 
-  @SkippedTest(reason: 'implement augmentation')
   test_augmented_getters_augment_getter2_oneLib_oneTop() async {
-    newFile('$testPackageLibPath/a.dart', r'''
-part of 'test.dart';
+    var library = await buildLibrary(r'''
+class A {
+  int get foo => 0;
+}
+
 augment class A {
   augment int get foo => 0;
   augment int get foo => 0;
-}
-''');
-
-    var library = await buildLibrary(r'''
-part 'a.dart';
-class A {
-  int get foo => 0;
 }
 ''');
 
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      parts
-        part_0
-          uri: package:test/a.dart
-          enclosingElement3: <testLibraryFragment>
-          unit: <testLibrary>::@fragment::package:test/a.dart
-      classes
-        class A @21
-          reference: <testLibraryFragment>::@class::A
-          enclosingElement3: <testLibraryFragment>
-          augmentation: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A
-          fields
-            synthetic foo @-1
-              reference: <testLibraryFragment>::@class::A::@field::foo
-              enclosingElement3: <testLibraryFragment>::@class::A
-              type: int
-              id: field_0
-              getter: getter_0
-          constructors
-            synthetic @-1
-              reference: <testLibraryFragment>::@class::A::@constructor::new
-              enclosingElement3: <testLibraryFragment>::@class::A
-          accessors
-            get foo @35
-              reference: <testLibraryFragment>::@class::A::@getter::foo
-              enclosingElement3: <testLibraryFragment>::@class::A
-              returnType: int
-              id: getter_0
-              variable: field_0
-              augmentation: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@getterAugmentation::foo::@def::0
-          augmented
-            fields
-              <testLibraryFragment>::@class::A::@field::foo
-            constructors
-              <testLibraryFragment>::@class::A::@constructor::new
-            accessors
-              <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@getterAugmentation::foo::@def::1
-    <testLibrary>::@fragment::package:test/a.dart
-      enclosingElement3: <testLibraryFragment>
-      classes
-        augment class A @35
-          reference: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A
-          enclosingElement3: <testLibrary>::@fragment::package:test/a.dart
-          augmentationTarget: <testLibraryFragment>::@class::A
-          accessors
-            augment get foo @57
-              reference: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@getterAugmentation::foo::@def::0
-              enclosingElement3: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A
-              returnType: int
-              id: getter_1
-              variable: <null>
-              augmentationTarget: <testLibraryFragment>::@class::A::@getter::foo
-              augmentation: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@getterAugmentation::foo::@def::1
-            augment get foo @85
-              reference: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@getterAugmentation::foo::@def::1
-              enclosingElement3: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A
-              returnType: int
-              id: getter_2
-              variable: <null>
-              augmentationTarget: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@getterAugmentation::foo::@def::0
-----------------------------------------
-library
-  reference: <testLibrary>
   fragments
-    <testLibraryFragment>
+    #F0 <testLibraryFragment>
       element: <testLibrary>
-      nextFragment: <testLibrary>::@fragment::package:test/a.dart
       classes
-        class A @21
-          reference: <testLibraryFragment>::@class::A
+        #F1 class A (nameOffset:6) (firstTokenOffset:0) (offset:6)
           element: <testLibrary>::@class::A
-          nextFragment: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A
+          nextFragment: #F2
           fields
-            synthetic foo
-              reference: <testLibraryFragment>::@class::A::@field::foo
-              element: <testLibraryFragment>::@class::A::@field::foo#element
-              getter2: <testLibraryFragment>::@class::A::@getter::foo
+            #F3 synthetic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
+              element: <testLibrary>::@class::A::@field::foo
           constructors
-            synthetic new
-              reference: <testLibraryFragment>::@class::A::@constructor::new
-              element: <testLibraryFragment>::@class::A::@constructor::new#element
+            #F4 synthetic new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
+              element: <testLibrary>::@class::A::@constructor::new
               typeName: A
           getters
-            get foo @35
-              reference: <testLibraryFragment>::@class::A::@getter::foo
-              element: <testLibraryFragment>::@class::A::@getter::foo#element
-              nextFragment: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@getterAugmentation::foo::@def::0
-    <testLibrary>::@fragment::package:test/a.dart
-      element: <testLibrary>
-      enclosingFragment: <testLibraryFragment>
-      previousFragment: <testLibraryFragment>
-      classes
-        class A @35
-          reference: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A
+            #F5 foo (nameOffset:20) (firstTokenOffset:12) (offset:20)
+              element: <testLibrary>::@class::A::@getter::foo
+              nextFragment: #F6
+        #F2 class A (nameOffset:47) (firstTokenOffset:33) (offset:47)
           element: <testLibrary>::@class::A
-          previousFragment: <testLibraryFragment>::@class::A
+          previousFragment: #F1
           getters
-            augment get foo @57
-              reference: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@getterAugmentation::foo::@def::0
-              element: <testLibraryFragment>::@class::A::@getter::foo#element
-              previousFragment: <testLibraryFragment>::@class::A::@getter::foo
-              nextFragment: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@getterAugmentation::foo::@def::1
-            augment get foo @85
-              reference: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@getterAugmentation::foo::@def::1
-              element: <testLibraryFragment>::@class::A::@getter::foo#element
-              previousFragment: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@getterAugmentation::foo::@def::0
+            #F6 augment foo (nameOffset:69) (firstTokenOffset:53) (offset:69)
+              element: <testLibrary>::@class::A::@getter::foo
+              previousFragment: #F5
+              nextFragment: #F7
+            #F7 augment foo (nameOffset:97) (firstTokenOffset:81) (offset:97)
+              element: <testLibrary>::@class::A::@getter::foo
+              previousFragment: #F6
   classes
     class A
       reference: <testLibrary>::@class::A
-      firstFragment: <testLibraryFragment>::@class::A
+      firstFragment: #F1
       fields
         synthetic foo
-          firstFragment: <testLibraryFragment>::@class::A::@field::foo
+          reference: <testLibrary>::@class::A::@field::foo
+          firstFragment: #F3
           type: int
-          getter: <testLibraryFragment>::@class::A::@getter::foo#element
+          getter: <testLibrary>::@class::A::@getter::foo
       constructors
         synthetic new
-          firstFragment: <testLibraryFragment>::@class::A::@constructor::new
+          reference: <testLibrary>::@class::A::@constructor::new
+          firstFragment: #F4
       getters
-        get foo
-          firstFragment: <testLibraryFragment>::@class::A::@getter::foo
+        foo
+          reference: <testLibrary>::@class::A::@getter::foo
+          firstFragment: #F5
+          returnType: int
+          variable: <testLibrary>::@class::A::@field::foo
 ''');
   }
 
-  @SkippedTest(reason: 'implement augmentation')
-  test_augmented_getters_augment_getter2_twoLib() async {
-    newFile('$testPackageLibPath/a.dart', r'''
-part of 'test.dart';
-augment class A {
-  augment int get foo => 0;
-}
-''');
-
-    newFile('$testPackageLibPath/b.dart', r'''
-part of 'test.dart';
-augment class A {
-  augment int get foo => 0;
-}
-''');
-
-    var library = await buildLibrary(r'''
-part 'a.dart';
-part 'b.dart';
-class A {
-  int get foo => 0;
-}
-''');
-
-    checkElementText(library, r'''
-library
-  reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      parts
-        part_0
-          uri: package:test/a.dart
-          enclosingElement3: <testLibraryFragment>
-          unit: <testLibrary>::@fragment::package:test/a.dart
-        part_1
-          uri: package:test/b.dart
-          enclosingElement3: <testLibraryFragment>
-          unit: <testLibrary>::@fragment::package:test/b.dart
-      classes
-        class A @36
-          reference: <testLibraryFragment>::@class::A
-          enclosingElement3: <testLibraryFragment>
-          augmentation: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A
-          fields
-            synthetic foo @-1
-              reference: <testLibraryFragment>::@class::A::@field::foo
-              enclosingElement3: <testLibraryFragment>::@class::A
-              type: int
-              id: field_0
-              getter: getter_0
-          constructors
-            synthetic @-1
-              reference: <testLibraryFragment>::@class::A::@constructor::new
-              enclosingElement3: <testLibraryFragment>::@class::A
-          accessors
-            get foo @50
-              reference: <testLibraryFragment>::@class::A::@getter::foo
-              enclosingElement3: <testLibraryFragment>::@class::A
-              returnType: int
-              id: getter_0
-              variable: field_0
-              augmentation: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@getterAugmentation::foo
-          augmented
-            fields
-              <testLibraryFragment>::@class::A::@field::foo
-            constructors
-              <testLibraryFragment>::@class::A::@constructor::new
-            accessors
-              <testLibrary>::@fragment::package:test/b.dart::@classAugmentation::A::@getterAugmentation::foo
-    <testLibrary>::@fragment::package:test/a.dart
-      enclosingElement3: <testLibraryFragment>
-      classes
-        augment class A @35
-          reference: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A
-          enclosingElement3: <testLibrary>::@fragment::package:test/a.dart
-          augmentationTarget: <testLibraryFragment>::@class::A
-          augmentation: <testLibrary>::@fragment::package:test/b.dart::@classAugmentation::A
-          accessors
-            augment get foo @57
-              reference: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@getterAugmentation::foo
-              enclosingElement3: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A
-              returnType: int
-              id: getter_1
-              variable: <null>
-              augmentationTarget: <testLibraryFragment>::@class::A::@getter::foo
-              augmentation: <testLibrary>::@fragment::package:test/b.dart::@classAugmentation::A::@getterAugmentation::foo
-    <testLibrary>::@fragment::package:test/b.dart
-      enclosingElement3: <testLibraryFragment>
-      classes
-        augment class A @35
-          reference: <testLibrary>::@fragment::package:test/b.dart::@classAugmentation::A
-          enclosingElement3: <testLibrary>::@fragment::package:test/b.dart
-          augmentationTarget: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A
-          accessors
-            augment get foo @57
-              reference: <testLibrary>::@fragment::package:test/b.dart::@classAugmentation::A::@getterAugmentation::foo
-              enclosingElement3: <testLibrary>::@fragment::package:test/b.dart::@classAugmentation::A
-              returnType: int
-              id: getter_2
-              variable: <null>
-              augmentationTarget: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@getterAugmentation::foo
-----------------------------------------
-library
-  reference: <testLibrary>
-  fragments
-    <testLibraryFragment>
-      element: <testLibrary>
-      nextFragment: <testLibrary>::@fragment::package:test/a.dart
-      classes
-        class A @36
-          reference: <testLibraryFragment>::@class::A
-          element: <testLibrary>::@class::A
-          nextFragment: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A
-          fields
-            synthetic foo
-              reference: <testLibraryFragment>::@class::A::@field::foo
-              element: <testLibraryFragment>::@class::A::@field::foo#element
-              getter2: <testLibraryFragment>::@class::A::@getter::foo
-          constructors
-            synthetic new
-              reference: <testLibraryFragment>::@class::A::@constructor::new
-              element: <testLibraryFragment>::@class::A::@constructor::new#element
-              typeName: A
-          getters
-            get foo @50
-              reference: <testLibraryFragment>::@class::A::@getter::foo
-              element: <testLibraryFragment>::@class::A::@getter::foo#element
-              nextFragment: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@getterAugmentation::foo
-    <testLibrary>::@fragment::package:test/a.dart
-      element: <testLibrary>
-      enclosingFragment: <testLibraryFragment>
-      previousFragment: <testLibraryFragment>
-      nextFragment: <testLibrary>::@fragment::package:test/b.dart
-      classes
-        class A @35
-          reference: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A
-          element: <testLibrary>::@class::A
-          previousFragment: <testLibraryFragment>::@class::A
-          nextFragment: <testLibrary>::@fragment::package:test/b.dart::@classAugmentation::A
-          getters
-            augment get foo @57
-              reference: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@getterAugmentation::foo
-              element: <testLibraryFragment>::@class::A::@getter::foo#element
-              previousFragment: <testLibraryFragment>::@class::A::@getter::foo
-              nextFragment: <testLibrary>::@fragment::package:test/b.dart::@classAugmentation::A::@getterAugmentation::foo
-    <testLibrary>::@fragment::package:test/b.dart
-      element: <testLibrary>
-      enclosingFragment: <testLibraryFragment>
-      previousFragment: <testLibrary>::@fragment::package:test/a.dart
-      classes
-        class A @35
-          reference: <testLibrary>::@fragment::package:test/b.dart::@classAugmentation::A
-          element: <testLibrary>::@class::A
-          previousFragment: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A
-          getters
-            augment get foo @57
-              reference: <testLibrary>::@fragment::package:test/b.dart::@classAugmentation::A::@getterAugmentation::foo
-              element: <testLibraryFragment>::@class::A::@getter::foo#element
-              previousFragment: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@getterAugmentation::foo
-  classes
-    class A
-      reference: <testLibrary>::@class::A
-      firstFragment: <testLibraryFragment>::@class::A
-      fields
-        synthetic foo
-          firstFragment: <testLibraryFragment>::@class::A::@field::foo
-          type: int
-          getter: <testLibraryFragment>::@class::A::@getter::foo#element
-      constructors
-        synthetic new
-          firstFragment: <testLibraryFragment>::@class::A::@constructor::new
-      getters
-        get foo
-          firstFragment: <testLibraryFragment>::@class::A::@getter::foo
-''');
-  }
-
-  @SkippedTest(reason: 'implement augmentation')
   test_augmented_getters_augment_nothing() async {
-    newFile('$testPackageLibPath/a.dart', r'''
-part of 'test.dart';
+    var library = await buildLibrary(r'''
+class A {}
+
 augment class A {
   augment int get foo => 0;
 }
-''');
-
-    var library = await buildLibrary(r'''
-part 'a.dart';
-class A {}
 ''');
 
     configuration.withConstructors = false;
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      parts
-        part_0
-          uri: package:test/a.dart
-          enclosingElement3: <testLibraryFragment>
-          unit: <testLibrary>::@fragment::package:test/a.dart
-      classes
-        class A @21
-          reference: <testLibraryFragment>::@class::A
-          enclosingElement3: <testLibraryFragment>
-          augmentation: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A
-          augmented
-            accessors
-              <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@getterAugmentation::foo
-    <testLibrary>::@fragment::package:test/a.dart
-      enclosingElement3: <testLibraryFragment>
-      classes
-        augment class A @35
-          reference: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A
-          enclosingElement3: <testLibrary>::@fragment::package:test/a.dart
-          augmentationTarget: <testLibraryFragment>::@class::A
-          accessors
-            augment get foo @57
-              reference: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@getterAugmentation::foo
-              enclosingElement3: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A
-              returnType: int
-              id: getter_0
-              variable: <null>
-----------------------------------------
-library
-  reference: <testLibrary>
   fragments
-    <testLibraryFragment>
+    #F0 <testLibraryFragment>
       element: <testLibrary>
-      nextFragment: <testLibrary>::@fragment::package:test/a.dart
       classes
-        class A @21
-          reference: <testLibraryFragment>::@class::A
+        #F1 class A (nameOffset:6) (firstTokenOffset:0) (offset:6)
           element: <testLibrary>::@class::A
-          nextFragment: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A
-    <testLibrary>::@fragment::package:test/a.dart
-      element: <testLibrary>
-      enclosingFragment: <testLibraryFragment>
-      previousFragment: <testLibraryFragment>
-      classes
-        class A @35
-          reference: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A
+          nextFragment: #F2
+        #F2 class A (nameOffset:26) (firstTokenOffset:12) (offset:26)
           element: <testLibrary>::@class::A
-          previousFragment: <testLibraryFragment>::@class::A
+          previousFragment: #F1
+          fields
+            #F3 synthetic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:26)
+              element: <testLibrary>::@class::A::@field::foo
           getters
-            augment get foo @57
-              reference: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@getterAugmentation::foo
-              element: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@getterAugmentation::foo#element
+            #F4 augment foo (nameOffset:48) (firstTokenOffset:32) (offset:48)
+              element: <testLibrary>::@class::A::@getter::foo
   classes
     class A
       reference: <testLibrary>::@class::A
-      firstFragment: <testLibraryFragment>::@class::A
+      firstFragment: #F1
+      fields
+        synthetic foo
+          reference: <testLibrary>::@class::A::@field::foo
+          firstFragment: #F3
+          type: int
+          getter: <testLibrary>::@class::A::@getter::foo
       getters
-        get foo
-          firstFragment: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@getterAugmentation::foo
+        foo
+          reference: <testLibrary>::@class::A::@getter::foo
+          firstFragment: #F4
+          returnType: int
+          variable: <testLibrary>::@class::A::@field::foo
 ''');
   }
 
-  @SkippedTest(reason: 'implement augmentation')
   test_augmented_interfaces() async {
-    newFile('$testPackageLibPath/a.dart', r'''
-part of 'test.dart';
-augment class A implements I2 {}
-class I2 {}
-''');
-
     var library = await buildLibrary(r'''
-part 'a.dart';
 class A implements I1 {}
 class I1 {}
+
+augment class A implements I2 {}
+class I2 {}
 ''');
 
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      parts
-        part_0
-          uri: package:test/a.dart
-          enclosingElement3: <testLibraryFragment>
-          unit: <testLibrary>::@fragment::package:test/a.dart
-      classes
-        class A @21
-          reference: <testLibraryFragment>::@class::A
-          enclosingElement3: <testLibraryFragment>
-          augmentation: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A
-          interfaces
-            I1
-          constructors
-            synthetic @-1
-              reference: <testLibraryFragment>::@class::A::@constructor::new
-              enclosingElement3: <testLibraryFragment>::@class::A
-          augmented
-            interfaces
-              I1
-              I2
-            constructors
-              <testLibraryFragment>::@class::A::@constructor::new
-        class I1 @46
-          reference: <testLibraryFragment>::@class::I1
-          enclosingElement3: <testLibraryFragment>
-          constructors
-            synthetic @-1
-              reference: <testLibraryFragment>::@class::I1::@constructor::new
-              enclosingElement3: <testLibraryFragment>::@class::I1
-    <testLibrary>::@fragment::package:test/a.dart
-      enclosingElement3: <testLibraryFragment>
-      classes
-        augment class A @35
-          reference: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A
-          enclosingElement3: <testLibrary>::@fragment::package:test/a.dart
-          augmentationTarget: <testLibraryFragment>::@class::A
-          interfaces
-            I2
-        class I2 @60
-          reference: <testLibrary>::@fragment::package:test/a.dart::@class::I2
-          enclosingElement3: <testLibrary>::@fragment::package:test/a.dart
-          constructors
-            synthetic @-1
-              reference: <testLibrary>::@fragment::package:test/a.dart::@class::I2::@constructor::new
-              enclosingElement3: <testLibrary>::@fragment::package:test/a.dart::@class::I2
-----------------------------------------
-library
-  reference: <testLibrary>
   fragments
-    <testLibraryFragment>
+    #F0 <testLibraryFragment>
       element: <testLibrary>
-      nextFragment: <testLibrary>::@fragment::package:test/a.dart
       classes
-        class A @21
-          reference: <testLibraryFragment>::@class::A
+        #F1 class A (nameOffset:6) (firstTokenOffset:0) (offset:6)
           element: <testLibrary>::@class::A
-          nextFragment: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A
+          nextFragment: #F2
           constructors
-            synthetic new
-              reference: <testLibraryFragment>::@class::A::@constructor::new
-              element: <testLibraryFragment>::@class::A::@constructor::new#element
+            #F3 synthetic new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
+              element: <testLibrary>::@class::A::@constructor::new
               typeName: A
-        class I1 @46
-          reference: <testLibraryFragment>::@class::I1
+        #F4 class I1 (nameOffset:31) (firstTokenOffset:25) (offset:31)
           element: <testLibrary>::@class::I1
           constructors
-            synthetic new
-              reference: <testLibraryFragment>::@class::I1::@constructor::new
-              element: <testLibraryFragment>::@class::I1::@constructor::new#element
+            #F5 synthetic new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:31)
+              element: <testLibrary>::@class::I1::@constructor::new
               typeName: I1
-    <testLibrary>::@fragment::package:test/a.dart
-      element: <testLibrary>
-      enclosingFragment: <testLibraryFragment>
-      previousFragment: <testLibraryFragment>
-      classes
-        class A @35
-          reference: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A
+        #F2 class A (nameOffset:52) (firstTokenOffset:38) (offset:52)
           element: <testLibrary>::@class::A
-          previousFragment: <testLibraryFragment>::@class::A
-        class I2 @60
-          reference: <testLibrary>::@fragment::package:test/a.dart::@class::I2
+          previousFragment: #F1
+        #F6 class I2 (nameOffset:77) (firstTokenOffset:71) (offset:77)
           element: <testLibrary>::@class::I2
           constructors
-            synthetic new
-              reference: <testLibrary>::@fragment::package:test/a.dart::@class::I2::@constructor::new
-              element: <testLibrary>::@fragment::package:test/a.dart::@class::I2::@constructor::new#element
+            #F7 synthetic new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:77)
+              element: <testLibrary>::@class::I2::@constructor::new
               typeName: I2
   classes
     class A
       reference: <testLibrary>::@class::A
-      firstFragment: <testLibraryFragment>::@class::A
+      firstFragment: #F1
       interfaces
         I1
         I2
       constructors
         synthetic new
-          firstFragment: <testLibraryFragment>::@class::A::@constructor::new
+          reference: <testLibrary>::@class::A::@constructor::new
+          firstFragment: #F3
     class I1
       reference: <testLibrary>::@class::I1
-      firstFragment: <testLibraryFragment>::@class::I1
+      firstFragment: #F4
       constructors
         synthetic new
-          firstFragment: <testLibraryFragment>::@class::I1::@constructor::new
+          reference: <testLibrary>::@class::I1::@constructor::new
+          firstFragment: #F5
     class I2
       reference: <testLibrary>::@class::I2
-      firstFragment: <testLibrary>::@fragment::package:test/a.dart::@class::I2
+      firstFragment: #F6
       constructors
         synthetic new
-          firstFragment: <testLibrary>::@fragment::package:test/a.dart::@class::I2::@constructor::new
+          reference: <testLibrary>::@class::I2::@constructor::new
+          firstFragment: #F7
 ''');
   }
 
-  @SkippedTest(reason: 'implement augmentation')
   test_augmented_interfaces_chain() async {
-    newFile('$testPackageLibPath/a.dart', r'''
-part of 'test.dart';
-part 'b.dart';
-augment class A implements I2 {}
-class I2 {}
-''');
-
-    newFile('$testPackageLibPath/b.dart', r'''
-part of 'a.dart';
-augment class A implements I3 {}
-class I3 {}
-''');
-
     var library = await buildLibrary(r'''
-part 'a.dart';
 class A implements I1 {}
 class I1 {}
+
+augment class A implements I2 {}
+class I2 {}
+
+augment class A implements I3 {}
+class I3 {}
 ''');
 
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      parts
-        part_0
-          uri: package:test/a.dart
-          enclosingElement3: <testLibraryFragment>
-          unit: <testLibrary>::@fragment::package:test/a.dart
-      classes
-        class A @21
-          reference: <testLibraryFragment>::@class::A
-          enclosingElement3: <testLibraryFragment>
-          augmentation: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A
-          interfaces
-            I1
-          constructors
-            synthetic @-1
-              reference: <testLibraryFragment>::@class::A::@constructor::new
-              enclosingElement3: <testLibraryFragment>::@class::A
-          augmented
-            interfaces
-              I1
-              I2
-              I3
-            constructors
-              <testLibraryFragment>::@class::A::@constructor::new
-        class I1 @46
-          reference: <testLibraryFragment>::@class::I1
-          enclosingElement3: <testLibraryFragment>
-          constructors
-            synthetic @-1
-              reference: <testLibraryFragment>::@class::I1::@constructor::new
-              enclosingElement3: <testLibraryFragment>::@class::I1
-    <testLibrary>::@fragment::package:test/a.dart
-      enclosingElement3: <testLibraryFragment>
-      parts
-        part_1
-          uri: package:test/b.dart
-          enclosingElement3: <testLibrary>::@fragment::package:test/a.dart
-          unit: <testLibrary>::@fragment::package:test/b.dart
-      classes
-        augment class A @50
-          reference: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A
-          enclosingElement3: <testLibrary>::@fragment::package:test/a.dart
-          augmentationTarget: <testLibraryFragment>::@class::A
-          augmentation: <testLibrary>::@fragment::package:test/b.dart::@classAugmentation::A
-          interfaces
-            I2
-        class I2 @75
-          reference: <testLibrary>::@fragment::package:test/a.dart::@class::I2
-          enclosingElement3: <testLibrary>::@fragment::package:test/a.dart
-          constructors
-            synthetic @-1
-              reference: <testLibrary>::@fragment::package:test/a.dart::@class::I2::@constructor::new
-              enclosingElement3: <testLibrary>::@fragment::package:test/a.dart::@class::I2
-    <testLibrary>::@fragment::package:test/b.dart
-      enclosingElement3: <testLibrary>::@fragment::package:test/a.dart
-      classes
-        augment class A @32
-          reference: <testLibrary>::@fragment::package:test/b.dart::@classAugmentation::A
-          enclosingElement3: <testLibrary>::@fragment::package:test/b.dart
-          augmentationTarget: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A
-          interfaces
-            I3
-        class I3 @57
-          reference: <testLibrary>::@fragment::package:test/b.dart::@class::I3
-          enclosingElement3: <testLibrary>::@fragment::package:test/b.dart
-          constructors
-            synthetic @-1
-              reference: <testLibrary>::@fragment::package:test/b.dart::@class::I3::@constructor::new
-              enclosingElement3: <testLibrary>::@fragment::package:test/b.dart::@class::I3
-----------------------------------------
-library
-  reference: <testLibrary>
   fragments
-    <testLibraryFragment>
+    #F0 <testLibraryFragment>
       element: <testLibrary>
-      nextFragment: <testLibrary>::@fragment::package:test/a.dart
       classes
-        class A @21
-          reference: <testLibraryFragment>::@class::A
+        #F1 class A (nameOffset:6) (firstTokenOffset:0) (offset:6)
           element: <testLibrary>::@class::A
-          nextFragment: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A
+          nextFragment: #F2
           constructors
-            synthetic new
-              reference: <testLibraryFragment>::@class::A::@constructor::new
-              element: <testLibraryFragment>::@class::A::@constructor::new#element
+            #F3 synthetic new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
+              element: <testLibrary>::@class::A::@constructor::new
               typeName: A
-        class I1 @46
-          reference: <testLibraryFragment>::@class::I1
+        #F4 class I1 (nameOffset:31) (firstTokenOffset:25) (offset:31)
           element: <testLibrary>::@class::I1
           constructors
-            synthetic new
-              reference: <testLibraryFragment>::@class::I1::@constructor::new
-              element: <testLibraryFragment>::@class::I1::@constructor::new#element
+            #F5 synthetic new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:31)
+              element: <testLibrary>::@class::I1::@constructor::new
               typeName: I1
-    <testLibrary>::@fragment::package:test/a.dart
-      element: <testLibrary>
-      enclosingFragment: <testLibraryFragment>
-      previousFragment: <testLibraryFragment>
-      nextFragment: <testLibrary>::@fragment::package:test/b.dart
-      classes
-        class A @50
-          reference: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A
+        #F2 class A (nameOffset:52) (firstTokenOffset:38) (offset:52)
           element: <testLibrary>::@class::A
-          previousFragment: <testLibraryFragment>::@class::A
-          nextFragment: <testLibrary>::@fragment::package:test/b.dart::@classAugmentation::A
-        class I2 @75
-          reference: <testLibrary>::@fragment::package:test/a.dart::@class::I2
+          previousFragment: #F1
+          nextFragment: #F6
+        #F7 class I2 (nameOffset:77) (firstTokenOffset:71) (offset:77)
           element: <testLibrary>::@class::I2
           constructors
-            synthetic new
-              reference: <testLibrary>::@fragment::package:test/a.dart::@class::I2::@constructor::new
-              element: <testLibrary>::@fragment::package:test/a.dart::@class::I2::@constructor::new#element
+            #F8 synthetic new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:77)
+              element: <testLibrary>::@class::I2::@constructor::new
               typeName: I2
-    <testLibrary>::@fragment::package:test/b.dart
-      element: <testLibrary>
-      enclosingFragment: <testLibrary>::@fragment::package:test/a.dart
-      previousFragment: <testLibrary>::@fragment::package:test/a.dart
-      classes
-        class A @32
-          reference: <testLibrary>::@fragment::package:test/b.dart::@classAugmentation::A
+        #F6 class A (nameOffset:98) (firstTokenOffset:84) (offset:98)
           element: <testLibrary>::@class::A
-          previousFragment: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A
-        class I3 @57
-          reference: <testLibrary>::@fragment::package:test/b.dart::@class::I3
+          previousFragment: #F2
+        #F9 class I3 (nameOffset:123) (firstTokenOffset:117) (offset:123)
           element: <testLibrary>::@class::I3
           constructors
-            synthetic new
-              reference: <testLibrary>::@fragment::package:test/b.dart::@class::I3::@constructor::new
-              element: <testLibrary>::@fragment::package:test/b.dart::@class::I3::@constructor::new#element
+            #F10 synthetic new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:123)
+              element: <testLibrary>::@class::I3::@constructor::new
               typeName: I3
   classes
     class A
       reference: <testLibrary>::@class::A
-      firstFragment: <testLibraryFragment>::@class::A
+      firstFragment: #F1
       interfaces
         I1
         I2
         I3
       constructors
         synthetic new
-          firstFragment: <testLibraryFragment>::@class::A::@constructor::new
+          reference: <testLibrary>::@class::A::@constructor::new
+          firstFragment: #F3
     class I1
       reference: <testLibrary>::@class::I1
-      firstFragment: <testLibraryFragment>::@class::I1
+      firstFragment: #F4
       constructors
         synthetic new
-          firstFragment: <testLibraryFragment>::@class::I1::@constructor::new
+          reference: <testLibrary>::@class::I1::@constructor::new
+          firstFragment: #F5
     class I2
       reference: <testLibrary>::@class::I2
-      firstFragment: <testLibrary>::@fragment::package:test/a.dart::@class::I2
+      firstFragment: #F7
       constructors
         synthetic new
-          firstFragment: <testLibrary>::@fragment::package:test/a.dart::@class::I2::@constructor::new
+          reference: <testLibrary>::@class::I2::@constructor::new
+          firstFragment: #F8
     class I3
       reference: <testLibrary>::@class::I3
-      firstFragment: <testLibrary>::@fragment::package:test/b.dart::@class::I3
+      firstFragment: #F9
       constructors
         synthetic new
-          firstFragment: <testLibrary>::@fragment::package:test/b.dart::@class::I3::@constructor::new
+          reference: <testLibrary>::@class::I3::@constructor::new
+          firstFragment: #F10
 ''');
   }
 
-  @SkippedTest(reason: 'implement augmentation')
+  @SkippedTest(reason: 'Causes exception')
   test_augmented_interfaces_generic() async {
     newFile('$testPackageLibPath/a.dart', r'''
 part of 'test.dart';
@@ -28022,7 +24952,7 @@ library
 ''');
   }
 
-  @SkippedTest(reason: 'implement augmentation')
+  @SkippedTest(reason: 'Causes exception')
   test_augmented_interfaces_generic_mismatch() async {
     newFile('$testPackageLibPath/a.dart', r'''
 part of 'test.dart';
@@ -28179,529 +25109,271 @@ library
 ''');
   }
 
-  @SkippedTest(reason: 'implement augmentation')
   test_augmented_method_augments_constructor() async {
-    newFile('$testPackageLibPath/a.dart', r'''
-part of 'test.dart';
-augment class A {
-  augment void foo() {}
-}
-''');
-
     var library = await buildLibrary(r'''
-part 'a.dart';
 class A {
   A.foo();
 }
-''');
 
-    checkElementText(library, r'''
-library
-  reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      parts
-        part_0
-          uri: package:test/a.dart
-          enclosingElement3: <testLibraryFragment>
-          unit: <testLibrary>::@fragment::package:test/a.dart
-      classes
-        class A @21
-          reference: <testLibraryFragment>::@class::A
-          enclosingElement3: <testLibraryFragment>
-          augmentation: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A
-          constructors
-            foo @29
-              reference: <testLibraryFragment>::@class::A::@constructor::foo
-              enclosingElement3: <testLibraryFragment>::@class::A
-              periodOffset: 28
-              nameEnd: 32
-          augmented
-            constructors
-              <testLibraryFragment>::@class::A::@constructor::foo
-            methods
-              <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@methodAugmentation::foo
-    <testLibrary>::@fragment::package:test/a.dart
-      enclosingElement3: <testLibraryFragment>
-      classes
-        augment class A @35
-          reference: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A
-          enclosingElement3: <testLibrary>::@fragment::package:test/a.dart
-          augmentationTarget: <testLibraryFragment>::@class::A
-          methods
-            augment foo @54
-              reference: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@methodAugmentation::foo
-              enclosingElement3: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A
-              returnType: void
-              augmentationTargetAny: <testLibraryFragment>::@class::A::@constructor::foo
-----------------------------------------
-library
-  reference: <testLibrary>
-  fragments
-    <testLibraryFragment>
-      element: <testLibrary>
-      nextFragment: <testLibrary>::@fragment::package:test/a.dart
-      classes
-        class A @21
-          reference: <testLibraryFragment>::@class::A
-          element: <testLibrary>::@class::A
-          nextFragment: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A
-          constructors
-            foo @29
-              reference: <testLibraryFragment>::@class::A::@constructor::foo
-              element: <testLibraryFragment>::@class::A::@constructor::foo#element
-              typeName: A
-              typeNameOffset: 27
-              periodOffset: 28
-    <testLibrary>::@fragment::package:test/a.dart
-      element: <testLibrary>
-      enclosingFragment: <testLibraryFragment>
-      previousFragment: <testLibraryFragment>
-      classes
-        class A @35
-          reference: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A
-          element: <testLibrary>::@class::A
-          previousFragment: <testLibraryFragment>::@class::A
-          methods
-            augment foo @54
-              reference: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@methodAugmentation::foo
-              element: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@methodAugmentation::foo#element
-  classes
-    class A
-      reference: <testLibrary>::@class::A
-      firstFragment: <testLibraryFragment>::@class::A
-      constructors
-        foo
-          firstFragment: <testLibraryFragment>::@class::A::@constructor::foo
-      methods
-        foo
-          reference: <testLibrary>::@class::A::@method::foo
-          firstFragment: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@methodAugmentation::foo
-''');
-  }
-
-  @SkippedTest(reason: 'implement augmentation')
-  test_augmented_method_augments_field() async {
-    newFile('$testPackageLibPath/a.dart', r'''
-part of 'test.dart';
 augment class A {
   augment void foo() {}
 }
 ''');
 
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      classes
+        #F1 class A (nameOffset:6) (firstTokenOffset:0) (offset:6)
+          element: <testLibrary>::@class::A
+          nextFragment: #F2
+          constructors
+            #F3 foo (nameOffset:14) (firstTokenOffset:12) (offset:14)
+              element: <testLibrary>::@class::A::@constructor::foo
+              typeName: A
+              typeNameOffset: 12
+              periodOffset: 13
+        #F2 class A (nameOffset:38) (firstTokenOffset:24) (offset:38)
+          element: <testLibrary>::@class::A
+          previousFragment: #F1
+          methods
+            #F4 augment foo (nameOffset:57) (firstTokenOffset:44) (offset:57)
+              element: <testLibrary>::@class::A::@method::foo
+  classes
+    class A
+      reference: <testLibrary>::@class::A
+      firstFragment: #F1
+      constructors
+        foo
+          reference: <testLibrary>::@class::A::@constructor::foo
+          firstFragment: #F3
+      methods
+        foo
+          reference: <testLibrary>::@class::A::@method::foo
+          firstFragment: #F4
+          returnType: void
+''');
+  }
+
+  test_augmented_method_augments_field() async {
     var library = await buildLibrary(r'''
-part 'a.dart';
 class A {
   int foo = 0;
 }
-''');
 
-    checkElementText(library, r'''
-library
-  reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      parts
-        part_0
-          uri: package:test/a.dart
-          enclosingElement3: <testLibraryFragment>
-          unit: <testLibrary>::@fragment::package:test/a.dart
-      classes
-        class A @21
-          reference: <testLibraryFragment>::@class::A
-          enclosingElement3: <testLibraryFragment>
-          augmentation: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A
-          fields
-            foo @31
-              reference: <testLibraryFragment>::@class::A::@field::foo
-              enclosingElement3: <testLibraryFragment>::@class::A
-              type: int
-              shouldUseTypeForInitializerInference: true
-          constructors
-            synthetic @-1
-              reference: <testLibraryFragment>::@class::A::@constructor::new
-              enclosingElement3: <testLibraryFragment>::@class::A
-          accessors
-            synthetic get foo @-1
-              reference: <testLibraryFragment>::@class::A::@getter::foo
-              enclosingElement3: <testLibraryFragment>::@class::A
-              returnType: int
-            synthetic set foo= @-1
-              reference: <testLibraryFragment>::@class::A::@setter::foo
-              enclosingElement3: <testLibraryFragment>::@class::A
-              parameters
-                requiredPositional _foo @-1
-                  type: int
-              returnType: void
-          augmented
-            fields
-              <testLibraryFragment>::@class::A::@field::foo
-            constructors
-              <testLibraryFragment>::@class::A::@constructor::new
-            accessors
-              <testLibraryFragment>::@class::A::@getter::foo
-              <testLibraryFragment>::@class::A::@setter::foo
-            methods
-              <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@methodAugmentation::foo
-    <testLibrary>::@fragment::package:test/a.dart
-      enclosingElement3: <testLibraryFragment>
-      classes
-        augment class A @35
-          reference: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A
-          enclosingElement3: <testLibrary>::@fragment::package:test/a.dart
-          augmentationTarget: <testLibraryFragment>::@class::A
-          methods
-            augment foo @54
-              reference: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@methodAugmentation::foo
-              enclosingElement3: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A
-              returnType: void
-              augmentationTargetAny: <testLibraryFragment>::@class::A::@getter::foo
-----------------------------------------
-library
-  reference: <testLibrary>
-  fragments
-    <testLibraryFragment>
-      element: <testLibrary>
-      nextFragment: <testLibrary>::@fragment::package:test/a.dart
-      classes
-        class A @21
-          reference: <testLibraryFragment>::@class::A
-          element: <testLibrary>::@class::A
-          nextFragment: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A
-          fields
-            hasInitializer foo @31
-              reference: <testLibraryFragment>::@class::A::@field::foo
-              element: <testLibraryFragment>::@class::A::@field::foo#element
-              getter2: <testLibraryFragment>::@class::A::@getter::foo
-              setter2: <testLibraryFragment>::@class::A::@setter::foo
-          constructors
-            synthetic new
-              reference: <testLibraryFragment>::@class::A::@constructor::new
-              element: <testLibraryFragment>::@class::A::@constructor::new#element
-              typeName: A
-          getters
-            synthetic get foo
-              reference: <testLibraryFragment>::@class::A::@getter::foo
-              element: <testLibraryFragment>::@class::A::@getter::foo#element
-          setters
-            synthetic set foo
-              reference: <testLibraryFragment>::@class::A::@setter::foo
-              element: <testLibraryFragment>::@class::A::@setter::foo#element
-              formalParameters
-                _foo
-                  element: <testLibraryFragment>::@class::A::@setter::foo::@parameter::_foo#element
-    <testLibrary>::@fragment::package:test/a.dart
-      element: <testLibrary>
-      enclosingFragment: <testLibraryFragment>
-      previousFragment: <testLibraryFragment>
-      classes
-        class A @35
-          reference: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A
-          element: <testLibrary>::@class::A
-          previousFragment: <testLibraryFragment>::@class::A
-          methods
-            augment foo @54
-              reference: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@methodAugmentation::foo
-              element: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@methodAugmentation::foo#element
-  classes
-    class A
-      reference: <testLibrary>::@class::A
-      firstFragment: <testLibraryFragment>::@class::A
-      fields
-        hasInitializer foo
-          firstFragment: <testLibraryFragment>::@class::A::@field::foo
-          type: int
-          getter: <testLibraryFragment>::@class::A::@getter::foo#element
-          setter: <testLibraryFragment>::@class::A::@setter::foo#element
-      constructors
-        synthetic new
-          firstFragment: <testLibraryFragment>::@class::A::@constructor::new
-      getters
-        synthetic get foo
-          firstFragment: <testLibraryFragment>::@class::A::@getter::foo
-      setters
-        synthetic set foo
-          firstFragment: <testLibraryFragment>::@class::A::@setter::foo
-          formalParameters
-            requiredPositional _foo
-              type: int
-      methods
-        foo
-          reference: <testLibrary>::@class::A::@method::foo
-          firstFragment: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@methodAugmentation::foo
-''');
-  }
-
-  @SkippedTest(reason: 'implement augmentation')
-  test_augmented_method_augments_getter() async {
-    newFile('$testPackageLibPath/a.dart', r'''
-part of 'test.dart';
 augment class A {
   augment void foo() {}
 }
 ''');
 
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      classes
+        #F1 class A (nameOffset:6) (firstTokenOffset:0) (offset:6)
+          element: <testLibrary>::@class::A
+          nextFragment: #F2
+          fields
+            #F3 hasInitializer foo (nameOffset:16) (firstTokenOffset:16) (offset:16)
+              element: <testLibrary>::@class::A::@field::foo
+          constructors
+            #F4 synthetic new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
+              element: <testLibrary>::@class::A::@constructor::new
+              typeName: A
+          getters
+            #F5 synthetic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
+              element: <testLibrary>::@class::A::@getter::foo
+          setters
+            #F6 synthetic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
+              element: <testLibrary>::@class::A::@setter::foo
+              formalParameters
+                #F7 value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
+                  element: <testLibrary>::@class::A::@setter::foo::@formalParameter::value
+        #F2 class A (nameOffset:42) (firstTokenOffset:28) (offset:42)
+          element: <testLibrary>::@class::A
+          previousFragment: #F1
+          methods
+            #F8 augment foo (nameOffset:61) (firstTokenOffset:48) (offset:61)
+              element: <testLibrary>::@class::A::@method::foo
+  classes
+    hasNonFinalField class A
+      reference: <testLibrary>::@class::A
+      firstFragment: #F1
+      fields
+        hasInitializer foo
+          reference: <testLibrary>::@class::A::@field::foo
+          firstFragment: #F3
+          type: int
+          getter: <testLibrary>::@class::A::@getter::foo
+          setter: <testLibrary>::@class::A::@setter::foo
+      constructors
+        synthetic new
+          reference: <testLibrary>::@class::A::@constructor::new
+          firstFragment: #F4
+      getters
+        synthetic foo
+          reference: <testLibrary>::@class::A::@getter::foo
+          firstFragment: #F5
+          returnType: int
+          variable: <testLibrary>::@class::A::@field::foo
+      setters
+        synthetic foo
+          reference: <testLibrary>::@class::A::@setter::foo
+          firstFragment: #F6
+          formalParameters
+            #E0 requiredPositional value
+              firstFragment: #F7
+              type: int
+          returnType: void
+          variable: <testLibrary>::@class::A::@field::foo
+      methods
+        foo
+          reference: <testLibrary>::@class::A::@method::foo
+          firstFragment: #F8
+          returnType: void
+''');
+  }
+
+  test_augmented_method_augments_getter() async {
     var library = await buildLibrary(r'''
-part 'a.dart';
 class A {
   int get foo => 0;
 }
-''');
 
-    checkElementText(library, r'''
-library
-  reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      parts
-        part_0
-          uri: package:test/a.dart
-          enclosingElement3: <testLibraryFragment>
-          unit: <testLibrary>::@fragment::package:test/a.dart
-      classes
-        class A @21
-          reference: <testLibraryFragment>::@class::A
-          enclosingElement3: <testLibraryFragment>
-          augmentation: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A
-          fields
-            synthetic foo @-1
-              reference: <testLibraryFragment>::@class::A::@field::foo
-              enclosingElement3: <testLibraryFragment>::@class::A
-              type: int
-          constructors
-            synthetic @-1
-              reference: <testLibraryFragment>::@class::A::@constructor::new
-              enclosingElement3: <testLibraryFragment>::@class::A
-          accessors
-            get foo @35
-              reference: <testLibraryFragment>::@class::A::@getter::foo
-              enclosingElement3: <testLibraryFragment>::@class::A
-              returnType: int
-          augmented
-            fields
-              <testLibraryFragment>::@class::A::@field::foo
-            constructors
-              <testLibraryFragment>::@class::A::@constructor::new
-            accessors
-              <testLibraryFragment>::@class::A::@getter::foo
-            methods
-              <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@methodAugmentation::foo
-    <testLibrary>::@fragment::package:test/a.dart
-      enclosingElement3: <testLibraryFragment>
-      classes
-        augment class A @35
-          reference: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A
-          enclosingElement3: <testLibrary>::@fragment::package:test/a.dart
-          augmentationTarget: <testLibraryFragment>::@class::A
-          methods
-            augment foo @54
-              reference: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@methodAugmentation::foo
-              enclosingElement3: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A
-              returnType: void
-              augmentationTargetAny: <testLibraryFragment>::@class::A::@getter::foo
-----------------------------------------
-library
-  reference: <testLibrary>
-  fragments
-    <testLibraryFragment>
-      element: <testLibrary>
-      nextFragment: <testLibrary>::@fragment::package:test/a.dart
-      classes
-        class A @21
-          reference: <testLibraryFragment>::@class::A
-          element: <testLibrary>::@class::A
-          nextFragment: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A
-          fields
-            synthetic foo
-              reference: <testLibraryFragment>::@class::A::@field::foo
-              element: <testLibraryFragment>::@class::A::@field::foo#element
-              getter2: <testLibraryFragment>::@class::A::@getter::foo
-          constructors
-            synthetic new
-              reference: <testLibraryFragment>::@class::A::@constructor::new
-              element: <testLibraryFragment>::@class::A::@constructor::new#element
-              typeName: A
-          getters
-            get foo @35
-              reference: <testLibraryFragment>::@class::A::@getter::foo
-              element: <testLibraryFragment>::@class::A::@getter::foo#element
-    <testLibrary>::@fragment::package:test/a.dart
-      element: <testLibrary>
-      enclosingFragment: <testLibraryFragment>
-      previousFragment: <testLibraryFragment>
-      classes
-        class A @35
-          reference: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A
-          element: <testLibrary>::@class::A
-          previousFragment: <testLibraryFragment>::@class::A
-          methods
-            augment foo @54
-              reference: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@methodAugmentation::foo
-              element: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@methodAugmentation::foo#element
-  classes
-    class A
-      reference: <testLibrary>::@class::A
-      firstFragment: <testLibraryFragment>::@class::A
-      fields
-        synthetic foo
-          firstFragment: <testLibraryFragment>::@class::A::@field::foo
-          type: int
-          getter: <testLibraryFragment>::@class::A::@getter::foo#element
-      constructors
-        synthetic new
-          firstFragment: <testLibraryFragment>::@class::A::@constructor::new
-      getters
-        get foo
-          firstFragment: <testLibraryFragment>::@class::A::@getter::foo
-      methods
-        foo
-          reference: <testLibrary>::@class::A::@method::foo
-          firstFragment: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@methodAugmentation::foo
-''');
-  }
-
-  @SkippedTest(reason: 'implement augmentation')
-  test_augmented_method_augments_setter() async {
-    newFile('$testPackageLibPath/a.dart', r'''
-part of 'test.dart';
 augment class A {
   augment void foo() {}
 }
 ''');
 
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      classes
+        #F1 class A (nameOffset:6) (firstTokenOffset:0) (offset:6)
+          element: <testLibrary>::@class::A
+          nextFragment: #F2
+          fields
+            #F3 synthetic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
+              element: <testLibrary>::@class::A::@field::foo
+          constructors
+            #F4 synthetic new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
+              element: <testLibrary>::@class::A::@constructor::new
+              typeName: A
+          getters
+            #F5 foo (nameOffset:20) (firstTokenOffset:12) (offset:20)
+              element: <testLibrary>::@class::A::@getter::foo
+        #F2 class A (nameOffset:47) (firstTokenOffset:33) (offset:47)
+          element: <testLibrary>::@class::A
+          previousFragment: #F1
+          methods
+            #F6 augment foo (nameOffset:66) (firstTokenOffset:53) (offset:66)
+              element: <testLibrary>::@class::A::@method::foo
+  classes
+    class A
+      reference: <testLibrary>::@class::A
+      firstFragment: #F1
+      fields
+        synthetic foo
+          reference: <testLibrary>::@class::A::@field::foo
+          firstFragment: #F3
+          type: int
+          getter: <testLibrary>::@class::A::@getter::foo
+      constructors
+        synthetic new
+          reference: <testLibrary>::@class::A::@constructor::new
+          firstFragment: #F4
+      getters
+        foo
+          reference: <testLibrary>::@class::A::@getter::foo
+          firstFragment: #F5
+          returnType: int
+          variable: <testLibrary>::@class::A::@field::foo
+      methods
+        foo
+          reference: <testLibrary>::@class::A::@method::foo
+          firstFragment: #F6
+          returnType: void
+''');
+  }
+
+  test_augmented_method_augments_setter() async {
     var library = await buildLibrary(r'''
-part 'a.dart';
 class A {
   set foo(int _) {}
+}
+
+augment class A {
+  augment void foo() {}
 }
 ''');
 
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      parts
-        part_0
-          uri: package:test/a.dart
-          enclosingElement3: <testLibraryFragment>
-          unit: <testLibrary>::@fragment::package:test/a.dart
-      classes
-        class A @21
-          reference: <testLibraryFragment>::@class::A
-          enclosingElement3: <testLibraryFragment>
-          augmentation: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A
-          fields
-            synthetic foo @-1
-              reference: <testLibraryFragment>::@class::A::@field::foo
-              enclosingElement3: <testLibraryFragment>::@class::A
-              type: int
-          constructors
-            synthetic @-1
-              reference: <testLibraryFragment>::@class::A::@constructor::new
-              enclosingElement3: <testLibraryFragment>::@class::A
-          accessors
-            set foo= @31
-              reference: <testLibraryFragment>::@class::A::@setter::foo
-              enclosingElement3: <testLibraryFragment>::@class::A
-              parameters
-                requiredPositional _ @39
-                  type: int
-              returnType: void
-          augmented
-            fields
-              <testLibraryFragment>::@class::A::@field::foo
-            constructors
-              <testLibraryFragment>::@class::A::@constructor::new
-            accessors
-              <testLibraryFragment>::@class::A::@setter::foo
-            methods
-              <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@methodAugmentation::foo
-    <testLibrary>::@fragment::package:test/a.dart
-      enclosingElement3: <testLibraryFragment>
-      classes
-        augment class A @35
-          reference: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A
-          enclosingElement3: <testLibrary>::@fragment::package:test/a.dart
-          augmentationTarget: <testLibraryFragment>::@class::A
-          methods
-            augment foo @54
-              reference: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@methodAugmentation::foo
-              enclosingElement3: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A
-              returnType: void
-              augmentationTargetAny: <testLibraryFragment>::@class::A::@setter::foo
-----------------------------------------
-library
-  reference: <testLibrary>
   fragments
-    <testLibraryFragment>
+    #F0 <testLibraryFragment>
       element: <testLibrary>
-      nextFragment: <testLibrary>::@fragment::package:test/a.dart
       classes
-        class A @21
-          reference: <testLibraryFragment>::@class::A
+        #F1 class A (nameOffset:6) (firstTokenOffset:0) (offset:6)
           element: <testLibrary>::@class::A
-          nextFragment: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A
+          nextFragment: #F2
           fields
-            synthetic foo
-              reference: <testLibraryFragment>::@class::A::@field::foo
-              element: <testLibraryFragment>::@class::A::@field::foo#element
-              setter2: <testLibraryFragment>::@class::A::@setter::foo
+            #F3 synthetic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
+              element: <testLibrary>::@class::A::@field::foo
           constructors
-            synthetic new
-              reference: <testLibraryFragment>::@class::A::@constructor::new
-              element: <testLibraryFragment>::@class::A::@constructor::new#element
+            #F4 synthetic new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
+              element: <testLibrary>::@class::A::@constructor::new
               typeName: A
           setters
-            set foo @31
-              reference: <testLibraryFragment>::@class::A::@setter::foo
-              element: <testLibraryFragment>::@class::A::@setter::foo#element
+            #F5 foo (nameOffset:16) (firstTokenOffset:12) (offset:16)
+              element: <testLibrary>::@class::A::@setter::foo
               formalParameters
-                _ @39
-                  element: <testLibraryFragment>::@class::A::@setter::foo::@parameter::_#element
-    <testLibrary>::@fragment::package:test/a.dart
-      element: <testLibrary>
-      enclosingFragment: <testLibraryFragment>
-      previousFragment: <testLibraryFragment>
-      classes
-        class A @35
-          reference: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A
+                #F6 _ (nameOffset:24) (firstTokenOffset:20) (offset:24)
+                  element: <testLibrary>::@class::A::@setter::foo::@formalParameter::_
+        #F2 class A (nameOffset:47) (firstTokenOffset:33) (offset:47)
           element: <testLibrary>::@class::A
-          previousFragment: <testLibraryFragment>::@class::A
+          previousFragment: #F1
           methods
-            augment foo @54
-              reference: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@methodAugmentation::foo
-              element: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@methodAugmentation::foo#element
+            #F7 augment foo (nameOffset:66) (firstTokenOffset:53) (offset:66)
+              element: <testLibrary>::@class::A::@method::foo
   classes
     class A
       reference: <testLibrary>::@class::A
-      firstFragment: <testLibraryFragment>::@class::A
+      firstFragment: #F1
       fields
         synthetic foo
-          firstFragment: <testLibraryFragment>::@class::A::@field::foo
+          reference: <testLibrary>::@class::A::@field::foo
+          firstFragment: #F3
           type: int
-          setter: <testLibraryFragment>::@class::A::@setter::foo#element
+          setter: <testLibrary>::@class::A::@setter::foo
       constructors
         synthetic new
-          firstFragment: <testLibraryFragment>::@class::A::@constructor::new
+          reference: <testLibrary>::@class::A::@constructor::new
+          firstFragment: #F4
       setters
-        set foo
-          firstFragment: <testLibraryFragment>::@class::A::@setter::foo
+        foo
+          reference: <testLibrary>::@class::A::@setter::foo
+          firstFragment: #F5
           formalParameters
-            requiredPositional _
+            #E0 requiredPositional _
+              firstFragment: #F6
               type: int
+          returnType: void
+          variable: <testLibrary>::@class::A::@field::foo
       methods
         foo
           reference: <testLibrary>::@class::A::@method::foo
-          firstFragment: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@methodAugmentation::foo
+          firstFragment: #F7
+          returnType: void
 ''');
   }
 
@@ -28999,7 +25671,7 @@ library
 ''');
   }
 
-  @SkippedTest(reason: 'implement augmentation')
+  @SkippedTest(reason: 'Causes exception')
   test_augmented_methods_generic() async {
     newFile('$testPackageLibPath/a.dart', r'''
 part of 'test.dart';
@@ -29126,7 +25798,7 @@ library
 ''');
   }
 
-  @SkippedTest(reason: 'implement augmentation')
+  @SkippedTest(reason: 'Causes exception')
   test_augmented_methods_generic_augment() async {
     newFile('$testPackageLibPath/a.dart', r'''
 part of 'test.dart';
@@ -29253,2502 +25925,1342 @@ library
 ''');
   }
 
-  @SkippedTest(reason: 'implement augmentation')
   test_augmented_mixins() async {
-    newFile('$testPackageLibPath/a.dart', r'''
-part of 'test.dart';
-augment class A with M2 {}
-mixin M2 {}
-''');
-
     var library = await buildLibrary(r'''
-part 'a.dart';
 class A with M1 {}
 mixin M1 {}
+
+augment class A with M2 {}
+mixin M2 {}
 ''');
 
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      parts
-        part_0
-          uri: package:test/a.dart
-          enclosingElement3: <testLibraryFragment>
-          unit: <testLibrary>::@fragment::package:test/a.dart
-      classes
-        class A @21
-          reference: <testLibraryFragment>::@class::A
-          enclosingElement3: <testLibraryFragment>
-          augmentation: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A
-          supertype: Object
-          mixins
-            M1
-          constructors
-            synthetic @-1
-              reference: <testLibraryFragment>::@class::A::@constructor::new
-              enclosingElement3: <testLibraryFragment>::@class::A
-          augmented
-            mixins
-              M1
-              M2
-            constructors
-              <testLibraryFragment>::@class::A::@constructor::new
-      mixins
-        mixin M1 @40
-          reference: <testLibraryFragment>::@mixin::M1
-          enclosingElement3: <testLibraryFragment>
-          superclassConstraints
-            Object
-    <testLibrary>::@fragment::package:test/a.dart
-      enclosingElement3: <testLibraryFragment>
-      classes
-        augment class A @35
-          reference: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A
-          enclosingElement3: <testLibrary>::@fragment::package:test/a.dart
-          augmentationTarget: <testLibraryFragment>::@class::A
-          mixins
-            M2
-      mixins
-        mixin M2 @54
-          reference: <testLibrary>::@fragment::package:test/a.dart::@mixin::M2
-          enclosingElement3: <testLibrary>::@fragment::package:test/a.dart
-          superclassConstraints
-            Object
-----------------------------------------
-library
-  reference: <testLibrary>
   fragments
-    <testLibraryFragment>
+    #F0 <testLibraryFragment>
       element: <testLibrary>
-      nextFragment: <testLibrary>::@fragment::package:test/a.dart
       classes
-        class A @21
-          reference: <testLibraryFragment>::@class::A
+        #F1 class A (nameOffset:6) (firstTokenOffset:0) (offset:6)
           element: <testLibrary>::@class::A
-          nextFragment: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A
+          nextFragment: #F2
           constructors
-            synthetic new
-              reference: <testLibraryFragment>::@class::A::@constructor::new
-              element: <testLibraryFragment>::@class::A::@constructor::new#element
+            #F3 synthetic new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
+              element: <testLibrary>::@class::A::@constructor::new
               typeName: A
-      mixins
-        mixin M1 @40
-          reference: <testLibraryFragment>::@mixin::M1
-          element: <testLibrary>::@mixin::M1
-    <testLibrary>::@fragment::package:test/a.dart
-      element: <testLibrary>
-      enclosingFragment: <testLibraryFragment>
-      previousFragment: <testLibraryFragment>
-      classes
-        class A @35
-          reference: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A
+        #F2 class A (nameOffset:46) (firstTokenOffset:32) (offset:46)
           element: <testLibrary>::@class::A
-          previousFragment: <testLibraryFragment>::@class::A
+          previousFragment: #F1
       mixins
-        mixin M2 @54
-          reference: <testLibrary>::@fragment::package:test/a.dart::@mixin::M2
+        #F4 mixin M1 (nameOffset:25) (firstTokenOffset:19) (offset:25)
+          element: <testLibrary>::@mixin::M1
+        #F5 mixin M2 (nameOffset:65) (firstTokenOffset:59) (offset:65)
           element: <testLibrary>::@mixin::M2
   classes
     class A
       reference: <testLibrary>::@class::A
-      firstFragment: <testLibraryFragment>::@class::A
+      firstFragment: #F1
       supertype: Object
       mixins
         M1
         M2
       constructors
         synthetic new
-          firstFragment: <testLibraryFragment>::@class::A::@constructor::new
+          reference: <testLibrary>::@class::A::@constructor::new
+          firstFragment: #F3
   mixins
     mixin M1
       reference: <testLibrary>::@mixin::M1
-      firstFragment: <testLibraryFragment>::@mixin::M1
+      firstFragment: #F4
       superclassConstraints
         Object
     mixin M2
       reference: <testLibrary>::@mixin::M2
-      firstFragment: <testLibrary>::@fragment::package:test/a.dart::@mixin::M2
+      firstFragment: #F5
       superclassConstraints
         Object
 ''');
   }
 
-  @SkippedTest(reason: 'implement augmentation')
   test_augmented_mixins_inferredTypeArguments() async {
-    newFile('$testPackageLibPath/a.dart', r'''
-part of 'test.dart';
-augment class A<T2> with M2 {}
-mixin M2<U2> on M1<U2> {}
-''');
-
-    newFile('$testPackageLibPath/b.dart', r'''
-part of 'test.dart';
-augment class A<T3> with M3 {}
-mixin M3<U3> on M2<U3> {}
-''');
-
     var library = await buildLibrary(r'''
-part 'a.dart';
-part 'b.dart';
 class B<S> {}
-class A<T1> extends B<T1> with M1 {}
+class A<T> extends B<T> with M1 {}
 mixin M1<U1> on B<U1> {}
+
+augment class A<T> with M2 {}
+mixin M2<U2> on M1<U2> {}
+
+augment class A<T> with M3 {}
+mixin M3<U3> on M2<U3> {}
 ''');
 
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      parts
-        part_0
-          uri: package:test/a.dart
-          enclosingElement3: <testLibraryFragment>
-          unit: <testLibrary>::@fragment::package:test/a.dart
-        part_1
-          uri: package:test/b.dart
-          enclosingElement3: <testLibraryFragment>
-          unit: <testLibrary>::@fragment::package:test/b.dart
-      classes
-        class B @36
-          reference: <testLibraryFragment>::@class::B
-          enclosingElement3: <testLibraryFragment>
-          typeParameters
-            covariant S @38
-              defaultType: dynamic
-          constructors
-            synthetic @-1
-              reference: <testLibraryFragment>::@class::B::@constructor::new
-              enclosingElement3: <testLibraryFragment>::@class::B
-        class A @50
-          reference: <testLibraryFragment>::@class::A
-          enclosingElement3: <testLibraryFragment>
-          typeParameters
-            covariant T1 @52
-              defaultType: dynamic
-          augmentation: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A
-          supertype: B<T1>
-          mixins
-            M1<T1>
-          constructors
-            synthetic @-1
-              reference: <testLibraryFragment>::@class::A::@constructor::new
-              enclosingElement3: <testLibraryFragment>::@class::A
-              superConstructor: ConstructorMember
-                base: <testLibraryFragment>::@class::B::@constructor::new
-                substitution: {S: T1}
-          augmented
-            mixins
-              M1<T1>
-              M2<T1>
-              M3<T1>
-            constructors
-              <testLibraryFragment>::@class::A::@constructor::new
-      mixins
-        mixin M1 @87
-          reference: <testLibraryFragment>::@mixin::M1
-          enclosingElement3: <testLibraryFragment>
-          typeParameters
-            covariant U1 @90
-              defaultType: dynamic
-          superclassConstraints
-            B<U1>
-    <testLibrary>::@fragment::package:test/a.dart
-      enclosingElement3: <testLibraryFragment>
-      classes
-        augment class A @35
-          reference: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A
-          enclosingElement3: <testLibrary>::@fragment::package:test/a.dart
-          typeParameters
-            covariant T2 @37
-              defaultType: dynamic
-          augmentationTarget: <testLibraryFragment>::@class::A
-          augmentation: <testLibrary>::@fragment::package:test/b.dart::@classAugmentation::A
-          mixins
-            M2<T2>
-      mixins
-        mixin M2 @58
-          reference: <testLibrary>::@fragment::package:test/a.dart::@mixin::M2
-          enclosingElement3: <testLibrary>::@fragment::package:test/a.dart
-          typeParameters
-            covariant U2 @61
-              defaultType: dynamic
-          superclassConstraints
-            M1<U2>
-    <testLibrary>::@fragment::package:test/b.dart
-      enclosingElement3: <testLibraryFragment>
-      classes
-        augment class A @35
-          reference: <testLibrary>::@fragment::package:test/b.dart::@classAugmentation::A
-          enclosingElement3: <testLibrary>::@fragment::package:test/b.dart
-          typeParameters
-            covariant T3 @37
-              defaultType: dynamic
-          augmentationTarget: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A
-          mixins
-            M3<T3>
-      mixins
-        mixin M3 @58
-          reference: <testLibrary>::@fragment::package:test/b.dart::@mixin::M3
-          enclosingElement3: <testLibrary>::@fragment::package:test/b.dart
-          typeParameters
-            covariant U3 @61
-              defaultType: dynamic
-          superclassConstraints
-            M2<U3>
-----------------------------------------
-library
-  reference: <testLibrary>
   fragments
-    <testLibraryFragment>
+    #F0 <testLibraryFragment>
       element: <testLibrary>
-      nextFragment: <testLibrary>::@fragment::package:test/a.dart
       classes
-        class B @36
-          reference: <testLibraryFragment>::@class::B
+        #F1 class B (nameOffset:6) (firstTokenOffset:0) (offset:6)
           element: <testLibrary>::@class::B
           typeParameters
-            S @38
-              element: <not-implemented>
+            #F2 S (nameOffset:8) (firstTokenOffset:8) (offset:8)
+              element: #E0 S
           constructors
-            synthetic new
-              reference: <testLibraryFragment>::@class::B::@constructor::new
-              element: <testLibraryFragment>::@class::B::@constructor::new#element
+            #F3 synthetic new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
+              element: <testLibrary>::@class::B::@constructor::new
               typeName: B
-        class A @50
-          reference: <testLibraryFragment>::@class::A
+        #F4 class A (nameOffset:20) (firstTokenOffset:14) (offset:20)
           element: <testLibrary>::@class::A
-          nextFragment: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A
+          nextFragment: #F5
           typeParameters
-            T1 @52
-              element: <not-implemented>
+            #F6 T (nameOffset:22) (firstTokenOffset:22) (offset:22)
+              element: #E1 T
           constructors
-            synthetic new
-              reference: <testLibraryFragment>::@class::A::@constructor::new
-              element: <testLibraryFragment>::@class::A::@constructor::new#element
+            #F7 synthetic new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:20)
+              element: <testLibrary>::@class::A::@constructor::new
               typeName: A
-              superConstructor: ConstructorMember
-                base: <testLibraryFragment>::@class::B::@constructor::new
-                substitution: {S: T1}
+        #F5 class A (nameOffset:89) (firstTokenOffset:75) (offset:89)
+          element: <testLibrary>::@class::A
+          previousFragment: #F4
+          nextFragment: #F8
+          typeParameters
+            #F9 T (nameOffset:91) (firstTokenOffset:91) (offset:91)
+              element: #E2 T
+        #F8 class A (nameOffset:146) (firstTokenOffset:132) (offset:146)
+          element: <testLibrary>::@class::A
+          previousFragment: #F5
+          typeParameters
+            #F10 T (nameOffset:148) (firstTokenOffset:148) (offset:148)
+              element: #E3 T
       mixins
-        mixin M1 @87
-          reference: <testLibraryFragment>::@mixin::M1
+        #F11 mixin M1 (nameOffset:55) (firstTokenOffset:49) (offset:55)
           element: <testLibrary>::@mixin::M1
           typeParameters
-            U1 @90
-              element: <not-implemented>
-    <testLibrary>::@fragment::package:test/a.dart
-      element: <testLibrary>
-      enclosingFragment: <testLibraryFragment>
-      previousFragment: <testLibraryFragment>
-      nextFragment: <testLibrary>::@fragment::package:test/b.dart
-      classes
-        class A @35
-          reference: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A
-          element: <testLibrary>::@class::A
-          previousFragment: <testLibraryFragment>::@class::A
-          nextFragment: <testLibrary>::@fragment::package:test/b.dart::@classAugmentation::A
-          typeParameters
-            T2 @37
-              element: <not-implemented>
-      mixins
-        mixin M2 @58
-          reference: <testLibrary>::@fragment::package:test/a.dart::@mixin::M2
+            #F12 U1 (nameOffset:58) (firstTokenOffset:58) (offset:58)
+              element: #E4 U1
+        #F13 mixin M2 (nameOffset:111) (firstTokenOffset:105) (offset:111)
           element: <testLibrary>::@mixin::M2
           typeParameters
-            U2 @61
-              element: <not-implemented>
-    <testLibrary>::@fragment::package:test/b.dart
-      element: <testLibrary>
-      enclosingFragment: <testLibraryFragment>
-      previousFragment: <testLibrary>::@fragment::package:test/a.dart
-      classes
-        class A @35
-          reference: <testLibrary>::@fragment::package:test/b.dart::@classAugmentation::A
-          element: <testLibrary>::@class::A
-          previousFragment: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A
-          typeParameters
-            T3 @37
-              element: <not-implemented>
-      mixins
-        mixin M3 @58
-          reference: <testLibrary>::@fragment::package:test/b.dart::@mixin::M3
+            #F14 U2 (nameOffset:114) (firstTokenOffset:114) (offset:114)
+              element: #E5 U2
+        #F15 mixin M3 (nameOffset:168) (firstTokenOffset:162) (offset:168)
           element: <testLibrary>::@mixin::M3
           typeParameters
-            U3 @61
-              element: <not-implemented>
+            #F16 U3 (nameOffset:171) (firstTokenOffset:171) (offset:171)
+              element: #E6 U3
   classes
     class B
       reference: <testLibrary>::@class::B
-      firstFragment: <testLibraryFragment>::@class::B
+      firstFragment: #F1
       typeParameters
-        S
+        #E0 S
+          firstFragment: #F2
       constructors
         synthetic new
-          firstFragment: <testLibraryFragment>::@class::B::@constructor::new
+          reference: <testLibrary>::@class::B::@constructor::new
+          firstFragment: #F3
     class A
       reference: <testLibrary>::@class::A
-      firstFragment: <testLibraryFragment>::@class::A
+      firstFragment: #F4
       typeParameters
-        T1
-      supertype: B<T1>
+        #E1 T
+          firstFragment: #F6
+      supertype: B<T>
       mixins
-        M1<T1>
-        M2<T1>
-        M3<T1>
+        M1<T>
+        M2<T>
+        M3<T>
       constructors
         synthetic new
-          firstFragment: <testLibraryFragment>::@class::A::@constructor::new
-          superConstructor: <testLibraryFragment>::@class::B::@constructor::new#element
+          reference: <testLibrary>::@class::A::@constructor::new
+          firstFragment: #F7
+          superConstructor: ConstructorMember
+            baseElement: <testLibrary>::@class::B::@constructor::new
+            substitution: {S: T}
   mixins
     mixin M1
       reference: <testLibrary>::@mixin::M1
-      firstFragment: <testLibraryFragment>::@mixin::M1
+      firstFragment: #F11
       typeParameters
-        U1
+        #E4 U1
+          firstFragment: #F12
       superclassConstraints
         B<U1>
     mixin M2
       reference: <testLibrary>::@mixin::M2
-      firstFragment: <testLibrary>::@fragment::package:test/a.dart::@mixin::M2
+      firstFragment: #F13
       typeParameters
-        U2
+        #E5 U2
+          firstFragment: #F14
       superclassConstraints
         M1<U2>
     mixin M3
       reference: <testLibrary>::@mixin::M3
-      firstFragment: <testLibrary>::@fragment::package:test/b.dart::@mixin::M3
+      firstFragment: #F15
       typeParameters
-        U3
+        #E6 U3
+          firstFragment: #F16
       superclassConstraints
         M2<U3>
 ''');
   }
 
-  @SkippedTest(reason: 'implement augmentation')
   test_augmented_setter_augments_constructor() async {
-    newFile('$testPackageLibPath/a.dart', r'''
-part of 'test.dart';
-augment class A {
-  augment set foo(int _) {}
-}
-''');
-
     var library = await buildLibrary(r'''
-part 'a.dart';
 class A {
   A.foo();
 }
-''');
 
-    checkElementText(library, r'''
-library
-  reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      parts
-        part_0
-          uri: package:test/a.dart
-          enclosingElement3: <testLibraryFragment>
-          unit: <testLibrary>::@fragment::package:test/a.dart
-      classes
-        class A @21
-          reference: <testLibraryFragment>::@class::A
-          enclosingElement3: <testLibraryFragment>
-          augmentation: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A
-          constructors
-            foo @29
-              reference: <testLibraryFragment>::@class::A::@constructor::foo
-              enclosingElement3: <testLibraryFragment>::@class::A
-              periodOffset: 28
-              nameEnd: 32
-          augmented
-            constructors
-              <testLibraryFragment>::@class::A::@constructor::foo
-            accessors
-              <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@setterAugmentation::foo
-    <testLibrary>::@fragment::package:test/a.dart
-      enclosingElement3: <testLibraryFragment>
-      classes
-        augment class A @35
-          reference: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A
-          enclosingElement3: <testLibrary>::@fragment::package:test/a.dart
-          augmentationTarget: <testLibraryFragment>::@class::A
-          accessors
-            augment set foo= @53
-              reference: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@setterAugmentation::foo
-              enclosingElement3: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A
-              parameters
-                requiredPositional _ @61
-                  type: int
-              returnType: void
-              id: setter_0
-              variable: <null>
-              augmentationTargetAny: <testLibraryFragment>::@class::A::@constructor::foo
-----------------------------------------
-library
-  reference: <testLibrary>
-  fragments
-    <testLibraryFragment>
-      element: <testLibrary>
-      nextFragment: <testLibrary>::@fragment::package:test/a.dart
-      classes
-        class A @21
-          reference: <testLibraryFragment>::@class::A
-          element: <testLibrary>::@class::A
-          nextFragment: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A
-          constructors
-            foo @29
-              reference: <testLibraryFragment>::@class::A::@constructor::foo
-              element: <testLibraryFragment>::@class::A::@constructor::foo#element
-              typeName: A
-              typeNameOffset: 27
-              periodOffset: 28
-    <testLibrary>::@fragment::package:test/a.dart
-      element: <testLibrary>
-      enclosingFragment: <testLibraryFragment>
-      previousFragment: <testLibraryFragment>
-      classes
-        class A @35
-          reference: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A
-          element: <testLibrary>::@class::A
-          previousFragment: <testLibraryFragment>::@class::A
-          setters
-            augment set foo @53
-              reference: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@setterAugmentation::foo
-              element: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@setterAugmentation::foo#element
-              formalParameters
-                _ @61
-                  element: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@setterAugmentation::foo::@parameter::_#element
-  classes
-    class A
-      reference: <testLibrary>::@class::A
-      firstFragment: <testLibraryFragment>::@class::A
-      constructors
-        foo
-          firstFragment: <testLibraryFragment>::@class::A::@constructor::foo
-      setters
-        set foo
-          firstFragment: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@setterAugmentation::foo
-          formalParameters
-            requiredPositional _
-              type: int
-''');
-  }
-
-  @SkippedTest(reason: 'implement augmentation')
-  test_augmented_setter_augments_getter() async {
-    newFile('$testPackageLibPath/a.dart', r'''
-part of 'test.dart';
 augment class A {
   augment set foo(int _) {}
 }
 ''');
 
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      classes
+        #F1 class A (nameOffset:6) (firstTokenOffset:0) (offset:6)
+          element: <testLibrary>::@class::A
+          nextFragment: #F2
+          constructors
+            #F3 foo (nameOffset:14) (firstTokenOffset:12) (offset:14)
+              element: <testLibrary>::@class::A::@constructor::foo
+              typeName: A
+              typeNameOffset: 12
+              periodOffset: 13
+        #F2 class A (nameOffset:38) (firstTokenOffset:24) (offset:38)
+          element: <testLibrary>::@class::A
+          previousFragment: #F1
+          fields
+            #F4 synthetic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:38)
+              element: <testLibrary>::@class::A::@field::foo
+          setters
+            #F5 augment foo (nameOffset:56) (firstTokenOffset:44) (offset:56)
+              element: <testLibrary>::@class::A::@setter::foo
+              formalParameters
+                #F6 _ (nameOffset:64) (firstTokenOffset:60) (offset:64)
+                  element: <testLibrary>::@class::A::@setter::foo::@formalParameter::_
+  classes
+    class A
+      reference: <testLibrary>::@class::A
+      firstFragment: #F1
+      fields
+        synthetic foo
+          reference: <testLibrary>::@class::A::@field::foo
+          firstFragment: #F4
+          type: int
+          setter: <testLibrary>::@class::A::@setter::foo
+      constructors
+        foo
+          reference: <testLibrary>::@class::A::@constructor::foo
+          firstFragment: #F3
+      setters
+        foo
+          reference: <testLibrary>::@class::A::@setter::foo
+          firstFragment: #F5
+          formalParameters
+            #E0 requiredPositional _
+              firstFragment: #F6
+              type: int
+          returnType: void
+          variable: <testLibrary>::@class::A::@field::foo
+''');
+  }
+
+  test_augmented_setter_augments_getter() async {
     var library = await buildLibrary(r'''
-part 'a.dart';
 class A {
   int get foo => 0;
 }
-''');
 
-    checkElementText(library, r'''
-library
-  reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      parts
-        part_0
-          uri: package:test/a.dart
-          enclosingElement3: <testLibraryFragment>
-          unit: <testLibrary>::@fragment::package:test/a.dart
-      classes
-        class A @21
-          reference: <testLibraryFragment>::@class::A
-          enclosingElement3: <testLibraryFragment>
-          augmentation: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A
-          fields
-            synthetic foo @-1
-              reference: <testLibraryFragment>::@class::A::@field::foo
-              enclosingElement3: <testLibraryFragment>::@class::A
-              type: int
-              id: field_0
-              getter: getter_0
-          constructors
-            synthetic @-1
-              reference: <testLibraryFragment>::@class::A::@constructor::new
-              enclosingElement3: <testLibraryFragment>::@class::A
-          accessors
-            get foo @35
-              reference: <testLibraryFragment>::@class::A::@getter::foo
-              enclosingElement3: <testLibraryFragment>::@class::A
-              returnType: int
-              id: getter_0
-              variable: field_0
-          augmented
-            fields
-              <testLibraryFragment>::@class::A::@field::foo
-            constructors
-              <testLibraryFragment>::@class::A::@constructor::new
-            accessors
-              <testLibraryFragment>::@class::A::@getter::foo
-              <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@setterAugmentation::foo
-    <testLibrary>::@fragment::package:test/a.dart
-      enclosingElement3: <testLibraryFragment>
-      classes
-        augment class A @35
-          reference: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A
-          enclosingElement3: <testLibrary>::@fragment::package:test/a.dart
-          augmentationTarget: <testLibraryFragment>::@class::A
-          accessors
-            augment set foo= @53
-              reference: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@setterAugmentation::foo
-              enclosingElement3: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A
-              parameters
-                requiredPositional _ @61
-                  type: int
-              returnType: void
-              id: setter_0
-              variable: <null>
-              augmentationTargetAny: <testLibraryFragment>::@class::A::@getter::foo
-----------------------------------------
-library
-  reference: <testLibrary>
-  fragments
-    <testLibraryFragment>
-      element: <testLibrary>
-      nextFragment: <testLibrary>::@fragment::package:test/a.dart
-      classes
-        class A @21
-          reference: <testLibraryFragment>::@class::A
-          element: <testLibrary>::@class::A
-          nextFragment: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A
-          fields
-            synthetic foo
-              reference: <testLibraryFragment>::@class::A::@field::foo
-              element: <testLibraryFragment>::@class::A::@field::foo#element
-              getter2: <testLibraryFragment>::@class::A::@getter::foo
-          constructors
-            synthetic new
-              reference: <testLibraryFragment>::@class::A::@constructor::new
-              element: <testLibraryFragment>::@class::A::@constructor::new#element
-              typeName: A
-          getters
-            get foo @35
-              reference: <testLibraryFragment>::@class::A::@getter::foo
-              element: <testLibraryFragment>::@class::A::@getter::foo#element
-    <testLibrary>::@fragment::package:test/a.dart
-      element: <testLibrary>
-      enclosingFragment: <testLibraryFragment>
-      previousFragment: <testLibraryFragment>
-      classes
-        class A @35
-          reference: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A
-          element: <testLibrary>::@class::A
-          previousFragment: <testLibraryFragment>::@class::A
-          setters
-            augment set foo @53
-              reference: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@setterAugmentation::foo
-              element: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@setterAugmentation::foo#element
-              formalParameters
-                _ @61
-                  element: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@setterAugmentation::foo::@parameter::_#element
-  classes
-    class A
-      reference: <testLibrary>::@class::A
-      firstFragment: <testLibraryFragment>::@class::A
-      fields
-        synthetic foo
-          firstFragment: <testLibraryFragment>::@class::A::@field::foo
-          type: int
-          getter: <testLibraryFragment>::@class::A::@getter::foo#element
-      constructors
-        synthetic new
-          firstFragment: <testLibraryFragment>::@class::A::@constructor::new
-      getters
-        get foo
-          firstFragment: <testLibraryFragment>::@class::A::@getter::foo
-      setters
-        set foo
-          firstFragment: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@setterAugmentation::foo
-          formalParameters
-            requiredPositional _
-              type: int
-''');
-  }
-
-  @SkippedTest(reason: 'implement augmentation')
-  test_augmented_setter_augments_method() async {
-    newFile('$testPackageLibPath/a.dart', r'''
-part of 'test.dart';
 augment class A {
   augment set foo(int _) {}
 }
 ''');
 
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      classes
+        #F1 class A (nameOffset:6) (firstTokenOffset:0) (offset:6)
+          element: <testLibrary>::@class::A
+          nextFragment: #F2
+          fields
+            #F3 synthetic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
+              element: <testLibrary>::@class::A::@field::foo
+          constructors
+            #F4 synthetic new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
+              element: <testLibrary>::@class::A::@constructor::new
+              typeName: A
+          getters
+            #F5 foo (nameOffset:20) (firstTokenOffset:12) (offset:20)
+              element: <testLibrary>::@class::A::@getter::foo
+        #F2 class A (nameOffset:47) (firstTokenOffset:33) (offset:47)
+          element: <testLibrary>::@class::A
+          previousFragment: #F1
+          setters
+            #F6 augment foo (nameOffset:65) (firstTokenOffset:53) (offset:65)
+              element: <testLibrary>::@class::A::@setter::foo
+              formalParameters
+                #F7 _ (nameOffset:73) (firstTokenOffset:69) (offset:73)
+                  element: <testLibrary>::@class::A::@setter::foo::@formalParameter::_
+  classes
+    class A
+      reference: <testLibrary>::@class::A
+      firstFragment: #F1
+      fields
+        synthetic foo
+          reference: <testLibrary>::@class::A::@field::foo
+          firstFragment: #F3
+          type: int
+          getter: <testLibrary>::@class::A::@getter::foo
+          setter: <testLibrary>::@class::A::@setter::foo
+      constructors
+        synthetic new
+          reference: <testLibrary>::@class::A::@constructor::new
+          firstFragment: #F4
+      getters
+        foo
+          reference: <testLibrary>::@class::A::@getter::foo
+          firstFragment: #F5
+          returnType: int
+          variable: <testLibrary>::@class::A::@field::foo
+      setters
+        foo
+          reference: <testLibrary>::@class::A::@setter::foo
+          firstFragment: #F6
+          formalParameters
+            #E0 requiredPositional _
+              firstFragment: #F7
+              type: int
+          returnType: void
+          variable: <testLibrary>::@class::A::@field::foo
+''');
+  }
+
+  test_augmented_setter_augments_method() async {
     var library = await buildLibrary(r'''
-part 'a.dart';
 class A {
   void foo() {}
+}
+
+augment class A {
+  augment set foo(int _) {}
 }
 ''');
 
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      parts
-        part_0
-          uri: package:test/a.dart
-          enclosingElement3: <testLibraryFragment>
-          unit: <testLibrary>::@fragment::package:test/a.dart
-      classes
-        class A @21
-          reference: <testLibraryFragment>::@class::A
-          enclosingElement3: <testLibraryFragment>
-          augmentation: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A
-          constructors
-            synthetic @-1
-              reference: <testLibraryFragment>::@class::A::@constructor::new
-              enclosingElement3: <testLibraryFragment>::@class::A
-          methods
-            foo @32
-              reference: <testLibraryFragment>::@class::A::@method::foo
-              enclosingElement3: <testLibraryFragment>::@class::A
-              returnType: void
-          augmented
-            constructors
-              <testLibraryFragment>::@class::A::@constructor::new
-            accessors
-              <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@setterAugmentation::foo
-            methods
-              <testLibraryFragment>::@class::A::@method::foo
-    <testLibrary>::@fragment::package:test/a.dart
-      enclosingElement3: <testLibraryFragment>
-      classes
-        augment class A @35
-          reference: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A
-          enclosingElement3: <testLibrary>::@fragment::package:test/a.dart
-          augmentationTarget: <testLibraryFragment>::@class::A
-          accessors
-            augment set foo= @53
-              reference: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@setterAugmentation::foo
-              enclosingElement3: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A
-              parameters
-                requiredPositional _ @61
-                  type: int
-              returnType: void
-              id: setter_0
-              variable: <null>
-              augmentationTargetAny: <testLibraryFragment>::@class::A::@method::foo
-----------------------------------------
-library
-  reference: <testLibrary>
   fragments
-    <testLibraryFragment>
+    #F0 <testLibraryFragment>
       element: <testLibrary>
-      nextFragment: <testLibrary>::@fragment::package:test/a.dart
       classes
-        class A @21
-          reference: <testLibraryFragment>::@class::A
+        #F1 class A (nameOffset:6) (firstTokenOffset:0) (offset:6)
           element: <testLibrary>::@class::A
-          nextFragment: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A
+          nextFragment: #F2
           constructors
-            synthetic new
-              reference: <testLibraryFragment>::@class::A::@constructor::new
-              element: <testLibraryFragment>::@class::A::@constructor::new#element
+            #F3 synthetic new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
+              element: <testLibrary>::@class::A::@constructor::new
               typeName: A
           methods
-            foo @32
-              reference: <testLibraryFragment>::@class::A::@method::foo
-              element: <testLibraryFragment>::@class::A::@method::foo#element
-    <testLibrary>::@fragment::package:test/a.dart
-      element: <testLibrary>
-      enclosingFragment: <testLibraryFragment>
-      previousFragment: <testLibraryFragment>
-      classes
-        class A @35
-          reference: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A
+            #F4 foo (nameOffset:17) (firstTokenOffset:12) (offset:17)
+              element: <testLibrary>::@class::A::@method::foo
+        #F2 class A (nameOffset:43) (firstTokenOffset:29) (offset:43)
           element: <testLibrary>::@class::A
-          previousFragment: <testLibraryFragment>::@class::A
+          previousFragment: #F1
+          fields
+            #F5 synthetic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:43)
+              element: <testLibrary>::@class::A::@field::foo
           setters
-            augment set foo @53
-              reference: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@setterAugmentation::foo
-              element: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@setterAugmentation::foo#element
+            #F6 augment foo (nameOffset:61) (firstTokenOffset:49) (offset:61)
+              element: <testLibrary>::@class::A::@setter::foo
               formalParameters
-                _ @61
-                  element: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@setterAugmentation::foo::@parameter::_#element
+                #F7 _ (nameOffset:69) (firstTokenOffset:65) (offset:69)
+                  element: <testLibrary>::@class::A::@setter::foo::@formalParameter::_
   classes
     class A
       reference: <testLibrary>::@class::A
-      firstFragment: <testLibraryFragment>::@class::A
+      firstFragment: #F1
+      fields
+        synthetic foo
+          reference: <testLibrary>::@class::A::@field::foo
+          firstFragment: #F5
+          type: int
+          setter: <testLibrary>::@class::A::@setter::foo
       constructors
         synthetic new
-          firstFragment: <testLibraryFragment>::@class::A::@constructor::new
+          reference: <testLibrary>::@class::A::@constructor::new
+          firstFragment: #F3
       setters
-        set foo
-          firstFragment: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@setterAugmentation::foo
+        foo
+          reference: <testLibrary>::@class::A::@setter::foo
+          firstFragment: #F6
           formalParameters
-            requiredPositional _
+            #E0 requiredPositional _
+              firstFragment: #F7
               type: int
+          returnType: void
+          variable: <testLibrary>::@class::A::@field::foo
       methods
         foo
           reference: <testLibrary>::@class::A::@method::foo
-          firstFragment: <testLibraryFragment>::@class::A::@method::foo
+          firstFragment: #F4
+          returnType: void
 ''');
   }
 
-  @SkippedTest(reason: 'implement augmentation')
   test_augmented_setters_add() async {
-    newFile('$testPackageLibPath/a.dart', r'''
-part of 'test.dart';
+    var library = await buildLibrary(r'''
+class A {
+  set foo1(int _) {}
+}
+
 augment class A {
   set foo2(int _) {}
 }
 ''');
 
-    var library = await buildLibrary(r'''
-part 'a.dart';
-class A {
-  set foo1(int _) {}
-}
-''');
-
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      parts
-        part_0
-          uri: package:test/a.dart
-          enclosingElement3: <testLibraryFragment>
-          unit: <testLibrary>::@fragment::package:test/a.dart
-      classes
-        class A @21
-          reference: <testLibraryFragment>::@class::A
-          enclosingElement3: <testLibraryFragment>
-          augmentation: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A
-          fields
-            synthetic foo1 @-1
-              reference: <testLibraryFragment>::@class::A::@field::foo1
-              enclosingElement3: <testLibraryFragment>::@class::A
-              type: int
-              id: field_0
-              setter: setter_0
-          constructors
-            synthetic @-1
-              reference: <testLibraryFragment>::@class::A::@constructor::new
-              enclosingElement3: <testLibraryFragment>::@class::A
-          accessors
-            set foo1= @31
-              reference: <testLibraryFragment>::@class::A::@setter::foo1
-              enclosingElement3: <testLibraryFragment>::@class::A
-              parameters
-                requiredPositional _ @40
-                  type: int
-              returnType: void
-              id: setter_0
-              variable: field_0
-          augmented
-            fields
-              <testLibraryFragment>::@class::A::@field::foo1
-              <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@field::foo2
-            constructors
-              <testLibraryFragment>::@class::A::@constructor::new
-            accessors
-              <testLibraryFragment>::@class::A::@setter::foo1
-              <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@setter::foo2
-    <testLibrary>::@fragment::package:test/a.dart
-      enclosingElement3: <testLibraryFragment>
-      classes
-        augment class A @35
-          reference: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A
-          enclosingElement3: <testLibrary>::@fragment::package:test/a.dart
-          augmentationTarget: <testLibraryFragment>::@class::A
-          fields
-            synthetic foo2 @-1
-              reference: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@field::foo2
-              enclosingElement3: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A
-              type: int
-              id: field_1
-              setter: setter_1
-          accessors
-            set foo2= @45
-              reference: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@setter::foo2
-              enclosingElement3: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A
-              parameters
-                requiredPositional _ @54
-                  type: int
-              returnType: void
-              id: setter_1
-              variable: field_1
-----------------------------------------
-library
-  reference: <testLibrary>
   fragments
-    <testLibraryFragment>
+    #F0 <testLibraryFragment>
       element: <testLibrary>
-      nextFragment: <testLibrary>::@fragment::package:test/a.dart
       classes
-        class A @21
-          reference: <testLibraryFragment>::@class::A
+        #F1 class A (nameOffset:6) (firstTokenOffset:0) (offset:6)
           element: <testLibrary>::@class::A
-          nextFragment: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A
+          nextFragment: #F2
           fields
-            synthetic foo1
-              reference: <testLibraryFragment>::@class::A::@field::foo1
-              element: <testLibraryFragment>::@class::A::@field::foo1#element
-              setter2: <testLibraryFragment>::@class::A::@setter::foo1
+            #F3 synthetic foo1 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
+              element: <testLibrary>::@class::A::@field::foo1
           constructors
-            synthetic new
-              reference: <testLibraryFragment>::@class::A::@constructor::new
-              element: <testLibraryFragment>::@class::A::@constructor::new#element
+            #F4 synthetic new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
+              element: <testLibrary>::@class::A::@constructor::new
               typeName: A
           setters
-            set foo1 @31
-              reference: <testLibraryFragment>::@class::A::@setter::foo1
-              element: <testLibraryFragment>::@class::A::@setter::foo1#element
+            #F5 foo1 (nameOffset:16) (firstTokenOffset:12) (offset:16)
+              element: <testLibrary>::@class::A::@setter::foo1
               formalParameters
-                _ @40
-                  element: <testLibraryFragment>::@class::A::@setter::foo1::@parameter::_#element
-    <testLibrary>::@fragment::package:test/a.dart
-      element: <testLibrary>
-      enclosingFragment: <testLibraryFragment>
-      previousFragment: <testLibraryFragment>
-      classes
-        class A @35
-          reference: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A
+                #F6 _ (nameOffset:25) (firstTokenOffset:21) (offset:25)
+                  element: <testLibrary>::@class::A::@setter::foo1::@formalParameter::_
+        #F2 class A (nameOffset:48) (firstTokenOffset:34) (offset:48)
           element: <testLibrary>::@class::A
-          previousFragment: <testLibraryFragment>::@class::A
+          previousFragment: #F1
           fields
-            synthetic foo2
-              reference: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@field::foo2
-              element: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@field::foo2#element
-              setter2: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@setter::foo2
+            #F7 synthetic foo2 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:48)
+              element: <testLibrary>::@class::A::@field::foo2
           setters
-            set foo2 @45
-              reference: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@setter::foo2
-              element: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@setter::foo2#element
+            #F8 foo2 (nameOffset:58) (firstTokenOffset:54) (offset:58)
+              element: <testLibrary>::@class::A::@setter::foo2
               formalParameters
-                _ @54
-                  element: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@setter::foo2::@parameter::_#element
+                #F9 _ (nameOffset:67) (firstTokenOffset:63) (offset:67)
+                  element: <testLibrary>::@class::A::@setter::foo2::@formalParameter::_
   classes
     class A
       reference: <testLibrary>::@class::A
-      firstFragment: <testLibraryFragment>::@class::A
+      firstFragment: #F1
       fields
         synthetic foo1
-          firstFragment: <testLibraryFragment>::@class::A::@field::foo1
+          reference: <testLibrary>::@class::A::@field::foo1
+          firstFragment: #F3
           type: int
-          setter: <testLibraryFragment>::@class::A::@setter::foo1#element
+          setter: <testLibrary>::@class::A::@setter::foo1
         synthetic foo2
-          firstFragment: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@field::foo2
+          reference: <testLibrary>::@class::A::@field::foo2
+          firstFragment: #F7
           type: int
-          setter: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@setter::foo2#element
+          setter: <testLibrary>::@class::A::@setter::foo2
       constructors
         synthetic new
-          firstFragment: <testLibraryFragment>::@class::A::@constructor::new
+          reference: <testLibrary>::@class::A::@constructor::new
+          firstFragment: #F4
       setters
-        set foo1
-          firstFragment: <testLibraryFragment>::@class::A::@setter::foo1
+        foo1
+          reference: <testLibrary>::@class::A::@setter::foo1
+          firstFragment: #F5
           formalParameters
-            requiredPositional _
+            #E0 requiredPositional _
+              firstFragment: #F6
               type: int
-        set foo2
-          firstFragment: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@setter::foo2
+          returnType: void
+          variable: <testLibrary>::@class::A::@field::foo1
+        foo2
+          reference: <testLibrary>::@class::A::@setter::foo2
+          firstFragment: #F8
           formalParameters
-            requiredPositional _
+            #E1 requiredPositional _
+              firstFragment: #F9
               type: int
+          returnType: void
+          variable: <testLibrary>::@class::A::@field::foo2
 ''');
   }
 
-  @SkippedTest(reason: 'implement augmentation')
   test_augmented_setters_augment_field() async {
-    newFile('$testPackageLibPath/a.dart', r'''
-part of 'test.dart';
-augment class A {
-  augment set foo(int _) {}
-}
-''');
-
     var library = await buildLibrary(r'''
-part 'a.dart';
 class A {
   int foo = 0;
 }
-''');
 
-    checkElementText(library, r'''
-library
-  reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      parts
-        part_0
-          uri: package:test/a.dart
-          enclosingElement3: <testLibraryFragment>
-          unit: <testLibrary>::@fragment::package:test/a.dart
-      classes
-        class A @21
-          reference: <testLibraryFragment>::@class::A
-          enclosingElement3: <testLibraryFragment>
-          augmentation: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A
-          fields
-            foo @31
-              reference: <testLibraryFragment>::@class::A::@field::foo
-              enclosingElement3: <testLibraryFragment>::@class::A
-              type: int
-              shouldUseTypeForInitializerInference: true
-              id: field_0
-              getter: getter_0
-              setter: setter_0
-          constructors
-            synthetic @-1
-              reference: <testLibraryFragment>::@class::A::@constructor::new
-              enclosingElement3: <testLibraryFragment>::@class::A
-          accessors
-            synthetic get foo @-1
-              reference: <testLibraryFragment>::@class::A::@getter::foo
-              enclosingElement3: <testLibraryFragment>::@class::A
-              returnType: int
-              id: getter_0
-              variable: field_0
-            synthetic set foo= @-1
-              reference: <testLibraryFragment>::@class::A::@setter::foo
-              enclosingElement3: <testLibraryFragment>::@class::A
-              parameters
-                requiredPositional _foo @-1
-                  type: int
-              returnType: void
-              id: setter_0
-              variable: field_0
-              augmentation: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@setterAugmentation::foo
-          augmented
-            fields
-              <testLibraryFragment>::@class::A::@field::foo
-            constructors
-              <testLibraryFragment>::@class::A::@constructor::new
-            accessors
-              <testLibraryFragment>::@class::A::@getter::foo
-              <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@setterAugmentation::foo
-    <testLibrary>::@fragment::package:test/a.dart
-      enclosingElement3: <testLibraryFragment>
-      classes
-        augment class A @35
-          reference: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A
-          enclosingElement3: <testLibrary>::@fragment::package:test/a.dart
-          augmentationTarget: <testLibraryFragment>::@class::A
-          accessors
-            augment set foo= @53
-              reference: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@setterAugmentation::foo
-              enclosingElement3: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A
-              parameters
-                requiredPositional _ @61
-                  type: int
-              returnType: void
-              id: setter_1
-              variable: <null>
-              augmentationTarget: <testLibraryFragment>::@class::A::@setter::foo
-----------------------------------------
-library
-  reference: <testLibrary>
-  fragments
-    <testLibraryFragment>
-      element: <testLibrary>
-      nextFragment: <testLibrary>::@fragment::package:test/a.dart
-      classes
-        class A @21
-          reference: <testLibraryFragment>::@class::A
-          element: <testLibrary>::@class::A
-          nextFragment: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A
-          fields
-            hasInitializer foo @31
-              reference: <testLibraryFragment>::@class::A::@field::foo
-              element: <testLibraryFragment>::@class::A::@field::foo#element
-              getter2: <testLibraryFragment>::@class::A::@getter::foo
-              setter2: <testLibraryFragment>::@class::A::@setter::foo
-          constructors
-            synthetic new
-              reference: <testLibraryFragment>::@class::A::@constructor::new
-              element: <testLibraryFragment>::@class::A::@constructor::new#element
-              typeName: A
-          getters
-            synthetic get foo
-              reference: <testLibraryFragment>::@class::A::@getter::foo
-              element: <testLibraryFragment>::@class::A::@getter::foo#element
-          setters
-            synthetic set foo
-              reference: <testLibraryFragment>::@class::A::@setter::foo
-              element: <testLibraryFragment>::@class::A::@setter::foo#element
-              formalParameters
-                _foo
-                  element: <testLibraryFragment>::@class::A::@setter::foo::@parameter::_foo#element
-              nextFragment: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@setterAugmentation::foo
-    <testLibrary>::@fragment::package:test/a.dart
-      element: <testLibrary>
-      enclosingFragment: <testLibraryFragment>
-      previousFragment: <testLibraryFragment>
-      classes
-        class A @35
-          reference: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A
-          element: <testLibrary>::@class::A
-          previousFragment: <testLibraryFragment>::@class::A
-          setters
-            augment set foo @53
-              reference: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@setterAugmentation::foo
-              element: <testLibraryFragment>::@class::A::@setter::foo#element
-              formalParameters
-                _ @61
-                  element: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@setterAugmentation::foo::@parameter::_#element
-              previousFragment: <testLibraryFragment>::@class::A::@setter::foo
-  classes
-    class A
-      reference: <testLibrary>::@class::A
-      firstFragment: <testLibraryFragment>::@class::A
-      fields
-        hasInitializer foo
-          firstFragment: <testLibraryFragment>::@class::A::@field::foo
-          type: int
-          getter: <testLibraryFragment>::@class::A::@getter::foo#element
-          setter: <testLibraryFragment>::@class::A::@setter::foo#element
-      constructors
-        synthetic new
-          firstFragment: <testLibraryFragment>::@class::A::@constructor::new
-      getters
-        synthetic get foo
-          firstFragment: <testLibraryFragment>::@class::A::@getter::foo
-      setters
-        synthetic set foo
-          firstFragment: <testLibraryFragment>::@class::A::@setter::foo
-          formalParameters
-            requiredPositional _foo
-              type: int
-''');
-  }
-
-  @SkippedTest(reason: 'implement augmentation')
-  test_augmented_setters_augment_nothing() async {
-    newFile('$testPackageLibPath/a.dart', r'''
-part of 'test.dart';
 augment class A {
   augment set foo(int _) {}
 }
 ''');
 
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      classes
+        #F1 class A (nameOffset:6) (firstTokenOffset:0) (offset:6)
+          element: <testLibrary>::@class::A
+          nextFragment: #F2
+          fields
+            #F3 hasInitializer foo (nameOffset:16) (firstTokenOffset:16) (offset:16)
+              element: <testLibrary>::@class::A::@field::foo
+          constructors
+            #F4 synthetic new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
+              element: <testLibrary>::@class::A::@constructor::new
+              typeName: A
+          getters
+            #F5 synthetic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
+              element: <testLibrary>::@class::A::@getter::foo
+          setters
+            #F6 synthetic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
+              element: <testLibrary>::@class::A::@setter::foo
+              formalParameters
+                #F7 value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
+                  element: <testLibrary>::@class::A::@setter::foo::@formalParameter::value
+              nextFragment: #F8
+        #F2 class A (nameOffset:42) (firstTokenOffset:28) (offset:42)
+          element: <testLibrary>::@class::A
+          previousFragment: #F1
+          setters
+            #F8 augment foo (nameOffset:60) (firstTokenOffset:48) (offset:60)
+              element: <testLibrary>::@class::A::@setter::foo
+              formalParameters
+                #F9 _ (nameOffset:68) (firstTokenOffset:64) (offset:68)
+                  element: <testLibrary>::@class::A::@setter::foo::@formalParameter::_
+              previousFragment: #F6
+  classes
+    hasNonFinalField class A
+      reference: <testLibrary>::@class::A
+      firstFragment: #F1
+      fields
+        hasInitializer foo
+          reference: <testLibrary>::@class::A::@field::foo
+          firstFragment: #F3
+          type: int
+          getter: <testLibrary>::@class::A::@getter::foo
+          setter: <testLibrary>::@class::A::@setter::foo
+      constructors
+        synthetic new
+          reference: <testLibrary>::@class::A::@constructor::new
+          firstFragment: #F4
+      getters
+        synthetic foo
+          reference: <testLibrary>::@class::A::@getter::foo
+          firstFragment: #F5
+          returnType: int
+          variable: <testLibrary>::@class::A::@field::foo
+      setters
+        synthetic foo
+          reference: <testLibrary>::@class::A::@setter::foo
+          firstFragment: #F6
+          formalParameters
+            #E0 requiredPositional value
+              firstFragment: #F7
+              type: int
+          returnType: void
+          variable: <testLibrary>::@class::A::@field::foo
+''');
+  }
+
+  test_augmented_setters_augment_nothing() async {
     var library = await buildLibrary(r'''
-part 'a.dart';
 class A {}
+
+augment class A {
+  augment set foo(int _) {}
+}
 ''');
 
     configuration.withConstructors = false;
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      parts
-        part_0
-          uri: package:test/a.dart
-          enclosingElement3: <testLibraryFragment>
-          unit: <testLibrary>::@fragment::package:test/a.dart
-      classes
-        class A @21
-          reference: <testLibraryFragment>::@class::A
-          enclosingElement3: <testLibraryFragment>
-          augmentation: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A
-          augmented
-            accessors
-              <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@setterAugmentation::foo
-    <testLibrary>::@fragment::package:test/a.dart
-      enclosingElement3: <testLibraryFragment>
-      classes
-        augment class A @35
-          reference: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A
-          enclosingElement3: <testLibrary>::@fragment::package:test/a.dart
-          augmentationTarget: <testLibraryFragment>::@class::A
-          accessors
-            augment set foo= @53
-              reference: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@setterAugmentation::foo
-              enclosingElement3: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A
-              parameters
-                requiredPositional _ @61
-                  type: int
-              returnType: void
-              id: setter_0
-              variable: <null>
-----------------------------------------
-library
-  reference: <testLibrary>
   fragments
-    <testLibraryFragment>
+    #F0 <testLibraryFragment>
       element: <testLibrary>
-      nextFragment: <testLibrary>::@fragment::package:test/a.dart
       classes
-        class A @21
-          reference: <testLibraryFragment>::@class::A
+        #F1 class A (nameOffset:6) (firstTokenOffset:0) (offset:6)
           element: <testLibrary>::@class::A
-          nextFragment: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A
-    <testLibrary>::@fragment::package:test/a.dart
-      element: <testLibrary>
-      enclosingFragment: <testLibraryFragment>
-      previousFragment: <testLibraryFragment>
-      classes
-        class A @35
-          reference: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A
+          nextFragment: #F2
+        #F2 class A (nameOffset:26) (firstTokenOffset:12) (offset:26)
           element: <testLibrary>::@class::A
-          previousFragment: <testLibraryFragment>::@class::A
+          previousFragment: #F1
+          fields
+            #F3 synthetic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:26)
+              element: <testLibrary>::@class::A::@field::foo
           setters
-            augment set foo @53
-              reference: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@setterAugmentation::foo
-              element: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@setterAugmentation::foo#element
+            #F4 augment foo (nameOffset:44) (firstTokenOffset:32) (offset:44)
+              element: <testLibrary>::@class::A::@setter::foo
               formalParameters
-                _ @61
-                  element: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@setterAugmentation::foo::@parameter::_#element
+                #F5 _ (nameOffset:52) (firstTokenOffset:48) (offset:52)
+                  element: <testLibrary>::@class::A::@setter::foo::@formalParameter::_
   classes
     class A
       reference: <testLibrary>::@class::A
-      firstFragment: <testLibraryFragment>::@class::A
+      firstFragment: #F1
+      fields
+        synthetic foo
+          reference: <testLibrary>::@class::A::@field::foo
+          firstFragment: #F3
+          type: int
+          setter: <testLibrary>::@class::A::@setter::foo
       setters
-        set foo
-          firstFragment: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@setterAugmentation::foo
+        foo
+          reference: <testLibrary>::@class::A::@setter::foo
+          firstFragment: #F4
           formalParameters
-            requiredPositional _
+            #E0 requiredPositional _
+              firstFragment: #F5
               type: int
+          returnType: void
+          variable: <testLibrary>::@class::A::@field::foo
 ''');
   }
 
-  @SkippedTest(reason: 'implement augmentation')
   test_augmented_setters_augment_setter() async {
-    newFile('$testPackageLibPath/a.dart', r'''
-part of 'test.dart';
+    var library = await buildLibrary(r'''
+class A {
+  set foo1(int _) {}
+  set foo2(int _) {}
+}
+
 augment class A {
   augment set foo1(int _) {}
 }
 ''');
 
-    var library = await buildLibrary(r'''
-part 'a.dart';
-class A {
-  set foo1(int _) {}
-  set foo2(int _) {}
-}
-''');
-
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      parts
-        part_0
-          uri: package:test/a.dart
-          enclosingElement3: <testLibraryFragment>
-          unit: <testLibrary>::@fragment::package:test/a.dart
-      classes
-        class A @21
-          reference: <testLibraryFragment>::@class::A
-          enclosingElement3: <testLibraryFragment>
-          augmentation: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A
-          fields
-            synthetic foo1 @-1
-              reference: <testLibraryFragment>::@class::A::@field::foo1
-              enclosingElement3: <testLibraryFragment>::@class::A
-              type: int
-              id: field_0
-              setter: setter_0
-            synthetic foo2 @-1
-              reference: <testLibraryFragment>::@class::A::@field::foo2
-              enclosingElement3: <testLibraryFragment>::@class::A
-              type: int
-              id: field_1
-              setter: setter_1
-          constructors
-            synthetic @-1
-              reference: <testLibraryFragment>::@class::A::@constructor::new
-              enclosingElement3: <testLibraryFragment>::@class::A
-          accessors
-            set foo1= @31
-              reference: <testLibraryFragment>::@class::A::@setter::foo1
-              enclosingElement3: <testLibraryFragment>::@class::A
-              parameters
-                requiredPositional _ @40
-                  type: int
-              returnType: void
-              id: setter_0
-              variable: field_0
-              augmentation: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@setterAugmentation::foo1
-            set foo2= @52
-              reference: <testLibraryFragment>::@class::A::@setter::foo2
-              enclosingElement3: <testLibraryFragment>::@class::A
-              parameters
-                requiredPositional _ @61
-                  type: int
-              returnType: void
-              id: setter_1
-              variable: field_1
-          augmented
-            fields
-              <testLibraryFragment>::@class::A::@field::foo1
-              <testLibraryFragment>::@class::A::@field::foo2
-            constructors
-              <testLibraryFragment>::@class::A::@constructor::new
-            accessors
-              <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@setterAugmentation::foo1
-              <testLibraryFragment>::@class::A::@setter::foo2
-    <testLibrary>::@fragment::package:test/a.dart
-      enclosingElement3: <testLibraryFragment>
-      classes
-        augment class A @35
-          reference: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A
-          enclosingElement3: <testLibrary>::@fragment::package:test/a.dart
-          augmentationTarget: <testLibraryFragment>::@class::A
-          accessors
-            augment set foo1= @53
-              reference: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@setterAugmentation::foo1
-              enclosingElement3: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A
-              parameters
-                requiredPositional _ @62
-                  type: int
-              returnType: void
-              id: setter_2
-              variable: <null>
-              augmentationTarget: <testLibraryFragment>::@class::A::@setter::foo1
-----------------------------------------
-library
-  reference: <testLibrary>
   fragments
-    <testLibraryFragment>
+    #F0 <testLibraryFragment>
       element: <testLibrary>
-      nextFragment: <testLibrary>::@fragment::package:test/a.dart
       classes
-        class A @21
-          reference: <testLibraryFragment>::@class::A
+        #F1 class A (nameOffset:6) (firstTokenOffset:0) (offset:6)
           element: <testLibrary>::@class::A
-          nextFragment: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A
+          nextFragment: #F2
           fields
-            synthetic foo1
-              reference: <testLibraryFragment>::@class::A::@field::foo1
-              element: <testLibraryFragment>::@class::A::@field::foo1#element
-              setter2: <testLibraryFragment>::@class::A::@setter::foo1
-            synthetic foo2
-              reference: <testLibraryFragment>::@class::A::@field::foo2
-              element: <testLibraryFragment>::@class::A::@field::foo2#element
-              setter2: <testLibraryFragment>::@class::A::@setter::foo2
+            #F3 synthetic foo1 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
+              element: <testLibrary>::@class::A::@field::foo1
+            #F4 synthetic foo2 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
+              element: <testLibrary>::@class::A::@field::foo2
           constructors
-            synthetic new
-              reference: <testLibraryFragment>::@class::A::@constructor::new
-              element: <testLibraryFragment>::@class::A::@constructor::new#element
+            #F5 synthetic new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
+              element: <testLibrary>::@class::A::@constructor::new
               typeName: A
           setters
-            set foo1 @31
-              reference: <testLibraryFragment>::@class::A::@setter::foo1
-              element: <testLibraryFragment>::@class::A::@setter::foo1#element
+            #F6 foo1 (nameOffset:16) (firstTokenOffset:12) (offset:16)
+              element: <testLibrary>::@class::A::@setter::foo1
               formalParameters
-                _ @40
-                  element: <testLibraryFragment>::@class::A::@setter::foo1::@parameter::_#element
-              nextFragment: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@setterAugmentation::foo1
-            set foo2 @52
-              reference: <testLibraryFragment>::@class::A::@setter::foo2
-              element: <testLibraryFragment>::@class::A::@setter::foo2#element
+                #F7 _ (nameOffset:25) (firstTokenOffset:21) (offset:25)
+                  element: <testLibrary>::@class::A::@setter::foo1::@formalParameter::_
+              nextFragment: #F8
+            #F9 foo2 (nameOffset:37) (firstTokenOffset:33) (offset:37)
+              element: <testLibrary>::@class::A::@setter::foo2
               formalParameters
-                _ @61
-                  element: <testLibraryFragment>::@class::A::@setter::foo2::@parameter::_#element
-    <testLibrary>::@fragment::package:test/a.dart
-      element: <testLibrary>
-      enclosingFragment: <testLibraryFragment>
-      previousFragment: <testLibraryFragment>
-      classes
-        class A @35
-          reference: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A
+                #F10 _ (nameOffset:46) (firstTokenOffset:42) (offset:46)
+                  element: <testLibrary>::@class::A::@setter::foo2::@formalParameter::_
+        #F2 class A (nameOffset:69) (firstTokenOffset:55) (offset:69)
           element: <testLibrary>::@class::A
-          previousFragment: <testLibraryFragment>::@class::A
+          previousFragment: #F1
           setters
-            augment set foo1 @53
-              reference: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@setterAugmentation::foo1
-              element: <testLibraryFragment>::@class::A::@setter::foo1#element
+            #F8 augment foo1 (nameOffset:87) (firstTokenOffset:75) (offset:87)
+              element: <testLibrary>::@class::A::@setter::foo1
               formalParameters
-                _ @62
-                  element: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@setterAugmentation::foo1::@parameter::_#element
-              previousFragment: <testLibraryFragment>::@class::A::@setter::foo1
+                #F11 _ (nameOffset:96) (firstTokenOffset:92) (offset:96)
+                  element: <testLibrary>::@class::A::@setter::foo1::@formalParameter::_
+              previousFragment: #F6
   classes
     class A
       reference: <testLibrary>::@class::A
-      firstFragment: <testLibraryFragment>::@class::A
+      firstFragment: #F1
       fields
         synthetic foo1
-          firstFragment: <testLibraryFragment>::@class::A::@field::foo1
+          reference: <testLibrary>::@class::A::@field::foo1
+          firstFragment: #F3
           type: int
-          setter: <testLibraryFragment>::@class::A::@setter::foo1#element
+          setter: <testLibrary>::@class::A::@setter::foo1
         synthetic foo2
-          firstFragment: <testLibraryFragment>::@class::A::@field::foo2
+          reference: <testLibrary>::@class::A::@field::foo2
+          firstFragment: #F4
           type: int
-          setter: <testLibraryFragment>::@class::A::@setter::foo2#element
+          setter: <testLibrary>::@class::A::@setter::foo2
       constructors
         synthetic new
-          firstFragment: <testLibraryFragment>::@class::A::@constructor::new
+          reference: <testLibrary>::@class::A::@constructor::new
+          firstFragment: #F5
       setters
-        set foo2
-          firstFragment: <testLibraryFragment>::@class::A::@setter::foo2
+        foo1
+          reference: <testLibrary>::@class::A::@setter::foo1
+          firstFragment: #F6
           formalParameters
-            requiredPositional _
+            #E0 requiredPositional _
+              firstFragment: #F7
               type: int
-        set foo1
-          firstFragment: <testLibraryFragment>::@class::A::@setter::foo1
+          returnType: void
+          variable: <testLibrary>::@class::A::@field::foo1
+        foo2
+          reference: <testLibrary>::@class::A::@setter::foo2
+          firstFragment: #F9
           formalParameters
-            requiredPositional _
+            #E1 requiredPositional _
+              firstFragment: #F10
               type: int
+          returnType: void
+          variable: <testLibrary>::@class::A::@field::foo2
 ''');
   }
 
-  @SkippedTest(reason: 'implement augmentation')
   test_augmentedBy_mixin2() async {
-    newFile('$testPackageLibPath/a.dart', r'''
-part of 'test.dart';
-
-augment mixin A {}
-''');
-
-    newFile('$testPackageLibPath/b.dart', r'''
-part of 'test.dart';
-
-augment mixin A {}
-''');
-
     var library = await buildLibrary(r'''
-part 'a.dart';
-part 'b.dart';
-
 class A {}
+
+augment mixin A {}
+
+augment mixin A {}
 ''');
 
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      parts
-        part_0
-          uri: package:test/a.dart
-          enclosingElement3: <testLibraryFragment>
-          unit: <testLibrary>::@fragment::package:test/a.dart
-        part_1
-          uri: package:test/b.dart
-          enclosingElement3: <testLibraryFragment>
-          unit: <testLibrary>::@fragment::package:test/b.dart
-      classes
-        class A @37
-          reference: <testLibraryFragment>::@class::A
-          enclosingElement3: <testLibraryFragment>
-          constructors
-            synthetic @-1
-              reference: <testLibraryFragment>::@class::A::@constructor::new
-              enclosingElement3: <testLibraryFragment>::@class::A
-    <testLibrary>::@fragment::package:test/a.dart
-      enclosingElement3: <testLibraryFragment>
-      mixins
-        augment mixin A @36
-          reference: <testLibrary>::@fragment::package:test/a.dart::@mixinAugmentation::A
-          enclosingElement3: <testLibrary>::@fragment::package:test/a.dart
-          augmentationTargetAny: <testLibraryFragment>::@class::A
-          augmentation: <testLibrary>::@fragment::package:test/b.dart::@mixinAugmentation::A
-          superclassConstraints
-            Object
-          augmented
-            superclassConstraints
-              Object
-    <testLibrary>::@fragment::package:test/b.dart
-      enclosingElement3: <testLibraryFragment>
-      mixins
-        augment mixin A @36
-          reference: <testLibrary>::@fragment::package:test/b.dart::@mixinAugmentation::A
-          enclosingElement3: <testLibrary>::@fragment::package:test/b.dart
-          augmentationTarget: <testLibrary>::@fragment::package:test/a.dart::@mixinAugmentation::A
-----------------------------------------
-library
-  reference: <testLibrary>
   fragments
-    <testLibraryFragment>
+    #F0 <testLibraryFragment>
       element: <testLibrary>
-      nextFragment: <testLibrary>::@fragment::package:test/a.dart
       classes
-        class A @37
-          reference: <testLibraryFragment>::@class::A
+        #F1 class A (nameOffset:6) (firstTokenOffset:0) (offset:6)
           element: <testLibrary>::@class::A
           constructors
-            synthetic new
-              reference: <testLibraryFragment>::@class::A::@constructor::new
-              element: <testLibraryFragment>::@class::A::@constructor::new#element
+            #F2 synthetic new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
+              element: <testLibrary>::@class::A::@constructor::new
               typeName: A
-    <testLibrary>::@fragment::package:test/a.dart
-      element: <testLibrary>
-      enclosingFragment: <testLibraryFragment>
-      previousFragment: <testLibraryFragment>
-      nextFragment: <testLibrary>::@fragment::package:test/b.dart
       mixins
-        mixin A @36
-          reference: <testLibrary>::@fragment::package:test/a.dart::@mixinAugmentation::A
+        #F3 mixin A (nameOffset:26) (firstTokenOffset:12) (offset:26)
           element: <testLibrary>::@mixin::A
-          nextFragment: <testLibrary>::@fragment::package:test/b.dart::@mixinAugmentation::A
-    <testLibrary>::@fragment::package:test/b.dart
-      element: <testLibrary>
-      enclosingFragment: <testLibraryFragment>
-      previousFragment: <testLibrary>::@fragment::package:test/a.dart
-      mixins
-        mixin A @36
-          reference: <testLibrary>::@fragment::package:test/b.dart::@mixinAugmentation::A
+          nextFragment: #F4
+        #F4 mixin A (nameOffset:46) (firstTokenOffset:32) (offset:46)
           element: <testLibrary>::@mixin::A
-          previousFragment: <testLibrary>::@fragment::package:test/a.dart::@mixinAugmentation::A
+          previousFragment: #F3
   classes
     class A
       reference: <testLibrary>::@class::A
-      firstFragment: <testLibraryFragment>::@class::A
+      firstFragment: #F1
       constructors
         synthetic new
-          firstFragment: <testLibraryFragment>::@class::A::@constructor::new
+          reference: <testLibrary>::@class::A::@constructor::new
+          firstFragment: #F2
   mixins
     mixin A
       reference: <testLibrary>::@mixin::A
-      firstFragment: <testLibrary>::@fragment::package:test/a.dart::@mixinAugmentation::A
+      firstFragment: #F3
       superclassConstraints
         Object
 ''');
   }
 
-  @SkippedTest(reason: 'implement augmentation')
   /// Invalid augmentation of class with mixin does not "own" the name.
   /// When a valid class augmentation follows, it can use the name.
   test_augmentedBy_mixin_class() async {
-    newFile('$testPackageLibPath/a.dart', r'''
-part of 'test.dart';
+    var library = await buildLibrary(r'''
+class A {}
 
 augment mixin A {}
-''');
-
-    newFile('$testPackageLibPath/b.dart', r'''
-part of 'test.dart';
 
 augment class A {}
 ''');
 
-    var library = await buildLibrary(r'''
-part 'a.dart';
-part 'b.dart';
-
-class A {}
-''');
-
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      parts
-        part_0
-          uri: package:test/a.dart
-          enclosingElement3: <testLibraryFragment>
-          unit: <testLibrary>::@fragment::package:test/a.dart
-        part_1
-          uri: package:test/b.dart
-          enclosingElement3: <testLibraryFragment>
-          unit: <testLibrary>::@fragment::package:test/b.dart
-      classes
-        class A @37
-          reference: <testLibraryFragment>::@class::A
-          enclosingElement3: <testLibraryFragment>
-          constructors
-            synthetic @-1
-              reference: <testLibraryFragment>::@class::A::@constructor::new
-              enclosingElement3: <testLibraryFragment>::@class::A
-    <testLibrary>::@fragment::package:test/a.dart
-      enclosingElement3: <testLibraryFragment>
-      mixins
-        augment mixin A @36
-          reference: <testLibrary>::@fragment::package:test/a.dart::@mixinAugmentation::A
-          enclosingElement3: <testLibrary>::@fragment::package:test/a.dart
-          augmentationTargetAny: <testLibraryFragment>::@class::A
-          superclassConstraints
-            Object
-    <testLibrary>::@fragment::package:test/b.dart
-      enclosingElement3: <testLibraryFragment>
-      classes
-        augment class A @36
-          reference: <testLibrary>::@fragment::package:test/b.dart::@classAugmentation::A
-          enclosingElement3: <testLibrary>::@fragment::package:test/b.dart
-          augmentationTargetAny: <testLibrary>::@fragment::package:test/a.dart::@mixinAugmentation::A
-          constructors
-            synthetic @-1
-              reference: <testLibrary>::@fragment::package:test/b.dart::@classAugmentation::A::@constructor::new
-              enclosingElement3: <testLibrary>::@fragment::package:test/b.dart::@classAugmentation::A
-----------------------------------------
-library
-  reference: <testLibrary>
   fragments
-    <testLibraryFragment>
+    #F0 <testLibraryFragment>
       element: <testLibrary>
-      nextFragment: <testLibrary>::@fragment::package:test/a.dart
       classes
-        class A @37
-          reference: <testLibraryFragment>::@class::A
+        #F1 class A (nameOffset:6) (firstTokenOffset:0) (offset:6)
           element: <testLibrary>::@class::A::@def::0
           constructors
-            synthetic new
-              reference: <testLibraryFragment>::@class::A::@constructor::new
-              element: <testLibraryFragment>::@class::A::@constructor::new#element
+            #F2 synthetic new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
+              element: <testLibrary>::@class::A::@def::0::@constructor::new
               typeName: A
-    <testLibrary>::@fragment::package:test/a.dart
-      element: <testLibrary>
-      enclosingFragment: <testLibraryFragment>
-      previousFragment: <testLibraryFragment>
-      nextFragment: <testLibrary>::@fragment::package:test/b.dart
-      mixins
-        mixin A @36
-          reference: <testLibrary>::@fragment::package:test/a.dart::@mixinAugmentation::A
-          element: <testLibrary>::@mixin::A
-    <testLibrary>::@fragment::package:test/b.dart
-      element: <testLibrary>
-      enclosingFragment: <testLibraryFragment>
-      previousFragment: <testLibrary>::@fragment::package:test/a.dart
-      classes
-        class A @36
-          reference: <testLibrary>::@fragment::package:test/b.dart::@classAugmentation::A
+        #F3 class A (nameOffset:46) (firstTokenOffset:32) (offset:46)
           element: <testLibrary>::@class::A::@def::1
           constructors
-            synthetic new
-              reference: <testLibrary>::@fragment::package:test/b.dart::@classAugmentation::A::@constructor::new
-              element: <testLibrary>::@fragment::package:test/b.dart::@classAugmentation::A::@constructor::new#element
+            #F4 synthetic new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:46)
+              element: <testLibrary>::@class::A::@def::1::@constructor::new
               typeName: A
+      mixins
+        #F5 mixin A (nameOffset:26) (firstTokenOffset:12) (offset:26)
+          element: <testLibrary>::@mixin::A
   classes
     class A
       reference: <testLibrary>::@class::A::@def::0
-      firstFragment: <testLibraryFragment>::@class::A
+      firstFragment: #F1
       constructors
         synthetic new
-          firstFragment: <testLibraryFragment>::@class::A::@constructor::new
+          reference: <testLibrary>::@class::A::@def::0::@constructor::new
+          firstFragment: #F2
     class A
       reference: <testLibrary>::@class::A::@def::1
-      firstFragment: <testLibrary>::@fragment::package:test/b.dart::@classAugmentation::A
+      firstFragment: #F3
       constructors
         synthetic new
-          firstFragment: <testLibrary>::@fragment::package:test/b.dart::@classAugmentation::A::@constructor::new
+          reference: <testLibrary>::@class::A::@def::1::@constructor::new
+          firstFragment: #F4
   mixins
     mixin A
       reference: <testLibrary>::@mixin::A
-      firstFragment: <testLibrary>::@fragment::package:test/a.dart::@mixinAugmentation::A
+      firstFragment: #F5
       superclassConstraints
         Object
 ''');
   }
 
-  @SkippedTest(reason: 'implement augmentation')
   test_constructors_augment2() async {
-    newFile('$testPackageLibPath/a.dart', r'''
-part of 'test.dart';
-augment class A {
-  augment A.named();
-}
-''');
-
-    newFile('$testPackageLibPath/b.dart', r'''
-part of 'test.dart';
-augment class A {
-  augment A.named();
-}
-''');
-
     var library = await buildLibrary(r'''
-part 'a.dart';
-part 'b.dart';
 class A {
   A.named();
+}
+
+augment class A {
+  augment A.named();
+}
+
+augment class A {
+  augment A.named();
 }
 ''');
 
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      parts
-        part_0
-          uri: package:test/a.dart
-          enclosingElement3: <testLibraryFragment>
-          unit: <testLibrary>::@fragment::package:test/a.dart
-        part_1
-          uri: package:test/b.dart
-          enclosingElement3: <testLibraryFragment>
-          unit: <testLibrary>::@fragment::package:test/b.dart
-      classes
-        class A @36
-          reference: <testLibraryFragment>::@class::A
-          enclosingElement3: <testLibraryFragment>
-          augmentation: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A
-          constructors
-            named @44
-              reference: <testLibraryFragment>::@class::A::@constructor::named
-              enclosingElement3: <testLibraryFragment>::@class::A
-              periodOffset: 43
-              nameEnd: 49
-              augmentation: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@constructorAugmentation::named
-          augmented
-            constructors
-              <testLibrary>::@fragment::package:test/b.dart::@classAugmentation::A::@constructorAugmentation::named
-    <testLibrary>::@fragment::package:test/a.dart
-      enclosingElement3: <testLibraryFragment>
-      classes
-        augment class A @35
-          reference: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A
-          enclosingElement3: <testLibrary>::@fragment::package:test/a.dart
-          augmentationTarget: <testLibraryFragment>::@class::A
-          augmentation: <testLibrary>::@fragment::package:test/b.dart::@classAugmentation::A
-          constructors
-            augment named @51
-              reference: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@constructorAugmentation::named
-              enclosingElement3: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A
-              periodOffset: 50
-              nameEnd: 56
-              augmentationTarget: <testLibraryFragment>::@class::A::@constructor::named
-              augmentation: <testLibrary>::@fragment::package:test/b.dart::@classAugmentation::A::@constructorAugmentation::named
-    <testLibrary>::@fragment::package:test/b.dart
-      enclosingElement3: <testLibraryFragment>
-      classes
-        augment class A @35
-          reference: <testLibrary>::@fragment::package:test/b.dart::@classAugmentation::A
-          enclosingElement3: <testLibrary>::@fragment::package:test/b.dart
-          augmentationTarget: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A
-          constructors
-            augment named @51
-              reference: <testLibrary>::@fragment::package:test/b.dart::@classAugmentation::A::@constructorAugmentation::named
-              enclosingElement3: <testLibrary>::@fragment::package:test/b.dart::@classAugmentation::A
-              periodOffset: 50
-              nameEnd: 56
-              augmentationTarget: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@constructorAugmentation::named
-----------------------------------------
-library
-  reference: <testLibrary>
   fragments
-    <testLibraryFragment>
+    #F0 <testLibraryFragment>
       element: <testLibrary>
-      nextFragment: <testLibrary>::@fragment::package:test/a.dart
       classes
-        class A @36
-          reference: <testLibraryFragment>::@class::A
+        #F1 class A (nameOffset:6) (firstTokenOffset:0) (offset:6)
           element: <testLibrary>::@class::A
-          nextFragment: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A
+          nextFragment: #F2
           constructors
-            named @44
-              reference: <testLibraryFragment>::@class::A::@constructor::named
-              element: <testLibraryFragment>::@class::A::@constructor::named#element
+            #F3 named (nameOffset:14) (firstTokenOffset:12) (offset:14)
+              element: <testLibrary>::@class::A::@constructor::named
               typeName: A
-              typeNameOffset: 42
-              periodOffset: 43
-              nextFragment: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@constructorAugmentation::named
-    <testLibrary>::@fragment::package:test/a.dart
-      element: <testLibrary>
-      enclosingFragment: <testLibraryFragment>
-      previousFragment: <testLibraryFragment>
-      nextFragment: <testLibrary>::@fragment::package:test/b.dart
-      classes
-        class A @35
-          reference: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A
+              typeNameOffset: 12
+              periodOffset: 13
+              nextFragment: #F4
+        #F2 class A (nameOffset:40) (firstTokenOffset:26) (offset:40)
           element: <testLibrary>::@class::A
-          previousFragment: <testLibraryFragment>::@class::A
-          nextFragment: <testLibrary>::@fragment::package:test/b.dart::@classAugmentation::A
+          previousFragment: #F1
+          nextFragment: #F5
           constructors
-            augment named @51
-              reference: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@constructorAugmentation::named
-              element: <testLibraryFragment>::@class::A::@constructor::named#element
+            #F4 augment named (nameOffset:56) (firstTokenOffset:46) (offset:56)
+              element: <testLibrary>::@class::A::@constructor::named
               typeName: A
-              typeNameOffset: 49
-              periodOffset: 50
-              nextFragment: <testLibrary>::@fragment::package:test/b.dart::@classAugmentation::A::@constructorAugmentation::named
-              previousFragment: <testLibraryFragment>::@class::A::@constructor::named
-    <testLibrary>::@fragment::package:test/b.dart
-      element: <testLibrary>
-      enclosingFragment: <testLibraryFragment>
-      previousFragment: <testLibrary>::@fragment::package:test/a.dart
-      classes
-        class A @35
-          reference: <testLibrary>::@fragment::package:test/b.dart::@classAugmentation::A
+              typeNameOffset: 54
+              periodOffset: 55
+              nextFragment: #F6
+              previousFragment: #F3
+        #F5 class A (nameOffset:82) (firstTokenOffset:68) (offset:82)
           element: <testLibrary>::@class::A
-          previousFragment: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A
+          previousFragment: #F2
           constructors
-            augment named @51
-              reference: <testLibrary>::@fragment::package:test/b.dart::@classAugmentation::A::@constructorAugmentation::named
-              element: <testLibraryFragment>::@class::A::@constructor::named#element
+            #F6 augment named (nameOffset:98) (firstTokenOffset:88) (offset:98)
+              element: <testLibrary>::@class::A::@constructor::named
               typeName: A
-              typeNameOffset: 49
-              periodOffset: 50
-              previousFragment: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@constructorAugmentation::named
+              typeNameOffset: 96
+              periodOffset: 97
+              previousFragment: #F4
   classes
     class A
       reference: <testLibrary>::@class::A
-      firstFragment: <testLibraryFragment>::@class::A
+      firstFragment: #F1
       constructors
         named
-          firstFragment: <testLibraryFragment>::@class::A::@constructor::named
+          reference: <testLibrary>::@class::A::@constructor::named
+          firstFragment: #F3
 ''');
   }
 
-  @SkippedTest(reason: 'implement augmentation')
   test_constructors_augment_named() async {
-    newFile('$testPackageLibPath/a.dart', r'''
-part of 'test.dart';
-augment class A {
-  augment A.named();
-}
-''');
-
     var library = await buildLibrary(r'''
-part 'a.dart';
 class A {
   A.named();
+}
+
+augment class A {
+  augment A.named();
 }
 ''');
 
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      parts
-        part_0
-          uri: package:test/a.dart
-          enclosingElement3: <testLibraryFragment>
-          unit: <testLibrary>::@fragment::package:test/a.dart
-      classes
-        class A @21
-          reference: <testLibraryFragment>::@class::A
-          enclosingElement3: <testLibraryFragment>
-          augmentation: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A
-          constructors
-            named @29
-              reference: <testLibraryFragment>::@class::A::@constructor::named
-              enclosingElement3: <testLibraryFragment>::@class::A
-              periodOffset: 28
-              nameEnd: 34
-              augmentation: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@constructorAugmentation::named
-          augmented
-            constructors
-              <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@constructorAugmentation::named
-    <testLibrary>::@fragment::package:test/a.dart
-      enclosingElement3: <testLibraryFragment>
-      classes
-        augment class A @35
-          reference: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A
-          enclosingElement3: <testLibrary>::@fragment::package:test/a.dart
-          augmentationTarget: <testLibraryFragment>::@class::A
-          constructors
-            augment named @51
-              reference: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@constructorAugmentation::named
-              enclosingElement3: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A
-              periodOffset: 50
-              nameEnd: 56
-              augmentationTarget: <testLibraryFragment>::@class::A::@constructor::named
-----------------------------------------
-library
-  reference: <testLibrary>
   fragments
-    <testLibraryFragment>
+    #F0 <testLibraryFragment>
       element: <testLibrary>
-      nextFragment: <testLibrary>::@fragment::package:test/a.dart
       classes
-        class A @21
-          reference: <testLibraryFragment>::@class::A
+        #F1 class A (nameOffset:6) (firstTokenOffset:0) (offset:6)
           element: <testLibrary>::@class::A
-          nextFragment: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A
+          nextFragment: #F2
           constructors
-            named @29
-              reference: <testLibraryFragment>::@class::A::@constructor::named
-              element: <testLibraryFragment>::@class::A::@constructor::named#element
+            #F3 named (nameOffset:14) (firstTokenOffset:12) (offset:14)
+              element: <testLibrary>::@class::A::@constructor::named
               typeName: A
-              typeNameOffset: 27
-              periodOffset: 28
-              nextFragment: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@constructorAugmentation::named
-    <testLibrary>::@fragment::package:test/a.dart
-      element: <testLibrary>
-      enclosingFragment: <testLibraryFragment>
-      previousFragment: <testLibraryFragment>
-      classes
-        class A @35
-          reference: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A
+              typeNameOffset: 12
+              periodOffset: 13
+              nextFragment: #F4
+        #F2 class A (nameOffset:40) (firstTokenOffset:26) (offset:40)
           element: <testLibrary>::@class::A
-          previousFragment: <testLibraryFragment>::@class::A
+          previousFragment: #F1
           constructors
-            augment named @51
-              reference: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@constructorAugmentation::named
-              element: <testLibraryFragment>::@class::A::@constructor::named#element
+            #F4 augment named (nameOffset:56) (firstTokenOffset:46) (offset:56)
+              element: <testLibrary>::@class::A::@constructor::named
               typeName: A
-              typeNameOffset: 49
-              periodOffset: 50
-              previousFragment: <testLibraryFragment>::@class::A::@constructor::named
+              typeNameOffset: 54
+              periodOffset: 55
+              previousFragment: #F3
   classes
     class A
       reference: <testLibrary>::@class::A
-      firstFragment: <testLibraryFragment>::@class::A
+      firstFragment: #F1
       constructors
         named
-          firstFragment: <testLibraryFragment>::@class::A::@constructor::named
+          reference: <testLibrary>::@class::A::@constructor::named
+          firstFragment: #F3
 ''');
   }
 
-  @SkippedTest(reason: 'implement augmentation')
   test_constructors_augment_unnamed() async {
-    newFile('$testPackageLibPath/a.dart', r'''
-part of 'test.dart';
+    var library = await buildLibrary(r'''
+class A {
+  A();
+}
+
 augment class A {
   augment A();
 }
 ''');
 
-    var library = await buildLibrary(r'''
-part 'a.dart';
-class A {
-  A();
-}
-''');
-
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      parts
-        part_0
-          uri: package:test/a.dart
-          enclosingElement3: <testLibraryFragment>
-          unit: <testLibrary>::@fragment::package:test/a.dart
-      classes
-        class A @21
-          reference: <testLibraryFragment>::@class::A
-          enclosingElement3: <testLibraryFragment>
-          augmentation: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A
-          constructors
-            @27
-              reference: <testLibraryFragment>::@class::A::@constructor::new
-              enclosingElement3: <testLibraryFragment>::@class::A
-              augmentation: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@constructorAugmentation::new
-          augmented
-            constructors
-              <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@constructorAugmentation::new
-    <testLibrary>::@fragment::package:test/a.dart
-      enclosingElement3: <testLibraryFragment>
-      classes
-        augment class A @35
-          reference: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A
-          enclosingElement3: <testLibrary>::@fragment::package:test/a.dart
-          augmentationTarget: <testLibraryFragment>::@class::A
-          constructors
-            augment @49
-              reference: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@constructorAugmentation::new
-              enclosingElement3: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A
-              augmentationTarget: <testLibraryFragment>::@class::A::@constructor::new
-----------------------------------------
-library
-  reference: <testLibrary>
   fragments
-    <testLibraryFragment>
+    #F0 <testLibraryFragment>
       element: <testLibrary>
-      nextFragment: <testLibrary>::@fragment::package:test/a.dart
       classes
-        class A @21
-          reference: <testLibraryFragment>::@class::A
+        #F1 class A (nameOffset:6) (firstTokenOffset:0) (offset:6)
           element: <testLibrary>::@class::A
-          nextFragment: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A
+          nextFragment: #F2
           constructors
-            new
-              reference: <testLibraryFragment>::@class::A::@constructor::new
-              element: <testLibraryFragment>::@class::A::@constructor::new#element
+            #F3 new (nameOffset:<null>) (firstTokenOffset:12) (offset:12)
+              element: <testLibrary>::@class::A::@constructor::new
               typeName: A
-              typeNameOffset: 27
-              nextFragment: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@constructorAugmentation::new
-    <testLibrary>::@fragment::package:test/a.dart
-      element: <testLibrary>
-      enclosingFragment: <testLibraryFragment>
-      previousFragment: <testLibraryFragment>
-      classes
-        class A @35
-          reference: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A
+              typeNameOffset: 12
+              nextFragment: #F4
+        #F2 class A (nameOffset:34) (firstTokenOffset:20) (offset:34)
           element: <testLibrary>::@class::A
-          previousFragment: <testLibraryFragment>::@class::A
+          previousFragment: #F1
           constructors
-            augment new
-              reference: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@constructorAugmentation::new
-              element: <testLibraryFragment>::@class::A::@constructor::new#element
+            #F4 augment new (nameOffset:<null>) (firstTokenOffset:40) (offset:48)
+              element: <testLibrary>::@class::A::@constructor::new
               typeName: A
-              typeNameOffset: 49
-              previousFragment: <testLibraryFragment>::@class::A::@constructor::new
+              typeNameOffset: 48
+              previousFragment: #F3
   classes
     class A
       reference: <testLibrary>::@class::A
-      firstFragment: <testLibraryFragment>::@class::A
+      firstFragment: #F1
       constructors
         new
-          firstFragment: <testLibraryFragment>::@class::A::@constructor::new
+          reference: <testLibrary>::@class::A::@constructor::new
+          firstFragment: #F3
 ''');
   }
 
-  @SkippedTest(reason: 'implement augmentation')
   test_inferTypes_method_ofAugment() async {
-    newFile('$testPackageLibPath/a.dart', r'''
+    var library = await buildLibrary(r'''
+class B extends A {}
+
 class A {
   int foo(String a) => 0;
 }
-''');
 
-    newFile('$testPackageLibPath/b.dart', r'''
-part of 'test.dart';
 augment class B {
   foo(a) => 0;
 }
 ''');
 
-    var library = await buildLibrary(r'''
-import 'a.dart';
-part 'b.dart';
-
-class B extends A {}
-''');
-
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      libraryImports
-        package:test/a.dart
-          enclosingElement3: <testLibraryFragment>
-      parts
-        part_0
-          uri: package:test/b.dart
-          enclosingElement3: <testLibraryFragment>
-          unit: <testLibrary>::@fragment::package:test/b.dart
-      classes
-        class B @39
-          reference: <testLibraryFragment>::@class::B
-          enclosingElement3: <testLibraryFragment>
-          augmentation: <testLibrary>::@fragment::package:test/b.dart::@classAugmentation::B
-          supertype: A
-          constructors
-            synthetic @-1
-              reference: <testLibraryFragment>::@class::B::@constructor::new
-              enclosingElement3: <testLibraryFragment>::@class::B
-              superConstructor: package:test/a.dart::<fragment>::@class::A::@constructor::new
-          augmented
-            constructors
-              <testLibraryFragment>::@class::B::@constructor::new
-            methods
-              <testLibrary>::@fragment::package:test/b.dart::@classAugmentation::B::@method::foo
-    <testLibrary>::@fragment::package:test/b.dart
-      enclosingElement3: <testLibraryFragment>
-      classes
-        augment class B @35
-          reference: <testLibrary>::@fragment::package:test/b.dart::@classAugmentation::B
-          enclosingElement3: <testLibrary>::@fragment::package:test/b.dart
-          augmentationTarget: <testLibraryFragment>::@class::B
-          methods
-            foo @41
-              reference: <testLibrary>::@fragment::package:test/b.dart::@classAugmentation::B::@method::foo
-              enclosingElement3: <testLibrary>::@fragment::package:test/b.dart::@classAugmentation::B
-              parameters
-                requiredPositional hasImplicitType a @45
-                  type: String
-              returnType: int
-----------------------------------------
-library
-  reference: <testLibrary>
   fragments
-    <testLibraryFragment>
+    #F0 <testLibraryFragment>
       element: <testLibrary>
-      nextFragment: <testLibrary>::@fragment::package:test/b.dart
-      libraryImports
-        package:test/a.dart
       classes
-        class B @39
-          reference: <testLibraryFragment>::@class::B
+        #F1 class B (nameOffset:6) (firstTokenOffset:0) (offset:6)
           element: <testLibrary>::@class::B
-          nextFragment: <testLibrary>::@fragment::package:test/b.dart::@classAugmentation::B
+          nextFragment: #F2
           constructors
-            synthetic new
-              reference: <testLibraryFragment>::@class::B::@constructor::new
-              element: <testLibraryFragment>::@class::B::@constructor::new#element
+            #F3 synthetic new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
+              element: <testLibrary>::@class::B::@constructor::new
               typeName: B
-              superConstructor: package:test/a.dart::<fragment>::@class::A::@constructor::new
-    <testLibrary>::@fragment::package:test/b.dart
-      element: <testLibrary>
-      enclosingFragment: <testLibraryFragment>
-      previousFragment: <testLibraryFragment>
-      classes
-        class B @35
-          reference: <testLibrary>::@fragment::package:test/b.dart::@classAugmentation::B
-          element: <testLibrary>::@class::B
-          previousFragment: <testLibraryFragment>::@class::B
+        #F4 class A (nameOffset:28) (firstTokenOffset:22) (offset:28)
+          element: <testLibrary>::@class::A
+          constructors
+            #F5 synthetic new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:28)
+              element: <testLibrary>::@class::A::@constructor::new
+              typeName: A
           methods
-            foo @41
-              reference: <testLibrary>::@fragment::package:test/b.dart::@classAugmentation::B::@method::foo
-              element: <testLibrary>::@fragment::package:test/b.dart::@classAugmentation::B::@method::foo#element
+            #F6 foo (nameOffset:38) (firstTokenOffset:34) (offset:38)
+              element: <testLibrary>::@class::A::@method::foo
               formalParameters
-                a @45
-                  element: <testLibrary>::@fragment::package:test/b.dart::@classAugmentation::B::@method::foo::@parameter::a#element
+                #F7 a (nameOffset:49) (firstTokenOffset:42) (offset:49)
+                  element: <testLibrary>::@class::A::@method::foo::@formalParameter::a
+        #F2 class B (nameOffset:75) (firstTokenOffset:61) (offset:75)
+          element: <testLibrary>::@class::B
+          previousFragment: #F1
+          methods
+            #F8 foo (nameOffset:81) (firstTokenOffset:81) (offset:81)
+              element: <testLibrary>::@class::B::@method::foo
+              formalParameters
+                #F9 a (nameOffset:85) (firstTokenOffset:85) (offset:85)
+                  element: <testLibrary>::@class::B::@method::foo::@formalParameter::a
   classes
     class B
       reference: <testLibrary>::@class::B
-      firstFragment: <testLibraryFragment>::@class::B
+      firstFragment: #F1
       supertype: A
       constructors
         synthetic new
-          firstFragment: <testLibraryFragment>::@class::B::@constructor::new
-          superConstructor: package:test/a.dart::<fragment>::@class::A::@constructor::new#element
+          reference: <testLibrary>::@class::B::@constructor::new
+          firstFragment: #F3
+          superConstructor: <testLibrary>::@class::A::@constructor::new
       methods
         foo
           reference: <testLibrary>::@class::B::@method::foo
-          firstFragment: <testLibrary>::@fragment::package:test/b.dart::@classAugmentation::B::@method::foo
+          firstFragment: #F8
           formalParameters
-            requiredPositional hasImplicitType a
+            #E0 requiredPositional hasImplicitType a
+              firstFragment: #F9
               type: String
+          returnType: int
+    class A
+      reference: <testLibrary>::@class::A
+      firstFragment: #F4
+      constructors
+        synthetic new
+          reference: <testLibrary>::@class::A::@constructor::new
+          firstFragment: #F5
+      methods
+        foo
+          reference: <testLibrary>::@class::A::@method::foo
+          firstFragment: #F6
+          formalParameters
+            #E1 requiredPositional a
+              firstFragment: #F7
+              type: String
+          returnType: int
 ''');
   }
 
-  @SkippedTest(reason: 'implement augmentation')
   test_inferTypes_method_usingAugmentation_interface() async {
-    newFile('$testPackageLibPath/a.dart', r'''
-class A {
-  int foo(String a) => 0;
-}
-''');
-
-    newFile('$testPackageLibPath/b.dart', r'''
-part of 'test.dart';
-import 'a.dart';
-augment class B implements A {}
-''');
-
     var library = await buildLibrary(r'''
-part 'b.dart';
-
 class B {
   foo(a) => 0;
 }
+
+class A {
+  int foo(String a) => 0;
+}
+
+augment class B implements A {}
 ''');
 
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      parts
-        part_0
-          uri: package:test/b.dart
-          enclosingElement3: <testLibraryFragment>
-          unit: <testLibrary>::@fragment::package:test/b.dart
-      classes
-        class B @22
-          reference: <testLibraryFragment>::@class::B
-          enclosingElement3: <testLibraryFragment>
-          augmentation: <testLibrary>::@fragment::package:test/b.dart::@classAugmentation::B
-          constructors
-            synthetic @-1
-              reference: <testLibraryFragment>::@class::B::@constructor::new
-              enclosingElement3: <testLibraryFragment>::@class::B
-          methods
-            foo @28
-              reference: <testLibraryFragment>::@class::B::@method::foo
-              enclosingElement3: <testLibraryFragment>::@class::B
-              parameters
-                requiredPositional hasImplicitType a @32
-                  type: String
-              returnType: int
-          augmented
-            interfaces
-              A
-            constructors
-              <testLibraryFragment>::@class::B::@constructor::new
-            methods
-              <testLibraryFragment>::@class::B::@method::foo
-    <testLibrary>::@fragment::package:test/b.dart
-      enclosingElement3: <testLibraryFragment>
-      libraryImports
-        package:test/a.dart
-          enclosingElement3: <testLibrary>::@fragment::package:test/b.dart
-      classes
-        augment class B @52
-          reference: <testLibrary>::@fragment::package:test/b.dart::@classAugmentation::B
-          enclosingElement3: <testLibrary>::@fragment::package:test/b.dart
-          augmentationTarget: <testLibraryFragment>::@class::B
-          interfaces
-            A
-----------------------------------------
-library
-  reference: <testLibrary>
   fragments
-    <testLibraryFragment>
+    #F0 <testLibraryFragment>
       element: <testLibrary>
-      nextFragment: <testLibrary>::@fragment::package:test/b.dart
       classes
-        class B @22
-          reference: <testLibraryFragment>::@class::B
+        #F1 class B (nameOffset:6) (firstTokenOffset:0) (offset:6)
           element: <testLibrary>::@class::B
-          nextFragment: <testLibrary>::@fragment::package:test/b.dart::@classAugmentation::B
+          nextFragment: #F2
           constructors
-            synthetic new
-              reference: <testLibraryFragment>::@class::B::@constructor::new
-              element: <testLibraryFragment>::@class::B::@constructor::new#element
+            #F3 synthetic new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
+              element: <testLibrary>::@class::B::@constructor::new
               typeName: B
           methods
-            foo @28
-              reference: <testLibraryFragment>::@class::B::@method::foo
-              element: <testLibraryFragment>::@class::B::@method::foo#element
+            #F4 foo (nameOffset:12) (firstTokenOffset:12) (offset:12)
+              element: <testLibrary>::@class::B::@method::foo
               formalParameters
-                a @32
-                  element: <testLibraryFragment>::@class::B::@method::foo::@parameter::a#element
-    <testLibrary>::@fragment::package:test/b.dart
-      element: <testLibrary>
-      enclosingFragment: <testLibraryFragment>
-      previousFragment: <testLibraryFragment>
-      libraryImports
-        package:test/a.dart
-      classes
-        class B @52
-          reference: <testLibrary>::@fragment::package:test/b.dart::@classAugmentation::B
+                #F5 a (nameOffset:16) (firstTokenOffset:16) (offset:16)
+                  element: <testLibrary>::@class::B::@method::foo::@formalParameter::a
+        #F6 class A (nameOffset:34) (firstTokenOffset:28) (offset:34)
+          element: <testLibrary>::@class::A
+          constructors
+            #F7 synthetic new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:34)
+              element: <testLibrary>::@class::A::@constructor::new
+              typeName: A
+          methods
+            #F8 foo (nameOffset:44) (firstTokenOffset:40) (offset:44)
+              element: <testLibrary>::@class::A::@method::foo
+              formalParameters
+                #F9 a (nameOffset:55) (firstTokenOffset:48) (offset:55)
+                  element: <testLibrary>::@class::A::@method::foo::@formalParameter::a
+        #F2 class B (nameOffset:81) (firstTokenOffset:67) (offset:81)
           element: <testLibrary>::@class::B
-          previousFragment: <testLibraryFragment>::@class::B
+          previousFragment: #F1
   classes
     class B
       reference: <testLibrary>::@class::B
-      firstFragment: <testLibraryFragment>::@class::B
+      firstFragment: #F1
       interfaces
         A
       constructors
         synthetic new
-          firstFragment: <testLibraryFragment>::@class::B::@constructor::new
+          reference: <testLibrary>::@class::B::@constructor::new
+          firstFragment: #F3
       methods
         foo
           reference: <testLibrary>::@class::B::@method::foo
-          firstFragment: <testLibraryFragment>::@class::B::@method::foo
+          firstFragment: #F4
           formalParameters
-            requiredPositional hasImplicitType a
+            #E0 requiredPositional hasImplicitType a
+              firstFragment: #F5
               type: String
+          returnType: int
+    class A
+      reference: <testLibrary>::@class::A
+      firstFragment: #F6
+      constructors
+        synthetic new
+          reference: <testLibrary>::@class::A::@constructor::new
+          firstFragment: #F7
+      methods
+        foo
+          reference: <testLibrary>::@class::A::@method::foo
+          firstFragment: #F8
+          formalParameters
+            #E1 requiredPositional a
+              firstFragment: #F9
+              type: String
+          returnType: int
 ''');
   }
 
-  @SkippedTest(reason: 'implement augmentation')
   test_inferTypes_method_usingAugmentation_mixin() async {
-    newFile('$testPackageLibPath/a.dart', r'''
-mixin A {
-  int foo(String a) => 0;
-}
-''');
-
-    newFile('$testPackageLibPath/b.dart', r'''
-part of 'test.dart';
-import 'a.dart';
-augment class B with A {}
-''');
-
     var library = await buildLibrary(r'''
-part 'b.dart';
-
 class B {
   foo(a) => 0;
 }
+
+mixin A {
+  int foo(String a) => 0;
+}
+
+augment class B with A {}
 ''');
 
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      parts
-        part_0
-          uri: package:test/b.dart
-          enclosingElement3: <testLibraryFragment>
-          unit: <testLibrary>::@fragment::package:test/b.dart
-      classes
-        class B @22
-          reference: <testLibraryFragment>::@class::B
-          enclosingElement3: <testLibraryFragment>
-          augmentation: <testLibrary>::@fragment::package:test/b.dart::@classAugmentation::B
-          constructors
-            synthetic @-1
-              reference: <testLibraryFragment>::@class::B::@constructor::new
-              enclosingElement3: <testLibraryFragment>::@class::B
-          methods
-            foo @28
-              reference: <testLibraryFragment>::@class::B::@method::foo
-              enclosingElement3: <testLibraryFragment>::@class::B
-              parameters
-                requiredPositional hasImplicitType a @32
-                  type: String
-              returnType: int
-          augmented
-            mixins
-              A
-            constructors
-              <testLibraryFragment>::@class::B::@constructor::new
-            methods
-              <testLibraryFragment>::@class::B::@method::foo
-    <testLibrary>::@fragment::package:test/b.dart
-      enclosingElement3: <testLibraryFragment>
-      libraryImports
-        package:test/a.dart
-          enclosingElement3: <testLibrary>::@fragment::package:test/b.dart
-      classes
-        augment class B @52
-          reference: <testLibrary>::@fragment::package:test/b.dart::@classAugmentation::B
-          enclosingElement3: <testLibrary>::@fragment::package:test/b.dart
-          augmentationTarget: <testLibraryFragment>::@class::B
-          mixins
-            A
-----------------------------------------
-library
-  reference: <testLibrary>
   fragments
-    <testLibraryFragment>
+    #F0 <testLibraryFragment>
       element: <testLibrary>
-      nextFragment: <testLibrary>::@fragment::package:test/b.dart
       classes
-        class B @22
-          reference: <testLibraryFragment>::@class::B
+        #F1 class B (nameOffset:6) (firstTokenOffset:0) (offset:6)
           element: <testLibrary>::@class::B
-          nextFragment: <testLibrary>::@fragment::package:test/b.dart::@classAugmentation::B
+          nextFragment: #F2
           constructors
-            synthetic new
-              reference: <testLibraryFragment>::@class::B::@constructor::new
-              element: <testLibraryFragment>::@class::B::@constructor::new#element
+            #F3 synthetic new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
+              element: <testLibrary>::@class::B::@constructor::new
               typeName: B
           methods
-            foo @28
-              reference: <testLibraryFragment>::@class::B::@method::foo
-              element: <testLibraryFragment>::@class::B::@method::foo#element
+            #F4 foo (nameOffset:12) (firstTokenOffset:12) (offset:12)
+              element: <testLibrary>::@class::B::@method::foo
               formalParameters
-                a @32
-                  element: <testLibraryFragment>::@class::B::@method::foo::@parameter::a#element
-    <testLibrary>::@fragment::package:test/b.dart
-      element: <testLibrary>
-      enclosingFragment: <testLibraryFragment>
-      previousFragment: <testLibraryFragment>
-      libraryImports
-        package:test/a.dart
-      classes
-        class B @52
-          reference: <testLibrary>::@fragment::package:test/b.dart::@classAugmentation::B
+                #F5 a (nameOffset:16) (firstTokenOffset:16) (offset:16)
+                  element: <testLibrary>::@class::B::@method::foo::@formalParameter::a
+        #F2 class B (nameOffset:81) (firstTokenOffset:67) (offset:81)
           element: <testLibrary>::@class::B
-          previousFragment: <testLibraryFragment>::@class::B
+          previousFragment: #F1
+      mixins
+        #F6 mixin A (nameOffset:34) (firstTokenOffset:28) (offset:34)
+          element: <testLibrary>::@mixin::A
+          methods
+            #F7 foo (nameOffset:44) (firstTokenOffset:40) (offset:44)
+              element: <testLibrary>::@mixin::A::@method::foo
+              formalParameters
+                #F8 a (nameOffset:55) (firstTokenOffset:48) (offset:55)
+                  element: <testLibrary>::@mixin::A::@method::foo::@formalParameter::a
   classes
     class B
       reference: <testLibrary>::@class::B
-      firstFragment: <testLibraryFragment>::@class::B
+      firstFragment: #F1
       supertype: Object
       mixins
         A
       constructors
         synthetic new
-          firstFragment: <testLibraryFragment>::@class::B::@constructor::new
+          reference: <testLibrary>::@class::B::@constructor::new
+          firstFragment: #F3
       methods
         foo
           reference: <testLibrary>::@class::B::@method::foo
-          firstFragment: <testLibraryFragment>::@class::B::@method::foo
+          firstFragment: #F4
           formalParameters
-            requiredPositional hasImplicitType a
+            #E0 requiredPositional hasImplicitType a
+              firstFragment: #F5
               type: String
+          returnType: int
+  mixins
+    mixin A
+      reference: <testLibrary>::@mixin::A
+      firstFragment: #F6
+      superclassConstraints
+        Object
+      methods
+        foo
+          reference: <testLibrary>::@mixin::A::@method::foo
+          firstFragment: #F7
+          formalParameters
+            #E1 requiredPositional a
+              firstFragment: #F8
+              type: String
+          returnType: int
 ''');
   }
 
-  @SkippedTest(reason: 'implement augmentation')
   test_inferTypes_method_withAugment() async {
-    newFile('$testPackageLibPath/a.dart', r'''
+    var library = await buildLibrary(r'''
+class B extends A {
+  foo(a) => 0;
+}
+
 class A {
   int foo(String a) => 0;
 }
-''');
 
-    newFile('$testPackageLibPath/b.dart', r'''
-part of 'test.dart';
 augment class B {
   augment foo(a) => 0;
-}
-''');
-
-    var library = await buildLibrary(r'''
-import 'a.dart';
-part 'b.dart';
-
-class B extends A {
-  foo(a) => 0;
 }
 ''');
 
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      libraryImports
-        package:test/a.dart
-          enclosingElement3: <testLibraryFragment>
-      parts
-        part_0
-          uri: package:test/b.dart
-          enclosingElement3: <testLibraryFragment>
-          unit: <testLibrary>::@fragment::package:test/b.dart
-      classes
-        class B @39
-          reference: <testLibraryFragment>::@class::B
-          enclosingElement3: <testLibraryFragment>
-          augmentation: <testLibrary>::@fragment::package:test/b.dart::@classAugmentation::B
-          supertype: A
-          constructors
-            synthetic @-1
-              reference: <testLibraryFragment>::@class::B::@constructor::new
-              enclosingElement3: <testLibraryFragment>::@class::B
-              superConstructor: package:test/a.dart::<fragment>::@class::A::@constructor::new
-          methods
-            foo @55
-              reference: <testLibraryFragment>::@class::B::@method::foo
-              enclosingElement3: <testLibraryFragment>::@class::B
-              parameters
-                requiredPositional hasImplicitType a @59
-                  type: String
-              returnType: int
-              augmentation: <testLibrary>::@fragment::package:test/b.dart::@classAugmentation::B::@methodAugmentation::foo
-          augmented
-            constructors
-              <testLibraryFragment>::@class::B::@constructor::new
-            methods
-              <testLibrary>::@fragment::package:test/b.dart::@classAugmentation::B::@methodAugmentation::foo
-    <testLibrary>::@fragment::package:test/b.dart
-      enclosingElement3: <testLibraryFragment>
-      classes
-        augment class B @35
-          reference: <testLibrary>::@fragment::package:test/b.dart::@classAugmentation::B
-          enclosingElement3: <testLibrary>::@fragment::package:test/b.dart
-          augmentationTarget: <testLibraryFragment>::@class::B
-          methods
-            augment foo @49
-              reference: <testLibrary>::@fragment::package:test/b.dart::@classAugmentation::B::@methodAugmentation::foo
-              enclosingElement3: <testLibrary>::@fragment::package:test/b.dart::@classAugmentation::B
-              parameters
-                requiredPositional hasImplicitType a @53
-                  type: String
-              returnType: int
-              augmentationTarget: <testLibraryFragment>::@class::B::@method::foo
-----------------------------------------
-library
-  reference: <testLibrary>
   fragments
-    <testLibraryFragment>
+    #F0 <testLibraryFragment>
       element: <testLibrary>
-      nextFragment: <testLibrary>::@fragment::package:test/b.dart
-      libraryImports
-        package:test/a.dart
       classes
-        class B @39
-          reference: <testLibraryFragment>::@class::B
+        #F1 class B (nameOffset:6) (firstTokenOffset:0) (offset:6)
           element: <testLibrary>::@class::B
-          nextFragment: <testLibrary>::@fragment::package:test/b.dart::@classAugmentation::B
+          nextFragment: #F2
           constructors
-            synthetic new
-              reference: <testLibraryFragment>::@class::B::@constructor::new
-              element: <testLibraryFragment>::@class::B::@constructor::new#element
+            #F3 synthetic new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
+              element: <testLibrary>::@class::B::@constructor::new
               typeName: B
-              superConstructor: package:test/a.dart::<fragment>::@class::A::@constructor::new
           methods
-            foo @55
-              reference: <testLibraryFragment>::@class::B::@method::foo
-              element: <testLibraryFragment>::@class::B::@method::foo#element
-              nextFragment: <testLibrary>::@fragment::package:test/b.dart::@classAugmentation::B::@methodAugmentation::foo
+            #F4 foo (nameOffset:22) (firstTokenOffset:22) (offset:22)
+              element: <testLibrary>::@class::B::@method::foo
+              nextFragment: #F5
               formalParameters
-                a @59
-                  element: <testLibraryFragment>::@class::B::@method::foo::@parameter::a#element
-    <testLibrary>::@fragment::package:test/b.dart
-      element: <testLibrary>
-      enclosingFragment: <testLibraryFragment>
-      previousFragment: <testLibraryFragment>
-      classes
-        class B @35
-          reference: <testLibrary>::@fragment::package:test/b.dart::@classAugmentation::B
+                #F6 a (nameOffset:26) (firstTokenOffset:26) (offset:26)
+                  element: <testLibrary>::@class::B::@method::foo::@formalParameter::a
+        #F7 class A (nameOffset:44) (firstTokenOffset:38) (offset:44)
+          element: <testLibrary>::@class::A
+          constructors
+            #F8 synthetic new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:44)
+              element: <testLibrary>::@class::A::@constructor::new
+              typeName: A
+          methods
+            #F9 foo (nameOffset:54) (firstTokenOffset:50) (offset:54)
+              element: <testLibrary>::@class::A::@method::foo
+              formalParameters
+                #F10 a (nameOffset:65) (firstTokenOffset:58) (offset:65)
+                  element: <testLibrary>::@class::A::@method::foo::@formalParameter::a
+        #F2 class B (nameOffset:91) (firstTokenOffset:77) (offset:91)
           element: <testLibrary>::@class::B
-          previousFragment: <testLibraryFragment>::@class::B
+          previousFragment: #F1
           methods
-            augment foo @49
-              reference: <testLibrary>::@fragment::package:test/b.dart::@classAugmentation::B::@methodAugmentation::foo
-              element: <testLibraryFragment>::@class::B::@method::foo#element
-              previousFragment: <testLibraryFragment>::@class::B::@method::foo
+            #F5 augment foo (nameOffset:105) (firstTokenOffset:97) (offset:105)
+              element: <testLibrary>::@class::B::@method::foo
+              previousFragment: #F4
               formalParameters
-                a @53
-                  element: <testLibrary>::@fragment::package:test/b.dart::@classAugmentation::B::@methodAugmentation::foo::@parameter::a#element
+                #F11 a (nameOffset:109) (firstTokenOffset:109) (offset:109)
+                  element: <testLibrary>::@class::B::@method::foo::@formalParameter::a
   classes
     class B
       reference: <testLibrary>::@class::B
-      firstFragment: <testLibraryFragment>::@class::B
+      firstFragment: #F1
       supertype: A
       constructors
         synthetic new
-          firstFragment: <testLibraryFragment>::@class::B::@constructor::new
-          superConstructor: package:test/a.dart::<fragment>::@class::A::@constructor::new#element
+          reference: <testLibrary>::@class::B::@constructor::new
+          firstFragment: #F3
+          superConstructor: <testLibrary>::@class::A::@constructor::new
       methods
         foo
           reference: <testLibrary>::@class::B::@method::foo
-          firstFragment: <testLibraryFragment>::@class::B::@method::foo
+          firstFragment: #F4
           formalParameters
-            requiredPositional hasImplicitType a
+            #E0 requiredPositional hasImplicitType a
+              firstFragment: #F6
               type: String
+          returnType: int
+    class A
+      reference: <testLibrary>::@class::A
+      firstFragment: #F7
+      constructors
+        synthetic new
+          reference: <testLibrary>::@class::A::@constructor::new
+          firstFragment: #F8
+      methods
+        foo
+          reference: <testLibrary>::@class::A::@method::foo
+          firstFragment: #F9
+          formalParameters
+            #E1 requiredPositional a
+              firstFragment: #F10
+              type: String
+          returnType: int
 ''');
   }
 
-  @SkippedTest(reason: 'implement augmentation')
   test_methods_typeParameterCountMismatch() async {
-    newFile('$testPackageLibPath/a.dart', r'''
-part of 'test.dart';
-augment class A<T> {
-  augment void foo() {}
-}
-''');
-
     var library = await buildLibrary(r'''
-part 'a.dart';
 class A {
   void foo() {}
   void bar() {}
+}
+
+augment class A<T> {
+  augment void foo() {}
 }
 ''');
 
@@ -31756,578 +27268,255 @@ class A {
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      parts
-        part_0
-          uri: package:test/a.dart
-          enclosingElement3: <testLibraryFragment>
-          unit: <testLibrary>::@fragment::package:test/a.dart
-      classes
-        class A @21
-          reference: <testLibraryFragment>::@class::A
-          enclosingElement3: <testLibraryFragment>
-          augmentation: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A
-          methods
-            foo @32
-              reference: <testLibraryFragment>::@class::A::@method::foo
-              enclosingElement3: <testLibraryFragment>::@class::A
-              returnType: void
-              augmentation: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@methodAugmentation::foo
-            bar @48
-              reference: <testLibraryFragment>::@class::A::@method::bar
-              enclosingElement3: <testLibraryFragment>::@class::A
-              returnType: void
-          augmented
-            methods
-              <testLibraryFragment>::@class::A::@method::bar
-              MethodMember
-                base: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@methodAugmentation::foo
-                augmentationSubstitution: {T: InvalidType}
-    <testLibrary>::@fragment::package:test/a.dart
-      enclosingElement3: <testLibraryFragment>
-      classes
-        augment class A @35
-          reference: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A
-          enclosingElement3: <testLibrary>::@fragment::package:test/a.dart
-          typeParameters
-            covariant T @37
-              defaultType: dynamic
-          augmentationTarget: <testLibraryFragment>::@class::A
-          methods
-            augment foo @57
-              reference: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@methodAugmentation::foo
-              enclosingElement3: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A
-              returnType: void
-              augmentationTarget: <testLibraryFragment>::@class::A::@method::foo
-----------------------------------------
-library
-  reference: <testLibrary>
   fragments
-    <testLibraryFragment>
+    #F0 <testLibraryFragment>
       element: <testLibrary>
-      nextFragment: <testLibrary>::@fragment::package:test/a.dart
       classes
-        class A @21
-          reference: <testLibraryFragment>::@class::A
+        #F1 class A (nameOffset:6) (firstTokenOffset:0) (offset:6)
           element: <testLibrary>::@class::A
-          nextFragment: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A
+          nextFragment: #F2
           methods
-            foo @32
-              reference: <testLibraryFragment>::@class::A::@method::foo
-              element: <testLibraryFragment>::@class::A::@method::foo#element
-              nextFragment: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@methodAugmentation::foo
-            bar @48
-              reference: <testLibraryFragment>::@class::A::@method::bar
-              element: <testLibraryFragment>::@class::A::@method::bar#element
-    <testLibrary>::@fragment::package:test/a.dart
-      element: <testLibrary>
-      enclosingFragment: <testLibraryFragment>
-      previousFragment: <testLibraryFragment>
-      classes
-        class A @35
-          reference: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A
+            #F3 foo (nameOffset:17) (firstTokenOffset:12) (offset:17)
+              element: <testLibrary>::@class::A::@method::foo
+              nextFragment: #F4
+            #F5 bar (nameOffset:33) (firstTokenOffset:28) (offset:33)
+              element: <testLibrary>::@class::A::@method::bar
+        #F2 class A (nameOffset:59) (firstTokenOffset:45) (offset:59)
           element: <testLibrary>::@class::A
-          previousFragment: <testLibraryFragment>::@class::A
+          previousFragment: #F1
           typeParameters
-            T @37
-              element: <not-implemented>
+            #F6 T (nameOffset:61) (firstTokenOffset:61) (offset:61)
+              element: #E0 T
           methods
-            augment foo @57
-              reference: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@methodAugmentation::foo
-              element: <testLibraryFragment>::@class::A::@method::foo#element
-              previousFragment: <testLibraryFragment>::@class::A::@method::foo
+            #F4 augment foo (nameOffset:81) (firstTokenOffset:68) (offset:81)
+              element: <testLibrary>::@class::A::@method::foo
+              previousFragment: #F3
   classes
     class A
       reference: <testLibrary>::@class::A
-      firstFragment: <testLibraryFragment>::@class::A
+      firstFragment: #F1
       methods
         foo
           reference: <testLibrary>::@class::A::@method::foo
-          firstFragment: <testLibraryFragment>::@class::A::@method::foo
+          firstFragment: #F3
+          returnType: void
         bar
           reference: <testLibrary>::@class::A::@method::bar
-          firstFragment: <testLibraryFragment>::@class::A::@method::bar
+          firstFragment: #F5
+          returnType: void
 ''');
   }
 
-  @SkippedTest(reason: 'implement augmentation')
   test_modifiers_abstract() async {
-    newFile('$testPackageLibPath/a.dart', r'''
-part of 'test.dart';
+    var library = await buildLibrary(r'''
+abstract class A {}
+
 augment abstract class A {}
 ''');
 
-    var library = await buildLibrary(r'''
-part 'a.dart';
-abstract class A {}
-''');
-
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      parts
-        part_0
-          uri: package:test/a.dart
-          enclosingElement3: <testLibraryFragment>
-          unit: <testLibrary>::@fragment::package:test/a.dart
-      classes
-        abstract class A @30
-          reference: <testLibraryFragment>::@class::A
-          enclosingElement3: <testLibraryFragment>
-          augmentation: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A
-          constructors
-            synthetic @-1
-              reference: <testLibraryFragment>::@class::A::@constructor::new
-              enclosingElement3: <testLibraryFragment>::@class::A
-          augmented
-            constructors
-              <testLibraryFragment>::@class::A::@constructor::new
-    <testLibrary>::@fragment::package:test/a.dart
-      enclosingElement3: <testLibraryFragment>
-      classes
-        augment abstract class A @44
-          reference: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A
-          enclosingElement3: <testLibrary>::@fragment::package:test/a.dart
-          augmentationTarget: <testLibraryFragment>::@class::A
-----------------------------------------
-library
-  reference: <testLibrary>
   fragments
-    <testLibraryFragment>
+    #F0 <testLibraryFragment>
       element: <testLibrary>
-      nextFragment: <testLibrary>::@fragment::package:test/a.dart
       classes
-        class A @30
-          reference: <testLibraryFragment>::@class::A
+        #F1 class A (nameOffset:15) (firstTokenOffset:0) (offset:15)
           element: <testLibrary>::@class::A
-          nextFragment: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A
+          nextFragment: #F2
           constructors
-            synthetic new
-              reference: <testLibraryFragment>::@class::A::@constructor::new
-              element: <testLibraryFragment>::@class::A::@constructor::new#element
+            #F3 synthetic new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:15)
+              element: <testLibrary>::@class::A::@constructor::new
               typeName: A
-    <testLibrary>::@fragment::package:test/a.dart
-      element: <testLibrary>
-      enclosingFragment: <testLibraryFragment>
-      previousFragment: <testLibraryFragment>
-      classes
-        class A @44
-          reference: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A
+        #F2 class A (nameOffset:44) (firstTokenOffset:21) (offset:44)
           element: <testLibrary>::@class::A
-          previousFragment: <testLibraryFragment>::@class::A
+          previousFragment: #F1
   classes
     abstract class A
       reference: <testLibrary>::@class::A
-      firstFragment: <testLibraryFragment>::@class::A
+      firstFragment: #F1
       constructors
         synthetic new
-          firstFragment: <testLibraryFragment>::@class::A::@constructor::new
+          reference: <testLibrary>::@class::A::@constructor::new
+          firstFragment: #F3
 ''');
   }
 
-  @SkippedTest(reason: 'implement augmentation')
   test_modifiers_base() async {
-    newFile('$testPackageLibPath/a.dart', r'''
-part of 'test.dart';
+    var library = await buildLibrary(r'''
+base class A {}
+
 augment base class A {}
 ''');
 
-    var library = await buildLibrary(r'''
-part 'a.dart';
-base class A {}
-''');
-
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      parts
-        part_0
-          uri: package:test/a.dart
-          enclosingElement3: <testLibraryFragment>
-          unit: <testLibrary>::@fragment::package:test/a.dart
-      classes
-        base class A @26
-          reference: <testLibraryFragment>::@class::A
-          enclosingElement3: <testLibraryFragment>
-          augmentation: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A
-          constructors
-            synthetic @-1
-              reference: <testLibraryFragment>::@class::A::@constructor::new
-              enclosingElement3: <testLibraryFragment>::@class::A
-          augmented
-            constructors
-              <testLibraryFragment>::@class::A::@constructor::new
-    <testLibrary>::@fragment::package:test/a.dart
-      enclosingElement3: <testLibraryFragment>
-      classes
-        augment base class A @40
-          reference: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A
-          enclosingElement3: <testLibrary>::@fragment::package:test/a.dart
-          augmentationTarget: <testLibraryFragment>::@class::A
-----------------------------------------
-library
-  reference: <testLibrary>
   fragments
-    <testLibraryFragment>
+    #F0 <testLibraryFragment>
       element: <testLibrary>
-      nextFragment: <testLibrary>::@fragment::package:test/a.dart
       classes
-        class A @26
-          reference: <testLibraryFragment>::@class::A
+        #F1 class A (nameOffset:11) (firstTokenOffset:0) (offset:11)
           element: <testLibrary>::@class::A
-          nextFragment: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A
+          nextFragment: #F2
           constructors
-            synthetic new
-              reference: <testLibraryFragment>::@class::A::@constructor::new
-              element: <testLibraryFragment>::@class::A::@constructor::new#element
+            #F3 synthetic new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:11)
+              element: <testLibrary>::@class::A::@constructor::new
               typeName: A
-    <testLibrary>::@fragment::package:test/a.dart
-      element: <testLibrary>
-      enclosingFragment: <testLibraryFragment>
-      previousFragment: <testLibraryFragment>
-      classes
-        class A @40
-          reference: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A
+        #F2 class A (nameOffset:36) (firstTokenOffset:17) (offset:36)
           element: <testLibrary>::@class::A
-          previousFragment: <testLibraryFragment>::@class::A
+          previousFragment: #F1
   classes
     base class A
       reference: <testLibrary>::@class::A
-      firstFragment: <testLibraryFragment>::@class::A
+      firstFragment: #F1
       constructors
         synthetic new
-          firstFragment: <testLibraryFragment>::@class::A::@constructor::new
+          reference: <testLibrary>::@class::A::@constructor::new
+          firstFragment: #F3
 ''');
   }
 
-  @SkippedTest(reason: 'implement augmentation')
   test_modifiers_final() async {
-    newFile('$testPackageLibPath/a.dart', r'''
-part of 'test.dart';
+    var library = await buildLibrary(r'''
+final class A {}
+
 augment final class A {}
 ''');
 
-    var library = await buildLibrary(r'''
-part 'a.dart';
-final class A {}
-''');
-
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      parts
-        part_0
-          uri: package:test/a.dart
-          enclosingElement3: <testLibraryFragment>
-          unit: <testLibrary>::@fragment::package:test/a.dart
-      classes
-        final class A @27
-          reference: <testLibraryFragment>::@class::A
-          enclosingElement3: <testLibraryFragment>
-          augmentation: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A
-          constructors
-            synthetic @-1
-              reference: <testLibraryFragment>::@class::A::@constructor::new
-              enclosingElement3: <testLibraryFragment>::@class::A
-          augmented
-            constructors
-              <testLibraryFragment>::@class::A::@constructor::new
-    <testLibrary>::@fragment::package:test/a.dart
-      enclosingElement3: <testLibraryFragment>
-      classes
-        augment final class A @41
-          reference: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A
-          enclosingElement3: <testLibrary>::@fragment::package:test/a.dart
-          augmentationTarget: <testLibraryFragment>::@class::A
-----------------------------------------
-library
-  reference: <testLibrary>
   fragments
-    <testLibraryFragment>
+    #F0 <testLibraryFragment>
       element: <testLibrary>
-      nextFragment: <testLibrary>::@fragment::package:test/a.dart
       classes
-        class A @27
-          reference: <testLibraryFragment>::@class::A
+        #F1 class A (nameOffset:12) (firstTokenOffset:0) (offset:12)
           element: <testLibrary>::@class::A
-          nextFragment: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A
+          nextFragment: #F2
           constructors
-            synthetic new
-              reference: <testLibraryFragment>::@class::A::@constructor::new
-              element: <testLibraryFragment>::@class::A::@constructor::new#element
+            #F3 synthetic new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:12)
+              element: <testLibrary>::@class::A::@constructor::new
               typeName: A
-    <testLibrary>::@fragment::package:test/a.dart
-      element: <testLibrary>
-      enclosingFragment: <testLibraryFragment>
-      previousFragment: <testLibraryFragment>
-      classes
-        class A @41
-          reference: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A
+        #F2 class A (nameOffset:38) (firstTokenOffset:18) (offset:38)
           element: <testLibrary>::@class::A
-          previousFragment: <testLibraryFragment>::@class::A
+          previousFragment: #F1
   classes
     final class A
       reference: <testLibrary>::@class::A
-      firstFragment: <testLibraryFragment>::@class::A
+      firstFragment: #F1
       constructors
         synthetic new
-          firstFragment: <testLibraryFragment>::@class::A::@constructor::new
+          reference: <testLibrary>::@class::A::@constructor::new
+          firstFragment: #F3
 ''');
   }
 
-  @SkippedTest(reason: 'implement augmentation')
   test_modifiers_interface() async {
-    newFile('$testPackageLibPath/a.dart', r'''
-part of 'test.dart';
+    var library = await buildLibrary(r'''
+interface class A {}
+
 augment interface class A {}
 ''');
 
-    var library = await buildLibrary(r'''
-part 'a.dart';
-interface class A {}
-''');
-
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      parts
-        part_0
-          uri: package:test/a.dart
-          enclosingElement3: <testLibraryFragment>
-          unit: <testLibrary>::@fragment::package:test/a.dart
-      classes
-        interface class A @31
-          reference: <testLibraryFragment>::@class::A
-          enclosingElement3: <testLibraryFragment>
-          augmentation: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A
-          constructors
-            synthetic @-1
-              reference: <testLibraryFragment>::@class::A::@constructor::new
-              enclosingElement3: <testLibraryFragment>::@class::A
-          augmented
-            constructors
-              <testLibraryFragment>::@class::A::@constructor::new
-    <testLibrary>::@fragment::package:test/a.dart
-      enclosingElement3: <testLibraryFragment>
-      classes
-        augment interface class A @45
-          reference: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A
-          enclosingElement3: <testLibrary>::@fragment::package:test/a.dart
-          augmentationTarget: <testLibraryFragment>::@class::A
-----------------------------------------
-library
-  reference: <testLibrary>
   fragments
-    <testLibraryFragment>
+    #F0 <testLibraryFragment>
       element: <testLibrary>
-      nextFragment: <testLibrary>::@fragment::package:test/a.dart
       classes
-        class A @31
-          reference: <testLibraryFragment>::@class::A
+        #F1 class A (nameOffset:16) (firstTokenOffset:0) (offset:16)
           element: <testLibrary>::@class::A
-          nextFragment: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A
+          nextFragment: #F2
           constructors
-            synthetic new
-              reference: <testLibraryFragment>::@class::A::@constructor::new
-              element: <testLibraryFragment>::@class::A::@constructor::new#element
+            #F3 synthetic new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
+              element: <testLibrary>::@class::A::@constructor::new
               typeName: A
-    <testLibrary>::@fragment::package:test/a.dart
-      element: <testLibrary>
-      enclosingFragment: <testLibraryFragment>
-      previousFragment: <testLibraryFragment>
-      classes
-        class A @45
-          reference: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A
+        #F2 class A (nameOffset:46) (firstTokenOffset:22) (offset:46)
           element: <testLibrary>::@class::A
-          previousFragment: <testLibraryFragment>::@class::A
+          previousFragment: #F1
   classes
     interface class A
       reference: <testLibrary>::@class::A
-      firstFragment: <testLibraryFragment>::@class::A
+      firstFragment: #F1
       constructors
         synthetic new
-          firstFragment: <testLibraryFragment>::@class::A::@constructor::new
+          reference: <testLibrary>::@class::A::@constructor::new
+          firstFragment: #F3
 ''');
   }
 
-  @SkippedTest(reason: 'implement augmentation')
   test_modifiers_mixin() async {
-    newFile('$testPackageLibPath/a.dart', r'''
-part of 'test.dart';
+    var library = await buildLibrary(r'''
+mixin class A {}
+
 augment mixin class A {}
 ''');
 
-    var library = await buildLibrary(r'''
-part 'a.dart';
-mixin class A {}
-''');
-
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      parts
-        part_0
-          uri: package:test/a.dart
-          enclosingElement3: <testLibraryFragment>
-          unit: <testLibrary>::@fragment::package:test/a.dart
-      classes
-        mixin class A @27
-          reference: <testLibraryFragment>::@class::A
-          enclosingElement3: <testLibraryFragment>
-          augmentation: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A
-          constructors
-            synthetic @-1
-              reference: <testLibraryFragment>::@class::A::@constructor::new
-              enclosingElement3: <testLibraryFragment>::@class::A
-          augmented
-            constructors
-              <testLibraryFragment>::@class::A::@constructor::new
-    <testLibrary>::@fragment::package:test/a.dart
-      enclosingElement3: <testLibraryFragment>
-      classes
-        augment mixin class A @41
-          reference: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A
-          enclosingElement3: <testLibrary>::@fragment::package:test/a.dart
-          augmentationTarget: <testLibraryFragment>::@class::A
-----------------------------------------
-library
-  reference: <testLibrary>
   fragments
-    <testLibraryFragment>
+    #F0 <testLibraryFragment>
       element: <testLibrary>
-      nextFragment: <testLibrary>::@fragment::package:test/a.dart
       classes
-        class A @27
-          reference: <testLibraryFragment>::@class::A
+        #F1 class A (nameOffset:12) (firstTokenOffset:0) (offset:12)
           element: <testLibrary>::@class::A
-          nextFragment: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A
+          nextFragment: #F2
           constructors
-            synthetic new
-              reference: <testLibraryFragment>::@class::A::@constructor::new
-              element: <testLibraryFragment>::@class::A::@constructor::new#element
+            #F3 synthetic new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:12)
+              element: <testLibrary>::@class::A::@constructor::new
               typeName: A
-    <testLibrary>::@fragment::package:test/a.dart
-      element: <testLibrary>
-      enclosingFragment: <testLibraryFragment>
-      previousFragment: <testLibraryFragment>
-      classes
-        class A @41
-          reference: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A
+        #F2 class A (nameOffset:38) (firstTokenOffset:18) (offset:38)
           element: <testLibrary>::@class::A
-          previousFragment: <testLibraryFragment>::@class::A
+          previousFragment: #F1
   classes
     mixin class A
       reference: <testLibrary>::@class::A
-      firstFragment: <testLibraryFragment>::@class::A
+      firstFragment: #F1
       constructors
         synthetic new
-          firstFragment: <testLibraryFragment>::@class::A::@constructor::new
+          reference: <testLibrary>::@class::A::@constructor::new
+          firstFragment: #F3
 ''');
   }
 
-  @SkippedTest(reason: 'implement augmentation')
   test_modifiers_sealed() async {
-    newFile('$testPackageLibPath/a.dart', r'''
-part of 'test.dart';
-augment sealed class A {}
-''');
-
     var library = await buildLibrary(r'''
-part 'a.dart';
 sealed class A {}
+
+augment sealed class A {}
 ''');
 
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      parts
-        part_0
-          uri: package:test/a.dart
-          enclosingElement3: <testLibraryFragment>
-          unit: <testLibrary>::@fragment::package:test/a.dart
-      classes
-        abstract sealed class A @28
-          reference: <testLibraryFragment>::@class::A
-          enclosingElement3: <testLibraryFragment>
-          augmentation: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A
-          constructors
-            synthetic @-1
-              reference: <testLibraryFragment>::@class::A::@constructor::new
-              enclosingElement3: <testLibraryFragment>::@class::A
-          augmented
-            constructors
-              <testLibraryFragment>::@class::A::@constructor::new
-    <testLibrary>::@fragment::package:test/a.dart
-      enclosingElement3: <testLibraryFragment>
-      classes
-        augment abstract sealed class A @42
-          reference: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A
-          enclosingElement3: <testLibrary>::@fragment::package:test/a.dart
-          augmentationTarget: <testLibraryFragment>::@class::A
-----------------------------------------
-library
-  reference: <testLibrary>
   fragments
-    <testLibraryFragment>
+    #F0 <testLibraryFragment>
       element: <testLibrary>
-      nextFragment: <testLibrary>::@fragment::package:test/a.dart
       classes
-        class A @28
-          reference: <testLibraryFragment>::@class::A
+        #F1 class A (nameOffset:13) (firstTokenOffset:0) (offset:13)
           element: <testLibrary>::@class::A
-          nextFragment: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A
+          nextFragment: #F2
           constructors
-            synthetic new
-              reference: <testLibraryFragment>::@class::A::@constructor::new
-              element: <testLibraryFragment>::@class::A::@constructor::new#element
+            #F3 synthetic new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:13)
+              element: <testLibrary>::@class::A::@constructor::new
               typeName: A
-    <testLibrary>::@fragment::package:test/a.dart
-      element: <testLibrary>
-      enclosingFragment: <testLibraryFragment>
-      previousFragment: <testLibraryFragment>
-      classes
-        class A @42
-          reference: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A
+        #F2 class A (nameOffset:40) (firstTokenOffset:19) (offset:40)
           element: <testLibrary>::@class::A
-          previousFragment: <testLibraryFragment>::@class::A
+          previousFragment: #F1
   classes
     abstract sealed class A
       reference: <testLibrary>::@class::A
-      firstFragment: <testLibraryFragment>::@class::A
+      firstFragment: #F1
       constructors
         synthetic new
-          firstFragment: <testLibraryFragment>::@class::A::@constructor::new
+          reference: <testLibrary>::@class::A::@constructor::new
+          firstFragment: #F3
 ''');
   }
 
-  @SkippedTest(reason: 'implement augmentation')
   test_notAugmented_interfaces() async {
     var library = await buildLibrary(r'''
 class A implements I {}
@@ -32337,77 +27526,42 @@ class I {}
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      classes
-        class A @6
-          reference: <testLibraryFragment>::@class::A
-          enclosingElement3: <testLibraryFragment>
-          interfaces
-            I
-          constructors
-            synthetic @-1
-              reference: <testLibraryFragment>::@class::A::@constructor::new
-              enclosingElement3: <testLibraryFragment>::@class::A
-          augmented
-            interfaces
-              I
-            constructors
-              <testLibraryFragment>::@class::A::@constructor::new
-        class I @30
-          reference: <testLibraryFragment>::@class::I
-          enclosingElement3: <testLibraryFragment>
-          constructors
-            synthetic @-1
-              reference: <testLibraryFragment>::@class::I::@constructor::new
-              enclosingElement3: <testLibraryFragment>::@class::I
-          augmented
-            constructors
-              <testLibraryFragment>::@class::I::@constructor::new
-----------------------------------------
-library
-  reference: <testLibrary>
   fragments
-    <testLibraryFragment>
+    #F0 <testLibraryFragment>
       element: <testLibrary>
       classes
-        class A @6
-          reference: <testLibraryFragment>::@class::A
+        #F1 class A (nameOffset:6) (firstTokenOffset:0) (offset:6)
           element: <testLibrary>::@class::A
           constructors
-            synthetic new
-              reference: <testLibraryFragment>::@class::A::@constructor::new
-              element: <testLibraryFragment>::@class::A::@constructor::new#element
+            #F2 synthetic new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
+              element: <testLibrary>::@class::A::@constructor::new
               typeName: A
-        class I @30
-          reference: <testLibraryFragment>::@class::I
+        #F3 class I (nameOffset:30) (firstTokenOffset:24) (offset:30)
           element: <testLibrary>::@class::I
           constructors
-            synthetic new
-              reference: <testLibraryFragment>::@class::I::@constructor::new
-              element: <testLibraryFragment>::@class::I::@constructor::new#element
+            #F4 synthetic new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:30)
+              element: <testLibrary>::@class::I::@constructor::new
               typeName: I
   classes
     class A
       reference: <testLibrary>::@class::A
-      firstFragment: <testLibraryFragment>::@class::A
+      firstFragment: #F1
       interfaces
         I
       constructors
         synthetic new
-          firstFragment: <testLibraryFragment>::@class::A::@constructor::new
+          reference: <testLibrary>::@class::A::@constructor::new
+          firstFragment: #F2
     class I
       reference: <testLibrary>::@class::I
-      firstFragment: <testLibraryFragment>::@class::I
+      firstFragment: #F3
       constructors
         synthetic new
-          firstFragment: <testLibraryFragment>::@class::I::@constructor::new
+          reference: <testLibrary>::@class::I::@constructor::new
+          firstFragment: #F4
 ''');
   }
 
-  @SkippedTest(reason: 'implement augmentation')
   test_notAugmented_mixins() async {
     var library = await buildLibrary(r'''
 class A implements M {}
@@ -32417,168 +27571,84 @@ mixin M {}
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      classes
-        class A @6
-          reference: <testLibraryFragment>::@class::A
-          enclosingElement3: <testLibraryFragment>
-          interfaces
-            M
-          constructors
-            synthetic @-1
-              reference: <testLibraryFragment>::@class::A::@constructor::new
-              enclosingElement3: <testLibraryFragment>::@class::A
-          augmented
-            interfaces
-              M
-            constructors
-              <testLibraryFragment>::@class::A::@constructor::new
-      mixins
-        mixin M @30
-          reference: <testLibraryFragment>::@mixin::M
-          enclosingElement3: <testLibraryFragment>
-          superclassConstraints
-            Object
-          augmented
-            superclassConstraints
-              Object
-----------------------------------------
-library
-  reference: <testLibrary>
   fragments
-    <testLibraryFragment>
+    #F0 <testLibraryFragment>
       element: <testLibrary>
       classes
-        class A @6
-          reference: <testLibraryFragment>::@class::A
+        #F1 class A (nameOffset:6) (firstTokenOffset:0) (offset:6)
           element: <testLibrary>::@class::A
           constructors
-            synthetic new
-              reference: <testLibraryFragment>::@class::A::@constructor::new
-              element: <testLibraryFragment>::@class::A::@constructor::new#element
+            #F2 synthetic new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
+              element: <testLibrary>::@class::A::@constructor::new
               typeName: A
       mixins
-        mixin M @30
-          reference: <testLibraryFragment>::@mixin::M
+        #F3 mixin M (nameOffset:30) (firstTokenOffset:24) (offset:30)
           element: <testLibrary>::@mixin::M
   classes
     class A
       reference: <testLibrary>::@class::A
-      firstFragment: <testLibraryFragment>::@class::A
+      firstFragment: #F1
       interfaces
         M
       constructors
         synthetic new
-          firstFragment: <testLibraryFragment>::@class::A::@constructor::new
+          reference: <testLibrary>::@class::A::@constructor::new
+          firstFragment: #F2
   mixins
     mixin M
       reference: <testLibrary>::@mixin::M
-      firstFragment: <testLibraryFragment>::@mixin::M
+      firstFragment: #F3
       superclassConstraints
         Object
 ''');
   }
 
-  @SkippedTest(reason: 'implement augmentation')
   test_notSimplyBounded_self() async {
-    newFile('$testPackageLibPath/a.dart', r'''
-part of 'test.dart';
-augment class A<T extends A> {}
-''');
-
     var library = await buildLibrary(r'''
-part 'a.dart';
 class A<T extends A> {}
+
+augment class A<T extends A> {}
 ''');
 
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      parts
-        part_0
-          uri: package:test/a.dart
-          enclosingElement3: <testLibraryFragment>
-          unit: <testLibrary>::@fragment::package:test/a.dart
-      classes
-        notSimplyBounded class A @21
-          reference: <testLibraryFragment>::@class::A
-          enclosingElement3: <testLibraryFragment>
-          typeParameters
-            covariant T @23
-              bound: A<dynamic>
-              defaultType: dynamic
-          augmentation: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A
-          constructors
-            synthetic @-1
-              reference: <testLibraryFragment>::@class::A::@constructor::new
-              enclosingElement3: <testLibraryFragment>::@class::A
-          augmented
-            constructors
-              <testLibraryFragment>::@class::A::@constructor::new
-    <testLibrary>::@fragment::package:test/a.dart
-      enclosingElement3: <testLibraryFragment>
-      classes
-        augment class A @35
-          reference: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A
-          enclosingElement3: <testLibrary>::@fragment::package:test/a.dart
-          typeParameters
-            covariant T @37
-              bound: A<dynamic>
-              defaultType: dynamic
-          augmentationTarget: <testLibraryFragment>::@class::A
-----------------------------------------
-library
-  reference: <testLibrary>
   fragments
-    <testLibraryFragment>
+    #F0 <testLibraryFragment>
       element: <testLibrary>
-      nextFragment: <testLibrary>::@fragment::package:test/a.dart
       classes
-        class A @21
-          reference: <testLibraryFragment>::@class::A
+        #F1 class A (nameOffset:6) (firstTokenOffset:0) (offset:6)
           element: <testLibrary>::@class::A
-          nextFragment: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A
+          nextFragment: #F2
           typeParameters
-            T @23
-              element: <not-implemented>
+            #F3 T (nameOffset:8) (firstTokenOffset:8) (offset:8)
+              element: #E0 T
           constructors
-            synthetic new
-              reference: <testLibraryFragment>::@class::A::@constructor::new
-              element: <testLibraryFragment>::@class::A::@constructor::new#element
+            #F4 synthetic new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
+              element: <testLibrary>::@class::A::@constructor::new
               typeName: A
-    <testLibrary>::@fragment::package:test/a.dart
-      element: <testLibrary>
-      enclosingFragment: <testLibraryFragment>
-      previousFragment: <testLibraryFragment>
-      classes
-        class A @35
-          reference: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A
+        #F2 class A (nameOffset:39) (firstTokenOffset:25) (offset:39)
           element: <testLibrary>::@class::A
-          previousFragment: <testLibraryFragment>::@class::A
+          previousFragment: #F1
           typeParameters
-            T @37
-              element: <not-implemented>
+            #F5 T (nameOffset:41) (firstTokenOffset:41) (offset:41)
+              element: #E1 T
   classes
     notSimplyBounded class A
       reference: <testLibrary>::@class::A
-      firstFragment: <testLibraryFragment>::@class::A
+      firstFragment: #F1
       typeParameters
-        T
+        #E0 T
+          firstFragment: #F3
           bound: A<dynamic>
       constructors
         synthetic new
-          firstFragment: <testLibraryFragment>::@class::A::@constructor::new
+          reference: <testLibrary>::@class::A::@constructor::new
+          firstFragment: #F4
 ''');
   }
 
-  @SkippedTest(reason: 'implement augmentation')
+  @SkippedTest(reason: 'Causes exception')
   test_supertype_fromAugmentation() async {
     newFile('$testPackageLibPath/a.dart', r'''
 part of 'test.dart';
@@ -32710,279 +27780,133 @@ library
 ''');
   }
 
-  @SkippedTest(reason: 'implement augmentation')
   test_supertype_fromAugmentation2() async {
-    newFile('$testPackageLibPath/a.dart', r'''
-part of 'test.dart';
-augment class C extends A {}
-''');
-
     // `extends B` should be ignored, we already have `extends A`
-    newFile('$testPackageLibPath/b.dart', r'''
-part of 'test.dart';
-augment class C extends B {}
-''');
-
     var library = await buildLibrary(r'''
-part 'a.dart';
-part 'b.dart';
 class A {}
 class B {}
 class C {}
+
+augment class C extends A {}
+augment class C extends B {}
 ''');
 
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      parts
-        part_0
-          uri: package:test/a.dart
-          enclosingElement3: <testLibraryFragment>
-          unit: <testLibrary>::@fragment::package:test/a.dart
-        part_1
-          uri: package:test/b.dart
-          enclosingElement3: <testLibraryFragment>
-          unit: <testLibrary>::@fragment::package:test/b.dart
-      classes
-        class A @36
-          reference: <testLibraryFragment>::@class::A
-          enclosingElement3: <testLibraryFragment>
-          constructors
-            synthetic @-1
-              reference: <testLibraryFragment>::@class::A::@constructor::new
-              enclosingElement3: <testLibraryFragment>::@class::A
-        class B @47
-          reference: <testLibraryFragment>::@class::B
-          enclosingElement3: <testLibraryFragment>
-          constructors
-            synthetic @-1
-              reference: <testLibraryFragment>::@class::B::@constructor::new
-              enclosingElement3: <testLibraryFragment>::@class::B
-        class C @58
-          reference: <testLibraryFragment>::@class::C
-          enclosingElement3: <testLibraryFragment>
-          augmentation: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::C
-          supertype: A
-          constructors
-            synthetic @-1
-              reference: <testLibraryFragment>::@class::C::@constructor::new
-              enclosingElement3: <testLibraryFragment>::@class::C
-              superConstructor: <testLibraryFragment>::@class::A::@constructor::new
-          augmented
-            constructors
-              <testLibraryFragment>::@class::C::@constructor::new
-    <testLibrary>::@fragment::package:test/a.dart
-      enclosingElement3: <testLibraryFragment>
-      classes
-        augment class C @35
-          reference: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::C
-          enclosingElement3: <testLibrary>::@fragment::package:test/a.dart
-          augmentationTarget: <testLibraryFragment>::@class::C
-          augmentation: <testLibrary>::@fragment::package:test/b.dart::@classAugmentation::C
-    <testLibrary>::@fragment::package:test/b.dart
-      enclosingElement3: <testLibraryFragment>
-      classes
-        augment class C @35
-          reference: <testLibrary>::@fragment::package:test/b.dart::@classAugmentation::C
-          enclosingElement3: <testLibrary>::@fragment::package:test/b.dart
-          augmentationTarget: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::C
-----------------------------------------
-library
-  reference: <testLibrary>
   fragments
-    <testLibraryFragment>
+    #F0 <testLibraryFragment>
       element: <testLibrary>
-      nextFragment: <testLibrary>::@fragment::package:test/a.dart
       classes
-        class A @36
-          reference: <testLibraryFragment>::@class::A
+        #F1 class A (nameOffset:6) (firstTokenOffset:0) (offset:6)
           element: <testLibrary>::@class::A
           constructors
-            synthetic new
-              reference: <testLibraryFragment>::@class::A::@constructor::new
-              element: <testLibraryFragment>::@class::A::@constructor::new#element
+            #F2 synthetic new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
+              element: <testLibrary>::@class::A::@constructor::new
               typeName: A
-        class B @47
-          reference: <testLibraryFragment>::@class::B
+        #F3 class B (nameOffset:17) (firstTokenOffset:11) (offset:17)
           element: <testLibrary>::@class::B
           constructors
-            synthetic new
-              reference: <testLibraryFragment>::@class::B::@constructor::new
-              element: <testLibraryFragment>::@class::B::@constructor::new#element
+            #F4 synthetic new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:17)
+              element: <testLibrary>::@class::B::@constructor::new
               typeName: B
-        class C @58
-          reference: <testLibraryFragment>::@class::C
+        #F5 class C (nameOffset:28) (firstTokenOffset:22) (offset:28)
           element: <testLibrary>::@class::C
-          nextFragment: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::C
+          nextFragment: #F6
           constructors
-            synthetic new
-              reference: <testLibraryFragment>::@class::C::@constructor::new
-              element: <testLibraryFragment>::@class::C::@constructor::new#element
+            #F7 synthetic new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:28)
+              element: <testLibrary>::@class::C::@constructor::new
               typeName: C
-              superConstructor: <testLibraryFragment>::@class::A::@constructor::new
-    <testLibrary>::@fragment::package:test/a.dart
-      element: <testLibrary>
-      enclosingFragment: <testLibraryFragment>
-      previousFragment: <testLibraryFragment>
-      nextFragment: <testLibrary>::@fragment::package:test/b.dart
-      classes
-        class C @35
-          reference: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::C
+        #F6 class C (nameOffset:48) (firstTokenOffset:34) (offset:48)
           element: <testLibrary>::@class::C
-          previousFragment: <testLibraryFragment>::@class::C
-          nextFragment: <testLibrary>::@fragment::package:test/b.dart::@classAugmentation::C
-    <testLibrary>::@fragment::package:test/b.dart
-      element: <testLibrary>
-      enclosingFragment: <testLibraryFragment>
-      previousFragment: <testLibrary>::@fragment::package:test/a.dart
-      classes
-        class C @35
-          reference: <testLibrary>::@fragment::package:test/b.dart::@classAugmentation::C
+          previousFragment: #F5
+          nextFragment: #F8
+        #F8 class C (nameOffset:77) (firstTokenOffset:63) (offset:77)
           element: <testLibrary>::@class::C
-          previousFragment: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::C
+          previousFragment: #F6
   classes
     class A
       reference: <testLibrary>::@class::A
-      firstFragment: <testLibraryFragment>::@class::A
+      firstFragment: #F1
       constructors
         synthetic new
-          firstFragment: <testLibraryFragment>::@class::A::@constructor::new
+          reference: <testLibrary>::@class::A::@constructor::new
+          firstFragment: #F2
     class B
       reference: <testLibrary>::@class::B
-      firstFragment: <testLibraryFragment>::@class::B
+      firstFragment: #F3
       constructors
         synthetic new
-          firstFragment: <testLibraryFragment>::@class::B::@constructor::new
+          reference: <testLibrary>::@class::B::@constructor::new
+          firstFragment: #F4
     class C
       reference: <testLibrary>::@class::C
-      firstFragment: <testLibraryFragment>::@class::C
+      firstFragment: #F5
       supertype: A
       constructors
         synthetic new
-          firstFragment: <testLibraryFragment>::@class::C::@constructor::new
-          superConstructor: <testLibraryFragment>::@class::A::@constructor::new#element
+          reference: <testLibrary>::@class::C::@constructor::new
+          firstFragment: #F7
+          superConstructor: <testLibrary>::@class::A::@constructor::new
 ''');
   }
 
-  @SkippedTest(reason: 'implement augmentation')
   test_typeParameters_defaultType() async {
-    newFile('$testPackageLibPath/a.dart', r'''
-part of 'test.dart';
-augment class A<T extends B> {}
-''');
-
     var library = await buildLibrary(r'''
-part 'a.dart';
 class A<T extends B> {}
 class B {}
+
+augment class A<T extends B> {}
 ''');
 
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      parts
-        part_0
-          uri: package:test/a.dart
-          enclosingElement3: <testLibraryFragment>
-          unit: <testLibrary>::@fragment::package:test/a.dart
-      classes
-        class A @21
-          reference: <testLibraryFragment>::@class::A
-          enclosingElement3: <testLibraryFragment>
-          typeParameters
-            covariant T @23
-              bound: B
-              defaultType: B
-          augmentation: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A
-          constructors
-            synthetic @-1
-              reference: <testLibraryFragment>::@class::A::@constructor::new
-              enclosingElement3: <testLibraryFragment>::@class::A
-          augmented
-            constructors
-              <testLibraryFragment>::@class::A::@constructor::new
-        class B @45
-          reference: <testLibraryFragment>::@class::B
-          enclosingElement3: <testLibraryFragment>
-          constructors
-            synthetic @-1
-              reference: <testLibraryFragment>::@class::B::@constructor::new
-              enclosingElement3: <testLibraryFragment>::@class::B
-    <testLibrary>::@fragment::package:test/a.dart
-      enclosingElement3: <testLibraryFragment>
-      classes
-        augment class A @35
-          reference: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A
-          enclosingElement3: <testLibrary>::@fragment::package:test/a.dart
-          typeParameters
-            covariant T @37
-              bound: B
-              defaultType: B
-          augmentationTarget: <testLibraryFragment>::@class::A
-----------------------------------------
-library
-  reference: <testLibrary>
   fragments
-    <testLibraryFragment>
+    #F0 <testLibraryFragment>
       element: <testLibrary>
-      nextFragment: <testLibrary>::@fragment::package:test/a.dart
       classes
-        class A @21
-          reference: <testLibraryFragment>::@class::A
+        #F1 class A (nameOffset:6) (firstTokenOffset:0) (offset:6)
           element: <testLibrary>::@class::A
-          nextFragment: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A
+          nextFragment: #F2
           typeParameters
-            T @23
-              element: <not-implemented>
+            #F3 T (nameOffset:8) (firstTokenOffset:8) (offset:8)
+              element: #E0 T
           constructors
-            synthetic new
-              reference: <testLibraryFragment>::@class::A::@constructor::new
-              element: <testLibraryFragment>::@class::A::@constructor::new#element
+            #F4 synthetic new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
+              element: <testLibrary>::@class::A::@constructor::new
               typeName: A
-        class B @45
-          reference: <testLibraryFragment>::@class::B
+        #F5 class B (nameOffset:30) (firstTokenOffset:24) (offset:30)
           element: <testLibrary>::@class::B
           constructors
-            synthetic new
-              reference: <testLibraryFragment>::@class::B::@constructor::new
-              element: <testLibraryFragment>::@class::B::@constructor::new#element
+            #F6 synthetic new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:30)
+              element: <testLibrary>::@class::B::@constructor::new
               typeName: B
-    <testLibrary>::@fragment::package:test/a.dart
-      element: <testLibrary>
-      enclosingFragment: <testLibraryFragment>
-      previousFragment: <testLibraryFragment>
-      classes
-        class A @35
-          reference: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A
+        #F2 class A (nameOffset:50) (firstTokenOffset:36) (offset:50)
           element: <testLibrary>::@class::A
-          previousFragment: <testLibraryFragment>::@class::A
+          previousFragment: #F1
           typeParameters
-            T @37
-              element: <not-implemented>
+            #F7 T (nameOffset:52) (firstTokenOffset:52) (offset:52)
+              element: #E1 T
   classes
     class A
       reference: <testLibrary>::@class::A
-      firstFragment: <testLibraryFragment>::@class::A
+      firstFragment: #F1
       typeParameters
-        T
+        #E0 T
+          firstFragment: #F3
           bound: B
       constructors
         synthetic new
-          firstFragment: <testLibraryFragment>::@class::A::@constructor::new
+          reference: <testLibrary>::@class::A::@constructor::new
+          firstFragment: #F4
     class B
       reference: <testLibrary>::@class::B
-      firstFragment: <testLibraryFragment>::@class::B
+      firstFragment: #F5
       constructors
         synthetic new
-          firstFragment: <testLibraryFragment>::@class::B::@constructor::new
+          reference: <testLibrary>::@class::B::@constructor::new
+          firstFragment: #F6
 ''');
   }
 }

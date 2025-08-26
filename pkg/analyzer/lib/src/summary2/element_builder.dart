@@ -275,6 +275,11 @@ class ElementBuilder {
     var interfaceFragment = fragment.enclosingFragment;
     interfaceFragment.addConstructor(fragment);
 
+    if (fragment.isAugmentation && lastFragment is ConstructorFragmentImpl) {
+      lastFragment.addFragment(fragment);
+      return;
+    }
+
     var element = ConstructorElementImpl(
       name: fragment.name,
       reference: _addInstanceReference(
@@ -284,6 +289,7 @@ class ElementBuilder {
       ),
       firstFragment: fragment,
     );
+
     interfaceElement.addConstructor(element);
   }
 
@@ -435,19 +441,20 @@ class ElementBuilder {
 
     if (lastFragment is MethodFragmentImpl && fragment.isAugmentation) {
       lastFragment.addFragment(fragment);
-    } else {
-      instanceElement.addMethod(
-        MethodElementImpl(
-          name: fragment.name,
-          reference: _addInstanceReference(
-            instanceElement,
-            '@method',
-            fragment.lookupName,
-          ),
-          firstFragment: fragment,
-        ),
-      );
+      return;
     }
+
+    instanceElement.addMethod(
+      MethodElementImpl(
+        name: fragment.name,
+        reference: _addInstanceReference(
+          instanceElement,
+          '@method',
+          fragment.lookupName,
+        ),
+        firstFragment: fragment,
+      ),
+    );
   }
 
   void _handleInstanceSetterFragment(

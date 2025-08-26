@@ -131,19 +131,22 @@ class TypesBuilder {
     var fragment = node.declaredFragment!;
     var element = fragment.element;
 
-    var extendsClause = node.extendsClause;
-    if (extendsClause != null) {
-      var type = extendsClause.superclass.type;
-      if (type is InterfaceTypeImpl && _isInterfaceTypeClass(type)) {
-        element.supertype = type;
+    if (element.supertype == null) {
+      var extendsClause = node.extendsClause;
+      if (extendsClause != null) {
+        var type = extendsClause.superclass.type;
+        if (type is InterfaceTypeImpl && _isInterfaceTypeClass(type)) {
+          element.supertype = type;
+        }
+      } else if (element.isDartCoreObject) {
+        fragment.setModifier(Modifier.DART_CORE_OBJECT, true);
       }
-    } else if (element.isDartCoreObject) {
-      fragment.setModifier(Modifier.DART_CORE_OBJECT, true);
     }
 
-    element.interfaces = _toInterfaceTypeList(
-      node.implementsClause?.interfaces,
-    );
+    element.interfaces = [
+      ...element.interfaces,
+      ..._toInterfaceTypeList(node.implementsClause?.interfaces),
+    ];
 
     _addFragmentWithClause(fragment, node.withClause);
   }
@@ -345,7 +348,6 @@ class TypesBuilder {
       node.onClause?.superclassConstraints,
     );
     element.superclassConstraints = constraints;
-
     element.interfaces = _toInterfaceTypeList(
       node.implementsClause?.interfaces,
     );
@@ -651,10 +653,10 @@ class _MixinsInference {
         library.featureSet,
         typeSystemOperations: typeSystemOperations,
       );
-      for (var fragment in declaration.fragments) {
-        var inferred = inference.perform(fragment.withClause);
-        element.mixins = inferred;
-      }
+      element.mixins = [
+        for (var fragment in declaration.fragments)
+          ...inference.perform(fragment.withClause),
+      ];
     } finally {
       element.mixinInferenceCallback = null;
     }
