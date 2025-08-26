@@ -430,6 +430,10 @@ void StubCodeCompiler::GenerateCallNativeThroughSafepointStub() {
   __ ret(R19);
 }
 
+void StubCodeCompiler::GenerateFfiCallTrampolineStub() {
+  __ Breakpoint();  // See ffi_trampolines_arm64.S
+}
+
 void StubCodeCompiler::GenerateLoadBSSEntry(BSS::Relocation relocation,
                                             Register dst,
                                             Register tmp) {

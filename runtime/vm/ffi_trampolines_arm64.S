@@ -2,13 +2,73 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// Callout trampoline from the simulator. This is not written as VM stub because
-// we need it be executable in contexts where we cannot JIT. (Alternatively, we
-// could start requiring the VM snapshot to be provided in every mode.)
+// FFI trampolines for the simulator and the interpreter.
+// This is not written as VM stub because we need it be executable in contexts where we cannot JIT.
+// (Alternatively, we could start requiring the VM snapshot to be provided in every mode.)
 
-#if defined(__aarch64__) && defined(SIMULATOR_FFI)
+#if defined(__aarch64__) && (defined(SIMULATOR_FFI) || defined(DART_DYNAMIC_MODULES))
 
 .text
+
+#if defined(DART_DYNAMIC_MODULES)
+
+#if defined(__APPLE__)
+.globl _FfiCallTrampoline
+_FfiCallTrampoline:
+#else
+.globl FfiCallTrampoline
+.type FfiCallTrampoline, %function
+FfiCallTrampoline:
+#endif
+  stp fp, lr, [sp, #-16]!
+  mov fp, sp
+
+  // Spill a preserved register to save args.
+  stp x19, x20, [sp, #-16]!
+  mov x19, x0         // FfiCallArguments* args
+
+  // Copy top frame from Dart stack to C stack
+  ldr x0, [x19, #0]  // FfiCallArguments.stack_area
+  ldr x1, [x19, #8]  // FfiCallArguments.stack_area_end
+.Lcopy:
+  ldp x2, x3, [x1, #-16]!  // From stack_area
+  stp x2, x3, [sp, #-16]!  // To C SP
+  cmp x1, x0
+  b.gt .Lcopy
+
+  // Load the ABI argument registers. Note that Dart FFI does not support
+  // full 128-bit SIMD arguments, so we don't need to set the full V
+  // registers.
+  ldp x0, x1, [x19, #16]    // FfiCallArguments.cpu_registers
+  ldp x2, x3, [x19, #32]
+  ldp x4, x5, [x19, #48]
+  ldp x6, x7, [x19, #64]
+  ldr x8, [x19, #80]
+  ldp d0, d1, [x19, #272]  // FfiCallArguments.fpu_registers
+  ldp d2, d3, [x19, #288]
+  ldp d4, d5, [x19, #304]
+  ldp d6, d7, [x19, #320]
+
+  // Call target.
+  ldr lr, [x19, #528]  // FfiCallArguments.target
+  blr lr
+
+  // Save the ABI result registers.
+  stp x0, x1, [x19, #16]  // FfiCallArguments.cpu_registers
+  stp d0, d1, [x19, #272]  // FfiCallArguments.fpu_registers
+  stp d2, d3, [x19, #288]
+
+  add sp, fp, -16
+  ldp x19, x20, [sp], #16
+  ldp fp, lr, [sp], #16
+  ret
+#if !defined(__APPLE__)
+.size FfiCallTrampoline,.-FfiCallTrampoline
+#endif
+
+#endif  // defined(DART_DYNAMIC_MODULES)
+
+#if defined(SIMULATOR_FFI)
 
 #if defined(__APPLE__)
 .globl _SimulatorFfiCalloutTrampoline
@@ -129,4 +189,6 @@ SimulatorFfiCallbackTrampolineEnd:
 #endif
   brk 0
 
-#endif  // defined(__aarch64__) && defined(SIMULATOR_FFI)
+#endif  // defined(SIMULATOR_FFI)
+
+#endif  // defined(__aarch64__) && (defined(SIMULATOR_FFI) || defined(DART_DYNAMIC_MODULES))

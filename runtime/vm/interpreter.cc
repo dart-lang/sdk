@@ -2341,6 +2341,23 @@ SwitchDispatch:
   }
 
   {
+    BYTECODE(FfiCall, D);
+
+    {
+      FunctionPtr function = FrameFunction(FP);
+
+      SP[1] = 0;  // Unused space for result.
+      SP[2] = function;
+      SP[3] = Smi::New(rD);
+      Exit(thread, FP, SP + 4, pc);
+      INVOKE_RUNTIME(DRT_FfiCall, NativeArguments(thread, 2, SP + 2, SP + 1));
+      ++SP;
+    }
+
+    DISPATCH();
+  }
+
+  {
     BYTECODE(ReturnTOS, 0);
 
     ObjectPtr result;  // result to return to the caller.

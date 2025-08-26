@@ -213,6 +213,10 @@ enum Opcode {
   kAllocateRecord_Wide,
   kLoadRecordField,
   kLoadRecordField_Wide,
+
+  // FFI
+  kFfiCall,
+  kFfiCall_Wide,
 }
 
 /// Compact variants of opcodes are always even.
@@ -464,6 +468,8 @@ const Map<Opcode, Format> BytecodeFormats = const {
       Encoding.kD, const [Operand.lit, Operand.none, Operand.none]),
   Opcode.kLoadRecordField: const Format(
       Encoding.kD, const [Operand.imm, Operand.none, Operand.none]),
+  Opcode.kFfiCall: const Format(
+      Encoding.kD, const [Operand.lit, Operand.none, Operand.none]),
 };
 
 // Should match constant in runtime/vm/stack_frame_kbc.h.

@@ -16,6 +16,7 @@ const kVmDisableUnboxedParametersPragmaName = "vm:disable-unboxed-parameters";
 const kVmKeepNamePragmaName = "vm:keep-name";
 const kVmPlatformConstPragmaName = "vm:platform-const";
 const kVmPlatformConstIfPragmaName = "vm:platform-const-if";
+const kVmFfiNative = "vm:ffi:native";
 
 // Pragmas recognized by dart2wasm
 const kWasmEntryPointPragmaName = "wasm:entry-point";
@@ -79,6 +80,10 @@ class ParsedKeepNamePragma implements ParsedPragma {
 
 class ParsedPlatformConstPragma implements ParsedPragma {
   const ParsedPlatformConstPragma();
+}
+
+class ParsedFfiNativePragma implements ParsedPragma {
+  const ParsedFfiNativePragma();
 }
 
 class ParsedDynModuleEntryPointPragma implements ParsedPragma {
@@ -206,6 +211,8 @@ class ConstantPragmaAnnotationParser implements PragmaAnnotationParser {
               "pragma: $options";
         }
         return options.value ? const ParsedPlatformConstPragma() : null;
+      case kVmFfiNative:
+        return const ParsedFfiNativePragma();
       case kWasmEntryPointPragmaName:
         return const ParsedEntryPointPragma(PragmaEntryPointType.Default);
       case kWasmExportPragmaName:

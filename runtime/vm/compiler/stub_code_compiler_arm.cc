@@ -267,6 +267,10 @@ void StubCodeCompiler::GenerateCallNativeThroughSafepointStub() {
   __ bx(R4);
 }
 
+void StubCodeCompiler::GenerateFfiCallTrampolineStub() {
+  __ Breakpoint();  // Not implemented.
+}
+
 void StubCodeCompiler::GenerateLoadBSSEntry(BSS::Relocation relocation,
                                             Register dst,
                                             Register tmp) {

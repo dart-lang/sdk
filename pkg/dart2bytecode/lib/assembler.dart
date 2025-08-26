@@ -559,6 +559,11 @@ class BytecodeAssembler {
   }
 
   @pragma('vm:prefer-inline')
+  void emitFfiCall(int rd) {
+    _emitInstructionD(Opcode.kFfiCall, rd);
+  }
+
+  @pragma('vm:prefer-inline')
   void emitLoadStatic(int rd) {
     _emitInstructionD(Opcode.kLoadStatic, rd);
   }

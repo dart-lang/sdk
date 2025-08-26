@@ -381,6 +381,84 @@ void StubCodeCompiler::GenerateCallNativeThroughSafepointStub() {
   __ ret();
 }
 
+void StubCodeCompiler::GenerateFfiCallTrampolineStub() {
+  __ EnterFrame(0);
+  __ PushRegister(CallingConventions::kArg1Reg);
+
+  const Register args = TMP;
+  const Register src = RSI;
+  const Register dst = RDI;
+  const Register size = RCX;
+#if defined(DART_TARGET_OS_WINDOWS)
+  __ PushRegistersInOrder({src, dst});
+#endif
+
+  __ movq(args, CallingConventions::kArg1Reg);          // FfiCallArguments*
+  __ movq(src, Address(args, 0 * target::kWordSize));   // stack_area
+  __ movq(size, Address(args, 1 * target::kWordSize));  // stack_area_end
+  __ subq(size, src);  // size = stack_area_end - stack_area
+  __ subq(RSP, size);
+  if (OS::ActivationFrameAlignment() > 1) {
+    __ andq(RSP, Immediate(~(OS::ActivationFrameAlignment() - 1)));
+  }
+  __ movq(dst, RSP);
+
+  __ CopyMemoryWords(src, dst, size, RAX);
+
+  for (intptr_t i = 0; i < CallingConventions::kNumArgRegs; ++i) {
+    Register reg = CallingConventions::ArgumentRegisters[i];
+    ASSERT(reg != args);
+    __ movq(reg, Address(args, (2 + reg) * target::kWordSize));
+  }
+  if (CallingConventions::kVarArgFpuRegisterCount != kNoRegister) {
+    Register reg = CallingConventions::kVarArgFpuRegisterCount;
+    ASSERT(reg != args);
+    __ movq(reg, Address(args, (2 + reg) * target::kWordSize));
+  }
+  for (intptr_t i = 0; i < CallingConventions::kNumFpuArgRegs; ++i) {
+    XmmRegister reg = CallingConventions::FpuArgumentRegisters[i];
+    __ movsd(reg, Address(args, (2 + kNumberOfCpuRegisters + reg) *
+                                    target::kWordSize));
+  }
+
+  __ call(Address(args, (2 + kNumberOfCpuRegisters + kNumberOfFpuRegisters) *
+                            target::kWordSize));
+
+  __ movq(args, Address(RBP, -8));
+  {
+    const Register reg = CallingConventions::kReturnReg;
+    ASSERT(reg != args);
+    __ movq(Address(args, (2 + reg) * target::kWordSize), reg);
+  }
+  {
+    const Register reg = CallingConventions::kSecondReturnReg;
+    ASSERT(reg != args);
+    __ movq(Address(args, (2 + reg) * target::kWordSize), reg);
+  }
+  {
+    const XmmRegister reg = CallingConventions::kReturnFpuReg;
+    __ movsd(
+        Address(args, (2 + kNumberOfCpuRegisters + reg) * target::kWordSize),
+        reg);
+  }
+#if !defined(DART_TARGET_OS_WINDOWS)
+  {
+    const XmmRegister reg = CallingConventions::kSecondReturnFpuReg;
+    __ movsd(
+        Address(args, (2 + kNumberOfCpuRegisters + reg) * target::kWordSize),
+        reg);
+  }
+#endif
+
+#if defined(DART_TARGET_OS_WINDOWS)
+  __ leaq(RSP, Address(RBP, -24));
+  __ popq(dst);
+  __ popq(src);
+#endif
+  __ LeaveFrame();
+  __ Ret();
+}
+
 void StubCodeCompiler::GenerateLoadBSSEntry(BSS::Relocation relocation,
                                             Register dst,
                                             Register tmp) {

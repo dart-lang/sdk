@@ -82,6 +82,7 @@ namespace dart {
   V(ClosureArgumentsValid)                                                     \
   V(ResolveCallFunction)                                                       \
   V(ResolveExternalCall)                                                       \
+  V(FfiCall)                                                                   \
   V(CheckFunctionArgumentTypes)                                                \
   V(InterpretedInstanceCallMissHandler)                                        \
   V(InvokeNoSuchMethod)                                                        \
