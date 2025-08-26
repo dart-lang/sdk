@@ -364,6 +364,11 @@ _nightly_builder(
     dimensions = [arm64],
 )
 _nightly_builder(
+    "vm-tsan-mac-release-arm64",
+    category = "vm|misc|sanitizer|t",
+    dimensions = [mac, arm64],
+)
+_nightly_builder(
     "vm-ubsan-linux-release-arm64",
     category = "vm|misc|sanitizer|u",
     dimensions = [arm64],
