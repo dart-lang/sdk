@@ -1418,12 +1418,25 @@ abstract interface class Uri {
     var result = Uint8List(4);
     int partIndex = 0;
     int partStart = start;
+    int partLength = 0;
+    bool startsWithZero = false;
     for (int i = start; i < end; i++) {
+      if (partLength > 1) {
+        if (partLength > 3) {
+          error("each part must contain at most 3 characters", partStart);
+        }
+        if (startsWithZero) {
+          error("each part must not have leading zeros", partStart);
+        }
+      }
       int char = host.codeUnitAt(i);
       if (char != _DOT) {
         if (char ^ 0x30 > 9) {
           // Fail on a non-digit character.
           error("invalid character", i);
+        }
+        if (partLength == 0) {
+          startsWithZero = char == 0x30;
         }
       } else {
         if (partIndex == 3) {
@@ -1436,12 +1449,20 @@ abstract interface class Uri {
         result[partIndex++] = part;
         partStart = i + 1;
       }
+      partLength = i + 1 - partStart;
     }
 
     if (partIndex != 3) {
       error('IPv4 address should contain exactly 4 parts', end);
     }
-
+    if (partLength > 1) {
+      if (partLength > 3) {
+        error("each part must contain at most 3 characters", partStart);
+      }
+      if (startsWithZero) {
+        error("each part must not have leading zeros", partStart);
+      }
+    }
     int part = int.parse(host.substring(partStart, end));
     if (part > 255) {
       error("each part must be in the range 0..255", partStart);

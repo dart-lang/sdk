@@ -23,6 +23,10 @@ void testParseIPv4Address() {
   fail('0.0.0.0.0');
   fail('a.0.0.0');
   fail('0.0..0');
+  fail('0.01.0.0');
+  fail('0.0.0.01');
+  fail('0.1111.0.0');
+  fail('0.0.0.1111');
 }
 
 void main() {
