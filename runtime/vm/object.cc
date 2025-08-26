@@ -27783,8 +27783,18 @@ UserTagPtr UserTag::New(Thread* thread,
                         const String& label,
                         Heap::Space space) {
   auto isolate_group = thread->isolate_group();
-  ASSERT(isolate_group->tag_table() != GrowableObjectArray::null());
   // Canonicalize by name.
+  {
+    SafepointReadRwLocker ml(thread, isolate_group->tag_table_lock());
+    ASSERT(isolate_group->tag_table() != GrowableObjectArray::null());
+    UserTag& result =
+        UserTag::Handle(FindTagInIsolateGroup(isolate_group, thread, label));
+    if (!result.IsNull()) {
+      // Tag already exists, return existing instance.
+      return result.ptr();
+    }
+  }
+  SafepointWriteRwLocker mlw(thread, isolate_group->tag_table_lock());
   UserTag& result =
       UserTag::Handle(FindTagInIsolateGroup(isolate_group, thread, label));
   if (!result.IsNull()) {
@@ -27806,7 +27816,6 @@ UserTagPtr UserTag::New(Thread* thread,
 }
 
 UserTagPtr UserTag::DefaultTag(Thread* thread) {
-  //   Thread* thread = Thread::Current();
   Zone* zone = thread->zone();
   if (thread->default_tag() != UserTag::null()) {
     // Already created.
@@ -27841,11 +27850,6 @@ UserTagPtr UserTag::FindTagInIsolateGroup(IsolateGroup* isolate_group,
     }
   }
   return UserTag::null();
-}
-
-UserTagPtr UserTag::FindTagInIsolateGroup(Thread* thread, const String& label) {
-  auto isolate_group = thread->isolate_group();
-  return FindTagInIsolateGroup(isolate_group, thread, label);
 }
 
 void UserTag::AddTagToIsolateGroup(Thread* thread, const UserTag& tag) {

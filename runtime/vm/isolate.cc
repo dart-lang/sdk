@@ -364,6 +364,7 @@ IsolateGroup::IsolateGroup(std::shared_ptr<IsolateGroupSource> source,
       cache_mutex_(),
       handler_info_cache_(),
       catch_entry_moves_cache_(),
+      tag_table_lock_(),
       tag_table_(GrowableObjectArray::null()) {
   FlagsCopyFrom(api_flags);
   if (!is_vm_isolate) {
