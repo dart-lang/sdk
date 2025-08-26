@@ -186,11 +186,6 @@ class AnalyzerStatePrinter {
           var filesIds = kind.fileKinds.map(idProvider.fileKind);
           sink.writelnWithIndent('fileKinds: ${filesIds.join(' ')}');
 
-          if (configuration.withResolvedKey) {
-            var id = idProvider.shortKey(kind.resolvedKey);
-            sink.writelnWithIndent('resolvedKey: $id');
-          }
-
           _writeLibraryCycle(kind);
         });
       case PartOfNameFileKind():
@@ -637,7 +632,6 @@ class AnalyzerStatePrinterConfiguration {
   Set<File> filesToPrintContent = {};
 
   bool omitSdkFiles = true;
-  bool withResolvedKey = false;
 }
 
 /// Encoder of object identifies into short identifiers.

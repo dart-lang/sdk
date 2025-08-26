@@ -1474,7 +1474,7 @@ class AnalysisDriver {
             var allBytes = sink.takeBytes();
             performance.getDataInt('bytes').add(allBytes.length);
 
-            var key = library.resolvedKey;
+            var key = _getResolvedLibraryKey(library);
             _byteStore.putGet(key, allBytes);
           });
 
@@ -1752,7 +1752,8 @@ class AnalysisDriver {
           performance,
         ) {
           var reqAndUnitBytes = performance.run('getBytes', (_) {
-            return _byteStore.get(library.resolvedKey);
+            var key = _getResolvedLibraryKey(library);
+            return _byteStore.get(key);
           });
 
           if (reqAndUnitBytes != null) {
@@ -1878,6 +1879,32 @@ class AnalysisDriver {
     }
 
     _analyzeFile(path);
+  }
+
+  /// The key to store a resolved library result.
+  ///
+  /// The key is based on the path, URI, and content of the library files.
+  ///
+  /// The result contains the fine-grained requirements, and map with
+  /// diagnostics for each file.
+  String _getResolvedLibraryKey(LibraryFileKind library) {
+    var keyBuilder = ApiSignature();
+    keyBuilder.addInt(AnalysisDriver.DATA_VERSION);
+    keyBuilder.addUint32List(_saltForResolution);
+
+    keyBuilder.addUint32List(library.file.analysisOptions.signature);
+    if (library.file.workspacePackage case PubPackage pubPackage) {
+      keyBuilder.addString(pubPackage.pubspecContent ?? '');
+    }
+
+    var sortedFiles = library.files.sortedBy((f) => f.path);
+    for (var file in sortedFiles) {
+      keyBuilder.addString(file.path);
+      keyBuilder.addString(file.uriStr);
+      keyBuilder.addString(file.contentHash);
+    }
+
+    return '${keyBuilder.toHex()}.resolved2';
   }
 
   /// Return the key to store fully resolved results for the [signature].
@@ -2042,7 +2069,8 @@ class AnalysisDriver {
           }
 
           var reqAndUnitBytes = performance.run('getBytes', (_) {
-            return _byteStore.get(library.resolvedKey);
+            var key = _getResolvedLibraryKey(library);
+            return _byteStore.get(key);
           });
 
           if (reqAndUnitBytes != null) {

@@ -22,7 +22,6 @@ import 'package:analyzer/src/dart/analysis/analysis_options.dart';
 import 'package:analyzer/src/dart/analysis/analysis_options_map.dart';
 import 'package:analyzer/src/dart/analysis/byte_store.dart';
 import 'package:analyzer/src/dart/analysis/defined_names.dart';
-import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer/src/dart/analysis/feature_set_provider.dart';
 import 'package:analyzer/src/dart/analysis/file_content_cache.dart';
 import 'package:analyzer/src/dart/analysis/library_graph.dart';
@@ -374,7 +373,6 @@ abstract class FileKind {
   @mustCallSuper
   void dispose() {
     disposeLibraryCycle();
-    library?.discardResolvedKey();
 
     _libraryExports?.disposeAll();
     _libraryImports?.disposeAll();
@@ -1812,9 +1810,6 @@ class LibraryFileKind extends LibraryOrAugmentationFileKind {
 
   LibraryCycle? _libraryCycle;
 
-  /// The cached value of [resolvedKey].
-  String? _resolvedKey;
-
   /// The last known resolution result for the library.
   ///
   /// It might be still valid, but might be not.
@@ -1899,36 +1894,9 @@ class LibraryFileKind extends LibraryOrAugmentationFileKind {
     return _libraryCycle!;
   }
 
-  /// The key to store a resolved library result.
-  ///
-  /// The key is based on the path, URI, and content of the library files.
-  ///
-  /// The result contains the fine grained requirements, and map with
-  /// diagnostics for each file.
-  String get resolvedKey {
-    if (_resolvedKey case var result?) {
-      return result;
-    }
-
-    var keyBuilder = ApiSignature();
-    keyBuilder.addInt(AnalysisDriver.DATA_VERSION);
-    var sortedFiles = library.files.sortedBy((f) => f.path);
-    for (var file in sortedFiles) {
-      keyBuilder.addString(file.path);
-      keyBuilder.addString(file.uriStr);
-      keyBuilder.addString(file.contentHash);
-    }
-
-    return _resolvedKey = '${keyBuilder.toHex()}.resolved2';
-  }
-
   @override
   List<UnlinkedLibraryImportDirective> get _unlinkedDocImports {
     return file.unlinked2.libraryDirective?.docImports ?? const [];
-  }
-
-  void discardResolvedKey() {
-    _resolvedKey = null;
   }
 
   @override
