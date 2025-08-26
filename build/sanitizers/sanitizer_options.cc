@@ -29,7 +29,7 @@ SANITIZER_HOOK_ATTRIBUTE const char* __tsan_default_suppressions() {
 # In some environments tzset_internal is not symbolized correctly so we
 # also suppress the closest caller which is properly symbolized.
 race:tzset_internal
-race:dart::DN_HelperDateTime_timeZoneOffsetInSeconds
+race:dart::LocalTime
 )";
 }
 #endif  // defined(USING_THREAD_SANITIZER) && defined(DART_HOST_OS_LINUX)
