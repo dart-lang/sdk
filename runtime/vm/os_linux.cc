@@ -415,10 +415,33 @@ intptr_t OS::ProcessId() {
   return static_cast<intptr_t>(getpid());
 }
 
+// TSAN detects data races inside tzset implementation because it does not
+// understand low-level synchronization primitives used by libc. We would
+// like to suppress these false positives, however writing a suppression
+// targeting tzset is hard because
+//
+// 1. On our bots TSAN fails to properly symbolize
+// libc symbols (meaning that we can't simply suppress tzset itself).
+// 2. libc is compiled without frame-pointers so TzSet caller is missing
+// from the stack trace.
+//
+// To work-around both issues we create a simple wrapper over TzSet with is
+// not inlined to guarantee that LocalTime (the caller of this wrapper)
+// appears in the stack trace and we can suppress false positive occurring
+// inside it.
+#if defined(USING_THREAD_SANITIZER)
+DART_NOINLINE
+#else
+DART_FORCE_INLINE
+#endif
+static void TzSet() {
+  tzset();
+}
+
 static bool LocalTime(int64_t seconds_since_epoch, tm* tm_result) {
   time_t seconds = static_cast<time_t>(seconds_since_epoch);
   if (seconds != seconds_since_epoch) return false;
-  tzset();  // Not guaranteed by POSIX to be called by `localtime_r`.
+  TzSet();  // Not guaranteed by POSIX to be called by `localtime_r`.
   struct tm* error_code = localtime_r(&seconds, tm_result);
   return error_code != nullptr;
 }

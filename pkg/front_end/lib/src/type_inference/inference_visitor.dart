@@ -72,7 +72,6 @@ import 'shared_type_analyzer.dart';
 import 'stack_values.dart';
 import 'type_constraint_gatherer.dart';
 import 'type_inference_engine.dart';
-import 'type_inferrer.dart' show TypeInferrerImpl;
 import 'type_schema.dart' show UnknownType, isKnown;
 
 abstract class InferenceVisitor {
@@ -174,18 +173,13 @@ class InferenceVisitorImpl extends InferenceVisitorBase
   // variable was declared outside the try statement or local function.
   bool _inTryOrLocalFunction = false;
 
-  /// Helper used to issue correct error messages and avoid access to
-  /// unavailable variables upon expression evaluation.
-  final ExpressionEvaluationHelper? expressionEvaluationHelper;
-
   InferenceVisitorImpl(
-      TypeInferrerImpl inferrer,
-      InferenceHelper helper,
+      super.inferrer,
+      super.helper,
       this._constructorBuilder,
       this.operations,
       this.typeAnalyzerOptions,
-      this.expressionEvaluationHelper)
-      : super(inferrer, helper);
+      super.expressionEvaluationHelper);
 
   @override
   int get stackHeight => _rewriteStack.length;
@@ -7292,6 +7286,16 @@ class InferenceVisitorImpl extends InferenceVisitorBase
         leftType, binaryName, fileOffset,
         includeExtensionMethods: true, isSetter: false);
 
+    if (expressionEvaluationHelper != null) {
+      // Coverage-ignore-block(suite): Not run.
+      OverwrittenInterfaceMember? overWritten =
+          expressionEvaluationHelper?.overwriteFindInterfaceMember(
+              target: binaryTarget, name: binaryName, receiverType: leftType);
+      if (overWritten != null) {
+        binaryTarget = overWritten.target;
+      }
+    }
+
     MethodContravarianceCheckKind binaryCheckKind =
         preCheckInvocationContravariance(leftType, binaryTarget,
             isThisReceiver: false);
@@ -7462,6 +7466,18 @@ class InferenceVisitorImpl extends InferenceVisitorBase
         expressionType, unaryName, fileOffset,
         includeExtensionMethods: true, isSetter: false);
 
+    if (expressionEvaluationHelper != null) {
+      // Coverage-ignore-block(suite): Not run.
+      OverwrittenInterfaceMember? overWritten =
+          expressionEvaluationHelper?.overwriteFindInterfaceMember(
+              target: unaryTarget,
+              name: unaryName,
+              receiverType: expressionType);
+      if (overWritten != null) {
+        unaryTarget = overWritten.target;
+      }
+    }
+
     MethodContravarianceCheckKind unaryCheckKind =
         preCheckInvocationContravariance(expressionType, unaryTarget,
             isThisReceiver: false);
@@ -7589,6 +7605,17 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       Expression readIndex,
       DartType indexType,
       MethodContravarianceCheckKind readCheckKind) {
+    if (expressionEvaluationHelper != null) {
+      // Coverage-ignore-block(suite): Not run.
+      OverwrittenInterfaceMember? overWritten =
+          expressionEvaluationHelper?.overwriteFindInterfaceMember(
+              target: readTarget,
+              name: indexGetName,
+              receiverType: receiverType);
+      if (overWritten != null) {
+        readTarget = overWritten.target;
+      }
+    }
     Expression read;
     DartType readType = readTarget.getReturnType(this);
     switch (readTarget.kind) {
@@ -7731,6 +7758,17 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       DartType indexType,
       Expression value,
       DartType valueType) {
+    if (expressionEvaluationHelper != null) {
+      // Coverage-ignore-block(suite): Not run.
+      OverwrittenInterfaceMember? overWritten =
+          expressionEvaluationHelper?.overwriteFindInterfaceMember(
+              target: writeTarget,
+              name: indexSetName,
+              receiverType: receiverType);
+      if (overWritten != null) {
+        writeTarget = overWritten.target;
+      }
+    }
     Expression write;
     switch (writeTarget.kind) {
       case ObjectAccessTargetKind.missing:
@@ -7902,6 +7940,18 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       Expression value,
       {required DartType valueType,
       required bool forEffect}) {
+    if (expressionEvaluationHelper != null) {
+      // Coverage-ignore-block(suite): Not run.
+      OverwrittenInterfaceMember? overWritten =
+          expressionEvaluationHelper?.overwriteFindInterfaceMember(
+              target: writeTarget,
+              name: propertyName,
+              receiverType: receiverType);
+      if (overWritten != null) {
+        writeTarget = overWritten.target;
+        propertyName = overWritten.name;
+      }
+    }
     Expression write;
     DartType writeType = valueType;
     switch (writeTarget.kind) {
@@ -12824,4 +12874,18 @@ abstract class ExpressionEvaluationHelper {
 
   ExpressionInferenceResult? visitVariableSet(
       VariableSet node, DartType typeContext, InferenceHelper helper);
+
+  OverwrittenInterfaceMember? overwriteFindInterfaceMember({
+    required ObjectAccessTarget target,
+    required DartType receiverType,
+    required Name name,
+  });
+}
+
+// Coverage-ignore(suite): Not run.
+class OverwrittenInterfaceMember {
+  final ObjectAccessTarget target;
+  final Name name;
+
+  OverwrittenInterfaceMember({required this.target, required this.name});
 }

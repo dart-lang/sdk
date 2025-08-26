@@ -6,9 +6,10 @@ import 'dart:collection';
 
 import 'package:_fe_analyzer_shared/src/type_inference/type_analyzer.dart'
     as shared;
-import 'package:_fe_analyzer_shared/src/type_inference/type_analyzer_operations.dart'
-    as shared;
-import 'package:_fe_analyzer_shared/src/types/shared_type.dart';
+import 'package:_fe_analyzer_shared/src/types/shared_type.dart'
+    as shared
+    show Variance;
+import 'package:_fe_analyzer_shared/src/types/shared_type.dart' hide Variance;
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/dart/ast/token.dart';
@@ -9912,6 +9913,7 @@ class TypeParameterElementImpl extends ElementImpl
     ];
   }
 
+  @override
   bool get isLegacyCovariant {
     return _variance == null;
   }
@@ -9948,6 +9950,7 @@ class TypeParameterElementImpl extends ElementImpl
   @override
   String? get name3 => name;
 
+  @override
   shared.Variance get variance {
     return _variance ?? shared.Variance.covariant;
   }

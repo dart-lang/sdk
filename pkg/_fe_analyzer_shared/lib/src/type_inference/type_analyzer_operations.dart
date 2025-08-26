@@ -883,6 +883,12 @@ abstract interface class TypeAnalyzerOperations<
   /// True if [typeParameter] doesn't have an explicit bound.
   bool isBoundOmitted(SharedTypeParameter typeParameter);
 
+  SharedType substituteTypeFromIterables(
+    SharedType typeToSubstitute,
+    List<SharedTypeParameter> typeParameters,
+    List<SharedType> types,
+  );
+
   /// Computes (or recomputes) a set of inferred types based on the constraints
   /// that have been recorded so far.
   List<SharedType> chooseTypes(
@@ -1459,6 +1465,85 @@ mixin TypeAnalyzerOperationsMixin<
     }
 
     return t;
+  }
+
+  @override
+  List<SharedType> chooseTypes(
+    List<SharedTypeParameter> typeParametersToInfer,
+    Map<
+      SharedTypeParameter,
+      MergedTypeConstraint<
+        Variable,
+        TypeDeclarationType,
+        TypeDeclaration,
+        AstNode
+      >
+    >
+    constraints,
+    List<SharedType>? previouslyInferredTypes, {
+    required bool preliminary,
+    required bool inferenceUsingBoundsIsEnabled,
+    required TypeConstraintGenerationDataForTesting<Variable, AstNode>?
+    dataForTesting,
+    required AstNode? treeNodeForTesting,
+  }) {
+    List<SharedType> inferredTypes =
+        previouslyInferredTypes?.toList(growable: false) ??
+        new List.filled(
+          typeParametersToInfer.length,
+          unknownType.unwrapTypeSchemaView(),
+        );
+
+    for (int i = 0; i < typeParametersToInfer.length; i++) {
+      SharedTypeParameter typeParam = typeParametersToInfer[i];
+
+      SharedType? typeParamBound = typeParam.boundShared;
+      SharedType? extendsConstraint;
+      if (typeParamBound != null && !isBoundOmitted(typeParam)) {
+        extendsConstraint = substituteTypeFromIterables(
+          typeParamBound,
+          typeParametersToInfer,
+          inferredTypes,
+        );
+      }
+
+      MergedTypeConstraint<
+        Variable,
+        TypeDeclarationType,
+        TypeDeclaration,
+        AstNode
+      >
+      constraint = constraints[typeParam]!;
+      if (preliminary) {
+        inferredTypes[i] = inferTypeParameterFromContext(
+          previouslyInferredTypes?[i],
+          constraint,
+          extendsConstraint,
+          isContravariant: typeParam.variance == Variance.contravariant,
+          isLegacyCovariant: typeParam.isLegacyCovariant,
+          constraints: constraints,
+          typeParameterToInfer: typeParam,
+          typeParametersToInfer: typeParametersToInfer,
+          dataForTesting: dataForTesting,
+          inferenceUsingBoundsIsEnabled: inferenceUsingBoundsIsEnabled,
+        );
+      } else {
+        inferredTypes[i] = inferTypeParameterFromAll(
+          previouslyInferredTypes?[i],
+          constraint,
+          extendsConstraint,
+          isContravariant: typeParam.variance == Variance.contravariant,
+          isLegacyCovariant: typeParam.isLegacyCovariant,
+          constraints: constraints,
+          typeParameterToInfer: typeParam,
+          typeParametersToInfer: typeParametersToInfer,
+          dataForTesting: dataForTesting,
+          inferenceUsingBoundsIsEnabled: inferenceUsingBoundsIsEnabled,
+        );
+      }
+    }
+
+    return inferredTypes;
   }
 }
 
@@ -2671,136 +2756,6 @@ class TypeDeclarationMatchResult<
     required this.typeDeclaration,
     required this.typeArguments,
   });
-}
-
-/// The variance of a type parameter `X` in a type `T`.
-enum Variance {
-  /// Used when `X` does not occur free in `T`.
-  unrelated(keyword: ''),
-
-  /// Used when `X` occurs free in `T`, and `U <: V` implies `[U/X]T <: [V/X]T`.
-  covariant(keyword: 'out'),
-
-  /// Used when `X` occurs free in `T`, and `U <: V` implies `[V/X]T <: [U/X]T`.
-  contravariant(keyword: 'in'),
-
-  /// Used when there exists a pair `U` and `V` such that `U <: V`, but
-  /// `[U/X]T` and `[V/X]T` are incomparable.
-  invariant(keyword: 'inout');
-
-  final String keyword;
-
-  const Variance({required this.keyword});
-
-  /// Return the variance with the given [encoding].
-  factory Variance.fromEncoding(int encoding) => values[encoding];
-
-  /// Return the variance associated with the string representation of variance.
-  factory Variance.fromKeywordString(String keywordString) {
-    Variance? result;
-    if (keywordString == "in") {
-      result = contravariant;
-    } else if (keywordString == "inout") {
-      result = invariant;
-    } else if (keywordString == "out") {
-      result = covariant;
-    } else if (keywordString == "unrelated") {
-      result = unrelated;
-    }
-    if (result != null) {
-      assert(result.keyword == keywordString);
-      return result;
-    } else {
-      throw new ArgumentError(
-        'Invalid keyword string for variance: $keywordString',
-      );
-    }
-  }
-
-  /// Return `true` if this represents the case when `X` occurs free in `T`, and
-  /// `U <: V` implies `[V/X]T <: [U/X]T`.
-  bool get isContravariant => this == contravariant;
-
-  /// Return `true` if this represents the case when `X` occurs free in `T`, and
-  /// `U <: V` implies `[U/X]T <: [V/X]T`.
-  bool get isCovariant => this == covariant;
-
-  /// Return `true` if this represents the case when there exists a pair `U` and
-  /// `V` such that `U <: V`, but `[U/X]T` and `[V/X]T` are incomparable.
-  bool get isInvariant => this == invariant;
-
-  /// Return `true` if this represents the case when `X` does not occur free in
-  /// `T`.
-  bool get isUnrelated => this == unrelated;
-
-  /// Combines variances of `X` in `T` and `Y` in `S` into variance of `X` in
-  /// `[Y/T]S`.
-  ///
-  /// Consider the following examples:
-  ///
-  /// * variance of `X` in `Function(X)` is contravariant, variance of `Y`
-  /// in `List<Y>` is covariant, so variance of `X` in `List<Function(X)>` is
-  /// contravariant;
-  ///
-  /// * variance of `X` in `List<X>` is covariant, variance of `Y` in
-  /// `Function(Y)` is contravariant, so variance of `X` in
-  /// `Function(List<X>)` is contravariant;
-  ///
-  /// * variance of `X` in `Function(X)` is contravariant, variance of `Y` in
-  /// `Function(Y)` is contravariant, so variance of `X` in
-  /// `Function(Function(X))` is covariant;
-  ///
-  /// * let the following be declared:
-  ///
-  ///     typedef F<Z> = Function();
-  ///
-  /// then variance of `X` in `F<X>` is unrelated, variance of `Y` in
-  /// `List<Y>` is covariant, so variance of `X` in `List<F<X>>` is
-  /// unrelated;
-  ///
-  /// * let the following be declared:
-  ///
-  ///     typedef G<Z> = Z Function(Z);
-  ///
-  /// then variance of `X` in `List<X>` is covariant, variance of `Y` in
-  /// `G<Y>` is invariant, so variance of `X` in `G<List<X>>` is invariant.
-  Variance combine(Variance other) {
-    if (isUnrelated || other.isUnrelated) return unrelated;
-    if (isInvariant || other.isInvariant) return invariant;
-    return this == other ? covariant : contravariant;
-  }
-
-  /// Returns true if this variance is greater than (above) or equal to the
-  /// [other] variance in the partial order induced by the variance lattice.
-  ///
-  ///       unrelated
-  /// covariant   contravariant
-  ///       invariant
-  bool greaterThanOrEqual(Variance other) {
-    if (isUnrelated) {
-      return true;
-    } else if (isCovariant) {
-      return other.isCovariant || other.isInvariant;
-    } else if (isContravariant) {
-      return other.isContravariant || other.isInvariant;
-    } else {
-      assert(isInvariant);
-      return other.isInvariant;
-    }
-  }
-
-  /// Variance values form a lattice where unrelated is the top, invariant is
-  /// the bottom, and covariant and contravariant are incomparable.  [meet]
-  /// calculates the meet of two elements of such lattice.  It can be used, for
-  /// example, to calculate the variance of a typedef type parameter if it's
-  /// encountered on the RHS of the typedef multiple times.
-  ///
-  ///       unrelated
-  /// covariant   contravariant
-  ///       invariant
-  Variance meet(Variance other) {
-    return new Variance.fromEncoding(index | other.index);
-  }
 }
 
 /// Representation of the state of [TypeConstraintGenerator].

@@ -1066,8 +1066,10 @@ void runAgnosticSharedTestsShard1(
           breakpointId: 'innerScopeBP',
           expression: 'notInScope',
           expectedError:
-              "Error: The getter 'notInScope' isn't defined for the"
-              " type 'C'.",
+              "DartError: NoSuchMethodError: 'notInScope'\n"
+              'method not found\n'
+              "Receiver: Instance of 'C'\n"
+              'Arguments: []\n',
         );
       });
 
@@ -1076,8 +1078,10 @@ void runAgnosticSharedTestsShard1(
           breakpointId: 'innerScopeBP',
           expression: 'innerNotInScope',
           expectedError:
-              "Error: The getter 'innerNotInScope' isn't defined for the"
-              " type 'C'.",
+              "DartError: NoSuchMethodError: 'innerNotInScope'\n"
+              'method not found\n'
+              "Receiver: Instance of 'C'\n"
+              'Arguments: []\n',
         );
       });
     });
@@ -1105,7 +1109,11 @@ void runAgnosticSharedTestsShard1(
         await driver.checkInFrame(
           breakpointId: 'parseIntPlusOneBP',
           expression: 'typo',
-          expectedError: "Error: The getter 'typo' isn't defined",
+          expectedError:
+              "DartError: NoSuchMethodError: 'typo'\n"
+              'method not found\n'
+              'Receiver: "1234"\n'
+              'Arguments: []\n',
         );
       });
 
@@ -1183,7 +1191,11 @@ void runAgnosticSharedTestsShard1(
         await driver.checkInFrame(
           breakpointId: 'methodBP',
           expression: 'typo',
-          expectedError: "The getter 'typo' isn't defined for the type 'C'",
+          expectedError:
+              "DartError: NoSuchMethodError: 'typo'\n"
+              'method not found\n'
+              "Receiver: Instance of 'C'\n"
+              'Arguments: []\n',
         );
       });
 
@@ -1510,7 +1522,11 @@ void runAgnosticSharedTestsShard2(
         await driver.checkInFrame(
           breakpointId: 'constructorBP',
           expression: 'typo',
-          expectedError: "The getter 'typo' isn't defined for the type 'C'",
+          expectedError:
+              "DartError: NoSuchMethodError: 'typo'\n"
+              'method not found\n'
+              "Receiver: Instance of 'C'\n"
+              'Arguments: []\n',
         );
       });
 
@@ -1645,7 +1661,11 @@ void runAgnosticSharedTestsShard2(
         await driver.checkInFrame(
           breakpointId: 'asyncTestBP1',
           expression: 'typo',
-          expectedError: "The getter 'typo' isn't defined for the type 'D'",
+          expectedError:
+              "DartError: NoSuchMethodError: 'typo'\n"
+              'method not found\n'
+              "Receiver: Instance of 'D'\n"
+              'Arguments: []\n',
         );
       });
 

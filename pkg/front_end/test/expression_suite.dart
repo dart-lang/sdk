@@ -26,6 +26,7 @@ import 'package:front_end/src/compute_platform_binaries_location.dart'
     show computePlatformBinariesLocation;
 import 'package:front_end/src/kernel/utils.dart'
     show serializeComponent, serializeProcedure;
+import 'package:front_end/src/source/source_loader.dart';
 import 'package:front_end/src/testing/compiler_common.dart';
 import "package:kernel/ast.dart"
     show
@@ -95,10 +96,12 @@ class Context extends ChainContext {
 }
 
 class CompilationResult {
+  Library? compiledInLibrary;
   Procedure? compiledProcedure;
   List<CfeDiagnosticMessage> errors;
 
-  CompilationResult(this.compiledProcedure, this.errors);
+  CompilationResult(
+      this.compiledInLibrary, this.compiledProcedure, this.errors);
 
   String printResult(Uri entryPoint, Context context) {
     StringBuffer buffer = new StringBuffer();
@@ -119,8 +122,8 @@ class CompilationResult {
     if (compiledProcedure == null) {
       buffer.write("<no procedure>");
     } else {
-      Printer printer = new Printer(buffer);
-      printer.visitProcedure(compiledProcedure!);
+      Printer printer = new Printer(buffer, showLibraryForNames: true);
+      printer.writeProcedureInLibrary(compiledProcedure!, compiledInLibrary!);
       printer.writeConstantTable(new Component());
     }
     Uri base = entryPoint.resolve(".");
@@ -434,6 +437,12 @@ class CompileExpression extends Step<List<TestCase>, List<TestCase>, Context> {
       }
     }
 
+    SourceLoader loader = compiler.kernelTargetForTesting!.loader;
+    Library? libraryLookup = (loader.lookupCompilationUnit(test.library) ??
+            loader.lookupCompilationUnitByFileUri(test.library))
+        ?.libraryBuilder
+        .library;
+
     Procedure? compiledProcedure = await compiler.compileExpression(
       test.expression,
       definitions,
@@ -447,7 +456,8 @@ class CompileExpression extends Step<List<TestCase>, List<TestCase>, Context> {
       offset: test.offset ?? TreeNode.noOffset,
     );
     List<CfeDiagnosticMessage> errors = context.takeErrors();
-    test.results.add(new CompilationResult(compiledProcedure, errors));
+    test.results
+        .add(new CompilationResult(libraryLookup, compiledProcedure, errors));
     if (compiledProcedure != null) {
       // Confirm we can serialize generated procedure.
       compilerResult.component.computeCanonicalNames();

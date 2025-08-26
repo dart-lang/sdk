@@ -4,9 +4,11 @@
 
 import 'package:_fe_analyzer_shared/src/type_inference/type_constraint.dart'
     as shared;
+import 'package:_fe_analyzer_shared/src/types/shared_type.dart';
 import 'package:kernel/ast.dart';
 import 'package:kernel/class_hierarchy.dart' show ClassHierarchy;
 import 'package:kernel/core_types.dart' show CoreTypes;
+import 'package:kernel/src/bounds_checks.dart';
 import 'package:kernel/src/hierarchy_based_type_environment.dart'
     show HierarchyBasedTypeEnvironment;
 import 'package:kernel/type_algebra.dart';
@@ -15,6 +17,7 @@ import 'package:kernel/type_environment.dart';
 import 'standard_bounds.dart' show TypeSchemaStandardBounds;
 import 'type_constraint_gatherer.dart' show TypeConstraintGatherer;
 import 'type_inference_engine.dart';
+import 'type_demotion.dart';
 import 'type_schema.dart' show UnknownType;
 
 typedef GeneratedTypeConstraint
@@ -65,13 +68,20 @@ class TypeSchemaEnvironment extends HierarchyBasedTypeEnvironment
     required InferenceDataForTesting? dataForTesting,
     required TreeNode? treeNodeForTesting,
     required OperationsCfe typeOperations,
-  }) =>
-      typeOperations.chooseTypes(
-          typeParametersToInfer, constraints, previouslyInferredTypes,
-          preliminary: true,
-          inferenceUsingBoundsIsEnabled: inferenceUsingBoundsIsEnabled,
-          dataForTesting: dataForTesting,
-          treeNodeForTesting: treeNodeForTesting);
+  }) {
+    List<DartType> inferredTypes = typeOperations
+        .chooseTypes(
+            typeParametersToInfer, constraints, previouslyInferredTypes,
+            preliminary: true,
+            inferenceUsingBoundsIsEnabled: inferenceUsingBoundsIsEnabled,
+            dataForTesting: dataForTesting,
+            treeNodeForTesting: treeNodeForTesting)
+        .cast();
+    for (int i = 0; i < inferredTypes.length; i++) {
+      inferredTypes[i] = demoteTypeInLibrary(inferredTypes[i]);
+    }
+    return inferredTypes;
+  }
 
   DartType getContextTypeOfSpecialCasedBinaryOperator(
       DartType contextType, DartType type1, DartType type2) {
@@ -216,13 +226,56 @@ class TypeSchemaEnvironment extends HierarchyBasedTypeEnvironment
     required InferenceDataForTesting? dataForTesting,
     required TreeNode? treeNodeForTesting,
     required OperationsCfe typeOperations,
-  }) =>
-      typeOperations.chooseTypes(
-          typeParametersToInfer, constraints, previouslyInferredTypes,
-          preliminary: false,
-          inferenceUsingBoundsIsEnabled: inferenceUsingBoundsIsEnabled,
-          dataForTesting: dataForTesting,
-          treeNodeForTesting: treeNodeForTesting);
+  }) {
+    List<DartType> inferredTypes = typeOperations
+        .chooseTypes(
+            typeParametersToInfer, constraints, previouslyInferredTypes,
+            preliminary: false,
+            inferenceUsingBoundsIsEnabled: inferenceUsingBoundsIsEnabled,
+            dataForTesting: dataForTesting,
+            treeNodeForTesting: treeNodeForTesting)
+        .cast();
+
+    assert(typeParametersToInfer.length == inferredTypes.length);
+    FreshTypeParametersFromStructuralParameters freshTypeParameters =
+        getFreshTypeParametersFromStructuralParameters(typeParametersToInfer);
+    List<TypeParameter> helperTypeParameters =
+        freshTypeParameters.freshTypeParameters;
+
+    Map<TypeParameter, DartType> inferredSubstitution = {};
+    for (int i = 0; i < helperTypeParameters.length; ++i) {
+      if (inferredTypes[i] is UnknownType) {
+        inferredSubstitution[helperTypeParameters[i]] =
+            new TypeParameterType.withDefaultNullability(
+                helperTypeParameters[i]);
+      } else {
+        assert(typeOperations
+            .isKnownType(new SharedTypeSchemaView(inferredTypes[i])));
+        inferredSubstitution[helperTypeParameters[i]] = inferredTypes[i];
+      }
+    }
+    for (int i = 0; i < helperTypeParameters.length; ++i) {
+      if (inferredTypes[i] is UnknownType) {
+        helperTypeParameters[i].bound =
+            substitute(helperTypeParameters[i].bound, inferredSubstitution);
+      } else {
+        helperTypeParameters[i].bound = inferredTypes[i];
+      }
+    }
+    List<DartType> instantiatedTypes =
+        calculateBounds(helperTypeParameters, coreTypes.objectClass);
+    for (int i = 0; i < instantiatedTypes.length; ++i) {
+      if (inferredTypes[i] is UnknownType) {
+        inferredTypes[i] = instantiatedTypes[i];
+      }
+    }
+
+    for (int i = 0; i < inferredTypes.length; i++) {
+      inferredTypes[i] = demoteTypeInLibrary(inferredTypes[i]);
+    }
+
+    return inferredTypes;
+  }
 }
 
 class AllTypeParameterEliminator extends Substitution {

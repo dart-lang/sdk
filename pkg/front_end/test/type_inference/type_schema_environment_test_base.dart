@@ -219,13 +219,12 @@ abstract class TypeSchemaEnvironmentTestBase {
           ? null
           : <DartType>[parseType(inferredTypeFromDownwardPhase)];
 
-      inferredTypeNodes = _operations.inferTypeFromConstraints(
-          {typeParameterNode: typeConstraint},
-          [typeParameterNode],
-          inferredTypeNodes,
+      inferredTypeNodes = _operations.chooseTypes([typeParameterNode],
+          {typeParameterNode: typeConstraint}, inferredTypeNodes,
           preliminary: downwardsInferPhase,
           inferenceUsingBoundsIsEnabled: true,
-          dataForTesting: null);
+          dataForTesting: null,
+          treeNodeForTesting: null).cast();
 
       expect(inferredTypeNodes.single, expectedTypeNode);
     });

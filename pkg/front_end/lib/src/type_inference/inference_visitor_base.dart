@@ -141,7 +141,12 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
 
   final InferenceHelper _helper;
 
-  InferenceVisitorBase(this._inferrer, this._helper);
+  /// Helper used to issue correct error messages and avoid access to
+  /// unavailable variables upon expression evaluation.
+  final ExpressionEvaluationHelper? expressionEvaluationHelper;
+
+  InferenceVisitorBase(
+      this._inferrer, this._helper, this.expressionEvaluationHelper);
 
   AssignedVariables<TreeNode, VariableDeclaration> get assignedVariables =>
       _inferrer.assignedVariables;
@@ -3797,6 +3802,17 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
       isSetter: false,
     );
 
+    if (expressionEvaluationHelper != null) {
+      // Coverage-ignore-block(suite): Not run.
+      OverwrittenInterfaceMember? overWritten =
+          expressionEvaluationHelper?.overwriteFindInterfaceMember(
+              target: target, name: name, receiverType: receiverType);
+      if (overWritten != null) {
+        target = overWritten.target;
+        name = overWritten.name;
+      }
+    }
+
     switch (target.kind) {
       case ObjectAccessTargetKind.instanceMember:
       case ObjectAccessTargetKind.objectMember:
@@ -4840,6 +4856,20 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
       includeExtensionMethods: true,
       isSetter: false,
     );
+
+    if (expressionEvaluationHelper != null) {
+      // Coverage-ignore-block(suite): Not run.
+      OverwrittenInterfaceMember? overWritten =
+          expressionEvaluationHelper?.overwriteFindInterfaceMember(
+              target: readTarget,
+              name: propertyName,
+              receiverType: receiverType);
+      if (overWritten != null) {
+        readTarget = overWritten.target;
+        propertyName = overWritten.name;
+      }
+    }
+
     // Coverage-ignore(suite): Not run.
     readType ??= readTarget.getGetterType(this);
 

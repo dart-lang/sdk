@@ -10,6 +10,7 @@ import 'package:_fe_analyzer_shared/src/scanner/abstract_scanner.dart'
     show ScannerConfiguration;
 import 'package:front_end/src/base/name_space.dart';
 import 'package:front_end/src/type_inference/inference_results.dart';
+import 'package:front_end/src/type_inference/object_access_target.dart';
 import 'package:kernel/binary/ast_from_binary.dart'
     show
         BinaryBuilderWithMetadata,
@@ -20,7 +21,7 @@ import 'package:kernel/binary/ast_from_binary.dart'
 import 'package:kernel/canonical_name.dart'
     show CanonicalNameError, CanonicalNameSdkError;
 import 'package:kernel/class_hierarchy.dart'
-    show ClassHierarchy, ClosedWorldClassHierarchy;
+    show ClassHierarchy, ClassHierarchySubtypes, ClosedWorldClassHierarchy;
 import 'package:kernel/dart_scope_calculator.dart'
     show DartScope, DartScopeBuilder2;
 import 'package:kernel/kernel.dart'
@@ -35,6 +36,7 @@ import 'package:kernel/kernel.dart'
         ExtensionType,
         ExtensionTypeDeclaration,
         FunctionNode,
+        InterfaceType,
         Library,
         LibraryDependency,
         LibraryPart,
@@ -50,10 +52,11 @@ import 'package:kernel/kernel.dart'
         TreeNode,
         TypeParameter,
         VariableDeclaration,
+        VariableGet,
+        VariableSet,
         VisitorDefault,
         VisitorVoidMixin,
-        VariableGet,
-        VariableSet;
+        Member;
 import 'package:kernel/kernel.dart' as kernel show Combinator;
 import 'package:kernel/reference_from_index.dart';
 import 'package:kernel/target/changed_structure_notifier.dart'
@@ -92,7 +95,7 @@ import '../source/source_library_builder.dart'
 import '../source/source_loader.dart';
 import '../type_inference/inference_helper.dart' show InferenceHelper;
 import '../type_inference/inference_visitor.dart'
-    show ExpressionEvaluationHelper;
+    show ExpressionEvaluationHelper, OverwrittenInterfaceMember;
 import '../util/error_reporter_file_copier.dart' show saveAsGzip;
 import '../util/experiment_environment_getter.dart'
     show enableIncrementalCompilerBenchmarking, getExperimentEnvironment;
@@ -1953,8 +1956,10 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
           new Name(syntheticProcedureName), ProcedureKind.Method, parameters,
           isStatic: isStatic, fileUri: debugLibrary.fileUri);
 
+      ClassHierarchy hierarchy = lastGoodKernelTarget.loader.hierarchy;
+
       ExpressionEvaluationHelper expressionEvaluationHelper =
-          new ExpressionEvaluationHelperImpl(extraKnownVariables);
+          new ExpressionEvaluationHelperImpl(extraKnownVariables, hierarchy);
 
       Expression compiledExpression = await lastGoodKernelTarget.loader
           .buildExpression(
@@ -2188,8 +2193,10 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
 // Coverage-ignore(suite): Not run.
 class ExpressionEvaluationHelperImpl implements ExpressionEvaluationHelper {
   final Set<VariableDeclarationImpl> knownButUnavailable = {};
+  final ClassHierarchy hierarchy;
 
-  ExpressionEvaluationHelperImpl(List<VariableDeclarationImpl> extraKnown) {
+  ExpressionEvaluationHelperImpl(
+      List<VariableDeclarationImpl> extraKnown, this.hierarchy) {
     for (VariableDeclarationImpl variable in extraKnown) {
       if (variable.isConst) {
         // We allow const variables - these are inlined (we check
@@ -2231,6 +2238,47 @@ class ExpressionEvaluationHelperImpl implements ExpressionEvaluationHelper {
           errorHasBeenReported: false,
           includeExpression: false,
         ));
+  }
+
+  @override
+  OverwrittenInterfaceMember? overwriteFindInterfaceMember({
+    required ObjectAccessTarget target,
+    required DartType receiverType,
+    required Name name,
+  }) {
+    // On a missing target, rewrite to a dynamic target instead.
+    if (target.kind == ObjectAccessTargetKind.missing) {
+      // On a private name, try to find a descendant of receiverType
+      // that has the name.
+      ClassHierarchy hierarchy = this.hierarchy;
+      if (name.isPrivate &&
+          receiverType is InterfaceType &&
+          hierarchy is ClosedWorldClassHierarchy) {
+        // Find all libraries that contains a subtype of this type with a
+        // textually matching name.
+        ClassHierarchySubtypes subtypeInformation =
+            hierarchy.computeSubtypesInformation();
+        Set<Library> foundMatchInLibrary = {};
+        for (Class cls
+            in subtypeInformation.getSubtypesOf(receiverType.classNode)) {
+          for (Member member in cls.members) {
+            if (member.name.text == name.text) {
+              foundMatchInLibrary.add(cls.enclosingLibrary);
+              break;
+            }
+          }
+        }
+        // If we only found one such library we overwrite the name so the VM
+        // will mangle the names right and find the wanted target.
+        if (foundMatchInLibrary.length == 1 &&
+            name.library != foundMatchInLibrary.first) {
+          name = new Name(name.text, foundMatchInLibrary.first);
+        }
+      }
+      return new OverwrittenInterfaceMember(
+          target: const ObjectAccessTarget.dynamic(), name: name);
+    }
+    return null;
   }
 }
 

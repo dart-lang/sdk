@@ -41,10 +41,8 @@ worlds:
         expression: print("1234".parseInt())
       - uri: lib2.dart
         expression: print("1234".parseInt())
-        errors: true
       - uri: lib3.dart
         expression: print("1234".parseInt())
-        errors: true
       - uri: main.dart
         expression: print("1234".parseInt())
       - uri: main.dart
@@ -86,10 +84,8 @@ worlds:
         expression: print("1234".parseInt())
       - uri: lib2.dart
         expression: print("1234".parseInt())
-        errors: true
       - uri: lib3.dart
         expression: print("1234".parseInt())
-        errors: true
       - uri: main.dart
         expression: print("1234".parseInt())
       - uri: main.dart
