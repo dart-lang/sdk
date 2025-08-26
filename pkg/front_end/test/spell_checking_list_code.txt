@@ -102,6 +102,7 @@ assigning
 assigns
 association
 assured
+assures
 ast
 asy
 atm
@@ -1408,6 +1409,7 @@ proto
 protobuf
 protocol
 prototype's
+provably
 prove
 proven
 provider
@@ -1632,6 +1634,7 @@ sanitize
 sanitized
 sanitizing
 saves
+saving
 saw
 say
 saying

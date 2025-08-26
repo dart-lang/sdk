@@ -2767,7 +2767,7 @@ class FlowModel<Type extends Object> {
   ) {
     PromotionModel<Type> newInfoForVar = new PromotionModel.fresh(
       assigned: initialized,
-      ssaNode: new SsaNode<Type>(null),
+      ssaNode: new SsaNode<Type>(),
     );
 
     return updatePromotionInfo(helper, variableKey, newInfoForVar);
@@ -3664,7 +3664,7 @@ class PromotionModel<Type extends Object> {
       tested: tested,
       assigned: assigned,
       unassigned: false,
-      ssaNode: writeCaptured ? null : new SsaNode<Type>(null),
+      ssaNode: writeCaptured ? null : new SsaNode<Type>(),
     );
   }
 
@@ -4457,13 +4457,15 @@ class SsaNode<Type extends Object> {
 
   /// Flow analysis information was associated with the expression that
   /// produced the value represented by this SSA node, if it was non-trivial.
+  ///
   /// This can be used at a later time to perform promotions if the value is
-  /// used in a control flow construct.
+  /// used in a control flow construct. See
+  /// [TrivialVariableReference.restoreConditionVariableState].
   ///
   /// We don't bother storing flow analysis information if it's trivial (see
   /// [ExpressionInfo]) because such information does not lead to promotions.
   @visibleForTesting
-  final ExpressionInfo<Type>? expressionInfo;
+  final ExpressionInfo<Type>? conditionVariableState;
 
   /// Map containing the set of promotable properties of the value tracked by
   /// this SSA node. Keys are the names of the properties.
@@ -4476,7 +4478,7 @@ class SsaNode<Type extends Object> {
   /// failed.
   final Map<String, _PropertySsaNode<Type>> _nonPromotableProperties = {};
 
-  SsaNode(this.expressionInfo);
+  SsaNode({this.conditionVariableState});
 
   /// Gets an SSA node representing the property named [propertyName] of the
   /// value represented by `this`, creating it if necessary.
@@ -4711,7 +4713,7 @@ class SsaNode<Type extends Object> {
     if (first == second) {
       ssaNode = first;
     } else {
-      ssaNode = new SsaNode(null);
+      ssaNode = new SsaNode();
       newFlowModel = ssaNode._joinProperties(
         helper,
         first._promotableProperties,
@@ -4785,37 +4787,87 @@ class TrivialVariableReference<Type extends Object> extends _Reference<Type> {
     required super.ssaNode,
   }) : super.trivial();
 
-  /// Produces an updated version of `this` reflecting the [ifTrue] and
-  /// [ifFalse] information from [previousExpressionInfo]. This is used in the
-  /// situation where the user stores a value with potentially non-trivial flow
-  /// analysis semantics into a variable and then recalls it later.
-  ///
-  /// The information in [previousExpressionInfo] is updated to reflect
-  /// assignments that have been made since the value was stored (e.g. if the
-  /// value that was stored was the result of a null check on the variable `x`,
-  /// and `x` has been subsequently written to, then the promotion is
-  /// discarded). This is done via [FlowModel.rebaseForward].
+  /// Produces an updated version of `this` reflecting flow analysis state from
+  /// [conditionVariableInfo].
   ///
   /// [current] should be the current flow model, and [helper] should be
   /// the instance of [_FlowAnalysisImpl].
-  _Reference<Type> addPreviousInfo(
-    ExpressionInfo<Type>? previousExpressionInfo,
+  ///
+  /// UNSPECIFIED: This implements the "restore" part of the condition variable
+  /// feature, in which writes to local variables cause flow analysis state to
+  /// be saved, and reads of local variables cause flow analysis state to be
+  /// partially restored. This is what allows type promotion in examples like
+  /// the following:
+  ///
+  ///     int? x = ...;
+  ///     var xIsNonNull = x != null; // The following state is now saved: if
+  ///                                 // `xIsNonNull` is `true`, `x` is known
+  ///                                 // to be non-null
+  ///     ...Other statements...
+  ///     if (xIsNonNull) {           // The state is now restored
+  ///       print(x.isEven);          // Therefore this is ok, because `x` is
+  ///                                 // known to be non-null.
+  ///     }
+  ///
+  /// Note that in an example like this, the saved flow analysis state is only
+  /// restored to the extent that it's sound to do so. There are two conditions
+  /// for soundness, and they are addressed in different ways:
+  ///
+  /// 1. For the restore to be sound, the value of the condition variable at the
+  ///    time of the read must be provably the same as the value that was
+  ///    written. That is, there must not be any write captures or intervening
+  ///    writes of the condition variable on the control path leading up to the
+  ///    read. This is addressed by saving the flow analysis state in the
+  ///    [SsaNode.conditionVariableState] field. Since a write to a variable
+  ///    causes it to be associated with a new [SsaNode], and a write capture of
+  ///    a variable causes its [SsaNode] association to be permanently set to
+  ///    `null`, this assures that an attempt to restore the saved state will
+  ///    only be made if there are no write captures or intervening writes.
+  ///
+  /// 2. Considering each variable referred to in the stored state (e.g., `x`,
+  ///    in the example above), it is only sound to restore the state of that
+  ///    variable if its value is provably the same as it was at the time the
+  ///    condition variable was written. That is, there must not be any write
+  ///    captures or intervening writes of the referenced variable on the
+  ///    control path leading up to the read. This is addressed by
+  ///    [FlowModel.rebaseForward] (which is called by this method to do the
+  ///    restore); it only updates the [PromotionModel]s of variables whose
+  ///    [SsaNode] is (a) non-null (i.e., not write captured) and (b) the same
+  ///    as it was at the time the state was saved (i.e., no intervening
+  ///    writes).
+  ///
+  /// Note that this method is also invoked by
+  /// [_FlowAnalysisImpl._pushScrutinee]. This ensures that stored flow analysis
+  /// state propagates through pattern assignments, e.g.:
+  ///
+  ///     int? x = ...;
+  ///     var (xIsNonNull) = x != null; // Note: pattern assignment
+  ///     ...Other statements...
+  ///     if (xIsNonNull) {
+  ///       print(x.isEven);            // Ok
+  ///     }
+  ///
+  /// See https://github.com/dart-lang/language/issues/1274, the original
+  /// feature request for this feature.
+  _Reference<Type> restoreConditionVariableState(
+    ExpressionInfo<Type>? conditionVariableInfo,
     FlowModelHelper<Type> helper,
     FlowModel<Type> current,
   ) {
-    if (previousExpressionInfo != null && previousExpressionInfo.isNonTrivial) {
-      // [previousExpression] contained non-trivial flow analysis information,
-      // so we need to rebase its [ifTrue] and [ifFalse] flow models.
+    if (conditionVariableInfo != null && conditionVariableInfo.isNonTrivial) {
+      // `conditionVariableInfo` contained non-trivial flow analysis
+      // information, so we need to rebase its [ifTrue] and [ifFalse] flow
+      // models.
       return new _Reference(
         promotionKey: promotionKey,
         type: _type,
         isThisOrSuper: isThisOrSuper,
-        ifTrue: previousExpressionInfo.ifTrue.rebaseForward(helper, current),
-        ifFalse: previousExpressionInfo.ifFalse.rebaseForward(helper, current),
+        ifTrue: conditionVariableInfo.ifTrue.rebaseForward(helper, current),
+        ifFalse: conditionVariableInfo.ifFalse.rebaseForward(helper, current),
         ssaNode: ssaNode,
       );
     } else {
-      // [previousExpression] didn't contain any non-trivial flow analysis
+      // `conditionVariableInfo` didn't contain any non-trivial flow analysis
       // information, so nothing needs to be updated.
       return this;
     }
@@ -5074,10 +5126,10 @@ class _FlowAnalysisImpl<
       new Set.identity();
 
   @override
-  late final SsaNode<Type> _superSsaNode = new SsaNode<Type>(null);
+  late final SsaNode<Type> _superSsaNode = new SsaNode<Type>();
 
   @override
-  late final SsaNode<Type> _thisSsaNode = new SsaNode<Type>(null);
+  late final SsaNode<Type> _thisSsaNode = new SsaNode<Type>();
 
   @override
   final List<_Reference<Type>> _cascadeTargetStack = [];
@@ -5153,7 +5205,7 @@ class _FlowAnalysisImpl<
     int mergedKey = promotionKeyStore.keyForVariable(variable);
     PromotionModel<Type> info =
         _current.promotionInfo?.get(this, promotionKey) ??
-        new PromotionModel.fresh(ssaNode: new SsaNode(null));
+        new PromotionModel.fresh(ssaNode: new SsaNode());
     // Normally flow analysis is responsible for tracking whether variables are
     // definitely assigned; however for variables appearing in patterns we
     // have other logic to make sure that a value is definitely assigned (e.g.
@@ -5201,7 +5253,7 @@ class _FlowAnalysisImpl<
     // variable), create a fresh SSA node for it, so that field promotions that
     // occur during cascade sections will persist in later cascade sections.
     _Reference<Type>? expressionReference = _getExpressionReference(target);
-    SsaNode<Type> ssaNode = expressionReference?.ssaNode ?? new SsaNode(null);
+    SsaNode<Type> ssaNode = expressionReference?.ssaNode ?? new SsaNode();
     // Create a temporary reference to represent the implicit temporary variable
     // that holds the cascade target. It is important that this is different
     // from `expressionReference`, because if the target is a local variable,
@@ -5315,7 +5367,7 @@ class _FlowAnalysisImpl<
       this,
       destinationKey,
       _current.promotionInfo?.get(this, sourceKey) ??
-          new PromotionModel.fresh(ssaNode: new SsaNode(null)),
+          new PromotionModel.fresh(ssaNode: new SsaNode()),
     );
   }
 
@@ -6026,7 +6078,7 @@ class _FlowAnalysisImpl<
           tested: const [],
           assigned: true,
           unassigned: false,
-          ssaNode: targetSsaNode ?? new SsaNode(null),
+          ssaNode: targetSsaNode ?? new SsaNode(),
         ),
       );
     }
@@ -6428,7 +6480,7 @@ class _FlowAnalysisImpl<
     assert(_unmatched != null);
     _stack.add(
       new _PatternContext<Type>(
-        _makeTemporaryReference(new SsaNode<Type>(null), matchedType),
+        _makeTemporaryReference(new SsaNode<Type>(), matchedType),
       ),
     );
   }
@@ -6730,7 +6782,7 @@ class _FlowAnalysisImpl<
       variableKey,
     );
     if (promotionModel == null) {
-      promotionModel = new PromotionModel.fresh(ssaNode: new SsaNode(null));
+      promotionModel = new PromotionModel.fresh(ssaNode: new SsaNode());
       _current = _current.updatePromotionInfo(
         this,
         variableKey,
@@ -6740,7 +6792,11 @@ class _FlowAnalysisImpl<
     _Reference<Type> expressionInfo = _variableReference(
       variableKey,
       unpromotedType,
-    ).addPreviousInfo(promotionModel.ssaNode?.expressionInfo, this, _current);
+    ).restoreConditionVariableState(
+      promotionModel.ssaNode?.conditionVariableState,
+      this,
+      _current,
+    );
     _storeExpressionReference(expression, expressionInfo);
     _storeExpressionInfo(expression, expressionInfo);
     return promotionModel.promotedTypes.lastOrNull;
@@ -7302,11 +7358,18 @@ class _FlowAnalysisImpl<
   }) {
     assert(identical(matchedValueType, _getMatchedValueType()));
     _PatternContext<Type> context = _stack.last as _PatternContext<Type>;
-    _Reference<Type> newReference = context
-        .createReference(matchedValueType, _current)
-        .addPreviousInfo(context._matchedValueInfo, this, _current);
+    // Create a `_Reference` to represent the matched value; this will be the
+    // LHS of the equality comparison. Note that it's not necessary to use
+    // `restoreConditionVariableState` because `_equalityCheck` uses the
+    // `_Reference` solely to decide if the matched value needs to be promoted
+    // to non-null; it doesn't attempt to read any stored condition variable
+    // state from it.
+    _Reference<Type> lhsReference = context.createReference(
+      matchedValueType,
+      _current,
+    );
     switch (_equalityCheck(
-      newReference,
+      lhsReference,
       matchedValueType,
       _getExpressionInfo(operand),
       operandType,
@@ -7446,9 +7509,10 @@ class _FlowAnalysisImpl<
       expressionInfo = null;
     }
     SsaNode<Type> newSsaNode = new SsaNode<Type>(
-      expressionInfo != null && expressionInfo.isNonTrivial
-          ? expressionInfo
-          : null,
+      conditionVariableState:
+          expressionInfo != null && expressionInfo.isNonTrivial
+              ? expressionInfo
+              : null,
     );
     _current = _current.write(
       this,
@@ -7655,9 +7719,9 @@ class _FlowAnalysisImpl<
       scrutineeSsaNode = scrutineeReference.ssaNode;
     }
     return _makeTemporaryReference(
-      scrutineeSsaNode ?? new SsaNode<Type>(null),
+      scrutineeSsaNode ?? new SsaNode<Type>(),
       scrutineeType,
-    ).addPreviousInfo(scrutineeInfo, this, _current);
+    ).restoreConditionVariableState(scrutineeInfo, this, _current);
   }
 
   /// Associates [expression], which should be the most recently visited
@@ -7710,7 +7774,7 @@ class _FlowAnalysisImpl<
       model: _current,
       type: info.promotedTypes.lastOrNull ?? unpromotedType,
       isThisOrSuper: false,
-      ssaNode: info.ssaNode ?? new SsaNode<Type>(null),
+      ssaNode: info.ssaNode ?? new SsaNode<Type>(),
     );
   }
 
@@ -7729,9 +7793,10 @@ class _FlowAnalysisImpl<
     Type unpromotedType = operations.variableType(variable);
     int variableKey = promotionKeyStore.keyForVariable(variable);
     SsaNode<Type> newSsaNode = new SsaNode<Type>(
-      expressionInfo != null && expressionInfo.isNonTrivial
-          ? expressionInfo
-          : null,
+      conditionVariableState:
+          expressionInfo != null && expressionInfo.isNonTrivial
+              ? expressionInfo
+              : null,
     );
     _current = _current.write(
       this,
@@ -7954,7 +8019,7 @@ class _PatternContext<Type extends Object> extends _FlowContext {
     model: current,
     type: matchedType,
     isThisOrSuper: false,
-    ssaNode: new SsaNode<Type>(null),
+    ssaNode: new SsaNode<Type>(),
   );
 }
 
@@ -8016,7 +8081,7 @@ class _PropertySsaNode<Type extends Object> extends SsaNode<Type> {
   /// promotions *would* have occurred if the property had been promotable.
   final _PropertySsaNode<Type>? previousSsaNode;
 
-  _PropertySsaNode(this.promotionKey, {this.previousSsaNode}) : super(null);
+  _PropertySsaNode(this.promotionKey, {this.previousSsaNode});
 }
 
 /// Interface used by the classes derived from [PropertyTarget] to access the
