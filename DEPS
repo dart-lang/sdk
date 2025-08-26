@@ -439,7 +439,7 @@ deps = {
               "version": Var("clang_version"),
           },
       ],
-      "condition": "host_os == 'mac' and host_cpu == 'x64'",
+      "condition": "host_os == mac", # On ARM64 Macs too because Goma doesn't support the host-arm64 toolchain.
       "dep_type": "cipd",
   },
   Var("dart_root") + "/buildtools/win-x64/clang": {
