@@ -137,7 +137,7 @@ vars = {
   "ecosystem_rev": "68ff911b19e1abf00ff43b2b37bd16b1af01e088",
   "flute_rev": "d5adc4d6439572db5da71a9261b9bf0c7c96daa4",
   "http_rev": "6656f15e88e68f6cafa2a7bbffa37fd6ac2dd33a",
-  "i18n_rev": "c28ad5ea314394b3d89796a9201f2264e753a079",
+  "i18n_rev": "6a8f9c79cb3345b7a7c1b895b6c0a4acce9aa797",
   "leak_tracker_rev": "f5620600a5ce1c44f65ddaa02001e200b096e14c", # rolled manually
   "material_color_utilities_rev": "799b6ba2f3f1c28c67cc7e0b4f18e0c7d7f3c03e",
   "native_rev": "e0cd7d4555491d96a784ad362c569be1b53fa2f7", # rolled manually while native assets are experimental
