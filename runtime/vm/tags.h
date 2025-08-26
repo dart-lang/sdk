@@ -110,7 +110,9 @@ class UserTags : public AllStatic {
   static constexpr intptr_t kMaxUserTags = 256;
   static constexpr uword kUserTagIdOffset = 0x4096;
   static constexpr uword kDefaultUserTag = kUserTagIdOffset;
-  static const char* TagName(Thread* thread, Isolate* isolate, uword tag_id);
+  static const char* TagName(Thread* thread,
+                             IsolateGroup* isolate_group,
+                             uword tag_id);
   static bool IsUserTag(uword tag_id) {
     return (tag_id >= kUserTagIdOffset) &&
            (tag_id < kUserTagIdOffset + kMaxUserTags);

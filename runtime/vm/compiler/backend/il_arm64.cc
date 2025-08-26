@@ -4368,8 +4368,8 @@ LocationSummary* CaseInsensitiveCompareInstr::MakeLocationSummary(
     Zone* zone,
     bool opt) const {
   const intptr_t kNumTemps = 0;
-  LocationSummary* summary = new (zone)
-      LocationSummary(zone, InputCount(), kNumTemps, LocationSummary::kCall);
+  LocationSummary* summary = new (zone) LocationSummary(
+      zone, InputCount(), kNumTemps, LocationSummary::kNativeLeafCall);
   summary->set_in(0, Location::RegisterLocation(R0));
   summary->set_in(1, Location::RegisterLocation(R1));
   summary->set_in(2, Location::RegisterLocation(R2));
@@ -4696,8 +4696,8 @@ LocationSummary* InvokeMathCFunctionInstr::MakeLocationSummary(Zone* zone,
   ASSERT((InputCount() == 1) || (InputCount() == 2));
   const intptr_t kNumTemps =
       (recognized_kind() == MethodRecognizer::kMathDoublePow) ? 1 : 0;
-  LocationSummary* result = new (zone)
-      LocationSummary(zone, InputCount(), kNumTemps, LocationSummary::kCall);
+  LocationSummary* result = new (zone) LocationSummary(
+      zone, InputCount(), kNumTemps, LocationSummary::kNativeLeafCall);
   result->set_in(0, Location::FpuRegisterLocation(V0));
   if (InputCount() == 2) {
     result->set_in(1, Location::FpuRegisterLocation(V1));

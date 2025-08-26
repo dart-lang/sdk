@@ -27756,32 +27756,37 @@ const char* MirrorReference::ToCString() const {
 }
 
 UserTagPtr UserTag::MakeActive() const {
-  Isolate* isolate = Isolate::Current();
-  ASSERT(isolate != nullptr);
-  UserTag& old = UserTag::Handle(isolate->current_tag());
-  isolate->set_current_tag(*this);
+  Thread* thread = Thread::Current();
+  ASSERT(thread != nullptr);
+  UserTag& old = UserTag::Handle(thread->current_tag());
+  thread->set_current_tag(*this);
 
 #if !defined(PRODUCT)
   // Notify VM service clients that the current UserTag has changed.
   if (Service::profiler_stream.enabled()) {
-    ServiceEvent event(isolate, ServiceEvent::kUserTagChanged);
-    String& name = String::Handle(old.label());
-    event.set_previous_tag(name.ToCString());
-    name ^= label();
-    event.set_updated_tag(name.ToCString());
-    Service::HandleEvent(&event);
+    Isolate* isolate = thread->scheduled_dart_mutator_isolate();
+    if (isolate != nullptr) {
+      ServiceEvent event(isolate, ServiceEvent::kUserTagChanged);
+      String& name = String::Handle(old.label());
+      event.set_previous_tag(name.ToCString());
+      name ^= label();
+      event.set_updated_tag(name.ToCString());
+      Service::HandleEvent(&event);
+    }
   }
 #endif  // !defined(PRODUCT)
 
   return old.ptr();
 }
 
-UserTagPtr UserTag::New(const String& label, Heap::Space space) {
-  Thread* thread = Thread::Current();
-  Isolate* isolate = thread->isolate();
-  ASSERT(isolate->tag_table() != GrowableObjectArray::null());
+UserTagPtr UserTag::New(Thread* thread,
+                        const String& label,
+                        Heap::Space space) {
+  auto isolate_group = thread->isolate_group();
+  ASSERT(isolate_group->tag_table() != GrowableObjectArray::null());
   // Canonicalize by name.
-  UserTag& result = UserTag::Handle(FindTagInIsolate(thread, label));
+  UserTag& result =
+      UserTag::Handle(FindTagInIsolateGroup(isolate_group, thread, label));
   if (!result.IsNull()) {
     // Tag already exists, return existing instance.
     return result.ptr();
@@ -27793,39 +27798,37 @@ UserTagPtr UserTag::New(const String& label, Heap::Space space) {
     args.SetAt(0, error);
     Exceptions::ThrowByType(Exceptions::kUnsupported, args);
   }
-  // No tag with label exists, create and register with isolate tag table.
+  // No tag with label exists, create and register with thread tag table.
   result = Object::Allocate<UserTag>(space);
   result.set_label(label);
-  AddTagToIsolate(thread, result);
+  AddTagToIsolateGroup(thread, result);
   return result.ptr();
 }
 
-UserTagPtr UserTag::DefaultTag() {
-  Thread* thread = Thread::Current();
+UserTagPtr UserTag::DefaultTag(Thread* thread) {
+  //   Thread* thread = Thread::Current();
   Zone* zone = thread->zone();
-  Isolate* isolate = thread->isolate();
-  ASSERT(isolate != nullptr);
-  if (isolate->default_tag() != UserTag::null()) {
+  if (thread->default_tag() != UserTag::null()) {
     // Already created.
-    return isolate->default_tag();
+    return thread->default_tag();
   }
   // Create default tag.
   const UserTag& result =
-      UserTag::Handle(zone, UserTag::New(Symbols::Default()));
+      UserTag::Handle(zone, UserTag::New(thread, Symbols::Default()));
   ASSERT(result.tag() == UserTags::kDefaultUserTag);
-  isolate->set_default_tag(result);
+  thread->set_default_tag(result);
   return result.ptr();
 }
 
-UserTagPtr UserTag::FindTagInIsolate(Isolate* isolate,
-                                     Thread* thread,
-                                     const String& label) {
+UserTagPtr UserTag::FindTagInIsolateGroup(IsolateGroup* isolate_group,
+                                          Thread* thread,
+                                          const String& label) {
   Zone* zone = thread->zone();
-  if (isolate->tag_table() == GrowableObjectArray::null()) {
+  if (isolate_group->tag_table() == GrowableObjectArray::null()) {
     return UserTag::null();
   }
   const GrowableObjectArray& tag_table =
-      GrowableObjectArray::Handle(zone, isolate->tag_table());
+      GrowableObjectArray::Handle(zone, isolate_group->tag_table());
   UserTag& other = UserTag::Handle(zone);
   String& tag_label = String::Handle(zone);
   for (intptr_t i = 0; i < tag_table.Length(); i++) {
@@ -27840,17 +27843,17 @@ UserTagPtr UserTag::FindTagInIsolate(Isolate* isolate,
   return UserTag::null();
 }
 
-UserTagPtr UserTag::FindTagInIsolate(Thread* thread, const String& label) {
-  Isolate* isolate = thread->isolate();
-  return FindTagInIsolate(isolate, thread, label);
+UserTagPtr UserTag::FindTagInIsolateGroup(Thread* thread, const String& label) {
+  auto isolate_group = thread->isolate_group();
+  return FindTagInIsolateGroup(isolate_group, thread, label);
 }
 
-void UserTag::AddTagToIsolate(Thread* thread, const UserTag& tag) {
-  Isolate* isolate = thread->isolate();
+void UserTag::AddTagToIsolateGroup(Thread* thread, const UserTag& tag) {
+  auto isolate_group = thread->isolate_group();
   Zone* zone = thread->zone();
-  ASSERT(isolate->tag_table() != GrowableObjectArray::null());
+  ASSERT(isolate_group->tag_table() != GrowableObjectArray::null());
   const GrowableObjectArray& tag_table =
-      GrowableObjectArray::Handle(zone, isolate->tag_table());
+      GrowableObjectArray::Handle(zone, isolate_group->tag_table());
   ASSERT(!TagTableIsFull(thread));
 #if defined(DEBUG)
   // Verify that no existing tag has the same tag id.
@@ -27861,7 +27864,7 @@ void UserTag::AddTagToIsolate(Thread* thread, const UserTag& tag) {
     ASSERT(tag.tag() != other.tag());
   }
 #endif
-  // Generate the UserTag tag id by taking the length of the isolate's
+  // Generate the UserTag tag id by taking the length of the isolate group's
   // tag table + kUserTagIdOffset.
   uword tag_id = tag_table.Length() + UserTags::kUserTagIdOffset;
   ASSERT(tag_id >= UserTags::kUserTagIdOffset);
@@ -27871,21 +27874,22 @@ void UserTag::AddTagToIsolate(Thread* thread, const UserTag& tag) {
 }
 
 bool UserTag::TagTableIsFull(Thread* thread) {
-  Isolate* isolate = thread->isolate();
-  ASSERT(isolate->tag_table() != GrowableObjectArray::null());
+  auto isolate_group = thread->isolate_group();
+  ASSERT(isolate_group->tag_table() != GrowableObjectArray::null());
   const GrowableObjectArray& tag_table =
-      GrowableObjectArray::Handle(thread->zone(), isolate->tag_table());
+      GrowableObjectArray::Handle(thread->zone(), isolate_group->tag_table());
   ASSERT(tag_table.Length() <= UserTags::kMaxUserTags);
   return tag_table.Length() == UserTags::kMaxUserTags;
 }
 
-UserTagPtr UserTag::FindTagById(const Isolate* isolate, uword tag_id) {
-  ASSERT(isolate != nullptr);
-  Thread* thread = Thread::Current();
+UserTagPtr UserTag::FindTagById(const IsolateGroup* isolate_group,
+                                uword tag_id) {
+  ASSERT(isolate_group != nullptr);
+  auto thread = Thread::Current();
   Zone* zone = thread->zone();
-  ASSERT(isolate->tag_table() != GrowableObjectArray::null());
+  ASSERT(isolate_group->tag_table() != GrowableObjectArray::null());
   const GrowableObjectArray& tag_table =
-      GrowableObjectArray::Handle(zone, isolate->tag_table());
+      GrowableObjectArray::Handle(zone, isolate_group->tag_table());
   UserTag& tag = UserTag::Handle(zone);
   for (intptr_t i = 0; i < tag_table.Length(); i++) {
     tag ^= tag_table.At(i);

@@ -7026,18 +7026,16 @@ DART_EXPORT void Dart_PrepareToAbort() {
 
 DART_EXPORT Dart_Handle Dart_GetCurrentUserTag() {
   Thread* thread = Thread::Current();
-  CHECK_ISOLATE(thread->isolate());
+  CHECK_ISOLATE_GROUP(thread->isolate_group());
   DARTSCOPE(thread);
-  Isolate* isolate = thread->isolate();
-  return Api::NewHandle(thread, isolate->current_tag());
+  return Api::NewHandle(thread, thread->current_tag());
 }
 
 DART_EXPORT Dart_Handle Dart_GetDefaultUserTag() {
   Thread* thread = Thread::Current();
-  CHECK_ISOLATE(thread->isolate());
+  CHECK_ISOLATE_GROUP(thread->isolate_group());
   DARTSCOPE(thread);
-  Isolate* isolate = thread->isolate();
-  return Api::NewHandle(thread, isolate->default_tag());
+  return Api::NewHandle(thread, thread->default_tag());
 }
 
 DART_EXPORT Dart_Handle Dart_NewUserTag(const char* label) {
@@ -7049,7 +7047,7 @@ DART_EXPORT Dart_Handle Dart_NewUserTag(const char* label) {
         "Dart_NewUserTag expects argument 'label' to be non-null");
   }
   const String& value = String::Handle(String::New(label));
-  return Api::NewHandle(thread, UserTag::New(value));
+  return Api::NewHandle(thread, UserTag::New(thread, value));
 }
 
 DART_EXPORT Dart_Handle Dart_SetCurrentUserTag(Dart_Handle user_tag) {

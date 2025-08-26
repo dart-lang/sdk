@@ -6316,7 +6316,7 @@ ISOLATE_UNIT_TEST_CASE(PrintJSONPrimitives) {
   {
     JSONStream js;
     js.set_id_zone(thread->isolate()->EnsureDefaultServiceIdZone());
-    Instance& tag = Instance::Handle(isolate->default_tag());
+    Instance& tag = Instance::Handle(thread->default_tag());
     tag.PrintJSON(&js, true);
     const char* json_str = js.ToCString();
     ASSERT(strlen(json_str) < kBufferSize);

@@ -19,7 +19,7 @@ DEFINE_NATIVE_ENTRY(UserTag_new, 0, 2) {
   ASSERT(
       TypeArguments::CheckedHandle(zone, arguments->NativeArgAt(0)).IsNull());
   GET_NON_NULL_NATIVE_ARGUMENT(String, tag_label, arguments->NativeArgAt(1));
-  return UserTag::New(tag_label);
+  return UserTag::New(thread, tag_label);
 }
 
 DEFINE_NATIVE_ENTRY(UserTag_label, 0, 1) {
@@ -36,14 +36,14 @@ DEFINE_NATIVE_ENTRY(UserTag_defaultTag, 0, 0) {
   if (FLAG_trace_intrinsified_natives) {
     OS::PrintErr("UserTag_defaultTag\n");
   }
-  return isolate->default_tag();
+  return thread->default_tag();
 }
 
 DEFINE_NATIVE_ENTRY(Profiler_getCurrentTag, 0, 0) {
   if (FLAG_trace_intrinsified_natives) {
     OS::PrintErr("Profiler_getCurrentTag\n");
   }
-  return isolate->current_tag();
+  return thread->current_tag();
 }
 
 }  // namespace dart

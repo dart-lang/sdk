@@ -20,6 +20,7 @@ void main() {
     defineReflectiveTests(ExtraPositionalArgumentsTest);
     defineReflectiveTests(ImplementsNonClassTest);
     defineReflectiveTests(InvalidOverrideTest);
+    defineReflectiveTests(MissingRequiredArgumentTest);
     defineReflectiveTests(MixinOfNonClassTest);
     defineReflectiveTests(NewWithUndefinedConstructorDefaultTest);
     defineReflectiveTests(NonBulkFixTest);
@@ -30,6 +31,7 @@ void main() {
     defineReflectiveTests(UndefinedGetterTest);
     defineReflectiveTests(UndefinedIdentifierTest);
     defineReflectiveTests(UndefinedMethodTest);
+    defineReflectiveTests(UndefinedNamedParameterTest);
     defineReflectiveTests(UndefinedSetterTest);
     defineReflectiveTests(UriTest);
     defineReflectiveTests(WrongNumberOfTypeArgumentsConstructorTest);
@@ -346,6 +348,81 @@ class B extends C {
 }
 
 @reflectiveTest
+class MissingRequiredArgumentTest extends _DataDrivenTest {
+  Future<void> test_changeParameterType_dotShorthand_constructor() async {
+    setPackageContent('''
+class A {
+  A({required String x});
+}
+''');
+    addPackageDataFile('''
+version: 1
+transforms:
+- title: 'Change parameter type to empty string'
+  date: 2025-08-20
+  element:
+    uris: ['$importUri']
+    constructor: 'new'
+    inClass: 'A'
+  changes:
+    - kind: 'changeParameterType'
+      name: 'x'
+      nullability: non_null
+      argumentValue:
+        expression: "''"
+''');
+    await resolveTestCode('''
+import '$importUri';
+A f() {
+  return .new(x: null);
+}
+''');
+    await assertHasFix('''
+import '$importUri';
+A f() {
+  return .new(x: '');
+}
+''');
+  }
+
+  Future<void> test_changeParameterType_dotShorthand_method() async {
+    setPackageContent('''
+class A {
+  static A method({required int x}) => A();
+}
+''');
+    addPackageDataFile('''
+version: 1
+transforms:
+- title: 'Change parameter type to empty string'
+  date: 2025-08-20
+  element:
+    uris: ['$importUri']
+    method: 'method'
+    inClass: 'A'
+  changes:
+    - kind: 'changeParameterType'
+      name: 'x'
+      nullability: non_null
+      argumentValue:
+        expression: "''"
+''');
+    await resolveTestCode('''
+import '$importUri';
+void f() {
+  A a = .method(x: null);
+}
+''');
+    await assertHasFix('''
+import '$importUri';
+void f() {
+  A a = .method(x: '');
+}
+''');
+  }
+}
+
+@reflectiveTest
 class MixinOfNonClassTest extends _DataDrivenTest {
   Future<void> test_rename_deprecated() async {
     setPackageContent('''
@@ -439,6 +516,37 @@ C c() => C.new(C.new());
 ''');
   }
 
+  Future<void> test_rename_deprecated_dotShorthand() async {
+    setPackageContent('''
+class C {
+  @deprecated
+  C.deprecated([C c]);
+  C.new([C c]);
+}
+''');
+    addPackageDataFile('''
+version: 1
+transforms:
+- title: 'Rename to new'
+  date: 2020-09-01
+  element:
+    uris: ['$importUri']
+    constructor: 'deprecated'
+    inClass: 'C'
+  changes:
+    - kind: 'rename'
+      newName: 'new'
+''');
+    await resolveTestCode('''
+import '$importUri';
+C c() => .deprecated(.deprecated());
+''');
+    await assertHasFix('''
+import '$importUri';
+C c() => .new(.new());
+''');
+  }
+
   Future<void> test_rename_removed() async {
     setPackageContent('''
 class C {
@@ -465,6 +573,39 @@ C c() => C(C());
     await assertHasFix('''
 import '$importUri';
 C c() => C.updated(C.updated());
+''');
+  }
+
+  Future<void> test_rename_removed_dotShorthand() async {
+    setPackageContent('''
+class C {
+  C.updated(C? c);
+}
+''');
+    addPackageDataFile('''
+version: 1
+transforms:
+- title: 'Rename to updated'
+  date: 2025-08-14
+  element:
+    uris: ['$importUri']
+    constructor: 'new'
+    inClass: 'C'
+  changes:
+    - kind: 'rename'
+      newName: 'updated'
+''');
+    await resolveTestCode('''
+import '$importUri';
+C c() => .new(.new());
+''');
+    // TODO(kallentu): We're only able to fix the `.new` with a context type of
+    // `C` in the first pass. When we don't know the arguments of the undefined
+    // constructor, we aren't able to replace the arguments.
+    // Potentially fix this in the future.
+    await assertHasFix('''
+import '$importUri';
+C c() => .updated(.new());
 ''');
   }
 }
@@ -629,6 +770,85 @@ import '$importUri';
 void f(String value) {
   var c = C();
   c.m(x: value);
+}
+''');
+  }
+
+  Future<void> test_addParameter_named_dotShorthand() async {
+    setPackageContent('''
+class C {
+  static C m({required String x}) => C();
+}
+''');
+    addPackageDataFile('''
+version: 1
+transforms:
+- title: 'Add parameter'
+  date: 2022-09-22
+  element:
+    uris: ['$importUri']
+    method: 'm'
+    inClass: 'C'
+  changes:
+    - kind: 'addParameter'
+      index: 0
+      name: 'x'
+      style: required_named
+      argumentValue:
+        expression: 'value'
+''');
+    await resolveTestCode('''
+import '$importUri';
+void f(String value) {
+  C c = .m();
+}
+''');
+    await assertHasFix('''
+import '$importUri';
+void f(String value) {
+  C c = .m(x: value);
+}
+''');
+  }
+
+  Future<void> test_addParameter_named_dotShorthand_onlyFixOne() async {
+    setPackageContent('''
+class C {
+  static C m({required String x}) => C();
+}
+class B {
+  static B m({required String x}) => B();
+}
+''');
+    addPackageDataFile('''
+version: 1
+transforms:
+- title: 'Add parameter'
+  date: 2022-09-22
+  element:
+    uris: ['$importUri']
+    method: 'm'
+    inClass: 'C'
+  changes:
+    - kind: 'addParameter'
+      index: 0
+      name: 'x'
+      style: required_named
+      argumentValue:
+        expression: 'value'
+''');
+    await resolveTestCode('''
+import '$importUri';
+void f(String value) {
+  C c = .m();
+  B b = .m();
+}
+''');
+    await assertHasFix('''
+import '$importUri';
+void f(String value) {
+  C c = .m(x: value);
+  B b = .m();
 }
 ''');
   }
@@ -891,6 +1111,76 @@ void f(C a, C b) {
 ''');
   }
 
+  Future<void> test_rename_deprecated_dotShorthand_field() async {
+    setPackageContent('''
+class C {
+  @deprecated
+  static C? old = null;
+  static C? field = null;
+}
+''');
+    addPackageDataFile('''
+version: 1
+transforms:
+- title: 'Rename to field'
+  date: 2025-08-20
+  element:
+    uris: ['$importUri']
+    getter: 'old'
+    inClass: 'C'
+  changes:
+    - kind: 'rename'
+      newName: 'field'
+''');
+    await resolveTestCode('''
+import '$importUri';
+void f() {
+  C? c = .old;
+}
+''');
+    await assertHasFix('''
+import '$importUri';
+void f() {
+  C? c = .field;
+}
+''');
+  }
+
+  Future<void> test_rename_deprecated_dotShorthand_getter() async {
+    setPackageContent('''
+class C {
+  @deprecated
+  static C get old => C();
+  static C get getter => C();
+}
+''');
+    addPackageDataFile('''
+version: 1
+transforms:
+- title: 'Rename to getter'
+  date: 2025-08-11
+  element:
+    uris: ['$importUri']
+    getter: 'old'
+    inClass: 'C'
+  changes:
+    - kind: 'rename'
+      newName: 'getter'
+''');
+    await resolveTestCode('''
+import '$importUri';
+void f() {
+  C c = .old;
+}
+''');
+    await assertHasFix('''
+import '$importUri';
+void f() {
+  C c = .getter;
+}
+''');
+  }
+
   Future<void> test_rename_removed() async {
     setPackageContent('''
 class C {
@@ -920,6 +1210,148 @@ void f(C a, C b) {
 import '$importUri';
 void f(C a, C b) {
   a.new + b.new;
+}
+''');
+  }
+
+  Future<void> test_rename_removed_dotShorthand_field() async {
+    setPackageContent('''
+class C {
+  static C? field = null;
+}
+''');
+    addPackageDataFile('''
+version: 1
+transforms:
+- title: 'Rename to field'
+  date: 2025-08-11
+  element:
+    uris: ['$importUri']
+    getter: 'old'
+    inClass: 'C'
+  changes:
+    - kind: 'rename'
+      newName: 'field'
+''');
+    await resolveTestCode('''
+import '$importUri';
+void f() {
+  C? c = .old;
+}
+''');
+    await assertHasFix('''
+import '$importUri';
+void f() {
+  C? c = .field;
+}
+''');
+  }
+
+  Future<void> test_rename_removed_dotShorthand_field_onlyFixOne() async {
+    setPackageContent('''
+class B {
+  static B? field = null;
+}
+class C {
+  static C? field = null;
+}
+''');
+    addPackageDataFile('''
+version: 1
+transforms:
+- title: 'Rename to field'
+  date: 2025-08-11
+  element:
+    uris: ['$importUri']
+    getter: 'old'
+    inClass: 'C'
+  changes:
+    - kind: 'rename'
+      newName: 'field'
+''');
+    await resolveTestCode('''
+import '$importUri';
+void f() {
+  C? c = .old;
+  B? b = .old;
+}
+''');
+    await assertHasFix('''
+import '$importUri';
+void f() {
+  C? c = .field;
+  B? b = .old;
+}
+''');
+  }
+
+  Future<void> test_rename_removed_dotShorthand_getter() async {
+    setPackageContent('''
+class C {
+  static C get getter => C();
+}
+''');
+    addPackageDataFile('''
+version: 1
+transforms:
+- title: 'Rename to getter'
+  date: 2025-08-11
+  element:
+    uris: ['$importUri']
+    getter: 'old'
+    inClass: 'C'
+  changes:
+    - kind: 'rename'
+      newName: 'getter'
+''');
+    await resolveTestCode('''
+import '$importUri';
+void f() {
+  C c = .old;
+}
+''');
+    await assertHasFix('''
+import '$importUri';
+void f() {
+  C c = .getter;
+}
+''');
+  }
+
+  Future<void> test_rename_removed_dotShorthand_getter_onlyFixOne() async {
+    setPackageContent('''
+class B {
+  static B get getter => B();
+}
+class C {
+  static C get getter => C();
+}
+''');
+    addPackageDataFile('''
+version: 1
+transforms:
+- title: 'Rename to getter'
+  date: 2025-08-11
+  element:
+    uris: ['$importUri']
+    getter: 'old'
+    inClass: 'C'
+  changes:
+    - kind: 'rename'
+      newName: 'getter'
+''');
+    await resolveTestCode('''
+import '$importUri';
+void f() {
+  C c = .old;
+  B b = .old;
+}
+''');
+    await assertHasFix('''
+import '$importUri';
+void f() {
+  C c = .getter;
+  B b = .old;
 }
 ''');
   }
@@ -1027,6 +1459,76 @@ void f(C a, C b) {
 ''');
   }
 
+  Future<void> test_rename_deprecated_dotShorthand_constructor() async {
+    setPackageContent('''
+  class A {
+    @deprecated
+    A.old();
+    A.n();
+  }
+  ''');
+    addPackageDataFile('''
+  version: 1
+  transforms:
+  - title: 'Rename to n'
+    date: 2025-08-08
+    element:
+      uris: ['$importUri']
+      constructor: 'old'
+      inClass: 'A'
+    changes:
+      - kind: 'rename'
+        newName: 'n'
+  ''');
+    await resolveTestCode('''
+  import '$importUri';
+  void f() {
+    A a = .old();
+  }
+  ''');
+    await assertHasFix('''
+  import '$importUri';
+  void f() {
+    A a = .n();
+  }
+  ''');
+  }
+
+  Future<void> test_rename_deprecated_dotShorthand_method() async {
+    setPackageContent('''
+  class A {
+    @deprecated
+    static A old() => A();
+    static A n() => A();
+  }
+  ''');
+    addPackageDataFile('''
+  version: 1
+  transforms:
+  - title: 'Rename to n'
+    date: 2025-08-08
+    element:
+      uris: ['$importUri']
+      method: 'old'
+      inClass: 'A'
+    changes:
+      - kind: 'rename'
+        newName: 'n'
+  ''');
+    await resolveTestCode('''
+  import '$importUri';
+  void f() {
+    A a = .old();
+  }
+  ''');
+    await assertHasFix('''
+  import '$importUri';
+  void f() {
+    A a = .n();
+  }
+  ''');
+  }
+
   Future<void> test_rename_removed() async {
     setPackageContent('''
 class C {
@@ -1058,6 +1560,148 @@ void f(C a, C b) {
   a.new(b.new(0));
 }
 ''');
+  }
+
+  Future<void> test_rename_removed_dotShorthand_constructor() async {
+    setPackageContent('''
+  class A {
+    A.n();
+  }
+  ''');
+    addPackageDataFile('''
+  version: 1
+  transforms:
+  - title: 'Rename to n'
+    date: 2025-08-08
+    element:
+      uris: ['$importUri']
+      constructor: 'o'
+      inClass: 'A'
+    changes:
+      - kind: 'rename'
+        newName: 'n'
+  ''');
+    await resolveTestCode('''
+  import '$importUri';
+  void f() {
+    A a = .o();
+  }
+  ''');
+    await assertHasFix('''
+  import '$importUri';
+  void f() {
+    A a = .n();
+  }
+  ''');
+  }
+
+  Future<void> test_rename_removed_dotShorthand_constructor_onlyFixOne() async {
+    setPackageContent('''
+  class A {
+    A.n();
+  }
+  class B {
+    B.n();
+  }
+  ''');
+    addPackageDataFile('''
+  version: 1
+  transforms:
+  - title: 'Rename to n'
+    date: 2025-08-08
+    element:
+      uris: ['$importUri']
+      constructor: 'o'
+      inClass: 'A'
+    changes:
+      - kind: 'rename'
+        newName: 'n'
+  ''');
+    await resolveTestCode('''
+  import '$importUri';
+  void f() {
+    A a = .o();
+    B b = .o();
+  }
+  ''');
+    await assertHasFix('''
+  import '$importUri';
+  void f() {
+    A a = .n();
+    B b = .o();
+  }
+  ''');
+  }
+
+  Future<void> test_rename_removed_dotShorthand_method() async {
+    setPackageContent('''
+  class A {
+    static A n() => A();
+  }
+  ''');
+    addPackageDataFile('''
+  version: 1
+  transforms:
+  - title: 'Rename to n'
+    date: 2025-08-08
+    element:
+      uris: ['$importUri']
+      method: 'o'
+      inClass: 'A'
+    changes:
+      - kind: 'rename'
+        newName: 'n'
+  ''');
+    await resolveTestCode('''
+  import '$importUri';
+  void f() {
+    A a = .o();
+  }
+  ''');
+    await assertHasFix('''
+  import '$importUri';
+  void f() {
+    A a = .n();
+  }
+  ''');
+  }
+
+  Future<void> test_rename_removed_dotShorthand_method_onlyFixOne() async {
+    setPackageContent('''
+  class A {
+    static A n() => A();
+  }
+  class B {
+    static B n() => B();
+  }
+  ''');
+    addPackageDataFile('''
+  version: 1
+  transforms:
+  - title: 'Rename to n'
+    date: 2025-08-08
+    element:
+      uris: ['$importUri']
+      method: 'o'
+      inClass: 'A'
+    changes:
+      - kind: 'rename'
+        newName: 'n'
+  ''');
+    await resolveTestCode('''
+  import '$importUri';
+  void f() {
+    A a = .o();
+    B b = .o();
+  }
+  ''');
+    await assertHasFix('''
+  import '$importUri';
+  void f() {
+    A a = .n();
+    B b = .o();
+  }
+  ''');
   }
 
   Future<void> test_rename_removed_onlyFixOne() async {
@@ -1094,6 +1738,227 @@ import '$importUri';
 void f(A a, B b) {
   a.n(0);
   b.o(1);
+}
+''');
+  }
+
+  Future<void> test_replacedBy_deprecated_dotShorthand_constructor() async {
+    setPackageContent('''
+  class A {
+    @deprecated
+    A.old();
+    A.n();
+  }
+  ''');
+    addPackageDataFile('''
+  version: 1
+  transforms:
+  - title: 'Rename to n'
+    date: 2025-08-08
+    element:
+      uris: ['$importUri']
+      constructor: 'old'
+      inClass: 'A'
+    changes:
+      - kind: 'replacedBy'
+        newElement:
+          uris: ['$importUri']
+          constructor: 'n'
+          inClass: 'A'
+  ''');
+    await resolveTestCode('''
+  import '$importUri';
+  void f() {
+    A a = .old();
+  }
+  ''');
+    await assertHasFix('''
+  import '$importUri';
+  void f() {
+    A a = A.n();
+  }
+  ''');
+  }
+
+  Future<void> test_replacedBy_deprecated_dotShorthand_method() async {
+    setPackageContent('''
+  class A {
+    @deprecated
+    static A old() => A();
+    static A n() => A();
+  }
+  ''');
+    addPackageDataFile('''
+  version: 1
+  transforms:
+  - title: 'Replaced by n'
+    date: 2025-08-08
+    element:
+      uris: ['$importUri']
+      method: 'old'
+      inClass: 'A'
+    changes:
+      - kind: 'replacedBy'
+        newElement:
+          uris: ['$importUri']
+          method: 'n'
+          inClass: 'A'
+  ''');
+    await resolveTestCode('''
+  import '$importUri';
+  void f() {
+    A a = .old();
+  }
+  ''');
+    await assertHasFix('''
+  import '$importUri';
+  void f() {
+    A a = A.n();
+  }
+  ''');
+  }
+
+  Future<void> test_replacedBy_removed_dotShorthand_constructor() async {
+    setPackageContent('''
+  class A {
+    A.n();
+  }
+  ''');
+    addPackageDataFile('''
+  version: 1
+  transforms:
+  - title: 'Replaced by n'
+    date: 2025-08-08
+    element:
+      uris: ['$importUri']
+      constructor: 'old'
+      inClass: 'A'
+    changes:
+      - kind: 'replacedBy'
+        newElement:
+          uris: ['$importUri']
+          constructor: 'n'
+          inClass: 'A'
+  ''');
+    await resolveTestCode('''
+  import '$importUri';
+  void f() {
+    A a = .old();
+  }
+  ''');
+    // TODO(kallentu): ReplacedBy should replace with a dot shorthand in this
+    // case instead of the full typed identifier.
+    await assertHasFix('''
+  import '$importUri';
+  void f() {
+    A a = A.n();
+  }
+  ''');
+  }
+
+  Future<void> test_replacedBy_removed_dotShorthand_method() async {
+    setPackageContent('''
+  class A {
+    static A n() => A();
+  }
+  ''');
+    addPackageDataFile('''
+  version: 1
+  transforms:
+  - title: 'Replaced by n'
+    date: 2025-08-08
+    element:
+      uris: ['$importUri']
+      method: 'old'
+      inClass: 'A'
+    changes:
+      - kind: 'replacedBy'
+        newElement:
+          uris: ['$importUri']
+          method: 'n'
+          inClass: 'A'
+  ''');
+    await resolveTestCode('''
+  import '$importUri';
+  void f() {
+    A a = .old();
+  }
+  ''');
+    await assertHasFix('''
+  import '$importUri';
+  void f() {
+    A a = A.n();
+  }
+  ''');
+  }
+}
+
+@reflectiveTest
+class UndefinedNamedParameterTest extends _DataDrivenTest {
+  Future<void> test_renameParameter_dotShorthand_constructor() async {
+    setPackageContent('''
+class A {
+  A({int x = 0});
+}
+''');
+    addPackageDataFile('''
+version: 1
+transforms:
+- title: 'Rename parameter'
+  date: 2025-08-20
+  element:
+    uris: ['$importUri']
+    constructor: 'new'
+    inClass: 'A'
+  changes:
+    - kind: 'renameParameter'
+      oldName: 'y'
+      newName: 'x'
+''');
+    await resolveTestCode('''
+import '$importUri';
+void f() {
+  A a = .new(y: 1);
+}
+''');
+    await assertHasFix('''
+import '$importUri';
+void f() {
+  A a = .new(x: 1);
+}
+''');
+  }
+
+  Future<void> test_renameParameter_dotShorthand_method() async {
+    setPackageContent('''
+class A {
+  static A method({int x = 0}) => A();
+}
+''');
+    addPackageDataFile('''
+version: 1
+transforms:
+- title: 'Rename parameter'
+  date: 2025-08-20
+  element:
+    uris: ['$importUri']
+    method: 'method'
+    inClass: 'A'
+  changes:
+    - kind: 'renameParameter'
+      oldName: 'y'
+      newName: 'x'
+''');
+    await resolveTestCode('''
+import '$importUri';
+void f() {
+  A a = .method(y: 1);
+}
+''');
+    await assertHasFix('''
+import '$importUri';
+void f() {
+  A a = .method(x: 1);
 }
 ''');
   }
@@ -1313,6 +2178,83 @@ void f(C c) {
 import '$importUri';
 void f(C c) {
   c.m<String, int>(c.m<String, int>(0));
+}
+''');
+  }
+
+  Future<void> test_addTypeParameter_dotShorthand() async {
+    setPackageContent('''
+class C {
+  static C m<S, T>(C x) => x;
+}
+''');
+    addPackageDataFile('''
+version: 1
+transforms:
+- title: 'Add type parameter'
+  date: 2020-09-01
+  element:
+    uris: ['$importUri']
+    method: 'm'
+    inClass: 'C'
+  changes:
+    - kind: 'addTypeParameter'
+      index: 1
+      name: 'T'
+      argumentValue:
+        expression: 'int'
+''');
+    await resolveTestCode('''
+import '$importUri';
+void f(C c) {
+  C c = .m<String>(.m<String>(C()));
+}
+''');
+    await assertHasFix('''
+import '$importUri';
+void f(C c) {
+  C c = .m<String, int>(.m<String, int>(C()));
+}
+''');
+  }
+
+  Future<void> test_addTypeParameter_dotShorthand_onlyFixOneClass() async {
+    setPackageContent('''
+class C {
+  static C m<S, T>(C x) => x;
+}
+class B {
+  static B m<S, T>(B x) => x;
+}
+''');
+    addPackageDataFile('''
+version: 1
+transforms:
+- title: 'Add type parameter'
+  date: 2020-09-01
+  element:
+    uris: ['$importUri']
+    method: 'm'
+    inClass: 'C'
+  changes:
+    - kind: 'addTypeParameter'
+      index: 1
+      name: 'T'
+      argumentValue:
+        expression: 'int'
+''');
+    await resolveTestCode('''
+import '$importUri';
+void f() {
+  C c = .m<String>(.m<String>(C()));
+  B b = .m<String>(.m<String>(B()));
+}
+''');
+    await assertHasFix('''
+import '$importUri';
+void f() {
+  C c = .m<String, int>(.m<String, int>(C()));
+  B b = .m<String>(.m<String>(B()));
 }
 ''');
   }

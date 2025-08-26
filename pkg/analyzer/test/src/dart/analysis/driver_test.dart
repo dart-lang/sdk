@@ -55949,6 +55949,105 @@ int get b => 0;
     );
   }
 
+  test_precision_noOpaqueApiUse() async {
+    // Lowest layer: `A` is used by `B`.
+    var a = newFile('$testPackageLibPath/a.dart', r'''
+class A {
+  const A();
+}
+''');
+
+    // Middle layer: `B` references `A` in a default value.
+    newFile('$testPackageLibPath/b.dart', r'''
+import 'a.dart';
+
+class B {
+  const B([Object? x = const A()]);
+}
+''');
+
+    configuration
+      ..withSchedulerStatus = false
+      ..withGetLibraryByUri = false
+      ..withLinkBundleEvents = true
+      ..withLibraryManifest = true
+      ..withResultRequirements = true;
+
+    var driver = driverFor(testFile);
+    var collector = DriverEventCollector(driver, idProvider: idProvider);
+
+    // 1) Link `a.dart` and `b.dart`.
+    collector.getLibraryByUri('B1', 'package:test/b.dart');
+    await assertEventsText(collector, r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/a.dart
+    declaredClasses
+      A: #M0
+        interface: #M1
+  requirements
+[operation] linkLibraryCycle
+  package:test/b.dart
+    declaredClasses
+      B: #M2
+        interface: #M3
+  requirements
+    libraries
+      package:test/a.dart
+        exportedTopLevels
+          A: #M0
+          Object: <null>
+        interfaces
+          A
+            requestedConstructors
+              new: #M4
+''');
+
+    // 2) Touch the lowest layer: unload both `a.dart` and `b.dart`.
+    modifyFile2(a, r'''
+class A {
+  const A(); // comment
+}
+''');
+    driver.changeFile2(a);
+
+    // 3) Top layer: `test.dart` depends on `B`, and so `A` transitively.
+    newFile(testFile.path, r'''
+import 'b.dart';
+final v = B();
+''');
+
+    // Link `test.dart`. During linking, we will need formal parameters of the
+    // constructor `B()`, which will trigger loading resolution data for its
+    // formal parameter `x = const A()`. This will require loading members,
+    // specifically constructors, of `A`.
+    //
+    // There was a bug when loading members of `A` and `B` caused recording
+    // opaque API use (`firstFragment` and `fragments`).
+    collector.getLibraryByUri('T1', 'package:test/test.dart');
+    await assertEventsText(collector, r'''
+[operation] readLibraryCycleBundle
+  package:test/a.dart
+[operation] readLibraryCycleBundle
+  package:test/b.dart
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredGetters
+      v: #M5
+    declaredVariables
+      v: #M6
+  requirements
+    libraries
+      package:test/b.dart
+        exportedTopLevels
+          B: #M2
+        interfaces
+          B
+            requestedConstructors
+              new: #M7
+''');
+  }
+
   test_req_classElement_noName() async {
     newFile(testFile.path, r'''
 class {}

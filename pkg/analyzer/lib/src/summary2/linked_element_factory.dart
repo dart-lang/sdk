@@ -144,10 +144,7 @@ class LinkedElementFactory {
 
     // Only classes delay creating children.
     if (parentElement is ClassElementImpl) {
-      var firstFragment = parentElement.firstFragment;
-      // TODO(scheglov): directly ask to read all?
-      firstFragment.constructors;
-      parentElement.constructors;
+      parentElement.ensureReadMembers();
     }
 
     var element = reference.element;

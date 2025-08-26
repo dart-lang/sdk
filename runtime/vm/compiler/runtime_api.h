@@ -1302,6 +1302,10 @@ class Thread : public AllStatic {
   static word single_step_offset();
 #endif  // !defined(PRODUCT)
 
+  static word default_tag_offset();
+  static word current_tag_offset();
+  static word user_tag_offset();
+
   static word OffsetFromThread(const dart::Object& object);
   static intptr_t OffsetFromThread(const dart::RuntimeEntry* runtime_entry);
 };
@@ -1345,9 +1349,6 @@ class ObjectStore : public AllStatic {
 
 class Isolate : public AllStatic {
  public:
-  static word default_tag_offset();
-  static word current_tag_offset();
-  static word user_tag_offset();
   static word finalizers_offset();
 #if !defined(PRODUCT)
   static word has_resumption_breakpoints_offset();

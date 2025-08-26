@@ -4372,8 +4372,8 @@ LocationSummary* CaseInsensitiveCompareInstr::MakeLocationSummary(
     Zone* zone,
     bool opt) const {
   const intptr_t kNumTemps = 0;
-  LocationSummary* summary = new (zone)
-      LocationSummary(zone, InputCount(), kNumTemps, LocationSummary::kCall);
+  LocationSummary* summary = new (zone) LocationSummary(
+      zone, InputCount(), kNumTemps, LocationSummary::kNativeLeafCall);
   summary->set_in(0, Location::RegisterLocation(EAX));
   summary->set_in(1, Location::RegisterLocation(ECX));
   summary->set_in(2, Location::RegisterLocation(EDX));
@@ -4707,8 +4707,8 @@ LocationSummary* InvokeMathCFunctionInstr::MakeLocationSummary(Zone* zone,
   ASSERT((InputCount() == 1) || (InputCount() == 2));
   const intptr_t kNumTemps =
       (recognized_kind() == MethodRecognizer::kMathDoublePow) ? 4 : 1;
-  LocationSummary* result = new (zone)
-      LocationSummary(zone, InputCount(), kNumTemps, LocationSummary::kCall);
+  LocationSummary* result = new (zone) LocationSummary(
+      zone, InputCount(), kNumTemps, LocationSummary::kNativeLeafCall);
   // EDI is chosen because it is callee saved so we do not need to back it
   // up before calling into the runtime.
   result->set_temp(0, Location::RegisterLocation(EDI));

@@ -1251,6 +1251,8 @@ final _builtInNonLintMultiGenerators = {
     CreateClass.new,
     ImportLibrary.forType,
   ],
+  CompileTimeErrorCode.dotShorthandUndefinedGetter: [DataDriven.new],
+  CompileTimeErrorCode.dotShorthandUndefinedInvocation: [DataDriven.new],
   CompileTimeErrorCode.extendsNonClass: [
     CreateClass.new,
     DataDriven.new,

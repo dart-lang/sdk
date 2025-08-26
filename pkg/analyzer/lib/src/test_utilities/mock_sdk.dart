@@ -314,41 +314,21 @@ class DateTime extends Object {
 
 class Deprecated extends Object {
   final String message;
-  final bool _isUse;
-  final bool _isImplement;
-  final bool _isExtend;
-  final bool _isSubclass;
-  final bool _isInstantiate;
+  final _DeprecationKind _kind;
   const Deprecated(this.message)
-      : _isUse = true,
-        _isImplement = false,
-        _isExtend = false,
-        _isSubclass = false,
-        _isInstantiate = false;
+      : _kind = _DeprecationKind.use;
   const Deprecated.implement([this.message = "next release"])
-      : _isUse = false,
-        _isImplement = true,
-        _isExtend = false,
-        _isSubclass = false,
-        _isInstantiate = false;
+      : _kind = _DeprecationKind.implement;
   const Deprecated.extend([this.message = "next release"])
-      : _isUse = false,
-        _isImplement = false,
-        _isExtend = true,
-        _isSubclass = false,
-        _isInstantiate = false;
+      : _kind = _DeprecationKind.extend;
   const Deprecated.subclass([this.message = "next release"])
-      : _isUse = false,
-        _isImplement = false,
-        _isExtend = false,
-        _isSubclass = true,
-        _isInstantiate = false;
+      : _kind = _DeprecationKind.subclass;
   const Deprecated.instantiate([this.message = "next release"])
-      : _isUse = false,
-        _isImplement = false,
-        _isExtend = false,
-        _isSubclass = false,
-        _isInstantiate = true;
+      : _kind = _DeprecationKind.instantiate;
+}
+
+enum _DeprecationKind {
+  use, implement, extend, subclass, instantiate;
 }
 
 class pragma {

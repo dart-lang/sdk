@@ -13,6 +13,7 @@
 // VMOptions=--experimental-shared-data --profiler --profile_vm=false
 
 import 'package:dart_internal/isolate_group.dart' show IsolateGroup;
+import 'dart:developer';
 import 'dart:isolate';
 
 import "package:expect/expect.dart";
@@ -77,6 +78,9 @@ ListMethodTearoffTest(List<String> args) {
 }
 
 thefun() {}
+
+@pragma('vm:shared')
+String default_tag = "";
 
 main(List<String> args) {
   IsolateGroup.runSync(() {
@@ -237,6 +241,11 @@ main(List<String> args) {
       new bool.hasEnvironment("Anything");
     });
   }, (e) => e is ArgumentError && e.toString().contains("Only available when"));
+
+  IsolateGroup.runSync(() {
+    default_tag = UserTag.defaultTag.toString();
+  });
+  Expect.notEquals("", default_tag);
 
   print("All tests completed :)");
 }

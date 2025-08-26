@@ -1382,6 +1382,16 @@ extension on ArgumentList {
       if (type is FunctionType) {
         return type;
       }
+    } else if (parent is DotShorthandInvocation) {
+      var type = parent.staticInvokeType;
+      if (type is FunctionType) {
+        return type;
+      }
+    } else if (parent is DotShorthandConstructorInvocation) {
+      if (parent.constructorName.element
+          case ConstructorElement constructorElement) {
+        return constructorElement.type;
+      }
     }
     return null;
   }

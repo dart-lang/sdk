@@ -991,6 +991,8 @@ ErrorPtr Dart::InitializeIsolateGroup(Thread* T,
     IG->class_table()->Print();
   }
 
+  IG->set_tag_table(GrowableObjectArray::Handle(GrowableObjectArray::New()));
+
   return Error::null();
 }
 
@@ -1035,11 +1037,8 @@ ErrorPtr Dart::InitializeIsolate(Thread* T,
   I->debugger()->NotifyIsolateCreated();
 #endif
 
-  // Create tag table.
-  I->set_tag_table(GrowableObjectArray::Handle(GrowableObjectArray::New()));
-  // Set up default UserTag.
-  const UserTag& default_tag = UserTag::Handle(UserTag::DefaultTag());
-  I->set_current_tag(default_tag);
+  const UserTag& default_tag = UserTag::Handle(UserTag::DefaultTag(T));
+  T->set_current_tag(default_tag);
 
   I->init_loaded_prefixes_set_storage();
 
