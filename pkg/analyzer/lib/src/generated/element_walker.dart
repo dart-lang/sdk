@@ -42,10 +42,9 @@ class ElementWalker {
   /// Creates an [ElementWalker] which walks the child elements of a class
   /// element.
   ElementWalker.forClass(ClassFragmentImpl this.fragment)
-    : _constructors =
-          fragment.isMixinApplication
-              ? null
-              : fragment.constructors.where(_isNotSynthetic).toList(),
+    : _constructors = fragment.isMixinApplication
+          ? null
+          : fragment.constructors.where(_isNotSynthetic).toList(),
       _functions = fragment.methods,
       _getters = fragment.getters.where(_isNotSynthetic).toList(),
       _setters = fragment.setters.where(_isNotSynthetic).toList(),
@@ -134,9 +133,8 @@ class ElementWalker {
   /// Creates an [ElementWalker] which walks the child elements of a typedef
   /// element.
   ElementWalker.forTypedef(TypeAliasFragmentImpl this.fragment)
-    : _parameters =
-          (fragment.aliasedElement as GenericFunctionTypeFragmentImpl)
-              .formalParameters,
+    : _parameters = (fragment.aliasedElement as GenericFunctionTypeFragmentImpl)
+          .formalParameters,
       _typeParameters = fragment.typeParameters;
 
   void consumeLocalElements() {

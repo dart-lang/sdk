@@ -469,14 +469,12 @@ mixin ResolutionTest implements ResourceProviderMixin {
     var sink = TreeStringSink(sink: buffer, indent: '');
     var elementPrinter = ElementPrinter(
       sink: sink,
-      configuration:
-          ElementPrinterConfiguration()
-            ..withInterfaceTypeElements =
-                nodeTextConfiguration.withInterfaceTypeElements
-            ..withRedirectedConstructors =
-                nodeTextConfiguration.withRedirectedConstructors
-            ..withSuperConstructors =
-                nodeTextConfiguration.withSuperConstructors,
+      configuration: ElementPrinterConfiguration()
+        ..withInterfaceTypeElements =
+            nodeTextConfiguration.withInterfaceTypeElements
+        ..withRedirectedConstructors =
+            nodeTextConfiguration.withRedirectedConstructors
+        ..withSuperConstructors = nodeTextConfiguration.withSuperConstructors,
     );
     node.accept(
       ResolvedAstPrinter(

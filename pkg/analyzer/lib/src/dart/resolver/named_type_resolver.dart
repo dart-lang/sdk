@@ -548,10 +548,9 @@ class _ErrorHelper {
         diagnosticReporter.atOffset(
           offset: errorRange.offset,
           length: errorRange.length,
-          diagnosticCode:
-              instanceCreation.isConst
-                  ? CompileTimeErrorCode.constWithNonType
-                  : CompileTimeErrorCode.newWithNonType,
+          diagnosticCode: instanceCreation.isConst
+              ? CompileTimeErrorCode.constWithNonType
+              : CompileTimeErrorCode.newWithNonType,
           arguments: [node.name.lexeme],
         );
         return true;

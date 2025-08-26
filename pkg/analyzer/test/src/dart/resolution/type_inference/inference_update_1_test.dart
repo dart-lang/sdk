@@ -135,9 +135,9 @@ test() {
       findNode.methodInvocation('f(').staticInvokeType,
       _isEnabled
           ? 'List<int> Function(int Function(), '
-              'List<int> Function(int Function()))'
+                'List<int> Function(int Function()))'
           : 'List<InvalidType> Function(int Function(), '
-              'List<InvalidType> Function(int Function()))',
+                'List<InvalidType> Function(int Function()))',
     );
     assertType(
       findNode.simpleParameter('h)').declaredFragment!.element.type,

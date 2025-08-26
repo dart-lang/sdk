@@ -331,10 +331,9 @@ class AnalysisDriver {
        _enableLintRuleTiming = enableLintRuleTiming,
        // This '!' is temporary. The analysisOptionsMap is effectively
        // required but can't be until Google3 is updated.
-       analysisOptionsMap =
-           analysisOptions == null
-               ? analysisOptionsMap!
-               : AnalysisOptionsMap.forSharedOptions(analysisOptions),
+       analysisOptionsMap = analysisOptions == null
+           ? analysisOptionsMap!
+           : AnalysisOptionsMap.forSharedOptions(analysisOptions),
        _saltForUnlinked = _calculateSaltForUnlinked(enableIndex: enableIndex),
        _saltForElements = _calculateSaltForElements(
          declaredVariables ?? DeclaredVariables(),
@@ -380,8 +379,8 @@ class AnalysisDriver {
     var rootOptionsFile = analysisContext?.contextRoot.optionsFile;
     return rootOptionsFile != null
         ? getAnalysisOptionsForFile(
-          rootOptionsFile,
-        ).enabledLegacyPluginNames.toSet()
+            rootOptionsFile,
+          ).enabledLegacyPluginNames.toSet()
         : const {};
   }
 
@@ -1395,10 +1394,9 @@ class AnalysisDriver {
         for (var unitResult in results) {
           var unitFile = unitResult.file;
 
-          var index =
-              enableIndex
-                  ? indexUnit(unitResult.unit)
-                  : AnalysisDriverUnitIndexBuilder();
+          var index = enableIndex
+              ? indexUnit(unitResult.unit)
+              : AnalysisDriverUnitIndexBuilder();
 
           var resolvedUnit = _createResolvedUnitImpl(
             file: unitFile,
@@ -1428,14 +1426,12 @@ class AnalysisDriver {
           var unitSignature = _getResolvedUnitSignature(library, unitFile);
           {
             var unitKey = _getResolvedUnitKey(unitSignature);
-            var unitBytes =
-                AnalysisDriverResolvedUnitBuilder(
-                  errors:
-                      unitResult.diagnostics
-                          .map((d) => ErrorEncoding.encode(d))
-                          .toList(),
-                  index: index,
-                ).toBuffer();
+            var unitBytes = AnalysisDriverResolvedUnitBuilder(
+              errors: unitResult.diagnostics
+                  .map((d) => ErrorEncoding.encode(d))
+                  .toList(),
+              index: index,
+            ).toBuffer();
             _byteStore.putGet(unitKey, unitBytes);
             fileResultBytesMap[unitFile.uri] = unitBytes;
           }
@@ -2109,8 +2105,9 @@ class AnalysisDriver {
 
         if (fileResultBytesMap != null) {
           for (var fileEntry in fileResultBytesMap.entries) {
-            var file =
-                library.files.where((file) => file.uri == fileEntry.key).single;
+            var file = library.files
+                .where((file) => file.uri == fileEntry.key)
+                .single;
             _fileTracker.fileWasAnalyzed(file.path);
             var result = _createErrorsResultFromBytes(
               file,
@@ -2319,15 +2316,14 @@ class AnalysisDriver {
       allowedNumberOfContextsToWrite--;
     }
     try {
-      var contextFiles =
-          library.files
-              .map(
-                (file) => AnalysisDriverExceptionFileBuilder(
-                  path: file.path,
-                  content: file.content,
-                ),
-              )
-              .toList();
+      var contextFiles = library.files
+          .map(
+            (file) => AnalysisDriverExceptionFileBuilder(
+              path: file.path,
+              content: file.content,
+            ),
+          )
+          .toList();
       contextFiles.sort((a, b) => a.path.compareTo(b.path));
       AnalysisDriverExceptionContextBuilder contextBuilder =
           AnalysisDriverExceptionContextBuilder(
@@ -2415,11 +2411,10 @@ class AnalysisDriver {
     required DriverBasedAnalysisContext? analysisContext,
     required DeclaredVariables declaredVariables,
   }) {
-    var buffer =
-        ApiSignature()
-          ..addInt(DATA_VERSION)
-          ..addBool(enableIndex)
-          ..addBool(enableDebugResolutionMarkers);
+    var buffer = ApiSignature()
+      ..addInt(DATA_VERSION)
+      ..addBool(enableIndex)
+      ..addBool(enableDebugResolutionMarkers);
     _addDeclaredVariablesToSignature(buffer, declaredVariables);
 
     var workspace = analysisContext?.contextRoot.workspace;
@@ -2429,10 +2424,9 @@ class AnalysisDriver {
   }
 
   static Uint32List _calculateSaltForUnlinked({required bool enableIndex}) {
-    var buffer =
-        ApiSignature()
-          ..addInt(DATA_VERSION)
-          ..addBool(enableIndex);
+    var buffer = ApiSignature()
+      ..addInt(DATA_VERSION)
+      ..addBool(enableIndex);
 
     return buffer.toUint32List();
   }

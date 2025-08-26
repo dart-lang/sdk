@@ -640,10 +640,9 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
         _checkStrictInferenceInParameters(node.parameters, body: node.body);
       }
 
-      var overriddenElement =
-          enclosingElement is InterfaceElement
-              ? enclosingElement.getInheritedConcreteMember(name)
-              : null;
+      var overriddenElement = enclosingElement is InterfaceElement
+          ? enclosingElement.getInheritedConcreteMember(name)
+          : null;
 
       if (overriddenElement != null &&
           _hasNonVirtualAnnotation(overriddenElement)) {
@@ -894,22 +893,18 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
       // This case is covered by the ErrorVerifier.
       return;
     }
-    var expressions =
-        node.isSet
-            ? node.elements.whereType<Expression>()
-            : node.elements.whereType<MapLiteralEntry>().map(
-              (entry) => entry.key,
-            );
+    var expressions = node.isSet
+        ? node.elements.whereType<Expression>()
+        : node.elements.whereType<MapLiteralEntry>().map((entry) => entry.key);
     var alreadySeen = <DartObject>{};
     for (var expression in expressions) {
       var constEvaluation = expression.computeConstantValue();
       if (constEvaluation != null && constEvaluation.diagnostics.isEmpty) {
         var value = constEvaluation.value;
         if (value != null && !alreadySeen.add(value)) {
-          var errorCode =
-              node.isSet
-                  ? WarningCode.equalElementsInSet
-                  : WarningCode.equalKeysInMap;
+          var errorCode = node.isSet
+              ? WarningCode.equalElementsInSet
+              : WarningCode.equalKeysInMap;
           _diagnosticReporter.atNode(expression, errorCode);
         }
       }
@@ -1169,10 +1164,9 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
       if (constructorName.name != null) {
         fullConstructorName = '$fullConstructorName.${constructorName.name}';
       }
-      var warning =
-          node.keyword?.keyword == Keyword.NEW
-              ? WarningCode.nonConstCallToLiteralConstructorUsingNew
-              : WarningCode.nonConstCallToLiteralConstructor;
+      var warning = node.keyword?.keyword == Keyword.NEW
+          ? WarningCode.nonConstCallToLiteralConstructorUsingNew
+          : WarningCode.nonConstCallToLiteralConstructor;
       _diagnosticReporter.atNode(
         node,
         warning,
@@ -1458,12 +1452,11 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
       return;
     }
 
-    var implicitlyTypedParameters =
-        parameterList.parameters
-            .map((p) => p.notDefault)
-            .whereType<SimpleFormalParameter>()
-            .where((p) => p.type == null)
-            .toList();
+    var implicitlyTypedParameters = parameterList.parameters
+        .map((p) => p.notDefault)
+        .whereType<SimpleFormalParameter>()
+        .where((p) => p.type == null)
+        .toList();
 
     if (implicitlyTypedParameters.isEmpty) return;
 
@@ -1706,10 +1699,9 @@ class _InvalidAccessVerifier {
     }
     var grandparent = parent?.parent;
 
-    var element =
-        grandparent is ConstructorName
-            ? grandparent.element
-            : identifier.writeOrReadElement;
+    var element = grandparent is ConstructorName
+        ? grandparent.element
+        : identifier.writeOrReadElement;
 
     if (element == null) {
       return;
@@ -1990,8 +1982,8 @@ class _InvalidAccessVerifier {
       if (parent is MethodInvocation && parent.target is SuperExpression ||
           parent is PropertyAccess && parent.target is SuperExpression) {
         var grandparent = parent?.parent;
-        var methodDeclaration =
-            grandparent?.thisOrAncestorOfType<MethodDeclaration>();
+        var methodDeclaration = grandparent
+            ?.thisOrAncestorOfType<MethodDeclaration>();
         if (methodDeclaration?.name.lexeme == name) {
           return;
         }

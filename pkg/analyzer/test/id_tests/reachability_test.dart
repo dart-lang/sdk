@@ -128,8 +128,7 @@ class _ReachabilityDataInterpreter
     return list.join(',');
   }
 
-  List<String> _toStrings(Set<_ReachabilityAssertion> actualData) =>
-      actualData
-          .map((flowAssertion) => flowAssertion.toString().split('.')[1])
-          .toList();
+  List<String> _toStrings(Set<_ReachabilityAssertion> actualData) => actualData
+      .map((flowAssertion) => flowAssertion.toString().split('.')[1])
+      .toList();
 }

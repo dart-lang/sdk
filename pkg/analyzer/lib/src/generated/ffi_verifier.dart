@@ -512,11 +512,9 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
               dartSignature = FunctionTypeImpl.v2(
                 typeParameters: dartSignature.typeParameters,
                 formalParameters: dartSignature.formalParameters,
-                returnType:
-                    ffiVoidType ??=
-                        annotationType.element.library
-                            .getClass('Void')!
-                            .thisType,
+                returnType: ffiVoidType ??= annotationType.element.library
+                    .getClass('Void')!
+                    .thisType,
                 nullabilitySuffix: dartSignature.nullabilitySuffix,
               );
             }
@@ -1000,10 +998,9 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
     Token errorToken,
     NodeList<Annotation> annotations,
   ) {
-    var ffiPackedAnnotations =
-        annotations
-            .where((annotation) => annotation.isAbiSpecificIntegerMapping)
-            .toList();
+    var ffiPackedAnnotations = annotations
+        .where((annotation) => annotation.isAbiSpecificIntegerMapping)
+        .toList();
 
     if (ffiPackedAnnotations.isEmpty) {
       _diagnosticReporter.atToken(
@@ -1050,8 +1047,8 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
         return;
       }
     }
-    var annotationConstant =
-        annotation.elementAnnotation?.computeConstantValue();
+    var annotationConstant = annotation.elementAnnotation
+        ?.computeConstantValue();
     var mappingValues = annotationConstant?.getField('mapping')?.toMapValue();
     if (mappingValues == null) {
       return;
@@ -1298,8 +1295,8 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
       return false;
     }
 
-    var nativeTypeNormalParameterTypes =
-        nativeType.normalParameterTypes.flattenVarArgs();
+    var nativeTypeNormalParameterTypes = nativeType.normalParameterTypes
+        .flattenVarArgs();
 
     // We disallow any optional parameters.
     int parameterCount = dartType.normalParameterTypes.length;
@@ -1520,19 +1517,20 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
         var arrayDimensions = declaredType.arrayDimensions;
         var fieldElement =
             node.fields.variables.first.declaredFragment?.element;
-        var lastElement =
-            (fieldElement?.enclosingElement as ClassElement?)?.fields.reversed
-                .where((field) {
-                  if (field.isStatic) return false;
-                  if (!field.isExternal) {
-                    if (!(field.getter?.isExternal ?? false) &&
-                        !(field.setter?.isExternal ?? false)) {
-                      return false;
-                    }
-                  }
-                  return true;
-                })
-                .firstOrNull;
+        var lastElement = (fieldElement?.enclosingElement as ClassElement?)
+            ?.fields
+            .reversed
+            .where((field) {
+              if (field.isStatic) return false;
+              if (!field.isExternal) {
+                if (!(field.getter?.isExternal ?? false) &&
+                    !(field.setter?.isExternal ?? false)) {
+                  return false;
+                }
+              }
+              return true;
+            })
+            .firstOrNull;
         var isLastField = fieldElement == lastElement;
         _validateSizeOfAnnotation(
           fieldType,
@@ -1766,11 +1764,9 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
                   staticType = FunctionTypeImpl.v2(
                     typeParameters: staticType.typeParameters,
                     formalParameters: staticType.formalParameters,
-                    returnType:
-                        ffiVoidType ??=
-                            annotationType.element.library
-                                .getClass('Void')!
-                                .thisType,
+                    returnType: ffiVoidType ??= annotationType.element.library
+                        .getClass('Void')!
+                        .thisType,
                     nullabilitySuffix: staticType.nullabilitySuffix,
                   );
                 }
@@ -1928,8 +1924,9 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
 
   /// Validate that the [annotations] include at most one packed annotation.
   void _validatePackedAnnotation(NodeList<Annotation> annotations) {
-    var ffiPackedAnnotations =
-        annotations.where((annotation) => annotation.isPacked).toList();
+    var ffiPackedAnnotations = annotations
+        .where((annotation) => annotation.isPacked)
+        .toList();
 
     if (ffiPackedAnnotations.isEmpty) {
       return;
@@ -2036,8 +2033,9 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
     int arrayDimensions,
     bool allowVariableLength,
   ) {
-    var ffiSizeAnnotations =
-        annotations.where((annotation) => annotation.isArray).toList();
+    var ffiSizeAnnotations = annotations
+        .where((annotation) => annotation.isArray)
+        .toList();
 
     if (ffiSizeAnnotations.isEmpty) {
       _diagnosticReporter.atEntity(
@@ -2205,12 +2203,11 @@ extension on ElementAnnotation {
     // Element of `@Array.multi([1, 2, 3])`.
     var listField = value?.getField('dimensions');
     if (listField != null) {
-      var listValues =
-          listField
-              .toListValue()
-              ?.map((dartValue) => dartValue.toIntValue())
-              .whereType<int>()
-              .toList();
+      var listValues = listField
+          .toListValue()
+          ?.map((dartValue) => dartValue.toIntValue())
+          .whereType<int>()
+          .toList();
       if (listValues != null) {
         return (
           [if (variableLength) variableDimension, ...listValues],

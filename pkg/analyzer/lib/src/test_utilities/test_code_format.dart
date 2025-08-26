@@ -151,8 +151,9 @@ class TestCode {
       }
     }
 
-    var unendedRanges =
-        rangeStartOffsets.keys.whereNot(rangeEndOffsets.keys.contains).toList();
+    var unendedRanges = rangeStartOffsets.keys
+        .whereNot(rangeEndOffsets.keys.contains)
+        .toList();
     if (unendedRanges.isNotEmpty) {
       throw ArgumentError(
         'Code contains range starts numbered $unendedRanges without ends',

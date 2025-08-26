@@ -125,10 +125,9 @@ void _validateAssetPath(
     var normalizedEntry = context.joinAll(path.posix.split(pathValue));
     var assetPath = context.join(packageRoot, normalizedEntry);
     if (!_assetExistsAtPath(ctx, assetPath)) {
-      var errorCode =
-          isDirectoryEntry
-              ? PubspecWarningCode.assetDirectoryDoesNotExist
-              : PubspecWarningCode.assetDoesNotExist;
+      var errorCode = isDirectoryEntry
+          ? PubspecWarningCode.assetDirectoryDoesNotExist
+          : PubspecWarningCode.assetDoesNotExist;
       ctx.reportErrorForNode(errorField, errorCode, [pathValue]);
     }
   }

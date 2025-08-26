@@ -233,12 +233,11 @@ class TypesBuilder {
     var element = fragment.element;
 
     var typeSystem = element.library.typeSystem;
-    var interfaces =
-        node.implementsClause?.interfaces
-            .map((e) => e.type)
-            .whereType<InterfaceType>()
-            .where(typeSystem.isValidExtensionTypeSuperinterface)
-            .toFixedList();
+    var interfaces = node.implementsClause?.interfaces
+        .map((e) => e.type)
+        .whereType<InterfaceType>()
+        .where(typeSystem.isValidExtensionTypeSuperinterface)
+        .toFixedList();
     if (interfaces != null) {
       element.interfaces = interfaces;
     }

@@ -100,14 +100,13 @@ Future<void> _analyzeFiles(AnalysisContextCollectionImpl collection) async {
         // We want to be sure that we get elements models.
         var errorsResult = await analysisSession.getErrors(filePath);
         if (errorsResult is ErrorsResult) {
-          var errors =
-              errorsResult.diagnostics
-                  .where(
-                    (element) =>
-                        element.diagnosticCode.type ==
-                        DiagnosticType.COMPILE_TIME_ERROR,
-                  )
-                  .toList();
+          var errors = errorsResult.diagnostics
+              .where(
+                (element) =>
+                    element.diagnosticCode.type ==
+                    DiagnosticType.COMPILE_TIME_ERROR,
+              )
+              .toList();
           if (errors.isNotEmpty) {
             throw StateError('Errors in $filePath\n$errors');
           }
@@ -345,10 +344,9 @@ extension on Analysis {
     required Uri libraryUri,
     required String name,
   }) {
-    var cid =
-        graph.classes.singleWhere((class_) {
-          return class_.libraryUri == libraryUri && class_.name == name;
-        }).classId;
+    var cid = graph.classes.singleWhere((class_) {
+      return class_.libraryUri == libraryUri && class_.name == name;
+    }).classId;
     return filter(objectIds, (object) => object.classId == cid);
   }
 

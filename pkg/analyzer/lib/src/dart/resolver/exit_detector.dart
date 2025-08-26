@@ -400,8 +400,9 @@ class ExitDetector extends GeneralizingAstVisitor<bool> {
   bool visitLabeledStatement(LabeledStatement node) {
     try {
       bool statementExits = _nodeExits(node.statement);
-      bool neverBrokeFromLabel =
-          !_enclosingBlockBreaksLabel.contains(node.statement);
+      bool neverBrokeFromLabel = !_enclosingBlockBreaksLabel.contains(
+        node.statement,
+      );
       return statementExits && neverBrokeFromLabel;
     } finally {
       _enclosingBlockBreaksLabel.remove(node.statement);

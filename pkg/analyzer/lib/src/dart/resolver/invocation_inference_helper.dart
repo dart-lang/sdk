@@ -47,11 +47,11 @@ class ConstructorElementToInfer {
     return typeParameters.isEmpty
         ? element.type
         : FunctionTypeImpl.v2(
-          typeParameters: typeParameters,
-          formalParameters: element.formalParameters,
-          returnType: element.returnType,
-          nullabilitySuffix: NullabilitySuffix.none,
-        );
+            typeParameters: typeParameters,
+            formalParameters: element.formalParameters,
+            returnType: element.returnType,
+            nullabilitySuffix: NullabilitySuffix.none,
+          );
   }
 }
 

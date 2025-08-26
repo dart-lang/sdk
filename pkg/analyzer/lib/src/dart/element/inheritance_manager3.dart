@@ -711,13 +711,13 @@ class InheritanceManager3 {
           substitution,
         );
         if (executable.isExtensionTypeMember) {
-          (extensionCandidates[name] ??= _ExtensionTypeCandidates(name)).add(
-            executable,
-          );
+          (extensionCandidates[name] ??= _ExtensionTypeCandidates(
+            name,
+          )).add(executable);
         } else {
-          (notExtensionCandidates[name] ??= _ExtensionTypeCandidates(name)).add(
-            executable,
-          );
+          (notExtensionCandidates[name] ??= _ExtensionTypeCandidates(
+            name,
+          )).add(executable);
         }
       }
     }
@@ -897,8 +897,10 @@ class InheritanceManager3 {
       overridden: interfaceCandidates,
       redeclared: const {},
       superImplemented: [superInterface],
-      conflicts:
-          <Conflict>[...superConflicts, ...interfaceConflicts].toFixedList(),
+      conflicts: <Conflict>[
+        ...superConflicts,
+        ...interfaceConflicts,
+      ].toFixedList(),
       combinedSignatures: _combinedSignatures.remove(element) ?? {},
     );
   }
@@ -978,10 +980,12 @@ class InheritanceManager3 {
       var resultFragment = MethodFragmentImpl(name: executable.name);
       resultFragment.enclosingFragment = class_.firstFragment;
       resultFragment.isSynthetic = true;
-      resultFragment.formalParameters =
-          transformedParameters.map((e) => e.firstFragment).toList();
-      resultFragment.typeParameters =
-          executable.typeParameters.map((e) => e.firstFragment).toList();
+      resultFragment.formalParameters = transformedParameters
+          .map((e) => e.firstFragment)
+          .toList();
+      resultFragment.typeParameters = executable.typeParameters
+          .map((e) => e.firstFragment)
+          .toList();
 
       var elementName = executable.name!;
       var result = MethodElementImpl(
@@ -1006,8 +1010,9 @@ class InheritanceManager3 {
       var resultFragment = SetterFragmentImpl(name: executable.name);
       resultFragment.enclosingFragment = class_.firstFragment;
       resultFragment.isSynthetic = true;
-      resultFragment.formalParameters =
-          transformedParameters.map((e) => e.firstFragment).toList();
+      resultFragment.formalParameters = transformedParameters
+          .map((e) => e.firstFragment)
+          .toList();
 
       var result = SetterElementImpl(setterReference, resultFragment);
       result.returnType = executable.returnType;
@@ -1070,13 +1075,13 @@ class InheritanceManager3 {
 
       var resultFragment = MethodFragmentImpl(name: fragmentName);
       resultFragment.enclosingFragment = targetClass.firstFragment;
-      resultFragment.typeParameters =
-          resultType.typeParameters.map((e) => e.firstFragment).toList();
+      resultFragment.typeParameters = resultType.typeParameters
+          .map((e) => e.firstFragment)
+          .toList();
       // TODO(scheglov): check if can type cast instead
-      resultFragment.formalParameters =
-          resultType.parameters
-              .map((e) => e.firstFragment as FormalParameterFragmentImpl)
-              .toList();
+      resultFragment.formalParameters = resultType.parameters
+          .map((e) => e.firstFragment as FormalParameterFragmentImpl)
+          .toList();
 
       var elementName = firstElement.name!;
       var resultElement = MethodElementImpl(
@@ -1125,10 +1130,9 @@ class InheritanceManager3 {
       }
       resultFragment.enclosingFragment = targetClass.firstFragment;
       // TODO(scheglov): check if can type cast instead
-      resultFragment.formalParameters =
-          resultType.parameters
-              .map((e) => e.firstFragment as FormalParameterFragmentImpl)
-              .toList();
+      resultFragment.formalParameters = resultType.parameters
+          .map((e) => e.firstFragment as FormalParameterFragmentImpl)
+          .toList();
 
       field.enclosingFragment = targetClass.firstFragment;
 

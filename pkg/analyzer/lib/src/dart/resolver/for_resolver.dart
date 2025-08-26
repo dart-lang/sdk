@@ -105,10 +105,9 @@ class ForResolver {
       return DynamicTypeImpl.instance;
     }
 
-    ClassElement iteratedElement =
-        isAsync
-            ? _resolver.typeProvider.streamElement
-            : _resolver.typeProvider.iterableElement;
+    ClassElement iteratedElement = isAsync
+        ? _resolver.typeProvider.streamElement
+        : _resolver.typeProvider.iterableElement;
 
     var iteratedType = iterableType.asInstanceOf(iteratedElement);
     if (iteratedType == null) {
@@ -164,10 +163,9 @@ class ForResolver {
     }
     InterfaceTypeImpl? targetType;
     if (valueType != null) {
-      targetType =
-          isAsync
-              ? _resolver.typeProvider.streamType(valueType)
-              : _resolver.typeProvider.iterableType(valueType);
+      targetType = isAsync
+          ? _resolver.typeProvider.streamType(valueType)
+          : _resolver.typeProvider.iterableType(valueType);
     }
 
     _resolver.analyzeExpression(
@@ -253,8 +251,8 @@ class ForResolver {
       );
     }
 
-    var deadCodeForPartsState =
-        _resolver.nullSafetyDeadCodeVerifier.for_conditionEnd();
+    var deadCodeForPartsState = _resolver.nullSafetyDeadCodeVerifier
+        .for_conditionEnd();
     _resolver.flowAnalysis.for_bodyBegin(node, condition);
     visitBody();
 

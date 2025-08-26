@@ -271,10 +271,9 @@ class LiteralElementVerifier {
       elementType!,
       strictCasts: _strictCasts,
     )) {
-      var errorCode =
-          forList
-              ? CompileTimeErrorCode.listElementTypeNotAssignable
-              : CompileTimeErrorCode.setElementTypeNotAssignable;
+      var errorCode = forList
+          ? CompileTimeErrorCode.listElementTypeNotAssignable
+          : CompileTimeErrorCode.setElementTypeNotAssignable;
       // Also check for an "implicit tear-off conversion" which would be applied
       // after desugaring a spread element.
       var implicitCallMethod = _errorVerifier.getImplicitCallMethod(

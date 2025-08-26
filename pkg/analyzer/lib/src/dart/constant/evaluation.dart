@@ -847,9 +847,8 @@ class ConstantVisitor extends UnifyingAstVisitor<Constant> {
       }
     }
 
-    var constructorElement =
-        node.constructorName.element?.baseElement
-            .ifTypeOrNull<ConstructorElementImpl>();
+    var constructorElement = node.constructorName.element?.baseElement
+        .ifTypeOrNull<ConstructorElementImpl>();
     if (constructorElement == null) {
       return InvalidConstant.forEntity(
         entity: node,
@@ -1104,8 +1103,8 @@ class ConstantVisitor extends UnifyingAstVisitor<Constant> {
     var nodeType = node.staticType;
     var elementType =
         nodeType is InterfaceTypeImpl && nodeType.typeArguments.isNotEmpty
-            ? nodeType.typeArguments[0]
-            : _typeProvider.dynamicType;
+        ? nodeType.typeArguments[0]
+        : _typeProvider.dynamicType;
     var listType = _typeProvider.listType(elementType);
     var list = <DartObjectImpl>[];
     return _buildListConstant(list, node.elements, typeSystem, listType);
@@ -1389,8 +1388,8 @@ class ConstantVisitor extends UnifyingAstVisitor<Constant> {
       var nodeType = node.staticType;
       var elementType =
           nodeType is InterfaceTypeImpl && nodeType.typeArguments.isNotEmpty
-              ? nodeType.typeArguments[0]
-              : _typeProvider.dynamicType;
+          ? nodeType.typeArguments[0]
+          : _typeProvider.dynamicType;
       var setType = _typeProvider.setType(elementType);
       var set = <DartObjectImpl>{};
       return _buildSetConstant(set, node.elements, typeSystem, setType);
@@ -1909,8 +1908,9 @@ class ConstantVisitor extends UnifyingAstVisitor<Constant> {
     var errorNode2 = _evaluationEngine.configuration.errorNode(errorNode);
     element = element?.baseElement;
 
-    var variableElement =
-        element is PropertyAccessorElement ? element.variable : element;
+    var variableElement = element is PropertyAccessorElement
+        ? element.variable
+        : element;
 
     // TODO(srawlins): Remove this check when [FunctionReference]s are inserted
     // for generic function instantiation for pre-constructor-references code.
@@ -1988,10 +1988,9 @@ class ConstantVisitor extends UnifyingAstVisitor<Constant> {
       var type =
           givenType ??
           variableElement.instantiateImpl(
-            typeArguments:
-                variableElement.typeParameters
-                    .map((t) => _typeProvider.dynamicType)
-                    .toFixedList(),
+            typeArguments: variableElement.typeParameters
+                .map((t) => _typeProvider.dynamicType)
+                .toFixedList(),
             nullabilitySuffix: NullabilitySuffix.none,
           );
       return DartObjectImpl(
@@ -2009,10 +2008,9 @@ class ConstantVisitor extends UnifyingAstVisitor<Constant> {
       var type =
           givenType ??
           variableElement.instantiate(
-            typeArguments:
-                variableElement.typeParameters
-                    .map((t) => t.bound ?? _typeProvider.dynamicType)
-                    .toList(),
+            typeArguments: variableElement.typeParameters
+                .map((t) => t.bound ?? _typeProvider.dynamicType)
+                .toList(),
             nullabilitySuffix: NullabilitySuffix.none,
           );
       return DartObjectImpl(
@@ -2886,8 +2884,9 @@ class _InstanceCreationEvaluator {
           diagnosticCode: CompileTimeErrorCode.constEvalThrowsException,
         );
       }
-      String? variableName =
-          argumentCount < 1 ? null : firstArgument?.toStringValue();
+      String? variableName = argumentCount < 1
+          ? null
+          : firstArgument?.toStringValue();
       if (definingClass == typeProvider.boolElement) {
         // Special cases: https://github.com/dart-lang/sdk/issues/50045
         if (variableName == 'dart.library.js_util' ||
@@ -3145,8 +3144,9 @@ class _InstanceCreationEvaluator {
                   initializerExpression.typeOrThrow,
                   field.type,
                 );
-                var errorNode =
-                    isRuntimeException ? initializerExpression : _errorNode;
+                var errorNode = isRuntimeException
+                    ? initializerExpression
+                    : _errorNode;
                 return _InitializersEvaluationResult(
                   InvalidConstant.forEntity(
                     entity: errorNode,
@@ -3169,12 +3169,11 @@ class _InstanceCreationEvaluator {
             if (evaluationResult.contextMessages.isEmpty) {
               evaluationResult.contextMessages.add(
                 DiagnosticMessageImpl(
-                  filePath:
-                      _constructor
-                          .firstFragment
-                          .libraryFragment
-                          .source
-                          .fullName,
+                  filePath: _constructor
+                      .firstFragment
+                      .libraryFragment
+                      .source
+                      .fullName,
                   length: evaluationResult.length,
                   message:
                       "The error is in the field initializer of "
@@ -3246,9 +3245,8 @@ class _InstanceCreationEvaluator {
                   if (messageConstant.toStringValue() case var assertMessage?) {
                     invalidConstant = InvalidConstant.forEntity(
                       entity: initializer,
-                      diagnosticCode:
-                          CompileTimeErrorCode
-                              .constEvalAssertionFailureWithMessage,
+                      diagnosticCode: CompileTimeErrorCode
+                          .constEvalAssertionFailureWithMessage,
                       arguments: [assertMessage],
                       isRuntimeException: true,
                     );
@@ -3272,12 +3270,11 @@ class _InstanceCreationEvaluator {
             if (evaluationResult.contextMessages.isEmpty) {
               evaluationResult.contextMessages.add(
                 DiagnosticMessageImpl(
-                  filePath:
-                      _constructor
-                          .firstFragment
-                          .libraryFragment
-                          .source
-                          .fullName,
+                  filePath: _constructor
+                      .firstFragment
+                      .libraryFragment
+                      .source
+                      .fullName,
                   length: evaluationResult.length,
                   message:
                       "The error is in the assert initializer of "
@@ -3451,12 +3448,11 @@ class _InstanceCreationEvaluator {
             if (evaluationResult.contextMessages.isEmpty) {
               evaluationResult.contextMessages.add(
                 DiagnosticMessageImpl(
-                  filePath:
-                      _constructor
-                          .firstFragment
-                          .libraryFragment
-                          .source
-                          .fullName,
+                  filePath: _constructor
+                      .firstFragment
+                      .libraryFragment
+                      .source
+                      .fullName,
                   length: evaluationResult.length,
                   message:
                       "The error is in the super constructor invocation "
@@ -3599,10 +3595,9 @@ class _InstanceCreationEvaluator {
         namedNodes[name] = argument;
         namedValues[name] = argumentConstant;
       } else {
-        var parameterType =
-            i < constructor.formalParameters.length
-                ? constructor.formalParameters[i].type
-                : InvalidTypeImpl.instance;
+        var parameterType = i < constructor.formalParameters.length
+            ? constructor.formalParameters[i].type
+            : InvalidTypeImpl.instance;
         var argumentConstant = constantVisitor._valueOf(
           argument,
           parameterType,

@@ -175,14 +175,12 @@ class ExtensionMemberResolver {
       node.typeArgumentTypes!,
     );
 
-    var getterMember =
-        getter != null
-            ? SubstitutedExecutableElementImpl.from(getter, substitution)
-            : null;
-    var setterMember =
-        setter != null
-            ? SubstitutedExecutableElementImpl.from(setter, substitution)
-            : null;
+    var getterMember = getter != null
+        ? SubstitutedExecutableElementImpl.from(getter, substitution)
+        : null;
+    var setterMember = setter != null
+        ? SubstitutedExecutableElementImpl.from(setter, substitution)
+        : null;
 
     return SingleExtensionResolutionResult(
       getter2: getterMember,
@@ -199,8 +197,8 @@ class ExtensionMemberResolver {
     var element = node.element;
     // TODO(paulberry): make this cast unnecessary by changing the type of
     // `ExtensionOverrideImpl.element2`.
-    var typeParameters =
-        element.typeParameters.cast<TypeParameterElementImpl>();
+    var typeParameters = element.typeParameters
+        .cast<TypeParameterElementImpl>();
 
     if (!_isValidContext(node)) {
       if (!_isCascadeTarget(node)) {
@@ -230,13 +228,12 @@ class ExtensionMemberResolver {
       receiverType = _typeSystem.promoteToNonNull(receiverType);
     }
 
-    var typeArgumentTypes =
-        _inferTypeArguments(
-          node,
-          receiverType,
-          dataForTesting: _resolver.inferenceHelper.dataForTesting,
-          nodeForTesting: node,
-        )!;
+    var typeArgumentTypes = _inferTypeArguments(
+      node,
+      receiverType,
+      dataForTesting: _resolver.inferenceHelper.dataForTesting,
+      nodeForTesting: node,
+    )!;
     nodeImpl.typeArgumentTypes = typeArgumentTypes;
 
     var substitution = Substitution.fromPairs2(
@@ -244,10 +241,9 @@ class ExtensionMemberResolver {
       typeArgumentTypes,
     );
 
-    var extendedType =
-        nodeImpl.extendedType = substitution.substituteType(
-          element.extendedType,
-        );
+    var extendedType = nodeImpl.extendedType = substitution.substituteType(
+      element.extendedType,
+    );
 
     _checkTypeArgumentsMatchingBounds(
       typeParameters,
@@ -266,8 +262,9 @@ class ExtensionMemberResolver {
       extendedType,
       strictCasts: _resolver.analysisOptions.strictCasts,
     )) {
-      var whyNotPromoted =
-          whyNotPromotedArguments.isEmpty ? null : whyNotPromotedArguments[0];
+      var whyNotPromoted = whyNotPromotedArguments.isEmpty
+          ? null
+          : whyNotPromotedArguments[0];
       _diagnosticReporter.atNode(
         receiverExpression,
         CompileTimeErrorCode.extensionOverrideArgumentNotAssignable,

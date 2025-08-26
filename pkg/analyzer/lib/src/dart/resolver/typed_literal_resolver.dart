@@ -503,8 +503,9 @@ class TypedLiteralResolver {
     );
 
     // Also use upwards information to infer the type.
-    List<TypeImpl> elementTypes =
-        node.elements.map(_computeElementType).toList();
+    List<TypeImpl> elementTypes = node.elements
+        .map(_computeElementType)
+        .toList();
     var syntheticParameter = FormalParameterElementImpl.synthetic(
       'element',
       genericElementType,

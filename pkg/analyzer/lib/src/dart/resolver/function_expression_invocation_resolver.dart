@@ -106,10 +106,9 @@ class FunctionExpressionInvocationResolver {
           CompileTimeErrorCode.invocationOfNonFunctionExpression,
         );
       }
-      var type =
-          result.isGetterInvalid
-              ? InvalidTypeImpl.instance
-              : DynamicTypeImpl.instance;
+      var type = result.isGetterInvalid
+          ? InvalidTypeImpl.instance
+          : DynamicTypeImpl.instance;
       _unresolved(
         node,
         type,
@@ -172,17 +171,18 @@ class FunctionExpressionInvocationResolver {
     List<WhyNotPromotedGetter> whyNotPromotedArguments, {
     required TypeImpl contextType,
   }) {
-    var returnType = FunctionExpressionInvocationInferrer(
-      resolver: _resolver,
-      node: node,
-      argumentList: node.argumentList,
-      whyNotPromotedArguments: whyNotPromotedArguments,
-      contextType: contextType,
-    ).resolveInvocation(
-      // TODO(paulberry): eliminate this cast by changing the type of
-      // `rawType`.
-      rawType: rawType as FunctionTypeImpl,
-    );
+    var returnType =
+        FunctionExpressionInvocationInferrer(
+          resolver: _resolver,
+          node: node,
+          argumentList: node.argumentList,
+          whyNotPromotedArguments: whyNotPromotedArguments,
+          contextType: contextType,
+        ).resolveInvocation(
+          // TODO(paulberry): eliminate this cast by changing the type of
+          // `rawType`.
+          rawType: rawType as FunctionTypeImpl,
+        );
 
     node.recordStaticType(returnType, resolver: _resolver);
   }
@@ -249,10 +249,9 @@ class FunctionExpressionInvocationResolver {
   ) {
     var typeArguments = node.typeArguments;
     if (typeArguments != null) {
-      node.typeArgumentTypes =
-          typeArguments.arguments
-              .map((typeArgument) => typeArgument.typeOrThrow)
-              .toList();
+      node.typeArgumentTypes = typeArguments.arguments
+          .map((typeArgument) => typeArgument.typeOrThrow)
+          .toList();
     } else {
       node.typeArgumentTypes = const <TypeImpl>[];
     }

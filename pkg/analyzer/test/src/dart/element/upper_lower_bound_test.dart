@@ -1183,7 +1183,8 @@ class LowerBoundTest extends _BoundsTestBase {
     expect(
       result,
       expected,
-      reason: '''
+      reason:
+          '''
 expected: $expectedStr
 actual: $resultStr
 ''',
@@ -1201,7 +1202,8 @@ actual: $resultStr
     expect(
       result,
       expected,
-      reason: '''
+      reason:
+          '''
 expected: $expectedStr
 actual: $resultStr
 ''',
@@ -1385,10 +1387,9 @@ class UpperBound_FunctionTypes_Test extends _BoundsTestBase {
     FunctionTypeImpl build(Map<String, TypeImpl> namedTypes) {
       return functionTypeNone(
         returnType: voidNone,
-        formalParameters:
-            namedTypes.entries.map((entry) {
-              return namedParameter(name: entry.key, type: entry.value);
-            }).toList(),
+        formalParameters: namedTypes.entries.map((entry) {
+          return namedParameter(name: entry.key, type: entry.value);
+        }).toList(),
       );
     }
 
@@ -1416,10 +1417,9 @@ class UpperBound_FunctionTypes_Test extends _BoundsTestBase {
     FunctionTypeImpl build(List<TypeImpl> positionalTypes) {
       return functionTypeNone(
         returnType: voidNone,
-        formalParameters:
-            positionalTypes.map((type) {
-              return positionalParameter(type: type);
-            }).toList(),
+        formalParameters: positionalTypes.map((type) {
+          return positionalParameter(type: type);
+        }).toList(),
       );
     }
 
@@ -1540,10 +1540,9 @@ class UpperBound_FunctionTypes_Test extends _BoundsTestBase {
     FunctionTypeImpl build(List<TypeImpl> requiredTypes) {
       return functionTypeNone(
         returnType: voidNone,
-        formalParameters:
-            requiredTypes.map((type) {
-              return requiredParameter(type: type);
-            }).toList(),
+        formalParameters: requiredTypes.map((type) {
+          return requiredParameter(type: type);
+        }).toList(),
       );
     }
 
@@ -3131,7 +3130,8 @@ class _BoundsTestBase extends AbstractTypeSystemTest with StringTypes {
     expect(
       result,
       expected,
-      reason: '''
+      reason:
+          '''
 expected: $expectedStr
 actual: $resultStr
 ''',
@@ -3147,7 +3147,8 @@ actual: $resultStr
     expect(
       result,
       expected,
-      reason: '''
+      reason:
+          '''
 expected: $expectedStr
 actual: $resultStr
 ''',

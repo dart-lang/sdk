@@ -164,31 +164,29 @@ class _GenerateFragment {
 
 extension on ClassElement {
   _GenerateFragment? get asGenerateFragment {
-    var generateObject =
-        metadata.annotations
-            .map((annotation) {
-              var generateObject = annotation.computeConstantValue();
-              var generateObjectType = generateObject?.type;
-              if (generateObjectType?.element?.name != 'GenerateFragmentImpl') {
-                return null;
-              }
-              return generateObject;
-            })
-            .nonNulls
-            .firstOrNull;
+    var generateObject = metadata.annotations
+        .map((annotation) {
+          var generateObject = annotation.computeConstantValue();
+          var generateObjectType = generateObject?.type;
+          if (generateObjectType?.element?.name != 'GenerateFragmentImpl') {
+            return null;
+          }
+          return generateObject;
+        })
+        .nonNulls
+        .firstOrNull;
     if (generateObject == null) {
       return null;
     }
 
     var modifiersField = generateObject.getField('modifiers')!;
-    var modifiers =
-        modifiersField.toListValue()!.map((modifier) {
-          var variable = modifier.variable!;
-          return _GenerateElementModifier(
-            name: variable.name!,
-            documentationComment: variable.documentationComment,
-          );
-        }).toList();
+    var modifiers = modifiersField.toListValue()!.map((modifier) {
+      var variable = modifier.variable!;
+      return _GenerateElementModifier(
+        name: variable.name!,
+        documentationComment: variable.documentationComment,
+      );
+    }).toList();
     return _GenerateFragment(this, modifiers);
   }
 }

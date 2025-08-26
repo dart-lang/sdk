@@ -368,24 +368,21 @@ class LibraryFragmentScope implements Scope {
       importedLibraries: importedLibrariesContributingExtensions,
     );
 
-    return _extensions =
-        {
-          ...fragment.library.libraryDeclarations.extensions,
-          ...noPrefixScope._extensions,
-          for (var prefix in _prefixElements.values)
-            ...prefix.scope._extensions,
-          ...?parent?.accessibleExtensions,
-        }.toFixedList();
+    return _extensions = {
+      ...fragment.library.libraryDeclarations.extensions,
+      ...noPrefixScope._extensions,
+      for (var prefix in _prefixElements.values) ...prefix.scope._extensions,
+      ...?parent?.accessibleExtensions,
+    }.toFixedList();
   }
 
   List<LibraryElementImpl> get importedLibrariesContributingExtensions {
-    return _importedLibrariesContributingExtensions ??=
-        {
-          ...noPrefixScope._importedLibraries,
-          for (var prefix in _prefixElements.values)
-            ...prefix.scope._importedLibraries,
-          ...?parent?.importedLibrariesContributingExtensions,
-        }.toFixedList();
+    return _importedLibrariesContributingExtensions ??= {
+      ...noPrefixScope._importedLibraries,
+      for (var prefix in _prefixElements.values)
+        ...prefix.scope._importedLibraries,
+      ...?parent?.importedLibrariesContributingExtensions,
+    }.toFixedList();
   }
 
   // TODO(scheglov): this is kludge.
@@ -654,8 +651,9 @@ class PrefixScope implements Scope {
       return;
     }
 
-    var deprecatedSet =
-        isSetter ? _settersFromDeprecatedExport : _gettersFromDeprecatedExport;
+    var deprecatedSet = isSetter
+        ? _settersFromDeprecatedExport
+        : _gettersFromDeprecatedExport;
     var wasFromDeprecatedExport = deprecatedSet?.contains(id) ?? false;
     if (existing == element) {
       if (wasFromDeprecatedExport && !isFromDeprecatedExport) {

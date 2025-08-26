@@ -41,21 +41,21 @@ class ErrorCodeValuesTest {
 
     StringBuffer missingCodes = StringBuffer();
     errorTypeMap.forEach((Type errorType, List<DiagnosticCode> codes) {
-      var listedNames =
-          codes.map((DiagnosticCode code) => code.uniqueName).toSet();
+      var listedNames = codes
+          .map((DiagnosticCode code) => code.uniqueName)
+          .toSet();
 
-      var declaredNames =
-          reflectClass(errorType).declarations.values
-              .map((DeclarationMirror declarationMirror) {
-                String name = declarationMirror.simpleName.toString();
-                // TODO(danrubel): find a better way to extract the text from the symbol
-                assert(name.startsWith('Symbol("') && name.endsWith('")'));
-                return '$errorType.${name.substring(8, name.length - 2)}';
-              })
-              .where((String name) {
-                return name == name.toUpperCase();
-              })
-              .toList();
+      var declaredNames = reflectClass(errorType).declarations.values
+          .map((DeclarationMirror declarationMirror) {
+            String name = declarationMirror.simpleName.toString();
+            // TODO(danrubel): find a better way to extract the text from the symbol
+            assert(name.startsWith('Symbol("') && name.endsWith('")'));
+            return '$errorType.${name.substring(8, name.length - 2)}';
+          })
+          .where((String name) {
+            return name == name.toUpperCase();
+          })
+          .toList();
 
       // Assert that all declared names are in errorCodeValues.
 

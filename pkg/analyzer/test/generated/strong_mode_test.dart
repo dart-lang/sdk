@@ -403,10 +403,14 @@ class StrongModeLocalInferenceTest extends PubPackageResolutionTest {
     var body = constructor.body as BlockFunctionBody;
     var stmt = body.block.statements[0] as ReturnStatement;
     var exp = stmt.expression as InstanceCreationExpression;
-    ClassElement elementB =
-        AstFinder.getClass(unit, "B").declaredFragment!.element;
-    ClassElement elementA =
-        AstFinder.getClass(unit, "A").declaredFragment!.element;
+    ClassElement elementB = AstFinder.getClass(
+      unit,
+      "B",
+    ).declaredFragment!.element;
+    ClassElement elementA = AstFinder.getClass(
+      unit,
+      "A",
+    ).declaredFragment!.element;
     var type = exp.constructorName.type.typeOrThrow as InterfaceType;
     expect(type.element, elementB);
     _isInstantiationOf(_hasElement(elementB))([
@@ -2375,11 +2379,10 @@ MethodInvocation
         _isInstantiationOf(_hasElement(elementF));
 
     {
-      List<Statement> statements =
-          AstFinder.getStatementsInTopLevelFunction(
-            unit,
-            "test0",
-          ).cast<VariableDeclarationStatement>();
+      List<Statement> statements = AstFinder.getStatementsInTopLevelFunction(
+        unit,
+        "test0",
+      ).cast<VariableDeclarationStatement>();
 
       hasType(assertAOf([_isInt, _isString]), rhs(statements[0]));
       hasType(assertAOf([_isInt, _isString]), rhs(statements[0]));
@@ -2391,21 +2394,19 @@ MethodInvocation
     }
 
     {
-      List<Statement> statements =
-          AstFinder.getStatementsInTopLevelFunction(
-            unit,
-            "test1",
-          ).cast<VariableDeclarationStatement>();
+      List<Statement> statements = AstFinder.getStatementsInTopLevelFunction(
+        unit,
+        "test1",
+      ).cast<VariableDeclarationStatement>();
       hasType(assertAOf([_isInt, _isString]), rhs(statements[0]));
       hasType(assertAOf([_isInt, _isString]), rhs(statements[1]));
     }
 
     {
-      List<Statement> statements =
-          AstFinder.getStatementsInTopLevelFunction(
-            unit,
-            "test2",
-          ).cast<VariableDeclarationStatement>();
+      List<Statement> statements = AstFinder.getStatementsInTopLevelFunction(
+        unit,
+        "test2",
+      ).cast<VariableDeclarationStatement>();
       hasType(assertBOf([_isString, _isInt]), rhs(statements[0]));
       hasType(assertBOf([_isString, _isInt]), rhs(statements[1]));
       hasType(assertBOf([_isString, _isInt]), rhs(statements[2]));
@@ -2415,21 +2416,19 @@ MethodInvocation
     }
 
     {
-      List<Statement> statements =
-          AstFinder.getStatementsInTopLevelFunction(
-            unit,
-            "test3",
-          ).cast<VariableDeclarationStatement>();
+      List<Statement> statements = AstFinder.getStatementsInTopLevelFunction(
+        unit,
+        "test3",
+      ).cast<VariableDeclarationStatement>();
       hasType(assertBOf([_isString, _isInt]), rhs(statements[0]));
       hasType(assertBOf([_isString, _isInt]), rhs(statements[1]));
     }
 
     {
-      List<Statement> statements =
-          AstFinder.getStatementsInTopLevelFunction(
-            unit,
-            "test4",
-          ).cast<VariableDeclarationStatement>();
+      List<Statement> statements = AstFinder.getStatementsInTopLevelFunction(
+        unit,
+        "test4",
+      ).cast<VariableDeclarationStatement>();
       hasType(assertCOf([_isInt]), rhs(statements[0]));
       hasType(assertCOf([_isInt]), rhs(statements[1]));
       hasType(assertCOf([_isInt]), rhs(statements[2]));
@@ -2439,11 +2438,10 @@ MethodInvocation
     }
 
     {
-      List<Statement> statements =
-          AstFinder.getStatementsInTopLevelFunction(
-            unit,
-            "test5",
-          ).cast<VariableDeclarationStatement>();
+      List<Statement> statements = AstFinder.getStatementsInTopLevelFunction(
+        unit,
+        "test5",
+      ).cast<VariableDeclarationStatement>();
       hasType(assertCOf([_isInt]), rhs(statements[0]));
       hasType(assertCOf([_isInt]), rhs(statements[1]));
     }
@@ -2452,11 +2450,10 @@ MethodInvocation
       // The first type parameter is not constrained by the
       // context.  We could choose a tighter type, but currently
       // we just use dynamic.
-      List<Statement> statements =
-          AstFinder.getStatementsInTopLevelFunction(
-            unit,
-            "test6",
-          ).cast<VariableDeclarationStatement>();
+      List<Statement> statements = AstFinder.getStatementsInTopLevelFunction(
+        unit,
+        "test6",
+      ).cast<VariableDeclarationStatement>();
       hasType(assertDOf([_isDynamic, _isString]), rhs(statements[0]));
       hasType(assertDOf([_isDynamic, _isString]), rhs(statements[1]));
       hasType(assertDOf([_isInt, _isString]), rhs(statements[2]));
@@ -2466,30 +2463,27 @@ MethodInvocation
     }
 
     {
-      List<Statement> statements =
-          AstFinder.getStatementsInTopLevelFunction(
-            unit,
-            "test7",
-          ).cast<VariableDeclarationStatement>();
+      List<Statement> statements = AstFinder.getStatementsInTopLevelFunction(
+        unit,
+        "test7",
+      ).cast<VariableDeclarationStatement>();
       hasType(assertDOf([_isDynamic, _isString]), rhs(statements[0]));
       hasType(assertDOf([_isDynamic, _isString]), rhs(statements[1]));
     }
 
     {
-      List<Statement> statements =
-          AstFinder.getStatementsInTopLevelFunction(
-            unit,
-            "test8",
-          ).cast<VariableDeclarationStatement>();
+      List<Statement> statements = AstFinder.getStatementsInTopLevelFunction(
+        unit,
+        "test8",
+      ).cast<VariableDeclarationStatement>();
       hasType(assertEOf([_isInt, _isString]), rhs(statements[0]));
     }
 
     {
-      List<Statement> statements =
-          AstFinder.getStatementsInTopLevelFunction(
-            unit,
-            "test9",
-          ).cast<VariableDeclarationStatement>();
+      List<Statement> statements = AstFinder.getStatementsInTopLevelFunction(
+        unit,
+        "test9",
+      ).cast<VariableDeclarationStatement>();
       hasType(assertFOf([_isInt, _isString]), rhs(statements[0]));
       hasType(assertFOf([_isInt, _isString]), rhs(statements[1]));
       hasType(assertFOf([_isInt, _isString]), rhs(statements[2]));
@@ -3347,13 +3341,10 @@ class B<T2, U2> {
   /// Verifies the result has [CompileTimeErrorCode.couldNotInfer] with
   /// the expected [errorMessage].
   void _expectInferenceError(String errorMessage) {
-    var errors =
-        result.diagnostics
-            .where(
-              (e) => e.diagnosticCode == CompileTimeErrorCode.couldNotInfer,
-            )
-            .map((e) => e.message)
-            .toList();
+    var errors = result.diagnostics
+        .where((e) => e.diagnosticCode == CompileTimeErrorCode.couldNotInfer)
+        .map((e) => e.message)
+        .toList();
     expect(errors.length, 1);
     var actual = errors[0];
     expect(
@@ -3372,7 +3363,8 @@ class B<T2, U2> {
     String code, {
     List<ExpectedError> expectedErrors = const [],
   }) async {
-    var fullCode = """
+    var fullCode =
+        """
 import "dart:async";
 
 $code
@@ -3739,10 +3731,9 @@ main() {
     assertType(findElement2.method('f').type, 'List<T> Function<T>(E)');
 
     var cOfString = findElement2.localVar('cOfString');
-    var ft =
-        inheritanceManager
-            .getMember3(cOfString.type as InterfaceType, Name(null, 'f'))!
-            .type;
+    var ft = inheritanceManager
+        .getMember3(cOfString.type as InterfaceType, Name(null, 'f'))!
+        .type;
     assertType(ft, 'List<T> Function<T>(String)');
     assertType(
       ft.instantiate([typeProvider.intType]),
@@ -4044,10 +4035,9 @@ main() {
     );
 
     var cOfString = findElement2.localVar('cOfString');
-    var ft =
-        inheritanceManager
-            .getMember3(cOfString.type as InterfaceType, Name(null, 'f'))!
-            .type;
+    var ft = inheritanceManager
+        .getMember3(cOfString.type as InterfaceType, Name(null, 'f'))!
+        .type;
     assertType(ft, 'List<T> Function<T>(T Function(String))');
     assertType(
       ft.instantiate([typeProvider.intType]),

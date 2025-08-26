@@ -1046,8 +1046,7 @@ $code
   }
 
   void test_visitExportDirective_configurations() {
-    var unit =
-        _parseStringToFindNode(r'''
+    var unit = _parseStringToFindNode(r'''
 export 'foo.dart'
   if (dart.library.io) 'foo_io.dart'
   if (dart.library.html) 'foo_html.dart';
@@ -1962,8 +1961,7 @@ $code
   }
 
   void test_visitImportDirective_configurations() {
-    var unit =
-        _parseStringToFindNode(r'''
+    var unit = _parseStringToFindNode(r'''
 import 'foo.dart'
   if (dart.library.io) 'foo_io.dart'
   if (dart.library.html) 'foo_html.dart';
@@ -2747,8 +2745,7 @@ void f(x) {
   }
 
   void test_visitPartDirective_configurations() {
-    var unit =
-        _parseStringToFindNode(r'''
+    var unit = _parseStringToFindNode(r'''
 part 'foo.dart'
   if (dart.library.io) 'foo_io.dart'
   if (dart.library.html) 'foo_html.dart';
@@ -2769,11 +2766,10 @@ part 'foo.dart'
   }
 
   void test_visitPartOfDirective_name() {
-    var unit =
-        _parseStringToFindNode(
-          'part of l;',
-          featureSet: FeatureSets.language_3_4,
-        ).unit;
+    var unit = _parseStringToFindNode(
+      'part of l;',
+      featureSet: FeatureSets.language_3_4,
+    ).unit;
     var directive = unit.directives[0] as PartOfDirective;
     _assertSource("part of l;", directive);
   }

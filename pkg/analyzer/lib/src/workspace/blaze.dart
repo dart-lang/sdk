@@ -235,8 +235,9 @@ class BlazeWorkspace extends Workspace
     required bool provideLanguageVersion,
   }) : _lookForBuildFileSubstitutes = lookForBuildFileSubstitutes,
        _provideLanguageVersion = provideLanguageVersion,
-       _languageVersion =
-           provideLanguageVersion ? _readLanguageVersion(provider, root) : null;
+       _languageVersion = provideLanguageVersion
+           ? _readLanguageVersion(provider, root)
+           : null;
 
   /// Stream of files that we tried to find along with their potential or actual
   /// paths.

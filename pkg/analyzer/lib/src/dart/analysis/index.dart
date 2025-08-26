@@ -196,10 +196,9 @@ class IndexElementInfo {
           kind = IndexSyntheticElementKind.enumValues;
           element = enclosing;
         } else {
-          kind =
-              accessor is GetterElement
-                  ? IndexSyntheticElementKind.getter
-                  : IndexSyntheticElementKind.setter;
+          kind = accessor is GetterElement
+              ? IndexSyntheticElementKind.getter
+              : IndexSyntheticElementKind.setter;
           element = accessor.variable;
         }
       } else if (element is MethodElement) {
@@ -1054,10 +1053,9 @@ class _IndexContributor extends GeneralizingAstVisitor {
       recordNameRelation(name, IndexRelationKind.IS_INVOKED_BY, isQualified);
     }
     // element invocation
-    IndexRelationKind kind =
-        element is InterfaceElement
-            ? IndexRelationKind.IS_REFERENCED_BY
-            : IndexRelationKind.IS_INVOKED_BY;
+    IndexRelationKind kind = element is InterfaceElement
+        ? IndexRelationKind.IS_REFERENCED_BY
+        : IndexRelationKind.IS_INVOKED_BY;
     recordRelation(element, kind, name, isQualified);
     node.target?.accept(this);
     node.typeArguments?.accept(this);
@@ -1378,10 +1376,9 @@ class _IndexContributor extends GeneralizingAstVisitor {
     while (constructor is ConstructorElementImpl && constructor.isSynthetic) {
       var enclosing = constructor.enclosingElement;
       if (enclosing is ClassElementImpl && enclosing.isMixinApplication) {
-        var superInvocation =
-            constructor.firstFragment.constantInitializers
-                .whereType<SuperConstructorInvocation>()
-                .singleOrNull;
+        var superInvocation = constructor.firstFragment.constantInitializers
+            .whereType<SuperConstructorInvocation>()
+            .singleOrNull;
         if (superInvocation != null) {
           constructor = superInvocation.element;
         }

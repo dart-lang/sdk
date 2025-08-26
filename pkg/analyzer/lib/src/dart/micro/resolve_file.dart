@@ -334,10 +334,9 @@ class FileResolver {
       var bytes = _errorResultsCache.get(errorsKey);
       if (bytes != null) {
         var data = CiderUnitErrors.fromBuffer(bytes);
-        diagnostics =
-            data.errors.map((error) {
-              return ErrorEncoding.decode(file.source, error)!;
-            }).toList();
+        diagnostics = data.errors.map((error) {
+          return ErrorEncoding.decode(file.source, error)!;
+        }).toList();
       } else {
         var unitResult = await resolve(path: path, performance: performance);
         diagnostics = unitResult.diagnostics;
@@ -656,16 +655,15 @@ class FileResolver {
         });
       });
 
-      var resolvedUnits =
-          results.map((fileResult) {
-            var file = fileResult.file;
-            return ResolvedUnitResultImpl(
-              session: contextObjects!.analysisSession,
-              fileState: file,
-              unit: fileResult.unit,
-              diagnostics: fileResult.diagnostics,
-            );
-          }).toList();
+      var resolvedUnits = results.map((fileResult) {
+        var file = fileResult.file;
+        return ResolvedUnitResultImpl(
+          session: contextObjects!.analysisSession,
+          fileState: file,
+          unit: fileResult.unit,
+          diagnostics: fileResult.diagnostics,
+        );
+      }).toList();
 
       var libraryUnit = resolvedUnits.first;
       var result = ResolvedLibraryResultImpl(
@@ -890,16 +888,15 @@ class FileResolver {
       );
       unitResult.unit.accept(visitor);
       var lineInfo = unitResult.lineInfo;
-      var infos =
-          visitor.results
-              .map(
-                (searchResult) => CiderSearchInfo(
-                  lineInfo.getLocation(searchResult.offset),
-                  searchResult.length,
-                  MatchKind.REFERENCE,
-                ),
-              )
-              .toList();
+      var infos = visitor.results
+          .map(
+            (searchResult) => CiderSearchInfo(
+              lineInfo.getLocation(searchResult.offset),
+              searchResult.length,
+              MatchKind.REFERENCE,
+            ),
+          )
+          .toList();
       results.add(CiderSearchMatch(unitPath, infos));
     }
     return results;

@@ -241,8 +241,8 @@ class _PropertyInducingElementTypeInference
     _status = _InferenceStatus.beingInferred;
 
     var enclosingElement = _element.enclosingElement;
-    var enclosingInterfaceElement =
-        enclosingElement.ifTypeOrNull<InterfaceElementImpl>();
+    var enclosingInterfaceElement = enclosingElement
+        .ifTypeOrNull<InterfaceElementImpl>();
 
     var scope = LinkingNodeContext.get(variableDeclaration).scope;
 

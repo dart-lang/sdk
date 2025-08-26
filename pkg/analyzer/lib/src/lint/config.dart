@@ -84,8 +84,9 @@ RuleConfig? _parseRuleConfig(
   // For example: `{unnecessary_getters: false}`.
   if (configKey case YamlScalar(value: String ruleName)) {
     if (configNode case YamlScalar(value: bool isEnabled)) {
-      var severity =
-          isEnabled ? ConfiguredSeverity.enable : ConfiguredSeverity.disable;
+      var severity = isEnabled
+          ? ConfiguredSeverity.enable
+          : ConfiguredSeverity.disable;
       return RuleConfig._(name: ruleName, group: group, severity: severity);
     } else if (configNode case YamlScalar(value: String severityString)) {
       var severity =

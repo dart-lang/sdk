@@ -105,10 +105,9 @@ class DartdocDirectiveInfo {
     }
     if (includeSummary) {
       var full = lines.join('\n');
-      var summary =
-          firstBlankLine == lines.length
-              ? full
-              : lines.getRange(0, firstBlankLine).join('\n').trim();
+      var summary = firstBlankLine == lines.length
+          ? full
+          : lines.getRange(0, firstBlankLine).join('\n').trim();
       return DocumentationWithSummary(full: full, summary: summary);
     }
     return Documentation(full: lines.join('\n'));

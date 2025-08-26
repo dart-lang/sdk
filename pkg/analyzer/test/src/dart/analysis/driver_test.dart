@@ -58,14 +58,11 @@ class AnalysisDriver_BlazeWorkspaceTest extends BlazeWorkspaceResolutionTest {
     var analysisSession = contextFor(innerFile).currentSession;
 
     void assertInnerUri(ResolvedUnitResult result) {
-      var innerSource =
-          result.libraryFragment.libraryImports
-              .map((import) => import.importedLibrary?.firstFragment.source)
-              .nonNulls
-              .where(
-                (importedSource) => importedSource.fullName == innerFile.path,
-              )
-              .single;
+      var innerSource = result.libraryFragment.libraryImports
+          .map((import) => import.importedLibrary?.firstFragment.source)
+          .nonNulls
+          .where((importedSource) => importedSource.fullName == innerFile.path)
+          .single;
       expect(innerSource.uri, innerUri);
     }
 
@@ -137,11 +134,10 @@ class AnalysisDriver_LintTest extends PubPackageResolutionTest
   }
 
   void _assertHasLintReported(List<Diagnostic> diagnostics, String name) {
-    var matching =
-        diagnostics.where((element) {
-          var diagnosticCode = element.diagnosticCode;
-          return diagnosticCode is LintCode && diagnosticCode.name == name;
-        }).toList();
+    var matching = diagnostics.where((element) {
+      var diagnosticCode = element.diagnosticCode;
+      return diagnosticCode is LintCode && diagnosticCode.name == name;
+    }).toList();
     expect(matching, hasLength(1));
   }
 }
@@ -824,11 +820,10 @@ var B = 0;
     driver.priorityFiles2 = [a];
     driver.addFile2(a);
 
-    configuration.libraryConfiguration.unitConfiguration.nodeSelector = (
-      result,
-    ) {
-      return result.findNode.simple('B;');
-    };
+    configuration.libraryConfiguration.unitConfiguration.nodeSelector =
+        (result) {
+          return result.findNode.simple('B;');
+        };
 
     // We have a result only for "a".
     // The type of `B` is `int`.
@@ -1214,19 +1209,17 @@ final B1 = A1;
     driver.addFile2(a);
     driver.addFile2(b);
 
-    configuration
-        .libraryConfiguration
-        .unitConfiguration
-        .variableTypesSelector = (result) {
-      return switch (result.uriStr) {
-        'package:test/a.dart' => [
-          result.findElement2.topVar('A1'),
-          result.findElement2.topVar('A2'),
-        ],
-        'package:test/b.dart' => [result.findElement2.topVar('B1')],
-        _ => [],
-      };
-    };
+    configuration.libraryConfiguration.unitConfiguration.variableTypesSelector =
+        (result) {
+          return switch (result.uriStr) {
+            'package:test/a.dart' => [
+              result.findElement2.topVar('A1'),
+              result.findElement2.topVar('A2'),
+            ],
+            'package:test/b.dart' => [result.findElement2.topVar('B1')],
+            _ => [],
+          };
+        };
 
     // We have results for both "a" and "b".
     await assertEventsText(collector, r'''
@@ -1301,17 +1294,15 @@ final A2 = B1;
     driver.addFile2(a);
     driver.priorityFiles2 = [a];
 
-    configuration
-        .libraryConfiguration
-        .unitConfiguration
-        .variableTypesSelector = (result) {
-      switch (result.uriStr) {
-        case 'package:test/a.dart':
-          return [result.findElement2.topVar('V')];
-        default:
-          return [];
-      }
-    };
+    configuration.libraryConfiguration.unitConfiguration.variableTypesSelector =
+        (result) {
+          switch (result.uriStr) {
+            case 'package:test/a.dart':
+              return [result.findElement2.topVar('V')];
+            default:
+              return [];
+          }
+        };
 
     // Initial analysis.
     await assertEventsText(collector, r'''
@@ -2640,12 +2631,10 @@ final foo = 0;
     var driver = driverFor(testFile);
     var collector = DriverEventCollector(driver);
 
-    configuration
-        .libraryConfiguration
-        .unitConfiguration
-        .variableTypesSelector = (result) {
-      return [result.findElement2.topVar('foo')];
-    };
+    configuration.libraryConfiguration.unitConfiguration.variableTypesSelector =
+        (result) {
+          return [result.findElement2.topVar('foo')];
+        };
 
     // The extension of the file does not matter.
     // If asked, we analyze it as Dart.
@@ -3063,17 +3052,15 @@ final B = A;
     var driver = driverFor(testFile);
     var collector = DriverEventCollector(driver);
 
-    configuration
-        .libraryConfiguration
-        .unitConfiguration
-        .variableTypesSelector = (result) {
-      switch (result.uriStr) {
-        case 'package:test/b.dart':
-          return [result.findElement2.topVar('B')];
-        default:
-          return [];
-      }
-    };
+    configuration.libraryConfiguration.unitConfiguration.variableTypesSelector =
+        (result) {
+          switch (result.uriStr) {
+            case 'package:test/b.dart':
+              return [result.findElement2.topVar('B')];
+            default:
+              return [];
+          }
+        };
 
     collector.getResolvedUnit('B1', b);
     await assertEventsText(collector, r'''
@@ -3202,17 +3189,15 @@ import 'b.dart';
     driver.addFile2(a);
     driver.priorityFiles2 = [a];
 
-    configuration
-        .libraryConfiguration
-        .unitConfiguration
-        .variableTypesSelector = (result) {
-      switch (result.uriStr) {
-        case 'package:test/a.dart':
-          return [result.findElement2.topVar('V')];
-        default:
-          return [];
-      }
-    };
+    configuration.libraryConfiguration.unitConfiguration.variableTypesSelector =
+        (result) {
+          switch (result.uriStr) {
+            case 'package:test/a.dart':
+              return [result.findElement2.topVar('V')];
+            default:
+              return [];
+          }
+        };
 
     // Initial analysis.
     await assertEventsText(collector, r'''
@@ -4689,19 +4674,17 @@ final B = 0;
     driver.addFile2(a);
     driver.addFile2(b);
 
-    configuration
-        .libraryConfiguration
-        .unitConfiguration
-        .variableTypesSelector = (result) {
-      switch (result.uriStr) {
-        case 'package:test/a.dart':
-          return [result.findElement2.topVar('A')];
-        case 'package:test/b.dart':
-          return [result.findElement2.topVar('B')];
-        default:
-          return [];
-      }
-    };
+    configuration.libraryConfiguration.unitConfiguration.variableTypesSelector =
+        (result) {
+          switch (result.uriStr) {
+            case 'package:test/a.dart':
+              return [result.findElement2.topVar('A')];
+            case 'package:test/b.dart':
+              return [result.findElement2.topVar('B')];
+            default:
+              return [];
+          }
+        };
 
     // We have results for both `a` and `b`.
     await assertEventsText(collector, r'''

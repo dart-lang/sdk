@@ -262,8 +262,9 @@ class MethodInvocationResolver with ScopeHelpers {
   }) {
     _invocation = node;
 
-    TypeImpl dotShorthandContextType =
-        _resolver.getDotShorthandContext().unwrapTypeSchemaView();
+    TypeImpl dotShorthandContextType = _resolver
+        .getDotShorthandContext()
+        .unwrapTypeSchemaView();
 
     // The static namespace denoted by `S` is also the namespace denoted by
     // `FutureOr<S>`.
@@ -1466,8 +1467,9 @@ class MethodInvocationResolver with ScopeHelpers {
     var typeArgumentList = _invocation!.typeArguments;
     if (typeArgumentList != null) {
       var arguments = typeArgumentList.arguments;
-      _invocation!.typeArgumentTypes =
-          arguments.map((n) => n.typeOrThrow).toList();
+      _invocation!.typeArgumentTypes = arguments
+          .map((n) => n.typeOrThrow)
+          .toList();
     } else {
       _invocation!.typeArgumentTypes = [];
     }

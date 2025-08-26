@@ -1167,12 +1167,11 @@ class RequirementsManifest {
   }
 
   void _addExports(LibraryElementImpl libraryElement) {
-    var declaredTopNames =
-        libraryElement.children
-            .map((element) => element.lookupName)
-            .nonNulls
-            .map((nameStr) => nameStr.asLookupName)
-            .toSet();
+    var declaredTopNames = libraryElement.children
+        .map((element) => element.lookupName)
+        .nonNulls
+        .map((nameStr) => nameStr.asLookupName)
+        .toSet();
 
     var fragments = <ExportRequirement>[];
 
@@ -1185,19 +1184,18 @@ class RequirementsManifest {
           continue;
         }
 
-        var combinators =
-            export.combinators.map((combinator) {
-              switch (combinator) {
-                case HideElementCombinator():
-                  return ExportRequirementHideCombinator(
-                    hiddenBaseNames: combinator.hiddenNames.toBaseNameSet(),
-                  );
-                case ShowElementCombinator():
-                  return ExportRequirementShowCombinator(
-                    shownBaseNames: combinator.shownNames.toBaseNameSet(),
-                  );
-              }
-            }).toList();
+        var combinators = export.combinators.map((combinator) {
+          switch (combinator) {
+            case HideElementCombinator():
+              return ExportRequirementHideCombinator(
+                hiddenBaseNames: combinator.hiddenNames.toBaseNameSet(),
+              );
+            case ShowElementCombinator():
+              return ExportRequirementShowCombinator(
+                shownBaseNames: combinator.shownNames.toBaseNameSet(),
+              );
+          }
+        }).toList();
 
         // SAFETY: every library has the manifest.
         var manifest = exportedLibrary.manifest!;
@@ -1267,8 +1265,8 @@ class RequirementsManifest {
     // SAFETY: every instance element must be in the manifest.
     instanceItem as InstanceItem;
 
-    var requirements =
-        instancesMap[instanceName] ??= InstanceItemRequirements.empty();
+    var requirements = instancesMap[instanceName] ??=
+        InstanceItemRequirements.empty();
 
     return _InstanceItemWithRequirements(
       item: instanceItem,
@@ -1304,8 +1302,8 @@ class RequirementsManifest {
     // SAFETY: every interface element must be in the manifest.
     interfaceItem as InterfaceItem;
 
-    var requirements =
-        interfacesMap[interfaceName] ??= InterfaceItemRequirements.empty();
+    var requirements = interfacesMap[interfaceName] ??=
+        InterfaceItemRequirements.empty();
     return _InterfaceItemWithRequirements(
       item: interfaceItem,
       requirements: requirements,

@@ -360,8 +360,9 @@ class Foo {
 }
 ''');
     var classDeclaration = unit.declarations.first as ClassDeclaration;
-    var constructor =
-        classDeclaration.members.whereType<ConstructorDeclaration>().single;
+    var constructor = classDeclaration.members
+        .whereType<ConstructorDeclaration>()
+        .single;
 
     // Object? o
     var parameter =
@@ -406,8 +407,9 @@ class Foo {
 }
 ''');
     var classDeclaration = unit.declarations.first as ClassDeclaration;
-    var constructor =
-        classDeclaration.members.whereType<ConstructorDeclaration>().single;
+    var constructor = classDeclaration.members
+        .whereType<ConstructorDeclaration>()
+        .single;
 
     // Object? o
     var parameter =
@@ -459,8 +461,9 @@ class Foo {
 }
 ''');
     var classDeclaration = unit.declarations.first as ClassDeclaration;
-    var constructor =
-        classDeclaration.members.whereType<ConstructorDeclaration>().single;
+    var constructor = classDeclaration.members
+        .whereType<ConstructorDeclaration>()
+        .single;
 
     // Object? o
     var parameter =

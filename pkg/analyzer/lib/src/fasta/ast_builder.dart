@@ -2536,10 +2536,9 @@ class AstBuilder extends StackListener {
         startToken: libraryKeyword,
       );
     }
-    var name =
-        libraryName == null
-            ? null
-            : LibraryIdentifierImpl(components: libraryName);
+    var name = libraryName == null
+        ? null
+        : LibraryIdentifierImpl(components: libraryName);
     var metadata = pop() as List<AnnotationImpl>?;
     var comment = _findComment(metadata, libraryKeyword);
     directives.add(
@@ -2668,8 +2667,9 @@ class AstBuilder extends StackListener {
     debugEvent("Metadata");
 
     var invocation = pop() as MethodInvocationImpl?;
-    var constructorName =
-        periodBeforeName != null ? pop() as SimpleIdentifierImpl : null;
+    var constructorName = periodBeforeName != null
+        ? pop() as SimpleIdentifierImpl
+        : null;
     var typeArguments = pop() as TypeArgumentListImpl?;
     if (typeArguments != null &&
         !_featureSet.isEnabled(Feature.generic_metadata)) {
@@ -4110,15 +4110,13 @@ class AstBuilder extends StackListener {
         exceptionType: type,
         catchKeyword: catchKeyword,
         leftParenthesis: catchParameterList?.leftParenthesis,
-        exceptionParameter:
-            exception != null
-                ? CatchClauseParameterImpl(name: exception)
-                : null,
+        exceptionParameter: exception != null
+            ? CatchClauseParameterImpl(name: exception)
+            : null,
         comma: comma,
-        stackTraceParameter:
-            stackTrace != null
-                ? CatchClauseParameterImpl(name: stackTrace)
-                : null,
+        stackTraceParameter: stackTrace != null
+            ? CatchClauseParameterImpl(name: stackTrace)
+            : null,
         rightParenthesis: catchParameterList?.rightParenthesis,
         body: body,
       ),
@@ -4382,10 +4380,9 @@ class AstBuilder extends StackListener {
             tmpConstructor != null &&
                 (tmpConstructor.type.typeArguments != null ||
                     tmpConstructor.name != null))) {
-      Token token =
-          tmpArguments != null
-              ? tmpArguments.argumentList.beginToken
-              : tmpConstructor!.beginToken;
+      Token token = tmpArguments != null
+          ? tmpArguments.argumentList.beginToken
+          : tmpConstructor!.beginToken;
       _reportFeatureNotEnabled(
         feature: ExperimentalFeatures.enhanced_enums,
         startToken: token,
@@ -4468,12 +4465,11 @@ class AstBuilder extends StackListener {
         (withClause != null ||
             implementsClause != null ||
             typeParameters != null)) {
-      var token =
-          withClause != null
-              ? withClause.withKeyword
-              : implementsClause != null
-              ? implementsClause.implementsKeyword
-              : typeParameters!.beginToken;
+      var token = withClause != null
+          ? withClause.withKeyword
+          : implementsClause != null
+          ? implementsClause.implementsKeyword
+          : typeParameters!.beginToken;
       _reportFeatureNotEnabled(
         feature: ExperimentalFeatures.enhanced_enums,
         startToken: token,
@@ -6249,8 +6245,9 @@ class AstBuilder extends StackListener {
     SimpleIdentifierImpl setterName,
     FormalParameterListImpl? formalParameters,
   ) {
-    formalParameters ??=
-        throw StateError('Parser has recovery, this never happens.');
+    formalParameters ??= throw StateError(
+      'Parser has recovery, this never happens.',
+    );
 
     var valueFormalParameter = formalParameters.parameters.firstOrNull;
     if (valueFormalParameter == null) {

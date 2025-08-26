@@ -407,18 +407,17 @@ class FunctionReferenceResolver {
     SimpleIdentifier methodName,
     FunctionTypeImpl receiverType,
   ) {
-    var methodElement =
-        _resolver.typePropertyResolver
-            .resolve(
-              receiver: receiver,
-              receiverType: receiverType,
-              name: methodName.name,
-              hasRead: true,
-              hasWrite: false,
-              propertyErrorEntity: methodName,
-              nameErrorEntity: methodName,
-            )
-            .getter2;
+    var methodElement = _resolver.typePropertyResolver
+        .resolve(
+          receiver: receiver,
+          receiverType: receiverType,
+          name: methodName.name,
+          hasRead: true,
+          hasWrite: false,
+          propertyErrorEntity: methodName,
+          nameErrorEntity: methodName,
+        )
+        .getter2;
     if (methodElement != null && methodElement.isStatic) {
       _reportInvalidAccessToStaticMember(
         methodName,
@@ -450,9 +449,9 @@ class FunctionReferenceResolver {
     function.prefix.setPseudoExpressionStaticType(
       prefixElement is PromotableElementImpl
           ? _resolver.localVariableTypeProvider.getType(
-            function.prefix,
-            isRead: true,
-          )
+              function.prefix,
+              isRead: true,
+            )
           : prefixElement.referenceType,
     );
     var functionName = function.identifier.name;
@@ -587,18 +586,17 @@ class FunctionReferenceResolver {
       return;
     }
 
-    var propertyElement =
-        _resolver.typePropertyResolver
-            .resolve(
-              receiver: function.realTarget,
-              receiverType: targetType,
-              name: function.propertyName.name,
-              hasRead: true,
-              hasWrite: false,
-              propertyErrorEntity: function.propertyName,
-              nameErrorEntity: function,
-            )
-            .getter2;
+    var propertyElement = _resolver.typePropertyResolver
+        .resolve(
+          receiver: function.realTarget,
+          receiverType: targetType,
+          name: function.propertyName.name,
+          hasRead: true,
+          hasWrite: false,
+          propertyErrorEntity: function.propertyName,
+          nameErrorEntity: function,
+        )
+        .getter2;
 
     if (propertyElement is TypeParameterElement) {
       _resolve(node: node, rawType: propertyElement!.type);
@@ -928,18 +926,17 @@ class FunctionReferenceResolver {
       return element?.referenceType;
     }
 
-    var element =
-        _resolver.typePropertyResolver
-            .resolve(
-              receiver: receiver,
-              receiverType: receiverType,
-              name: name.name,
-              hasRead: true,
-              hasWrite: false,
-              propertyErrorEntity: name,
-              nameErrorEntity: nameErrorEntity,
-            )
-            .getter2;
+    var element = _resolver.typePropertyResolver
+        .resolve(
+          receiver: receiver,
+          receiverType: receiverType,
+          name: name.name,
+          hasRead: true,
+          hasWrite: false,
+          propertyErrorEntity: name,
+          nameErrorEntity: nameErrorEntity,
+        )
+        .getter2;
     name.element = element;
     if (element != null && element.isStatic) {
       _reportInvalidAccessToStaticMember(

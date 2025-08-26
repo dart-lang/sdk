@@ -176,11 +176,13 @@ part of ${json.encode(file.parentLibrary)};
       constructor.writeln(');');
       memberAccumulator.constructors[''] = constructor.toString();
 
-      memberAccumulator.accessors['severity'] = '''
+      memberAccumulator.accessors['severity'] =
+          '''
 @override
 DiagnosticSeverity get severity => ${errorClass.severityCode};
 ''';
-      memberAccumulator.accessors['type'] = '''
+      memberAccumulator.accessors['type'] =
+          '''
 @override
 DiagnosticType get type => ${errorClass.typeCode};
 ''';
@@ -200,8 +202,8 @@ DiagnosticType get type => ${errorClass.typeCode};
   void _generateFastaAnalyzerErrorCodeList() {
     out.writeln('final fastaAnalyzerErrorCodes = <DiagnosticCode?>[');
     for (var entry in cfeToAnalyzerErrorCodeTables.indexToInfo) {
-      var name =
-          cfeToAnalyzerErrorCodeTables.infoToAnalyzerCode[entry]?.toCamelCase();
+      var name = cfeToAnalyzerErrorCodeTables.infoToAnalyzerCode[entry]
+          ?.toCamelCase();
       out.writeln('${name == null ? 'null' : 'ParserErrorCode.$name'},');
     }
     out.writeln('];');
@@ -211,10 +213,9 @@ DiagnosticType get type => ${errorClass.typeCode};
     ErrorClassInfo errorClass, {
     required bool withArguments,
   }) {
-    var className =
-        withArguments
-            ? errorClass.templateName
-            : errorClass.withoutArgumentsName;
+    var className = withArguments
+        ? errorClass.templateName
+        : errorClass.withoutArgumentsName;
     out.writeln('final class $className');
     if (withArguments) out.writeln('<T extends Function>');
     out.writeln('    extends ${errorClass.name}');
@@ -309,20 +310,18 @@ class _SyntacticErrorGenerator {
       join(pkg_root.packageRoot, '_fe_analyzer_shared'),
     );
 
-    String errorConverterSource =
-        File(
-          join(
-            analyzerPkgPath,
-            joinAll(posix.split('lib/src/fasta/error_converter.dart')),
-          ),
-        ).readAsStringSync();
-    String parserSource =
-        File(
-          join(
-            frontEndSharedPkgPath,
-            joinAll(posix.split('lib/src/parser/parser.dart')),
-          ),
-        ).readAsStringSync();
+    String errorConverterSource = File(
+      join(
+        analyzerPkgPath,
+        joinAll(posix.split('lib/src/fasta/error_converter.dart')),
+      ),
+    ).readAsStringSync();
+    String parserSource = File(
+      join(
+        frontEndSharedPkgPath,
+        joinAll(posix.split('lib/src/parser/parser.dart')),
+      ),
+    ).readAsStringSync();
 
     return _SyntacticErrorGenerator._(errorConverterSource, parserSource);
   }

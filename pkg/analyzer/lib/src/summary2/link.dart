@@ -271,11 +271,10 @@ class Linker {
   /// We actually use it only for classes (which can have `const` constructors),
   /// but mixins contribute to it.
   void _computeHasNonFinalField() {
-    var linkingElements =
-        builders.values
-            .expand((builder) => builder.element.children)
-            .whereType<InterfaceElementImpl>()
-            .toSet();
+    var linkingElements = builders.values
+        .expand((builder) => builder.element.children)
+        .whereType<InterfaceElementImpl>()
+        .toSet();
 
     var alreadyComputed = Set<InterfaceElementImpl>.identity();
 

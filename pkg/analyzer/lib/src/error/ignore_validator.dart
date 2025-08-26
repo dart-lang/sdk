@@ -14,8 +14,9 @@ import 'package:analyzer/src/lint/registry.dart';
 class IgnoreValidator {
   /// A list of known diagnostic codes used to ensure we don't over-report
   /// `unnecessary_ignore`s on error codes that may be contributed by a plugin.
-  static final Set<String> _validDiagnosticCodeNames =
-      diagnosticCodeValues.map((d) => d.name.toLowerCase()).toSet();
+  static final Set<String> _validDiagnosticCodeNames = diagnosticCodeValues
+      .map((d) => d.name.toLowerCase())
+      .toSet();
 
   /// Diagnostic codes used to report `unnecessary_ignore`s.
   ///
@@ -263,15 +264,13 @@ class IgnoreValidator {
 
         late DiagnosticCode lintCode;
         if (forFile) {
-          lintCode =
-              diagnosticsOnLine > 1
-                  ? unnecessaryIgnoreNameFileLintCode
-                  : unnecessaryIgnoreFileLintCode;
+          lintCode = diagnosticsOnLine > 1
+              ? unnecessaryIgnoreNameFileLintCode
+              : unnecessaryIgnoreFileLintCode;
         } else {
-          lintCode =
-              diagnosticsOnLine > 1
-                  ? unnecessaryIgnoreNameLocationLintCode
-                  : unnecessaryIgnoreLocationLintCode;
+          lintCode = diagnosticsOnLine > 1
+              ? unnecessaryIgnoreNameLocationLintCode
+              : unnecessaryIgnoreLocationLintCode;
         }
 
         _diagnosticReporter.atOffset(

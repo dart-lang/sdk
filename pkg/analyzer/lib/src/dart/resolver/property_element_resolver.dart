@@ -51,8 +51,9 @@ class PropertyElementResolver with ScopeHelpers {
       );
     }
 
-    TypeImpl context =
-        _resolver.getDotShorthandContext().unwrapTypeSchemaView();
+    TypeImpl context = _resolver
+        .getDotShorthandContext()
+        .unwrapTypeSchemaView();
 
     // The static namespace denoted by `S` is also the namespace denoted by
     // `FutureOr<S>`.
@@ -595,7 +596,7 @@ class PropertyElementResolver with ScopeHelpers {
                 node,
                 isCascaded
                     ? CascadePropertyTarget.singleton
-                        as PropertyTarget<ExpressionImpl>
+                          as PropertyTarget<ExpressionImpl>
                     : ExpressionPropertyTarget(target),
                 propertyName.name,
                 result.getter2,
@@ -813,10 +814,9 @@ class PropertyElementResolver with ScopeHelpers {
             arguments: [propertyName.name, typeReference.name!],
           );
         } else {
-          var code =
-              typeReference is EnumElement
-                  ? CompileTimeErrorCode.undefinedEnumConstant
-                  : CompileTimeErrorCode.undefinedGetter;
+          var code = typeReference is EnumElement
+              ? CompileTimeErrorCode.undefinedEnumConstant
+              : CompileTimeErrorCode.undefinedGetter;
           diagnosticReporter.atNode(
             propertyName,
             code,
@@ -1022,10 +1022,9 @@ class PropertyElementResolver with ScopeHelpers {
     var readElement = result.getter2;
     var writeElement = result.setter2;
 
-    var contextType =
-        hasRead
-            ? readElement?.firstParameterType
-            : writeElement?.firstParameterType;
+    var contextType = hasRead
+        ? readElement?.firstParameterType
+        : writeElement?.firstParameterType;
 
     return PropertyElementResolverResult(
       atDynamicTarget: atDynamicTarget,

@@ -46,15 +46,11 @@ class ReplaceTopBottomVisitor {
   TypeImpl _functionType(FunctionTypeImpl type, Variance variance) {
     var newReturnType = process(type.returnType, variance);
 
-    var newParameters =
-        type.formalParameters.map((parameter) {
-          return parameter.copyWith(
-            type: process(
-              parameter.type,
-              variance.combine(Variance.contravariant),
-            ),
-          );
-        }).toList();
+    var newParameters = type.formalParameters.map((parameter) {
+      return parameter.copyWith(
+        type: process(parameter.type, variance.combine(Variance.contravariant)),
+      );
+    }).toList();
 
     return FunctionTypeImpl.v2(
       typeParameters: type.typeParameters,

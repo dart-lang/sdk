@@ -432,10 +432,9 @@ class FolderBasedDartSdk extends AbstractDartSdk {
   @override
   Version get languageVersion {
     if (_languageVersion == null) {
-      var sdkVersionStr =
-          _sdkDirectory
-              .getChildAssumingFile(_versionFileName)
-              .readAsStringSync();
+      var sdkVersionStr = _sdkDirectory
+          .getChildAssumingFile(_versionFileName)
+          .readAsStringSync();
       _languageVersion = languageVersionFromSdkVersion(sdkVersionStr);
     }
 

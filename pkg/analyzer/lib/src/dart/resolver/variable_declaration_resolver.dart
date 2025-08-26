@@ -50,9 +50,9 @@ class VariableDeclarationResolver {
 
     var contextType =
         element is! PropertyInducingElementImpl ||
-                element.shouldUseTypeForInitializerInference
-            ? element.type
-            : UnknownInferredType.instance;
+            element.shouldUseTypeForInitializerInference
+        ? element.type
+        : UnknownInferredType.instance;
     _resolver.analyzeExpression(initializer, SharedTypeSchemaView(contextType));
     initializer = _resolver.popRewrite()!;
     var whyNotPromoted = _resolver.flowAnalysis.flow?.whyNotPromoted(
@@ -61,10 +61,9 @@ class VariableDeclarationResolver {
 
     var initializerType = initializer.typeOrThrow;
     if (parent.type == null && element is LocalVariableElementImpl) {
-      element.type =
-          _resolver
-              .variableTypeFromInitializerType(SharedTypeView(initializerType))
-              .unwrapTypeView();
+      element.type = _resolver
+          .variableTypeFromInitializerType(SharedTypeView(initializerType))
+          .unwrapTypeView();
     }
 
     if (isTopLevel) {

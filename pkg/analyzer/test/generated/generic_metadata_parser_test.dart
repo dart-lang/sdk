@@ -27,8 +27,9 @@ class GenericMetadataDisabledParserTest extends FastaParserTestCase
     List<ExpectedError>? errors,
     required ExpectedError? disabledError,
   }) {
-    var combinedErrors =
-        disabledError == null ? errors : [disabledError, ...?errors];
+    var combinedErrors = disabledError == null
+        ? errors
+        : [disabledError, ...?errors];
     return parseCompilationUnit(
       content,
       errors: combinedErrors,

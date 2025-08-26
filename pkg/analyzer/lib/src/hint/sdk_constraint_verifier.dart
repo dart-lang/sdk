@@ -50,9 +50,9 @@ class SdkConstraintVerifier extends RecursiveAstVisitor<void> {
 
   /// Return `true` if references to the constant-update-2018 features need to
   /// be checked.
-  bool get checkTripleShift =>
-      _checkTripleShift ??=
-          !before_2_14_0.intersect(_versionConstraint).isEmpty;
+  bool get checkTripleShift => _checkTripleShift ??= !before_2_14_0
+      .intersect(_versionConstraint)
+      .isEmpty;
 
   @override
   void visitArgumentList(ArgumentList node) {

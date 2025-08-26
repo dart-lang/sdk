@@ -240,10 +240,9 @@ class BaseOrFinalTypeVerifier {
         superElement.isSealed &&
         baseOrFinalSuperElement.library != element.library) {
       if (baseOrFinalSuperElement.isBase) {
-        var errorCode =
-            baseOrFinalSuperElement is MixinElement
-                ? CompileTimeErrorCode.baseMixinImplementedOutsideOfLibrary
-                : CompileTimeErrorCode.baseClassImplementedOutsideOfLibrary;
+        var errorCode = baseOrFinalSuperElement is MixinElement
+            ? CompileTimeErrorCode.baseMixinImplementedOutsideOfLibrary
+            : CompileTimeErrorCode.baseClassImplementedOutsideOfLibrary;
         _diagnosticReporter.atNode(
           implementsNamedType,
           errorCode,
@@ -276,10 +275,9 @@ class BaseOrFinalTypeVerifier {
             return false;
           }
         }
-        var errorCode =
-            element is MixinElement
-                ? CompileTimeErrorCode.mixinSubtypeOfFinalIsNotBase
-                : CompileTimeErrorCode.subtypeOfFinalIsNotBaseFinalOrSealed;
+        var errorCode = element is MixinElement
+            ? CompileTimeErrorCode.mixinSubtypeOfFinalIsNotBase
+            : CompileTimeErrorCode.subtypeOfFinalIsNotBaseFinalOrSealed;
         _diagnosticReporter.atElement2(
           element,
           errorCode,
@@ -288,10 +286,9 @@ class BaseOrFinalTypeVerifier {
         );
         return true;
       } else if (baseOrFinalSuperElement.isBase) {
-        var errorCode =
-            element is MixinElement
-                ? CompileTimeErrorCode.mixinSubtypeOfBaseIsNotBase
-                : CompileTimeErrorCode.subtypeOfBaseIsNotBaseFinalOrSealed;
+        var errorCode = element is MixinElement
+            ? CompileTimeErrorCode.mixinSubtypeOfBaseIsNotBase
+            : CompileTimeErrorCode.subtypeOfBaseIsNotBaseFinalOrSealed;
         _diagnosticReporter.atElement2(
           element,
           errorCode,

@@ -97,10 +97,9 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
          declaredVariables: declaredVariables,
          configuration: ConstantEvaluationConfiguration(),
        ),
-       exhaustivenessDataForTesting =
-           retainDataForTesting
-               ? ExhaustivenessDataForTesting(_exhaustivenessCache)
-               : null;
+       exhaustivenessDataForTesting = retainDataForTesting
+           ? ExhaustivenessDataForTesting(_exhaustivenessCache)
+           : null;
 
   @override
   void visitAnnotation(Annotation node) {
@@ -542,8 +541,8 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
         if (bound != null && !hasTypeParameterReference(bound)) {
           var lowestBound =
               valueType.nullabilitySuffix == NullabilitySuffix.question
-                  ? _typeSystem.makeNullable(bound)
-                  : bound;
+              ? _typeSystem.makeNullable(bound)
+              : bound;
           return _canBeEqual(constantType, lowestBound);
         }
       } else if (valueType is FunctionType) {
@@ -860,8 +859,9 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
   /// Validates that the arguments in [argumentList] are constant expressions.
   void _validateConstantArguments(ArgumentList argumentList) {
     for (Expression argument in argumentList.arguments) {
-      Expression realArgument =
-          argument is NamedExpression ? argument.expression : argument;
+      Expression realArgument = argument is NamedExpression
+          ? argument.expression
+          : argument;
       _evaluateAndReportError(
         realArgument,
         CompileTimeErrorCode.constWithNonConstantArgument,

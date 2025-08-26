@@ -251,11 +251,10 @@ class AnalyzerCompiledData<T> extends CompiledData<T> {
     } else if (id is MemberId) {
       var className = id.className;
       var name = id.memberName;
-      var unit =
-          parseString(
-            content: code[uri]!.sourceCode,
-            throwIfDiagnostics: false,
-          ).unit;
+      var unit = parseString(
+        content: code[uri]!.sourceCode,
+        throwIfDiagnostics: false,
+      ).unit;
       if (className != null) {
         for (var declaration in unit.declarations) {
           if (declaration is ClassDeclaration &&
@@ -299,11 +298,10 @@ class AnalyzerCompiledData<T> extends CompiledData<T> {
       return 0;
     } else if (id is ClassId) {
       var className = id.className;
-      var unit =
-          parseString(
-            content: code[uri]!.sourceCode,
-            throwIfDiagnostics: false,
-          ).unit;
+      var unit = parseString(
+        content: code[uri]!.sourceCode,
+        throwIfDiagnostics: false,
+      ).unit;
       for (var declaration in unit.declarations) {
         if (declaration is ClassDeclaration &&
             declaration.name.lexeme == className) {

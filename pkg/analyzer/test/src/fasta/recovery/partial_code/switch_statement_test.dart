@@ -12,8 +12,9 @@ main() {
 
 class SwitchStatementTest extends PartialCodeTest {
   buildAll() {
-    var allExceptEof =
-        PartialCodeTest.statementSuffixes.map((ts) => ts.name).toList();
+    var allExceptEof = PartialCodeTest.statementSuffixes
+        .map((ts) => ts.name)
+        .toList();
     buildTests(
       'switch_statement',
       [

@@ -1170,11 +1170,10 @@ E f() => g;
     var body = method.body as BlockFunctionBody;
     Statement statement = body.block.statements[0];
 
-    var missing =
-        parseString(
-          content: 'missing',
-          throwIfDiagnostics: false,
-        ).unit.beginToken;
+    var missing = parseString(
+      content: 'missing',
+      throwIfDiagnostics: false,
+    ).unit.beginToken;
     expect(statement.findPrevious(missing), null);
   }
 

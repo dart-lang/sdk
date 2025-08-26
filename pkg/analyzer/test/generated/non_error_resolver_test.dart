@@ -2258,10 +2258,9 @@ void main() {
         error(CompileTimeErrorCode.invalidAssignment, 97, 1),
       ],
     );
-    var z =
-        result.unit.declaredFragment!.element.topLevelVariables
-            .where((e) => e.name == 'z')
-            .single;
+    var z = result.unit.declaredFragment!.element.topLevelVariables
+        .where((e) => e.name == 'z')
+        .single;
     assertType(z.type, 'List<String>');
   }
 

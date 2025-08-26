@@ -876,10 +876,9 @@ class InterfaceItemConstructorItem
         isConst: element.isConst,
         isFactory: element.isFactory,
         functionType: element.type.encode(context),
-        constantInitializers:
-            element.constantInitializers
-                .map((initializer) => ManifestNode.encode(context, initializer))
-                .toFixedList(),
+        constantInitializers: element.constantInitializers
+            .map((initializer) => ManifestNode.encode(context, initializer))
+            .toFixedList(),
       );
     });
   }
@@ -1071,10 +1070,9 @@ class ManifestMetadata {
     MetadataImpl metadata,
   ) {
     return ManifestMetadata(
-      annotations:
-          metadata.annotations.map((annotation) {
-            return ManifestAnnotation.encode(context, annotation);
-          }).toFixedList(),
+      annotations: metadata.annotations.map((annotation) {
+        return ManifestAnnotation.encode(context, annotation);
+      }).toFixedList(),
     );
   }
 

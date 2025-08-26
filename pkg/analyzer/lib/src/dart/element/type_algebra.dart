@@ -71,10 +71,9 @@ FunctionTypeImpl replaceTypeParameters(
     return type;
   }
 
-  var typeArguments =
-      newTypeParameters
-          .map((e) => e.instantiate(nullabilitySuffix: NullabilitySuffix.none))
-          .toList();
+  var typeArguments = newTypeParameters
+      .map((e) => e.instantiate(nullabilitySuffix: NullabilitySuffix.none))
+      .toList();
   var substitution = Substitution.fromPairs2(
     type.typeParameters,
     typeArguments,
@@ -134,11 +133,10 @@ class FreshTypeParameters {
   FunctionTypeImpl applyToFunctionType(FunctionTypeImpl type) {
     return FunctionTypeImpl.v2(
       typeParameters: freshTypeParameters,
-      formalParameters:
-          type.formalParameters.map((parameter) {
-            var type = substitute(parameter.type);
-            return parameter.copyWith(type: type);
-          }).toFixedList(),
+      formalParameters: type.formalParameters.map((parameter) {
+        var type = substitute(parameter.type);
+        return parameter.copyWith(type: type);
+      }).toFixedList(),
       returnType: substitute(type.returnType),
       nullabilitySuffix: type.nullabilitySuffix,
     );
@@ -436,11 +434,10 @@ abstract class _TypeSubstitutor
     // Invert the variance when translating parameters.
     inner.invertVariance();
 
-    var parameters =
-        type.formalParameters.map((parameter) {
-          var type = parameter.type.accept(inner);
-          return parameter.copyWith(type: type);
-        }).toFixedList();
+    var parameters = type.formalParameters.map((parameter) {
+      var type = parameter.type.accept(inner);
+      return parameter.copyWith(type: type);
+    }).toFixedList();
 
     inner.invertVariance();
 
@@ -477,21 +474,19 @@ abstract class _TypeSubstitutor
     var typeParameters = type.typeParameters;
     if (typeParameters.isNotEmpty) {
       inner = newInnerEnvironment();
-      typeParameters =
-          inner
-              .freshTypeParameters(typeParameters)
-              .cast<TypeParameterElementImpl>()
-              .toFixedList();
+      typeParameters = inner
+          .freshTypeParameters(typeParameters)
+          .cast<TypeParameterElementImpl>()
+          .toFixedList();
     }
 
     // Invert the variance when translating parameters.
     inner.invertVariance();
 
-    var formalParameters =
-        type.formalParameters.map((formalParameter) {
-          var type = formalParameter.type.accept(inner);
-          return formalParameter.copyWith(type: type);
-        }).toFixedList();
+    var formalParameters = type.formalParameters.map((formalParameter) {
+      var type = formalParameter.type.accept(inner);
+      return formalParameter.copyWith(type: type);
+    }).toFixedList();
 
     inner.invertVariance();
 
@@ -559,18 +554,16 @@ abstract class _TypeSubstitutor
   TypeImpl visitRecordType(covariant RecordTypeImpl type) {
     var before = useCounter;
 
-    var positionalFields =
-        type.positionalFields.map((field) {
-          return RecordTypePositionalFieldImpl(type: field.type.accept(this));
-        }).toList();
+    var positionalFields = type.positionalFields.map((field) {
+      return RecordTypePositionalFieldImpl(type: field.type.accept(this));
+    }).toList();
 
-    var namedFields =
-        type.namedFields.map((field) {
-          return RecordTypeNamedFieldImpl(
-            name: field.name,
-            type: field.type.accept(this),
-          );
-        }).toList();
+    var namedFields = type.namedFields.map((field) {
+      return RecordTypeNamedFieldImpl(
+        name: field.name,
+        type: field.type.accept(this),
+      );
+    }).toList();
 
     var alias = _mapAlias(type.alias);
     if (useCounter == before) {

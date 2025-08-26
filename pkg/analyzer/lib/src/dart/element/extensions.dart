@@ -78,10 +78,9 @@ extension Element2Extension on Element {
   bool get isUseDeprecated {
     var element = this;
 
-    var metadata =
-        (element is PropertyAccessorElement && element.isSynthetic)
-            ? element.variable.metadata
-            : element.metadata;
+    var metadata = (element is PropertyAccessorElement && element.isSynthetic)
+        ? element.variable.metadata
+        : element.metadata;
 
     var annotations = metadata.annotations.where((e) => e.isDeprecated);
     return annotations.any((annotation) {

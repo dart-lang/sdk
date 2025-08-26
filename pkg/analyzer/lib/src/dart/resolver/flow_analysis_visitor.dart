@@ -183,17 +183,18 @@ class FlowAnalysisHelper {
                 PromotableElementImpl
               >;
     }
-    flow = FlowAnalysis<
-      AstNodeImpl,
-      StatementImpl,
-      ExpressionImpl,
-      PromotableElementImpl,
-      SharedTypeView
-    >(
-      typeOperations,
-      assignedVariables!,
-      typeAnalyzerOptions: typeAnalyzerOptions,
-    );
+    flow =
+        FlowAnalysis<
+          AstNodeImpl,
+          StatementImpl,
+          ExpressionImpl,
+          PromotableElementImpl,
+          SharedTypeView
+        >(
+          typeOperations,
+          assignedVariables!,
+          typeAnalyzerOptions: typeAnalyzerOptions,
+        );
   }
 
   /// This method is called whenever the [ResolverVisitor] leaves the body or
@@ -369,8 +370,8 @@ class FlowAnalysisHelper {
   }) {
     AssignedVariables<AstNodeImpl, PromotableElementImpl> assignedVariables =
         retainDataForTesting
-            ? AssignedVariablesForTesting()
-            : AssignedVariables();
+        ? AssignedVariablesForTesting()
+        : AssignedVariables();
     var assignedVariablesVisitor = _AssignedVariablesVisitor(assignedVariables);
     assignedVariablesVisitor._declareParameters(parameters);
     if (visit != null) {
@@ -896,15 +897,13 @@ class TypeSystemOperations
     required List<(String, SharedType)> named,
   }) {
     return RecordTypeImpl(
-      positionalFields:
-          positional.map((type) {
-            return RecordTypePositionalFieldImpl(type: type as DartType);
-          }).toList(),
-      namedFields:
-          named.map((namedType) {
-            var (name, type) = namedType;
-            return RecordTypeNamedFieldImpl(name: name, type: type as DartType);
-          }).toList(),
+      positionalFields: positional.map((type) {
+        return RecordTypePositionalFieldImpl(type: type as DartType);
+      }).toList(),
+      namedFields: named.map((namedType) {
+        var (name, type) = namedType;
+        return RecordTypeNamedFieldImpl(name: name, type: type as DartType);
+      }).toList(),
       nullabilitySuffix: NullabilitySuffix.none,
     );
   }
@@ -1320,10 +1319,9 @@ class _LocalVariableTypeProvider implements LocalVariableTypeProvider {
   TypeImpl getType(SimpleIdentifierImpl node, {required bool isRead}) {
     var variable = node.element as InternalVariableElement;
     if (variable is PromotableElementImpl) {
-      var promotedType =
-          isRead
-              ? _manager.flow?.variableRead(node, variable)
-              : _manager.flow?.promotedType(variable);
+      var promotedType = isRead
+          ? _manager.flow?.variableRead(node, variable)
+          : _manager.flow?.promotedType(variable);
       if (promotedType != null) {
         return promotedType.unwrapTypeView<TypeImpl>();
       }

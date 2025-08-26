@@ -381,7 +381,8 @@ class NormalizeTypeTest extends AbstractTypeSystemTest with StringTypes {
     expect(
       result,
       expected,
-      reason: '''
+      reason:
+          '''
 expected: $expectedStr
 actual: $resultStr
 ''',

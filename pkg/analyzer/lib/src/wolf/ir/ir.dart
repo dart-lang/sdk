@@ -77,11 +77,10 @@ abstract class BaseIRContainer with IRToStringMixin {
   int get endAddress => _opcodes.length;
 
   @override
-  String argumentNamesRefToString(ArgumentNamesRef argumentNames) =>
-      [
-        for (var literal in decodeArgumentNames(argumentNames))
-          json.encode(literal),
-      ].toString();
+  String argumentNamesRefToString(ArgumentNamesRef argumentNames) => [
+    for (var literal in decodeArgumentNames(argumentNames))
+      json.encode(literal),
+  ].toString();
 
   @override
   String callDescriptorRefToString(CallDescriptorRef callDescriptor) =>
@@ -287,20 +286,20 @@ class RawIRWriter with _RawIRWriterMixin {
   }
 
   ArgumentNamesRef encodeArgumentNames(List<String?> argumentNames) =>
-  // TODO(paulberry): is `putIfAbsent` the best-performing way to do this?
-  _argumentNamesToRef.putIfAbsent(argumentNames, () {
-    var encoding = ArgumentNamesRef(_argumentNamesTable.length);
-    _argumentNamesTable.add(argumentNames);
-    return encoding;
-  });
+      // TODO(paulberry): is `putIfAbsent` the best-performing way to do this?
+      _argumentNamesToRef.putIfAbsent(argumentNames, () {
+        var encoding = ArgumentNamesRef(_argumentNamesTable.length);
+        _argumentNamesTable.add(argumentNames);
+        return encoding;
+      });
 
   StackIndicesRef encodeStackIndices(List<int> stackIndices) =>
-  // TODO(paulberry): is `putIfAbsent` the best-performing way to do this?
-  _stackIndicesToRef.putIfAbsent(stackIndices, () {
-    var encoding = StackIndicesRef(_stackIndicesTable.length);
-    _stackIndicesTable.add(stackIndices);
-    return encoding;
-  });
+      // TODO(paulberry): is `putIfAbsent` the best-performing way to do this?
+      _stackIndicesToRef.putIfAbsent(stackIndices, () {
+        var encoding = StackIndicesRef(_stackIndicesTable.length);
+        _stackIndicesTable.add(stackIndices);
+        return encoding;
+      });
 
   @override
   void end() {

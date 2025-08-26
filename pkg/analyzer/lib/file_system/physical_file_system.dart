@@ -311,14 +311,11 @@ class _PhysicalFolder extends _PhysicalResource implements Folder {
     var watcher = DirectoryWatcher(_entry.path);
     var events = watcher.events.handleError(
       (Object error) {},
-      test:
-          (error) =>
-              error is io.FileSystemException &&
-              // Don't suppress "Directory watcher closed," so the outer
-              // listener can see the interruption & act on it.
-              !error.message.startsWith(
-                "Directory watcher closed unexpectedly",
-              ),
+      test: (error) =>
+          error is io.FileSystemException &&
+          // Don't suppress "Directory watcher closed," so the outer
+          // listener can see the interruption & act on it.
+          !error.message.startsWith("Directory watcher closed unexpectedly"),
     );
     return ResourceWatcher(
       events.transform(_exceptionTransformer),

@@ -384,8 +384,9 @@ enum E { e1 }
     await assertNoErrorsInCode(r'''
 extension type E(int i) {}
 ''');
-    var representationDeclaration =
-        findNode.extensionTypeDeclaration('int i').representation;
+    var representationDeclaration = findNode
+        .extensionTypeDeclaration('int i')
+        .representation;
     checkOffset<FieldFragment>(
       representationDeclaration,
       representationDeclaration.fieldFragment!,
@@ -464,8 +465,10 @@ class C {
     await assertNoErrorsInCode(r'''
 int? x;
 ''');
-    var topLevelVariableDeclaration =
-        findNode.topLevelVariableDeclaration('x').variables.variables[0];
+    var topLevelVariableDeclaration = findNode
+        .topLevelVariableDeclaration('x')
+        .variables
+        .variables[0];
     checkOffset<FormalParameterFragment>(
       topLevelVariableDeclaration,
       (topLevelVariableDeclaration.declaredFragment as TopLevelVariableFragment)
@@ -553,8 +556,10 @@ int get foo => 0;
     await assertNoErrorsInCode(r'''
 int? x;
 ''');
-    var topLevelVariableDeclaration =
-        findNode.topLevelVariableDeclaration('x').variables.variables[0];
+    var topLevelVariableDeclaration = findNode
+        .topLevelVariableDeclaration('x')
+        .variables
+        .variables[0];
     checkOffset<GetterFragment>(
       topLevelVariableDeclaration,
       (topLevelVariableDeclaration.declaredFragment as TopLevelVariableFragment)
@@ -708,8 +713,9 @@ void f() {
   void g() {}
 }
 ''');
-    var localFunction =
-        findNode.functionDeclarationStatement('g()').functionDeclaration;
+    var localFunction = findNode
+        .functionDeclarationStatement('g()')
+        .functionDeclaration;
     checkOffset<LocalFunctionFragment>(
       localFunction,
       localFunction.declaredFragment!,
@@ -875,8 +881,10 @@ set foo(int value) {}
     await assertNoErrorsInCode(r'''
 int? x;
 ''');
-    var topLevelVariableDeclaration =
-        findNode.topLevelVariableDeclaration('x').variables.variables[0];
+    var topLevelVariableDeclaration = findNode
+        .topLevelVariableDeclaration('x')
+        .variables
+        .variables[0];
     checkOffset<SetterFragment>(
       topLevelVariableDeclaration,
       (topLevelVariableDeclaration.declaredFragment as TopLevelVariableFragment)
@@ -959,8 +967,10 @@ void foo() {}
     await assertNoErrorsInCode(r'''
 int? x;
 ''');
-    var topLevelVariableDeclaration =
-        findNode.topLevelVariableDeclaration('x').variables.variables[0];
+    var topLevelVariableDeclaration = findNode
+        .topLevelVariableDeclaration('x')
+        .variables
+        .variables[0];
     checkOffset<TopLevelVariableFragment>(
       topLevelVariableDeclaration,
       topLevelVariableDeclaration.declaredFragment!,
@@ -972,8 +982,10 @@ int? x;
     await assertNoErrorsInCode(r'''
 const int x = 0;
 ''');
-    var topLevelVariableDeclaration =
-        findNode.topLevelVariableDeclaration('x').variables.variables[0];
+    var topLevelVariableDeclaration = findNode
+        .topLevelVariableDeclaration('x')
+        .variables
+        .variables[0];
     checkOffset<TopLevelVariableFragment>(
       topLevelVariableDeclaration,
       topLevelVariableDeclaration.declaredFragment!,

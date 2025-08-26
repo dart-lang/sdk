@@ -117,10 +117,9 @@ class _InheritanceDataExtractor extends AstDataExtractor<String> {
 
         var id = MemberId.internal(name.name, className: element.name);
 
-        var offset =
-            enclosingClass == element
-                ? executable.firstFragment.nameOffset
-                : element.firstFragment.nameOffset;
+        var offset = enclosingClass == element
+            ? executable.firstFragment.nameOffset
+            : element.firstFragment.nameOffset;
         offset ??= -1;
 
         DartType type;

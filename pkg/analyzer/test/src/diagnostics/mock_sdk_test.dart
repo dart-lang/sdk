@@ -44,14 +44,13 @@ class MockSdkTest extends PubPackageResolutionTest {
   }
 
   void _assertOnlyWarningsInUnit(ResolvedUnitResult resolvedUnit) {
-    var notHints =
-        resolvedUnit.diagnostics
-            .where(
-              (element) =>
-                  element.diagnosticCode.type != DiagnosticType.HINT &&
-                  element.diagnosticCode.type != DiagnosticType.STATIC_WARNING,
-            )
-            .toList();
+    var notHints = resolvedUnit.diagnostics
+        .where(
+          (element) =>
+              element.diagnosticCode.type != DiagnosticType.HINT &&
+              element.diagnosticCode.type != DiagnosticType.STATIC_WARNING,
+        )
+        .toList();
     assertErrorsInList(notHints, []);
   }
 

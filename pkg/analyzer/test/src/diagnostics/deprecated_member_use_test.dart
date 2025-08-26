@@ -125,7 +125,8 @@ void f(A a) {}
     Map<String, String> nameToLibPath,
   ) {
     var packages = nameToLibPath.entries.map(
-      (entry) => '''{
+      (entry) =>
+          '''{
     "languageVersion": "2.2",
     "name": "${entry.key}",
     "packageUri": ".",

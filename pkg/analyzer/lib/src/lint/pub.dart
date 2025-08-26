@@ -553,7 +553,8 @@ class _PubspecEnvironment implements PubspecEnvironment {
   _PubspecEnvironment(this.token, {required this.flutter, required this.sdk});
 
   @override
-  String toString() => '''
+  String toString() =>
+      '''
     $token:
       $sdk
       $flutter''';
@@ -572,7 +573,8 @@ class _PubspecGitRepo implements PubspecGitRepo {
   _PubspecGitRepo(this.token, {this.ref, required this.url});
 
   @override
-  String toString() => '''
+  String toString() =>
+      '''
     $token:
       $url
       $ref''';
@@ -594,7 +596,8 @@ class _PubspecHost implements PubspecHost {
   _PubspecHost(this.token, {required this.isShortForm, this.name, this.url});
 
   @override
-  String toString() => '''
+  String toString() =>
+      '''
     $token:
       $name
       $url''';
@@ -612,7 +615,8 @@ class _PubspecNodeList extends PubspecNodeList {
   Iterator<PubspecNode> get iterator => nodes.iterator;
 
   @override
-  String toString() => '''
+  String toString() =>
+      '''
 $token:
   - ${nodes.join('\n  - ')}''';
 }

@@ -39,51 +39,47 @@ Options? _parseOptions(List<String> args) {
     MutationKind.renameLocalVariable,
     MutationKind.toggleReturnTypeNullability,
   ].map((k) => k.id);
-  var parser =
-      ArgParser()
-        ..addOption('repo', help: 'Path to repository root', mandatory: true)
-        ..addOption(
-          'mutate-dirs',
-          help:
-              'Comma-separated dirs (relative to repo) to choose mutation sites',
-          mandatory: true,
-        )
-        ..addOption(
-          'diagnostic-dirs',
-          help:
-              'Comma-separated dirs (relative to repo) to compute diagnostics',
-          mandatory: true,
-        )
-        ..addMultiOption(
-          'kinds',
-          help: 'Allowed: ${allKindIds.join(', ')} (subset ok)',
-          allowed: allKindIds,
-          defaultsTo: defaultKindIds,
-        )
-        ..addOption(
-          'per-kind',
-          help:
-              'Upper bound of successful applied mutations per kind (per chain)',
-          defaultsTo: '3',
-        )
-        ..addOption(
-          'chains',
-          help: 'How many chains to run (each starts from baseline)',
-          defaultsTo: '5',
-        )
-        ..addOption(
-          'max-steps-per-chain',
-          help: 'Hard cap on steps within a chain',
-          defaultsTo: '6',
-        )
-        ..addOption('seed', help: 'RNG seed (int)', defaultsTo: '1')
-        ..addOption(
-          'max-diagnostics',
-          help:
-              'Absolute cap of diagnostics (if unset, derived from baseline per run)',
-          defaultsTo: '',
-        )
-        ..addOption('out', help: 'Output directory', mandatory: true);
+  var parser = ArgParser()
+    ..addOption('repo', help: 'Path to repository root', mandatory: true)
+    ..addOption(
+      'mutate-dirs',
+      help: 'Comma-separated dirs (relative to repo) to choose mutation sites',
+      mandatory: true,
+    )
+    ..addOption(
+      'diagnostic-dirs',
+      help: 'Comma-separated dirs (relative to repo) to compute diagnostics',
+      mandatory: true,
+    )
+    ..addMultiOption(
+      'kinds',
+      help: 'Allowed: ${allKindIds.join(', ')} (subset ok)',
+      allowed: allKindIds,
+      defaultsTo: defaultKindIds,
+    )
+    ..addOption(
+      'per-kind',
+      help: 'Upper bound of successful applied mutations per kind (per chain)',
+      defaultsTo: '3',
+    )
+    ..addOption(
+      'chains',
+      help: 'How many chains to run (each starts from baseline)',
+      defaultsTo: '5',
+    )
+    ..addOption(
+      'max-steps-per-chain',
+      help: 'Hard cap on steps within a chain',
+      defaultsTo: '6',
+    )
+    ..addOption('seed', help: 'RNG seed (int)', defaultsTo: '1')
+    ..addOption(
+      'max-diagnostics',
+      help:
+          'Absolute cap of diagnostics (if unset, derived from baseline per run)',
+      defaultsTo: '',
+    )
+    ..addOption('out', help: 'Output directory', mandatory: true);
 
   late ArgResults opts;
   try {
@@ -97,14 +93,12 @@ Options? _parseOptions(List<String> args) {
   var outDir = pkg_path.normalize(pkg_path.absolute(opts['out'] as String));
   io.Directory(outDir).createSync(recursive: true);
 
-  var mutateDirs =
-      splitCsv(
-        opts['mutate-dirs'] as String,
-      ).map((d) => pkg_path.join(repo, d)).toList();
-  var diagDirs =
-      splitCsv(
-        opts['diagnostic-dirs'] as String,
-      ).map((d) => pkg_path.join(repo, d)).toList();
+  var mutateDirs = splitCsv(
+    opts['mutate-dirs'] as String,
+  ).map((d) => pkg_path.join(repo, d)).toList();
+  var diagDirs = splitCsv(
+    opts['diagnostic-dirs'] as String,
+  ).map((d) => pkg_path.join(repo, d)).toList();
 
   var kindIds = (opts['kinds'] as List<String>).toSet();
   var kinds = kindIds.map((id) => MutationKind.byId[id]).nonNulls.toList();
@@ -121,8 +115,8 @@ Options? _parseOptions(List<String> args) {
   var seed = int.parse(opts['seed'] as String);
   var explicitMaxDiagnostics =
       (opts['max-diagnostics'] as String).trim().isEmpty
-          ? null
-          : int.parse(opts['max-diagnostics'] as String);
+      ? null
+      : int.parse(opts['max-diagnostics'] as String);
 
   return Options(
     repo: repo,
@@ -242,14 +236,12 @@ class MutationRunner {
     }
 
     baselineEqual = true;
-    baseTotal =
-        (baselineA.length >= baselineB.length)
-            ? baselineA.length
-            : baselineB.length;
-    var derivedCap =
-        ((baseTotal + 50) >= ((baseTotal * 1.20).ceil()))
-            ? (baseTotal + 50)
-            : ((baseTotal * 1.20).ceil());
+    baseTotal = (baselineA.length >= baselineB.length)
+        ? baselineA.length
+        : baselineB.length;
+    var derivedCap = ((baseTotal + 50) >= ((baseTotal * 1.20).ceil()))
+        ? (baseTotal + 50)
+        : ((baseTotal * 1.20).ceil());
     maxDiagnostics = options.explicitMaxDiagnostics ?? derivedCap;
 
     return true;
@@ -309,11 +301,10 @@ class MutationRunner {
       var kindAttempt = 0;
 
       while (true) {
-        var applicableKinds =
-            options.kinds.where((k) {
-              return perKindUsed[k]! < options.perKindCap &&
-                  !exhaustedKinds.contains(k);
-            }).toList();
+        var applicableKinds = options.kinds.where((k) {
+          return perKindUsed[k]! < options.perKindCap &&
+              !exhaustedKinds.contains(k);
+        }).toList();
         if (applicableKinds.isEmpty) {
           endReason = 'no_applicable_kinds';
           break;
@@ -344,10 +335,9 @@ class MutationRunner {
           var filePath = mutateFiles[fileIdx];
           var before = currentContent[filePath]!;
 
-          var compilationUnit =
-              (selectedKind.selector == SelectorMode.resolved)
-                  ? await selector.resolvedUnit(filePath)
-                  : selector.parsedUnit(filePath);
+          var compilationUnit = (selectedKind.selector == SelectorMode.resolved)
+              ? await selector.resolvedUnit(filePath)
+              : selector.parsedUnit(filePath);
           if (compilationUnit == null) continue;
 
           var mutations = discoverMutationsFor(
@@ -430,8 +420,9 @@ class MutationRunner {
           'B_time_ms': 0,
           'A_total': 0,
           'B_total': 0,
-          'exception_file':
-              diagsA == null ? 'exception_A.txt' : 'exception_B.txt',
+          'exception_file': diagsA == null
+              ? 'exception_A.txt'
+              : 'exception_B.txt',
         });
         break;
       }
@@ -561,13 +552,12 @@ class MutationRunner {
       var content = io.File(path).readAsStringSync();
       baselineMap[path] = content;
     }
-    var filesJson =
-        baselineMap.entries.map((entry) {
-          return {
-            'path': pkg_path.relative(entry.key, from: options.repo),
-            'sha256': sha256.convert(utf8.encode(entry.value)).toString(),
-          };
-        }).toList();
+    var filesJson = baselineMap.entries.map((entry) {
+      return {
+        'path': pkg_path.relative(entry.key, from: options.repo),
+        'sha256': sha256.convert(utf8.encode(entry.value)).toString(),
+      };
+    }).toList();
     writeJson(pkg_path.join(runRoot, 'files.json'), filesJson);
   }
 
@@ -683,14 +673,12 @@ class MutationRunner {
   void _writeManifest() {
     var manifest = {
       'repo': options.repo,
-      'mutateDirs':
-          options.mutateDirs
-              .map((d) => pkg_path.relative(d, from: options.repo))
-              .toList(),
-      'diagnosticDirs':
-          options.diagnosticDirs
-              .map((d) => pkg_path.relative(d, from: options.repo))
-              .toList(),
+      'mutateDirs': options.mutateDirs
+          .map((d) => pkg_path.relative(d, from: options.repo))
+          .toList(),
+      'diagnosticDirs': options.diagnosticDirs
+          .map((d) => pkg_path.relative(d, from: options.repo))
+          .toList(),
       'kinds': options.kinds.map((k) => k.id).toList(),
       'perKind': options.perKindCap,
       'chains': options.chains,

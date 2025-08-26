@@ -6131,8 +6131,6 @@ libraryCycles
 elementFactory
 ''');
   }
-
-
 }
 
 @reflectiveTest
@@ -6188,10 +6186,9 @@ class FileSystemStateTest with ResourceProviderMixin {
       ResourceUriResolver(resourceProvider),
     ]);
 
-    var analysisOptions =
-        AnalysisOptionsImpl()
-          ..contextFeatures = FeatureSet.latestLanguageVersion()
-          ..nonPackageFeatureSet = FeatureSet.latestLanguageVersion();
+    var analysisOptions = AnalysisOptionsImpl()
+      ..contextFeatures = FeatureSet.latestLanguageVersion()
+      ..nonPackageFeatureSet = FeatureSet.latestLanguageVersion();
     var featureSetProvider = FeatureSetProvider.build(
       sourceFactory: sourceFactory,
       resourceProvider: resourceProvider,

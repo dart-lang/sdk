@@ -253,8 +253,9 @@ class _IRInterpreter {
     double() => typeProvider.doubleType,
     null => typeProvider.nullType,
     Instance(:var type) => type,
-    dynamic(:var runtimeType) =>
-      throw StateError('Unexpected interpreter value of type $runtimeType'),
+    dynamic(:var runtimeType) => throw StateError(
+      'Unexpected interpreter value of type $runtimeType',
+    ),
   };
 
   Object? run(List<Object?> args) {
@@ -440,12 +441,11 @@ class _IRInterpreter {
     }
   }
 
-  Never throwSoundnessError(String message) =>
-      throw SoundnessError(
-        address: address,
-        instructionString: ir.instructionToString(address),
-        message: message,
-      );
+  Never throwSoundnessError(String message) => throw SoundnessError(
+    address: address,
+    instructionString: ir.instructionToString(address),
+    message: message,
+  );
 }
 
 /// Sentinel value used by [_IRInterpreter.branch] to indicate that the

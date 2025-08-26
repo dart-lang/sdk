@@ -279,10 +279,9 @@ final class AnalysisOptionsBuilder {
       }
 
       var diagnostics = pluginNode.valueAt(AnalysisOptionsFile.diagnostics);
-      var diagnosticConfigurations =
-          diagnostics == null
-              ? const <String, RuleConfig>{}
-              : parseDiagnosticsSection(diagnostics);
+      var diagnosticConfigurations = diagnostics == null
+          ? const <String, RuleConfig>{}
+          : parseDiagnosticsSection(diagnostics);
 
       pluginConfigurations.add(
         PluginConfiguration(

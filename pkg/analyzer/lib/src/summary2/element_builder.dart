@@ -318,11 +318,10 @@ class ElementBuilder {
     instanceElement.addField(fieldElement);
 
     {
-      var getterFragment =
-          GetterFragmentImpl(name: fieldFragment.name)
-            ..isSynthetic = true
-            ..isAbstract = fieldFragment.isAbstract
-            ..isStatic = fieldFragment.isStatic;
+      var getterFragment = GetterFragmentImpl(name: fieldFragment.name)
+        ..isSynthetic = true
+        ..isAbstract = fieldFragment.isAbstract
+        ..isStatic = fieldFragment.isStatic;
       instanceFragment.addGetter(getterFragment);
 
       var getterElement = GetterElementImpl(
@@ -336,11 +335,10 @@ class ElementBuilder {
     }
 
     if (fieldFragment.hasSetter) {
-      var setterFragment =
-          SetterFragmentImpl(name: fieldFragment.name)
-            ..isSynthetic = true
-            ..isAbstract = fieldFragment.isAbstract
-            ..isStatic = fieldFragment.isStatic;
+      var setterFragment = SetterFragmentImpl(name: fieldFragment.name)
+        ..isSynthetic = true
+        ..isAbstract = fieldFragment.isAbstract
+        ..isStatic = fieldFragment.isStatic;
       instanceFragment.addSetter(setterFragment);
 
       var valueFragment = FormalParameterFragmentImpl(
@@ -409,10 +407,9 @@ class ElementBuilder {
     }
 
     if (lastFieldElement == null) {
-      var fieldFragment =
-          FieldFragmentImpl(name: getterFragment.name)
-            ..isSynthetic = true
-            ..isStatic = getterFragment.isStatic;
+      var fieldFragment = FieldFragmentImpl(name: getterFragment.name)
+        ..isSynthetic = true
+        ..isStatic = getterFragment.isStatic;
       instanceFragment.addField(fieldFragment);
 
       lastFieldElement = FieldElementImpl(
@@ -492,10 +489,9 @@ class ElementBuilder {
     }
 
     if (lastFieldElement == null) {
-      var fieldFragment =
-          FieldFragmentImpl(name: setterFragment.name)
-            ..isSynthetic = true
-            ..isStatic = setterFragment.isStatic;
+      var fieldFragment = FieldFragmentImpl(name: setterFragment.name)
+        ..isSynthetic = true
+        ..isStatic = setterFragment.isStatic;
       instanceFragment.addField(fieldFragment);
 
       lastFieldElement = FieldElementImpl(
@@ -675,10 +671,9 @@ class ElementBuilder {
     libraryElement.addTopLevelVariable(variableElement);
 
     {
-      var getterFragment =
-          GetterFragmentImpl(name: variableFragment.name)
-            ..isSynthetic = true
-            ..isStatic = true;
+      var getterFragment = GetterFragmentImpl(name: variableFragment.name)
+        ..isSynthetic = true
+        ..isStatic = true;
       libraryFragment.addGetter(getterFragment);
 
       var getterElement = GetterElementImpl(
@@ -693,10 +688,9 @@ class ElementBuilder {
     }
 
     if (variableFragment.hasSetter) {
-      var setterFragment =
-          SetterFragmentImpl(name: variableFragment.name)
-            ..isSynthetic = true
-            ..isStatic = true;
+      var setterFragment = SetterFragmentImpl(name: variableFragment.name)
+        ..isSynthetic = true
+        ..isStatic = true;
       libraryFragment.addSetter(setterFragment);
 
       var valueFragment = FormalParameterFragmentImpl(
@@ -789,8 +783,9 @@ class FragmentBuilder extends ThrowingAstVisitor<void> {
     var libraryElement = _libraryBuilder.element;
 
     // Prefer the actual library directive.
-    var libraryDirective =
-        unit.directives.whereType<LibraryDirectiveImpl>().firstOrNull;
+    var libraryDirective = unit.directives
+        .whereType<LibraryDirectiveImpl>()
+        .firstOrNull;
     if (libraryDirective != null) {
       libraryDirective.element = libraryElement;
       libraryElement.metadata = _buildMetadata(libraryDirective.metadata);
@@ -964,14 +959,13 @@ class FragmentBuilder extends ThrowingAstVisitor<void> {
         var constant = constants[i];
         var nameToken = constant.name;
         var name = nameToken.lexeme;
-        var field =
-            FieldFragmentImpl(name: _getFragmentName(nameToken))
-              ..hasImplicitType = true
-              ..hasInitializer = true
-              ..isAugmentation = constant.augmentKeyword != null
-              ..isConst = true
-              ..isEnumConstant = true
-              ..isStatic = true;
+        var field = FieldFragmentImpl(name: _getFragmentName(nameToken))
+          ..hasImplicitType = true
+          ..hasInitializer = true
+          ..isAugmentation = constant.augmentKeyword != null
+          ..isConst = true
+          ..isEnumConstant = true
+          ..isStatic = true;
         field.metadata = _buildMetadata(constant.metadata);
 
         var constantArguments = constant.arguments;
@@ -988,21 +982,19 @@ class FragmentBuilder extends ThrowingAstVisitor<void> {
               question: null,
             ),
             period: constructorName != null ? Tokens.period() : null,
-            name:
-                constructorName != null
-                    ? SimpleIdentifierImpl(
-                      token: StringToken(TokenType.STRING, constructorName, -1),
-                    )
-                    : null,
+            name: constructorName != null
+                ? SimpleIdentifierImpl(
+                    token: StringToken(TokenType.STRING, constructorName, -1),
+                  )
+                : null,
           ),
-          argumentList:
-              constantArguments != null
-                  ? constantArguments.argumentList
-                  : ArgumentListImpl(
-                    leftParenthesis: Tokens.openParenthesis(),
-                    arguments: [],
-                    rightParenthesis: Tokens.closeParenthesis(),
-                  ),
+          argumentList: constantArguments != null
+              ? constantArguments.argumentList
+              : ArgumentListImpl(
+                  leftParenthesis: Tokens.openParenthesis(),
+                  arguments: [],
+                  rightParenthesis: Tokens.closeParenthesis(),
+                ),
           typeArguments: null,
         );
 
@@ -1037,12 +1029,11 @@ class FragmentBuilder extends ThrowingAstVisitor<void> {
       }
 
       // Build the 'values' field.
-      var valuesField =
-          FieldFragmentImpl(name: 'values')
-            ..hasEnclosingTypeParameterReference = false
-            ..isConst = true
-            ..isStatic = true
-            ..isSynthetic = true;
+      var valuesField = FieldFragmentImpl(name: 'values')
+        ..hasEnclosingTypeParameterReference = false
+        ..isConst = true
+        ..isStatic = true
+        ..isSynthetic = true;
       var initializer = ListLiteralImpl(
         constKeyword: null,
         typeArguments: null,
@@ -1746,10 +1737,9 @@ class FragmentBuilder extends ThrowingAstVisitor<void> {
   }
 
   MetadataImpl _buildMetadata(List<AnnotationImpl> nodeList) {
-    var annotations =
-        nodeList.map((ast) {
-          return ElementAnnotationImpl(_unitElement, ast);
-        }).toFixedList();
+    var annotations = nodeList.map((ast) {
+      return ElementAnnotationImpl(_unitElement, ast);
+    }).toFixedList();
 
     return MetadataImpl(annotations);
   }

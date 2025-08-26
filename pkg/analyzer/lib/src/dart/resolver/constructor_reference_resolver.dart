@@ -53,8 +53,9 @@ class ConstructorReferenceResolver {
       var enclosingElement = node.constructorName.type.element;
       if (enclosingElement is TypeAliasElement) {
         var aliasedType = enclosingElement.aliasedType;
-        enclosingElement =
-            aliasedType is InterfaceType ? aliasedType.element : null;
+        enclosingElement = aliasedType is InterfaceType
+            ? aliasedType.element
+            : null;
       }
       // TODO(srawlins): Handle `enclosingElement` being a function typedef:
       // typedef F<T> = void Function(); var a = F<int>.extensionOnType;`.
@@ -65,11 +66,9 @@ class ConstructorReferenceResolver {
             enclosingElement.getGetter(name.name) ??
             enclosingElement.getSetter(name.name);
         if (method != null) {
-          var error =
-              method.isStatic
-                  ? CompileTimeErrorCode.classInstantiationAccessToStaticMember
-                  : CompileTimeErrorCode
-                      .classInstantiationAccessToInstanceMember;
+          var error = method.isStatic
+              ? CompileTimeErrorCode.classInstantiationAccessToStaticMember
+              : CompileTimeErrorCode.classInstantiationAccessToInstanceMember;
           _resolver.diagnosticReporter.atNode(
             node,
             error,

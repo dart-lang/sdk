@@ -1538,7 +1538,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
         node.isNamed
             ? CompileTimeErrorCode.superFormalParameterWithoutAssociatedNamed
             : CompileTimeErrorCode
-                .superFormalParameterWithoutAssociatedPositional,
+                  .superFormalParameterWithoutAssociatedPositional,
       );
       return;
     }
@@ -1978,8 +1978,9 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   }) {
     if (element is MultiplyDefinedElementImpl) {
       var conflictingMembers = element.conflictingElements;
-      var libraryNames =
-          conflictingMembers.map((e) => _getLibraryName(e)).toList();
+      var libraryNames = conflictingMembers
+          .map((e) => _getLibraryName(e))
+          .toList();
       libraryNames.sort();
       diagnosticReporter.atToken(
         name,
@@ -2135,11 +2136,10 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     for (NamedType interface in implementsClause.interfaces) {
       var interfaceType = interface.type;
       if (interfaceType is InterfaceType) {
-        var implementedInterfaces =
-            [
-              interfaceType,
-              ...interfaceType.element.allSupertypes,
-            ].map((e) => e.element).toList();
+        var implementedInterfaces = [
+          interfaceType,
+          ...interfaceType.element.allSupertypes,
+        ].map((e) => e.element).toList();
         for (var interfaceElement in implementedInterfaces) {
           if ((interfaceElement is ClassElementImpl &&
                       interfaceElement.isBase ||
@@ -2399,10 +2399,9 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
 
       // name is same as the name of the enclosing class
       if (enclosingClass.name == name) {
-        var code =
-            enclosingClass is MixinElement
-                ? CompileTimeErrorCode.conflictingTypeVariableAndMixin
-                : CompileTimeErrorCode.conflictingTypeVariableAndClass;
+        var code = enclosingClass is MixinElement
+            ? CompileTimeErrorCode.conflictingTypeVariableAndMixin
+            : CompileTimeErrorCode.conflictingTypeVariableAndClass;
         diagnosticReporter.atElement2(typeParameter, code, arguments: [name]);
       }
       // check members
@@ -2410,10 +2409,9 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
           enclosingClass.getMethod(name) != null ||
           enclosingClass.getGetter(name) != null ||
           enclosingClass.getSetter(name) != null) {
-        var code =
-            enclosingClass is MixinElement
-                ? CompileTimeErrorCode.conflictingTypeVariableAndMemberMixin
-                : CompileTimeErrorCode.conflictingTypeVariableAndMemberClass;
+        var code = enclosingClass is MixinElement
+            ? CompileTimeErrorCode.conflictingTypeVariableAndMemberMixin
+            : CompileTimeErrorCode.conflictingTypeVariableAndMemberClass;
         diagnosticReporter.atElement2(typeParameter, code, arguments: [name]);
       }
     }
@@ -2739,10 +2737,9 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     }
 
     // Often there is an explicit `super()` invocation, report on it.
-    var superInvocation =
-        constructor.initializers
-            .whereType<SuperConstructorInvocation>()
-            .firstOrNull;
+    var superInvocation = constructor.initializers
+        .whereType<SuperConstructorInvocation>()
+        .firstOrNull;
     var errorNode = superInvocation ?? constructor.returnType;
 
     diagnosticReporter.atNode(
@@ -3010,10 +3007,9 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     // TODO(rnystrom): Move this into mostSpecificTypeArgument()?
     iterableType = typeSystem.resolveToBound(iterableType);
 
-    var requiredSequenceType =
-        awaitKeyword != null
-            ? _typeProvider.streamDynamicType
-            : _typeProvider.iterableDynamicType;
+    var requiredSequenceType = awaitKeyword != null
+        ? _typeProvider.streamDynamicType
+        : _typeProvider.iterableDynamicType;
 
     if (typeSystem.isTop(iterableType)) {
       iterableType = requiredSequenceType;
@@ -3034,10 +3030,9 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
 
     TypeImpl? sequenceElementType;
     {
-      var sequenceElement =
-          awaitKeyword != null
-              ? _typeProvider.streamElement
-              : _typeProvider.iterableElement;
+      var sequenceElement = awaitKeyword != null
+          ? _typeProvider.streamElement
+          : _typeProvider.iterableElement;
       var sequenceType = iterableType.asInstanceOf(sequenceElement);
       if (sequenceType != null) {
         sequenceElementType = sequenceType.typeArguments[0];
@@ -3347,19 +3342,17 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     required ExtensionTypeElementImpl element,
   }) {
     void report(String memberName, List<ExecutableElement> candidates) {
-      var contextMessages =
-          candidates.map<DiagnosticMessage>((executable) {
-            var nonSynthetic = executable.nonSynthetic;
-            var container = executable.enclosingElement as InterfaceElement;
-            return DiagnosticMessageImpl(
-              filePath:
-                  executable.firstFragment.libraryFragment.source.fullName,
-              offset: nonSynthetic.firstFragment.nameOffset!,
-              length: nonSynthetic.firstFragment.name!.length,
-              message: "Inherited from '${container.name}'",
-              url: null,
-            );
-          }).toList();
+      var contextMessages = candidates.map<DiagnosticMessage>((executable) {
+        var nonSynthetic = executable.nonSynthetic;
+        var container = executable.enclosingElement as InterfaceElement;
+        return DiagnosticMessageImpl(
+          filePath: executable.firstFragment.libraryFragment.source.fullName,
+          offset: nonSynthetic.firstFragment.nameOffset!,
+          length: nonSynthetic.firstFragment.name!.length,
+          message: "Inherited from '${container.name}'",
+          url: null,
+        );
+      }).toList();
       diagnosticReporter.atToken(
         node.name,
         CompileTimeErrorCode.extensionTypeInheritedMemberConflict,
@@ -3577,11 +3570,10 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       for (NamedType namedType in implementsClause.interfaces) {
         var type = namedType.type;
         if (type is InterfaceType) {
-          var implementedInterfaces =
-              [
-                type,
-                ...type.element.allSupertypes,
-              ].map((e) => e.element).toList();
+          var implementedInterfaces = [
+            type,
+            ...type.element.allSupertypes,
+          ].map((e) => e.element).toList();
           for (var element in implementedInterfaces) {
             if (element is ClassElement &&
                 element.isFinal &&
@@ -4079,8 +4071,9 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
 
     var parameters = parameterList.parameters;
     var positional = parameters.where((e) => e.isPositional).toList();
-    var requiredPositional =
-        parameters.where((e) => e.isRequiredPositional).toList();
+    var requiredPositional = parameters
+        .where((e) => e.isRequiredPositional)
+        .toList();
 
     if (requiredPositional.length > 2) {
       diagnosticReporter.atToken(
@@ -4158,11 +4151,10 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     if (expressionType is InterfaceType) {
       var enumElement = expressionType.element;
       if (enumElement is EnumElement) {
-        var constantNames =
-            enumElement.fields
-                .where((field) => field.isEnumConstant)
-                .map((field) => field.name)
-                .toSet();
+        var constantNames = enumElement.fields
+            .where((field) => field.isEnumConstant)
+            .map((field) => field.name)
+            .toSet();
 
         for (var member in statement.members) {
           Expression? caseConstant;
@@ -4380,12 +4372,9 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       if (superMember == null) {
         var isSetter = name.endsWith('=');
 
-        var errorCode =
-            isSetter
-                ? CompileTimeErrorCode
-                    .mixinApplicationNoConcreteSuperInvokedSetter
-                : CompileTimeErrorCode
-                    .mixinApplicationNoConcreteSuperInvokedMember;
+        var errorCode = isSetter
+            ? CompileTimeErrorCode.mixinApplicationNoConcreteSuperInvokedSetter
+            : CompileTimeErrorCode.mixinApplicationNoConcreteSuperInvokedMember;
 
         if (isSetter) {
           name = name.substring(0, name.length - 1);
@@ -4941,10 +4930,9 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     bool isNegated = node.immediatelyNegated;
 
     bool treatedAsDouble = node.staticType == _typeProvider.doubleType;
-    bool valid =
-        treatedAsDouble
-            ? IntegerLiteralImpl.isValidAsDouble(source)
-            : IntegerLiteralImpl.isValidAsInteger(source, isNegated);
+    bool valid = treatedAsDouble
+        ? IntegerLiteralImpl.isValidAsDouble(source)
+        : IntegerLiteralImpl.isValidAsInteger(source, isNegated);
 
     if (!valid) {
       var lexeme = node.literal.lexeme;
@@ -5409,15 +5397,14 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       return;
     }
 
-    var requiredPositionalParameterCount =
-        superUnnamedConstructor.formalParameters
-            .where((parameter) => parameter.isRequiredPositional)
-            .length;
-    var requiredNamedParameters =
-        superUnnamedConstructor.formalParameters
-            .where((parameter) => parameter.isRequiredNamed)
-            .map((parameter) => parameter.name)
-            .toSet();
+    var requiredPositionalParameterCount = superUnnamedConstructor
+        .formalParameters
+        .where((parameter) => parameter.isRequiredPositional)
+        .length;
+    var requiredNamedParameters = superUnnamedConstructor.formalParameters
+        .where((parameter) => parameter.isRequiredNamed)
+        .map((parameter) => parameter.name)
+        .toSet();
 
     void reportError(DiagnosticCode code, List<Object> arguments) {
       Identifier returnType = constructor.returnType;
@@ -6119,7 +6106,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
                     errorTarget,
                     parameterElement.isPositional
                         ? CompileTimeErrorCode
-                            .missingDefaultValueForParameterPositional
+                              .missingDefaultValueForParameterPositional
                         : CompileTimeErrorCode.missingDefaultValueForParameter,
                     arguments: [parameterName?.lexeme ?? '?'],
                   );
@@ -6132,12 +6119,12 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     }
   }
 
-  bool _computeThisAccessForFunctionBody(FunctionBody node) => switch (node
-      .parent) {
-    ConstructorDeclaration(:var factoryKeyword) => factoryKeyword == null,
-    MethodDeclaration(:var isStatic) => !isStatic,
-    _ => _hasAccessToThis,
-  };
+  bool _computeThisAccessForFunctionBody(FunctionBody node) =>
+      switch (node.parent) {
+        ConstructorDeclaration(:var factoryKeyword) => factoryKeyword == null,
+        MethodDeclaration(:var isStatic) => !isStatic,
+        _ => _hasAccessToThis,
+      };
 
   /// Given an [expression] in a switch case whose value is expected to be an
   /// enum constant, return the name of the constant.
@@ -6167,10 +6154,9 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     if (name == null) {
       return '';
     }
-    var imports =
-        _currentUnit.withEnclosing
-            .expand((fragment) => fragment.libraryImports)
-            .toList();
+    var imports = _currentUnit.withEnclosing
+        .expand((fragment) => fragment.libraryImports)
+        .toList();
     int count = imports.length;
     for (int i = 0; i < count; i++) {
       if (identical(imports[i].importedLibrary, library)) {

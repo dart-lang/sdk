@@ -129,13 +129,12 @@ class FolderBasedDartSdkTest with ResourceProviderMixin {
 
   void test_fromFile_library() {
     FolderBasedDartSdk sdk = _createDartSdk();
-    var source =
-        sdk.fromFileUri(
-          sdk.libraryDirectory
-              .getChildAssumingFolder("core")
-              .getChildAssumingFile("core.dart")
-              .toUri(),
-        )!;
+    var source = sdk.fromFileUri(
+      sdk.libraryDirectory
+          .getChildAssumingFolder("core")
+          .getChildAssumingFile("core.dart")
+          .toUri(),
+    )!;
     expect(source, isNotNull);
     expect(source.uri.toString(), "dart:core");
   }
@@ -162,13 +161,12 @@ class FolderBasedDartSdkTest with ResourceProviderMixin {
 
   void test_fromFile_part() {
     FolderBasedDartSdk sdk = _createDartSdk();
-    var source =
-        sdk.fromFileUri(
-          sdk.libraryDirectory
-              .getChildAssumingFolder("core")
-              .getChildAssumingFile("num.dart")
-              .toUri(),
-        )!;
+    var source = sdk.fromFileUri(
+      sdk.libraryDirectory
+          .getChildAssumingFolder("core")
+          .getChildAssumingFile("num.dart")
+          .toUri(),
+    )!;
     expect(source, isNotNull);
     expect(source.uri.toString(), "dart:core/num.dart");
   }

@@ -552,15 +552,13 @@ class GenericFunctionInferenceTest extends AbstractTypeSystemTest {
   }
 
   void _assertTypes(List<DartType> actual, List<DartType> expected) {
-    var actualStr =
-        actual.map((e) {
-          return e.getDisplayString();
-        }).toList();
+    var actualStr = actual.map((e) {
+      return e.getDisplayString();
+    }).toList();
 
-    var expectedStr =
-        expected.map((e) {
-          return e.getDisplayString();
-        }).toList();
+    var expectedStr = expected.map((e) {
+      return e.getDisplayString();
+    }).toList();
 
     expect(actualStr, expectedStr);
   }

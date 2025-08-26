@@ -44,31 +44,27 @@ final class RuleContextWithParsedResults implements RuleContext {
   bool get isInTestDirectory => false;
 
   @override
-  LibraryElement get libraryElement =>
-      throw UnsupportedError(
-        'RuleContext with parsed results does not include a LibraryElement',
-      );
+  LibraryElement get libraryElement => throw UnsupportedError(
+    'RuleContext with parsed results does not include a LibraryElement',
+  );
 
   @override
   WorkspacePackage? get package => null;
 
   @override
-  TypeProvider get typeProvider =>
-      throw UnsupportedError(
-        'RuleContext with parsed results does not include a TypeProvider',
-      );
+  TypeProvider get typeProvider => throw UnsupportedError(
+    'RuleContext with parsed results does not include a TypeProvider',
+  );
 
   @override
-  TypeSystem get typeSystem =>
-      throw UnsupportedError(
-        'RuleContext with parsed results does not include a TypeSystem',
-      );
+  TypeSystem get typeSystem => throw UnsupportedError(
+    'RuleContext with parsed results does not include a TypeSystem',
+  );
 
   @override
-  bool isFeatureEnabled(Feature feature) =>
-      throw UnsupportedError(
-        'RuleContext with parsed results does not include a LibraryElement',
-      );
+  bool isFeatureEnabled(Feature feature) => throw UnsupportedError(
+    'RuleContext with parsed results does not include a LibraryElement',
+  );
 }
 
 /// A [RuleContext] for a library, resolved into [ResolvedUnitResult]s.

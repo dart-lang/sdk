@@ -157,8 +157,8 @@ class LibraryAnalyzer {
     return performance.run('resolve', (performance) {
       TypeConstraintGenerationDataForTesting? inferenceDataForTesting =
           _testingData != null
-              ? TypeConstraintGenerationDataForTesting()
-              : null;
+          ? TypeConstraintGenerationDataForTesting()
+          : null;
 
       // TODO(scheglov): We don't need to do this for the whole unit.
       parsedUnit.accept(
@@ -366,9 +366,10 @@ class LibraryAnalyzer {
 
     // This must happen after all other diagnostics have been computed but
     // before the list of diagnostics has been filtered.
-    for (var fileAnalysis in _libraryFiles.values
-    // Only validate non-generated files.
-    .whereNot((f) => f.file.source.isGenerated)) {
+    for (var fileAnalysis
+        in _libraryFiles.values
+        // Only validate non-generated files.
+        .whereNot((f) => f.file.source.isGenerated)) {
       IgnoreValidator(
         fileAnalysis.diagnosticReporter,
         fileAnalysis.diagnosticListener.diagnostics,
@@ -414,8 +415,9 @@ class LibraryAnalyzer {
     );
 
     for (var linter in _analysisOptions.lintRules) {
-      var timer =
-          _enableLintRuleTiming ? analysisRuleTimers.getTimer(linter) : null;
+      var timer = _enableLintRuleTiming
+          ? analysisRuleTimers.getTimer(linter)
+          : null;
       timer?.start();
       linter.registerNodeProcessors(nodeRegistry, context);
       timer?.stop();
@@ -547,8 +549,9 @@ class LibraryAnalyzer {
     // the SDK constraints specified in analysis options.
     //
     var package = fileAnalysis.file.workspacePackage;
-    var sdkVersionConstraint =
-        (package is PubPackage) ? package.sdkVersionConstraint : null;
+    var sdkVersionConstraint = (package is PubPackage)
+        ? package.sdkVersionConstraint
+        : null;
     if (sdkVersionConstraint != null) {
       SdkConstraintVerifier verifier = SdkConstraintVerifier(
         diagnosticReporter,
@@ -609,12 +612,11 @@ class LibraryAnalyzer {
   }
 
   bool _hasDiagnosticReportedThatPreventsImportWarnings() {
-    var errorCodes =
-        _libraryFiles.values.map((analysis) {
-          return analysis.diagnosticListener.diagnostics.map(
-            (e) => e.diagnosticCode,
-          );
-        }).flattenedToSet;
+    var errorCodes = _libraryFiles.values.map((analysis) {
+      return analysis.diagnosticListener.diagnostics.map(
+        (e) => e.diagnosticCode,
+      );
+    }).flattenedToSet;
 
     for (var errorCode in errorCodes) {
       if (const {
@@ -699,22 +701,20 @@ class LibraryAnalyzer {
           CompileTimeErrorCode.useOfNativeExtension,
         );
       } else if (state.importedSource == null) {
-        var errorCode =
-            state.isDocImport
-                ? WarningCode.uriDoesNotExistInDocImport
-                : CompileTimeErrorCode.uriDoesNotExist;
+        var errorCode = state.isDocImport
+            ? WarningCode.uriDoesNotExistInDocImport
+            : CompileTimeErrorCode.uriDoesNotExist;
         diagnosticReporter.atNode(
           directive.uri,
           errorCode,
           arguments: [selectedUriStr],
         );
       } else if (state is LibraryImportWithFile && !state.importedFile.exists) {
-        var errorCode =
-            state.isDocImport
-                ? WarningCode.uriDoesNotExistInDocImport
-                : state.importedSource.isGenerated
-                ? CompileTimeErrorCode.uriHasNotBeenGenerated
-                : CompileTimeErrorCode.uriDoesNotExist;
+        var errorCode = state.isDocImport
+            ? WarningCode.uriDoesNotExistInDocImport
+            : state.importedSource.isGenerated
+            ? CompileTimeErrorCode.uriHasNotBeenGenerated
+            : CompileTimeErrorCode.uriDoesNotExist;
         diagnosticReporter.atNode(
           directive.uri,
           errorCode,
@@ -790,12 +790,11 @@ class LibraryAnalyzer {
       }
     }
 
-    var docImports =
-        containerUnit.directives
-            .whereType<LibraryDirective>()
-            .firstOrNull
-            ?.documentationComment
-            ?.docImports;
+    var docImports = containerUnit.directives
+        .whereType<LibraryDirective>()
+        .firstOrNull
+        ?.documentationComment
+        ?.docImports;
     if (docImports != null) {
       for (var i = 0; i < docImports.length; i++) {
         _resolveLibraryDocImportDirective(
@@ -929,10 +928,9 @@ class LibraryAnalyzer {
           arguments: [selectedUriStr],
         );
       } else if (state is LibraryExportWithFile && !state.exportedFile.exists) {
-        var errorCode =
-            isGeneratedSource(state.exportedSource)
-                ? CompileTimeErrorCode.uriHasNotBeenGenerated
-                : CompileTimeErrorCode.uriDoesNotExist;
+        var errorCode = isGeneratedSource(state.exportedSource)
+            ? CompileTimeErrorCode.uriHasNotBeenGenerated
+            : CompileTimeErrorCode.uriDoesNotExist;
         diagnosticReporter.atNode(
           directive.uri,
           errorCode,

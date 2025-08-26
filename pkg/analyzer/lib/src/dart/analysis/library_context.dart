@@ -418,11 +418,10 @@ class LibraryContextTestData {
   LibraryContextTestData({required this.fileSystemTestData});
 
   LibraryCycleTestData forCycle(LibraryCycle cycle) {
-    var files =
-        cycle.libraries.map((library) {
-          var file = library.file;
-          return fileSystemTestData.forFile(file.resource, file.uri);
-        }).toList();
+    var files = cycle.libraries.map((library) {
+      var file = library.file;
+      return fileSystemTestData.forFile(file.resource, file.uri);
+    }).toList();
     files.sortBy((fileData) => fileData.file.path);
 
     return libraryCycles[files] ??= LibraryCycleTestData();

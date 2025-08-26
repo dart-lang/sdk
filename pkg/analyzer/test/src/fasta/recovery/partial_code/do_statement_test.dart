@@ -11,8 +11,9 @@ main() {
 }
 
 class DoStatementTest extends PartialCodeTest {
-  final allExceptEof =
-      PartialCodeTest.statementSuffixes.map((ts) => ts.name).toList();
+  final allExceptEof = PartialCodeTest.statementSuffixes
+      .map((ts) => ts.name)
+      .toList();
   buildAll() {
     buildTests(
       'do_statement',

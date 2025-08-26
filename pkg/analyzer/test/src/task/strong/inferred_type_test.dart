@@ -2046,7 +2046,8 @@ main() {
       required String declared,
       required String downwards,
       required String upwards,
-    }) => '''
+    }) =>
+        '''
 import 'dart:async';
 
 class MyFuture<T> implements Future<T> {
@@ -2153,7 +2154,8 @@ void main() {
       required String declared,
       required String downwards,
       required String upwards,
-    }) => '''
+    }) =>
+        '''
 import 'dart:async';
 class MyFuture<T> implements Future<T> {
   MyFuture() {}
@@ -2453,7 +2455,8 @@ m2() {
       required String declared,
       required String downwards,
       required String upwards,
-    }) => '''
+    }) =>
+        '''
 import 'dart:async';
 class MyFuture<T> implements Future<T> {
   MyFuture() {}
@@ -2564,7 +2567,8 @@ main() {
       required String downwards,
       required String upwards,
       String expectedInfo = '',
-    }) => '''
+    }) =>
+        '''
 import 'dart:async';
 class MyFuture<T> implements Future<T> {
   MyFuture() {}
