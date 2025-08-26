@@ -556,6 +556,7 @@ const RegList kAbiPartiallyVolatileFpuRegs =
     R(V8) | R(V9) | R(V10) | R(V11) | R(V12) | R(V13) | R(V14) | R(V15);
 const RegList kAbiVolatileFpuRegs =
     kAbiFullyVolatileFpuRegs | kAbiPartiallyVolatileFpuRegs;
+const RegList kDartVolatileFpuRegs = kAbiVolatileFpuRegs & ~R(FpuTMP);
 
 constexpr int kStoreBufferWrapperSize = 32;
 

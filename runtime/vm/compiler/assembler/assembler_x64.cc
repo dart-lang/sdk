@@ -2076,6 +2076,9 @@ void Assembler::CallRuntime(const RuntimeEntry& entry,
   }
 }
 
+static const RegisterSet kRuntimeCallSavedRegisters(kDartVolatileCpuRegs,
+                                                    kDartVolatileFpuRegs);
+
 #define __ assembler_->
 
 LeafRuntimeScope::LeafRuntimeScope(Assembler* assembler,
@@ -2086,8 +2089,7 @@ LeafRuntimeScope::LeafRuntimeScope(Assembler* assembler,
   __ EnterFrame(0);
 
   if (preserve_registers_) {
-    // TODO(vegorov): avoid saving FpuTMP, it is used only as scratch.
-    __ PushRegisters(kVolatileRegisterSet);
+    __ PushRegisters(kRuntimeCallSavedRegisters);
   } else {
     // These registers must always be preserved.
     ASSERT(IsCalleeSavedRegister(THR));
@@ -2115,10 +2117,9 @@ LeafRuntimeScope::~LeafRuntimeScope() {
     // RSP might have been modified to reserve space for arguments
     // and ensure proper alignment of the stack frame.
     // We need to restore it before restoring registers.
-    __ leaq(RSP, Address(RBP, -kVolatileRegisterSet.SpillSize()));
+    __ leaq(RSP, Address(RBP, -kRuntimeCallSavedRegisters.SpillSize()));
 
-    // TODO(vegorov): avoid saving FpuTMP, it is used only as scratch.
-    __ PopRegisters(kVolatileRegisterSet);
+    __ PopRegisters(kRuntimeCallSavedRegisters);
   } else {
     const intptr_t kPushedRegistersSize =
         (target::frame_layout.dart_fixed_frame_size - 2) *

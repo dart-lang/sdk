@@ -4889,7 +4889,7 @@ void Assembler::CallRuntime(const RuntimeEntry& entry,
 }
 
 static const RegisterSet kRuntimeCallSavedRegisters(kDartVolatileCpuRegs,
-                                                    kAbiVolatileFpuRegs);
+                                                    kDartVolatileFpuRegs);
 
 #define __ assembler_->
 

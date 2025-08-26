@@ -1864,10 +1864,8 @@ void Assembler::CallRuntime(const RuntimeEntry& entry,
   }
 }
 
-// FPU: Only the bottom 64-bits of v8-v15 are preserved by the caller. The upper
-// bits might be in use by Dart, so we save the whole register.
 static const RegisterSet kRuntimeCallSavedRegisters(kDartVolatileCpuRegs,
-                                                    kAllFpuRegistersList);
+                                                    kDartVolatileFpuRegs);
 
 #undef __
 #define __ assembler_->

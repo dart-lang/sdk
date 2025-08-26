@@ -530,6 +530,7 @@ constexpr RegList kAbiPreservedFpuRegs = R(FS0) | R(FS1) | R(FS2) | R(FS3) |
 constexpr int kAbiPreservedFpuRegCount = 12;
 constexpr intptr_t kReservedFpuRegisters = 0;
 constexpr intptr_t kNumberOfReservedFpuRegisters = 0;
+constexpr RegList kDartVolatileFpuRegs = kAbiVolatileFpuRegs & ~R(FpuTMP);
 
 constexpr int kStoreBufferWrapperSize = 26;
 
