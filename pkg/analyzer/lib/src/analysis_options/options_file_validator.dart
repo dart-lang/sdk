@@ -6,6 +6,7 @@ import 'package:analyzer/dart/analysis/formatter_options.dart';
 import 'package:analyzer/diagnostic/diagnostic.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/error/listener.dart';
+import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/source/source.dart';
 import 'package:analyzer/src/analysis_options/analysis_options_file.dart';
 import 'package:analyzer/src/analysis_options/analysis_options_provider.dart';
@@ -29,6 +30,7 @@ List<Diagnostic> analyzeAnalysisOptions(
   SourceFactory sourceFactory,
   String contextRoot,
   VersionConstraint? sdkVersionConstraint,
+  ResourceProvider resourceProvider,
 ) {
   List<Diagnostic> errors = [];
   Source initialSource = source;
@@ -81,6 +83,8 @@ List<Diagnostic> analyzeAnalysisOptions(
       source,
       sdkVersionConstraint: sdkVersionConstraint,
       sourceIsOptionsForContextRoot: sourceIsOptionsForContextRoot,
+      optionsProvider: optionsProvider,
+      resourceProvider: resourceProvider,
     ).validate(options);
     addDirectErrorOrIncludedError(
       validationErrors,
@@ -209,7 +213,10 @@ List<Diagnostic> analyzeAnalysisOptions(
   }
 
   try {
-    YamlMap options = optionsProvider.getOptionsFromString(content);
+    YamlMap options = optionsProvider.getOptionsFromString(
+      content,
+      sourceUrl: source.uri,
+    );
     validate(source, options);
   } on OptionsFormatException catch (e) {
     SourceSpan span = e.span!;
@@ -286,12 +293,16 @@ class OptionsFileValidator {
     this._source, {
     VersionConstraint? sdkVersionConstraint,
     required bool sourceIsOptionsForContextRoot,
+    required AnalysisOptionsProvider optionsProvider,
+    required ResourceProvider resourceProvider,
   }) : _validators = [
          AnalyzerOptionsValidator(),
          _CodeStyleOptionsValidator(),
          _FormatterOptionsValidator(),
          _LinterTopLevelOptionsValidator(),
          LinterRuleOptionsValidator(
+           resourceProvider: resourceProvider,
+           optionsProvider: optionsProvider,
            sdkVersionConstraint: sdkVersionConstraint,
            sourceIsOptionsForContextRoot: sourceIsOptionsForContextRoot,
          ),

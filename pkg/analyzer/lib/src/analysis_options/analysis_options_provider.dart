@@ -67,34 +67,36 @@ class AnalysisOptionsProvider {
   /// Recursively merges options referenced by any `include` directives and
   /// removes any `include` directives from the resulting options map. Returns
   /// an empty options map if the file does not exist or cannot be parsed.
-  YamlMap getOptionsFromSource(Source source) {
+  YamlMap getOptionsFromSource(Source source, {Set<Source>? handled}) {
+    handled ??= {};
     try {
       var options = getOptionsFromString(_readAnalysisOptions(source));
       if (_sourceFactory == null) {
         return options;
       }
       var includeValue = options.valueAt(AnalysisOptionsFile.include);
-      if (includeValue case YamlScalar(value: String path)) {
+      var includes = switch (includeValue) {
+        YamlScalar(:String value) => [value],
+        YamlList() =>
+          includeValue.nodes
+              .whereType<YamlScalar>()
+              .map((e) => e.value)
+              .whereType<String>()
+              .toList(),
+        _ => <String>[],
+      };
+      var includeOptions = includes.fold(YamlMap(), (options, path) {
         var includeUri = _sourceFactory.resolveUri(source, path);
-        if (includeUri != null) {
-          options = merge(getOptionsFromSource(includeUri), options);
+        if (includeUri == null || !handled!.add(includeUri)) {
+          // Return the existing options, unchanged.
+          return options;
         }
-      } else if (includeValue is YamlList) {
-        var includePaths =
-            includeValue.nodes
-                .whereType<YamlScalar>()
-                .map((e) => e.value)
-                .whereType<String>();
-        var includeOptions = includePaths.fold(YamlMap(), (options, path) {
-          var includeUri = _sourceFactory.resolveUri(source, path);
-          if (includeUri == null) {
-            // Return the existing options, unchanged.
-            return options;
-          }
-          return merge(options, getOptionsFromSource(includeUri));
-        });
-        options = merge(includeOptions, options);
-      }
+        return merge(
+          options,
+          getOptionsFromSource(includeUri, handled: handled),
+        );
+      });
+      options = merge(includeOptions, options);
       return options;
     } on OptionsFormatException {
       return YamlMap();
@@ -106,12 +108,12 @@ class AnalysisOptionsProvider {
   /// An 'include' directive, if present, will be left as-is, and the referenced
   /// options will NOT be merged into the result. Returns an empty options map
   /// if the content is null, or not a YAML map.
-  YamlMap getOptionsFromString(String? content) {
+  YamlMap getOptionsFromString(String? content, {Uri? sourceUrl}) {
     if (content == null) {
       return YamlMap();
     }
     try {
-      var doc = loadYamlNode(content);
+      var doc = loadYamlNode(content, sourceUrl: sourceUrl);
       return doc is YamlMap ? doc : YamlMap();
     } on YamlException catch (e) {
       throw OptionsFormatException(e.message, e.span);

@@ -86,10 +86,20 @@ AnalysisOptionsWarningCode.INCLUDED_FILE_WARNING:
   notes: |-
     The fix needs to be made in the included file.
 AnalysisOptionsWarningCode.INCOMPATIBLE_LINT:
-  status: noFix
+  status: needsFix
   notes: |-
-    Without knowing which rule the user would prefer to use, we cannot remove
-    the reported one.
+    Allowing the user to select which rule they would prefer to use so we can
+    remove the incompatible ones.
+AnalysisOptionsWarningCode.INCOMPATIBLE_LINT_FILES:
+  status: needsFix
+  notes: |-
+    Allowing the user to select which rule they would prefer to use so we can
+    disable the incompatible ones.
+AnalysisOptionsWarningCode.INCOMPATIBLE_LINT_INCLUDED:
+  status: needsFix
+  notes: |-
+    Allowing the user to select which rule they would prefer to use so we can
+    disable the incompatible ones.
 AnalysisOptionsWarningCode.INVALID_OPTION:
   status: needsFix
   notes: |-

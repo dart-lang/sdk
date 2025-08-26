@@ -12,6 +12,8 @@ import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/diagnostic/diagnostic.dart';
 import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/utilities/extensions/string.dart';
+import 'package:yaml/yaml.dart';
 
 /// A factory used to create diagnostics.
 class DiagnosticFactory {
@@ -277,6 +279,114 @@ class DiagnosticFactory {
           length: originalKey.length,
           url: null,
         ),
+      ],
+    );
+  }
+
+  Diagnostic incompatibleLint({
+    required Source source,
+    required YamlScalar reference,
+    required Map<String, YamlScalar> incompatibleRules,
+  }) {
+    assert(reference.value is String);
+    assert(incompatibleRules.values.every((node) => node.value is String));
+    return Diagnostic.tmp(
+      source: source,
+      offset: reference.span.start.offset,
+      length: reference.span.length,
+      diagnosticCode: AnalysisOptionsWarningCode.incompatibleLint,
+      arguments: [
+        reference.value as String,
+        incompatibleRules.values
+            .map((node) => node.value as String)
+            .quotedAndCommaSeparatedWithAnd,
+      ],
+      contextMessages: [
+        for (var MapEntry(key: file, value: incompatible)
+            in incompatibleRules.entries)
+          DiagnosticMessageImpl(
+            filePath: file,
+            message:
+                "The rule '${incompatible.value.toString()}' is enabled here.",
+            offset: incompatible.span.start.offset,
+            length: incompatible.span.length,
+            url: file,
+          ),
+      ],
+    );
+  }
+
+  /// Returns a diagnostic indicating that incompatible rules were found between
+  /// the current list and one or more of the included files.
+  Diagnostic incompatibleLintFiles({
+    required Source source,
+    required YamlScalar reference,
+    required Map<String, YamlScalar> incompatibleRules,
+  }) {
+    assert(reference.value is String);
+    assert(incompatibleRules.values.every((node) => node.value is String));
+    return Diagnostic.tmp(
+      source: source,
+      offset: reference.span.start.offset,
+      length: reference.span.length,
+      diagnosticCode: AnalysisOptionsWarningCode.incompatibleLintFiles,
+      arguments: [
+        reference.value as String,
+        incompatibleRules.values
+            .map((node) => node.value as String)
+            .quotedAndCommaSeparatedWithAnd,
+      ],
+      contextMessages: [
+        for (var MapEntry(key: file, value: incompatible)
+            in incompatibleRules.entries)
+          DiagnosticMessageImpl(
+            filePath: file,
+            message:
+                "The rule '${incompatible.value.toString()}' is enabled here "
+                "in the file '$file'.",
+            offset: incompatible.span.start.offset,
+            length: incompatible.span.length,
+            url: file,
+          ),
+      ],
+    );
+  }
+
+  /// Returns a diagnostic indicating that incompatible rules were found between
+  /// the included files.
+  Diagnostic incompatibleLintIncluded({
+    required Source source,
+    required YamlScalar reference,
+    required Map<String, YamlScalar> incompatibleRules,
+    required int fileCount,
+  }) {
+    assert(fileCount > 0);
+    assert(reference.value is String);
+    assert(incompatibleRules.values.every((node) => node.value is String));
+    return Diagnostic.tmp(
+      source: source,
+      offset: reference.span.start.offset,
+      length: reference.span.length,
+      diagnosticCode: AnalysisOptionsWarningCode.incompatibleLintIncluded,
+      arguments: [
+        reference.value as String,
+        incompatibleRules.values
+            .map((node) => node.value as String)
+            .quotedAndCommaSeparatedWithAnd,
+        fileCount,
+        fileCount == 1 ? '' : 's',
+      ],
+      contextMessages: [
+        for (var MapEntry(key: file, value: incompatible)
+            in incompatibleRules.entries)
+          DiagnosticMessageImpl(
+            filePath: file,
+            message:
+                "The rule '${incompatible.value.toString()}' is enabled here.",
+            offset: incompatible.span.start.offset,
+            length: incompatible.span.length,
+            url: file,
+          ),
       ],
     );
   }

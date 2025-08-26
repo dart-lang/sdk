@@ -261,18 +261,73 @@ class AnalysisOptionsWarningCode extends DiagnosticCodeWithExpectedTypes {
 
   /// An error code indicating an incompatible rule.
   ///
+  /// The incompatible rules must be included by context messages.
+  ///
   /// Parameters:
   /// String p0: the rule name
-  /// String p1: the incompatible rule
+  /// String p1: the incompatible rules
   static const AnalysisOptionsWarningTemplate<
     LocatableDiagnostic Function({required String p0, required String p1})
   >
   incompatibleLint = AnalysisOptionsWarningTemplate(
     'INCOMPATIBLE_LINT',
-    "The rule '{0}' is incompatible with the rule '{1}'.",
-    correctionMessage: "Try removing one of the incompatible rules.",
+    "The rule '{0}' is incompatible with {1}.",
+    correctionMessage: "Try removing all but one of the incompatible rules.",
     withArguments: _withArgumentsIncompatibleLint,
     expectedTypes: [ExpectedType.string, ExpectedType.string],
+  );
+
+  /// An error code indicating an incompatible rule.
+  ///
+  /// The files that enable the referenced rules must be included by context messages.
+  ///
+  /// Parameters:
+  /// String p0: the rule name
+  /// String p1: the incompatible rules
+  static const AnalysisOptionsWarningTemplate<
+    LocatableDiagnostic Function({required String p0, required String p1})
+  >
+  incompatibleLintFiles = AnalysisOptionsWarningTemplate(
+    'INCOMPATIBLE_LINT',
+    "The rule '{0}' is incompatible with {1}.",
+    correctionMessage:
+        "Try locally disabling all but one of the conflicting rules or "
+        "removing one of the incompatible files.",
+    uniqueName: 'INCOMPATIBLE_LINT_FILES',
+    withArguments: _withArgumentsIncompatibleLintFiles,
+    expectedTypes: [ExpectedType.string, ExpectedType.string],
+  );
+
+  /// An error code indicating an incompatible rule.
+  ///
+  /// Parameters:
+  /// String p0: the rule name
+  /// String p1: the incompatible rules
+  /// int p2: the number of files that include the incompatible rule
+  /// String p3: plural suffix for the word "file"
+  static const AnalysisOptionsWarningTemplate<
+    LocatableDiagnostic Function({
+      required String p0,
+      required String p1,
+      required int p2,
+      required String p3,
+    })
+  >
+  incompatibleLintIncluded = AnalysisOptionsWarningTemplate(
+    'INCOMPATIBLE_LINT',
+    "The rule '{0}' is incompatible with '{1}', which is included from {2} "
+        "file{3}.",
+    correctionMessage:
+        "Try locally disabling all but one of the conflicting rules or "
+        "removing one of the incompatible files.",
+    uniqueName: 'INCOMPATIBLE_LINT_INCLUDED',
+    withArguments: _withArgumentsIncompatibleLintIncluded,
+    expectedTypes: [
+      ExpectedType.string,
+      ExpectedType.string,
+      ExpectedType.int,
+      ExpectedType.string,
+    ],
   );
 
   /// An error code indicating that a plugin is being configured with an invalid
@@ -481,12 +536,12 @@ class AnalysisOptionsWarningCode extends DiagnosticCodeWithExpectedTypes {
   ///
   /// Parameters:
   /// String p0: the option name
-  /// int p1: the unsupported value
+  /// Object p1: the unsupported value
   /// String p2: legal values
   static const AnalysisOptionsWarningTemplate<
     LocatableDiagnostic Function({
       required String p0,
-      required int p1,
+      required Object p1,
       required String p2,
     })
   >
@@ -495,7 +550,11 @@ class AnalysisOptionsWarningCode extends DiagnosticCodeWithExpectedTypes {
     "The value '{1}' isn't supported by '{0}'.",
     correctionMessage: "Try using one of the supported options: {2}.",
     withArguments: _withArgumentsUnsupportedValue,
-    expectedTypes: [ExpectedType.string, ExpectedType.int, ExpectedType.string],
+    expectedTypes: [
+      ExpectedType.string,
+      ExpectedType.object,
+      ExpectedType.string,
+    ],
   );
 
   /// Initialize a newly created error code to have the given [name].
@@ -575,6 +634,22 @@ class AnalysisOptionsWarningCode extends DiagnosticCodeWithExpectedTypes {
     required String p1,
   }) {
     return LocatableDiagnosticImpl(incompatibleLint, [p0, p1]);
+  }
+
+  static LocatableDiagnostic _withArgumentsIncompatibleLintFiles({
+    required String p0,
+    required String p1,
+  }) {
+    return LocatableDiagnosticImpl(incompatibleLintFiles, [p0, p1]);
+  }
+
+  static LocatableDiagnostic _withArgumentsIncompatibleLintIncluded({
+    required String p0,
+    required String p1,
+    required int p2,
+    required String p3,
+  }) {
+    return LocatableDiagnosticImpl(incompatibleLintIncluded, [p0, p1, p2, p3]);
   }
 
   static LocatableDiagnostic _withArgumentsInvalidOption({
@@ -661,7 +736,7 @@ class AnalysisOptionsWarningCode extends DiagnosticCodeWithExpectedTypes {
 
   static LocatableDiagnostic _withArgumentsUnsupportedValue({
     required String p0,
-    required int p1,
+    required Object p1,
     required String p2,
   }) {
     return LocatableDiagnosticImpl(unsupportedValue, [p0, p1, p2]);

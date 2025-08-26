@@ -87,6 +87,7 @@ class AnalysisOptionsCodeActionsProducer extends AbstractCodeActionsProducer {
       sourceFactory,
       contextRoot.root.path,
       sdkVersionConstraint,
+      resourceProvider,
     );
 
     var codeActions = <CodeActionWithPriority>[];

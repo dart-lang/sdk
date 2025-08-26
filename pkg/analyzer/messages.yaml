@@ -139,12 +139,39 @@ AnalysisOptionsWarningCode:
   INCOMPATIBLE_LINT:
     parameters:
       String p0: the rule name
-      String p1: the incompatible rule
-    problemMessage: "The rule '#p0' is incompatible with the rule '#p1'."
-    correctionMessage: "Try removing one of the incompatible rules."
+      String p1: the incompatible rules
+    problemMessage: "The rule '#p0' is incompatible with #p1."
+    correctionMessage: "Try removing all but one of the incompatible rules."
     hasPublishedDocs: false
     comment: |-
       An error code indicating an incompatible rule.
+
+      The incompatible rules must be included by context messages.
+  INCOMPATIBLE_LINT_FILES:
+    parameters:
+      String p0: the rule name
+      String p1: the incompatible rules
+    sharedName: INCOMPATIBLE_LINT
+    problemMessage: "The rule '#p0' is incompatible with #p1."
+    correctionMessage: "Try locally disabling all but one of the conflicting rules or removing one of the incompatible files."
+    hasPublishedDocs: false
+    comment: |-
+      An error code indicating an incompatible rule.
+
+      The files that enable the referenced rules must be included by context messages.
+  INCOMPATIBLE_LINT_INCLUDED:
+    parameters:
+      String p0: the rule name
+      String p1: the incompatible rules
+      int p2: the number of files that include the incompatible rule
+      String p3: plural suffix for the word "file"
+    sharedName: INCOMPATIBLE_LINT
+    problemMessage: "The rule '#p0' is incompatible with '#p1', which is included from #p2 file#p3."
+    correctionMessage: "Try locally disabling all but one of the conflicting rules or removing one of the incompatible files."
+    hasPublishedDocs: false
+    comment: |-
+      An error code indicating an incompatible rule.
+
   INVALID_OPTION:
     parameters:
       String p0: the option name
@@ -246,7 +273,7 @@ AnalysisOptionsWarningCode:
   UNSUPPORTED_VALUE:
     parameters:
       String p0: the option name
-      int p1: the unsupported value
+      Object p1: the unsupported value
       String p2: legal values
     problemMessage: "The value '#p1' isn't supported by '#p0'."
     correctionMessage: "Try using one of the supported options: #p2."
