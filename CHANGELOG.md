@@ -77,8 +77,12 @@ To learn more about the feature, check out the
   for more details.
 - `isA<JSBoxedDartObject>` now checks that the value was the result of a
   `toJSBox` operation instead of returning true for all objects.
+- For object literals created from extension type factories, the `@JS()`
+  annotation can now be used to change the name of keys in JavaScript. See
+  [#55138][] for more details.
 
 [#59830]: https://github.com/dart-lang/sdk/issues/59830
+[#55138]: https://github.com/dart-lang/sdk/issues/55138
 
 ## 3.9.0
 
