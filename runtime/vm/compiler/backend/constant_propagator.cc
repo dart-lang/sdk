@@ -307,6 +307,9 @@ void ConstantPropagator::VisitDeoptimize(DeoptimizeInstr* instr) {
   // TODO(vegorov) remove all code after DeoptimizeInstr as dead.
 }
 
+void ConstantPropagator::VisitTsanFuncEntryExit(TsanFuncEntryExitInstr* instr) {
+}
+
 void ConstantPropagator::VisitTsanReadWrite(TsanReadWriteInstr* instr) {}
 
 Definition* ConstantPropagator::UnwrapPhi(Definition* defn) {

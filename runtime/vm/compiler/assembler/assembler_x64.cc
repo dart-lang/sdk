@@ -2058,13 +2058,22 @@ void Assembler::CallCFunction(Address address, bool restore_rsp) {
 }
 
 void Assembler::CallRuntime(const RuntimeEntry& entry,
-                            intptr_t argument_count) {
+                            intptr_t argument_count,
+                            bool tsan_enter_exit) {
   ASSERT(!entry.is_leaf());
   // Argument count is not checked here, but in the runtime entry for a more
   // informative error message.
+  if (FLAG_target_thread_sanitizer && FLAG_precompiled_mode &&
+      tsan_enter_exit) {
+    TsanFuncEntry(/*preserve_registers=*/false);
+  }
   movq(RBX, compiler::Address(THR, entry.OffsetFromThread()));
   LoadImmediate(R10, compiler::Immediate(argument_count));
   call(Address(THR, target::Thread::call_to_runtime_entry_point_offset()));
+  if (FLAG_target_thread_sanitizer && FLAG_precompiled_mode &&
+      tsan_enter_exit) {
+    TsanFuncExit(/*preserve_registers=*/false);
+  }
 }
 
 #define __ assembler_->
@@ -2226,7 +2235,7 @@ void Assembler::TsanRead(Register addr, intptr_t size) {
 }
 
 void Assembler::TsanWrite(Register addr, intptr_t size) {
-  Comment("TsanStoreRelease");
+  Comment("TsanWrite");
   LeafRuntimeScope rt(this, /*frame_size=*/0, /*preserve_registers=*/true);
   MoveRegister(CallingConventions::kArg1Reg, addr);
   switch (size) {
@@ -2248,6 +2257,25 @@ void Assembler::TsanWrite(Register addr, intptr_t size) {
     default:
       UNREACHABLE();
   }
+}
+
+void Assembler::TsanFuncEntry(bool preserve_registers) {
+  Comment("TsanFuncEntry");
+  LeafRuntimeScope rt(this, /*frame_size=*/0, preserve_registers);
+  movq(CallingConventions::kArg1Reg,
+       Address(RBP, target::frame_layout.saved_caller_fp_from_fp *
+                        target::kWordSize));
+  movq(CallingConventions::kArg1Reg,
+       Address(
+           CallingConventions::kArg1Reg,
+           target::frame_layout.saved_caller_pc_from_fp * target::kWordSize));
+  rt.Call(kTsanFuncEntryRuntimeEntry, /*argument_count=*/1);
+}
+
+void Assembler::TsanFuncExit(bool preserve_registers) {
+  Comment("TsanFuncExit");
+  LeafRuntimeScope rt(this, /*frame_size=*/0, preserve_registers);
+  rt.Call(kTsanFuncExitRuntimeEntry, /*argument_count=*/0);
 }
 
 void Assembler::RestoreCodePointer() {

@@ -1247,6 +1247,14 @@ void TsanReadWriteInstr::PrintOperandsTo(BaseTextBuffer* f) const {
   }
 }
 
+void TsanFuncEntryExitInstr::PrintOperandsTo(BaseTextBuffer* f) const {
+  if (kind_ == kEntry) {
+    f->AddString("entry");
+  } else {
+    f->AddString("exit");
+  }
+}
+
 void GraphEntryInstr::PrintBlockHeaderTo(BaseTextBuffer* f) const {
   f->Printf("B%" Pd "[graph]:%" Pd, block_id(), GetDeoptId());
 }

@@ -142,6 +142,8 @@ namespace dart {
   V(void, TsanWrite4, void*)                                                   \
   V(void, TsanWrite8, void*)                                                   \
   V(void, TsanWrite16, void*)                                                  \
+  V(void, TsanFuncEntry, void*)                                                \
+  V(void, TsanFuncExit)                                                        \
   V(bool, TryDoubleAsInteger, Thread*)                                         \
   V(void*, MemoryMove, void*, const void*, size_t)
 

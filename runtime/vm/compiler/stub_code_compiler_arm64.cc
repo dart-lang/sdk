@@ -3463,10 +3463,32 @@ void StubCodeCompiler::GenerateJumpToFrameStub() {
   ASSERT(kExceptionObjectReg == R0);
   ASSERT(kStackTraceObjectReg == R1);
   __ set_lr_state(compiler::LRState::Clobbered());
+  __ mov(THR, R3);
+  if (FLAG_target_thread_sanitizer && FLAG_precompiled_mode) {
+    Label again, done;
+    __ mov(SP, CSP);
+    __ ldr(CALLEE_SAVED_TEMP,
+           Address(R3, target::Thread::top_exit_frame_info_offset()));
+    // Skip CallToRuntime/CallNativeWithWrapper stub frame, which did not call
+    // __tsan_func_entry.
+    __ ldr(CALLEE_SAVED_TEMP,
+           Address(CALLEE_SAVED_TEMP,
+                   target::frame_layout.saved_caller_fp_from_fp *
+                       target::kWordSize));
+    __ Bind(&again);
+    __ cmp(CALLEE_SAVED_TEMP, Operand(R2));
+    __ b(&done, EQUAL);
+    __ TsanFuncExit();
+    __ ldr(CALLEE_SAVED_TEMP,
+           Address(CALLEE_SAVED_TEMP,
+                   target::frame_layout.saved_caller_fp_from_fp *
+                       target::kWordSize));
+    __ b(&again);
+    __ Bind(&done);
+  }
   __ mov(CALLEE_SAVED_TEMP, R0);  // Program counter.
   __ mov(SP, R1);                 // Stack pointer.
   __ mov(FP, R2);                 // Frame_pointer.
-  __ mov(THR, R3);
   __ SetupCSPFromThread(THR);
 #if defined(DART_TARGET_OS_FUCHSIA)
   // We need to restore the shadow call stack pointer like longjmp would,

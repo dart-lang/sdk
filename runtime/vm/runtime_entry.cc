@@ -5191,6 +5191,12 @@ extern "C" void __tsan_write8(void* addr) {
 extern "C" void __tsan_write16(void* addr) {
   UNREACHABLE();
 }
+extern "C" void __tsan_func_entry(void* pc) {
+  UNREACHABLE();
+}
+extern "C" void __tsan_func_exit() {
+  UNREACHABLE();
+}
 #endif
 
 // These runtime entries are defined even when not using MSAN / TSAN to keep
@@ -5212,5 +5218,7 @@ DEFINE_LEAF_RUNTIME_ENTRY(TsanWrite2, 1, __tsan_write2);
 DEFINE_LEAF_RUNTIME_ENTRY(TsanWrite4, 1, __tsan_write4);
 DEFINE_LEAF_RUNTIME_ENTRY(TsanWrite8, 1, __tsan_write8);
 DEFINE_LEAF_RUNTIME_ENTRY(TsanWrite16, 1, __tsan_write16);
+DEFINE_LEAF_RUNTIME_ENTRY(TsanFuncEntry, 1, __tsan_func_entry);
+DEFINE_LEAF_RUNTIME_ENTRY(TsanFuncExit, 0, __tsan_func_exit);
 
 }  // namespace dart

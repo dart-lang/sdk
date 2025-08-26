@@ -3443,6 +3443,27 @@ void StubCodeCompiler::GenerateGetCStackPointerStub() {
 // No Result.
 void StubCodeCompiler::GenerateJumpToFrameStub() {
   __ movq(THR, CallingConventions::kArg4Reg);
+  if (FLAG_target_thread_sanitizer && FLAG_precompiled_mode) {
+    Label again, done;
+    __ movq(CALLEE_SAVED_TEMP,
+            Address(THR, target::Thread::top_exit_frame_info_offset()));
+    // Skip CallToRuntime/CallNativeWithWrapper stub frame, which did not call
+    // __tsan_func_entry.
+    __ movq(CALLEE_SAVED_TEMP,
+            Address(CALLEE_SAVED_TEMP,
+                    target::frame_layout.saved_caller_fp_from_fp *
+                        target::kWordSize));
+    __ Bind(&again);
+    __ cmpq(CALLEE_SAVED_TEMP, CallingConventions::kArg3Reg);
+    __ j(EQUAL, &done);
+    __ TsanFuncExit();
+    __ movq(CALLEE_SAVED_TEMP,
+            Address(CALLEE_SAVED_TEMP,
+                    target::frame_layout.saved_caller_fp_from_fp *
+                        target::kWordSize));
+    __ jmp(&again);
+    __ Bind(&done);
+  }
   __ movq(RBP, CallingConventions::kArg3Reg);
   __ movq(RSP, CallingConventions::kArg2Reg);
 #if defined(USING_SHADOW_CALL_STACK)

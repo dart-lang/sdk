@@ -1465,7 +1465,7 @@
             "standalone"
           ],
           "fileset": "vm",
-          "shards": 2
+          "shards": 3
         }
       ]
     },

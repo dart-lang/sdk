@@ -83,6 +83,6 @@ main(List<String> arguments) {
   Expect.notEquals(0, result.exitCode);
   Expect.contains("ThreadSanitizer: data race", result.stderr);
   Expect.contains("of size 8", result.stderr);
-  Expect.contains("List.[]=", result.stderr);
-  Expect.contains("_Array.[]", result.stderr);
+  Expect.contains("dataRaceFromMain", result.stderr);
+  Expect.contains("dataRaceFromChild", result.stderr);
 }
