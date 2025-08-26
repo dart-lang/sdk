@@ -4,8 +4,7 @@
 
 import 'dart:math' show max;
 
-import 'package:_fe_analyzer_shared/src/type_inference/type_analyzer_operations.dart'
-    show Variance;
+import 'package:_fe_analyzer_shared/src/types/shared_type.dart' show Variance;
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';

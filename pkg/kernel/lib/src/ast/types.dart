@@ -305,10 +305,12 @@ class StructuralParameter extends Node implements SharedTypeParameter {
   @override
   DartType? get boundShared => bound;
 
+  @override
   Variance get variance => _variance ?? Variance.covariant;
 
   void set variance(Variance? newVariance) => _variance = newVariance;
 
+  @override
   bool get isLegacyCovariant => _variance == null;
 
   static const int legacyCovariantSerializationMarker = 4;

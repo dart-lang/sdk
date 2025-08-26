@@ -136,15 +136,18 @@ class GenericInferrer {
       for (var typeParameter in _constraints.keys)
         typeParameter: _squashConstraints(_constraints[typeParameter]!),
     };
-    var types = _typeSystemOperations.chooseTypes(
-      _typeFormals,
-      inferencePhaseConstraints,
-      _typesInferredSoFar,
-      preliminary: true,
-      inferenceUsingBoundsIsEnabled: inferenceUsingBoundsIsEnabled,
-      dataForTesting: null,
-      treeNodeForTesting: null,
-    );
+    var types =
+        _typeSystemOperations
+            .chooseTypes(
+              _typeFormals,
+              inferencePhaseConstraints,
+              _typesInferredSoFar,
+              preliminary: true,
+              inferenceUsingBoundsIsEnabled: inferenceUsingBoundsIsEnabled,
+              dataForTesting: null,
+              treeNodeForTesting: null,
+            )
+            .cast<TypeImpl>();
 
     // Mark type parameters with fully known inferred types as "fixed" in the
     // overall solution.
@@ -310,15 +313,18 @@ class GenericInferrer {
       for (var typeParameter in _constraints.keys)
         typeParameter: _squashConstraints(_constraints[typeParameter]!),
     };
-    var inferredTypes = _typeSystemOperations.chooseTypes(
-      _typeFormals,
-      inferencePhaseConstraints,
-      _typesInferredSoFar,
-      preliminary: false,
-      inferenceUsingBoundsIsEnabled: inferenceUsingBoundsIsEnabled,
-      dataForTesting: null,
-      treeNodeForTesting: null,
-    );
+    var inferredTypes =
+        _typeSystemOperations
+            .chooseTypes(
+              _typeFormals,
+              inferencePhaseConstraints,
+              _typesInferredSoFar,
+              preliminary: false,
+              inferenceUsingBoundsIsEnabled: inferenceUsingBoundsIsEnabled,
+              dataForTesting: null,
+              treeNodeForTesting: null,
+            )
+            .cast<TypeImpl>();
     // Check the inferred types against all of the constraints.
     var knownTypes = <TypeParameterElement, TypeImpl>{};
     var hasErrorReported = false;

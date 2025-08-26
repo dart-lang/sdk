@@ -3704,6 +3704,16 @@ class MiniAstOperations
   }
 
   @override
+  SharedType substituteTypeFromIterables(
+    SharedType typeToSubstitute,
+    List<SharedTypeParameter> typeParameters,
+    List<SharedType> types,
+  ) {
+    // TODO(paulberry): Implement substituteTypeFromIterables.
+    throw UnimplementedError();
+  }
+
+  @override
   SharedTypeView? tryPromoteToType(SharedTypeView to, SharedTypeView from) {
     var exception =
         (_promotionExceptions[from.unwrapTypeView<Type>().type] ?? {})[to

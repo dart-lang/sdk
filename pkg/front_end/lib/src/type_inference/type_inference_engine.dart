@@ -4,13 +4,12 @@
 
 import 'package:_fe_analyzer_shared/src/flow_analysis/flow_analysis_operations.dart';
 import 'package:_fe_analyzer_shared/src/type_inference/assigned_variables.dart';
-import 'package:_fe_analyzer_shared/src/type_inference/type_analyzer_operations.dart'
-    hide Variance;
-import 'package:_fe_analyzer_shared/src/type_inference/type_analyzer_operations.dart'
-    as shared show Variance;
+import 'package:_fe_analyzer_shared/src/type_inference/type_analyzer_operations.dart';
 import 'package:_fe_analyzer_shared/src/type_inference/type_constraint.dart'
     as shared;
-import 'package:_fe_analyzer_shared/src/types/shared_type.dart';
+import 'package:_fe_analyzer_shared/src/types/shared_type.dart' hide Variance;
+import 'package:_fe_analyzer_shared/src/types/shared_type.dart' as shared
+    show Variance;
 import 'package:kernel/ast.dart';
 import 'package:kernel/src/bounds_checks.dart';
 import 'package:kernel/class_hierarchy.dart'
@@ -33,7 +32,6 @@ import '../source/source_library_builder.dart'
     show FieldNonPromotabilityInfo, SourceLibraryBuilder;
 import 'factor_type.dart';
 import 'type_constraint_gatherer.dart';
-import 'type_demotion.dart';
 import 'type_inferrer.dart';
 import 'type_schema.dart';
 import 'type_schema_elimination.dart' as type_schema_elimination;
@@ -1077,6 +1075,7 @@ class OperationsCfe
         structuralParameter.defaultType is DynamicType;
   }
 
+  // Coverage-ignore(suite): Not run.
   /// Use the given [constraints] to substitute for type parameters.
   ///
   /// [typeParametersToInfer] is the set of type parameters that should be
@@ -1179,24 +1178,15 @@ class OperationsCfe
   }
 
   @override
-  List<DartType> chooseTypes(
-      covariant List<StructuralParameter> typeParametersToInfer,
-      covariant Map<StructuralParameter, MergedTypeConstraint> constraints,
-      covariant List<DartType>? previouslyInferredTypes,
-      {required bool preliminary,
-      required bool inferenceUsingBoundsIsEnabled,
-      required covariant InferenceDataForTesting? dataForTesting,
-      required TreeNode? treeNodeForTesting}) {
-    List<DartType> inferredTypes = inferTypeFromConstraints(
-        constraints, typeParametersToInfer, previouslyInferredTypes,
-        preliminary: preliminary,
-        dataForTesting: dataForTesting,
-        inferenceUsingBoundsIsEnabled: inferenceUsingBoundsIsEnabled);
-
-    for (int i = 0; i < inferredTypes.length; i++) {
-      inferredTypes[i] = demoteTypeInLibrary(inferredTypes[i]);
-    }
-    return inferredTypes;
+  DartType substituteTypeFromIterables(
+    covariant DartType typeToSubstitute,
+    List<SharedTypeParameter> typeParameters,
+    List<SharedType> types,
+  ) {
+    return new FunctionTypeInstantiator.fromIterables(
+      typeParameters.cast(),
+      types.cast(),
+    ).substitute(typeToSubstitute);
   }
 }
 

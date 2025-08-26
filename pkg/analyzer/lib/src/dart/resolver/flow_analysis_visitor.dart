@@ -514,78 +514,6 @@ class TypeSystemOperations
   }
 
   @override
-  List<TypeImpl> chooseTypes(
-    covariant List<TypeParameterElementImpl> typeFormals,
-    covariant Map<TypeParameterElementImpl, MergedTypeConstraint> constraints,
-    covariant List<TypeImpl> typesInferredSoFar, {
-    required bool preliminary,
-    required bool inferenceUsingBoundsIsEnabled,
-    required covariant TypeConstraintGenerationDataForTesting? dataForTesting,
-    required AstNodeImpl? treeNodeForTesting,
-  }) {
-    var inferredTypes = List<TypeImpl>.filled(
-      typeFormals.length,
-      UnknownInferredType.instance,
-    );
-    for (int i = 0; i < typeFormals.length; i++) {
-      // TODO(kallentu): Clean up TypeParameterElementImpl casting once
-      // variance is added to the interface.
-      var typeParam = typeFormals[i];
-      MergedTypeConstraint? extendsClause;
-      var name = typeParam.name;
-      var bound = typeParam.bound;
-      if (name != null && bound != null) {
-        extendsClause = MergedTypeConstraint.fromExtends(
-          typeParameterName: name,
-          boundType: SharedTypeView(bound),
-          extendsType: SharedTypeView(
-            Substitution.fromPairs2(
-              typeFormals,
-              inferredTypes,
-            ).substituteType(bound),
-          ),
-          typeAnalyzerOperations: this,
-        );
-      }
-
-      var constraint = constraints[typeParam]!;
-      if (preliminary) {
-        var inferredType =
-            inferTypeParameterFromContext(
-                  typesInferredSoFar[i],
-                  constraint,
-                  extendsClause?.upper.unwrapTypeSchemaView(),
-                  isContravariant: typeParam.variance.isContravariant,
-                  typeParameterToInfer: typeParam,
-                  typeParametersToInfer: typeFormals,
-                  constraints: constraints,
-                  dataForTesting: null,
-                  inferenceUsingBoundsIsEnabled: inferenceUsingBoundsIsEnabled,
-                )
-                as TypeImpl;
-
-        inferredTypes[i] = inferredType;
-      } else {
-        inferredTypes[i] =
-            inferTypeParameterFromAll(
-                  typesInferredSoFar[i],
-                  constraint,
-                  extendsClause?.upper.unwrapTypeSchemaView(),
-                  isContravariant: typeParam.variance.isContravariant,
-                  typeParameterToInfer: typeParam,
-                  constraints: constraints,
-                  dataForTesting: null,
-                  inferenceUsingBoundsIsEnabled: inferenceUsingBoundsIsEnabled,
-                  typeParametersToInfer: typeFormals,
-                )
-                as TypeImpl;
-      }
-    }
-
-    return inferredTypes;
-  }
-
-  @override
   TypeClassification classifyType(SharedTypeView type) {
     TypeImpl unwrapped = type.unwrapTypeView();
     if (type is InvalidType) {
@@ -990,6 +918,18 @@ class TypeSystemOperations
         elementTypeSchema.unwrapTypeSchemaView<TypeImpl>(),
       ),
     );
+  }
+
+  @override
+  TypeImpl substituteTypeFromIterables(
+    covariant TypeImpl typeToSubstitute,
+    List<SharedTypeParameter> typeParameters,
+    List<SharedType> types,
+  ) {
+    return Substitution.fromPairs2(
+      typeParameters.cast(),
+      types.cast(),
+    ).substituteType(typeToSubstitute);
   }
 
   @override

@@ -967,6 +967,14 @@ class TypeParameter extends TypeNameInfo implements SharedTypeParameter {
 
   @override
   String toString() => name;
+
+  @override
+  // TODO(paulberry): Implement isLegacyCovariant.
+  bool get isLegacyCovariant => true;
+
+  @override
+  // TODO(paulberry): Implement variance.
+  Variance get variance => Variance.covariant;
 }
 
 /// Representation of a type parameter type suitable for unit testing of code in

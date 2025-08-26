@@ -17,8 +17,7 @@ import 'package:_fe_analyzer_shared/src/parser/stack_listener.dart'
     show FixedNullableList, NullValues, ParserRecovery;
 import 'package:_fe_analyzer_shared/src/scanner/token.dart'
     show Keyword, Token, TokenIsAExtension, TokenType;
-import 'package:_fe_analyzer_shared/src/type_inference/type_analyzer_operations.dart'
-    show Variance;
+import 'package:_fe_analyzer_shared/src/types/shared_type.dart' show Variance;
 import 'package:_fe_analyzer_shared/src/util/link.dart';
 import 'package:_fe_analyzer_shared/src/util/value_kind.dart';
 import 'package:kernel/ast.dart'
