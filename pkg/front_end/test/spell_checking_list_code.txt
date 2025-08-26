@@ -1090,6 +1090,7 @@ man
 manage
 managed
 manages
+mangle
 mangled
 manifest
 manipulating
@@ -1909,6 +1910,7 @@ testers
 tex
 textualize
 textualized
+textually
 tfa
 th
 thereby

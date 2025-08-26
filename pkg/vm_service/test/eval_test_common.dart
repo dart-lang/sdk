@@ -71,8 +71,12 @@ final evalTests = <IsolateTest>[
     print(result);
     expect(result.valueAsString, '10005');
 
-    await expectError(
-      () => service.evaluate(isolateId, instance.id!, 'this + frog'),
+    result = await service.evaluate(isolateId, instance.id!, 'this + frog');
+    print(result);
+    expect(result, isA<ErrorRef>());
+    expect(
+      result.message,
+      contains("Class 'int' has no instance getter 'frog'"),
     );
   },
   resumeIsolate,

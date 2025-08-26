@@ -1,0 +1,4 @@
+Errors: {
+}
+static method /* from org-dartlang-debug:synthetic_debug_expression */ debugExpr(dart.core::_GrowableList<#lib1::A> list) → dynamic
+  return list.{dart.core::_GrowableList::first}{#lib1::A}{dynamic}._value;
