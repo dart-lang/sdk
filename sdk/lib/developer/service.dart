@@ -88,8 +88,6 @@ final class Service {
     bool enable = false,
     bool? silenceOutput,
   }) async {
-    // TODO: When NNBD is complete, delete the following line.
-    ArgumentError.checkNotNull(enable, 'enable');
     // Port to receive response from service isolate.
     final RawReceivePort receivePort = new RawReceivePort(
       null,
@@ -116,8 +114,6 @@ final class Service {
   /// the [isolate] parameter.
   @Since('3.2')
   static String? getIsolateId(Isolate isolate) {
-    // TODO: When NNBD is complete, delete the following line.
-    ArgumentError.checkNotNull(isolate, 'isolate');
     return _getIsolateIdFromSendPort(isolate.controlPort);
   }
 
@@ -127,8 +123,6 @@ final class Service {
   /// protocol.
   @Deprecated("Use getIsolateId instead")
   static String? getIsolateID(Isolate isolate) {
-    // TODO: When NNBD is complete, delete the following line.
-    ArgumentError.checkNotNull(isolate, 'isolate');
     return _getIsolateIdFromSendPort(isolate.controlPort);
   }
 

@@ -9614,7 +9614,10 @@ bool Function::RecognizedKindForceOptimize() const {
     case MethodRecognizer::kFinalizerBase_setIsolate:
     case MethodRecognizer::kFinalizerBase_setIsolateFinalizers:
     case MethodRecognizer::kFinalizerEntry_getExternalSize:
+    case MethodRecognizer::kProfiler_getCurrentTag:
+    case MethodRecognizer::kUserTag_defaultTag:
     case MethodRecognizer::kExtensionStreamHasListener:
+    case MethodRecognizer::kTimeline_isDartStreamEnabled:
     case MethodRecognizer::kFfiLoadInt8:
     case MethodRecognizer::kFfiLoadInt16:
     case MethodRecognizer::kFfiLoadInt32:

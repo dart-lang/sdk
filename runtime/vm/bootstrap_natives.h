@@ -147,7 +147,6 @@ namespace dart {
   V(Stopwatch_frequency, 0)                                                    \
   V(Timeline_getNextTaskId, 0)                                                 \
   V(Timeline_getTraceClock, 0)                                                 \
-  V(Timeline_isDartStreamEnabled, 0)                                           \
   V(Timeline_reportTaskEvent, 5)                                               \
   V(MicrotaskMirrorQueue_onScheduleAsyncCallback, 0)                           \
   V(MicrotaskMirrorQueue_onSchedulePriorityAsyncCallback, 0)                   \
@@ -283,9 +282,7 @@ namespace dart {
   V(Uri_isWindowsPlatform, 0)                                                  \
   V(UserTag_new, 2)                                                            \
   V(UserTag_label, 1)                                                          \
-  V(UserTag_defaultTag, 0)                                                     \
   V(UserTag_makeCurrent, 1)                                                    \
-  V(Profiler_getCurrentTag, 0)                                                 \
   V(VMService_SendIsolateServiceMessage, 2)                                    \
   V(VMService_SendRootServiceMessage, 1)                                       \
   V(VMService_OnStart, 0)                                                      \

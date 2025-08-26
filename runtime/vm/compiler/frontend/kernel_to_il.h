@@ -330,6 +330,9 @@ class FlowGraphBuilder : public BaseFlowGraphBuilder {
   // Loads the (untagged) service extension stream address.
   Fragment LoadServiceExtensionStream();
 
+  // Loads the (untagged) dart stream address.
+  Fragment LoadDartStream();
+
   // Converts a true to 1 and false to 0.
   Fragment BoolToInt();
 

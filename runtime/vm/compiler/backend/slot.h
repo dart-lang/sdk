@@ -231,7 +231,9 @@ class ParsedFunction;
   V(Isolate, _, finalizers, GrowableObjectArray, VAR)                          \
   V(LocalHandle, _, ptr, Dynamic, VAR)                                         \
   V(ObjectStore, _, record_field_names, Array, VAR)                            \
-  V(PersistentHandle, _, ptr, Dynamic, VAR)
+  V(PersistentHandle, _, ptr, Dynamic, VAR)                                    \
+  V(Thread, _, current_tag, UserTag, VAR)                                      \
+  V(Thread, _, default_tag, UserTag, VAR)
 
 // List of slots that correspond to fields of non-Dart objects containing
 // unboxed values in the following format:
@@ -281,6 +283,7 @@ class ParsedFunction;
   V(Thread, _, api_top_scope, false, VAR)                                      \
   V(Thread, _, isolate, false, FINAL)                                          \
   V(Thread, _, isolate_group, false, FINAL)                                    \
+  V(Thread, _, dart_stream, false, FINAL)                                      \
   V(Thread, _, service_extension_stream, false, FINAL)
 
 // No untagged slot on a non-Dart object should contain a GC-movable address.
