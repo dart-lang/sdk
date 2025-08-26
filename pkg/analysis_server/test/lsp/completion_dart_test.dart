@@ -116,6 +116,25 @@ class CompletionDocumentationResolutionTest extends AbstractCompletionTest {
     await initialAnalysis;
   }
 
+  Future<void> test_abstract_class() async {
+    newFile(join(projectFolderPath, 'my_class.dart'), '''
+typedef MyClass2 = MyClass;
+
+abstract class MyClass {}
+''');
+
+    content = '''
+void f() {
+  MyClas^
+}
+''';
+
+    await initializeServer();
+
+    var completion = await getCompletionItem('MyClass');
+    expectDocumentation(completion, isNull);
+  }
+
   Future<void> test_class() async {
     newFile(join(projectFolderPath, 'my_class.dart'), '''
 /// Class.

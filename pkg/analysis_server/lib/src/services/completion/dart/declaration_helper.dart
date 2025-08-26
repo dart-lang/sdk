@@ -742,6 +742,12 @@ class DeclarationHelper {
       isNotImported: false,
     );
     for (var element in namespace.definedNames2.values) {
+      if (!visibilityTracker.isVisible(
+        element: element,
+        importData: importData,
+      )) {
+        continue;
+      }
       switch (element) {
         case ClassElement():
           _suggestConstructors(
@@ -947,9 +953,6 @@ class DeclarationHelper {
   /// Adds suggestions for any constructors that are imported into the
   /// [library].
   void _addImportedConstructors(LibraryElement library) {
-    // TODO(brianwilkerson): This will create suggestions for elements that
-    //  conflict with different elements imported from a different library. Not
-    //  sure whether that's the desired behavior.
     for (var importElement in library.firstFragment.libraryImports) {
       var importedLibrary = importElement.importedLibrary;
       if (importedLibrary != null) {
@@ -1793,7 +1796,6 @@ class DeclarationHelper {
         element.constructors,
         importData,
         allowNonFactory: !element.isAbstract,
-        checkVisibility: false,
       );
     }
   }
@@ -1804,7 +1806,6 @@ class DeclarationHelper {
     required ImportData? importData,
     required bool hasClassName,
     required bool isConstructorRedirect,
-    bool checkVisibility = true,
   }) {
     if (mustBeAssignable) {
       return;
@@ -1813,29 +1814,20 @@ class DeclarationHelper {
     if (!element.isVisibleIn(request.libraryElement)) {
       return;
     }
-    if (importData?.isNotImported ?? false) {
-      if (checkVisibility &&
-          !visibilityTracker.isVisible(
-            element: element.enclosingElement,
-            importData: importData,
-          )) {
-        // If the constructor is on a class from a not-yet-imported library and
-        // the class isn't visible, then we shouldn't suggest it.
-        //
-        // We could consider computing a prefix and updating the [importData] in
-        // order to avoid the collision, but we don't currently do that for any
-        // not-yet-imported elements (nor for imported elements that are
-        // shadowed by local declarations).
-        return;
-      }
-    } else {
-      // Add the class to the visibility tracker so that we will know later that
-      // any non-imported elements with the same name are not visible.
-      visibilityTracker.isVisible(
-        element: element.enclosingElement,
-        importData: importData,
-      );
-    }
+    // If the constructor is on a class from a not-yet-imported library and
+    // the class isn't visible, then we shouldn't suggest it.
+    //
+    // We could consider computing a prefix and updating the [importData] in
+    // order to avoid the collision, but we don't currently do that for any
+    // not-yet-imported elements (nor for imported elements that are
+    // shadowed by local declarations).
+
+    // Add the class to the visibility tracker so that we will know later that
+    // any non-imported elements with the same name are not visible.
+    visibilityTracker.isVisible(
+      element: element.enclosingElement,
+      importData: importData,
+    );
 
     // Use the constructor element's name without the interface type to
     // calculate the matcher score for dot shorthands.
@@ -1868,22 +1860,9 @@ class DeclarationHelper {
     List<ConstructorElement> constructors,
     ImportData? importData, {
     bool allowNonFactory = true,
-    bool checkVisibility = true,
   }) {
     if (mustBeAssignable) {
       return;
-    }
-    if (checkVisibility &&
-        constructors.isNotEmpty &&
-        !visibilityTracker.isVisible(
-          element: constructors.first.enclosingElement,
-          importData: importData,
-        )) {
-      return;
-    }
-
-    if (checkVisibility) {
-      checkVisibility = false;
     }
 
     for (var constructor in constructors) {
@@ -1894,7 +1873,6 @@ class DeclarationHelper {
           hasClassName: false,
           importData: importData,
           isConstructorRedirect: false,
-          checkVisibility: checkVisibility,
         );
       }
     }
@@ -1972,11 +1950,7 @@ class DeclarationHelper {
       }
       if (!mustBeType) {
         _suggestStaticFields(element.fields, importData);
-        _suggestConstructors(
-          element.constructors,
-          importData,
-          checkVisibility: false,
-        );
+        _suggestConstructors(element.constructors, importData);
       }
     }
   }
