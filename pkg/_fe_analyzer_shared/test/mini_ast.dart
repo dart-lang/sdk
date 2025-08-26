@@ -3144,6 +3144,21 @@ class MiniAstOperations
   }
 
   @override
+  List<SharedType> chooseTypes(
+    List<SharedTypeParameter> typeParametersToInfer,
+    Map<SharedTypeParameter, MergedTypeConstraint<Var, Type, String, Node>>
+    constraints,
+    List<SharedType>? previouslyInferredTypes, {
+    required bool preliminary,
+    required bool inferenceUsingBoundsIsEnabled,
+    required TypeConstraintGenerationDataForTesting<Var, Node>? dataForTesting,
+    required Node? treeNodeForTesting,
+  }) {
+    // TODO(paulberry): Implement chooseTypes.
+    throw UnimplementedError();
+  }
+
+  @override
   TypeClassification classifyType(SharedTypeView type) {
     if (isSubtypeOfInternal(type.unwrapTypeView<Type>(), Type('Object'))) {
       return TypeClassification.nonNullable;
@@ -3235,6 +3250,19 @@ class MiniAstOperations
   }
 
   @override
+  SharedTypeView greatestClosureOfSchema(
+    SharedTypeSchemaView schema, {
+    SharedTypeView? topType,
+  }) {
+    return SharedTypeView(
+      schema.unwrapTypeSchemaView<Type>().closureWithRespectToUnknown(
+            covariant: true,
+          ) ??
+          schema.unwrapTypeSchemaView(),
+    );
+  }
+
+  @override
   Type greatestClosureOfTypeInternal(
     Type type,
     List<SharedTypeParameter> typeParametersToEliminate,
@@ -3264,6 +3292,12 @@ class MiniAstOperations
   bool isBottomType(SharedTypeView type) {
     Type unwrappedType = type.unwrapTypeView();
     return unwrappedType is NeverType && !unwrappedType.isQuestionType;
+  }
+
+  @override
+  bool isBoundOmitted(SharedTypeParameter typeParameter) {
+    // TODO(paulberry): Implement isBoundOmitted in mini ast.
+    throw UnimplementedError();
   }
 
   @override
@@ -3457,6 +3491,12 @@ class MiniAstOperations
         args: [elementTypeSchema.unwrapTypeSchemaView<Type>()],
       ),
     );
+  }
+
+  @override
+  SharedTypeView leastClosureOfSchema(SharedTypeSchemaView schema) {
+    // TODO(paulberry): Implement leastClosureOfSchema in mini ast.
+    throw UnimplementedError();
   }
 
   @override
@@ -3695,46 +3735,6 @@ class MiniAstOperations
   PropertyNonPromotabilityReason? whyPropertyIsNotPromotable(
     covariant _PropertyElement property,
   ) => property.whyNotPromotable;
-
-  @override
-  SharedTypeView greatestClosureOfSchema(
-    SharedTypeSchemaView schema, {
-    SharedTypeView? topType,
-  }) {
-    return SharedTypeView(
-      schema.unwrapTypeSchemaView<Type>().closureWithRespectToUnknown(
-            covariant: true,
-          ) ??
-          schema.unwrapTypeSchemaView(),
-    );
-  }
-
-  @override
-  SharedTypeView leastClosureOfSchema(SharedTypeSchemaView schema) {
-    // TODO(paulberry): Implement leastClosureOfSchema in mini ast.
-    throw UnimplementedError();
-  }
-
-  @override
-  bool isBoundOmitted(SharedTypeParameter typeParameter) {
-    // TODO(paulberry): Implement isBoundOmitted in mini ast.
-    throw UnimplementedError();
-  }
-
-  @override
-  List<SharedType> chooseTypes(
-    List<SharedTypeParameter> typeParametersToInfer,
-    Map<SharedTypeParameter, MergedTypeConstraint<Var, Type, String, Node>>
-    constraints,
-    List<SharedType>? previouslyInferredTypes, {
-    required bool preliminary,
-    required bool inferenceUsingBoundsIsEnabled,
-    required TypeConstraintGenerationDataForTesting<Var, Node>? dataForTesting,
-    required Node? treeNodeForTesting,
-  }) {
-    // TODO(paulberry): Implement chooseTypes.
-    throw UnimplementedError();
-  }
 }
 
 /// Representation of an expression or statement in the pseudo-Dart language

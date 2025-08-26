@@ -25,7 +25,14 @@ import 'package:source_span/source_span.dart';
 /// types, unless there are two or more types with the same names, in which
 /// case the extended display names of the types will be used in order to
 /// clarify the message.
-List<DiagnosticMessage> convertTypeNames(List<Object?>? arguments) {
+///
+/// If [expectedTypes] is non-null, the length and types of [arguments] are
+/// checked for type correctness.
+List<DiagnosticMessage> convertTypeNames(
+  List<Object?>? arguments, {
+  List<ExpectedType>? expectedTypes,
+}) {
+  if (expectedTypes != null) _checkTypes(arguments ?? const [], expectedTypes);
   if (arguments == null) {
     return const [];
   }
@@ -102,6 +109,33 @@ List<DiagnosticMessage> convertTypeNames(List<Object?>? arguments) {
     }
   }
   return messages;
+}
+
+/// Checks [arguments] for type correctness against [expectedTypes].
+///
+/// Throws a [StateError] if the types are incorrect.
+void _checkTypes(List<Object?> arguments, List<ExpectedType> expectedTypes) {
+  late var error = StateError('''
+Unexpected types supplied during diagnostic message substitution.
+Actual types: ${arguments.map((a) => a.runtimeType).toList()}
+Expected types: $expectedTypes''');
+  if (arguments.length != expectedTypes.length) {
+    throw error;
+  }
+  for (var i = 0; i < arguments.length; i++) {
+    var argument = arguments[i];
+    var typeMatches = switch (expectedTypes[i]) {
+      ExpectedType.element => argument is Element,
+      ExpectedType.int => argument is int,
+      ExpectedType.object => true,
+      ExpectedType.string => argument is String,
+      ExpectedType.type => argument is DartType,
+      ExpectedType.uri => argument is Uri,
+    };
+    if (!typeMatches) {
+      throw error;
+    }
+  }
 }
 
 /// An object used to create diagnostics and report them to a diagnostic
@@ -351,7 +385,15 @@ class DiagnosticReporter {
     required List<DiagnosticMessage> contextMessages,
     @Deprecated('Use an expando instead') Object? data,
   }) {
-    contextMessages.addAll(convertTypeNames(arguments));
+    contextMessages.addAll(
+      convertTypeNames(
+        arguments,
+        expectedTypes:
+            diagnosticCode is DiagnosticCodeWithExpectedTypes
+                ? diagnosticCode.expectedTypes
+                : null,
+      ),
+    );
     return Diagnostic.tmp(
       source: _source,
       offset: offset,

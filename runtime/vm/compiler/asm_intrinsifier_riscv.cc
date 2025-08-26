@@ -1997,13 +1997,13 @@ void AsmIntrinsifier::IntrinsifyRegExpExecuteMatch(Assembler* assembler,
 
 void AsmIntrinsifier::UserTag_defaultTag(Assembler* assembler,
                                          Label* normal_ir_body) {
-  __ lx(A0, Address(THR, target::Thread::default_tag_offset()));
+  __ LoadFromOffset(A0, THR, target::Thread::default_tag_offset());
   __ ret();
 }
 
 void AsmIntrinsifier::Profiler_getCurrentTag(Assembler* assembler,
                                              Label* normal_ir_body) {
-  __ lx(A0, Address(THR, target::Thread::current_tag_offset()));
+  __ LoadFromOffset(A0, THR, target::Thread::current_tag_offset());
   __ ret();
 }
 

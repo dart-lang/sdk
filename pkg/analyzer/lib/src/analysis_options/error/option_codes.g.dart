@@ -16,7 +16,7 @@
 
 part of "package:analyzer/src/analysis_options/error/option_codes.dart";
 
-class AnalysisOptionsErrorCode extends DiagnosticCode {
+class AnalysisOptionsErrorCode extends DiagnosticCodeWithExpectedTypes {
   /// An error code indicating that there is a syntactic error in the included
   /// file.
   ///
@@ -39,6 +39,12 @@ class AnalysisOptionsErrorCode extends DiagnosticCode {
     'INCLUDED_FILE_PARSE_ERROR',
     "{3} in {0}({1}..{2})",
     withArguments: _withArgumentsIncludedFileParseError,
+    expectedTypes: [
+      ExpectedType.object,
+      ExpectedType.object,
+      ExpectedType.object,
+      ExpectedType.object,
+    ],
   );
 
   /// An error code indicating that there is a syntactic error in the file.
@@ -52,6 +58,7 @@ class AnalysisOptionsErrorCode extends DiagnosticCode {
     'PARSE_ERROR',
     "{0}",
     withArguments: _withArgumentsParseError,
+    expectedTypes: [ExpectedType.object],
   );
 
   /// Initialize a newly created error code to have the given [name].
@@ -62,6 +69,7 @@ class AnalysisOptionsErrorCode extends DiagnosticCode {
     super.hasPublishedDocs = false,
     super.isUnresolvedIdentifier = false,
     String? uniqueName,
+    required super.expectedTypes,
   }) : super(
          name: name,
          problemMessage: problemMessage,
@@ -100,6 +108,7 @@ final class AnalysisOptionsErrorTemplate<T extends Function>
     super.hasPublishedDocs = false,
     super.isUnresolvedIdentifier = false,
     super.uniqueName,
+    required super.expectedTypes,
     required this.withArguments,
   });
 }
@@ -115,10 +124,11 @@ final class AnalysisOptionsErrorWithoutArguments
     super.hasPublishedDocs = false,
     super.isUnresolvedIdentifier = false,
     super.uniqueName,
+    required super.expectedTypes,
   });
 }
 
-class AnalysisOptionsWarningCode extends DiagnosticCode {
+class AnalysisOptionsWarningCode extends DiagnosticCodeWithExpectedTypes {
   /// An error code indicating that the given option is deprecated.
   ///
   /// Parameters:
@@ -130,6 +140,7 @@ class AnalysisOptionsWarningCode extends DiagnosticCode {
     'ANALYSIS_OPTION_DEPRECATED',
     "The option '{0}' is no longer supported.",
     withArguments: _withArgumentsAnalysisOptionDeprecated,
+    expectedTypes: [ExpectedType.object],
   );
 
   /// An error code indicating that the given option is deprecated.
@@ -146,6 +157,7 @@ class AnalysisOptionsWarningCode extends DiagnosticCode {
     correctionMessage: "Try using the new '{1}' option.",
     uniqueName: 'ANALYSIS_OPTION_DEPRECATED_WITH_REPLACEMENT',
     withArguments: _withArgumentsAnalysisOptionDeprecatedWithReplacement,
+    expectedTypes: [ExpectedType.object, ExpectedType.object],
   );
 
   /// A hint code indicating reference to a deprecated lint.
@@ -160,6 +172,7 @@ class AnalysisOptionsWarningCode extends DiagnosticCode {
     "'{0}' is a deprecated lint rule and should not be used.",
     correctionMessage: "Try removing '{0}'.",
     withArguments: _withArgumentsDeprecatedLint,
+    expectedTypes: [ExpectedType.string],
   );
 
   /// A hint code indicating reference to a deprecated lint.
@@ -175,6 +188,7 @@ class AnalysisOptionsWarningCode extends DiagnosticCode {
     "'{0}' is deprecated and should be replaced by '{1}'.",
     correctionMessage: "Try replacing '{0}' with '{1}'.",
     withArguments: _withArgumentsDeprecatedLintWithReplacement,
+    expectedTypes: [ExpectedType.string, ExpectedType.string],
   );
 
   /// Duplicate rules.
@@ -189,6 +203,7 @@ class AnalysisOptionsWarningCode extends DiagnosticCode {
     "The rule {0} is already specified and doesn't need to be specified again.",
     correctionMessage: "Try removing all but one specification of the rule.",
     withArguments: _withArgumentsDuplicateRule,
+    expectedTypes: [ExpectedType.string],
   );
 
   /// An error code indicating a specified include file has a warning.
@@ -212,6 +227,12 @@ class AnalysisOptionsWarningCode extends DiagnosticCode {
     'INCLUDED_FILE_WARNING',
     "Warning in the included options file {0}({1}..{2}): {3}",
     withArguments: _withArgumentsIncludedFileWarning,
+    expectedTypes: [
+      ExpectedType.object,
+      ExpectedType.object,
+      ExpectedType.object,
+      ExpectedType.object,
+    ],
   );
 
   /// An error code indicating a specified include file could not be found.
@@ -231,6 +252,11 @@ class AnalysisOptionsWarningCode extends DiagnosticCode {
     'INCLUDE_FILE_NOT_FOUND',
     "The include file '{0}' in '{1}' can't be found when analyzing '{2}'.",
     withArguments: _withArgumentsIncludeFileNotFound,
+    expectedTypes: [
+      ExpectedType.object,
+      ExpectedType.object,
+      ExpectedType.object,
+    ],
   );
 
   /// An error code indicating an incompatible rule.
@@ -246,6 +272,7 @@ class AnalysisOptionsWarningCode extends DiagnosticCode {
     "The rule '{0}' is incompatible with the rule '{1}'.",
     correctionMessage: "Try removing one of the incompatible rules.",
     withArguments: _withArgumentsIncompatibleLint,
+    expectedTypes: [ExpectedType.string, ExpectedType.string],
   );
 
   /// An error code indicating that a plugin is being configured with an invalid
@@ -261,6 +288,7 @@ class AnalysisOptionsWarningCode extends DiagnosticCode {
     'INVALID_OPTION',
     "Invalid option specified for '{0}': {1}",
     withArguments: _withArgumentsInvalidOption,
+    expectedTypes: [ExpectedType.string, ExpectedType.string],
   );
 
   /// An error code indicating an invalid format for an options file section.
@@ -274,6 +302,7 @@ class AnalysisOptionsWarningCode extends DiagnosticCode {
     'INVALID_SECTION_FORMAT',
     "Invalid format for the '{0}' section.",
     withArguments: _withArgumentsInvalidSectionFormat,
+    expectedTypes: [ExpectedType.string],
   );
 
   /// An error code indicating multiple plugins have been specified as enabled.
@@ -288,6 +317,7 @@ class AnalysisOptionsWarningCode extends DiagnosticCode {
     "Multiple plugins can't be enabled.",
     correctionMessage: "Remove all plugins following the first, '{0}'.",
     withArguments: _withArgumentsMultiplePlugins,
+    expectedTypes: [ExpectedType.string],
   );
 
   /// An error code indicating a specified include file includes itself recursively.
@@ -304,6 +334,7 @@ class AnalysisOptionsWarningCode extends DiagnosticCode {
     correctionMessage:
         "Try changing the chain of 'include's to not re-include this file.",
     withArguments: _withArgumentsRecursiveIncludeFile,
+    expectedTypes: [ExpectedType.object, ExpectedType.object],
   );
 
   /// An error code indicating a removed lint rule.
@@ -319,6 +350,7 @@ class AnalysisOptionsWarningCode extends DiagnosticCode {
     "'{0}' was removed in Dart '{1}'",
     correctionMessage: "Remove the reference to '{0}'.",
     withArguments: _withArgumentsRemovedLint,
+    expectedTypes: [ExpectedType.string, ExpectedType.string],
   );
 
   /// An error code indicating a removed lint rule.
@@ -339,6 +371,11 @@ class AnalysisOptionsWarningCode extends DiagnosticCode {
     "'{0}' was replaced by '{2}' in Dart '{1}'.",
     correctionMessage: "Replace '{0}' with '{1}'.",
     withArguments: _withArgumentsReplacedLint,
+    expectedTypes: [
+      ExpectedType.string,
+      ExpectedType.string,
+      ExpectedType.string,
+    ],
   );
 
   /// An error code indicating an undefined lint rule.
@@ -353,6 +390,7 @@ class AnalysisOptionsWarningCode extends DiagnosticCode {
     "'{0}' is not a recognized lint rule.",
     correctionMessage: "Try using the name of a recognized lint rule.",
     withArguments: _withArgumentsUndefinedLint,
+    expectedTypes: [ExpectedType.string],
   );
 
   /// An error code indicating that an unrecognized error code is being used to
@@ -367,6 +405,7 @@ class AnalysisOptionsWarningCode extends DiagnosticCode {
     'UNRECOGNIZED_ERROR_CODE',
     "'{0}' isn't a recognized error code.",
     withArguments: _withArgumentsUnrecognizedErrorCode,
+    expectedTypes: [ExpectedType.string],
   );
 
   /// An error code indicating that a YAML section is being configured with an
@@ -388,6 +427,11 @@ class AnalysisOptionsWarningCode extends DiagnosticCode {
     "The option '{1}' isn't supported by '{0}'. Try using the only supported "
         "option: '{2}'.",
     withArguments: _withArgumentsUnsupportedOptionWithLegalValue,
+    expectedTypes: [
+      ExpectedType.string,
+      ExpectedType.string,
+      ExpectedType.string,
+    ],
   );
 
   /// An error code indicating that a YAML section is being configured with an
@@ -409,6 +453,11 @@ class AnalysisOptionsWarningCode extends DiagnosticCode {
     "The option '{1}' isn't supported by '{0}'.",
     correctionMessage: "Try using one of the supported options: {2}.",
     withArguments: _withArgumentsUnsupportedOptionWithLegalValues,
+    expectedTypes: [
+      ExpectedType.string,
+      ExpectedType.string,
+      ExpectedType.string,
+    ],
   );
 
   /// An error code indicating that a plugin is being configured with an
@@ -424,6 +473,7 @@ class AnalysisOptionsWarningCode extends DiagnosticCode {
     'UNSUPPORTED_OPTION_WITHOUT_VALUES',
     "The option '{1}' isn't supported by '{0}'.",
     withArguments: _withArgumentsUnsupportedOptionWithoutValues,
+    expectedTypes: [ExpectedType.string, ExpectedType.string],
   );
 
   /// An error code indicating that an option entry is being configured with an
@@ -445,6 +495,7 @@ class AnalysisOptionsWarningCode extends DiagnosticCode {
     "The value '{1}' isn't supported by '{0}'.",
     correctionMessage: "Try using one of the supported options: {2}.",
     withArguments: _withArgumentsUnsupportedValue,
+    expectedTypes: [ExpectedType.string, ExpectedType.int, ExpectedType.string],
   );
 
   /// Initialize a newly created error code to have the given [name].
@@ -455,6 +506,7 @@ class AnalysisOptionsWarningCode extends DiagnosticCode {
     super.hasPublishedDocs = false,
     super.isUnresolvedIdentifier = false,
     String? uniqueName,
+    required super.expectedTypes,
   }) : super(
          name: name,
          problemMessage: problemMessage,
@@ -628,6 +680,7 @@ final class AnalysisOptionsWarningTemplate<T extends Function>
     super.hasPublishedDocs = false,
     super.isUnresolvedIdentifier = false,
     super.uniqueName,
+    required super.expectedTypes,
     required this.withArguments,
   });
 }
@@ -643,5 +696,6 @@ final class AnalysisOptionsWarningWithoutArguments
     super.hasPublishedDocs = false,
     super.isUnresolvedIdentifier = false,
     super.uniqueName,
+    required super.expectedTypes,
   });
 }

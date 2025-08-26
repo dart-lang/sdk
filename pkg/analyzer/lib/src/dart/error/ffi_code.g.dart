@@ -16,7 +16,7 @@
 
 part of "package:analyzer/src/dart/error/ffi_code.dart";
 
-class FfiCode extends DiagnosticCode {
+class FfiCode extends DiagnosticCodeWithExpectedTypes {
   /// No parameters.
   static const FfiWithoutArguments
   abiSpecificIntegerInvalid = FfiWithoutArguments(
@@ -27,6 +27,7 @@ class FfiCode extends DiagnosticCode {
         "Try removing all type parameters, removing all members, and adding "
         "one const constructor.",
     hasPublishedDocs: true,
+    expectedTypes: [],
   );
 
   /// No parameters.
@@ -38,6 +39,7 @@ class FfiCode extends DiagnosticCode {
         "ABI to a 'NativeType' integer with a fixed size.",
     correctionMessage: "Try removing the extra annotation.",
     hasPublishedDocs: true,
+    expectedTypes: [],
   );
 
   /// No parameters.
@@ -49,6 +51,7 @@ class FfiCode extends DiagnosticCode {
         "ABI to a 'NativeType' integer with a fixed size.",
     correctionMessage: "Try adding an annotation.",
     hasPublishedDocs: true,
+    expectedTypes: [],
   );
 
   /// Parameters:
@@ -63,6 +66,7 @@ class FfiCode extends DiagnosticCode {
         "'Uint16', 'UInt32', or 'Uint64'.",
     hasPublishedDocs: true,
     withArguments: _withArgumentsAbiSpecificIntegerMappingUnsupported,
+    expectedTypes: [ExpectedType.string],
   );
 
   /// No parameters.
@@ -71,6 +75,7 @@ class FfiCode extends DiagnosticCode {
     "The '.address' expression can only be used as argument to a leaf native "
         "external call.",
     hasPublishedDocs: true,
+    expectedTypes: [],
   );
 
   /// No parameters.
@@ -82,6 +87,7 @@ class FfiCode extends DiagnosticCode {
     correctionMessage:
         "Change the receiver of '.address' to one of the allowed kinds.",
     hasPublishedDocs: true,
+    expectedTypes: [],
   );
 
   /// No parameters.
@@ -92,6 +98,7 @@ class FfiCode extends DiagnosticCode {
             "annotations.",
         correctionMessage: "Try removing the annotation.",
         hasPublishedDocs: true,
+        expectedTypes: [],
       );
 
   /// Parameters:
@@ -103,6 +110,7 @@ class FfiCode extends DiagnosticCode {
     correctionMessage: "Try replacing the value with a literal or const.",
     hasPublishedDocs: true,
     withArguments: _withArgumentsArgumentMustBeAConstant,
+    expectedTypes: [ExpectedType.string],
   );
 
   /// No parameters.
@@ -112,6 +120,7 @@ class FfiCode extends DiagnosticCode {
     correctionMessage:
         "Try passing a static function or field annotated with '@Native'",
     hasPublishedDocs: true,
+    expectedTypes: [],
   );
 
   /// Parameters:
@@ -123,6 +132,7 @@ class FfiCode extends DiagnosticCode {
     correctionMessage: "Try removing the implements clause from '{0}'.",
     hasPublishedDocs: true,
     withArguments: _withArgumentsCompoundImplementsFinalizable,
+    expectedTypes: [ExpectedType.string],
   );
 
   /// No parameters.
@@ -134,6 +144,7 @@ class FfiCode extends DiagnosticCode {
     correctionMessage:
         "Try allocating it via allocation, or load from a 'Pointer'.",
     hasPublishedDocs: true,
+    expectedTypes: [],
   );
 
   /// Parameters:
@@ -149,6 +160,7 @@ class FfiCode extends DiagnosticCode {
         "Try adding a field to '{0}' or use a different superclass.",
     hasPublishedDocs: true,
     withArguments: _withArgumentsEmptyStruct,
+    expectedTypes: [ExpectedType.string, ExpectedType.string],
   );
 
   /// No parameters.
@@ -159,6 +171,7 @@ class FfiCode extends DiagnosticCode {
         "native type.",
     correctionMessage: "Try removing the extra annotation.",
     hasPublishedDocs: true,
+    expectedTypes: [],
   );
 
   /// No parameters.
@@ -168,6 +181,7 @@ class FfiCode extends DiagnosticCode {
         "'Array's must have exactly one 'Array' annotation.",
         correctionMessage: "Try removing the extra annotation.",
         hasPublishedDocs: true,
+        expectedTypes: [],
       );
 
   /// No parameters.
@@ -177,6 +191,7 @@ class FfiCode extends DiagnosticCode {
         "There may be at most one @DefaultAsset annotation on a library.",
         correctionMessage: "Try removing the extra annotation.",
         hasPublishedDocs: true,
+        expectedTypes: [],
       );
 
   /// No parameters.
@@ -186,6 +201,7 @@ class FfiCode extends DiagnosticCode {
     "Native functions and fields must have exactly one `@Native` annotation.",
     correctionMessage: "Try removing the extra annotation.",
     hasPublishedDocs: true,
+    expectedTypes: [],
   );
 
   /// No parameters.
@@ -195,6 +211,7 @@ class FfiCode extends DiagnosticCode {
         "Native functions must be declared external.",
         correctionMessage: "Add the `external` keyword to the function.",
         hasPublishedDocs: true,
+        expectedTypes: [],
       );
 
   /// No parameters.
@@ -205,6 +222,7 @@ class FfiCode extends DiagnosticCode {
         "Only classes extending NativeFieldWrapperClass1 can be passed as Pointer.",
         correctionMessage: "Pass as Handle instead.",
         hasPublishedDocs: true,
+        expectedTypes: [],
       );
 
   /// Parameters:
@@ -220,6 +238,7 @@ class FfiCode extends DiagnosticCode {
     correctionMessage: "Make sure parameters match the function annotated.",
     hasPublishedDocs: true,
     withArguments: _withArgumentsFfiNativeUnexpectedNumberOfParameters,
+    expectedTypes: [ExpectedType.int, ExpectedType.int],
   );
 
   /// Parameters:
@@ -239,6 +258,7 @@ class FfiCode extends DiagnosticCode {
     hasPublishedDocs: true,
     withArguments:
         _withArgumentsFfiNativeUnexpectedNumberOfParametersWithReceiver,
+    expectedTypes: [ExpectedType.int, ExpectedType.int],
   );
 
   /// No parameters.
@@ -248,6 +268,7 @@ class FfiCode extends DiagnosticCode {
         "Fields of 'Struct' and 'Union' subclasses must be marked external.",
         correctionMessage: "Try adding the 'external' modifier.",
         hasPublishedDocs: true,
+        expectedTypes: [],
       );
 
   /// Parameters:
@@ -260,6 +281,7 @@ class FfiCode extends DiagnosticCode {
     correctionMessage: "Try removing the type parameters from '{0}'.",
     hasPublishedDocs: true,
     withArguments: _withArgumentsGenericStructSubclass,
+    expectedTypes: [ExpectedType.string],
   );
 
   /// Parameters:
@@ -273,6 +295,7 @@ class FfiCode extends DiagnosticCode {
     correctionMessage: "Try removing the exceptional return value.",
     hasPublishedDocs: true,
     withArguments: _withArgumentsInvalidExceptionValue,
+    expectedTypes: [ExpectedType.string],
   );
 
   /// Parameters:
@@ -288,6 +311,7 @@ class FfiCode extends DiagnosticCode {
         "or 'Union'.",
     hasPublishedDocs: true,
     withArguments: _withArgumentsInvalidFieldTypeInStruct,
+    expectedTypes: [ExpectedType.string],
   );
 
   /// No parameters.
@@ -298,6 +322,7 @@ class FfiCode extends DiagnosticCode {
         correctionMessage:
             "Try changing the return type to primitive or struct.",
         hasPublishedDocs: true,
+        expectedTypes: [],
       );
 
   /// No parameters.
@@ -308,6 +333,7 @@ class FfiCode extends DiagnosticCode {
         correctionMessage:
             "Try changing the argument type to primitive or struct.",
         hasPublishedDocs: true,
+        expectedTypes: [],
       );
 
   /// No parameters.
@@ -319,6 +345,7 @@ class FfiCode extends DiagnosticCode {
             "Try using a different annotation or changing the declared type to "
             "match.",
         hasPublishedDocs: true,
+        expectedTypes: [],
       );
 
   /// Parameters:
@@ -334,6 +361,7 @@ class FfiCode extends DiagnosticCode {
     correctionMessage: "Try adding an annotation.",
     hasPublishedDocs: true,
     withArguments: _withArgumentsMissingAnnotationOnStructField,
+    expectedTypes: [ExpectedType.type, ExpectedType.string],
   );
 
   /// Parameters:
@@ -347,6 +375,7 @@ class FfiCode extends DiagnosticCode {
     correctionMessage: "Try adding an exceptional return value.",
     hasPublishedDocs: true,
     withArguments: _withArgumentsMissingExceptionValue,
+    expectedTypes: [ExpectedType.string],
   );
 
   /// No parameters.
@@ -357,6 +386,7 @@ class FfiCode extends DiagnosticCode {
         "'double' or 'Pointer'.",
     correctionMessage: "Try using 'int', 'double' or 'Pointer'.",
     hasPublishedDocs: true,
+    expectedTypes: [],
   );
 
   /// No parameters.
@@ -368,6 +398,7 @@ class FfiCode extends DiagnosticCode {
             "Try adding an 'Array' annotation, or removing all but one of the "
             "annotations.",
         hasPublishedDocs: true,
+        expectedTypes: [],
       );
 
   /// Parameters:
@@ -385,6 +416,7 @@ class FfiCode extends DiagnosticCode {
         "Try changing the type to only use members for 'dart:ffi'.",
     hasPublishedDocs: true,
     withArguments: _withArgumentsMustBeANativeFunctionType,
+    expectedTypes: [ExpectedType.object, ExpectedType.string],
   );
 
   /// Parameters:
@@ -405,6 +437,7 @@ class FfiCode extends DiagnosticCode {
     correctionMessage: "Try changing one or both of the type arguments.",
     hasPublishedDocs: true,
     withArguments: _withArgumentsMustBeASubtype,
+    expectedTypes: [ExpectedType.type, ExpectedType.type, ExpectedType.string],
   );
 
   /// Parameters:
@@ -417,6 +450,7 @@ class FfiCode extends DiagnosticCode {
     correctionMessage: "Try changing the return type to 'void'.",
     hasPublishedDocs: true,
     withArguments: _withArgumentsMustReturnVoid,
+    expectedTypes: [ExpectedType.type],
   );
 
   /// Parameters:
@@ -431,6 +465,7 @@ class FfiCode extends DiagnosticCode {
         "type, a pointer, array, or a compound class.",
     hasPublishedDocs: true,
     withArguments: _withArgumentsNativeFieldInvalidType,
+    expectedTypes: [ExpectedType.type],
   );
 
   /// No parameters.
@@ -442,6 +477,7 @@ class FfiCode extends DiagnosticCode {
         "Try adding a type parameter extending `NativeType` to the `@Native` "
         "annotation.",
     hasPublishedDocs: true,
+    expectedTypes: [],
   );
 
   /// No parameters.
@@ -450,6 +486,7 @@ class FfiCode extends DiagnosticCode {
     "Native fields must be static.",
     correctionMessage: "Try adding the modifier 'static' to this field.",
     hasPublishedDocs: true,
+    expectedTypes: [],
   );
 
   /// No parameters.
@@ -462,6 +499,7 @@ class FfiCode extends DiagnosticCode {
         "Try adding a type parameter extending `NativeType` to the `@Native` "
         "annotation.",
     hasPublishedDocs: true,
+    expectedTypes: [],
   );
 
   /// No parameters.
@@ -471,6 +509,7 @@ class FfiCode extends DiagnosticCode {
     "The variable dimension of a variable-length array must be non-negative.",
     correctionMessage: "Try using a value that is zero or greater.",
     hasPublishedDocs: true,
+    expectedTypes: [],
   );
 
   /// Parameters:
@@ -484,6 +523,7 @@ class FfiCode extends DiagnosticCode {
     correctionMessage: "Try changing the type argument to be a constant type.",
     hasPublishedDocs: true,
     withArguments: _withArgumentsNonConstantTypeArgument,
+    expectedTypes: [ExpectedType.string],
   );
 
   /// Parameters:
@@ -498,6 +538,7 @@ class FfiCode extends DiagnosticCode {
         "NativeTypes.",
     hasPublishedDocs: true,
     withArguments: _withArgumentsNonNativeFunctionTypeArgumentToPointer,
+    expectedTypes: [ExpectedType.type],
   );
 
   /// No parameters.
@@ -507,6 +548,7 @@ class FfiCode extends DiagnosticCode {
         "Array dimensions must be positive numbers.",
         correctionMessage: "Try changing the input to a positive number.",
         hasPublishedDocs: true,
+        expectedTypes: [],
       );
 
   /// Parameters:
@@ -525,6 +567,7 @@ class FfiCode extends DiagnosticCode {
         "of 'Struct', 'Union', or 'AbiSpecificInteger'.",
     hasPublishedDocs: true,
     withArguments: _withArgumentsNonSizedTypeArgument,
+    expectedTypes: [ExpectedType.string, ExpectedType.type],
   );
 
   /// No parameters.
@@ -533,6 +576,7 @@ class FfiCode extends DiagnosticCode {
     "Structs must have at most one 'Packed' annotation.",
     correctionMessage: "Try removing extra 'Packed' annotations.",
     hasPublishedDocs: true,
+    expectedTypes: [],
   );
 
   /// No parameters.
@@ -543,6 +587,7 @@ class FfiCode extends DiagnosticCode {
     correctionMessage:
         "Try changing the 'Packed' annotation alignment to 1, 2, 4, 8, or 16.",
     hasPublishedDocs: true,
+    expectedTypes: [],
   );
 
   /// No parameters.
@@ -553,6 +598,7 @@ class FfiCode extends DiagnosticCode {
         correctionMessage:
             "Try adjusting the arguments in the 'Array' annotation.",
         hasPublishedDocs: true,
+        expectedTypes: [],
       );
 
   /// Parameters:
@@ -570,6 +616,7 @@ class FfiCode extends DiagnosticCode {
     hasPublishedDocs: true,
     uniqueName: 'SUBTYPE_OF_STRUCT_CLASS_IN_EXTENDS',
     withArguments: _withArgumentsSubtypeOfStructClassInExtends,
+    expectedTypes: [ExpectedType.string, ExpectedType.string],
   );
 
   /// Parameters:
@@ -587,6 +634,7 @@ class FfiCode extends DiagnosticCode {
     hasPublishedDocs: true,
     uniqueName: 'SUBTYPE_OF_STRUCT_CLASS_IN_IMPLEMENTS',
     withArguments: _withArgumentsSubtypeOfStructClassInImplements,
+    expectedTypes: [ExpectedType.string, ExpectedType.string],
   );
 
   /// Parameters:
@@ -604,6 +652,7 @@ class FfiCode extends DiagnosticCode {
     hasPublishedDocs: true,
     uniqueName: 'SUBTYPE_OF_STRUCT_CLASS_IN_WITH',
     withArguments: _withArgumentsSubtypeOfStructClassInWith,
+    expectedTypes: [ExpectedType.string, ExpectedType.string],
   );
 
   /// No parameters.
@@ -613,6 +662,7 @@ class FfiCode extends DiagnosticCode {
     "Variable length 'Array's must only occur as the last field of Structs.",
     correctionMessage: "Try adjusting the arguments in the 'Array' annotation.",
     hasPublishedDocs: true,
+    expectedTypes: [],
   );
 
   /// Initialize a newly created error code to have the given [name].
@@ -623,6 +673,7 @@ class FfiCode extends DiagnosticCode {
     super.hasPublishedDocs = false,
     super.isUnresolvedIdentifier = false,
     String? uniqueName,
+    required super.expectedTypes,
   }) : super(
          name: name,
          problemMessage: problemMessage,
@@ -792,6 +843,7 @@ final class FfiTemplate<T extends Function> extends FfiCode {
     super.hasPublishedDocs = false,
     super.isUnresolvedIdentifier = false,
     super.uniqueName,
+    required super.expectedTypes,
     required this.withArguments,
   });
 }
@@ -806,5 +858,6 @@ final class FfiWithoutArguments extends FfiCode
     super.hasPublishedDocs = false,
     super.isUnresolvedIdentifier = false,
     super.uniqueName,
+    required super.expectedTypes,
   });
 }

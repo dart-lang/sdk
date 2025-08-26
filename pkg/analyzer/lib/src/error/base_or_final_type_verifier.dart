@@ -208,10 +208,13 @@ class BaseOrFinalTypeVerifier {
       return false;
     }
 
-    var fragment = baseOrFinalSuperElement.firstFragment;
-    var fragmentName = fragment.name;
-    var fragmentNameOffset = fragment.nameOffset;
-    if (fragmentName == null || fragmentNameOffset == null) {
+    var superLocation = baseOrFinalSuperElement.firstFragmentLocation;
+    var superLibraryFragment = superLocation.libraryFragment;
+    var superName = superLocation.name;
+    var superNameOffset = superLocation.nameOffset;
+    if (superLibraryFragment == null ||
+        superName == null ||
+        superNameOffset == null) {
       return false;
     }
 
@@ -220,13 +223,13 @@ class BaseOrFinalTypeVerifier {
     // an induced modifier of the direct super element.
     var contextMessages = <DiagnosticMessage>[
       DiagnosticMessageImpl(
-        filePath: fragment.libraryFragment.source.fullName,
-        length: fragmentName.length,
+        filePath: superLibraryFragment.source.fullName,
+        length: superName.length,
         message:
             "The type '${superElement.displayName}' is a subtype of "
             "'${baseOrFinalSuperElement.displayName}', and "
             "'${baseOrFinalSuperElement.displayName}' is defined here.",
-        offset: fragmentNameOffset,
+        offset: superNameOffset,
         url: null,
       ),
     ];

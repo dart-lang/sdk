@@ -63,7 +63,7 @@ GeneratedFile get generatedCodesFile =>
 
 part of 'lint_codes.dart';
 
-class LinterLintCode extends LintCode {
+class LinterLintCode extends LintCodeWithExpectedTypes {
 ''');
       var memberAccumulator = MemberAccumulator();
       for (var MapEntry(key: errorName, value: codeInfo)
@@ -86,6 +86,7 @@ class LinterLintCode extends LintCode {
   static const LintCode $removedLintName = LinterLintCode(
     'removed_lint',
     'Removed lint.',
+    expectedTypes: [],
   );
 ''';
 
@@ -93,6 +94,7 @@ class LinterLintCode extends LintCode {
   const LinterLintCode(
     super.name,
     super.problemMessage, {
+    super.expectedTypes,
     super.correctionMessage,
     super.hasPublishedDocs,
     String? uniqueName,
@@ -122,6 +124,7 @@ final class LinterLintTemplate<T extends Function> extends LinterLintCode {
     super.name,
     super.problemMessage, {
     required this.withArguments,
+    required super.expectedTypes,
     super.correctionMessage,
     super.hasPublishedDocs = false,
     super.uniqueName,
@@ -134,6 +137,7 @@ final class LinterLintWithoutArguments extends LinterLintCode
   const LinterLintWithoutArguments(
     super.name,
     super.problemMessage, {
+    required super.expectedTypes,
     super.correctionMessage,
     super.hasPublishedDocs = false,
     super.uniqueName,

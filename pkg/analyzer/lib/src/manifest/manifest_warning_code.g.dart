@@ -16,7 +16,7 @@
 
 part of "package:analyzer/src/manifest/manifest_warning_code.dart";
 
-class ManifestWarningCode extends DiagnosticCode {
+class ManifestWarningCode extends DiagnosticCodeWithExpectedTypes {
   /// A code indicating that the camera permissions is not supported on Chrome
   /// OS.
   ///
@@ -32,6 +32,7 @@ class ManifestWarningCode extends DiagnosticCode {
         "android:required=\"false\">` `<uses-feature "
         "android:name=\"android.hardware.camera.autofocus\"  "
         "android:required=\"false\">`.",
+    expectedTypes: [],
   );
 
   /// A code indicating that the activity is set to be non resizable.
@@ -45,6 +46,7 @@ class ManifestWarningCode extends DiagnosticCode {
     correctionMessage:
         "Consider declaring the corresponding activity element with "
         "`resizableActivity=\"true\"` attribute.",
+    expectedTypes: [],
   );
 
   /// A code indicating that the touchscreen feature is not specified in the
@@ -60,6 +62,7 @@ class ManifestWarningCode extends DiagnosticCode {
         "Consider adding <uses-feature "
         "android:name=\"android.hardware.touchscreen\" android:required=\"false\" "
         "/> to the manifest.",
+    expectedTypes: [],
   );
 
   /// A code indicating that a specified permission is not supported on Chrome
@@ -78,6 +81,7 @@ class ManifestWarningCode extends DiagnosticCode {
         " Try adding `<uses-feature android:name=\"{0}\"  "
         "android:required=\"false\">`.",
     withArguments: _withArgumentsPermissionImpliesUnsupportedHardware,
+    expectedTypes: [ExpectedType.object],
   );
 
   /// A code indicating that the activity is locked to an orientation.
@@ -92,6 +96,7 @@ class ManifestWarningCode extends DiagnosticCode {
     correctionMessage:
         "Consider declaring the corresponding activity element with "
         "`screenOrientation=\"unspecified\"` or `\"fullSensor\"` attribute.",
+    expectedTypes: [],
   );
 
   /// A code indicating that a specified feature is not supported on Chrome OS.
@@ -108,6 +113,7 @@ class ManifestWarningCode extends DiagnosticCode {
     correctionMessage:
         "Try changing to `android:required=\"false\"` for this feature.",
     withArguments: _withArgumentsUnsupportedChromeOsFeature,
+    expectedTypes: [ExpectedType.string],
   );
 
   /// A code indicating that a specified hardware feature is not supported on
@@ -125,6 +131,7 @@ class ManifestWarningCode extends DiagnosticCode {
     correctionMessage:
         "Try adding `android:required=\"false\"` for this feature.",
     withArguments: _withArgumentsUnsupportedChromeOsHardware,
+    expectedTypes: [ExpectedType.string],
   );
 
   /// Initialize a newly created error code to have the given [name].
@@ -135,6 +142,7 @@ class ManifestWarningCode extends DiagnosticCode {
     super.hasPublishedDocs = false,
     super.isUnresolvedIdentifier = false,
     String? uniqueName,
+    required super.expectedTypes,
   }) : super(
          name: name,
          problemMessage: problemMessage,
@@ -177,6 +185,7 @@ final class ManifestWarningTemplate<T extends Function>
     super.hasPublishedDocs = false,
     super.isUnresolvedIdentifier = false,
     super.uniqueName,
+    required super.expectedTypes,
     required this.withArguments,
   });
 }
@@ -191,5 +200,6 @@ final class ManifestWarningWithoutArguments extends ManifestWarningCode
     super.hasPublishedDocs = false,
     super.isUnresolvedIdentifier = false,
     super.uniqueName,
+    required super.expectedTypes,
   });
 }

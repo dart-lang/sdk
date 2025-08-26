@@ -18,7 +18,7 @@ part of "package:analyzer/src/dart/error/todo_codes.dart";
 
 /// The error code indicating a marker in code for work that needs to be finished
 /// or revisited.
-class TodoCode extends DiagnosticCode {
+class TodoCode extends DiagnosticCodeWithExpectedTypes {
   /// A TODO comment marked as FIXME.
   ///
   /// Parameters:
@@ -26,7 +26,12 @@ class TodoCode extends DiagnosticCode {
   static const TodoTemplate<
     LocatableDiagnostic Function({required String message})
   >
-  fixme = TodoTemplate('FIXME', "{0}", withArguments: _withArgumentsFixme);
+  fixme = TodoTemplate(
+    'FIXME',
+    "{0}",
+    withArguments: _withArgumentsFixme,
+    expectedTypes: [ExpectedType.string],
+  );
 
   /// A TODO comment marked as HACK.
   ///
@@ -35,7 +40,12 @@ class TodoCode extends DiagnosticCode {
   static const TodoTemplate<
     LocatableDiagnostic Function({required String message})
   >
-  hack = TodoTemplate('HACK', "{0}", withArguments: _withArgumentsHack);
+  hack = TodoTemplate(
+    'HACK',
+    "{0}",
+    withArguments: _withArgumentsHack,
+    expectedTypes: [ExpectedType.string],
+  );
 
   /// A standard TODO comment marked as TODO.
   ///
@@ -44,7 +54,12 @@ class TodoCode extends DiagnosticCode {
   static const TodoTemplate<
     LocatableDiagnostic Function({required String message})
   >
-  todo = TodoTemplate('TODO', "{0}", withArguments: _withArgumentsTodo);
+  todo = TodoTemplate(
+    'TODO',
+    "{0}",
+    withArguments: _withArgumentsTodo,
+    expectedTypes: [ExpectedType.string],
+  );
 
   /// A TODO comment marked as UNDONE.
   ///
@@ -53,7 +68,12 @@ class TodoCode extends DiagnosticCode {
   static const TodoTemplate<
     LocatableDiagnostic Function({required String message})
   >
-  undone = TodoTemplate('UNDONE', "{0}", withArguments: _withArgumentsUndone);
+  undone = TodoTemplate(
+    'UNDONE',
+    "{0}",
+    withArguments: _withArgumentsUndone,
+    expectedTypes: [ExpectedType.string],
+  );
 
   /// Initialize a newly created error code to have the given [name].
   const TodoCode(
@@ -63,6 +83,7 @@ class TodoCode extends DiagnosticCode {
     super.hasPublishedDocs = false,
     super.isUnresolvedIdentifier = false,
     String? uniqueName,
+    required super.expectedTypes,
   }) : super(
          name: name,
          problemMessage: problemMessage,
@@ -103,6 +124,7 @@ final class TodoTemplate<T extends Function> extends TodoCode {
     super.hasPublishedDocs = false,
     super.isUnresolvedIdentifier = false,
     super.uniqueName,
+    required super.expectedTypes,
     required this.withArguments,
   });
 }
@@ -117,5 +139,6 @@ final class TodoWithoutArguments extends TodoCode
     super.hasPublishedDocs = false,
     super.isUnresolvedIdentifier = false,
     super.uniqueName,
+    required super.expectedTypes,
   });
 }

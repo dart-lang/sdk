@@ -16,7 +16,7 @@
 
 part of "package:analyzer/src/dart/error/hint_codes.dart";
 
-class HintCode extends DiagnosticCode {
+class HintCode extends DiagnosticCodeWithExpectedTypes {
   /// Note: Since this diagnostic is only produced in pre-3.0 code, we do not
   /// plan to go through the exercise of converting it to a Warning.
   ///
@@ -28,6 +28,7 @@ class HintCode extends DiagnosticCode {
         "will not be supported in language version 3.0 and later.",
     correctionMessage: "Try replacing the colon with an equal sign.",
     hasPublishedDocs: true,
+    expectedTypes: [],
   );
 
   /// Parameters:
@@ -40,6 +41,7 @@ class HintCode extends DiagnosticCode {
         "Try replacing the use of the deprecated member with the replacement.",
     hasPublishedDocs: true,
     withArguments: _withArgumentsDeprecatedMemberUse,
+    expectedTypes: [ExpectedType.string],
   );
 
   /// This code is deprecated in favor of the
@@ -55,6 +57,7 @@ class HintCode extends DiagnosticCode {
         "Try replacing the use of the deprecated member with the replacement.",
     hasPublishedDocs: true,
     withArguments: _withArgumentsDeprecatedMemberUseFromSamePackage,
+    expectedTypes: [ExpectedType.string],
   );
 
   /// This code is deprecated in favor of the
@@ -74,6 +77,7 @@ class HintCode extends DiagnosticCode {
     hasPublishedDocs: true,
     uniqueName: 'DEPRECATED_MEMBER_USE_FROM_SAME_PACKAGE_WITH_MESSAGE',
     withArguments: _withArgumentsDeprecatedMemberUseFromSamePackageWithMessage,
+    expectedTypes: [ExpectedType.object, ExpectedType.object],
   );
 
   /// Parameters:
@@ -90,6 +94,7 @@ class HintCode extends DiagnosticCode {
     hasPublishedDocs: true,
     uniqueName: 'DEPRECATED_MEMBER_USE_WITH_MESSAGE',
     withArguments: _withArgumentsDeprecatedMemberUseWithMessage,
+    expectedTypes: [ExpectedType.string, ExpectedType.string],
   );
 
   /// No parameters.
@@ -102,6 +107,7 @@ class HintCode extends DiagnosticCode {
         "Try changing the import to not be deferred, or rename the function in "
         "the imported library.",
     hasPublishedDocs: true,
+    expectedTypes: [],
   );
 
   /// Parameters:
@@ -117,6 +123,7 @@ class HintCode extends DiagnosticCode {
     correctionMessage: "Try removing the import directive.",
     hasPublishedDocs: true,
     withArguments: _withArgumentsUnnecessaryImport,
+    expectedTypes: [ExpectedType.string, ExpectedType.string],
   );
 
   /// Initialize a newly created error code to have the given [name].
@@ -127,6 +134,7 @@ class HintCode extends DiagnosticCode {
     super.hasPublishedDocs = false,
     super.isUnresolvedIdentifier = false,
     String? uniqueName,
+    required super.expectedTypes,
   }) : super(
          name: name,
          problemMessage: problemMessage,
@@ -188,6 +196,7 @@ final class HintTemplate<T extends Function> extends HintCode {
     super.hasPublishedDocs = false,
     super.isUnresolvedIdentifier = false,
     super.uniqueName,
+    required super.expectedTypes,
     required this.withArguments,
   });
 }
@@ -202,5 +211,6 @@ final class HintWithoutArguments extends HintCode
     super.hasPublishedDocs = false,
     super.isUnresolvedIdentifier = false,
     super.uniqueName,
+    required super.expectedTypes,
   });
 }

@@ -290,6 +290,7 @@ cmdlines
 cn
 cnt
 co
+code's
 codebase
 codec
 codes

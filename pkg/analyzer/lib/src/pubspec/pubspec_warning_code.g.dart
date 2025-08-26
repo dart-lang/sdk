@@ -16,7 +16,7 @@
 
 part of "package:analyzer/src/pubspec/pubspec_warning_code.dart";
 
-class PubspecWarningCode extends DiagnosticCode {
+class PubspecWarningCode extends DiagnosticCodeWithExpectedTypes {
   /// Parameters:
   /// String p0: the path to the asset directory as given in the file.
   static const PubspecWarningTemplate<
@@ -29,6 +29,7 @@ class PubspecWarningCode extends DiagnosticCode {
         "Try creating the directory or fixing the path to the directory.",
     hasPublishedDocs: true,
     withArguments: _withArgumentsAssetDirectoryDoesNotExist,
+    expectedTypes: [ExpectedType.string],
   );
 
   /// Parameters:
@@ -42,6 +43,7 @@ class PubspecWarningCode extends DiagnosticCode {
     correctionMessage: "Try creating the file or fixing the path to the file.",
     hasPublishedDocs: true,
     withArguments: _withArgumentsAssetDoesNotExist,
+    expectedTypes: [ExpectedType.string],
   );
 
   /// No parameters.
@@ -53,6 +55,7 @@ class PubspecWarningCode extends DiagnosticCode {
     correctionMessage:
         "Try converting the value to be a list of relative file paths.",
     hasPublishedDocs: true,
+    expectedTypes: [],
   );
 
   /// No parameters.
@@ -62,6 +65,7 @@ class PubspecWarningCode extends DiagnosticCode {
         "Asset map entry must contain a 'path' field.",
         correctionMessage: "Try adding a 'path' field.",
         hasPublishedDocs: true,
+        expectedTypes: [],
       );
 
   /// This code is deprecated in favor of the
@@ -74,6 +78,7 @@ class PubspecWarningCode extends DiagnosticCode {
         "Assets are required to be file paths (strings).",
         correctionMessage: "Try converting the value to be a string.",
         hasPublishedDocs: true,
+        expectedTypes: [],
       );
 
   /// No parameters.
@@ -83,6 +88,7 @@ class PubspecWarningCode extends DiagnosticCode {
         "An asset value is required to be a file path (string) or map.",
         correctionMessage: "Try converting the value to be a string or map.",
         hasPublishedDocs: true,
+        expectedTypes: [],
       );
 
   /// No parameters.
@@ -92,6 +98,7 @@ class PubspecWarningCode extends DiagnosticCode {
         "Asset paths are required to be file paths (strings).",
         correctionMessage: "Try converting the value to be a string.",
         hasPublishedDocs: true,
+        expectedTypes: [],
       );
 
   /// Parameters:
@@ -105,6 +112,7 @@ class PubspecWarningCode extends DiagnosticCode {
     correctionMessage: "Try converting the value to be a map.",
     hasPublishedDocs: true,
     withArguments: _withArgumentsDependenciesFieldNotMap,
+    expectedTypes: [ExpectedType.string],
   );
 
   /// Parameters:
@@ -118,6 +126,7 @@ class PubspecWarningCode extends DiagnosticCode {
     correctionMessage: "Try removing the field.",
     hasPublishedDocs: true,
     withArguments: _withArgumentsDeprecatedField,
+    expectedTypes: [ExpectedType.string],
   );
 
   /// No parameters.
@@ -127,6 +136,7 @@ class PubspecWarningCode extends DiagnosticCode {
         "The value of the 'flutter' field is expected to be a map.",
         correctionMessage: "Try converting the value to be a map.",
         hasPublishedDocs: true,
+        expectedTypes: [],
       );
 
   /// Parameters:
@@ -142,6 +152,7 @@ class PubspecWarningCode extends DiagnosticCode {
         "publishing or remove the {0} dependency.",
     hasPublishedDocs: true,
     withArguments: _withArgumentsInvalidDependency,
+    expectedTypes: [ExpectedType.string],
   );
 
   /// No parameters.
@@ -152,6 +163,7 @@ class PubspecWarningCode extends DiagnosticCode {
     correctionMessage:
         "Try changing the 'platforms' field to a map with platforms as keys.",
     hasPublishedDocs: true,
+    expectedTypes: [],
   );
 
   /// Parameters:
@@ -167,6 +179,7 @@ class PubspecWarningCode extends DiagnosticCode {
     correctionMessage: "Try adding {0}.",
     hasPublishedDocs: true,
     withArguments: _withArgumentsMissingDependency,
+    expectedTypes: [ExpectedType.string],
   );
 
   /// No parameters.
@@ -176,6 +189,7 @@ class PubspecWarningCode extends DiagnosticCode {
         "The 'name' field is required but missing.",
         correctionMessage: "Try adding a field named 'name'.",
         hasPublishedDocs: true,
+        expectedTypes: [],
       );
 
   /// No parameters.
@@ -185,6 +199,7 @@ class PubspecWarningCode extends DiagnosticCode {
         "The value of the 'name' field is required to be a string.",
         correctionMessage: "Try converting the value to be a string.",
         hasPublishedDocs: true,
+        expectedTypes: [],
       );
 
   /// Parameters:
@@ -199,6 +214,7 @@ class PubspecWarningCode extends DiagnosticCode {
         "Try creating the referenced path or using a path that exists.",
     hasPublishedDocs: true,
     withArguments: _withArgumentsPathDoesNotExist,
+    expectedTypes: [ExpectedType.string],
   );
 
   /// Parameters:
@@ -212,6 +228,7 @@ class PubspecWarningCode extends DiagnosticCode {
     correctionMessage: "Try converting the value to a POSIX-style path.",
     hasPublishedDocs: true,
     withArguments: _withArgumentsPathNotPosix,
+    expectedTypes: [ExpectedType.string],
   );
 
   /// Parameters:
@@ -227,6 +244,7 @@ class PubspecWarningCode extends DiagnosticCode {
         "that has a pubspec.",
     hasPublishedDocs: true,
     withArguments: _withArgumentsPathPubspecDoesNotExist,
+    expectedTypes: [ExpectedType.string],
   );
 
   /// No parameters.
@@ -236,6 +254,7 @@ class PubspecWarningCode extends DiagnosticCode {
         "Keys in the `platforms` field can't have values.",
         correctionMessage: "Try removing the value, while keeping the key.",
         hasPublishedDocs: true,
+        expectedTypes: [],
       );
 
   /// Parameters:
@@ -249,6 +268,7 @@ class PubspecWarningCode extends DiagnosticCode {
     correctionMessage: "Try correcting the platform name or removing it.",
     hasPublishedDocs: true,
     withArguments: _withArgumentsUnknownPlatform,
+    expectedTypes: [ExpectedType.object],
   );
 
   /// Parameters:
@@ -263,6 +283,7 @@ class PubspecWarningCode extends DiagnosticCode {
     correctionMessage: "Try removing the dev dependency.",
     hasPublishedDocs: true,
     withArguments: _withArgumentsUnnecessaryDevDependency,
+    expectedTypes: [ExpectedType.string],
   );
 
   /// No parameters.
@@ -274,6 +295,7 @@ class PubspecWarningCode extends DiagnosticCode {
     correctionMessage:
         "Try converting the value to be a list of relative file paths.",
     hasPublishedDocs: true,
+    expectedTypes: [],
   );
 
   /// No parameters.
@@ -283,6 +305,7 @@ class PubspecWarningCode extends DiagnosticCode {
         "Workspace entries are required to be directory paths (strings).",
         correctionMessage: "Try converting the value to be a string.",
         hasPublishedDocs: true,
+        expectedTypes: [],
       );
 
   /// Parameters:
@@ -297,6 +320,7 @@ class PubspecWarningCode extends DiagnosticCode {
         "Try using a subdirectory of the directory containing the "
         "'pubspec.yaml' file.",
     withArguments: _withArgumentsWorkspaceValueNotSubdirectory,
+    expectedTypes: [ExpectedType.string],
   );
 
   /// Initialize a newly created error code to have the given [name].
@@ -307,6 +331,7 @@ class PubspecWarningCode extends DiagnosticCode {
     super.hasPublishedDocs = false,
     super.isUnresolvedIdentifier = false,
     String? uniqueName,
+    required super.expectedTypes,
   }) : super(
          name: name,
          problemMessage: problemMessage,
@@ -402,6 +427,7 @@ final class PubspecWarningTemplate<T extends Function>
     super.hasPublishedDocs = false,
     super.isUnresolvedIdentifier = false,
     super.uniqueName,
+    required super.expectedTypes,
     required this.withArguments,
   });
 }
@@ -416,5 +442,6 @@ final class PubspecWarningWithoutArguments extends PubspecWarningCode
     super.hasPublishedDocs = false,
     super.isUnresolvedIdentifier = false,
     super.uniqueName,
+    required super.expectedTypes,
   });
 }

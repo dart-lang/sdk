@@ -18,7 +18,7 @@
 
 part of 'lint_codes.dart';
 
-class LinterLintCode extends LintCode {
+class LinterLintCode extends LintCodeWithExpectedTypes {
   /// Parameters:
   /// Object p0: undocumented
   static const LinterLintTemplate<
@@ -31,6 +31,7 @@ class LinterLintCode extends LintCode {
     hasPublishedDocs: true,
     uniqueName: 'always_declare_return_types_of_functions',
     withArguments: _withArgumentsAlwaysDeclareReturnTypesOfFunctions,
+    expectedTypes: [ExpectedType.object],
   );
 
   /// Parameters:
@@ -45,6 +46,7 @@ class LinterLintCode extends LintCode {
     hasPublishedDocs: true,
     uniqueName: 'always_declare_return_types_of_methods',
     withArguments: _withArgumentsAlwaysDeclareReturnTypesOfMethods,
+    expectedTypes: [ExpectedType.object],
   );
 
   /// No parameters.
@@ -54,6 +56,7 @@ class LinterLintCode extends LintCode {
         "Statement should be on a separate line.",
         correctionMessage: "Try moving the statement to a new line.",
         hasPublishedDocs: true,
+        expectedTypes: [],
       );
 
   /// No parameters.
@@ -65,6 +68,7 @@ class LinterLintCode extends LintCode {
         "Try moving the required named parameter to be before any optional "
         "named parameters.",
     hasPublishedDocs: true,
+    expectedTypes: [],
   );
 
   /// No parameters.
@@ -74,6 +78,7 @@ class LinterLintCode extends LintCode {
         "Missing type annotation.",
         correctionMessage: "Try adding a type annotation.",
         uniqueName: 'always_specify_types_add_type',
+        expectedTypes: [],
       );
 
   /// Parameters:
@@ -88,6 +93,7 @@ class LinterLintCode extends LintCode {
     correctionMessage: "Try replacing '{0}' with '{1}'.",
     uniqueName: 'always_specify_types_replace_keyword',
     withArguments: _withArgumentsAlwaysSpecifyTypesReplaceKeyword,
+    expectedTypes: [ExpectedType.object, ExpectedType.object],
   );
 
   /// Parameters:
@@ -101,6 +107,7 @@ class LinterLintCode extends LintCode {
     correctionMessage: "Try specifying the type '{0}'.",
     uniqueName: 'always_specify_types_specify_type',
     withArguments: _withArgumentsAlwaysSpecifyTypesSpecifyType,
+    expectedTypes: [ExpectedType.object],
   );
 
   /// No parameters.
@@ -112,6 +119,7 @@ class LinterLintCode extends LintCode {
             "Try splitting the declaration and specify the different type "
             "annotations.",
         uniqueName: 'always_specify_types_split_to_types',
+        expectedTypes: [],
       );
 
   /// No parameters.
@@ -121,6 +129,7 @@ class LinterLintCode extends LintCode {
         "Use 'package:' imports for files in the 'lib' directory.",
         correctionMessage: "Try converting the URI to a 'package:' URI.",
         hasPublishedDocs: true,
+        expectedTypes: [],
       );
 
   /// No parameters.
@@ -128,6 +137,7 @@ class LinterLintCode extends LintCode {
       LinterLintWithoutArguments(
         LintNames.analyzer_element_model_tracking_bad,
         "Bad tracking annotation for this member.",
+        expectedTypes: [],
       );
 
   /// No parameters.
@@ -135,6 +145,7 @@ class LinterLintCode extends LintCode {
   analyzerElementModelTrackingMoreThanOne = LinterLintWithoutArguments(
     LintNames.analyzer_element_model_tracking_more_than_one,
     "There can be only one tracking annotation.",
+    expectedTypes: [],
   );
 
   /// No parameters.
@@ -142,6 +153,7 @@ class LinterLintCode extends LintCode {
       LinterLintWithoutArguments(
         LintNames.analyzer_element_model_tracking_zero,
         "No required tracking annotation.",
+        expectedTypes: [],
       );
 
   /// Lint issued if a file in the analyzer public API contains a `part`
@@ -161,6 +173,7 @@ class LinterLintCode extends LintCode {
     LintNames.analyzer_public_api_bad_part_directive,
     "Part directives in the analyzer public API should point to files in the "
     "analyzer public API.",
+    expectedTypes: [],
   );
 
   /// Lint issued if a method, function, getter, or setter in the analyzer
@@ -197,6 +210,7 @@ class LinterLintCode extends LintCode {
     "Element makes use of type(s) which is not part of the analyzer public "
     "API: {0}.",
     withArguments: _withArgumentsAnalyzerPublicApiBadType,
+    expectedTypes: [ExpectedType.string],
   );
 
   /// Lint issued if a file in the analyzer public API contains an `export`
@@ -217,6 +231,7 @@ class LinterLintCode extends LintCode {
     "Export directive exports element(s) that are not part of the analyzer "
     "public API: {0}.",
     withArguments: _withArgumentsAnalyzerPublicApiExportsNonPublicName,
+    expectedTypes: [ExpectedType.string],
   );
 
   /// Lint issued if a top level declaration in the analyzer public API has a
@@ -231,6 +246,7 @@ class LinterLintCode extends LintCode {
       LinterLintWithoutArguments(
         LintNames.analyzer_public_api_impl_in_public_api,
         "Declarations in the analyzer public API should not end in \"Impl\".",
+        expectedTypes: [],
       );
 
   /// Parameters:
@@ -245,6 +261,7 @@ class LinterLintCode extends LintCode {
     correctionMessage: "Try adding the '@override' annotation.",
     hasPublishedDocs: true,
     withArguments: _withArgumentsAnnotateOverrides,
+    expectedTypes: [ExpectedType.object],
   );
 
   /// Parameters:
@@ -257,6 +274,7 @@ class LinterLintCode extends LintCode {
     "The member '{0}' is redeclaring but isn't annotated with '@redeclare'.",
     correctionMessage: "Try adding the '@redeclare' annotation.",
     withArguments: _withArgumentsAnnotateRedeclares,
+    expectedTypes: [ExpectedType.object],
   );
 
   /// No parameters.
@@ -265,6 +283,7 @@ class LinterLintCode extends LintCode {
         LintNames.avoid_annotating_with_dynamic,
         "Unnecessary 'dynamic' type annotation.",
         correctionMessage: "Try removing the type 'dynamic'.",
+        expectedTypes: [],
       );
 
   /// No parameters.
@@ -274,6 +293,7 @@ class LinterLintCode extends LintCode {
     "Conditional expressions with a 'bool' literal can be simplified.",
     correctionMessage:
         "Try rewriting the expression to use either '&&' or '||'.",
+    expectedTypes: [],
   );
 
   /// No parameters.
@@ -283,6 +303,7 @@ class LinterLintCode extends LintCode {
         "Catch clause should use 'on' to specify the type of exception being "
         "caught.",
         correctionMessage: "Try adding an 'on' clause before the 'catch'.",
+        expectedTypes: [],
       );
 
   /// No parameters.
@@ -293,6 +314,7 @@ class LinterLintCode extends LintCode {
         correctionMessage:
             "Try removing the catch or catching an 'Exception' instead.",
         uniqueName: 'avoid_catching_errors_class',
+        expectedTypes: [],
       );
 
   /// Parameters:
@@ -307,6 +329,7 @@ class LinterLintCode extends LintCode {
         "Try removing the catch or catching an 'Exception' instead.",
     uniqueName: 'avoid_catching_errors_subclass',
     withArguments: _withArgumentsAvoidCatchingErrorsSubclass,
+    expectedTypes: [ExpectedType.object],
   );
 
   /// No parameters.
@@ -316,6 +339,7 @@ class LinterLintCode extends LintCode {
     "Classes should define instance members.",
     correctionMessage:
         "Try adding instance behavior or moving the members out of the class.",
+    expectedTypes: [],
   );
 
   /// No parameters.
@@ -324,6 +348,7 @@ class LinterLintCode extends LintCode {
         LintNames.avoid_double_and_int_checks,
         "Explicit check for double or int.",
         correctionMessage: "Try removing the check.",
+        expectedTypes: [],
       );
 
   /// No parameters.
@@ -333,6 +358,7 @@ class LinterLintCode extends LintCode {
         "Method invocation or property access on a 'dynamic' target.",
         correctionMessage: "Try giving the target a type.",
         hasPublishedDocs: true,
+        expectedTypes: [],
       );
 
   /// No parameters.
@@ -343,6 +369,7 @@ class LinterLintCode extends LintCode {
         correctionMessage:
             "Try removing the empty statement or removing the else clause.",
         hasPublishedDocs: true,
+        expectedTypes: [],
       );
 
   /// Parameters:
@@ -357,6 +384,7 @@ class LinterLintCode extends LintCode {
     correctionMessage:
         "Try removing the override or annotating the class with '@immutable'.",
     withArguments: _withArgumentsAvoidEqualsAndHashCodeOnMutableClasses,
+    expectedTypes: [ExpectedType.object],
   );
 
   /// Parameters:
@@ -370,6 +398,7 @@ class LinterLintCode extends LintCode {
     "Unnecessary escape of '{0}'.",
     correctionMessage: "Try changing the outer quotes to '{1}'.",
     withArguments: _withArgumentsAvoidEscapingInnerQuotes,
+    expectedTypes: [ExpectedType.object, ExpectedType.object],
   );
 
   /// No parameters.
@@ -380,6 +409,7 @@ class LinterLintCode extends LintCode {
     correctionMessage:
         "Try converting the field to a getter or initialize the field in the "
         "constructors.",
+    expectedTypes: [],
   );
 
   /// No parameters.
@@ -388,6 +418,7 @@ class LinterLintCode extends LintCode {
         LintNames.avoid_final_parameters,
         "Parameters should not be marked as 'final'.",
         correctionMessage: "Try removing the keyword 'final'.",
+        expectedTypes: [],
       );
 
   /// No parameters.
@@ -397,6 +428,7 @@ class LinterLintCode extends LintCode {
         "Function literals shouldn't be passed to 'forEach'.",
         correctionMessage: "Try using a 'for' loop.",
         hasPublishedDocs: true,
+        expectedTypes: [],
       );
 
   /// No parameters.
@@ -406,6 +438,7 @@ class LinterLintCode extends LintCode {
         "Don't use the type 'FutureOr<void>'.",
         correctionMessage: "Try using 'Future<void>?' or 'void'.",
         hasPublishedDocs: true,
+        expectedTypes: [],
       );
 
   /// No parameters.
@@ -415,6 +448,7 @@ class LinterLintCode extends LintCode {
         "Classes that override '==' should not be implemented.",
         correctionMessage:
             "Try removing the class from the 'implements' clause.",
+        expectedTypes: [],
       );
 
   /// No parameters.
@@ -424,6 +458,7 @@ class LinterLintCode extends LintCode {
         "Redundant initialization to 'null'.",
         correctionMessage: "Try removing the initializer.",
         hasPublishedDocs: true,
+        expectedTypes: [],
       );
 
   /// No parameters.
@@ -432,6 +467,7 @@ class LinterLintCode extends LintCode {
     LintNames.avoid_js_rounded_ints,
     "Integer literal can't be represented exactly when compiled to JavaScript.",
     correctionMessage: "Try using a 'BigInt' to represent the value.",
+    expectedTypes: [],
   );
 
   /// No parameters.
@@ -441,6 +477,7 @@ class LinterLintCode extends LintCode {
         "Multiple variables declared on a single line.",
         correctionMessage:
             "Try splitting the variable declarations into multiple lines.",
+        expectedTypes: [],
       );
 
   /// No parameters.
@@ -449,6 +486,7 @@ class LinterLintCode extends LintCode {
         LintNames.avoid_null_checks_in_equality_operators,
         "Unnecessary null comparison in implementation of '=='.",
         correctionMessage: "Try removing the comparison.",
+        expectedTypes: [],
       );
 
   /// No parameters.
@@ -457,6 +495,7 @@ class LinterLintCode extends LintCode {
         LintNames.avoid_positional_boolean_parameters,
         "'bool' parameters should be named parameters.",
         correctionMessage: "Try converting the parameter to a named parameter.",
+        expectedTypes: [],
       );
 
   /// No parameters.
@@ -466,6 +505,7 @@ class LinterLintCode extends LintCode {
         "Don't invoke 'print' in production code.",
         correctionMessage: "Try using a logging framework.",
         hasPublishedDocs: true,
+        expectedTypes: [],
       );
 
   /// No parameters.
@@ -474,6 +514,7 @@ class LinterLintCode extends LintCode {
         LintNames.avoid_private_typedef_functions,
         "The typedef is unnecessary because it is only used in one place.",
         correctionMessage: "Try inlining the type or using it in other places.",
+        expectedTypes: [],
       );
 
   /// No parameters.
@@ -483,6 +524,7 @@ class LinterLintCode extends LintCode {
         "The value of the argument is redundant because it matches the default "
         "value.",
         correctionMessage: "Try removing the argument.",
+        expectedTypes: [],
       );
 
   /// No parameters.
@@ -494,6 +536,7 @@ class LinterLintCode extends LintCode {
         "Try fixing the relative path or changing the import to a 'package:' "
         "import.",
     hasPublishedDocs: true,
+    expectedTypes: [],
   );
 
   /// Parameters:
@@ -509,6 +552,7 @@ class LinterLintCode extends LintCode {
     correctionMessage: "Try changing the name to '{1}'.",
     hasPublishedDocs: true,
     withArguments: _withArgumentsAvoidRenamingMethodParameters,
+    expectedTypes: [ExpectedType.object, ExpectedType.object],
   );
 
   /// No parameters.
@@ -519,6 +563,7 @@ class LinterLintCode extends LintCode {
     correctionMessage: "Try removing the 'null'.",
     hasPublishedDocs: true,
     uniqueName: 'avoid_returning_null_for_void_from_function',
+    expectedTypes: [],
   );
 
   /// No parameters.
@@ -529,6 +574,7 @@ class LinterLintCode extends LintCode {
         correctionMessage: "Try removing the 'null'.",
         hasPublishedDocs: true,
         uniqueName: 'avoid_returning_null_for_void_from_method',
+        expectedTypes: [],
       );
 
   /// No parameters.
@@ -538,6 +584,7 @@ class LinterLintCode extends LintCode {
         "Don't return 'this' from a method.",
         correctionMessage:
             "Try changing the return type to 'void' and removing the return.",
+        expectedTypes: [],
       );
 
   /// No parameters.
@@ -547,6 +594,7 @@ class LinterLintCode extends LintCode {
         "Unnecessary return type on a setter.",
         correctionMessage: "Try removing the return type.",
         hasPublishedDocs: true,
+        expectedTypes: [],
       );
 
   /// No parameters.
@@ -556,6 +604,7 @@ class LinterLintCode extends LintCode {
         "Setter has no corresponding getter.",
         correctionMessage:
             "Try adding a corresponding getter or removing the setter.",
+        expectedTypes: [],
       );
 
   /// Parameters:
@@ -570,6 +619,7 @@ class LinterLintCode extends LintCode {
     correctionMessage: "Try renaming one of the type parameters.",
     hasPublishedDocs: true,
     withArguments: _withArgumentsAvoidShadowingTypeParameters,
+    expectedTypes: [ExpectedType.object, ExpectedType.object],
   );
 
   /// Parameters:
@@ -583,6 +633,7 @@ class LinterLintCode extends LintCode {
     correctionMessage: "Try using the operator '{0}'.",
     hasPublishedDocs: true,
     withArguments: _withArgumentsAvoidSingleCascadeInExpressionStatements,
+    expectedTypes: [ExpectedType.object],
   );
 
   /// No parameters.
@@ -592,6 +643,7 @@ class LinterLintCode extends LintCode {
         "Use of an async 'dart:io' method.",
         correctionMessage: "Try using the synchronous version of the method.",
         hasPublishedDocs: true,
+        expectedTypes: [],
       );
 
   /// Parameters:
@@ -608,6 +660,7 @@ class LinterLintCode extends LintCode {
     hasPublishedDocs: true,
     uniqueName: 'avoid_types_as_parameter_names_formal_parameter',
     withArguments: _withArgumentsAvoidTypesAsParameterNamesFormalParameter,
+    expectedTypes: [ExpectedType.object],
   );
 
   /// Parameters:
@@ -623,6 +676,7 @@ class LinterLintCode extends LintCode {
     hasPublishedDocs: true,
     uniqueName: 'avoid_types_as_parameter_names_type_parameter',
     withArguments: _withArgumentsAvoidTypesAsParameterNamesTypeParameter,
+    expectedTypes: [ExpectedType.object],
   );
 
   /// No parameters.
@@ -631,6 +685,7 @@ class LinterLintCode extends LintCode {
         LintNames.avoid_types_on_closure_parameters,
         "Unnecessary type annotation on a function expression parameter.",
         correctionMessage: "Try removing the type annotation.",
+        expectedTypes: [],
       );
 
   /// No parameters.
@@ -641,6 +696,7 @@ class LinterLintCode extends LintCode {
         correctionMessage:
             "Try a normal type check or compare the 'runtimeType' directly.",
         hasPublishedDocs: true,
+        expectedTypes: [],
       );
 
   /// No parameters.
@@ -652,6 +708,7 @@ class LinterLintCode extends LintCode {
         "Try removing the 'Container' (but not its children) from the widget "
         "tree.",
     hasPublishedDocs: true,
+    expectedTypes: [],
   );
 
   /// Parameters:
@@ -664,6 +721,7 @@ class LinterLintCode extends LintCode {
     "The parameter '{0}' is not used in the constructor.",
     correctionMessage: "Try using the parameter or removing it.",
     withArguments: _withArgumentsAvoidUnusedConstructorParameters,
+    expectedTypes: [ExpectedType.object],
   );
 
   /// No parameters.
@@ -673,6 +731,7 @@ class LinterLintCode extends LintCode {
     "An 'async' function should have a 'Future' return type when it doesn't "
     "return a value.",
     correctionMessage: "Try changing the return type.",
+    expectedTypes: [],
   );
 
   /// No parameters.
@@ -682,6 +741,7 @@ class LinterLintCode extends LintCode {
         "Don't use web-only libraries outside Flutter web plugins.",
         correctionMessage: "Try finding a different library for your needs.",
         hasPublishedDocs: true,
+        expectedTypes: [],
       );
 
   /// Parameters:
@@ -695,6 +755,7 @@ class LinterLintCode extends LintCode {
     correctionMessage: "Try removing the 'await' or changing the expression.",
     hasPublishedDocs: true,
     withArguments: _withArgumentsAwaitOnlyFutures,
+    expectedTypes: [ExpectedType.object],
   );
 
   /// Parameters:
@@ -709,6 +770,7 @@ class LinterLintCode extends LintCode {
         "Try changing the name to follow the UpperCamelCase style.",
     hasPublishedDocs: true,
     withArguments: _withArgumentsCamelCaseExtensions,
+    expectedTypes: [ExpectedType.object],
   );
 
   /// Parameters:
@@ -723,6 +785,7 @@ class LinterLintCode extends LintCode {
         "Try changing the name to follow the UpperCamelCase style.",
     hasPublishedDocs: true,
     withArguments: _withArgumentsCamelCaseTypes,
+    expectedTypes: [ExpectedType.object],
   );
 
   /// No parameters.
@@ -734,6 +797,7 @@ class LinterLintCode extends LintCode {
             "Try invoking 'cancel' in the function in which the "
             "'StreamSubscription' was created.",
         hasPublishedDocs: true,
+        expectedTypes: [],
       );
 
   /// No parameters.
@@ -742,6 +806,7 @@ class LinterLintCode extends LintCode {
         LintNames.cascade_invocations,
         "Unnecessary duplication of receiver.",
         correctionMessage: "Try using a cascade to avoid the duplication.",
+        expectedTypes: [],
       );
 
   /// No parameters.
@@ -751,6 +816,7 @@ class LinterLintCode extends LintCode {
     "Don't cast a nullable value to a non-nullable type.",
     correctionMessage:
         "Try adding a not-null assertion ('!') to make the type non-nullable.",
+    expectedTypes: [],
   );
 
   /// No parameters.
@@ -761,6 +827,7 @@ class LinterLintCode extends LintCode {
     correctionMessage:
         "Try invoking 'close' in the function in which the 'Sink' was created.",
     hasPublishedDocs: true,
+    expectedTypes: [],
   );
 
   /// Parameters:
@@ -775,6 +842,7 @@ class LinterLintCode extends LintCode {
     correctionMessage: "Try changing the argument or element type to match.",
     hasPublishedDocs: true,
     withArguments: _withArgumentsCollectionMethodsUnrelatedType,
+    expectedTypes: [ExpectedType.object, ExpectedType.object],
   );
 
   /// No parameters.
@@ -783,6 +851,7 @@ class LinterLintCode extends LintCode {
         LintNames.combinators_ordering,
         "Sort combinator names alphabetically.",
         correctionMessage: "Try sorting the combinator names alphabetically.",
+        expectedTypes: [],
       );
 
   /// No parameters.
@@ -791,6 +860,7 @@ class LinterLintCode extends LintCode {
         LintNames.comment_references,
         "The referenced name isn't visible in scope.",
         correctionMessage: "Try adding an import for the referenced name.",
+        expectedTypes: [],
       );
 
   /// Parameters:
@@ -805,6 +875,7 @@ class LinterLintCode extends LintCode {
         "Try creating the file referenced by the URI, or try using a URI for a "
         "file that does exist.",
     withArguments: _withArgumentsConditionalUriDoesNotExist,
+    expectedTypes: [ExpectedType.object],
   );
 
   /// Parameters:
@@ -819,6 +890,7 @@ class LinterLintCode extends LintCode {
         "Try changing the name to follow the lowerCamelCase style.",
     hasPublishedDocs: true,
     withArguments: _withArgumentsConstantIdentifierNames,
+    expectedTypes: [ExpectedType.object],
   );
 
   /// Parameters:
@@ -832,6 +904,7 @@ class LinterLintCode extends LintCode {
     correctionMessage: "Try restructuring the code.",
     hasPublishedDocs: true,
     withArguments: _withArgumentsControlFlowInFinally,
+    expectedTypes: [ExpectedType.object],
   );
 
   /// Parameters:
@@ -845,6 +918,7 @@ class LinterLintCode extends LintCode {
     correctionMessage: "Try wrapping the statement in a block.",
     hasPublishedDocs: true,
     withArguments: _withArgumentsCurlyBracesInFlowControlStructures,
+    expectedTypes: [ExpectedType.object],
   );
 
   /// No parameters.
@@ -855,6 +929,7 @@ class LinterLintCode extends LintCode {
         correctionMessage:
             "Add a 'library' directive after the library comment.",
         hasPublishedDocs: true,
+        expectedTypes: [],
       );
 
   /// Parameters:
@@ -869,6 +944,7 @@ class LinterLintCode extends LintCode {
         "Try adding a dependency for '{0}' in the 'pubspec.yaml' file.",
     hasPublishedDocs: true,
     withArguments: _withArgumentsDependOnReferencedPackages,
+    expectedTypes: [ExpectedType.object],
   );
 
   /// No parameters.
@@ -878,6 +954,7 @@ class LinterLintCode extends LintCode {
         "Constructors in a deprecated class should be deprecated.",
         correctionMessage: "Try marking the constructor as deprecated.",
         uniqueName: 'deprecated_consistency_constructor',
+        expectedTypes: [],
       );
 
   /// No parameters.
@@ -888,6 +965,7 @@ class LinterLintCode extends LintCode {
         "deprecated.",
         correctionMessage: "Try marking the field as deprecated.",
         uniqueName: 'deprecated_consistency_field',
+        expectedTypes: [],
       );
 
   /// No parameters.
@@ -897,6 +975,7 @@ class LinterLintCode extends LintCode {
         "Parameters that initialize a deprecated field should be deprecated.",
         correctionMessage: "Try marking the parameter as deprecated.",
         uniqueName: 'deprecated_consistency_parameter',
+        expectedTypes: [],
       );
 
   /// Parameters:
@@ -913,6 +992,7 @@ class LinterLintCode extends LintCode {
         "if a replacement is specified.",
     uniqueName: 'deprecated_member_use_from_same_package_with_message',
     withArguments: _withArgumentsDeprecatedMemberUseFromSamePackageWithMessage,
+    expectedTypes: [ExpectedType.object, ExpectedType.object],
   );
 
   /// Parameters:
@@ -929,6 +1009,7 @@ class LinterLintCode extends LintCode {
     uniqueName: 'deprecated_member_use_from_same_package_without_message',
     withArguments:
         _withArgumentsDeprecatedMemberUseFromSamePackageWithoutMessage,
+    expectedTypes: [ExpectedType.object],
   );
 
   /// No parameters.
@@ -939,6 +1020,7 @@ class LinterLintCode extends LintCode {
     "'debugDescribeChildren'.",
     correctionMessage: "Try describing the property.",
     hasPublishedDocs: true,
+    expectedTypes: [],
   );
 
   /// No parameters.
@@ -948,6 +1030,7 @@ class LinterLintCode extends LintCode {
         "Sort directive sections alphabetically.",
         correctionMessage: "Try sorting the directives.",
         uniqueName: 'directives_ordering_alphabetical',
+        expectedTypes: [],
       );
 
   /// Parameters:
@@ -961,6 +1044,7 @@ class LinterLintCode extends LintCode {
     correctionMessage: "Try sorting the directives.",
     uniqueName: 'directives_ordering_dart',
     withArguments: _withArgumentsDirectivesOrderingDart,
+    expectedTypes: [ExpectedType.object],
   );
 
   /// No parameters.
@@ -970,6 +1054,7 @@ class LinterLintCode extends LintCode {
         "Specify exports in a separate section after all imports.",
         correctionMessage: "Try sorting the directives.",
         uniqueName: 'directives_ordering_exports',
+        expectedTypes: [],
       );
 
   /// Parameters:
@@ -983,6 +1068,7 @@ class LinterLintCode extends LintCode {
     correctionMessage: "Try sorting the directives.",
     uniqueName: 'directives_ordering_package_before_relative',
     withArguments: _withArgumentsDirectivesOrderingPackageBeforeRelative,
+    expectedTypes: [ExpectedType.object],
   );
 
   /// No parameters.
@@ -993,6 +1079,7 @@ class LinterLintCode extends LintCode {
     correctionMessage:
         "Try converting the enclosing function to be 'async' and then 'await' "
         "the future, or wrap the expression in 'unawaited'.",
+    expectedTypes: [],
   );
 
   /// No parameters.
@@ -1002,6 +1089,7 @@ class LinterLintCode extends LintCode {
         "Missing documentation explaining why the diagnostic is ignored.",
         correctionMessage:
             "Try adding a comment immediately above the ignore comment.",
+        expectedTypes: [],
       );
 
   /// No parameters.
@@ -1010,6 +1098,7 @@ class LinterLintCode extends LintCode {
         LintNames.do_not_use_environment,
         "Invalid use of an environment declaration.",
         correctionMessage: "Try removing the environment declaration usage.",
+        expectedTypes: [],
       );
 
   /// No parameters.
@@ -1021,6 +1110,7 @@ class LinterLintCode extends LintCode {
         "Try adding statements to the block, adding a comment to the block, or "
         "removing the 'catch' clause.",
     hasPublishedDocs: true,
+    expectedTypes: [],
   );
 
   /// No parameters.
@@ -1030,6 +1120,7 @@ class LinterLintCode extends LintCode {
     "Empty constructor bodies should be written using a ';' rather than '{}'.",
     correctionMessage: "Try replacing the constructor body with ';'.",
     hasPublishedDocs: true,
+    expectedTypes: [],
   );
 
   /// No parameters.
@@ -1040,6 +1131,7 @@ class LinterLintCode extends LintCode {
         correctionMessage:
             "Try removing the empty statement or restructuring the code.",
         hasPublishedDocs: true,
+        expectedTypes: [],
       );
 
   /// No parameters.
@@ -1048,6 +1140,7 @@ class LinterLintCode extends LintCode {
         LintNames.eol_at_end_of_file,
         "Missing a newline at the end of the file.",
         correctionMessage: "Try adding a newline at the end of the file.",
+        expectedTypes: [],
       );
 
   /// No parameters.
@@ -1057,6 +1150,7 @@ class LinterLintCode extends LintCode {
     "Unsafe use of 'DartType' in an 'is' check.",
     correctionMessage:
         "Ensure DartType extension types are erased by using a helper method.",
+    expectedTypes: [],
   );
 
   /// Parameters:
@@ -1069,6 +1163,7 @@ class LinterLintCode extends LintCode {
     "Missing case clauses for some constants in '{0}'.",
     correctionMessage: "Try adding case clauses for the missing constants.",
     withArguments: _withArgumentsExhaustiveCases,
+    expectedTypes: [ExpectedType.object],
   );
 
   /// Parameters:
@@ -1084,6 +1179,7 @@ class LinterLintCode extends LintCode {
         "style.",
     hasPublishedDocs: true,
     withArguments: _withArgumentsFileNames,
+    expectedTypes: [ExpectedType.object],
   );
 
   /// No parameters.
@@ -1093,6 +1189,7 @@ class LinterLintCode extends LintCode {
         "To-do comment doesn't follow the Flutter style.",
         correctionMessage:
             "Try following the Flutter style for to-do comments.",
+        expectedTypes: [],
       );
 
   /// Parameters:
@@ -1107,6 +1204,7 @@ class LinterLintCode extends LintCode {
     correctionMessage: "Try overriding '{0}' or removing '{1}'.",
     hasPublishedDocs: true,
     withArguments: _withArgumentsHashAndEquals,
+    expectedTypes: [ExpectedType.object, ExpectedType.object],
   );
 
   /// No parameters.
@@ -1118,6 +1216,7 @@ class LinterLintCode extends LintCode {
         "Try importing a public library that exports this library, or removing "
         "the import.",
     hasPublishedDocs: true,
+    expectedTypes: [],
   );
 
   /// No parameters.
@@ -1127,6 +1226,7 @@ class LinterLintCode extends LintCode {
         "Implicit tear-off of the 'call' method.",
         correctionMessage: "Try explicitly tearing off the 'call' method.",
         hasPublishedDocs: true,
+        expectedTypes: [],
       );
 
   /// Parameters:
@@ -1148,6 +1248,12 @@ class LinterLintCode extends LintCode {
     correctionMessage:
         "Try marking '{1}' '{3}' or annotating it with '@reopen'.",
     withArguments: _withArgumentsImplicitReopen,
+    expectedTypes: [
+      ExpectedType.object,
+      ExpectedType.object,
+      ExpectedType.object,
+      ExpectedType.object,
+    ],
   );
 
   /// No parameters.
@@ -1156,6 +1262,7 @@ class LinterLintCode extends LintCode {
         LintNames.invalid_case_patterns,
         "This expression is not valid in a 'case' clause in Dart 3.0.",
         correctionMessage: "Try refactoring the expression to be valid in 3.0.",
+        expectedTypes: [],
       );
 
   /// Parameters:
@@ -1174,6 +1281,7 @@ class LinterLintCode extends LintCode {
     hasPublishedDocs: true,
     uniqueName: 'invalid_runtime_check_with_js_interop_types_dart_as_js',
     withArguments: _withArgumentsInvalidRuntimeCheckWithJsInteropTypesDartAsJs,
+    expectedTypes: [ExpectedType.object, ExpectedType.object],
   );
 
   /// Parameters:
@@ -1188,6 +1296,7 @@ class LinterLintCode extends LintCode {
     "interop type, which might not be platform-consistent.",
     uniqueName: 'invalid_runtime_check_with_js_interop_types_dart_is_js',
     withArguments: _withArgumentsInvalidRuntimeCheckWithJsInteropTypesDartIsJs,
+    expectedTypes: [ExpectedType.object, ExpectedType.object],
   );
 
   /// Parameters:
@@ -1205,6 +1314,7 @@ class LinterLintCode extends LintCode {
         "between JS interop types and Dart types.",
     uniqueName: 'invalid_runtime_check_with_js_interop_types_js_as_dart',
     withArguments: _withArgumentsInvalidRuntimeCheckWithJsInteropTypesJsAsDart,
+    expectedTypes: [ExpectedType.object, ExpectedType.object],
   );
 
   /// Parameters:
@@ -1221,6 +1331,7 @@ class LinterLintCode extends LintCode {
         'invalid_runtime_check_with_js_interop_types_js_as_incompatible_js',
     withArguments:
         _withArgumentsInvalidRuntimeCheckWithJsInteropTypesJsAsIncompatibleJs,
+    expectedTypes: [ExpectedType.object, ExpectedType.object],
   );
 
   /// Parameters:
@@ -1235,6 +1346,7 @@ class LinterLintCode extends LintCode {
     "is a Dart type, which might not be platform-consistent.",
     uniqueName: 'invalid_runtime_check_with_js_interop_types_js_is_dart',
     withArguments: _withArgumentsInvalidRuntimeCheckWithJsInteropTypesJsIsDart,
+    expectedTypes: [ExpectedType.object, ExpectedType.object],
   );
 
   /// Parameters:
@@ -1255,6 +1367,7 @@ class LinterLintCode extends LintCode {
         'invalid_runtime_check_with_js_interop_types_js_is_inconsistent_js',
     withArguments:
         _withArgumentsInvalidRuntimeCheckWithJsInteropTypesJsIsInconsistentJs,
+    expectedTypes: [ExpectedType.object, ExpectedType.object],
   );
 
   /// Parameters:
@@ -1276,6 +1389,7 @@ class LinterLintCode extends LintCode {
         'invalid_runtime_check_with_js_interop_types_js_is_unrelated_js',
     withArguments:
         _withArgumentsInvalidRuntimeCheckWithJsInteropTypesJsIsUnrelatedJs,
+    expectedTypes: [ExpectedType.object, ExpectedType.object],
   );
 
   /// No parameters.
@@ -1285,6 +1399,7 @@ class LinterLintCode extends LintCode {
         "Assignment could be inlined in 'return' statement.",
         correctionMessage:
             "Try inlining the assigned value in the 'return' statement.",
+        expectedTypes: [],
       );
 
   /// No parameters.
@@ -1294,6 +1409,7 @@ class LinterLintCode extends LintCode {
         "Missing a newline at the beginning of a multiline string.",
         correctionMessage:
             "Try adding a newline at the beginning of the string.",
+        expectedTypes: [],
       );
 
   /// No parameters.
@@ -1304,6 +1420,7 @@ class LinterLintCode extends LintCode {
         correctionMessage:
             "Try attaching the annotation to a library directive.",
         hasPublishedDocs: true,
+        expectedTypes: [],
       );
 
   /// Parameters:
@@ -1319,6 +1436,7 @@ class LinterLintCode extends LintCode {
         "style.",
     hasPublishedDocs: true,
     withArguments: _withArgumentsLibraryNames,
+    expectedTypes: [ExpectedType.object],
   );
 
   /// Parameters:
@@ -1334,6 +1452,7 @@ class LinterLintCode extends LintCode {
         "style.",
     hasPublishedDocs: true,
     withArguments: _withArgumentsLibraryPrefixes,
+    expectedTypes: [ExpectedType.object],
   );
 
   /// No parameters.
@@ -1345,6 +1464,7 @@ class LinterLintCode extends LintCode {
         "Try making the private type public, or making the API that uses the "
         "private type also be private.",
     hasPublishedDocs: true,
+    expectedTypes: [],
   );
 
   /// No parameters.
@@ -1353,6 +1473,7 @@ class LinterLintCode extends LintCode {
         LintNames.lines_longer_than_80_chars,
         "The line length exceeds the 80-character limit.",
         correctionMessage: "Try breaking the line across multiple lines.",
+        expectedTypes: [],
       );
 
   /// No parameters.
@@ -1362,6 +1483,7 @@ class LinterLintCode extends LintCode {
         "The Boolean expression has a constant value.",
         correctionMessage: "Try changing the expression.",
         hasPublishedDocs: true,
+        expectedTypes: [],
       );
 
   /// Parameters:
@@ -1378,6 +1500,7 @@ class LinterLintCode extends LintCode {
         "Try using the name of the corresponding parameter in the super "
         "constructor.",
     withArguments: _withArgumentsMatchingSuperParameters,
+    expectedTypes: [ExpectedType.object, ExpectedType.object],
   );
 
   /// No parameters.
@@ -1386,6 +1509,7 @@ class LinterLintCode extends LintCode {
         LintNames.missing_code_block_language_in_doc_comment,
         "The code block is missing a specified language.",
         correctionMessage: "Try adding a language to the code block.",
+        expectedTypes: [],
       );
 
   /// No parameters.
@@ -1395,6 +1519,7 @@ class LinterLintCode extends LintCode {
     "Missing whitespace between adjacent strings.",
     correctionMessage: "Try adding whitespace between the strings.",
     hasPublishedDocs: true,
+    expectedTypes: [],
   );
 
   /// No parameters.
@@ -1404,6 +1529,7 @@ class LinterLintCode extends LintCode {
         "Don't use adjacent strings in a list literal.",
         correctionMessage: "Try adding a comma between the strings.",
         hasPublishedDocs: true,
+        expectedTypes: [],
       );
 
   /// No parameters.
@@ -1413,6 +1539,7 @@ class LinterLintCode extends LintCode {
         "Invalid use of 'default' member in a switch.",
         correctionMessage:
             "Try enumerating all the possible values of the switch expression.",
+        expectedTypes: [],
       );
 
   /// Parameters:
@@ -1428,6 +1555,7 @@ class LinterLintCode extends LintCode {
     correctionMessage: "Try removing or changing the value.",
     hasPublishedDocs: true,
     withArguments: _withArgumentsNoDuplicateCaseValues,
+    expectedTypes: [ExpectedType.object, ExpectedType.object],
   );
 
   /// Parameters:
@@ -1442,6 +1570,7 @@ class LinterLintCode extends LintCode {
         "Try renaming the prefix to not start with an underscore.",
     hasPublishedDocs: true,
     withArguments: _withArgumentsNoLeadingUnderscoresForLibraryPrefixes,
+    expectedTypes: [ExpectedType.object],
   );
 
   /// Parameters:
@@ -1456,6 +1585,7 @@ class LinterLintCode extends LintCode {
         "Try renaming the variable to not start with an underscore.",
     hasPublishedDocs: true,
     withArguments: _withArgumentsNoLeadingUnderscoresForLocalIdentifiers,
+    expectedTypes: [ExpectedType.object],
   );
 
   /// No parameters.
@@ -1465,6 +1595,7 @@ class LinterLintCode extends LintCode {
     "Unnecessary comparison to a boolean literal.",
     correctionMessage:
         "Remove the comparison and use the negate `!` operator if necessary.",
+    expectedTypes: [],
   );
 
   /// No parameters.
@@ -1474,6 +1605,7 @@ class LinterLintCode extends LintCode {
         "Don't put any logic in 'createState'.",
         correctionMessage: "Try moving the logic out of 'createState'.",
         hasPublishedDocs: true,
+        expectedTypes: [],
       );
 
   /// Parameters:
@@ -1488,6 +1620,7 @@ class LinterLintCode extends LintCode {
         "Try changing the name to follow the lowerCamelCase style.",
     hasPublishedDocs: true,
     withArguments: _withArgumentsNonConstantIdentifierNames,
+    expectedTypes: [ExpectedType.object],
   );
 
   /// No parameters.
@@ -1496,6 +1629,7 @@ class LinterLintCode extends LintCode {
         LintNames.noop_primitive_operations,
         "The expression has no effect and can be removed.",
         correctionMessage: "Try removing the expression.",
+        expectedTypes: [],
       );
 
   /// No parameters.
@@ -1505,6 +1639,7 @@ class LinterLintCode extends LintCode {
         "Using 'toString' on a 'Type' is not safe in production code.",
         correctionMessage:
             "Try removing the usage of 'toString' or restructuring the code.",
+        expectedTypes: [],
       );
 
   /// No parameters.
@@ -1514,6 +1649,7 @@ class LinterLintCode extends LintCode {
         "The variable or property is being assigned to itself.",
         correctionMessage:
             "Try removing the assignment that has no direct effect.",
+        expectedTypes: [],
       );
 
   /// No parameters.
@@ -1524,6 +1660,7 @@ class LinterLintCode extends LintCode {
         correctionMessage:
             "Try removing the 'soloTest' annotation or 'solo_' prefix.",
         hasPublishedDocs: true,
+        expectedTypes: [],
       );
 
   /// No parameters.
@@ -1533,6 +1670,7 @@ class LinterLintCode extends LintCode {
         "Don't create string literals with trailing spaces in tests.",
         correctionMessage: "Try removing the trailing spaces.",
         hasPublishedDocs: true,
+        expectedTypes: [],
       );
 
   /// No parameters.
@@ -1542,6 +1680,7 @@ class LinterLintCode extends LintCode {
         "The referenced identifier is a wildcard.",
         correctionMessage: "Use an identifier name that is not a wildcard.",
         hasPublishedDocs: true,
+        expectedTypes: [],
       );
 
   /// No parameters.
@@ -1552,6 +1691,7 @@ class LinterLintCode extends LintCode {
     "potentially nullable type parameter.",
     correctionMessage: "Try explicitly testing for 'null'.",
     hasPublishedDocs: true,
+    expectedTypes: [],
   );
 
   /// No parameters.
@@ -1560,6 +1700,7 @@ class LinterLintCode extends LintCode {
         LintNames.null_closures,
         "Closure can't be 'null' because it might be invoked.",
         correctionMessage: "Try providing a non-null closure.",
+        expectedTypes: [],
       );
 
   /// No parameters.
@@ -1568,6 +1709,7 @@ class LinterLintCode extends LintCode {
         LintNames.omit_local_variable_types,
         "Unnecessary type annotation on a local variable.",
         correctionMessage: "Try removing the type annotation.",
+        expectedTypes: [],
       );
 
   /// No parameters.
@@ -1576,6 +1718,7 @@ class LinterLintCode extends LintCode {
     LintNames.omit_obvious_local_variable_types,
     "Omit the type annotation on a local variable when the type is obvious.",
     correctionMessage: "Try removing the type annotation.",
+    expectedTypes: [],
   );
 
   /// No parameters.
@@ -1584,6 +1727,7 @@ class LinterLintCode extends LintCode {
         LintNames.omit_obvious_property_types,
         "The type annotation isn't needed because it is obvious.",
         correctionMessage: "Try removing the type annotation.",
+        expectedTypes: [],
       );
 
   /// Parameters:
@@ -1597,6 +1741,7 @@ class LinterLintCode extends LintCode {
     correctionMessage:
         "Try making '{0}' a top-level function and removing the class.",
     withArguments: _withArgumentsOneMemberAbstracts,
+    expectedTypes: [ExpectedType.object],
   );
 
   /// No parameters.
@@ -1607,6 +1752,7 @@ class LinterLintCode extends LintCode {
     "'Error'.",
     correctionMessage: "Try throwing a different class of object.",
     hasPublishedDocs: true,
+    expectedTypes: [],
   );
 
   /// Parameters:
@@ -1622,6 +1768,7 @@ class LinterLintCode extends LintCode {
         "necessary.",
     hasPublishedDocs: true,
     withArguments: _withArgumentsOverriddenFields,
+    expectedTypes: [ExpectedType.object],
   );
 
   /// Parameters:
@@ -1637,6 +1784,7 @@ class LinterLintCode extends LintCode {
         "style.",
     hasPublishedDocs: true,
     withArguments: _withArgumentsPackageNames,
+    expectedTypes: [ExpectedType.object],
   );
 
   /// Parameters:
@@ -1651,6 +1799,7 @@ class LinterLintCode extends LintCode {
     correctionMessage: "Try changing the name to '{0}'.",
     hasPublishedDocs: true,
     withArguments: _withArgumentsPackagePrefixedLibraryNames,
+    expectedTypes: [ExpectedType.object],
   );
 
   /// Parameters:
@@ -1663,6 +1812,7 @@ class LinterLintCode extends LintCode {
     "Invalid assignment to the parameter '{0}'.",
     correctionMessage: "Try using a local variable in place of the parameter.",
     withArguments: _withArgumentsParameterAssignments,
+    expectedTypes: [ExpectedType.object],
   );
 
   /// No parameters.
@@ -1672,6 +1822,7 @@ class LinterLintCode extends LintCode {
         "String literals shouldn't be concatenated by the '+' operator.",
         correctionMessage: "Try removing the operator to use adjacent strings.",
         hasPublishedDocs: true,
+        expectedTypes: [],
       );
 
   /// No parameters.
@@ -1681,6 +1832,7 @@ class LinterLintCode extends LintCode {
         "Assert should be in the initializer list.",
         correctionMessage: "Try moving the assert to the initializer list.",
         hasPublishedDocs: true,
+        expectedTypes: [],
       );
 
   /// No parameters.
@@ -1690,6 +1842,7 @@ class LinterLintCode extends LintCode {
         "Missing a message in an assert.",
         correctionMessage: "Try adding a message to the assert.",
         hasPublishedDocs: true,
+        expectedTypes: [],
       );
 
   /// No parameters.
@@ -1699,6 +1852,7 @@ class LinterLintCode extends LintCode {
         "Unnecessary constructor invocation.",
         correctionMessage: "Try using a collection literal.",
         hasPublishedDocs: true,
+        expectedTypes: [],
       );
 
   /// No parameters.
@@ -1709,6 +1863,7 @@ class LinterLintCode extends LintCode {
         correctionMessage:
             "Try using the '??=' operator to conditionally assign a value.",
         hasPublishedDocs: true,
+        expectedTypes: [],
       );
 
   /// No parameters.
@@ -1719,6 +1874,7 @@ class LinterLintCode extends LintCode {
         correctionMessage:
             "Try adding the 'const' keyword to the constructor invocation.",
         hasPublishedDocs: true,
+        expectedTypes: [],
       );
 
   /// No parameters.
@@ -1728,6 +1884,7 @@ class LinterLintCode extends LintCode {
         "Constructors in '@immutable' classes should be declared as 'const'.",
         correctionMessage: "Try adding 'const' to the constructor declaration.",
         hasPublishedDocs: true,
+        expectedTypes: [],
       );
 
   /// No parameters.
@@ -1737,6 +1894,7 @@ class LinterLintCode extends LintCode {
         "Use 'const' for final variables initialized to a constant value.",
         correctionMessage: "Try replacing 'final' with 'const'.",
         hasPublishedDocs: true,
+        expectedTypes: [],
       );
 
   /// No parameters.
@@ -1747,6 +1905,7 @@ class LinterLintCode extends LintCode {
     "classes.",
     correctionMessage: "Try adding 'const' before the literal.",
     hasPublishedDocs: true,
+    expectedTypes: [],
   );
 
   /// No parameters.
@@ -1756,6 +1915,7 @@ class LinterLintCode extends LintCode {
         "Static method should be a constructor.",
         correctionMessage: "Try converting the method into a constructor.",
         hasPublishedDocs: true,
+        expectedTypes: [],
       );
 
   /// No parameters.
@@ -1764,6 +1924,7 @@ class LinterLintCode extends LintCode {
     LintNames.prefer_contains,
     "Always 'false' because 'indexOf' is always greater than or equal to -1.",
     uniqueName: 'prefer_contains_always_false',
+    expectedTypes: [],
   );
 
   /// No parameters.
@@ -1772,6 +1933,7 @@ class LinterLintCode extends LintCode {
     LintNames.prefer_contains,
     "Always 'true' because 'indexOf' is always greater than or equal to -1.",
     uniqueName: 'prefer_contains_always_true',
+    expectedTypes: [],
   );
 
   /// No parameters.
@@ -1782,6 +1944,7 @@ class LinterLintCode extends LintCode {
         correctionMessage: "Try using 'contains'.",
         hasPublishedDocs: true,
         uniqueName: 'prefer_contains_use_contains',
+        expectedTypes: [],
       );
 
   /// No parameters.
@@ -1792,6 +1955,7 @@ class LinterLintCode extends LintCode {
         correctionMessage:
             "Try using double quotes unless the string contains double quotes.",
         hasPublishedDocs: true,
+        expectedTypes: [],
       );
 
   /// No parameters.
@@ -1801,6 +1965,7 @@ class LinterLintCode extends LintCode {
         "Unnecessary use of a block function body.",
         correctionMessage: "Try using an expression function body.",
         hasPublishedDocs: true,
+        expectedTypes: [],
       );
 
   /// Parameters:
@@ -1814,6 +1979,7 @@ class LinterLintCode extends LintCode {
     correctionMessage: "Try making the field 'final'.",
     hasPublishedDocs: true,
     withArguments: _withArgumentsPreferFinalFields,
+    expectedTypes: [ExpectedType.object],
   );
 
   /// No parameters.
@@ -1824,6 +1990,7 @@ class LinterLintCode extends LintCode {
         correctionMessage: "Try making the pattern final.",
         hasPublishedDocs: true,
         uniqueName: 'prefer_final_in_for_each_pattern',
+        expectedTypes: [],
       );
 
   /// Parameters:
@@ -1837,6 +2004,7 @@ class LinterLintCode extends LintCode {
     correctionMessage: "Try making the variable final.",
     uniqueName: 'prefer_final_in_for_each_variable',
     withArguments: _withArgumentsPreferFinalInForEachVariable,
+    expectedTypes: [ExpectedType.object],
   );
 
   /// No parameters.
@@ -1846,6 +2014,7 @@ class LinterLintCode extends LintCode {
         "Local variables should be final.",
         correctionMessage: "Try making the variable final.",
         hasPublishedDocs: true,
+        expectedTypes: [],
       );
 
   /// Parameters:
@@ -1859,6 +2028,7 @@ class LinterLintCode extends LintCode {
     correctionMessage: "Try making the parameter final.",
     hasPublishedDocs: true,
     withArguments: _withArgumentsPreferFinalParameters,
+    expectedTypes: [ExpectedType.object],
   );
 
   /// No parameters.
@@ -1870,6 +2040,7 @@ class LinterLintCode extends LintCode {
     correctionMessage:
         "Try using 'forEach' and a tear-off rather than a 'for' loop.",
     hasPublishedDocs: true,
+    expectedTypes: [],
   );
 
   /// No parameters.
@@ -1880,6 +2051,7 @@ class LinterLintCode extends LintCode {
         correctionMessage:
             "Try using a collection literal with a 'for' element.",
         hasPublishedDocs: true,
+        expectedTypes: [],
       );
 
   /// No parameters.
@@ -1891,6 +2063,7 @@ class LinterLintCode extends LintCode {
     correctionMessage:
         "Try rewriting the closure assignment as a function declaration.",
     hasPublishedDocs: true,
+    expectedTypes: [],
   );
 
   /// Parameters:
@@ -1904,6 +2077,7 @@ class LinterLintCode extends LintCode {
     correctionMessage: "Try using the generic function type syntax ('{0}').",
     hasPublishedDocs: true,
     withArguments: _withArgumentsPreferGenericFunctionTypeAliases,
+    expectedTypes: [ExpectedType.object],
   );
 
   /// No parameters.
@@ -1913,6 +2087,7 @@ class LinterLintCode extends LintCode {
     "Use an 'if' element to conditionally add elements.",
     correctionMessage:
         "Try using an 'if' element rather than a conditional expression.",
+    expectedTypes: [],
   );
 
   /// No parameters.
@@ -1922,6 +2097,7 @@ class LinterLintCode extends LintCode {
         "Use the '??' operator rather than '?:' when testing for 'null'.",
         correctionMessage: "Try rewriting the code to use '??'.",
         hasPublishedDocs: true,
+        expectedTypes: [],
       );
 
   /// Parameters:
@@ -1936,6 +2112,7 @@ class LinterLintCode extends LintCode {
         "Try using an initialing formal ('this.{0}') to initialize the field.",
     hasPublishedDocs: true,
     withArguments: _withArgumentsPreferInitializingFormals,
+    expectedTypes: [ExpectedType.object],
   );
 
   /// No parameters.
@@ -1946,6 +2123,7 @@ class LinterLintCode extends LintCode {
         correctionMessage: "Try adding the items to the list literal directly.",
         hasPublishedDocs: true,
         uniqueName: 'prefer_inlined_adds_multiple',
+        expectedTypes: [],
       );
 
   /// No parameters.
@@ -1956,6 +2134,7 @@ class LinterLintCode extends LintCode {
         correctionMessage: "Try adding the item to the list literal directly.",
         hasPublishedDocs: true,
         uniqueName: 'prefer_inlined_adds_single',
+        expectedTypes: [],
       );
 
   /// No parameters.
@@ -1966,6 +2145,7 @@ class LinterLintCode extends LintCode {
         correctionMessage:
             "Try using string interpolation to build the composite string.",
         hasPublishedDocs: true,
+        expectedTypes: [],
       );
 
   /// No parameters.
@@ -1974,6 +2154,7 @@ class LinterLintCode extends LintCode {
         LintNames.prefer_int_literals,
         "Unnecessary use of a 'double' literal.",
         correctionMessage: "Try using an 'int' literal.",
+        expectedTypes: [],
       );
 
   /// No parameters.
@@ -1983,6 +2164,7 @@ class LinterLintCode extends LintCode {
         "The comparison is always 'false' because the length is always greater "
         "than or equal to 0.",
         uniqueName: 'prefer_is_empty_always_false',
+        expectedTypes: [],
       );
 
   /// No parameters.
@@ -1992,6 +2174,7 @@ class LinterLintCode extends LintCode {
     "The comparison is always 'true' because the length is always greater than "
     "or equal to 0.",
     uniqueName: 'prefer_is_empty_always_true',
+    expectedTypes: [],
   );
 
   /// No parameters.
@@ -2003,6 +2186,7 @@ class LinterLintCode extends LintCode {
         correctionMessage: "Try rewriting the expression to use 'isEmpty'.",
         hasPublishedDocs: true,
         uniqueName: 'prefer_is_empty_use_is_empty',
+        expectedTypes: [],
       );
 
   /// No parameters.
@@ -2014,6 +2198,7 @@ class LinterLintCode extends LintCode {
     correctionMessage: "Try rewriting the expression to use 'isNotEmpty'.",
     hasPublishedDocs: true,
     uniqueName: 'prefer_is_empty_use_is_not_empty',
+    expectedTypes: [],
   );
 
   /// No parameters.
@@ -2023,6 +2208,7 @@ class LinterLintCode extends LintCode {
         "Use 'isNotEmpty' rather than negating the result of 'isEmpty'.",
         correctionMessage: "Try rewriting the expression to use 'isNotEmpty'.",
         hasPublishedDocs: true,
+        expectedTypes: [],
       );
 
   /// No parameters.
@@ -2034,6 +2220,7 @@ class LinterLintCode extends LintCode {
         correctionMessage:
             "Try rewriting the condition to use the 'is!' operator.",
         hasPublishedDocs: true,
+        expectedTypes: [],
       );
 
   /// No parameters.
@@ -2043,6 +2230,7 @@ class LinterLintCode extends LintCode {
         "Use 'whereType' to select elements of a given type.",
         correctionMessage: "Try rewriting the expression to use 'whereType'.",
         hasPublishedDocs: true,
+        expectedTypes: [],
       );
 
   /// Parameters:
@@ -2055,6 +2243,7 @@ class LinterLintCode extends LintCode {
     "Only mixins should be mixed in.",
     correctionMessage: "Try converting '{0}' to a mixin.",
     withArguments: _withArgumentsPreferMixin,
+    expectedTypes: [ExpectedType.object],
   );
 
   /// No parameters.
@@ -2064,6 +2253,7 @@ class LinterLintCode extends LintCode {
     "Use a null-aware invocation of the 'call' method rather than explicitly "
     "testing for 'null'.",
     correctionMessage: "Try using '?.call()' to invoke the function.",
+    expectedTypes: [],
   );
 
   /// No parameters.
@@ -2074,6 +2264,7 @@ class LinterLintCode extends LintCode {
         "comparison.",
         correctionMessage: "Try using '?.'.",
         hasPublishedDocs: true,
+        expectedTypes: [],
       );
 
   /// No parameters.
@@ -2083,6 +2274,7 @@ class LinterLintCode extends LintCode {
         "Use relative imports for files in the 'lib' directory.",
         correctionMessage: "Try converting the URI to a relative URI.",
         hasPublishedDocs: true,
+        expectedTypes: [],
       );
 
   /// No parameters.
@@ -2093,6 +2285,7 @@ class LinterLintCode extends LintCode {
         correctionMessage:
             "Try using single quotes unless the string contains single quotes.",
         hasPublishedDocs: true,
+        expectedTypes: [],
       );
 
   /// No parameters.
@@ -2102,6 +2295,7 @@ class LinterLintCode extends LintCode {
         "The addition of multiple elements could be inlined.",
         correctionMessage:
             "Try using the spread operator ('...') to inline the addition.",
+        expectedTypes: [],
       );
 
   /// No parameters.
@@ -2112,6 +2306,7 @@ class LinterLintCode extends LintCode {
     correctionMessage: "Try adding a type annotation.",
     hasPublishedDocs: true,
     uniqueName: 'prefer_typing_uninitialized_variables_for_field',
+    expectedTypes: [],
   );
 
   /// No parameters.
@@ -2123,6 +2318,7 @@ class LinterLintCode extends LintCode {
         correctionMessage: "Try adding a type annotation.",
         hasPublishedDocs: true,
         uniqueName: 'prefer_typing_uninitialized_variables_for_local_variable',
+        expectedTypes: [],
       );
 
   /// No parameters.
@@ -2132,6 +2328,7 @@ class LinterLintCode extends LintCode {
         "Unnecessary use of the type 'Null'.",
         correctionMessage: "Try using 'void' instead.",
         hasPublishedDocs: true,
+        expectedTypes: [],
       );
 
   /// No parameters.
@@ -2143,6 +2340,7 @@ class LinterLintCode extends LintCode {
             "Try using the constructor to provide a message "
             "('@Deprecated(\"message\")').",
         hasPublishedDocs: true,
+        expectedTypes: [],
       );
 
   /// No parameters.
@@ -2152,6 +2350,7 @@ class LinterLintCode extends LintCode {
         "Missing documentation for a public member.",
         correctionMessage: "Try adding documentation for the member.",
         hasPublishedDocs: true,
+        expectedTypes: [],
       );
 
   /// Parameters:
@@ -2165,6 +2364,7 @@ class LinterLintCode extends LintCode {
     correctionMessage: "Try changing the value being returned.",
     hasPublishedDocs: true,
     withArguments: _withArgumentsRecursiveGetters,
+    expectedTypes: [ExpectedType.object],
   );
 
   /// A lint code that removed lints can specify as their `lintCode`.
@@ -2173,6 +2373,7 @@ class LinterLintCode extends LintCode {
   static const LintCode removedLint = LinterLintCode(
     'removed_lint',
     'Removed lint.',
+    expectedTypes: [],
   );
 
   /// No parameters.
@@ -2181,6 +2382,7 @@ class LinterLintCode extends LintCode {
         LintNames.require_trailing_commas,
         "Missing a required trailing comma.",
         correctionMessage: "Try adding a trailing comma.",
+        expectedTypes: [],
       );
 
   /// Parameters:
@@ -2194,6 +2396,7 @@ class LinterLintCode extends LintCode {
     correctionMessage: "Try using a secure protocol, such as 'https'.",
     hasPublishedDocs: true,
     withArguments: _withArgumentsSecurePubspecUrls,
+    expectedTypes: [ExpectedType.object],
   );
 
   /// No parameters.
@@ -2203,6 +2406,7 @@ class LinterLintCode extends LintCode {
         "Use a 'SizedBox' to add whitespace to a layout.",
         correctionMessage: "Try using a 'SizedBox' rather than a 'Container'.",
         hasPublishedDocs: true,
+        expectedTypes: [],
       );
 
   /// Parameters:
@@ -2218,6 +2422,7 @@ class LinterLintCode extends LintCode {
         "arguments.",
     hasPublishedDocs: true,
     withArguments: _withArgumentsSizedBoxShrinkExpand,
+    expectedTypes: [ExpectedType.object],
   );
 
   /// No parameters.
@@ -2227,6 +2432,7 @@ class LinterLintCode extends LintCode {
         "Use the end-of-line form ('///') for doc comments.",
         correctionMessage: "Try rewriting the comment to use '///'.",
         hasPublishedDocs: true,
+        expectedTypes: [],
       );
 
   /// Parameters:
@@ -2241,6 +2447,7 @@ class LinterLintCode extends LintCode {
         "Try moving the argument to the end of the argument list.",
     hasPublishedDocs: true,
     withArguments: _withArgumentsSortChildPropertiesLast,
+    expectedTypes: [ExpectedType.object],
   );
 
   /// No parameters.
@@ -2251,6 +2458,7 @@ class LinterLintCode extends LintCode {
     correctionMessage:
         "Try moving the constructor declaration before all other members.",
     hasPublishedDocs: true,
+    expectedTypes: [],
   );
 
   /// No parameters.
@@ -2261,6 +2469,7 @@ class LinterLintCode extends LintCode {
         correctionMessage:
             "Try sorting the dependencies alphabetically (A to Z).",
         hasPublishedDocs: true,
+        expectedTypes: [],
       );
 
   /// No parameters.
@@ -2271,6 +2480,7 @@ class LinterLintCode extends LintCode {
         correctionMessage:
             "Try moving the unnamed constructor before all other constructors.",
         hasPublishedDocs: true,
+        expectedTypes: [],
       );
 
   /// No parameters.
@@ -2279,6 +2489,7 @@ class LinterLintCode extends LintCode {
         LintNames.specify_nonobvious_local_variable_types,
         "Specify the type of a local variable when the type is non-obvious.",
         correctionMessage: "Try adding a type annotation.",
+        expectedTypes: [],
       );
 
   /// No parameters.
@@ -2287,6 +2498,7 @@ class LinterLintCode extends LintCode {
         LintNames.specify_nonobvious_property_types,
         "A type annotation is needed because it isn't obvious.",
         correctionMessage: "Try adding a type annotation.",
+        expectedTypes: [],
       );
 
   /// No parameters.
@@ -2296,6 +2508,7 @@ class LinterLintCode extends LintCode {
         "Missing type annotation.",
         correctionMessage: "Try adding a type annotation.",
         uniqueName: 'strict_top_level_inference_add_type',
+        expectedTypes: [],
       );
 
   /// Parameters:
@@ -2309,6 +2522,7 @@ class LinterLintCode extends LintCode {
     correctionMessage: "Try replacing '{0}' with a type annotation.",
     uniqueName: 'strict_top_level_inference_replace_keyword',
     withArguments: _withArgumentsStrictTopLevelInferenceReplaceKeyword,
+    expectedTypes: [ExpectedType.object],
   );
 
   /// No parameters.
@@ -2320,6 +2534,7 @@ class LinterLintCode extends LintCode {
             "Try splitting the declaration and specify the different type "
             "annotations.",
         uniqueName: 'strict_top_level_inference_split_to_types',
+        expectedTypes: [],
       );
 
   /// No parameters.
@@ -2329,6 +2544,7 @@ class LinterLintCode extends LintCode {
         "Avoid switch statements on a 'Type'.",
         correctionMessage: "Try using pattern matching on a variable instead.",
         hasPublishedDocs: true,
+        expectedTypes: [],
       );
 
   /// Parameters:
@@ -2342,6 +2558,7 @@ class LinterLintCode extends LintCode {
     correctionMessage: "Try testing the type of '{0}'.",
     hasPublishedDocs: true,
     withArguments: _withArgumentsTestTypesInEquals,
+    expectedTypes: [ExpectedType.object],
   );
 
   /// Parameters:
@@ -2355,6 +2572,7 @@ class LinterLintCode extends LintCode {
     correctionMessage: "Try moving the '{0}' outside the 'finally' block.",
     hasPublishedDocs: true,
     withArguments: _withArgumentsThrowInFinally,
+    expectedTypes: [ExpectedType.object],
   );
 
   /// No parameters.
@@ -2365,6 +2583,7 @@ class LinterLintCode extends LintCode {
     correctionMessage:
         "Try adding a type annotation and removing the 'assert'.",
     hasPublishedDocs: true,
+    expectedTypes: [],
   );
 
   /// No parameters.
@@ -2374,6 +2593,7 @@ class LinterLintCode extends LintCode {
         "Missing type annotation on a public API.",
         correctionMessage: "Try adding a type annotation.",
         hasPublishedDocs: true,
+        expectedTypes: [],
       );
 
   /// No parameters.
@@ -2383,6 +2603,7 @@ class LinterLintCode extends LintCode {
         "Don't needlessly type annotate initializing formals.",
         correctionMessage: "Try removing the type.",
         hasPublishedDocs: true,
+        expectedTypes: [],
       );
 
   /// No parameters.
@@ -2392,6 +2613,7 @@ class LinterLintCode extends LintCode {
         "Use 'TypeName _' instead of a type literal.",
         correctionMessage: "Replace with 'TypeName _'.",
         hasPublishedDocs: true,
+        expectedTypes: [],
       );
 
   /// No parameters.
@@ -2402,6 +2624,7 @@ class LinterLintCode extends LintCode {
     correctionMessage:
         "Try adding an 'await' or wrapping the expression with 'unawaited'.",
     hasPublishedDocs: true,
+    expectedTypes: [],
   );
 
   /// No parameters.
@@ -2413,6 +2636,7 @@ class LinterLintCode extends LintCode {
         "Try using backticks around the content with angle brackets, or try "
         "replacing `<` with `&lt;` and `>` with `&gt;`.",
     hasPublishedDocs: true,
+    expectedTypes: [],
   );
 
   /// No parameters.
@@ -2421,6 +2645,7 @@ class LinterLintCode extends LintCode {
         LintNames.unnecessary_async,
         "Don't make a function 'async' if it doesn't use 'await'.",
         correctionMessage: "Try removing the 'async' modifier.",
+        expectedTypes: [],
       );
 
   /// No parameters.
@@ -2429,6 +2654,7 @@ class LinterLintCode extends LintCode {
         LintNames.unnecessary_await_in_return,
         "Unnecessary 'await'.",
         correctionMessage: "Try removing the 'await'.",
+        expectedTypes: [],
       );
 
   /// No parameters.
@@ -2438,6 +2664,7 @@ class LinterLintCode extends LintCode {
         "Unnecessary braces in a string interpolation.",
         correctionMessage: "Try removing the braces.",
         hasPublishedDocs: true,
+        expectedTypes: [],
       );
 
   /// No parameters.
@@ -2446,6 +2673,7 @@ class LinterLintCode extends LintCode {
         LintNames.unnecessary_breaks,
         "Unnecessary 'break' statement.",
         correctionMessage: "Try removing the 'break'.",
+        expectedTypes: [],
       );
 
   /// No parameters.
@@ -2455,6 +2683,7 @@ class LinterLintCode extends LintCode {
         "Unnecessary 'const' keyword.",
         correctionMessage: "Try removing the keyword.",
         hasPublishedDocs: true,
+        expectedTypes: [],
       );
 
   /// No parameters.
@@ -2464,6 +2693,7 @@ class LinterLintCode extends LintCode {
         "Unnecessary '.new' constructor name.",
         correctionMessage: "Try removing the '.new'.",
         hasPublishedDocs: true,
+        expectedTypes: [],
       );
 
   /// No parameters.
@@ -2473,6 +2703,7 @@ class LinterLintCode extends LintCode {
         "Local variables should not be marked as 'final'.",
         correctionMessage: "Replace 'final' with 'var'.",
         uniqueName: 'unnecessary_final_without_type',
+        expectedTypes: [],
       );
 
   /// No parameters.
@@ -2483,6 +2714,7 @@ class LinterLintCode extends LintCode {
         correctionMessage: "Remove the 'final'.",
         hasPublishedDocs: true,
         uniqueName: 'unnecessary_final_with_type',
+        expectedTypes: [],
       );
 
   /// No parameters.
@@ -2493,6 +2725,7 @@ class LinterLintCode extends LintCode {
         correctionMessage:
             "Try removing the getter and setter and renaming the field.",
         hasPublishedDocs: true,
+        expectedTypes: [],
       );
 
   /// Parameters:
@@ -2508,6 +2741,7 @@ class LinterLintCode extends LintCode {
     hasPublishedDocs: true,
     uniqueName: 'unnecessary_ignore',
     withArguments: _withArgumentsUnnecessaryIgnore,
+    expectedTypes: [ExpectedType.object],
   );
 
   /// Parameters:
@@ -2522,6 +2756,7 @@ class LinterLintCode extends LintCode {
     correctionMessage: "Try removing the ignore comment.",
     uniqueName: 'unnecessary_ignore_file',
     withArguments: _withArgumentsUnnecessaryIgnoreFile,
+    expectedTypes: [ExpectedType.object],
   );
 
   /// Parameters:
@@ -2536,6 +2771,7 @@ class LinterLintCode extends LintCode {
     correctionMessage: "Try removing the name from the list.",
     uniqueName: 'unnecessary_ignore_name',
     withArguments: _withArgumentsUnnecessaryIgnoreName,
+    expectedTypes: [ExpectedType.object],
   );
 
   /// Parameters:
@@ -2550,6 +2786,7 @@ class LinterLintCode extends LintCode {
     correctionMessage: "Try removing the name from the list.",
     uniqueName: 'unnecessary_ignore_name_file',
     withArguments: _withArgumentsUnnecessaryIgnoreNameFile,
+    expectedTypes: [ExpectedType.object],
   );
 
   /// No parameters.
@@ -2559,6 +2796,7 @@ class LinterLintCode extends LintCode {
         "Closure should be a tearoff.",
         correctionMessage: "Try using a tearoff rather than a closure.",
         hasPublishedDocs: true,
+        expectedTypes: [],
       );
 
   /// No parameters.
@@ -2568,6 +2806,7 @@ class LinterLintCode extends LintCode {
         "Unnecessary 'late' modifier.",
         correctionMessage: "Try removing the 'late'.",
         hasPublishedDocs: true,
+        expectedTypes: [],
       );
 
   /// No parameters.
@@ -2576,6 +2815,7 @@ class LinterLintCode extends LintCode {
         LintNames.unnecessary_library_directive,
         "Library directives without comments or annotations should be avoided.",
         correctionMessage: "Try deleting the library directive.",
+        expectedTypes: [],
       );
 
   /// No parameters.
@@ -2585,6 +2825,7 @@ class LinterLintCode extends LintCode {
         "Library names are not necessary.",
         correctionMessage: "Remove the library name.",
         hasPublishedDocs: true,
+        expectedTypes: [],
       );
 
   /// No parameters.
@@ -2594,6 +2835,7 @@ class LinterLintCode extends LintCode {
         "Unnecessary 'new' keyword.",
         correctionMessage: "Try removing the 'new' keyword.",
         hasPublishedDocs: true,
+        expectedTypes: [],
       );
 
   /// No parameters.
@@ -2603,6 +2845,7 @@ class LinterLintCode extends LintCode {
     "Type could be non-nullable.",
     correctionMessage: "Try changing the type to be non-nullable.",
     hasPublishedDocs: true,
+    expectedTypes: [],
   );
 
   /// No parameters.
@@ -2612,6 +2855,7 @@ class LinterLintCode extends LintCode {
         "Unnecessary assignment of 'null'.",
         correctionMessage: "Try removing the assignment.",
         hasPublishedDocs: true,
+        expectedTypes: [],
       );
 
   /// No parameters.
@@ -2622,6 +2866,7 @@ class LinterLintCode extends LintCode {
     "a nullable type.",
     correctionMessage: "Try removing the '?'.",
     hasPublishedDocs: true,
+    expectedTypes: [],
   );
 
   /// No parameters.
@@ -2631,6 +2876,7 @@ class LinterLintCode extends LintCode {
         "Unnecessary use of a null check ('!').",
         correctionMessage: "Try removing the null check.",
         hasPublishedDocs: true,
+        expectedTypes: [],
       );
 
   /// No parameters.
@@ -2641,6 +2887,7 @@ class LinterLintCode extends LintCode {
         correctionMessage:
             "Try removing the '??' operator and the 'null' operand.",
         hasPublishedDocs: true,
+        expectedTypes: [],
       );
 
   /// No parameters.
@@ -2652,6 +2899,7 @@ class LinterLintCode extends LintCode {
             "Try adding behavior in the overriding member or removing the "
             "override.",
         hasPublishedDocs: true,
+        expectedTypes: [],
       );
 
   /// No parameters.
@@ -2661,6 +2909,7 @@ class LinterLintCode extends LintCode {
         "Unnecessary use of parentheses.",
         correctionMessage: "Try removing the parentheses.",
         hasPublishedDocs: true,
+        expectedTypes: [],
       );
 
   /// No parameters.
@@ -2670,6 +2919,7 @@ class LinterLintCode extends LintCode {
         "Unnecessary use of a raw string.",
         correctionMessage: "Try using a normal string.",
         hasPublishedDocs: true,
+        expectedTypes: [],
       );
 
   /// No parameters.
@@ -2679,6 +2929,7 @@ class LinterLintCode extends LintCode {
         "Unnecessary statement.",
         correctionMessage: "Try completing the statement or breaking it up.",
         hasPublishedDocs: true,
+        expectedTypes: [],
       );
 
   /// No parameters.
@@ -2688,6 +2939,7 @@ class LinterLintCode extends LintCode {
         "Unnecessary escape in string literal.",
         correctionMessage: "Remove the '\\' escape.",
         hasPublishedDocs: true,
+        expectedTypes: [],
       );
 
   /// No parameters.
@@ -2698,6 +2950,7 @@ class LinterLintCode extends LintCode {
         correctionMessage:
             "Try replacing the string literal with the variable name.",
         hasPublishedDocs: true,
+        expectedTypes: [],
       );
 
   /// No parameters.
@@ -2707,6 +2960,7 @@ class LinterLintCode extends LintCode {
         "Unnecessary 'this.' qualifier.",
         correctionMessage: "Try removing 'this.'.",
         hasPublishedDocs: true,
+        expectedTypes: [],
       );
 
   /// No parameters.
@@ -2716,6 +2970,7 @@ class LinterLintCode extends LintCode {
         "Unnecessary use of 'toList' in a spread.",
         correctionMessage: "Try removing the invocation of 'toList'.",
         hasPublishedDocs: true,
+        expectedTypes: [],
       );
 
   /// No parameters.
@@ -2727,6 +2982,7 @@ class LinterLintCode extends LintCode {
             "Try removing the use of 'unawaited', as the unawaited element is "
             "annotated with '@awaitNotRequired'.",
         hasPublishedDocs: true,
+        expectedTypes: [],
       );
 
   /// No parameters.
@@ -2736,6 +2992,7 @@ class LinterLintCode extends LintCode {
         "Unnecessary use of multiple underscores.",
         correctionMessage: "Try using '_'.",
         hasPublishedDocs: true,
+        expectedTypes: [],
       );
 
   /// Parameters:
@@ -2748,6 +3005,7 @@ class LinterLintCode extends LintCode {
     "Unreachable member '{0}' in an executable library.",
     correctionMessage: "Try referencing the member or removing it.",
     withArguments: _withArgumentsUnreachableFromMain,
+    expectedTypes: [ExpectedType.object],
   );
 
   /// Parameters:
@@ -2764,6 +3022,7 @@ class LinterLintCode extends LintCode {
     hasPublishedDocs: true,
     uniqueName: 'unrelated_type_equality_checks_in_expression',
     withArguments: _withArgumentsUnrelatedTypeEqualityChecksInExpression,
+    expectedTypes: [ExpectedType.object, ExpectedType.object],
   );
 
   /// Parameters:
@@ -2780,6 +3039,7 @@ class LinterLintCode extends LintCode {
     hasPublishedDocs: true,
     uniqueName: 'unrelated_type_equality_checks_in_pattern',
     withArguments: _withArgumentsUnrelatedTypeEqualityChecksInPattern,
+    expectedTypes: [ExpectedType.object, ExpectedType.object],
   );
 
   /// No parameters.
@@ -2791,6 +3051,7 @@ class LinterLintCode extends LintCode {
         "Try using a more general type that doesn't contain any type "
         "parameters in such a position.",
     hasPublishedDocs: true,
+    expectedTypes: [],
   );
 
   /// No parameters.
@@ -2803,6 +3064,7 @@ class LinterLintCode extends LintCode {
         "use with a 'mounted' check.",
     hasPublishedDocs: true,
     uniqueName: 'use_build_context_synchronously_async_use',
+    expectedTypes: [],
   );
 
   /// No parameters.
@@ -2816,6 +3078,7 @@ class LinterLintCode extends LintCode {
         "other BuildContext use with a 'mounted' check on the BuildContext.",
     hasPublishedDocs: true,
     uniqueName: 'use_build_context_synchronously_wrong_mounted',
+    expectedTypes: [],
   );
 
   /// No parameters.
@@ -2825,6 +3088,7 @@ class LinterLintCode extends LintCode {
         "Use a 'ColoredBox' rather than a 'Container' with only a 'Color'.",
         correctionMessage: "Try replacing the 'Container' with a 'ColoredBox'.",
         hasPublishedDocs: true,
+        expectedTypes: [],
       );
 
   /// No parameters.
@@ -2834,6 +3098,7 @@ class LinterLintCode extends LintCode {
     "Use 'DecoratedBox' rather than a 'Container' with only a 'Decoration'.",
     correctionMessage: "Try replacing the 'Container' with a 'DecoratedBox'.",
     hasPublishedDocs: true,
+    expectedTypes: [],
   );
 
   /// No parameters.
@@ -2841,6 +3106,7 @@ class LinterLintCode extends LintCode {
     LintNames.use_enums,
     "Class should be an enum.",
     correctionMessage: "Try using an enum rather than a class.",
+    expectedTypes: [],
   );
 
   /// No parameters.
@@ -2850,6 +3116,7 @@ class LinterLintCode extends LintCode {
         "Instances of 'Color' should be created using an 8-digit hexadecimal "
         "integer (such as '0xFFFFFFFF').",
         hasPublishedDocs: true,
+        expectedTypes: [],
       );
 
   /// Parameters:
@@ -2863,6 +3130,7 @@ class LinterLintCode extends LintCode {
     correctionMessage: "Try using the generic function type syntax.",
     hasPublishedDocs: true,
     withArguments: _withArgumentsUseFunctionTypeSyntaxForParameters,
+    expectedTypes: [ExpectedType.object],
   );
 
   /// No parameters.
@@ -2872,6 +3140,7 @@ class LinterLintCode extends LintCode {
         "Use an if-null operator to convert a 'null' to a 'bool'.",
         correctionMessage: "Try using an if-null operator.",
         hasPublishedDocs: true,
+        expectedTypes: [],
       );
 
   /// Parameters:
@@ -2884,6 +3153,7 @@ class LinterLintCode extends LintCode {
     "Use '{0}' rather than '% 2'.",
     correctionMessage: "Try using '{0}'.",
     withArguments: _withArgumentsUseIsEvenRatherThanModulo,
+    expectedTypes: [ExpectedType.object],
   );
 
   /// No parameters.
@@ -2893,6 +3163,7 @@ class LinterLintCode extends LintCode {
         "Constructors for public widgets should have a named 'key' parameter.",
         correctionMessage: "Try adding a named parameter to the constructor.",
         hasPublishedDocs: true,
+        expectedTypes: [],
       );
 
   /// No parameters.
@@ -2902,6 +3173,7 @@ class LinterLintCode extends LintCode {
         "Use 'late' for private members with a non-nullable type.",
         correctionMessage: "Try making adding the modifier 'late'.",
         hasPublishedDocs: true,
+        expectedTypes: [],
       );
 
   /// Parameters:
@@ -2916,6 +3188,7 @@ class LinterLintCode extends LintCode {
     correctionMessage: "Try using '{0}'.",
     hasPublishedDocs: true,
     withArguments: _withArgumentsUseNamedConstants,
+    expectedTypes: [ExpectedType.object],
   );
 
   /// No parameters.
@@ -2925,6 +3198,7 @@ class LinterLintCode extends LintCode {
         "Use the null-aware marker '?' rather than a null check via an 'if'.",
         correctionMessage: "Try using '?'.",
         hasPublishedDocs: true,
+        expectedTypes: [],
       );
 
   /// No parameters.
@@ -2935,6 +3209,7 @@ class LinterLintCode extends LintCode {
         correctionMessage:
             "Try making the string a raw string and removing the escapes.",
         hasPublishedDocs: true,
+        expectedTypes: [],
       );
 
   /// No parameters.
@@ -2944,6 +3219,7 @@ class LinterLintCode extends LintCode {
         "Use 'rethrow' to rethrow a caught exception.",
         correctionMessage: "Try replacing the 'throw' with a 'rethrow'.",
         hasPublishedDocs: true,
+        expectedTypes: [],
       );
 
   /// No parameters.
@@ -2953,6 +3229,7 @@ class LinterLintCode extends LintCode {
         "The method is used to change a property.",
         correctionMessage: "Try converting the method to a setter.",
         hasPublishedDocs: true,
+        expectedTypes: [],
       );
 
   /// No parameters.
@@ -2963,6 +3240,7 @@ class LinterLintCode extends LintCode {
         correctionMessage:
             "Try writing the parts of a string to a string buffer.",
         hasPublishedDocs: true,
+        expectedTypes: [],
       );
 
   /// No parameters.
@@ -2973,6 +3251,7 @@ class LinterLintCode extends LintCode {
         correctionMessage:
             "Try converting the directive to use the URI of the library.",
         hasPublishedDocs: true,
+        expectedTypes: [],
       );
 
   /// Parameters:
@@ -2987,6 +3266,7 @@ class LinterLintCode extends LintCode {
     hasPublishedDocs: true,
     uniqueName: 'use_super_parameters_multiple',
     withArguments: _withArgumentsUseSuperParametersMultiple,
+    expectedTypes: [ExpectedType.object],
   );
 
   /// Parameters:
@@ -3001,6 +3281,7 @@ class LinterLintCode extends LintCode {
     hasPublishedDocs: true,
     uniqueName: 'use_super_parameters_single',
     withArguments: _withArgumentsUseSuperParametersSingle,
+    expectedTypes: [ExpectedType.object],
   );
 
   /// No parameters.
@@ -3012,6 +3293,7 @@ class LinterLintCode extends LintCode {
         correctionMessage:
             "Try removing the try-catch and using 'throwsA' to expect an "
             "exception.",
+        expectedTypes: [],
       );
 
   /// No parameters.
@@ -3021,6 +3303,7 @@ class LinterLintCode extends LintCode {
         "Start the name of the method with 'to' or 'as'.",
         correctionMessage:
             "Try renaming the method to use either 'to' or 'as'.",
+        expectedTypes: [],
       );
 
   /// No parameters.
@@ -3032,6 +3315,7 @@ class LinterLintCode extends LintCode {
             "Try using truncating division, '~/', instead of regular division "
             "('/') followed by 'toInt()'.",
         hasPublishedDocs: true,
+        expectedTypes: [],
       );
 
   /// No parameters.
@@ -3041,6 +3325,7 @@ class LinterLintCode extends LintCode {
         "Invalid regular expression syntax.",
         correctionMessage: "Try correcting the regular expression.",
         hasPublishedDocs: true,
+        expectedTypes: [],
       );
 
   /// No parameters.
@@ -3051,6 +3336,7 @@ class LinterLintCode extends LintCode {
         correctionMessage:
             "Try declaring a 'visit' method for all registered node types.",
         hasPublishedDocs: true,
+        expectedTypes: [],
       );
 
   /// No parameters.
@@ -3061,11 +3347,13 @@ class LinterLintCode extends LintCode {
         correctionMessage:
             "Try removing the assignment or changing the type of the variable.",
         hasPublishedDocs: true,
+        expectedTypes: [],
       );
 
   const LinterLintCode(
     super.name,
     super.problemMessage, {
+    super.expectedTypes,
     super.correctionMessage,
     super.hasPublishedDocs,
     String? uniqueName,
@@ -3624,6 +3912,7 @@ final class LinterLintTemplate<T extends Function> extends LinterLintCode {
     super.name,
     super.problemMessage, {
     required this.withArguments,
+    required super.expectedTypes,
     super.correctionMessage,
     super.hasPublishedDocs = false,
     super.uniqueName,
@@ -3636,6 +3925,7 @@ final class LinterLintWithoutArguments extends LinterLintCode
   const LinterLintWithoutArguments(
     super.name,
     super.problemMessage, {
+    required super.expectedTypes,
     super.correctionMessage,
     super.hasPublishedDocs = false,
     super.uniqueName,
