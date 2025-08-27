@@ -103,7 +103,7 @@ vars = {
   "devtools_rev": "5e1792245005088a0a0dfe28f207bd22045ba783",
   # Use the SHA found in `flutter-candidate.txt` in the devtools repo.
   "flutter_rev": "36ea2bdeab611e908967b6fa57659998f600a2cb",
-  "icu_rev": "43953f57b037778a1b8005564afabe214834f7bd",
+  "icu_rev": "1b2e3e8a421efae36141a7b932b41e315b089af8",
   "jinja2_rev": "2222b31554f03e62600cd7e383376a7c187967a1",
   "libcxx_rev": "bd557f6f764d1e40b62528a13b124ce740624f8f",
   "libcxxabi_rev": "a4dda1589d37a7e4b4f7a81ebad01b1083f2e726",
