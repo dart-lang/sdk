@@ -158,7 +158,8 @@ mixin CodeGenerator {
   void outputHeader({bool javaStyle = false, String? year}) {
     String header;
     if (codeGeneratorSettings.languageName == 'java') {
-      header = '''
+      header =
+          '''
 /*
  * Copyright (c) ${year ?? '2019'}, the Dart project authors. Please see the AUTHORS file
  * for details. All rights reserved. Use of this source code is governed by a
@@ -168,7 +169,8 @@ mixin CodeGenerator {
  * To regenerate the file, use the script "pkg/analysis_server/tool/spec/generate_files".
  */''';
     } else if (codeGeneratorSettings.languageName == 'python') {
-      header = '''
+      header =
+          '''
 # Copyright (c) ${year ?? '2014'}, the Dart project authors. Please see the AUTHORS file
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
@@ -178,7 +180,8 @@ mixin CodeGenerator {
 # "pkg/analysis_server/tool/spec/generate_files".
 ''';
     } else {
-      header = '''
+      header =
+          '''
 // Copyright (c) ${year ?? '2014'}, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.

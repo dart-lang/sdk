@@ -147,10 +147,10 @@ vars = {
   "sync_http_rev": "c07f96f89a7eec7e3daac641fa6c587224fcfbaa",
   "tar_rev": "d511a1dc4f197a29bc06479f4614135abb168b6e",
   "test_rev": "5aef9719ad9b598260c062b2a90a50d2f50a78f3", # https://dart-review.googlesource.com/c/sdk/+/444360
-  "tools_rev": "1b52e89e0b4ef70e004383c1cf781ad4182f380b",
+  "tools_rev": "24707e094cd761178eb76e725ce17f51e22fd442",
   "vector_math_rev": "3939545edc38ed657381381d33acde02c49ff827",
   "web_rev": "ee9733fb51ead11d863a00497d721c5b627ac97d",
-  "webdev_rev": "c0492f1b40b591710cd8359d6f142ea6ff315985",
+  "webdev_rev": "9724fea63ea642cbcf87bb6e43b4076681161a4f",
   "webdriver_rev": "595649d890f69b9d05a596426ca93681b1921132",
   "webkit_inspection_protocol_rev": "effa75205516757795683d527c3dea9546eb0c32",
 

@@ -110,11 +110,11 @@ class ApiDescription {
       var element = _potentiallyDanglingReferences.removeFirst();
       if (!_dumpedTopLevelElements.add(element)) continue;
       var containingLibraryUri = element.library!.uri;
-      var childNode =
-          Node<MemberSortKey>()..text.add(_uniqueNamer.name(element));
+      var childNode = Node<MemberSortKey>()
+        ..text.add(_uniqueNamer.name(element));
       _dumpElement(element, childNode);
-      (nodes[containingLibraryUri] ??=
-              Node<MemberSortKey>()..text.add('$containingLibraryUri:'))
+      (nodes[containingLibraryUri] ??= Node<MemberSortKey>()
+            ..text.add('$containingLibraryUri:'))
           .childNodes
           .add((MemberSortKey(element), childNode));
     }
@@ -424,8 +424,8 @@ class ApiDescription {
     var definedNames = library.exportNamespace.definedNames2;
     for (var key in definedNames.keys.sorted()) {
       var element = definedNames[key]!;
-      var childNode =
-          Node<MemberSortKey>()..text.add(_uniqueNamer.name(element));
+      var childNode = Node<MemberSortKey>()
+        ..text.add(_uniqueNamer.name(element));
       if (!_dumpedTopLevelElements.add(element)) {
         childNode.text.add(' (see above)');
       } else {
@@ -512,16 +512,18 @@ class MemberSortKey implements Comparable<MemberSortKey> {
     InterfaceElement() => MemberCategory.interface,
     ExtensionElement() => MemberCategory.extension,
     TypeAliasElement() => MemberCategory.typeAlias,
-    dynamic(:var runtimeType) =>
-      throw UnimplementedError('Unexpected element: $runtimeType'),
+    dynamic(:var runtimeType) => throw UnimplementedError(
+      'Unexpected element: $runtimeType',
+    ),
   };
 
   static bool _computeIsInstanceMember(Element element) =>
       element.enclosingElement is InstanceElement &&
       switch (element) {
         ExecutableElement(:var isStatic) => !isStatic,
-        dynamic(:var runtimeType) =>
-          throw UnimplementedError('Unexpected element: $runtimeType'),
+        dynamic(:var runtimeType) => throw UnimplementedError(
+          'Unexpected element: $runtimeType',
+        ),
       };
 }
 
@@ -576,11 +578,10 @@ class UniqueName {
   }
 
   @override
-  String toString() =>
-      [
-        _nameHint,
-        if (_disambiguator case var disambiguator?) '@$disambiguator',
-      ].join();
+  String toString() => [
+    _nameHint,
+    if (_disambiguator case var disambiguator?) '@$disambiguator',
+  ].join();
 }
 
 /// Manager of unique names for elements.
@@ -606,8 +607,9 @@ class UriSortKey implements Comparable<UriSortKey> {
   final String _uriString;
 
   UriSortKey(Uri uri, String pkgName)
-    : _category =
-          uri.isIn(pkgName) ? UriCategory.inPackage : UriCategory.notInPackage,
+    : _category = uri.isIn(pkgName)
+          ? UriCategory.inPackage
+          : UriCategory.notInPackage,
       _uriString = uri.toString();
 
   @override

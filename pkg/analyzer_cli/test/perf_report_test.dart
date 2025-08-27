@@ -12,10 +12,9 @@ import 'package:test/test.dart';
 
 void main() {
   test('makePerfReport', () {
-    var options =
-        CommandLineOptions.parse(PhysicalResourceProvider.INSTANCE, [
-          'somefile.dart',
-        ])!;
+    var options = CommandLineOptions.parse(PhysicalResourceProvider.INSTANCE, [
+      'somefile.dart',
+    ])!;
     var encoded = makePerfReport(1000, 1234, options, 0, AnalysisStats());
 
     var jsonData = json.decode(encoded);
