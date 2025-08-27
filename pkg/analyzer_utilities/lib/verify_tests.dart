@@ -32,11 +32,10 @@ class VerifyTests {
       includedPaths: <String>[testDirPath],
       excludedPaths: excludedPaths,
     );
-    var singleAnalysisContext =
-        collection.contexts
-            .where(analysisContextPredicate ?? (_) => true)
-            .toList()
-            .singleOrNull;
+    var singleAnalysisContext = collection.contexts
+        .where(analysisContextPredicate ?? (_) => true)
+        .toList()
+        .singleOrNull;
     if (singleAnalysisContext == null) {
       fail('The test directory contains multiple analysis contexts.');
     }
