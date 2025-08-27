@@ -67,10 +67,17 @@ class FunctionCollector {
     }
 
     // Ensure any procedures marked as exported are enqueued.
-    String? exportName =
-        translator.getPragma(member, "wasm:export", member.name.text);
+    final text = member.name.text;
+    String? exportName = translator.getPragma(member, "wasm:export", text);
     if (exportName != null) {
       getFunction(member.reference);
+    }
+
+    // Whether a procedure is strongly or weakly exported, we must not use its
+    // name as the export name of a different function.
+    exportName ??= translator.getPragma(member, "wasm:weak-export", text);
+    if (exportName != null) {
+      translator.exportNamer.reserveName(exportName);
     }
   }
 
@@ -158,9 +165,11 @@ class FunctionCollector {
         final callableReferenceId =
             translator.dynamicModuleInfo?.metadata.callableReferenceIds[target];
         if (callableReferenceId != null) {
-          translator.mainModule.exports.export(
+          translator.exporter.exportCallable(
+              translator.mainModule,
               _generateDynamicSubmoduleCallableName(callableReferenceId),
-              function);
+              function,
+              callableReferenceId);
         }
       }
 
@@ -170,7 +179,8 @@ class FunctionCollector {
     });
   }
 
-  String _generateDynamicSubmoduleCallableName(int key) => '#dc$key';
+  String _generateDynamicSubmoduleCallableName(int key) =>
+      '#dynamicCallable$key';
 
   w.BaseFunction _importFunctionToDynamicSubmodule(Reference target) {
     assert(translator.isDynamicSubmodule);
@@ -186,8 +196,8 @@ class FunctionCollector {
     }
     return translator.dynamicSubmodule.functions.import(
         translator.mainModule.moduleName,
-        _generateDynamicSubmoduleCallableName(
-            dynamicSubmoduleCallableReferenceId),
+        translator.dynamicModuleExports!
+            .getCallableName(dynamicSubmoduleCallableReferenceId)!,
         translator.signatureForMainModule(target),
         getFunctionName(target));
   }

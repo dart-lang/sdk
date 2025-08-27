@@ -23,6 +23,7 @@ import 'dispatch_table.dart';
 import 'dynamic_forwarders.dart';
 import 'dynamic_module_kernel_metadata.dart';
 import 'dynamic_modules.dart';
+import 'exports.dart';
 import 'functions.dart';
 import 'globals.dart';
 import 'kernel_nodes.dart';
@@ -125,6 +126,9 @@ class Translator with KernelNodes {
 
   final Symbols symbols;
 
+  final ExportNamer exportNamer;
+  late final Exporter exporter;
+
   // Kernel input and context.
   @override
   final Component component;
@@ -176,6 +180,8 @@ class Translator with KernelNodes {
   late final ExceptionTag exceptionTag;
   late final CompilationQueue compilationQueue;
   late final FunctionCollector functions;
+
+  late final DynamicModuleExports? dynamicModuleExports;
 
   // Information about the program used and updated by the various phases.
 
@@ -452,6 +458,7 @@ class Translator with KernelNodes {
       {bool enableDynamicModules = false,
       required MainModuleMetadata mainModuleMetadata})
       : symbols = Symbols(options.minify),
+        exportNamer = ExportNamer(options.minify),
         libraries = component.libraries,
         hierarchy =
             ClassHierarchy(component, coreTypes) as ClosedWorldClassHierarchy {
@@ -473,6 +480,13 @@ class Translator with KernelNodes {
     functions = FunctionCollector(this);
     types = Types(this);
     exceptionTag = ExceptionTag(this);
+
+    exporter = Exporter(exportNamer);
+
+    dynamicModuleExports =
+        (component.metadata[DynamicModuleExportRepository.repositoryTag]
+                as DynamicModuleExportRepository?)
+            ?.mapping[component] ??= exporter.dynamicModuleExports;
   }
 
   void _initLoadLibraryImportMap() {

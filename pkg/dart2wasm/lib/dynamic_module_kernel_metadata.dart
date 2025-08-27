@@ -27,6 +27,7 @@ import 'class_info.dart';
 import 'compiler_options.dart';
 import 'dispatch_table.dart';
 import 'dynamic_modules.dart';
+import 'exports.dart';
 import 'js/method_collector.dart' show JSMethods;
 import 'serialization.dart';
 import 'translator.dart';
@@ -474,6 +475,7 @@ Future<(Component, JSMethods)> generateDynamicSubmoduleComponent(
   final newComponent = Component()
     ..addMetadataRepository(DynamicModuleGlobalIdRepository())
     ..addMetadataRepository(DynamicModuleConstantRepository())
+    ..addMetadataRepository(DynamicModuleExportRepository())
     ..addMetadataRepository(ProcedureAttributesMetadataRepository())
     ..addMetadataRepository(TableSelectorMetadataRepository())
     ..addMetadataRepository(DirectCallMetadataRepository())

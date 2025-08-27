@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:convert';
+
 import 'package:kernel/ast.dart';
 import 'package:kernel/core_types.dart';
 
@@ -52,3 +54,16 @@ T addPragma<T extends Annotatable>(
         coreTypes.pragmaName.fieldReference: StringConstant(pragmaName),
         coreTypes.pragmaOptions.fieldReference: value ?? NullConstant(),
       })));
+
+List<int> _intToLittleEndianBytes(int i) {
+  List<int> bytes = [];
+  bytes.add(i & 0xFF);
+  i >>>= 8;
+  while (i != 0) {
+    bytes.add(i & 0xFF);
+    i >>>= 8;
+  }
+  return bytes;
+}
+
+String intToBase64(int i) => base64.encode(_intToLittleEndianBytes(i));

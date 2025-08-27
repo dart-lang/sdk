@@ -498,8 +498,9 @@ class ConstantCreator extends ConstantVisitor<ConstantInfo?>
     return info;
   }
 
-  static String _dynamicModuleConstantExportName(int id) => '#c$id';
-  static String _dynamicModuleInitFunctionExportName(int id) => '#cf$id';
+  static String _dynamicModuleConstantExportName(int id) => '#constant$id';
+  static String _dynamicModuleInitFunctionExportName(int id) =>
+      '#constantFunction$id';
 
   static int _nextGlobalId = 0;
   String _constantName(Constant constant) {
@@ -577,11 +578,15 @@ class ConstantCreator extends ConstantVisitor<ConstantInfo?>
           translator.typesBuilder.defineFunction(const [], [type]);
 
       if (mainModuleExportId != null) {
-        global = targetModule.globals.import(translator.mainModule.moduleName,
-            _dynamicModuleConstantExportName(mainModuleExportId), globalType);
+        global = targetModule.globals.import(
+            translator.mainModule.moduleName,
+            translator.dynamicModuleExports!
+                .getConstantName(mainModuleExportId)!,
+            globalType);
         initFunction = targetModule.functions.import(
             translator.mainModule.moduleName,
-            _dynamicModuleInitFunctionExportName(mainModuleExportId),
+            translator.dynamicModuleExports!
+                .getConstantInitializerName(mainModuleExportId)!,
             ftype);
       } else {
         final name = _constantName(constant);
@@ -597,10 +602,16 @@ class ConstantCreator extends ConstantVisitor<ConstantInfo?>
           final exportId = dynamicModuleConstantIdMap[constant] =
               dynamicModuleConstantIdMap.length;
 
-          targetModule.exports.export(
-              _dynamicModuleConstantExportName(exportId), definedGlobal);
-          targetModule.exports
-              .export(_dynamicModuleInitFunctionExportName(exportId), function);
+          translator.exporter.exportConstant(
+              targetModule,
+              _dynamicModuleConstantExportName(exportId),
+              definedGlobal,
+              exportId);
+          translator.exporter.exportConstantInitializer(
+              targetModule,
+              _dynamicModuleInitFunctionExportName(exportId),
+              function,
+              exportId);
         }
         final b2 = function.body;
         generator(b2);
@@ -622,8 +633,11 @@ class ConstantCreator extends ConstantVisitor<ConstantInfo?>
       final globalType = w.GlobalType(type, mutable: false);
       w.Global global;
       if (mainModuleExportId != null) {
-        global = targetModule.globals.import(translator.mainModule.moduleName,
-            _dynamicModuleConstantExportName(mainModuleExportId), globalType);
+        global = targetModule.globals.import(
+            translator.mainModule.moduleName,
+            translator.dynamicModuleExports!
+                .getConstantName(mainModuleExportId)!,
+            globalType);
       } else {
         constants.currentlyCreating = true;
         final definedGlobal = global =
@@ -636,8 +650,11 @@ class ConstantCreator extends ConstantVisitor<ConstantInfo?>
           final exportId = dynamicModuleConstantIdMap[constant] =
               dynamicModuleConstantIdMap.length;
 
-          targetModule.exports.export(
-              _dynamicModuleConstantExportName(exportId), definedGlobal);
+          translator.exporter.exportConstant(
+              targetModule,
+              _dynamicModuleConstantExportName(exportId),
+              definedGlobal,
+              exportId);
         }
       }
 

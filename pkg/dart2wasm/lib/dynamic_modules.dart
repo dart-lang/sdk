@@ -22,6 +22,7 @@ import 'compiler_options.dart';
 import 'constants.dart' show maxArrayNewFixedLength;
 import 'dispatch_table.dart';
 import 'dynamic_module_kernel_metadata.dart';
+import 'exports.dart';
 import 'intrinsics.dart' show MemberIntrinsic;
 import 'kernel_nodes.dart';
 import 'modules.dart';
@@ -129,6 +130,7 @@ class DynamicMainModuleStrategy extends ModuleStrategy with KernelNodes {
 
     component.addMetadataRepository(DynamicModuleConstantRepository());
     component.addMetadataRepository(DynamicModuleGlobalIdRepository());
+    component.addMetadataRepository(DynamicModuleExportRepository());
   }
 
   @override
