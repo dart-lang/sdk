@@ -212,12 +212,11 @@ class _ErrorCodeDocumentationParser {
           if (experiments != null) {
             problem('Multiple experiments directives');
           }
-          experiments =
-              line
-                  .substring(experimentsPrefix.length)
-                  .split(',')
-                  .map((e) => e.trim())
-                  .toList();
+          experiments = line
+              .substring(experimentsPrefix.length)
+              .split(',')
+              .map((e) => e.trim())
+              .toList();
         } else {
           problem('Unrecognized directive ${json.encode(line)}');
         }

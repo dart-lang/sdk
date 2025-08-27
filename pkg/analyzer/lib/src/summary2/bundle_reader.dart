@@ -1686,11 +1686,10 @@ class ResolutionReader {
 
       _localElements.length -= typeParameters.length;
 
-      var fragment =
-          GenericFunctionTypeFragmentImpl()
-            ..typeParameters = typeParameters
-            ..formalParameters = formalParameters
-            ..returnType = returnType;
+      var fragment = GenericFunctionTypeFragmentImpl()
+        ..typeParameters = typeParameters
+        ..formalParameters = formalParameters
+        ..returnType = returnType;
       unitElement.encloseElement(fragment);
       return fragment;
     } else {

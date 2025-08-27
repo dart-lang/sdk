@@ -683,11 +683,10 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
     _patternVariables.casePatternStart();
     super.visitForEachPartsWithPattern(node);
     var variablesMap = _patternVariables.casePatternFinish();
-    node.variables =
-        variablesMap.values
-            .whereType<BindPatternVariableElementImpl>()
-            .map((e) => e.asElement)
-            .toList();
+    node.variables = variablesMap.values
+        .whereType<BindPatternVariableElementImpl>()
+        .map((e) => e.asElement)
+        .toList();
   }
 
   @override
@@ -887,10 +886,12 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
             node.returnType?.accept(this);
             if (_elementWalker == null) {
               var type = FunctionTypeImpl(
-                typeParameters:
-                    fragment.typeParameters.map((f) => f.element).toList(),
-                parameters:
-                    fragment.formalParameters.map((f) => f.asElement2).toList(),
+                typeParameters: fragment.typeParameters
+                    .map((f) => f.element)
+                    .toList(),
+                parameters: fragment.formalParameters
+                    .map((f) => f.asElement2)
+                    .toList(),
                 returnType: node.returnType?.type ?? _dynamicType,
                 nullabilitySuffix: _getNullability(node.question != null),
               );
@@ -1186,10 +1187,9 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
     _patternVariables.casePatternStart();
     super.visitPatternVariableDeclaration(node);
     var variablesMap = _patternVariables.casePatternFinish();
-    node.elements =
-        variablesMap.values
-            .whereType<BindPatternVariableElementImpl>()
-            .toList();
+    node.elements = variablesMap.values
+        .whereType<BindPatternVariableElementImpl>()
+        .toList();
   }
 
   @override
@@ -1755,10 +1755,9 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
         }
       case ExtendsClause():
         if (declaration is ClassDeclaration) {
-          diagnosticCode =
-              declaration.withClause == null
-                  ? CompileTimeErrorCode.extendsNonClass
-                  : CompileTimeErrorCode.mixinWithNonClassSuperclass;
+          diagnosticCode = declaration.withClause == null
+              ? CompileTimeErrorCode.extendsNonClass
+              : CompileTimeErrorCode.mixinWithNonClassSuperclass;
         }
       case ImplementsClause():
         diagnosticCode = CompileTimeErrorCode.implementsNonClass;

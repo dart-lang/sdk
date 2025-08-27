@@ -16,8 +16,10 @@ main() {
 @reflectiveTest
 class PreviousTokenTest {
   void test_findPrevious() {
-    Token a =
-        scanString('a b c /* comment */ d e', includeComments: true).tokens;
+    Token a = scanString(
+      'a b c /* comment */ d e',
+      includeComments: true,
+    ).tokens;
     Token b = a.next!;
     Token c = b.next!;
     Token d = c.next!;

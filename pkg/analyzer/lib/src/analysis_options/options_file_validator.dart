@@ -331,8 +331,9 @@ class _AnalyzerTopLevelOptionsValidator extends _TopLevelOptionValidator {
 /// values in the section, and whether each value is a valid string.
 class _CannotIgnoreOptionValidator extends OptionsValidator {
   /// Lazily populated set of diagnostic code names.
-  static final Set<String> _diagnosticCodes =
-      diagnosticCodeValues.map((DiagnosticCode code) => code.name).toSet();
+  static final Set<String> _diagnosticCodes = diagnosticCodeValues
+      .map((DiagnosticCode code) => code.name)
+      .toSet();
 
   /// The diagnostic code names that existed, but were removed.
   /// We don't want to report these, this breaks clients.
@@ -340,10 +341,9 @@ class _CannotIgnoreOptionValidator extends OptionsValidator {
   static const Set<String> _removedDiagnosticCodes = {'MISSING_RETURN'};
 
   /// Lazily populated set of lint code names.
-  late final Set<String> _lintCodes =
-      Registry.ruleRegistry.rules
-          .map((rule) => rule.name.toUpperCase())
-          .toSet();
+  late final Set<String> _lintCodes = Registry.ruleRegistry.rules
+      .map((rule) => rule.name.toUpperCase())
+      .toSet();
 
   @override
   void validate(DiagnosticReporter reporter, YamlMap options) {
@@ -474,8 +474,9 @@ class _EnableExperimentsValidator extends OptionsValidator {
         AnalysisOptionsFile.enableExperiment,
       );
       if (experimentNames is YamlList) {
-        var flags =
-            experimentNames.nodes.map((node) => node.toString()).toList();
+        var flags = experimentNames.nodes
+            .map((node) => node.toString())
+            .toList();
         for (var validationResult in validateFlags(flags)) {
           var flagIndex = validationResult.stringIndex;
           var span = experimentNames.nodes[flagIndex].span;
@@ -575,8 +576,9 @@ class _ErrorFilterOptionValidator extends OptionsValidator {
       legalValues.quotedAndCommaSeparatedWithAnd;
 
   /// Lazily populated set of diagnostic code names.
-  static final Set<String> _diagnosticCodes =
-      diagnosticCodeValues.map((DiagnosticCode code) => code.name).toSet();
+  static final Set<String> _diagnosticCodes = diagnosticCodeValues
+      .map((DiagnosticCode code) => code.name)
+      .toSet();
 
   /// The diagnostic code names that existed, but were removed.
   /// We don't want to report these, this breaks clients.
@@ -584,10 +586,9 @@ class _ErrorFilterOptionValidator extends OptionsValidator {
   static const Set<String> _removedDiagnosticCodes = {'MISSING_RETURN'};
 
   /// Lazily populated set of lint code names.
-  late final Set<String> _lintCodes =
-      Registry.ruleRegistry.rules
-          .map((rule) => rule.name.toUpperCase())
-          .toSet();
+  late final Set<String> _lintCodes = Registry.ruleRegistry.rules
+      .map((rule) => rule.name.toUpperCase())
+      .toSet();
 
   @override
   void validate(DiagnosticReporter reporter, YamlMap options) {
@@ -1080,10 +1081,9 @@ class _TopLevelOptionValidator extends OptionsValidator {
   _TopLevelOptionValidator(this.pluginName, this.supportedOptions)
     : assert(supportedOptions.isNotEmpty),
       _valueProposal = supportedOptions.quotedAndCommaSeparatedWithAnd,
-      _warningCode =
-          supportedOptions.length == 1
-              ? AnalysisOptionsWarningCode.unsupportedOptionWithLegalValue
-              : AnalysisOptionsWarningCode.unsupportedOptionWithLegalValues;
+      _warningCode = supportedOptions.length == 1
+          ? AnalysisOptionsWarningCode.unsupportedOptionWithLegalValue
+          : AnalysisOptionsWarningCode.unsupportedOptionWithLegalValues;
 
   @override
   void validate(DiagnosticReporter reporter, YamlMap options) {

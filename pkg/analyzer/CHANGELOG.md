@@ -1,4 +1,5 @@
 ## 8.2.0-dev
+* Updated SDK constraint to `^3.9.0`.
 * Deprecate `Diagnostic.data`. Instead, please use an expando to attach data to
   the `Diagnostic` object.
 * Deprecate `CatchClauseParameter.declaredElement` and `CatchClauseParameter.declaredElement2`.

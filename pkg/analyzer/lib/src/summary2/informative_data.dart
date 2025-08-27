@@ -974,14 +974,12 @@ class _InfoBuilder {
       nameOffset: node.name.offsetIfNotEmpty,
       documentationComment: _getDocumentationComment(node),
       typeParameters: _buildTypeParameters(node.typeParameters),
-      aliasedTypeParameters:
-          aliasedType is GenericFunctionType
-              ? _buildTypeParameters(aliasedType.typeParameters)
-              : [],
-      aliasedFormalParameters:
-          aliasedType is GenericFunctionType
-              ? _buildFormalParameters(aliasedType.parameters)
-              : [],
+      aliasedTypeParameters: aliasedType is GenericFunctionType
+          ? _buildTypeParameters(aliasedType.typeParameters)
+          : [],
+      aliasedFormalParameters: aliasedType is GenericFunctionType
+          ? _buildFormalParameters(aliasedType.parameters)
+          : [],
       constantOffsets: _buildConstantOffsets(
         metadata: node.metadata,
         typeParameters: node.typeParameters,
@@ -1034,24 +1032,21 @@ class _InfoBuilder {
               .expand((declaration) => declaration.fields.variables)
               .map((node) => _buildField(node))
               .toList(),
-      getters:
-          members
-              .whereType<MethodDeclaration>()
-              .where((node) => node.isGetter)
-              .map(_buildMethodDeclaration)
-              .toList(),
-      setters:
-          members
-              .whereType<MethodDeclaration>()
-              .where((node) => node.isSetter)
-              .map(_buildMethodDeclaration)
-              .toList(),
-      methods:
-          members
-              .whereType<MethodDeclaration>()
-              .where((node) => !node.isGetter && !node.isSetter)
-              .map(_buildMethodDeclaration)
-              .toList(),
+      getters: members
+          .whereType<MethodDeclaration>()
+          .where((node) => node.isGetter)
+          .map(_buildMethodDeclaration)
+          .toList(),
+      setters: members
+          .whereType<MethodDeclaration>()
+          .where((node) => node.isSetter)
+          .map(_buildMethodDeclaration)
+          .toList(),
+      methods: members
+          .whereType<MethodDeclaration>()
+          .where((node) => !node.isGetter && !node.isSetter)
+          .map(_buildMethodDeclaration)
+          .toList(),
       constantOffsets: _buildConstantOffsets(
         metadata: annotatedNode.metadata,
         typeParameters: typeParameters,
@@ -1075,11 +1070,10 @@ class _InfoBuilder {
     );
     return _InterfaceData(
       instanceData: instanceData,
-      constructors:
-          members
-              .whereType<ConstructorDeclaration>()
-              .map((node) => _buildConstructor(node))
-              .toList(),
+      constructors: members
+          .whereType<ConstructorDeclaration>()
+          .map((node) => _buildConstructor(node))
+          .toList(),
     );
   }
 

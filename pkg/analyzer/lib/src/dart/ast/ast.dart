@@ -431,14 +431,13 @@ final class AnnotationImpl extends AstNodeImpl implements Annotation {
 
   @generated
   @override
-  ChildEntities get _childEntities =>
-      ChildEntities()
-        ..addToken('atSign', atSign)
-        ..addNode('name', name)
-        ..addNode('typeArguments', typeArguments)
-        ..addToken('period', period)
-        ..addNode('constructorName', constructorName)
-        ..addNode('arguments', arguments);
+  ChildEntities get _childEntities => ChildEntities()
+    ..addToken('atSign', atSign)
+    ..addNode('name', name)
+    ..addNode('typeArguments', typeArguments)
+    ..addToken('period', period)
+    ..addNode('constructorName', constructorName)
+    ..addNode('arguments', arguments);
 
   @generated
   @override
@@ -572,11 +571,10 @@ final class ArgumentListImpl extends AstNodeImpl implements ArgumentList {
 
   @generated
   @override
-  ChildEntities get _childEntities =>
-      ChildEntities()
-        ..addToken('leftParenthesis', leftParenthesis)
-        ..addNodeList('arguments', arguments)
-        ..addToken('rightParenthesis', rightParenthesis);
+  ChildEntities get _childEntities => ChildEntities()
+    ..addToken('leftParenthesis', leftParenthesis)
+    ..addNodeList('arguments', arguments)
+    ..addToken('rightParenthesis', rightParenthesis);
 
   @generated
   @override
@@ -705,11 +703,10 @@ final class AsExpressionImpl extends ExpressionImpl implements AsExpression {
 
   @generated
   @override
-  ChildEntities get _childEntities =>
-      ChildEntities()
-        ..addNode('expression', expression)
-        ..addToken('asOperator', asOperator)
-        ..addNode('type', type);
+  ChildEntities get _childEntities => ChildEntities()
+    ..addNode('expression', expression)
+    ..addToken('asOperator', asOperator)
+    ..addNode('type', type);
 
   @generated
   @override
@@ -829,14 +826,13 @@ final class AssertInitializerImpl extends ConstructorInitializerImpl
 
   @generated
   @override
-  ChildEntities get _childEntities =>
-      ChildEntities()
-        ..addToken('assertKeyword', assertKeyword)
-        ..addToken('leftParenthesis', leftParenthesis)
-        ..addNode('condition', condition)
-        ..addToken('comma', comma)
-        ..addNode('message', message)
-        ..addToken('rightParenthesis', rightParenthesis);
+  ChildEntities get _childEntities => ChildEntities()
+    ..addToken('assertKeyword', assertKeyword)
+    ..addToken('leftParenthesis', leftParenthesis)
+    ..addNode('condition', condition)
+    ..addToken('comma', comma)
+    ..addNode('message', message)
+    ..addToken('rightParenthesis', rightParenthesis);
 
   @generated
   @override
@@ -984,15 +980,14 @@ final class AssertStatementImpl extends StatementImpl
 
   @generated
   @override
-  ChildEntities get _childEntities =>
-      ChildEntities()
-        ..addToken('assertKeyword', assertKeyword)
-        ..addToken('leftParenthesis', leftParenthesis)
-        ..addNode('condition', condition)
-        ..addToken('comma', comma)
-        ..addNode('message', message)
-        ..addToken('rightParenthesis', rightParenthesis)
-        ..addToken('semicolon', semicolon);
+  ChildEntities get _childEntities => ChildEntities()
+    ..addToken('assertKeyword', assertKeyword)
+    ..addToken('leftParenthesis', leftParenthesis)
+    ..addNode('condition', condition)
+    ..addToken('comma', comma)
+    ..addNode('message', message)
+    ..addToken('rightParenthesis', rightParenthesis)
+    ..addToken('semicolon', semicolon);
 
   @generated
   @override
@@ -1202,11 +1197,10 @@ final class AssignmentExpressionImpl extends ExpressionImpl
 
   @generated
   @override
-  ChildEntities get _childEntities =>
-      ChildEntities()
-        ..addNode('leftHandSide', leftHandSide)
-        ..addToken('operator', operator)
-        ..addNode('rightHandSide', rightHandSide);
+  ChildEntities get _childEntities => ChildEntities()
+    ..addNode('leftHandSide', leftHandSide)
+    ..addToken('operator', operator)
+    ..addNode('rightHandSide', rightHandSide);
 
   @override
   AstNode? get _nullShortingExtensionCandidate => parent;
@@ -1282,8 +1276,8 @@ abstract final class AstNode implements SyntacticEntity {
   /// first node is less than the offset of the second node, zero (0) if the
   /// nodes have the same offset, and a positive value if the offset of the
   /// first node is greater than the offset of the second node.
-  static Comparator<AstNode> LEXICAL_ORDER =
-      (AstNode first, AstNode second) => first.offset - second.offset;
+  static Comparator<AstNode> LEXICAL_ORDER = (AstNode first, AstNode second) =>
+      first.offset - second.offset;
 
   /// The first token included in this node's source range.
   Token get beginToken;
@@ -1605,10 +1599,9 @@ final class AwaitExpressionImpl extends ExpressionImpl
 
   @generated
   @override
-  ChildEntities get _childEntities =>
-      ChildEntities()
-        ..addToken('awaitKeyword', awaitKeyword)
-        ..addNode('expression', expression);
+  ChildEntities get _childEntities => ChildEntities()
+    ..addToken('awaitKeyword', awaitKeyword)
+    ..addNode('expression', expression);
 
   @generated
   @override
@@ -1728,11 +1721,10 @@ final class BinaryExpressionImpl extends ExpressionImpl
 
   @generated
   @override
-  ChildEntities get _childEntities =>
-      ChildEntities()
-        ..addNode('leftOperand', leftOperand)
-        ..addToken('operator', operator)
-        ..addNode('rightOperand', rightOperand);
+  ChildEntities get _childEntities => ChildEntities()
+    ..addNode('leftOperand', leftOperand)
+    ..addToken('operator', operator)
+    ..addNode('rightOperand', rightOperand);
 
   @generated
   @override
@@ -1857,11 +1849,10 @@ final class BlockFunctionBodyImpl extends FunctionBodyImpl
 
   @generated
   @override
-  ChildEntities get _childEntities =>
-      ChildEntities()
-        ..addToken('keyword', keyword)
-        ..addToken('star', star)
-        ..addNode('block', block);
+  ChildEntities get _childEntities => ChildEntities()
+    ..addToken('keyword', keyword)
+    ..addToken('star', star)
+    ..addNode('block', block);
 
   @generated
   @override
@@ -1932,11 +1923,10 @@ final class BlockImpl extends StatementImpl
 
   @generated
   @override
-  ChildEntities get _childEntities =>
-      ChildEntities()
-        ..addToken('leftBracket', leftBracket)
-        ..addNodeList('statements', statements)
-        ..addToken('rightBracket', rightBracket);
+  ChildEntities get _childEntities => ChildEntities()
+    ..addToken('leftBracket', leftBracket)
+    ..addNodeList('statements', statements)
+    ..addToken('rightBracket', rightBracket);
 
   @generated
   @override
@@ -2114,11 +2104,10 @@ final class BreakStatementImpl extends StatementImpl implements BreakStatement {
 
   @generated
   @override
-  ChildEntities get _childEntities =>
-      ChildEntities()
-        ..addToken('breakKeyword', breakKeyword)
-        ..addNode('label', label)
-        ..addToken('semicolon', semicolon);
+  ChildEntities get _childEntities => ChildEntities()
+    ..addToken('breakKeyword', breakKeyword)
+    ..addNode('label', label)
+    ..addToken('semicolon', semicolon);
 
   @generated
   @override
@@ -2233,10 +2222,9 @@ final class CascadeExpressionImpl extends ExpressionImpl
 
   @generated
   @override
-  ChildEntities get _childEntities =>
-      ChildEntities()
-        ..addNode('target', target)
-        ..addNodeList('cascadeSections', cascadeSections);
+  ChildEntities get _childEntities => ChildEntities()
+    ..addNode('target', target)
+    ..addNodeList('cascadeSections', cascadeSections);
 
   @override
   AstNode? get _nullShortingExtensionCandidate => null;
@@ -2339,10 +2327,9 @@ final class CaseClauseImpl extends AstNodeImpl
 
   @generated
   @override
-  ChildEntities get _childEntities =>
-      ChildEntities()
-        ..addToken('caseKeyword', caseKeyword)
-        ..addNode('guardedPattern', guardedPattern);
+  ChildEntities get _childEntities => ChildEntities()
+    ..addToken('caseKeyword', caseKeyword)
+    ..addNode('guardedPattern', guardedPattern);
 
   @generated
   @override
@@ -2451,11 +2438,10 @@ final class CastPatternImpl extends DartPatternImpl implements CastPattern {
 
   @generated
   @override
-  ChildEntities get _childEntities =>
-      ChildEntities()
-        ..addNode('pattern', pattern)
-        ..addToken('asToken', asToken)
-        ..addNode('type', type);
+  ChildEntities get _childEntities => ChildEntities()
+    ..addNode('pattern', pattern)
+    ..addToken('asToken', asToken)
+    ..addNode('type', type);
 
   @generated
   @override
@@ -2698,17 +2684,16 @@ final class CatchClauseImpl extends AstNodeImpl implements CatchClause {
 
   @generated
   @override
-  ChildEntities get _childEntities =>
-      ChildEntities()
-        ..addToken('onKeyword', onKeyword)
-        ..addNode('exceptionType', exceptionType)
-        ..addToken('catchKeyword', catchKeyword)
-        ..addToken('leftParenthesis', leftParenthesis)
-        ..addNode('exceptionParameter', exceptionParameter)
-        ..addToken('comma', comma)
-        ..addNode('stackTraceParameter', stackTraceParameter)
-        ..addToken('rightParenthesis', rightParenthesis)
-        ..addNode('body', body);
+  ChildEntities get _childEntities => ChildEntities()
+    ..addToken('onKeyword', onKeyword)
+    ..addNode('exceptionType', exceptionType)
+    ..addToken('catchKeyword', catchKeyword)
+    ..addToken('leftParenthesis', leftParenthesis)
+    ..addNode('exceptionParameter', exceptionParameter)
+    ..addToken('comma', comma)
+    ..addNode('stackTraceParameter', stackTraceParameter)
+    ..addToken('rightParenthesis', rightParenthesis)
+    ..addNode('body', body);
 
   @generated
   @override
@@ -3186,26 +3171,25 @@ final class ClassDeclarationImpl extends NamedCompilationUnitMemberImpl
 
   @generated
   @override
-  ChildEntities get _childEntities =>
-      super._childEntities
-        ..addToken('augmentKeyword', augmentKeyword)
-        ..addToken('abstractKeyword', abstractKeyword)
-        ..addToken('macroKeyword', macroKeyword)
-        ..addToken('sealedKeyword', sealedKeyword)
-        ..addToken('baseKeyword', baseKeyword)
-        ..addToken('interfaceKeyword', interfaceKeyword)
-        ..addToken('finalKeyword', finalKeyword)
-        ..addToken('mixinKeyword', mixinKeyword)
-        ..addToken('classKeyword', classKeyword)
-        ..addToken('name', name)
-        ..addNode('typeParameters', typeParameters)
-        ..addNode('extendsClause', extendsClause)
-        ..addNode('withClause', withClause)
-        ..addNode('implementsClause', implementsClause)
-        ..addNode('nativeClause', nativeClause)
-        ..addToken('leftBracket', leftBracket)
-        ..addNodeList('members', members)
-        ..addToken('rightBracket', rightBracket);
+  ChildEntities get _childEntities => super._childEntities
+    ..addToken('augmentKeyword', augmentKeyword)
+    ..addToken('abstractKeyword', abstractKeyword)
+    ..addToken('macroKeyword', macroKeyword)
+    ..addToken('sealedKeyword', sealedKeyword)
+    ..addToken('baseKeyword', baseKeyword)
+    ..addToken('interfaceKeyword', interfaceKeyword)
+    ..addToken('finalKeyword', finalKeyword)
+    ..addToken('mixinKeyword', mixinKeyword)
+    ..addToken('classKeyword', classKeyword)
+    ..addToken('name', name)
+    ..addNode('typeParameters', typeParameters)
+    ..addNode('extendsClause', extendsClause)
+    ..addNode('withClause', withClause)
+    ..addNode('implementsClause', implementsClause)
+    ..addNode('nativeClause', nativeClause)
+    ..addToken('leftBracket', leftBracket)
+    ..addNodeList('members', members)
+    ..addToken('rightBracket', rightBracket);
 
   @generated
   @override
@@ -3493,23 +3477,22 @@ final class ClassTypeAliasImpl extends TypeAliasImpl implements ClassTypeAlias {
 
   @generated
   @override
-  ChildEntities get _childEntities =>
-      super._childEntities
-        ..addToken('abstractKeyword', abstractKeyword)
-        ..addToken('sealedKeyword', sealedKeyword)
-        ..addToken('baseKeyword', baseKeyword)
-        ..addToken('interfaceKeyword', interfaceKeyword)
-        ..addToken('finalKeyword', finalKeyword)
-        ..addToken('augmentKeyword', augmentKeyword)
-        ..addToken('mixinKeyword', mixinKeyword)
-        ..addToken('typedefKeyword', typedefKeyword)
-        ..addToken('name', name)
-        ..addNode('typeParameters', typeParameters)
-        ..addToken('equals', equals)
-        ..addNode('superclass', superclass)
-        ..addNode('withClause', withClause)
-        ..addNode('implementsClause', implementsClause)
-        ..addToken('semicolon', semicolon);
+  ChildEntities get _childEntities => super._childEntities
+    ..addToken('abstractKeyword', abstractKeyword)
+    ..addToken('sealedKeyword', sealedKeyword)
+    ..addToken('baseKeyword', baseKeyword)
+    ..addToken('interfaceKeyword', interfaceKeyword)
+    ..addToken('finalKeyword', finalKeyword)
+    ..addToken('augmentKeyword', augmentKeyword)
+    ..addToken('mixinKeyword', mixinKeyword)
+    ..addToken('typedefKeyword', typedefKeyword)
+    ..addToken('name', name)
+    ..addNode('typeParameters', typeParameters)
+    ..addToken('equals', equals)
+    ..addNode('superclass', superclass)
+    ..addNode('withClause', withClause)
+    ..addNode('implementsClause', implementsClause)
+    ..addToken('semicolon', semicolon);
 
   @generated
   @override
@@ -3677,10 +3660,9 @@ final class CommentImpl extends AstNodeImpl
   NodeListImpl<CommentReferenceImpl> get references => _references;
 
   @override
-  ChildEntities get _childEntities =>
-      ChildEntities()
-        ..addNodeList('references', references)
-        ..addTokenList('tokens', tokens);
+  ChildEntities get _childEntities => ChildEntities()
+    ..addNodeList('references', references)
+    ..addTokenList('tokens', tokens);
 
   @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitComment(this);
@@ -3784,10 +3766,9 @@ final class CommentReferenceImpl extends AstNodeImpl
 
   @generated
   @override
-  ChildEntities get _childEntities =>
-      ChildEntities()
-        ..addToken('newKeyword', newKeyword)
-        ..addNode('expression', expression);
+  ChildEntities get _childEntities => ChildEntities()
+    ..addToken('newKeyword', newKeyword)
+    ..addNode('expression', expression);
 
   @generated
   @override
@@ -4307,13 +4288,12 @@ final class ConditionalExpressionImpl extends ExpressionImpl
 
   @generated
   @override
-  ChildEntities get _childEntities =>
-      ChildEntities()
-        ..addNode('condition', condition)
-        ..addToken('question', question)
-        ..addNode('thenExpression', thenExpression)
-        ..addToken('colon', colon)
-        ..addNode('elseExpression', elseExpression);
+  ChildEntities get _childEntities => ChildEntities()
+    ..addNode('condition', condition)
+    ..addToken('question', question)
+    ..addNode('thenExpression', thenExpression)
+    ..addToken('colon', colon)
+    ..addNode('elseExpression', elseExpression);
 
   @generated
   @override
@@ -4489,15 +4469,14 @@ final class ConfigurationImpl extends AstNodeImpl implements Configuration {
 
   @generated
   @override
-  ChildEntities get _childEntities =>
-      ChildEntities()
-        ..addToken('ifKeyword', ifKeyword)
-        ..addToken('leftParenthesis', leftParenthesis)
-        ..addNode('name', name)
-        ..addToken('equalToken', equalToken)
-        ..addNode('value', value)
-        ..addToken('rightParenthesis', rightParenthesis)
-        ..addNode('uri', uri);
+  ChildEntities get _childEntities => ChildEntities()
+    ..addToken('ifKeyword', ifKeyword)
+    ..addToken('leftParenthesis', leftParenthesis)
+    ..addNode('name', name)
+    ..addToken('equalToken', equalToken)
+    ..addNode('value', value)
+    ..addToken('rightParenthesis', rightParenthesis)
+    ..addNode('uri', uri);
 
   @generated
   @override
@@ -4624,10 +4603,9 @@ final class ConstantPatternImpl extends DartPatternImpl
 
   @generated
   @override
-  ChildEntities get _childEntities =>
-      ChildEntities()
-        ..addToken('constKeyword', constKeyword)
-        ..addNode('expression', expression);
+  ChildEntities get _childEntities => ChildEntities()
+    ..addToken('constKeyword', constKeyword)
+    ..addNode('expression', expression);
 
   @generated
   @override
@@ -4908,20 +4886,19 @@ final class ConstructorDeclarationImpl extends ClassMemberImpl
 
   @generated
   @override
-  ChildEntities get _childEntities =>
-      super._childEntities
-        ..addToken('augmentKeyword', augmentKeyword)
-        ..addToken('externalKeyword', externalKeyword)
-        ..addToken('constKeyword', constKeyword)
-        ..addToken('factoryKeyword', factoryKeyword)
-        ..addNode('returnType', returnType)
-        ..addToken('period', period)
-        ..addToken('name', name)
-        ..addNode('parameters', parameters)
-        ..addToken('separator', separator)
-        ..addNodeList('initializers', initializers)
-        ..addNode('redirectedConstructor', redirectedConstructor)
-        ..addNode('body', body);
+  ChildEntities get _childEntities => super._childEntities
+    ..addToken('augmentKeyword', augmentKeyword)
+    ..addToken('externalKeyword', externalKeyword)
+    ..addToken('constKeyword', constKeyword)
+    ..addToken('factoryKeyword', factoryKeyword)
+    ..addNode('returnType', returnType)
+    ..addToken('period', period)
+    ..addToken('name', name)
+    ..addNode('parameters', parameters)
+    ..addToken('separator', separator)
+    ..addNodeList('initializers', initializers)
+    ..addNode('redirectedConstructor', redirectedConstructor)
+    ..addNode('body', body);
 
   @generated
   @override
@@ -5071,13 +5048,12 @@ final class ConstructorFieldInitializerImpl extends ConstructorInitializerImpl
 
   @generated
   @override
-  ChildEntities get _childEntities =>
-      ChildEntities()
-        ..addToken('thisKeyword', thisKeyword)
-        ..addToken('period', period)
-        ..addNode('fieldName', fieldName)
-        ..addToken('equals', equals)
-        ..addNode('expression', expression);
+  ChildEntities get _childEntities => ChildEntities()
+    ..addToken('thisKeyword', thisKeyword)
+    ..addToken('period', period)
+    ..addNode('fieldName', fieldName)
+    ..addToken('equals', equals)
+    ..addNode('expression', expression);
 
   @generated
   @override
@@ -5205,11 +5181,10 @@ final class ConstructorNameImpl extends AstNodeImpl implements ConstructorName {
 
   @generated
   @override
-  ChildEntities get _childEntities =>
-      ChildEntities()
-        ..addNode('type', type)
-        ..addToken('period', period)
-        ..addNode('name', name);
+  ChildEntities get _childEntities => ChildEntities()
+    ..addNode('type', type)
+    ..addToken('period', period)
+    ..addNode('name', name);
 
   @generated
   @override
@@ -5390,10 +5365,9 @@ final class ConstructorSelectorImpl extends AstNodeImpl
 
   @generated
   @override
-  ChildEntities get _childEntities =>
-      ChildEntities()
-        ..addToken('period', period)
-        ..addNode('name', name);
+  ChildEntities get _childEntities => ChildEntities()
+    ..addToken('period', period)
+    ..addNode('name', name);
 
   @generated
   @override
@@ -5497,11 +5471,10 @@ final class ContinueStatementImpl extends StatementImpl
 
   @generated
   @override
-  ChildEntities get _childEntities =>
-      ChildEntities()
-        ..addToken('continueKeyword', continueKeyword)
-        ..addNode('label', label)
-        ..addToken('semicolon', semicolon);
+  ChildEntities get _childEntities => ChildEntities()
+    ..addToken('continueKeyword', continueKeyword)
+    ..addNode('label', label)
+    ..addToken('semicolon', semicolon);
 
   @generated
   @override
@@ -5775,11 +5748,10 @@ final class DeclaredIdentifierImpl extends DeclarationImpl
 
   @generated
   @override
-  ChildEntities get _childEntities =>
-      super._childEntities
-        ..addToken('keyword', keyword)
-        ..addNode('type', type)
-        ..addToken('name', name);
+  ChildEntities get _childEntities => super._childEntities
+    ..addToken('keyword', keyword)
+    ..addNode('type', type)
+    ..addToken('name', name);
 
   @generated
   @override
@@ -5923,11 +5895,10 @@ final class DeclaredVariablePatternImpl extends VariablePatternImpl
 
   @generated
   @override
-  ChildEntities get _childEntities =>
-      ChildEntities()
-        ..addToken('keyword', keyword)
-        ..addNode('type', type)
-        ..addToken('name', name);
+  ChildEntities get _childEntities => ChildEntities()
+    ..addToken('keyword', keyword)
+    ..addNode('type', type)
+    ..addToken('name', name);
 
   @generated
   @override
@@ -6112,11 +6083,10 @@ final class DefaultFormalParameterImpl extends FormalParameterImpl
 
   @generated
   @override
-  ChildEntities get _childEntities =>
-      ChildEntities()
-        ..addNode('parameter', parameter)
-        ..addToken('separator', separator)
-        ..addNode('defaultValue', defaultValue);
+  ChildEntities get _childEntities => ChildEntities()
+    ..addNode('parameter', parameter)
+    ..addToken('separator', separator)
+    ..addNode('defaultValue', defaultValue);
 
   @generated
   @override
@@ -6285,15 +6255,14 @@ final class DoStatementImpl extends StatementImpl implements DoStatement {
 
   @generated
   @override
-  ChildEntities get _childEntities =>
-      ChildEntities()
-        ..addToken('doKeyword', doKeyword)
-        ..addNode('body', body)
-        ..addToken('whileKeyword', whileKeyword)
-        ..addToken('leftParenthesis', leftParenthesis)
-        ..addNode('condition', condition)
-        ..addToken('rightParenthesis', rightParenthesis)
-        ..addToken('semicolon', semicolon);
+  ChildEntities get _childEntities => ChildEntities()
+    ..addToken('doKeyword', doKeyword)
+    ..addNode('body', body)
+    ..addToken('whileKeyword', whileKeyword)
+    ..addToken('leftParenthesis', leftParenthesis)
+    ..addNode('condition', condition)
+    ..addToken('rightParenthesis', rightParenthesis)
+    ..addToken('semicolon', semicolon);
 
   @generated
   @override
@@ -6444,13 +6413,12 @@ final class DotShorthandConstructorInvocationImpl
 
   @generated
   @override
-  ChildEntities get _childEntities =>
-      ChildEntities()
-        ..addToken('constKeyword', constKeyword)
-        ..addToken('period', period)
-        ..addNode('constructorName', constructorName)
-        ..addNode('typeArguments', typeArguments)
-        ..addNode('argumentList', argumentList);
+  ChildEntities get _childEntities => ChildEntities()
+    ..addToken('constKeyword', constKeyword)
+    ..addToken('period', period)
+    ..addNode('constructorName', constructorName)
+    ..addNode('typeArguments', typeArguments)
+    ..addNode('argumentList', argumentList);
 
   @generated
   @override
@@ -6566,12 +6534,11 @@ final class DotShorthandInvocationImpl extends InvocationExpressionImpl
 
   @generated
   @override
-  ChildEntities get _childEntities =>
-      ChildEntities()
-        ..addToken('period', period)
-        ..addNode('memberName', memberName)
-        ..addNode('typeArguments', typeArguments)
-        ..addNode('argumentList', argumentList);
+  ChildEntities get _childEntities => ChildEntities()
+    ..addToken('period', period)
+    ..addNode('memberName', memberName)
+    ..addNode('typeArguments', typeArguments)
+    ..addNode('argumentList', argumentList);
 
   @generated
   @override
@@ -6692,10 +6659,9 @@ final class DotShorthandPropertyAccessImpl extends ExpressionImpl
 
   @generated
   @override
-  ChildEntities get _childEntities =>
-      ChildEntities()
-        ..addToken('period', period)
-        ..addNode('propertyName', propertyName);
+  ChildEntities get _childEntities => ChildEntities()
+    ..addToken('period', period)
+    ..addNode('propertyName', propertyName);
 
   @generated
   @override
@@ -7072,11 +7038,10 @@ final class EnumConstantArgumentsImpl extends AstNodeImpl
 
   @generated
   @override
-  ChildEntities get _childEntities =>
-      ChildEntities()
-        ..addNode('typeArguments', typeArguments)
-        ..addNode('constructorSelector', constructorSelector)
-        ..addNode('argumentList', argumentList);
+  ChildEntities get _childEntities => ChildEntities()
+    ..addNode('typeArguments', typeArguments)
+    ..addNode('constructorSelector', constructorSelector)
+    ..addNode('argumentList', argumentList);
 
   @generated
   @override
@@ -7216,11 +7181,10 @@ final class EnumConstantDeclarationImpl extends DeclarationImpl
 
   @generated
   @override
-  ChildEntities get _childEntities =>
-      super._childEntities
-        ..addToken('augmentKeyword', augmentKeyword)
-        ..addToken('name', name)
-        ..addNode('arguments', arguments);
+  ChildEntities get _childEntities => super._childEntities
+    ..addToken('augmentKeyword', augmentKeyword)
+    ..addToken('name', name)
+    ..addNode('arguments', arguments);
 
   @generated
   @override
@@ -7423,19 +7387,18 @@ final class EnumDeclarationImpl extends NamedCompilationUnitMemberImpl
 
   @generated
   @override
-  ChildEntities get _childEntities =>
-      super._childEntities
-        ..addToken('augmentKeyword', augmentKeyword)
-        ..addToken('enumKeyword', enumKeyword)
-        ..addToken('name', name)
-        ..addNode('typeParameters', typeParameters)
-        ..addNode('withClause', withClause)
-        ..addNode('implementsClause', implementsClause)
-        ..addToken('leftBracket', leftBracket)
-        ..addNodeList('constants', constants)
-        ..addToken('semicolon', semicolon)
-        ..addNodeList('members', members)
-        ..addToken('rightBracket', rightBracket);
+  ChildEntities get _childEntities => super._childEntities
+    ..addToken('augmentKeyword', augmentKeyword)
+    ..addToken('enumKeyword', enumKeyword)
+    ..addToken('name', name)
+    ..addNode('typeParameters', typeParameters)
+    ..addNode('withClause', withClause)
+    ..addNode('implementsClause', implementsClause)
+    ..addToken('leftBracket', leftBracket)
+    ..addNodeList('constants', constants)
+    ..addToken('semicolon', semicolon)
+    ..addNodeList('members', members)
+    ..addToken('rightBracket', rightBracket);
 
   @generated
   @override
@@ -7544,13 +7507,12 @@ final class ExportDirectiveImpl extends NamespaceDirectiveImpl
 
   @generated
   @override
-  ChildEntities get _childEntities =>
-      super._childEntities
-        ..addToken('exportKeyword', exportKeyword)
-        ..addNode('uri', uri)
-        ..addNodeList('configurations', configurations)
-        ..addNodeList('combinators', combinators)
-        ..addToken('semicolon', semicolon);
+  ChildEntities get _childEntities => super._childEntities
+    ..addToken('exportKeyword', exportKeyword)
+    ..addNode('uri', uri)
+    ..addNodeList('configurations', configurations)
+    ..addNodeList('combinators', combinators)
+    ..addToken('semicolon', semicolon);
 
   @generated
   @override
@@ -7779,13 +7741,12 @@ final class ExpressionFunctionBodyImpl extends FunctionBodyImpl
 
   @generated
   @override
-  ChildEntities get _childEntities =>
-      ChildEntities()
-        ..addToken('keyword', keyword)
-        ..addToken('star', star)
-        ..addToken('functionDefinition', functionDefinition)
-        ..addNode('expression', expression)
-        ..addToken('semicolon', semicolon);
+  ChildEntities get _childEntities => ChildEntities()
+    ..addToken('keyword', keyword)
+    ..addToken('star', star)
+    ..addToken('functionDefinition', functionDefinition)
+    ..addNode('expression', expression)
+    ..addToken('semicolon', semicolon);
 
   @generated
   @override
@@ -8106,10 +8067,9 @@ final class ExpressionStatementImpl extends StatementImpl
 
   @generated
   @override
-  ChildEntities get _childEntities =>
-      ChildEntities()
-        ..addNode('expression', expression)
-        ..addToken('semicolon', semicolon);
+  ChildEntities get _childEntities => ChildEntities()
+    ..addNode('expression', expression)
+    ..addToken('semicolon', semicolon);
 
   @generated
   @override
@@ -8189,10 +8149,9 @@ final class ExtendsClauseImpl extends AstNodeImpl implements ExtendsClause {
 
   @generated
   @override
-  ChildEntities get _childEntities =>
-      ChildEntities()
-        ..addToken('extendsKeyword', extendsKeyword)
-        ..addNode('superclass', superclass);
+  ChildEntities get _childEntities => ChildEntities()
+    ..addToken('extendsKeyword', extendsKeyword)
+    ..addNode('superclass', superclass);
 
   @generated
   @override
@@ -8364,17 +8323,16 @@ final class ExtensionDeclarationImpl extends CompilationUnitMemberImpl
 
   @generated
   @override
-  ChildEntities get _childEntities =>
-      super._childEntities
-        ..addToken('augmentKeyword', augmentKeyword)
-        ..addToken('extensionKeyword', extensionKeyword)
-        ..addToken('typeKeyword', typeKeyword)
-        ..addToken('name', name)
-        ..addNode('typeParameters', typeParameters)
-        ..addNode('onClause', onClause)
-        ..addToken('leftBracket', leftBracket)
-        ..addNodeList('members', members)
-        ..addToken('rightBracket', rightBracket);
+  ChildEntities get _childEntities => super._childEntities
+    ..addToken('augmentKeyword', augmentKeyword)
+    ..addToken('extensionKeyword', extensionKeyword)
+    ..addToken('typeKeyword', typeKeyword)
+    ..addToken('name', name)
+    ..addNode('typeParameters', typeParameters)
+    ..addNode('onClause', onClause)
+    ..addToken('leftBracket', leftBracket)
+    ..addNodeList('members', members)
+    ..addToken('rightBracket', rightBracket);
 
   @generated
   @override
@@ -8472,10 +8430,9 @@ final class ExtensionOnClauseImpl extends AstNodeImpl
 
   @generated
   @override
-  ChildEntities get _childEntities =>
-      ChildEntities()
-        ..addToken('onKeyword', onKeyword)
-        ..addNode('extendedType', extendedType);
+  ChildEntities get _childEntities => ChildEntities()
+    ..addToken('onKeyword', onKeyword)
+    ..addNode('extendedType', extendedType);
 
   @generated
   @override
@@ -8652,12 +8609,11 @@ final class ExtensionOverrideImpl extends ExpressionImpl
 
   @generated
   @override
-  ChildEntities get _childEntities =>
-      ChildEntities()
-        ..addNode('importPrefix', importPrefix)
-        ..addToken('name', name)
-        ..addNode('typeArguments', typeArguments)
-        ..addNode('argumentList', argumentList);
+  ChildEntities get _childEntities => ChildEntities()
+    ..addNode('importPrefix', importPrefix)
+    ..addToken('name', name)
+    ..addNode('typeArguments', typeArguments)
+    ..addNode('argumentList', argumentList);
 
   @generated
   @override
@@ -8871,19 +8827,18 @@ final class ExtensionTypeDeclarationImpl extends NamedCompilationUnitMemberImpl
 
   @generated
   @override
-  ChildEntities get _childEntities =>
-      super._childEntities
-        ..addToken('augmentKeyword', augmentKeyword)
-        ..addToken('extensionKeyword', extensionKeyword)
-        ..addToken('typeKeyword', typeKeyword)
-        ..addToken('constKeyword', constKeyword)
-        ..addToken('name', name)
-        ..addNode('typeParameters', typeParameters)
-        ..addNode('representation', representation)
-        ..addNode('implementsClause', implementsClause)
-        ..addToken('leftBracket', leftBracket)
-        ..addNodeList('members', members)
-        ..addToken('rightBracket', rightBracket);
+  ChildEntities get _childEntities => super._childEntities
+    ..addToken('augmentKeyword', augmentKeyword)
+    ..addToken('extensionKeyword', extensionKeyword)
+    ..addToken('typeKeyword', typeKeyword)
+    ..addToken('constKeyword', constKeyword)
+    ..addToken('name', name)
+    ..addNode('typeParameters', typeParameters)
+    ..addNode('representation', representation)
+    ..addNode('implementsClause', implementsClause)
+    ..addToken('leftBracket', leftBracket)
+    ..addNodeList('members', members)
+    ..addToken('rightBracket', rightBracket);
 
   @generated
   @override
@@ -9068,15 +9023,14 @@ final class FieldDeclarationImpl extends ClassMemberImpl
 
   @generated
   @override
-  ChildEntities get _childEntities =>
-      super._childEntities
-        ..addToken('abstractKeyword', abstractKeyword)
-        ..addToken('augmentKeyword', augmentKeyword)
-        ..addToken('covariantKeyword', covariantKeyword)
-        ..addToken('externalKeyword', externalKeyword)
-        ..addToken('staticKeyword', staticKeyword)
-        ..addNode('fields', fields)
-        ..addToken('semicolon', semicolon);
+  ChildEntities get _childEntities => super._childEntities
+    ..addToken('abstractKeyword', abstractKeyword)
+    ..addToken('augmentKeyword', augmentKeyword)
+    ..addToken('covariantKeyword', covariantKeyword)
+    ..addToken('externalKeyword', externalKeyword)
+    ..addToken('staticKeyword', staticKeyword)
+    ..addNode('fields', fields)
+    ..addToken('semicolon', semicolon);
 
   @generated
   @override
@@ -9296,18 +9250,17 @@ final class FieldFormalParameterImpl extends NormalFormalParameterImpl
 
   @generated
   @override
-  ChildEntities get _childEntities =>
-      super._childEntities
-        ..addToken('covariantKeyword', covariantKeyword)
-        ..addToken('requiredKeyword', requiredKeyword)
-        ..addToken('keyword', keyword)
-        ..addNode('type', type)
-        ..addToken('thisKeyword', thisKeyword)
-        ..addToken('period', period)
-        ..addToken('name', name)
-        ..addNode('typeParameters', typeParameters)
-        ..addNode('parameters', parameters)
-        ..addToken('question', question);
+  ChildEntities get _childEntities => super._childEntities
+    ..addToken('covariantKeyword', covariantKeyword)
+    ..addToken('requiredKeyword', requiredKeyword)
+    ..addToken('keyword', keyword)
+    ..addNode('type', type)
+    ..addToken('thisKeyword', thisKeyword)
+    ..addToken('period', period)
+    ..addToken('name', name)
+    ..addNode('typeParameters', typeParameters)
+    ..addNode('parameters', parameters)
+    ..addToken('question', question);
 
   @generated
   @override
@@ -9385,10 +9338,9 @@ sealed class ForEachPartsImpl extends ForLoopPartsImpl implements ForEachParts {
   }
 
   @override
-  ChildEntities get _childEntities =>
-      ChildEntities()
-        ..addToken('inKeyword', inKeyword)
-        ..addNode('iterable', iterable);
+  ChildEntities get _childEntities => ChildEntities()
+    ..addToken('inKeyword', inKeyword)
+    ..addNode('iterable', iterable);
 
   @override
   void visitChildren(AstVisitor visitor) {
@@ -9459,11 +9411,10 @@ final class ForEachPartsWithDeclarationImpl extends ForEachPartsImpl
 
   @generated
   @override
-  ChildEntities get _childEntities =>
-      ChildEntities()
-        ..addNode('loopVariable', loopVariable)
-        ..addToken('inKeyword', inKeyword)
-        ..addNode('iterable', iterable);
+  ChildEntities get _childEntities => ChildEntities()
+    ..addNode('loopVariable', loopVariable)
+    ..addToken('inKeyword', inKeyword)
+    ..addNode('iterable', iterable);
 
   @generated
   @override
@@ -9545,11 +9496,10 @@ final class ForEachPartsWithIdentifierImpl extends ForEachPartsImpl
 
   @generated
   @override
-  ChildEntities get _childEntities =>
-      ChildEntities()
-        ..addNode('identifier', identifier)
-        ..addToken('inKeyword', inKeyword)
-        ..addNode('iterable', iterable);
+  ChildEntities get _childEntities => ChildEntities()
+    ..addNode('identifier', identifier)
+    ..addToken('inKeyword', inKeyword)
+    ..addNode('iterable', iterable);
 
   @generated
   @override
@@ -9663,13 +9613,12 @@ final class ForEachPartsWithPatternImpl extends ForEachPartsImpl
 
   @generated
   @override
-  ChildEntities get _childEntities =>
-      ChildEntities()
-        ..addNodeList('metadata', metadata)
-        ..addToken('keyword', keyword)
-        ..addNode('pattern', pattern)
-        ..addToken('inKeyword', inKeyword)
-        ..addNode('iterable', iterable);
+  ChildEntities get _childEntities => ChildEntities()
+    ..addNodeList('metadata', metadata)
+    ..addToken('keyword', keyword)
+    ..addNode('pattern', pattern)
+    ..addToken('inKeyword', inKeyword)
+    ..addNode('iterable', iterable);
 
   @generated
   @override
@@ -9792,14 +9741,13 @@ final class ForElementImpl extends CollectionElementImpl
 
   @generated
   @override
-  ChildEntities get _childEntities =>
-      ChildEntities()
-        ..addToken('awaitKeyword', awaitKeyword)
-        ..addToken('forKeyword', forKeyword)
-        ..addToken('leftParenthesis', leftParenthesis)
-        ..addNode('forLoopParts', forLoopParts)
-        ..addToken('rightParenthesis', rightParenthesis)
-        ..addNode('body', body);
+  ChildEntities get _childEntities => ChildEntities()
+    ..addToken('awaitKeyword', awaitKeyword)
+    ..addToken('forKeyword', forKeyword)
+    ..addToken('leftParenthesis', leftParenthesis)
+    ..addNode('forLoopParts', forLoopParts)
+    ..addToken('rightParenthesis', rightParenthesis)
+    ..addNode('body', body);
 
   @generated
   @override
@@ -10218,12 +10166,11 @@ sealed class ForPartsImpl extends ForLoopPartsImpl implements ForParts {
   NodeListImpl<ExpressionImpl> get updaters => _updaters;
 
   @override
-  ChildEntities get _childEntities =>
-      ChildEntities()
-        ..addToken('leftSeparator', leftSeparator)
-        ..addNode('condition', condition)
-        ..addToken('rightSeparator', rightSeparator)
-        ..addNodeList('updaters', updaters);
+  ChildEntities get _childEntities => ChildEntities()
+    ..addToken('leftSeparator', leftSeparator)
+    ..addNode('condition', condition)
+    ..addToken('rightSeparator', rightSeparator)
+    ..addNodeList('updaters', updaters);
 
   @override
   void visitChildren(AstVisitor visitor) {
@@ -10302,13 +10249,12 @@ final class ForPartsWithDeclarationsImpl extends ForPartsImpl
 
   @generated
   @override
-  ChildEntities get _childEntities =>
-      ChildEntities()
-        ..addNode('variables', variables)
-        ..addToken('leftSeparator', leftSeparator)
-        ..addNode('condition', condition)
-        ..addToken('rightSeparator', rightSeparator)
-        ..addNodeList('updaters', updaters);
+  ChildEntities get _childEntities => ChildEntities()
+    ..addNode('variables', variables)
+    ..addToken('leftSeparator', leftSeparator)
+    ..addNode('condition', condition)
+    ..addToken('rightSeparator', rightSeparator)
+    ..addNodeList('updaters', updaters);
 
   @generated
   @override
@@ -10411,13 +10357,12 @@ final class ForPartsWithExpressionImpl extends ForPartsImpl
 
   @generated
   @override
-  ChildEntities get _childEntities =>
-      ChildEntities()
-        ..addNode('initialization', initialization)
-        ..addToken('leftSeparator', leftSeparator)
-        ..addNode('condition', condition)
-        ..addToken('rightSeparator', rightSeparator)
-        ..addNodeList('updaters', updaters);
+  ChildEntities get _childEntities => ChildEntities()
+    ..addNode('initialization', initialization)
+    ..addToken('leftSeparator', leftSeparator)
+    ..addNode('condition', condition)
+    ..addToken('rightSeparator', rightSeparator)
+    ..addNodeList('updaters', updaters);
 
   @generated
   @override
@@ -10515,13 +10460,12 @@ final class ForPartsWithPatternImpl extends ForPartsImpl
 
   @generated
   @override
-  ChildEntities get _childEntities =>
-      ChildEntities()
-        ..addNode('variables', variables)
-        ..addToken('leftSeparator', leftSeparator)
-        ..addNode('condition', condition)
-        ..addToken('rightSeparator', rightSeparator)
-        ..addNodeList('updaters', updaters);
+  ChildEntities get _childEntities => ChildEntities()
+    ..addNode('variables', variables)
+    ..addToken('leftSeparator', leftSeparator)
+    ..addNode('condition', condition)
+    ..addToken('rightSeparator', rightSeparator)
+    ..addNodeList('updaters', updaters);
 
   @generated
   @override
@@ -10651,14 +10595,13 @@ final class ForStatementImpl extends StatementImpl
 
   @generated
   @override
-  ChildEntities get _childEntities =>
-      ChildEntities()
-        ..addToken('awaitKeyword', awaitKeyword)
-        ..addToken('forKeyword', forKeyword)
-        ..addToken('leftParenthesis', leftParenthesis)
-        ..addNode('forLoopParts', forLoopParts)
-        ..addToken('rightParenthesis', rightParenthesis)
-        ..addNode('body', body);
+  ChildEntities get _childEntities => ChildEntities()
+    ..addToken('awaitKeyword', awaitKeyword)
+    ..addToken('forKeyword', forKeyword)
+    ..addToken('leftParenthesis', leftParenthesis)
+    ..addNode('forLoopParts', forLoopParts)
+    ..addToken('rightParenthesis', rightParenthesis)
+    ..addNode('body', body);
 
   @generated
   @override
@@ -10932,14 +10875,13 @@ final class FunctionDeclarationImpl extends NamedCompilationUnitMemberImpl
 
   @generated
   @override
-  ChildEntities get _childEntities =>
-      super._childEntities
-        ..addToken('augmentKeyword', augmentKeyword)
-        ..addToken('externalKeyword', externalKeyword)
-        ..addNode('returnType', returnType)
-        ..addToken('propertyKeyword', propertyKeyword)
-        ..addToken('name', name)
-        ..addNode('functionExpression', functionExpression);
+  ChildEntities get _childEntities => super._childEntities
+    ..addToken('augmentKeyword', augmentKeyword)
+    ..addToken('externalKeyword', externalKeyword)
+    ..addNode('returnType', returnType)
+    ..addToken('propertyKeyword', propertyKeyword)
+    ..addToken('name', name)
+    ..addNode('functionExpression', functionExpression);
 
   @generated
   @override
@@ -11157,11 +11099,10 @@ final class FunctionExpressionImpl extends ExpressionImpl
 
   @generated
   @override
-  ChildEntities get _childEntities =>
-      ChildEntities()
-        ..addNode('typeParameters', typeParameters)
-        ..addNode('parameters', parameters)
-        ..addNode('body', body);
+  ChildEntities get _childEntities => ChildEntities()
+    ..addNode('typeParameters', typeParameters)
+    ..addNode('parameters', parameters)
+    ..addNode('body', body);
 
   @generated
   @override
@@ -11279,11 +11220,10 @@ final class FunctionExpressionInvocationImpl extends InvocationExpressionImpl
 
   @generated
   @override
-  ChildEntities get _childEntities =>
-      ChildEntities()
-        ..addNode('function', function)
-        ..addNode('typeArguments', typeArguments)
-        ..addNode('argumentList', argumentList);
+  ChildEntities get _childEntities => ChildEntities()
+    ..addNode('function', function)
+    ..addNode('typeArguments', typeArguments)
+    ..addNode('argumentList', argumentList);
 
   @override
   AstNode? get _nullShortingExtensionCandidate => parent;
@@ -11427,10 +11367,9 @@ final class FunctionReferenceImpl extends CommentReferableExpressionImpl
 
   @generated
   @override
-  ChildEntities get _childEntities =>
-      ChildEntities()
-        ..addNode('function', function)
-        ..addNode('typeArguments', typeArguments);
+  ChildEntities get _childEntities => ChildEntities()
+    ..addNode('function', function)
+    ..addNode('typeArguments', typeArguments);
 
   @generated
   @override
@@ -11578,15 +11517,14 @@ final class FunctionTypeAliasImpl extends TypeAliasImpl
 
   @generated
   @override
-  ChildEntities get _childEntities =>
-      super._childEntities
-        ..addToken('augmentKeyword', augmentKeyword)
-        ..addToken('typedefKeyword', typedefKeyword)
-        ..addNode('returnType', returnType)
-        ..addToken('name', name)
-        ..addNode('typeParameters', typeParameters)
-        ..addNode('parameters', parameters)
-        ..addToken('semicolon', semicolon);
+  ChildEntities get _childEntities => super._childEntities
+    ..addToken('augmentKeyword', augmentKeyword)
+    ..addToken('typedefKeyword', typedefKeyword)
+    ..addNode('returnType', returnType)
+    ..addToken('name', name)
+    ..addNode('typeParameters', typeParameters)
+    ..addNode('parameters', parameters)
+    ..addToken('semicolon', semicolon);
 
   @generated
   @override
@@ -11764,15 +11702,14 @@ final class FunctionTypedFormalParameterImpl extends NormalFormalParameterImpl
 
   @generated
   @override
-  ChildEntities get _childEntities =>
-      super._childEntities
-        ..addToken('covariantKeyword', covariantKeyword)
-        ..addToken('requiredKeyword', requiredKeyword)
-        ..addNode('returnType', returnType)
-        ..addToken('name', name)
-        ..addNode('typeParameters', typeParameters)
-        ..addNode('parameters', parameters)
-        ..addToken('question', question);
+  ChildEntities get _childEntities => super._childEntities
+    ..addToken('covariantKeyword', covariantKeyword)
+    ..addToken('requiredKeyword', requiredKeyword)
+    ..addNode('returnType', returnType)
+    ..addToken('name', name)
+    ..addNode('typeParameters', typeParameters)
+    ..addNode('parameters', parameters)
+    ..addToken('question', question);
 
   @generated
   @override
@@ -12020,13 +11957,12 @@ final class GenericFunctionTypeImpl extends TypeAnnotationImpl
 
   @generated
   @override
-  ChildEntities get _childEntities =>
-      ChildEntities()
-        ..addNode('returnType', returnType)
-        ..addToken('functionKeyword', functionKeyword)
-        ..addNode('typeParameters', typeParameters)
-        ..addNode('parameters', parameters)
-        ..addToken('question', question);
+  ChildEntities get _childEntities => ChildEntities()
+    ..addNode('returnType', returnType)
+    ..addToken('functionKeyword', functionKeyword)
+    ..addNode('typeParameters', typeParameters)
+    ..addNode('parameters', parameters)
+    ..addToken('question', question);
 
   @generated
   @override
@@ -12172,15 +12108,14 @@ final class GenericTypeAliasImpl extends TypeAliasImpl
 
   @generated
   @override
-  ChildEntities get _childEntities =>
-      super._childEntities
-        ..addToken('augmentKeyword', augmentKeyword)
-        ..addToken('typedefKeyword', typedefKeyword)
-        ..addToken('name', name)
-        ..addNode('typeParameters', typeParameters)
-        ..addToken('equals', equals)
-        ..addNode('type', type)
-        ..addToken('semicolon', semicolon);
+  ChildEntities get _childEntities => super._childEntities
+    ..addToken('augmentKeyword', augmentKeyword)
+    ..addToken('typedefKeyword', typedefKeyword)
+    ..addToken('name', name)
+    ..addNode('typeParameters', typeParameters)
+    ..addToken('equals', equals)
+    ..addNode('type', type)
+    ..addToken('semicolon', semicolon);
 
   @generated
   @override
@@ -12287,10 +12222,9 @@ final class GuardedPatternImpl extends AstNodeImpl implements GuardedPattern {
 
   @generated
   @override
-  ChildEntities get _childEntities =>
-      ChildEntities()
-        ..addNode('pattern', pattern)
-        ..addNode('whenClause', whenClause);
+  ChildEntities get _childEntities => ChildEntities()
+    ..addNode('pattern', pattern)
+    ..addNode('whenClause', whenClause);
 
   @generated
   @override
@@ -12366,10 +12300,9 @@ final class HideCombinatorImpl extends CombinatorImpl
 
   @generated
   @override
-  ChildEntities get _childEntities =>
-      ChildEntities()
-        ..addToken('keyword', keyword)
-        ..addNodeList('hiddenNames', hiddenNames);
+  ChildEntities get _childEntities => ChildEntities()
+    ..addToken('keyword', keyword)
+    ..addNodeList('hiddenNames', hiddenNames);
 
   @generated
   @override
@@ -12582,16 +12515,15 @@ final class IfElementImpl extends CollectionElementImpl
 
   @generated
   @override
-  ChildEntities get _childEntities =>
-      ChildEntities()
-        ..addToken('ifKeyword', ifKeyword)
-        ..addToken('leftParenthesis', leftParenthesis)
-        ..addNode('expression', expression)
-        ..addNode('caseClause', caseClause)
-        ..addToken('rightParenthesis', rightParenthesis)
-        ..addNode('thenElement', thenElement)
-        ..addToken('elseKeyword', elseKeyword)
-        ..addNode('elseElement', elseElement);
+  ChildEntities get _childEntities => ChildEntities()
+    ..addToken('ifKeyword', ifKeyword)
+    ..addToken('leftParenthesis', leftParenthesis)
+    ..addNode('expression', expression)
+    ..addNode('caseClause', caseClause)
+    ..addToken('rightParenthesis', rightParenthesis)
+    ..addNode('thenElement', thenElement)
+    ..addToken('elseKeyword', elseKeyword)
+    ..addNode('elseElement', elseElement);
 
   @generated
   @override
@@ -12820,16 +12752,15 @@ final class IfStatementImpl extends StatementImpl
 
   @generated
   @override
-  ChildEntities get _childEntities =>
-      ChildEntities()
-        ..addToken('ifKeyword', ifKeyword)
-        ..addToken('leftParenthesis', leftParenthesis)
-        ..addNode('expression', expression)
-        ..addNode('caseClause', caseClause)
-        ..addToken('rightParenthesis', rightParenthesis)
-        ..addNode('thenStatement', thenStatement)
-        ..addToken('elseKeyword', elseKeyword)
-        ..addNode('elseStatement', elseStatement);
+  ChildEntities get _childEntities => ChildEntities()
+    ..addToken('ifKeyword', ifKeyword)
+    ..addToken('leftParenthesis', leftParenthesis)
+    ..addNode('expression', expression)
+    ..addNode('caseClause', caseClause)
+    ..addToken('rightParenthesis', rightParenthesis)
+    ..addNode('thenStatement', thenStatement)
+    ..addToken('elseKeyword', elseKeyword)
+    ..addNode('elseStatement', elseStatement);
 
   @generated
   @override
@@ -12921,10 +12852,9 @@ final class ImplementsClauseImpl extends AstNodeImpl
 
   @generated
   @override
-  ChildEntities get _childEntities =>
-      ChildEntities()
-        ..addToken('implementsKeyword', implementsKeyword)
-        ..addNodeList('interfaces', interfaces);
+  ChildEntities get _childEntities => ChildEntities()
+    ..addToken('implementsKeyword', implementsKeyword)
+    ..addNodeList('interfaces', interfaces);
 
   @generated
   @override
@@ -13044,10 +12974,9 @@ final class ImplicitCallReferenceImpl extends ExpressionImpl
 
   @generated
   @override
-  ChildEntities get _childEntities =>
-      ChildEntities()
-        ..addNode('expression', expression)
-        ..addNode('typeArguments', typeArguments);
+  ChildEntities get _childEntities => ChildEntities()
+    ..addNode('expression', expression)
+    ..addNode('typeArguments', typeArguments);
 
   @generated
   @override
@@ -13184,16 +13113,15 @@ final class ImportDirectiveImpl extends NamespaceDirectiveImpl
 
   @generated
   @override
-  ChildEntities get _childEntities =>
-      super._childEntities
-        ..addToken('importKeyword', importKeyword)
-        ..addNode('uri', uri)
-        ..addNodeList('configurations', configurations)
-        ..addToken('deferredKeyword', deferredKeyword)
-        ..addToken('asKeyword', asKeyword)
-        ..addNode('prefix', prefix)
-        ..addNodeList('combinators', combinators)
-        ..addToken('semicolon', semicolon);
+  ChildEntities get _childEntities => super._childEntities
+    ..addToken('importKeyword', importKeyword)
+    ..addNode('uri', uri)
+    ..addNodeList('configurations', configurations)
+    ..addToken('deferredKeyword', deferredKeyword)
+    ..addToken('asKeyword', asKeyword)
+    ..addNode('prefix', prefix)
+    ..addNodeList('combinators', combinators)
+    ..addToken('semicolon', semicolon);
 
   @generated
   @override
@@ -13354,10 +13282,9 @@ final class ImportPrefixReferenceImpl extends AstNodeImpl
 
   @generated
   @override
-  ChildEntities get _childEntities =>
-      ChildEntities()
-        ..addToken('name', name)
-        ..addToken('period', period);
+  ChildEntities get _childEntities => ChildEntities()
+    ..addToken('name', name)
+    ..addToken('period', period);
 
   @generated
   @override
@@ -13583,14 +13510,13 @@ final class IndexExpressionImpl extends ExpressionImpl
 
   @generated
   @override
-  ChildEntities get _childEntities =>
-      ChildEntities()
-        ..addNode('target', target)
-        ..addToken('period', period)
-        ..addToken('question', question)
-        ..addToken('leftBracket', leftBracket)
-        ..addNode('index', index)
-        ..addToken('rightBracket', rightBracket);
+  ChildEntities get _childEntities => ChildEntities()
+    ..addNode('target', target)
+    ..addToken('period', period)
+    ..addToken('question', question)
+    ..addToken('leftBracket', leftBracket)
+    ..addNode('index', index)
+    ..addToken('rightBracket', rightBracket);
 
   @override
   AstNode get _nullShortingExtensionCandidate => parent!;
@@ -13825,12 +13751,11 @@ final class InstanceCreationExpressionImpl extends ExpressionImpl
 
   @generated
   @override
-  ChildEntities get _childEntities =>
-      ChildEntities()
-        ..addToken('keyword', keyword)
-        ..addNode('constructorName', constructorName)
-        ..addNode('typeArguments', typeArguments)
-        ..addNode('argumentList', argumentList);
+  ChildEntities get _childEntities => ChildEntities()
+    ..addToken('keyword', keyword)
+    ..addNode('constructorName', constructorName)
+    ..addNode('typeArguments', typeArguments)
+    ..addNode('argumentList', argumentList);
 
   @generated
   @override
@@ -14102,11 +14027,10 @@ final class InterpolationExpressionImpl extends InterpolationElementImpl
 
   @generated
   @override
-  ChildEntities get _childEntities =>
-      ChildEntities()
-        ..addToken('leftBracket', leftBracket)
-        ..addNode('expression', expression)
-        ..addToken('rightBracket', rightBracket);
+  ChildEntities get _childEntities => ChildEntities()
+    ..addToken('leftBracket', leftBracket)
+    ..addNode('expression', expression)
+    ..addToken('rightBracket', rightBracket);
 
   @generated
   @override
@@ -14386,12 +14310,11 @@ final class IsExpressionImpl extends ExpressionImpl implements IsExpression {
 
   @generated
   @override
-  ChildEntities get _childEntities =>
-      ChildEntities()
-        ..addNode('expression', expression)
-        ..addToken('isOperator', isOperator)
-        ..addToken('notOperator', notOperator)
-        ..addNode('type', type);
+  ChildEntities get _childEntities => ChildEntities()
+    ..addNode('expression', expression)
+    ..addToken('isOperator', isOperator)
+    ..addToken('notOperator', notOperator)
+    ..addNode('type', type);
 
   @generated
   @override
@@ -14507,10 +14430,9 @@ final class LabeledStatementImpl extends StatementImpl
 
   @generated
   @override
-  ChildEntities get _childEntities =>
-      ChildEntities()
-        ..addNodeList('labels', labels)
-        ..addNode('statement', statement);
+  ChildEntities get _childEntities => ChildEntities()
+    ..addNodeList('labels', labels)
+    ..addNode('statement', statement);
 
   @generated
   @override
@@ -14584,10 +14506,9 @@ final class LabelImpl extends AstNodeImpl implements Label {
 
   @generated
   @override
-  ChildEntities get _childEntities =>
-      ChildEntities()
-        ..addNode('label', label)
-        ..addToken('colon', colon);
+  ChildEntities get _childEntities => ChildEntities()
+    ..addNode('label', label)
+    ..addToken('colon', colon);
 
   @generated
   @override
@@ -14709,11 +14630,10 @@ final class LibraryDirectiveImpl extends DirectiveImpl
 
   @generated
   @override
-  ChildEntities get _childEntities =>
-      super._childEntities
-        ..addToken('libraryKeyword', libraryKeyword)
-        ..addNode('name2', name)
-        ..addToken('semicolon', semicolon);
+  ChildEntities get _childEntities => super._childEntities
+    ..addToken('libraryKeyword', libraryKeyword)
+    ..addNode('name2', name)
+    ..addToken('semicolon', semicolon);
 
   @generated
   @override
@@ -14908,13 +14828,12 @@ final class ListLiteralImpl extends TypedLiteralImpl implements ListLiteral {
 
   @generated
   @override
-  ChildEntities get _childEntities =>
-      ChildEntities()
-        ..addToken('constKeyword', constKeyword)
-        ..addNode('typeArguments', typeArguments)
-        ..addToken('leftBracket', leftBracket)
-        ..addNodeList('elements', elements)
-        ..addToken('rightBracket', rightBracket);
+  ChildEntities get _childEntities => ChildEntities()
+    ..addToken('constKeyword', constKeyword)
+    ..addNode('typeArguments', typeArguments)
+    ..addToken('leftBracket', leftBracket)
+    ..addNodeList('elements', elements)
+    ..addToken('rightBracket', rightBracket);
 
   @generated
   @override
@@ -15047,12 +14966,11 @@ final class ListPatternImpl extends DartPatternImpl implements ListPattern {
 
   @generated
   @override
-  ChildEntities get _childEntities =>
-      ChildEntities()
-        ..addNode('typeArguments', typeArguments)
-        ..addToken('leftBracket', leftBracket)
-        ..addNodeList('elements', elements)
-        ..addToken('rightBracket', rightBracket);
+  ChildEntities get _childEntities => ChildEntities()
+    ..addNode('typeArguments', typeArguments)
+    ..addToken('leftBracket', leftBracket)
+    ..addNodeList('elements', elements)
+    ..addToken('rightBracket', rightBracket);
 
   @generated
   @override
@@ -15216,11 +15134,10 @@ final class LogicalAndPatternImpl extends DartPatternImpl
 
   @generated
   @override
-  ChildEntities get _childEntities =>
-      ChildEntities()
-        ..addNode('leftOperand', leftOperand)
-        ..addToken('operator', operator)
-        ..addNode('rightOperand', rightOperand);
+  ChildEntities get _childEntities => ChildEntities()
+    ..addNode('leftOperand', leftOperand)
+    ..addToken('operator', operator)
+    ..addNode('rightOperand', rightOperand);
 
   @generated
   @override
@@ -15350,11 +15267,10 @@ final class LogicalOrPatternImpl extends DartPatternImpl
 
   @generated
   @override
-  ChildEntities get _childEntities =>
-      ChildEntities()
-        ..addNode('leftOperand', leftOperand)
-        ..addToken('operator', operator)
-        ..addNode('rightOperand', rightOperand);
+  ChildEntities get _childEntities => ChildEntities()
+    ..addNode('leftOperand', leftOperand)
+    ..addToken('operator', operator)
+    ..addNode('rightOperand', rightOperand);
 
   @generated
   @override
@@ -15505,13 +15421,12 @@ final class MapLiteralEntryImpl extends CollectionElementImpl
 
   @generated
   @override
-  ChildEntities get _childEntities =>
-      ChildEntities()
-        ..addToken('keyQuestion', keyQuestion)
-        ..addNode('key', key)
-        ..addToken('separator', separator)
-        ..addToken('valueQuestion', valueQuestion)
-        ..addNode('value', value);
+  ChildEntities get _childEntities => ChildEntities()
+    ..addToken('keyQuestion', keyQuestion)
+    ..addNode('key', key)
+    ..addToken('separator', separator)
+    ..addToken('valueQuestion', valueQuestion)
+    ..addNode('value', value);
 
   @generated
   @override
@@ -15654,11 +15569,10 @@ final class MapPatternEntryImpl extends AstNodeImpl
 
   @generated
   @override
-  ChildEntities get _childEntities =>
-      ChildEntities()
-        ..addNode('key', key)
-        ..addToken('separator', separator)
-        ..addNode('value', value);
+  ChildEntities get _childEntities => ChildEntities()
+    ..addNode('key', key)
+    ..addToken('separator', separator)
+    ..addNode('value', value);
 
   @generated
   @override
@@ -15751,12 +15665,11 @@ final class MapPatternImpl extends DartPatternImpl implements MapPattern {
 
   @generated
   @override
-  ChildEntities get _childEntities =>
-      ChildEntities()
-        ..addNode('typeArguments', typeArguments)
-        ..addToken('leftBracket', leftBracket)
-        ..addNodeList('elements', elements)
-        ..addToken('rightBracket', rightBracket);
+  ChildEntities get _childEntities => ChildEntities()
+    ..addNode('typeArguments', typeArguments)
+    ..addToken('leftBracket', leftBracket)
+    ..addNodeList('elements', elements)
+    ..addToken('rightBracket', rightBracket);
 
   @generated
   @override
@@ -16049,18 +15962,17 @@ final class MethodDeclarationImpl extends ClassMemberImpl
 
   @generated
   @override
-  ChildEntities get _childEntities =>
-      super._childEntities
-        ..addToken('augmentKeyword', augmentKeyword)
-        ..addToken('externalKeyword', externalKeyword)
-        ..addToken('modifierKeyword', modifierKeyword)
-        ..addNode('returnType', returnType)
-        ..addToken('propertyKeyword', propertyKeyword)
-        ..addToken('operatorKeyword', operatorKeyword)
-        ..addToken('name', name)
-        ..addNode('typeParameters', typeParameters)
-        ..addNode('parameters', parameters)
-        ..addNode('body', body);
+  ChildEntities get _childEntities => super._childEntities
+    ..addToken('augmentKeyword', augmentKeyword)
+    ..addToken('externalKeyword', externalKeyword)
+    ..addToken('modifierKeyword', modifierKeyword)
+    ..addNode('returnType', returnType)
+    ..addToken('propertyKeyword', propertyKeyword)
+    ..addToken('operatorKeyword', operatorKeyword)
+    ..addToken('name', name)
+    ..addNode('typeParameters', typeParameters)
+    ..addNode('parameters', parameters)
+    ..addNode('body', body);
 
   @generated
   @override
@@ -16290,13 +16202,12 @@ final class MethodInvocationImpl extends InvocationExpressionImpl
 
   @generated
   @override
-  ChildEntities get _childEntities =>
-      ChildEntities()
-        ..addNode('target', target)
-        ..addToken('operator', operator)
-        ..addNode('methodName', methodName)
-        ..addNode('typeArguments', typeArguments)
-        ..addNode('argumentList', argumentList);
+  ChildEntities get _childEntities => ChildEntities()
+    ..addNode('target', target)
+    ..addToken('operator', operator)
+    ..addNode('methodName', methodName)
+    ..addNode('typeArguments', typeArguments)
+    ..addNode('argumentList', argumentList);
 
   @override
   AstNode? get _nullShortingExtensionCandidate => parent;
@@ -16525,18 +16436,17 @@ final class MixinDeclarationImpl extends NamedCompilationUnitMemberImpl
 
   @generated
   @override
-  ChildEntities get _childEntities =>
-      super._childEntities
-        ..addToken('augmentKeyword', augmentKeyword)
-        ..addToken('baseKeyword', baseKeyword)
-        ..addToken('mixinKeyword', mixinKeyword)
-        ..addToken('name', name)
-        ..addNode('typeParameters', typeParameters)
-        ..addNode('onClause', onClause)
-        ..addNode('implementsClause', implementsClause)
-        ..addToken('leftBracket', leftBracket)
-        ..addNodeList('members', members)
-        ..addToken('rightBracket', rightBracket);
+  ChildEntities get _childEntities => super._childEntities
+    ..addToken('augmentKeyword', augmentKeyword)
+    ..addToken('baseKeyword', baseKeyword)
+    ..addToken('mixinKeyword', mixinKeyword)
+    ..addToken('name', name)
+    ..addNode('typeParameters', typeParameters)
+    ..addNode('onClause', onClause)
+    ..addNode('implementsClause', implementsClause)
+    ..addToken('leftBracket', leftBracket)
+    ..addNodeList('members', members)
+    ..addToken('rightBracket', rightBracket);
 
   @generated
   @override
@@ -16634,10 +16544,9 @@ final class MixinOnClauseImpl extends AstNodeImpl implements MixinOnClause {
 
   @generated
   @override
-  ChildEntities get _childEntities =>
-      ChildEntities()
-        ..addToken('onKeyword', onKeyword)
-        ..addNodeList('superclassConstraints', superclassConstraints);
+  ChildEntities get _childEntities => ChildEntities()
+    ..addToken('onKeyword', onKeyword)
+    ..addNodeList('superclassConstraints', superclassConstraints);
 
   @generated
   @override
@@ -16786,10 +16695,9 @@ final class NamedExpressionImpl extends ExpressionImpl
 
   @generated
   @override
-  ChildEntities get _childEntities =>
-      ChildEntities()
-        ..addNode('name', name)
-        ..addNode('expression', expression);
+  ChildEntities get _childEntities => ChildEntities()
+    ..addNode('name', name)
+    ..addNode('expression', expression);
 
   @generated
   @override
@@ -16982,12 +16890,11 @@ final class NamedTypeImpl extends TypeAnnotationImpl implements NamedType {
 
   @generated
   @override
-  ChildEntities get _childEntities =>
-      ChildEntities()
-        ..addNode('importPrefix', importPrefix)
-        ..addToken('name', name)
-        ..addNode('typeArguments', typeArguments)
-        ..addToken('question', question);
+  ChildEntities get _childEntities => ChildEntities()
+    ..addNode('importPrefix', importPrefix)
+    ..addToken('name', name)
+    ..addNode('typeArguments', typeArguments)
+    ..addToken('question', question);
 
   @generated
   @override
@@ -17133,10 +17040,9 @@ final class NativeClauseImpl extends AstNodeImpl implements NativeClause {
 
   @generated
   @override
-  ChildEntities get _childEntities =>
-      ChildEntities()
-        ..addToken('nativeKeyword', nativeKeyword)
-        ..addNode('name', name);
+  ChildEntities get _childEntities => ChildEntities()
+    ..addToken('nativeKeyword', nativeKeyword)
+    ..addNode('name', name);
 
   @generated
   @override
@@ -17230,11 +17136,10 @@ final class NativeFunctionBodyImpl extends FunctionBodyImpl
 
   @generated
   @override
-  ChildEntities get _childEntities =>
-      ChildEntities()
-        ..addToken('nativeKeyword', nativeKeyword)
-        ..addNode('stringLiteral', stringLiteral)
-        ..addToken('semicolon', semicolon);
+  ChildEntities get _childEntities => ChildEntities()
+    ..addToken('nativeKeyword', nativeKeyword)
+    ..addNode('stringLiteral', stringLiteral)
+    ..addToken('semicolon', semicolon);
 
   @generated
   @override
@@ -17579,10 +17484,9 @@ final class NullAssertPatternImpl extends DartPatternImpl
 
   @generated
   @override
-  ChildEntities get _childEntities =>
-      ChildEntities()
-        ..addNode('pattern', pattern)
-        ..addToken('operator', operator);
+  ChildEntities get _childEntities => ChildEntities()
+    ..addNode('pattern', pattern)
+    ..addToken('operator', operator);
 
   @generated
   @override
@@ -17683,10 +17587,9 @@ final class NullAwareElementImpl extends CollectionElementImpl
 
   @generated
   @override
-  ChildEntities get _childEntities =>
-      ChildEntities()
-        ..addToken('question', question)
-        ..addNode('value', value);
+  ChildEntities get _childEntities => ChildEntities()
+    ..addToken('question', question)
+    ..addNode('value', value);
 
   @generated
   @override
@@ -17782,10 +17685,9 @@ final class NullCheckPatternImpl extends DartPatternImpl
 
   @generated
   @override
-  ChildEntities get _childEntities =>
-      ChildEntities()
-        ..addNode('pattern', pattern)
-        ..addToken('operator', operator);
+  ChildEntities get _childEntities => ChildEntities()
+    ..addNode('pattern', pattern)
+    ..addToken('operator', operator);
 
   @generated
   @override
@@ -18024,12 +17926,11 @@ final class ObjectPatternImpl extends DartPatternImpl implements ObjectPattern {
 
   @generated
   @override
-  ChildEntities get _childEntities =>
-      ChildEntities()
-        ..addNode('type', type)
-        ..addToken('leftParenthesis', leftParenthesis)
-        ..addNodeList('fields', fields)
-        ..addToken('rightParenthesis', rightParenthesis);
+  ChildEntities get _childEntities => ChildEntities()
+    ..addNode('type', type)
+    ..addToken('leftParenthesis', leftParenthesis)
+    ..addNodeList('fields', fields)
+    ..addToken('rightParenthesis', rightParenthesis);
 
   @generated
   @override
@@ -18171,11 +18072,10 @@ final class ParenthesizedExpressionImpl extends ExpressionImpl
 
   @generated
   @override
-  ChildEntities get _childEntities =>
-      ChildEntities()
-        ..addToken('leftParenthesis', leftParenthesis)
-        ..addNode('expression', expression)
-        ..addToken('rightParenthesis', rightParenthesis);
+  ChildEntities get _childEntities => ChildEntities()
+    ..addToken('leftParenthesis', leftParenthesis)
+    ..addNode('expression', expression)
+    ..addToken('rightParenthesis', rightParenthesis);
 
   @generated
   @override
@@ -18287,11 +18187,10 @@ final class ParenthesizedPatternImpl extends DartPatternImpl
 
   @generated
   @override
-  ChildEntities get _childEntities =>
-      ChildEntities()
-        ..addToken('leftParenthesis', leftParenthesis)
-        ..addNode('pattern', pattern)
-        ..addToken('rightParenthesis', rightParenthesis);
+  ChildEntities get _childEntities => ChildEntities()
+    ..addToken('leftParenthesis', leftParenthesis)
+    ..addNode('pattern', pattern)
+    ..addToken('rightParenthesis', rightParenthesis);
 
   @generated
   @override
@@ -18405,12 +18304,11 @@ final class PartDirectiveImpl extends UriBasedDirectiveImpl
 
   @generated
   @override
-  ChildEntities get _childEntities =>
-      super._childEntities
-        ..addToken('partKeyword', partKeyword)
-        ..addNode('uri', uri)
-        ..addNodeList('configurations', configurations)
-        ..addToken('semicolon', semicolon);
+  ChildEntities get _childEntities => super._childEntities
+    ..addToken('partKeyword', partKeyword)
+    ..addNode('uri', uri)
+    ..addNodeList('configurations', configurations)
+    ..addToken('semicolon', semicolon);
 
   @generated
   @override
@@ -18542,13 +18440,12 @@ final class PartOfDirectiveImpl extends DirectiveImpl
 
   @generated
   @override
-  ChildEntities get _childEntities =>
-      super._childEntities
-        ..addToken('partKeyword', partKeyword)
-        ..addToken('ofKeyword', ofKeyword)
-        ..addNode('uri', uri)
-        ..addNode('libraryName', libraryName)
-        ..addToken('semicolon', semicolon);
+  ChildEntities get _childEntities => super._childEntities
+    ..addToken('partKeyword', partKeyword)
+    ..addToken('ofKeyword', ofKeyword)
+    ..addNode('uri', uri)
+    ..addNode('libraryName', libraryName)
+    ..addToken('semicolon', semicolon);
 
   @generated
   @override
@@ -18669,11 +18566,10 @@ final class PatternAssignmentImpl extends ExpressionImpl
 
   @generated
   @override
-  ChildEntities get _childEntities =>
-      ChildEntities()
-        ..addNode('pattern', pattern)
-        ..addToken('equals', equals)
-        ..addNode('expression', expression);
+  ChildEntities get _childEntities => ChildEntities()
+    ..addNode('pattern', pattern)
+    ..addToken('equals', equals)
+    ..addNode('expression', expression);
 
   @generated
   @override
@@ -18819,10 +18715,9 @@ final class PatternFieldImpl extends AstNodeImpl implements PatternField {
 
   @generated
   @override
-  ChildEntities get _childEntities =>
-      ChildEntities()
-        ..addNode('name', name)
-        ..addNode('pattern', pattern);
+  ChildEntities get _childEntities => ChildEntities()
+    ..addNode('name', name)
+    ..addNode('pattern', pattern);
 
   @generated
   @override
@@ -18899,10 +18794,9 @@ final class PatternFieldNameImpl extends AstNodeImpl
 
   @generated
   @override
-  ChildEntities get _childEntities =>
-      ChildEntities()
-        ..addToken('name', name)
-        ..addToken('colon', colon);
+  ChildEntities get _childEntities => ChildEntities()
+    ..addToken('name', name)
+    ..addToken('colon', colon);
 
   @generated
   @override
@@ -19023,12 +18917,11 @@ final class PatternVariableDeclarationImpl extends AnnotatedNodeImpl
 
   @generated
   @override
-  ChildEntities get _childEntities =>
-      super._childEntities
-        ..addToken('keyword', keyword)
-        ..addNode('pattern', pattern)
-        ..addToken('equals', equals)
-        ..addNode('expression', expression);
+  ChildEntities get _childEntities => super._childEntities
+    ..addToken('keyword', keyword)
+    ..addNode('pattern', pattern)
+    ..addToken('equals', equals)
+    ..addNode('expression', expression);
 
   @generated
   @override
@@ -19118,10 +19011,9 @@ final class PatternVariableDeclarationStatementImpl extends StatementImpl
 
   @generated
   @override
-  ChildEntities get _childEntities =>
-      ChildEntities()
-        ..addNode('declaration', declaration)
-        ..addToken('semicolon', semicolon);
+  ChildEntities get _childEntities => ChildEntities()
+    ..addNode('declaration', declaration)
+    ..addToken('semicolon', semicolon);
 
   @generated
   @override
@@ -19225,10 +19117,9 @@ final class PostfixExpressionImpl extends ExpressionImpl
 
   @generated
   @override
-  ChildEntities get _childEntities =>
-      ChildEntities()
-        ..addNode('operand', operand)
-        ..addToken('operator', operator);
+  ChildEntities get _childEntities => ChildEntities()
+    ..addNode('operand', operand)
+    ..addToken('operator', operator);
 
   @override
   AstNode? get _nullShortingExtensionCandidate => parent;
@@ -19386,11 +19277,10 @@ final class PrefixedIdentifierImpl extends IdentifierImpl
 
   @generated
   @override
-  ChildEntities get _childEntities =>
-      ChildEntities()
-        ..addNode('prefix', prefix)
-        ..addToken('period', period)
-        ..addNode('identifier', identifier);
+  ChildEntities get _childEntities => ChildEntities()
+    ..addNode('prefix', prefix)
+    ..addToken('period', period)
+    ..addNode('identifier', identifier);
 
   @generated
   @override
@@ -19500,10 +19390,9 @@ final class PrefixExpressionImpl extends ExpressionImpl
 
   @generated
   @override
-  ChildEntities get _childEntities =>
-      ChildEntities()
-        ..addToken('operator', operator)
-        ..addNode('operand', operand);
+  ChildEntities get _childEntities => ChildEntities()
+    ..addToken('operator', operator)
+    ..addNode('operand', operand);
 
   @override
   AstNode? get _nullShortingExtensionCandidate => parent;
@@ -19704,11 +19593,10 @@ final class PropertyAccessImpl extends CommentReferableExpressionImpl
 
   @generated
   @override
-  ChildEntities get _childEntities =>
-      ChildEntities()
-        ..addNode('target', target)
-        ..addToken('operator', operator)
-        ..addNode('propertyName', propertyName);
+  ChildEntities get _childEntities => ChildEntities()
+    ..addNode('target', target)
+    ..addToken('operator', operator)
+    ..addNode('propertyName', propertyName);
 
   @override
   AstNode? get _nullShortingExtensionCandidate => parent;
@@ -19832,12 +19720,11 @@ final class RecordLiteralImpl extends LiteralImpl implements RecordLiteral {
 
   @generated
   @override
-  ChildEntities get _childEntities =>
-      ChildEntities()
-        ..addToken('constKeyword', constKeyword)
-        ..addToken('leftParenthesis', leftParenthesis)
-        ..addNodeList('fields', fields)
-        ..addToken('rightParenthesis', rightParenthesis);
+  ChildEntities get _childEntities => ChildEntities()
+    ..addToken('constKeyword', constKeyword)
+    ..addToken('leftParenthesis', leftParenthesis)
+    ..addNodeList('fields', fields)
+    ..addToken('rightParenthesis', rightParenthesis);
 
   @generated
   @override
@@ -19930,11 +19817,10 @@ final class RecordPatternImpl extends DartPatternImpl implements RecordPattern {
 
   @generated
   @override
-  ChildEntities get _childEntities =>
-      ChildEntities()
-        ..addToken('leftParenthesis', leftParenthesis)
-        ..addNodeList('fields', fields)
-        ..addToken('rightParenthesis', rightParenthesis);
+  ChildEntities get _childEntities => ChildEntities()
+    ..addToken('leftParenthesis', leftParenthesis)
+    ..addNodeList('fields', fields)
+    ..addToken('rightParenthesis', rightParenthesis);
 
   @generated
   @override
@@ -20064,11 +19950,10 @@ sealed class RecordTypeAnnotationFieldImpl extends AstNodeImpl
   Token get endToken => name ?? type.endToken;
 
   @override
-  ChildEntities get _childEntities =>
-      super._childEntities
-        ..addNodeList('metadata', metadata)
-        ..addNode('type', type)
-        ..addToken('name', name);
+  ChildEntities get _childEntities => super._childEntities
+    ..addNodeList('metadata', metadata)
+    ..addNode('type', type)
+    ..addToken('name', name);
 
   @override
   void visitChildren(AstVisitor visitor) {
@@ -20157,13 +20042,12 @@ final class RecordTypeAnnotationImpl extends TypeAnnotationImpl
 
   @generated
   @override
-  ChildEntities get _childEntities =>
-      ChildEntities()
-        ..addToken('leftParenthesis', leftParenthesis)
-        ..addNodeList('positionalFields', positionalFields)
-        ..addNode('namedFields', namedFields)
-        ..addToken('rightParenthesis', rightParenthesis)
-        ..addToken('question', question);
+  ChildEntities get _childEntities => ChildEntities()
+    ..addToken('leftParenthesis', leftParenthesis)
+    ..addNodeList('positionalFields', positionalFields)
+    ..addNode('namedFields', namedFields)
+    ..addToken('rightParenthesis', rightParenthesis)
+    ..addToken('question', question);
 
   @generated
   @override
@@ -20239,11 +20123,10 @@ final class RecordTypeAnnotationNamedFieldImpl
 
   @generated
   @override
-  ChildEntities get _childEntities =>
-      ChildEntities()
-        ..addNodeList('metadata', metadata)
-        ..addNode('type', type)
-        ..addToken('name', name);
+  ChildEntities get _childEntities => ChildEntities()
+    ..addNodeList('metadata', metadata)
+    ..addNode('type', type)
+    ..addToken('name', name);
 
   @generated
   @override
@@ -20329,11 +20212,10 @@ final class RecordTypeAnnotationNamedFieldsImpl extends AstNodeImpl
 
   @generated
   @override
-  ChildEntities get _childEntities =>
-      ChildEntities()
-        ..addToken('leftBracket', leftBracket)
-        ..addNodeList('fields', fields)
-        ..addToken('rightBracket', rightBracket);
+  ChildEntities get _childEntities => ChildEntities()
+    ..addToken('leftBracket', leftBracket)
+    ..addNodeList('fields', fields)
+    ..addToken('rightBracket', rightBracket);
 
   @generated
   @override
@@ -20403,11 +20285,10 @@ final class RecordTypeAnnotationPositionalFieldImpl
 
   @generated
   @override
-  ChildEntities get _childEntities =>
-      ChildEntities()
-        ..addNodeList('metadata', metadata)
-        ..addNode('type', type)
-        ..addToken('name', name);
+  ChildEntities get _childEntities => ChildEntities()
+    ..addNodeList('metadata', metadata)
+    ..addNode('type', type)
+    ..addToken('name', name);
 
   @generated
   @override
@@ -20530,12 +20411,11 @@ final class RedirectingConstructorInvocationImpl
 
   @generated
   @override
-  ChildEntities get _childEntities =>
-      ChildEntities()
-        ..addToken('thisKeyword', thisKeyword)
-        ..addToken('period', period)
-        ..addNode('constructorName', constructorName)
-        ..addNode('argumentList', argumentList);
+  ChildEntities get _childEntities => ChildEntities()
+    ..addToken('thisKeyword', thisKeyword)
+    ..addToken('period', period)
+    ..addNode('constructorName', constructorName)
+    ..addNode('argumentList', argumentList);
 
   @generated
   @override
@@ -20648,10 +20528,9 @@ final class RelationalPatternImpl extends DartPatternImpl
 
   @generated
   @override
-  ChildEntities get _childEntities =>
-      ChildEntities()
-        ..addToken('operator', operator)
-        ..addNode('operand', operand);
+  ChildEntities get _childEntities => ChildEntities()
+    ..addToken('operator', operator)
+    ..addNode('operand', operand);
 
   @generated
   @override
@@ -20740,10 +20619,9 @@ final class RepresentationConstructorNameImpl extends AstNodeImpl
 
   @generated
   @override
-  ChildEntities get _childEntities =>
-      ChildEntities()
-        ..addToken('period', period)
-        ..addToken('name', name);
+  ChildEntities get _childEntities => ChildEntities()
+    ..addToken('period', period)
+    ..addToken('name', name);
 
   @generated
   @override
@@ -20888,14 +20766,13 @@ final class RepresentationDeclarationImpl extends AstNodeImpl
 
   @generated
   @override
-  ChildEntities get _childEntities =>
-      ChildEntities()
-        ..addNode('constructorName', constructorName)
-        ..addToken('leftParenthesis', leftParenthesis)
-        ..addNodeList('fieldMetadata', fieldMetadata)
-        ..addNode('fieldType', fieldType)
-        ..addToken('fieldName', fieldName)
-        ..addToken('rightParenthesis', rightParenthesis);
+  ChildEntities get _childEntities => ChildEntities()
+    ..addNode('constructorName', constructorName)
+    ..addToken('leftParenthesis', leftParenthesis)
+    ..addNodeList('fieldMetadata', fieldMetadata)
+    ..addNode('fieldType', fieldType)
+    ..addToken('fieldName', fieldName)
+    ..addToken('rightParenthesis', rightParenthesis);
 
   @generated
   @override
@@ -20994,10 +20871,9 @@ final class RestPatternElementImpl extends AstNodeImpl
 
   @generated
   @override
-  ChildEntities get _childEntities =>
-      ChildEntities()
-        ..addToken('operator', operator)
-        ..addNode('pattern', pattern);
+  ChildEntities get _childEntities => ChildEntities()
+    ..addToken('operator', operator)
+    ..addNode('pattern', pattern);
 
   @generated
   @override
@@ -21151,11 +21027,10 @@ final class ReturnStatementImpl extends StatementImpl
 
   @generated
   @override
-  ChildEntities get _childEntities =>
-      ChildEntities()
-        ..addToken('returnKeyword', returnKeyword)
-        ..addNode('expression', expression)
-        ..addToken('semicolon', semicolon);
+  ChildEntities get _childEntities => ChildEntities()
+    ..addToken('returnKeyword', returnKeyword)
+    ..addNode('expression', expression)
+    ..addToken('semicolon', semicolon);
 
   @generated
   @override
@@ -21365,13 +21240,12 @@ final class SetOrMapLiteralImpl extends TypedLiteralImpl
 
   @generated
   @override
-  ChildEntities get _childEntities =>
-      ChildEntities()
-        ..addToken('constKeyword', constKeyword)
-        ..addNode('typeArguments', typeArguments)
-        ..addToken('leftBracket', leftBracket)
-        ..addNodeList('elements', elements)
-        ..addToken('rightBracket', rightBracket);
+  ChildEntities get _childEntities => ChildEntities()
+    ..addToken('constKeyword', constKeyword)
+    ..addNode('typeArguments', typeArguments)
+    ..addToken('leftBracket', leftBracket)
+    ..addNodeList('elements', elements)
+    ..addToken('rightBracket', rightBracket);
 
   @generated
   @override
@@ -21475,10 +21349,9 @@ final class ShowCombinatorImpl extends CombinatorImpl
 
   @generated
   @override
-  ChildEntities get _childEntities =>
-      ChildEntities()
-        ..addToken('keyword', keyword)
-        ..addNodeList('shownNames', shownNames);
+  ChildEntities get _childEntities => ChildEntities()
+    ..addToken('keyword', keyword)
+    ..addNodeList('shownNames', shownNames);
 
   @generated
   @override
@@ -21610,13 +21483,12 @@ final class SimpleFormalParameterImpl extends NormalFormalParameterImpl
 
   @generated
   @override
-  ChildEntities get _childEntities =>
-      super._childEntities
-        ..addToken('covariantKeyword', covariantKeyword)
-        ..addToken('requiredKeyword', requiredKeyword)
-        ..addToken('keyword', keyword)
-        ..addNode('type', type)
-        ..addToken('name', name);
+  ChildEntities get _childEntities => super._childEntities
+    ..addToken('covariantKeyword', covariantKeyword)
+    ..addToken('requiredKeyword', requiredKeyword)
+    ..addToken('keyword', keyword)
+    ..addNode('type', type)
+    ..addToken('name', name);
 
   @generated
   @override
@@ -22090,10 +21962,9 @@ final class SpreadElementImpl extends CollectionElementImpl
 
   @generated
   @override
-  ChildEntities get _childEntities =>
-      ChildEntities()
-        ..addToken('spreadOperator', spreadOperator)
-        ..addNode('expression', expression);
+  ChildEntities get _childEntities => ChildEntities()
+    ..addToken('spreadOperator', spreadOperator)
+    ..addNode('expression', expression);
 
   @generated
   @override
@@ -22511,12 +22382,11 @@ final class SuperConstructorInvocationImpl extends ConstructorInitializerImpl
 
   @generated
   @override
-  ChildEntities get _childEntities =>
-      ChildEntities()
-        ..addToken('superKeyword', superKeyword)
-        ..addToken('period', period)
-        ..addNode('constructorName', constructorName)
-        ..addNode('argumentList', argumentList);
+  ChildEntities get _childEntities => ChildEntities()
+    ..addToken('superKeyword', superKeyword)
+    ..addToken('period', period)
+    ..addNode('constructorName', constructorName)
+    ..addNode('argumentList', argumentList);
 
   @generated
   @override
@@ -22792,18 +22662,17 @@ final class SuperFormalParameterImpl extends NormalFormalParameterImpl
 
   @generated
   @override
-  ChildEntities get _childEntities =>
-      super._childEntities
-        ..addToken('covariantKeyword', covariantKeyword)
-        ..addToken('requiredKeyword', requiredKeyword)
-        ..addToken('keyword', keyword)
-        ..addNode('type', type)
-        ..addToken('superKeyword', superKeyword)
-        ..addToken('period', period)
-        ..addToken('name', name)
-        ..addNode('typeParameters', typeParameters)
-        ..addNode('parameters', parameters)
-        ..addToken('question', question);
+  ChildEntities get _childEntities => super._childEntities
+    ..addToken('covariantKeyword', covariantKeyword)
+    ..addToken('requiredKeyword', requiredKeyword)
+    ..addToken('keyword', keyword)
+    ..addNode('type', type)
+    ..addToken('superKeyword', superKeyword)
+    ..addToken('period', period)
+    ..addToken('name', name)
+    ..addNode('typeParameters', typeParameters)
+    ..addNode('parameters', parameters)
+    ..addToken('question', question);
 
   @generated
   @override
@@ -22907,13 +22776,12 @@ final class SwitchCaseImpl extends SwitchMemberImpl implements SwitchCase {
 
   @generated
   @override
-  ChildEntities get _childEntities =>
-      ChildEntities()
-        ..addNodeList('labels', labels)
-        ..addToken('keyword', keyword)
-        ..addNode('expression', expression)
-        ..addToken('colon', colon)
-        ..addNodeList('statements', statements);
+  ChildEntities get _childEntities => ChildEntities()
+    ..addNodeList('labels', labels)
+    ..addToken('keyword', keyword)
+    ..addNode('expression', expression)
+    ..addToken('colon', colon)
+    ..addNodeList('statements', statements);
 
   @generated
   @override
@@ -22990,12 +22858,11 @@ final class SwitchDefaultImpl extends SwitchMemberImpl
 
   @generated
   @override
-  ChildEntities get _childEntities =>
-      ChildEntities()
-        ..addNodeList('labels', labels)
-        ..addToken('keyword', keyword)
-        ..addToken('colon', colon)
-        ..addNodeList('statements', statements);
+  ChildEntities get _childEntities => ChildEntities()
+    ..addNodeList('labels', labels)
+    ..addToken('keyword', keyword)
+    ..addToken('colon', colon)
+    ..addNodeList('statements', statements);
 
   @generated
   @override
@@ -23132,11 +22999,10 @@ final class SwitchExpressionCaseImpl extends AstNodeImpl
 
   @generated
   @override
-  ChildEntities get _childEntities =>
-      ChildEntities()
-        ..addNode('guardedPattern', guardedPattern)
-        ..addToken('arrow', arrow)
-        ..addNode('expression', expression);
+  ChildEntities get _childEntities => ChildEntities()
+    ..addNode('guardedPattern', guardedPattern)
+    ..addToken('arrow', arrow)
+    ..addNode('expression', expression);
 
   @generated
   @override
@@ -23243,15 +23109,14 @@ final class SwitchExpressionImpl extends ExpressionImpl
 
   @generated
   @override
-  ChildEntities get _childEntities =>
-      ChildEntities()
-        ..addToken('switchKeyword', switchKeyword)
-        ..addToken('leftParenthesis', leftParenthesis)
-        ..addNode('expression', expression)
-        ..addToken('rightParenthesis', rightParenthesis)
-        ..addToken('leftBracket', leftBracket)
-        ..addNodeList('cases', cases)
-        ..addToken('rightBracket', rightBracket);
+  ChildEntities get _childEntities => ChildEntities()
+    ..addToken('switchKeyword', switchKeyword)
+    ..addToken('leftParenthesis', leftParenthesis)
+    ..addNode('expression', expression)
+    ..addToken('rightParenthesis', rightParenthesis)
+    ..addToken('leftBracket', leftBracket)
+    ..addNodeList('cases', cases)
+    ..addToken('rightBracket', rightBracket);
 
   @generated
   @override
@@ -23427,13 +23292,12 @@ final class SwitchPatternCaseImpl extends SwitchMemberImpl
 
   @generated
   @override
-  ChildEntities get _childEntities =>
-      ChildEntities()
-        ..addNodeList('labels', labels)
-        ..addToken('keyword', keyword)
-        ..addNode('guardedPattern', guardedPattern)
-        ..addToken('colon', colon)
-        ..addNodeList('statements', statements);
+  ChildEntities get _childEntities => ChildEntities()
+    ..addNodeList('labels', labels)
+    ..addToken('keyword', keyword)
+    ..addNode('guardedPattern', guardedPattern)
+    ..addToken('colon', colon)
+    ..addNodeList('statements', statements);
 
   @generated
   @override
@@ -23587,15 +23451,14 @@ final class SwitchStatementImpl extends StatementImpl
 
   @generated
   @override
-  ChildEntities get _childEntities =>
-      ChildEntities()
-        ..addToken('switchKeyword', switchKeyword)
-        ..addToken('leftParenthesis', leftParenthesis)
-        ..addNode('expression', expression)
-        ..addToken('rightParenthesis', rightParenthesis)
-        ..addToken('leftBracket', leftBracket)
-        ..addNodeList('members', members)
-        ..addToken('rightBracket', rightBracket);
+  ChildEntities get _childEntities => ChildEntities()
+    ..addToken('switchKeyword', switchKeyword)
+    ..addToken('leftParenthesis', leftParenthesis)
+    ..addNode('expression', expression)
+    ..addToken('rightParenthesis', rightParenthesis)
+    ..addToken('leftBracket', leftBracket)
+    ..addNodeList('members', members)
+    ..addToken('rightBracket', rightBracket);
 
   @generated
   @override
@@ -23686,10 +23549,9 @@ final class SymbolLiteralImpl extends LiteralImpl implements SymbolLiteral {
 
   @generated
   @override
-  ChildEntities get _childEntities =>
-      ChildEntities()
-        ..addToken('poundSign', poundSign)
-        ..addTokenList('components', components);
+  ChildEntities get _childEntities => ChildEntities()
+    ..addToken('poundSign', poundSign)
+    ..addTokenList('components', components);
 
   @generated
   @override
@@ -23851,10 +23713,9 @@ final class ThrowExpressionImpl extends ExpressionImpl
 
   @generated
   @override
-  ChildEntities get _childEntities =>
-      ChildEntities()
-        ..addToken('throwKeyword', throwKeyword)
-        ..addNode('expression', expression);
+  ChildEntities get _childEntities => ChildEntities()
+    ..addToken('throwKeyword', throwKeyword)
+    ..addNode('expression', expression);
 
   @generated
   @override
@@ -23980,12 +23841,11 @@ final class TopLevelVariableDeclarationImpl extends CompilationUnitMemberImpl
 
   @generated
   @override
-  ChildEntities get _childEntities =>
-      super._childEntities
-        ..addToken('augmentKeyword', augmentKeyword)
-        ..addToken('externalKeyword', externalKeyword)
-        ..addNode('variables', variables)
-        ..addToken('semicolon', semicolon);
+  ChildEntities get _childEntities => super._childEntities
+    ..addToken('augmentKeyword', augmentKeyword)
+    ..addToken('externalKeyword', externalKeyword)
+    ..addNode('variables', variables)
+    ..addToken('semicolon', semicolon);
 
   @generated
   @override
@@ -24122,13 +23982,12 @@ final class TryStatementImpl extends StatementImpl implements TryStatement {
 
   @generated
   @override
-  ChildEntities get _childEntities =>
-      ChildEntities()
-        ..addToken('tryKeyword', tryKeyword)
-        ..addNode('body', body)
-        ..addNodeList('catchClauses', catchClauses)
-        ..addToken('finallyKeyword', finallyKeyword)
-        ..addNode('finallyBlock', finallyBlock);
+  ChildEntities get _childEntities => ChildEntities()
+    ..addToken('tryKeyword', tryKeyword)
+    ..addNode('body', body)
+    ..addNodeList('catchClauses', catchClauses)
+    ..addToken('finallyKeyword', finallyKeyword)
+    ..addNode('finallyBlock', finallyBlock);
 
   @generated
   @override
@@ -24294,11 +24153,10 @@ final class TypeArgumentListImpl extends AstNodeImpl
 
   @generated
   @override
-  ChildEntities get _childEntities =>
-      ChildEntities()
-        ..addToken('leftBracket', leftBracket)
-        ..addNodeList('arguments', arguments)
-        ..addToken('rightBracket', rightBracket);
+  ChildEntities get _childEntities => ChildEntities()
+    ..addToken('leftBracket', leftBracket)
+    ..addNodeList('arguments', arguments)
+    ..addToken('rightBracket', rightBracket);
 
   @generated
   @override
@@ -24386,10 +24244,9 @@ sealed class TypedLiteralImpl extends LiteralImpl implements TypedLiteral {
   }
 
   @override
-  ChildEntities get _childEntities =>
-      ChildEntities()
-        ..addToken('constKeyword', constKeyword)
-        ..addNode('typeArguments', typeArguments);
+  ChildEntities get _childEntities => ChildEntities()
+    ..addToken('constKeyword', constKeyword)
+    ..addNode('typeArguments', typeArguments);
 
   @override
   void visitChildren(AstVisitor visitor) {
@@ -24592,12 +24449,11 @@ final class TypeParameterImpl extends DeclarationImpl implements TypeParameter {
 
   @generated
   @override
-  ChildEntities get _childEntities =>
-      super._childEntities
-        ..addToken('varianceKeyword', varianceKeyword)
-        ..addToken('name', name)
-        ..addToken('extendsKeyword', extendsKeyword)
-        ..addNode('bound', bound);
+  ChildEntities get _childEntities => super._childEntities
+    ..addToken('varianceKeyword', varianceKeyword)
+    ..addToken('name', name)
+    ..addToken('extendsKeyword', extendsKeyword)
+    ..addNode('bound', bound);
 
   @generated
   @override
@@ -24685,11 +24541,10 @@ final class TypeParameterListImpl extends AstNodeImpl
 
   @generated
   @override
-  ChildEntities get _childEntities =>
-      ChildEntities()
-        ..addToken('leftBracket', leftBracket)
-        ..addNodeList('typeParameters', typeParameters)
-        ..addToken('rightBracket', rightBracket);
+  ChildEntities get _childEntities => ChildEntities()
+    ..addToken('leftBracket', leftBracket)
+    ..addNodeList('typeParameters', typeParameters)
+    ..addToken('rightBracket', rightBracket);
 
   @generated
   @override
@@ -24991,11 +24846,10 @@ final class VariableDeclarationImpl extends DeclarationImpl
 
   @generated
   @override
-  ChildEntities get _childEntities =>
-      super._childEntities
-        ..addToken('name', name)
-        ..addToken('equals', equals)
-        ..addNode('initializer', initializer);
+  ChildEntities get _childEntities => super._childEntities
+    ..addToken('name', name)
+    ..addToken('equals', equals)
+    ..addNode('initializer', initializer);
 
   @generated
   @override
@@ -25161,12 +25015,11 @@ final class VariableDeclarationListImpl extends AnnotatedNodeImpl
 
   @generated
   @override
-  ChildEntities get _childEntities =>
-      super._childEntities
-        ..addToken('lateKeyword', lateKeyword)
-        ..addToken('keyword', keyword)
-        ..addNode('type', type)
-        ..addNodeList('variables', variables);
+  ChildEntities get _childEntities => super._childEntities
+    ..addToken('lateKeyword', lateKeyword)
+    ..addToken('keyword', keyword)
+    ..addNode('type', type)
+    ..addNodeList('variables', variables);
 
   @generated
   @override
@@ -25260,10 +25113,9 @@ final class VariableDeclarationStatementImpl extends StatementImpl
 
   @generated
   @override
-  ChildEntities get _childEntities =>
-      ChildEntities()
-        ..addNode('variables', variables)
-        ..addToken('semicolon', semicolon);
+  ChildEntities get _childEntities => ChildEntities()
+    ..addNode('variables', variables)
+    ..addToken('semicolon', semicolon);
 
   @generated
   @override
@@ -25369,10 +25221,9 @@ final class WhenClauseImpl extends AstNodeImpl implements WhenClause {
 
   @generated
   @override
-  ChildEntities get _childEntities =>
-      ChildEntities()
-        ..addToken('whenKeyword', whenKeyword)
-        ..addNode('expression', expression);
+  ChildEntities get _childEntities => ChildEntities()
+    ..addToken('whenKeyword', whenKeyword)
+    ..addNode('expression', expression);
 
   @generated
   @override
@@ -25489,13 +25340,12 @@ final class WhileStatementImpl extends StatementImpl implements WhileStatement {
 
   @generated
   @override
-  ChildEntities get _childEntities =>
-      ChildEntities()
-        ..addToken('whileKeyword', whileKeyword)
-        ..addToken('leftParenthesis', leftParenthesis)
-        ..addNode('condition', condition)
-        ..addToken('rightParenthesis', rightParenthesis)
-        ..addNode('body', body);
+  ChildEntities get _childEntities => ChildEntities()
+    ..addToken('whileKeyword', whileKeyword)
+    ..addToken('leftParenthesis', leftParenthesis)
+    ..addNode('condition', condition)
+    ..addToken('rightParenthesis', rightParenthesis)
+    ..addNode('body', body);
 
   @generated
   @override
@@ -25608,11 +25458,10 @@ final class WildcardPatternImpl extends DartPatternImpl
 
   @generated
   @override
-  ChildEntities get _childEntities =>
-      ChildEntities()
-        ..addToken('keyword', keyword)
-        ..addNode('type', type)
-        ..addToken('name', name);
+  ChildEntities get _childEntities => ChildEntities()
+    ..addToken('keyword', keyword)
+    ..addNode('type', type)
+    ..addToken('name', name);
 
   @generated
   @override
@@ -25722,10 +25571,9 @@ final class WithClauseImpl extends AstNodeImpl implements WithClause {
 
   @generated
   @override
-  ChildEntities get _childEntities =>
-      ChildEntities()
-        ..addToken('withKeyword', withKeyword)
-        ..addNodeList('mixinTypes', mixinTypes);
+  ChildEntities get _childEntities => ChildEntities()
+    ..addToken('withKeyword', withKeyword)
+    ..addNodeList('mixinTypes', mixinTypes);
 
   @generated
   @override
@@ -25824,12 +25672,11 @@ final class YieldStatementImpl extends StatementImpl implements YieldStatement {
 
   @generated
   @override
-  ChildEntities get _childEntities =>
-      ChildEntities()
-        ..addToken('yieldKeyword', yieldKeyword)
-        ..addToken('star', star)
-        ..addNode('expression', expression)
-        ..addToken('semicolon', semicolon);
+  ChildEntities get _childEntities => ChildEntities()
+    ..addToken('yieldKeyword', yieldKeyword)
+    ..addToken('star', star)
+    ..addNode('expression', expression)
+    ..addToken('semicolon', semicolon);
 
   @generated
   @override

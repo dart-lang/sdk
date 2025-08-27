@@ -98,10 +98,9 @@ class ManifestNode {
         isValid: true,
         tokenBuffer: buffer.toString(),
         tokenLengthList: Uint32List.fromList(lengthList),
-        elements:
-            collector.map.keys
-                .map((element) => ManifestElement.encode(context, element))
-                .toFixedList(),
+        elements: collector.map.keys
+            .map((element) => ManifestElement.encode(context, element))
+            .toFixedList(),
         elementIndexList: Uint32List.fromList(collector.elementIndexList),
       );
     } else {

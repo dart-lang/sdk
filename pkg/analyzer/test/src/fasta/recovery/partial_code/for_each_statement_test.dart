@@ -12,8 +12,9 @@ main() {
 
 class ForEachStatementTest extends PartialCodeTest {
   buildAll() {
-    List<String> allExceptEof =
-        PartialCodeTest.statementSuffixes.map((t) => t.name).toList();
+    List<String> allExceptEof = PartialCodeTest.statementSuffixes
+        .map((t) => t.name)
+        .toList();
     //
     // Without a preceding 'await', anything that doesn't contain the `in`
     // keyword will be interpreted as a normal for statement.

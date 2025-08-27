@@ -20,6 +20,7 @@ import 'package:analysis_server/src/lsp/handlers/handler_execute_command.dart'
 import 'package:analysis_server/src/lsp/handlers/handler_states.dart' as lsp;
 import 'package:analysis_server/src/lsp/handlers/handlers.dart' as lsp;
 import 'package:analysis_server/src/plugin/notification_manager.dart';
+import 'package:analysis_server/src/plugin/plugin_isolate.dart';
 import 'package:analysis_server/src/plugin/plugin_manager.dart';
 import 'package:analysis_server/src/plugin/plugin_watcher.dart';
 import 'package:analysis_server/src/protocol_server.dart'
@@ -508,12 +509,12 @@ abstract class AnalysisServer {
   /// [driver]. Return a list containing futures that will complete when each of
   /// the plugins have sent a response, or an empty list if no [driver] is
   /// provided.
-  Map<PluginInfo, Future<Response>> broadcastRequestToPlugins(
+  Map<PluginIsolate, Future<Response>> broadcastRequestToPlugins(
     analyzer_plugin.RequestParams requestParams,
     analysis.AnalysisDriver? driver,
   ) {
     if (driver == null) {
-      return <PluginInfo, Future<Response>>{};
+      return <PluginIsolate, Future<Response>>{};
     }
     return pluginManager.broadcastRequest(
       requestParams,

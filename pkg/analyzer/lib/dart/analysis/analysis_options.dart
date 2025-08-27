@@ -88,11 +88,10 @@ final class GitPluginSource implements PluginSource {
 
   @override
   String toYaml({required String name}) {
-    var buffer =
-        StringBuffer()
-          ..writeln('  $name:')
-          ..writeln('    git:')
-          ..writeln('      url: $_url');
+    var buffer = StringBuffer()
+      ..writeln('  $name:')
+      ..writeln('    git:')
+      ..writeln('      url: $_url');
     if (_ref != null) {
       buffer.writeln('      ref: $_ref');
     }
@@ -109,7 +108,8 @@ final class PathPluginSource implements PluginSource {
   PathPluginSource({required String path}) : _path = path;
 
   @override
-  String toYaml({required String name}) => '''
+  String toYaml({required String name}) =>
+      '''
   $name:
     path: $_path
 ''';

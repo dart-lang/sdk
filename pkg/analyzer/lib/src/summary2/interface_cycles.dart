@@ -72,10 +72,9 @@ class _ImplementsNode extends graph.Node<_ImplementsNode> {
       case ExtensionTypeElementImpl element:
         element.hasImplementsSelfReference = true;
         var representationType = element.representation.type;
-        var superInterface =
-            typeSystem.isNonNullable(representationType)
-                ? typeSystem.objectNone
-                : typeSystem.objectQuestion;
+        var superInterface = typeSystem.isNonNullable(representationType)
+            ? typeSystem.objectNone
+            : typeSystem.objectQuestion;
         element.interfaces = [superInterface];
       case MixinElementImpl element:
         element.superclassConstraints = [typeProvider.objectType];

@@ -49,10 +49,9 @@ class MutationEdit {
   Map<String, Object?> toJson() => {
     'offset': offset,
     'length': length,
-    'replacement_preview':
-        replacement.length > 120
-            ? '${replacement.substring(0, 120)}...'
-            : replacement,
+    'replacement_preview': replacement.length > 120
+        ? '${replacement.substring(0, 120)}...'
+        : replacement,
   };
 }
 

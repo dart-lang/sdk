@@ -12,8 +12,9 @@ main() {
 
 class AssertStatementTest extends PartialCodeTest {
   buildAll() {
-    List<String> allExceptEof =
-        PartialCodeTest.statementSuffixes.map((t) => t.name).toList();
+    List<String> allExceptEof = PartialCodeTest.statementSuffixes
+        .map((t) => t.name)
+        .toList();
     buildTests(
       'assert_statement',
       [

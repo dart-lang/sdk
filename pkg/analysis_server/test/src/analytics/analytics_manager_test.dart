@@ -8,6 +8,7 @@ import 'package:analysis_server/lsp_protocol/protocol.dart';
 import 'package:analysis_server/protocol/protocol_constants.dart';
 import 'package:analysis_server/src/analytics/analytics_manager.dart';
 import 'package:analysis_server/src/analytics/percentile_calculator.dart';
+import 'package:analysis_server/src/plugin/plugin_isolate.dart';
 import 'package:analysis_server/src/plugin/plugin_manager.dart';
 import 'package:analysis_server/src/protocol_server.dart';
 import 'package:analyzer/dart/analysis/analysis_context_collection.dart';
@@ -108,7 +109,7 @@ class AnalyticsManagerTest with ResourceProviderMixin {
 
   Future<void> test_plugin_request() async {
     _defaultStartup();
-    PluginManager.pluginResponseTimes[_pluginInfo('a')] = {
+    PluginManager.pluginResponseTimes[_pluginIsolate('a')] = {
       'analysis.getNavigation': PercentileCalculator(),
     };
     await manager.shutdown();
@@ -398,7 +399,9 @@ class AnalyticsManagerTest with ResourceProviderMixin {
   Future<void> test_startup_withPlugins() async {
     _defaultStartup();
     manager.changedPlugins(
-      _MockPluginManager(plugins: [_pluginInfo('a'), _pluginInfo('b')]),
+      _MockPluginManager(
+        pluginIsolates: [_pluginIsolate('a'), _pluginIsolate('b')],
+      ),
     );
     await manager.shutdown();
     analytics.assertEvents([
@@ -496,7 +499,7 @@ class AnalyticsManagerTest with ResourceProviderMixin {
 
   DateTime _now() => DateTime.now();
 
-  PluginInfo _pluginInfo(String name) => PluginInfo(
+  PluginIsolate _pluginIsolate(String name) => PluginIsolate(
     path.join('.pub-cache', 'pub.dev', name, 'tools', 'analyzer_plugin'),
     '/some/execution/path',
     '/some/packages/path',
@@ -681,9 +684,9 @@ class _MockAnalytics implements NoOpAnalytics {
 
 class _MockPluginManager implements PluginManager {
   @override
-  List<PluginInfo> plugins;
+  List<PluginIsolate> pluginIsolates;
 
-  _MockPluginManager({this.plugins = const []});
+  _MockPluginManager({this.pluginIsolates = const []});
 
   @override
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);

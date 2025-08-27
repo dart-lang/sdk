@@ -870,20 +870,18 @@ class ParserProxy extends analyzer.Parser {
 
   Annotation parseAnnotation() {
     return _run('MetadataStar', () {
-      currentToken =
-          fastaParser
-              .parseMetadata(fastaParser.syntheticPreviousToken(currentToken))
-              .next!;
+      currentToken = fastaParser
+          .parseMetadata(fastaParser.syntheticPreviousToken(currentToken))
+          .next!;
       return astBuilder.pop() as Annotation;
     });
   }
 
   ArgumentList parseArgumentList() {
     return _run('unspecified', () {
-      currentToken =
-          fastaParser
-              .parseArguments(fastaParser.syntheticPreviousToken(currentToken))
-              .next!;
+      currentToken = fastaParser
+          .parseArguments(fastaParser.syntheticPreviousToken(currentToken))
+          .next!;
       var result = astBuilder.pop();
       return result is MethodInvocation
           ? result.argumentList
@@ -907,12 +905,9 @@ class ParserProxy extends analyzer.Parser {
 
   List<Combinator> parseCombinators() {
     return _run('Import', () {
-      currentToken =
-          fastaParser
-              .parseCombinatorStar(
-                fastaParser.syntheticPreviousToken(currentToken),
-              )
-              .next!;
+      currentToken = fastaParser
+          .parseCombinatorStar(fastaParser.syntheticPreviousToken(currentToken))
+          .next!;
       return astBuilder.pop() as List<Combinator>;
     });
   }
@@ -1055,10 +1050,9 @@ class ParserProxy extends analyzer.Parser {
 
     _eventListener.end(enclosingEvent);
 
-    String lexeme =
-        currentToken is ErrorToken
-            ? currentToken.runtimeType.toString()
-            : currentToken.lexeme;
+    String lexeme = currentToken is ErrorToken
+        ? currentToken.runtimeType.toString()
+        : currentToken.lexeme;
     if (expectedEndOffset == null) {
       expect(currentToken.isEof, isTrue, reason: lexeme);
     } else {

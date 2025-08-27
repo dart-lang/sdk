@@ -159,8 +159,9 @@ mixin ElementsTypesMixin {
     fragment.isAugmentation = isAugmentation;
     fragment.isSealed = isSealed;
     fragment.enclosingFragment = testLibrary.definingCompilationUnit;
-    fragment.typeParameters =
-        typeParameters.map((e) => e.firstFragment).toList();
+    fragment.typeParameters = typeParameters
+        .map((e) => e.firstFragment)
+        .toList();
     fragment.methods = methods.map((e) => e.firstFragment).toList();
 
     var element = ClassElementImpl(Reference.root(), fragment);
@@ -453,11 +454,10 @@ mixin ElementsTypesMixin {
     List<TypeParameterElementImpl> typeParameters = const [],
     List<FormalParameterElementImpl> formalParameters = const [],
   }) {
-    var fragment =
-        MethodFragmentImpl(name: name)
-          ..isStatic = isStatic
-          ..formalParameters = formalParameters.map((e) => e.asElement).toList()
-          ..typeParameters = typeParameters.map((e) => e.asElement).toList();
+    var fragment = MethodFragmentImpl(name: name)
+      ..isStatic = isStatic
+      ..formalParameters = formalParameters.map((e) => e.asElement).toList()
+      ..typeParameters = typeParameters.map((e) => e.asElement).toList();
     var element = MethodElementImpl(
       name: name,
       reference: Reference.root(),
@@ -588,14 +588,12 @@ mixin ElementsTypesMixin {
     required NullabilitySuffix nullabilitySuffix,
   }) {
     return RecordTypeImpl(
-      positionalFields:
-          positionalTypes.map((type) {
-            return RecordTypePositionalFieldImpl(type: type);
-          }).toList(),
-      namedFields:
-          namedTypes.entries.map((entry) {
-            return RecordTypeNamedFieldImpl(name: entry.key, type: entry.value);
-          }).toList(),
+      positionalFields: positionalTypes.map((type) {
+        return RecordTypePositionalFieldImpl(type: type);
+      }).toList(),
+      namedFields: namedTypes.entries.map((entry) {
+        return RecordTypeNamedFieldImpl(name: entry.key, type: entry.value);
+      }).toList(),
       nullabilitySuffix: nullabilitySuffix,
     );
   }

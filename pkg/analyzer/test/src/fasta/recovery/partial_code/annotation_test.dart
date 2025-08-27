@@ -143,14 +143,14 @@ class AnnotationTest extends PartialCodeTest {
       'localFunctionNonVoid',
       'localFunctionVoid',
     ];
-    List<TestSuffix> localAnnotationAllowedSuffixes =
-        PartialCodeTest.statementSuffixes
-            .where((t) => localAllowed.contains(t.name))
-            .toList();
-    List<TestSuffix> localAnnotationNotAllowedSuffixes =
-        PartialCodeTest.statementSuffixes
-            .where((t) => !localAllowed.contains(t.name))
-            .toList();
+    List<TestSuffix> localAnnotationAllowedSuffixes = PartialCodeTest
+        .statementSuffixes
+        .where((t) => localAllowed.contains(t.name))
+        .toList();
+    List<TestSuffix> localAnnotationNotAllowedSuffixes = PartialCodeTest
+        .statementSuffixes
+        .where((t) => !localAllowed.contains(t.name))
+        .toList();
 
     buildTests(
       'annotation_local',

@@ -75,8 +75,8 @@ linter:
     - empty_statements
 ''');
 
-    var packageConfigFileBuilder =
-        PackageConfigFileBuilder()..add(name: 'foo', rootPath: fooFolder.path);
+    var packageConfigFileBuilder = PackageConfigFileBuilder()
+      ..add(name: 'foo', rootPath: fooFolder.path);
     newPackageConfigJsonFileFromBuilder(
       rootFolder.path,
       packageConfigFileBuilder,
@@ -1316,10 +1316,9 @@ linter:
     // Package 2 has 0 lints.
     newAnalysisOptionsYamlFile(package2, '');
 
-    var builder =
-        PackageConfigFileBuilder()
-          ..add(name: 'package1', rootPath: package1)
-          ..add(name: 'package2', rootPath: package2);
+    var builder = PackageConfigFileBuilder()
+      ..add(name: 'package1', rootPath: package1)
+      ..add(name: 'package2', rootPath: package2);
     newPackageConfigJsonFileFromBuilder(workspaceRootPath, builder);
 
     newFile(fileInPackage1, '');
@@ -1428,17 +1427,15 @@ class _AnalysisContextCollectionPrinter {
   }
 
   void _writeAnalysisOptions() {
-    var filtered =
-        _analysisOptions.keys
-            .map((analysisOption) {
-              var file = analysisOption.file;
-              return configuration.withAnalysisOptionsWithoutFiles ||
-                      file != null
-                  ? (analysisOption, file)
-                  : null;
-            })
-            .nonNulls
-            .toList();
+    var filtered = _analysisOptions.keys
+        .map((analysisOption) {
+          var file = analysisOption.file;
+          return configuration.withAnalysisOptionsWithoutFiles || file != null
+              ? (analysisOption, file)
+              : null;
+        })
+        .nonNulls
+        .toList();
 
     sink.writeElements('analysisOptions', filtered, (pair) {
       var analysisOptions = pair.$1;
@@ -1452,10 +1449,9 @@ class _AnalysisContextCollectionPrinter {
       sink.withIndent(() {
         if (configuration.withEnabledFeatures) {
           var contextFeatures = analysisOptions.contextFeatures;
-          var enabledFeatures =
-              ExperimentStatus.knownFeatures.values
-                  .where((f) => contextFeatures.isEnabled(f))
-                  .toList();
+          var enabledFeatures = ExperimentStatus.knownFeatures.values
+              .where((f) => contextFeatures.isEnabled(f))
+              .toList();
           sink.writeElements('features', enabledFeatures, (feature) {
             sink.writelnWithIndent(feature);
           });

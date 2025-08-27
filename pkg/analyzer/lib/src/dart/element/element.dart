@@ -470,99 +470,98 @@ class ClassElementImpl extends InterfaceElementImpl implements ClassElement {
     bool typeHasInstanceVariables(InterfaceTypeImpl type) =>
         type.element.fields.any((e) => !e.isSynthetic);
 
-    _constructors =
-        superConstructors.map((superConstructor) {
-          var constructorFragment = ConstructorFragmentImpl(
-            name: superConstructor.name ?? 'new',
-          );
-          constructorFragment.isSynthetic = true;
-          constructorFragment.typeName = name;
-          constructorFragment.isConst =
-              superConstructor.isConst && !mixins.any(typeHasInstanceVariables);
-          constructorFragment.enclosingFragment = _firstFragment;
+    _constructors = superConstructors.map((superConstructor) {
+      var constructorFragment = ConstructorFragmentImpl(
+        name: superConstructor.name ?? 'new',
+      );
+      constructorFragment.isSynthetic = true;
+      constructorFragment.typeName = name;
+      constructorFragment.isConst =
+          superConstructor.isConst && !mixins.any(typeHasInstanceVariables);
+      constructorFragment.enclosingFragment = _firstFragment;
 
-          var constructorElement = ConstructorElementImpl(
-            name: constructorFragment.name,
-            reference: reference
-                .getChild('@constructor')
-                .getChild(constructorFragment.name),
-            firstFragment: constructorFragment,
-          );
-          constructorElement.superConstructor = superConstructor;
-          // TODO(scheglov): make it explicit
-          // constructorElement.enclosingElement = this;
+      var constructorElement = ConstructorElementImpl(
+        name: constructorFragment.name,
+        reference: reference
+            .getChild('@constructor')
+            .getChild(constructorFragment.name),
+        firstFragment: constructorFragment,
+      );
+      constructorElement.superConstructor = superConstructor;
+      // TODO(scheglov): make it explicit
+      // constructorElement.enclosingElement = this;
 
-          var formalParameterFragments = <FormalParameterFragmentImpl>[];
-          var formalParameterElements = <FormalParameterElementImpl>[];
-          var superInvocationArguments = <ExpressionImpl>[];
-          for (var superFormalParameter in superConstructor.formalParameters) {
-            var formalParameterFragment = FormalParameterFragmentImpl(
+      var formalParameterFragments = <FormalParameterFragmentImpl>[];
+      var formalParameterElements = <FormalParameterElementImpl>[];
+      var superInvocationArguments = <ExpressionImpl>[];
+      for (var superFormalParameter in superConstructor.formalParameters) {
+        var formalParameterFragment =
+            FormalParameterFragmentImpl(
                 name: superFormalParameter.name,
                 nameOffset: null,
                 parameterKind: superFormalParameter.parameterKind,
               )
-              ..constantInitializer =
-                  superFormalParameter
-                      .baseElement
-                      ._firstFragment
-                      .constantInitializer;
+              ..constantInitializer = superFormalParameter
+                  .baseElement
+                  ._firstFragment
+                  .constantInitializer;
 
-            formalParameterFragment.isConst = superFormalParameter.isConst;
-            formalParameterFragment.isFinal = superFormalParameter.isFinal;
-            formalParameterFragment.isSynthetic = true;
-            formalParameterFragments.add(formalParameterFragment);
+        formalParameterFragment.isConst = superFormalParameter.isConst;
+        formalParameterFragment.isFinal = superFormalParameter.isFinal;
+        formalParameterFragment.isSynthetic = true;
+        formalParameterFragments.add(formalParameterFragment);
 
-            var formalParameterElement = FormalParameterElementImpl(
-              formalParameterFragment,
-            );
-            formalParameterElements.add(formalParameterElement);
-            formalParameterElement.type = superFormalParameter.type;
+        var formalParameterElement = FormalParameterElementImpl(
+          formalParameterFragment,
+        );
+        formalParameterElements.add(formalParameterElement);
+        formalParameterElement.type = superFormalParameter.type;
 
-            superInvocationArguments.add(
-              SimpleIdentifierImpl(
-                  token: StringToken(
-                    TokenType.STRING,
-                    formalParameterFragment.name ?? '',
-                    -1,
-                  ),
-                )
-                ..element = formalParameterElement
-                ..setPseudoExpressionStaticType(formalParameterElement.type),
-            );
-          }
+        superInvocationArguments.add(
+          SimpleIdentifierImpl(
+              token: StringToken(
+                TokenType.STRING,
+                formalParameterFragment.name ?? '',
+                -1,
+              ),
+            )
+            ..element = formalParameterElement
+            ..setPseudoExpressionStaticType(formalParameterElement.type),
+        );
+      }
 
-          constructorFragment.formalParameters =
-              formalParameterFragments.toFixedList();
+      constructorFragment.formalParameters = formalParameterFragments
+          .toFixedList();
 
-          var isNamed = superConstructor.name != 'new';
-          var superInvocation = SuperConstructorInvocationImpl(
-            superKeyword: Tokens.super_(),
-            period: isNamed ? Tokens.period() : null,
-            constructorName:
-                isNamed
-                    ? (SimpleIdentifierImpl(
-                      token: StringToken(
-                        TokenType.STRING,
-                        superConstructor.name ?? 'new',
-                        -1,
-                      ),
-                    )..element = superConstructor.baseElement)
-                    : null,
-            argumentList: ArgumentListImpl(
-              leftParenthesis: Tokens.openParenthesis(),
-              arguments: superInvocationArguments,
-              rightParenthesis: Tokens.closeParenthesis(),
-            ),
-          );
-          AstNodeImpl.linkNodeTokens(superInvocation);
-          superInvocation.element = superConstructor.baseElement;
-          constructorFragment.constantInitializers = [superInvocation];
+      var isNamed = superConstructor.name != 'new';
+      var superInvocation = SuperConstructorInvocationImpl(
+        superKeyword: Tokens.super_(),
+        period: isNamed ? Tokens.period() : null,
+        constructorName: isNamed
+            ? (SimpleIdentifierImpl(
+                token: StringToken(
+                  TokenType.STRING,
+                  superConstructor.name ?? 'new',
+                  -1,
+                ),
+              )..element = superConstructor.baseElement)
+            : null,
+        argumentList: ArgumentListImpl(
+          leftParenthesis: Tokens.openParenthesis(),
+          arguments: superInvocationArguments,
+          rightParenthesis: Tokens.closeParenthesis(),
+        ),
+      );
+      AstNodeImpl.linkNodeTokens(superInvocation);
+      superInvocation.element = superConstructor.baseElement;
+      constructorFragment.constantInitializers = [superInvocation];
 
-          return constructorElement;
-        }).toFixedList();
+      return constructorElement;
+    }).toFixedList();
 
-    _firstFragment.constructors =
-        _constructors.map((e) => e._firstFragment).toFixedList();
+    _firstFragment.constructors = _constructors
+        .map((e) => e._firstFragment)
+        .toFixedList();
   }
 }
 
@@ -2955,10 +2954,10 @@ class FormalParameterElementImpl extends PromotableElementImpl
 
   @override
   // TODO(augmentations): Implement the merge of formal parameters.
-  List<FormalParameterElementImpl> get formalParameters =>
-      _firstFragment.formalParameters
-          .map((fragment) => fragment.element)
-          .toList();
+  List<FormalParameterElementImpl> get formalParameters => _firstFragment
+      .formalParameters
+      .map((fragment) => fragment.element)
+      .toList();
 
   @override
   List<FormalParameterFragmentImpl> get fragments {
@@ -3081,10 +3080,10 @@ class FormalParameterElementImpl extends PromotableElementImpl
 
   @override
   // TODO(augmentations): Implement the merge of formal parameters.
-  List<TypeParameterElementImpl> get typeParameters =>
-      _firstFragment.typeParameters
-          .map((fragment) => fragment.element)
-          .toList();
+  List<TypeParameterElementImpl> get typeParameters => _firstFragment
+      .typeParameters
+      .map((fragment) => fragment.element)
+      .toList();
 
   @Deprecated('Use typeParameters instead')
   @override
@@ -3575,10 +3574,10 @@ class GenericFunctionTypeElementImpl extends FunctionTypedElementImpl
   GenericFunctionTypeFragmentImpl get firstFragment => _firstFragment;
 
   @override
-  List<FormalParameterElementImpl> get formalParameters =>
-      _firstFragment.formalParameters
-          .map((fragment) => fragment.element)
-          .toList();
+  List<FormalParameterElementImpl> get formalParameters => _firstFragment
+      .formalParameters
+      .map((fragment) => fragment.element)
+      .toList();
 
   @override
   List<GenericFunctionTypeFragmentImpl> get fragments {
@@ -3626,10 +3625,9 @@ class GenericFunctionTypeElementImpl extends FunctionTypedElementImpl
   FunctionType get type => _firstFragment.type;
 
   @override
-  List<TypeParameterElement> get typeParameters =>
-      _firstFragment.typeParameters
-          .map((fragment) => fragment.element)
-          .toList();
+  List<TypeParameterElement> get typeParameters => _firstFragment.typeParameters
+      .map((fragment) => fragment.element)
+      .toList();
 
   @Deprecated('Use typeParameters2 instead')
   @override
@@ -3747,8 +3745,9 @@ class GenericFunctionTypeFragmentImpl extends FragmentImpl
       typeParameters: typeParameters.map((f) => f.asElement2).toList(),
       parameters: formalParameters.map((f) => f.asElement2).toList(),
       returnType: returnType,
-      nullabilitySuffix:
-          isNullable ? NullabilitySuffix.question : NullabilitySuffix.none,
+      nullabilitySuffix: isNullable
+          ? NullabilitySuffix.question
+          : NullabilitySuffix.none,
     );
   }
 
@@ -4770,10 +4769,9 @@ abstract class InterfaceElementImpl extends InstanceElementImpl
     if (_thisType == null) {
       List<TypeImpl> typeArguments;
       if (typeParameters.isNotEmpty) {
-        typeArguments =
-            typeParameters.map<TypeImpl>((t) {
-              return t.instantiate(nullabilitySuffix: NullabilitySuffix.none);
-            }).toFixedList();
+        typeArguments = typeParameters.map<TypeImpl>((t) {
+          return t.instantiate(nullabilitySuffix: NullabilitySuffix.none);
+        }).toFixedList();
       } else {
         typeArguments = const [];
       }
@@ -6654,10 +6652,9 @@ class LibraryFragmentImpl extends FragmentImpl
       for (var importElement in libraryFragment.libraryImports) {
         if (importElement.prefix?.element.name == prefix &&
             importElement.importedLibrary?.isSynthetic != false) {
-          var showCombinators =
-              importElement.combinators
-                  .whereType<ShowElementCombinator>()
-                  .toList();
+          var showCombinators = importElement.combinators
+              .whereType<ShowElementCombinator>()
+              .toList();
           if (prefix != null && showCombinators.isEmpty) {
             return true;
           }
@@ -9087,8 +9084,9 @@ class SuperFormalParameterElementImpl extends FormalParameterElementImpl
           );
         } else {
           var index = indexIn(enclosingElement);
-          var positionalSuperParameters =
-              superParameters.where((e) => e.isPositional).toList();
+          var positionalSuperParameters = superParameters
+              .where((e) => e.isPositional)
+              .toList();
           if (index >= 0 && index < positionalSuperParameters.length) {
             return positionalSuperParameters[index];
           }
@@ -9689,10 +9687,9 @@ class TypeAliasElementImpl extends ElementImpl
     var substitution = Substitution.fromPairs2(typeParameters, typeArguments);
     var type = substitution.substituteType(aliasedType);
 
-    var resultNullability =
-        type.nullabilitySuffix == NullabilitySuffix.question
-            ? NullabilitySuffix.question
-            : nullabilitySuffix;
+    var resultNullability = type.nullabilitySuffix == NullabilitySuffix.question
+        ? NullabilitySuffix.question
+        : nullabilitySuffix;
 
     if (type is FunctionTypeImpl) {
       return FunctionTypeImpl.v2(

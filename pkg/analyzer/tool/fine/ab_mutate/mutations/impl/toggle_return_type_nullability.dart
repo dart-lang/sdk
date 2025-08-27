@@ -30,10 +30,9 @@ class ToggleReturnTypeNullabilityMutation extends Mutation {
     var length = retLength;
 
     var original = content.substring(offset, offset + length);
-    var replacement =
-        original.endsWith('?')
-            ? original.substring(0, original.length - 1)
-            : '$original?';
+    var replacement = original.endsWith('?')
+        ? original.substring(0, original.length - 1)
+        : '$original?';
     return MutationResult(MutationEdit(offset, length, replacement), {
       'from': original,
       'to': replacement,

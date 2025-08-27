@@ -89,11 +89,10 @@ class _Node extends graph.Node<_Node> {
     element.primaryFormalParameter.type = type;
 
     element.typeErasure = type.extensionTypeErasure;
-    element.interfaces =
-        element.interfaces
-            .whereType<InterfaceType>()
-            .where(typeSystem.isValidExtensionTypeSuperinterface)
-            .toFixedList();
+    element.interfaces = element.interfaces
+        .whereType<InterfaceType>()
+        .where(typeSystem.isValidExtensionTypeSuperinterface)
+        .toFixedList();
 
     isEvaluated = true;
   }

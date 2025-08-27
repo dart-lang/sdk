@@ -136,18 +136,16 @@ class RecordLiteralResolver {
   }
 
   DartType _resolveField(ExpressionImpl field, TypeImpl contextType) {
-    var staticType =
-        _resolver
-            .analyzeExpression(field, SharedTypeSchemaView(contextType))
-            .unwrapTypeView<TypeImpl>();
+    var staticType = _resolver
+        .analyzeExpression(field, SharedTypeSchemaView(contextType))
+        .unwrapTypeView<TypeImpl>();
     field = _resolver.popRewrite()!;
 
     // Implicit cast from `dynamic`.
     if (contextType is! UnknownInferredType && staticType is DynamicType) {
-      var greatestClosureOfSchema =
-          _resolver.operations
-              .greatestClosureOfSchema(SharedTypeSchemaView(contextType))
-              .unwrapTypeView<TypeImpl>();
+      var greatestClosureOfSchema = _resolver.operations
+          .greatestClosureOfSchema(SharedTypeSchemaView(contextType))
+          .unwrapTypeView<TypeImpl>();
       if (!_resolver.typeSystem.isSubtypeOf(
         staticType,
         greatestClosureOfSchema,

@@ -83,10 +83,9 @@ mixin _AbstractClassHierarchyMixin on ElementsTypesMixin {
     required List<String> interfaces,
     List<String> errors = const [],
   }) {
-    var specifiedInterfaces =
-        typeArguments
-            .map((e) => interfaceTypeNone(A, typeArguments: [e]))
-            .toList();
+    var specifiedInterfaces = typeArguments
+        .map((e) => interfaceTypeNone(A, typeArguments: [e]))
+        .toList();
     var X = class_2(name: 'X', interfaces: specifiedInterfaces);
 
     var classHierarchy = ClassHierarchy();

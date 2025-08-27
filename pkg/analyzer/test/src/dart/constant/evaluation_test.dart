@@ -5492,8 +5492,9 @@ class ConstantVisitorTestSupport extends PubPackageResolutionTest {
     var expressionConstant = constantVisitor.evaluateAndReportInvalidConstant(
       expression,
     );
-    var result =
-        expressionConstant is DartObjectImpl ? expressionConstant : null;
+    var result = expressionConstant is DartObjectImpl
+        ? expressionConstant
+        : null;
     if (diagnosticCodes == null) {
       errorListener.assertNoErrors();
     } else {

@@ -3,10 +3,9 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/protocol/protocol_generated.dart';
-import 'package:analysis_server/src/plugin/plugin_manager.dart';
+import 'package:analysis_server/src/plugin/plugin_isolate.dart';
 import 'package:analysis_server/src/services/correction/assist_internal.dart';
 import 'package:analyzer/instrumentation/service.dart';
-import 'package:analyzer_plugin/protocol/protocol.dart' as plugin;
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:analyzer_plugin/protocol/protocol_generated.dart' as plugin;
 import 'package:test/test.dart';
@@ -52,7 +51,7 @@ class AssistsTest extends PubPackageAnalysisServerTest {
   }
 
   Future<void> test_fromPlugins() async {
-    PluginInfo info = PluginInfo(
+    var pluginIsolate = PluginIsolate(
       'a',
       'b',
       'c',
@@ -72,8 +71,8 @@ class AssistsTest extends PubPackageAnalysisServerTest {
     var result = plugin.EditGetAssistsResult(<plugin.PrioritizedSourceChange>[
       change,
     ]);
-    pluginManager.broadcastResults = <PluginInfo, Future<plugin.Response>>{
-      info: Future.value(result.toResponse('-', 1)),
+    pluginManager.broadcastResults = {
+      pluginIsolate: Future.value(result.toResponse('-', 1)),
     };
 
     addTestFile('void f() {}');

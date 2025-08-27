@@ -321,9 +321,11 @@ class LibraryManifestBuilder {
 
       var extensionIds = <ManifestItemId>{};
 
-      var exportedExtensionElements =
-          libraryElement.exportNamespace.definedNames2.values
-              .whereType<ExtensionElementImpl>();
+      var exportedExtensionElements = libraryElement
+          .exportNamespace
+          .definedNames2
+          .values
+          .whereType<ExtensionElementImpl>();
       for (var extensionElement in exportedExtensionElements) {
         var extensionName = extensionElement.lookupName?.asLookupName;
         var extensionLibraryManifest = extensionElement.library.manifest!;
@@ -886,18 +888,16 @@ class LibraryManifestBuilder {
 
       var combinedCandidates = interface.combinedSignatures[entry.key];
       if (combinedCandidates != null) {
-        var candidateElements =
-            combinedCandidates
-                .map((candidate) => candidate.baseElement)
-                .toSet()
-                .toList();
+        var candidateElements = combinedCandidates
+            .map((candidate) => candidate.baseElement)
+            .toSet()
+            .toList();
         if (candidateElements.length == 1) {
           executable = candidateElements[0];
         } else {
-          var candidateIds =
-              candidateElements.map((candidate) {
-                return _getInterfaceElementMemberId(candidate);
-              }).toList();
+          var candidateIds = candidateElements.map((candidate) {
+            return _getInterfaceElementMemberId(candidate);
+          }).toList();
           var idList = ManifestItemIdList(candidateIds);
           var id = item.interface.combinedIdsTemp[idList];
           id ??= ManifestItemId.generate();

@@ -137,10 +137,9 @@ abstract class _AbstractElementWriter {
     return ResolvedAstPrinter(
       sink: _sink,
       elementPrinter: _elementPrinter,
-      configuration:
-          ResolvedNodeTextConfiguration()
-            // TODO(scheglov): https://github.com/dart-lang/sdk/issues/49101
-            ..withParameterElements = false,
+      configuration: ResolvedNodeTextConfiguration()
+        // TODO(scheglov): https://github.com/dart-lang/sdk/issues/49101
+        ..withParameterElements = false,
       withOffsets: true,
     );
   }
@@ -1202,11 +1201,10 @@ class _Element2Writer extends _AbstractElementWriter {
       _writeFragmentReference('nextFragment', f.nextFragment);
 
       if (configuration.withImports) {
-        var imports =
-            f.libraryImports.where((import) {
-              return configuration.withSyntheticDartCoreImport ||
-                  !import.isSynthetic;
-            }).toList();
+        var imports = f.libraryImports.where((import) {
+          return configuration.withSyntheticDartCoreImport ||
+              !import.isSynthetic;
+        }).toList();
         _writeList('libraryImports', imports, _writeLibraryImport);
       }
       _writeList('prefixes', f.prefixes, _writePrefixElement);

@@ -150,9 +150,10 @@ class ServerCapabilitiesComputer {
   ServerCapabilitiesComputer(this._server);
 
   List<TextDocumentFilterScheme> get pluginTypes =>
-      _server.pluginManager.plugins
+      _server.pluginManager.pluginIsolates
           .expand(
-            (plugin) => plugin.currentSession?.interestingFiles ?? const [],
+            (isolate) =>
+                isolate.currentSession?.interestingFiles ?? const <String>[],
           )
           // All published plugins use something like `*.extension` as
           // interestingFiles. Prefix a `**/` so that the glob matches nested

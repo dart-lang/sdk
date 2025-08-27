@@ -268,9 +268,8 @@ Map<String, Map<String, AnalyzerErrorCodeInfo>> decodeAnalyzerMessagesYaml(
 
       AnalyzerErrorCodeInfo errorCodeInfo;
       try {
-        errorCodeInfo =
-            (result[className] ??=
-                {})[errorName] = AnalyzerErrorCodeInfo.fromYaml(errorValue);
+        errorCodeInfo = (result[className] ??= {})[errorName] =
+            AnalyzerErrorCodeInfo.fromYaml(errorValue);
       } catch (e, st) {
         Error.throwWithStackTrace(
           'while processing $className.$errorName, $e',
@@ -398,11 +397,10 @@ class AliasErrorCodeInfo extends AnalyzerErrorCodeInfo {
 
   String get aliasForClass => aliasFor.split('.').first;
 
-  String get aliasForFilePath =>
-      errorClasses
-          .firstWhere((element) => element.name == aliasForClass)
-          .file
-          .path;
+  String get aliasForFilePath => errorClasses
+      .firstWhere((element) => element.name == aliasForClass)
+      .file
+      .path;
 
   @override
   void toAnalyzerCode(
@@ -654,11 +652,10 @@ abstract class ErrorCodeInfo {
     this.removedIn,
     this.parameters,
   }) {
-    for (var MapEntry(:key, :value)
-        in {
-          'problemMessage': problemMessage,
-          'correctionMessage': correctionMessage,
-        }.entries) {
+    for (var MapEntry(:key, :value) in {
+      'problemMessage': problemMessage,
+      'correctionMessage': correctionMessage,
+    }.entries) {
       if (value == null) continue;
       if (value.contains(oldPlaceholderPattern)) {
         throw StateError(
@@ -762,9 +759,11 @@ abstract class ErrorCodeInfo {
       withArgumentsName = '_withArguments$pascalCaseName';
       templateParameters =
           '<LocatableDiagnostic Function({$withArgumentsParams})>';
-      var newIfNeeded =
-          errorClassInfo.file.shouldUseExplicitNewOrConst ? 'new ' : '';
-      memberAccumulator.staticMethods[withArgumentsName] = '''
+      var newIfNeeded = errorClassInfo.file.shouldUseExplicitNewOrConst
+          ? 'new '
+          : '';
+      memberAccumulator.staticMethods[withArgumentsName] =
+          '''
 static LocatableDiagnostic $withArgumentsName({$withArgumentsParams}) {
   return ${newIfNeeded}LocatableDiagnosticImpl($constantName, [$argumentNames]);
 }''';
@@ -817,7 +816,8 @@ static LocatableDiagnostic $withArgumentsName({$withArgumentsParams}) {
     memberAccumulator.constants[constantName] = constant.toString();
 
     if (errorClassInfo.deprecatedSnakeCaseNames.contains(diagnosticCode)) {
-      memberAccumulator.constants[diagnosticCode] = '''
+      memberAccumulator.constants[diagnosticCode] =
+          '''
   @Deprecated("Please use $constantName")
   static const ${errorClassInfo.name} $diagnosticCode = $constantName;
 ''';

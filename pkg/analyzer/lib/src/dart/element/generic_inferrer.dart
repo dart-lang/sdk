@@ -136,18 +136,17 @@ class GenericInferrer {
       for (var typeParameter in _constraints.keys)
         typeParameter: _squashConstraints(_constraints[typeParameter]!),
     };
-    var types =
-        _typeSystemOperations
-            .chooseTypes(
-              _typeFormals,
-              inferencePhaseConstraints,
-              _typesInferredSoFar,
-              preliminary: true,
-              inferenceUsingBoundsIsEnabled: inferenceUsingBoundsIsEnabled,
-              dataForTesting: null,
-              treeNodeForTesting: null,
-            )
-            .cast<TypeImpl>();
+    var types = _typeSystemOperations
+        .chooseTypes(
+          _typeFormals,
+          inferencePhaseConstraints,
+          _typesInferredSoFar,
+          preliminary: true,
+          inferenceUsingBoundsIsEnabled: inferenceUsingBoundsIsEnabled,
+          dataForTesting: null,
+          treeNodeForTesting: null,
+        )
+        .cast<TypeImpl>();
 
     // Mark type parameters with fully known inferred types as "fixed" in the
     // overall solution.
@@ -313,18 +312,17 @@ class GenericInferrer {
       for (var typeParameter in _constraints.keys)
         typeParameter: _squashConstraints(_constraints[typeParameter]!),
     };
-    var inferredTypes =
-        _typeSystemOperations
-            .chooseTypes(
-              _typeFormals,
-              inferencePhaseConstraints,
-              _typesInferredSoFar,
-              preliminary: false,
-              inferenceUsingBoundsIsEnabled: inferenceUsingBoundsIsEnabled,
-              dataForTesting: null,
-              treeNodeForTesting: null,
-            )
-            .cast<TypeImpl>();
+    var inferredTypes = _typeSystemOperations
+        .chooseTypes(
+          _typeFormals,
+          inferencePhaseConstraints,
+          _typesInferredSoFar,
+          preliminary: false,
+          inferenceUsingBoundsIsEnabled: inferenceUsingBoundsIsEnabled,
+          dataForTesting: null,
+          treeNodeForTesting: null,
+        )
+        .cast<TypeImpl>();
     // Check the inferred types against all of the constraints.
     var knownTypes = <TypeParameterElement, TypeImpl>{};
     var hasErrorReported = false;
@@ -451,12 +449,10 @@ class GenericInferrer {
           return null;
         }
 
-        var typeParamBound = Substitution.fromPairs2(
-          _typeFormals,
-          inferredTypes,
-        ).substituteType(
-          typeParam.bound ?? _typeSystem.typeProvider.objectType,
-        );
+        var typeParamBound =
+            Substitution.fromPairs2(_typeFormals, inferredTypes).substituteType(
+              typeParam.bound ?? _typeSystem.typeProvider.objectType,
+            );
         // TODO(jmesserly): improve this error message.
         _diagnosticReporter?.atEntity(
           errorEntity!,
@@ -606,10 +602,9 @@ class GenericInferrer {
             .element
             .metadata
             .hasOptionalTypeArgs) {
-      String constructorName =
-          errorEntity.name == null
-              ? errorEntity.type.qualifiedName
-              : '${errorEntity.type}.${errorEntity.name}';
+      String constructorName = errorEntity.name == null
+          ? errorEntity.type.qualifiedName
+          : '${errorEntity.type}.${errorEntity.name}';
       diagnosticReporter.atNode(
         errorEntity,
         WarningCode.inferenceFailureOnInstanceCreation,
@@ -620,10 +615,9 @@ class GenericInferrer {
         // Only report an error if generic metadata is valid syntax.
         var element = errorEntity.name.element;
         if (element != null && !element.metadata.hasOptionalTypeArgs) {
-          String constructorName =
-              errorEntity.constructorName == null
-                  ? errorEntity.name.name
-                  : '${errorEntity.name.name}.${errorEntity.constructorName}';
+          String constructorName = errorEntity.constructorName == null
+              ? errorEntity.name.name
+              : '${errorEntity.name.name}.${errorEntity.constructorName}';
           diagnosticReporter.atNode(
             errorEntity,
             WarningCode.inferenceFailureOnInstanceCreation,
@@ -765,10 +759,9 @@ class GenericInferrer {
     Iterable<MergedTypeConstraint> constraints,
     TypeSystemOperations typeSystemOperations,
   ) {
-    List<List<String>> lineParts =
-        Set<TypeConstraintOrigin>.from(
-          constraints.map((c) => c.origin),
-        ).map((o) => o.formatError(typeSystemOperations)).toList();
+    List<List<String>> lineParts = Set<TypeConstraintOrigin>.from(
+      constraints.map((c) => c.origin),
+    ).map((o) => o.formatError(typeSystemOperations)).toList();
 
     int prefixMax = lineParts.map((p) => p[0].length).fold(0, math.max);
 

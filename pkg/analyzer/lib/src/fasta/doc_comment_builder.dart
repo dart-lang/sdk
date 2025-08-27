@@ -484,8 +484,9 @@ final class DocCommentBuilder {
       }
     }
 
-    var infoString =
-        index == length ? null : _InfoString.parse(content.substring(index));
+    var infoString = index == length
+        ? null
+        : _InfoString.parse(content.substring(index));
     var fencedCodeBlockLines = <MdCodeBlockLine>[
       MdCodeBlockLine(
         offset: _characterSequence._offset,

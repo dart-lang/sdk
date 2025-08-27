@@ -570,29 +570,28 @@ class DartObjectImplTest {
   }
 
   void test_getValue_list_valid() {
-    var result =
-        _listValue(_typeProvider.intType, [_intValue(23)]).toListValue();
+    var result = _listValue(_typeProvider.intType, [
+      _intValue(23),
+    ]).toListValue();
     _assertInstanceOfObjectArray(result);
     List<Object> array = result as List<Object>;
     expect(array, hasLength(1));
   }
 
   void test_getValue_map_empty() {
-    var result =
-        _mapValue(
-          _typeProvider.intType,
-          _typeProvider.stringType,
-          [],
-        ).toMapValue();
+    var result = _mapValue(
+      _typeProvider.intType,
+      _typeProvider.stringType,
+      [],
+    ).toMapValue();
     expect(result, hasLength(0));
   }
 
   void test_getValue_map_valid() {
-    var result =
-        _mapValue(_typeProvider.stringType, _typeProvider.stringType, [
-          _stringValue("key"),
-          _stringValue("value"),
-        ]).toMapValue();
+    var result = _mapValue(_typeProvider.stringType, _typeProvider.stringType, [
+      _stringValue("key"),
+      _stringValue("value"),
+    ]).toMapValue();
     expect(result, hasLength(1));
   }
 
@@ -1151,10 +1150,9 @@ class DartObjectImplTest {
   }
 
   void test_identical_Type_functionType() {
-    var toStringType =
-        _typeProvider.objectType.methods
-            .firstWhere((e) => e.name == 'toString')
-            .type;
+    var toStringType = _typeProvider.objectType.methods
+        .firstWhere((e) => e.name == 'toString')
+        .type;
 
     _assertIdentical(
       _boolValue(true),

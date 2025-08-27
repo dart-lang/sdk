@@ -107,26 +107,23 @@ class RecordTypeAnnotationResolver {
   }
 
   void _buildType(RecordTypeAnnotationImpl node) {
-    var positionalFields =
-        node.positionalFields.map((field) {
-          return RecordTypePositionalFieldImpl(type: field.type.typeOrThrow);
-        }).toList();
+    var positionalFields = node.positionalFields.map((field) {
+      return RecordTypePositionalFieldImpl(type: field.type.typeOrThrow);
+    }).toList();
 
-    var namedFields =
-        node.namedFields?.fields.map((field) {
-          return RecordTypeNamedFieldImpl(
-            name: field.name.lexeme,
-            type: field.type.typeOrThrow,
-          );
-        }).toList();
+    var namedFields = node.namedFields?.fields.map((field) {
+      return RecordTypeNamedFieldImpl(
+        name: field.name.lexeme,
+        type: field.type.typeOrThrow,
+      );
+    }).toList();
 
     node.type = RecordTypeImpl(
       positionalFields: positionalFields,
       namedFields: namedFields ?? const [],
-      nullabilitySuffix:
-          node.question != null
-              ? NullabilitySuffix.question
-              : NullabilitySuffix.none,
+      nullabilitySuffix: node.question != null
+          ? NullabilitySuffix.question
+          : NullabilitySuffix.none,
     );
   }
 }

@@ -157,10 +157,9 @@ class YieldStatementResolver {
     if (elementType != null) {
       var contextType = elementType;
       if (node.star != null) {
-        contextType =
-            bodyContext.isSynchronous
-                ? _typeProvider.iterableType(elementType)
-                : _typeProvider.streamType(elementType);
+        contextType = bodyContext.isSynchronous
+            ? _typeProvider.iterableType(elementType)
+            : _typeProvider.streamType(elementType);
       }
       return contextType;
     } else {

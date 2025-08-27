@@ -597,8 +597,10 @@ class FolderTest extends OverlayTestSupport {
       path: provider.pathContext.join(child1.path, 'a.dart'),
       withOverlay: true,
     );
-    List<String> childPaths =
-        folder.getChildren().map((resource) => resource.path).toList();
+    List<String> childPaths = folder
+        .getChildren()
+        .map((resource) => resource.path)
+        .toList();
     expect(childPaths, equals([child1.path]));
   }
 
@@ -618,8 +620,10 @@ class FolderTest extends OverlayTestSupport {
       withOverlay: true,
       path: provider.pathContext.join(child1.path, 'b.dart'),
     );
-    List<String> childPaths =
-        folder.getChildren().map((resource) => resource.path).toList();
+    List<String> childPaths = folder
+        .getChildren()
+        .map((resource) => resource.path)
+        .toList();
     expect(childPaths, equals([child1.path]));
   }
 

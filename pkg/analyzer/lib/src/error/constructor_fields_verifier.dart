@@ -79,10 +79,9 @@ class ConstructorFieldsVerifier {
       if (element is EnumElement && field.name == 'index') {
         continue;
       }
-      fieldMap[field] =
-          field.hasInitializer
-              ? _InitState.initInDeclaration
-              : _InitState.notInit;
+      fieldMap[field] = field.hasInitializer
+          ? _InitState.initInDeclaration
+          : _InitState.notInit;
     }
 
     return _interfaces[element] = _Interface(

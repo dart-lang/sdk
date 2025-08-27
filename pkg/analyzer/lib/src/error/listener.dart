@@ -102,10 +102,9 @@ List<DiagnosticMessage> convertTypeNames(
         );
       }
 
-      arguments[typeToConvert.index] =
-          buffer != null
-              ? '${typeToConvert.displayName} ($buffer)'
-              : typeToConvert.displayName;
+      arguments[typeToConvert.index] = buffer != null
+          ? '${typeToConvert.displayName} ($buffer)'
+          : typeToConvert.displayName;
     }
   }
   return messages;
@@ -293,13 +292,12 @@ class DiagnosticReporter {
     diagnosticCode ??= errorCode!;
 
     if (arguments != null) {
-      var invalid =
-          arguments
-              .whereNotType<String>()
-              .whereNotType<DartType>()
-              .whereNotType<Element>()
-              .whereNotType<int>()
-              .whereNotType<Uri>();
+      var invalid = arguments
+          .whereNotType<String>()
+          .whereNotType<DartType>()
+          .whereNotType<Element>()
+          .whereNotType<int>()
+          .whereNotType<Uri>();
       if (invalid.isNotEmpty) {
         throw ArgumentError(
           'Tried to format a diagnostic using '
@@ -388,10 +386,9 @@ class DiagnosticReporter {
     contextMessages.addAll(
       convertTypeNames(
         arguments,
-        expectedTypes:
-            diagnosticCode is DiagnosticCodeWithExpectedTypes
-                ? diagnosticCode.expectedTypes
-                : null,
+        expectedTypes: diagnosticCode is DiagnosticCodeWithExpectedTypes
+            ? diagnosticCode.expectedTypes
+            : null,
       ),
     );
     return Diagnostic.tmp(

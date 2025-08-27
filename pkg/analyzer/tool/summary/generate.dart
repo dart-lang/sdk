@@ -205,8 +205,9 @@ class _BuilderGenerator extends _BaseGenerator {
 
   void generate() {
     String mixinName = '_${name}Mixin';
-    var implementsClause =
-        cls.isDeprecated ? '' : ' implements ${idlPrefix(name)}';
+    var implementsClause = cls.isDeprecated
+        ? ''
+        : ' implements ${idlPrefix(name)}';
     out('class $builderName extends Object with $mixinName$implementsClause {');
     indent(() {
       _generateFields();
@@ -254,11 +255,11 @@ class _BuilderGenerator extends _BaseGenerator {
     }
 
     indent(() {
-      List<idl_model.FieldDeclaration> sortedFields =
-          cls.fields.toList()..sort(
-            (idl_model.FieldDeclaration a, idl_model.FieldDeclaration b) =>
-                a.id.compareTo(b.id),
-          );
+      List<idl_model.FieldDeclaration> sortedFields = cls.fields.toList()
+        ..sort(
+          (idl_model.FieldDeclaration a, idl_model.FieldDeclaration b) =>
+              a.id.compareTo(b.id),
+        );
       for (idl_model.FieldDeclaration field in sortedFields) {
         writeField(field);
       }
@@ -1088,8 +1089,8 @@ class _MixinGenerator extends _BaseGenerator {
           // strings so that we don't have to do this kludge.
           convertItem = (String name) => "$name.toString().split('.')[1]";
         } else if (type.typeName == 'double') {
-          convertItem =
-              (String name) => '$name.isFinite ? $name : $name.toString()';
+          convertItem = (String name) =>
+              '$name.isFinite ? $name : $name.toString()';
         }
         String convertField;
         if (convertItem == null) {

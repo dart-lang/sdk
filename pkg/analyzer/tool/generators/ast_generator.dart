@@ -35,8 +35,9 @@ class _Generator {
       'package:analyzer/src/generated/utilities_dart.dart',
     );
     utilitiesLibraryResult as LibraryElementResult;
-    parameterKindClass =
-        utilitiesLibraryResult.element.getClass('ParameterKind')!;
+    parameterKindClass = utilitiesLibraryResult.element.getClass(
+      'ParameterKind',
+    )!;
 
     await _buildImplClasses(astUnitResult);
     _removeGeneratedMembers(astUnitResult);
@@ -50,18 +51,17 @@ class _Generator {
 
   Future<_ImplClass?> _buildImplClass(ClassDeclarationImpl nodeImpl) async {
     var classElement = nodeImpl.declaredFragment!.element;
-    var generateObject =
-        classElement.metadata.annotations
-            .map((annotation) {
-              var generateObject = annotation.computeConstantValue();
-              var generateObjectType = generateObject?.type;
-              if (generateObjectType?.element?.name != 'GenerateNodeImpl') {
-                return null;
-              }
-              return generateObject;
-            })
-            .nonNulls
-            .firstOrNull;
+    var generateObject = classElement.metadata.annotations
+        .map((annotation) {
+          var generateObject = annotation.computeConstantValue();
+          var generateObjectType = generateObject?.type;
+          if (generateObjectType?.element?.name != 'GenerateNodeImpl') {
+            return null;
+          }
+          return generateObject;
+        })
+        .nonNulls
+        .firstOrNull;
     if (generateObject == null) {
       return null;
     }
@@ -81,49 +81,47 @@ class _Generator {
 
     var inheritanceManager = classElement.inheritanceManager;
 
-    var properties =
-        entities
-            .map((entity) {
-              var propertyName = entity.getField('name')!.toStringValue()!;
-              var isSuper = entity.getField('isSuper')!.toBoolValue()!;
-              var withOverride =
-                  entity.getField('withOverride')!.toBoolValue()!;
-              var isTokenFinal =
-                  entity.getField('isTokenFinal')!.toBoolValue()!;
-              var superNullAssertOverride =
-                  entity.getField('superNullAssertOverride')!.toBoolValue()!;
-              var tokenGroupId = entity.getField('tokenGroupId')!.toIntValue();
-              var type = entity.getField('type')!.toTypeValue();
+    var properties = entities
+        .map((entity) {
+          var propertyName = entity.getField('name')!.toStringValue()!;
+          var isSuper = entity.getField('isSuper')!.toBoolValue()!;
+          var withOverride = entity.getField('withOverride')!.toBoolValue()!;
+          var isTokenFinal = entity.getField('isTokenFinal')!.toBoolValue()!;
+          var superNullAssertOverride = entity
+              .getField('superNullAssertOverride')!
+              .toBoolValue()!;
+          var tokenGroupId = entity.getField('tokenGroupId')!.toIntValue();
+          var type = entity.getField('type')!.toTypeValue();
 
-              if (type == null) {
-                var member = inheritanceManager.getMember(
-                  interfaceElement,
-                  Name(null, propertyName),
-                );
-                if (member case GetterElement getter) {
-                  type = getter.returnType;
-                } else {
-                  throw StateError('$propertyName: ${member.runtimeType}');
-                }
-              }
-              type as InterfaceType;
+          if (type == null) {
+            var member = inheritanceManager.getMember(
+              interfaceElement,
+              Name(null, propertyName),
+            );
+            if (member case GetterElement getter) {
+              type = getter.returnType;
+            } else {
+              throw StateError('$propertyName: ${member.runtimeType}');
+            }
+          }
+          type as InterfaceType;
 
-              var kind = _PropertyTypeKind.fromType(type);
-              if (kind is _PropertyTypeKindToken) {
-                kind.isWritable = !isTokenFinal;
-                kind.groupId = tokenGroupId;
-              }
-              return _Property(
-                name: propertyName,
-                isSuper: isSuper,
-                withOverride: withOverride,
-                withOverrideSuperNotNull: superNullAssertOverride,
-                type: type,
-                typeKind: kind,
-              );
-            })
-            .nonNulls
-            .toList();
+          var kind = _PropertyTypeKind.fromType(type);
+          if (kind is _PropertyTypeKindToken) {
+            kind.isWritable = !isTokenFinal;
+            kind.groupId = tokenGroupId;
+          }
+          return _Property(
+            name: propertyName,
+            isSuper: isSuper,
+            withOverride: withOverride,
+            withOverrideSuperNotNull: superNullAssertOverride,
+            type: type,
+            typeKind: kind,
+          );
+        })
+        .nonNulls
+        .toList();
 
     return _ImplClass(
       node: nodeImpl,

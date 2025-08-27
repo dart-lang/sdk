@@ -70,8 +70,9 @@ mixin ErrorDetectionHelpers {
     Map<SharedTypeView, NonPromotionReason> Function()? whyNotPromoted,
   }) {
     _checkForArgumentTypeNotAssignableForArgument(
-      argument:
-          argument is NamedExpressionImpl ? argument.expression : argument,
+      argument: argument is NamedExpressionImpl
+          ? argument.expression
+          : argument,
       parameter: argument.correspondingParameter,
       promoteParameterToNullable: promoteParameterToNullable,
       whyNotPromoted: whyNotPromoted,

@@ -142,7 +142,8 @@ void group(String s, void Function() f) {}
 ''';
     provider.setOverlay(
       snippetPath,
-      content: '''
+      content:
+          '''
 $imports
 $snippet
 ''',

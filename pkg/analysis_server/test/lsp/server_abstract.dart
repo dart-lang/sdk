@@ -10,7 +10,7 @@ import 'package:analysis_server/src/legacy_analysis_server.dart';
 import 'package:analysis_server/src/lsp/client_capabilities.dart';
 import 'package:analysis_server/src/lsp/constants.dart';
 import 'package:analysis_server/src/lsp/lsp_analysis_server.dart';
-import 'package:analysis_server/src/plugin/plugin_manager.dart';
+import 'package:analysis_server/src/plugin/plugin_isolate.dart';
 import 'package:analysis_server/src/server/crash_reporting_attachments.dart';
 import 'package:analysis_server/src/server/error_notifier.dart';
 import 'package:analysis_server/src/services/user_prompts/dart_fix_prompt_manager.dart';
@@ -99,28 +99,28 @@ abstract class AbstractLspAnalysisServerTest
   @override
   ClientUriConverter get uriConverter => server.uriConverter;
 
-  PluginInfo configureTestPlugin({
+  PluginIsolate configureTestPlugin({
     plugin.ResponseResult? respondWith,
     plugin.Notification? notification,
     plugin.ResponseResult? Function(plugin.RequestParams)? handler,
     Duration respondAfter = Duration.zero,
   }) {
-    var info = PluginInfo(
+    var pluginIsolate = PluginIsolate(
       'a',
       'b',
       'c',
       server.notificationManager,
       server.instrumentationService,
     );
-    pluginManager.plugins.add(info);
+    pluginManager.pluginIsolates.add(pluginIsolate);
 
     if (handler != null) {
       pluginManager.handleRequest = (request) {
         var response = handler(request);
         return response == null
             ? null
-            : <PluginInfo, Future<plugin.Response>>{
-              info: Future.delayed(
+            : {
+              pluginIsolate: Future.delayed(
                 respondAfter,
               ).then((_) => response.toResponse('-', 1)),
             };
@@ -128,8 +128,8 @@ abstract class AbstractLspAnalysisServerTest
     }
 
     if (respondWith != null) {
-      pluginManager.broadcastResults = <PluginInfo, Future<plugin.Response>>{
-        info: Future.delayed(
+      pluginManager.broadcastResults = {
+        pluginIsolate: Future.delayed(
           respondAfter,
         ).then((_) => respondWith.toResponse('-', 1)),
       };
@@ -137,12 +137,12 @@ abstract class AbstractLspAnalysisServerTest
 
     if (notification != null) {
       server.notificationManager.handlePluginNotification(
-        info.pluginId,
+        pluginIsolate.pluginId,
         notification,
       );
     }
 
-    return info;
+    return pluginIsolate;
   }
 
   /// Returns a matcher that checks that the input matches [expected] after

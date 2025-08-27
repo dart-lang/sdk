@@ -410,11 +410,10 @@ class SubstituteTest extends _Base {
       InterfaceType typeArgument,
       InterfaceType expectedType,
     ) {
-      var result = Substitution.fromMap({
-        tElement: typeArgument,
-      }).substituteType(
-        tElement.instantiate(nullabilitySuffix: typeParameterNullability),
-      );
+      var result = Substitution.fromMap({tElement: typeArgument})
+          .substituteType(
+            tElement.instantiate(nullabilitySuffix: typeParameterNullability),
+          );
       expect(result, expectedType);
     }
 

@@ -67,10 +67,11 @@ class AbstractRecoveryTest extends FastaParserTestCase {
     var method = astBuilder.members.whereType<MethodDeclaration>().firstWhere(
       (x) => x.name.lexeme == 'reportMessage',
     );
-    SwitchStatement statement =
-        (method.body as BlockFunctionBody).block.statements
-            .whereType<SwitchStatement>()
-            .first;
+    SwitchStatement statement = (method.body as BlockFunctionBody)
+        .block
+        .statements
+        .whereType<SwitchStatement>()
+        .first;
     expect(statement, isNotNull);
     List<String> codes = <String>[];
     for (SwitchMember member in statement.members) {

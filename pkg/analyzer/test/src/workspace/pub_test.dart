@@ -79,12 +79,11 @@ class PackageBuildFileUriResolverTest with ResourceProviderMixin {
       config.toContent(pathContext: pathContext),
     );
 
-    workspace =
-        PackageConfigWorkspace.find(
-          resourceProvider,
-          Packages.empty,
-          convertPath(testPackageRootPath),
-        )!;
+    workspace = PackageConfigWorkspace.find(
+      resourceProvider,
+      Packages.empty,
+      convertPath(testPackageRootPath),
+    )!;
     resolver = PackageConfigFileUriResolver(workspace);
     expect(workspace.isBlaze, isFalse);
   }
@@ -150,10 +149,9 @@ class PackageBuildPackageUriResolverTest with ResourceProviderMixin {
 
   Uri addPackageSource(String path, String uriStr, {bool create = true}) {
     Uri uri = Uri.parse(uriStr);
-    var file =
-        create
-            ? newFile(path, '')
-            : resourceProvider.getResource(convertPath(path)) as File;
+    var file = create
+        ? newFile(path, '')
+        : resourceProvider.getResource(convertPath(path)) as File;
     packageUriResolver.add(uri, file);
     return uri;
   }
@@ -232,12 +230,11 @@ class PackageBuildPackageUriResolverTest with ResourceProviderMixin {
       workspacePath,
       config.toContent(pathContext: pathContext),
     );
-    workspace =
-        PackageConfigWorkspace.find(
-          resourceProvider,
-          Packages.empty,
-          convertPath(workspacePath),
-        )!;
+    workspace = PackageConfigWorkspace.find(
+      resourceProvider,
+      Packages.empty,
+      convertPath(workspacePath),
+    )!;
     packageUriResolver = MockUriResolver();
     resolver = PackageConfigPackageUriResolver(workspace, packageUriResolver);
   }
@@ -612,12 +609,11 @@ class PubPackageTest extends WorkspacePackageTest {
       '/workspace',
       config.toContent(pathContext: pathContext),
     );
-    workspace =
-        PackageConfigWorkspace.find(
-          resourceProvider,
-          Packages.empty,
-          convertPath('/workspace'),
-        )!;
+    workspace = PackageConfigWorkspace.find(
+      resourceProvider,
+      Packages.empty,
+      convertPath('/workspace'),
+    )!;
     expect(workspace.isBlaze, isFalse);
 
     // workspace 2 with packages 'my' and 'foo'
@@ -630,12 +626,11 @@ class PubPackageTest extends WorkspacePackageTest {
       config.toContent(pathContext: pathContext),
     );
     newFolder(myPackageGeneratedPath);
-    myWorkspace =
-        PackageConfigWorkspace.find(
-          resourceProvider,
-          Packages.empty,
-          convertPath(myPackageRootPath),
-        )!;
+    myWorkspace = PackageConfigWorkspace.find(
+      resourceProvider,
+      Packages.empty,
+      convertPath(myPackageRootPath),
+    )!;
     var fakeFile = getFile('$myPackageLibPath/fake.dart');
     myPackage = myWorkspace.findPackageFor(fakeFile.path)!;
   }
@@ -725,35 +720,33 @@ class PubPackageTest extends WorkspacePackageTest {
   }
 
   test_findPackageFor_my_generated_libFile() {
-    var package =
-        myWorkspace.findPackageFor(
-          convertPath('$myPackageGeneratedPath/my/lib/a.dart'),
-        )!;
+    var package = myWorkspace.findPackageFor(
+      convertPath('$myPackageGeneratedPath/my/lib/a.dart'),
+    )!;
     expect(package.root.path, convertPath(myPackageRootPath));
     expect(package.workspace, myWorkspace);
   }
 
   test_findPackageFor_my_generated_testFile() {
-    var package =
-        myWorkspace.findPackageFor(
-          convertPath('$myPackageGeneratedPath/my/test/a.dart'),
-        )!;
+    var package = myWorkspace.findPackageFor(
+      convertPath('$myPackageGeneratedPath/my/test/a.dart'),
+    )!;
     expect(package.root.path, convertPath(myPackageRootPath));
     expect(package.workspace, myWorkspace);
   }
 
   test_findPackageFor_my_libFile() {
-    var package =
-        myWorkspace.findPackageFor(convertPath('$myPackageLibPath/a.dart'))!;
+    var package = myWorkspace.findPackageFor(
+      convertPath('$myPackageLibPath/a.dart'),
+    )!;
     expect(package.root.path, convertPath(myPackageRootPath));
     expect(package.workspace, myWorkspace);
   }
 
   test_findPackageFor_my_testFile() {
-    var package =
-        myWorkspace.findPackageFor(
-          convertPath('$myPackageRootPath/test/a.dart'),
-        )!;
+    var package = myWorkspace.findPackageFor(
+      convertPath('$myPackageRootPath/test/a.dart'),
+    )!;
     expect(package.root.path, convertPath(myPackageRootPath));
     expect(package.workspace, myWorkspace);
   }

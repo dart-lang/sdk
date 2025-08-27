@@ -377,10 +377,9 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
       resolver: this,
       diagnosticReporter: diagnosticReporter,
       typeSystem: typeSystem,
-      dataForTesting:
-          flowAnalysis.dataForTesting != null
-              ? TypeConstraintGenerationDataForTesting()
-              : null,
+      dataForTesting: flowAnalysis.dataForTesting != null
+          ? TypeConstraintGenerationDataForTesting()
+          : null,
     );
     _binaryExpressionResolver = BinaryExpressionResolver(resolver: this);
     _functionExpressionInvocationResolver =
@@ -520,8 +519,9 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     for (int i = 0; i < arguments.length; i++) {
       checkForArgumentTypeNotAssignableForArgument(
         arguments[i],
-        whyNotPromoted:
-            flowAnalysis.flow == null ? null : whyNotPromotedArguments[i],
+        whyNotPromoted: flowAnalysis.flow == null
+            ? null
+            : whyNotPromotedArguments[i],
       );
     }
   }
@@ -1448,8 +1448,9 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
       var whyNotPromoted = flowAnalysis.flow?.whyNotPromoted(node.index);
       checkIndexExpressionIndex(
         node.index,
-        readElement:
-            hasRead ? result.readElement2 as InternalExecutableElement? : null,
+        readElement: hasRead
+            ? result.readElement2 as InternalExecutableElement?
+            : null,
         writeElement: result.writeElement2 as InternalExecutableElement?,
         whyNotPromoted: whyNotPromoted,
       );
@@ -1696,8 +1697,9 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     Element? element, {
     required bool atDynamicTarget,
   }) {
-    var readType =
-        atDynamicTarget ? DynamicTypeImpl.instance : InvalidTypeImpl.instance;
+    var readType = atDynamicTarget
+        ? DynamicTypeImpl.instance
+        : InvalidTypeImpl.instance;
     if (node is IndexExpression) {
       if (element is InternalMethodElement) {
         readType = element.returnType;
@@ -1744,8 +1746,9 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     Element? element, {
     required bool atDynamicTarget,
   }) {
-    var writeType =
-        atDynamicTarget ? DynamicTypeImpl.instance : InvalidTypeImpl.instance;
+    var writeType = atDynamicTarget
+        ? DynamicTypeImpl.instance
+        : InvalidTypeImpl.instance;
     if (node is IndexExpression) {
       if (element is InternalMethodElement) {
         var parameters = element.formalParameters;
@@ -2583,10 +2586,9 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
         } else if (definingLibrary.featureSet.isEnabled(
           Feature.enhanced_enums,
         )) {
-          var requiredParameterCount =
-              constructorElement.formalParameters
-                  .where((e) => e.isRequiredPositional)
-                  .length;
+          var requiredParameterCount = constructorElement.formalParameters
+              .where((e) => e.isRequiredPositional)
+              .length;
           if (requiredParameterCount != 0) {
             _reportNotEnoughPositionalArguments(
               token: node.name,
@@ -2656,12 +2658,11 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   }) {
     var oldBodyContext = _bodyContext;
     try {
-      var bodyContext =
-          _bodyContext = BodyInferenceContext(
-            typeSystem: typeSystem,
-            node: node,
-            imposedType: imposedType,
-          );
+      var bodyContext = _bodyContext = BodyInferenceContext(
+        typeSystem: typeSystem,
+        node: node,
+        imposedType: imposedType,
+      );
 
       checkUnreachableNode(node);
       analyzeExpression(
@@ -2735,21 +2736,20 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
       contextType: UnknownInferredType.instance,
       whyNotPromotedArguments: whyNotPromotedArguments,
     ).resolveInvocation(
-      rawType:
-          receiverContextType == null
-              ? null
-              : FunctionTypeImpl.v2(
-                typeParameters: const [],
-                formalParameters: [
-                  FormalParameterElementImpl.synthetic(
-                    null,
-                    receiverContextType,
-                    ParameterKind.REQUIRED,
-                  ),
-                ],
-                returnType: DynamicTypeImpl.instance,
-                nullabilitySuffix: NullabilitySuffix.none,
-              ),
+      rawType: receiverContextType == null
+          ? null
+          : FunctionTypeImpl.v2(
+              typeParameters: const [],
+              formalParameters: [
+                FormalParameterElementImpl.synthetic(
+                  null,
+                  receiverContextType,
+                  ParameterKind.REQUIRED,
+                ),
+              ],
+              returnType: DynamicTypeImpl.instance,
+              nullabilitySuffix: NullabilitySuffix.none,
+            ),
     );
 
     extensionResolver.resolveOverride(node, whyNotPromotedArguments);
@@ -3557,8 +3557,8 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
       node.pattern,
       node.expression,
     );
-    node.patternTypeSchema =
-        analysisResult.patternSchema.unwrapTypeSchemaView();
+    node.patternTypeSchema = analysisResult.patternSchema
+        .unwrapTypeSchemaView();
     node.recordStaticType(
       // TODO(paulberry): make this type argument unnecessary by changing the
       // parameter of `ExpressionImpl.recordStaticType` to `TypeImpl`.
@@ -3573,13 +3573,12 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   void visitPatternVariableDeclaration(
     covariant PatternVariableDeclarationImpl node,
   ) {
-    var patternSchema =
-        analyzePatternVariableDeclaration(
-          node,
-          node.pattern,
-          node.expression,
-          isFinal: node.keyword.keyword == Keyword.FINAL,
-        ).patternSchema;
+    var patternSchema = analyzePatternVariableDeclaration(
+      node,
+      node.pattern,
+      node.expression,
+      isFinal: node.keyword.keyword == Keyword.FINAL,
+    ).patternSchema;
     node.patternTypeSchema = patternSchema.unwrapTypeSchemaView();
     popRewrite(); // expression
   }
@@ -3959,13 +3958,12 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   }) {
     inferenceLogWriter?.enterExpression(node, contextType);
     var previousExhaustiveness = legacySwitchExhaustiveness;
-    var staticType =
-        analyzeSwitchExpression(
-          node,
-          node.expression,
-          node.cases.length,
-          SharedTypeSchemaView(contextType),
-        ).type.unwrapTypeView<TypeImpl>();
+    var staticType = analyzeSwitchExpression(
+      node,
+      node.expression,
+      node.cases.length,
+      SharedTypeSchemaView(contextType),
+    ).type.unwrapTypeView<TypeImpl>();
     node.recordStaticType(staticType, resolver: this);
     popRewrite();
     legacySwitchExhaustiveness = previousExhaustiveness;
@@ -4750,10 +4748,9 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
       name = declaredElement.type.getDisplayString();
     } else if (nameNode is Annotation) {
       var nameNodeName = nameNode.name;
-      name =
-          nameNodeName is PrefixedIdentifier
-              ? nameNodeName.identifier.name
-              : '${nameNodeName.name}.new';
+      name = nameNodeName is PrefixedIdentifier
+          ? nameNodeName.identifier.name
+          : '${nameNodeName.name}.new';
     } else if (nameNode is DotShorthandConstructorInvocation) {
       name = nameNode.constructorName.name;
     } else if (nameNode is DotShorthandInvocation) {
@@ -4770,15 +4767,13 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     }
     DiagnosticCode diagnosticCode;
     if (name == null) {
-      diagnosticCode =
-          isPlural
-              ? CompileTimeErrorCode.notEnoughPositionalArgumentsPlural
-              : CompileTimeErrorCode.notEnoughPositionalArgumentsSingular;
+      diagnosticCode = isPlural
+          ? CompileTimeErrorCode.notEnoughPositionalArgumentsPlural
+          : CompileTimeErrorCode.notEnoughPositionalArgumentsSingular;
     } else {
-      diagnosticCode =
-          isPlural
-              ? CompileTimeErrorCode.notEnoughPositionalArgumentsNamePlural
-              : CompileTimeErrorCode.notEnoughPositionalArgumentsNameSingular;
+      diagnosticCode = isPlural
+          ? CompileTimeErrorCode.notEnoughPositionalArgumentsNamePlural
+          : CompileTimeErrorCode.notEnoughPositionalArgumentsNameSingular;
       arguments.add(name);
     }
     diagnosticReporter.atToken(token, diagnosticCode, arguments: arguments);

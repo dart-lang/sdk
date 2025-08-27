@@ -406,8 +406,8 @@ class RecoveryParserTest extends FastaParserTestCase {
 class A {}
 class B = Object with A {}''',
       codes:
-      // TODO(danrubel): Consolidate and improve error message.
-      [ParserErrorCode.expectedExecutable, ParserErrorCode.expectedToken],
+          // TODO(danrubel): Consolidate and improve error message.
+          [ParserErrorCode.expectedExecutable, ParserErrorCode.expectedToken],
     );
   }
 

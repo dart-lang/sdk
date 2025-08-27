@@ -633,8 +633,9 @@ main() { // missing async
 
   void test_defaultValueInFunctionType_named_colon() {
     createParser('({int x : 0})');
-    FormalParameter parameter =
-        parser.parseFormalParameterList(inFunctionType: true).parameters[0];
+    FormalParameter parameter = parser
+        .parseFormalParameterList(inFunctionType: true)
+        .parameters[0];
     expectNotNullIfNoErrors(parameter);
     listener.assertErrors([
       expectedError(ParserErrorCode.defaultValueInFunctionType, 8, 1),
@@ -643,8 +644,9 @@ main() { // missing async
 
   void test_defaultValueInFunctionType_named_equal() {
     createParser('({int x = 0})');
-    FormalParameter parameter =
-        parser.parseFormalParameterList(inFunctionType: true).parameters[0];
+    FormalParameter parameter = parser
+        .parseFormalParameterList(inFunctionType: true)
+        .parameters[0];
     expectNotNullIfNoErrors(parameter);
     listener.assertErrors([
       expectedError(ParserErrorCode.defaultValueInFunctionType, 8, 1),
@@ -653,8 +655,9 @@ main() { // missing async
 
   void test_defaultValueInFunctionType_positional() {
     createParser('([int x = 0])');
-    FormalParameter parameter =
-        parser.parseFormalParameterList(inFunctionType: true).parameters[0];
+    FormalParameter parameter = parser
+        .parseFormalParameterList(inFunctionType: true)
+        .parameters[0];
     expectNotNullIfNoErrors(parameter);
     listener.assertErrors([
       expectedError(ParserErrorCode.defaultValueInFunctionType, 8, 1),
@@ -2416,8 +2419,9 @@ class Wrong<T> {
 
   void test_missingNameForNamedParameter_colon() {
     createParser('({int : 0})');
-    FormalParameter parameter =
-        parser.parseFormalParameterList(inFunctionType: true).parameters[0];
+    FormalParameter parameter = parser
+        .parseFormalParameterList(inFunctionType: true)
+        .parameters[0];
     expectNotNullIfNoErrors(parameter);
     listener.assertErrors([
       expectedError(ParserErrorCode.missingIdentifier, 6, 1),
@@ -2428,8 +2432,9 @@ class Wrong<T> {
 
   void test_missingNameForNamedParameter_equals() {
     createParser('({int = 0})');
-    FormalParameter parameter =
-        parser.parseFormalParameterList(inFunctionType: true).parameters[0];
+    FormalParameter parameter = parser
+        .parseFormalParameterList(inFunctionType: true)
+        .parameters[0];
     expectNotNullIfNoErrors(parameter);
     listener.assertErrors([
       expectedError(ParserErrorCode.missingIdentifier, 6, 1),
@@ -2440,8 +2445,9 @@ class Wrong<T> {
 
   void test_missingNameForNamedParameter_noDefault() {
     createParser('({int})');
-    FormalParameter parameter =
-        parser.parseFormalParameterList(inFunctionType: true).parameters[0];
+    FormalParameter parameter = parser
+        .parseFormalParameterList(inFunctionType: true)
+        .parameters[0];
     expectNotNullIfNoErrors(parameter);
     listener.assertErrors([
       expectedError(ParserErrorCode.missingIdentifier, 5, 1),

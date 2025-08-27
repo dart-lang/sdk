@@ -352,10 +352,9 @@ class _ClassVerifier {
           superMember: interfaceElement,
           diagnosticReporter: reporter,
           errorNode: classNameToken,
-          diagnosticCode:
-              concreteElement is InternalSetterElement
-                  ? CompileTimeErrorCode.invalidImplementationOverrideSetter
-                  : CompileTimeErrorCode.invalidImplementationOverride,
+          diagnosticCode: concreteElement is InternalSetterElement
+              ? CompileTimeErrorCode.invalidImplementationOverrideSetter
+              : CompileTimeErrorCode.invalidImplementationOverride,
         );
       }
 
@@ -406,10 +405,9 @@ class _ClassVerifier {
         superMember: superMember,
         diagnosticReporter: reporter,
         errorNode: node,
-        diagnosticCode:
-            member is SetterElement
-                ? CompileTimeErrorCode.invalidOverrideSetter
-                : CompileTimeErrorCode.invalidOverride,
+        diagnosticCode: member is SetterElement
+            ? CompileTimeErrorCode.invalidOverrideSetter
+            : CompileTimeErrorCode.invalidOverride,
       );
     }
 
@@ -985,17 +983,16 @@ class _ClassVerifier {
     }
 
     _missingMustBeOverridden[classNameToken] = notOverridden.toList();
-    var namesForError =
-        notOverridden
-            .map((e) {
-              var name = e.name!;
-              if (name.endsWith('=')) {
-                name = name.substring(0, name.length - 1);
-              }
-              return name;
-            })
-            .toSet()
-            .toList();
+    var namesForError = notOverridden
+        .map((e) {
+          var name = e.name!;
+          if (name.endsWith('=')) {
+            name = name.substring(0, name.length - 1);
+          }
+          return name;
+        })
+        .toSet()
+        .toList();
 
     if (namesForError.length == 1) {
       reporter.atToken(

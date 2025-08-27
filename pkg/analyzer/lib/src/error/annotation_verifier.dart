@@ -297,8 +297,10 @@ class AnnotationVerifier {
   /// `@internal` annotation.
   void _checkInternal(Annotation node) {
     var parent = node.parent;
-    var parentElement =
-        parent.ifTypeOrNull<Declaration>()?.declaredFragment?.element;
+    var parentElement = parent
+        .ifTypeOrNull<Declaration>()
+        ?.declaredFragment
+        ?.element;
     var parentElementIsPrivate = parentElement?.isPrivate ?? false;
     if (parent is TopLevelVariableDeclaration) {
       for (var variable in parent.variables.variables) {
@@ -356,8 +358,8 @@ class AnnotationVerifier {
             name = '$className.$name';
           }
         }
-        var kindNames =
-            kinds.map((kind) => kind.displayString).toList()..sort();
+        var kindNames = kinds.map((kind) => kind.displayString).toList()
+          ..sort();
         var validKinds = kindNames.commaSeparatedWithOr;
         _diagnosticReporter.atNode(
           node.name,
@@ -504,10 +506,9 @@ class AnnotationVerifier {
         name = parent.name.lexeme;
       }
       if (name != null) {
-        var parameterName =
-            undefinedParameter is SimpleStringLiteral
-                ? undefinedParameter.value
-                : undefinedParameter.correspondingParameter?.name;
+        var parameterName = undefinedParameter is SimpleStringLiteral
+            ? undefinedParameter.value
+            : undefinedParameter.correspondingParameter?.name;
         _diagnosticReporter.atNode(
           undefinedParameter,
           WarningCode.undefinedReferencedParameter,
@@ -651,11 +652,10 @@ class AnnotationVerifier {
       return null;
     }
 
-    var unlessParam =
-        element
-            .computeConstantValue()
-            ?.getField('parameterDefined')
-            ?.toStringValue();
+    var unlessParam = element
+        .computeConstantValue()
+        ?.getField('parameterDefined')
+        ?.toStringValue();
     if (unlessParam == null) {
       return null;
     }

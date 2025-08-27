@@ -62,8 +62,9 @@ class InstanceCreationExpressionResolver {
     DotShorthandConstructorInvocationImpl node, {
     required TypeImpl contextType,
   }) {
-    TypeImpl dotShorthandContextType =
-        _resolver.getDotShorthandContext().unwrapTypeSchemaView();
+    TypeImpl dotShorthandContextType = _resolver
+        .getDotShorthandContext()
+        .unwrapTypeSchemaView();
 
     // The static namespace denoted by `S` is also the namespace denoted by
     // `FutureOr<S>`.
@@ -138,17 +139,18 @@ class InstanceCreationExpressionResolver {
       constructorName: node.constructorName,
       definingLibrary: _resolver.definingLibrary,
     );
-    var returnType = DotShorthandConstructorInvocationInferrer(
-      resolver: _resolver,
-      node: node,
-      argumentList: node.argumentList,
-      contextType: contextType,
-      whyNotPromotedArguments: whyNotPromotedArguments,
-    ).resolveInvocation(
-      // TODO(paulberry): eliminate this cast by changing the type of
-      // `ConstructorElementToInfer.asType`.
-      rawType: elementToInfer?.asType as FunctionTypeImpl?,
-    );
+    var returnType =
+        DotShorthandConstructorInvocationInferrer(
+          resolver: _resolver,
+          node: node,
+          argumentList: node.argumentList,
+          contextType: contextType,
+          whyNotPromotedArguments: whyNotPromotedArguments,
+        ).resolveInvocation(
+          // TODO(paulberry): eliminate this cast by changing the type of
+          // `ConstructorElementToInfer.asType`.
+          rawType: elementToInfer?.asType as FunctionTypeImpl?,
+        );
     node.recordStaticType(returnType, resolver: _resolver);
     _resolver.checkForArgumentTypesNotAssignableInList(
       node.argumentList,

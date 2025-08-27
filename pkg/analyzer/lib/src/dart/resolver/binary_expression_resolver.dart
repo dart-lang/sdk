@@ -146,10 +146,9 @@ class BinaryExpressionResolver {
     );
 
     void reportNullComparison(SyntacticEntity start, SyntacticEntity end) {
-      var errorCode =
-          notEqual
-              ? WarningCode.unnecessaryNullComparisonAlwaysNullFalse
-              : WarningCode.unnecessaryNullComparisonAlwaysNullTrue;
+      var errorCode = notEqual
+          ? WarningCode.unnecessaryNullComparisonAlwaysNullFalse
+          : WarningCode.unnecessaryNullComparisonAlwaysNullTrue;
       var offset = start.offset;
       _diagnosticReporter.atOffset(
         offset: offset,
@@ -215,10 +214,9 @@ class BinaryExpressionResolver {
     var t = _typeSystem.leastUpperBound(nonNullT1, t2);
 
     // - Let `S` be the greatest closure of `K`.
-    var s =
-        _resolver.operations
-            .greatestClosureOfSchema(SharedTypeSchemaView(contextType))
-            .unwrapTypeView<TypeImpl>();
+    var s = _resolver.operations
+        .greatestClosureOfSchema(SharedTypeSchemaView(contextType))
+        .unwrapTypeView<TypeImpl>();
 
     DartType staticType;
     // If `inferenceUpdate3` is not enabled, then the type of `E` is `T`.

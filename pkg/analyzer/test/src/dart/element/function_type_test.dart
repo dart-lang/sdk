@@ -287,7 +287,10 @@ class FunctionTypeTest extends AbstractTypeSystemTest {
       (i) => FunctionTypeImpl(
         typeParameters: const [],
         parameters: [
-          namedParameter(name: 'x', type: class_(name: 'C$i').element.thisType),
+          namedParameter(
+            name: 'x',
+            type: class_(name: 'C$i').element.thisType,
+          ),
         ],
         returnType: typeProvider.voidType,
         nullabilitySuffix: NullabilitySuffix.none,

@@ -870,8 +870,9 @@ mixin _AnalysisDriverUnitErrorMixin implements idl.AnalysisDriverUnitError {
     Map<String, Object> result = <String, Object>{};
     var local_contextMessages = contextMessages;
     if (local_contextMessages.isNotEmpty) {
-      result["contextMessages"] =
-          local_contextMessages.map((value) => value.toJson()).toList();
+      result["contextMessages"] = local_contextMessages
+          .map((value) => value.toJson())
+          .toList();
     }
     var local_correction = correction;
     if (local_correction != '') {
@@ -1973,10 +1974,9 @@ mixin _AnalysisDriverUnitIndexMixin implements idl.AnalysisDriverUnitIndex {
     }
     var local_elementKinds = elementKinds;
     if (local_elementKinds.isNotEmpty) {
-      result["elementKinds"] =
-          local_elementKinds
-              .map((value) => value.toString().split('.')[1])
-              .toList();
+      result["elementKinds"] = local_elementKinds
+          .map((value) => value.toString().split('.')[1])
+          .toList();
     }
     var local_elementNameClassMemberIds = elementNameClassMemberIds;
     if (local_elementNameClassMemberIds.isNotEmpty) {
@@ -2016,8 +2016,9 @@ mixin _AnalysisDriverUnitIndexMixin implements idl.AnalysisDriverUnitIndex {
     }
     var local_subtypes = subtypes;
     if (local_subtypes.isNotEmpty) {
-      result["subtypes"] =
-          local_subtypes.map((value) => value.toJson()).toList();
+      result["subtypes"] = local_subtypes
+          .map((value) => value.toJson())
+          .toList();
     }
     var local_supertypes = supertypes;
     if (local_supertypes.isNotEmpty) {
@@ -2037,10 +2038,9 @@ mixin _AnalysisDriverUnitIndexMixin implements idl.AnalysisDriverUnitIndex {
     }
     var local_usedElementKinds = usedElementKinds;
     if (local_usedElementKinds.isNotEmpty) {
-      result["usedElementKinds"] =
-          local_usedElementKinds
-              .map((value) => value.toString().split('.')[1])
-              .toList();
+      result["usedElementKinds"] = local_usedElementKinds
+          .map((value) => value.toString().split('.')[1])
+          .toList();
     }
     var local_usedElementLengths = usedElementLengths;
     if (local_usedElementLengths.isNotEmpty) {
@@ -2060,10 +2060,9 @@ mixin _AnalysisDriverUnitIndexMixin implements idl.AnalysisDriverUnitIndex {
     }
     var local_usedNameKinds = usedNameKinds;
     if (local_usedNameKinds.isNotEmpty) {
-      result["usedNameKinds"] =
-          local_usedNameKinds
-              .map((value) => value.toString().split('.')[1])
-              .toList();
+      result["usedNameKinds"] = local_usedNameKinds
+          .map((value) => value.toString().split('.')[1])
+          .toList();
     }
     var local_usedNameOffsets = usedNameOffsets;
     if (local_usedNameOffsets.isNotEmpty) {

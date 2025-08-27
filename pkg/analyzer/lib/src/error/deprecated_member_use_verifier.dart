@@ -208,10 +208,9 @@ abstract class BaseDeprecatedMemberUseVerifier {
       // TODO(jwren): We should modify ConstructorElement.displayName,
       // or have the logic centralized elsewhere, instead of doing this logic
       // here.
-      displayName =
-          element.name == null
-              ? '${element.displayName}.new'
-              : element.displayName;
+      displayName = element.name == null
+          ? '${element.displayName}.new'
+          : element.displayName;
     } else if (element is LibraryElement) {
       displayName = element.firstFragment.source.uri.toString();
     } else if (node is MethodInvocation &&

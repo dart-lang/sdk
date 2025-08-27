@@ -220,9 +220,9 @@ class Scanner {
   /// Return a ScannerConfiguration based upon the specified feature set.
   static fasta.ScannerConfiguration buildConfig(FeatureSet? featureSet) =>
       featureSet == null
-          ? fasta.ScannerConfiguration()
-          : fasta.ScannerConfiguration(
-            enableTripleShift: featureSet.isEnabled(Feature.triple_shift),
-            forAugmentationLibrary: featureSet.isEnabled(Feature.macros),
-          );
+      ? fasta.ScannerConfiguration()
+      : fasta.ScannerConfiguration(
+          enableTripleShift: featureSet.isEnabled(Feature.triple_shift),
+          forAugmentationLibrary: featureSet.isEnabled(Feature.macros),
+        );
 }

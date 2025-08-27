@@ -505,10 +505,9 @@ abstract class _FindElementBase {
   ConstructorElement unnamedConstructor(String name) {
     return _findInClassesLike(
       className: name,
-      fromClass:
-          (e) => e.constructors.firstWhereOrNull((element) {
-            return element.name == 'new';
-          }),
+      fromClass: (e) => e.constructors.firstWhereOrNull((element) {
+        return element.name == 'new';
+      }),
       fromExtension: (_) => null,
     );
   }
@@ -538,11 +537,10 @@ abstract class _FindElementBase {
       ...libraryElement.mixins,
     ];
 
-    var results =
-        [
-          ...classes.where(filter).map(fromClass),
-          ...libraryElement.extensions.where(filter).map(fromExtension),
-        ].nonNulls.toList();
+    var results = [
+      ...classes.where(filter).map(fromClass),
+      ...libraryElement.extensions.where(filter).map(fromExtension),
+    ].nonNulls.toList();
 
     var result = results.singleOrNull;
     if (result != null) {

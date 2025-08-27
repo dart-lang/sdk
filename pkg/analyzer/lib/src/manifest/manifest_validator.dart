@@ -238,10 +238,9 @@ class ManifestParser {
       _pos++;
     }
 
-    var parseResult =
-        isEmptyElement
-            ? ParseResult.attributesWithEmptyElementClose
-            : ParseResult.attributesWithTagClose;
+    var parseResult = isEmptyElement
+        ? ParseResult.attributesWithEmptyElementClose
+        : ParseResult.attributesWithTagClose;
 
     return ParseAttributeResult(parseResult, attributes);
   }
@@ -474,8 +473,9 @@ class ManifestValidator {
     DiagnosticCode diagnosticCode, [
     List<Object>? arguments,
   ]) {
-    var span =
-        key == null ? node.sourceSpan! : node.attributes[key]!.sourceSpan;
+    var span = key == null
+        ? node.sourceSpan!
+        : node.attributes[key]!.sourceSpan;
     reporter.atOffset(
       offset: span.start.offset,
       length: span.length,

@@ -28,7 +28,8 @@ class ConflictingSummaryException implements Exception {
     // Paths are often quite long.  Find and extract out a common prefix to
     // build a more readable error message.
     var prefix = _commonPrefix(summaryPaths.toList());
-    _message = '''
+    _message =
+        '''
 These summaries conflict because they overlap:
 - ${summary1Uri.substring(prefix)}
 - ${summary2Uri.substring(prefix)}
@@ -111,8 +112,9 @@ class InSummaryUriResolver extends UriResolver {
       return InSummarySource(
         uri: uri,
         summaryPath: summaryPath,
-        kind:
-            isLibrary ? InSummarySourceKind.library : InSummarySourceKind.part,
+        kind: isLibrary
+            ? InSummarySourceKind.library
+            : InSummarySourceKind.part,
       );
     }
     return null;

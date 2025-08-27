@@ -92,10 +92,9 @@ class BodyInferenceContext {
     }
 
     if (isGenerator) {
-      var requiredClass =
-          isAsynchronous
-              ? _typeProvider.streamElement
-              : _typeProvider.iterableElement;
+      var requiredClass = isAsynchronous
+          ? _typeProvider.streamElement
+          : _typeProvider.iterableElement;
       var type = _argumentOf(expressionType, requiredClass);
       if (type != null) {
         _returnTypes.add(type);
@@ -164,10 +163,9 @@ class BodyInferenceContext {
       return _returnTypes.cast<TypeImpl>().reduce(_typeSystem.leastUpperBound);
     }
 
-    var initialType =
-        endOfBlockIsReachable
-            ? _typeProvider.nullType
-            : _typeProvider.neverType;
+    var initialType = endOfBlockIsReachable
+        ? _typeProvider.nullType
+        : _typeProvider.neverType;
     // TODO(paulberry): eliminate this cast by changing the type of
     // `_returnTypes` to `List<TypeImpl>`.
     return _returnTypes.cast<TypeImpl>().fold(

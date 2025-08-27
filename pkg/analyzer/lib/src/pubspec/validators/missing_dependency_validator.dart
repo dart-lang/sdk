@@ -121,10 +121,9 @@ class MissingDependencyValidator {
         addDevDeps.add(name);
       }
     }
-    var message =
-        addDeps.isNotEmpty
-            ? "${addDeps.map((s) => "'$s'").join(',')} in 'dependencies'"
-            : '';
+    var message = addDeps.isNotEmpty
+        ? "${addDeps.map((s) => "'$s'").join(',')} in 'dependencies'"
+        : '';
     if (addDevDeps.isNotEmpty) {
       message = message.isNotEmpty ? '$message,' : message;
       message =

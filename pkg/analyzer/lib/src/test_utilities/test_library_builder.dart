@@ -203,10 +203,9 @@ class _LibraryBuilder {
       classScope,
       spec.formalParameters,
     );
-    fragment.formalParameters =
-        formalParameters.map((formalParameterElement) {
-          return formalParameterElement.firstFragment;
-        }).toList();
+    fragment.formalParameters = formalParameters.map((formalParameterElement) {
+      return formalParameterElement.firstFragment;
+    }).toList();
 
     return fragment;
   }
@@ -234,10 +233,11 @@ class _LibraryBuilder {
       scope,
       spec.formalParameters,
     );
-    fragment.formalParameters =
-        formalParameterElements.map((formalParameterElement) {
-          return formalParameterElement.firstFragment;
-        }).toList();
+    fragment.formalParameters = formalParameterElements.map((
+      formalParameterElement,
+    ) {
+      return formalParameterElement.firstFragment;
+    }).toList();
 
     element.returnType = _typeParser.parse(spec.returnType, scope);
     return fragment;
@@ -257,21 +257,21 @@ class _LibraryBuilder {
       firstFragment: fragment,
     );
 
-    fragment.typeParameters =
-        spec.typeParameters.map((name) {
-          var tpElement = _createTypeParameterElement(name);
-          scope.addTypeParameter(tpElement);
-          return tpElement.firstFragment;
-        }).toList();
+    fragment.typeParameters = spec.typeParameters.map((name) {
+      var tpElement = _createTypeParameterElement(name);
+      scope.addTypeParameter(tpElement);
+      return tpElement.firstFragment;
+    }).toList();
 
     var formalParameterElements = _typeParser.parseFormalParameters(
       scope,
       spec.formalParameters,
     );
-    fragment.formalParameters =
-        formalParameterElements.map((formalParameterElement) {
-          return formalParameterElement.firstFragment;
-        }).toList();
+    fragment.formalParameters = formalParameterElements.map((
+      formalParameterElement,
+    ) {
+      return formalParameterElement.firstFragment;
+    }).toList();
 
     element.returnType = _typeParser.parse(spec.returnType, scope);
     return fragment;
@@ -288,23 +288,21 @@ class _LibraryBuilder {
       var fragment = element.firstFragment;
       var scope = _Scope.child(_rootScope);
 
-      fragment.typeParameters =
-          classSpec.typeParameters.map((name) {
-            var tpElement = _createTypeParameterElement(name);
-            scope.addTypeParameter(tpElement);
-            return tpElement.firstFragment;
-          }).toList();
+      fragment.typeParameters = classSpec.typeParameters.map((name) {
+        var tpElement = _createTypeParameterElement(name);
+        scope.addTypeParameter(tpElement);
+        return tpElement.firstFragment;
+      }).toList();
 
       if (classSpec.supertype case var supertypeStr?) {
         var supertype = _typeParser.parse(supertypeStr, scope);
         element.supertype = supertype as InterfaceTypeImpl;
       }
 
-      element.interfaces =
-          classSpec.interfaces.map((interfaceStr) {
-            var interface = _typeParser.parse(interfaceStr, scope);
-            return interface as InterfaceTypeImpl;
-          }).toList();
+      element.interfaces = classSpec.interfaces.map((interfaceStr) {
+        var interface = _typeParser.parse(interfaceStr, scope);
+        return interface as InterfaceTypeImpl;
+      }).toList();
 
       for (var constructorSpec in classSpec.constructors) {
         var constructorFragment = _createConstructorFragment(
@@ -321,8 +319,9 @@ class _LibraryBuilder {
       }
 
       element.methods = fragment.methods.map((f) => f.element).toList();
-      element.constructors =
-          fragment.constructors.map((f) => f.element).toList();
+      element.constructors = fragment.constructors
+          .map((f) => f.element)
+          .toList();
     }
   }
 
@@ -345,10 +344,9 @@ class _LibraryBuilder {
       );
       libraryFragment.addFunction(functionFragment);
     }
-    libraryElement.topLevelFunctions =
-        libraryFragment.functions.map((element) {
-          return element.element;
-        }).toList();
+    libraryElement.topLevelFunctions = libraryFragment.functions.map((element) {
+      return element.element;
+    }).toList();
   }
 }
 
@@ -403,13 +401,12 @@ class _PreFunctionType implements _PreType {
     var functionScope = _Scope.child(scope);
 
     // Create elements for the function's own type parameters and add to scope.
-    var typeParameters =
-        this.typeParameters.map((pre) {
-          var fragment = TypeParameterFragmentImpl(name: pre.name);
-          var element = TypeParameterElementImpl(firstFragment: fragment);
-          functionScope.addTypeParameter(element);
-          return element;
-        }).toList();
+    var typeParameters = this.typeParameters.map((pre) {
+      var fragment = TypeParameterFragmentImpl(name: pre.name);
+      var element = TypeParameterElementImpl(firstFragment: fragment);
+      functionScope.addTypeParameter(element);
+      return element;
+    }).toList();
 
     // Now that the type parameters are in scope, materialize their bounds.
     for (var i = 0; i < typeParameters.length; i++) {
@@ -420,8 +417,9 @@ class _PreFunctionType implements _PreType {
     }
 
     var returnType = this.returnType.materialize(functionScope);
-    var formalParameters =
-        this.formalParameters.map((p) => p.materialize(functionScope)).toList();
+    var formalParameters = this.formalParameters
+        .map((p) => p.materialize(functionScope))
+        .toList();
 
     return FunctionTypeImpl.v2(
       returnType: returnType,

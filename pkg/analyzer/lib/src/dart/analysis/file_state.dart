@@ -213,56 +213,58 @@ abstract class FileKind {
   /// The import states of each `@docImport` on the library directive or
   /// part-of directive.
   List<LibraryImportState> get docLibraryImports {
-    return _docLibraryImports ??=
-        _unlinkedDocImports.map(_buildLibraryImportState).toFixedList();
+    return _docLibraryImports ??= _unlinkedDocImports
+        .map(_buildLibraryImportState)
+        .toFixedList();
   }
 
   /// Returns the library in which this file should be analyzed.
   LibraryFileKind? get library;
 
   List<LibraryExportState> get libraryExports {
-    return _libraryExports ??=
-        file.unlinked2.exports.map<LibraryExportState>((unlinked) {
-          var uris = file._buildConfigurableDirectiveUris(unlinked);
-          var selectedUri = uris.selected;
-          switch (selectedUri) {
-            case DirectiveUriWithFile():
-              return LibraryExportWithFile(
-                container: this,
-                unlinked: unlinked,
-                selectedUri: selectedUri,
-                uris: uris,
-              );
-            case DirectiveUriWithInSummarySource():
-              return LibraryExportWithInSummarySource(
-                container: this,
-                unlinked: unlinked,
-                selectedUri: selectedUri,
-                uris: uris,
-              );
-            case DirectiveUriWithUri():
-              return LibraryExportWithUri(
-                container: this,
-                unlinked: unlinked,
-                selectedUri: selectedUri,
-                uris: uris,
-              );
-            case DirectiveUriWithString():
-              return LibraryExportWithUriStr(
-                container: this,
-                unlinked: unlinked,
-                selectedUri: selectedUri,
-                uris: uris,
-              );
-            case DirectiveUriWithoutString():
-              return LibraryExportState(
-                container: this,
-                unlinked: unlinked,
-                selectedUri: selectedUri,
-                uris: uris,
-              );
-          }
-        }).toFixedList();
+    return _libraryExports ??= file.unlinked2.exports.map<LibraryExportState>((
+      unlinked,
+    ) {
+      var uris = file._buildConfigurableDirectiveUris(unlinked);
+      var selectedUri = uris.selected;
+      switch (selectedUri) {
+        case DirectiveUriWithFile():
+          return LibraryExportWithFile(
+            container: this,
+            unlinked: unlinked,
+            selectedUri: selectedUri,
+            uris: uris,
+          );
+        case DirectiveUriWithInSummarySource():
+          return LibraryExportWithInSummarySource(
+            container: this,
+            unlinked: unlinked,
+            selectedUri: selectedUri,
+            uris: uris,
+          );
+        case DirectiveUriWithUri():
+          return LibraryExportWithUri(
+            container: this,
+            unlinked: unlinked,
+            selectedUri: selectedUri,
+            uris: uris,
+          );
+        case DirectiveUriWithString():
+          return LibraryExportWithUriStr(
+            container: this,
+            unlinked: unlinked,
+            selectedUri: selectedUri,
+            uris: uris,
+          );
+        case DirectiveUriWithoutString():
+          return LibraryExportState(
+            container: this,
+            unlinked: unlinked,
+            selectedUri: selectedUri,
+            uris: uris,
+          );
+      }
+    }).toFixedList();
   }
 
   List<LibraryImportState> get libraryImports {
@@ -297,41 +299,42 @@ abstract class FileKind {
   }
 
   List<PartIncludeState> get partIncludes {
-    return _partIncludes ??=
-        file.unlinked2.parts.map<PartIncludeState>((unlinked) {
-          var uris = file._buildConfigurableDirectiveUris(unlinked);
-          var selectedUri = uris.selected;
-          switch (selectedUri) {
-            case DirectiveUriWithFile():
-              return PartIncludeWithFile(
-                container: this,
-                unlinked: unlinked,
-                selectedUri: selectedUri,
-                uris: uris,
-              );
-            case DirectiveUriWithUri():
-              return PartIncludeWithUri(
-                container: this,
-                unlinked: unlinked,
-                selectedUri: selectedUri,
-                uris: uris,
-              );
-            case DirectiveUriWithString():
-              return PartIncludeWithUriStr(
-                container: this,
-                unlinked: unlinked,
-                selectedUri: selectedUri,
-                uris: uris,
-              );
-            case DirectiveUriWithoutString():
-              return PartIncludeState(
-                container: this,
-                unlinked: unlinked,
-                selectedUri: selectedUri,
-                uris: uris,
-              );
-          }
-        }).toFixedList();
+    return _partIncludes ??= file.unlinked2.parts.map<PartIncludeState>((
+      unlinked,
+    ) {
+      var uris = file._buildConfigurableDirectiveUris(unlinked);
+      var selectedUri = uris.selected;
+      switch (selectedUri) {
+        case DirectiveUriWithFile():
+          return PartIncludeWithFile(
+            container: this,
+            unlinked: unlinked,
+            selectedUri: selectedUri,
+            uris: uris,
+          );
+        case DirectiveUriWithUri():
+          return PartIncludeWithUri(
+            container: this,
+            unlinked: unlinked,
+            selectedUri: selectedUri,
+            uris: uris,
+          );
+        case DirectiveUriWithString():
+          return PartIncludeWithUriStr(
+            container: this,
+            unlinked: unlinked,
+            selectedUri: selectedUri,
+            uris: uris,
+          );
+        case DirectiveUriWithoutString():
+          return PartIncludeState(
+            container: this,
+            unlinked: unlinked,
+            selectedUri: selectedUri,
+            uris: uris,
+          );
+      }
+    }).toFixedList();
   }
 
   List<UnlinkedLibraryImportDirective> get _unlinkedDocImports;
@@ -728,18 +731,17 @@ class FileState {
     var primaryUri = _buildDirectiveUri(directive.uri);
 
     DirectiveUri? selectedConfigurationUri;
-    var configurationUris =
-        directive.configurations.map((configuration) {
-          var configurationUri = _buildDirectiveUri(configuration.uri);
-          // Maybe select this URI.
-          var name = configuration.name;
-          var value = configuration.valueOrTrue;
-          if (_fsState._declaredVariables.get(name) == value) {
-            selectedConfigurationUri ??= configurationUri;
-          }
-          // Include it anyway.
-          return configurationUri;
-        }).toFixedList();
+    var configurationUris = directive.configurations.map((configuration) {
+      var configurationUri = _buildDirectiveUri(configuration.uri);
+      // Maybe select this URI.
+      var name = configuration.name;
+      var value = configuration.valueOrTrue;
+      if (_fsState._declaredVariables.get(name) == value) {
+        selectedConfigurationUri ??= configurationUri;
+      }
+      // Include it anyway.
+      return configurationUri;
+    }).toFixedList();
 
     return DirectiveUris(
       primary: primaryUri,
@@ -1030,10 +1032,11 @@ class FileState {
     }
 
     var dartdocDirectiveInfo = DartdocDirectiveInfo.extractFromUnit(unit);
-    var dartdocTemplates =
-        dartdocDirectiveInfo.templateMap.entries.map((entry) {
-          return UnlinkedDartdocTemplate(name: entry.key, value: entry.value);
-        }).toList();
+    var dartdocTemplates = dartdocDirectiveInfo.templateMap.entries.map((
+      entry,
+    ) {
+      return UnlinkedDartdocTemplate(name: entry.key, value: entry.value);
+    }).toList();
 
     var apiSignature = performance.run('apiSignature', (performance) {
       var signatureBuilder = ApiSignature();

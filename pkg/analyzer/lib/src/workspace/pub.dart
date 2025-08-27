@@ -189,10 +189,9 @@ class PackageConfigWorkspace extends SimpleWorkspace {
     Packages packages,
   ) {
     // Use the default packages if there is one.
-    var newPackages =
-        packages == Packages.empty
-            ? parsePackageConfigJsonFile(provider, packageConfigFile)
-            : packages;
+    var newPackages = packages == Packages.empty
+        ? parsePackageConfigJsonFile(provider, packageConfigFile)
+        : packages;
 
     return PackageConfigWorkspace._(
       provider,

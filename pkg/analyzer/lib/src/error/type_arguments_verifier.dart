@@ -88,8 +88,9 @@ class TypeArgumentsVerifier {
       bound = substitution.substituteType(bound);
 
       if (!_typeSystem.isSubtypeOf(typeArgument, bound)) {
-        var errorNode =
-            i < typeArgumentListLength ? typeArgumentList.arguments[i] : node;
+        var errorNode = i < typeArgumentListLength
+            ? typeArgumentList.arguments[i]
+            : node;
         _diagnosticReporter.atNode(
           errorNode,
           CompileTimeErrorCode.typeArgumentNotMatchingBounds,

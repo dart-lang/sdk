@@ -101,12 +101,12 @@ class BundleRequirementsPrinter {
 
   void _writeExportRequirements(RequirementsManifest requirements) {
     var exportRequirements = requirements.exportRequirements.sortedBy(
-          (requirement) => requirement.libraryUri.toString(),
+      (requirement) => requirement.libraryUri.toString(),
     );
 
     sink.writeElements('exportRequirements', exportRequirements, (
-        libraryRequirements,
-        ) {
+      libraryRequirements,
+    ) {
       sink.writelnWithIndent(libraryRequirements.libraryUri);
       sink.withIndent(() {
         if (libraryRequirements.declaredTopNames.isNotEmpty) {
@@ -118,9 +118,9 @@ class BundleRequirementsPrinter {
         sink.writeElements(
           'exports',
           libraryRequirements.exports.sortedBy(
-                (export) => export.exportedUri.toString(),
+            (export) => export.exportedUri.toString(),
           ),
-              (fragment) {
+          (fragment) {
             sink.writelnWithIndent(fragment.exportedUri);
             sink.withIndent(() {
               _writeExportCombinators(fragment);
@@ -142,9 +142,9 @@ class BundleRequirementsPrinter {
 
       sink.withIndent(() {
         void writeRequestedDeclared(
-            String name,
-            Map<LookupName, ManifestItemId?> nameToIdMap,
-            ) {
+          String name,
+          Map<LookupName, ManifestItemId?> nameToIdMap,
+        ) {
           sink.writeElements(name, nameToIdMap.sorted, _writeNamedId);
         }
 
@@ -473,7 +473,7 @@ class DriverEventsPrinter {
     sink.writelnWithIndent('[operation] $printName');
     sink.withIndent(() {
       var sortedLibraries = object.cycle.libraries.sortedBy(
-            (libraryKind) => libraryKind.file.uriStr,
+        (libraryKind) => libraryKind.file.uriStr,
       );
       for (var libraryKind in sortedLibraries) {
         sink.writelnWithIndent(libraryKind.file.uriStr);
@@ -505,7 +505,7 @@ class DriverEventsPrinter {
   void _writeRequirementFailure(RequirementFailure failure) {
     switch (failure) {
       case LibraryMissing():
-      // TODO(scheglov): Handle this case.
+        // TODO(scheglov): Handle this case.
         throw UnimplementedError();
       case ExportCountMismatch():
         sink.writelnWithIndent('exportCountMismatch');
@@ -525,7 +525,7 @@ class DriverEventsPrinter {
           'actualId': idProvider.manifestId(failure.actualId),
         });
       case ExportLibraryMissing():
-      // TODO(scheglov): Handle this case.
+        // TODO(scheglov): Handle this case.
         throw UnimplementedError();
       case ExportedExtensionsMismatch():
         sink.writelnWithIndent('exportedExtensionsMismatch');
@@ -602,7 +602,7 @@ class DriverEventsPrinter {
           'name': failure.name.asString,
         });
       case TopLevelNotInterface():
-      // TODO(scheglov): Handle this case.
+        // TODO(scheglov): Handle this case.
         throw UnimplementedError();
       case OpaqueApiUseFailure():
         var sortedUses = failure.uses.sortedBy((e) {
@@ -718,8 +718,8 @@ class DriverEventsPrinter {
   }
 
   void _writeReuseLinkLibraryCycleBundle(
-      events.ReuseLinkLibraryCycleBundle event,
-      ) {
+    events.ReuseLinkLibraryCycleBundle event,
+  ) {
     if (configuration.withLinkBundleEvents) {
       const printName = 'readLibraryCycleBundle';
       if (event.cycle.isSdk) {
@@ -727,8 +727,7 @@ class DriverEventsPrinter {
       } else {
         sink.writelnWithIndent('[operation] $printName');
         sink.withIndent(() {
-          var uriStrList =
-          event.cycle.libraries
+          var uriStrList = event.cycle.libraries
               .map((library) => library.file.uriStr)
               .sorted();
           for (var uriStr in uriStrList) {
@@ -1095,8 +1094,7 @@ class LibraryManifestPrinter {
     }
 
     void writeDeclaredFields() {
-      var declaredFields =
-      item.declaredFields.sorted.whereNot((entry) {
+      var declaredFields = item.declaredFields.sorted.whereNot((entry) {
         return ignored.contains(entry.key.asString);
       }).toList();
 
@@ -1121,8 +1119,7 @@ class LibraryManifestPrinter {
     }
 
     void writeDeclaredGetters() {
-      var declaredGetters =
-      item.declaredGetters.sorted.whereNot((entry) {
+      var declaredGetters = item.declaredGetters.sorted.whereNot((entry) {
         return ignored.contains(entry.key.asString);
       }).toList();
 
@@ -1146,8 +1143,7 @@ class LibraryManifestPrinter {
     }
 
     void writeDeclaredSetters() {
-      var declaredSetters =
-      item.declaredSetters.sorted.whereNot((entry) {
+      var declaredSetters = item.declaredSetters.sorted.whereNot((entry) {
         return ignored.contains(entry.key.asString);
       }).toList();
 
@@ -1171,8 +1167,7 @@ class LibraryManifestPrinter {
     }
 
     void writeDeclaredMethods() {
-      var declaredMethods =
-      item.declaredMethods.sorted.whereNot((entry) {
+      var declaredMethods = item.declaredMethods.sorted.whereNot((entry) {
         return ignored.contains(entry.key.asString);
       }).toList();
 
@@ -1196,8 +1191,9 @@ class LibraryManifestPrinter {
     }
 
     void writeDeclaredConstructors() {
-      var declaredConstructors =
-      item.declaredConstructors.sorted.whereNot((entry) {
+      var declaredConstructors = item.declaredConstructors.sorted.whereNot((
+        entry,
+      ) {
         return ignored.contains(entry.key.asString);
       }).toList();
 
@@ -1223,8 +1219,9 @@ class LibraryManifestPrinter {
     }
 
     void writeInheritedConstructors() {
-      var inheritedConstructors =
-      item.inheritedConstructors.sorted.whereNot((entry) {
+      var inheritedConstructors = item.inheritedConstructors.sorted.whereNot((
+        entry,
+      ) {
         return ignored.contains(entry.key.asString);
       }).toList();
 
@@ -1307,7 +1304,7 @@ class LibraryManifestPrinter {
       sink.writeElements(
         'metadata',
         item.metadata.annotations.indexed.toList(),
-            (indexed) {
+        (indexed) {
           _writeNode('[${indexed.$1}]', indexed.$2.ast);
         },
       );
@@ -1364,8 +1361,8 @@ class LibraryManifestPrinter {
 
           if (node.elementIndexList.isNotEmpty) {
             sink.writeElements('elementIndexList', node.elementIndexList, (
-                index,
-                ) {
+              index,
+            ) {
               var (kind, rawIndex) = ManifestAstElementKind.decode(index);
               switch (kind) {
                 case ManifestAstElementKind.null_:
@@ -1662,8 +1659,8 @@ class ResolvedUnitResultPrinter {
 
       var typesToWrite = configuration.typesSelector(result);
       sink.writeElements('selectedTypes', typesToWrite.entries.toList(), (
-          entry,
-          ) {
+        entry,
+      ) {
         sink.writeIndent();
         sink.write('${entry.key}: ');
         elementPrinter.writeType(entry.value);
@@ -1671,8 +1668,8 @@ class ResolvedUnitResultPrinter {
 
       var variableTypesToWrite = configuration.variableTypesSelector(result);
       sink.writeElements('selectedVariableTypes', variableTypesToWrite, (
-          variable,
-          ) {
+        variable,
+      ) {
         sink.writeIndent();
         sink.write('${variable.name}: ');
         if (variable is LocalVariableElement) {

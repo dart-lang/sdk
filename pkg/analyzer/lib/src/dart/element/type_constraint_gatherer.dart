@@ -199,11 +199,10 @@ class TypeConstraintGatherer
     }
 
     for (var constraint in _constraints) {
-      var parameter =
-          constraint.typeParameter
-              .unwrapTypeParameterViewAsTypeParameterStructure<
-                TypeParameterElementImpl
-              >();
+      var parameter = constraint.typeParameter
+          .unwrapTypeParameterViewAsTypeParameterStructure<
+            TypeParameterElementImpl
+          >();
       var mergedConstraint = result[parameter]!;
 
       mergedConstraint.mergeIn(constraint, _typeSystemOperations);
@@ -293,12 +292,9 @@ class TypeConstraintGatherer
 
     // And `F0[Z0/T0, ..., Zn/Tn]` is a subtype match for
     // `F1[Z0/S0, ..., Zn/Sn]` with respect to `L` under constraints `C0`.
-    var typeArguments =
-        newTypeParameters
-            .map(
-              (e) => e.instantiate(nullabilitySuffix: NullabilitySuffix.none),
-            )
-            .toList();
+    var typeArguments = newTypeParameters
+        .map((e) => e.instantiate(nullabilitySuffix: NullabilitySuffix.none))
+        .toList();
     var P_instantiated = P.instantiate(typeArguments);
     var Q_instantiated = Q.instantiate(typeArguments);
 

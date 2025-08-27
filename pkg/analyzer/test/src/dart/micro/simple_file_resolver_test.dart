@@ -1025,8 +1025,9 @@ export 'dart:core' show dynamic;
     var a_result = await resolveFile(a);
 
     // Touch `dart:core` so that its element model is discarded.
-    var dartCorePath =
-        a_result.session.uriConverter.uriToPath(Uri.parse('dart:core'))!;
+    var dartCorePath = a_result.session.uriConverter.uriToPath(
+      Uri.parse('dart:core'),
+    )!;
     fileResolver.changeFiles([dartCorePath]);
 
     // Analyze, this will read the element model for `dart:core`.

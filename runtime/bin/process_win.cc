@@ -1042,6 +1042,8 @@ int Process::Exec(Namespace* namespc,
   // Now wait for this child process to terminate (normal exit or crash).
   HANDLE child_process = starter.child_process_handle_;
   ASSERT(child_process != INVALID_HANDLE_VALUE);
+  // Don't attempt to handle ctrl-c events, let spawned child handle them.
+  SetConsoleCtrlHandler(NULL, TRUE);
   DWORD wait_result = WaitForSingleObject(child_process, INFINITE);
   if (wait_result != WAIT_OBJECT_0) {
     BufferFormatter f(errmsg, errmsg_len);

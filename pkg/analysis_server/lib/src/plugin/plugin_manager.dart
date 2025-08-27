@@ -7,12 +7,12 @@
 library;
 
 import 'dart:async';
-import 'dart:collection';
 import 'dart:convert';
 import 'dart:io' show Platform, Process, ProcessResult;
 
 import 'package:analysis_server/src/analytics/percentile_calculator.dart';
 import 'package:analysis_server/src/plugin/notification_manager.dart';
+import 'package:analysis_server/src/plugin/plugin_isolate.dart';
 import 'package:analysis_server/src/utilities/sdk.dart';
 import 'package:analyzer/dart/analysis/context_root.dart' as analyzer;
 import 'package:analyzer/exception/exception.dart';
@@ -24,12 +24,9 @@ import 'package:analyzer/src/util/glob.dart';
 import 'package:analyzer/src/workspace/blaze.dart';
 import 'package:analyzer/src/workspace/workspace.dart';
 import 'package:analyzer/utilities/package_config_file_builder.dart';
-import 'package:analyzer_plugin/channel/channel.dart';
 import 'package:analyzer_plugin/protocol/protocol.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
-import 'package:analyzer_plugin/protocol/protocol_constants.dart';
 import 'package:analyzer_plugin/protocol/protocol_generated.dart';
-import 'package:analyzer_plugin/src/channel/isolate_channel.dart';
 import 'package:analyzer_plugin/src/protocol/protocol_internal.dart';
 import 'package:convert/convert.dart';
 import 'package:crypto/crypto.dart';
@@ -63,198 +60,13 @@ class PluginFiles {
   PluginFiles(this.execution, this.packageConfig);
 }
 
-/// Information about a single plugin.
-class PluginInfo {
-  /// The path to the root directory of the definition of the plugin on disk
-  /// (the directory containing the 'pubspec.yaml' file and the 'bin'
-  /// directory).
-  final String _path;
-
-  /// The path to the 'plugin.dart' file that will be executed in an isolate.
-  final String executionPath;
-
-  /// The path to the '.packages' file used to control the resolution of
-  /// 'package:' URIs.
-  final String packagesPath;
-
-  /// The object used to manage the receiving and sending of notifications.
-  final AbstractNotificationManager _notificationManager;
-
-  /// The instrumentation service that is being used by the analysis server.
-  final InstrumentationService _instrumentationService;
-
-  /// The context roots that are currently using the results produced by the
-  /// plugin.
-  Set<analyzer.ContextRoot> contextRoots = HashSet<analyzer.ContextRoot>();
-
-  /// The current execution of the plugin, or `null` if the plugin is not
-  /// currently being executed.
-  PluginSession? currentSession;
-
-  CaughtException? _exception;
-
-  PluginInfo(
-    this._path,
-    this.executionPath,
-    this.packagesPath,
-    this._notificationManager,
-    this._instrumentationService,
-  );
-
-  /// The data known about this plugin, for instrumentation and exception
-  /// purposes.
-  PluginData get data =>
-      PluginData(pluginId, currentSession?._name, currentSession?._version);
-
-  /// The exception that occurred that prevented the plugin from being started,
-  /// or `null` if there was no exception (possibly because no attempt has yet
-  /// been made to start the plugin).
-  CaughtException? get exception => _exception;
-
-  /// The ID of this plugin, used to identify the plugin to users.
-  String get pluginId => _path;
-
-  /// Whether this plugin can be started, or `false` if there is a reason that
-  /// it cannot be started.
-  ///
-  /// For example, a plugin cannot be started if there was an error with a
-  /// previous attempt to start running it or if the plugin is not correctly
-  /// configured.
-  bool get _canBeStarted => executionPath.isNotEmpty;
-
-  /// Adds the given [contextRoot] to the set of context roots being analyzed by
-  /// this plugin.
-  void addContextRoot(analyzer.ContextRoot contextRoot) {
-    if (contextRoots.add(contextRoot)) {
-      _updatePluginRoots();
-    }
-  }
-
-  /// Adds the given context [roots] to the set of context roots being analyzed
-  /// by this plugin.
-  void addContextRoots(Iterable<analyzer.ContextRoot> roots) {
-    var changed = false;
-    for (var contextRoot in roots) {
-      if (contextRoots.add(contextRoot)) {
-        changed = true;
-      }
-    }
-    if (changed) {
-      _updatePluginRoots();
-    }
-  }
-
-  /// Whether at least one of the context roots being analyzed contains the file
-  /// with the given [filePath].
-  bool isAnalyzing(String filePath) {
-    for (var contextRoot in contextRoots) {
-      if (contextRoot.isAnalyzed(filePath)) {
-        return true;
-      }
-    }
-    return false;
-  }
-
-  /// Removes the given [contextRoot] from the set of context roots being
-  /// analyzed by this plugin.
-  void removeContextRoot(analyzer.ContextRoot contextRoot) {
-    if (contextRoots.remove(contextRoot)) {
-      _updatePluginRoots();
-    }
-  }
-
-  void reportException(CaughtException exception) {
-    // If a previous exception has been reported, do not replace it here; the
-    // first should have more "root cause" information.
-    _exception ??= exception;
-    _instrumentationService.logPluginException(
-      data,
-      exception.exception,
-      exception.stackTrace,
-    );
-    var message =
-        'An error occurred while executing an analyzer plugin: '
-        // Sometimes the message is the primary information; sometimes the
-        // exception is.
-        '${exception.message ?? exception.exception}\n'
-        '${exception.stackTrace}';
-    _notificationManager.handlePluginError(message);
-  }
-
-  /// If the plugin is currently running, sends a request based on the given
-  /// [params] to the plugin.
-  ///
-  /// If the plugin is not running, the request will silently be dropped.
-  void sendRequest(RequestParams params) {
-    currentSession?.sendRequest(params);
-  }
-
-  /// Starts a new isolate that is running the plugin.
-  ///
-  /// Returns the [PluginSession] used to interact with the plugin, or `null` if
-  /// the plugin could not be run.
-  Future<PluginSession?> start(String? byteStorePath, String sdkPath) async {
-    if (currentSession != null) {
-      throw StateError('Cannot start a plugin that is already running.');
-    }
-    currentSession = PluginSession(this);
-    var isRunning = await currentSession!.start(byteStorePath, sdkPath);
-    if (!isRunning) {
-      currentSession = null;
-    }
-    return currentSession;
-  }
-
-  /// Requests that the plugin shut down.
-  Future<void> stop() {
-    if (currentSession == null) {
-      if (_exception != null) {
-        // Plugin crashed, nothing to do.
-        return Future<void>.value();
-      }
-      throw StateError('Cannot stop a plugin that is not running.');
-    }
-    var doneFuture = currentSession!.stop();
-    currentSession = null;
-    return doneFuture;
-  }
-
-  /// Creates and returns the channel used to communicate with the server.
-  ServerCommunicationChannel _createChannel() {
-    return ServerIsolateChannel.discovered(
-      Uri.file(executionPath, windows: Platform.isWindows),
-      Uri.file(packagesPath, windows: Platform.isWindows),
-      _instrumentationService,
-    );
-  }
-
-  /// Updates the context roots that the plugin should be analyzing.
-  void _updatePluginRoots() {
-    var currentSession = this.currentSession;
-    if (currentSession != null) {
-      var params = AnalysisSetContextRootsParams(
-        contextRoots
-            .map(
-              (analyzer.ContextRoot contextRoot) => ContextRoot(
-                contextRoot.root.path,
-                contextRoot.excludedPaths.toList(),
-                optionsFile: contextRoot.optionsFile?.path,
-              ),
-            )
-            .toList(),
-      );
-      currentSession.sendRequest(params);
-    }
-  }
-}
-
 /// An object used to manage the currently running plugins.
 class PluginManager {
   /// A table, keyed by both a plugin and a request method, to a list of the
   /// times that it took the plugin to return a response to requests with the
   /// method.
-  static Map<PluginInfo, Map<String, PercentileCalculator>>
-  pluginResponseTimes = <PluginInfo, Map<String, PercentileCalculator>>{};
+  static Map<PluginIsolate, Map<String, PercentileCalculator>>
+  pluginResponseTimes = <PluginIsolate, Map<String, PercentileCalculator>>{};
 
   /// The console environment key used by the pub tool.
   static const String _pubEnvironmentKey = 'PUB_ENVIRONMENT';
@@ -276,7 +88,7 @@ class PluginManager {
   final InstrumentationService instrumentationService;
 
   /// A table mapping the paths of plugins to information about those plugins.
-  final Map<String, PluginInfo> _pluginMap = <String, PluginInfo>{};
+  final Map<String, PluginIsolate> _pluginMap = <String, PluginIsolate>{};
 
   /// The parameters for the last 'analysis.setPriorityFiles' request that was
   /// received from the client. Because plugins are lazily discovered, this
@@ -316,9 +128,9 @@ class PluginManager {
   );
 
   /// Return a list of all of the plugins that are currently known.
-  List<PluginInfo> get plugins => _pluginMap.values.toList();
+  List<PluginIsolate> get pluginIsolates => _pluginMap.values.toList();
 
-  /// Stream emitting an event when known [plugins] change.
+  /// Stream emitting an event when known [pluginIsolates] change.
   Stream<void> get pluginsChanged => _pluginsChanged.stream;
 
   /// Adds the plugin with the given [path] to the list of plugins that should
@@ -333,39 +145,39 @@ class PluginManager {
     String path, {
     required bool isLegacyPlugin,
   }) async {
-    var plugin = _pluginMap[path];
+    var pluginIsolate = _pluginMap[path];
     var isNew = false;
-    if (plugin == null) {
+    if (pluginIsolate == null) {
       isNew = true;
       PluginFiles pluginFiles;
       try {
         pluginFiles = filesFor(path, isLegacyPlugin: isLegacyPlugin);
       } catch (exception, stackTrace) {
-        plugin = PluginInfo(
+        pluginIsolate = PluginIsolate(
           path,
           '',
           '',
           _notificationManager,
           instrumentationService,
         );
-        plugin.reportException(CaughtException(exception, stackTrace));
-        _pluginMap[path] = plugin;
+        pluginIsolate.reportException(CaughtException(exception, stackTrace));
+        _pluginMap[path] = pluginIsolate;
         return;
       }
-      plugin = PluginInfo(
+      pluginIsolate = PluginIsolate(
         path,
         pluginFiles.execution.path,
         pluginFiles.packageConfig.path,
         _notificationManager,
         instrumentationService,
       );
-      _pluginMap[path] = plugin;
+      _pluginMap[path] = pluginIsolate;
       try {
-        instrumentationService.logInfo('Starting plugin "$plugin"');
-        var session = await plugin.start(_byteStorePath, _sdkPath);
+        instrumentationService.logInfo('Starting plugin "$pluginIsolate"');
+        var session = await pluginIsolate.start(_byteStorePath, _sdkPath);
         unawaited(
-          session?._onDone.then((_) {
-            if (_pluginMap[path] == plugin) {
+          session?.onDone.then((_) {
+            if (_pluginMap[path] == pluginIsolate) {
               _pluginMap.remove(path);
               _notifyPluginsChanged();
             }
@@ -374,24 +186,24 @@ class PluginManager {
       } catch (exception, stackTrace) {
         // Record the exception (for debugging purposes) and record the fact
         // that we should not try to communicate with the plugin.
-        plugin.reportException(CaughtException(exception, stackTrace));
+        pluginIsolate.reportException(CaughtException(exception, stackTrace));
         isNew = false;
       }
 
       _notifyPluginsChanged();
     }
-    plugin.addContextRoot(contextRoot);
+    pluginIsolate.addContextRoot(contextRoot);
     if (isNew) {
       var analysisSetSubscriptionsParams = _analysisSetSubscriptionsParams;
       if (analysisSetSubscriptionsParams != null) {
-        plugin.sendRequest(analysisSetSubscriptionsParams);
+        pluginIsolate.sendRequest(analysisSetSubscriptionsParams);
       }
       if (_overlayState.isNotEmpty) {
-        plugin.sendRequest(AnalysisUpdateContentParams(_overlayState));
+        pluginIsolate.sendRequest(AnalysisUpdateContentParams(_overlayState));
       }
       var analysisSetPriorityFilesParams = _analysisSetPriorityFilesParams;
       if (analysisSetPriorityFilesParams != null) {
-        plugin.sendRequest(analysisSetPriorityFilesParams);
+        pluginIsolate.sendRequest(analysisSetPriorityFilesParams);
       }
     }
   }
@@ -400,17 +212,17 @@ class PluginManager {
   /// that are currently associated with the given [contextRoot]. Return a list
   /// containing futures that will complete when each of the plugins have sent a
   /// response.
-  Map<PluginInfo, Future<Response>> broadcastRequest(
+  Map<PluginIsolate, Future<Response>> broadcastRequest(
     RequestParams params, {
     analyzer.ContextRoot? contextRoot,
   }) {
-    var plugins = pluginsForContextRoot(contextRoot);
-    var responseMap = <PluginInfo, Future<Response>>{};
-    for (var plugin in plugins) {
-      var request = plugin.currentSession?.sendRequest(params);
+    var pluginIsolates = pluginsForContextRoot(contextRoot);
+    var responseMap = <PluginIsolate, Future<Response>>{};
+    for (var pluginIsolate in pluginIsolates) {
+      var request = pluginIsolate.currentSession?.sendRequest(params);
       // Only add an entry to the map if we have sent a request.
       if (request != null) {
-        responseMap[plugin] = request;
+        responseMap[pluginIsolate] = request;
       }
     }
     return responseMap;
@@ -434,11 +246,11 @@ class PluginManager {
 
     WatchEvent? event;
     var responses = <Future<Response>>[];
-    for (var plugin in _pluginMap.values) {
-      var session = plugin.currentSession;
+    for (var pluginIsolate in _pluginMap.values) {
+      var session = pluginIsolate.currentSession;
       var interestingFiles = session?.interestingFiles;
       if (session != null &&
-          plugin.isAnalyzing(filePath) &&
+          pluginIsolate.isAnalyzing(filePath) &&
           interestingFiles != null &&
           interestingFiles.any(matches)) {
         // The list of interesting file globs is `null` if the plugin has not
@@ -497,20 +309,17 @@ class PluginManager {
     return _computeFiles(executionFolder, pubCommand: 'get');
   }
 
-  /// Return a list of all of the plugins that are currently associated with the
-  /// given [contextRoot].
+  /// Return a list of all of the plugin isolates that are currently associated
+  /// with the given [contextRoot].
   @visibleForTesting
-  List<PluginInfo> pluginsForContextRoot(analyzer.ContextRoot? contextRoot) {
+  List<PluginIsolate> pluginsForContextRoot(analyzer.ContextRoot? contextRoot) {
     if (contextRoot == null) {
       return _pluginMap.values.toList();
     }
-    var plugins = <PluginInfo>[];
-    for (var plugin in _pluginMap.values) {
-      if (plugin.contextRoots.contains(contextRoot)) {
-        plugins.add(plugin);
-      }
-    }
-    return plugins;
+    return [
+      for (var pluginIsolate in _pluginMap.values)
+        if (pluginIsolate.contextRoots.contains(contextRoot)) pluginIsolate,
+    ];
   }
 
   /// Returns the "plugin state" folder for a plugin at [pluginPath].
@@ -532,7 +341,7 @@ class PluginManager {
     for (var plugin in plugins) {
       plugin.removeContextRoot(contextRoot);
       if (plugin.contextRoots.isEmpty) {
-        _pluginMap.remove(plugin._path);
+        _pluginMap.remove(plugin.pluginId);
         _notifyPluginsChanged();
         try {
           plugin.stop();
@@ -564,7 +373,7 @@ class PluginManager {
         _pluginMap[path] = plugin;
         var session = await plugin.start(_byteStorePath, _sdkPath);
         unawaited(
-          session?._onDone.then((_) {
+          session?.onDone.then((_) {
             _pluginMap.remove(path);
           }),
         );
@@ -640,12 +449,12 @@ class PluginManager {
     }
   }
 
-  /// Stop all of the plugins that are currently running.
+  /// Stops all of the plugin isolates that are currently running.
   Future<List<void>> stopAll() {
     return Future.wait(
-      _pluginMap.values.map((PluginInfo info) async {
+      _pluginMap.values.map((pluginIsolate) async {
         try {
-          await info.stop();
+          await pluginIsolate.stop();
         } catch (e, st) {
           instrumentationService.logException(e, st);
         }
@@ -914,11 +723,15 @@ class PluginManager {
     return hex.encode(bytes);
   }
 
-  /// Record the fact that the given [plugin] responded to a request with the
-  /// given [method] in the given [time].
-  static void recordResponseTime(PluginInfo plugin, String method, int time) {
+  /// Record the fact that the given [pluginIsolate] responded to a request with
+  /// the given [method] in the given [time].
+  static void recordResponseTime(
+    PluginIsolate pluginIsolate,
+    String method,
+    int time,
+  ) {
     pluginResponseTimes
-        .putIfAbsent(plugin, () => <String, PercentileCalculator>{})
+        .putIfAbsent(pluginIsolate, () => <String, PercentileCalculator>{})
         .putIfAbsent(method, () => PercentileCalculator())
         .addValue(time);
   }
@@ -944,278 +757,9 @@ class PluginManager {
   }
 }
 
-/// Information about the execution of a single plugin.
-@visibleForTesting
-class PluginSession {
-  /// The maximum number of milliseconds that server should wait for a response
-  /// from a plugin before deciding that the plugin is hung.
-  static const Duration MAXIMUM_RESPONSE_TIME = Duration(minutes: 2);
-
-  /// The length of time to wait after sending a 'plugin.shutdown' request
-  /// before a failure to terminate will cause the isolate to be killed.
-  static const Duration WAIT_FOR_SHUTDOWN_DURATION = Duration(seconds: 10);
-
-  /// The information about the plugin being executed.
-  final PluginInfo _info;
-
-  /// The completer used to signal when the plugin has stopped.
-  Completer<void> pluginStoppedCompleter = Completer<void>();
-
-  /// The channel used to communicate with the plugin.
-  ServerCommunicationChannel? channel;
-
-  /// The index of the next request to be sent to the plugin.
-  int requestId = 0;
-
-  /// A table mapping the id's of requests to the functions used to handle the
-  /// response to those requests.
-  @visibleForTesting
-  // ignore: library_private_types_in_public_api
-  Map<String, _PendingRequest> pendingRequests = <String, _PendingRequest>{};
-
-  /// A boolean indicating whether the plugin is compatible with the version of
-  /// the plugin API being used by this server.
-  bool isCompatible = true;
-
-  /// The glob patterns of files that the plugin is interested in knowing about.
-  List<String>? interestingFiles;
-
-  /// The name to be used when reporting problems related to the plugin.
-  String? _name;
-
-  /// The version number to be used when reporting problems related to the
-  /// plugin.
-  String? _version;
-
-  PluginSession(this._info);
-
-  /// The next request ID, encoded as a string.
-  ///
-  /// This increments the ID so that a different result will be returned on each
-  /// invocation.
-  String get nextRequestId => (requestId++).toString();
-
-  /// A future that will complete when the plugin has stopped.
-  Future<void> get _onDone => pluginStoppedCompleter.future;
-
-  /// Handles the given [notification] from [PluginServer].
-  void handleNotification(Notification notification) {
-    if (notification.event == PLUGIN_NOTIFICATION_ERROR) {
-      var params = PluginErrorParams.fromNotification(notification);
-      if (params.isFatal) {
-        _info.stop();
-        stop();
-      }
-    }
-    _info._notificationManager.handlePluginNotification(
-      _info.pluginId,
-      notification,
-    );
-  }
-
-  /// Handles the fact that the plugin has stopped.
-  void handleOnDone() {
-    if (channel != null) {
-      channel!.close();
-      channel = null;
-    }
-    pluginStoppedCompleter.complete(null);
-  }
-
-  /// Handles the fact that an unhandled error has occurred in the plugin.
-  void handleOnError(Object? error) {
-    if (error case [String message, String stackTraceString]) {
-      var stackTrace = StackTrace.fromString(stackTraceString);
-      var exception = PluginException(message);
-      _info.reportException(
-        CaughtException.withMessage(message, exception, stackTrace),
-      );
-    } else {
-      throw ArgumentError.value(
-        error,
-        'error',
-        'expected to be a two-element List of Strings.',
-      );
-    }
-  }
-
-  /// Handles a [response] from the plugin by completing the future that was
-  /// created when the request was sent.
-  void handleResponse(Response response) {
-    var requestData = pendingRequests.remove(response.id);
-    if (requestData != null) {
-      var responseTime = DateTime.now().millisecondsSinceEpoch;
-      var duration = responseTime - requestData.requestTime;
-      PluginManager.recordResponseTime(_info, requestData.method, duration);
-      var completer = requestData.completer;
-      completer.complete(response);
-    }
-  }
-
-  /// Whether there are any requests that have not been responded to within the
-  /// maximum allowed amount of time.
-  bool isNonResponsive() {
-    // TODO(brianwilkerson): Figure out when to invoke this method in order to
-    // identify non-responsive plugins and kill them.
-    var cutOffTime =
-        DateTime.now().millisecondsSinceEpoch -
-        MAXIMUM_RESPONSE_TIME.inMilliseconds;
-    for (var requestData in pendingRequests.values) {
-      if (requestData.requestTime < cutOffTime) {
-        return true;
-      }
-    }
-    return false;
-  }
-
-  /// Sends a request, based on the given [parameters].
-  ///
-  /// Returns a future that will complete when a response is received.
-  Future<Response> sendRequest(RequestParams parameters) {
-    var channel = this.channel;
-    if (channel == null) {
-      throw StateError('Cannot send a request to a plugin that has stopped.');
-    }
-    var id = nextRequestId;
-    var completer = Completer<Response>();
-    var requestTime = DateTime.now().millisecondsSinceEpoch;
-    var request = parameters.toRequest(id);
-    pendingRequests[id] = _PendingRequest(
-      request.method,
-      requestTime,
-      completer,
-    );
-    channel.sendRequest(request);
-    completer.future.then((response) {
-      // If a RequestError is returned in the response, report this as an
-      // exception.
-      if (response.error case var error?) {
-        if (error.code == RequestErrorCode.UNKNOWN_REQUEST) {
-          // The plugin doesn't support this request. It may just be using an
-          // older version of the `analysis_server_plugin` package.
-          _info._instrumentationService.logInfo(
-            "Plugin cannot handle request '${request.method}' with parameters: "
-            '$parameters.',
-          );
-          return;
-        }
-        var stackTrace = StackTrace.fromString(error.stackTrace!);
-        var exception = PluginException(error.message);
-        _info.reportException(
-          CaughtException.withMessage(error.message, exception, stackTrace),
-        );
-      }
-    });
-    return completer.future;
-  }
-
-  /// Starts a new isolate that is running this plugin.
-  ///
-  /// The plugin will be sent the given [byteStorePath]. Returns whether the
-  /// plugin is compatible and running.
-  Future<bool> start(String? byteStorePath, String sdkPath) async {
-    if (channel != null) {
-      throw StateError('Cannot start a plugin that is already running.');
-    }
-    if (byteStorePath == null || byteStorePath.isEmpty) {
-      throw StateError('Missing byte store path');
-    }
-    if (!isCompatible) {
-      _info.reportException(
-        CaughtException(
-          PluginException('Plugin is not compatible.'),
-          StackTrace.current,
-        ),
-      );
-      return false;
-    }
-    if (!_info._canBeStarted) {
-      _info.reportException(
-        CaughtException(
-          PluginException('Plugin cannot be started.'),
-          StackTrace.current,
-        ),
-      );
-      return false;
-    }
-    channel = _info._createChannel();
-    // TODO(brianwilkerson): Determine if await is necessary, if so, change the
-    // return type of `channel.listen` to `Future<void>`.
-    await (channel!.listen(
-          handleResponse,
-          handleNotification,
-          onDone: handleOnDone,
-          onError: handleOnError,
-        )
-        as dynamic);
-    if (channel == null) {
-      // If there is an error when starting the isolate, the channel will invoke
-      // `handleOnDone`, which will cause `channel` to be set to `null`.
-      _info.reportException(
-        CaughtException(
-          PluginException('Unrecorded error while starting the plugin.'),
-          StackTrace.current,
-        ),
-      );
-      return false;
-    }
-    var response = await sendRequest(
-      PluginVersionCheckParams(byteStorePath, sdkPath, '1.0.0-alpha.0'),
-    );
-    var result = PluginVersionCheckResult.fromResponse(response);
-    isCompatible = result.isCompatible;
-    interestingFiles = result.interestingFiles;
-    _name = result.name;
-    _version = result.version;
-    if (!isCompatible) {
-      unawaited(sendRequest(PluginShutdownParams()));
-      _info.reportException(
-        CaughtException(
-          PluginException('Plugin is not compatible.'),
-          StackTrace.current,
-        ),
-      );
-      return false;
-    }
-    return true;
-  }
-
-  /// Requests that the plugin shutdown.
-  Future<void> stop() {
-    if (channel == null) {
-      throw StateError('Cannot stop a plugin that is not running.');
-    }
-    sendRequest(PluginShutdownParams());
-    Future.delayed(WAIT_FOR_SHUTDOWN_DURATION, () {
-      if (channel != null) {
-        channel?.kill();
-        channel = null;
-      }
-    });
-    return pluginStoppedCompleter.future;
-  }
-}
-
 class _Package {
   final String name;
   final Folder root;
 
   _Package(this.name, this.root);
-}
-
-/// Information about a request that has been sent but for which a response has
-/// not yet been received.
-class _PendingRequest {
-  /// The method of the request.
-  final String method;
-
-  /// The time at which the request was sent to the plugin.
-  final int requestTime;
-
-  /// The completer that will be used to complete the future when the response
-  /// is received from the plugin.
-  final Completer<Response> completer;
-
-  /// Initialize a pending request.
-  _PendingRequest(this.method, this.requestTime, this.completer);
 }

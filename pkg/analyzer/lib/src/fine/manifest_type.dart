@@ -153,21 +153,19 @@ final class ManifestFunctionType extends ManifestType {
       return ManifestFunctionType._(
         typeParameters: typeParameters,
         returnType: type.returnType.encode(context),
-        positional:
-            type.positionalParameterTypes.indexed.map((pair) {
-              return ManifestFunctionPositionalFormalParameter._(
-                isRequired: pair.$1 < type.requiredPositionalParameterCount,
-                type: pair.$2.encode(context),
-              );
-            }).toFixedList(),
-        named:
-            type.sortedNamedParametersShared.map((element) {
-              return ManifestFunctionNamedFormalParameter._(
-                isRequired: element.isRequired,
-                type: element.type.encode(context),
-                name: element.name!,
-              );
-            }).toFixedList(),
+        positional: type.positionalParameterTypes.indexed.map((pair) {
+          return ManifestFunctionPositionalFormalParameter._(
+            isRequired: pair.$1 < type.requiredPositionalParameterCount,
+            type: pair.$2.encode(context),
+          );
+        }).toFixedList(),
+        named: type.sortedNamedParametersShared.map((element) {
+          return ManifestFunctionNamedFormalParameter._(
+            isRequired: element.isRequired,
+            type: element.type.encode(context),
+            name: element.name!,
+          );
+        }).toFixedList(),
         nullabilitySuffix: type.nullabilitySuffix,
       );
     });
@@ -425,10 +423,9 @@ final class ManifestRecordType extends ManifestType {
             return field.type;
           })
           .encode(context),
-      namedFields:
-          type.namedFields.map((field) {
-            return ManifestRecordTypeNamedField.encode(context, field);
-          }).toFixedList(),
+      namedFields: type.namedFields.map((field) {
+        return ManifestRecordTypeNamedField.encode(context, field);
+      }).toFixedList(),
       nullabilitySuffix: type.nullabilitySuffix,
     );
   }

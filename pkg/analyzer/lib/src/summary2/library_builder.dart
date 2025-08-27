@@ -235,10 +235,9 @@ class LibraryBuilder {
       if (enumFragment is! EnumFragmentImpl) continue;
       if (hasConstructor(enumFragment)) continue;
 
-      var fragment =
-          ConstructorFragmentImpl(name: 'new')
-            ..isConst = true
-            ..isSynthetic = true;
+      var fragment = ConstructorFragmentImpl(name: 'new')
+        ..isConst = true
+        ..isSynthetic = true;
       fragment.typeName = enumFragment.name;
 
       var element = ConstructorElementImpl(
@@ -250,8 +249,10 @@ class LibraryBuilder {
       );
       enumFragment.element.addConstructor(element);
 
-      enumFragment.constructors =
-          [...enumFragment.constructors, fragment].toFixedList();
+      enumFragment.constructors = [
+        ...enumFragment.constructors,
+        fragment,
+      ].toFixedList();
     }
   }
 
@@ -441,27 +442,21 @@ class LibraryBuilder {
     required FileKind kind,
     required LibraryFragmentImpl containerUnit,
   }) {
-    containerUnit.libraryExports =
-        kind.libraryExports.map((state) {
-          return _buildLibraryExport(state);
-        }).toFixedList();
+    containerUnit.libraryExports = kind.libraryExports.map((state) {
+      return _buildLibraryExport(state);
+    }).toFixedList();
 
-    containerUnit.libraryImports =
-        kind.libraryImports.map((state) {
-          return _buildLibraryImport(
-            containerUnit: containerUnit,
-            state: state,
-          );
-        }).toFixedList();
+    containerUnit.libraryImports = kind.libraryImports.map((state) {
+      return _buildLibraryImport(containerUnit: containerUnit, state: state);
+    }).toFixedList();
 
-    containerUnit.parts =
-        kind.partIncludes.map((partState) {
-          return _buildPartInclude(
-            containerLibrary: element,
-            containerUnit: containerUnit,
-            state: partState,
-          );
-        }).toFixedList();
+    containerUnit.parts = kind.partIncludes.map((partState) {
+      return _buildPartInclude(
+        containerLibrary: element,
+        containerUnit: containerUnit,
+        state: partState,
+      );
+    }).toFixedList();
   }
 
   LibraryExportImpl _buildLibraryExport(LibraryExportState state) {

@@ -138,8 +138,9 @@ class SourceFactoryImpl implements SourceFactory {
     } on FormatException {
       return null;
     } catch (exception, stackTrace) {
-      String containingFullName =
-          containingSource != null ? containingSource.fullName : '<null>';
+      String containingFullName = containingSource != null
+          ? containingSource.fullName
+          : '<null>';
       // TODO(39284): should this exception be silent?
       AnalysisEngine.instance.instrumentationService.logException(
         SilentException(

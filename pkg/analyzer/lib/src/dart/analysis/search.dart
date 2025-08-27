@@ -965,16 +965,14 @@ class Search {
     }
 
     var rootVariable = element.rootVariable;
-    var transitiveVariables =
-        rootVariable is JoinPatternVariableElementImpl
-            ? rootVariable.transitiveVariables
-            : [rootVariable];
+    var transitiveVariables = rootVariable is JoinPatternVariableElementImpl
+        ? rootVariable.transitiveVariables
+        : [rootVariable];
 
     // Prepare a binding element for the variable.
-    var bindElement =
-        transitiveVariables
-            .whereType<BindPatternVariableElementImpl>()
-            .firstOrNull;
+    var bindElement = transitiveVariables
+        .whereType<BindPatternVariableElementImpl>()
+        .firstOrNull;
     if (bindElement == null) {
       return const <SearchResult>[];
     }

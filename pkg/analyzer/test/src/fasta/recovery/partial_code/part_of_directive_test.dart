@@ -18,14 +18,12 @@ class PartOfDirectivesTest extends PartialCodeTest {
       'getter',
       'setter',
     ];
-    List<TestSuffix> identifierSuffixes =
-        PartialCodeTest.declarationSuffixes
-            .where((t) => identifiers.contains(t.name))
-            .toList();
-    List<TestSuffix> nonIdentifierSuffixes =
-        PartialCodeTest.declarationSuffixes
-            .where((t) => !identifiers.contains(t.name))
-            .toList();
+    List<TestSuffix> identifierSuffixes = PartialCodeTest.declarationSuffixes
+        .where((t) => identifiers.contains(t.name))
+        .toList();
+    List<TestSuffix> nonIdentifierSuffixes = PartialCodeTest.declarationSuffixes
+        .where((t) => !identifiers.contains(t.name))
+        .toList();
     buildTests('part_of_directive', [
       TestDescriptor(
         'keyword',

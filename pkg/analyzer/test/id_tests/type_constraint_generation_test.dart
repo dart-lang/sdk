@@ -91,12 +91,11 @@ class _TypeConstraintGenerationDataInterpreter
         if (i > 0) {
           sb.write(',');
         }
-        var name =
-            actualData[i].typeParameter
-                .unwrapTypeParameterViewAsTypeParameterStructure<
-                  TypeParameterElementImpl
-                >()
-                .name;
+        var name = actualData[i].typeParameter
+            .unwrapTypeParameterViewAsTypeParameterStructure<
+              TypeParameterElementImpl
+            >()
+            .name;
         if (actualData[i].isUpper) {
           sb.write("$name <: ");
           sb.write(actualData[i].constraint.getDisplayString());

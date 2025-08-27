@@ -175,12 +175,11 @@ class ReplacementVisitor
         var newBound = visitTypeParameterBound(bound);
         if (newBound != null) {
           newTypeParameters ??= node.typeParameters.toList(growable: false);
-          newTypeParameters[i] =
-              typeParameter.freshCopy()
-                ..bound =
-                    // TODO(paulberry): eliminate this cast by changing the return
-                    // type of `visitTypeParameterBound`.
-                    newBound as TypeImpl;
+          newTypeParameters[i] = typeParameter.freshCopy()
+            ..bound =
+                // TODO(paulberry): eliminate this cast by changing the return
+                // type of `visitTypeParameterBound`.
+                newBound as TypeImpl;
         }
       }
     }
@@ -281,12 +280,11 @@ class ReplacementVisitor
         var newBound = visitTypeParameterBound(bound);
         if (newBound != null) {
           newTypeParameters ??= node.typeParameters.toList(growable: false);
-          newTypeParameters[i] =
-              typeParameter.freshCopy()
-                ..bound =
-                    // TODO(paulberry): eliminate this cast by changing the return
-                    // type of `visitTypeParameterBound`.
-                    newBound as TypeImpl;
+          newTypeParameters[i] = typeParameter.freshCopy()
+            ..bound =
+                // TODO(paulberry): eliminate this cast by changing the return
+                // type of `visitTypeParameterBound`.
+                newBound as TypeImpl;
         }
       }
     }
