@@ -35,6 +35,8 @@ extern "C" void __tsan_write2(void* addr);
 extern "C" void __tsan_write4(void* addr);
 extern "C" void __tsan_write8(void* addr);
 extern "C" void __tsan_write16(void* addr);
+extern "C" void __tsan_func_entry(void* pc);
+extern "C" void __tsan_func_exit();
 #else
 #define NO_SANITIZE_THREAD
 #endif

@@ -201,6 +201,8 @@ namespace dart {
   V(AllocateRecord_Wide,                   D, WIDE, lit, ___, ___)             \
   V(LoadRecordField,                       D, ORDN, num, ___, ___)             \
   V(LoadRecordField_Wide,                  D, WIDE, num, ___, ___)             \
+  V(FfiCall,                               D, ORDN, lit, ___, ___)             \
+  V(FfiCall_Wide,                          D, WIDE, lit, ___, ___)             \
 
   // These bytecodes are only generated within the VM. Reassigning their
   // opcodes is not a breaking change.

@@ -2676,12 +2676,13 @@ void FlowGraph::ExtractNonInternalTypedDataPayloads() {
 void FlowGraph::AddTsanInstrumentation() {
   if (!FLAG_target_thread_sanitizer) return;
 
+  bool needs_entry_exit = false;
   for (BlockIterator block_it = reverse_postorder_iterator(); !block_it.Done();
        block_it.Advance()) {
     BlockEntryInstr* block = block_it.Current();
+
     for (ForwardInstructionIterator it(block); !it.Done(); it.Advance()) {
       Instruction* current = it.Current();
-
       if (LoadFieldInstr* load = current->AsLoadField()) {
         if (!load->slot().is_no_sanitize_thread() &&
             load->memory_order() == compiler::Assembler::kRelaxedNonAtomic) {
@@ -2689,6 +2690,7 @@ void FlowGraph::AddTsanInstrumentation() {
               TsanReadWriteInstr::Kind::kRead, load->slot(),
               new (Z) Value(load->instance()->definition()), load->source());
           InsertBefore(load, tsan_read, /*env=*/nullptr, kEffect);
+          needs_entry_exit = true;
         }
       } else if (StoreFieldInstr* store = current->AsStoreField()) {
         if (!store->slot().is_no_sanitize_thread() &&
@@ -2697,7 +2699,37 @@ void FlowGraph::AddTsanInstrumentation() {
               TsanReadWriteInstr::Kind::kWrite, store->slot(),
               new (Z) Value(store->instance()->definition()), store->source());
           InsertBefore(store, tsan_write, /*env=*/nullptr, kEffect);
+          needs_entry_exit = true;
         }
+      } else if (current->CanCallDart() || current->MayThrow()) {
+        needs_entry_exit = true;
+      }
+    }
+  }
+
+  // TSAN can't symbolize JIT functions anyway, so don't bother with this
+  // overhead.
+  if (!FLAG_precompiled_mode) return;
+
+  if (!needs_entry_exit) return;
+
+  for (BlockIterator block_it = reverse_postorder_iterator(); !block_it.Done();
+       block_it.Advance()) {
+    BlockEntryInstr* block = block_it.Current();
+    if (block->IsFunctionEntry()) {
+      auto* tsan_entry = new (Z) TsanFuncEntryExitInstr(
+          TsanFuncEntryExitInstr::kEntry, block->source());
+      InsertAfter(block, tsan_entry, /*env=*/nullptr, kEffect);
+    }
+    for (ForwardInstructionIterator it(block); !it.Done(); it.Advance()) {
+      Instruction* current = it.Current();
+      if ((current->IsDartReturn() &&
+           !parsed_function_.function().IsAsyncFunction() &&
+           !parsed_function_.function().IsAsyncGenerator()) ||
+          current->IsTailCall()) {
+        auto* tsan_exit = new (Z) TsanFuncEntryExitInstr(
+            TsanFuncEntryExitInstr::kExit, current->source());
+        InsertBefore(current, tsan_exit, /*env=*/nullptr, kEffect);
       }
     }
   }

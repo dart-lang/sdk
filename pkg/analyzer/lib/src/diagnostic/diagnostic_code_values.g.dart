@@ -35,6 +35,8 @@ const List<DiagnosticCode> diagnosticCodeValues = [
   AnalysisOptionsWarningCode.includedFileWarning,
   AnalysisOptionsWarningCode.includeFileNotFound,
   AnalysisOptionsWarningCode.incompatibleLint,
+  AnalysisOptionsWarningCode.incompatibleLintFiles,
+  AnalysisOptionsWarningCode.incompatibleLintIncluded,
   AnalysisOptionsWarningCode.invalidOption,
   AnalysisOptionsWarningCode.invalidSectionFormat,
   AnalysisOptionsWarningCode.multiplePlugins,

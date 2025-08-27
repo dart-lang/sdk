@@ -3,7 +3,11 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:_js_interop_checks/src/js_interop.dart'
-    show getJSName, hasAnonymousAnnotation, hasJSInteropAnnotation;
+    show
+        getDartJSInteropJSName,
+        getJSName,
+        hasAnonymousAnnotation,
+        hasJSInteropAnnotation;
 import 'package:_js_interop_checks/src/transformations/js_util_optimizer.dart'
     show ExtensionIndex;
 import 'package:kernel/ast.dart';
@@ -343,9 +347,22 @@ class _ObjectLiteralSpecializer extends _InvocationSpecializer {
         .toList();
   }
 
+  /// The name to use in JavaScript for the Dart parameter [variable].
+  ///
+  /// This defaults to the name of the [variable], but can be changed with a
+  /// `@JS()` annotation.
+  String _jsKey(VariableDeclaration variable) {
+    // Only support `@JS` renaming on extension type object literal
+    // constructors.
+    final changedName = interopMethod.isExtensionTypeMember
+        ? getDartJSInteropJSName(variable)
+        : '';
+    return changedName.isEmpty ? variable.name! : changedName;
+  }
+
   @override
   String bodyString(String object, List<String> callArguments) {
-    final keys = parameters.map((named) => named.name!).toList();
+    final keys = parameters.map(_jsKey).toList();
     final keyValuePairs = <String>[];
     for (int i = 0; i < callArguments.length; i++) {
       keyValuePairs.add('${keys[i]}: ${callArguments[i]}');
@@ -362,8 +379,7 @@ class _ObjectLiteralSpecializer extends _InvocationSpecializer {
     // `Cons(a: 0)`, and `Cons(a: 1, b: 1)` only create two shapes:
     // `{a: value, b: value}` and `{a: value}`. Therefore, we only need two
     // methods to handle the `Cons` invocations.
-    final shape =
-        parameters.map((VariableDeclaration decl) => decl.name).join('|');
+    final shape = parameters.map(_jsKey).join('|');
     final interopProcedure = _jsObjectLiteralMethods
         .putIfAbsent(interopMethod, () => {})
         .putIfAbsent(shape, () => _getRawInteropProcedure());

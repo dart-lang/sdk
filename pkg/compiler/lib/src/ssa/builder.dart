@@ -3,6 +3,9 @@
 // BSD-style license that can be found in the LICENSE file.
 
 // ignore: implementation_imports
+import 'package:_js_interop_checks/src/js_interop.dart'
+    show getDartJSInteropJSName;
+// ignore: implementation_imports
 import 'package:front_end/src/api_prototype/static_weak_references.dart'
     as ir
     show StaticWeakReferences;
@@ -7016,7 +7019,11 @@ class KernelSsaGraphBuilder extends ir.VisitorDefault<void>
         final argument = arguments[i];
         if (argument != null) {
           filteredArguments.add(argument);
-          var jsName = _nativeData.computeUnescapedJSInteropName(parameterName);
+          var customName = getDartJSInteropJSName(variable);
+
+          var jsName = (customName.isNotEmpty && isObjectLiteralConstructor)
+              ? customName
+              : _nativeData.computeUnescapedJSInteropName(parameterName);
           parameterNameMap[jsName] = js.InterpolatedExpression(positions++);
         }
         i++;

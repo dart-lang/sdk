@@ -104,6 +104,7 @@ class BytecodeGenerator extends RecursiveVisitor {
   final PragmaAnnotationParser pragmaParser;
   final RecognizedMethods recognizedMethods;
   final Map<Uri, Source> astUriToSource;
+  final LibraryIndex ffiLibraryIndex;
   late StringTable stringTable;
   late ObjectTable objectTable;
   late Component bytecodeComponent;
@@ -164,7 +165,8 @@ class BytecodeGenerator extends RecursiveVisitor {
       this.pragmaParser,
       this.staticTypeContext)
       : recognizedMethods = new RecognizedMethods(staticTypeContext),
-        astUriToSource = component.uriToSource {
+        astUriToSource = component.uriToSource,
+        ffiLibraryIndex = LibraryIndex(component, const ['dart:ffi']) {
     bytecodeComponent = new Component(coreTypes);
     stringTable = bytecodeComponent.stringTable;
     objectTable = bytecodeComponent.objectTable;
@@ -596,6 +598,11 @@ class BytecodeGenerator extends RecursiveVisitor {
     if (member.isExternal) {
       final String? externalName = getExternalName(coreTypes, member);
       if (externalName == null) {
+        if (pragmaParser
+            .parsedPragmas<ParsedFfiNativePragma>(member.annotations)
+            .isNotEmpty) {
+          flags |= FunctionDeclaration.isNativeFlag;
+        }
         flags |= FunctionDeclaration.isExternalFlag;
       } else {
         flags |= FunctionDeclaration.isNativeFlag;
@@ -741,6 +748,10 @@ class BytecodeGenerator extends RecursiveVisitor {
         if (node.isExternal) {
           if (getExternalName(coreTypes, node) != null) {
             _genExternalCall(node);
+          } else if (pragmaParser
+              .parsedPragmas<ParsedFfiNativePragma>(node.annotations)
+              .isNotEmpty) {
+            _generateFfiCall(null);
           } else {
             _genNoSuchMethodForExternal(node);
           }
@@ -837,6 +848,21 @@ class BytecodeGenerator extends RecursiveVisitor {
 
     final externalCallCpIndex = cp.addExternalCall();
     asm.emitExternalCall(externalCallCpIndex);
+  }
+
+  void _generateFfiCall(Expression? target) {
+    final function = enclosingFunction!;
+    for (var param in function.positionalParameters) {
+      asm.emitPush(locals.getVarIndexInFrame(param));
+    }
+    for (var param in locals.originalNamedParameters) {
+      asm.emitPush(locals.getVarIndexInFrame(param));
+    }
+    if (target != null) {
+      _generateNode(target);
+    }
+    final ffiCallCpIndex = cp.addFfiCall();
+    asm.emitFfiCall(ffiCallCpIndex);
   }
 
   LibraryIndex get libraryIndex => coreTypes.index;
@@ -976,7 +1002,11 @@ class BytecodeGenerator extends RecursiveVisitor {
   late Field syncStarIteratorYieldStarIterable = libraryIndex.getField(
       'dart:async', '_SyncStarIterator', '_yieldStarIterable');
 
-  late Library? dartFfiLibrary = libraryIndex.tryGetLibrary('dart:ffi');
+  late Library? dartFfiLibrary = ffiLibraryIndex.tryGetLibrary('dart:ffi');
+
+  late Procedure? ffiCall = (dartFfiLibrary != null)
+      ? ffiLibraryIndex.getTopLevelProcedure('dart:ffi', '_ffiCall')
+      : null;
 
   // Selector for implicit dynamic calls 'foo(...)' where
   // variable 'foo' has type 'dynamic'.
@@ -3435,6 +3465,10 @@ class BytecodeGenerator extends RecursiveVisitor {
     } else if (target == nativeEffect) {
       // Skip over AST of the argument, return null.
       asm.emitPushNull();
+      return;
+    } else if (target == ffiCall) {
+      assert(args.named.isEmpty);
+      _generateFfiCall(args.positional.single);
       return;
     }
     if (target.isFactory) {

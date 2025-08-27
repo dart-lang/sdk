@@ -522,6 +522,7 @@ intptr_t BytecodeReaderHelper::ReadConstantPool(const Function& function,
     kInstantiatedInterfaceCall,
     kDynamicCall,
     kExternalCall,
+    kFfiCall,
   };
 
   Object& obj = Object::Handle(Z);
@@ -685,6 +686,14 @@ intptr_t BytecodeReaderHelper::ReadConstantPool(const Function& function,
         pool.SetRawValueAt(i, 0);
         ++i;
         ASSERT(i < obj_count);
+        pool.SetTypeAt(i, ObjectPool::EntryType::kNativeFunction,
+                       ObjectPool::Patchability::kNotPatchable,
+                       ObjectPool::SnapshotBehavior::kNotSnapshotable);
+        pool.SetRawValueAt(i, 0);
+        continue;
+      }
+      case ConstantPoolTag::kFfiCall: {
+        // FfiCall constant has 1 raw value entry.
         pool.SetTypeAt(i, ObjectPool::EntryType::kNativeFunction,
                        ObjectPool::Patchability::kNotPatchable,
                        ObjectPool::SnapshotBehavior::kNotSnapshotable);
@@ -2107,7 +2116,9 @@ void BytecodeReaderHelper::ReadFunctionDeclarations(const Class& cls) {
 
     if (is_native) {
       name ^= ReadObject();
-      function.set_native_name(name);
+      if (!name.IsNull()) {
+        function.set_native_name(name);
+      }
     }
 
     if ((flags & kIsAbstractFlag) == 0) {

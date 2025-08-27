@@ -279,6 +279,10 @@ void StubCodeCompiler::GenerateCallNativeThroughSafepointStub() {
   __ jr(S3);
 }
 
+void StubCodeCompiler::GenerateFfiCallTrampolineStub() {
+  __ Breakpoint();  // Not implemented.
+}
+
 void StubCodeCompiler::GenerateLoadBSSEntry(BSS::Relocation relocation,
                                             Register dst,
                                             Register tmp) {
@@ -2957,10 +2961,30 @@ void StubCodeCompiler::GenerateGetCStackPointerStub() {
 void StubCodeCompiler::GenerateJumpToFrameStub() {
   ASSERT(kExceptionObjectReg == A0);
   ASSERT(kStackTraceObjectReg == A1);
+  __ mv(THR, A3);
+  if (FLAG_target_thread_sanitizer && FLAG_precompiled_mode) {
+    Label again, done;
+    __ lx(CALLEE_SAVED_TEMP,
+          Address(THR, target::Thread::top_exit_frame_info_offset()));
+    // Skip CallToRuntime/CallNativeWithWrapper stub frame, which did not call
+    // __tsan_func_entry.
+    __ lx(CALLEE_SAVED_TEMP,
+          Address(CALLEE_SAVED_TEMP,
+                  target::frame_layout.saved_caller_fp_from_fp *
+                      target::kWordSize));
+    __ Bind(&again);
+    __ beq(CALLEE_SAVED_TEMP, A2, &done);
+    __ TsanFuncExit();
+    __ lx(CALLEE_SAVED_TEMP,
+          Address(CALLEE_SAVED_TEMP,
+                  target::frame_layout.saved_caller_fp_from_fp *
+                      target::kWordSize));
+    __ j(&again);
+    __ Bind(&done);
+  }
   __ mv(CALLEE_SAVED_TEMP, A0);  // Program counter.
   __ mv(SP, A1);                 // Stack pointer.
   __ mv(FP, A2);                 // Frame_pointer.
-  __ mv(THR, A3);
 #if defined(DART_TARGET_OS_FUCHSIA) || defined(DART_TARGET_OS_ANDROID)
   // We need to restore the shadow call stack pointer like longjmp would,
   // effectively popping all the return addresses between the Dart exit frame

@@ -53,12 +53,19 @@ bool hasPatchAnnotation(Annotatable a) => a.annotations.any(_isPatchAnnotation);
 /// If [a] has a `@JS('...')` annotation, returns the value inside the
 /// parentheses.
 ///
+/// This function only considers `JS` annotations defined in [interopLibraries]
+/// or, when that argument is not set, from both `package:js` and
+/// `dart:js_interop`.
+///
 /// If there is none or the class does not have a `@JS()` annotation, returns
 /// an empty String.
-String getJSName(Annotatable a) {
+String getJSName(Annotatable a, {Set<Uri>? interopLibraries}) {
   String jsClass = '';
   for (var annotation in a.annotations) {
-    if (_isJSInteropAnnotation(annotation)) {
+    if (_isJSInteropAnnotation(
+      annotation,
+      interopLibraries: interopLibraries,
+    )) {
       var jsClasses = stringAnnotationValues(annotation);
       if (jsClasses.isNotEmpty) {
         jsClass = jsClasses[0];
@@ -66,6 +73,14 @@ String getJSName(Annotatable a) {
     }
   }
   return jsClass;
+}
+
+/// If [a] has a `JS('...')` annotation from `dart:js_interop`, returns the
+/// value inside the parentheses.
+///
+/// If no such annotation exists, returns an empty string.
+String getDartJSInteropJSName(Annotatable a) {
+  return getJSName(a, interopLibraries: {_jsInterop});
 }
 
 /// If [a] has a `@Native('...')` annotation, returns the values inside the
@@ -130,8 +145,8 @@ bool _isInteropAnnotation(
   return interopLibraries.contains(importUri);
 }
 
-bool _isJSInteropAnnotation(Expression value) =>
-    _isInteropAnnotation(value, 'JS');
+bool _isJSInteropAnnotation(Expression value, {Set<Uri>? interopLibraries}) =>
+    _isInteropAnnotation(value, 'JS', interopLibraries: interopLibraries);
 
 bool _isPackageJSAnnotation(Expression value) => _isInteropAnnotation(
   value,

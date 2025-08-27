@@ -13391,7 +13391,6 @@ class UserTag : public Instance {
   static UserTagPtr FindTagInIsolateGroup(IsolateGroup* isolate_group,
                                           Thread* thread,
                                           const String& label);
-  static UserTagPtr FindTagInIsolateGroup(Thread* thread, const String& label);
 
  private:
   static void AddTagToIsolateGroup(Thread* thread, const UserTag& tag);

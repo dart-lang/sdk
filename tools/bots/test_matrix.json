@@ -1394,10 +1394,11 @@
         "vm-asan-win-release-x64",
         "vm-msan-linux-release-x64",
         "vm-tsan-linux-release-x64",
+        "vm-tsan-mac-release-arm64",
         "vm-ubsan-linux-release-x64"
       ],
       "meta": {
-        "description": "This configuration is used by the X64 sanitizers."
+        "description": "This configuration is used by the sanitizers (high capacity machine pools)."
       },
       "steps": [
         {
@@ -1435,7 +1436,7 @@
         "vm-ubsan-linux-release-arm64"
       ],
       "meta": {
-        "description": "This configuration is used by the ARM64 sanitizers."
+        "description": "This configuration is used by the sanitizers (low capacity machine pools)."
       },
       "steps": [
         {
@@ -1464,7 +1465,7 @@
             "standalone"
           ],
           "fileset": "vm",
-          "shards": 2
+          "shards": 3
         }
       ]
     },

@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:_fe_analyzer_shared/src/base/errors.dart';
+import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/analysis_options/options_file_validator.dart';
 import 'package:analyzer/src/context/source.dart';
 import 'package:analyzer/src/file_system/file_system.dart';
@@ -18,25 +19,30 @@ abstract class AbstractAnalysisOptionsTest
     with ResourceProviderMixin, LintRegistrationMixin {
   late SourceFactory sourceFactory;
 
+  late File analysisOptionsFile = newFile(analysisOptionsPath, '');
+  late String analysisOptionsPath = convertPath('/analysis_options.yaml');
   VersionConstraint? get sdkVersionConstraint => null;
 
   Future<void> assertErrorsInCode(
     String code,
     List<ExpectedError> expectedErrors,
   ) async {
-    var path = convertPath('/analysis_options.yaml');
-    newFile(path, code);
+    analysisOptionsFile.writeAsStringSync(code);
     var diagnostics = analyzeAnalysisOptions(
-      TestSource(path),
+      TestSource(analysisOptionsPath),
       code,
       sourceFactory,
       '/',
       sdkVersionConstraint,
+      resourceProvider,
     );
     var diagnosticListener = GatheringDiagnosticListener();
     diagnosticListener.addAll(diagnostics);
     diagnosticListener.assertErrors(expectedErrors);
   }
+
+  Future<void> assertNoErrorsInCode(String code) async =>
+      await assertErrorsInCode(code, const []);
 
   ExpectedError error(
     DiagnosticCode code,

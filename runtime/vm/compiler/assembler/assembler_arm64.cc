@@ -403,6 +403,22 @@ void Assembler::TsanWrite(Register addr, intptr_t size) {
   }
 }
 
+void Assembler::TsanFuncEntry(bool preserve_registers) {
+  Comment("TsanFuncEntry");
+  LeafRuntimeScope rt(this, /*frame_size=*/0, preserve_registers);
+  ldr(R0, Address(FP, target::frame_layout.saved_caller_fp_from_fp *
+                          target::kWordSize));
+  ldr(R0, Address(R0, target::frame_layout.saved_caller_pc_from_fp *
+                          target::kWordSize));
+  rt.Call(kTsanFuncEntryRuntimeEntry, /*argument_count=*/1);
+}
+
+void Assembler::TsanFuncExit(bool preserve_registers) {
+  Comment("TsanFuncExit");
+  LeafRuntimeScope rt(this, /*frame_size=*/0, preserve_registers);
+  rt.Call(kTsanFuncExitRuntimeEntry, /*argument_count=*/0);
+}
+
 static int CountLeadingZeros(uint64_t value, int width) {
   if (width == 64) return Utils::CountLeadingZeros64(value);
   if (width == 32) return Utils::CountLeadingZeros32(value);
@@ -1830,19 +1846,26 @@ void Assembler::VerifyNotInGenerated(Register scratch) {
 }
 
 void Assembler::CallRuntime(const RuntimeEntry& entry,
-                            intptr_t argument_count) {
+                            intptr_t argument_count,
+                            bool tsan_enter_exit) {
   ASSERT(!entry.is_leaf());
   // Argument count is not checked here, but in the runtime entry for a more
   // informative error message.
+  if (FLAG_target_thread_sanitizer && FLAG_precompiled_mode &&
+      tsan_enter_exit) {
+    TsanFuncEntry(/*preserve_registers=*/false);
+  }
   ldr(R5, compiler::Address(THR, entry.OffsetFromThread()));
   LoadImmediate(R4, argument_count);
   Call(Address(THR, target::Thread::call_to_runtime_entry_point_offset()));
+  if (FLAG_target_thread_sanitizer && FLAG_precompiled_mode &&
+      tsan_enter_exit) {
+    TsanFuncExit(/*preserve_registers=*/false);
+  }
 }
 
-// FPU: Only the bottom 64-bits of v8-v15 are preserved by the caller. The upper
-// bits might be in use by Dart, so we save the whole register.
 static const RegisterSet kRuntimeCallSavedRegisters(kDartVolatileCpuRegs,
-                                                    kAllFpuRegistersList);
+                                                    kDartVolatileFpuRegs);
 
 #undef __
 #define __ assembler_->

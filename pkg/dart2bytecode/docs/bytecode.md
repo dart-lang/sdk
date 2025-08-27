@@ -801,6 +801,10 @@ type ConstantDynamicCall extends ConstantPoolEntry {
 type ConstantExternalCall extends ConstantPoolEntry {
   Byte tag = 15;
 }
+
+type ConstantFfiCall extends ConstantPoolEntry {
+  Byte tag = 16;
+}
 ```
 
 ### Exceptions table
@@ -1266,6 +1270,11 @@ arguments descriptor.
 
 Invoke body of an external method.
 ContantPool[D] is a ConstantExternalCall.
+
+#### FfiCall D
+
+Invoke native target of FFI call.
+ContantPool[D] is a ConstantFfiCall.
 
 #### ReturnTOS
 

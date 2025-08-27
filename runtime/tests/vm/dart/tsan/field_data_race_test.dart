@@ -40,8 +40,20 @@ dataRaceFromChild() {
   }
 }
 
+@pragma("vm:never-inline")
+dataRaceFromMainCaller() => dataRaceFromMain();
+
+@pragma("vm:never-inline")
+dataRaceFromMainCallerCaller() => dataRaceFromMainCaller();
+
+@pragma("vm:never-inline")
+dataRaceFromChildCaller() => dataRaceFromChild();
+
+@pragma("vm:never-inline")
+dataRaceFromChildCallerCaller() => dataRaceFromChildCaller();
+
 child(_) {
-  dataRaceFromChild();
+  dataRaceFromChildCallerCaller();
 }
 
 final nativeLib = dlopenPlatformSpecific('ffi_test_functions');
@@ -65,7 +77,7 @@ main(List<String> arguments) {
     unsafeSetSharedTo(getRootLibraryUrl(), "box", Box());
     print(box); // side effect initialization
     Isolate.spawn(child, null);
-    dataRaceFromMain();
+    dataRaceFromMainCallerCaller();
     return;
   }
 
@@ -87,5 +99,9 @@ main(List<String> arguments) {
   Expect.contains("ThreadSanitizer: data race", result.stderr);
   Expect.contains("of size 8", result.stderr);
   Expect.contains("dataRaceFromMain", result.stderr);
+  Expect.contains("dataRaceFromMainCaller", result.stderr);
+  Expect.contains("dataRaceFromMainCallerCaller", result.stderr);
   Expect.contains("dataRaceFromChild", result.stderr);
+  Expect.contains("dataRaceFromChildCaller", result.stderr);
+  Expect.contains("dataRaceFromChildCallerCaller", result.stderr);
 }

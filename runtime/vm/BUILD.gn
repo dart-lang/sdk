@@ -166,7 +166,7 @@ source_set("libprotozero") {
   }
 
   public_configs = [ ":libprotozero_config" ]
-  deps = [ "$perfetto_root_path/src/protozero:protozero" ]
+  deps = [ "$perfetto_root_path/src/protozero" ]
 }
 
 library_for_all_configs("libdart_vm") {
@@ -210,7 +210,7 @@ library_for_all_configs("libdart_vm") {
     sources += [ "thread_interrupter_android_arm.S" ]
   }
   if (!is_win) {
-    sources += [ "simulator_arm64_trampolines.S" ]
+    sources += [ "ffi_trampolines_arm64.S" ]
   }
   include_dirs = [ ".." ]
 }

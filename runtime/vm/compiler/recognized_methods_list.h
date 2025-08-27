@@ -107,6 +107,10 @@ namespace dart {
     CompactHash_uninitializedIndex, 0xa25a79e6)                                \
   V(CompactHashLibrary, ::, get:_uninitializedData,                            \
     CompactHash_uninitializedData, 0x52282165)                                 \
+  V(DeveloperLibrary, ::, _getDefaultTag, UserTag_defaultTag, 0x594908f2)      \
+  V(DeveloperLibrary, ::, _getCurrentTag, Profiler_getCurrentTag, 0x4a075f33)  \
+  V(DeveloperLibrary, ::, _isDartStreamEnabled, Timeline_isDartStreamEnabled,  \
+    0xe87bfe54)                                                                \
   V(DeveloperLibrary, ::, get:extensionStreamHasListener,                      \
     ExtensionStreamHasListener, 0xfa975305)                                    \
   V(DeveloperLibrary, ::, debugger, Debugger, 0xf0aaff14)                      \
@@ -591,10 +595,6 @@ namespace dart {
   V(CoreLibrary, _IntegerImplementation, >=, Integer_greaterEqualThan,         \
     0x4aa007b3)                                                                \
   V(CoreLibrary, _IntegerImplementation, <<, Integer_shl, 0x2d16ae7a)          \
-  V(DeveloperLibrary, ::, _getDefaultTag, UserTag_defaultTag, 0x59490cb3)      \
-  V(DeveloperLibrary, ::, _getCurrentTag, Profiler_getCurrentTag, 0x4a0762f4)  \
-  V(DeveloperLibrary, ::, _isDartStreamEnabled, Timeline_isDartStreamEnabled,  \
-    0xe87bfe54)                                                                \
   V(DeveloperLibrary, ::, _getNextTaskId, Timeline_getNextTaskId, 0x43c2f99b)  \
   V(InternalLibrary, ::, allocateOneByteString, AllocateOneByteString,         \
     0x9e5a2e15)                                                                \

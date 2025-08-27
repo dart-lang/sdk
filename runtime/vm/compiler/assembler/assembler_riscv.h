@@ -1011,6 +1011,8 @@ class Assembler : public MicroAssembler {
   void TsanStoreRelease(Register src, const Address& address, OperandSize size);
   void TsanRead(Register addr, intptr_t size);
   void TsanWrite(Register addr, intptr_t size);
+  void TsanFuncEntry(bool preserve_registers = true);
+  void TsanFuncExit(bool preserve_registers = true);
 
   void LoadAcquire(Register dst,
                    const Address& address,
@@ -1478,7 +1480,9 @@ class Assembler : public MicroAssembler {
   void LeaveDartFrame(intptr_t fp_sp_dist);
 
   // For non-leaf runtime calls. For leaf runtime calls, use LeafRuntimeScope,
-  void CallRuntime(const RuntimeEntry& entry, intptr_t argument_count);
+  void CallRuntime(const RuntimeEntry& entry,
+                   intptr_t argument_count,
+                   bool tsan_enter_exit = true);
 
   // Set up a stub frame so that the stack traversal code can easily identify
   // a stub frame.

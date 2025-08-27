@@ -196,6 +196,7 @@ uword Heap::AllocateOld(Thread* thread, intptr_t size, bool is_exec) {
   if (FLAG_heap_snapshot_on_oom != nullptr) {
     bool successful = false;
     {
+      NoActiveIsolateScope no_active_isolate_scope(thread);
       FileHeapSnapshotWriter file_writer(thread, FLAG_heap_snapshot_on_oom,
                                          &successful);
       HeapSnapshotWriter writer(thread, &file_writer);

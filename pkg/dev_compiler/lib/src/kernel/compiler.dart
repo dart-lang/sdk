@@ -8,7 +8,7 @@ import 'dart:io' as io;
 import 'dart:math' show max, min;
 
 import 'package:_js_interop_checks/src/js_interop.dart'
-    show hasDartJSInteropAnnotation;
+    show getDartJSInteropJSName, hasDartJSInteropAnnotation;
 import 'package:_js_interop_checks/src/transformations/js_util_optimizer.dart'
     show ExtensionIndex;
 import 'package:front_end/src/api_unstable/ddc.dart';
@@ -6937,9 +6937,20 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
       // JS interop checks assert that only external extension type constructors
       // and factories have named parameters.
       assert(target.function.positionalParameters.isEmpty);
-      var namedProperties = {
-        for (final named in node.arguments.named) named.name: named.value,
-      };
+      var namedProperties = <String, Expression>{};
+      for (var named in node.arguments.named) {
+        var name = named.name;
+        for (var parameter in target.function.namedParameters) {
+          if (parameter.name == named.name) {
+            var customName = getDartJSInteropJSName(parameter);
+            if (customName.isNotEmpty) {
+              name = customName;
+            }
+            break;
+          }
+        }
+        namedProperties[name] = named.value;
+      }
       return _emitObjectLiteral(namedProperties, isDartJsInterop: true);
     }
     if (target == _coreTypes.identicalProcedure) {

@@ -32,18 +32,4 @@ DEFINE_NATIVE_ENTRY(UserTag_makeCurrent, 0, 1) {
   return self.MakeActive();
 }
 
-DEFINE_NATIVE_ENTRY(UserTag_defaultTag, 0, 0) {
-  if (FLAG_trace_intrinsified_natives) {
-    OS::PrintErr("UserTag_defaultTag\n");
-  }
-  return thread->default_tag();
-}
-
-DEFINE_NATIVE_ENTRY(Profiler_getCurrentTag, 0, 0) {
-  if (FLAG_trace_intrinsified_natives) {
-    OS::PrintErr("Profiler_getCurrentTag\n");
-  }
-  return thread->current_tag();
-}
-
 }  // namespace dart

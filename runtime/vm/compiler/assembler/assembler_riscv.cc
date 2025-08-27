@@ -3222,6 +3222,22 @@ void Assembler::TsanWrite(Register addr, intptr_t size) {
   }
 }
 
+void Assembler::TsanFuncEntry(bool preserve_registers) {
+  Comment("TsanFuncEntry");
+  LeafRuntimeScope rt(this, /*frame_size=*/0, preserve_registers);
+  lx(A0, Address(FP, target::frame_layout.saved_caller_fp_from_fp *
+                         target::kWordSize));
+  lx(A0, Address(A0, target::frame_layout.saved_caller_pc_from_fp *
+                         target::kWordSize));
+  rt.Call(kTsanFuncEntryRuntimeEntry, /*argument_count=*/1);
+}
+
+void Assembler::TsanFuncExit(bool preserve_registers) {
+  Comment("TsanFuncExit");
+  LeafRuntimeScope rt(this, /*frame_size=*/0, preserve_registers);
+  rt.Call(kTsanFuncExitRuntimeEntry, /*argument_count=*/0);
+}
+
 void Assembler::LoadAcquire(Register dst,
                             const Address& address,
                             OperandSize size) {
@@ -4854,17 +4870,26 @@ void Assembler::LeaveDartFrame(intptr_t fp_sp_dist) {
 }
 
 void Assembler::CallRuntime(const RuntimeEntry& entry,
-                            intptr_t argument_count) {
+                            intptr_t argument_count,
+                            bool tsan_enter_exit) {
   ASSERT(!entry.is_leaf());
   // Argument count is not checked here, but in the runtime entry for a more
   // informative error message.
+  if (FLAG_target_thread_sanitizer && FLAG_precompiled_mode &&
+      tsan_enter_exit) {
+    TsanFuncEntry(/*preserve_registers=*/false);
+  }
   lx(T5, compiler::Address(THR, entry.OffsetFromThread()));
   li(T4, argument_count);
   Call(Address(THR, target::Thread::call_to_runtime_entry_point_offset()));
+  if (FLAG_target_thread_sanitizer && FLAG_precompiled_mode &&
+      tsan_enter_exit) {
+    TsanFuncExit(/*preserve_registers=*/false);
+  }
 }
 
 static const RegisterSet kRuntimeCallSavedRegisters(kDartVolatileCpuRegs,
-                                                    kAbiVolatileFpuRegs);
+                                                    kDartVolatileFpuRegs);
 
 #define __ assembler_->
 

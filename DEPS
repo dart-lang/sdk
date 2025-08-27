@@ -70,9 +70,9 @@ vars = {
   # self-service update these by following the go/dart-engprod/browsers.md
   # instructions. d8, the V8 shell, is always checked out.
   "checkout_javascript_engines": False,
-  "d8_tag": "version:14.1.87",
-  "jsshell_tag": "version:141.0",
-  "jsc_tag": "version:298848",
+  "d8_tag": "version:14.1.134",
+  "jsshell_tag": "version:142.0",
+  "jsc_tag": "version:299170",
 
   # https://chrome-infra-packages.appspot.com/p/fuchsia/third_party/clang
   "clang_version": "git_revision:8c7a2ce01a77c96028fe2c8566f65c45ad9408d3",
@@ -131,13 +131,13 @@ vars = {
   ### /third_party/pkg dependencies
   # 'tools/rev_sdk_deps.dart' will rev pkg dependencies to their latest; put an
   # EOL comment after a dependency to instead pin at the current revision.
-  "ai_rev": "ee5b2b25a013322307a60e445b480bc57ec34217",
+  "ai_rev": "a9eb685c1819b1cf45f0896280449cd6a1dd7171",
   "core_rev": "b59ecf4ceebe6153e1c0166b7c9a7fdd9458a89d",
   "dartdoc_rev": "82b48b53128a474221269a05a947bae28e2d7ac6",
   "ecosystem_rev": "68ff911b19e1abf00ff43b2b37bd16b1af01e088",
   "flute_rev": "d5adc4d6439572db5da71a9261b9bf0c7c96daa4",
   "http_rev": "6656f15e88e68f6cafa2a7bbffa37fd6ac2dd33a",
-  "i18n_rev": "c28ad5ea314394b3d89796a9201f2264e753a079",
+  "i18n_rev": "6a8f9c79cb3345b7a7c1b895b6c0a4acce9aa797",
   "leak_tracker_rev": "f5620600a5ce1c44f65ddaa02001e200b096e14c", # rolled manually
   "material_color_utilities_rev": "799b6ba2f3f1c28c67cc7e0b4f18e0c7d7f3c03e",
   "native_rev": "e0cd7d4555491d96a784ad362c569be1b53fa2f7", # rolled manually while native assets are experimental
@@ -149,7 +149,7 @@ vars = {
   "test_rev": "5aef9719ad9b598260c062b2a90a50d2f50a78f3", # https://dart-review.googlesource.com/c/sdk/+/444360
   "tools_rev": "1b52e89e0b4ef70e004383c1cf781ad4182f380b",
   "vector_math_rev": "3939545edc38ed657381381d33acde02c49ff827",
-  "web_rev": "4310354266abaffae08fdb483327a8523585aed4",
+  "web_rev": "ee9733fb51ead11d863a00497d721c5b627ac97d",
   "webdev_rev": "c0492f1b40b591710cd8359d6f142ea6ff315985",
   "webdriver_rev": "595649d890f69b9d05a596426ca93681b1921132",
   "webkit_inspection_protocol_rev": "effa75205516757795683d527c3dea9546eb0c32",
@@ -163,9 +163,9 @@ vars = {
   # meant to be downloaded by users for local testing. You can self-service
   # update these by following the go/dart-engprod/browsers.md instructions.
   "download_chrome": False,
-  "chrome_tag": "140.0.7339.16",
+  "chrome_tag": "140.0.7339.24",
   "download_firefox": False,
-  "firefox_tag": "141.0",
+  "firefox_tag": "142.0",
 
   # Emscripten is used in dart2wasm tests.
   "download_emscripten": False,

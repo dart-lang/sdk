@@ -512,6 +512,7 @@ struct InstrAttrs {
   M(OneByteStringFromCharCode, kNoGC)                                          \
   M(Utf8Scan, kNoGC)                                                           \
   M(InvokeMathCFunction, kNoGC)                                                \
+  M(TsanFuncEntryExit, kNoGC)                                                  \
   M(TsanReadWrite, kNoGC)                                                      \
   M(TruncDivMod, kNoGC)                                                        \
   /*We could be more precise about when these 2 instructions can trigger GC.*/ \
@@ -10038,6 +10039,53 @@ class InvokeMathCFunctionInstr : public VariadicDefinition {
   DISALLOW_COPY_AND_ASSIGN(InvokeMathCFunctionInstr);
 };
 
+class TsanFuncEntryExitInstr : public TemplateInstruction<0, NoThrow> {
+ public:
+  enum Kind { kEntry, kExit };
+
+  TsanFuncEntryExitInstr(Kind kind, const InstructionSource& source)
+      : TemplateInstruction(source, DeoptId::kNone),
+        kind_(kind),
+        token_pos_(source.token_pos) {}
+
+  virtual TokenPosition token_pos() const { return token_pos_; }
+
+  DECLARE_INSTRUCTION(TsanFuncEntryExit)
+
+  virtual bool ComputeCanDeoptimize() const { return false; }
+
+  virtual Representation RequiredInputRepresentation(intptr_t idx) const {
+    UNREACHABLE();
+  }
+
+  virtual intptr_t DeoptimizationTarget() const { return GetDeoptId(); }
+
+  virtual bool AllowsCSE() const { return false; }
+  virtual bool HasUnknownSideEffects() const { return false; }
+
+  virtual bool AttributesEqual(const Instruction& other) const {
+    return &other == this;
+  }
+
+  virtual bool MayThrow() const { return false; }
+
+  PRINT_OPERANDS_TO_SUPPORT
+
+#define FIELD_LIST(F)                                                          \
+  F(const TsanFuncEntryExitInstr::Kind, kind_)                                 \
+  F(const TokenPosition, token_pos_)
+
+  DECLARE_INSTRUCTION_SERIALIZABLE_FIELDS(TsanFuncEntryExitInstr,
+                                          TemplateInstruction,
+                                          FIELD_LIST)
+#undef FIELD_LIST
+
+  const RuntimeEntry& TargetFunction() const;
+
+ private:
+  DISALLOW_COPY_AND_ASSIGN(TsanFuncEntryExitInstr);
+};
+
 class TsanReadWriteInstr : public TemplateInstruction<1, NoThrow> {
  public:
   enum Kind { kRead, kWrite };
@@ -10090,7 +10138,7 @@ class TsanReadWriteInstr : public TemplateInstruction<1, NoThrow> {
                                           FIELD_LIST)
 #undef FIELD_LIST
 
-  const RuntimeEntry& GetRuntimeEntry() const;
+  const RuntimeEntry& TargetFunction() const;
 
  private:
   DISALLOW_COPY_AND_ASSIGN(TsanReadWriteInstr);

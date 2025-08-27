@@ -1775,41 +1775,6 @@ void AsmIntrinsifier::IntrinsifyRegExpExecuteMatch(Assembler* assembler,
   __ jmp(FieldAddress(FUNCTION_REG, target::Function::entry_point_offset()));
 }
 
-void AsmIntrinsifier::UserTag_defaultTag(Assembler* assembler,
-                                         Label* normal_ir_body) {
-  __ movl(EAX, Address(THR, target::Thread::default_tag_offset()));
-  __ ret();
-}
-
-void AsmIntrinsifier::Profiler_getCurrentTag(Assembler* assembler,
-                                             Label* normal_ir_body) {
-  __ movl(EAX, Address(THR, target::Thread::current_tag_offset()));
-  __ ret();
-}
-
-void AsmIntrinsifier::Timeline_isDartStreamEnabled(Assembler* assembler,
-                                                   Label* normal_ir_body) {
-#if !defined(SUPPORT_TIMELINE)
-  __ LoadObject(EAX, CastHandle<Object>(FalseObject()));
-  __ ret();
-#else
-  Label true_label;
-  // Load TimelineStream*.
-  __ movl(EAX, Address(THR, target::Thread::dart_stream_offset()));
-  // Load uintptr_t from TimelineStream*.
-  __ movl(EAX, Address(EAX, target::TimelineStream::enabled_offset()));
-  __ cmpl(EAX, Immediate(0));
-  __ j(NOT_ZERO, &true_label, Assembler::kNearJump);
-  // Not enabled.
-  __ LoadObject(EAX, CastHandle<Object>(FalseObject()));
-  __ ret();
-  // Enabled.
-  __ Bind(&true_label);
-  __ LoadObject(EAX, CastHandle<Object>(TrueObject()));
-  __ ret();
-#endif
-}
-
 void AsmIntrinsifier::Timeline_getNextTaskId(Assembler* assembler,
                                              Label* normal_ir_body) {
 #if !defined(SUPPORT_TIMELINE)

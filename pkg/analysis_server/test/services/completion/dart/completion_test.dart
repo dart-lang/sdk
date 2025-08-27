@@ -6926,6 +6926,8 @@ class File {
 }
 f() => new Fil^
 ''');
+    // The second `File` constructor that was being hidden previously is from
+    // dart:io
     assertResponse(r'''
 replacement
   left: 3
@@ -6939,6 +6941,8 @@ suggestions
   FileMode._internal
     kind: constructorInvocation
   FileMode._internal1
+    kind: constructorInvocation
+  File
     kind: constructorInvocation
 ''');
   }

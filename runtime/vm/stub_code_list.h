@@ -155,6 +155,7 @@ namespace dart {
   V(EnterSafepoint)                                                            \
   V(ExitSafepoint)                                                             \
   V(CallNativeThroughSafepoint)                                                \
+  V(FfiCallTrampoline)                                                         \
   V(FfiCallbackTrampoline)                                                     \
   V(InitStaticField)                                                           \
   V(InitLateStaticField)                                                       \

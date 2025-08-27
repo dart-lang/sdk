@@ -3094,6 +3094,9 @@ class CheckStackOverflowSlowPath
         ASSERT(__ constant_pool_allowed());
         __ set_constant_pool_allowed(false);
         __ EnterDartFrame(0);
+        if (FLAG_target_thread_sanitizer && FLAG_precompiled_mode) {
+          __ TsanFuncEntry();
+        }
       }
       auto object_store = compiler->isolate_group()->object_store();
       const bool live_fpu_regs = locs->live_registers()->FpuRegisterCount() > 0;
@@ -3118,12 +3121,20 @@ class CheckStackOverflowSlowPath
                                      instruction()->deopt_id(),
                                      instruction()->source());
       if (!has_frame) {
+        if (FLAG_target_thread_sanitizer && FLAG_precompiled_mode) {
+          __ TsanFuncExit();
+        }
         __ LeaveDartFrame();
         __ set_constant_pool_allowed(true);
       }
     } else {
       ASSERT(has_frame);
-      __ CallRuntime(kInterruptOrStackOverflowRuntimeEntry, kNumSlowPathArgs);
+      // We're using the function's frame, which already did TsanFuncEntry. Also
+      // the pc descriptors, etc need to be recordered for the call's return
+      // address.
+      const bool tsan_enter_exit = false;
+      __ CallRuntime(kInterruptOrStackOverflowRuntimeEntry, kNumSlowPathArgs,
+                     tsan_enter_exit);
       compiler->EmitCallsiteMetadata(
           instruction()->source(), instruction()->deopt_id(),
           UntaggedPcDescriptors::kOther, instruction()->locs(), env);
@@ -4114,6 +4125,9 @@ void BoxInt64Instr::EmitNativeCode(FlowGraphCompiler* compiler) {
       ASSERT(__ constant_pool_allowed());
       __ set_constant_pool_allowed(false);
       __ EnterDartFrame(0);
+      if (FLAG_target_thread_sanitizer && FLAG_precompiled_mode) {
+        __ TsanFuncEntry();
+      }
     }
     auto object_store = compiler->isolate_group()->object_store();
     const bool live_fpu_regs = locs()->live_registers()->FpuRegisterCount() > 0;
@@ -4128,6 +4142,9 @@ void BoxInt64Instr::EmitNativeCode(FlowGraphCompiler* compiler) {
     compiler->GenerateStubCall(source(), stub, UntaggedPcDescriptors::kOther,
                                locs(), DeoptId::kNone, extended_env);
     if (!has_frame) {
+      if (FLAG_target_thread_sanitizer && FLAG_precompiled_mode) {
+        __ TsanFuncExit();
+      }
       __ LeaveDartFrame();
       __ set_constant_pool_allowed(true);
     }

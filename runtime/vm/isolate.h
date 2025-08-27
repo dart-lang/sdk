@@ -847,6 +847,7 @@ class IsolateGroup : public IntrusiveDListEntry<IsolateGroup> {
     has_attempted_stepping_.store(value, std::memory_order_relaxed);
   }
 
+  SafepointRwLock* tag_table_lock() { return &tag_table_lock_; }
   GrowableObjectArrayPtr tag_table() const { return tag_table_; }
   void set_tag_table(const GrowableObjectArray& value);
 
@@ -1008,6 +1009,7 @@ class IsolateGroup : public IntrusiveDListEntry<IsolateGroup> {
 
   std::atomic<bool> has_attempted_stepping_;
 
+  SafepointRwLock tag_table_lock_;
   GrowableObjectArrayPtr tag_table_;
 };
 

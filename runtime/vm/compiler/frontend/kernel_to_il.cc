@@ -1110,7 +1110,10 @@ bool FlowGraphBuilder::IsRecognizedMethodForFlowGraph(
     case MethodRecognizer::kFfiAbi:
     case MethodRecognizer::kUtf8DecoderScan:
     case MethodRecognizer::kHas63BitSmis:
+    case MethodRecognizer::kProfiler_getCurrentTag:
+    case MethodRecognizer::kUserTag_defaultTag:
     case MethodRecognizer::kExtensionStreamHasListener:
+    case MethodRecognizer::kTimeline_isDartStreamEnabled:
     case MethodRecognizer::kCompactHash_uninitializedIndex:
     case MethodRecognizer::kCompactHash_uninitializedData:
     case MethodRecognizer::kSmi_hashCode:
@@ -1720,6 +1723,14 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfRecognizedMethod(
       body += Constant(Bool::False());
 #endif  // defined(ARCH_IS_64_BIT)
     } break;
+    case MethodRecognizer::kProfiler_getCurrentTag: {
+      body += LoadThread();
+      body += LoadNativeField(Slot::Thread_current_tag());
+    } break;
+    case MethodRecognizer::kUserTag_defaultTag: {
+      body += LoadThread();
+      body += LoadNativeField(Slot::Thread_default_tag());
+    } break;
     case MethodRecognizer::kExtensionStreamHasListener: {
 #ifdef PRODUCT
       body += Constant(Bool::False());
@@ -1730,6 +1741,17 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfRecognizedMethod(
       // relaxed order access, which is acceptable for this use case.
       body += IntToBool();
 #endif  // PRODUCT
+    } break;
+    case MethodRecognizer::kTimeline_isDartStreamEnabled: {
+#if !defined(SUPPORT_TIMELINE)
+      body += Constant(Bool::False());
+#else
+      body += LoadDartStream();
+      body += LoadNativeField(Slot::StreamInfo_enabled());
+      // StreamInfo::enabled_ is a std::atomic<intptr_t>. This is effectively
+      // relaxed order access, which is acceptable for this use case.
+      body += IntToBool();
+#endif  // SUPPORT_TIMELINE
     } break;
     case MethodRecognizer::kCompactHash_uninitializedIndex: {
       body += Constant(Object::uninitialized_index());
@@ -4639,6 +4661,13 @@ Fragment FlowGraphBuilder::LoadServiceExtensionStream() {
   Fragment body;
   body += LoadThread();
   body += LoadNativeField(Slot::Thread_service_extension_stream());
+  return body;
+}
+
+Fragment FlowGraphBuilder::LoadDartStream() {
+  Fragment body;
+  body += LoadThread();
+  body += LoadNativeField(Slot::Thread_dart_stream());
   return body;
 }
 

@@ -993,12 +993,9 @@ class _SourcePart {
   }
 
   void addImplicitClassNameOffset(String className, int offset) {
-    var offsets = _implicitClassNameOffsets[className];
-    if (offsets == null) {
-      offsets = [];
-      _implicitClassNameOffsets[className] = offsets;
-    }
-    offsets.add(offset - _base);
+    _implicitClassNameOffsets
+        .putIfAbsent(className, () => [])
+        .add(offset - _base);
   }
 
   void addImplicitThisOffset(int offset) {
@@ -1009,13 +1006,8 @@ class _SourcePart {
     TypeParameterElement element,
     SourceRange identifierRange,
   ) {
-    var typeParameter = _instanceTypeParameters[element];
-    if (typeParameter == null) {
-      typeParameter = [];
-      _instanceTypeParameters[element] = typeParameter;
-    }
     identifierRange = range.offsetBy(identifierRange, -_base);
-    typeParameter.add(identifierRange);
+    _instanceTypeParameters.putIfAbsent(element, () => []).add(identifierRange);
   }
 
   void addParameterOccurrence({
@@ -1024,42 +1016,29 @@ class _SourcePart {
     required Precedence parentPrecedence,
     required bool inStringInterpolation,
   }) {
-    var occurrences = _parameters[parameter];
-    if (occurrences == null) {
-      occurrences = [];
-      _parameters[parameter] = occurrences;
-    }
-    occurrences.add(
-      _ParameterOccurrence(
-        baseOffset: _base,
-        parentPrecedence: parentPrecedence,
-        identifier: identifier,
-        inStringInterpolation: inStringInterpolation,
-      ),
-    );
+    _parameters
+        .putIfAbsent(parameter, () => [])
+        .add(
+          _ParameterOccurrence(
+            baseOffset: _base,
+            parentPrecedence: parentPrecedence,
+            identifier: identifier,
+            inStringInterpolation: inStringInterpolation,
+          ),
+        );
   }
 
   void addTypeParameter(
     TypeParameterElement element,
     SourceRange identifierRange,
   ) {
-    var typeParameter = _typeParameters[element];
-    if (typeParameter == null) {
-      typeParameter = [];
-      _typeParameters[element] = typeParameter;
-    }
     identifierRange = range.offsetBy(identifierRange, -_base);
-    typeParameter.add(identifierRange);
+    _typeParameters.putIfAbsent(element, () => []).add(identifierRange);
   }
 
   void addVariable(VariableElement element, SourceRange identifierRange) {
-    var ranges = _variables[element];
-    if (ranges == null) {
-      ranges = [];
-      _variables[element] = ranges;
-    }
     identifierRange = range.offsetBy(identifierRange, -_base);
-    ranges.add(identifierRange);
+    _variables.putIfAbsent(element, () => []).add(identifierRange);
   }
 }
 
