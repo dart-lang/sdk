@@ -270,9 +270,10 @@ TestData computeTestData(
   } else if (testFile is Directory) {
     testName = testFileUri.pathSegments[testFileUri.pathSegments.length - 2];
     additionalFiles = new Map<String, File>();
-    for (FileSystemEntity entry in testFile
-        .listSync(recursive: true)
-        .where((entity) => !entity.path.endsWith('~'))) {
+    for (FileSystemEntity entry
+        in testFile
+            .listSync(recursive: true)
+            .where((entity) => !entity.path.endsWith('~'))) {
       if (entry is! File) continue;
       if (entry.uri.pathSegments.last == "main.dart") {
         mainTestFile = entry;
@@ -572,9 +573,9 @@ Future<TestResult<T>> checkCode<T>(
             succinct
                 ? 'EXTRA $modeName DATA for ${id.descriptor}'
                 : 'EXTRA $modeName DATA for ${id.descriptor}:\n '
-                    'object   : ${actualData.objectText}\n '
-                    'actual   : ${colorizeActual(actualValueText)}\n '
-                    'Data was expected for these ids: ${expectedMap.keys}',
+                      'object   : ${actualData.objectText}\n '
+                      'actual   : ${colorizeActual(actualValueText)}\n '
+                      'Data was expected for these ids: ${expectedMap.keys}',
             succinct: succinct,
           );
           if (filterActualData == null || filterActualData(null, actualData)) {
@@ -595,10 +596,10 @@ Future<TestResult<T>> checkCode<T>(
             succinct
                 ? 'UNEXPECTED $modeName DATA for ${id.descriptor}'
                 : 'UNEXPECTED $modeName DATA for ${id.descriptor}:\n '
-                    'detail  : ${colorizeMessage(unexpectedMessage)}\n '
-                    'object  : ${actualData.objectText}\n '
-                    'expected: ${colorizeExpected('$expected')}\n '
-                    'actual  : ${colorizeActual(actualValueText)}',
+                      'detail  : ${colorizeMessage(unexpectedMessage)}\n '
+                      'object  : ${actualData.objectText}\n '
+                      'expected: ${colorizeExpected('$expected')}\n '
+                      'actual  : ${colorizeActual(actualValueText)}',
             succinct: succinct,
           );
           if (filterActualData == null ||
@@ -943,16 +944,15 @@ Future<void> runTests<T>(
 
   String relativeDir = dataDir.uri.path.replaceAll(Uri.base.path, '');
   print('Data dir: ${relativeDir}');
-  List<FileSystemEntity> entities =
-      dataDir
-          .listSync()
-          .where(
-            (entity) =>
-                !entity.path.endsWith('~') &&
-                !entity.path.endsWith('marker.options') &&
-                !entity.path.endsWith('.expect'),
-          )
-          .toList();
+  List<FileSystemEntity> entities = dataDir
+      .listSync()
+      .where(
+        (entity) =>
+            !entity.path.endsWith('~') &&
+            !entity.path.endsWith('marker.options') &&
+            !entity.path.endsWith('.expect'),
+      )
+      .toList();
   if (shards > 1) {
     entities.sort((a, b) => getTestName(a).compareTo(getTestName(b)));
     int start = entities.length * shardIndex ~/ shards;
@@ -1045,8 +1045,8 @@ Future<void> runTests<T>(
               //  invalid uris.
               return;
             }
-            Map<Id, ActualData<T>> actualDataPerId =
-                actualDataPerUri[uri] ??= {};
+            Map<Id, ActualData<T>> actualDataPerId = actualDataPerUri[uri] ??=
+                {};
             actualDataPerId.addAll(actualData);
           }
 

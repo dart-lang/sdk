@@ -61,6 +61,7 @@ inference_update_3/if_null_assignment_explicit_extension_index_expression_test: 
 inference_update_3/if_null_assignment_explicit_extension_null_aware_index_expression_test: semiFuzzFailureOnForceRebuildBodies # privacy.
 inference_update_3/if_null_assignment_implicit_extension_index_expression_test: semiFuzzFailureOnForceRebuildBodies # privacy.
 inference_update_3/if_null_assignment_implicit_extension_null_aware_index_expression_test: semiFuzzFailureOnForceRebuildBodies # privacy.
+inference_update_2/super: semiFuzzFailureOnForceRebuildBodies # privacy
 patterns/exhaustiveness/extension_types: semiFuzzFailureOnForceRebuildBodies # uses sealed
 patterns/exhaustiveness/issue51957: semiFuzzFailureOnForceRebuildBodies # can't split because of sealed class.
 patterns/exhaustiveness/issue52041: semiFuzzFailureOnForceRebuildBodies # can't match on private field in split out library.

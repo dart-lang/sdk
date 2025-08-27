@@ -45,7 +45,7 @@ class Test extends core::Object {
     self::B v4 = this.{self::Test::member} = this.{self::Test::member}{self::B}.{self::B::*}(self::f<self::B>()){(self::B) → self::B};
     self::C v5 = this.{self::Test::member} = this.{self::Test::member}{self::B}.{self::B::&}(self::f<self::A>()){(self::A) → self::C};
     self::B v6 = this.{self::Test::member} = this.{self::Test::member}{self::B}.{self::B::-}(1){(core::int) → self::B};
-    self::B v7 = let final self::B #t2 = this.{self::Test::member}{self::B} in let final self::B #t3 = this.{self::Test::member} = #t2.{self::B::-}(1){(core::int) → self::B} in #t2;
+    self::B v7 = let final self::B #t2 = this.{self::Test::member}{self::B} in let final void #t3 = this.{self::Test::member} = #t2.{self::B::-}(1){(core::int) → self::B} in #t2;
   }
 }
 static method f<T extends core::Object? = dynamic>() → self::f::T%

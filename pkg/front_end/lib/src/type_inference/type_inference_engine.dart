@@ -8,10 +8,7 @@ import 'package:_fe_analyzer_shared/src/type_inference/type_analyzer_operations.
 import 'package:_fe_analyzer_shared/src/type_inference/type_constraint.dart'
     as shared;
 import 'package:_fe_analyzer_shared/src/types/shared_type.dart' hide Variance;
-import 'package:_fe_analyzer_shared/src/types/shared_type.dart' as shared
-    show Variance;
 import 'package:kernel/ast.dart';
-import 'package:kernel/src/bounds_checks.dart';
 import 'package:kernel/class_hierarchy.dart'
     show ClassHierarchy, ClassHierarchyBase;
 import 'package:kernel/core_types.dart' show CoreTypes;
@@ -1073,108 +1070,6 @@ class OperationsCfe
         identical(bound.classReference,
             typeEnvironment.coreTypes.objectClass.reference) &&
         structuralParameter.defaultType is DynamicType;
-  }
-
-  // Coverage-ignore(suite): Not run.
-  /// Use the given [constraints] to substitute for type parameters.
-  ///
-  /// [typeParametersToInfer] is the set of type parameters that should be
-  /// substituted for.  [previouslyInferredTypes], if present, should be the set
-  /// of types inferred by the last call to this method; it should be a list of
-  /// the same length.
-  ///
-  /// If [preliminary] is `true`, then we not in the final pass of inference.
-  /// This means we are allowed to return `?` to precisely represent an unknown
-  /// type.
-  ///
-  /// If [preliminary] is `false`, then we are in the final pass of inference,
-  /// and must not conclude `?` for any type formal.
-  List<DartType> inferTypeFromConstraints(
-      Map<StructuralParameter, MergedTypeConstraint> constraints,
-      List<StructuralParameter> typeParametersToInfer,
-      List<DartType>? previouslyInferredTypes,
-      {bool preliminary = false,
-      required InferenceDataForTesting? dataForTesting,
-      required bool inferenceUsingBoundsIsEnabled}) {
-    List<DartType> inferredTypes =
-        previouslyInferredTypes?.toList(growable: false) ??
-            new List.filled(typeParametersToInfer.length, const UnknownType());
-
-    for (int i = 0; i < typeParametersToInfer.length; i++) {
-      StructuralParameter typeParam = typeParametersToInfer[i];
-
-      DartType typeParamBound = typeParam.bound;
-      DartType? extendsConstraint;
-      if (!isBoundOmitted(typeParam)) {
-        extendsConstraint = new FunctionTypeInstantiator.fromIterables(
-                typeParametersToInfer, inferredTypes)
-            .substitute(typeParamBound);
-      }
-
-      MergedTypeConstraint constraint = constraints[typeParam]!;
-      if (preliminary) {
-        inferredTypes[i] = inferTypeParameterFromContext(
-                previouslyInferredTypes?[i], constraint, extendsConstraint,
-                isContravariant:
-                    typeParam.variance == shared.Variance.contravariant,
-                isLegacyCovariant: typeParam.isLegacyCovariant,
-                constraints: constraints,
-                typeParameterToInfer: typeParam,
-                typeParametersToInfer: typeParametersToInfer,
-                dataForTesting: dataForTesting,
-                inferenceUsingBoundsIsEnabled: inferenceUsingBoundsIsEnabled)
-            as DartType;
-      } else {
-        inferredTypes[i] = inferTypeParameterFromAll(
-                previouslyInferredTypes?[i], constraint, extendsConstraint,
-                isContravariant:
-                    typeParam.variance == shared.Variance.contravariant,
-                isLegacyCovariant: typeParam.isLegacyCovariant,
-                constraints: constraints,
-                typeParameterToInfer: typeParam,
-                typeParametersToInfer: typeParametersToInfer,
-                dataForTesting: dataForTesting,
-                inferenceUsingBoundsIsEnabled: inferenceUsingBoundsIsEnabled)
-            as DartType;
-      }
-    }
-
-    if (!preliminary) {
-      assert(typeParametersToInfer.length == inferredTypes.length);
-      FreshTypeParametersFromStructuralParameters freshTypeParameters =
-          getFreshTypeParametersFromStructuralParameters(typeParametersToInfer);
-      List<TypeParameter> helperTypeParameters =
-          freshTypeParameters.freshTypeParameters;
-
-      Map<TypeParameter, DartType> inferredSubstitution = {};
-      for (int i = 0; i < helperTypeParameters.length; ++i) {
-        if (inferredTypes[i] is UnknownType) {
-          inferredSubstitution[helperTypeParameters[i]] =
-              new TypeParameterType.withDefaultNullability(
-                  helperTypeParameters[i]);
-        } else {
-          assert(isKnownType(new SharedTypeSchemaView(inferredTypes[i])));
-          inferredSubstitution[helperTypeParameters[i]] = inferredTypes[i];
-        }
-      }
-      for (int i = 0; i < helperTypeParameters.length; ++i) {
-        if (inferredTypes[i] is UnknownType) {
-          helperTypeParameters[i].bound =
-              substitute(helperTypeParameters[i].bound, inferredSubstitution);
-        } else {
-          helperTypeParameters[i].bound = inferredTypes[i];
-        }
-      }
-      List<DartType> instantiatedTypes = calculateBounds(
-          helperTypeParameters, typeEnvironment.coreTypes.objectClass);
-      for (int i = 0; i < instantiatedTypes.length; ++i) {
-        if (inferredTypes[i] is UnknownType) {
-          inferredTypes[i] = instantiatedTypes[i];
-        }
-      }
-    }
-
-    return inferredTypes;
   }
 
   @override

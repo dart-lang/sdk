@@ -90,7 +90,9 @@ evaluate=ListLiteral([ExpressionElement(IntegerLiteral(1))])
 constBool=BooleanLiteral(true)*/
 void listLiteral10() {}
 
-@Helper([...[0, 1]])
+@Helper([
+  ...[0, 1],
+])
 /*member: listLiteral11:
 resolved=ListLiteral([SpreadElement(...ListLiteral([
   ExpressionElement(IntegerLiteral(0)), 
@@ -111,7 +113,9 @@ constList=ListLiteral([
   ExpressionElement(IntegerLiteral(3))])*/
 void listLiteral12() {}
 
-@Helper([...?[0, 1]])
+@Helper([
+  ...?[0, 1],
+])
 /*member: listLiteral13:
 resolved=ListLiteral([SpreadElement(?...ListLiteral([
   ExpressionElement(IntegerLiteral(0)), 
@@ -222,7 +226,10 @@ evaluate=ListLiteral([])
 constBool=BooleanLiteral(true)*/
 void listLiteral24() {}
 
-@Helper([if (constBool) if (constBool) ?null else ?null])
+@Helper([
+  if (constBool)
+    if (constBool) ?null else ?null,
+])
 /*member: listLiteral25:
 resolved=ListLiteral([IfElement(
   StaticGet(constBool),

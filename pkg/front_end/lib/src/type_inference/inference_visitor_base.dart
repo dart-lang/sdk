@@ -4263,10 +4263,8 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
           member,
           new SharedTypeView(inferredType),
         )
-        // Coverage-ignore(suite): Not run.
         ?.unwrapTypeView();
     if (promotedType != null) {
-      // Coverage-ignore-block(suite): Not run.
       expression = new AsExpression(expression, promotedType)
         ..isUnchecked = true
         ..fileOffset = expression.fileOffset;

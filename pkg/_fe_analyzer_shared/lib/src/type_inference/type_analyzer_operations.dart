@@ -1351,8 +1351,8 @@ mixin TypeAnalyzerOperationsMixin<
         !isBoundOmitted(typeParameterToInfer)) {
       MergedTypeConstraint constraintFromBound = mergeInConstraintsFromBound(
         typeParameterToInfer: typeParameterToInfer,
-        typeParametersToInfer:
-            typeParametersToInfer.cast<SharedTypeParameterView>(),
+        typeParametersToInfer: typeParametersToInfer
+            .cast<SharedTypeParameterView>(),
         lower: constraint.lower.unwrapTypeSchemaView(),
         inferencePhaseConstraints: constraints,
         dataForTesting: dataForTesting,
@@ -1439,8 +1439,8 @@ mixin TypeAnalyzerOperationsMixin<
       // Coverage-ignore-block(suite): Not run.
       MergedTypeConstraint constraintFromBound = mergeInConstraintsFromBound(
         typeParameterToInfer: typeParameterToInfer,
-        typeParametersToInfer:
-            typeParametersToInfer.cast<SharedTypeParameterView>(),
+        typeParametersToInfer: typeParametersToInfer
+            .cast<SharedTypeParameterView>(),
         lower: constraint.lower.unwrapTypeSchemaView(),
         inferencePhaseConstraints: constraints,
         dataForTesting: dataForTesting,

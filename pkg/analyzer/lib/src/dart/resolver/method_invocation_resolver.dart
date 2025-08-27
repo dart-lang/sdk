@@ -7,7 +7,6 @@ import 'package:_fe_analyzer_shared/src/types/shared_type.dart';
 import 'package:analyzer/dart/ast/token.dart' show Token;
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
-import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/element/element.dart';
@@ -18,6 +17,7 @@ import 'package:analyzer/src/dart/resolver/extension_member_resolver.dart';
 import 'package:analyzer/src/dart/resolver/invocation_inference_helper.dart';
 import 'package:analyzer/src/dart/resolver/invocation_inferrer.dart';
 import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/error/listener.dart';
 import 'package:analyzer/src/generated/inference_log.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/scope_helpers.dart';
@@ -1024,10 +1024,10 @@ class MethodInvocationResolver with ScopeHelpers {
         contextType: contextType,
       );
 
-      _resolver.diagnosticReporter.atNode(
-        nameNode,
-        CompileTimeErrorCode.abstractSuperMemberReference,
-        arguments: [target.kind.displayName, name],
+      _resolver.diagnosticReporter.report(
+        CompileTimeErrorCode.abstractSuperMemberReference
+            .withArguments(kind: target.kind.displayName, name: name)
+            .at(nameNode),
       );
       return null;
     }

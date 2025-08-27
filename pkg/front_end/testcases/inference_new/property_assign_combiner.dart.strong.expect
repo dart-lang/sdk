@@ -60,6 +60,6 @@ static method test2(self::G g) → void {
 }
 static method test3(self::G g) → void {
   let final self::G #t5 = g in #t5.{self::G::target} = #t5.{self::G::target}{self::A}.{self::A::+}(1){(core::int) → self::C};
-  self::A x = let final self::G #t6 = g in let final self::A #t7 = #t6.{self::G::target}{self::A} in let final self::C #t8 = #t6.{self::G::target} = #t7.{self::A::+}(1){(core::int) → self::C} in #t7;
+  self::A x = let final self::G #t6 = g in let final self::A #t7 = #t6.{self::G::target}{self::A} in let final void #t8 = #t6.{self::G::target} = #t7.{self::A::+}(1){(core::int) → self::C} in #t7;
 }
 static method main() → dynamic {}

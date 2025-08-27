@@ -180,27 +180,25 @@ String unescape(
   switch (quote) {
     case Quote.Single:
     case Quote.Double:
-      result =
-          !string.contains("\\")
-              ? string
-              : unescapeCodeUnits(
-                string.codeUnits,
-                /* isRaw = */ false,
-                location,
-                listener,
-              );
+      result = !string.contains("\\")
+          ? string
+          : unescapeCodeUnits(
+              string.codeUnits,
+              /* isRaw = */ false,
+              location,
+              listener,
+            );
       break;
     case Quote.MultiLineSingle:
     case Quote.MultiLineDouble:
-      result =
-          !string.contains("\\") && !string.contains("\r")
-              ? string
-              : unescapeCodeUnits(
-                string.codeUnits,
-                /* isRaw = */ false,
-                location,
-                listener,
-              );
+      result = !string.contains("\\") && !string.contains("\r")
+          ? string
+          : unescapeCodeUnits(
+              string.codeUnits,
+              /* isRaw = */ false,
+              location,
+              listener,
+            );
       break;
     case Quote.RawSingle:
     case Quote.RawDouble:
@@ -208,15 +206,14 @@ String unescape(
       break;
     case Quote.RawMultiLineSingle:
     case Quote.RawMultiLineDouble:
-      result =
-          !string.contains("\r")
-              ? string
-              : unescapeCodeUnits(
-                string.codeUnits,
-                /* isRaw = */ true,
-                location,
-                listener,
-              );
+      result = !string.contains("\r")
+          ? string
+          : unescapeCodeUnits(
+              string.codeUnits,
+              /* isRaw = */ true,
+              location,
+              listener,
+            );
       break;
   }
   return considerCanonicalizeString(result);

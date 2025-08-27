@@ -16,7 +16,6 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/diagnostic/diagnostic.dart';
 import 'package:analyzer/error/error.dart';
-import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/dart/analysis/analysis_options.dart';
 import 'package:analyzer/src/dart/analysis/file_state.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
@@ -40,6 +39,7 @@ import 'package:analyzer/src/error/constructor_fields_verifier.dart';
 import 'package:analyzer/src/error/correct_override.dart';
 import 'package:analyzer/src/error/duplicate_definition_verifier.dart';
 import 'package:analyzer/src/error/getter_setter_types_verifier.dart';
+import 'package:analyzer/src/error/listener.dart';
 import 'package:analyzer/src/error/literal_element_verifier.dart';
 import 'package:analyzer/src/error/required_parameters_verifier.dart';
 import 'package:analyzer/src/error/return_type_verifier.dart';
@@ -1766,9 +1766,8 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     FieldElement fieldElement,
   ) {
     if (fieldElement.isAbstract) {
-      diagnosticReporter.atToken(
-        identifier,
-        CompileTimeErrorCode.abstractFieldConstructorInitializer,
+      diagnosticReporter.report(
+        CompileTimeErrorCode.abstractFieldConstructorInitializer.at(identifier),
       );
     }
     if (fieldElement.isExternal) {
@@ -2151,16 +2150,16 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
             // to avoid double errors if implementing `int`.
             if (interfaceElement is ClassElementImpl &&
                 !interfaceElement.isSealed) {
-              diagnosticReporter.atNode(
-                interface,
-                CompileTimeErrorCode.baseClassImplementedOutsideOfLibrary,
-                arguments: [interfaceElement.name!],
+              diagnosticReporter.report(
+                CompileTimeErrorCode.baseClassImplementedOutsideOfLibrary
+                    .withArguments(superElementName: interfaceElement.name!)
+                    .at(interface),
               );
             } else if (interfaceElement is MixinElement) {
-              diagnosticReporter.atNode(
-                interface,
-                CompileTimeErrorCode.baseMixinImplementedOutsideOfLibrary,
-                arguments: [interfaceElement.name!],
+              diagnosticReporter.report(
+                CompileTimeErrorCode.baseMixinImplementedOutsideOfLibrary
+                    .withArguments(superElementName: interfaceElement.name!)
+                    .at(interface),
               );
             }
             break;

@@ -91,245 +91,209 @@ class Class {
 
   testInstance() {
     /*update: num!*/
-    /*num!*/
+    /*num!|int!*/
     numInstance
         /*invoke: num!*/
-        /*int!*/
         ++;
 
     /*update: num!*/
-    /*num!*/
+    /*num!|int!*/
     numInstance
         /*invoke: num!*/
-        /*int!*/
         --;
 
     /*invoke: num!*/
-    /*int!*/
     ++
         /*update: num!*/
-        /*num!*/
+        /*num!|int!*/
         numInstance;
 
     /*invoke: num!*/
-    /*int!*/
     --
         /*update: num!*/
-        /*num!*/
+        /*num!|int!*/
         numInstance;
 
     /*update: int!*/
-    /*int!*/
+    /*int!|int!*/
     intInstance
         /*invoke: int!*/
-        /*int!*/
         ++;
 
     /*update: int!*/
-    /*int!*/
+    /*int!|int!*/
     intInstance
         /*invoke: int!*/
-        /*int!*/
         --;
 
     /*invoke: int!*/
-    /*int!*/
     ++
         /*update: int!*/
-        /*int!*/
+        /*int!|int!*/
         intInstance;
 
     /*invoke: int!*/
-    /*int!*/
     --
         /*update: int!*/
-        /*int!*/
+        /*int!|int!*/
         intInstance;
 
-    /*update: dynamic*/ /*dynamic*/ dynamicInstance
+    /*update: dynamic*/ /*dynamic|int!*/ dynamicInstance
         /*invoke: dynamic*/
-        /*int!*/
         ++;
-    /*update: dynamic*/ /*dynamic*/ dynamicInstance
+    /*update: dynamic*/ /*dynamic|int!*/ dynamicInstance
         /*invoke: dynamic*/
-        /*int!*/
         --;
     /*invoke: dynamic*/
-    /*int!*/
     ++
-        /*update: dynamic*/ /*dynamic*/ dynamicInstance;
+        /*update: dynamic*/ /*dynamic|int!*/ dynamicInstance;
     /*invoke: dynamic*/
-    /*int!*/
     --
-        /*update: dynamic*/ /*dynamic*/ dynamicInstance;
+        /*update: dynamic*/ /*dynamic|int!*/ dynamicInstance;
   }
 }
 
 testInstanceOnClass(Class c) {
   /*Class!*/
   c. /*update: num!*/
-          /*num!*/
+          /*num!|int!*/
           numInstance
       /*invoke: num!*/
-      /*int!*/
       ++;
 
   /*Class!*/
   c. /*update: num!*/
-          /*num!*/
+          /*num!|int!*/
           numInstance
       /*invoke: num!*/
-      /*int!*/
       --;
 
   /*invoke: num!*/
-  /*int!*/
   ++
       /*Class!*/
       c. /*update: num!*/
-          /*num!*/
+          /*num!|int!*/
           numInstance;
   /*invoke: num!*/
-  /*int!*/
   --
       /*Class!*/
       c. /*update: num!*/
-          /*num!*/
+          /*num!|int!*/
           numInstance;
 
   /*Class!*/
   c.
           /*update: int!*/
-          /*int!*/
+          /*int!|int!*/
           intInstance
       /*invoke: int!*/
-      /*int!*/
       ++;
 
   /*Class!*/
   c.
           /*update: int!*/
-          /*int!*/
+          /*int!|int!*/
           intInstance
       /*invoke: int!*/
-      /*int!*/
       --;
 
   /*invoke: int!*/
-  /*int!*/
   ++
       /*Class!*/
       c.
           /*update: int!*/
-          /*int!*/
+          /*int!|int!*/
           intInstance;
 
   /*invoke: int!*/
-  /*int!*/
   --
       /*Class!*/
       c.
           /*update: int!*/
-          /*int!*/
+          /*int!|int!*/
           intInstance;
 
   /*Class!*/
-  c. /*update: dynamic*/ /*dynamic*/ dynamicInstance
+  c. /*update: dynamic*/ /*dynamic|int!*/ dynamicInstance
       /*invoke: dynamic*/
-      /*int!*/
       ++;
 
   /*Class!*/
-  c. /*update: dynamic*/ /*dynamic*/ dynamicInstance
+  c. /*update: dynamic*/ /*dynamic|int!*/ dynamicInstance
       /*invoke: dynamic*/
-      /*int!*/
       --;
 
   /*invoke: dynamic*/
-  /*int!*/
   ++
       /*Class!*/
-      c. /*update: dynamic*/ /*dynamic*/ dynamicInstance;
+      c. /*update: dynamic*/ /*dynamic|int!*/ dynamicInstance;
 
   /*invoke: dynamic*/
-  /*int!*/
   --
       /*Class!*/
-      c. /*update: dynamic*/ /*dynamic*/ dynamicInstance;
+      c. /*update: dynamic*/ /*dynamic|int!*/ dynamicInstance;
 }
 
 testInstanceOnDynamic(dynamic c) {
   /*dynamic*/ c.
-          /*update: dynamic*/ /*dynamic*/ numInstance
+          /*update: dynamic*/ /*dynamic|int!*/ numInstance
       /*invoke: dynamic*/
-      /*int!*/
       ++;
 
   /*dynamic*/ c.
-          /*update: dynamic*/ /*dynamic*/ numInstance
+          /*update: dynamic*/ /*dynamic|int!*/ numInstance
       /*invoke: dynamic*/
-      /*int!*/
       --;
 
   /*invoke: dynamic*/
-  /*int!*/
   ++
       /*dynamic*/ c.
-          /*update: dynamic*/ /*dynamic*/ numInstance;
+          /*update: dynamic*/ /*dynamic|int!*/ numInstance;
 
   /*invoke: dynamic*/
-  /*int!*/
   --
       /*dynamic*/ c.
-          /*update: dynamic*/ /*dynamic*/ numInstance;
+          /*update: dynamic*/ /*dynamic|int!*/ numInstance;
 
   /*dynamic*/ c.
-          /*update: dynamic*/ /*dynamic*/ intInstance
+          /*update: dynamic*/ /*dynamic|int!*/ intInstance
       /*invoke: dynamic*/
-      /*int!*/
       ++;
 
   /*dynamic*/ c.
-          /*update: dynamic*/ /*dynamic*/ intInstance
+          /*update: dynamic*/ /*dynamic|int!*/ intInstance
       /*invoke: dynamic*/
-      /*int!*/
       --;
 
   /*invoke: dynamic*/
-  /*int!*/
   ++
       /*dynamic*/ c.
-          /*update: dynamic*/ /*dynamic*/ intInstance;
+          /*update: dynamic*/ /*dynamic|int!*/ intInstance;
 
   /*invoke: dynamic*/
-  /*int!*/
   --
       /*dynamic*/ c.
-          /*update: dynamic*/ /*dynamic*/ intInstance;
+          /*update: dynamic*/ /*dynamic|int!*/ intInstance;
 
   /*dynamic*/ c.
-          /*update: dynamic*/ /*dynamic*/ dynamicInstance
+          /*update: dynamic*/ /*dynamic|int!*/ dynamicInstance
       /*invoke: dynamic*/
-      /*int!*/
       ++;
 
   /*dynamic*/ c.
-          /*update: dynamic*/ /*dynamic*/ dynamicInstance
+          /*update: dynamic*/ /*dynamic|int!*/ dynamicInstance
       /*invoke: dynamic*/
-      /*int!*/
       --;
 
   /*invoke: dynamic*/
-  /*int!*/
   ++
       /*dynamic*/ c.
-          /*update: dynamic*/ /*dynamic*/ dynamicInstance;
+          /*update: dynamic*/ /*dynamic|int!*/ dynamicInstance;
 
   /*invoke: dynamic*/
-  /*int!*/
   --
       /*dynamic*/ c.
-          /*update: dynamic*/ /*dynamic*/ dynamicInstance;
+          /*update: dynamic*/ /*dynamic|int!*/ dynamicInstance;
 }
 
 main() {

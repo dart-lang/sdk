@@ -7,10 +7,10 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/diagnostic/diagnostic.dart';
-import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/diagnostic/diagnostic.dart';
 import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/error/listener.dart';
 
 /// Helper for verifying that subelements of a base or final element must be
 /// base, final, or sealed.
@@ -243,11 +243,13 @@ class BaseOrFinalTypeVerifier {
         var errorCode = baseOrFinalSuperElement is MixinElement
             ? CompileTimeErrorCode.baseMixinImplementedOutsideOfLibrary
             : CompileTimeErrorCode.baseClassImplementedOutsideOfLibrary;
-        _diagnosticReporter.atNode(
-          implementsNamedType,
-          errorCode,
-          arguments: [baseOrFinalSuperElement.displayName],
-          contextMessages: contextMessages,
+        _diagnosticReporter.report(
+          errorCode
+              .withArguments(
+                superElementName: baseOrFinalSuperElement.displayName,
+              )
+              .withContextMessages(contextMessages)
+              .at(implementsNamedType),
         );
         return true;
       }

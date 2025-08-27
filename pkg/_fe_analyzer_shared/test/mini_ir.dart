@@ -268,8 +268,9 @@ class MiniIRBuilder {
   }) {
     var value = _pop(Kind.expression);
     var index = indexTmp == null ? _pop(Kind.expression) : indexTmp._name;
-    var receiver =
-        receiverTmp == null ? _pop(Kind.expression) : receiverTmp._name;
+    var receiver = receiverTmp == null
+        ? _pop(Kind.expression)
+        : receiverTmp._name;
     _push(
       IRNode(
         ir: '[]=($receiver, $index, $value)',
@@ -344,8 +345,9 @@ class MiniIRBuilder {
     required String location,
   }) {
     var value = _pop(Kind.expression);
-    var receiver =
-        receiverTmp == null ? _pop(Kind.expression) : receiverTmp._name;
+    var receiver = receiverTmp == null
+        ? _pop(Kind.expression)
+        : receiverTmp._name;
     _push(
       IRNode(
         ir: 'set_$propertyName($receiver, $value)',

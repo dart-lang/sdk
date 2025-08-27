@@ -181,10 +181,10 @@ class FunctionTypeAnnotation extends TypeAnnotation {
             resolvedTypeParameters == null
         ? null
         : new FunctionTypeAnnotation(
-          resolvedReturnType ?? returnType,
-          resolvedTypeParameters ?? typeParameters,
-          resolvedFormalParameters ?? formalParameters,
-        );
+            resolvedReturnType ?? returnType,
+            resolvedTypeParameters ?? typeParameters,
+            resolvedFormalParameters ?? formalParameters,
+          );
   }
 }
 
@@ -241,9 +241,9 @@ class RecordTypeAnnotation extends TypeAnnotation {
     return resolvedPositional == null && resolvedNamed == null
         ? null
         : new RecordTypeAnnotation(
-          resolvedPositional ?? positional,
-          resolvedNamed ?? named,
-        );
+            resolvedPositional ?? positional,
+            resolvedNamed ?? named,
+          );
   }
 }
 
@@ -262,10 +262,10 @@ class RecordTypeEntry {
     return resolvedMetadata == null && resolvedTypeAnnotation == null
         ? null
         : new RecordTypeEntry(
-          resolvedMetadata ?? metadata,
-          resolvedTypeAnnotation ?? typeAnnotation,
-          name,
-        );
+            resolvedMetadata ?? metadata,
+            resolvedTypeAnnotation ?? typeAnnotation,
+            name,
+          );
   }
 
   @override

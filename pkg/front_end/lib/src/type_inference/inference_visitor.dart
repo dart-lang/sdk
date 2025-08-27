@@ -1354,7 +1354,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
   }
 
   ExpressionInferenceResult visitExtensionPostIncDec(
-      ExtensionPostIncDec node, DartType typeContext) {
+      ExtensionIncDec node, DartType typeContext) {
     DartType receiverContextType = computeExplicitExtensionReceiverContextType(
         node.extension, node.knownTypeArguments);
 
@@ -1419,9 +1419,9 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     DartType valueType = writeTarget.getSetterType(this);
 
     VariableDeclaration? valueVariable;
-    if (node.forEffect) {
-      // No need for value variable.
-    } else {
+    if (!node.forEffect && node.isPost) {
+      // For postfix expressions like `a = E(o).b++` that are not for effect we
+      // need to store the read value as the result after assignment.
       valueVariable = createVariable(value, valueType);
       value = createVariableGet(valueVariable);
     }
@@ -1437,30 +1437,48 @@ class InferenceVisitorImpl extends InferenceVisitorBase
 
     binaryResult =
         ensureAssignableResult(valueType, binaryResult, isVoidAllowed: true);
-    Expression result = binaryResult.expression;
+    DartType binaryType = binaryResult.inferredType;
+    Expression binary = binaryResult.expression;
+
+    VariableDeclaration? binaryVariable;
+    if (!node.forEffect && !node.isPost) {
+      // For prefix expressions like `a = ++E(o).b` we need to store the binary
+      // result as the result after assignment.
+      binaryVariable = createVariable(binary, binaryType);
+      binary = createVariableGet(binaryVariable);
+    }
 
     StaticInvocation write = createStaticInvocation(
         node.setter,
-        new Arguments([writeReceiver, result], types: extensionTypeArguments)
+        new Arguments([writeReceiver, binary], types: extensionTypeArguments)
           ..fileOffset = node.fileOffset,
         fileOffset: node.fileOffset);
 
     Expression replacement;
-    if (node.forEffect) {
-      assert(valueVariable == null);
-      replacement = write;
-    } else {
-      assert(valueVariable != null);
+    if (valueVariable != null) {
+      assert(binaryVariable == null);
       VariableDeclaration writeVariable =
           createVariable(write, const VoidType());
-      replacement = createLet(valueVariable!,
+      replacement = createLet(valueVariable,
           createLet(writeVariable, createVariableGet(valueVariable)));
+    } else if (binaryVariable != null) {
+      VariableDeclaration writeVariable =
+          createVariable(write, const VoidType());
+      replacement = createLet(binaryVariable,
+          createLet(writeVariable, createVariableGet(binaryVariable)));
+    } else {
+      replacement = write;
     }
     if (receiverVariable != null) {
       replacement = createLet(receiverVariable, replacement);
     }
     replacement.fileOffset = node.fileOffset;
-    return new ExpressionInferenceResult(valueType, replacement);
+    return new ExpressionInferenceResult(
+        // For postfix expressions the expression type is the type of the read
+        // value. For prefix expressions the expression type is the type of the
+        // assignment value.
+        node.isPost ? readType : binaryType,
+        replacement);
   }
 
   ExpressionInferenceResult visitExtensionGetterInvocation(
@@ -6008,16 +6026,117 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     return new ExpressionInferenceResult(nonNullableResultType, node);
   }
 
-  ExpressionInferenceResult visitStaticPostIncDec(
-      StaticPostIncDec node, DartType typeContext) {
-    inferSyntheticVariable(node.read);
-    inferSyntheticVariable(node.write);
-    DartType inferredType = node.read.type;
+  ExpressionInferenceResult visitStaticIncDec(
+      StaticIncDec node, DartType typeContext) {
+    Member getter = node.getter;
+    TypeInferenceEngine.resolveInferenceNode(getter, hierarchyBuilder);
+    DartType getterType = getter.getterType;
 
-    Expression replacement =
-        new Let(node.read, createLet(node.write, createVariableGet(node.read)))
-          ..fileOffset = node.fileOffset;
-    return new ExpressionInferenceResult(inferredType, replacement);
+    Expression read = new StaticGet(getter)..fileOffset = node.nameOffset;
+    DartType readType = getterType;
+
+    VariableDeclaration? valueVariable;
+    if (!node.forEffect && node.isPost) {
+      // For postfix expressions like `a = o.b++` that are not for effect we
+      // need to store the read value as the result after assignment.
+      valueVariable = _createVariable(read, readType);
+      read = _createVariableGet(valueVariable);
+    }
+
+    Member setter = node.setter;
+    TypeInferenceEngine.resolveInferenceNode(setter, hierarchyBuilder);
+    DartType writeType = setter.setterType;
+
+    ExpressionInferenceResult binaryResult = _computeBinaryExpression(
+        node.operatorOffset,
+        writeType,
+        read,
+        readType,
+        node.isInc ? plusName : minusName,
+        createIntLiteral(coreTypes, 1, fileOffset: node.operatorOffset),
+        null);
+
+    binaryResult = ensureAssignableResult(writeType, binaryResult);
+    DartType binaryType = binaryResult.inferredType;
+    Expression binary = binaryResult.expression;
+
+    Expression write = new StaticSet(setter, binary)
+      ..fileOffset = node.nameOffset;
+
+    Expression replacement;
+    if (valueVariable == null) {
+      replacement = write;
+    } else {
+      VariableDeclaration writeVariable =
+          createVariable(write, const VoidType());
+      replacement = createLet(valueVariable,
+          createLet(writeVariable, createVariableGet(valueVariable)));
+    }
+    return new ExpressionInferenceResult(
+        // For postfix expressions the expression type is the type of the read
+        // value. For prefix expressions the expression type is the type of the
+        // assignment value.
+        node.isPost ? readType : binaryType,
+        replacement);
+  }
+
+  ExpressionInferenceResult visitSuperIncDec(
+      SuperIncDec node, DartType typeContext) {
+    Member getter = node.getter;
+    TypeInferenceEngine.resolveInferenceNode(getter, hierarchyBuilder);
+
+    ExpressionInferenceResult readResult = inferSuperPropertyGet(
+        new SuperPropertyGet(node.name, getter)..fileOffset = node.nameOffset,
+        node.name,
+        const UnknownType(),
+        getter);
+
+    Expression read = readResult.expression;
+    DartType readType = readResult.inferredType;
+
+    VariableDeclaration? valueVariable;
+    if (!node.forEffect && node.isPost) {
+      // For postfix expressions like `a = o.b++` that are not for effect we
+      // need to store the read value as the result after assignment.
+      valueVariable = _createVariable(read, readType);
+      read = _createVariableGet(valueVariable);
+    }
+
+    Member setter = node.setter;
+    TypeInferenceEngine.resolveInferenceNode(setter, hierarchyBuilder);
+    DartType writeType = setter.setterType;
+
+    ExpressionInferenceResult binaryResult = _computeBinaryExpression(
+        node.operatorOffset,
+        writeType,
+        read,
+        readType,
+        node.isInc ? plusName : minusName,
+        createIntLiteral(coreTypes, 1, fileOffset: node.operatorOffset),
+        null);
+
+    binaryResult = ensureAssignableResult(writeType, binaryResult);
+    DartType binaryType = binaryResult.inferredType;
+    Expression binary = binaryResult.expression;
+
+    Expression write = new SuperPropertySet(node.name, binary, setter)
+      ..fileOffset = node.nameOffset;
+
+    Expression replacement;
+    if (valueVariable == null) {
+      replacement = write;
+    } else {
+      VariableDeclaration writeVariable =
+          createVariable(write, const VoidType());
+      replacement = createLet(valueVariable,
+          createLet(writeVariable, createVariableGet(valueVariable)));
+    }
+    return new ExpressionInferenceResult(
+        // For postfix expressions the expression type is the type of the read
+        // value. For prefix expressions the expression type is the type of the
+        // assignment value.
+        node.isPost ? readType : binaryType,
+        replacement);
   }
 
   ExpressionInferenceResult visitLocalPostIncDec(
@@ -6031,28 +6150,109 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     return new ExpressionInferenceResult(inferredType, replacement);
   }
 
-  ExpressionInferenceResult visitPropertyPostIncDec(
-      PropertyPostIncDec node, DartType typeContext) {
-    if (node.variable != null) {
-      inferSyntheticVariable(node.variable!);
+  ExpressionInferenceResult visitPropertyIncDec(
+      PropertyIncDec node, DartType typeContext) {
+    ExpressionInferenceResult receiverResult = inferExpression(
+        node.receiver, const UnknownType(),
+        isVoidAllowed: false, continueNullShorting: true);
+
+    Expression receiver = receiverResult.expression;
+    DartType receiverType = receiverResult.inferredType;
+
+    VariableDeclaration? receiverVariable;
+    Expression readReceiver;
+    Expression writeReceiver;
+    if (node.isNullAware) {
+      receiverVariable = createVariable(receiver, receiverType);
+      createNullAwareGuard(receiverVariable);
+      receiverType = receiverType.toNonNull();
+      readReceiver =
+          createVariableGet(receiverVariable, promotedType: receiverType);
+      writeReceiver =
+          createVariableGet(receiverVariable, promotedType: receiverType);
+    } else if (isPureExpression(receiver)) {
+      readReceiver = receiver;
+      writeReceiver = clonePureExpression(receiver);
+    } else {
+      receiverVariable = createVariable(receiver, receiverType);
+      instrumentation?.record(
+          uriForInstrumentation,
+          receiverVariable.fileOffset,
+          'type',
+          new InstrumentationValueForType(receiverType));
+      readReceiver =
+          createVariableGet(receiverVariable, promotedType: receiverType);
+      writeReceiver =
+          createVariableGet(receiverVariable, promotedType: receiverType);
     }
-    inferSyntheticVariable(node.read);
-    inferSyntheticVariable(node.write);
-    DartType inferredType = node.read.type;
+
+    ExpressionInferenceResult readResult = _computePropertyGet(node.nameOffset,
+            readReceiver, receiverType, node.name, const UnknownType(),
+            isThisReceiver: node.receiver is ThisExpression)
+        .expressionInferenceResult;
+
+    Expression read = readResult.expression;
+    DartType readType = readResult.inferredType;
+
+    VariableDeclaration? valueVariable;
+    if (!node.forEffect && node.isPost) {
+      // For postfix expressions like `a = o.b++` that are not for effect we
+      // need to store the read value as the result after assignment.
+      valueVariable = _createVariable(read, readType);
+      read = _createVariableGet(valueVariable);
+    }
+
+    ObjectAccessTarget writeTarget = findInterfaceMember(
+        receiverType, node.name, node.nameOffset,
+        isSetter: true, instrumented: true, includeExtensionMethods: true);
+    DartType writeType = writeTarget.getSetterType(this);
+
+    ExpressionInferenceResult binaryResult = _computeBinaryExpression(
+        node.operatorOffset,
+        writeType,
+        read,
+        readType,
+        node.isInc ? plusName : minusName,
+        createIntLiteral(coreTypes, 1, fileOffset: node.fileOffset),
+        null);
+
+    binaryResult = ensureAssignableResult(writeType, binaryResult);
+    DartType binaryType = binaryResult.inferredType;
+    Expression binary = binaryResult.expression;
+
+    ExpressionInferenceResult writeResult = _computePropertySet(node.nameOffset,
+        writeReceiver, receiverType, node.name, writeTarget, binary,
+        valueType: binaryType,
+        // For prefix expressions like `a = ++o.b` we need the result of the
+        // assignment as the result of the expression.
+        forEffect: node.isPost || node.forEffect);
+    Expression write = writeResult.expression;
 
     Expression replacement;
-    if (node.variable != null) {
-      replacement = new Let(
-          node.variable!,
-          createLet(
-              node.read, createLet(node.write, createVariableGet(node.read))))
-        ..fileOffset = node.fileOffset;
+    if (valueVariable == null) {
+      replacement = write;
     } else {
-      replacement = new Let(
-          node.read, createLet(node.write, createVariableGet(node.read)))
-        ..fileOffset = node.fileOffset;
+      VariableDeclaration writeVariable =
+          createVariable(write, const VoidType());
+      replacement = createLet(valueVariable,
+          createLet(writeVariable, createVariableGet(valueVariable)));
     }
-    return new ExpressionInferenceResult(inferredType, replacement);
+
+    if (receiverVariable != null) {
+      if (!node.isNullAware) {
+        // When the node is null-aware, the receiver variable is used as a
+        // null-aware guard and is automatically inserted by the shorting
+        // system. Otherwise, we have to manually insert the receiver variable
+        // here.
+        replacement = createLet(receiverVariable, replacement);
+      }
+    }
+    return new ExpressionInferenceResult(
+        // For postfix expressions the expression type is the type of the read
+        // value. For prefix expressions the expression type is the type of the
+        // assignment value.
+        node.isPost ? readType : binaryType,
+        replacement);
   }
 
   ExpressionInferenceResult visitCompoundPropertySet(
@@ -6067,7 +6267,15 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     VariableDeclaration? receiverVariable;
     Expression readReceiver;
     Expression writeReceiver;
-    if (isPureExpression(receiver)) {
+    if (node.isNullAware) {
+      receiverVariable = createVariable(receiver, receiverType);
+      createNullAwareGuard(receiverVariable);
+      receiverType = receiverType.toNonNull();
+      readReceiver =
+          createVariableGet(receiverVariable, promotedType: receiverType);
+      writeReceiver =
+          createVariableGet(receiverVariable, promotedType: receiverType);
+    } else if (isPureExpression(receiver)) {
       readReceiver = receiver;
       writeReceiver = clonePureExpression(receiver);
     } else {
@@ -6077,8 +6285,10 @@ class InferenceVisitorImpl extends InferenceVisitorBase
           receiverVariable.fileOffset,
           'type',
           new InstrumentationValueForType(receiverType));
-      readReceiver = createVariableGet(receiverVariable);
-      writeReceiver = createVariableGet(receiverVariable);
+      readReceiver =
+          createVariableGet(receiverVariable, promotedType: receiverType);
+      writeReceiver =
+          createVariableGet(receiverVariable, promotedType: receiverType);
     }
 
     ExpressionInferenceResult readResult = _computePropertyGet(node.readOffset,
@@ -6120,7 +6330,13 @@ class InferenceVisitorImpl extends InferenceVisitorBase
 
     Expression replacement = write;
     if (receiverVariable != null) {
-      replacement = createLet(receiverVariable, replacement);
+      if (!node.isNullAware) {
+        // When the node is null-aware, the receiver variable is used as a
+        // null-aware guard and is automatically inserted by the shorting
+        // system. Otherwise, we have to manually insert the receiver variable
+        // here.
+        replacement = createLet(receiverVariable, replacement);
+      }
     }
     replacement.fileOffset = node.fileOffset;
     return new ExpressionInferenceResult(binaryType, replacement);
@@ -8239,145 +8455,6 @@ class InferenceVisitorImpl extends InferenceVisitorBase
         node.forPostIncDec ? readType : binaryType, replacement);
   }
 
-  ExpressionInferenceResult visitNullAwareCompoundSet(
-      NullAwareCompoundSet node, DartType typeContext) {
-    ExpressionInferenceResult receiverResult = inferExpression(
-        node.receiver, const UnknownType(),
-        isVoidAllowed: true, continueNullShorting: true);
-
-    Expression receiver = receiverResult.expression;
-    DartType receiverType = receiverResult.inferredType;
-
-    VariableDeclaration? receiverVariable =
-        createVariable(receiver, receiverType);
-    createNullAwareGuard(receiverVariable);
-    DartType nonNullReceiverType = receiverType.toNonNull();
-
-    Expression readReceiver =
-        createVariableGet(receiverVariable, promotedType: nonNullReceiverType);
-    Expression writeReceiver =
-        createVariableGet(receiverVariable, promotedType: nonNullReceiverType);
-
-    ExpressionInferenceResult readResult = _computePropertyGet(
-            node.readOffset,
-            readReceiver,
-            nonNullReceiverType,
-            node.propertyName,
-            const UnknownType(),
-            isThisReceiver: node.receiver is ThisExpression)
-        .expressionInferenceResult;
-    Expression read = readResult.expression;
-    DartType readType = readResult.inferredType;
-
-    VariableDeclaration? leftVariable;
-    Expression left;
-    if (node.forEffect) {
-      left = read;
-    } else if (node.forPostIncDec) {
-      leftVariable = createVariable(read, readType);
-      left = createVariableGet(leftVariable);
-    } else {
-      left = read;
-    }
-
-    ObjectAccessTarget writeTarget = findInterfaceMember(
-        nonNullReceiverType, node.propertyName, node.writeOffset,
-        isSetter: true, includeExtensionMethods: true);
-
-    DartType valueType = writeTarget.getSetterType(this);
-
-    ExpressionInferenceResult binaryResult = _computeBinaryExpression(
-        node.binaryOffset,
-        valueType,
-        left,
-        readType,
-        node.binaryName,
-        node.rhs,
-        null);
-
-    binaryResult = ensureAssignableResult(valueType, binaryResult,
-        fileOffset: node.fileOffset);
-    Expression binary = binaryResult.expression;
-    DartType binaryType = binaryResult.inferredType;
-
-    VariableDeclaration? valueVariable;
-    Expression valueExpression;
-    if (node.forEffect || node.forPostIncDec) {
-      valueExpression = binary;
-    } else {
-      valueVariable = createVariable(binary, binaryType);
-      valueExpression = createVariableGet(valueVariable);
-    }
-
-    ExpressionInferenceResult writeResult = _computePropertySet(
-        node.writeOffset,
-        writeReceiver,
-        nonNullReceiverType,
-        node.propertyName,
-        writeTarget,
-        valueExpression,
-        valueType: binaryType,
-        forEffect: true);
-    Expression write = writeResult.expression;
-    DartType writeType = writeResult.inferredType;
-
-    DartType resultType = node.forPostIncDec ? readType : binaryType;
-
-    Expression action;
-    if (node.forEffect) {
-      assert(leftVariable == null);
-      assert(valueVariable == null);
-      // Encode `receiver?.propertyName binaryName= rhs` as:
-      //
-      //     let receiverVariable = receiver in
-      //       receiverVariable == null ? null :
-      //         receiverVariable.propertyName =
-      //             receiverVariable.propertyName + rhs
-      //
-
-      action = write;
-    } else if (node.forPostIncDec) {
-      // Encode `receiver?.propertyName binaryName= rhs` from a postfix
-      // expression like `o?.a++` as:
-      //
-      //     let receiverVariable = receiver in
-      //       receiverVariable == null ? null :
-      //         let leftVariable = receiverVariable.propertyName in
-      //           let writeVariable =
-      //               receiverVariable.propertyName =
-      //                   leftVariable binaryName rhs in
-      //             leftVariable
-      //
-      assert(leftVariable != null);
-      assert(valueVariable == null);
-
-      VariableDeclaration writeVariable = createVariable(write, writeType);
-      action = createLet(leftVariable!,
-          createLet(writeVariable, createVariableGet(leftVariable)));
-    } else {
-      // Encode `receiver?.propertyName binaryName= rhs` as:
-      //
-      //     let receiverVariable = receiver in
-      //       receiverVariable == null ? null :
-      //         let leftVariable = receiverVariable.propertyName in
-      //           let valueVariable = leftVariable binaryName rhs in
-      //             let writeVariable =
-      //                 receiverVariable.propertyName = valueVariable in
-      //               valueVariable
-      //
-      // TODO(johnniwinther): Do we need the `leftVariable` in this case?
-      assert(leftVariable == null);
-      assert(valueVariable != null);
-
-      VariableDeclaration writeVariable =
-          createVariable(write, const VoidType());
-      action = createLet(valueVariable!,
-          createLet(writeVariable, createVariableGet(valueVariable)));
-    }
-
-    return new ExpressionInferenceResult(resultType, action);
-  }
-
   ExpressionInferenceResult visitCompoundSuperIndexSet(
       CompoundSuperIndexSet node, DartType typeContext) {
     ObjectAccessTarget readTarget = thisType!.classNode.isMixinDeclaration
@@ -9224,7 +9301,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
 
     if (target is Procedure && target.kind == ProcedureKind.Method) {
       // Coverage-ignore-block(suite): Not run.
-      Expression tearOff = new StaticTearOff(node.target as Procedure)
+      Expression tearOff = new StaticTearOff(target)
         ..fileOffset = node.fileOffset;
       return instantiateTearOff(type, typeContext, tearOff);
     } else {

@@ -55,6 +55,6 @@ static method test2() → void {
 }
 static method test3() → void {
   self::target = self::target.{self::A::+}(1){(core::int) → self::C};
-  self::A x = let final self::A #t1 = self::target in let final self::C #t2 = self::target = #t1.{self::A::+}(1){(core::int) → self::C} in #t1;
+  self::A x = let final self::A #t1 = self::target in let final void #t2 = self::target = #t1.{self::A::+}(1){(core::int) → self::C} in #t1;
 }
 static method main() → dynamic {}

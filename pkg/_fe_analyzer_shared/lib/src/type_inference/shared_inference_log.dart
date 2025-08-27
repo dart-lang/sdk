@@ -371,10 +371,9 @@ abstract class SharedInferenceLogWriterImpl
       List<String> nodeSetDescriptions = [
         for (Object? node in state.nodeSet) describe(node),
       ];
-      String nodeSetDescription =
-          nodeSetDescriptions.length == 1
-              ? nodeSetDescriptions[0]
-              : nodeSetDescriptions.join(', ');
+      String nodeSetDescription = nodeSetDescriptions.length == 1
+          ? nodeSetDescriptions[0]
+          : nodeSetDescriptions.join(', ');
       fail(
         '${describeMethod()}: expected containing node to be '
         '${describe(expectedNode)}, actual is $nodeSetDescription',
@@ -790,8 +789,9 @@ abstract class SharedInferenceLogWriterImpl
       expectedNode: expression,
       expectedKind: StateKind.expression,
     );
-    String query =
-        target != null ? '${describe(target)}.$methodName' : methodName;
+    String query = target != null
+        ? '${describe(target)}.$methodName'
+        : methodName;
     addEvent(new Event(message: 'LOOKUP $query FINDS $type'));
   }
 

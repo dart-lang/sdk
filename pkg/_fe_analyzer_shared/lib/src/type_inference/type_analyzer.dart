@@ -557,15 +557,14 @@ mixin TypeAnalyzer<
     SharedTypeView promotedValueType = flow.getMatchedValueType();
     bool isImplicitlyTyped = declaredType == null;
     // TODO(paulberry): are we handling _isFinal correctly?
-    int promotionKey =
-        context.patternVariablePromotionKeys[variableName] = flow
-            .declaredVariablePattern(
-              matchedType: promotedValueType,
-              staticType: staticType,
-              isFinal: context.isFinal || operations.isVariableFinal(variable),
-              isLate: false,
-              isImplicitlyTyped: isImplicitlyTyped,
-            );
+    int promotionKey = context.patternVariablePromotionKeys[variableName] = flow
+        .declaredVariablePattern(
+          matchedType: promotedValueType,
+          staticType: staticType,
+          isFinal: context.isFinal || operations.isVariableFinal(variable),
+          isLate: false,
+          isImplicitlyTyped: isImplicitlyTyped,
+        );
     setVariableType(variable, staticType);
     (context.componentVariables[variableName] ??= []).add(variable);
     flow.assignMatchedPatternVariable(variable, promotionKey);
@@ -857,8 +856,9 @@ mixin TypeAnalyzer<
           type: operations.doubleType,
           typeSchema: schema,
         );
-    SharedTypeView type =
-        convertToDouble ? operations.doubleType : operations.intType;
+    SharedTypeView type = convertToDouble
+        ? operations.doubleType
+        : operations.intType;
     return new IntTypeAnalysisResult(
       type: type,
       convertedToDouble: convertToDouble,
@@ -1538,10 +1538,9 @@ mixin TypeAnalyzer<
   }) {
     // Stack: ()
     SharedTypeSchemaView patternTypeSchema = dispatchPatternSchema(pattern);
-    SharedTypeSchemaView expressionTypeSchema =
-        hasAwait
-            ? operations.streamTypeSchema(patternTypeSchema)
-            : operations.iterableTypeSchema(patternTypeSchema);
+    SharedTypeSchemaView expressionTypeSchema = hasAwait
+        ? operations.streamTypeSchema(patternTypeSchema)
+        : operations.iterableTypeSchema(patternTypeSchema);
     SharedTypeView expressionType = analyzeExpression(
       expression,
       expressionTypeSchema,
@@ -1549,10 +1548,9 @@ mixin TypeAnalyzer<
     // Stack: (Expression)
 
     Error? patternForInExpressionIsNotIterableError;
-    SharedTypeView? elementType =
-        hasAwait
-            ? operations.matchStreamType(expressionType)
-            : operations.matchIterableType(expressionType);
+    SharedTypeView? elementType = hasAwait
+        ? operations.matchStreamType(expressionType)
+        : operations.matchIterableType(expressionType);
     if (elementType == null) {
       if (expressionType is SharedDynamicType) {
         elementType = operations.dynamicType;
@@ -2185,8 +2183,8 @@ mixin TypeAnalyzer<
       isExhaustive = true;
       requiresExhaustivenessValidation = false;
     } else if (typeAnalyzerOptions.patternsEnabled) {
-      requiresExhaustivenessValidation =
-          isExhaustive = operations.isAlwaysExhaustiveType(scrutineeType);
+      requiresExhaustivenessValidation = isExhaustive = operations
+          .isAlwaysExhaustiveType(scrutineeType);
     } else {
       isExhaustive = isLegacySwitchExhaustive(node, scrutineeType);
       requiresExhaustivenessValidation = false;
@@ -2723,9 +2721,8 @@ mixin TypeAnalyzer<
             location: location,
             inconsistency:
                 typeIfConsistent != null && isFinalIfConsistent != null
-                    ? JoinedPatternVariableInconsistency.none
-                    : JoinedPatternVariableInconsistency
-                        .differentFinalityOrType,
+                ? JoinedPatternVariableInconsistency.none
+                : JoinedPatternVariableInconsistency.differentFinalityOrType,
             isFinal: isFinalIfConsistent ?? false,
             type: typeIfConsistent ?? operations.errorType,
           );

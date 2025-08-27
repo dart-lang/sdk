@@ -1634,12 +1634,16 @@ class CompoundPropertySet extends InternalExpression {
   /// The file offset for the write operation.
   final int writeOffset;
 
+  /// `true` if the access is null-aware, i.e. of the form `o?.a += b`.
+  final bool isNullAware;
+
   CompoundPropertySet(
       this.receiver, this.propertyName, this.binaryName, this.rhs,
       {required this.forEffect,
       required this.readOffset,
       required this.binaryOffset,
-      required this.writeOffset}) {
+      required this.writeOffset,
+      required this.isNullAware}) {
     receiver.parent = this;
     rhs.parent = this;
   }
@@ -1659,6 +1663,9 @@ class CompoundPropertySet extends InternalExpression {
   // Coverage-ignore(suite): Not run.
   void toTextInternal(AstPrinter printer) {
     printer.writeExpression(receiver);
+    if (isNullAware) {
+      printer.write('?');
+    }
     printer.write('.');
     printer.writeName(propertyName);
     printer.write(' ');
@@ -1668,46 +1675,89 @@ class CompoundPropertySet extends InternalExpression {
   }
 }
 
-/// Internal expression representing an compound property assignment.
+/// Internal expression representing an property inc/dec, for instance
+/// `o.a++` and `--o.a`.
 ///
-/// An compound property assignment of the form `o.a++` is encoded as the
+/// An property postfix increment of the form `o.a++` is encoded as the
 /// expression:
 ///
 ///     let v1 = o in let v2 = v1.a in let v3 = v1.a = v2 + 1 in v2
 ///
-class PropertyPostIncDec extends InternalExpression {
-  /// The synthetic variable whose initializer hold the receiver.
-  ///
-  /// This is `null` if the receiver is read-only and therefore does not need to
-  /// be stored in a temporary variable.
-  VariableDeclarationImpl? variable;
+/// and a property prefix increment of the form `--o.a` or a postfix decrement
+/// of the form `o.a--` for effect is encoded as the expression:
+///
+///     let v1 = o in let v2 = v1.a in v1.a = v2 - 1
+///
+class PropertyIncDec extends InternalExpression {
+  /// The receiver of the assigned property.
+  Expression receiver;
 
-  /// The expression that reads the property on [variable].
-  VariableDeclarationImpl read;
+  /// The name of the assigned property.
+  Name name;
 
-  /// The expression that writes the result of the binary operation to the
-  /// property on [variable].
-  VariableDeclarationImpl write;
+  /// `true` if the inc/dec is a postfix expression, i.e. of the form `o.a++` as
+  /// opposed the prefix expression `++o.a`.
+  final bool isPost;
 
-  PropertyPostIncDec(this.variable, this.read, this.write) {
-    variable?.parent = this;
-    read.parent = this;
-    write.parent = this;
+  /// If `true` the assignment is need for its effect and not for its value.
+  final bool forEffect;
+
+  /// `true` if this is an post increment, i.e. `o.a++` as opposed to `o.a--`.
+  final bool isInc;
+
+  /// `true` if the access is null-aware, i.e. of the form `o?.a++`.
+  final bool isNullAware;
+
+  /// The file offset of the [name].
+  final int nameOffset;
+
+  /// The file offset of the `++` or `--` operator.
+  final int operatorOffset;
+
+  PropertyIncDec(this.receiver, this.name,
+      {required this.forEffect,
+      required this.isPost,
+      required this.isInc,
+      required this.isNullAware,
+      required this.nameOffset,
+      required this.operatorOffset}) {
+    receiver.parent = this;
   }
-
-  PropertyPostIncDec.onReadOnly(
-      VariableDeclarationImpl read, VariableDeclarationImpl write)
-      : this(null, read, write);
 
   @override
   ExpressionInferenceResult acceptInference(
       InferenceVisitorImpl visitor, DartType typeContext) {
-    return visitor.visitPropertyPostIncDec(this, typeContext);
+    return visitor.visitPropertyIncDec(this, typeContext);
+  }
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  void toTextInternal(AstPrinter printer) {
+    if (!isPost) {
+      if (isInc) {
+        printer.write('++');
+      } else {
+        printer.write('--');
+      }
+    }
+    printer.writeExpression(receiver);
+    if (isNullAware) {
+      printer.write('?');
+    }
+    printer.write('.');
+    printer.writeName(name);
+    if (isPost) {
+      if (isInc) {
+        printer.write('++');
+      } else {
+        printer.write('--');
+      }
+    }
   }
 
   @override
   String toString() {
-    return "PropertyPostIncDec(${toStringInternal()})";
+    return "PropertyIncDec(${toStringInternal()})";
   }
 }
 
@@ -1719,7 +1769,7 @@ class PropertyPostIncDec extends InternalExpression {
 ///
 ///     let v1 = o in let v2 = E|a(v1) in let v3 = E|a(v1, v2 + 1) in v2
 ///
-class ExtensionPostIncDec extends InternalExpression {
+class ExtensionIncDec extends InternalExpression {
   /// The extension in which the [getter] and [setter] are declared.
   final Extension extension;
 
@@ -1742,6 +1792,10 @@ class ExtensionPostIncDec extends InternalExpression {
   /// The [Procedure] used for the write of the property.
   final Procedure setter;
 
+  /// `true` if the inc/dec is a postfix expression, i.e. of the form `E(o).a++`
+  /// as opposed the prefix expression `++E(o).a`.
+  final bool isPost;
+
   /// `true` if this is a post increment expression, i.e. `E(o).a++` as opposed
   /// to `E(o).a--`.
   final bool isInc;
@@ -1757,40 +1811,45 @@ class ExtensionPostIncDec extends InternalExpression {
   /// to the implicit access of `a++` occurring within the extension `E`.
   final bool _isExplicit;
 
-  ExtensionPostIncDec.explicit(
+  ExtensionIncDec.explicit(
       {required Extension extension,
       required List<DartType>? explicitTypeArguments,
       required Expression receiver,
       required Name name,
       required Procedure getter,
       required Procedure setter,
+      required bool isPost,
       required bool isInc,
       required bool forEffect,
       required isNullAware})
       : this._(extension, explicitTypeArguments, receiver, name, getter, setter,
+            isPost: isPost,
             isInc: isInc,
             forEffect: forEffect,
             isNullAware: isNullAware,
             isExplicit: true);
 
-  ExtensionPostIncDec.implicit(
+  ExtensionIncDec.implicit(
       {required Extension extension,
       required List<DartType>? thisTypeArguments,
       required Expression thisAccess,
       required Name name,
       required Procedure getter,
       required Procedure setter,
+      required bool isPost,
       required bool isInc,
       required bool forEffect})
       : this._(extension, thisTypeArguments, thisAccess, name, getter, setter,
+            isPost: isPost,
             isInc: isInc,
             forEffect: forEffect,
             isNullAware: false,
             isExplicit: false);
 
-  ExtensionPostIncDec._(this.extension, this.knownTypeArguments, this.receiver,
+  ExtensionIncDec._(this.extension, this.knownTypeArguments, this.receiver,
       this.name, this.getter, this.setter,
-      {required bool this.isInc,
+      {required this.isPost,
+      required this.isInc,
       required this.forEffect,
       required this.isNullAware,
       required bool isExplicit})
@@ -1811,6 +1870,9 @@ class ExtensionPostIncDec extends InternalExpression {
   @override
   // Coverage-ignore(suite): Not run.
   void toTextInternal(AstPrinter printer) {
+    if (!isPost) {
+      printer.write(isInc ? '++' : '--');
+    }
     if (_isExplicit) {
       printer.write(extension.name);
       if (knownTypeArguments != null) {
@@ -1827,7 +1889,9 @@ class ExtensionPostIncDec extends InternalExpression {
     }
     printer.write('.');
     printer.writeName(name);
-    printer.write(isInc ? '++' : '--');
+    if (isPost) {
+      printer.write(isInc ? '++' : '--');
+    }
   }
 
   @override
@@ -1868,35 +1932,165 @@ class LocalPostIncDec extends InternalExpression {
   }
 }
 
-/// Internal expression representing an static member post inc/dec expression.
+/// Internal expression representing a static member inc/dec expression.
 ///
-/// An local variable post inc/dec expression of the form `a++` is encoded as
+/// A static postfix inc/dec expression of the form `a++` is encoded as
 /// the expression:
 ///
 ///     let v1 = a in let v2 = a = v1 + 1 in v1
 ///
-class StaticPostIncDec extends InternalExpression {
-  /// The expression that reads the static member.
-  VariableDeclarationImpl read;
+/// A static prefix inc/dec expression of the form `++a` or a postfix inc/dec
+/// expression for effect is encoded as the expression:
+///
+///     a = a + 1
+///
+class StaticIncDec extends InternalExpression {
+  /// The getter used to read the original value.
+  final Member getter;
 
-  /// The expression that writes the result of the binary operation to the
-  /// static member.
-  VariableDeclarationImpl write;
+  /// The setter to which to updated value is assigned.
+  final Member setter;
 
-  StaticPostIncDec(this.read, this.write) {
-    read.parent = this;
-    write.parent = this;
-  }
+  /// The name of the accessed property.
+  final Name name;
+
+  /// `true` if the inc/dec is a postfix expression, i.e. of the form `a++` as
+  /// opposed the prefix expression `++a`.
+  final bool isPost;
+
+  /// If `true` the assignment is need for its effect and not for its value.
+  final bool forEffect;
+
+  /// `true` if this is an post increment, i.e. `a++` as opposed to `a--`.
+  final bool isInc;
+
+  /// The file offset of the name of the getter/setter, i.e. `a` in `a++`.
+  final int nameOffset;
+
+  /// The file offset of the `++` or `--` operator.
+  final int operatorOffset;
+
+  StaticIncDec(
+      {required this.getter,
+      required this.setter,
+      required this.name,
+      required this.forEffect,
+      required this.isPost,
+      required this.isInc,
+      required this.nameOffset,
+      required this.operatorOffset});
 
   @override
   ExpressionInferenceResult acceptInference(
       InferenceVisitorImpl visitor, DartType typeContext) {
-    return visitor.visitStaticPostIncDec(this, typeContext);
+    return visitor.visitStaticIncDec(this, typeContext);
+  }
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  void toTextInternal(AstPrinter printer) {
+    if (!isPost) {
+      if (isInc) {
+        printer.write('++');
+      } else {
+        printer.write('--');
+      }
+    }
+    printer.writeName(name);
+    if (isPost) {
+      if (isInc) {
+        printer.write('++');
+      } else {
+        printer.write('--');
+      }
+    }
   }
 
   @override
   String toString() {
-    return "StaticPostIncDec(${toStringInternal()})";
+    return "StaticIncDec(${toStringInternal()})";
+  }
+}
+
+/// Internal expression representing a super member inc/dec expression.
+///
+/// A super postfix inc/dec expression of the form `super.a++` is encoded as
+/// the expression:
+///
+///     let v1 = super.a in let v2 = super.a = v1 + 1 in v1
+///
+/// A super prefix inc/dec expression of the form `++super.a` or a postfix
+/// inc/dec expression for effect is encoded as the expression:
+///
+///     super.a = super.a + 1
+///
+class SuperIncDec extends InternalExpression {
+  /// The getter used to read the original value.
+  final Member getter;
+
+  /// The setter to which to updated value is assigned.
+  final Member setter;
+
+  /// The name of the accessed property.
+  final Name name;
+
+  /// `true` if the inc/dec is a postfix expression, i.e. of the form
+  /// `super.a++` as opposed the prefix expression `++super.a`.
+  final bool isPost;
+
+  /// If `true` the assignment is need for its effect and not for its value.
+  final bool forEffect;
+
+  /// `true` if this is an post increment, i.e. `super.a++` as opposed to
+  /// `super.a--`.
+  final bool isInc;
+
+  /// The file offset of the name of the getter/setter, i.e. `a` in `super.a++`.
+  final int nameOffset;
+
+  /// The file offset of the `++` or `--` operator.
+  final int operatorOffset;
+
+  SuperIncDec(
+      {required this.getter,
+      required this.setter,
+      required this.name,
+      required this.forEffect,
+      required this.isPost,
+      required this.isInc,
+      required this.nameOffset,
+      required this.operatorOffset});
+
+  @override
+  ExpressionInferenceResult acceptInference(
+      InferenceVisitorImpl visitor, DartType typeContext) {
+    return visitor.visitSuperIncDec(this, typeContext);
+  }
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  void toTextInternal(AstPrinter printer) {
+    if (!isPost) {
+      if (isInc) {
+        printer.write('++');
+      } else {
+        printer.write('--');
+      }
+    }
+    printer.write('super.');
+    printer.writeName(getter.name);
+    if (isPost) {
+      if (isInc) {
+        printer.write('++');
+      } else {
+        printer.write('--');
+      }
+    }
+  }
+
+  @override
+  String toString() {
+    return "SuperIncDec(${toStringInternal()})";
   }
 }
 
@@ -2506,114 +2700,6 @@ class CompoundIndexSet extends InternalExpression {
     } else {
       printer.write(' ');
       printer.write(binaryName.text);
-      printer.write('= ');
-      printer.writeExpression(rhs);
-    }
-  }
-}
-
-/// Internal expression representing a null-aware compound assignment.
-///
-/// A null-aware compound assignment of the form
-///
-///     receiver?.property binaryName= rhs
-///
-/// is, if used for value as a normal compound or prefix operation, encoded as
-/// the expression:
-///
-///     let receiverVariable = receiver in
-///       receiverVariable == null ? null :
-///         let leftVariable = receiverVariable.propertyName in
-///           let valueVariable = leftVariable binaryName rhs in
-///             let writeVariable =
-///                 receiverVariable.propertyName = valueVariable in
-///               valueVariable
-///
-/// and, if used for value as a postfix operation, encoded as
-///
-///     let receiverVariable = receiver in
-///       receiverVariable == null ? null :
-///         let leftVariable = receiverVariable.propertyName in
-///           let writeVariable =
-///               receiverVariable.propertyName =
-///                   leftVariable binaryName rhs in
-///             leftVariable
-///
-/// and, if used for effect, encoded as:
-///
-///     let receiverVariable = receiver in
-///       receiverVariable == null ? null :
-///         receiverVariable.propertyName = receiverVariable.propertyName + rhs
-///
-class NullAwareCompoundSet extends InternalExpression {
-  /// The receiver on which the null aware operation is performed.
-  Expression receiver;
-
-  /// The name of the null-aware property.
-  Name propertyName;
-
-  /// The name of the binary operation.
-  Name binaryName;
-
-  /// The right-hand side of the binary expression.
-  Expression rhs;
-
-  /// The file offset for the read operation.
-  final int readOffset;
-
-  /// The file offset for the write operation.
-  final int writeOffset;
-
-  /// The file offset for the binary operation.
-  final int binaryOffset;
-
-  /// If `true`, the expression is only need for effect and not for its value.
-  final bool forEffect;
-
-  /// If `true`, the expression is a postfix inc/dec expression.
-  final bool forPostIncDec;
-
-  NullAwareCompoundSet(
-      this.receiver, this.propertyName, this.binaryName, this.rhs,
-      {required this.readOffset,
-      required this.binaryOffset,
-      required this.writeOffset,
-      required this.forEffect,
-      required this.forPostIncDec}) {
-    receiver.parent = this;
-    rhs.parent = this;
-    fileOffset = binaryOffset;
-  }
-
-  @override
-  ExpressionInferenceResult acceptInference(
-      InferenceVisitorImpl visitor, DartType typeContext) {
-    return visitor.visitNullAwareCompoundSet(this, typeContext);
-  }
-
-  @override
-  String toString() {
-    return "NullAwareCompoundSet(${toStringInternal()})";
-  }
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  void toTextInternal(AstPrinter printer) {
-    printer.writeExpression(receiver);
-    printer.write('?.');
-    printer.writeName(propertyName);
-    if (forPostIncDec &&
-        rhs is IntLiteral &&
-        (rhs as IntLiteral).value == 1 &&
-        (binaryName == plusName || binaryName == minusName)) {
-      if (binaryName == plusName) {
-        printer.write('++');
-      } else {
-        printer.write('--');
-      }
-    } else {
-      printer.write(' ');
-      printer.writeName(binaryName);
       printer.write('= ');
       printer.writeExpression(rhs);
     }

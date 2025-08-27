@@ -90,7 +90,9 @@ evaluate=SetOrMapLiteral({ExpressionElement(IntegerLiteral(1))})
 constBool=BooleanLiteral(true)*/
 void setOrMapLiteral10() {}
 
-@Helper({...{0, 1}})
+@Helper({
+  ...{0, 1},
+})
 /*member: setOrMapLiteral11:
 resolved=SetOrMapLiteral({SpreadElement(...SetOrMapLiteral({
   ExpressionElement(IntegerLiteral(0)), 
@@ -111,7 +113,9 @@ constList=ListLiteral([
   ExpressionElement(IntegerLiteral(3))])*/
 void setOrMapLiteral12() {}
 
-@Helper({...?{0, 1}})
+@Helper({
+  ...?{0, 1},
+})
 /*member: setOrMapLiteral13:
 resolved=SetOrMapLiteral({SpreadElement(?...SetOrMapLiteral({
   ExpressionElement(IntegerLiteral(0)), 
@@ -222,7 +226,10 @@ evaluate=SetOrMapLiteral({})
 constBool=BooleanLiteral(true)*/
 void setOrMapLiteral24() {}
 
-@Helper({if (constBool) if (constBool) ?null else ?null})
+@Helper({
+  if (constBool)
+    if (constBool) ?null else ?null,
+})
 /*member: setOrMapLiteral25:
 resolved=SetOrMapLiteral({IfElement(
   StaticGet(constBool),

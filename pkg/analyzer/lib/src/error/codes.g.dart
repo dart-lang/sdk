@@ -42,10 +42,10 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
       );
 
   /// Parameters:
-  /// String p0: the display name for the kind of the found abstract member
-  /// String p1: the name of the member
+  /// String kind: the display name for the kind of the found abstract member
+  /// String name: the name of the member
   static const CompileTimeErrorTemplate<
-    LocatableDiagnostic Function({required String p0, required String p1})
+    LocatableDiagnostic Function({required String kind, required String name})
   >
   abstractSuperMemberReference = CompileTimeErrorTemplate(
     'ABSTRACT_SUPER_MEMBER_REFERENCE',
@@ -470,9 +470,9 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
   );
 
   /// Parameters:
-  /// String p0: the name of the base class being implemented
+  /// String superElementName: the name of the base class being implemented
   static const CompileTimeErrorTemplate<
-    LocatableDiagnostic Function({required String p0})
+    LocatableDiagnostic Function({required String superElementName})
   >
   baseClassImplementedOutsideOfLibrary = CompileTimeErrorTemplate(
     'INVALID_USE_OF_TYPE_OUTSIDE_LIBRARY',
@@ -485,9 +485,9 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
   );
 
   /// Parameters:
-  /// String p0: the name of the base mixin being implemented
+  /// String superElementName: the name of the base mixin being implemented
   static const CompileTimeErrorTemplate<
-    LocatableDiagnostic Function({required String p0})
+    LocatableDiagnostic Function({required String superElementName})
   >
   baseMixinImplementedOutsideOfLibrary = CompileTimeErrorTemplate(
     'INVALID_USE_OF_TYPE_OUTSIDE_LIBRARY',
@@ -8065,10 +8065,10 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
   DiagnosticType get type => DiagnosticType.COMPILE_TIME_ERROR;
 
   static LocatableDiagnostic _withArgumentsAbstractSuperMemberReference({
-    required String p0,
-    required String p1,
+    required String kind,
+    required String name,
   }) {
-    return LocatableDiagnosticImpl(abstractSuperMemberReference, [p0, p1]);
+    return LocatableDiagnosticImpl(abstractSuperMemberReference, [kind, name]);
   }
 
   static LocatableDiagnostic _withArgumentsAmbiguousExport({
@@ -8166,13 +8166,21 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
   }
 
   static LocatableDiagnostic
-  _withArgumentsBaseClassImplementedOutsideOfLibrary({required String p0}) {
-    return LocatableDiagnosticImpl(baseClassImplementedOutsideOfLibrary, [p0]);
+  _withArgumentsBaseClassImplementedOutsideOfLibrary({
+    required String superElementName,
+  }) {
+    return LocatableDiagnosticImpl(baseClassImplementedOutsideOfLibrary, [
+      superElementName,
+    ]);
   }
 
   static LocatableDiagnostic
-  _withArgumentsBaseMixinImplementedOutsideOfLibrary({required String p0}) {
-    return LocatableDiagnosticImpl(baseMixinImplementedOutsideOfLibrary, [p0]);
+  _withArgumentsBaseMixinImplementedOutsideOfLibrary({
+    required String superElementName,
+  }) {
+    return LocatableDiagnosticImpl(baseMixinImplementedOutsideOfLibrary, [
+      superElementName,
+    ]);
   }
 
   static LocatableDiagnostic _withArgumentsBodyMightCompleteNormally({

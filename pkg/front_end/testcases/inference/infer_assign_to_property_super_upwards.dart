@@ -29,11 +29,11 @@ class Test1 extends Base {
         /*@target=num.+*/ += getInt();
 
     var /*@type=int*/ v10 = /*@target=num.+*/ ++super
-        . /*@target=Base.intProp*/ intProp;
+        .  intProp;
 
     var /*@type=int*/ v11 = super
-        . /*@type=int*/ /*@target=Base.intProp*/
-        /*@type=int*/ intProp /*@target=num.+*/ ++;
+        .  
+         intProp /*@target=num.+*/ ++;
   }
 }
 
@@ -66,12 +66,12 @@ class Test2 extends Base {
         /*@target=num.+*/ += getDouble();
 
     var /*@type=num*/ v10 = /*@target=num.+*/ ++super
-        . /*@target=Base.numProp*/ numProp;
+        .  numProp;
 
     var /*@type=num*/ v11 = super
         .
-        /*@type=num*/ /*@target=Base.numProp*/
-        /*@type=num*/ numProp /*@target=num.+*/ ++;
+         
+         numProp /*@target=num.+*/ ++;
   }
 }
 
@@ -92,11 +92,11 @@ class Test3 extends Base {
         /*@target=double.+*/ += getDouble();
 
     var /*@type=double*/ v10 = /*@target=double.+*/ ++super
-        . /*@target=Base.doubleProp*/ doubleProp;
+        .  doubleProp;
 
     var /*@type=double*/ v11 = super
-        . /*@type=double*/ /*@target=Base.doubleProp*/
-        /*@type=double*/ doubleProp /*@target=double.+*/ ++;
+        .  
+         doubleProp /*@target=double.+*/ ++;
   }
 }
 

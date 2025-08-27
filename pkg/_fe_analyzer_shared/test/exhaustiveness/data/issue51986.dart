@@ -18,12 +18,12 @@ int test1(Object obj) {
 }
 
 int test2(Object obj) =>
-/*
+    /*
      error=non-exhaustive:Object(),
      fields={isEven:-},
      type=Object
     */
-switch (obj) {
-  int(isEven: true) as int /*space=int(isEven: true)|Null*/ => 1,
-  int _ /*space=int*/ => 2,
-};
+    switch (obj) {
+      int(isEven: true) as int /*space=int(isEven: true)|Null*/ => 1,
+      int _ /*space=int*/ => 2,
+    };

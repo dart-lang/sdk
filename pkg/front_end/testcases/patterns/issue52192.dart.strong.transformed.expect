@@ -13,7 +13,7 @@ class B extends core::Object implements self::A<core::int> {
     : super core::Object::•()
     ;
   get g() → (core::int) → void
-    return (core::int i) → void => let final core::int #t1 = self::callCount in let final core::int #t2 = self::callCount = #t1.{core::num::+}(1){(core::num) → core::int} in #t1;
+    return (core::int i) → void => let final core::int #t1 = self::callCount in let final void #t2 = self::callCount = #t1.{core::num::+}(1){(core::num) → core::int} in #t1;
 }
 static field core::int callCount = 0;
 static method foo(core::Object o, core::num value) → void {

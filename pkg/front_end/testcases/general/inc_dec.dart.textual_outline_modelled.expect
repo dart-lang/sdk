@@ -1,0 +1,20 @@
+class D {
+  D(this.v);
+  E v;
+  static late E staticE;
+}
+
+class E {
+  G operator +(int i) => new I();
+  G operator -(int i) => new I();
+}
+
+class F {}
+
+class G extends E implements F {}
+
+class H {}
+
+class I extends G implements H {}
+
+method() {}

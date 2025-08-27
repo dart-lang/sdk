@@ -126,14 +126,9 @@ class ExpressionInfo<Type extends Object> {
   /// contains information about the expression `x == null`, calling this method
   /// produces an [ExpressionInfo] containing information about the expression
   /// `x != null`.
-  ExpressionInfo<Type> _invert() =>
-      isNonTrivial
-          ? new ExpressionInfo<Type>(
-            type: _type,
-            ifTrue: ifFalse,
-            ifFalse: ifTrue,
-          )
-          : this;
+  ExpressionInfo<Type> _invert() => isNonTrivial
+      ? new ExpressionInfo<Type>(type: _type, ifTrue: ifFalse, ifFalse: ifTrue)
+      : this;
 }
 
 /// [PropertyTarget] that is an expression appearing explicitly in the source
@@ -2584,8 +2579,8 @@ class FlowAnalysisDebug<
     Map<Type, NonPromotionReason> Function() callback,
   ) {
     String callbackToString = '#CALLBACK${_nextCallbackId++}';
-    Map<Type, NonPromotionReason> Function() wrappedCallback =
-        () => _wrap('$callbackToString()', callback, isQuery: true);
+    Map<Type, NonPromotionReason> Function() wrappedCallback = () =>
+        _wrap('$callbackToString()', callback, isQuery: true);
     _description[wrappedCallback] = callbackToString;
     return wrappedCallback;
   }
@@ -2726,8 +2721,8 @@ class FlowModel<Type extends Object> {
       // guaranteed to be already assigned and won't be assigned again.
       if (helper.isFinal(variableKey)) continue;
 
-      PromotionModel<Type> newInfo =
-          info.discardPromotionsAndMarkNotUnassigned();
+      PromotionModel<Type> newInfo = info
+          .discardPromotionsAndMarkNotUnassigned();
       if (!identical(info, newInfo)) {
         result = result.updatePromotionInfo(helper, variableKey, newInfo);
       }
@@ -2808,13 +2803,12 @@ class FlowModel<Type extends Object> {
       PromotionModel<Type>? promotionModel = left?.model;
       if (promotionModel == null) continue;
       PromotionModel<Type>? otherPromotionModel = right?.model;
-      PromotionModel<Type> newPromotionModel =
-          otherPromotionModel == null
-              ? promotionModel
-              : PromotionModel.inheritTested(
-                promotionModel,
-                otherPromotionModel.tested,
-              );
+      PromotionModel<Type> newPromotionModel = otherPromotionModel == null
+          ? promotionModel
+          : PromotionModel.inheritTested(
+              promotionModel,
+              otherPromotionModel.tested,
+            );
       if (!identical(newPromotionModel, promotionModel)) {
         result = result.updatePromotionInfo(
           helper,
@@ -2848,7 +2842,10 @@ class FlowModel<Type extends Object> {
     var (
       :PromotionInfo<Type>? ancestor,
       :List<FlowLinkDiffEntry<PromotionInfo<Type>>> entries,
-    ) = helper.reader.diff(promotionInfo, base.promotionInfo);
+    ) = helper.reader.diff(
+      promotionInfo,
+      base.promotionInfo,
+    );
     // If `this` matches the ancestor, then there are no state changes that need
     // to be rewound and applied to `base`.
     if (ancestor == promotionInfo) {
@@ -3229,17 +3226,17 @@ class FlowModel<Type extends Object> {
             identical(newPromotedTypes, info.promotedTypes)
         ? this
         : updatePromotionInfo(
-          helper,
-          reference.promotionKey,
-          new PromotionModel<Type>(
-            promotedTypes: newPromotedTypes,
-            tested: newTested,
-            assigned: info.assigned,
-            unassigned: info.unassigned,
-            ssaNode: info.ssaNode,
-            nonPromotionHistory: info.nonPromotionHistory,
-          ),
-        );
+            helper,
+            reference.promotionKey,
+            new PromotionModel<Type>(
+              promotedTypes: newPromotedTypes,
+              tested: newTested,
+              assigned: info.assigned,
+              unassigned: info.unassigned,
+              ssaNode: info.ssaNode,
+              nonPromotionHistory: info.nonPromotionHistory,
+            ),
+          );
   }
 
   /// Forms a new state to reflect a control flow path that might have come from
@@ -3292,7 +3289,10 @@ class FlowModel<Type extends Object> {
     var (
       :PromotionInfo<Type>? ancestor,
       :List<FlowLinkDiffEntry<PromotionInfo<Type>>> entries,
-    ) = helper.reader.diff(first.promotionInfo, second.promotionInfo);
+    ) = helper.reader.diff(
+      first.promotionInfo,
+      second.promotionInfo,
+    );
     FlowModel<Type> newFlowModel = new FlowModel.withInfo(
       first.reachable,
       ancestor,
@@ -3825,17 +3825,16 @@ class PromotionModel<Type extends Object> {
 
   /// Returns a promotion model that is the same as this one, but with the
   /// variable definitely assigned.
-  PromotionModel<Type> _setAssigned() =>
-      assigned
-          ? this
-          : new PromotionModel(
-            promotedTypes: promotedTypes,
-            tested: tested,
-            assigned: true,
-            unassigned: false,
-            ssaNode: ssaNode,
-            nonPromotionHistory: nonPromotionHistory,
-          );
+  PromotionModel<Type> _setAssigned() => assigned
+      ? this
+      : new PromotionModel(
+          promotedTypes: promotedTypes,
+          tested: tested,
+          assigned: true,
+          unassigned: false,
+          ssaNode: ssaNode,
+          nonPromotionHistory: nonPromotionHistory,
+        );
 
   /// Determines whether a variable with the given [promotedTypes] should be
   /// promoted to [writtenType] based on types of interest.  If it should,
@@ -3855,8 +3854,9 @@ class PromotionModel<Type extends Object> {
     // Figure out if we have any promotion candidates (types that are a
     // supertype of writtenType and a proper subtype of the currently-promoted
     // type).  If at any point we find an exact match, we take it immediately.
-    Type currentlyPromotedType =
-        promotedTypes.isNotEmpty ? promotedTypes.last : declaredType;
+    Type currentlyPromotedType = promotedTypes.isNotEmpty
+        ? promotedTypes.last
+        : declaredType;
 
     List<Type>? result = null;
     List<Type>? candidates = null;
@@ -4012,8 +4012,9 @@ class PromotionModel<Type extends Object> {
     bool newAssigned = first.assigned && second.assigned;
     bool newUnassigned = first.unassigned && second.unassigned;
     bool newWriteCaptured = first.writeCaptured || second.writeCaptured;
-    List<Type> newTested =
-        newWriteCaptured ? const [] : joinTested(first.tested, second.tested);
+    List<Type> newTested = newWriteCaptured
+        ? const []
+        : joinTested(first.tested, second.tested);
     SsaNode<Type>? newSsaNode = propertySsaNode;
     if (newSsaNode == null && !newWriteCaptured) {
       (newSsaNode, newFlowModel) = SsaNode._join(
@@ -4170,10 +4171,9 @@ class PromotionModel<Type extends Object> {
   static List<Type> _addToPromotedTypes<Type extends Object>(
     List<Type> promotedTypes,
     Type promoted,
-  ) =>
-      promotedTypes.isEmpty
-          ? [promoted]
-          : (promotedTypes.toList()..add(promoted));
+  ) => promotedTypes.isEmpty
+      ? [promoted]
+      : (promotedTypes.toList()..add(promoted));
 
   static List<Type> _addTypeToUniqueList<Type extends Object>(
     List<Type> types,
@@ -4934,11 +4934,10 @@ class _BranchTargetContext<Type extends Object> extends _FlowContext {
   _BranchTargetContext(this._checkpoint);
 
   @override
-  Map<String, Object?> get _debugFields =>
-      super._debugFields
-        ..['breakModel'] = _breakModel
-        ..['continueModel'] = _continueModel
-        ..['checkpoint'] = _checkpoint;
+  Map<String, Object?> get _debugFields => super._debugFields
+    ..['breakModel'] = _breakModel
+    ..['continueModel'] = _continueModel
+    ..['checkpoint'] = _checkpoint;
 
   @override
   String get _debugType => '_BranchTargetContext';
@@ -4966,10 +4965,9 @@ class _ConditionalContext<Type extends Object> extends _BranchContext<Type> {
   _ConditionalContext(super._branchModel);
 
   @override
-  Map<String, Object?> get _debugFields =>
-      super._debugFields
-        ..['thenInfo'] = _thenInfo
-        ..['thenModel'] = _thenModel;
+  Map<String, Object?> get _debugFields => super._debugFields
+    ..['thenInfo'] = _thenInfo
+    ..['thenModel'] = _thenModel;
 
   @override
   String get _debugType => '_ConditionalContext';
@@ -5190,8 +5188,10 @@ class _FlowAnalysisImpl<
   @override
   void assert_end() {
     _AssertContext<Type> context = _stack.removeLast() as _AssertContext<Type>;
-    _current =
-        _join(context._previous, context._conditionInfo!.ifTrue).unsplit();
+    _current = _join(
+      context._previous,
+      context._conditionInfo!.ifTrue,
+    ).unsplit();
   }
 
   @override
@@ -5223,15 +5223,15 @@ class _FlowAnalysisImpl<
       expression,
       value
           ? new ExpressionInfo(
-            type: boolType,
-            ifTrue: _current,
-            ifFalse: unreachable,
-          )
+              type: boolType,
+              ifTrue: _current,
+              ifFalse: unreachable,
+            )
           : new ExpressionInfo(
-            type: boolType,
-            ifTrue: unreachable,
-            ifFalse: _current,
-          ),
+              type: boolType,
+              ifTrue: unreachable,
+              ifFalse: _current,
+            ),
     );
   }
 
@@ -5442,11 +5442,10 @@ class _FlowAnalysisImpl<
   void doStatement_end(Expression condition) {
     _BranchTargetContext<Type> context =
         _stack.removeLast() as _BranchTargetContext<Type>;
-    _current =
-        _join(
-          _expressionEnd(condition, boolType).ifFalse,
-          context._breakModel,
-        ).unsplit();
+    _current = _join(
+      _expressionEnd(condition, boolType).ifFalse,
+      context._breakModel,
+    ).unsplit();
   }
 
   @override
@@ -5546,14 +5545,13 @@ class _FlowAnalysisImpl<
 
   @override
   void for_bodyBegin(Statement? node, Expression? condition) {
-    ExpressionInfo<Type> conditionInfo =
-        condition == null
-            ? new ExpressionInfo(
-              type: boolType,
-              ifTrue: _current,
-              ifFalse: _current.setUnreachable(),
-            )
-            : _expressionEnd(condition, boolType);
+    ExpressionInfo<Type> conditionInfo = condition == null
+        ? new ExpressionInfo(
+            type: boolType,
+            ifTrue: _current,
+            ifFalse: _current.setUnreachable(),
+          )
+        : _expressionEnd(condition, boolType);
     _WhileContext<Type> context = new _WhileContext<Type>(
       _current.reachable.parent!,
       conditionInfo,
@@ -5582,11 +5580,10 @@ class _FlowAnalysisImpl<
     FlowModel<Type>? breakState = context._breakModel;
     FlowModel<Type> falseCondition = context._conditionInfo.ifFalse;
 
-    _current =
-        _join(
-          falseCondition,
-          breakState,
-        ).inheritTested(this, _current).unsplit();
+    _current = _join(
+      falseCondition,
+      breakState,
+    ).inheritTested(this, _current).unsplit();
   }
 
   @override
@@ -6343,14 +6340,12 @@ class _FlowAnalysisImpl<
                 _current.promotionInfo
                     ?.get(this, scrutineeReference.promotionKey)
                     ?.ssaNode)) {
-      ifTrue =
-          ifTrue
-              .tryPromoteForTypeCheck(this, scrutineeReference, knownType)
-              .ifTrue;
-      ifFalse =
-          ifFalse
-              .tryPromoteForTypeCheck(this, scrutineeReference, knownType)
-              .ifFalse;
+      ifTrue = ifTrue
+          .tryPromoteForTypeCheck(this, scrutineeReference, knownType)
+          .ifTrue;
+      ifFalse = ifFalse
+          .tryPromoteForTypeCheck(this, scrutineeReference, knownType)
+          .ifFalse;
     }
     _current = ifTrue;
     if (cannotMatch) {
@@ -6486,10 +6481,9 @@ class _FlowAnalysisImpl<
   }
 
   @override
-  SsaNode<Type>? ssaNodeForTesting(Variable variable) =>
-      _current.promotionInfo
-          ?.get(this, promotionKeyStore.keyForVariable(variable))
-          ?.ssaNode;
+  SsaNode<Type>? ssaNodeForTesting(Variable variable) => _current.promotionInfo
+      ?.get(this, promotionKeyStore.keyForVariable(variable))
+      ?.ssaNode;
 
   @override
   bool switchStatement_afterCase() {
@@ -6789,14 +6783,15 @@ class _FlowAnalysisImpl<
         promotionModel,
       );
     }
-    _Reference<Type> expressionInfo = _variableReference(
-      variableKey,
-      unpromotedType,
-    ).restoreConditionVariableState(
-      promotionModel.ssaNode?.conditionVariableState,
-      this,
-      _current,
-    );
+    _Reference<Type> expressionInfo =
+        _variableReference(
+          variableKey,
+          unpromotedType,
+        ).restoreConditionVariableState(
+          promotionModel.ssaNode?.conditionVariableState,
+          this,
+          _current,
+        );
     _storeExpressionReference(expression, expressionInfo);
     _storeExpressionInfo(expression, expressionInfo);
     return promotionModel.promotedTypes.lastOrNull;
@@ -7045,21 +7040,20 @@ class _FlowAnalysisImpl<
       // node can't be `null`.
       v1!;
       // - Otherwise, `p4 = rebasePromotedTypes(p1, p3)`.
-      p4 =
-          typeAnalyzerOptions.soundFlowAnalysisEnabled
-              ? PromotionModel.rebasePromotedTypes(
-                basePromotions: p1,
-                newPromotions: p3,
-                helper: this,
-              )
-              :
-              // (UNSPECIFIED: reproduce old buggy behavior prior to the fix for
-              // https://github.com/dart-lang/language/issues/4382.)
-              PromotionModel.rebasePromotedTypes(
-                basePromotions: p3,
-                newPromotions: p1,
-                helper: this,
-              );
+      p4 = typeAnalyzerOptions.soundFlowAnalysisEnabled
+          ? PromotionModel.rebasePromotedTypes(
+              basePromotions: p1,
+              newPromotions: p3,
+              helper: this,
+            )
+          :
+            // (UNSPECIFIED: reproduce old buggy behavior prior to the fix for
+            // https://github.com/dart-lang/language/issues/4382.)
+            PromotionModel.rebasePromotedTypes(
+              basePromotions: p3,
+              newPromotions: p1,
+              helper: this,
+            );
       // (UNSPECIFIED: and the SSA node after the `try-finally` statement is the
       // SSA node after the `try` block.)
       v4 = v1;
@@ -7261,8 +7255,8 @@ class _FlowAnalysisImpl<
       if (propertyMember != null) {
         PropertyNonPromotabilityReason? whyNotPromotable =
             reference.propertyName.startsWith('_')
-                ? operations.whyPropertyIsNotPromotable(propertyMember)
-                : PropertyNonPromotabilityReason.isNotPrivate;
+            ? operations.whyPropertyIsNotPromotable(propertyMember)
+            : PropertyNonPromotabilityReason.isNotPrivate;
         _PropertySsaNode<Type>? ssaNode =
             (reference.ssaNode as _PropertySsaNode<Type>).previousSsaNode;
         List<List<Type>>? allPreviouslyPromotedTypes;
@@ -7284,21 +7278,20 @@ class _FlowAnalysisImpl<
             for (List<Type> previouslyPromotedTypes
                 in allPreviouslyPromotedTypes!) {
               for (Type type in previouslyPromotedTypes) {
-                result[type] =
-                    whyNotPromotable == null
-                        ? new PropertyNotPromotedForNonInherentReason(
-                          reference.propertyName,
-                          propertyMember,
-                          fieldPromotionEnabled:
-                              typeAnalyzerOptions.fieldPromotionEnabled,
-                        )
-                        : new PropertyNotPromotedForInherentReason(
-                          reference.propertyName,
-                          propertyMember,
-                          whyNotPromotable,
-                          fieldPromotionEnabled:
-                              typeAnalyzerOptions.fieldPromotionEnabled,
-                        );
+                result[type] = whyNotPromotable == null
+                    ? new PropertyNotPromotedForNonInherentReason(
+                        reference.propertyName,
+                        propertyMember,
+                        fieldPromotionEnabled:
+                            typeAnalyzerOptions.fieldPromotionEnabled,
+                      )
+                    : new PropertyNotPromotedForInherentReason(
+                        reference.propertyName,
+                        propertyMember,
+                        whyNotPromotable,
+                        fieldPromotionEnabled:
+                            typeAnalyzerOptions.fieldPromotionEnabled,
+                      );
               }
             }
             return result;
@@ -7511,8 +7504,8 @@ class _FlowAnalysisImpl<
     SsaNode<Type> newSsaNode = new SsaNode<Type>(
       conditionVariableState:
           expressionInfo != null && expressionInfo.isNonTrivial
-              ? expressionInfo
-              : null,
+          ? expressionInfo
+          : null,
     );
     _current = _current.write(
       this,
@@ -7524,14 +7517,13 @@ class _FlowAnalysisImpl<
       unpromotedType: unpromotedType,
     );
     if (isImplicitlyTyped && operations.isTypeParameterType(matchedType)) {
-      _current =
-          _current
-              .tryPromoteForTypeCheck(
-                this,
-                _variableReference(promotionKey, unpromotedType),
-                matchedType,
-              )
-              .ifTrue;
+      _current = _current
+          .tryPromoteForTypeCheck(
+            this,
+            _variableReference(promotionKey, unpromotedType),
+            matchedType,
+          )
+          .ifTrue;
     }
   }
 
@@ -7632,8 +7624,9 @@ class _FlowAnalysisImpl<
     if (typeClassification == TypeClassification.nonNullable) {
       return null;
     } else {
-      FlowModel<Type>? ifNotNull =
-          _current.tryMarkNonNullable(this, matchedValueReference).ifTrue;
+      FlowModel<Type>? ifNotNull = _current
+          .tryMarkNonNullable(this, matchedValueReference)
+          .ifTrue;
       _Reference<Type>? scrutineeReference = _scrutineeReference;
       // If the scrutinee is a variable reference, and the variable hasn't
       // changed since the start of the matching operation, promote it too.
@@ -7650,8 +7643,9 @@ class _FlowAnalysisImpl<
                   _current.promotionInfo
                       ?.get(this, scrutineeReference.promotionKey)
                       ?.ssaNode)) {
-        ifNotNull =
-            ifNotNull.tryMarkNonNullable(this, scrutineeReference).ifTrue;
+        ifNotNull = ifNotNull
+            .tryMarkNonNullable(this, scrutineeReference)
+            .ifTrue;
       }
       if (typeClassification == TypeClassification.nullOrEquivalent) {
         ifNotNull = ifNotNull.setUnreachable();
@@ -7711,8 +7705,9 @@ class _FlowAnalysisImpl<
         previousScrutineeReference: _scrutineeReference,
       ),
     );
-    _Reference<Type>? scrutineeReference =
-        scrutineeInfo is _Reference<Type> ? scrutineeInfo : null;
+    _Reference<Type>? scrutineeReference = scrutineeInfo is _Reference<Type>
+        ? scrutineeInfo
+        : null;
     _scrutineeReference = scrutineeReference;
     SsaNode<Type>? scrutineeSsaNode;
     if (allowScrutineePromotion && scrutineeReference != null) {
@@ -7795,8 +7790,8 @@ class _FlowAnalysisImpl<
     SsaNode<Type> newSsaNode = new SsaNode<Type>(
       conditionVariableState:
           expressionInfo != null && expressionInfo.isNonTrivial
-              ? expressionInfo
-              : null,
+          ? expressionInfo
+          : null,
     );
     _current = _current.write(
       this,
@@ -7987,10 +7982,9 @@ class _OrPatternContext<Type extends Object> extends _PatternContext<Type> {
   _OrPatternContext(super._matchedValueInfo, this._previousUnmatched);
 
   @override
-  Map<String, Object?> get _debugFields =>
-      super._debugFields
-        ..['previousUnmatched'] = _previousUnmatched
-        ..['lhsMatched'] = _lhsMatched;
+  Map<String, Object?> get _debugFields => super._debugFields
+    ..['previousUnmatched'] = _previousUnmatched
+    ..['lhsMatched'] = _lhsMatched;
 
   @override
   String get _debugType => '_OrPatternContext';
@@ -8248,10 +8242,9 @@ class _SwitchStatementContext<Type extends Object>
   ) : _unmatched = _previous;
 
   @override
-  Map<String, Object?> get _debugFields =>
-      super._debugFields
-        ..['matchedValueInfo'] = _matchedValueInfo
-        ..['unmatched'] = _unmatched;
+  Map<String, Object?> get _debugFields => super._debugFields
+    ..['matchedValueInfo'] = _matchedValueInfo
+    ..['unmatched'] = _unmatched;
 
   @override
   String get _debugType => '_SwitchStatementContext';
@@ -8287,10 +8280,9 @@ class _TryContext<Type extends Object> extends _SimpleContext<Type> {
   _TryContext(super.previous);
 
   @override
-  Map<String, Object?> get _debugFields =>
-      super._debugFields
-        ..['beforeCatch'] = _beforeCatch
-        ..['afterBodyAndCatches'] = '_afterBodyAndCatches';
+  Map<String, Object?> get _debugFields => super._debugFields
+    ..['beforeCatch'] = _beforeCatch
+    ..['afterBodyAndCatches'] = '_afterBodyAndCatches';
 
   @override
   String get _debugType => '_TryContext';
@@ -8311,11 +8303,10 @@ class _TryFinallyContext<Type extends Object> extends _FlowContext {
   _TryFinallyContext(this._beforeTry);
 
   @override
-  Map<String, Object?> get _debugFields =>
-      super._debugFields
-        ..['beforeTry'] = _beforeTry
-        ..['afterTry'] = _afterTry
-        ..['beforeFinally'] = _beforeFinally;
+  Map<String, Object?> get _debugFields => super._debugFields
+    ..['beforeTry'] = _beforeTry
+    ..['afterTry'] = _afterTry
+    ..['beforeFinally'] = _beforeFinally;
 
   @override
   String get _debugType => '_TryFinallyContext';

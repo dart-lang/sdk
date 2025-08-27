@@ -17,14 +17,14 @@ var v_minus = (new /*@type=A*/ A()
 var v_multiply = (new /*@type=A*/ A()
     . /*@target=A.f*/ /*@target=A.f*/ f /*@target=num.**/ *= 1);
 var v_prefix_pp = (/*@target=num.+*/ ++new /*@type=A*/ A()
-    . /*@target=A.f*/ /*@target=A.f*/ f);
+    .   /*@target=A.f*//*@target=A.f*/f);
 var v_prefix_mm = (/*@target=num.-*/ --new /*@type=A*/ A()
-    . /*@target=A.f*/ /*@target=A.f*/ f);
+    .   /*@target=A.f*//*@target=A.f*/f);
 var v_postfix_pp = (new /*@type=A*/ A()
-    . /*@type=int*/ /*@target=A.f*/ /*@target=A.f*/
-    /*@type=int*/ f /*@target=num.+*/ ++);
+    .   
+     /*@target=A.f*//*@target=A.f*/f /*@target=num.+*/ ++);
 var v_postfix_mm = (new /*@type=A*/ A()
-    . /*@type=int*/ /*@target=A.f*/ /*@target=A.f*/
-    /*@type=int*/ f /*@target=num.-*/ --);
+    .   
+     /*@target=A.f*//*@target=A.f*/f /*@target=num.-*/ --);
 
 main() {}

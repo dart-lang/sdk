@@ -217,7 +217,7 @@ library from "org-dartlang-test:///main.dart" as main {
       return result;
     }
     method /* from org-dartlang-sdk:///sdk/lib/collection/list.dart */ add(covariant-by-class dart.core::int element) → void {
-      this.{dart.core::List::[]=}(let final dart.core::int #t2 = this.{dart.core::List::length}{dart.core::int} in let final dart.core::int #t3 = this.{dart.core::List::length} = #t2.{dart.core::num::+}(1){(dart.core::num) → dart.core::int} in #t2, element){(dart.core::int, dart.core::int) → void};
+      this.{dart.core::List::[]=}(let final dart.core::int #t2 = this.{dart.core::List::length}{dart.core::int} in let final void #t3 = this.{dart.core::List::length} = #t2.{dart.core::num::+}(1){(dart.core::num) → dart.core::int} in #t2, element){(dart.core::int, dart.core::int) → void};
     }
     method /* from org-dartlang-sdk:///sdk/lib/collection/list.dart */ addAll(covariant-by-class dart.core::Iterable<dart.core::int> iterable) → void {
       dart.core::int i = this.{dart.core::List::length}{dart.core::int};

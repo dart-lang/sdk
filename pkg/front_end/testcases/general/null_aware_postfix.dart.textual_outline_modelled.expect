@@ -9,4 +9,6 @@ class B {
 
 class C extends B {}
 
+expect(expected, actual) {}
+
 main() {}

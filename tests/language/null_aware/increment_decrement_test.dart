@@ -104,7 +104,7 @@ main() {
     // [analyzer] COMPILE_TIME_ERROR.INVALID_ASSIGNMENT
     //      ^^
     // [analyzer] STATIC_WARNING.INVALID_NULL_AWARE_OPERATOR
-    //               ^
+    //        ^
     // [cfe] A value of type 'E' can't be assigned to a variable of type 'F?'.
     Expect.identical(f, g);
   }
@@ -116,7 +116,7 @@ main() {
     // [analyzer] COMPILE_TIME_ERROR.INVALID_ASSIGNMENT
     //          ^^
     // [analyzer] STATIC_WARNING.INVALID_NULL_AWARE_OPERATOR
-    //                   ^
+    //            ^
     // [cfe] A value of type 'E' can't be assigned to a variable of type 'F?'.
     Expect.identical(f, g);
   }
@@ -185,7 +185,7 @@ main() {
     // [analyzer] COMPILE_TIME_ERROR.INVALID_ASSIGNMENT
     //      ^^
     // [analyzer] STATIC_WARNING.INVALID_NULL_AWARE_OPERATOR
-    //               ^
+    //        ^
     // [cfe] A value of type 'E' can't be assigned to a variable of type 'F?'.
     Expect.identical(f, g);
   }
@@ -197,7 +197,7 @@ main() {
     // [analyzer] COMPILE_TIME_ERROR.INVALID_ASSIGNMENT
     //          ^^
     // [analyzer] STATIC_WARNING.INVALID_NULL_AWARE_OPERATOR
-    //                   ^
+    //            ^
     // [cfe] A value of type 'E' can't be assigned to a variable of type 'F?'.
     Expect.identical(f, g);
   }
