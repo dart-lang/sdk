@@ -5,75 +5,9 @@
 import 'package:kernel/ast.dart';
 import 'package:wasm_builder/wasm_builder.dart';
 
+import 'dynamic_module_kernel_metadata.dart'
+    show DynamicModuleConstants, MainModuleMetadata;
 import 'util.dart';
-
-class DynamicModuleExportRepository
-    extends MetadataRepository<DynamicModuleExports> {
-  static const repositoryTag = 'wasm.dynamic-modules.exports';
-
-  @override
-  final String tag = repositoryTag;
-
-  @override
-  final Map<TreeNode, DynamicModuleExports> mapping = {};
-
-  @override
-  DynamicModuleExports readFromBinary(_, BinarySource source) {
-    return DynamicModuleExports._readFromBinary(source);
-  }
-
-  @override
-  void writeToBinary(DynamicModuleExports exports, Node node, BinarySink sink) {
-    exports._writeToBinary(sink);
-  }
-}
-
-class DynamicModuleExports {
-  final Map<int, String> _callableNames = {};
-  final Map<int, String> _constantNames = {};
-  final Map<int, String> _constantInitializerNames = {};
-
-  DynamicModuleExports();
-
-  factory DynamicModuleExports._readFromBinary(BinarySource source) {
-    void readMap(Map<int, String> map) {
-      final length = source.readUInt30();
-      for (int i = 0; i < length; i++) {
-        final id = source.readUInt30();
-        final name = source.readStringReference();
-        map[id] = name;
-      }
-    }
-
-    final exports = DynamicModuleExports();
-    readMap(exports._callableNames);
-    readMap(exports._constantNames);
-    readMap(exports._constantInitializerNames);
-    return exports;
-  }
-
-  void _writeToBinary(BinarySink sink) {
-    void writeMap(Map<int, String> map) {
-      sink.writeUInt30(map.length);
-      map.forEach((id, name) {
-        sink.writeUInt30(id);
-        sink.writeStringReference(name);
-      });
-    }
-
-    writeMap(_callableNames);
-    writeMap(_constantNames);
-    writeMap(_constantInitializerNames);
-  }
-
-  String? getCallableName(int callableReferenceId) =>
-      _callableNames[callableReferenceId];
-
-  String? getConstantName(int constantId) => _constantNames[constantId];
-
-  String? getConstantInitializerName(int constantId) =>
-      _constantInitializerNames[constantId];
-}
 
 /// A generator for export names (when minification is enabled).
 ///
@@ -107,39 +41,67 @@ class ExportNamer {
 
 /// Manages exporting entities in a minification-aware way.
 ///
-/// The [Exporter] stores associations between entities exported from a dynamic
-/// main module and their export names in [dynamicModuleExports] so that dynamic
-/// submodules can import these entities with those names.
+/// The [Exporter] records mappings between entities exported from a dynamic
+/// main module and their export names so that dynamic submodule compilation can
+/// discover the right names to import those entities.
+/// - The callable reference mapping is stored in [_mainModuleMetadata], since
+///   the [DataSerializer] is capable of correctly serializing [Reference]s (but
+///   not [Constant]s).
+/// - The constant (and constant initializer) mapping is stored in
+///   [_dynamicModuleConstants], which is serialized via a
+///   [DynamicModuleConstantRepository], since the kernel [BinarySink] can
+///   handle [Constant]s (but not [Reference]s that come from the TFA'd
+///   [Component] but must be written to metadata on the un-TFA'd [Component]).
 ///
-/// The `export___` methods add relevant associations to [dynamicModuleExports]
-/// and add the given exportable to the Wasm exports of the specified module
-/// under the computed export name.
+/// The `exportDynamic___` methods add relevant associations to the above
+/// mappings and add the given exportable to the Wasm exports of the specified
+/// module under the computed export name.
 class Exporter {
   final ExportNamer _namer;
+  final MainModuleMetadata _mainModuleMetadata;
+  final DynamicModuleConstants? _dynamicModuleConstants;
 
-  Exporter(this._namer);
+  Exporter(this._namer, this._mainModuleMetadata, this._dynamicModuleConstants);
 
-  final DynamicModuleExports dynamicModuleExports = DynamicModuleExports();
+  int get _nextDynamicCallableId =>
+      _mainModuleMetadata.callableReferenceNames.length;
+  int get _nextDynamicConstantId =>
+      _dynamicModuleConstants!.constantNames.length;
 
-  void exportCallable(ModuleBuilder module, String name,
-      FunctionBuilder function, int callableReferenceId) {
-    dynamicModuleExports._callableNames[callableReferenceId] =
-        _export(module, name, function);
+  static String _dynamicCallableName(int id) => '#dynamicCallable$id';
+  static String _dynamicConstantName(int id) => '#constant$id';
+  static String _dynamicConstantInitializerName(int id) =>
+      '#constantInitializer$id';
+
+  void exportDynamicCallable(ModuleBuilder module, BaseFunction function,
+      Reference callableReference) {
+    _mainModuleMetadata.callableReferenceNames[callableReference] =
+        export(module, _dynamicCallableName(_nextDynamicCallableId), function);
   }
 
-  void exportConstant(ModuleBuilder module, String name, GlobalBuilder constant,
-      int constantId) {
-    dynamicModuleExports._constantNames[constantId] =
-        _export(module, name, constant);
+  void exportDynamicConstant(
+      ModuleBuilder module, Constant constant, Global global,
+      {BaseFunction? initializer}) {
+    final id = _nextDynamicConstantId;
+    _exportConstant(module, constant, global, id);
+    if (initializer != null) {
+      _exportConstantInitializer(module, constant, initializer, id);
+    }
   }
 
-  void exportConstantInitializer(ModuleBuilder module, String name,
-      FunctionBuilder initializer, int constantId) {
-    dynamicModuleExports._constantInitializerNames[constantId] =
-        _export(module, name, initializer);
+  void _exportConstant(
+      ModuleBuilder module, Constant constant, Global global, int id) {
+    _dynamicModuleConstants!.constantNames[constant] =
+        export(module, _dynamicConstantName(id), global);
   }
 
-  String _export(ModuleBuilder module, String name, Exportable exportable) {
+  void _exportConstantInitializer(ModuleBuilder module, Constant constant,
+      BaseFunction initializer, int id) {
+    _dynamicModuleConstants!.constantInitializerNames[constant] =
+        export(module, _dynamicConstantInitializerName(id), initializer);
+  }
+
+  String export(ModuleBuilder module, String name, Exportable exportable) {
     final exportName = _namer._getExportName(name);
     module.exports.export(exportName, exportable);
     return exportName;

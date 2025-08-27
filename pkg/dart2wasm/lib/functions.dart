@@ -161,16 +161,10 @@ class FunctionCollector {
       // Export the function from the main module if it is callable from
       // dynamic submodules.
       if (translator.dynamicModuleSupportEnabled &&
-          !translator.isDynamicSubmodule) {
-        final callableReferenceId =
-            translator.dynamicModuleInfo?.metadata.callableReferenceIds[target];
-        if (callableReferenceId != null) {
-          translator.exporter.exportCallable(
-              translator.mainModule,
-              _generateDynamicSubmoduleCallableName(callableReferenceId),
-              function,
-              callableReferenceId);
-        }
+          !translator.isDynamicSubmodule &&
+          member.isDynamicSubmoduleCallable(translator.coreTypes)) {
+        translator.exporter
+            .exportDynamicCallable(translator.mainModule, function, target);
       }
 
       translator.compilationQueue.add(AstCompilationTask(function,
@@ -179,25 +173,19 @@ class FunctionCollector {
     });
   }
 
-  String _generateDynamicSubmoduleCallableName(int key) =>
-      '#dynamicCallable$key';
-
   w.BaseFunction _importFunctionToDynamicSubmodule(Reference target) {
     assert(translator.isDynamicSubmodule);
 
     // Export the function from the main module if it is callable from
     // dynamic submodules.
-    final dynamicSubmoduleCallableReferenceId =
-        translator.dynamicModuleInfo?.metadata.callableReferenceIds[target];
-    if (dynamicSubmoduleCallableReferenceId == null) {
+    if (!target.asMember.isDynamicSubmoduleCallable(translator.coreTypes)) {
       throw StateError(
           'Cannot invoke ${target.asMember} since it is not labeled as '
           'callable in the dynamic interface.');
     }
     return translator.dynamicSubmodule.functions.import(
         translator.mainModule.moduleName,
-        translator.dynamicModuleExports!
-            .getCallableName(dynamicSubmoduleCallableReferenceId)!,
+        translator.dynamicModuleInfo!.metadata.callableReferenceNames[target]!,
         translator.signatureForMainModule(target),
         getFunctionName(target));
   }

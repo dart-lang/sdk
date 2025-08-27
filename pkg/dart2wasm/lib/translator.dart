@@ -181,7 +181,7 @@ class Translator with KernelNodes {
   late final CompilationQueue compilationQueue;
   late final FunctionCollector functions;
 
-  late final DynamicModuleExports? dynamicModuleExports;
+  late final DynamicModuleConstants? dynamicModuleConstants;
 
   // Information about the program used and updated by the various phases.
 
@@ -481,12 +481,13 @@ class Translator with KernelNodes {
     types = Types(this);
     exceptionTag = ExceptionTag(this);
 
-    exporter = Exporter(exportNamer);
+    dynamicModuleConstants =
+        (component.metadata[DynamicModuleConstantRepository.repositoryTag]
+                as DynamicModuleConstantRepository?)
+            ?.mapping[component] ??= DynamicModuleConstants();
 
-    dynamicModuleExports =
-        (component.metadata[DynamicModuleExportRepository.repositoryTag]
-                as DynamicModuleExportRepository?)
-            ?.mapping[component] ??= exporter.dynamicModuleExports;
+    exporter =
+        Exporter(exportNamer, mainModuleMetadata, dynamicModuleConstants);
   }
 
   void _initLoadLibraryImportMap() {

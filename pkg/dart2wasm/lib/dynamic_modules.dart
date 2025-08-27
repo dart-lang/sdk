@@ -22,7 +22,6 @@ import 'compiler_options.dart';
 import 'constants.dart' show maxArrayNewFixedLength;
 import 'dispatch_table.dart';
 import 'dynamic_module_kernel_metadata.dart';
-import 'exports.dart';
 import 'intrinsics.dart' show MemberIntrinsic;
 import 'kernel_nodes.dart';
 import 'modules.dart';
@@ -130,7 +129,6 @@ class DynamicMainModuleStrategy extends ModuleStrategy with KernelNodes {
 
     component.addMetadataRepository(DynamicModuleConstantRepository());
     component.addMetadataRepository(DynamicModuleGlobalIdRepository());
-    component.addMetadataRepository(DynamicModuleExportRepository());
   }
 
   @override
@@ -520,8 +518,6 @@ class DynamicModuleInfo {
     final classId =
         (translator.classInfo[cls]!.classId as AbsoluteClassId).value;
 
-    metadata.callableReferenceIds[target] ??=
-        metadata.callableReferenceIds.length;
     // The class must be allocated in order for the target to be live.
     translator.functions.recordClassTargetUse(classId, target);
   }
@@ -537,8 +533,6 @@ class DynamicModuleInfo {
 
     // Generate static members immediately since they are unconditionally
     // callable.
-    metadata.callableReferenceIds[target] ??=
-        metadata.callableReferenceIds.length;
     translator.functions.getFunction(target);
   }
 

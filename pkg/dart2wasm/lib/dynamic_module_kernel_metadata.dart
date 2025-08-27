@@ -27,7 +27,6 @@ import 'class_info.dart';
 import 'compiler_options.dart';
 import 'dispatch_table.dart';
 import 'dynamic_modules.dart';
-import 'exports.dart';
 import 'js/method_collector.dart' show JSMethods;
 import 'serialization.dart';
 import 'translator.dart';
@@ -62,34 +61,57 @@ class DynamicModuleGlobalIdRepository extends MetadataRepository<int> {
 
 /// Repository for kernel constants.
 class DynamicModuleConstantRepository
-    extends MetadataRepository<Map<Constant, int>> {
+    extends MetadataRepository<DynamicModuleConstants> {
   static const repositoryTag = 'wasm.dynamic-modules.constants';
 
   @override
   final String tag = repositoryTag;
 
   @override
-  final Map<TreeNode, Map<Constant, int>> mapping = {};
+  final Map<TreeNode, DynamicModuleConstants> mapping = {};
 
   @override
-  Map<Constant, int> readFromBinary(Node node, BinarySource source) {
-    final length = source.readUInt30();
-    final Map<Constant, int> constants = {};
-    for (int i = 0; i < length; i++) {
-      final constant = source.readConstantReference();
-      final id = source.readUInt30();
-      constants[constant] = id;
+  DynamicModuleConstants readFromBinary(_, BinarySource source) =>
+      DynamicModuleConstants._readFromBinary(source);
+
+  @override
+  void writeToBinary(DynamicModuleConstants data, _, BinarySink sink) =>
+      data._writeToBinary(sink);
+}
+
+class DynamicModuleConstants {
+  final Map<Constant, String> constantNames = {};
+  final Map<Constant, String> constantInitializerNames = {};
+
+  DynamicModuleConstants();
+
+  factory DynamicModuleConstants._readFromBinary(BinarySource source) {
+    void readMap(Map<Constant, String> map) {
+      final length = source.readUInt30();
+      for (int i = 0; i < length; i++) {
+        final constant = source.readConstantReference();
+        final name = source.readStringReference();
+        map[constant] = name;
+      }
     }
-    return constants;
+
+    final exports = DynamicModuleConstants();
+    readMap(exports.constantNames);
+    readMap(exports.constantInitializerNames);
+    return exports;
   }
 
-  @override
-  void writeToBinary(Map<Constant, int> constants, Node node, BinarySink sink) {
-    sink.writeUInt30(constants.length);
-    constants.forEach((constant, id) {
-      sink.writeConstantReference(constant);
-      sink.writeUInt30(id);
-    });
+  void _writeToBinary(BinarySink sink) {
+    void writeMap(Map<Constant, String> map) {
+      sink.writeUInt30(map.length);
+      map.forEach((key, name) {
+        sink.writeConstantReference(key);
+        sink.writeStringReference(name);
+      });
+    }
+
+    writeMap(constantNames);
+    writeMap(constantInitializerNames);
   }
 }
 
@@ -215,9 +237,8 @@ class MainModuleMetadata {
   /// Class to metadata about the class.
   final Map<Class, ClassMetadata> classMetadata;
 
-  /// Maps dynamic callable references to a unique ID that is used to generate
-  /// the export name for the reference.
-  final Map<Reference, int> callableReferenceIds;
+  /// Maps dynamic callable references to export names.
+  final Map<Reference, String> callableReferenceNames;
 
   late final DispatchTable dispatchTable;
 
@@ -239,7 +260,7 @@ class MainModuleMetadata {
 
   MainModuleMetadata._(
       this.classMetadata,
-      this.callableReferenceIds,
+      this.callableReferenceNames,
       this.dispatchTable,
       this.invokedOverridableReferences,
       this.keyInvocationToIndex,
@@ -250,7 +271,7 @@ class MainModuleMetadata {
   MainModuleMetadata.empty(
       this.mainModuleTranslatorOptions, this.mainModuleEnvironment)
       : classMetadata = {},
-        callableReferenceIds = {},
+        callableReferenceNames = {},
         invokedOverridableReferences = {},
         keyInvocationToIndex = {},
         dfsOrderClassIds = [];
@@ -296,7 +317,8 @@ class MainModuleMetadata {
 
     sink.writeMap(classMetadata, sink.writeClass, (m) => m.serialize(sink));
 
-    sink.writeMap(callableReferenceIds, sink.writeReference, sink.writeInt);
+    sink.writeMap(
+        callableReferenceNames, sink.writeReference, sink.writeString);
 
     dispatchTable.serialize(sink);
 
@@ -314,8 +336,8 @@ class MainModuleMetadata {
     final classMetadata = source.readMap(
         source.readClass, () => ClassMetadata.deserialize(source));
 
-    final callableReferenceIds =
-        source.readMap(source.readReference, source.readInt);
+    final callableReferenceNames =
+        source.readMap(source.readReference, source.readString);
 
     final dispatchTable = DispatchTable.deserialize(source);
 
@@ -331,7 +353,7 @@ class MainModuleMetadata {
 
     final metadata = MainModuleMetadata._(
         classMetadata,
-        callableReferenceIds,
+        callableReferenceNames,
         dispatchTable,
         invokedReferences,
         keyInvocationToIndex,
@@ -475,7 +497,6 @@ Future<(Component, JSMethods)> generateDynamicSubmoduleComponent(
   final newComponent = Component()
     ..addMetadataRepository(DynamicModuleGlobalIdRepository())
     ..addMetadataRepository(DynamicModuleConstantRepository())
-    ..addMetadataRepository(DynamicModuleExportRepository())
     ..addMetadataRepository(ProcedureAttributesMetadataRepository())
     ..addMetadataRepository(TableSelectorMetadataRepository())
     ..addMetadataRepository(DirectCallMetadataRepository())
