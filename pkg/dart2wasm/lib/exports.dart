@@ -56,6 +56,8 @@ class ExportNamer {
 /// The `exportDynamic___` methods add relevant associations to the above
 /// mappings and add the given exportable to the Wasm exports of the specified
 /// module under the computed export name.
+///
+/// For deferred imports, the [export] method is sufficient.
 class Exporter {
   final ExportNamer _namer;
   final MainModuleMetadata _mainModuleMetadata;

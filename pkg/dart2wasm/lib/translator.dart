@@ -2660,7 +2660,8 @@ abstract class _WasmImporter<T extends w.Exportable> {
     if (key.enclosingModule == module) return key;
 
     final innerMap = _map.putIfAbsent(key, () {
-      key.enclosingModule.exports.export('$_exportPrefix${_map.length}', key);
+      _translator.exporter
+          .export(key.enclosingModule, '$_exportPrefix${_map.length}', key);
       return {};
     });
     return innerMap.putIfAbsent(module, () {
