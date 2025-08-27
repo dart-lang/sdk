@@ -1,6 +1,8 @@
 ## 0.2.3-dev
 
 - Require version `8.2.0` of the `analyzer` package.
+- Add support for automatic re-analysis of files changed on-disk (as opposed to
+  file contents changed in the IDE, which is already supported).
 
 ## 0.2.2
 
