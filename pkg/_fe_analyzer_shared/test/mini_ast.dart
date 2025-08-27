@@ -3144,21 +3144,6 @@ class MiniAstOperations
   }
 
   @override
-  List<SharedType> chooseTypes(
-    List<SharedTypeParameter> typeParametersToInfer,
-    Map<SharedTypeParameter, MergedTypeConstraint<Var, Type, String, Node>>
-    constraints,
-    List<SharedType>? previouslyInferredTypes, {
-    required bool preliminary,
-    required bool inferenceUsingBoundsIsEnabled,
-    required TypeConstraintGenerationDataForTesting<Var, Node>? dataForTesting,
-    required Node? treeNodeForTesting,
-  }) {
-    // TODO(paulberry): Implement chooseTypes.
-    throw UnimplementedError();
-  }
-
-  @override
   TypeClassification classifyType(SharedTypeView type) {
     if (isSubtypeOfInternal(type.unwrapTypeView<Type>(), Type('Object'))) {
       return TypeClassification.nonNullable;
