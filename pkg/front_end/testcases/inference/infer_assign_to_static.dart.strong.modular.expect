@@ -45,7 +45,7 @@ static method test_topLevelVariable() → void {
   self::B v4 = self::topLevelVariable = self::topLevelVariable.{self::B::*}(self::f<self::B>()){(self::B) → self::B};
   self::C v5 = self::topLevelVariable = self::topLevelVariable.{self::B::&}(self::f<self::A>()){(self::A) → self::C};
   self::B v6 = self::topLevelVariable = self::topLevelVariable.{self::B::-}(1){(core::int) → self::B};
-  self::B v7 = let final self::B #t2 = self::topLevelVariable in let final self::B #t3 = self::topLevelVariable = #t2.{self::B::-}(1){(core::int) → self::B} in #t2;
+  self::B v7 = let final self::B #t2 = self::topLevelVariable in let final void #t3 = self::topLevelVariable = #t2.{self::B::-}(1){(core::int) → self::B} in #t2;
 }
 static method test_staticVariable() → void {
   self::B::staticVariable = self::f<self::B>();
@@ -61,6 +61,6 @@ static method test_staticVariable() → void {
   self::B v4 = self::B::staticVariable = self::B::staticVariable.{self::B::*}(self::f<self::B>()){(self::B) → self::B};
   self::C v5 = self::B::staticVariable = self::B::staticVariable.{self::B::&}(self::f<self::A>()){(self::A) → self::C};
   self::B v6 = self::B::staticVariable = self::B::staticVariable.{self::B::-}(1){(core::int) → self::B};
-  self::B v7 = let final self::B #t5 = self::B::staticVariable in let final self::B #t6 = self::B::staticVariable = #t5.{self::B::-}(1){(core::int) → self::B} in #t5;
+  self::B v7 = let final self::B #t5 = self::B::staticVariable in let final void #t6 = self::B::staticVariable = #t5.{self::B::-}(1){(core::int) → self::B} in #t5;
 }
 static method main() → dynamic {}

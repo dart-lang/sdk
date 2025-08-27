@@ -34,9 +34,9 @@ class Test {
     t?. /*@target=Test.member*/ /*@target=Test.member*/ member /*@target=B.&*/ &= /*@typeArgs=A*/ f();
 
     /*@target=B.-*/ --t
-        ?. /*@target=Test.member*/ /*@target=Test.member*/ member;
+        ?.   /*@target=Test.member*//*@target=Test.member*/member;
 
-    t?. /*@target=Test.member*/ /*@target=Test.member*/ member /*@target=B.-*/ --;
+    t?.   /*@target=Test.member*//*@target=Test.member*/member /*@target=B.-*/ --;
 
     var /*@type=B?*/ v1 =
           t?. /*@target=Test.member*/
@@ -55,10 +55,10 @@ class Test {
         ?. /*@target=Test.member*/ /*@target=Test.member*/ member /*@target=B.&*/ &= /*@typeArgs=A*/ f();
 
     var /*@type=B?*/ v6 = /*@target=B.-*/ --t
-        ?. /*@target=Test.member*/ /*@target=Test.member*/ member;
+        ?.   /*@target=Test.member*//*@target=Test.member*/member;
 
     var /*@type=B?*/ v7 = t
-        ?. /*@target=Test.member*/ /*@target=Test.member*/ member /*@target=B.-*/ --;
+        ?.   /*@target=Test.member*//*@target=Test.member*/member /*@target=B.-*/ --;
   }
 }
 

@@ -51,7 +51,7 @@ void test_topLevelVariable() {
 
   var /*@type=B*/ v6 = /*@target=B.-*/ --topLevelVariable;
 
-  var /*@type=B*/ v7 = /*@type=B*/ topLevelVariable /*@type=B*/ /*@target=B.-*/ --;
+  var /*@type=B*/ v7 =  topLevelVariable  /*@target=B.-*/ --;
 }
 
 void test_staticVariable() {
@@ -82,7 +82,7 @@ void test_staticVariable() {
   var /*@type=B*/ v6 = /*@target=B.-*/ --B.staticVariable;
 
   var /*@type=B*/ v7 =
-      B. /*@type=B*/ staticVariable /*@type=B*/ /*@target=B.-*/ --;
+      B.  staticVariable  /*@target=B.-*/ --;
 }
 
 main() {}

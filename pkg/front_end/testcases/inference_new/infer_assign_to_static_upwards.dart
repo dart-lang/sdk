@@ -25,7 +25,7 @@ void test1() {
 
   var /*@type=int*/ v10 = /*@target=num.+*/ ++topLevelInt;
 
-  var /*@type=int*/ v11 = /*@type=int*/ topLevelInt /*@type=int*/ /*@target=num.+*/ ++;
+  var /*@type=int*/ v11 =  topLevelInt  /*@target=num.+*/ ++;
 }
 
 void test2() {
@@ -49,7 +49,7 @@ void test2() {
 
   var /*@type=num*/ v10 = /*@target=num.+*/ ++topLevelNum;
 
-  var /*@type=num*/ v11 = /*@type=num*/ topLevelNum /*@type=num*/ /*@target=num.+*/ ++;
+  var /*@type=num*/ v11 =  topLevelNum  /*@target=num.+*/ ++;
 }
 
 void test3() {
@@ -65,7 +65,7 @@ void test3() {
 
   var /*@type=double*/ v10 = /*@target=double.+*/ ++topLevelDouble;
 
-  var /*@type=double*/ v11 = /*@type=double*/ topLevelDouble /*@type=double*/ /*@target=double.+*/ ++;
+  var /*@type=double*/ v11 =  topLevelDouble  /*@target=double.+*/ ++;
 }
 
 main() {}

@@ -19,3 +19,5 @@ class C extends self::B {
 }
 static method main() → dynamic
   ;
+static method expect(dynamic expected, dynamic actual) → dynamic
+  ;

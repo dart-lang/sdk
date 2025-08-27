@@ -1,0 +1,17 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+class Super extends core::Object {
+  final field core::int? _field;
+  constructor •(core::int? _field) → self::Super
+    ;
+  set _field(wildcard dynamic _#wc0#formal) → void
+    ;
+}
+class Sub extends self::Super {
+  constructor •(core::int? _field) → self::Sub
+    ;
+  method method() → void
+    ;
+}

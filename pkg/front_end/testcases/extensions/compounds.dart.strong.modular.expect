@@ -212,8 +212,8 @@ static method testProperties() → dynamic {
   self::expect(n0, let final self::Class #t53 = v in #t53.{self::Class::field} = self::NumberExtension|-(#t53.{self::Class::field}{self::Number}, n1));
   self::expect(n1, let final self::Class #t54 = v in #t54.{self::Class::field} = self::NumberExtension|+(#t54.{self::Class::field}{self::Number}, 1));
   self::expect(n0, let final self::Class #t55 = v in #t55.{self::Class::field} = self::NumberExtension|-(#t55.{self::Class::field}{self::Number}, 1));
-  self::expect(n0, let final self::Class #t56 = v in let final self::Number #t57 = #t56.{self::Class::field}{self::Number} in let final self::Number #t58 = #t56.{self::Class::field} = self::NumberExtension|+(#t57, 1) in #t57);
-  self::expect(n1, let final self::Class #t59 = v in let final self::Number #t60 = #t59.{self::Class::field}{self::Number} in let final self::Number #t61 = #t59.{self::Class::field} = self::NumberExtension|-(#t60, 1) in #t60);
+  self::expect(n0, let final self::Class #t56 = v in let final self::Number #t57 = #t56.{self::Class::field}{self::Number} in let final void #t58 = #t56.{self::Class::field} = self::NumberExtension|+(#t57, 1) in #t57);
+  self::expect(n1, let final self::Class #t59 = v in let final self::Number #t60 = #t59.{self::Class::field}{self::Number} in let final void #t61 = #t59.{self::Class::field} = self::NumberExtension|-(#t60, 1) in #t60);
   self::expect(n0, v.{self::Class::field}{self::Number});
   self::expect(n0, v.{self::Class::field}{self::Number});
   let final self::Class #t62 = v in #t62.{self::Class::field} = self::NumberExtension|+(#t62.{self::Class::field}{self::Number}, n1);
@@ -278,8 +278,8 @@ static method testIntProperties() → dynamic {
   self::expect(n0, let final self::IntClass #t115 = v in #t115.{self::IntClass::field} = #t115.{self::IntClass::field}{core::int}.{core::num::-}(n1){(core::num) → core::int});
   self::expect(n1, let final self::IntClass #t116 = v in #t116.{self::IntClass::field} = #t116.{self::IntClass::field}{core::int}.{core::num::+}(1){(core::num) → core::int});
   self::expect(n0, let final self::IntClass #t117 = v in #t117.{self::IntClass::field} = #t117.{self::IntClass::field}{core::int}.{core::num::-}(1){(core::num) → core::int});
-  self::expect(n0, let final self::IntClass #t118 = v in let final core::int #t119 = #t118.{self::IntClass::field}{core::int} in let final core::int #t120 = #t118.{self::IntClass::field} = #t119.{core::num::+}(1){(core::num) → core::int} in #t119);
-  self::expect(n1, let final self::IntClass #t121 = v in let final core::int #t122 = #t121.{self::IntClass::field}{core::int} in let final core::int #t123 = #t121.{self::IntClass::field} = #t122.{core::num::-}(1){(core::num) → core::int} in #t122);
+  self::expect(n0, let final self::IntClass #t118 = v in let final core::int #t119 = #t118.{self::IntClass::field}{core::int} in let final void #t120 = #t118.{self::IntClass::field} = #t119.{core::num::+}(1){(core::num) → core::int} in #t119);
+  self::expect(n1, let final self::IntClass #t121 = v in let final core::int #t122 = #t121.{self::IntClass::field}{core::int} in let final void #t123 = #t121.{self::IntClass::field} = #t122.{core::num::-}(1){(core::num) → core::int} in #t122);
   self::expect(n0, v.{self::IntClass::field}{core::int});
   self::expect(n0, v.{self::IntClass::field}{core::int});
   let final self::IntClass #t124 = v in #t124.{self::IntClass::field} = #t124.{self::IntClass::field}{core::int}.{core::num::+}(n1){(core::num) → core::int};

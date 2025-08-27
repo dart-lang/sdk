@@ -226,7 +226,7 @@ abstract class _A&Object&ListMixin extends core::Object implements col::ListBase
     return result;
   }
   method /* from org-dartlang-sdk:///sdk/lib/collection/list.dart */ add(covariant-by-class core::int element) → void {
-    this.{core::List::[]=}(let final core::int #t2 = this.{core::List::length}{core::int} in let final core::int #t3 = this.{core::List::length} = #t2.{core::num::+}(1){(core::num) → core::int} in #t2, element){(core::int, core::int) → void};
+    this.{core::List::[]=}(let final core::int #t2 = this.{core::List::length}{core::int} in let final void #t3 = this.{core::List::length} = #t2.{core::num::+}(1){(core::num) → core::int} in #t2, element){(core::int, core::int) → void};
   }
   method /* from org-dartlang-sdk:///sdk/lib/collection/list.dart */ addAll(covariant-by-class core::Iterable<core::int> iterable) → void {
     core::int i = this.{core::List::length}{core::int};

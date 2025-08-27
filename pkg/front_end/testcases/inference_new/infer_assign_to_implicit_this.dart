@@ -49,7 +49,7 @@ class Test {
 
     var /*@type=B*/ v6 = /*@target=B.-*/--/*@target=Test.member*//*@target=Test.member*/member;
 
-    var /*@type=B*/ v7 = /*@target=Test.member*//*@type=B*//*@target=Test.member*//*@type=B*/member/*@target=B.-*/--;
+    var /*@type=B*/ v7 = /*@target=Test.member*//*@target=Test.member*/member/*@target=B.-*/--;
   }
 }
 

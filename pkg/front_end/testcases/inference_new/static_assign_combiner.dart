@@ -41,8 +41,8 @@ void test2() {
 
 void test3() {
   target /*@target=A.+*/ ++;
-  var /*@type=A*/ x = /*@type=A*/ target
-      /*@type=C*/ /*@target=A.+*/ ++;
+  var /*@type=A*/ x =  target
+       /*@target=A.+*/ ++;
 }
 
 main() {}

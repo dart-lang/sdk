@@ -300,7 +300,7 @@ abstract class _CustomList&Object&ListMixin<E extends core::Object? = dynamic> e
     return result;
   }
   method /* from org-dartlang-sdk:///sdk/lib/collection/list.dart */ add(covariant-by-class cac::_CustomList&Object&ListMixin::E% element) → void {
-    this.{core::List::[]=}(let final core::int #t14 = this.{core::List::length}{core::int} in let final core::int #t15 = this.{core::List::length} = #t14.{core::num::+}(1){(core::num) → core::int} in #t14, element){(core::int, cac::_CustomList&Object&ListMixin::E%) → void};
+    this.{core::List::[]=}(let final core::int #t14 = this.{core::List::length}{core::int} in let final void #t15 = this.{core::List::length} = #t14.{core::num::+}(1){(core::num) → core::int} in #t14, element){(core::int, cac::_CustomList&Object&ListMixin::E%) → void};
   }
   method /* from org-dartlang-sdk:///sdk/lib/collection/list.dart */ addAll(covariant-by-class core::Iterable<cac::_CustomList&Object&ListMixin::E%> iterable) → void {
     core::int i = this.{core::List::length}{core::int};

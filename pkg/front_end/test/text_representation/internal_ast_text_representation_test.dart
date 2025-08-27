@@ -93,9 +93,9 @@ void main() {
     _testIfNullSet();
     _testExtensionCompoundSet();
     _testCompoundPropertySet();
-    _testPropertyPostIncDec();
+    _testPropertyIncDec();
     _testLocalPostIncDec();
-    _testStaticPostIncDec();
+    _testStaticIncDec();
     _testSuperPostIncDec();
     _testIndexGet();
     _testIndexSet();
@@ -111,7 +111,6 @@ void main() {
     _testIfNullSuperIndexSet();
     _testIfNullExtensionIndexSet();
     _testCompoundIndexSet();
-    _testNullAwareCompoundSet();
     _testCompoundSuperIndexSet();
     _testExtensionCompoundIndexSet();
     _testExtensionSet();
@@ -1014,18 +1013,234 @@ void _testCompoundPropertySet() {
           readOffset: TreeNode.noOffset,
           binaryOffset: TreeNode.noOffset,
           writeOffset: TreeNode.noOffset,
-          forEffect: false),
+          forEffect: false,
+          isNullAware: false),
       '''
 0.foo += 1''');
+
+  testExpression(
+      new CompoundPropertySet(
+          new IntLiteral(0), new Name('foo'), new Name('+'), new IntLiteral(1),
+          readOffset: TreeNode.noOffset,
+          binaryOffset: TreeNode.noOffset,
+          writeOffset: TreeNode.noOffset,
+          forEffect: false,
+          isNullAware: true),
+      '''
+0?.foo += 1''');
 }
 
-void _testPropertyPostIncDec() {}
+void _testPropertyIncDec() {
+  testExpression(
+      new PropertyIncDec(new IntLiteral(0), new Name('foo'),
+          isNullAware: false,
+          forEffect: false,
+          isInc: true,
+          isPost: true,
+          nameOffset: -1,
+          operatorOffset: -1),
+      '''
+0.foo++''');
+
+  testExpression(
+      new PropertyIncDec(new IntLiteral(0), new Name('foo'),
+          isNullAware: false,
+          forEffect: false,
+          isInc: false,
+          isPost: true,
+          nameOffset: -1,
+          operatorOffset: -1),
+      '''
+0.foo--''');
+
+  testExpression(
+      new PropertyIncDec(new IntLiteral(0), new Name('foo'),
+          isNullAware: true,
+          forEffect: false,
+          isInc: true,
+          isPost: true,
+          nameOffset: -1,
+          operatorOffset: -1),
+      '''
+0?.foo++''');
+
+  testExpression(
+      new PropertyIncDec(new IntLiteral(0), new Name('foo'),
+          isNullAware: true,
+          forEffect: false,
+          isInc: false,
+          isPost: true,
+          nameOffset: -1,
+          operatorOffset: -1),
+      '''
+0?.foo--''');
+
+  testExpression(
+      new PropertyIncDec(new IntLiteral(0), new Name('foo'),
+          isNullAware: false,
+          forEffect: false,
+          isInc: true,
+          isPost: false,
+          nameOffset: -1,
+          operatorOffset: -1),
+      '''
+++0.foo''');
+
+  testExpression(
+      new PropertyIncDec(new IntLiteral(0), new Name('foo'),
+          isNullAware: false,
+          forEffect: false,
+          isInc: false,
+          isPost: false,
+          nameOffset: -1,
+          operatorOffset: -1),
+      '''
+--0.foo''');
+
+  testExpression(
+      new PropertyIncDec(new IntLiteral(0), new Name('foo'),
+          isNullAware: true,
+          forEffect: false,
+          isInc: true,
+          isPost: false,
+          nameOffset: -1,
+          operatorOffset: -1),
+      '''
+++0?.foo''');
+
+  testExpression(
+      new PropertyIncDec(new IntLiteral(0), new Name('foo'),
+          isNullAware: true,
+          forEffect: false,
+          isInc: false,
+          isPost: false,
+          nameOffset: -1,
+          operatorOffset: -1),
+      '''
+--0?.foo''');
+}
 
 void _testLocalPostIncDec() {}
 
-void _testStaticPostIncDec() {}
+void _testStaticIncDec() {
+  Library library = new Library(dummyUri, fileUri: dummyUri);
+  Name name = new Name('foo');
+  Field field = new Field.mutable(name, fileUri: dummyUri);
+  library.addField(field);
 
-void _testSuperPostIncDec() {}
+  testExpression(
+      new StaticIncDec(
+          getter: field,
+          setter: field,
+          name: name,
+          forEffect: false,
+          isInc: true,
+          isPost: true,
+          nameOffset: -1,
+          operatorOffset: -1),
+      '''
+foo++''');
+
+  testExpression(
+      new StaticIncDec(
+          getter: field,
+          setter: field,
+          name: name,
+          forEffect: false,
+          isInc: false,
+          isPost: true,
+          nameOffset: -1,
+          operatorOffset: -1),
+      '''
+foo--''');
+
+  testExpression(
+      new StaticIncDec(
+          getter: field,
+          setter: field,
+          name: name,
+          forEffect: false,
+          isInc: true,
+          isPost: false,
+          nameOffset: -1,
+          operatorOffset: -1),
+      '''
+++foo''');
+
+  testExpression(
+      new StaticIncDec(
+          getter: field,
+          name: name,
+          setter: field,
+          forEffect: false,
+          isInc: false,
+          isPost: false,
+          nameOffset: -1,
+          operatorOffset: -1),
+      '''
+--foo''');
+}
+
+void _testSuperPostIncDec() {
+  Library library = new Library(dummyUri, fileUri: dummyUri);
+  Class cls = new Class(name: 'Class', fileUri: dummyUri);
+  library.addClass(cls);
+  Name name = new Name('foo');
+  Field field = new Field.mutable(name, fileUri: dummyUri);
+  cls.addField(field);
+
+  testExpression(
+      new SuperIncDec(
+          getter: field,
+          setter: field,
+          name: name,
+          forEffect: false,
+          isInc: true,
+          isPost: true,
+          nameOffset: -1,
+          operatorOffset: -1),
+      '''
+super.foo++''');
+
+  testExpression(
+      new SuperIncDec(
+          getter: field,
+          setter: field,
+          name: name,
+          forEffect: false,
+          isInc: false,
+          isPost: true,
+          nameOffset: -1,
+          operatorOffset: -1),
+      '''
+super.foo--''');
+
+  testExpression(
+      new SuperIncDec(
+          getter: field,
+          setter: field,
+          name: name,
+          forEffect: false,
+          isInc: true,
+          isPost: false,
+          nameOffset: -1,
+          operatorOffset: -1),
+      '''
+++super.foo''');
+
+  testExpression(
+      new SuperIncDec(
+          getter: field,
+          name: name,
+          setter: field,
+          forEffect: false,
+          isInc: false,
+          isPost: false,
+          nameOffset: -1,
+          operatorOffset: -1),
+      '''
+--super.foo''');
+}
 
 void _testIndexGet() {
   testExpression(
@@ -1231,29 +1446,6 @@ void _testCompoundIndexSet() {
           isNullAware: true),
       '''
 0?[1]--''');
-}
-
-void _testNullAwareCompoundSet() {
-  testExpression(
-      new NullAwareCompoundSet(
-          new IntLiteral(0), new Name('foo'), new Name('+'), new IntLiteral(1),
-          readOffset: TreeNode.noOffset,
-          binaryOffset: TreeNode.noOffset,
-          writeOffset: TreeNode.noOffset,
-          forPostIncDec: false,
-          forEffect: false),
-      '''
-0?.foo += 1''');
-  testExpression(
-      new NullAwareCompoundSet(
-          new IntLiteral(0), new Name('foo'), new Name('+'), new IntLiteral(1),
-          readOffset: TreeNode.noOffset,
-          binaryOffset: TreeNode.noOffset,
-          writeOffset: TreeNode.noOffset,
-          forPostIncDec: true,
-          forEffect: false),
-      '''
-0?.foo++''');
 }
 
 void _testCompoundSuperIndexSet() {}
@@ -1675,7 +1867,7 @@ void _testExtensionPostIncDec() {
   library.addProcedure(setter);
 
   testExpression(
-      new ExtensionPostIncDec.explicit(
+      new ExtensionIncDec.explicit(
           extension: extension,
           explicitTypeArguments: null,
           receiver: new IntLiteral(0),
@@ -1683,13 +1875,14 @@ void _testExtensionPostIncDec() {
           getter: getter,
           setter: setter,
           forEffect: false,
+          isPost: true,
           isInc: true,
           isNullAware: false),
       '''
 Extension(0).foo++''');
 
   testExpression(
-      new ExtensionPostIncDec.explicit(
+      new ExtensionIncDec.explicit(
           extension: extension,
           explicitTypeArguments: null,
           receiver: new IntLiteral(0),
@@ -1697,13 +1890,14 @@ Extension(0).foo++''');
           getter: getter,
           setter: setter,
           forEffect: false,
+          isPost: true,
           isInc: false,
           isNullAware: true),
       '''
 Extension(0)?.foo--''');
 
   testExpression(
-      new ExtensionPostIncDec.explicit(
+      new ExtensionIncDec.explicit(
           extension: extension,
           explicitTypeArguments: [const VoidType()],
           receiver: new IntLiteral(0),
@@ -1711,13 +1905,14 @@ Extension(0)?.foo--''');
           getter: getter,
           setter: setter,
           forEffect: false,
+          isPost: true,
           isInc: false,
           isNullAware: false),
       '''
 Extension<void>(0).foo--''');
 
   testExpression(
-      new ExtensionPostIncDec.explicit(
+      new ExtensionIncDec.explicit(
           extension: extension,
           explicitTypeArguments: [const VoidType()],
           receiver: new IntLiteral(0),
@@ -1725,13 +1920,14 @@ Extension<void>(0).foo--''');
           getter: getter,
           setter: setter,
           forEffect: false,
+          isPost: true,
           isInc: true,
           isNullAware: true),
       '''
 Extension<void>(0)?.foo++''');
 
   testExpression(
-      new ExtensionPostIncDec.implicit(
+      new ExtensionIncDec.implicit(
           extension: extension,
           thisTypeArguments: [
             new TypeParameterType(
@@ -1742,9 +1938,87 @@ Extension<void>(0)?.foo++''');
           getter: getter,
           setter: setter,
           forEffect: false,
+          isPost: true,
           isInc: true),
       '''
 0.foo++''');
+
+  testExpression(
+      new ExtensionIncDec.explicit(
+          extension: extension,
+          explicitTypeArguments: null,
+          receiver: new IntLiteral(0),
+          name: name,
+          getter: getter,
+          setter: setter,
+          forEffect: false,
+          isPost: false,
+          isInc: true,
+          isNullAware: false),
+      '''
+++Extension(0).foo''');
+
+  testExpression(
+      new ExtensionIncDec.explicit(
+          extension: extension,
+          explicitTypeArguments: null,
+          receiver: new IntLiteral(0),
+          name: name,
+          getter: getter,
+          setter: setter,
+          forEffect: false,
+          isPost: false,
+          isInc: false,
+          isNullAware: true),
+      '''
+--Extension(0)?.foo''');
+
+  testExpression(
+      new ExtensionIncDec.explicit(
+          extension: extension,
+          explicitTypeArguments: [const VoidType()],
+          receiver: new IntLiteral(0),
+          name: name,
+          getter: getter,
+          setter: setter,
+          forEffect: false,
+          isPost: false,
+          isInc: false,
+          isNullAware: false),
+      '''
+--Extension<void>(0).foo''');
+
+  testExpression(
+      new ExtensionIncDec.explicit(
+          extension: extension,
+          explicitTypeArguments: [const VoidType()],
+          receiver: new IntLiteral(0),
+          name: name,
+          getter: getter,
+          setter: setter,
+          forEffect: false,
+          isPost: false,
+          isInc: true,
+          isNullAware: true),
+      '''
+++Extension<void>(0)?.foo''');
+
+  testExpression(
+      new ExtensionIncDec.implicit(
+          extension: extension,
+          thisTypeArguments: [
+            new TypeParameterType(
+                extension.typeParameters.single, Nullability.undetermined)
+          ],
+          thisAccess: new IntLiteral(0),
+          name: name,
+          getter: getter,
+          setter: setter,
+          forEffect: false,
+          isPost: false,
+          isInc: true),
+      '''
+++0.foo''');
 }
 
 void _testExtensionSet() {

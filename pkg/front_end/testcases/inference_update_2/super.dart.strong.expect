@@ -1,0 +1,21 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+class Super extends core::Object {
+  final field core::int? _field;
+  constructor •(core::int? _field) → self::Super
+    : self::Super::_field = _field, super core::Object::•()
+    ;
+  set _field(wildcard dynamic _#wc0#formal) → void {}
+}
+class Sub extends self::Super {
+  constructor •(core::int? _field) → self::Sub
+    : super self::Super::•(_field)
+    ;
+  method method() → void {
+    if(!(super.{self::Super::_field} == null)) {
+      super.{self::Super::_field} = (super.{self::Super::_field} as{Unchecked} core::int).{core::num::+}(1){(core::num) → core::int};
+    }
+  }
+}

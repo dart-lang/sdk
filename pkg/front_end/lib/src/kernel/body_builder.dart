@@ -3466,7 +3466,11 @@ class BodyBuilder extends StackListenerImpl
               this, nameToken, cfe.codeNotAConstantExpression);
         }
         return new StaticAccessGenerator.fromBuilder(
-            this, name, nameToken, getable, setable as MemberBuilder?);
+            this,
+            new Name(name, libraryBuilder.nameOrigin),
+            nameToken,
+            getable,
+            setable as MemberBuilder?);
       } else if (getable is PrefixBuilder) {
         // Wildcard import prefixes are non-binding and cannot be used.
         if (libraryFeatures.wildcardVariables.isEnabled && getable.isWildcard) {
@@ -3530,7 +3534,11 @@ class BodyBuilder extends StackListenerImpl
                 setable.isTopLevel,
             "Unexpected setable: $setable");
         return new StaticAccessGenerator.fromBuilder(
-            this, name, nameToken, null, setable);
+            this,
+            new Name(name, libraryBuilder.nameOrigin),
+            nameToken,
+            null,
+            setable);
       }
     }
 
@@ -5986,7 +5994,7 @@ class BodyBuilder extends StackListenerImpl
     Object? generator = pop();
     if (generator is Generator) {
       push(generator.buildPrefixIncrement(incrementOperator(token),
-          offset: token.charOffset));
+          operatorOffset: token.charOffset));
     } else {
       Expression value = toValue(generator);
       push(wrapInProblem(

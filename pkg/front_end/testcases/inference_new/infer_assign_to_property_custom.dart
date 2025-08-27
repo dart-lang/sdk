@@ -15,14 +15,14 @@ class B {
 }
 
 var v_prefix_pp =
-    (/*@target=A.+*/ ++new /*@type=B*/ B(). /*@target=B.a*/ /*@target=B.a*/ a);
+    (/*@target=A.+*/ ++new /*@type=B*/ B().   /*@target=B.a*//*@target=B.a*/a);
 var v_prefix_mm =
-    (/*@target=A.-*/ --new /*@type=B*/ B(). /*@target=B.a*/ /*@target=B.a*/ a);
+    (/*@target=A.-*/ --new /*@type=B*/ B().   /*@target=B.a*//*@target=B.a*/a);
 var v_postfix_pp = (new /*@type=B*/ B()
-    . /*@type=A*/ /*@target=B.a*/ /*@target=B.a*/
-    /*@type=int*/ a /*@target=A.+*/ ++);
+    .   
+     /*@target=B.a*//*@target=B.a*/a /*@target=A.+*/ ++);
 var v_postfix_mm = (new /*@type=B*/ B()
-    . /*@type=A*/ /*@target=B.a*/ /*@target=B.a*/
-    /*@type=double*/ a /*@target=A.-*/ --);
+    .   
+     /*@target=B.a*//*@target=B.a*/a /*@target=A.-*/ --);
 
 main() {}

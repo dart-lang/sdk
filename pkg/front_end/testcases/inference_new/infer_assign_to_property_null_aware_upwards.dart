@@ -25,10 +25,10 @@ class Test1 {
             getInt();
 
     var /*@type=int?*/ v10 = /*@target=num.+*/ ++t
-        ?. /*@target=Test1.prop*/ /*@target=Test1.prop*/ prop;
+        ?.   /*@target=Test1.prop*//*@target=Test1.prop*/prop;
 
     var /*@type=int?*/ v11 = t
-        ?. /*@target=Test1.prop*/ /*@target=Test1.prop*/ prop /*@target=num.+*/ ++;
+        ?.   /*@target=Test1.prop*//*@target=Test1.prop*/prop /*@target=num.+*/ ++;
   }
 }
 
@@ -69,10 +69,10 @@ class Test2 {
         prop /*@target=num.+*/ += getDouble();
 
     var /*@type=num?*/ v10 = /*@target=num.+*/ ++t
-        ?. /*@target=Test2.prop*/ /*@target=Test2.prop*/ prop;
+        ?.   /*@target=Test2.prop*//*@target=Test2.prop*/prop;
 
     var /*@type=num?*/ v11 = t
-        ?. /*@target=Test2.prop*/ /*@target=Test2.prop*/ prop /*@target=num.+*/ ++;
+        ?.   /*@target=Test2.prop*//*@target=Test2.prop*/prop /*@target=num.+*/ ++;
   }
 }
 
@@ -101,10 +101,10 @@ class Test3 {
             getDouble();
 
     var /*@type=double?*/ v10 = /*@target=double.+*/ ++t
-        ?. /*@target=Test3.prop*/ /*@target=Test3.prop*/ prop;
+        ?.   /*@target=Test3.prop*//*@target=Test3.prop*/prop;
 
     var /*@type=double?*/ v11 = t
-        ?. /*@target=Test3.prop*/ /*@target=Test3.prop*/ prop /*@target=double.+*/ ++;
+        ?.   /*@target=Test3.prop*//*@target=Test3.prop*/prop /*@target=double.+*/ ++;
   }
 }
 
