@@ -21,7 +21,7 @@ class PluginsPage extends DiagnosticPageWithNav {
   @override
   Future<void> generateContent(Map<String, String> params) async {
     h3('Analysis plugins');
-    var analysisPlugins = server.pluginManager.plugins;
+    var analysisPlugins = server.pluginManager.pluginIsolates;
 
     if (analysisPlugins.isEmpty) {
       blankslate('No known analysis plugins.');

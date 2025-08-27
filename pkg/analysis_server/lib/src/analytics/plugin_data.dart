@@ -5,6 +5,7 @@
 import 'dart:convert';
 
 import 'package:analysis_server/src/analytics/percentile_calculator.dart';
+import 'package:analysis_server/src/plugin/plugin_isolate.dart';
 import 'package:analysis_server/src/plugin/plugin_manager.dart';
 import 'package:path/path.dart' as path;
 
@@ -28,10 +29,10 @@ class PluginData {
   /// [pluginManager].
   void recordPlugins(PluginManager pluginManager) {
     recordCount++;
-    for (var info in pluginManager.plugins) {
+    for (var isolate in pluginManager.pluginIsolates) {
       usageCounts
-          .putIfAbsent(info.safePluginId, () => PercentileCalculator())
-          .addValue(info.contextRoots.length);
+          .putIfAbsent(isolate.safePluginId, () => PercentileCalculator())
+          .addValue(isolate.contextRoots.length);
     }
   }
 
@@ -41,7 +42,7 @@ class PluginData {
   };
 }
 
-extension PluginInfoExtension on PluginInfo {
+extension PluginIsolateExtension on PluginIsolate {
   /// An ID for this plugin that doesn't contain any PII.
   ///
   /// If the plugin is installed in the pub cache and hosted on `pub.dev`, then
