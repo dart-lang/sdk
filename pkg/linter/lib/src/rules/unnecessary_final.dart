@@ -51,10 +51,9 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   _Visitor(this.rule);
 
-  LintCode getErrorCode(Object? type) =>
-      type == null
-          ? LinterLintCode.unnecessaryFinalWithoutType
-          : LinterLintCode.unnecessaryFinalWithType;
+  LintCode getErrorCode(Object? type) => type == null
+      ? LinterLintCode.unnecessaryFinalWithoutType
+      : LinterLintCode.unnecessaryFinalWithType;
 
   (Token?, AstNode?) getParameterDetails(FormalParameter node) {
     var parameter = node is DefaultFormalParameter ? node.parameter : node;
@@ -69,8 +68,9 @@ class _Visitor extends SimpleAstVisitor<void> {
   @override
   void visitDeclaredVariablePattern(DeclaredVariablePattern node) {
     var keyword = node.keyword;
-    keyword ??=
-        node.thisOrAncestorOfType<PatternVariableDeclaration>()?.keyword;
+    keyword ??= node
+        .thisOrAncestorOfType<PatternVariableDeclaration>()
+        ?.keyword;
     if (keyword == null || keyword.type != Keyword.FINAL) return;
 
     var errorCode = getErrorCode(node.matchedValueType);

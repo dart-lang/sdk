@@ -49,10 +49,12 @@ class _Visitor extends SimpleAstVisitor<void> {
     var returnType = node.returnType;
     var typeParameters = node.typeParameters;
     var parameters = node.parameters;
-    var returnTypeSource =
-        returnType == null ? '' : '${returnType.toSource()} ';
-    var typeParameterSource =
-        typeParameters == null ? '' : typeParameters.toSource();
+    var returnTypeSource = returnType == null
+        ? ''
+        : '${returnType.toSource()} ';
+    var typeParameterSource = typeParameters == null
+        ? ''
+        : typeParameters.toSource();
     var parameterSource = parameters.toSource();
     var replacement =
         '${returnTypeSource}Function$typeParameterSource$parameterSource';

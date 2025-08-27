@@ -46,8 +46,8 @@ class _Visitor extends SimpleAstVisitor<void> {
     if (parent is NamedExpression && parent.name.label.name == 'child') {
       var args = parent.thisOrAncestorOfType<ArgumentList>();
       if (args?.arguments.length == 1) {
-        var parentCreation =
-            parent.thisOrAncestorOfType<InstanceCreationExpression>();
+        var parentCreation = parent
+            .thisOrAncestorOfType<InstanceCreationExpression>();
         if (parentCreation != null) {
           if (isExactWidgetTypeContainer(parentCreation.staticType)) {
             rule.reportAtNode(parentCreation.constructorName);

@@ -48,17 +48,16 @@ class _Visitor extends SimpleAstVisitor<void> {
       return;
     }
 
-    var onlyClosuresAfterChild =
-        arguments.reversed
-            .takeWhile((argument) => !isChildArg(argument))
-            .toList()
-            .reversed
-            .where(
-              (element) =>
-                  element is NamedExpression &&
-                  element.expression is! FunctionExpression,
-            )
-            .isEmpty;
+    var onlyClosuresAfterChild = arguments.reversed
+        .takeWhile((argument) => !isChildArg(argument))
+        .toList()
+        .reversed
+        .where(
+          (element) =>
+              element is NamedExpression &&
+              element.expression is! FunctionExpression,
+        )
+        .isEmpty;
     if (!onlyClosuresAfterChild) {
       var argument = arguments.firstWhere(isChildArg);
       var name = (argument as NamedExpression).name.label.name;

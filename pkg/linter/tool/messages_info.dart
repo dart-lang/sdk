@@ -311,28 +311,27 @@ class _RuleBuilder {
 
     var stateValue = _requireType<Map<Object?, Object?>>(propertyName, value);
 
-    _stateEntries =
-        stateValue.entries.map((state) {
-          var stateName = state.key;
-          var version = state.value;
-          if (stateName is! String || version is! String) {
-            _throwLintError('Each state key and value must be a string.');
-          }
+    _stateEntries = stateValue.entries.map((state) {
+      var stateName = state.key;
+      var version = state.value;
+      if (stateName is! String || version is! String) {
+        _throwLintError('Each state key and value must be a string.');
+      }
 
-          if (!_stateNames.contains(stateName)) {
-            _throwLintError('$stateName is not a valid state name.');
-          }
+      if (!_stateNames.contains(stateName)) {
+        _throwLintError('$stateName is not a valid state name.');
+      }
 
-          try {
-            var parsedVersion = Version.parse('$version.0');
-            return (name: stateName, version: parsedVersion);
-          } on Exception {
-            _throwLintError(
-              'The state versions must be in '
-              "'major.minor' format, but found '$version'.",
-            );
-          }
-        }).toList();
+      try {
+        var parsedVersion = Version.parse('$version.0');
+        return (name: stateName, version: parsedVersion);
+      } on Exception {
+        _throwLintError(
+          'The state versions must be in '
+          "'major.minor' format, but found '$version'.",
+        );
+      }
+    }).toList();
   }
 
   Never _throwLintError(String message) {

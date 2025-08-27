@@ -61,11 +61,10 @@ class _Visitor extends SimpleAstVisitor<void> {
     var element = node.declaredFragment!.element;
     if (element.isElementClass) {
       for (var member in node.members) {
-        var trackingAnnotations =
-            member.metadata
-                .map((node) => node.asTrackingAnnotation)
-                .nonNulls
-                .toList();
+        var trackingAnnotations = member.metadata
+            .map((node) => node.asTrackingAnnotation)
+            .nonNulls
+            .toList();
 
         switch (member) {
           case ConstructorDeclaration():

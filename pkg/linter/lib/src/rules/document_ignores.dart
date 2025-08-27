@@ -56,8 +56,9 @@ class _Visitor extends SimpleAstVisitor<void> {
         continue;
       }
 
-      var ignoreCommentLine =
-          node.lineInfo.getLocation(comment.offset).lineNumber;
+      var ignoreCommentLine = node.lineInfo
+          .getLocation(comment.offset)
+          .lineNumber;
       if (ignoreCommentLine > 1) {
         // Only look at the line above if the ignore comment line is not the
         // first line.

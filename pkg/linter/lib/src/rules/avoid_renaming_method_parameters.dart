@@ -85,8 +85,9 @@ class _Visitor extends SimpleAstVisitor<void> {
     } else {
       if (!node.isAugmentation) return;
 
-      parentParameters =
-          previousFragment.formalParameters.map((p) => p.element).positional;
+      parentParameters = previousFragment.formalParameters
+          .map((p) => p.element)
+          .positional;
     }
 
     var parameters = nodeParams.parameters.where((p) => !p.isNamed).toList();

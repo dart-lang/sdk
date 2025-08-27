@@ -128,10 +128,9 @@ class _Visitor extends SimpleAstVisitor<void> {
       // of which fields are initialized by any, and a set of which fields are
       // initialized by all. This would conceivably improve performance.
       var classDeclaration = variable.parent?.parent?.parent;
-      var constructors =
-          classDeclaration is ClassDeclaration
-              ? classDeclaration.members.whereType<ConstructorDeclaration>()
-              : <ConstructorDeclaration>[];
+      var constructors = classDeclaration is ClassDeclaration
+          ? classDeclaration.members.whereType<ConstructorDeclaration>()
+          : <ConstructorDeclaration>[];
 
       var isSetInAnyConstructor = constructors.any(
         (constructor) => field.isSetInConstructor(constructor),

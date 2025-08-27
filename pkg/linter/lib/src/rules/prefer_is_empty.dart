@@ -73,8 +73,8 @@ class _Visitor extends SimpleAstVisitor<void> {
     required bool constantOnRight,
   }) {
     // Don't lint if we're in a const constructor initializer.
-    var constructorInitializer =
-        expression.thisOrAncestorOfType<ConstructorInitializer>();
+    var constructorInitializer = expression
+        .thisOrAncestorOfType<ConstructorInitializer>();
     if (constructorInitializer != null) {
       var constructorDecl = constructorInitializer.parent;
       if (constructorDecl is! ConstructorDeclaration ||

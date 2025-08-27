@@ -67,8 +67,8 @@ class _Visitor extends SimpleAstVisitor<void> {
 
     var value = right.value;
     if (value == null) return;
-    var parentAssertInitializer =
-        node.thisOrAncestorOfType<AssertInitializer>();
+    var parentAssertInitializer = node
+        .thisOrAncestorOfType<AssertInitializer>();
     if (parentAssertInitializer != null) {
       var constructor = parentAssertInitializer.parent;
       // `isEven` is not allowed in a const constructor assert initializer.

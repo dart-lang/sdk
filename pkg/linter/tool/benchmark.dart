@@ -144,10 +144,9 @@ Future<void> runLinter(List<String> args) async {
     var optionsContent = File(configFile).readAsStringSync();
     var options = loadYamlNode(optionsContent) as YamlMap;
     var ruleConfigs = parseLinterSection(options)!.values;
-    rules =
-        Registry.ruleRegistry
-            .where((rule) => !ruleConfigs.any((rc) => rc.disables(rule.name)))
-            .toList();
+    rules = Registry.ruleRegistry
+        .where((rule) => !ruleConfigs.any((rc) => rc.disables(rule.name)))
+        .toList();
   } else if (ruleNames.isNotEmpty) {
     rules = <AbstractAnalysisRule>[];
     for (var ruleName in ruleNames) {
@@ -197,17 +196,16 @@ Future<void> writeBenchmarks(
   var recommendedRuleset = await dartRecommendedLints;
   var flutterRuleset = await flutterUserLints;
 
-  var stats =
-      timings.keys.map((t) {
-        var rulesets = [
-          if (coreRuleset.contains(t)) 'core',
-          if (recommendedRuleset.contains(t)) 'recommended',
-          if (flutterRuleset.contains(t)) 'flutter',
-        ];
+  var stats = timings.keys.map((t) {
+    var rulesets = [
+      if (coreRuleset.contains(t)) 'core',
+      if (recommendedRuleset.contains(t)) 'recommended',
+      if (flutterRuleset.contains(t)) 'flutter',
+    ];
 
-        var details = rulesets.isEmpty ? '' : " [${rulesets.join(', ')}]";
-        return Stat('$t$details', timings[t] ?? 0);
-      }).toList();
+    var details = rulesets.isEmpty ? '' : " [${rulesets.join(', ')}]";
+    return Stat('$t$details', timings[t] ?? 0);
+  }).toList();
   out.writeTimings(stats, 0);
 }
 

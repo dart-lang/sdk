@@ -190,8 +190,9 @@ class _Visitor extends SimpleAstVisitor<void> {
       return;
     }
 
-    var parameters =
-        nodeToLintParams.map((e) => e.declaredFragment?.element).toSet();
+    var parameters = nodeToLintParams
+        .map((e) => e.declaredFragment?.element)
+        .toSet();
     if (node is FunctionExpressionInvocation) {
       if (node.function.mightBeDeferred) return;
 

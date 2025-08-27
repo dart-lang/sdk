@@ -98,8 +98,9 @@ class _Visitor extends SimpleAstVisitor<void> {
         node.parent is! FieldDeclaration) {
       return;
     }
-    var variablesMissingAnInitializer =
-        node.variables.where((v) => v.initializer == null).toList();
+    var variablesMissingAnInitializer = node.variables
+        .where((v) => v.initializer == null)
+        .toList();
 
     if (variablesMissingAnInitializer.isEmpty) return;
 
