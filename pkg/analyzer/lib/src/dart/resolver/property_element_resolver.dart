@@ -7,7 +7,6 @@ import 'package:_fe_analyzer_shared/src/types/shared_type.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/error/error.dart';
-import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/element/element.dart';
@@ -21,6 +20,7 @@ import 'package:analyzer/src/dart/resolver/lexical_lookup.dart';
 import 'package:analyzer/src/dart/resolver/resolution_result.dart';
 import 'package:analyzer/src/error/assignment_verifier.dart';
 import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/error/listener.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/scope_helpers.dart';
 import 'package:analyzer/src/generated/super_context.dart';
@@ -942,10 +942,13 @@ class PropertyElementResolver with ScopeHelpers {
             name,
           );
           if (readElement != null) {
-            diagnosticReporter.atNode(
-              propertyName,
-              CompileTimeErrorCode.abstractSuperMemberReference,
-              arguments: [readElement.kind.displayName, propertyName.name],
+            diagnosticReporter.report(
+              CompileTimeErrorCode.abstractSuperMemberReference
+                  .withArguments(
+                    kind: readElement.kind.displayName,
+                    name: propertyName.name,
+                  )
+                  .at(propertyName),
             );
           } else {
             diagnosticReporter.atNode(
@@ -990,10 +993,13 @@ class PropertyElementResolver with ScopeHelpers {
             inherited: true,
           );
           if (writeElement != null) {
-            diagnosticReporter.atNode(
-              propertyName,
-              CompileTimeErrorCode.abstractSuperMemberReference,
-              arguments: [writeElement.kind.displayName, propertyName.name],
+            diagnosticReporter.report(
+              CompileTimeErrorCode.abstractSuperMemberReference
+                  .withArguments(
+                    kind: writeElement.kind.displayName,
+                    name: propertyName.name,
+                  )
+                  .at(propertyName),
             );
           } else {
             diagnosticReporter.atNode(
