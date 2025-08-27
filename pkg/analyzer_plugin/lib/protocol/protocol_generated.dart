@@ -42,7 +42,7 @@ class AnalysisErrorFixes implements HasToJson {
             jsonDecoder, '$jsonPath.error', json['error'],
             clientUriConverter: clientUriConverter);
       } else {
-        throw jsonDecoder.mismatch(jsonPath, 'error');
+        throw jsonDecoder.mismatch(jsonPath, 'error', json);
       }
       List<PrioritizedSourceChange> fixes;
       if (json.containsKey('fixes')) {
@@ -53,7 +53,7 @@ class AnalysisErrorFixes implements HasToJson {
                 jsonDecoder, jsonPath, json,
                 clientUriConverter: clientUriConverter));
       } else {
-        throw jsonDecoder.mismatch(jsonPath, 'fixes');
+        throw jsonDecoder.mismatch(jsonPath, 'fixes', json);
       }
       return AnalysisErrorFixes(error, fixes: fixes);
     } else {
@@ -120,7 +120,7 @@ class AnalysisErrorsParams implements HasToJson {
                 jsonDecoder.decodeString('$jsonPath.file', json['file'])) ??
             jsonDecoder.decodeString('$jsonPath.file', json['file']);
       } else {
-        throw jsonDecoder.mismatch(jsonPath, 'file');
+        throw jsonDecoder.mismatch(jsonPath, 'file', json);
       }
       List<AnalysisError> errors;
       if (json.containsKey('errors')) {
@@ -131,7 +131,7 @@ class AnalysisErrorsParams implements HasToJson {
                 jsonDecoder, jsonPath, json,
                 clientUriConverter: clientUriConverter));
       } else {
-        throw jsonDecoder.mismatch(jsonPath, 'errors');
+        throw jsonDecoder.mismatch(jsonPath, 'errors', json);
       }
       return AnalysisErrorsParams(file, errors);
     } else {
@@ -210,7 +210,7 @@ class AnalysisFoldingParams implements HasToJson {
                 jsonDecoder.decodeString('$jsonPath.file', json['file'])) ??
             jsonDecoder.decodeString('$jsonPath.file', json['file']);
       } else {
-        throw jsonDecoder.mismatch(jsonPath, 'file');
+        throw jsonDecoder.mismatch(jsonPath, 'file', json);
       }
       List<FoldingRegion> regions;
       if (json.containsKey('regions')) {
@@ -221,7 +221,7 @@ class AnalysisFoldingParams implements HasToJson {
                 jsonDecoder, jsonPath, json,
                 clientUriConverter: clientUriConverter));
       } else {
-        throw jsonDecoder.mismatch(jsonPath, 'regions');
+        throw jsonDecoder.mismatch(jsonPath, 'regions', json);
       }
       return AnalysisFoldingParams(file, regions);
     } else {
@@ -306,19 +306,19 @@ class AnalysisGetNavigationParams implements RequestParams {
                 jsonDecoder.decodeString('$jsonPath.file', json['file'])) ??
             jsonDecoder.decodeString('$jsonPath.file', json['file']);
       } else {
-        throw jsonDecoder.mismatch(jsonPath, 'file');
+        throw jsonDecoder.mismatch(jsonPath, 'file', json);
       }
       int offset;
       if (json.containsKey('offset')) {
         offset = jsonDecoder.decodeInt('$jsonPath.offset', json['offset']);
       } else {
-        throw jsonDecoder.mismatch(jsonPath, 'offset');
+        throw jsonDecoder.mismatch(jsonPath, 'offset', json);
       }
       int length;
       if (json.containsKey('length')) {
         length = jsonDecoder.decodeInt('$jsonPath.length', json['length']);
       } else {
-        throw jsonDecoder.mismatch(jsonPath, 'length');
+        throw jsonDecoder.mismatch(jsonPath, 'length', json);
       }
       return AnalysisGetNavigationParams(file, offset, length);
     } else {
@@ -408,7 +408,7 @@ class AnalysisGetNavigationResult implements ResponseResult {
                     jsonDecoder.decodeString(jsonPath, json)) ??
                 jsonDecoder.decodeString(jsonPath, json));
       } else {
-        throw jsonDecoder.mismatch(jsonPath, 'files');
+        throw jsonDecoder.mismatch(jsonPath, 'files', json);
       }
       List<NavigationTarget> targets;
       if (json.containsKey('targets')) {
@@ -419,7 +419,7 @@ class AnalysisGetNavigationResult implements ResponseResult {
                 jsonDecoder, jsonPath, json,
                 clientUriConverter: clientUriConverter));
       } else {
-        throw jsonDecoder.mismatch(jsonPath, 'targets');
+        throw jsonDecoder.mismatch(jsonPath, 'targets', json);
       }
       List<NavigationRegion> regions;
       if (json.containsKey('regions')) {
@@ -430,7 +430,7 @@ class AnalysisGetNavigationResult implements ResponseResult {
                 jsonDecoder, jsonPath, json,
                 clientUriConverter: clientUriConverter));
       } else {
-        throw jsonDecoder.mismatch(jsonPath, 'regions');
+        throw jsonDecoder.mismatch(jsonPath, 'regions', json);
       }
       return AnalysisGetNavigationResult(files, targets, regions);
     } else {
@@ -523,7 +523,7 @@ class AnalysisHandleWatchEventsParams implements RequestParams {
                 jsonDecoder, jsonPath, json,
                 clientUriConverter: clientUriConverter));
       } else {
-        throw jsonDecoder.mismatch(jsonPath, 'events');
+        throw jsonDecoder.mismatch(jsonPath, 'events', json);
       }
       return AnalysisHandleWatchEventsParams(events);
     } else {
@@ -619,7 +619,7 @@ class AnalysisHighlightsParams implements HasToJson {
                 jsonDecoder.decodeString('$jsonPath.file', json['file'])) ??
             jsonDecoder.decodeString('$jsonPath.file', json['file']);
       } else {
-        throw jsonDecoder.mismatch(jsonPath, 'file');
+        throw jsonDecoder.mismatch(jsonPath, 'file', json);
       }
       List<HighlightRegion> regions;
       if (json.containsKey('regions')) {
@@ -630,7 +630,7 @@ class AnalysisHighlightsParams implements HasToJson {
                 jsonDecoder, jsonPath, json,
                 clientUriConverter: clientUriConverter));
       } else {
-        throw jsonDecoder.mismatch(jsonPath, 'regions');
+        throw jsonDecoder.mismatch(jsonPath, 'regions', json);
       }
       return AnalysisHighlightsParams(file, regions);
     } else {
@@ -719,7 +719,7 @@ class AnalysisNavigationParams implements HasToJson {
                 jsonDecoder.decodeString('$jsonPath.file', json['file'])) ??
             jsonDecoder.decodeString('$jsonPath.file', json['file']);
       } else {
-        throw jsonDecoder.mismatch(jsonPath, 'file');
+        throw jsonDecoder.mismatch(jsonPath, 'file', json);
       }
       List<NavigationRegion> regions;
       if (json.containsKey('regions')) {
@@ -730,7 +730,7 @@ class AnalysisNavigationParams implements HasToJson {
                 jsonDecoder, jsonPath, json,
                 clientUriConverter: clientUriConverter));
       } else {
-        throw jsonDecoder.mismatch(jsonPath, 'regions');
+        throw jsonDecoder.mismatch(jsonPath, 'regions', json);
       }
       List<NavigationTarget> targets;
       if (json.containsKey('targets')) {
@@ -741,7 +741,7 @@ class AnalysisNavigationParams implements HasToJson {
                 jsonDecoder, jsonPath, json,
                 clientUriConverter: clientUriConverter));
       } else {
-        throw jsonDecoder.mismatch(jsonPath, 'targets');
+        throw jsonDecoder.mismatch(jsonPath, 'targets', json);
       }
       List<String> files;
       if (json.containsKey('files')) {
@@ -753,7 +753,7 @@ class AnalysisNavigationParams implements HasToJson {
                     jsonDecoder.decodeString(jsonPath, json)) ??
                 jsonDecoder.decodeString(jsonPath, json));
       } else {
-        throw jsonDecoder.mismatch(jsonPath, 'files');
+        throw jsonDecoder.mismatch(jsonPath, 'files', json);
       }
       return AnalysisNavigationParams(file, regions, targets, files);
     } else {
@@ -845,7 +845,7 @@ class AnalysisOccurrencesParams implements HasToJson {
                 jsonDecoder.decodeString('$jsonPath.file', json['file'])) ??
             jsonDecoder.decodeString('$jsonPath.file', json['file']);
       } else {
-        throw jsonDecoder.mismatch(jsonPath, 'file');
+        throw jsonDecoder.mismatch(jsonPath, 'file', json);
       }
       List<Occurrences> occurrences;
       if (json.containsKey('occurrences')) {
@@ -856,7 +856,7 @@ class AnalysisOccurrencesParams implements HasToJson {
                 jsonDecoder, jsonPath, json,
                 clientUriConverter: clientUriConverter));
       } else {
-        throw jsonDecoder.mismatch(jsonPath, 'occurrences');
+        throw jsonDecoder.mismatch(jsonPath, 'occurrences', json);
       }
       return AnalysisOccurrencesParams(file, occurrences);
     } else {
@@ -935,7 +935,7 @@ class AnalysisOutlineParams implements HasToJson {
                 jsonDecoder.decodeString('$jsonPath.file', json['file'])) ??
             jsonDecoder.decodeString('$jsonPath.file', json['file']);
       } else {
-        throw jsonDecoder.mismatch(jsonPath, 'file');
+        throw jsonDecoder.mismatch(jsonPath, 'file', json);
       }
       List<Outline> outline;
       if (json.containsKey('outline')) {
@@ -946,7 +946,7 @@ class AnalysisOutlineParams implements HasToJson {
                 jsonDecoder, jsonPath, json,
                 clientUriConverter: clientUriConverter));
       } else {
-        throw jsonDecoder.mismatch(jsonPath, 'outline');
+        throw jsonDecoder.mismatch(jsonPath, 'outline', json);
       }
       return AnalysisOutlineParams(file, outline);
     } else {
@@ -1064,7 +1064,7 @@ class AnalysisSetContextRootsParams implements RequestParams {
                 jsonDecoder, jsonPath, json,
                 clientUriConverter: clientUriConverter));
       } else {
-        throw jsonDecoder.mismatch(jsonPath, 'roots');
+        throw jsonDecoder.mismatch(jsonPath, 'roots', json);
       }
       return AnalysisSetContextRootsParams(roots);
     } else {
@@ -1160,7 +1160,7 @@ class AnalysisSetPriorityFilesParams implements RequestParams {
                     jsonDecoder.decodeString(jsonPath, json)) ??
                 jsonDecoder.decodeString(jsonPath, json));
       } else {
-        throw jsonDecoder.mismatch(jsonPath, 'files');
+        throw jsonDecoder.mismatch(jsonPath, 'files', json);
       }
       return AnalysisSetPriorityFilesParams(files);
     } else {
@@ -1262,7 +1262,7 @@ class AnalysisSetSubscriptionsParams implements RequestParams {
                             jsonDecoder.decodeString(jsonPath, json)) ??
                         jsonDecoder.decodeString(jsonPath, json)));
       } else {
-        throw jsonDecoder.mismatch(jsonPath, 'subscriptions');
+        throw jsonDecoder.mismatch(jsonPath, 'subscriptions', json);
       }
       return AnalysisSetSubscriptionsParams(subscriptions);
     } else {
@@ -1360,7 +1360,7 @@ class AnalysisStatus implements HasToJson {
         isAnalyzing = jsonDecoder.decodeBool(
             '$jsonPath.isAnalyzing', json['isAnalyzing']);
       } else {
-        throw jsonDecoder.mismatch(jsonPath, 'isAnalyzing');
+        throw jsonDecoder.mismatch(jsonPath, 'isAnalyzing', json);
       }
       return AnalysisStatus(isAnalyzing);
     } else {
@@ -1429,7 +1429,7 @@ class AnalysisUpdateContentParams implements RequestParams {
                           clientUriConverter: clientUriConverter)
                 }));
       } else {
-        throw jsonDecoder.mismatch(jsonPath, 'files');
+        throw jsonDecoder.mismatch(jsonPath, 'files', json);
       }
       return AnalysisUpdateContentParams(files);
     } else {
@@ -1524,13 +1524,13 @@ class CompletionGetSuggestionsParams implements RequestParams {
                 jsonDecoder.decodeString('$jsonPath.file', json['file'])) ??
             jsonDecoder.decodeString('$jsonPath.file', json['file']);
       } else {
-        throw jsonDecoder.mismatch(jsonPath, 'file');
+        throw jsonDecoder.mismatch(jsonPath, 'file', json);
       }
       int offset;
       if (json.containsKey('offset')) {
         offset = jsonDecoder.decodeInt('$jsonPath.offset', json['offset']);
       } else {
-        throw jsonDecoder.mismatch(jsonPath, 'offset');
+        throw jsonDecoder.mismatch(jsonPath, 'offset', json);
       }
       return CompletionGetSuggestionsParams(file, offset);
     } else {
@@ -1620,14 +1620,14 @@ class CompletionGetSuggestionsResult implements ResponseResult {
         replacementOffset = jsonDecoder.decodeInt(
             '$jsonPath.replacementOffset', json['replacementOffset']);
       } else {
-        throw jsonDecoder.mismatch(jsonPath, 'replacementOffset');
+        throw jsonDecoder.mismatch(jsonPath, 'replacementOffset', json);
       }
       int replacementLength;
       if (json.containsKey('replacementLength')) {
         replacementLength = jsonDecoder.decodeInt(
             '$jsonPath.replacementLength', json['replacementLength']);
       } else {
-        throw jsonDecoder.mismatch(jsonPath, 'replacementLength');
+        throw jsonDecoder.mismatch(jsonPath, 'replacementLength', json);
       }
       List<CompletionSuggestion> results;
       if (json.containsKey('results')) {
@@ -1638,7 +1638,7 @@ class CompletionGetSuggestionsResult implements ResponseResult {
                 jsonDecoder, jsonPath, json,
                 clientUriConverter: clientUriConverter));
       } else {
-        throw jsonDecoder.mismatch(jsonPath, 'results');
+        throw jsonDecoder.mismatch(jsonPath, 'results', json);
       }
       return CompletionGetSuggestionsResult(
           replacementOffset, replacementLength, results);
@@ -1733,7 +1733,7 @@ class ContextRoot implements HasToJson {
                 jsonDecoder.decodeString('$jsonPath.root', json['root'])) ??
             jsonDecoder.decodeString('$jsonPath.root', json['root']);
       } else {
-        throw jsonDecoder.mismatch(jsonPath, 'root');
+        throw jsonDecoder.mismatch(jsonPath, 'root', json);
       }
       List<String> exclude;
       if (json.containsKey('exclude')) {
@@ -1745,7 +1745,7 @@ class ContextRoot implements HasToJson {
                     jsonDecoder.decodeString(jsonPath, json)) ??
                 jsonDecoder.decodeString(jsonPath, json));
       } else {
-        throw jsonDecoder.mismatch(jsonPath, 'exclude');
+        throw jsonDecoder.mismatch(jsonPath, 'exclude', json);
       }
       String? optionsFile;
       if (json.containsKey('optionsFile')) {
@@ -1877,19 +1877,19 @@ class EditGetAssistsParams implements RequestParams {
                 jsonDecoder.decodeString('$jsonPath.file', json['file'])) ??
             jsonDecoder.decodeString('$jsonPath.file', json['file']);
       } else {
-        throw jsonDecoder.mismatch(jsonPath, 'file');
+        throw jsonDecoder.mismatch(jsonPath, 'file', json);
       }
       int offset;
       if (json.containsKey('offset')) {
         offset = jsonDecoder.decodeInt('$jsonPath.offset', json['offset']);
       } else {
-        throw jsonDecoder.mismatch(jsonPath, 'offset');
+        throw jsonDecoder.mismatch(jsonPath, 'offset', json);
       }
       int length;
       if (json.containsKey('length')) {
         length = jsonDecoder.decodeInt('$jsonPath.length', json['length']);
       } else {
-        throw jsonDecoder.mismatch(jsonPath, 'length');
+        throw jsonDecoder.mismatch(jsonPath, 'length', json);
       }
       return EditGetAssistsParams(file, offset, length);
     } else {
@@ -1967,7 +1967,7 @@ class EditGetAssistsResult implements ResponseResult {
                 jsonDecoder, jsonPath, json,
                 clientUriConverter: clientUriConverter));
       } else {
-        throw jsonDecoder.mismatch(jsonPath, 'assists');
+        throw jsonDecoder.mismatch(jsonPath, 'assists', json);
       }
       return EditGetAssistsResult(assists);
     } else {
@@ -2049,19 +2049,19 @@ class EditGetAvailableRefactoringsParams implements RequestParams {
                 jsonDecoder.decodeString('$jsonPath.file', json['file'])) ??
             jsonDecoder.decodeString('$jsonPath.file', json['file']);
       } else {
-        throw jsonDecoder.mismatch(jsonPath, 'file');
+        throw jsonDecoder.mismatch(jsonPath, 'file', json);
       }
       int offset;
       if (json.containsKey('offset')) {
         offset = jsonDecoder.decodeInt('$jsonPath.offset', json['offset']);
       } else {
-        throw jsonDecoder.mismatch(jsonPath, 'offset');
+        throw jsonDecoder.mismatch(jsonPath, 'offset', json);
       }
       int length;
       if (json.containsKey('length')) {
         length = jsonDecoder.decodeInt('$jsonPath.length', json['length']);
       } else {
-        throw jsonDecoder.mismatch(jsonPath, 'length');
+        throw jsonDecoder.mismatch(jsonPath, 'length', json);
       }
       return EditGetAvailableRefactoringsParams(file, offset, length);
     } else {
@@ -2145,7 +2145,7 @@ class EditGetAvailableRefactoringsResult implements ResponseResult {
                 jsonDecoder, jsonPath, json,
                 clientUriConverter: clientUriConverter));
       } else {
-        throw jsonDecoder.mismatch(jsonPath, 'kinds');
+        throw jsonDecoder.mismatch(jsonPath, 'kinds', json);
       }
       return EditGetAvailableRefactoringsResult(kinds);
     } else {
@@ -2224,13 +2224,13 @@ class EditGetFixesParams implements RequestParams {
                 jsonDecoder.decodeString('$jsonPath.file', json['file'])) ??
             jsonDecoder.decodeString('$jsonPath.file', json['file']);
       } else {
-        throw jsonDecoder.mismatch(jsonPath, 'file');
+        throw jsonDecoder.mismatch(jsonPath, 'file', json);
       }
       int offset;
       if (json.containsKey('offset')) {
         offset = jsonDecoder.decodeInt('$jsonPath.offset', json['offset']);
       } else {
-        throw jsonDecoder.mismatch(jsonPath, 'offset');
+        throw jsonDecoder.mismatch(jsonPath, 'offset', json);
       }
       return EditGetFixesParams(file, offset);
     } else {
@@ -2304,7 +2304,7 @@ class EditGetFixesResult implements ResponseResult {
                 jsonDecoder, jsonPath, json,
                 clientUriConverter: clientUriConverter));
       } else {
-        throw jsonDecoder.mismatch(jsonPath, 'fixes');
+        throw jsonDecoder.mismatch(jsonPath, 'fixes', json);
       }
       return EditGetFixesResult(fixes);
     } else {
@@ -2405,7 +2405,7 @@ class EditGetRefactoringParams implements RequestParams {
             jsonDecoder, '$jsonPath.kind', json['kind'],
             clientUriConverter: clientUriConverter);
       } else {
-        throw jsonDecoder.mismatch(jsonPath, 'kind');
+        throw jsonDecoder.mismatch(jsonPath, 'kind', json);
       }
       String file;
       if (json.containsKey('file')) {
@@ -2413,26 +2413,26 @@ class EditGetRefactoringParams implements RequestParams {
                 jsonDecoder.decodeString('$jsonPath.file', json['file'])) ??
             jsonDecoder.decodeString('$jsonPath.file', json['file']);
       } else {
-        throw jsonDecoder.mismatch(jsonPath, 'file');
+        throw jsonDecoder.mismatch(jsonPath, 'file', json);
       }
       int offset;
       if (json.containsKey('offset')) {
         offset = jsonDecoder.decodeInt('$jsonPath.offset', json['offset']);
       } else {
-        throw jsonDecoder.mismatch(jsonPath, 'offset');
+        throw jsonDecoder.mismatch(jsonPath, 'offset', json);
       }
       int length;
       if (json.containsKey('length')) {
         length = jsonDecoder.decodeInt('$jsonPath.length', json['length']);
       } else {
-        throw jsonDecoder.mismatch(jsonPath, 'length');
+        throw jsonDecoder.mismatch(jsonPath, 'length', json);
       }
       bool validateOnly;
       if (json.containsKey('validateOnly')) {
         validateOnly = jsonDecoder.decodeBool(
             '$jsonPath.validateOnly', json['validateOnly']);
       } else {
-        throw jsonDecoder.mismatch(jsonPath, 'validateOnly');
+        throw jsonDecoder.mismatch(jsonPath, 'validateOnly', json);
       }
       RefactoringOptions? options;
       if (json.containsKey('options')) {
@@ -2571,7 +2571,7 @@ class EditGetRefactoringResult implements ResponseResult {
                 jsonDecoder, jsonPath, json,
                 clientUriConverter: clientUriConverter));
       } else {
-        throw jsonDecoder.mismatch(jsonPath, 'initialProblems');
+        throw jsonDecoder.mismatch(jsonPath, 'initialProblems', json);
       }
       List<RefactoringProblem> optionsProblems;
       if (json.containsKey('optionsProblems')) {
@@ -2582,7 +2582,7 @@ class EditGetRefactoringResult implements ResponseResult {
                 jsonDecoder, jsonPath, json,
                 clientUriConverter: clientUriConverter));
       } else {
-        throw jsonDecoder.mismatch(jsonPath, 'optionsProblems');
+        throw jsonDecoder.mismatch(jsonPath, 'optionsProblems', json);
       }
       List<RefactoringProblem> finalProblems;
       if (json.containsKey('finalProblems')) {
@@ -2593,7 +2593,7 @@ class EditGetRefactoringResult implements ResponseResult {
                 jsonDecoder, jsonPath, json,
                 clientUriConverter: clientUriConverter));
       } else {
-        throw jsonDecoder.mismatch(jsonPath, 'finalProblems');
+        throw jsonDecoder.mismatch(jsonPath, 'finalProblems', json);
       }
       RefactoringFeedback? feedback;
       if (json.containsKey('feedback')) {
@@ -2758,21 +2758,21 @@ class ExtractLocalVariableFeedback extends RefactoringFeedback {
         names = jsonDecoder.decodeList(
             '$jsonPath.names', json['names'], jsonDecoder.decodeString);
       } else {
-        throw jsonDecoder.mismatch(jsonPath, 'names');
+        throw jsonDecoder.mismatch(jsonPath, 'names', json);
       }
       List<int> offsets;
       if (json.containsKey('offsets')) {
         offsets = jsonDecoder.decodeList(
             '$jsonPath.offsets', json['offsets'], jsonDecoder.decodeInt);
       } else {
-        throw jsonDecoder.mismatch(jsonPath, 'offsets');
+        throw jsonDecoder.mismatch(jsonPath, 'offsets', json);
       }
       List<int> lengths;
       if (json.containsKey('lengths')) {
         lengths = jsonDecoder.decodeList(
             '$jsonPath.lengths', json['lengths'], jsonDecoder.decodeInt);
       } else {
-        throw jsonDecoder.mismatch(jsonPath, 'lengths');
+        throw jsonDecoder.mismatch(jsonPath, 'lengths', json);
       }
       return ExtractLocalVariableFeedback(names, offsets, lengths,
           coveringExpressionOffsets: coveringExpressionOffsets,
@@ -2856,14 +2856,14 @@ class ExtractLocalVariableOptions extends RefactoringOptions {
       if (json.containsKey('name')) {
         name = jsonDecoder.decodeString('$jsonPath.name', json['name']);
       } else {
-        throw jsonDecoder.mismatch(jsonPath, 'name');
+        throw jsonDecoder.mismatch(jsonPath, 'name', json);
       }
       bool extractAll;
       if (json.containsKey('extractAll')) {
         extractAll =
             jsonDecoder.decodeBool('$jsonPath.extractAll', json['extractAll']);
       } else {
-        throw jsonDecoder.mismatch(jsonPath, 'extractAll');
+        throw jsonDecoder.mismatch(jsonPath, 'extractAll', json);
       }
       return ExtractLocalVariableOptions(name, extractAll);
     } else {
@@ -2964,34 +2964,34 @@ class ExtractMethodFeedback extends RefactoringFeedback {
       if (json.containsKey('offset')) {
         offset = jsonDecoder.decodeInt('$jsonPath.offset', json['offset']);
       } else {
-        throw jsonDecoder.mismatch(jsonPath, 'offset');
+        throw jsonDecoder.mismatch(jsonPath, 'offset', json);
       }
       int length;
       if (json.containsKey('length')) {
         length = jsonDecoder.decodeInt('$jsonPath.length', json['length']);
       } else {
-        throw jsonDecoder.mismatch(jsonPath, 'length');
+        throw jsonDecoder.mismatch(jsonPath, 'length', json);
       }
       String returnType;
       if (json.containsKey('returnType')) {
         returnType = jsonDecoder.decodeString(
             '$jsonPath.returnType', json['returnType']);
       } else {
-        throw jsonDecoder.mismatch(jsonPath, 'returnType');
+        throw jsonDecoder.mismatch(jsonPath, 'returnType', json);
       }
       List<String> names;
       if (json.containsKey('names')) {
         names = jsonDecoder.decodeList(
             '$jsonPath.names', json['names'], jsonDecoder.decodeString);
       } else {
-        throw jsonDecoder.mismatch(jsonPath, 'names');
+        throw jsonDecoder.mismatch(jsonPath, 'names', json);
       }
       bool canCreateGetter;
       if (json.containsKey('canCreateGetter')) {
         canCreateGetter = jsonDecoder.decodeBool(
             '$jsonPath.canCreateGetter', json['canCreateGetter']);
       } else {
-        throw jsonDecoder.mismatch(jsonPath, 'canCreateGetter');
+        throw jsonDecoder.mismatch(jsonPath, 'canCreateGetter', json);
       }
       List<RefactoringMethodParameter> parameters;
       if (json.containsKey('parameters')) {
@@ -3002,21 +3002,21 @@ class ExtractMethodFeedback extends RefactoringFeedback {
                 RefactoringMethodParameter.fromJson(jsonDecoder, jsonPath, json,
                     clientUriConverter: clientUriConverter));
       } else {
-        throw jsonDecoder.mismatch(jsonPath, 'parameters');
+        throw jsonDecoder.mismatch(jsonPath, 'parameters', json);
       }
       List<int> offsets;
       if (json.containsKey('offsets')) {
         offsets = jsonDecoder.decodeList(
             '$jsonPath.offsets', json['offsets'], jsonDecoder.decodeInt);
       } else {
-        throw jsonDecoder.mismatch(jsonPath, 'offsets');
+        throw jsonDecoder.mismatch(jsonPath, 'offsets', json);
       }
       List<int> lengths;
       if (json.containsKey('lengths')) {
         lengths = jsonDecoder.decodeList(
             '$jsonPath.lengths', json['lengths'], jsonDecoder.decodeInt);
       } else {
-        throw jsonDecoder.mismatch(jsonPath, 'lengths');
+        throw jsonDecoder.mismatch(jsonPath, 'lengths', json);
       }
       return ExtractMethodFeedback(offset, length, returnType, names,
           canCreateGetter, parameters, offsets, lengths);
@@ -3129,20 +3129,20 @@ class ExtractMethodOptions extends RefactoringOptions {
         returnType = jsonDecoder.decodeString(
             '$jsonPath.returnType', json['returnType']);
       } else {
-        throw jsonDecoder.mismatch(jsonPath, 'returnType');
+        throw jsonDecoder.mismatch(jsonPath, 'returnType', json);
       }
       bool createGetter;
       if (json.containsKey('createGetter')) {
         createGetter = jsonDecoder.decodeBool(
             '$jsonPath.createGetter', json['createGetter']);
       } else {
-        throw jsonDecoder.mismatch(jsonPath, 'createGetter');
+        throw jsonDecoder.mismatch(jsonPath, 'createGetter', json);
       }
       String name;
       if (json.containsKey('name')) {
         name = jsonDecoder.decodeString('$jsonPath.name', json['name']);
       } else {
-        throw jsonDecoder.mismatch(jsonPath, 'name');
+        throw jsonDecoder.mismatch(jsonPath, 'name', json);
       }
       List<RefactoringMethodParameter> parameters;
       if (json.containsKey('parameters')) {
@@ -3153,14 +3153,14 @@ class ExtractMethodOptions extends RefactoringOptions {
                 RefactoringMethodParameter.fromJson(jsonDecoder, jsonPath, json,
                     clientUriConverter: clientUriConverter));
       } else {
-        throw jsonDecoder.mismatch(jsonPath, 'parameters');
+        throw jsonDecoder.mismatch(jsonPath, 'parameters', json);
       }
       bool extractAll;
       if (json.containsKey('extractAll')) {
         extractAll =
             jsonDecoder.decodeBool('$jsonPath.extractAll', json['extractAll']);
       } else {
-        throw jsonDecoder.mismatch(jsonPath, 'extractAll');
+        throw jsonDecoder.mismatch(jsonPath, 'extractAll', json);
       }
       return ExtractMethodOptions(
           returnType, createGetter, name, parameters, extractAll);
@@ -3246,14 +3246,14 @@ class InlineLocalVariableFeedback extends RefactoringFeedback {
       if (json.containsKey('name')) {
         name = jsonDecoder.decodeString('$jsonPath.name', json['name']);
       } else {
-        throw jsonDecoder.mismatch(jsonPath, 'name');
+        throw jsonDecoder.mismatch(jsonPath, 'name', json);
       }
       int occurrences;
       if (json.containsKey('occurrences')) {
         occurrences =
             jsonDecoder.decodeInt('$jsonPath.occurrences', json['occurrences']);
       } else {
-        throw jsonDecoder.mismatch(jsonPath, 'occurrences');
+        throw jsonDecoder.mismatch(jsonPath, 'occurrences', json);
       }
       return InlineLocalVariableFeedback(name, occurrences);
     } else {
@@ -3338,14 +3338,14 @@ class InlineMethodFeedback extends RefactoringFeedback {
         methodName = jsonDecoder.decodeString(
             '$jsonPath.methodName', json['methodName']);
       } else {
-        throw jsonDecoder.mismatch(jsonPath, 'methodName');
+        throw jsonDecoder.mismatch(jsonPath, 'methodName', json);
       }
       bool isDeclaration;
       if (json.containsKey('isDeclaration')) {
         isDeclaration = jsonDecoder.decodeBool(
             '$jsonPath.isDeclaration', json['isDeclaration']);
       } else {
-        throw jsonDecoder.mismatch(jsonPath, 'isDeclaration');
+        throw jsonDecoder.mismatch(jsonPath, 'isDeclaration', json);
       }
       return InlineMethodFeedback(methodName, isDeclaration,
           className: className);
@@ -3416,14 +3416,14 @@ class InlineMethodOptions extends RefactoringOptions {
         deleteSource = jsonDecoder.decodeBool(
             '$jsonPath.deleteSource', json['deleteSource']);
       } else {
-        throw jsonDecoder.mismatch(jsonPath, 'deleteSource');
+        throw jsonDecoder.mismatch(jsonPath, 'deleteSource', json);
       }
       bool inlineAll;
       if (json.containsKey('inlineAll')) {
         inlineAll =
             jsonDecoder.decodeBool('$jsonPath.inlineAll', json['inlineAll']);
       } else {
-        throw jsonDecoder.mismatch(jsonPath, 'inlineAll');
+        throw jsonDecoder.mismatch(jsonPath, 'inlineAll', json);
       }
       return InlineMethodOptions(deleteSource, inlineAll);
     } else {
@@ -3500,7 +3500,7 @@ class MoveFileOptions extends RefactoringOptions {
                 .decodeString('$jsonPath.newFile', json['newFile'])) ??
             jsonDecoder.decodeString('$jsonPath.newFile', json['newFile']);
       } else {
-        throw jsonDecoder.mismatch(jsonPath, 'newFile');
+        throw jsonDecoder.mismatch(jsonPath, 'newFile', json);
       }
       return MoveFileOptions(newFile);
     } else {
@@ -3573,21 +3573,21 @@ class PluginErrorParams implements HasToJson {
       if (json.containsKey('isFatal')) {
         isFatal = jsonDecoder.decodeBool('$jsonPath.isFatal', json['isFatal']);
       } else {
-        throw jsonDecoder.mismatch(jsonPath, 'isFatal');
+        throw jsonDecoder.mismatch(jsonPath, 'isFatal', json);
       }
       String message;
       if (json.containsKey('message')) {
         message =
             jsonDecoder.decodeString('$jsonPath.message', json['message']);
       } else {
-        throw jsonDecoder.mismatch(jsonPath, 'message');
+        throw jsonDecoder.mismatch(jsonPath, 'message', json);
       }
       String stackTrace;
       if (json.containsKey('stackTrace')) {
         stackTrace = jsonDecoder.decodeString(
             '$jsonPath.stackTrace', json['stackTrace']);
       } else {
-        throw jsonDecoder.mismatch(jsonPath, 'stackTrace');
+        throw jsonDecoder.mismatch(jsonPath, 'stackTrace', json);
       }
       return PluginErrorParams(isFatal, message, stackTrace);
     } else {
@@ -3781,7 +3781,7 @@ class PluginVersionCheckParams implements RequestParams {
             jsonDecoder.decodeString(
                 '$jsonPath.byteStorePath', json['byteStorePath']);
       } else {
-        throw jsonDecoder.mismatch(jsonPath, 'byteStorePath');
+        throw jsonDecoder.mismatch(jsonPath, 'byteStorePath', json);
       }
       String sdkPath;
       if (json.containsKey('sdkPath')) {
@@ -3789,14 +3789,14 @@ class PluginVersionCheckParams implements RequestParams {
                 .decodeString('$jsonPath.sdkPath', json['sdkPath'])) ??
             jsonDecoder.decodeString('$jsonPath.sdkPath', json['sdkPath']);
       } else {
-        throw jsonDecoder.mismatch(jsonPath, 'sdkPath');
+        throw jsonDecoder.mismatch(jsonPath, 'sdkPath', json);
       }
       String version;
       if (json.containsKey('version')) {
         version =
             jsonDecoder.decodeString('$jsonPath.version', json['version']);
       } else {
-        throw jsonDecoder.mismatch(jsonPath, 'version');
+        throw jsonDecoder.mismatch(jsonPath, 'version', json);
       }
       return PluginVersionCheckParams(byteStorePath, sdkPath, version);
     } else {
@@ -3898,20 +3898,20 @@ class PluginVersionCheckResult implements ResponseResult {
         isCompatible = jsonDecoder.decodeBool(
             '$jsonPath.isCompatible', json['isCompatible']);
       } else {
-        throw jsonDecoder.mismatch(jsonPath, 'isCompatible');
+        throw jsonDecoder.mismatch(jsonPath, 'isCompatible', json);
       }
       String name;
       if (json.containsKey('name')) {
         name = jsonDecoder.decodeString('$jsonPath.name', json['name']);
       } else {
-        throw jsonDecoder.mismatch(jsonPath, 'name');
+        throw jsonDecoder.mismatch(jsonPath, 'name', json);
       }
       String version;
       if (json.containsKey('version')) {
         version =
             jsonDecoder.decodeString('$jsonPath.version', json['version']);
       } else {
-        throw jsonDecoder.mismatch(jsonPath, 'version');
+        throw jsonDecoder.mismatch(jsonPath, 'version', json);
       }
       String? contactInfo;
       if (json.containsKey('contactInfo')) {
@@ -3923,7 +3923,7 @@ class PluginVersionCheckResult implements ResponseResult {
         interestingFiles = jsonDecoder.decodeList('$jsonPath.interestingFiles',
             json['interestingFiles'], jsonDecoder.decodeString);
       } else {
-        throw jsonDecoder.mismatch(jsonPath, 'interestingFiles');
+        throw jsonDecoder.mismatch(jsonPath, 'interestingFiles', json);
       }
       return PluginVersionCheckResult(
           isCompatible, name, version, interestingFiles,
@@ -4017,7 +4017,7 @@ class PrioritizedSourceChange implements HasToJson {
         priority =
             jsonDecoder.decodeInt('$jsonPath.priority', json['priority']);
       } else {
-        throw jsonDecoder.mismatch(jsonPath, 'priority');
+        throw jsonDecoder.mismatch(jsonPath, 'priority', json);
       }
       SourceChange change;
       if (json.containsKey('change')) {
@@ -4025,7 +4025,7 @@ class PrioritizedSourceChange implements HasToJson {
             jsonDecoder, '$jsonPath.change', json['change'],
             clientUriConverter: clientUriConverter);
       } else {
-        throw jsonDecoder.mismatch(jsonPath, 'change');
+        throw jsonDecoder.mismatch(jsonPath, 'change', json);
       }
       return PrioritizedSourceChange(priority, change);
     } else {
@@ -4169,27 +4169,27 @@ class RenameFeedback extends RefactoringFeedback {
       if (json.containsKey('offset')) {
         offset = jsonDecoder.decodeInt('$jsonPath.offset', json['offset']);
       } else {
-        throw jsonDecoder.mismatch(jsonPath, 'offset');
+        throw jsonDecoder.mismatch(jsonPath, 'offset', json);
       }
       int length;
       if (json.containsKey('length')) {
         length = jsonDecoder.decodeInt('$jsonPath.length', json['length']);
       } else {
-        throw jsonDecoder.mismatch(jsonPath, 'length');
+        throw jsonDecoder.mismatch(jsonPath, 'length', json);
       }
       String elementKindName;
       if (json.containsKey('elementKindName')) {
         elementKindName = jsonDecoder.decodeString(
             '$jsonPath.elementKindName', json['elementKindName']);
       } else {
-        throw jsonDecoder.mismatch(jsonPath, 'elementKindName');
+        throw jsonDecoder.mismatch(jsonPath, 'elementKindName', json);
       }
       String oldName;
       if (json.containsKey('oldName')) {
         oldName =
             jsonDecoder.decodeString('$jsonPath.oldName', json['oldName']);
       } else {
-        throw jsonDecoder.mismatch(jsonPath, 'oldName');
+        throw jsonDecoder.mismatch(jsonPath, 'oldName', json);
       }
       return RenameFeedback(offset, length, elementKindName, oldName);
     } else {
@@ -4253,7 +4253,7 @@ class RenameOptions extends RefactoringOptions {
         newName =
             jsonDecoder.decodeString('$jsonPath.newName', json['newName']);
       } else {
-        throw jsonDecoder.mismatch(jsonPath, 'newName');
+        throw jsonDecoder.mismatch(jsonPath, 'newName', json);
       }
       return RenameOptions(newName);
     } else {
@@ -4324,14 +4324,14 @@ class RequestError implements HasToJson {
             jsonDecoder, '$jsonPath.code', json['code'],
             clientUriConverter: clientUriConverter);
       } else {
-        throw jsonDecoder.mismatch(jsonPath, 'code');
+        throw jsonDecoder.mismatch(jsonPath, 'code', json);
       }
       String message;
       if (json.containsKey('message')) {
         message =
             jsonDecoder.decodeString('$jsonPath.message', json['message']);
       } else {
-        throw jsonDecoder.mismatch(jsonPath, 'message');
+        throw jsonDecoder.mismatch(jsonPath, 'message', json);
       }
       String? stackTrace;
       if (json.containsKey('stackTrace')) {
@@ -4456,7 +4456,7 @@ class WatchEvent implements HasToJson {
             jsonDecoder, '$jsonPath.type', json['type'],
             clientUriConverter: clientUriConverter);
       } else {
-        throw jsonDecoder.mismatch(jsonPath, 'type');
+        throw jsonDecoder.mismatch(jsonPath, 'type', json);
       }
       String path;
       if (json.containsKey('path')) {
@@ -4464,7 +4464,7 @@ class WatchEvent implements HasToJson {
                 jsonDecoder.decodeString('$jsonPath.path', json['path'])) ??
             jsonDecoder.decodeString('$jsonPath.path', json['path']);
       } else {
-        throw jsonDecoder.mismatch(jsonPath, 'path');
+        throw jsonDecoder.mismatch(jsonPath, 'path', json);
       }
       return WatchEvent(type, path);
     } else {
