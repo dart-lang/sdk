@@ -182,12 +182,9 @@ class PubPackageResolutionTest with MockPackagesMixin, ResourceProviderMixin {
   List<String> get _collectionIncludedPaths => [workspaceRootPath];
 
   /// The diagnostics that were computed during analysis.
-  List<Diagnostic> get _diagnostics =>
-      result.diagnostics
-          .where(
-            (e) => !ignoredDiagnosticCodes.any((c) => e.diagnosticCode == c),
-          )
-          .toList();
+  List<Diagnostic> get _diagnostics => result.diagnostics
+      .where((e) => !ignoredDiagnosticCodes.any((c) => e.diagnosticCode == c))
+      .toList();
 
   Folder get _sdkRoot => newFolder('/sdk');
 

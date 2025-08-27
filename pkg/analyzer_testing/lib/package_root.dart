@@ -11,8 +11,9 @@ import 'package:path/path.dart' as path;
 String get packageRoot {
   // If the package root directory is specified on the command line using
   // `-DpkgRoot=...`, use that.
-  const pkgRootVar =
-      bool.hasEnvironment('pkgRoot') ? String.fromEnvironment('pkgRoot') : null;
+  const pkgRootVar = bool.hasEnvironment('pkgRoot')
+      ? String.fromEnvironment('pkgRoot')
+      : null;
   if (pkgRootVar != null) {
     var pkgRootPath = path.join(Directory.current.path, pkgRootVar);
     if (!pkgRootPath.endsWith(path.separator)) pkgRootPath += path.separator;
