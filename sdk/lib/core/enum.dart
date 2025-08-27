@@ -102,6 +102,8 @@ abstract interface class Enum {
 /// Superclass of all enum class implementations.
 @pragma('dyn-module:language-impl:extendable')
 abstract class _Enum implements Enum {
+  // See http://dartbug.com/51657 for discussion of dart2js pragma.
+  @pragma('dart2js:noElision')
   final int index;
 
   @pragma('dyn-module:language-impl:callable')
