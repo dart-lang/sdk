@@ -334,6 +334,8 @@ class DriverEventsPrinter {
 
           sink.writeElements('errors', result.diagnostics, _writeDiagnostic);
         });
+      case MissingSdkLibraryResultImpl():
+        _writeMissingSdkLibraryResult(result);
       default:
         throw UnimplementedError('${result.runtimeType}');
     }
@@ -423,6 +425,8 @@ class DriverEventsPrinter {
     sink.withIndent(() {
       var result = event.result;
       switch (result) {
+        case MissingSdkLibraryResultImpl():
+          _writeMissingSdkLibraryResult(result);
         case UnitElementResult():
           _writeUnitElementResult(result);
         default:
@@ -446,6 +450,8 @@ class DriverEventsPrinter {
     switch (result) {
       case CannotResolveUriResult():
         sink.writelnWithIndent('CannotResolveUriResult');
+      case MissingSdkLibraryResultImpl():
+        _writeMissingSdkLibraryResult(result);
       case NotLibraryButPartResult():
         sink.writelnWithIndent('NotLibraryButPartResult');
       case LibraryElementResultImpl():
@@ -492,6 +498,15 @@ class DriverEventsPrinter {
         }
       }
       _writeRequirements(object.requirements);
+    });
+  }
+
+  void _writeMissingSdkLibraryResult(MissingSdkLibraryResultImpl result) {
+    var id = idProvider[result];
+    sink.writelnWithIndent('MissingSdkLibraryResult $id');
+
+    sink.withIndent(() {
+      sink.writelnWithIndent('missingUri: ${result.missingUri}');
     });
   }
 
@@ -642,6 +657,8 @@ class DriverEventsPrinter {
     switch (result) {
       case CannotResolveUriResult():
         sink.writelnWithIndent('CannotResolveUriResult');
+      case MissingSdkLibraryResultImpl():
+        _writeMissingSdkLibraryResult(result);
       case NotLibraryButPartResult():
         sink.writelnWithIndent('NotLibraryButPartResult');
       case ResolvedLibraryResult():
@@ -660,13 +677,20 @@ class DriverEventsPrinter {
   }
 
   void _writeResolvedUnitResult(SomeResolvedUnitResult result) {
-    ResolvedUnitResultPrinter(
-      configuration: configuration.libraryConfiguration.unitConfiguration,
-      sink: sink,
-      elementPrinter: elementPrinter,
-      idProvider: idProvider,
-      libraryElement: null,
-    ).write(result);
+    switch (result) {
+      case MissingSdkLibraryResultImpl():
+        _writeMissingSdkLibraryResult(result);
+      case ResolvedUnitResultImpl():
+        ResolvedUnitResultPrinter(
+          configuration: configuration.libraryConfiguration.unitConfiguration,
+          sink: sink,
+          elementPrinter: elementPrinter,
+          idProvider: idProvider,
+          libraryElement: null,
+        ).write(result);
+      default:
+        throw UnimplementedError('${result.runtimeType}');
+    }
   }
 
   void _writeResultStreamEvent(ResultStreamEvent event) {
@@ -1568,6 +1592,8 @@ class ResolvedLibraryResultPrinter {
   }
 
   void _writeResolvedUnitResult(ResolvedUnitResult result) {
+    // TODO(scheglov): remove the cast
+    result as ResolvedUnitResultImpl;
     ResolvedUnitResultPrinter(
       configuration: configuration.unitConfiguration,
       sink: sink,
@@ -1597,13 +1623,8 @@ class ResolvedUnitResultPrinter {
     required this.idProvider,
   });
 
-  void write(SomeResolvedUnitResult result) {
-    switch (result) {
-      case ResolvedUnitResultImpl():
-        _writeResolvedUnitResult(result);
-      default:
-        throw UnimplementedError('${result.runtimeType}');
-    }
+  void write(ResolvedUnitResultImpl result) {
+    _writeResolvedUnitResult(result);
   }
 
   void _writeDiagnostic(Diagnostic d) {

@@ -39,7 +39,6 @@ import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/resolver/flow_analysis_visitor.dart';
 import 'package:analyzer/src/dartdoc/dartdoc_directive_info.dart';
 import 'package:analyzer/src/diagnostic/diagnostic.dart';
-import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/exception/exception.dart';
 import 'package:analyzer/src/fine/requirements.dart';
 import 'package:analyzer/src/generated/engine.dart'
@@ -1315,19 +1314,7 @@ class AnalysisDriver {
           events.AnalyzeFile(file: file, library: library),
         );
 
-        if (!_hasLibraryByUri('dart:core')) {
-          _errorsRequestedFiles.completeAll(
-            path,
-            _newMissingDartLibraryResult(file, 'dart:core'),
-          );
-          return;
-        }
-
-        if (!_hasLibraryByUri('dart:async')) {
-          _errorsRequestedFiles.completeAll(
-            path,
-            _newMissingDartLibraryResult(file, 'dart:async'),
-          );
+        if (_completeRequestsIfMissingSdkLibrary(library)) {
           return;
         }
 
@@ -1572,6 +1559,50 @@ class AnalysisDriver {
     _resolvedLibraryCache.clear();
   }
 
+  /// Completes pending requests if a required SDK library is missing.
+  ///
+  /// If a required SDK library is missing, this completes all pending requests
+  /// for the [library] and returns `true`.
+  bool _completeRequestsIfMissingSdkLibrary(LibraryFileKind library) {
+    bool hasLibraryByUri(Uri uri) {
+      var fileOr = _fsState.getFileForUri(uri);
+      return switch (fileOr) {
+        null => false,
+        UriResolutionFile(:var file) => file.exists,
+        UriResolutionExternalLibrary() => true,
+      };
+    }
+
+    void emitMissingSdkLibraryResult(Uri missingUri) {
+      var result = MissingSdkLibraryResultImpl(missingUri: missingUri);
+
+      _requestedLibraries.completeAll(library.file.path, result);
+
+      for (var file in library.files) {
+        _fileTracker.fileWasAnalyzed(file.path);
+        _errorsRequestedFiles.completeAll(file.path, result);
+        _requestedFiles.completeAll(file.path, result);
+        _requestedFilesNonInteractive.completeAll(file.path, result);
+        _unitElementRequestedFiles.completeAll(file.path, result);
+        _indexRequestedFiles.completeAll(file.path, null);
+      }
+    }
+
+    var dartCore = uriCache.parse('dart:core');
+    if (!hasLibraryByUri(dartCore)) {
+      emitMissingSdkLibraryResult(dartCore);
+      return true;
+    }
+
+    var dartAsync = uriCache.parse('dart:async');
+    if (!hasLibraryByUri(dartAsync)) {
+      emitMissingSdkLibraryResult(dartAsync);
+      return true;
+    }
+
+    return false;
+  }
+
   ErrorsResultImpl _createErrorsResultFromBytes(
     FileState file,
     LibraryFileKind library,
@@ -1709,21 +1740,7 @@ class AnalysisDriver {
       var kind = file.kind;
       var library = kind.library ?? kind.asLibrary;
 
-      // TODO(scheglov): this is duplicate
-      if (!_hasLibraryByUri('dart:core')) {
-        _errorsRequestedFiles.completeAll(
-          path,
-          _newMissingDartLibraryResult(file, 'dart:core'),
-        );
-        return;
-      }
-
-      // TODO(scheglov): this is duplicate
-      if (!_hasLibraryByUri('dart:async')) {
-        _errorsRequestedFiles.completeAll(
-          path,
-          _newMissingDartLibraryResult(file, 'dart:async'),
-        );
+      if (_completeRequestsIfMissingSdkLibrary(library)) {
         return;
       }
 
@@ -1841,6 +1858,10 @@ class AnalysisDriver {
     var kind = file.kind;
     var library = kind.library ?? kind.asLibrary;
 
+    if (_completeRequestsIfMissingSdkLibrary(library)) {
+      return;
+    }
+
     // Prepare the signature and key.
     var signature = _getResolvedUnitSignature(library, file);
     var key = _getResolvedUnitKey(signature);
@@ -1932,6 +1953,10 @@ class AnalysisDriver {
       var kind = file.kind;
       var library = kind.library ?? kind.asLibrary;
 
+      if (_completeRequestsIfMissingSdkLibrary(library)) {
+        return;
+      }
+
       performance.run('libraryContext', (performance) {
         libraryContext.load(targetLibrary: library, performance: performance);
       });
@@ -1945,16 +1970,6 @@ class AnalysisDriver {
 
       _unitElementRequestedFiles.completeAll(path, result);
     });
-  }
-
-  bool _hasLibraryByUri(String uriStr) {
-    var uri = uriCache.parse(uriStr);
-    var fileOr = _fsState.getFileForUri(uri);
-    return switch (fileOr) {
-      null => false,
-      UriResolutionFile(:var file) => file.exists,
-      UriResolutionExternalLibrary() => true,
-    };
   }
 
   bool _isAbsolutePath(String path) {
@@ -1981,34 +1996,6 @@ class AnalysisDriver {
     }
   }
 
-  /// We detected that one of the required `dart` libraries is missing.
-  /// Return the empty analysis result with the error.
-  ErrorsResultImpl _newMissingDartLibraryResult(
-    FileState file,
-    String missingUri,
-  ) {
-    // TODO(scheglov): Find a better way to report this.
-    return ErrorsResultImpl(
-      session: currentSession,
-      file: file.resource,
-      content: file.content,
-      lineInfo: file.lineInfo,
-      uri: file.uri,
-      isLibrary: file.kind is LibraryFileKind,
-      isPart: file.kind is PartFileKind,
-      diagnostics: [
-        Diagnostic.tmp(
-          source: file.source,
-          offset: 0,
-          length: 0,
-          diagnosticCode: CompileTimeErrorCode.missingDartLibrary,
-          arguments: [missingUri],
-        ),
-      ],
-      analysisOptions: file.analysisOptions,
-    );
-  }
-
   void _onNewFile(FileState file) {
     var ownedFiles = this.ownedFiles;
     if (ownedFiles != null) {
@@ -2027,6 +2014,10 @@ class AnalysisDriver {
       // Prepare the library - the file itself, or the known library.
       var kind = file.kind;
       var library = kind.library ?? kind.asLibrary;
+
+      if (_completeRequestsIfMissingSdkLibrary(library)) {
+        return;
+      }
 
       // Errors are based on elements, so load them.
       performance.run('libraryContext', (performance) {

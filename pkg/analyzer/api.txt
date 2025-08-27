@@ -487,6 +487,9 @@ package:analyzer/dart/analysis/results.dart:
     new (constructor: LibraryElementResult Function())
     element (getter: LibraryElement, experimental)
     element2 (getter: LibraryElement, deprecated, experimental)
+  MissingSdkLibraryResult (class extends Object implements InvalidResult, SomeErrorsResult, SomeResolvedLibraryResult, SomeResolvedUnitResult, SomeLibraryElementResult, SomeUnitElementResult):
+    new (constructor: MissingSdkLibraryResult Function())
+    missingUri (getter: Uri)
   NotElementOfThisSessionResult (class extends Object implements InvalidResult, SomeParsedLibraryResult, SomeResolvedLibraryResult):
     new (constructor: NotElementOfThisSessionResult Function())
   NotLibraryButPartResult (class extends Object implements InvalidResult, SomeLibraryElementResult, SomeParsedLibraryResult, SomeResolvedLibraryResult):
