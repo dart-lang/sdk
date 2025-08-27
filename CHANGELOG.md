@@ -42,6 +42,11 @@ To learn more about the feature, check out the
 
 ### Tools
 
+#### Analyzer
+
+- Lint rules which are incompatible with each other and which are specified in
+  included analysis options files are now reported.
+
 #### Dart CLI and Dart VM
 
 - The Dart CLI and Dart VM have been split into two seperate executables.
@@ -122,7 +127,40 @@ constraint][language version] lower bound to 3.9 or greater (`sdk: '^3.9.0'`).
 
 - Add the [`switch_on_type`][] lint rule.
 - Add the [`unnecessary_unawaited`][] lint rule.
-- Add an assist to convert a field formal parameter to a normal parameter.
+- Support a new annotation, `@awaitNotRequired`, which is used by the
+  `discarded_futures` and `unawaited_futures` lint rules.
+- Improve the `avoid_types_as_parameter_names` lint rule to include type
+  parameters.
+- The definition of an "obvious type" is expanded for the relevant lint rules,
+  to include the type of a parameter.
+- Many small improvements to the `discarded_futures` and `unawaited_futures`
+  lint rules.
+- The code that calculates fixes and assists has numerous performance
+  improvements.
+- A new "Remove async" assist is available.
+- A new "Convert to normal parameter" assist is available for field formal
+  parameters.
+- New fixes are available for the following diagnostics:
+  - `for_in_of_invalid_type`
+  - `implicit_this_reference_in_initializer`
+  - `prefer_foreach`
+  - `undefined_operator`
+  - `use_if_null_to_convert_nulls_to_bools`
+- Numerous fixes and improvements are included in the "create method," "create
+  getter," "create mixin," "add super constructor," and "replace final with
+  var" fixes.
+- Dependencies listed in `dependency_overrides` in a `pubspec.yaml` file now
+  have document links to pub.dev.
+- Improvements to type parameters and type arguments in the LSP type hierarchy.
+- Folding try/catch/finally blocks is now supported for LSP clients.
+- Improve code completion suggestions with regards to operators, extension
+  members, named parameters, doc comments, patterns, collection if-elements and
+  for-elements, and more.
+- Improve syntax highlighting of escape sequences in string literals.
+- Add "library cycle" information to the diagnostic pages.
+- (Thanks [@FMorschel](https://github.com/FMorschel) for many of the above
+  enhancements!)
+
 
 [dart command-line tool]: https://dart.dev/tools/dart-tool
 [vs-code-args]: https://dartcode.org/docs/settings/#dartanalyzeradditionalargs
