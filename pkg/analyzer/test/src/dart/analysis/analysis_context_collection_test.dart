@@ -9,7 +9,6 @@ import 'package:analyzer/src/dart/analysis/analysis_options.dart';
 import 'package:analyzer/src/dart/analysis/driver_based_analysis_context.dart';
 import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer/src/dart/analysis/file_state.dart';
-import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/test_utilities/mock_sdk.dart';
 import 'package:analyzer/src/util/file_paths.dart' as file_paths;
 import 'package:analyzer/src/utilities/extensions/file_system.dart';
@@ -379,7 +378,7 @@ name: test
 
     _assertWorkspaceCollectionText(
       workspaceRootPath,
-      updateAnalysisOptions: ({required analysisOptions, required sdk}) {
+      updateAnalysisOptions: ({required analysisOptions}) {
         analysisOptions.contextFeatures = FeatureSet.fromEnableFlags2(
           sdkLanguageVersion: ExperimentStatus.currentVersion,
           flags: ['digit-separators', 'variance'],
@@ -461,7 +460,7 @@ name: test
 
     _assertWorkspaceCollectionText(
       workspaceRootPath,
-      updateAnalysisOptions: ({required analysisOptions, required sdk}) {
+      updateAnalysisOptions: ({required analysisOptions}) {
         analysisOptions.contextFeatures = FeatureSet.fromEnableFlags2(
           sdkLanguageVersion: ExperimentStatus.currentVersion,
           flags: ['variance'],
@@ -1243,10 +1242,7 @@ workspaces
     String workspaceRootPath,
     String expected, {
     File? optionsFile,
-    void Function({
-      required AnalysisOptionsImpl analysisOptions,
-      required DartSdk sdk,
-    })?
+    void Function({required AnalysisOptionsImpl analysisOptions})?
     updateAnalysisOptions,
   }) {
     if (optionsFile != null) {
@@ -1257,7 +1253,7 @@ workspaces
       sdkPath: sdkRoot.path,
       includedPaths: [getFolder(workspaceRootPath).path],
       optionsFile: optionsFile?.path,
-      updateAnalysisOptions3: updateAnalysisOptions,
+      updateAnalysisOptions4: updateAnalysisOptions,
     );
 
     _assertCollectionText(collection, expected);
