@@ -338,8 +338,9 @@ class CommandLineOptions {
   static String _getVersion() {
     try {
       // This is relative to bin/snapshot, so ../..
-      var versionPath =
-          io.Platform.script.resolve('../../version').toFilePath();
+      var versionPath = io.Platform.script
+          .resolve('../../version')
+          .toFilePath();
       var versionFile = io.File(versionPath);
       return versionFile.readAsStringSync().trim();
     } catch (_) {

@@ -84,8 +84,12 @@ void main() {
       });
 
       test('disable cache flushing', () {
-        var options =
-            parse(['--dart-sdk', '.', '--disable-cache-flushing', 'foo.dart'])!;
+        var options = parse([
+          '--dart-sdk',
+          '.',
+          '--disable-cache-flushing',
+          'foo.dart',
+        ])!;
         expect(options.disableCacheFlushing, isTrue);
       });
 
@@ -148,14 +152,13 @@ void main() {
           test('mixed single and multiple flags', () {
             var options = overrideKnownFeatures(
               knownFeatures,
-              () =>
-                  parse([
-                    '--enable-experiment',
-                    'a,b',
-                    '--enable-experiment',
-                    'c',
-                    'foo.dart',
-                  ])!,
+              () => parse([
+                '--enable-experiment',
+                'a,b',
+                '--enable-experiment',
+                'c',
+                'foo.dart',
+              ])!,
             );
             expect(options.enabledExperiments, ['a', 'b', 'c']);
           });
@@ -163,14 +166,13 @@ void main() {
           test('multiple flags', () {
             var options = overrideKnownFeatures(
               knownFeatures,
-              () =>
-                  parse([
-                    '--enable-experiment',
-                    'a',
-                    '--enable-experiment',
-                    'b',
-                    'foo.dart',
-                  ])!,
+              () => parse([
+                '--enable-experiment',
+                'a',
+                '--enable-experiment',
+                'b',
+                'foo.dart',
+              ])!,
             );
             expect(options.enabledExperiments, ['a', 'b']);
           });
@@ -184,42 +186,48 @@ void main() {
 
       group('format', () {
         test('json', () {
-          var options =
-              parse(['--dart-sdk', '.', '--format=json', 'foo.dart'])!;
+          var options = parse([
+            '--dart-sdk',
+            '.',
+            '--format=json',
+            'foo.dart',
+          ])!;
           expect(options.jsonFormat, isTrue);
           expect(options.machineFormat, isFalse);
         });
 
         test('machine', () {
-          var options =
-              parse(['--dart-sdk', '.', '--format=machine', 'foo.dart'])!;
+          var options = parse([
+            '--dart-sdk',
+            '.',
+            '--format=machine',
+            'foo.dart',
+          ])!;
           expect(options.jsonFormat, isFalse);
           expect(options.machineFormat, isTrue);
         });
       });
 
       test('options', () {
-        var options =
-            parse([
-              '--dart-sdk',
-              '.',
-              '--options',
-              'options.yaml',
-              'foo.dart',
-            ])!;
+        var options = parse([
+          '--dart-sdk',
+          '.',
+          '--options',
+          'options.yaml',
+          'foo.dart',
+        ])!;
         expect(options.defaultAnalysisOptionsPath, endsWith('options.yaml'));
       });
 
       test('sourceFiles', () {
-        var options =
-            parse([
-              '--dart-sdk',
-              '.',
-              '--log',
-              'foo.dart',
-              'foo2.dart',
-              'foo3.dart',
-            ])!;
+        var options = parse([
+          '--dart-sdk',
+          '.',
+          '--log',
+          'foo.dart',
+          'foo2.dart',
+          'foo3.dart',
+        ])!;
         expect(
           options.sourceFiles,
           equals(['foo.dart', 'foo2.dart', 'foo3.dart']),
@@ -227,15 +235,14 @@ void main() {
       });
 
       test('ignore unrecognized flags', () {
-        var options =
-            parse([
-              '--ignore-unrecognized-flags',
-              '--bar',
-              '--baz',
-              '--dart-sdk',
-              '.',
-              'foo.dart',
-            ])!;
+        var options = parse([
+          '--ignore-unrecognized-flags',
+          '--bar',
+          '--baz',
+          '--dart-sdk',
+          '.',
+          'foo.dart',
+        ])!;
         expect(options, isNotNull);
         expect(options.sourceFiles, equals(['foo.dart']));
       });
