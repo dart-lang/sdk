@@ -3,15 +3,15 @@
 // BSD-style license that can be found in the LICENSE file.
 
 int nonExhaustive1<T extends int?>(T value) =>
-/*
+    /*
      checkingOrder={int?,int,Null},
      error=non-exhaustive:null,
      subtypes={int,Null},
      type=int?
     */
-switch (value) {
-  int() /*space=int*/ => value,
-};
+    switch (value) {
+      int() /*space=int*/ => value,
+    };
 
 int nonExhaustive2<T extends int?>(T? value) => /*
  checkingOrder={int?,int,Null},

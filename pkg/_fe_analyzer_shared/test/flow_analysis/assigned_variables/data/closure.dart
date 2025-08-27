@@ -20,17 +20,15 @@ doubleNesting(int a, int b, int c) {
   // Note: for a closure, "assigned" and "captured" are restricted to
   // variables declared in enclosing contexts, so d, e, and f are not
   // included.
-  var fn1 = /*declared={d, e, fn2}, assigned={b, c}, captured={c}*/ (
-    int d,
-    int e,
-  ) {
-    b = 0;
-    d = 0;
-    // Similarly, f is not included in "assigned" here.
-    var fn2 = /*declared={f}, assigned={c, e}*/ (int f) {
-      c = 0;
-      e = 0;
-      f = 0;
-    };
-  };
+  var fn1 = /*declared={d, e, fn2}, assigned={b, c}, captured={c}*/
+      (int d, int e) {
+        b = 0;
+        d = 0;
+        // Similarly, f is not included in "assigned" here.
+        var fn2 = /*declared={f}, assigned={c, e}*/ (int f) {
+          c = 0;
+          e = 0;
+          f = 0;
+        };
+      };
 }

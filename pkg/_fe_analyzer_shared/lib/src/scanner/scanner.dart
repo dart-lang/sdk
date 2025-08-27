@@ -72,8 +72,8 @@ ScannerResult scan(
     // If there was a single missing `}` and the scanner can identify a good
     // candidate for better recovery, create a new scanner and instruct it to
     // do that recovery.
-    int? offsetForCurlyBracketRecoveryStart =
-        scanner.getOffsetForCurlyBracketRecoveryStart();
+    int? offsetForCurlyBracketRecoveryStart = scanner
+        .getOffsetForCurlyBracketRecoveryStart();
     if (offsetForCurlyBracketRecoveryStart != null) {
       scanner = new Utf8BytesScanner(
         bytes,
@@ -108,8 +108,8 @@ ScannerResult scanString(
     // If there was a single missing `}` and the scanner can identify a good
     // candidate for better recovery, create a new scanner and instruct it to
     // do that recovery.
-    int? offsetForCurlyBracketRecoveryStart =
-        scanner.getOffsetForCurlyBracketRecoveryStart();
+    int? offsetForCurlyBracketRecoveryStart = scanner
+        .getOffsetForCurlyBracketRecoveryStart();
     if (offsetForCurlyBracketRecoveryStart != null) {
       scanner = new StringScanner(
         source,

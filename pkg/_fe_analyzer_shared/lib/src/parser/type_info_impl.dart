@@ -579,15 +579,15 @@ class ComplexTypeInfo implements TypeInfo {
     return beforeQuestionMark == null
         ? this
         : new ComplexTypeInfo._nonNullable(
-          start,
-          typeArguments,
-          beforeQuestionMark,
-          typeVariableStarters,
-          gftHasReturnType,
-          isRecordType,
-          gftReturnTypeHasRecordType,
-          recovered,
-        );
+            start,
+            typeArguments,
+            beforeQuestionMark,
+            typeVariableStarters,
+            gftHasReturnType,
+            isRecordType,
+            gftReturnTypeHasRecordType,
+            recovered,
+          );
   }
 
   @override
@@ -1677,10 +1677,9 @@ class ComplexTypeParamOrArgInfo extends TypeParamOrArgInfo {
       // but ensure that parser events are ignored by replacing the listener.
       final Listener originalListener = parser.listener;
       parser.listener = new ForwardingListener();
-      token =
-          isArguments
-              ? invalidTypeVar.parseArguments(token, parser)
-              : invalidTypeVar.parseVariables(token, parser);
+      token = isArguments
+          ? invalidTypeVar.parseArguments(token, parser)
+          : invalidTypeVar.parseVariables(token, parser);
       next = token.next!;
       parser.listener = originalListener;
 

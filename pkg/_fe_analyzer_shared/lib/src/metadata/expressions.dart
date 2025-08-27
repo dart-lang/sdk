@@ -85,10 +85,10 @@ class ConstructorInvocation extends Expression {
     return newType == null && newArguments == null
         ? null
         : new ConstructorInvocation(
-          newType ?? type,
-          constructor,
-          newArguments ?? arguments,
-        );
+            newType ?? type,
+            constructor,
+            newArguments ?? arguments,
+          );
   }
 }
 
@@ -209,10 +209,10 @@ class ImplicitInvocation extends Expression {
             newArguments == null
         ? null
         : new ImplicitInvocation(
-          newReceiver ?? receiver,
-          newTypeArguments ?? typeArguments,
-          newArguments ?? arguments,
-        );
+            newReceiver ?? receiver,
+            newTypeArguments ?? typeArguments,
+            newArguments ?? arguments,
+          );
   }
 }
 
@@ -235,10 +235,10 @@ class StaticInvocation extends Expression {
     return newTypeArguments == null && newArguments == null
         ? null
         : new StaticInvocation(
-          function,
-          newTypeArguments ?? typeArguments,
-          newArguments ?? arguments,
-        );
+            function,
+            newTypeArguments ?? typeArguments,
+            newArguments ?? arguments,
+          );
   }
 }
 
@@ -260,9 +260,9 @@ class Instantiation extends Expression {
     return newReceiver == null && newTypeArguments == null
         ? null
         : new Instantiation(
-          newReceiver ?? receiver,
-          newTypeArguments ?? typeArguments,
-        );
+            newReceiver ?? receiver,
+            newTypeArguments ?? typeArguments,
+          );
   }
 }
 
@@ -295,11 +295,11 @@ class MethodInvocation extends Expression {
             newArguments == null
         ? null
         : new MethodInvocation(
-          newReceiver ?? receiver,
-          name,
-          newTypeArguments ?? typeArguments,
-          newArguments ?? arguments,
-        );
+            newReceiver ?? receiver,
+            name,
+            newTypeArguments ?? typeArguments,
+            newArguments ?? arguments,
+          );
   }
 }
 
@@ -389,10 +389,10 @@ class ConditionalExpression extends Expression {
     return newCondition == null && newThen == null && newOtherwise == null
         ? null
         : new ConditionalExpression(
-          newCondition ?? condition,
-          newThen ?? then,
-          newOtherwise ?? otherwise,
-        );
+            newCondition ?? condition,
+            newThen ?? then,
+            newOtherwise ?? otherwise,
+          );
   }
 }
 
@@ -414,9 +414,9 @@ class ListLiteral extends Expression {
     return newTypeArguments == null && newElements == null
         ? null
         : new ListLiteral(
-          newTypeArguments ?? typeArguments,
-          newElements ?? elements,
-        );
+            newTypeArguments ?? typeArguments,
+            newElements ?? elements,
+          );
   }
 }
 
@@ -438,9 +438,9 @@ class SetOrMapLiteral extends Expression {
     return newTypeArguments == null && newElements == null
         ? null
         : new SetOrMapLiteral(
-          newTypeArguments ?? typeArguments,
-          newElements ?? elements,
-        );
+            newTypeArguments ?? typeArguments,
+            newElements ?? elements,
+          );
   }
 }
 
@@ -525,10 +525,10 @@ class EqualityExpression extends Expression {
     return newLeft == null && newRight == null
         ? null
         : new EqualityExpression(
-          newLeft ?? left,
-          newRight ?? right,
-          isNotEquals: isNotEquals,
-        );
+            newLeft ?? left,
+            newRight ?? right,
+            isNotEquals: isNotEquals,
+          );
   }
 }
 
@@ -620,10 +620,10 @@ class IsTest extends Expression {
     return newType == null && newExpression == null
         ? null
         : new IsTest(
-          newExpression ?? expression,
-          newType ?? type,
-          isNot: isNot,
-        );
+            newExpression ?? expression,
+            newType ?? type,
+            isNot: isNot,
+          );
   }
 }
 

@@ -35,8 +35,10 @@ void testDir(String dataDirPath) {
   );
   String relativeDir = dataDir.uri.path.replaceAll(Uri.base.path, '');
   print('Data dir: ${relativeDir}');
-  List<FileSystemEntity> entities =
-      dataDir.listSync().where((entity) => !entity.path.endsWith('~')).toList();
+  List<FileSystemEntity> entities = dataDir
+      .listSync()
+      .where((entity) => !entity.path.endsWith('~'))
+      .toList();
   for (FileSystemEntity entity in entities) {
     print('----------------------------------------------------------------');
 

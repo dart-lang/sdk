@@ -186,12 +186,11 @@ abstract class VariableBinder<Node extends Object, Variable extends Object> {
         result[entry.key] = joinPatternVariables(
           key: key,
           components: variables,
-          inconsistency:
-              sharedVariable.allCases
-                  ? JoinedPatternVariableInconsistency.none
-                  : sharedScope.hasLabel
-                  ? JoinedPatternVariableInconsistency.sharedCaseHasLabel
-                  : JoinedPatternVariableInconsistency.sharedCaseAbsent,
+          inconsistency: sharedVariable.allCases
+              ? JoinedPatternVariableInconsistency.none
+              : sharedScope.hasLabel
+              ? JoinedPatternVariableInconsistency.sharedCaseHasLabel
+              : JoinedPatternVariableInconsistency.sharedCaseAbsent,
         );
       }
     }

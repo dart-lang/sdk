@@ -2090,11 +2090,10 @@ class Parser {
 
           if (isModifier(next)) {
             // Recovery
-            ModifierContext context =
-                new ModifierContext(this)
-                  ..covariantToken = covariantToken
-                  ..requiredToken = requiredToken
-                  ..varFinalOrConst = varFinalOrConst;
+            ModifierContext context = new ModifierContext(this)
+              ..covariantToken = covariantToken
+              ..requiredToken = requiredToken
+              ..varFinalOrConst = varFinalOrConst;
 
             token = context.parseFormalParameterModifiers(
               token,
@@ -3800,12 +3799,11 @@ class Parser {
             // If another `var`, `final`, or `const` then fall through
             // to parse that as part of the next top level declaration.
           } else {
-            ModifierContext context =
-                new ModifierContext(this)
-                  ..externalToken = externalToken
-                  ..augmentToken = augmentToken
-                  ..lateToken = lateToken
-                  ..varFinalOrConst = varFinalOrConst;
+            ModifierContext context = new ModifierContext(this)
+              ..externalToken = externalToken
+              ..augmentToken = augmentToken
+              ..lateToken = lateToken
+              ..varFinalOrConst = varFinalOrConst;
 
             token = context.parseTopLevelMemberModifiers(token);
             next = token.next!;
@@ -4060,16 +4058,14 @@ class Parser {
     Token token = typeInfo.parseType(beforeType, this);
     assert(token.next == name || token.next!.isEof);
 
-    IdentifierContext context =
-        kind == DeclarationKind.TopLevel
-            ? IdentifierContext.topLevelVariableDeclaration
-            : IdentifierContext.fieldDeclaration;
-    Token firstName =
-        name = ensureIdentifierPotentiallyRecovered(
-          token,
-          context,
-          /* isRecovered = */ nameIsRecovered,
-        );
+    IdentifierContext context = kind == DeclarationKind.TopLevel
+        ? IdentifierContext.topLevelVariableDeclaration
+        : IdentifierContext.fieldDeclaration;
+    Token firstName = name = ensureIdentifierPotentiallyRecovered(
+      token,
+      context,
+      /* isRecovered = */ nameIsRecovered,
+    );
 
     // Check for covariant late final with initializer.
     if (covariantToken != null && lateToken != null) {
@@ -4965,15 +4961,14 @@ class Parser {
             }
           }
           if (isModifier(next)) {
-            ModifierContext context =
-                new ModifierContext(this)
-                  ..covariantToken = covariantToken
-                  ..augmentToken = augmentToken
-                  ..externalToken = externalToken
-                  ..lateToken = lateToken
-                  ..staticToken = staticToken
-                  ..varFinalOrConst = varFinalOrConst
-                  ..abstractToken = abstractToken;
+            ModifierContext context = new ModifierContext(this)
+              ..covariantToken = covariantToken
+              ..augmentToken = augmentToken
+              ..externalToken = externalToken
+              ..lateToken = lateToken
+              ..staticToken = staticToken
+              ..varFinalOrConst = varFinalOrConst
+              ..abstractToken = abstractToken;
 
             token = context.parseClassMemberModifiers(token);
             next = token.next!;
@@ -5414,20 +5409,17 @@ class Parser {
       case DeclarationKind.Class:
       case DeclarationKind.Mixin:
       case DeclarationKind.Enum:
-        memberKind =
-            staticToken != null
-                ? MemberKind.StaticMethod
-                : MemberKind.NonStaticMethod;
+        memberKind = staticToken != null
+            ? MemberKind.StaticMethod
+            : MemberKind.NonStaticMethod;
       case DeclarationKind.Extension:
-        memberKind =
-            staticToken != null
-                ? MemberKind.ExtensionStaticMethod
-                : MemberKind.ExtensionNonStaticMethod;
+        memberKind = staticToken != null
+            ? MemberKind.ExtensionStaticMethod
+            : MemberKind.ExtensionNonStaticMethod;
       case DeclarationKind.ExtensionType:
-        memberKind =
-            staticToken != null
-                ? MemberKind.ExtensionTypeStaticMethod
-                : MemberKind.ExtensionTypeNonStaticMethod;
+        memberKind = staticToken != null
+            ? MemberKind.ExtensionTypeStaticMethod
+            : MemberKind.ExtensionTypeNonStaticMethod;
     }
 
     Token beforeParam = token;
@@ -5648,11 +5640,10 @@ class Parser {
 
     if (!isValidNonRecordTypeReference(token.next!)) {
       // Recovery
-      ModifierContext context =
-          new ModifierContext(this)
-            ..externalToken = externalToken
-            ..staticOrCovariant = staticOrCovariant
-            ..varFinalOrConst = varFinalOrConst;
+      ModifierContext context = new ModifierContext(this)
+        ..externalToken = externalToken
+        ..staticOrCovariant = staticOrCovariant
+        ..varFinalOrConst = varFinalOrConst;
 
       token = context.parseModifiersAfterFactory(token);
 
@@ -5859,11 +5850,10 @@ class Parser {
   ) {
     Token token = beforeName.next!;
     listener.beginFunctionName(token);
-    token =
-        ensureIdentifier(
-          beforeName,
-          IdentifierContext.localFunctionDeclaration,
-        ).next!;
+    token = ensureIdentifier(
+      beforeName,
+      IdentifierContext.localFunctionDeclaration,
+    ).next!;
     if (isFunctionExpression) {
       reportRecoverableError(
         beforeName.next!,
@@ -6446,15 +6436,14 @@ class Parser {
       if (allowPatterns && looksLikeOuterPatternEquals(token)) {
         token = parsePatternAssignment(token);
       } else {
-        token =
-            token.next!.isA(Keyword.THROW)
-                ? parseThrowExpression(token, /* allowCascades = */ true)
-                : parsePrecedenceExpression(
-                  token,
-                  ASSIGNMENT_PRECEDENCE,
-                  /* allowCascades = */ true,
-                  ConstantPatternContext.none,
-                );
+        token = token.next!.isA(Keyword.THROW)
+            ? parseThrowExpression(token, /* allowCascades = */ true)
+            : parsePrecedenceExpression(
+                token,
+                ASSIGNMENT_PRECEDENCE,
+                /* allowCascades = */ true,
+                ConstantPatternContext.none,
+              );
       }
     }
     expressionDepth--;
@@ -6465,11 +6454,11 @@ class Parser {
     return token.next!.isA(Keyword.THROW)
         ? parseThrowExpression(token, /* allowCascades = */ false)
         : parsePrecedenceExpression(
-          token,
-          ASSIGNMENT_PRECEDENCE,
-          /* allowCascades = */ false,
-          ConstantPatternContext.none,
-        );
+            token,
+            ASSIGNMENT_PRECEDENCE,
+            /* allowCascades = */ false,
+            ConstantPatternContext.none,
+          );
   }
 
   bool canParseAsConditional(Token question) {
@@ -6727,15 +6716,14 @@ class Parser {
           );
           operator = next;
         }
-        token =
-            next.next!.isA(Keyword.THROW)
-                ? parseThrowExpression(next, allowCascades)
-                : parsePrecedenceExpression(
-                  next,
-                  level,
-                  allowCascades,
-                  ConstantPatternContext.none,
-                );
+        token = next.next!.isA(Keyword.THROW)
+            ? parseThrowExpression(next, allowCascades)
+            : parsePrecedenceExpression(
+                next,
+                level,
+                allowCascades,
+                ConstantPatternContext.none,
+              );
         listener.handleAssignmentExpression(operator, token);
       } else if (tokenLevel == POSTFIX_PRECEDENCE) {
         if ((identical(type, TokenType.PLUS_PLUS)) ||
@@ -7305,7 +7293,7 @@ class Parser {
     while (true) {
       bool potentialNullAware =
           (next.isA(TokenType.QUESTION) &&
-              next.next!.isA(TokenType.OPEN_SQUARE_BRACKET));
+          next.next!.isA(TokenType.OPEN_SQUARE_BRACKET));
       if (potentialNullAware && !checkedNullAware) {
         // While it's a potential null aware index it hasn't been checked.
         // It might be a conditional expression.
@@ -7663,11 +7651,10 @@ class Parser {
           next.isA(TokenType.COLON)) {
         // Record with named expression.
         wasRecord = true;
-        token =
-            ensureIdentifier(
-              token,
-              IdentifierContext.namedRecordFieldReference,
-            ).next!;
+        token = ensureIdentifier(
+          token,
+          IdentifierContext.namedRecordFieldReference,
+        ).next!;
         colon = token;
         wasValidRecord = true;
       }
@@ -7884,10 +7871,9 @@ class Parser {
         // This looks like the start of an expression.
         // Report an error, insert the comma, and continue parsing.
         SyntheticToken comma = new SyntheticToken(TokenType.COMMA, next.offset);
-        codes.Message message =
-            ifCount > 0
-                ? codes.codeExpectedElseOrComma
-                : codes.codeExpectedButGot.withArguments(',');
+        codes.Message message = ifCount > 0
+            ? codes.codeExpectedElseOrComma
+            : codes.codeExpectedButGot.withArguments(',');
         next = rewriteAndRecover(token, message, comma);
       }
       token = next;
@@ -7969,8 +7955,9 @@ class Parser {
               Token? nullAwareValueToken;
               Token next = token.next!;
               if (next.isA(TokenType.QUESTION_PERIOD)) {
-                token =
-                    nullAwareValueToken = _splitFollowingQuestionPeriod(token);
+                token = nullAwareValueToken = _splitFollowingQuestionPeriod(
+                  token,
+                );
               } else if (next.isA(TokenType.QUESTION)) {
                 token = nullAwareValueToken = next;
               }
@@ -8024,10 +8011,9 @@ class Parser {
             TokenType.COMMA,
             next.offset,
           );
-          codes.Message message =
-              ifCount > 0
-                  ? codes.codeExpectedElseOrComma
-                  : codes.codeExpectedButGot.withArguments(',');
+          codes.Message message = ifCount > 0
+              ? codes.codeExpectedElseOrComma
+              : codes.codeExpectedButGot.withArguments(',');
           token = rewriteAndRecover(token, message, comma);
         } else {
           reportRecoverableError(
@@ -8884,11 +8870,10 @@ class Parser {
       Token? colon = null;
       if (next.next!.isA(TokenType.COLON) || /* recovery */
           next.isA(TokenType.COLON)) {
-        token =
-            ensureIdentifier(
-              token,
-              IdentifierContext.namedArgumentReference,
-            ).next!;
+        token = ensureIdentifier(
+          token,
+          IdentifierContext.namedArgumentReference,
+        ).next!;
         colon = token;
       }
       bool expressionHandled = false;
@@ -9200,10 +9185,9 @@ class Parser {
 
       if (isModifier(next)) {
         // Recovery
-        ModifierContext context =
-            new ModifierContext(this)
-              ..lateToken = lateToken
-              ..varFinalOrConst = varFinalOrConst;
+        ModifierContext context = new ModifierContext(this)
+          ..lateToken = lateToken
+          ..varFinalOrConst = varFinalOrConst;
 
         token = context.parseVariableDeclarationModifiers(token);
         next = token.next!;
@@ -9345,8 +9329,9 @@ class Parser {
         UndoableTokenStreamRewriter undoableTokenStreamRewriter =
             new UndoableTokenStreamRewriter();
         cachedRewriter = undoableTokenStreamRewriter;
-        Token afterExpression =
-            parseExpressionWithoutCascade(afterIdentifier).next!;
+        Token afterExpression = parseExpressionWithoutCascade(
+          afterIdentifier,
+        ).next!;
         // Undo all changes and reset.
         undoableTokenStreamRewriter.undo();
         listener = originalListener;
@@ -9601,11 +9586,10 @@ class Parser {
         token = rewriter.insertSyntheticToken(token, TokenType.SEMICOLON);
       }
 
-      openParen.endGroup =
-          token = rewriter.insertToken(
-            token,
-            new SyntheticToken(TokenType.CLOSE_PAREN, leftParenthesis.offset),
-          );
+      openParen.endGroup = token = rewriter.insertToken(
+        token,
+        new SyntheticToken(TokenType.CLOSE_PAREN, leftParenthesis.offset),
+      );
 
       token = rewriter.insertSyntheticIdentifier(token);
       rewriter.insertSyntheticToken(token, TokenType.SEMICOLON);
@@ -10054,10 +10038,9 @@ class Parser {
         ),
       );
     }
-    token =
-        allowCascades
-            ? parseExpression(throwToken)
-            : parseExpressionWithoutCascade(throwToken);
+    token = allowCascades
+        ? parseExpression(throwToken)
+        : parseExpressionWithoutCascade(throwToken);
     listener.handleThrowExpression(throwToken, token);
     return token;
   }
@@ -11560,11 +11543,10 @@ class Parser {
         // `((:a, :b), :c, :d)` (and similar) is fine.
         // Record with named expression.
         wasRecord = true;
-        token =
-            ensureIdentifier(
-              token,
-              IdentifierContext.namedRecordFieldReference,
-            ).next!;
+        token = ensureIdentifier(
+          token,
+          IdentifierContext.namedRecordFieldReference,
+        ).next!;
         colon = token;
         wasValidRecord = true;
       }
@@ -11631,11 +11613,10 @@ class Parser {
         // This is different from `parseParenthesizedPatternOrRecordPattern`
         // because this isn't valid because of the missing name:
         // `var Point((:x, :y), :z) = Point((x: 1, y: 2), 3);`
-        token =
-            ensureIdentifier(
-              token,
-              IdentifierContext.namedArgumentReference,
-            ).next!;
+        token = ensureIdentifier(
+          token,
+          IdentifierContext.namedArgumentReference,
+        ).next!;
         colon = token;
       }
       token = parsePattern(token, patternContext);

@@ -63,8 +63,9 @@ class AnnotationsListener extends StackListener {
       ]),
     );
     List<Argument>? arguments = pop(_NullValues.Arguments) as List<Argument>?;
-    IdentifierProto? identifier =
-        periodBeforeName != null ? pop() as IdentifierProto : null;
+    IdentifierProto? identifier = periodBeforeName != null
+        ? pop() as IdentifierProto
+        : null;
     List<TypeAnnotation>? typeArguments =
         pop(_NullValues.TypeAnnotations) as List<TypeAnnotation>?;
     Proto proto = pop() as Proto;
@@ -136,8 +137,9 @@ class AnnotationsListener extends StackListener {
         /* (qualified) name before type arguments */ _ValueKinds._Proto,
       ]),
     );
-    IdentifierProto? constructorName =
-        periodBeforeName != null ? pop() as IdentifierProto : null;
+    IdentifierProto? constructorName = periodBeforeName != null
+        ? pop() as IdentifierProto
+        : null;
     List<TypeAnnotation>? typeArguments =
         pop(_NullValues.TypeAnnotations) as List<TypeAnnotation>?;
     Proto className = pop() as Proto;
@@ -780,8 +782,9 @@ class AnnotationsListener extends StackListener {
     List<TypeAnnotation>? typeArguments =
         pop(_NullValues.TypeAnnotations) as List<TypeAnnotation>?;
     Proto type = pop() as Proto;
-    TypeAnnotation typeAnnotation =
-        type.instantiate(typeArguments).toTypeAnnotation();
+    TypeAnnotation typeAnnotation = type
+        .instantiate(typeArguments)
+        .toTypeAnnotation();
     if (questionMark != null) {
       typeAnnotation = new NullableTypeAnnotation(typeAnnotation);
     }
@@ -1201,9 +1204,9 @@ class AnnotationsListener extends StackListener {
         leftBracket,
         hasNamedFields
             ? [
-              _ValueKinds._RecordTypeEntries,
-              ...repeatedKind(_ValueKinds._RecordTypeEntry, count - 1),
-            ]
+                _ValueKinds._RecordTypeEntries,
+                ...repeatedKind(_ValueKinds._RecordTypeEntry, count - 1),
+              ]
             : repeatedKind(_ValueKinds._RecordTypeEntry, count),
       ),
     );

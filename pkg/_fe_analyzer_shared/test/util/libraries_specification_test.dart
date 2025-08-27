@@ -479,7 +479,8 @@ void main() {
     test('include entry must be a existing path and target', () async {
       var otherFile = 'g.json';
       var otherUri = specUri.resolve(otherFile);
-      var jsonString = '''
+      var jsonString =
+          '''
       {
         "target": {
           "include": [{"path": "$otherFile", "target": "none"}], 
@@ -531,7 +532,8 @@ void main() {
       var thisUri = specUri.resolve(thisFile);
       var otherFile = 'g.json';
       var otherUri = thisUri.resolve(otherFile);
-      var thisJsonString = '''
+      var thisJsonString =
+          '''
       {
         "target": {
           "include": [{"path": "$thisFile", "target": "target"}], 
@@ -547,7 +549,8 @@ void main() {
         throwsA(checkException(messageCyclicSpec(thisUri))),
       );
 
-      thisJsonString = '''
+      thisJsonString =
+          '''
       {
         "target": {
           "include": [{"path": "$otherFile", "target": "none"}], 
@@ -555,7 +558,8 @@ void main() {
         }
       }
       ''';
-      var otherJsonString = '''
+      var otherJsonString =
+          '''
       {
         "none": {
           "include": [{"path": "$thisFile", "target": "target"}],
@@ -614,7 +618,8 @@ void main() {
       var otherUri2 = thisUri.resolve(otherFile2);
       var otherFile3 = '../i.json';
       var otherUri3 = otherUri2.resolve(otherFile3);
-      var thisJsonString = '''
+      var thisJsonString =
+          '''
       {
         "foo": {
           "include": [
@@ -645,7 +650,8 @@ void main() {
           }
         }
       }''';
-      var otherJsonString2 = '''
+      var otherJsonString2 =
+          '''
       {
         "foo": {
           "libraries": {
@@ -962,7 +968,8 @@ void main() {
           }
         }
       }      
-      '''.replaceAll(new RegExp('\\s'), ''),
+      '''
+            .replaceAll(new RegExp('\\s'), ''),
       );
     });
   });

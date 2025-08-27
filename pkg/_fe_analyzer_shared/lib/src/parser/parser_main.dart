@@ -36,11 +36,12 @@ mainEntryPoint(List<String> arguments) async {
   for (String argument in arguments) {
     if (argument.startsWith("@")) {
       Uri uri = Uri.base.resolve(argument.substring(/* start = */ 1));
-      await for (String file in new File.fromUri(uri)
-          .openRead()
-          .cast<List<int>>()
-          .transform(utf8.decoder)
-          .transform(const LineSplitter())) {
+      await for (String file
+          in new File.fromUri(uri)
+              .openRead()
+              .cast<List<int>>()
+              .transform(utf8.decoder)
+              .transform(const LineSplitter())) {
         outLine(uri.resolve(file));
       }
     } else {

@@ -3409,8 +3409,8 @@ main() {
       expect(reachableSplitUnsplit.overallReachable, true);
       expect(reachableSplitUnsplit.locallyReachable, true);
       var reachableSplitUnreachable = reachableSplit.setUnreachable();
-      var reachableSplitUnreachableUnsplit =
-          reachableSplitUnreachable.unsplit();
+      var reachableSplitUnreachableUnsplit = reachableSplitUnreachable
+          .unsplit();
       expect(reachableSplitUnreachableUnsplit.parent, same(base.parent));
       expect(reachableSplitUnreachableUnsplit.overallReachable, false);
       expect(reachableSplitUnreachableUnsplit.locallyReachable, false);
@@ -3419,8 +3419,8 @@ main() {
       var unreachableSplitUnsplit = unreachableSplit.unsplit();
       expect(unreachableSplitUnsplit, same(unreachable));
       var unreachableSplitUnreachable = unreachableSplit.setUnreachable();
-      var unreachableSplitUnreachableUnsplit =
-          unreachableSplitUnreachable.unsplit();
+      var unreachableSplitUnreachableUnsplit = unreachableSplitUnreachable
+          .unsplit();
       expect(unreachableSplitUnreachableUnsplit, same(unreachable));
     });
 
@@ -3637,37 +3637,33 @@ main() {
       });
 
       test('promoted -> unchanged (same)', () {
-        var s1 =
-            FlowModel<SharedTypeView>(
-              Reachability.initial,
-            )._tryPromoteForTypeCheck(h, objectQVar, 'int').ifTrue;
+        var s1 = FlowModel<SharedTypeView>(
+          Reachability.initial,
+        )._tryPromoteForTypeCheck(h, objectQVar, 'int').ifTrue;
         var s2 = s1._tryPromoteForTypeCheck(h, objectQVar, 'int').ifTrue;
         expect(s2, same(s1));
       });
 
       test('promoted -> unchanged (supertype)', () {
-        var s1 =
-            FlowModel<SharedTypeView>(
-              Reachability.initial,
-            )._tryPromoteForTypeCheck(h, objectQVar, 'int').ifTrue;
+        var s1 = FlowModel<SharedTypeView>(
+          Reachability.initial,
+        )._tryPromoteForTypeCheck(h, objectQVar, 'int').ifTrue;
         var s2 = s1._tryPromoteForTypeCheck(h, objectQVar, 'Object').ifTrue;
         expect(s2, same(s1));
       });
 
       test('promoted -> unchanged (unrelated)', () {
-        var s1 =
-            FlowModel<SharedTypeView>(
-              Reachability.initial,
-            )._tryPromoteForTypeCheck(h, objectQVar, 'int').ifTrue;
+        var s1 = FlowModel<SharedTypeView>(
+          Reachability.initial,
+        )._tryPromoteForTypeCheck(h, objectQVar, 'int').ifTrue;
         var s2 = s1._tryPromoteForTypeCheck(h, objectQVar, 'String').ifTrue;
         expect(s2, same(s1));
       });
 
       test('promoted -> subtype', () {
-        var s1 =
-            FlowModel<SharedTypeView>(
-              Reachability.initial,
-            )._tryPromoteForTypeCheck(h, objectQVar, 'int?').ifTrue;
+        var s1 = FlowModel<SharedTypeView>(
+          Reachability.initial,
+        )._tryPromoteForTypeCheck(h, objectQVar, 'int?').ifTrue;
         var s2 = s1._tryPromoteForTypeCheck(h, objectQVar, 'int').ifTrue;
         expect(s2.reachable.overallReachable, true);
         expect(s2.promotionInfo.unwrap(h), {
@@ -3753,11 +3749,10 @@ main() {
       });
 
       test('un-promotes fully', () {
-        var s1 =
-            FlowModel<SharedTypeView>(Reachability.initial)
-                ._declare(h, objectQVar, true)
-                ._tryPromoteForTypeCheck(h, objectQVar, 'int')
-                .ifTrue;
+        var s1 = FlowModel<SharedTypeView>(Reachability.initial)
+            ._declare(h, objectQVar, true)
+            ._tryPromoteForTypeCheck(h, objectQVar, 'int')
+            .ifTrue;
         expect(
           s1.promotionInfo.unwrap(h),
           contains(h.promotionKeyStore.keyForVariable(objectQVar)),
@@ -3781,13 +3776,12 @@ main() {
       });
 
       test('un-promotes partially, when no exact match', () {
-        var s1 =
-            FlowModel<SharedTypeView>(Reachability.initial)
-                ._declare(h, objectQVar, true)
-                ._tryPromoteForTypeCheck(h, objectQVar, 'num?')
-                .ifTrue
-                ._tryPromoteForTypeCheck(h, objectQVar, 'int')
-                .ifTrue;
+        var s1 = FlowModel<SharedTypeView>(Reachability.initial)
+            ._declare(h, objectQVar, true)
+            ._tryPromoteForTypeCheck(h, objectQVar, 'num?')
+            .ifTrue
+            ._tryPromoteForTypeCheck(h, objectQVar, 'int')
+            .ifTrue;
         expect(s1.promotionInfo.unwrap(h), {
           h.promotionKeyStore.keyForVariable(objectQVar): _matchVariableModel(
             chain: ['num?', 'int'],
@@ -3815,15 +3809,14 @@ main() {
       });
 
       test('un-promotes partially, when exact match', () {
-        var s1 =
-            FlowModel<SharedTypeView>(Reachability.initial)
-                ._declare(h, objectQVar, true)
-                ._tryPromoteForTypeCheck(h, objectQVar, 'num?')
-                .ifTrue
-                ._tryPromoteForTypeCheck(h, objectQVar, 'num')
-                .ifTrue
-                ._tryPromoteForTypeCheck(h, objectQVar, 'int')
-                .ifTrue;
+        var s1 = FlowModel<SharedTypeView>(Reachability.initial)
+            ._declare(h, objectQVar, true)
+            ._tryPromoteForTypeCheck(h, objectQVar, 'num?')
+            .ifTrue
+            ._tryPromoteForTypeCheck(h, objectQVar, 'num')
+            .ifTrue
+            ._tryPromoteForTypeCheck(h, objectQVar, 'int')
+            .ifTrue;
         expect(s1.promotionInfo.unwrap(h), {
           h.promotionKeyStore.keyForVariable(objectQVar): _matchVariableModel(
             chain: ['num?', 'num', 'int'],
@@ -3851,13 +3844,12 @@ main() {
       });
 
       test('leaves promoted, when exact match', () {
-        var s1 =
-            FlowModel<SharedTypeView>(Reachability.initial)
-                ._declare(h, objectQVar, true)
-                ._tryPromoteForTypeCheck(h, objectQVar, 'num?')
-                .ifTrue
-                ._tryPromoteForTypeCheck(h, objectQVar, 'num')
-                .ifTrue;
+        var s1 = FlowModel<SharedTypeView>(Reachability.initial)
+            ._declare(h, objectQVar, true)
+            ._tryPromoteForTypeCheck(h, objectQVar, 'num?')
+            .ifTrue
+            ._tryPromoteForTypeCheck(h, objectQVar, 'num')
+            .ifTrue;
         expect(s1.promotionInfo.unwrap(h), {
           h.promotionKeyStore.keyForVariable(objectQVar): _matchVariableModel(
             chain: ['num?', 'num'],
@@ -3886,13 +3878,12 @@ main() {
       });
 
       test('leaves promoted, when writing a subtype', () {
-        var s1 =
-            FlowModel<SharedTypeView>(Reachability.initial)
-                ._declare(h, objectQVar, true)
-                ._tryPromoteForTypeCheck(h, objectQVar, 'num?')
-                .ifTrue
-                ._tryPromoteForTypeCheck(h, objectQVar, 'num')
-                .ifTrue;
+        var s1 = FlowModel<SharedTypeView>(Reachability.initial)
+            ._declare(h, objectQVar, true)
+            ._tryPromoteForTypeCheck(h, objectQVar, 'num?')
+            .ifTrue
+            ._tryPromoteForTypeCheck(h, objectQVar, 'num')
+            .ifTrue;
         expect(s1.promotionInfo.unwrap(h), {
           h.promotionKeyStore.keyForVariable(objectQVar): _matchVariableModel(
             chain: ['num?', 'num'],
@@ -3984,11 +3975,10 @@ main() {
         });
 
         test('when promoted', () {
-          var s1 =
-              FlowModel<SharedTypeView>(Reachability.initial)
-                  ._declare(h, objectQVar, true)
-                  ._tryPromoteForTypeCheck(h, objectQVar, 'int?')
-                  .ifTrue;
+          var s1 = FlowModel<SharedTypeView>(Reachability.initial)
+              ._declare(h, objectQVar, true)
+              ._tryPromoteForTypeCheck(h, objectQVar, 'int?')
+              .ifTrue;
           expect(s1.promotionInfo.unwrap(h), {
             h.promotionKeyStore.keyForVariable(objectQVar): _matchVariableModel(
               chain: ['int?'],
@@ -4011,11 +4001,10 @@ main() {
         });
 
         test('when not promoted', () {
-          var s1 =
-              FlowModel<SharedTypeView>(Reachability.initial)
-                  ._declare(h, objectQVar, true)
-                  ._tryPromoteForTypeCheck(h, objectQVar, 'int?')
-                  .ifFalse;
+          var s1 = FlowModel<SharedTypeView>(Reachability.initial)
+              ._declare(h, objectQVar, true)
+              ._tryPromoteForTypeCheck(h, objectQVar, 'int?')
+              .ifFalse;
           expect(s1.promotionInfo.unwrap(h), {
             h.promotionKeyStore.keyForVariable(objectQVar): _matchVariableModel(
               chain: ['Object'],
@@ -4039,11 +4028,10 @@ main() {
       });
 
       test('Promotes to type of interest when not previously promoted', () {
-        var s1 =
-            FlowModel<SharedTypeView>(Reachability.initial)
-                ._declare(h, objectQVar, true)
-                ._tryPromoteForTypeCheck(h, objectQVar, 'num?')
-                .ifFalse;
+        var s1 = FlowModel<SharedTypeView>(Reachability.initial)
+            ._declare(h, objectQVar, true)
+            ._tryPromoteForTypeCheck(h, objectQVar, 'num?')
+            .ifFalse;
         expect(s1.promotionInfo.unwrap(h), {
           h.promotionKeyStore.keyForVariable(objectQVar): _matchVariableModel(
             chain: ['Object'],
@@ -4066,13 +4054,12 @@ main() {
       });
 
       test('Promotes to type of interest when previously promoted', () {
-        var s1 =
-            FlowModel<SharedTypeView>(Reachability.initial)
-                ._declare(h, objectQVar, true)
-                ._tryPromoteForTypeCheck(h, objectQVar, 'num?')
-                .ifTrue
-                ._tryPromoteForTypeCheck(h, objectQVar, 'int?')
-                .ifFalse;
+        var s1 = FlowModel<SharedTypeView>(Reachability.initial)
+            ._declare(h, objectQVar, true)
+            ._tryPromoteForTypeCheck(h, objectQVar, 'num?')
+            .ifTrue
+            ._tryPromoteForTypeCheck(h, objectQVar, 'int?')
+            .ifFalse;
         expect(s1.promotionInfo.unwrap(h), {
           h.promotionKeyStore.keyForVariable(objectQVar): _matchVariableModel(
             chain: ['num?', 'num'],
@@ -4111,13 +4098,12 @@ main() {
           test('; first', () {
             var x = Var('x')..type = Type('Object?');
 
-            var s1 =
-                FlowModel<SharedTypeView>(Reachability.initial)
-                    ._declare(h, x, true)
-                    ._tryPromoteForTypeCheck(h, x, 'B?')
-                    .ifFalse
-                    ._tryPromoteForTypeCheck(h, x, 'A?')
-                    .ifFalse;
+            var s1 = FlowModel<SharedTypeView>(Reachability.initial)
+                ._declare(h, x, true)
+                ._tryPromoteForTypeCheck(h, x, 'B?')
+                .ifFalse
+                ._tryPromoteForTypeCheck(h, x, 'A?')
+                .ifFalse;
             expect(s1.promotionInfo.unwrap(h), {
               h.promotionKeyStore.keyForVariable(x): _matchVariableModel(
                 chain: ['Object'],
@@ -4143,13 +4129,12 @@ main() {
           test('; second', () {
             var x = Var('x')..type = Type('Object?');
 
-            var s1 =
-                FlowModel<SharedTypeView>(Reachability.initial)
-                    ._declare(h, x, true)
-                    ._tryPromoteForTypeCheck(h, x, 'A?')
-                    .ifFalse
-                    ._tryPromoteForTypeCheck(h, x, 'B?')
-                    .ifFalse;
+            var s1 = FlowModel<SharedTypeView>(Reachability.initial)
+                ._declare(h, x, true)
+                ._tryPromoteForTypeCheck(h, x, 'A?')
+                .ifFalse
+                ._tryPromoteForTypeCheck(h, x, 'B?')
+                .ifFalse;
             expect(s1.promotionInfo.unwrap(h), {
               h.promotionKeyStore.keyForVariable(x): _matchVariableModel(
                 chain: ['Object'],
@@ -4175,13 +4160,12 @@ main() {
           test('; nullable and non-nullable', () {
             var x = Var('x')..type = Type('Object?');
 
-            var s1 =
-                FlowModel<SharedTypeView>(Reachability.initial)
-                    ._declare(h, x, true)
-                    ._tryPromoteForTypeCheck(h, x, 'A')
-                    .ifFalse
-                    ._tryPromoteForTypeCheck(h, x, 'A?')
-                    .ifFalse;
+            var s1 = FlowModel<SharedTypeView>(Reachability.initial)
+                ._declare(h, x, true)
+                ._tryPromoteForTypeCheck(h, x, 'A')
+                .ifFalse
+                ._tryPromoteForTypeCheck(h, x, 'A?')
+                .ifFalse;
             expect(s1.promotionInfo.unwrap(h), {
               h.promotionKeyStore.keyForVariable(x): _matchVariableModel(
                 chain: ['Object'],
@@ -4207,13 +4191,12 @@ main() {
 
         group('; ambiguous', () {
           test('; no promotion', () {
-            var s1 =
-                FlowModel<SharedTypeView>(Reachability.initial)
-                    ._declare(h, objectQVar, true)
-                    ._tryPromoteForTypeCheck(h, objectQVar, 'List<Object?>')
-                    .ifFalse
-                    ._tryPromoteForTypeCheck(h, objectQVar, 'List<dynamic>')
-                    .ifFalse;
+            var s1 = FlowModel<SharedTypeView>(Reachability.initial)
+                ._declare(h, objectQVar, true)
+                ._tryPromoteForTypeCheck(h, objectQVar, 'List<Object?>')
+                .ifFalse
+                ._tryPromoteForTypeCheck(h, objectQVar, 'List<dynamic>')
+                .ifFalse;
             expect(s1.promotionInfo.unwrap(h), {
               h.promotionKeyStore.keyForVariable(
                 objectQVar,
@@ -4242,13 +4225,12 @@ main() {
         });
 
         test('exact match', () {
-          var s1 =
-              FlowModel<SharedTypeView>(Reachability.initial)
-                  ._declare(h, objectQVar, true)
-                  ._tryPromoteForTypeCheck(h, objectQVar, 'List<Object?>')
-                  .ifFalse
-                  ._tryPromoteForTypeCheck(h, objectQVar, 'List<dynamic>')
-                  .ifFalse;
+          var s1 = FlowModel<SharedTypeView>(Reachability.initial)
+              ._declare(h, objectQVar, true)
+              ._tryPromoteForTypeCheck(h, objectQVar, 'List<Object?>')
+              .ifFalse
+              ._tryPromoteForTypeCheck(h, objectQVar, 'List<dynamic>')
+              .ifFalse;
           expect(s1.promotionInfo.unwrap(h), {
             h.promotionKeyStore.keyForVariable(objectQVar): _matchVariableModel(
               ofInterest: ['List<Object?>', 'List<dynamic>'],
@@ -4278,13 +4260,12 @@ main() {
       test('when promoted via test', () {
         var x = Var('x')..type = Type('Object?');
 
-        var s1 =
-            FlowModel<SharedTypeView>(Reachability.initial)
-                ._declare(h, x, true)
-                ._tryPromoteForTypeCheck(h, x, 'num?')
-                .ifTrue
-                ._tryPromoteForTypeCheck(h, x, 'int?')
-                .ifTrue;
+        var s1 = FlowModel<SharedTypeView>(Reachability.initial)
+            ._declare(h, x, true)
+            ._tryPromoteForTypeCheck(h, x, 'num?')
+            .ifTrue
+            ._tryPromoteForTypeCheck(h, x, 'int?')
+            .ifTrue;
         expect(s1.promotionInfo.unwrap(h), {
           h.promotionKeyStore.keyForVariable(x): _matchVariableModel(
             chain: ['num?', 'int?'],
@@ -4358,19 +4339,17 @@ main() {
       });
 
       test('promoted -> unchanged', () {
-        var s1 =
-            FlowModel<SharedTypeView>(
-              Reachability.initial,
-            )._tryPromoteForTypeCheck(h, objectQVar, 'int').ifTrue;
+        var s1 = FlowModel<SharedTypeView>(
+          Reachability.initial,
+        )._tryPromoteForTypeCheck(h, objectQVar, 'int').ifTrue;
         var s2 = s1._tryMarkNonNullable(h, objectQVar).ifTrue;
         expect(s2, same(s1));
       });
 
       test('promoted -> re-promoted', () {
-        var s1 =
-            FlowModel<SharedTypeView>(
-              Reachability.initial,
-            )._tryPromoteForTypeCheck(h, objectQVar, 'int?').ifTrue;
+        var s1 = FlowModel<SharedTypeView>(
+          Reachability.initial,
+        )._tryPromoteForTypeCheck(h, objectQVar, 'int?').ifTrue;
         var s2 = s1._tryMarkNonNullable(h, objectQVar).ifTrue;
         expect(s2.reachable.overallReachable, true);
         expect(s2.promotionInfo.unwrap(h), {
@@ -4394,11 +4373,10 @@ main() {
 
     group('conservativeJoin', () {
       test('unchanged', () {
-        var s1 =
-            FlowModel<SharedTypeView>(Reachability.initial)
-                ._declare(h, intQVar, true)
-                ._tryPromoteForTypeCheck(h, objectQVar, 'int')
-                .ifTrue;
+        var s1 = FlowModel<SharedTypeView>(Reachability.initial)
+            ._declare(h, intQVar, true)
+            ._tryPromoteForTypeCheck(h, objectQVar, 'int')
+            .ifTrue;
         var s2 = s1._conservativeJoin(h, [intQVar], []);
         expect(s2, isNot(same(s1)));
         expect(s2.reachable, same(s1.reachable));
@@ -4415,12 +4393,11 @@ main() {
       });
 
       test('written', () {
-        var s1 =
-            FlowModel<SharedTypeView>(Reachability.initial)
-                ._tryPromoteForTypeCheck(h, objectQVar, 'int')
-                .ifTrue
-                ._tryPromoteForTypeCheck(h, intQVar, 'int')
-                .ifTrue;
+        var s1 = FlowModel<SharedTypeView>(Reachability.initial)
+            ._tryPromoteForTypeCheck(h, objectQVar, 'int')
+            .ifTrue
+            ._tryPromoteForTypeCheck(h, intQVar, 'int')
+            .ifTrue;
         var s2 = s1._conservativeJoin(h, [intQVar], []);
         expect(s2.reachable.overallReachable, true);
         expect(s2.promotionInfo.unwrap(h), {
@@ -4436,12 +4413,11 @@ main() {
       });
 
       test('write captured', () {
-        var s1 =
-            FlowModel<SharedTypeView>(Reachability.initial)
-                ._tryPromoteForTypeCheck(h, objectQVar, 'int')
-                .ifTrue
-                ._tryPromoteForTypeCheck(h, intQVar, 'int')
-                .ifTrue;
+        var s1 = FlowModel<SharedTypeView>(Reachability.initial)
+            ._tryPromoteForTypeCheck(h, objectQVar, 'int')
+            .ifTrue
+            ._tryPromoteForTypeCheck(h, intQVar, 'int')
+            .ifTrue;
         var s2 = s1._conservativeJoin(h, [], [intQVar]);
         expect(s2.reachable.overallReachable, true);
         expect(s2.promotionInfo.unwrap(h), {
@@ -4596,10 +4572,9 @@ main() {
           if (thisType != null) {
             s1 = s1._tryPromoteForTypeCheck(h, x, thisType).ifTrue;
           }
-          var s2 =
-              otherType == null
-                  ? s0
-                  : s0._tryPromoteForTypeCheck(h, x, otherType).ifTrue;
+          var s2 = otherType == null
+              ? s0
+              : s0._tryPromoteForTypeCheck(h, x, otherType).ifTrue;
           var result = s2.rebaseForward(h, s1);
           if (expectedChain == null) {
             expect(
@@ -4637,8 +4612,9 @@ main() {
         // Verify that the given promotion chain matches the expected list of
         // strings.
         void _checkChain(List<SharedTypeView> chain, List<String> expected) {
-          var strings =
-              chain.map((t) => t.unwrapTypeView<Type>().type).toList();
+          var strings = chain
+              .map((t) => t.unwrapTypeView<Type>().type)
+              .toList();
           expect(strings, expected);
         }
 
@@ -7532,8 +7508,9 @@ main() {
               ifCase(
                 x,
                 recordPattern([
-                  (wildcard(type: 'num')
-                    ..errorId = 'NUM').and(wildcard(type: 'int')).recordField(),
+                  (wildcard(
+                    type: 'num',
+                  )..errorId = 'NUM').and(wildcard(type: 'int')).recordField(),
                 ]),
                 [checkPromoted(x, '(int,)')],
               ),
@@ -7575,9 +7552,9 @@ main() {
               ifCase(
                 x,
                 recordPattern([
-                  (wildcard(type: 'Object')
-                    ..errorId =
-                        'OBJECT').and(wildcard(type: 'int')).recordField(),
+                  (wildcard(type: 'Object')..errorId = 'OBJECT')
+                      .and(wildcard(type: 'int'))
+                      .recordField(),
                 ]),
                 [checkPromoted(x, '(int,)')],
               ),
@@ -12829,12 +12806,12 @@ Matcher _matchVariableModel({
   assigned ??= anything;
   unassigned ??= anything;
   writeCaptured ??= anything;
-  Matcher chainMatcher =
-      chain is List<String> ? _matchPromotionChain(chain) : wrapMatcher(chain);
-  Matcher ofInterestMatcher =
-      ofInterest is List<String>
-          ? _matchOfInterestSet(ofInterest)
-          : wrapMatcher(ofInterest);
+  Matcher chainMatcher = chain is List<String>
+      ? _matchPromotionChain(chain)
+      : wrapMatcher(chain);
+  Matcher ofInterestMatcher = ofInterest is List<String>
+      ? _matchOfInterestSet(ofInterest)
+      : wrapMatcher(ofInterest);
   Matcher assignedMatcher = wrapMatcher(assigned);
   Matcher unassignedMatcher = wrapMatcher(unassigned);
   Matcher writeCapturedMatcher = wrapMatcher(writeCaptured);

@@ -303,8 +303,9 @@ class LibrariesSpecification {
         Uri uri = checkAndResolve(data['uri']);
         List<Uri> patches;
         if (data['patches'] is List) {
-          patches =
-              data['patches'].map<Uri>((s) => specUri.resolve(s)).toList();
+          patches = data['patches']
+              .map<Uri>((s) => specUri.resolve(s))
+              .toList();
         } else if (data['patches'] is String) {
           patches = [checkAndResolve(data['patches'])];
         } else if (data['patches'] == null) {

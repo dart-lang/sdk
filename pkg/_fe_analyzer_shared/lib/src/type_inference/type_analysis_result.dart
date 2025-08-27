@@ -213,14 +213,14 @@ class MatchContext<
   /// [TypeAnalyzerErrors.refutablePatternInIrrefutableContext].
   MatchContext<Node, Expression, Pattern, Type, Variable> makeRefutable() =>
       irrefutableContext == null
-          ? this
-          : new MatchContext(
-            isFinal: isFinal,
-            switchScrutinee: switchScrutinee,
-            assignedVariables: assignedVariables,
-            componentVariables: componentVariables,
-            patternVariablePromotionKeys: patternVariablePromotionKeys,
-          );
+      ? this
+      : new MatchContext(
+          isFinal: isFinal,
+          switchScrutinee: switchScrutinee,
+          assignedVariables: assignedVariables,
+          componentVariables: componentVariables,
+          patternVariablePromotionKeys: patternVariablePromotionKeys,
+        );
 
   /// Returns a modified version of `this`, with a new value of
   /// [patternVariablePromotionKeys].
