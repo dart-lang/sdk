@@ -74,6 +74,7 @@ class Dart2wasmExecutor implements TargetExecutor {
       '--extra-compiler-option=--dynamic-module-main=main.dart.dill',
       '--extra-compiler-option=--dynamic-module-interface='
           '$rootScheme:/data/$testName/dynamic_interface.yaml',
+      '--extra-compiler-option=--minify',
       '$rootScheme:/data/$testName/$source',
       '$source.wasm',
     ];

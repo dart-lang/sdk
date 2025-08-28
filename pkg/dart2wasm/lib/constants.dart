@@ -13,8 +13,6 @@ import 'package:wasm_builder/wasm_builder.dart' as w;
 import 'class_info.dart';
 import 'closures.dart';
 import 'code_generator.dart';
-import 'dynamic_module_kernel_metadata.dart'
-    show DynamicModuleConstantRepository;
 import 'dynamic_modules.dart';
 import 'param_info.dart';
 import 'translator.dart';
@@ -72,10 +70,6 @@ typedef ConstantCodeGenerator = void Function(w.InstructionsBuilder);
 class Constants {
   final Translator translator;
   final Map<Constant, ConstantInfo> constantInfo = {};
-  late final Map<Constant, int>? dynamicMainModuleConstantId = (translator
-              .component.metadata[DynamicModuleConstantRepository.repositoryTag]
-          as DynamicModuleConstantRepository?)
-      ?.mapping[translator.component] ??= {};
   w.DataSegmentBuilder? int32Segment;
   late final ClassInfo typeInfo = translator.classInfo[translator.typeClass]!;
 
@@ -498,9 +492,6 @@ class ConstantCreator extends ConstantVisitor<ConstantInfo?>
     return info;
   }
 
-  static String _dynamicModuleConstantExportName(int id) => '#c$id';
-  static String _dynamicModuleInitFunctionExportName(int id) => '#cf$id';
-
   static int _nextGlobalId = 0;
   String _constantName(Constant constant) {
     final id = _nextGlobalId++;
@@ -556,16 +547,19 @@ class ConstantCreator extends ConstantVisitor<ConstantInfo?>
     assert(!type.nullable);
 
     // This function is only called once per [Constant]. If we compile a dynamic
-    // submodule then the [dynamicModuleConstantIdMap] is pre-populated and
+    // submodule then `translator.dynamicModuleConstants` is pre-populated and
     // we may find an export name. If we compile the main module, then the id
     // will be `null`.
-    final dynamicModuleConstantIdMap = constants.dynamicMainModuleConstantId;
-    final mainModuleExportId = dynamicModuleConstantIdMap?[constant];
-    final isShareableAcrossModules = dynamicModuleConstantIdMap != null &&
-        constant.accept(_ConstantDynamicModuleSharedChecker(translator));
+    final isExportedFromMainModule = translator
+            .dynamicModuleConstants?.constantNames
+            .containsKey(constant) ??
+        false;
+    final isShareableAcrossModules =
+        translator.dynamicModuleConstants != null &&
+            constant.accept(_ConstantDynamicModuleSharedChecker(translator));
     final needsRuntimeCanonicalization = isShareableAcrossModules &&
         translator.isDynamicSubmodule &&
-        mainModuleExportId == null;
+        !isExportedFromMainModule;
 
     if (lazy || needsRuntimeCanonicalization) {
       // Create uninitialized global and function to initialize it.
@@ -576,12 +570,15 @@ class ConstantCreator extends ConstantVisitor<ConstantInfo?>
       w.FunctionType ftype =
           translator.typesBuilder.defineFunction(const [], [type]);
 
-      if (mainModuleExportId != null) {
-        global = targetModule.globals.import(translator.mainModule.moduleName,
-            _dynamicModuleConstantExportName(mainModuleExportId), globalType);
+      if (isExportedFromMainModule) {
+        global = targetModule.globals.import(
+            translator.mainModule.moduleName,
+            translator.dynamicModuleConstants!.constantNames[constant]!,
+            globalType);
         initFunction = targetModule.functions.import(
             translator.mainModule.moduleName,
-            _dynamicModuleInitFunctionExportName(mainModuleExportId),
+            translator
+                .dynamicModuleConstants!.constantInitializerNames[constant]!,
             ftype);
       } else {
         final name = _constantName(constant);
@@ -594,13 +591,9 @@ class ConstantCreator extends ConstantVisitor<ConstantInfo?>
             targetModule.functions.define(ftype, '$name (lazy initializer)}');
 
         if (isShareableAcrossModules) {
-          final exportId = dynamicModuleConstantIdMap[constant] =
-              dynamicModuleConstantIdMap.length;
-
-          targetModule.exports.export(
-              _dynamicModuleConstantExportName(exportId), definedGlobal);
-          targetModule.exports
-              .export(_dynamicModuleInitFunctionExportName(exportId), function);
+          translator.exporter.exportDynamicConstant(
+              targetModule, constant, definedGlobal,
+              initializer: function);
         }
         final b2 = function.body;
         generator(b2);
@@ -621,9 +614,11 @@ class ConstantCreator extends ConstantVisitor<ConstantInfo?>
       assert(!constants.currentlyCreating);
       final globalType = w.GlobalType(type, mutable: false);
       w.Global global;
-      if (mainModuleExportId != null) {
-        global = targetModule.globals.import(translator.mainModule.moduleName,
-            _dynamicModuleConstantExportName(mainModuleExportId), globalType);
+      if (isExportedFromMainModule) {
+        global = targetModule.globals.import(
+            translator.mainModule.moduleName,
+            translator.dynamicModuleConstants!.constantNames[constant]!,
+            globalType);
       } else {
         constants.currentlyCreating = true;
         final definedGlobal = global =
@@ -633,11 +628,8 @@ class ConstantCreator extends ConstantVisitor<ConstantInfo?>
         constants.currentlyCreating = false;
 
         if (isShareableAcrossModules) {
-          final exportId = dynamicModuleConstantIdMap[constant] =
-              dynamicModuleConstantIdMap.length;
-
-          targetModule.exports.export(
-              _dynamicModuleConstantExportName(exportId), definedGlobal);
+          translator.exporter
+              .exportDynamicConstant(targetModule, constant, definedGlobal);
         }
       }
 

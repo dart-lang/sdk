@@ -23,6 +23,7 @@ import 'dispatch_table.dart';
 import 'dynamic_forwarders.dart';
 import 'dynamic_module_kernel_metadata.dart';
 import 'dynamic_modules.dart';
+import 'exports.dart';
 import 'functions.dart';
 import 'globals.dart';
 import 'kernel_nodes.dart';
@@ -125,6 +126,9 @@ class Translator with KernelNodes {
 
   final Symbols symbols;
 
+  final ExportNamer exportNamer;
+  late final Exporter exporter;
+
   // Kernel input and context.
   @override
   final Component component;
@@ -176,6 +180,8 @@ class Translator with KernelNodes {
   late final ExceptionTag exceptionTag;
   late final CompilationQueue compilationQueue;
   late final FunctionCollector functions;
+
+  late final DynamicModuleConstants? dynamicModuleConstants;
 
   // Information about the program used and updated by the various phases.
 
@@ -452,6 +458,7 @@ class Translator with KernelNodes {
       {bool enableDynamicModules = false,
       required MainModuleMetadata mainModuleMetadata})
       : symbols = Symbols(options.minify),
+        exportNamer = ExportNamer(options.minify),
         libraries = component.libraries,
         hierarchy =
             ClassHierarchy(component, coreTypes) as ClosedWorldClassHierarchy {
@@ -473,6 +480,14 @@ class Translator with KernelNodes {
     functions = FunctionCollector(this);
     types = Types(this);
     exceptionTag = ExceptionTag(this);
+
+    dynamicModuleConstants =
+        (component.metadata[DynamicModuleConstantRepository.repositoryTag]
+                as DynamicModuleConstantRepository?)
+            ?.mapping[component] ??= DynamicModuleConstants();
+
+    exporter =
+        Exporter(exportNamer, mainModuleMetadata, dynamicModuleConstants);
   }
 
   void _initLoadLibraryImportMap() {
@@ -2645,7 +2660,8 @@ abstract class _WasmImporter<T extends w.Exportable> {
     if (key.enclosingModule == module) return key;
 
     final innerMap = _map.putIfAbsent(key, () {
-      key.enclosingModule.exports.export('$_exportPrefix${_map.length}', key);
+      _translator.exporter
+          .export(key.enclosingModule, '$_exportPrefix${_map.length}', key);
       return {};
     });
     return innerMap.putIfAbsent(module, () {

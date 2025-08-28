@@ -137,12 +137,20 @@ void StubCodeCompiler::GenerateInitLateStaticFieldStub(bool is_final,
   Label throw_exception;
   if (is_final) {
     __ Comment("Checking that initializer did not set late final field");
-    __ LoadFromOffset(kScratchReg, kAddressReg, 0);
+    if (is_shared) {
+      __ LoadAcquireFromOffset(kScratchReg, kAddressReg, 0);
+    } else {
+      __ LoadFromOffset(kScratchReg, kAddressReg, 0);
+    }
     __ CompareObject(kScratchReg, SentinelObject());
     __ BranchIf(NOT_EQUAL, &throw_exception);
   }
 
-  __ StoreToOffset(kResultReg, kAddressReg, 0);
+  if (is_shared) {
+    __ StoreReleaseToOffset(kResultReg, kAddressReg, 0);
+  } else {
+    __ StoreToOffset(kResultReg, kAddressReg, 0);
+  }
   __ LeaveStubFrame();
   __ Ret();
 

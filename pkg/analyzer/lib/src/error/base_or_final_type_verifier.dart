@@ -240,16 +240,17 @@ class BaseOrFinalTypeVerifier {
         superElement.isSealed &&
         baseOrFinalSuperElement.library != element.library) {
       if (baseOrFinalSuperElement.isBase) {
-        var errorCode = baseOrFinalSuperElement is MixinElement
+        var error = baseOrFinalSuperElement is MixinElement
             ? CompileTimeErrorCode.baseMixinImplementedOutsideOfLibrary
-            : CompileTimeErrorCode.baseClassImplementedOutsideOfLibrary;
+                  .withArguments(
+                    implementedMixinName: baseOrFinalSuperElement.displayName,
+                  )
+            : CompileTimeErrorCode.baseClassImplementedOutsideOfLibrary
+                  .withArguments(
+                    implementedClassName: baseOrFinalSuperElement.displayName,
+                  );
         _diagnosticReporter.report(
-          errorCode
-              .withArguments(
-                superElementName: baseOrFinalSuperElement.displayName,
-              )
-              .withContextMessages(contextMessages)
-              .at(implementsNamedType),
+          error.withContextMessages(contextMessages).at(implementsNamedType),
         );
         return true;
       }

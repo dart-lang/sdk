@@ -340,9 +340,9 @@ CompileTimeErrorCode:
     hasPublishedDocs: true
   ABSTRACT_SUPER_MEMBER_REFERENCE:
     parameters:
-      String kind: the display name for the kind of the found abstract member
+      String memberKind: the display name for the kind of the found abstract member
       String name: the name of the member
-    problemMessage: "The #kind '#name' is always abstract in the supertype."
+    problemMessage: "The #memberKind '#name' is always abstract in the supertype."
     hasPublishedDocs: true
     documentation: |-
       #### Description
@@ -1331,9 +1331,9 @@ CompileTimeErrorCode:
       ```
   BASE_CLASS_IMPLEMENTED_OUTSIDE_OF_LIBRARY:
     parameters:
-      String superElementName: the name of the base class being implemented
+      String implementedClassName: the name of the base class being implemented
     sharedName: INVALID_USE_OF_TYPE_OUTSIDE_LIBRARY
-    problemMessage: "The class '#superElementName' can't be implemented outside of its library because it's a base class."
+    problemMessage: "The class '#implementedClassName' can't be implemented outside of its library because it's a base class."
     hasPublishedDocs: true
     documentation: |-
       #### Description
@@ -1383,9 +1383,9 @@ CompileTimeErrorCode:
       ```
   BASE_MIXIN_IMPLEMENTED_OUTSIDE_OF_LIBRARY:
     parameters:
-      String superElementName: the name of the base mixin being implemented
+      String implementedMixinName: the name of the base mixin being implemented
     sharedName: INVALID_USE_OF_TYPE_OUTSIDE_LIBRARY
-    problemMessage: "The mixin '#superElementName' can't be implemented outside of its library because it's a base mixin."
+    problemMessage: "The mixin '#implementedMixinName' can't be implemented outside of its library because it's a base mixin."
     hasPublishedDocs: true
   BODY_MIGHT_COMPLETE_NORMALLY:
     parameters:
