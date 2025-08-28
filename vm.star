@@ -516,6 +516,18 @@ _nightly_builder(
     channels = ["try"],
     dimensions = [mac, arm64],
 )
+_vm_builder(
+    "vm-ffi-dyn-mac-debug-simarm64_arm64",
+    category = "vm|ffi|dd",
+    channels = ["try"],
+    dimensions = [mac, arm64],
+)
+_nightly_builder(
+    "vm-ffi-dyn-mac-release-simarm64_arm64",
+    category = "vm|ffi|dr",
+    channels = ["try"],
+    dimensions = [mac, arm64],
+)
 
 # Isolate stress test builder
 _vm_builder(
