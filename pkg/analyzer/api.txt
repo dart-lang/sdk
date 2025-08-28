@@ -319,7 +319,7 @@ package:analyzer/dart/analysis/analysis_options.dart:
     formatterOptions (getter: FormatterOptions)
     lint (getter: bool)
     lintRules (getter: List<AbstractAnalysisRule>)
-    pluginConfigurations (getter: List<PluginConfiguration>)
+    pluginConfigurations (getter: List<PluginConfiguration>, deprecated)
     strictCasts (getter: bool)
     strictInference (getter: bool)
     strictRawTypes (getter: bool)

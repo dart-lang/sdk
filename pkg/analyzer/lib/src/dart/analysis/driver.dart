@@ -5,7 +5,6 @@
 import 'dart:async';
 import 'dart:typed_data';
 
-import 'package:analyzer/dart/analysis/analysis_options.dart';
 import 'package:analyzer/dart/analysis/declared_variables.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/diagnostic/diagnostic.dart';
@@ -430,25 +429,27 @@ class AnalysisDriver {
     );
   }
 
-  /// Return the path of the folder at the root of the context.
+  /// The path of the folder at the root of the context.
   String get name => analysisContext?.contextRoot.root.path ?? '';
 
-  /// Return the number of files scheduled for analysis.
+  /// The number of files scheduled for analysis.
   int get numberOfFilesToAnalyze => _fileTracker.numberOfPendingFiles;
 
-  List<PluginConfiguration> get pluginConfigurations {
+  /// The plugins options specified in the root analysis options, if any.
+  PluginsOptions? get pluginsOptions {
     // We currently only support plugins which are specified at the root of a
     // context.
     var rootOptionsFile = analysisContext?.contextRoot.optionsFile;
-    return rootOptionsFile != null
-        ? getAnalysisOptionsForFile(rootOptionsFile).pluginConfigurations
-        : const [];
+    if (rootOptionsFile == null) {
+      return null;
+    }
+    return getAnalysisOptionsForFile(rootOptionsFile).pluginsOptions;
   }
 
-  /// Return the list of files that the driver should try to analyze sooner.
+  /// The list of files that the driver should try to analyze sooner.
   List<String> get priorityFiles => _priorityFiles.toList(growable: false);
 
-  /// Set the list of files that the driver should try to analyze sooner.
+  /// Sets the list of files that the driver should try to analyze sooner.
   ///
   /// Every path in the list must be absolute and normalized.
   ///
@@ -788,7 +789,7 @@ class AnalysisDriver {
   /// NOTE: this API is experimental and subject to change in a future
   /// release (see https://github.com/dart-lang/sdk/issues/53876 for context).
   @experimental
-  AnalysisOptions getAnalysisOptionsForFile(File file) =>
+  AnalysisOptionsImpl getAnalysisOptionsForFile(File file) =>
       analysisOptionsMap.getOptions(file);
 
   /// Return the cached [ResolvedUnitResult] for the Dart file with the given

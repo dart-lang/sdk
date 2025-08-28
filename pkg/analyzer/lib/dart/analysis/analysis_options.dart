@@ -28,15 +28,14 @@ abstract class AnalysisOptions {
   /// legacy plugin, the legacy plugin should be enabled.
   List<String> get enabledLegacyPluginNames;
 
-  /// Return a list of error processors that are to be used when reporting
-  /// errors in some analysis context.
+  /// The list of error processors that are to be used when reporting errors in
+  /// some analysis context.
   List<ErrorProcessor> get errorProcessors;
 
-  /// Return a list of exclude patterns used to exclude some sources from
-  /// analysis.
+  /// The list of exclude patterns used to exclude some sources from analysis.
   List<String> get excludePatterns;
 
-  /// Return the options used to control the formatter.
+  /// The options used to control the formatter.
   FormatterOptions get formatterOptions;
 
   /// Whether analysis is to generate lint warnings.
@@ -52,6 +51,7 @@ abstract class AnalysisOptions {
   ///
   /// These are distinct from the legacy plugins found at
   /// [enabledLegacyPluginNames].
+  @Deprecated('This will be removed without replacement')
   List<PluginConfiguration> get pluginConfigurations;
 
   /// Whether implicit casts should be reported as potential problems.

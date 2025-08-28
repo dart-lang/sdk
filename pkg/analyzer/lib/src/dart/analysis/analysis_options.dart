@@ -61,7 +61,12 @@ final class AnalysisOptionsBuilder {
 
   Set<String> unignorableDiagnosticCodeNames = {};
 
-  List<PluginConfiguration> pluginConfigurations = [];
+  PluginsOptions pluginsOptions = PluginsOptions(
+    configurations: const [],
+    dependencyOverrides: null,
+  );
+
+  String? pluginDependencyOverrides;
 
   AnalysisOptionsImpl build() {
     return AnalysisOptionsImpl._(
@@ -69,7 +74,7 @@ final class AnalysisOptionsBuilder {
       contextFeatures: contextFeatures,
       nonPackageFeatureSet: nonPackageFeatureSet,
       enabledLegacyPluginNames: enabledLegacyPluginNames,
-      pluginConfigurations: pluginConfigurations,
+      pluginsOptions: pluginsOptions,
       errorProcessors: errorProcessors,
       excludePatterns: excludePatterns,
       lint: lint,
@@ -216,16 +221,25 @@ final class AnalysisOptionsBuilder {
       return;
     }
 
+    var configurations = <PluginConfiguration>[];
+    String? dependencyOverrides;
+
     plugins.nodes.forEach((nameNode, pluginNode) {
       if (nameNode is! YamlScalar) {
         return;
       }
+
       var pluginName = nameNode.toString();
+      if (pluginName == 'dependency_overrides') {
+        // This is a magic key; not the name of a plugin.
+        var indent = pluginNode.span.start.column;
+        dependencyOverrides = ' ' * indent + pluginNode.span.text;
+      }
 
       // If the plugin name just maps to a String, then that is the version
       // constraint; use it and move on.
       if (pluginNode case YamlScalar(:String value)) {
-        pluginConfigurations.add(
+        configurations.add(
           PluginConfiguration(
             name: pluginName,
             source: VersionedPluginSource(constraint: value),
@@ -283,7 +297,7 @@ final class AnalysisOptionsBuilder {
           ? const <String, RuleConfig>{}
           : parseDiagnosticsSection(diagnostics);
 
-      pluginConfigurations.add(
+      configurations.add(
         PluginConfiguration(
           name: pluginName,
           source: source,
@@ -292,6 +306,11 @@ final class AnalysisOptionsBuilder {
         ),
       );
     });
+
+    pluginsOptions = PluginsOptions(
+      configurations: configurations,
+      dependencyOverrides: dependencyOverrides,
+    );
   }
 
   void _applyUnignorables(YamlNode? cannotIgnore) {
@@ -360,8 +379,8 @@ class AnalysisOptionsImpl implements AnalysisOptions {
   @override
   final List<String> enabledLegacyPluginNames;
 
-  @override
-  final List<PluginConfiguration> pluginConfigurations;
+  /// The options used to specify plugins.
+  final PluginsOptions pluginsOptions;
 
   @override
   final List<ErrorProcessor> errorProcessors;
@@ -503,7 +522,7 @@ class AnalysisOptionsImpl implements AnalysisOptions {
     required this.nonPackageFeatureSet,
     required this.excludePatterns,
     required this.enabledLegacyPluginNames,
-    required this.pluginConfigurations,
+    required this.pluginsOptions,
     required this.errorProcessors,
     required this.lint,
     required this.lintRules,
@@ -532,6 +551,10 @@ class AnalysisOptionsImpl implements AnalysisOptions {
   /// If a library is in a package, this language version is *not* used,
   /// even if the package does not specify the language version.
   Version get nonPackageLanguageVersion => ExperimentStatus.currentVersion;
+
+  @override
+  List<PluginConfiguration> get pluginConfigurations =>
+      pluginsOptions.configurations;
 
   Uint32List get signature {
     if (_signature == null) {
@@ -632,6 +655,21 @@ class AnalysisOptionsImpl implements AnalysisOptions {
   bool isLintEnabled(String name) {
     return lintRules.any((rule) => rule.name == name);
   }
+}
+
+/// The analysis options for plugins, as specified in the top-level `plugins`
+/// section.
+final class PluginsOptions {
+  /// The list of each listed plugin's configuration.
+  final List<PluginConfiguration> configurations;
+
+  /// The dependency overrides, if specified.
+  final String? dependencyOverrides;
+
+  PluginsOptions({
+    required this.configurations,
+    required this.dependencyOverrides,
+  });
 }
 
 extension on YamlNode? {
