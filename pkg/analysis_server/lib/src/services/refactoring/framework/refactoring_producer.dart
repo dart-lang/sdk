@@ -82,8 +82,8 @@ abstract class RefactoringProducer {
   bool get supportsFileCreation {
     var capabilities = refactoringContext.clientCapabilities;
     return capabilities != null &&
-        capabilities.documentChanges == true &&
-        capabilities.createResourceOperations == true;
+        capabilities.documentChanges &&
+        capabilities.createResourceOperations;
   }
 
   /// Return the title of this refactoring.

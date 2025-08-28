@@ -168,8 +168,10 @@ sealed class CorrectionProducer<T extends ParsedUnitResult>
     }
     var diagnosticOffset = diagnostic.problemMessage.offset;
     var diagnosticLength = diagnostic.problemMessage.length;
-    return _coveringNode =
-        unit.nodeCovering(offset: diagnosticOffset, length: diagnosticLength);
+    return _coveringNode = unit.nodeCovering(
+      offset: diagnosticOffset,
+      length: diagnosticLength,
+    );
   }
 
   /// The length of the source range associated with the diagnostic being
@@ -242,15 +244,15 @@ final class CorrectionProducerContext {
     required Token token,
     required int selectionOffset,
     required int selectionLength,
-  })  : _libraryResult = libraryResult,
-        _unitResult = unitResult,
-        _sessionHelper = AnalysisSessionHelper(unitResult.session),
-        _utils = dartFixContext?.correctionUtils ?? CorrectionUtils(unitResult),
-        _applyingBulkFixes = applyingBulkFixes,
-        _diagnostic = diagnostic,
-        _token = token,
-        _selectionOffset = selectionOffset,
-        _selectionLength = selectionLength;
+  }) : _libraryResult = libraryResult,
+       _unitResult = unitResult,
+       _sessionHelper = AnalysisSessionHelper(unitResult.session),
+       _utils = dartFixContext?.correctionUtils ?? CorrectionUtils(unitResult),
+       _applyingBulkFixes = applyingBulkFixes,
+       _diagnostic = diagnostic,
+       _token = token,
+       _selectionOffset = selectionOffset,
+       _selectionLength = selectionLength;
 
   String get path => _unitResult.path;
 
@@ -296,8 +298,10 @@ final class CorrectionProducerContext {
     int selectionOffset = -1,
     int selectionLength = 0,
   }) {
-    var node = unitResult.unit
-        .nodeCovering(offset: selectionOffset, length: selectionLength);
+    var node = unitResult.unit.nodeCovering(
+      offset: selectionOffset,
+      length: selectionLength,
+    );
     node ??= unitResult.unit;
 
     var token = _tokenAt(node, selectionOffset) ?? node.beginToken;
@@ -445,7 +449,8 @@ abstract class ResolvedCorrectionProducer
   /// Returns the extension declaration for the given [fragment], or `null` if
   /// there is no such extension.
   Future<ExtensionDeclaration?> getExtensionDeclaration(
-      ExtensionFragment fragment) async {
+    ExtensionFragment fragment,
+  ) async {
     var result = await sessionHelper.getFragmentDeclaration(fragment);
     var node = result?.node;
     if (node is ExtensionDeclaration) {
@@ -457,7 +462,8 @@ abstract class ResolvedCorrectionProducer
   /// Returns the extension type for the given [fragment], or `null` if there
   /// is no such extension type.
   Future<ExtensionTypeDeclaration?> getExtensionTypeDeclaration(
-      ExtensionTypeFragment fragment) async {
+    ExtensionTypeFragment fragment,
+  ) async {
     var result = await sessionHelper.getFragmentDeclaration(fragment);
     var node = result?.node;
     if (node is ExtensionTypeDeclaration) {
@@ -588,11 +594,10 @@ abstract class ResolvedCorrectionProducer
         } else if (assignment.writeType case var expectedType?) {
           // `v += myFunction();`.
           var method = assignment.element;
-          if (method
-              case MethodElement(
-                :var returnType,
-                formalParameters: List(length: 1, :var first),
-              )) {
+          if (method case MethodElement(
+            :var returnType,
+            formalParameters: List(length: 1, :var first),
+          )) {
             if (typeSystem.isAssignableTo(returnType, expectedType)) {
               // The return type is assignable to the expected type, then use
               // the expected parameter type.
@@ -708,10 +713,13 @@ abstract class ResolvedCorrectionProducer
   /// Looks if the [expression] is directly inside a closure and returns the
   /// return type of the closure.
   DartType? _closureReturnType(Expression expression) {
-    if (expression.enclosingClosure
-        case FunctionExpression(:var correspondingParameter, :var staticType)) {
-      if (correspondingParameter?.type ?? staticType
-          case FunctionType(:var returnType)) {
+    if (expression.enclosingClosure case FunctionExpression(
+      :var correspondingParameter,
+      :var staticType,
+    )) {
+      if (correspondingParameter?.type ?? staticType case FunctionType(
+        :var returnType,
+      )) {
         return returnType;
       }
     }
@@ -757,7 +765,7 @@ sealed class _AbstractCorrectionProducer<T extends ParsedUnitResult> {
   final CorrectionProducerContext _context;
 
   _AbstractCorrectionProducer({required CorrectionProducerContext context})
-      : _context = context;
+    : _context = context;
 
   /// Whether the fixes are being built for the bulk-fix request.
   bool get applyingBulkFixes => _context._applyingBulkFixes;
@@ -796,10 +804,11 @@ sealed class _AbstractCorrectionProducer<T extends ParsedUnitResult> {
 
   CorrectionUtils get utils => _context._utils;
 
-  CodeStyleOptions getCodeStyleOptions(File file) =>
-      sessionHelper.session.analysisContext
-          .getAnalysisOptionsForFile(file)
-          .codeStyleOptions;
+  CodeStyleOptions getCodeStyleOptions(File file) => sessionHelper
+      .session
+      .analysisContext
+      .getAnalysisOptionsForFile(file)
+      .codeStyleOptions;
 
   /// Returns the function body of the most deeply nested method or function
   /// that encloses the [node], or `null` if the node is not in a method or

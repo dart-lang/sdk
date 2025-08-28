@@ -4,7 +4,7 @@ version: 0.2.3-dev
 repository: https://github.com/dart-lang/sdk/tree/main/pkg/analysis_server_plugin
 
 environment:
-  sdk: ^3.5.0
+  sdk: ^3.9.0
 
 resolution: workspace
 

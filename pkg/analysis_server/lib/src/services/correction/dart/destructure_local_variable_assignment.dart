@@ -302,6 +302,6 @@ extension on AstNode {
     var node = this;
     if (node is PrefixedIdentifier) node = node.identifier;
     if (node is PropertyAccess) node = node.propertyName;
-    return (node is SimpleIdentifier) ? node.inSetterContext() : false;
+    return (node is SimpleIdentifier) && node.inSetterContext();
   }
 }

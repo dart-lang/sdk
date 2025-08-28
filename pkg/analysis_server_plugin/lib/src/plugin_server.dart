@@ -63,8 +63,10 @@ class PluginServer {
 
   final OverlayResourceProvider _resourceProvider;
 
-  late final ByteStore _byteStore =
-      MemoryCachingByteStore(NullByteStore(), 1024 * 1024 * 256);
+  late final ByteStore _byteStore = MemoryCachingByteStore(
+    NullByteStore(),
+    1024 * 1024 * 256,
+  );
 
   AnalysisContextCollectionImpl? _contextCollection;
 
@@ -86,8 +88,8 @@ class PluginServer {
   PluginServer({
     required ResourceProvider resourceProvider,
     required List<Plugin> plugins,
-  })  : _resourceProvider = OverlayResourceProvider(resourceProvider),
-        _plugins = plugins {
+  }) : _resourceProvider = OverlayResourceProvider(resourceProvider),
+       _plugins = plugins {
     for (var plugin in plugins) {
       plugin.register(_registry);
     }
@@ -98,8 +100,9 @@ class PluginServer {
   ///
   /// Throws a [RequestFailure] if the request could not be handled.
   Future<protocol.AnalysisSetPriorityFilesResult>
-      handleAnalysisSetPriorityFiles(
-          protocol.AnalysisSetPriorityFilesParams parameters) async {
+  handleAnalysisSetPriorityFiles(
+    protocol.AnalysisSetPriorityFilesParams parameters,
+  ) async {
     _priorityPaths = parameters.files.toSet();
     return protocol.AnalysisSetPriorityFilesResult();
   }
@@ -108,7 +111,8 @@ class PluginServer {
   ///
   /// Throws a [RequestFailure] if the request could not be handled.
   Future<protocol.EditGetAssistsResult> handleEditGetAssists(
-      protocol.EditGetAssistsParams parameters) async {
+    protocol.EditGetAssistsParams parameters,
+  ) async {
     var path = parameters.file;
 
     var recentState = _recentState[path];
@@ -117,8 +121,9 @@ class PluginServer {
     }
 
     var (:analysisContext, :errors) = recentState;
-    var libraryResult =
-        await analysisContext.currentSession.getResolvedLibrary(path);
+    var libraryResult = await analysisContext.currentSession.getResolvedLibrary(
+      path,
+    );
     if (libraryResult is! ResolvedLibraryResult) {
       return protocol.EditGetAssistsResult(const []);
     }
@@ -153,7 +158,7 @@ class PluginServer {
 
     var corrections = [
       for (var assist in assists..sort(Assist.compareAssists))
-        protocol.PrioritizedSourceChange(assist.kind.priority, assist.change)
+        protocol.PrioritizedSourceChange(assist.kind.priority, assist.change),
     ];
     return protocol.EditGetAssistsResult(corrections);
   }
@@ -162,7 +167,8 @@ class PluginServer {
   ///
   /// Throws a [RequestFailure] if the request could not be handled.
   Future<protocol.EditGetFixesResult> handleEditGetFixes(
-      protocol.EditGetFixesParams parameters) async {
+    protocol.EditGetFixesParams parameters,
+  ) async {
     var path = parameters.file;
     var offset = parameters.offset;
 
@@ -173,8 +179,9 @@ class PluginServer {
 
     var (:analysisContext, :errors) = recentState;
 
-    var libraryResult =
-        await analysisContext.currentSession.getResolvedLibrary(path);
+    var libraryResult = await analysisContext.currentSession.getResolvedLibrary(
+      path,
+    );
     if (libraryResult is! ResolvedLibraryResult) {
       return protocol.EditGetFixesResult(const []);
     }
@@ -183,8 +190,9 @@ class PluginServer {
       return protocol.EditGetFixesResult(const []);
     }
 
-    var lintAtOffset =
-        errors.where((error) => error.diagnostic.offset == offset);
+    var lintAtOffset = errors.where(
+      (error) => error.diagnostic.offset == offset,
+    );
     if (lintAtOffset.isEmpty) return protocol.EditGetFixesResult(const []);
 
     var errorFixesList = <protocol.AnalysisErrorFixes>[];
@@ -225,26 +233,31 @@ class PluginServer {
 
   /// Handles a 'plugin.versionCheck' request.
   Future<protocol.PluginVersionCheckResult> handlePluginVersionCheck(
-      protocol.PluginVersionCheckParams parameters) async {
+    protocol.PluginVersionCheckParams parameters,
+  ) async {
     // TODO(srawlins): It seems improper for _this_ method to be the point where
     // the SDK path is configured...
     _sdkPath = parameters.sdkPath;
-    return protocol.PluginVersionCheckResult(
-        true, 'Plugin Server', '0.0.1', ['*.dart']);
+    return protocol.PluginVersionCheckResult(true, 'Plugin Server', '0.0.1', [
+      '*.dart',
+    ]);
   }
 
   /// Initializes each of the registered plugins.
   Future<void> initialize() async {
     await Future.wait(
-        _plugins.map((p) => p.start()).whereType<Future<Object?>>());
+      _plugins.map((p) => p.start()).whereType<Future<Object?>>(),
+    );
   }
 
   /// Starts this plugin by listening to the given communication [channel].
   void start(PluginCommunicationChannel channel) {
     _channel = channel;
-    _channel.listen(_handleRequestZoned,
-        // TODO(srawlins): Implement.
-        onDone: () {});
+    _channel.listen(
+      _handleRequestZoned,
+      // TODO(srawlins): Implement.
+      onDone: () {},
+    );
   }
 
   /// This method is invoked when a new instance of [AnalysisContextCollection]
@@ -253,8 +266,10 @@ class PluginServer {
     required AnalysisContextCollection contextCollection,
   }) async {
     _channel.sendNotification(
-        protocol.PluginStatusParams(analysis: protocol.AnalysisStatus(true))
-            .toNotification());
+      protocol.PluginStatusParams(
+        analysis: protocol.AnalysisStatus(true),
+      ).toNotification(),
+    );
     await _forAnalysisContexts(contextCollection, (analysisContext) async {
       var paths = analysisContext.contextRoot
           .analyzedFiles()
@@ -264,14 +279,13 @@ class PluginServer {
           .where((p) => file_paths.isDart(_resourceProvider.pathContext, p))
           .toSet();
 
-      await _analyzeFiles(
-        analysisContext: analysisContext,
-        paths: paths,
-      );
+      await _analyzeFiles(analysisContext: analysisContext, paths: paths);
     });
     _channel.sendNotification(
-        protocol.PluginStatusParams(analysis: protocol.AnalysisStatus(false))
-            .toNotification());
+      protocol.PluginStatusParams(
+        analysis: protocol.AnalysisStatus(false),
+      ).toNotification(),
+    );
   }
 
   Future<void> _analyzeFile({
@@ -286,7 +300,8 @@ class PluginServer {
       analysisOptions: analysisOptions as AnalysisOptionsImpl,
     );
     _channel.sendNotification(
-        protocol.AnalysisErrorsParams(path, diagnostics).toNotification());
+      protocol.AnalysisErrorsParams(path, diagnostics).toNotification(),
+    );
   }
 
   /// Analyzes the files at the given [paths].
@@ -312,8 +327,9 @@ class PluginServer {
     String path, {
     required AnalysisOptionsImpl analysisOptions,
   }) async {
-    var libraryResult =
-        await analysisContext.currentSession.getResolvedLibrary(path);
+    var libraryResult = await analysisContext.currentSession.getResolvedLibrary(
+      path,
+    );
     if (libraryResult is! ResolvedLibraryResult) {
       return const [];
     }
@@ -323,7 +339,9 @@ class PluginServer {
     }
     var listener = RecordingDiagnosticListener();
     var diagnosticReporter = DiagnosticReporter(
-        listener, unitResult.libraryElement.firstFragment.source);
+      listener,
+      unitResult.libraryElement.firstFragment.source,
+    );
 
     var currentUnit = RuleContextUnit(
       file: unitResult.file,
@@ -363,8 +381,9 @@ class PluginServer {
     for (var configuration in analysisOptions.pluginConfigurations) {
       if (!configuration.isEnabled) continue;
       // TODO(srawlins): Namespace rules by their plugin, to avoid collisions.
-      var rules =
-          Registry.ruleRegistry.enabled(configuration.diagnosticConfigs);
+      var rules = Registry.ruleRegistry.enabled(
+        configuration.diagnosticConfigs,
+      );
       for (var rule in rules) {
         rule.reporter = diagnosticReporter;
         // TODO(srawlins): Enable timing similar to what the linter package's
@@ -374,13 +393,16 @@ class PluginServer {
       for (var code in rules.expand((r) => r.diagnosticCodes)) {
         pluginCodeMapping.putIfAbsent(code, () => configuration.name);
         severityMapping.putIfAbsent(
-            code, () => _configuredSeverity(configuration, code));
+          code,
+          () => _configuredSeverity(configuration, code),
+        );
       }
     }
 
     context.currentUnit = currentUnit;
     currentUnit.unit.accept(
-        AnalysisRuleVisitor(nodeRegistry, shouldPropagateExceptions: true));
+      AnalysisRuleVisitor(nodeRegistry, shouldPropagateExceptions: true),
+    );
 
     var ignoreInfo = IgnoreInfo.forDart(unitResult.unit, unitResult.content);
     var diagnostics = listener.diagnostics.where((e) {
@@ -409,7 +431,7 @@ class PluginServer {
             correction: diagnostic.correctionMessage,
             // TODO(srawlins): Use a valid value here.
             hasFix: true,
-          )
+          ),
         ),
     ];
     _recentState[path] = (
@@ -421,23 +443,27 @@ class PluginServer {
 
   /// Converts the severity of [code] into a [protocol.AnalysisErrorSeverity].
   protocol.AnalysisErrorSeverity? _configuredSeverity(
-      PluginConfiguration configuration, DiagnosticCode code) {
+    PluginConfiguration configuration,
+    DiagnosticCode code,
+  ) {
     var configuredSeverity =
         configuration.diagnosticConfigs[code.name]?.severity;
     if (configuredSeverity != null &&
         configuredSeverity != ConfiguredSeverity.enable) {
       var severityName = configuredSeverity.name.toUpperCase();
-      var severity =
-          protocol.AnalysisErrorSeverity.values.asNameMap()[severityName];
-      assert(severity != null,
-          'Invalid configured severity: ${configuredSeverity.name}');
+      var severity = protocol.AnalysisErrorSeverity.values
+          .asNameMap()[severityName];
+      assert(
+        severity != null,
+        'Invalid configured severity: ${configuredSeverity.name}',
+      );
       return severity;
     }
 
     // Fall back to the declared severity of [code].
     var severityName = code.severity.name.toUpperCase();
-    var severity =
-        protocol.AnalysisErrorSeverity.values.asNameMap()[code.severity.name];
+    var severity = protocol.AnalysisErrorSeverity.values
+        .asNameMap()[code.severity.name];
     assert(severity != null, 'Invalid severity: $severityName');
     return severity;
   }
@@ -467,13 +493,15 @@ class PluginServer {
     switch (request.method) {
       case protocol.ANALYSIS_REQUEST_GET_NAVIGATION:
       case protocol.ANALYSIS_REQUEST_HANDLE_WATCH_EVENTS:
-        var params =
-            protocol.AnalysisHandleWatchEventsParams.fromRequest(request);
+        var params = protocol.AnalysisHandleWatchEventsParams.fromRequest(
+          request,
+        );
         result = await _handleAnalysisWatchEvents(params);
 
       case protocol.ANALYSIS_REQUEST_SET_CONTEXT_ROOTS:
-        var params =
-            protocol.AnalysisSetContextRootsParams.fromRequest(request);
+        var params = protocol.AnalysisSetContextRootsParams.fromRequest(
+          request,
+        );
         result = await _handleAnalysisSetContextRoots(params);
 
       case protocol.ANALYSIS_REQUEST_SET_PRIORITY_FILES:
@@ -500,8 +528,9 @@ class PluginServer {
         result = null;
 
       case protocol.PLUGIN_REQUEST_SHUTDOWN:
-        _channel.sendResponse(protocol.PluginShutdownResult()
-            .toResponse(request.id, requestTime));
+        _channel.sendResponse(
+          protocol.PluginShutdownResult().toResponse(request.id, requestTime),
+        );
         _channel.close();
         return null;
 
@@ -510,8 +539,11 @@ class PluginServer {
         result = await handlePluginVersionCheck(params);
     }
     if (result == null) {
-      return Response(request.id, requestTime,
-          error: RequestErrorFactory.unknownRequest(request.method));
+      return Response(
+        request.id,
+        requestTime,
+        error: RequestErrorFactory.unknownRequest(request.method),
+      );
     }
     return result.toResponse(request.id, requestTime);
   }
@@ -526,18 +558,17 @@ class PluginServer {
     required AnalysisContext analysisContext,
     required List<String> paths,
   }) async {
-    var analyzedPaths =
-        paths.where(analysisContext.contextRoot.isAnalyzed).toSet();
+    var analyzedPaths = paths
+        .where(analysisContext.contextRoot.isAnalyzed)
+        .toSet();
 
-    await _analyzeFiles(
-      analysisContext: analysisContext,
-      paths: analyzedPaths,
-    );
+    await _analyzeFiles(analysisContext: analysisContext, paths: analyzedPaths);
   }
 
   /// Handles an 'analysis.setContextRoots' request.
   Future<protocol.AnalysisSetContextRootsResult> _handleAnalysisSetContextRoots(
-      protocol.AnalysisSetContextRootsParams parameters) async {
+    protocol.AnalysisSetContextRootsParams parameters,
+  ) async {
     var currentContextCollection = _contextCollection;
     if (currentContextCollection != null) {
       _contextCollection = null;
@@ -554,7 +585,8 @@ class PluginServer {
     );
     _contextCollection = contextCollection;
     await _analyzeAllFilesInContextCollection(
-        contextCollection: contextCollection);
+      contextCollection: contextCollection,
+    );
     return protocol.AnalysisSetContextRootsResult();
   }
 
@@ -562,7 +594,8 @@ class PluginServer {
   ///
   /// Throws a [RequestFailure] if the request could not be handled.
   Future<protocol.AnalysisUpdateContentResult> _handleAnalysisUpdateContent(
-      protocol.AnalysisUpdateContentParams parameters) async {
+    protocol.AnalysisUpdateContentParams parameters,
+  ) async {
     var changedPaths = <String>{};
     var paths = parameters.files;
     paths.forEach((String path, Object overlay) {
@@ -585,14 +618,18 @@ class PluginServer {
           // The server should only send a ChangeContentOverlay if there is
           // already an existing overlay for the source.
           throw RequestFailure(
-              RequestErrorFactory.invalidOverlayChangeNoContent());
+            RequestErrorFactory.invalidOverlayChangeNoContent(),
+          );
         }
         try {
-          newContent =
-              protocol.SourceEdit.applySequence(oldContent, overlay.edits);
+          newContent = protocol.SourceEdit.applySequence(
+            oldContent,
+            overlay.edits,
+          );
         } on RangeError {
           throw RequestFailure(
-              RequestErrorFactory.invalidOverlayChangeInvalidEdit());
+            RequestErrorFactory.invalidOverlayChangeInvalidEdit(),
+          );
         }
       } else if (overlay is protocol.RemoveContentOverlay) {
         newContent = null;
@@ -616,7 +653,8 @@ class PluginServer {
 
   /// Handles an 'analysis.handleWatchEvents' request.
   Future<protocol.AnalysisHandleWatchEventsResult> _handleAnalysisWatchEvents(
-      protocol.AnalysisHandleWatchEventsParams parameters) async {
+    protocol.AnalysisHandleWatchEventsParams parameters,
+  ) async {
     final addedPaths = parameters.events
         .where((e) => e.type == protocol.WatchEventType.ADD)
         .map((e) => e.path)
@@ -640,14 +678,17 @@ class PluginServer {
   }
 
   /// Handles added files, modified files, and removed files.
-  Future<void> _handleContentChanged(
-      {List<String> addedPaths = const [],
-      List<String> modifiedPaths = const [],
-      List<String> removedPaths = const []}) async {
+  Future<void> _handleContentChanged({
+    List<String> addedPaths = const [],
+    List<String> modifiedPaths = const [],
+    List<String> removedPaths = const [],
+  }) async {
     if (_contextCollection case var contextCollection?) {
       _channel.sendNotification(
-          protocol.PluginStatusParams(analysis: protocol.AnalysisStatus(true))
-              .toNotification());
+        protocol.PluginStatusParams(
+          analysis: protocol.AnalysisStatus(true),
+        ).toNotification(),
+      );
       await _forAnalysisContexts(contextCollection, (analysisContext) async {
         for (var path in modifiedPaths) {
           analysisContext.changeFile(path);
@@ -660,11 +701,15 @@ class PluginServer {
           ...addedPaths,
         ];
         await _handleAffectedFiles(
-            analysisContext: analysisContext, paths: affected);
+          analysisContext: analysisContext,
+          paths: affected,
+        );
       });
       _channel.sendNotification(
-          protocol.PluginStatusParams(analysis: protocol.AnalysisStatus(false))
-              .toNotification());
+        protocol.PluginStatusParams(
+          analysis: protocol.AnalysisStatus(false),
+        ).toNotification(),
+      );
     }
   }
 
@@ -677,10 +722,15 @@ class PluginServer {
     } on RequestFailure catch (exception) {
       response = Response(id, requestTime, error: exception.error);
     } catch (exception, stackTrace) {
-      response = Response(id, requestTime,
-          error: protocol.RequestError(
-              protocol.RequestErrorCode.PLUGIN_ERROR, exception.toString(),
-              stackTrace: stackTrace.toString()));
+      response = Response(
+        id,
+        requestTime,
+        error: protocol.RequestError(
+          protocol.RequestErrorCode.PLUGIN_ERROR,
+          exception.toString(),
+          stackTrace: stackTrace.toString(),
+        ),
+      );
     }
     if (response != null) {
       _channel.sendResponse(response);
@@ -688,25 +738,30 @@ class PluginServer {
   }
 
   Future<void> _handleRequestZoned(Request request) async {
-    await runZonedGuarded(
-      () => _handleRequest(request),
-      (error, stackTrace) {
-        _channel.sendNotification(protocol.PluginErrorParams(
-                false /* isFatal */, error.toString(), stackTrace.toString())
-            .toNotification());
-      },
-    );
+    await runZonedGuarded(() => _handleRequest(request), (error, stackTrace) {
+      _channel.sendNotification(
+        protocol.PluginErrorParams(
+          false /* isFatal */,
+          error.toString(),
+          stackTrace.toString(),
+        ).toNotification(),
+      );
+    });
   }
 
   bool _isPriorityAnalysisContext(AnalysisContext analysisContext) =>
       _priorityPaths.any(analysisContext.contextRoot.isAnalyzed);
 
   static protocol.Location _locationFor(
-      CompilationUnit unit, String path, Diagnostic diagnostic) {
+    CompilationUnit unit,
+    String path,
+    Diagnostic diagnostic,
+  ) {
     var lineInfo = unit.lineInfo;
     var startLocation = lineInfo.getLocation(diagnostic.offset);
-    var endLocation =
-        lineInfo.getLocation(diagnostic.offset + diagnostic.length);
+    var endLocation = lineInfo.getLocation(
+      diagnostic.offset + diagnostic.length,
+    );
     return protocol.Location(
       path,
       diagnostic.offset,

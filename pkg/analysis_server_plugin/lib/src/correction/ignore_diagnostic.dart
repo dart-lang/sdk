@@ -216,8 +216,9 @@ class IgnoreDiagnosticOnLine extends _DartIgnoreDiagnostic {
         lineNumber - 1,
       );
       var lineStart = unitResult.lineInfo.getOffsetOfLine(lineNumber);
-      var line =
-          unitResult.content.substring(previousLineStart, lineStart).trim();
+      var line = unitResult.content
+          .substring(previousLineStart, lineStart)
+          .trim();
 
       if (line.startsWith(IgnoreInfo.ignoreMatcher)) {
         builder.addSimpleInsertion(lineStart - eol.length, ', $_code');

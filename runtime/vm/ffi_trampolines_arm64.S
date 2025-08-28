@@ -6,11 +6,11 @@
 // This is not written as VM stub because we need it be executable in contexts where we cannot JIT.
 // (Alternatively, we could start requiring the VM snapshot to be provided in every mode.)
 
-#if defined(__aarch64__) && (defined(SIMULATOR_FFI) || defined(DART_DYNAMIC_MODULES))
+#if defined(__aarch64__) && (defined(SIMULATOR_FFI) || (defined(DART_DYNAMIC_MODULES) && !defined(DART_PRECOMPILED_RUNTIME)))
 
 .text
 
-#if defined(DART_DYNAMIC_MODULES)
+#if defined(DART_DYNAMIC_MODULES) && !defined(DART_PRECOMPILED_RUNTIME)
 
 #if defined(__APPLE__)
 .globl _FfiCallTrampoline
@@ -66,7 +66,7 @@ FfiCallTrampoline:
 .size FfiCallTrampoline,.-FfiCallTrampoline
 #endif
 
-#endif  // defined(DART_DYNAMIC_MODULES)
+#endif  // defined(DART_DYNAMIC_MODULES) && !defined(DART_PRECOMPILED_RUNTIME)
 
 #if defined(SIMULATOR_FFI)
 
@@ -191,4 +191,4 @@ SimulatorFfiCallbackTrampolineEnd:
 
 #endif  // defined(SIMULATOR_FFI)
 
-#endif  // defined(__aarch64__) && (defined(SIMULATOR_FFI) || defined(DART_DYNAMIC_MODULES))
+#endif  // defined(__aarch64__) && (defined(SIMULATOR_FFI) || (defined(DART_DYNAMIC_MODULES) && !defined(DART_PRECOMPILED_RUNTIME)))

@@ -590,6 +590,22 @@
         "compiler": "dart2bytecode"
       }
     },
+    "vm-dyn-mac-(debug|product|release)-simarm64_arm64": {
+      "options": {
+        "compiler": "dart2bytecode",
+        "vm-options": [
+          "--use_simulator=true"
+        ]
+      }
+    },
+    "vm-dyn-mac-(debug|product|release)-simarm64_arm64-nosim": {
+      "options": {
+        "compiler": "dart2bytecode",
+        "vm-options": [
+          "--use_simulator=false"
+        ]
+      }
+    },
     "ddc-(linux|win)-chrome": {
       "options": {
         "checked": true,
@@ -852,6 +868,39 @@
           "name": "vm ffi tests",
           "arguments": [
             "-nvm-${system}-${mode}-${arch}-nosim",
+            "ffi"
+          ]
+        }
+      ]
+    },
+    {
+      "builders": [
+        "vm-ffi-dyn-mac-debug-simarm64_arm64",
+        "vm-ffi-dyn-mac-release-simarm64_arm64"
+      ],
+      "meta": {
+        "description": "This configuration is used for running FFI tests with dynamic modules"
+      },
+      "steps": [
+        {
+          "name": "build dart",
+          "script": "tools/build.py",
+          "arguments": [
+            "--dart-dynamic-modules",
+            "runtime"
+          ]
+        },
+        {
+          "name": "vm ffi tests",
+          "arguments": [
+            "-nvm-dyn-${system}-${mode}-${arch}",
+            "ffi"
+          ]
+        },
+        {
+          "name": "vm ffi tests",
+          "arguments": [
+            "-nvm-dyn-${system}-${mode}-${arch}-nosim",
             "ffi"
           ]
         }

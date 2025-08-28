@@ -1175,7 +1175,7 @@ class StatementCompletionProcessor {
     return diagnostics.firstWhereOrNull(
       (d) =>
           d.diagnosticCode == code &&
-          (partialMatch == null ? true : d.message.contains(partialMatch)),
+          (partialMatch == null || d.message.contains(partialMatch)),
     );
   }
 

@@ -34,8 +34,12 @@ class FakeChannel implements PluginCommunicationChannel {
   void close() {}
 
   @override
-  void listen(void Function(protocol.Request request)? onRequest,
-      {void Function()? onDone, Function? onError, Function? onNotification}) {
+  void listen(
+    void Function(protocol.Request request)? onRequest, {
+    void Function()? onDone,
+    Function? onError,
+    Function? onNotification,
+  }) {
     _onRequest = onRequest;
   }
 
@@ -47,7 +51,8 @@ class FakeChannel implements PluginCommunicationChannel {
   Future<protocol.Response> sendRequest(protocol.RequestParams params) {
     if (_onRequest == null) {
       fail(
-          '_onReuest is null! `listen` has not yet been called on this channel.');
+        '_onReuest is null! `listen` has not yet been called on this channel.',
+      );
     }
     var id = (_idCounter++).toString();
     var request = params.toRequest(id);
@@ -84,7 +89,10 @@ class PluginServerTestBase with ResourceProviderMixin {
 
     await pluginServer.handlePluginVersionCheck(
       protocol.PluginVersionCheckParams(
-          byteStoreRoot.path, sdkRoot.path, '0.0.1'),
+        byteStoreRoot.path,
+        sdkRoot.path,
+        '0.0.1',
+      ),
     );
   }
 
