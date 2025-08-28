@@ -513,7 +513,7 @@ abstract class _NegativeLengthList&Object&ListMixin<E extends core::Object? = dy
         for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
           self::_NegativeLengthList&Object&ListMixin::E% element = :sync-for-iterator.{core::Iterator::current}{self::_NegativeLengthList&Object&ListMixin::E%};
           {
-            this.{core::List::[]=}(let final core::int #t8 = index in let final core::int #t9 = index = #t8.{core::num::+}(1){(core::num) → core::int} in #t8, element){(core::int, self::_NegativeLengthList&Object&ListMixin::E%) → void};
+            this.{core::List::[]=}(let final core::int #t8 = index in let final void #t9 = index = #t8.{core::num::+}(1){(core::num) → core::int} in #t8, element){(core::int, self::_NegativeLengthList&Object&ListMixin::E%) → void};
           }
         }
       }

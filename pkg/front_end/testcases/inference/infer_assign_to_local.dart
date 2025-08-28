@@ -45,7 +45,7 @@ void test(B local, B? local2, B? local3) {
 
   var /*@type=B*/ v6 = /*@target=B.-*/ --local;
 
-  var /*@type=B*/ v7 = /*@type=B*/ local /*@type=B*/ /*@target=B.-*/ --;
+  var /*@type=B*/ v7 =  local  /*@target=B.-*/ --;
 }
 
 main() {}

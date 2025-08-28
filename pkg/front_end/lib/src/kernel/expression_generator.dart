@@ -318,9 +318,9 @@ class VariableUseGenerator extends Generator {
   final VariableDeclaration variable;
 
   VariableUseGenerator(
-      ExpressionGeneratorHelper helper, Token token, this.variable)
+      ExpressionGeneratorHelper helper, Token nameToken, this.variable)
       : assert(variable.isAssignable, 'Variable $variable is not assignable'),
-        super(helper, token);
+        super(helper, nameToken);
 
   @override
   // Coverage-ignore(suite): Not run.
@@ -328,6 +328,8 @@ class VariableUseGenerator extends Generator {
 
   @override
   String get _plainNameForRead => variable.name!;
+
+  int get _nameOffset => fileOffset;
 
   @override
   Expression buildSimpleRead() {
@@ -343,11 +345,15 @@ class VariableUseGenerator extends Generator {
     return _createWrite(fileOffset, value);
   }
 
-  Expression _createWrite(int offset, Expression value) {
+  void _checkAssignment(int offset) {
     if (_helper.isDeclaredInEnclosingCase(variable)) {
       _helper.addProblem(
           codePatternVariableAssignmentInsideGuard, offset, noLength);
     }
+  }
+
+  Expression _createWrite(int offset, Expression value) {
+    _checkAssignment(offset);
     _helper.registerVariableAssignment(variable);
     return new VariableSet(variable, value)..fileOffset = offset;
   }
@@ -372,9 +378,36 @@ class VariableUseGenerator extends Generator {
     return _createWrite(fileOffset, binary);
   }
 
+  Expression _buildPrePostfixIncrement(Name binaryOperator,
+      {required int operatorOffset,
+      required bool forEffect,
+      required bool isPost}) {
+    _checkAssignment(_nameOffset);
+    _helper.registerVariableRead(variable);
+    _helper.registerVariableAssignment(variable);
+    return new LocalIncDec(
+        variable: variable as VariableDeclarationImpl,
+        forEffect: forEffect,
+        isPost: isPost,
+        isInc: binaryOperator == plusName,
+        nameOffset: _nameOffset,
+        operatorOffset: operatorOffset)
+      ..fileOffset = _nameOffset;
+  }
+
+  @override
+  Expression buildPrefixIncrement(Name binaryOperator,
+      {required int operatorOffset, bool voidContext = false}) {
+    return _buildPrePostfixIncrement(binaryOperator,
+        operatorOffset: operatorOffset, forEffect: voidContext, isPost: false);
+  }
+
   @override
   Expression buildPostfixIncrement(Name binaryOperator,
       {required int operatorOffset, bool voidContext = false}) {
+    return _buildPrePostfixIncrement(binaryOperator,
+        operatorOffset: operatorOffset, forEffect: voidContext, isPost: true);
+/*      
     Expression value = _forest.createIntLiteral(operatorOffset, 1);
     if (voidContext) {
       return buildCompoundAssignment(binaryOperator, value,
@@ -388,7 +421,7 @@ class VariableUseGenerator extends Generator {
         _helper.createVariableGet(read, fileOffset), binaryOperator, value);
     VariableDeclarationImpl write = _helper.createVariableDeclarationForValue(
         _createWrite(operatorOffset, binary));
-    return new LocalPostIncDec(read, write)..fileOffset = operatorOffset;
+    return new LocalIncDec(read, write)..fileOffset = operatorOffset;*/
   }
 
   @override

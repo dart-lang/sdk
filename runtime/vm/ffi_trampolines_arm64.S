@@ -30,11 +30,11 @@ FfiCallTrampoline:
   // Copy top frame from Dart stack to C stack
   ldr x0, [x19, #0]  // FfiCallArguments.stack_area
   ldr x1, [x19, #8]  // FfiCallArguments.stack_area_end
-.Lcopy:
+.Lcopy1:
   ldp x2, x3, [x1, #-16]!  // From stack_area
   stp x2, x3, [sp, #-16]!  // To C SP
   cmp x1, x0
-  b.gt .Lcopy
+  b.gt .Lcopy1
 
   // Load the ABI argument registers. Note that Dart FFI does not support
   // full 128-bit SIMD arguments, so we don't need to set the full V
@@ -90,11 +90,11 @@ SimulatorFfiCalloutTrampoline:
   ldr x1, [x19, #24]  // CalloutContext.simulator_frame_pointer
   add x1, x1, 15   // Round up the frame pointer, since the Dart frame pointer
   and x1, x1, ~15  // is not double-word aligned.
-.Lcopy:
+.Lcopy2:
   ldp x2, x3, [x1, #-16]!  // From Dart FP
   stp x2, x3, [sp, #-16]!  // To C SP
   cmp x1, x0
-  b.gt .Lcopy
+  b.gt .Lcopy2
 
   // Load the ABI argument registers. Note that Dart FFI does not support
   // full 128-bit SIMD arguments, so we don't need to set the full V

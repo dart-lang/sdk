@@ -94,7 +94,7 @@ void main() {
     _testExtensionCompoundSet();
     _testCompoundPropertySet();
     _testPropertyIncDec();
-    _testLocalPostIncDec();
+    _testLocalIncDec();
     _testStaticIncDec();
     _testSuperPostIncDec();
     _testIndexGet();
@@ -1120,7 +1120,53 @@ void _testPropertyIncDec() {
 --0?.foo''');
 }
 
-void _testLocalPostIncDec() {}
+void _testLocalIncDec() {
+  VariableDeclarationImpl variable = new VariableDeclarationImpl('foo');
+
+  testExpression(
+      new LocalIncDec(
+          variable: variable,
+          forEffect: false,
+          isInc: true,
+          isPost: true,
+          nameOffset: -1,
+          operatorOffset: -1),
+      '''
+foo++''');
+
+  testExpression(
+      new LocalIncDec(
+          variable: variable,
+          forEffect: false,
+          isInc: false,
+          isPost: true,
+          nameOffset: -1,
+          operatorOffset: -1),
+      '''
+foo--''');
+
+  testExpression(
+      new LocalIncDec(
+          variable: variable,
+          forEffect: false,
+          isInc: true,
+          isPost: false,
+          nameOffset: -1,
+          operatorOffset: -1),
+      '''
+++foo''');
+
+  testExpression(
+      new LocalIncDec(
+          variable: variable,
+          forEffect: false,
+          isInc: false,
+          isPost: false,
+          nameOffset: -1,
+          operatorOffset: -1),
+      '''
+--foo''');
+}
 
 void _testStaticIncDec() {
   Library library = new Library(dummyUri, fileUri: dummyUri);

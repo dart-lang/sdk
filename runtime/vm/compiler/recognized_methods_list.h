@@ -540,8 +540,8 @@ namespace dart {
   V(CoreLibrary, _BigIntImpl, _rsh, Bigint_rsh, 0xddf6be5f)                    \
   V(CoreLibrary, _BigIntImpl, _absAdd, Bigint_absAdd, 0x2aa56271)              \
   V(CoreLibrary, _BigIntImpl, _absSub, Bigint_absSub, 0x70f0b1eb)              \
-  V(CoreLibrary, _BigIntImpl, _mulAdd, Bigint_mulAdd, 0x3d39643d)              \
-  V(CoreLibrary, _BigIntImpl, _sqrAdd, Bigint_sqrAdd, 0x8f977e85)              \
+  V(CoreLibrary, _BigIntImpl, _mulAdd, Bigint_mulAdd, 0x853e7d70)              \
+  V(CoreLibrary, _BigIntImpl, _sqrAdd, Bigint_sqrAdd, 0xd9d62ddd)              \
   V(CoreLibrary, _BigIntImpl, _estimateQuotientDigit,                          \
     Bigint_estimateQuotientDigit, 0x16b87188)                                  \
   V(CoreLibrary, _BigIntMontgomeryReduction, _mulMod, Montgomery_mulMod,       \
