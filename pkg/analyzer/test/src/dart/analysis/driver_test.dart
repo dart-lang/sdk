@@ -5678,6 +5678,7 @@ class DriverEventCollector {
         case driver_events.GetErrorsFromBytes():
         case driver_events.LinkLibraryCycle():
         case driver_events.ProduceErrorsCannotReuse():
+        case driver_events.CheckLibraryDiagnosticsRequirements():
         case driver_events.ReuseLinkLibraryCycleBundle():
         case ErrorsResult():
         case ResolvedUnitResult():
@@ -5799,7 +5800,8 @@ class A {
       7 +8 UNUSED_IMPORT
 [operation] readLibraryCycleBundle
   package:test/test.dart
-[operation] getErrorsCannotReuse
+[operation] checkLibraryDiagnosticsRequirements
+  library: /home/test/lib/test.dart
   instanceFieldIdMismatch
     libraryUri: package:test/a.dart
     interfaceName: A
@@ -5932,6 +5934,9 @@ class A {
       7 +8 UNUSED_IMPORT
 [operation] readLibraryCycleBundle
   package:test/test.dart
+[operation] checkLibraryDiagnosticsRequirements
+  library: /home/test/lib/test.dart
+  failure: null
 [operation] getErrorsFromBytes
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
@@ -6148,7 +6153,8 @@ class A {
       7 +8 UNUSED_IMPORT
 [operation] readLibraryCycleBundle
   package:test/test.dart
-[operation] getErrorsCannotReuse
+[operation] checkLibraryDiagnosticsRequirements
+  library: /home/test/lib/test.dart
   instanceChildrenIdsMismatch
     libraryUri: package:test/a.dart
     instanceName: A
@@ -6311,7 +6317,8 @@ class A {
             interfaceId: #M10
             requestedConstructors
               new: #M7
-[operation] getErrorsCannotReuse
+[operation] checkLibraryDiagnosticsRequirements
+  library: /home/test/lib/test.dart
   instanceFieldIdMismatch
     libraryUri: package:test/a.dart
     interfaceName: A
@@ -6438,7 +6445,8 @@ class A {
       7 +8 UNUSED_IMPORT
 [operation] readLibraryCycleBundle
   package:test/test.dart
-[operation] getErrorsCannotReuse
+[operation] checkLibraryDiagnosticsRequirements
+  library: /home/test/lib/test.dart
   instanceFieldIdMismatch
     libraryUri: package:test/a.dart
     interfaceName: A
@@ -6565,7 +6573,8 @@ class A {
       7 +8 UNUSED_IMPORT
 [operation] readLibraryCycleBundle
   package:test/test.dart
-[operation] getErrorsCannotReuse
+[operation] checkLibraryDiagnosticsRequirements
+  library: /home/test/lib/test.dart
   instanceMethodIdMismatch
     libraryUri: package:test/a.dart
     interfaceName: A
@@ -6698,6 +6707,9 @@ class A {
       7 +8 UNUSED_IMPORT
 [operation] readLibraryCycleBundle
   package:test/test.dart
+[operation] checkLibraryDiagnosticsRequirements
+  library: /home/test/lib/test.dart
+  failure: null
 [operation] getErrorsFromBytes
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
@@ -6800,7 +6812,8 @@ class A {
     flags: isLibrary
 [operation] readLibraryCycleBundle
   package:test/test.dart
-[operation] getErrorsCannotReuse
+[operation] checkLibraryDiagnosticsRequirements
+  library: /home/test/lib/test.dart
   instanceFieldIdMismatch
     libraryUri: package:test/a.dart
     interfaceName: A
@@ -6940,7 +6953,8 @@ class A {
     flags: isLibrary
 [operation] readLibraryCycleBundle
   package:test/test.dart
-[operation] getErrorsCannotReuse
+[operation] checkLibraryDiagnosticsRequirements
+  library: /home/test/lib/test.dart
   instanceFieldIdMismatch
     libraryUri: package:test/a.dart
     interfaceName: A
@@ -7071,6 +7085,9 @@ class A {
     flags: isLibrary
 [operation] readLibraryCycleBundle
   package:test/test.dart
+[operation] checkLibraryDiagnosticsRequirements
+  library: /home/test/lib/test.dart
+  failure: null
 [operation] getErrorsFromBytes
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
@@ -7194,7 +7211,8 @@ class B extends A<double> {}
       package:test/a.dart
         exportedTopLevels
           B: #M7
-[operation] getErrorsCannotReuse
+[operation] checkLibraryDiagnosticsRequirements
+  library: /home/test/lib/test.dart
   topLevelIdMismatch
     libraryUri: package:test/a.dart
     name: B
@@ -7338,7 +7356,8 @@ class B implements A<double> {}
       package:test/a.dart
         exportedTopLevels
           B: #M7
-[operation] getErrorsCannotReuse
+[operation] checkLibraryDiagnosticsRequirements
+  library: /home/test/lib/test.dart
   topLevelIdMismatch
     libraryUri: package:test/a.dart
     name: B
@@ -7482,7 +7501,8 @@ class B with A<double> {}
       package:test/a.dart
         exportedTopLevels
           B: #M7
-[operation] getErrorsCannotReuse
+[operation] checkLibraryDiagnosticsRequirements
+  library: /home/test/lib/test.dart
   topLevelIdMismatch
     libraryUri: package:test/a.dart
     name: B
@@ -7808,7 +7828,8 @@ class A {
       7 +8 UNUSED_IMPORT
 [operation] readLibraryCycleBundle
   package:test/test.dart
-[operation] getErrorsCannotReuse
+[operation] checkLibraryDiagnosticsRequirements
+  library: /home/test/lib/test.dart
   instanceChildrenIdsMismatch
     libraryUri: package:test/a.dart
     instanceName: A
@@ -7926,7 +7947,8 @@ class A {
     flags: isLibrary
 [operation] readLibraryCycleBundle
   package:test/test.dart
-[operation] getErrorsCannotReuse
+[operation] checkLibraryDiagnosticsRequirements
+  library: /home/test/lib/test.dart
   instanceMethodIdMismatch
     libraryUri: package:test/a.dart
     interfaceName: A
@@ -8074,7 +8096,8 @@ class A {
             interfaceId: #M8
             requestedConstructors
               new: #M6
-[operation] getErrorsCannotReuse
+[operation] checkLibraryDiagnosticsRequirements
+  library: /home/test/lib/test.dart
   instanceChildrenIdsMismatch
     libraryUri: package:test/a.dart
     instanceName: A
@@ -8257,7 +8280,8 @@ class C extends A implements B {}
             interfaceId: #M14
             requestedConstructors
               new: #M11
-[operation] getErrorsCannotReuse
+[operation] checkLibraryDiagnosticsRequirements
+  library: /home/test/lib/test.dart
   instanceChildrenIdsMismatch
     libraryUri: package:test/a.dart
     instanceName: A
@@ -8378,7 +8402,8 @@ class A {
       7 +8 UNUSED_IMPORT
 [operation] readLibraryCycleBundle
   package:test/test.dart
-[operation] getErrorsCannotReuse
+[operation] checkLibraryDiagnosticsRequirements
+  library: /home/test/lib/test.dart
   instanceMethodIdMismatch
     libraryUri: package:test/a.dart
     interfaceName: A
@@ -8505,6 +8530,9 @@ class A {
       7 +8 UNUSED_IMPORT
 [operation] readLibraryCycleBundle
   package:test/test.dart
+[operation] checkLibraryDiagnosticsRequirements
+  library: /home/test/lib/test.dart
+  failure: null
 [operation] getErrorsFromBytes
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
@@ -8599,7 +8627,8 @@ class A {
     flags: isLibrary
 [operation] readLibraryCycleBundle
   package:test/test.dart
-[operation] getErrorsCannotReuse
+[operation] checkLibraryDiagnosticsRequirements
+  library: /home/test/lib/test.dart
   instanceMethodIdMismatch
     libraryUri: package:test/a.dart
     interfaceName: A
@@ -8716,7 +8745,8 @@ class A {
     flags: isLibrary
 [operation] readLibraryCycleBundle
   package:test/test.dart
-[operation] getErrorsCannotReuse
+[operation] checkLibraryDiagnosticsRequirements
+  library: /home/test/lib/test.dart
   instanceMethodIdMismatch
     libraryUri: package:test/a.dart
     interfaceName: A
@@ -9054,6 +9084,9 @@ class A {
     flags: isLibrary
 [operation] readLibraryCycleBundle
   package:test/test.dart
+[operation] checkLibraryDiagnosticsRequirements
+  library: /home/test/lib/test.dart
+  failure: null
 [operation] getErrorsFromBytes
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
@@ -9181,7 +9214,8 @@ class C extends B {}
       package:test/a.dart
         exportedTopLevels
           C: #M10
-[operation] getErrorsCannotReuse
+[operation] checkLibraryDiagnosticsRequirements
+  library: /home/test/lib/test.dart
   topLevelIdMismatch
     libraryUri: package:test/a.dart
     name: C
@@ -9313,7 +9347,8 @@ class B extends A<double> {}
       package:test/a.dart
         exportedTopLevels
           B: #M6
-[operation] getErrorsCannotReuse
+[operation] checkLibraryDiagnosticsRequirements
+  library: /home/test/lib/test.dart
   topLevelIdMismatch
     libraryUri: package:test/a.dart
     name: B
@@ -9445,7 +9480,8 @@ class B implements A<double> {}
       package:test/a.dart
         exportedTopLevels
           B: #M6
-[operation] getErrorsCannotReuse
+[operation] checkLibraryDiagnosticsRequirements
+  library: /home/test/lib/test.dart
   topLevelIdMismatch
     libraryUri: package:test/a.dart
     name: B
@@ -9577,7 +9613,8 @@ class B with A<double> {}
       package:test/a.dart
         exportedTopLevels
           B: #M6
-[operation] getErrorsCannotReuse
+[operation] checkLibraryDiagnosticsRequirements
+  library: /home/test/lib/test.dart
   topLevelIdMismatch
     libraryUri: package:test/a.dart
     name: B
@@ -9775,7 +9812,8 @@ class A {}
       35 +3 UNDEFINED_METHOD
 [operation] readLibraryCycleBundle
   package:test/test.dart
-[operation] getErrorsCannotReuse
+[operation] checkLibraryDiagnosticsRequirements
+  library: /home/test/lib/test.dart
   instanceMethodIdMismatch
     libraryUri: package:test/a.dart
     interfaceName: A
@@ -9905,7 +9943,8 @@ class A {
     flags: isLibrary
 [operation] readLibraryCycleBundle
   package:test/test.dart
-[operation] getErrorsCannotReuse
+[operation] checkLibraryDiagnosticsRequirements
+  library: /home/test/lib/test.dart
   instanceMethodIdMismatch
     libraryUri: package:test/a.dart
     interfaceName: A
@@ -10042,7 +10081,8 @@ class A {
       7 +8 UNUSED_IMPORT
 [operation] readLibraryCycleBundle
   package:test/test.dart
-[operation] getErrorsCannotReuse
+[operation] checkLibraryDiagnosticsRequirements
+  library: /home/test/lib/test.dart
   instanceMethodIdMismatch
     libraryUri: package:test/a.dart
     interfaceName: A
@@ -10169,7 +10209,8 @@ class A {
       7 +8 UNUSED_IMPORT
 [operation] readLibraryCycleBundle
   package:test/test.dart
-[operation] getErrorsCannotReuse
+[operation] checkLibraryDiagnosticsRequirements
+  library: /home/test/lib/test.dart
   instanceMethodIdMismatch
     libraryUri: package:test/a.dart
     interfaceName: A
@@ -10302,6 +10343,9 @@ class A {
       7 +8 UNUSED_IMPORT
 [operation] readLibraryCycleBundle
   package:test/test.dart
+[operation] checkLibraryDiagnosticsRequirements
+  library: /home/test/lib/test.dart
+  failure: null
 [operation] getErrorsFromBytes
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
@@ -10404,7 +10448,8 @@ class A {
     flags: isLibrary
 [operation] readLibraryCycleBundle
   package:test/test.dart
-[operation] getErrorsCannotReuse
+[operation] checkLibraryDiagnosticsRequirements
+  library: /home/test/lib/test.dart
   instanceFieldIdMismatch
     libraryUri: package:test/a.dart
     interfaceName: A
@@ -10544,7 +10589,8 @@ class A {
     flags: isLibrary
 [operation] readLibraryCycleBundle
   package:test/test.dart
-[operation] getErrorsCannotReuse
+[operation] checkLibraryDiagnosticsRequirements
+  library: /home/test/lib/test.dart
   instanceMethodIdMismatch
     libraryUri: package:test/a.dart
     interfaceName: A
@@ -10679,6 +10725,9 @@ class A {
     flags: isLibrary
 [operation] readLibraryCycleBundle
   package:test/test.dart
+[operation] checkLibraryDiagnosticsRequirements
+  library: /home/test/lib/test.dart
+  failure: null
 [operation] getErrorsFromBytes
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
@@ -10802,7 +10851,8 @@ class B extends A<double> {}
       package:test/a.dart
         exportedTopLevels
           B: #M7
-[operation] getErrorsCannotReuse
+[operation] checkLibraryDiagnosticsRequirements
+  library: /home/test/lib/test.dart
   topLevelIdMismatch
     libraryUri: package:test/a.dart
     name: B
@@ -10946,7 +10996,8 @@ class B implements A<double> {}
       package:test/a.dart
         exportedTopLevels
           B: #M7
-[operation] getErrorsCannotReuse
+[operation] checkLibraryDiagnosticsRequirements
+  library: /home/test/lib/test.dart
   topLevelIdMismatch
     libraryUri: package:test/a.dart
     name: B
@@ -11090,7 +11141,8 @@ class B with A<double> {}
       package:test/a.dart
         exportedTopLevels
           B: #M7
-[operation] getErrorsCannotReuse
+[operation] checkLibraryDiagnosticsRequirements
+  library: /home/test/lib/test.dart
   topLevelIdMismatch
     libraryUri: package:test/a.dart
     name: B
@@ -11306,7 +11358,8 @@ class A {}
       35 +3 UNDEFINED_SETTER
 [operation] readLibraryCycleBundle
   package:test/test.dart
-[operation] getErrorsCannotReuse
+[operation] checkLibraryDiagnosticsRequirements
+  library: /home/test/lib/test.dart
   instanceFieldIdMismatch
     libraryUri: package:test/a.dart
     interfaceName: A
@@ -11444,7 +11497,8 @@ class A {
       7 +8 UNUSED_IMPORT
 [operation] readLibraryCycleBundle
   package:test/test.dart
-[operation] getErrorsCannotReuse
+[operation] checkLibraryDiagnosticsRequirements
+  library: /home/test/lib/test.dart
   instanceChildrenIdsMismatch
     libraryUri: package:test/a.dart
     instanceName: A
@@ -11558,7 +11612,8 @@ class A {}
       package:test/a.dart
         exportedTopLevels
           A: #M1
-[operation] getErrorsCannotReuse
+[operation] checkLibraryDiagnosticsRequirements
+  library: /home/test/lib/test.dart
   topLevelIdMismatch
     libraryUri: package:test/a.dart
     name: A
@@ -11663,6 +11718,9 @@ class B {}
       19 +3 BODY_MIGHT_COMPLETE_NORMALLY
 [operation] readLibraryCycleBundle
   package:test/test.dart
+[operation] checkLibraryDiagnosticsRequirements
+  library: /home/test/lib/test.dart
+  failure: null
 [operation] getErrorsFromBytes
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
@@ -11764,7 +11822,8 @@ class B {}
       package:test/a.dart
         exportedTopLevels
           A: #M5
-[operation] getErrorsCannotReuse
+[operation] checkLibraryDiagnosticsRequirements
+  library: /home/test/lib/test.dart
   topLevelIdMismatch
     libraryUri: package:test/a.dart
     name: A
@@ -11878,6 +11937,9 @@ class C {}
       19 +3 BODY_MIGHT_COMPLETE_NORMALLY
 [operation] readLibraryCycleBundle
   package:test/test.dart
+[operation] checkLibraryDiagnosticsRequirements
+  library: /home/test/lib/test.dart
+  failure: null
 [operation] getErrorsFromBytes
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
@@ -11964,7 +12026,8 @@ A foo() => throw 0;
       package:test/a.dart
         exportedTopLevels
           A: <null>
-[operation] getErrorsCannotReuse
+[operation] checkLibraryDiagnosticsRequirements
+  library: /home/test/lib/test.dart
   topLevelIdMismatch
     libraryUri: package:test/a.dart
     name: A
@@ -12063,6 +12126,9 @@ class A {}
     flags: isLibrary
 [operation] readLibraryCycleBundle
   package:test/test.dart
+[operation] checkLibraryDiagnosticsRequirements
+  library: /home/test/lib/test.dart
+  failure: null
 [operation] getErrorsFromBytes
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
@@ -12155,7 +12221,8 @@ class A {
     flags: isLibrary
 [operation] readLibraryCycleBundle
   package:test/test.dart
-[operation] getErrorsCannotReuse
+[operation] checkLibraryDiagnosticsRequirements
+  library: /home/test/lib/test.dart
   interfaceConstructorIdMismatch
     libraryUri: package:test/a.dart
     interfaceName: A
@@ -12270,7 +12337,8 @@ class A {
       7 +8 UNUSED_IMPORT
 [operation] readLibraryCycleBundle
   package:test/test.dart
-[operation] getErrorsCannotReuse
+[operation] checkLibraryDiagnosticsRequirements
+  library: /home/test/lib/test.dart
   interfaceChildrenIdsMismatch
     libraryUri: package:test/a.dart
     interfaceName: A
@@ -12386,7 +12454,8 @@ class A {
       7 +8 UNUSED_IMPORT
 [operation] readLibraryCycleBundle
   package:test/test.dart
-[operation] getErrorsCannotReuse
+[operation] checkLibraryDiagnosticsRequirements
+  library: /home/test/lib/test.dart
   interfaceConstructorIdMismatch
     libraryUri: package:test/a.dart
     interfaceName: A
@@ -12507,6 +12576,9 @@ class A {
       7 +8 UNUSED_IMPORT
 [operation] readLibraryCycleBundle
   package:test/test.dart
+[operation] checkLibraryDiagnosticsRequirements
+  library: /home/test/lib/test.dart
+  failure: null
 [operation] getErrorsFromBytes
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
@@ -12605,6 +12677,9 @@ class A {
       7 +8 UNUSED_IMPORT
 [operation] readLibraryCycleBundle
   package:test/test.dart
+[operation] checkLibraryDiagnosticsRequirements
+  library: /home/test/lib/test.dart
+  failure: null
 [operation] getErrorsFromBytes
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
@@ -12687,7 +12762,8 @@ class A {
     flags: isLibrary
 [operation] readLibraryCycleBundle
   package:test/test.dart
-[operation] getErrorsCannotReuse
+[operation] checkLibraryDiagnosticsRequirements
+  library: /home/test/lib/test.dart
   interfaceConstructorIdMismatch
     libraryUri: package:test/a.dart
     interfaceName: A
@@ -12819,7 +12895,8 @@ class A {
     flags: isLibrary
 [operation] readLibraryCycleBundle
   package:test/test.dart
-[operation] getErrorsCannotReuse
+[operation] checkLibraryDiagnosticsRequirements
+  library: /home/test/lib/test.dart
   interfaceConstructorIdMismatch
     libraryUri: package:test/a.dart
     interfaceName: A
@@ -12938,7 +13015,8 @@ class A {
     flags: isLibrary
 [operation] readLibraryCycleBundle
   package:test/test.dart
-[operation] getErrorsCannotReuse
+[operation] checkLibraryDiagnosticsRequirements
+  library: /home/test/lib/test.dart
   interfaceConstructorIdMismatch
     libraryUri: package:test/a.dart
     interfaceName: A
@@ -13080,7 +13158,8 @@ class A {
             interfaceId: #M2
             requestedConstructors
               named: #M6
-[operation] getErrorsCannotReuse
+[operation] checkLibraryDiagnosticsRequirements
+  library: /home/test/lib/test.dart
   interfaceChildrenIdsMismatch
     libraryUri: package:test/a.dart
     interfaceName: A
@@ -13188,6 +13267,9 @@ class A {
     flags: isLibrary
 [operation] readLibraryCycleBundle
   package:test/test.dart
+[operation] checkLibraryDiagnosticsRequirements
+  library: /home/test/lib/test.dart
+  failure: null
 [operation] getErrorsFromBytes
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
@@ -13274,7 +13356,8 @@ class A {
       32 +2 UNDEFINED_METHOD
 [operation] readLibraryCycleBundle
   package:test/test.dart
-[operation] getErrorsCannotReuse
+[operation] checkLibraryDiagnosticsRequirements
+  library: /home/test/lib/test.dart
   interfaceConstructorIdMismatch
     libraryUri: package:test/a.dart
     interfaceName: A
@@ -13396,7 +13479,8 @@ class A {
       7 +8 UNUSED_IMPORT
 [operation] readLibraryCycleBundle
   package:test/test.dart
-[operation] getErrorsCannotReuse
+[operation] checkLibraryDiagnosticsRequirements
+  library: /home/test/lib/test.dart
   instanceChildrenIdsMismatch
     libraryUri: package:test/a.dart
     instanceName: A
@@ -13516,7 +13600,8 @@ class A {
     flags: isLibrary
 [operation] readLibraryCycleBundle
   package:test/test.dart
-[operation] getErrorsCannotReuse
+[operation] checkLibraryDiagnosticsRequirements
+  library: /home/test/lib/test.dart
   instanceFieldIdMismatch
     libraryUri: package:test/a.dart
     interfaceName: A
@@ -13647,6 +13732,9 @@ class A {
     flags: isLibrary
 [operation] readLibraryCycleBundle
   package:test/test.dart
+[operation] checkLibraryDiagnosticsRequirements
+  library: /home/test/lib/test.dart
+  failure: null
 [operation] getErrorsFromBytes
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
@@ -13739,7 +13827,8 @@ class A {
     flags: isLibrary
 [operation] readLibraryCycleBundle
   package:test/test.dart
-[operation] getErrorsCannotReuse
+[operation] checkLibraryDiagnosticsRequirements
+  library: /home/test/lib/test.dart
   instanceMethodIdMismatch
     libraryUri: package:test/a.dart
     interfaceName: A
@@ -13864,6 +13953,9 @@ class A {
     flags: isLibrary
 [operation] readLibraryCycleBundle
   package:test/test.dart
+[operation] checkLibraryDiagnosticsRequirements
+  library: /home/test/lib/test.dart
+  failure: null
 [operation] getErrorsFromBytes
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
@@ -13956,7 +14048,8 @@ class A {
     flags: isLibrary
 [operation] readLibraryCycleBundle
   package:test/test.dart
-[operation] getErrorsCannotReuse
+[operation] checkLibraryDiagnosticsRequirements
+  library: /home/test/lib/test.dart
   instanceFieldIdMismatch
     libraryUri: package:test/a.dart
     interfaceName: A
@@ -14079,6 +14172,9 @@ class A {
     flags: isLibrary
 [operation] readLibraryCycleBundle
   package:test/test.dart
+[operation] checkLibraryDiagnosticsRequirements
+  library: /home/test/lib/test.dart
+  failure: null
 [operation] getErrorsFromBytes
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
@@ -14176,7 +14272,8 @@ class A {
       7 +8 UNUSED_IMPORT
 [operation] readLibraryCycleBundle
   package:test/test.dart
-[operation] getErrorsCannotReuse
+[operation] checkLibraryDiagnosticsRequirements
+  library: /home/test/lib/test.dart
   interfaceChildrenIdsMismatch
     libraryUri: package:test/a.dart
     interfaceName: A
@@ -14372,7 +14469,8 @@ class A {
     flags: isLibrary
 [operation] readLibraryCycleBundle
   package:test/test.dart
-[operation] getErrorsCannotReuse
+[operation] checkLibraryDiagnosticsRequirements
+  library: /home/test/lib/test.dart
   interfaceConstructorIdMismatch
     libraryUri: package:test/a.dart
     interfaceName: A
@@ -14478,6 +14576,9 @@ class A {
     flags: isLibrary
 [operation] readLibraryCycleBundle
   package:test/test.dart
+[operation] checkLibraryDiagnosticsRequirements
+  library: /home/test/lib/test.dart
+  failure: null
 [operation] getErrorsFromBytes
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
@@ -14578,7 +14679,8 @@ class B = A with M;
     flags: isLibrary
 [operation] readLibraryCycleBundle
   package:test/test.dart
-[operation] getErrorsCannotReuse
+[operation] checkLibraryDiagnosticsRequirements
+  library: /home/test/lib/test.dart
   interfaceConstructorIdMismatch
     libraryUri: package:test/a.dart
     interfaceName: B
@@ -14702,7 +14804,8 @@ enum A {
     flags: isLibrary
 [operation] readLibraryCycleBundle
   package:test/test.dart
-[operation] getErrorsCannotReuse
+[operation] checkLibraryDiagnosticsRequirements
+  library: /home/test/lib/test.dart
   instanceFieldIdMismatch
     libraryUri: package:test/a.dart
     interfaceName: A
@@ -14845,7 +14948,8 @@ enum A {
     flags: isLibrary
 [operation] readLibraryCycleBundle
   package:test/test.dart
-[operation] getErrorsCannotReuse
+[operation] checkLibraryDiagnosticsRequirements
+  library: /home/test/lib/test.dart
   instanceFieldIdMismatch
     libraryUri: package:test/a.dart
     interfaceName: A
@@ -14994,6 +15098,9 @@ enum A {
     flags: isLibrary
 [operation] readLibraryCycleBundle
   package:test/test.dart
+[operation] checkLibraryDiagnosticsRequirements
+  library: /home/test/lib/test.dart
+  failure: null
 [operation] getErrorsFromBytes
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
@@ -15104,7 +15211,8 @@ enum A {
     flags: isLibrary
 [operation] readLibraryCycleBundle
   package:test/test.dart
-[operation] getErrorsCannotReuse
+[operation] checkLibraryDiagnosticsRequirements
+  library: /home/test/lib/test.dart
   instanceMethodIdMismatch
     libraryUri: package:test/a.dart
     interfaceName: A
@@ -15243,6 +15351,9 @@ enum A {
     flags: isLibrary
 [operation] readLibraryCycleBundle
   package:test/test.dart
+[operation] checkLibraryDiagnosticsRequirements
+  library: /home/test/lib/test.dart
+  failure: null
 [operation] getErrorsFromBytes
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
@@ -15359,7 +15470,8 @@ enum A {
     flags: isLibrary
 [operation] readLibraryCycleBundle
   package:test/test.dart
-[operation] getErrorsCannotReuse
+[operation] checkLibraryDiagnosticsRequirements
+  library: /home/test/lib/test.dart
   instanceFieldIdMismatch
     libraryUri: package:test/a.dart
     interfaceName: A
@@ -15510,6 +15622,9 @@ enum A {
     flags: isLibrary
 [operation] readLibraryCycleBundle
   package:test/test.dart
+[operation] checkLibraryDiagnosticsRequirements
+  library: /home/test/lib/test.dart
+  failure: null
 [operation] getErrorsFromBytes
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
@@ -15620,7 +15735,8 @@ enum A {
     flags: isLibrary
 [operation] readLibraryCycleBundle
   package:test/test.dart
-[operation] getErrorsCannotReuse
+[operation] checkLibraryDiagnosticsRequirements
+  library: /home/test/lib/test.dart
   instanceFieldIdMismatch
     libraryUri: package:test/a.dart
     interfaceName: A
@@ -15765,6 +15881,9 @@ enum A {
     flags: isLibrary
 [operation] readLibraryCycleBundle
   package:test/test.dart
+[operation] checkLibraryDiagnosticsRequirements
+  library: /home/test/lib/test.dart
+  failure: null
 [operation] getErrorsFromBytes
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
@@ -15875,7 +15994,8 @@ enum A {
     flags: isLibrary
 [operation] readLibraryCycleBundle
   package:test/test.dart
-[operation] getErrorsCannotReuse
+[operation] checkLibraryDiagnosticsRequirements
+  library: /home/test/lib/test.dart
   instanceMethodIdMismatch
     libraryUri: package:test/a.dart
     interfaceName: A
@@ -16018,6 +16138,9 @@ enum A {
     flags: isLibrary
 [operation] readLibraryCycleBundle
   package:test/test.dart
+[operation] checkLibraryDiagnosticsRequirements
+  library: /home/test/lib/test.dart
+  failure: null
 [operation] getErrorsFromBytes
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
@@ -16126,7 +16249,8 @@ enum A {
     flags: isLibrary
 [operation] readLibraryCycleBundle
   package:test/test.dart
-[operation] getErrorsCannotReuse
+[operation] checkLibraryDiagnosticsRequirements
+  library: /home/test/lib/test.dart
   instanceFieldIdMismatch
     libraryUri: package:test/a.dart
     interfaceName: A
@@ -16265,6 +16389,9 @@ enum A {
     flags: isLibrary
 [operation] readLibraryCycleBundle
   package:test/test.dart
+[operation] checkLibraryDiagnosticsRequirements
+  library: /home/test/lib/test.dart
+  failure: null
 [operation] getErrorsFromBytes
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
@@ -19206,7 +19333,8 @@ extension E2 on Object {}
       7 +8 UNUSED_IMPORT
 [operation] readLibraryCycleBundle
   package:test/test.dart
-[operation] getErrorsCannotReuse
+[operation] checkLibraryDiagnosticsRequirements
+  library: /home/test/lib/test.dart
   exportedExtensionsMismatch
     libraryUri: package:test/a.dart
     expectedIds: #M0
@@ -19304,6 +19432,9 @@ extension _E on Object {}
       7 +8 UNUSED_IMPORT
 [operation] readLibraryCycleBundle
   package:test/test.dart
+[operation] checkLibraryDiagnosticsRequirements
+  library: /home/test/lib/test.dart
+  failure: null
 [operation] getErrorsFromBytes
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
@@ -19384,7 +19515,8 @@ extension E1 on Object {}
       7 +8 UNUSED_IMPORT
 [operation] readLibraryCycleBundle
   package:test/test.dart
-[operation] getErrorsCannotReuse
+[operation] checkLibraryDiagnosticsRequirements
+  library: /home/test/lib/test.dart
   exportedExtensionsMismatch
     libraryUri: package:test/a.dart
     expectedIds: #M0 #M1
@@ -19509,6 +19641,9 @@ extension E on Object {
     flags: isLibrary
 [operation] readLibraryCycleBundle
   package:test/test.dart
+[operation] checkLibraryDiagnosticsRequirements
+  library: /home/test/lib/test.dart
+  failure: null
 [operation] getErrorsFromBytes
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
@@ -19610,7 +19745,8 @@ extension E on Object {
     flags: isLibrary
 [operation] readLibraryCycleBundle
   package:test/test.dart
-[operation] getErrorsCannotReuse
+[operation] checkLibraryDiagnosticsRequirements
+  library: /home/test/lib/test.dart
   instanceFieldIdMismatch
     libraryUri: package:test/a.dart
     interfaceName: E
@@ -19749,6 +19885,9 @@ extension A on Object {
       7 +8 UNUSED_IMPORT
 [operation] readLibraryCycleBundle
   package:test/test.dart
+[operation] checkLibraryDiagnosticsRequirements
+  library: /home/test/lib/test.dart
+  failure: null
 [operation] getErrorsFromBytes
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
@@ -19853,6 +19992,9 @@ extension E2 on Object {
     flags: isLibrary
 [operation] readLibraryCycleBundle
   package:test/test.dart
+[operation] checkLibraryDiagnosticsRequirements
+  library: /home/test/lib/test.dart
+  failure: null
 [operation] getErrorsFromBytes
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
@@ -19957,7 +20099,8 @@ extension E2 on Object {
     flags: isLibrary
 [operation] readLibraryCycleBundle
   package:test/test.dart
-[operation] getErrorsCannotReuse
+[operation] checkLibraryDiagnosticsRequirements
+  library: /home/test/lib/test.dart
   instanceMethodIdMismatch
     libraryUri: package:test/a.dart
     interfaceName: E1
@@ -20074,7 +20217,8 @@ extension E on Object {
     flags: isLibrary
 [operation] readLibraryCycleBundle
   package:test/test.dart
-[operation] getErrorsCannotReuse
+[operation] checkLibraryDiagnosticsRequirements
+  library: /home/test/lib/test.dart
   instanceMethodIdMismatch
     libraryUri: package:test/a.dart
     interfaceName: E
@@ -20199,7 +20343,8 @@ extension E on Object {
     flags: isLibrary
 [operation] readLibraryCycleBundle
   package:test/test.dart
-[operation] getErrorsCannotReuse
+[operation] checkLibraryDiagnosticsRequirements
+  library: /home/test/lib/test.dart
   instanceMethodIdMismatch
     libraryUri: package:test/a.dart
     interfaceName: E
@@ -20320,7 +20465,8 @@ extension E2 on int {
     flags: isLibrary
 [operation] readLibraryCycleBundle
   package:test/test.dart
-[operation] getErrorsCannotReuse
+[operation] checkLibraryDiagnosticsRequirements
+  library: /home/test/lib/test.dart
   exportedExtensionsMismatch
     libraryUri: package:test/a.dart
     expectedIds: #M0
@@ -20436,6 +20582,9 @@ extension E1 on Object {
     flags: isLibrary
 [operation] readLibraryCycleBundle
   package:test/test.dart
+[operation] checkLibraryDiagnosticsRequirements
+  library: /home/test/lib/test.dart
+  failure: null
 [operation] getErrorsFromBytes
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
@@ -20529,7 +20678,8 @@ extension E2 on int {
     flags: isLibrary
 [operation] readLibraryCycleBundle
   package:test/test.dart
-[operation] getErrorsCannotReuse
+[operation] checkLibraryDiagnosticsRequirements
+  library: /home/test/lib/test.dart
   exportedExtensionsMismatch
     libraryUri: package:test/a.dart
     expectedIds: #M0
@@ -20645,7 +20795,8 @@ extension E on Object {
     flags: isLibrary
 [operation] readLibraryCycleBundle
   package:test/test.dart
-[operation] getErrorsCannotReuse
+[operation] checkLibraryDiagnosticsRequirements
+  library: /home/test/lib/test.dart
   instanceMethodIdMismatch
     libraryUri: package:test/a.dart
     interfaceName: E
@@ -20767,7 +20918,8 @@ extension E1 on Object {
     flags: isLibrary
 [operation] readLibraryCycleBundle
   package:test/test.dart
-[operation] getErrorsCannotReuse
+[operation] checkLibraryDiagnosticsRequirements
+  library: /home/test/lib/test.dart
   topLevelNotInstance
     libraryUri: package:test/a.dart
     name: E2
@@ -20886,7 +21038,8 @@ extension E1 on Object {
     flags: isLibrary
 [operation] readLibraryCycleBundle
   package:test/test.dart
-[operation] getErrorsCannotReuse
+[operation] checkLibraryDiagnosticsRequirements
+  library: /home/test/lib/test.dart
   topLevelNotInstance
     libraryUri: package:test/a.dart
     name: E2
@@ -21005,7 +21158,8 @@ extension E1 on Object {
     flags: isLibrary
 [operation] readLibraryCycleBundle
   package:test/test.dart
-[operation] getErrorsCannotReuse
+[operation] checkLibraryDiagnosticsRequirements
+  library: /home/test/lib/test.dart
   topLevelNotInstance
     libraryUri: package:test/a.dart
     name: E2
@@ -21116,7 +21270,8 @@ extension E1 on Object {
     flags: isLibrary
 [operation] readLibraryCycleBundle
   package:test/test.dart
-[operation] getErrorsCannotReuse
+[operation] checkLibraryDiagnosticsRequirements
+  library: /home/test/lib/test.dart
   instanceMethodIdMismatch
     libraryUri: package:test/a.dart
     interfaceName: E1
@@ -21229,7 +21384,8 @@ extension E1 on Object {
     flags: isLibrary
 [operation] readLibraryCycleBundle
   package:test/test.dart
-[operation] getErrorsCannotReuse
+[operation] checkLibraryDiagnosticsRequirements
+  library: /home/test/lib/test.dart
   instanceMethodIdMismatch
     libraryUri: package:test/a.dart
     interfaceName: E1
@@ -21342,7 +21498,8 @@ extension E1 on Object {
     flags: isLibrary
 [operation] readLibraryCycleBundle
   package:test/test.dart
-[operation] getErrorsCannotReuse
+[operation] checkLibraryDiagnosticsRequirements
+  library: /home/test/lib/test.dart
   instanceMethodIdMismatch
     libraryUri: package:test/a.dart
     interfaceName: E1
@@ -21455,7 +21612,8 @@ extension E1 on Object {
     flags: isLibrary
 [operation] readLibraryCycleBundle
   package:test/test.dart
-[operation] getErrorsCannotReuse
+[operation] checkLibraryDiagnosticsRequirements
+  library: /home/test/lib/test.dart
   instanceMethodIdMismatch
     libraryUri: package:test/a.dart
     interfaceName: E1
@@ -21570,7 +21728,8 @@ extension A on int {
     flags: isLibrary
 [operation] readLibraryCycleBundle
   package:test/test.dart
-[operation] getErrorsCannotReuse
+[operation] checkLibraryDiagnosticsRequirements
+  library: /home/test/lib/test.dart
   instanceFieldIdMismatch
     libraryUri: package:test/a.dart
     interfaceName: A
@@ -21693,6 +21852,9 @@ extension A on int {
     flags: isLibrary
 [operation] readLibraryCycleBundle
   package:test/test.dart
+[operation] checkLibraryDiagnosticsRequirements
+  library: /home/test/lib/test.dart
+  failure: null
 [operation] getErrorsFromBytes
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
@@ -21781,7 +21943,8 @@ extension A on int {
     flags: isLibrary
 [operation] readLibraryCycleBundle
   package:test/test.dart
-[operation] getErrorsCannotReuse
+[operation] checkLibraryDiagnosticsRequirements
+  library: /home/test/lib/test.dart
   instanceMethodIdMismatch
     libraryUri: package:test/a.dart
     interfaceName: A
@@ -21898,6 +22061,9 @@ extension A on int {
     flags: isLibrary
 [operation] readLibraryCycleBundle
   package:test/test.dart
+[operation] checkLibraryDiagnosticsRequirements
+  library: /home/test/lib/test.dart
+  failure: null
 [operation] getErrorsFromBytes
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
@@ -21990,7 +22156,8 @@ extension A on int {
     flags: isLibrary
 [operation] readLibraryCycleBundle
   package:test/test.dart
-[operation] getErrorsCannotReuse
+[operation] checkLibraryDiagnosticsRequirements
+  library: /home/test/lib/test.dart
   instanceFieldIdMismatch
     libraryUri: package:test/a.dart
     interfaceName: A
@@ -22113,6 +22280,9 @@ extension A on int {
     flags: isLibrary
 [operation] readLibraryCycleBundle
   package:test/test.dart
+[operation] checkLibraryDiagnosticsRequirements
+  library: /home/test/lib/test.dart
+  failure: null
 [operation] getErrorsFromBytes
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
@@ -22221,7 +22391,8 @@ extension type A(int it) {
     flags: isLibrary
 [operation] readLibraryCycleBundle
   package:test/test.dart
-[operation] getErrorsCannotReuse
+[operation] checkLibraryDiagnosticsRequirements
+  library: /home/test/lib/test.dart
   instanceFieldIdMismatch
     libraryUri: package:test/a.dart
     interfaceName: A
@@ -22364,6 +22535,9 @@ extension type A(int it) {
     flags: isLibrary
 [operation] readLibraryCycleBundle
   package:test/test.dart
+[operation] checkLibraryDiagnosticsRequirements
+  library: /home/test/lib/test.dart
+  failure: null
 [operation] getErrorsFromBytes
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
@@ -22468,7 +22642,8 @@ extension type A(int it) {
     flags: isLibrary
 [operation] readLibraryCycleBundle
   package:test/test.dart
-[operation] getErrorsCannotReuse
+[operation] checkLibraryDiagnosticsRequirements
+  library: /home/test/lib/test.dart
   instanceMethodIdMismatch
     libraryUri: package:test/a.dart
     interfaceName: A
@@ -22601,6 +22776,9 @@ extension type A(int it) {
     flags: isLibrary
 [operation] readLibraryCycleBundle
   package:test/test.dart
+[operation] checkLibraryDiagnosticsRequirements
+  library: /home/test/lib/test.dart
+  failure: null
 [operation] getErrorsFromBytes
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
@@ -22711,7 +22889,8 @@ extension type A(int it) {
     flags: isLibrary
 [operation] readLibraryCycleBundle
   package:test/test.dart
-[operation] getErrorsCannotReuse
+[operation] checkLibraryDiagnosticsRequirements
+  library: /home/test/lib/test.dart
   instanceFieldIdMismatch
     libraryUri: package:test/a.dart
     interfaceName: A
@@ -22856,6 +23035,9 @@ extension type A(int it) {
     flags: isLibrary
 [operation] readLibraryCycleBundle
   package:test/test.dart
+[operation] checkLibraryDiagnosticsRequirements
+  library: /home/test/lib/test.dart
+  failure: null
 [operation] getErrorsFromBytes
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
@@ -22963,7 +23145,8 @@ extension type A(int it) {
       7 +8 UNUSED_IMPORT
 [operation] readLibraryCycleBundle
   package:test/test.dart
-[operation] getErrorsCannotReuse
+[operation] checkLibraryDiagnosticsRequirements
+  library: /home/test/lib/test.dart
   interfaceChildrenIdsMismatch
     libraryUri: package:test/a.dart
     interfaceName: A
@@ -23088,7 +23271,8 @@ extension type A(int it) {
     flags: isLibrary
 [operation] readLibraryCycleBundle
   package:test/test.dart
-[operation] getErrorsCannotReuse
+[operation] checkLibraryDiagnosticsRequirements
+  library: /home/test/lib/test.dart
   interfaceConstructorIdMismatch
     libraryUri: package:test/a.dart
     interfaceName: A
@@ -23212,6 +23396,9 @@ extension type A(int it) {
     flags: isLibrary
 [operation] readLibraryCycleBundle
   package:test/test.dart
+[operation] checkLibraryDiagnosticsRequirements
+  library: /home/test/lib/test.dart
+  failure: null
 [operation] getErrorsFromBytes
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
@@ -23316,7 +23503,8 @@ extension type A(int it) {
     flags: isLibrary
 [operation] readLibraryCycleBundle
   package:test/test.dart
-[operation] getErrorsCannotReuse
+[operation] checkLibraryDiagnosticsRequirements
+  library: /home/test/lib/test.dart
   instanceFieldIdMismatch
     libraryUri: package:test/a.dart
     interfaceName: A
@@ -23455,6 +23643,9 @@ extension type A(int it) {
     flags: isLibrary
 [operation] readLibraryCycleBundle
   package:test/test.dart
+[operation] checkLibraryDiagnosticsRequirements
+  library: /home/test/lib/test.dart
+  failure: null
 [operation] getErrorsFromBytes
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
@@ -23559,7 +23750,8 @@ extension type A(int it) {
     flags: isLibrary
 [operation] readLibraryCycleBundle
   package:test/test.dart
-[operation] getErrorsCannotReuse
+[operation] checkLibraryDiagnosticsRequirements
+  library: /home/test/lib/test.dart
   instanceMethodIdMismatch
     libraryUri: package:test/a.dart
     interfaceName: A
@@ -23696,6 +23888,9 @@ extension type A(int it) {
     flags: isLibrary
 [operation] readLibraryCycleBundle
   package:test/test.dart
+[operation] checkLibraryDiagnosticsRequirements
+  library: /home/test/lib/test.dart
+  failure: null
 [operation] getErrorsFromBytes
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
@@ -23798,7 +23993,8 @@ extension type A(int it) {
     flags: isLibrary
 [operation] readLibraryCycleBundle
   package:test/test.dart
-[operation] getErrorsCannotReuse
+[operation] checkLibraryDiagnosticsRequirements
+  library: /home/test/lib/test.dart
   instanceFieldIdMismatch
     libraryUri: package:test/a.dart
     interfaceName: A
@@ -23931,6 +24127,9 @@ extension type A(int it) {
     flags: isLibrary
 [operation] readLibraryCycleBundle
   package:test/test.dart
+[operation] checkLibraryDiagnosticsRequirements
+  library: /home/test/lib/test.dart
+  failure: null
 [operation] getErrorsFromBytes
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
@@ -24038,7 +24237,8 @@ extension type A(double it) {
       7 +8 UNUSED_IMPORT
 [operation] readLibraryCycleBundle
   package:test/test.dart
-[operation] getErrorsCannotReuse
+[operation] checkLibraryDiagnosticsRequirements
+  library: /home/test/lib/test.dart
   interfaceChildrenIdsMismatch
     libraryUri: package:test/a.dart
     interfaceName: A
@@ -24157,7 +24357,8 @@ extension type A(double it) {}
     flags: isLibrary
 [operation] readLibraryCycleBundle
   package:test/test.dart
-[operation] getErrorsCannotReuse
+[operation] checkLibraryDiagnosticsRequirements
+  library: /home/test/lib/test.dart
   interfaceConstructorIdMismatch
     libraryUri: package:test/a.dart
     interfaceName: A
@@ -24281,6 +24482,9 @@ extension type A(double it) {
     flags: isLibrary
 [operation] readLibraryCycleBundle
   package:test/test.dart
+[operation] checkLibraryDiagnosticsRequirements
+  library: /home/test/lib/test.dart
+  failure: null
 [operation] getErrorsFromBytes
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
@@ -24383,7 +24587,8 @@ mixin A {
     flags: isLibrary
 [operation] readLibraryCycleBundle
   package:test/test.dart
-[operation] getErrorsCannotReuse
+[operation] checkLibraryDiagnosticsRequirements
+  library: /home/test/lib/test.dart
   instanceFieldIdMismatch
     libraryUri: package:test/a.dart
     interfaceName: A
@@ -24516,6 +24721,9 @@ mixin A {
     flags: isLibrary
 [operation] readLibraryCycleBundle
   package:test/test.dart
+[operation] checkLibraryDiagnosticsRequirements
+  library: /home/test/lib/test.dart
+  failure: null
 [operation] getErrorsFromBytes
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
@@ -24639,7 +24847,8 @@ mixin B on A<double> {}
       package:test/a.dart
         exportedTopLevels
           B: #M7
-[operation] getErrorsCannotReuse
+[operation] checkLibraryDiagnosticsRequirements
+  library: /home/test/lib/test.dart
   topLevelIdMismatch
     libraryUri: package:test/a.dart
     name: B
@@ -24754,7 +24963,8 @@ mixin A {
     flags: isLibrary
 [operation] readLibraryCycleBundle
   package:test/test.dart
-[operation] getErrorsCannotReuse
+[operation] checkLibraryDiagnosticsRequirements
+  library: /home/test/lib/test.dart
   instanceMethodIdMismatch
     libraryUri: package:test/a.dart
     interfaceName: A
@@ -24866,7 +25076,8 @@ mixin A {
     flags: isLibrary
 [operation] readLibraryCycleBundle
   package:test/test.dart
-[operation] getErrorsCannotReuse
+[operation] checkLibraryDiagnosticsRequirements
+  library: /home/test/lib/test.dart
   instanceMethodIdMismatch
     libraryUri: package:test/a.dart
     interfaceName: A
@@ -24989,6 +25200,9 @@ mixin A {
     flags: isLibrary
 [operation] readLibraryCycleBundle
   package:test/test.dart
+[operation] checkLibraryDiagnosticsRequirements
+  library: /home/test/lib/test.dart
+  failure: null
 [operation] getErrorsFromBytes
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
@@ -25104,7 +25318,8 @@ mixin B implements A<double> {}
       package:test/a.dart
         exportedTopLevels
           B: #M6
-[operation] getErrorsCannotReuse
+[operation] checkLibraryDiagnosticsRequirements
+  library: /home/test/lib/test.dart
   topLevelIdMismatch
     libraryUri: package:test/a.dart
     name: B
@@ -25236,7 +25451,8 @@ mixin B on A<double> {}
       package:test/a.dart
         exportedTopLevels
           B: #M6
-[operation] getErrorsCannotReuse
+[operation] checkLibraryDiagnosticsRequirements
+  library: /home/test/lib/test.dart
   topLevelIdMismatch
     libraryUri: package:test/a.dart
     name: B
@@ -25339,7 +25555,8 @@ mixin A {}
       35 +3 UNDEFINED_METHOD
 [operation] readLibraryCycleBundle
   package:test/test.dart
-[operation] getErrorsCannotReuse
+[operation] checkLibraryDiagnosticsRequirements
+  library: /home/test/lib/test.dart
   instanceMethodIdMismatch
     libraryUri: package:test/a.dart
     interfaceName: A
@@ -25469,7 +25686,8 @@ mixin A {
     flags: isLibrary
 [operation] readLibraryCycleBundle
   package:test/test.dart
-[operation] getErrorsCannotReuse
+[operation] checkLibraryDiagnosticsRequirements
+  library: /home/test/lib/test.dart
   instanceMethodIdMismatch
     libraryUri: package:test/a.dart
     interfaceName: A
@@ -25598,7 +25816,8 @@ mixin A {
     flags: isLibrary
 [operation] readLibraryCycleBundle
   package:test/test.dart
-[operation] getErrorsCannotReuse
+[operation] checkLibraryDiagnosticsRequirements
+  library: /home/test/lib/test.dart
   instanceFieldIdMismatch
     libraryUri: package:test/a.dart
     interfaceName: A
@@ -25735,6 +25954,9 @@ mixin A {
     flags: isLibrary
 [operation] readLibraryCycleBundle
   package:test/test.dart
+[operation] checkLibraryDiagnosticsRequirements
+  library: /home/test/lib/test.dart
+  failure: null
 [operation] getErrorsFromBytes
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
@@ -25858,7 +26080,8 @@ mixin B on A<double> {}
       package:test/a.dart
         exportedTopLevels
           B: #M7
-[operation] getErrorsCannotReuse
+[operation] checkLibraryDiagnosticsRequirements
+  library: /home/test/lib/test.dart
   topLevelIdMismatch
     libraryUri: package:test/a.dart
     name: B
@@ -25975,7 +26198,8 @@ mixin A {}
       35 +3 UNDEFINED_SETTER
 [operation] readLibraryCycleBundle
   package:test/test.dart
-[operation] getErrorsCannotReuse
+[operation] checkLibraryDiagnosticsRequirements
+  library: /home/test/lib/test.dart
   instanceFieldIdMismatch
     libraryUri: package:test/a.dart
     interfaceName: A
@@ -26100,7 +26324,8 @@ mixin A {}
       package:test/a.dart
         exportedTopLevels
           A: #M1
-[operation] getErrorsCannotReuse
+[operation] checkLibraryDiagnosticsRequirements
+  library: /home/test/lib/test.dart
   topLevelIdMismatch
     libraryUri: package:test/a.dart
     name: A
@@ -26205,6 +26430,9 @@ mixin B {}
       19 +3 BODY_MIGHT_COMPLETE_NORMALLY
 [operation] readLibraryCycleBundle
   package:test/test.dart
+[operation] checkLibraryDiagnosticsRequirements
+  library: /home/test/lib/test.dart
+  failure: null
 [operation] getErrorsFromBytes
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
@@ -26306,7 +26534,8 @@ mixin B {}
       package:test/a.dart
         exportedTopLevels
           A: #M5
-[operation] getErrorsCannotReuse
+[operation] checkLibraryDiagnosticsRequirements
+  library: /home/test/lib/test.dart
   topLevelIdMismatch
     libraryUri: package:test/a.dart
     name: A
@@ -26420,6 +26649,9 @@ mixin C {}
       19 +3 BODY_MIGHT_COMPLETE_NORMALLY
 [operation] readLibraryCycleBundle
   package:test/test.dart
+[operation] checkLibraryDiagnosticsRequirements
+  library: /home/test/lib/test.dart
+  failure: null
 [operation] getErrorsFromBytes
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
@@ -26506,7 +26738,8 @@ A foo() => throw 0;
       package:test/a.dart
         exportedTopLevels
           A: <null>
-[operation] getErrorsCannotReuse
+[operation] checkLibraryDiagnosticsRequirements
+  library: /home/test/lib/test.dart
   topLevelIdMismatch
     libraryUri: package:test/a.dart
     name: A
@@ -26605,6 +26838,9 @@ mixin A {}
     flags: isLibrary
 [operation] readLibraryCycleBundle
   package:test/test.dart
+[operation] checkLibraryDiagnosticsRequirements
+  library: /home/test/lib/test.dart
+  failure: null
 [operation] getErrorsFromBytes
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
@@ -26701,7 +26937,8 @@ mixin A {
     flags: isLibrary
 [operation] readLibraryCycleBundle
   package:test/test.dart
-[operation] getErrorsCannotReuse
+[operation] checkLibraryDiagnosticsRequirements
+  library: /home/test/lib/test.dart
   instanceFieldIdMismatch
     libraryUri: package:test/a.dart
     interfaceName: A
@@ -26832,6 +27069,9 @@ mixin A {
     flags: isLibrary
 [operation] readLibraryCycleBundle
   package:test/test.dart
+[operation] checkLibraryDiagnosticsRequirements
+  library: /home/test/lib/test.dart
+  failure: null
 [operation] getErrorsFromBytes
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
@@ -26924,7 +27164,8 @@ mixin A {
     flags: isLibrary
 [operation] readLibraryCycleBundle
   package:test/test.dart
-[operation] getErrorsCannotReuse
+[operation] checkLibraryDiagnosticsRequirements
+  library: /home/test/lib/test.dart
   instanceMethodIdMismatch
     libraryUri: package:test/a.dart
     interfaceName: A
@@ -27049,6 +27290,9 @@ mixin A {
     flags: isLibrary
 [operation] readLibraryCycleBundle
   package:test/test.dart
+[operation] checkLibraryDiagnosticsRequirements
+  library: /home/test/lib/test.dart
+  failure: null
 [operation] getErrorsFromBytes
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
@@ -27141,7 +27385,8 @@ mixin A {
     flags: isLibrary
 [operation] readLibraryCycleBundle
   package:test/test.dart
-[operation] getErrorsCannotReuse
+[operation] checkLibraryDiagnosticsRequirements
+  library: /home/test/lib/test.dart
   instanceFieldIdMismatch
     libraryUri: package:test/a.dart
     interfaceName: A
@@ -27264,6 +27509,9 @@ mixin A {
     flags: isLibrary
 [operation] readLibraryCycleBundle
   package:test/test.dart
+[operation] checkLibraryDiagnosticsRequirements
+  library: /home/test/lib/test.dart
+  failure: null
 [operation] getErrorsFromBytes
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
@@ -27349,6 +27597,9 @@ class B {}
       41 +1 INVALID_USE_OF_TYPE_OUTSIDE_LIBRARY
 [operation] readLibraryCycleBundle
   package:test/test.dart
+[operation] checkLibraryDiagnosticsRequirements
+  library: /home/test/lib/test.dart
+  failure: null
 [operation] getErrorsFromBytes
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
@@ -27436,7 +27687,8 @@ class B {}
       7 +8 UNUSED_IMPORT
 [operation] readLibraryCycleBundle
   package:test/test.dart
-[operation] getErrorsCannotReuse
+[operation] checkLibraryDiagnosticsRequirements
+  library: /home/test/lib/test.dart
   opaqueApiUseFailure
     ClassElementImpl.firstFragment
       targetElementLibraryUri: package:test/a.dart
@@ -28012,6 +28264,9 @@ typedef B = double;
     flags: isLibrary
 [operation] readLibraryCycleBundle
   package:test/test.dart
+[operation] checkLibraryDiagnosticsRequirements
+  library: /home/test/lib/test.dart
+  failure: null
 [operation] getErrorsFromBytes
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
@@ -28099,7 +28354,8 @@ typedef A = double;
       package:test/a.dart
         exportedTopLevels
           A: #M2
-[operation] getErrorsCannotReuse
+[operation] checkLibraryDiagnosticsRequirements
+  library: /home/test/lib/test.dart
   topLevelIdMismatch
     libraryUri: package:test/a.dart
     name: A
@@ -28209,7 +28465,8 @@ typedef B = A;
     flags: isLibrary
 [operation] readLibraryCycleBundle
   package:test/test.dart
-[operation] getErrorsCannotReuse
+[operation] checkLibraryDiagnosticsRequirements
+  library: /home/test/lib/test.dart
   interfaceConstructorIdMismatch
     libraryUri: package:test/a.dart
     interfaceName: A
@@ -55768,37 +56025,25 @@ typedef B = int;
     );
   }
 
-  test_operation_addFile_affected() async {
-    await _runChangeScenarioTA(
-      initialA: r'''
+  test_operation_addFile_changeImported_affected() async {
+    var driver = driverFor(testFile);
+    var collector = DriverEventCollector(driver, idProvider: idProvider);
+
+    var a = newFile('$testPackageLibPath/a.dart', r'''
 int get a => 0;
-''',
-      testCode: r'''
+''');
+
+    newFile(testFile.path, r'''
 import 'a.dart';
-final x = a;
-''',
-      operation: _FineOperationAddTestFile(),
-      expectedInitialEvents: r'''
+void f() {
+  a;
+}
+''');
+
+    driver.addFile2(testFile);
+
+    await assertEventsText(collector, r'''
 [status] working
-[operation] linkLibraryCycle SDK
-[operation] linkLibraryCycle
-  package:test/a.dart
-    declaredGetters
-      a: #M0
-    declaredVariables
-      a: #M1
-  requirements
-[operation] linkLibraryCycle
-  package:test/test.dart
-    declaredGetters
-      x: #M2
-    declaredVariables
-      x: #M3
-  requirements
-    libraries
-      package:test/a.dart
-        exportedTopLevels
-          a: #M0
 [operation] analyzeFile
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
@@ -55809,48 +56054,23 @@ final x = a;
     flags: exists isLibrary
 [operation] analyzedLibrary
   file: /home/test/lib/test.dart
-  requirements
-    libraries
-      package:test/a.dart
-        exportedTopLevels
-          a: #M0
 [status] idle
-''',
-      updatedA: r'''
+''');
+
+    modifyFile2(a, r'''
 double get a => 0;
-''',
-      expectedUpdatedEvents: r'''
+''');
+    driver.changeFile2(a);
+
+    await assertEventsText(collector, r'''
 [status] working
-[operation] linkLibraryCycle
-  package:test/a.dart
-    declaredGetters
-      a: #M4
-    declaredVariables
-      a: #M5
-  requirements
-[operation] cannotReuseLinkedBundle
+[operation] checkLibraryDiagnosticsRequirements
+  library: /home/test/lib/test.dart
   topLevelIdMismatch
     libraryUri: package:test/a.dart
     name: a
     expectedId: #M0
-    actualId: #M4
-[operation] linkLibraryCycle
-  package:test/test.dart
-    declaredGetters
-      x: #M6
-    declaredVariables
-      x: #M7
-  requirements
-    libraries
-      package:test/a.dart
-        exportedTopLevels
-          a: #M4
-[operation] produceErrorsCannotReuse
-  topLevelIdMismatch
-    libraryUri: package:test/a.dart
-    name: a
-    expectedId: #M0
-    actualId: #M4
+    actualId: #M1
 [operation] analyzeFile
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
@@ -55861,47 +56081,29 @@ double get a => 0;
     flags: exists isLibrary
 [operation] analyzedLibrary
   file: /home/test/lib/test.dart
-  requirements
-    libraries
-      package:test/a.dart
-        exportedTopLevels
-          a: #M4
 [status] idle
-''',
-    );
+''');
   }
 
-  test_operation_addFile_notAffected() async {
-    await _runChangeScenarioTA(
-      initialA: r'''
+  test_operation_addFile_changeImported_notAffected() async {
+    var driver = driverFor(testFile);
+    var collector = DriverEventCollector(driver, idProvider: idProvider);
+
+    var a = newFile('$testPackageLibPath/a.dart', r'''
 int get a => 0;
-''',
-      testCode: r'''
+''');
+
+    newFile(testFile.path, r'''
 import 'a.dart';
-final x = a;
-''',
-      operation: _FineOperationAddTestFile(),
-      expectedInitialEvents: r'''
+void f() {
+  a;
+}
+''');
+
+    driver.addFile2(testFile);
+
+    await assertEventsText(collector, r'''
 [status] working
-[operation] linkLibraryCycle SDK
-[operation] linkLibraryCycle
-  package:test/a.dart
-    declaredGetters
-      a: #M0
-    declaredVariables
-      a: #M1
-  requirements
-[operation] linkLibraryCycle
-  package:test/test.dart
-    declaredGetters
-      x: #M2
-    declaredVariables
-      x: #M3
-  requirements
-    libraries
-      package:test/a.dart
-        exportedTopLevels
-          a: #M0
 [operation] analyzeFile
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
@@ -55912,30 +56114,20 @@ final x = a;
     flags: exists isLibrary
 [operation] analyzedLibrary
   file: /home/test/lib/test.dart
-  requirements
-    libraries
-      package:test/a.dart
-        exportedTopLevels
-          a: #M0
 [status] idle
-''',
-      updatedA: r'''
+''');
+
+    modifyFile2(a, r'''
 int get a => 0;
 int get b => 0;
-''',
-      expectedUpdatedEvents: r'''
+''');
+    driver.changeFile2(a);
+
+    await assertEventsText(collector, r'''
 [status] working
-[operation] linkLibraryCycle
-  package:test/a.dart
-    declaredGetters
-      a: #M0
-      b: #M4
-    declaredVariables
-      a: #M1
-      b: #M5
-  requirements
-[operation] readLibraryCycleBundle
-  package:test/test.dart
+[operation] checkLibraryDiagnosticsRequirements
+  library: /home/test/lib/test.dart
+  failure: null
 [operation] getErrorsFromBytes
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
@@ -55945,46 +56137,42 @@ int get b => 0;
     uri: package:test/test.dart
     flags: isLibrary
 [status] idle
-''',
-    );
+''');
   }
 
-  test_operation_getErrors_affected() async {
-    await _runChangeScenarioTA(
-      initialA: r'''
-int get a => 0;
-''',
-      testCode: r'''
-import 'a.dart';
-final x = a;
-''',
-      operation: _FineOperationTestFileGetErrors(),
-      expectedInitialEvents: r'''
+  test_operation_addFile_changeLibraryFile() async {
+    var driver = driverFor(testFile);
+    var collector = DriverEventCollector(driver, idProvider: idProvider);
+
+    newFile(testFile.path, r'''
+final x = 0;
+''');
+
+    driver.addFile2(testFile);
+    await assertEventsText(collector, r'''
 [status] working
-[operation] linkLibraryCycle SDK
-[future] getErrors T1
-  ErrorsResult #0
+[operation] analyzeFile
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[stream]
+  ResolvedUnitResult #0
     path: /home/test/lib/test.dart
     uri: package:test/test.dart
-    flags: isLibrary
-[operation] linkLibraryCycle
-  package:test/a.dart
-    declaredGetters
-      a: #M0
-    declaredVariables
-      a: #M1
-  requirements
-[operation] linkLibraryCycle
-  package:test/test.dart
-    declaredGetters
-      x: #M2
-    declaredVariables
-      x: #M3
-  requirements
-    libraries
-      package:test/a.dart
-        exportedTopLevels
-          a: #M0
+    flags: exists isLibrary
+[operation] analyzedLibrary
+  file: /home/test/lib/test.dart
+[status] idle
+''');
+
+    modifyFile2(testFile, r'''
+final x = 0;
+final y = 0;
+''');
+    driver.changeFile2(testFile);
+
+    // The library file changed, so diagnostics bundle key is different.
+    await assertEventsText(collector, r'''
+[status] working
 [operation] analyzeFile
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
@@ -55995,53 +56183,131 @@ final x = a;
     flags: exists isLibrary
 [operation] analyzedLibrary
   file: /home/test/lib/test.dart
-  requirements
-    libraries
-      package:test/a.dart
-        exportedTopLevels
-          a: #M0
 [status] idle
-''',
-      updatedA: r'''
-double get a => 0;
-''',
-      expectedUpdatedEvents: r'''
+''');
+  }
+
+  test_operation_addFile_changePartFile() async {
+    var driver = driverFor(testFile);
+    var collector = DriverEventCollector(driver, idProvider: idProvider);
+
+    var a = newFile('$testPackageLibPath/a.dart', r'''
+part of 'test.dart';
+''');
+
+    newFile(testFile.path, r'''
+part 'a.dart';
+final x = 0;
+''');
+
+    driver.addFile2(testFile);
+    driver.addFile2(a);
+
+    await assertEventsText(collector, r'''
 [status] working
-[operation] linkLibraryCycle
-  package:test/a.dart
-    declaredGetters
-      a: #M4
-    declaredVariables
-      a: #M5
-  requirements
+[operation] analyzeFile
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[stream]
+  ResolvedUnitResult #0
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: exists isLibrary
+[stream]
+  ResolvedUnitResult #1
+    path: /home/test/lib/a.dart
+    uri: package:test/a.dart
+    flags: exists isPart
+[operation] analyzedLibrary
+  file: /home/test/lib/test.dart
+[status] idle
+''');
+
+    modifyFile2(a, r'''
+part of 'test.dart';
+final y = 0;
+''');
+    driver.changeFile2(a);
+
+    // The part file changed, so diagnostics bundle key is different.
+    await assertEventsText(collector, r'''
+[status] working
+[operation] analyzeFile
+  file: /home/test/lib/a.dart
+  library: /home/test/lib/test.dart
+[stream]
+  ResolvedUnitResult #2
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: exists isLibrary
+[stream]
+  ResolvedUnitResult #3
+    path: /home/test/lib/a.dart
+    uri: package:test/a.dart
+    flags: exists isPart
+[operation] analyzedLibrary
+  file: /home/test/lib/test.dart
+[status] idle
+''');
+  }
+
+  test_operation_getErrors_changeImported_affected() async {
+    var driver = driverFor(testFile);
+    var collector = DriverEventCollector(driver, idProvider: idProvider);
+
+    var a = newFile('$testPackageLibPath/a.dart', r'''
+int get a => 0;
+''');
+
+    newFile(testFile.path, r'''
+import 'a.dart';
+void f() {
+  a;
+}
+''');
+
+    collector.getErrors('T1', testFile);
+
+    await assertEventsText(collector, r'''
+[status] working
+[future] getErrors T1
+  ErrorsResult #0
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
+[operation] analyzeFile
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[stream]
+  ResolvedUnitResult #1
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: exists isLibrary
+[operation] analyzedLibrary
+  file: /home/test/lib/test.dart
+[status] idle
+''');
+
+    modifyFile2(a, r'''
+double get a => 0;
+''');
+    driver.changeFile2(a);
+    collector.getErrors('T2', testFile);
+
+    await assertEventsText(collector, r'''
+[status] working
 [future] getErrors T2
   ErrorsResult #2
     path: /home/test/lib/test.dart
     uri: package:test/test.dart
     flags: isLibrary
-[operation] cannotReuseLinkedBundle
+[operation] checkLibraryDiagnosticsRequirements
+  library: /home/test/lib/test.dart
   topLevelIdMismatch
     libraryUri: package:test/a.dart
     name: a
     expectedId: #M0
-    actualId: #M4
-[operation] linkLibraryCycle
-  package:test/test.dart
-    declaredGetters
-      x: #M6
-    declaredVariables
-      x: #M7
-  requirements
-    libraries
-      package:test/a.dart
-        exportedTopLevels
-          a: #M4
-[operation] getErrorsCannotReuse
-  topLevelIdMismatch
-    libraryUri: package:test/a.dart
-    name: a
-    expectedId: #M0
-    actualId: #M4
+    actualId: #M1
 [operation] analyzeFile
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
@@ -56052,14 +56318,131 @@ double get a => 0;
     flags: exists isLibrary
 [operation] analyzedLibrary
   file: /home/test/lib/test.dart
-  requirements
-    libraries
-      package:test/a.dart
-        exportedTopLevels
-          a: #M4
 [status] idle
-''',
-    );
+''');
+  }
+
+  test_operation_getErrors_changeImported_notAffected() async {
+    var driver = driverFor(testFile);
+    var collector = DriverEventCollector(driver, idProvider: idProvider);
+
+    var a = newFile('$testPackageLibPath/a.dart', r'''
+int get a => 0;
+''');
+
+    newFile(testFile.path, r'''
+import 'a.dart';
+void f() {
+  a;
+}
+''');
+
+    collector.getErrors('T1', testFile);
+
+    await assertEventsText(collector, r'''
+[status] working
+[future] getErrors T1
+  ErrorsResult #0
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
+[operation] analyzeFile
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[stream]
+  ResolvedUnitResult #1
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: exists isLibrary
+[operation] analyzedLibrary
+  file: /home/test/lib/test.dart
+[status] idle
+''');
+
+    modifyFile2(a, r'''
+int get a => 0;
+int get b => 0;
+''');
+    driver.changeFile2(a);
+    collector.getErrors('T2', testFile);
+
+    await assertEventsText(collector, r'''
+[status] working
+[future] getErrors T2
+  ErrorsResult #2
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
+[operation] checkLibraryDiagnosticsRequirements
+  library: /home/test/lib/test.dart
+  failure: null
+[operation] getErrorsFromBytes
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[status] idle
+''');
+  }
+
+  test_operation_getErrors_noChange() async {
+    var driver = driverFor(testFile);
+    var collector = DriverEventCollector(driver, idProvider: idProvider);
+
+    newFile(testFile.path, r'''
+void f() {}
+''');
+
+    collector.getErrors('T1', testFile);
+
+    await assertEventsText(collector, r'''
+[status] working
+[future] getErrors T1
+  ErrorsResult #0
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
+[operation] analyzeFile
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[stream]
+  ResolvedUnitResult #1
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: exists isLibrary
+[operation] analyzedLibrary
+  file: /home/test/lib/test.dart
+[status] idle
+''');
+
+    // Note, no check for requirements operation.
+    // The transitive API signature is the same, so we shortcut.
+    collector.getErrors('T2', testFile);
+    await assertEventsText(collector, r'''
+[status] working
+[operation] getErrorsFromBytes
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[future] getErrors T2
+  ErrorsResult #2
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
+[status] idle
+''');
+
+    // Repeating requests still uses the shortcut.
+    collector.getErrors('T3', testFile);
+    await assertEventsText(collector, r'''
+[status] working
+[operation] getErrorsFromBytes
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[future] getErrors T3
+  ErrorsResult #3
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
+[status] idle
+''');
   }
 
   test_operation_getErrors_notAffected() async {
@@ -56137,6 +56520,9 @@ int get b => 0;
     flags: isLibrary
 [operation] readLibraryCycleBundle
   package:test/test.dart
+[operation] checkLibraryDiagnosticsRequirements
+  library: /home/test/lib/test.dart
+  failure: null
 [operation] getErrorsFromBytes
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart

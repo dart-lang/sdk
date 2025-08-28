@@ -34,7 +34,6 @@ import 'package:analyzer/src/dart/scanner/reader.dart';
 import 'package:analyzer/src/dart/scanner/scanner.dart';
 import 'package:analyzer/src/dartdoc/dartdoc_directive_info.dart';
 import 'package:analyzer/src/exception/exception.dart';
-import 'package:analyzer/src/fine/requirements.dart';
 import 'package:analyzer/src/generated/parser.dart';
 import 'package:analyzer/src/generated/source.dart' show SourceFactory;
 import 'package:analyzer/src/summary/api_signature.dart';
@@ -1811,21 +1810,14 @@ class LibraryFileKind extends LibraryOrAugmentationFileKind {
   /// The cache for [apiSignature].
   Uint8List? _apiSignature;
 
-  LibraryCycle? _libraryCycle;
+  /// The cache for the library diagnostics bundle key.
+  ///
+  /// It is based on the content of all library files, plus other data that
+  /// affects diagnostics (analysis options, etc). But it does not include
+  /// signatures of dependencies.
+  String? diagnosticsBundleKey;
 
-  /// The last known resolution result for the library.
-  ///
-  /// It might be still valid, but might be not.
-  /// We check its requirements to decide.
-  ///
-  /// We keep it in memory for performance. There are cases when we edit a
-  /// file with many transitive clients, and we don't want to deserialize
-  /// requirements every time. They are almost always satisfied, so we don't
-  /// analyze libraries, and so deserialization cost would dominate.
-  ///
-  /// There might be a way in the future to collapse these requirements to
-  /// reduce heap usage.
-  LibraryResolutionResult? lastResolutionResult;
+  LibraryCycle? _libraryCycle;
 
   LibraryFileKind({
     required super.file,
@@ -1905,6 +1897,7 @@ class LibraryFileKind extends LibraryOrAugmentationFileKind {
   @override
   void dispose() {
     file._fsState._libraryNameToFiles.remove(this);
+    invalidateDiagnosticsBundleKey();
     super.dispose();
   }
 
@@ -1916,6 +1909,10 @@ class LibraryFileKind extends LibraryOrAugmentationFileKind {
 
   void internal_setLibraryCycle(LibraryCycle? cycle) {
     _libraryCycle = cycle;
+  }
+
+  void invalidateDiagnosticsBundleKey() {
+    diagnosticsBundleKey = null;
   }
 
   @override
@@ -2039,17 +2036,6 @@ final class LibraryImportWithUriStr<U extends DirectiveUriWithString>
 
 abstract class LibraryOrAugmentationFileKind extends FileKind {
   LibraryOrAugmentationFileKind({required super.file});
-}
-
-/// The resolution result for a library.
-class LibraryResolutionResult {
-  final RequirementsManifest requirements;
-
-  /// Approximately serialized map of file URIs to diagnostics.
-  /// See uses for precise details.
-  final Uint8List bytes;
-
-  LibraryResolutionResult({required this.requirements, required this.bytes});
 }
 
 /// The file has `part of` directive.

@@ -9,6 +9,7 @@ import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/diagnostic/diagnostic.dart';
 import 'package:analyzer/src/dart/analysis/driver_event.dart' as events;
+import 'package:analyzer/src/dart/analysis/file_state.dart';
 import 'package:analyzer/src/dart/analysis/library_graph.dart';
 import 'package:analyzer/src/dart/analysis/results.dart';
 import 'package:analyzer/src/dart/analysis/status.dart';
@@ -290,6 +291,20 @@ class DriverEventsPrinter {
     sink.writelnWithIndent('[operation] cannotReuseLinkedBundle');
     sink.withIndent(() {
       _writeRequirementFailure(event.failure);
+    });
+  }
+
+  void _writeCheckLibraryDiagnosticsRequirements(
+    events.CheckLibraryDiagnosticsRequirements event,
+  ) {
+    sink.writelnWithIndent('[operation] checkLibraryDiagnosticsRequirements');
+    sink.withIndent(() {
+      sink.writelnNamedFilePath('library', event.library.file);
+      if (event.failure case var failure?) {
+        _writeRequirementFailure(failure);
+      } else {
+        sink.writelnWithIndent('failure: null');
+      }
     });
   }
 
@@ -711,6 +726,8 @@ class DriverEventsPrinter {
         _writeGetErrorsCannotReuse(object);
       case events.ProduceErrorsCannotReuse():
         _writeProduceErrorsCannotReuse(object);
+      case events.CheckLibraryDiagnosticsRequirements():
+        _writeCheckLibraryDiagnosticsRequirements(object);
       case events.LinkLibraryCycle():
         _writeLinkLibraryCycle(object);
       case events.ReuseLinkLibraryCycleBundle():
@@ -1749,5 +1766,11 @@ extension<V> on Map<LookupName, V> {
 extension<V> on Map<Uri, V> {
   List<MapEntry<Uri, V>> get sorted {
     return entries.sortedBy((entry) => entry.key.toString());
+  }
+}
+
+extension on TreeStringSink {
+  void writelnNamedFilePath(String name, FileState fileState) {
+    writelnWithIndent('$name: ${fileState.resource.posixPath}');
   }
 }

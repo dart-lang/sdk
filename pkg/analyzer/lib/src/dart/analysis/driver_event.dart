@@ -44,6 +44,18 @@ final class CannotReuseLinkedBundle extends AnalysisDriverEvent {
   });
 }
 
+/// The event that we checked requirements of the library diagnostics.
+/// This is much cheaper than computing the result again, but not free.
+final class CheckLibraryDiagnosticsRequirements extends AnalysisDriverEvent {
+  final LibraryFileKind library;
+  final RequirementFailure? failure;
+
+  CheckLibraryDiagnosticsRequirements({
+    required this.library,
+    required this.failure,
+  });
+}
+
 /// The event that we were not able to reuse the existing analysis results
 /// for [library], because found the [failure].
 ///
