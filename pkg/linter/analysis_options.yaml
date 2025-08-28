@@ -60,6 +60,7 @@ linter:
     - unreachable_from_main
     - use_if_null_to_convert_nulls_to_bools
     - use_late_for_private_fields_and_variables
+    - use_null_aware_elements
     - use_setters_to_change_properties
     - use_string_buffers
     - use_to_and_as_if_applicable

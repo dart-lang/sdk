@@ -337,8 +337,8 @@ class AsyncStateVisitor extends SimpleAstVisitor<AsyncState> {
   @override
   AsyncState? visitExpressionStatement(ExpressionStatement node) =>
       node.expression == _reference
-          ? null
-          : node.expression.accept(this)?.asynchronousOrNull;
+      ? null
+      : node.expression.accept(this)?.asynchronousOrNull;
 
   @override
   AsyncState? visitExtensionOverride(ExtensionOverride node) =>
@@ -524,8 +524,8 @@ class AsyncStateVisitor extends SimpleAstVisitor<AsyncState> {
 
   @override
   AsyncState? visitSwitchCase(SwitchCase node) =>
-  // TODO(srawlins): Handle when `reference` is in one of the statements.
-  _inOrderAsyncStateGuardable([node.expression, ...node.statements]);
+      // TODO(srawlins): Handle when `reference` is in one of the statements.
+      _inOrderAsyncStateGuardable([node.expression, ...node.statements]);
 
   @override
   AsyncState? visitSwitchDefault(SwitchDefault node) =>
@@ -722,8 +722,9 @@ class AsyncStateVisitor extends SimpleAstVisitor<AsyncState> {
     var referenceIndex = nodes.indexWhere(
       (element) => element.node == _reference,
     );
-    var startingIndex =
-        referenceIndex > 0 ? referenceIndex - 1 : nodes.length - 1;
+    var startingIndex = referenceIndex > 0
+        ? referenceIndex - 1
+        : nodes.length - 1;
 
     for (var i = startingIndex; i >= 0; i--) {
       var (:node, :mountedCanGuard) = nodes[i];
@@ -1121,10 +1122,9 @@ class _Visitor extends SimpleAstVisitor<void> {
       if (asyncState.isGuarded) return;
 
       if (asyncState == AsyncState.asynchronous) {
-        var errorCode =
-            asyncStateTracker.hasUnrelatedMountedCheck
-                ? LinterLintCode.useBuildContextSynchronouslyWrongMounted
-                : LinterLintCode.useBuildContextSynchronouslyAsyncUse;
+        var errorCode = asyncStateTracker.hasUnrelatedMountedCheck
+            ? LinterLintCode.useBuildContextSynchronouslyWrongMounted
+            : LinterLintCode.useBuildContextSynchronouslyAsyncUse;
         rule.reportAtNode(node, diagnosticCode: errorCode);
         return;
       }
@@ -1171,8 +1171,9 @@ class _Visitor extends SimpleAstVisitor<void> {
     var staticType = invocation.staticType;
     if (staticType == null) return;
     var arguments = invocation.argumentList.arguments;
-    var positionalArguments =
-        arguments.where((a) => a is! NamedExpression).toList();
+    var positionalArguments = arguments
+        .where((a) => a is! NamedExpression)
+        .toList();
     var namedArguments = arguments.whereType<NamedExpression>().toList();
     for (var constructor in protectedConstructors) {
       if (invocation.constructorName.name?.name == constructor.name &&
@@ -1205,8 +1206,9 @@ class _Visitor extends SimpleAstVisitor<void> {
     Expression errorNode,
   ) {
     var arguments = invocation.argumentList.arguments;
-    var positionalArguments =
-        arguments.where((a) => a is! NamedExpression).toList();
+    var positionalArguments = arguments
+        .where((a) => a is! NamedExpression)
+        .toList();
     var namedArguments = arguments.whereType<NamedExpression>().toList();
 
     var target = invocation.realTarget;
@@ -1470,12 +1472,11 @@ extension ElementExtension on Element {
       }
     }
 
-    var buildContextElement =
-        switch (self) {
-          ExecutableElement() => self.returnType,
-          VariableElement() => self.type,
-          _ => null,
-        }?.element;
+    var buildContextElement = switch (self) {
+      ExecutableElement() => self.returnType,
+      VariableElement() => self.type,
+      _ => null,
+    }?.element;
     if (buildContextElement is InterfaceElement) {
       return buildContextElement.lookUpGetter(
         name: 'mounted',

@@ -48,11 +48,9 @@ class _Visitor extends SimpleAstVisitor<void> {
 
     for (var v in node.variables) {
       if (v.initializer == null && !v.isAugmentation) {
-        var code =
-            node.parent is FieldDeclaration
-                ? LinterLintCode.preferTypingUninitializedVariablesForField
-                : LinterLintCode
-                    .preferTypingUninitializedVariablesForLocalVariable;
+        var code = node.parent is FieldDeclaration
+            ? LinterLintCode.preferTypingUninitializedVariablesForField
+            : LinterLintCode.preferTypingUninitializedVariablesForLocalVariable;
         rule.reportAtNode(v, diagnosticCode: code);
       }
     }

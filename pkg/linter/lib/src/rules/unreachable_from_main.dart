@@ -519,14 +519,13 @@ class _Visitor extends SimpleAstVisitor<void> {
     unitDeclarationGatherer.addDeclarations(node);
     var unitDeclarations = unitDeclarationGatherer.declarations;
     var unusedDeclarations = unitDeclarations.difference(usedMembers);
-    var unusedMembers =
-        unusedDeclarations.where((declaration) {
-          var element = declaration.declaredFragment?.element;
-          return element != null &&
-              element.isPublic &&
-              !element.hasVisibleForTesting &&
-              !element.hasWidgetPreview;
-        }).toList();
+    var unusedMembers = unusedDeclarations.where((declaration) {
+      var element = declaration.declaredFragment?.element;
+      return element != null &&
+          element.isPublic &&
+          !element.hasVisibleForTesting &&
+          !element.hasWidgetPreview;
+    }).toList();
 
     for (var member in unusedMembers) {
       if (member is ConstructorDeclaration) {

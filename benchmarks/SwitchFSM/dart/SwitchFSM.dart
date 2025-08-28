@@ -136,12 +136,6 @@ class Benchmark extends BenchmarkBase {
 enum SomeEnum { element }
 
 void main() {
-  // TODO(http://dartbug.com/51657): dart2js will remove `_Enum.index` in simple
-  // programs that don't appear to use the field. This defeats the enum-switch
-  // optimization that works more reliably in larger programs. Remove this code
-  // that marks `_Enum.index` as used when #51657 is fixed.
-  Expect.equals(0, SomeEnum.element.index);
-
   final benchmarks = [
     Benchmark('enum', match_enum.match),
     Benchmark('int', match_int.match),

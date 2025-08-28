@@ -14,7 +14,6 @@ import 'package:analyzer/src/dart/analysis/driver_based_analysis_context.dart';
 import 'package:analyzer/src/dart/analysis/results.dart';
 import 'package:analyzer/src/dart/analysis/unlinked_unit_store.dart';
 import 'package:analyzer/src/dart/element/element.dart';
-import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/test_utilities/mock_sdk.dart';
 import 'package:analyzer/src/util/file_paths.dart' as file_paths;
 import 'package:analyzer/src/workspace/basic.dart';
@@ -125,7 +124,6 @@ abstract class ContextResolutionTest
       sdkPath: sdkRoot.path,
       sdkSummaryPath: sdkSummaryFile?.path,
       librarySummaryPaths: librarySummaryFiles?.map((e) => e.path).toList(),
-      updateAnalysisOptions3: updateAnalysisOptions,
       drainStreams: false,
       withFineDependencies: withFineDependencies,
     );
@@ -254,13 +252,6 @@ abstract class ContextResolutionTest
   Future<void> tearDown() async {
     await disposeAnalysisContextCollection();
   }
-
-  /// Override this method to update [analysisOptions] for every context root,
-  /// the default or already updated with `analysis_options.yaml` file.
-  void updateAnalysisOptions({
-    required AnalysisOptionsImpl analysisOptions,
-    required DartSdk sdk,
-  }) {}
 
   /// Call this method if the test needs to use the empty byte store, without
   /// any information cached.

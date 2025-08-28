@@ -47,25 +47,26 @@ class _Visitor extends SimpleAstVisitor<void> {
       // We are only concerned with positional super-parameters.
       return;
     }
-    var superInvocation =
-        node.initializers.whereType<SuperConstructorInvocation>().firstOrNull;
+    var superInvocation = node.initializers
+        .whereType<SuperConstructorInvocation>()
+        .firstOrNull;
     var superConstructor = superInvocation?.element;
     if (superConstructor == null) {
       var class_ = node.parent;
       if (class_ is ClassDeclaration) {
-        superConstructor =
-            class_
-                .declaredFragment
-                ?.element
-                .supertype
-                ?.element
-                .unnamedConstructor;
+        superConstructor = class_
+            .declaredFragment
+            ?.element
+            .supertype
+            ?.element
+            .unnamedConstructor;
       }
     }
     if (superConstructor is! ConstructorElement) return;
 
-    var positionalParametersOfSuper =
-        superConstructor.formalParameters.where((p) => p.isPositional).toList();
+    var positionalParametersOfSuper = superConstructor.formalParameters
+        .where((p) => p.isPositional)
+        .toList();
     if (positionalParametersOfSuper.length < positionalSuperParameters.length) {
       // More positional parameters are passed to super constructor than it
       // has positional parameters, an error.

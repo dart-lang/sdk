@@ -41,15 +41,14 @@ class _ConstructorVisitor extends RecursiveAstVisitor<void> {
   final Set<FormalParameter> unusedParameters;
 
   _ConstructorVisitor(this.element)
-    : unusedParameters =
-          element.parameters.parameters.where((p) {
-            var element = p.declaredFragment?.element;
-            return element != null &&
-                element is! FieldFormalParameterElement &&
-                element is! SuperFormalParameterElement &&
-                !element.metadata.hasDeprecated &&
-                !(element.name ?? '').isJustUnderscores;
-          }).toSet();
+    : unusedParameters = element.parameters.parameters.where((p) {
+        var element = p.declaredFragment?.element;
+        return element != null &&
+            element is! FieldFormalParameterElement &&
+            element is! SuperFormalParameterElement &&
+            !element.metadata.hasDeprecated &&
+            !(element.name ?? '').isJustUnderscores;
+      }).toSet();
 
   @override
   void visitSimpleIdentifier(SimpleIdentifier node) {

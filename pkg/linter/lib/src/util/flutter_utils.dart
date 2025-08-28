@@ -98,10 +98,9 @@ class _Flutter {
     alreadySeen ??= {};
     if (!alreadySeen.add(element)) return false;
 
-    var type =
-        element.firstFragment.isAugmentation
-            ? element.thisType
-            : element.supertype;
+    var type = element.firstFragment.isAugmentation
+        ? element.thisType
+        : element.supertype;
     return hasWidgetAsAscendant(type?.element, alreadySeen);
   }
 

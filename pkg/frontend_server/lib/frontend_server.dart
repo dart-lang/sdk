@@ -228,6 +228,11 @@ ArgParser argParser = new ArgParser(allowTrailingOptions: true)
   ..addFlag('print-incremental-dependencies',
       help: 'Print list of sources added and removed from compilation',
       defaultsTo: true)
+  ..addFlag('js-strongly-connected-components',
+      help: 'Whether or not to combine JavaScript libraries into '
+          'strongly connected components',
+      defaultsTo: true,
+      hide: true)
   ..addOption('resident-info-file-name',
       help: 'Allowing for incremental compilation of changes when using the '
           'Dart CLI. '
@@ -711,6 +716,8 @@ class FrontendCompiler implements CompilerInterface {
             options['filesystem-scheme'], options['dartdevc-module-format'],
             fullComponent: true,
             recompileRestart: false,
+            useStronglyConnectedComponents:
+                options['js-strongly-connected-components'],
             extraDdcOptions: extraDdcOptions);
       }
       await writeDillFile(
@@ -855,6 +862,7 @@ class FrontendCompiler implements CompilerInterface {
       String filename, String fileSystemScheme, String moduleFormat,
       {required bool fullComponent,
       required bool recompileRestart,
+      required bool useStronglyConnectedComponents,
       List<String>? extraDdcOptions}) async {
     PackageConfig packageConfig = await loadPackageConfigUri(
         _compilerOptions.packagesFileUri ??
@@ -868,6 +876,7 @@ class FrontendCompiler implements CompilerInterface {
       fileSystemScheme,
       useDebuggerModuleNames: useDebuggerModuleNames,
       emitDebugMetadata: emitDebugMetadata,
+      useStronglyConnectedComponents: useStronglyConnectedComponents,
       moduleFormat: moduleFormat,
       canaryFeatures: canaryFeatures,
       extraDdcOptions: extraDdcOptions ?? [],
@@ -1073,6 +1082,8 @@ class FrontendCompiler implements CompilerInterface {
             _options['filesystem-scheme'], _options['dartdevc-module-format'],
             fullComponent: false,
             recompileRestart: recompileRestart,
+            useStronglyConnectedComponents:
+                _options['js-strongly-connected-components'],
             extraDdcOptions: extraDdcOptions);
       } catch (e) {
         _outputStream.writeln('$e');

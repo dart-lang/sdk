@@ -87,8 +87,9 @@ class _Visitor extends SimpleAstVisitor<void> {
         var commentToken = docComment.tokens[i];
         var followingCommentToken = docComment.tokens[i + 1];
         var commentEndLine = lineInfo.getLocation(commentToken.end).lineNumber;
-        var followingCommentLine =
-            lineInfo.getLocation(followingCommentToken.offset).lineNumber;
+        var followingCommentLine = lineInfo
+            .getLocation(followingCommentToken.offset)
+            .lineNumber;
         if (followingCommentLine > commentEndLine + 1) {
           // There is a blank line within the declaration's doc comments.
           rule.reportAtToken(commentToken);
@@ -106,8 +107,9 @@ class _Visitor extends SimpleAstVisitor<void> {
       // Any blank line between the doc comment and following comments makes
       // the doc comment look dangling.
       var commentEndLine = lineInfo.getLocation(commentToken.end).lineNumber;
-      var followingCommentLine =
-          lineInfo.getLocation(followingCommentToken.offset).lineNumber;
+      var followingCommentLine = lineInfo
+          .getLocation(followingCommentToken.offset)
+          .lineNumber;
       if (followingCommentLine > commentEndLine + 1) {
         // There is a blank line between the declaration's doc comment and the
         // declaration.
@@ -129,8 +131,9 @@ class _Visitor extends SimpleAstVisitor<void> {
       // [firstDeclaration].
       return;
     }
-    var declarationStartLine =
-        lineInfo.getLocation(tokenAfterDocComment.offset).lineNumber;
+    var declarationStartLine = lineInfo
+        .getLocation(tokenAfterDocComment.offset)
+        .lineNumber;
     if (declarationStartLine > commentEndLine + 1) {
       // There is a blank line between the declaration's doc comment and the
       // declaration.

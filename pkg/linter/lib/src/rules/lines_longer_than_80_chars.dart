@@ -117,14 +117,13 @@ class _AllowedLongLineVisitor extends RecursiveAstVisitor<void> {
     if (node.isMultiline) {
       _handleMultilines(node);
     } else {
-      var value =
-          node.elements.map((e) {
-            if (e is InterpolationString) return e.value;
-            if (e is InterpolationExpression) return ' ' * e.length;
-            throw ArgumentError(
-              'Unhandled string interpolation element: ${node.runtimeType}',
-            );
-          }).join();
+      var value = node.elements.map((e) {
+        if (e is InterpolationString) return e.value;
+        if (e is InterpolationExpression) return ' ' * e.length;
+        throw ArgumentError(
+          'Unhandled string interpolation element: ${node.runtimeType}',
+        );
+      }).join();
       _handleSingleLine(node, value);
     }
   }

@@ -23,9 +23,8 @@ import 'util/path_utils.dart';
 /// **Deprecated:** This tool and the resulting generated file in
 /// `tool/machine/rules.json` are deprecated and should not be relied on.
 void main(List<String> args) async {
-  var parser =
-      ArgParser()
-        ..addFlag('write', abbr: 'w', help: 'Write `rules.json` file.');
+  var parser = ArgParser()
+    ..addFlag('write', abbr: 'w', help: 'Write `rules.json` file.');
   var options = parser.parse(args);
 
   var json = await generateRulesJson();

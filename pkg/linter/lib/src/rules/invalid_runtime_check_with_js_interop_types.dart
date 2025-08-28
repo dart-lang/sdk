@@ -125,9 +125,9 @@ DartType? _jsTypeForStaticInterop(InterfaceType type) {
   }
   return (hasJS && hasStaticInterop && dartJsInterop != null)
       ? dartJsInterop.extensionTypes
-          .singleWhere((extType) => extType.name == 'JSObject')
-          // Nullability is ignored in this lint, so just return `thisType`.
-          .thisType
+            .singleWhere((extType) => extType.name == 'JSObject')
+            // Nullability is ignored in this lint, so just return `thisType`.
+            .thisType
       : null;
 }
 
@@ -337,17 +337,14 @@ class _Visitor extends SimpleAstVisitor<void> {
           if (check) {
             if (!erasedLeftIsSubtype && !erasedRightIsDynamic) {
               if (leftIsInteropType && rightIsInteropType) {
-                lintCode =
-                    LinterLintCode
-                        .invalidRuntimeCheckWithJsInteropTypesJsIsInconsistentJs;
+                lintCode = LinterLintCode
+                    .invalidRuntimeCheckWithJsInteropTypesJsIsInconsistentJs;
               } else if (leftIsInteropType) {
-                lintCode =
-                    LinterLintCode
-                        .invalidRuntimeCheckWithJsInteropTypesJsIsDart;
+                lintCode = LinterLintCode
+                    .invalidRuntimeCheckWithJsInteropTypesJsIsDart;
               } else {
-                lintCode =
-                    LinterLintCode
-                        .invalidRuntimeCheckWithJsInteropTypesDartIsJs;
+                lintCode = LinterLintCode
+                    .invalidRuntimeCheckWithJsInteropTypesDartIsJs;
               }
             } else if (erasedLeftIsSubtype &&
                 leftIsInteropType &&
@@ -366,9 +363,8 @@ class _Visitor extends SimpleAstVisitor<void> {
                       keepUserInteropTypes: true,
                     ),
                   )) {
-                lintCode =
-                    LinterLintCode
-                        .invalidRuntimeCheckWithJsInteropTypesJsIsUnrelatedJs;
+                lintCode = LinterLintCode
+                    .invalidRuntimeCheckWithJsInteropTypesJsIsUnrelatedJs;
               }
             }
           } else {
@@ -377,17 +373,14 @@ class _Visitor extends SimpleAstVisitor<void> {
                 !erasedLeftIsDynamic &&
                 !erasedRightIsDynamic) {
               if (leftIsInteropType && rightIsInteropType) {
-                lintCode =
-                    LinterLintCode
-                        .invalidRuntimeCheckWithJsInteropTypesJsAsIncompatibleJs;
+                lintCode = LinterLintCode
+                    .invalidRuntimeCheckWithJsInteropTypesJsAsIncompatibleJs;
               } else if (leftIsInteropType) {
-                lintCode =
-                    LinterLintCode
-                        .invalidRuntimeCheckWithJsInteropTypesJsAsDart;
+                lintCode = LinterLintCode
+                    .invalidRuntimeCheckWithJsInteropTypesJsAsDart;
               } else {
-                lintCode =
-                    LinterLintCode
-                        .invalidRuntimeCheckWithJsInteropTypesDartAsJs;
+                lintCode = LinterLintCode
+                    .invalidRuntimeCheckWithJsInteropTypesDartAsJs;
               }
             }
           }

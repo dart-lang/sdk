@@ -43,11 +43,10 @@ class _Visitor extends SimpleAstVisitor<void> {
       if (type is! InterfaceType) return;
       var element = type.element;
       if (element is ClassElement) {
-        var nodeField =
-            node
-                .thisOrAncestorOfType<VariableDeclaration>()
-                ?.declaredFragment
-                ?.element;
+        var nodeField = node
+            .thisOrAncestorOfType<VariableDeclaration>()
+            ?.declaredFragment
+            ?.element;
 
         // avoid diagnostic for fields in the same class having the same value
         // class A {

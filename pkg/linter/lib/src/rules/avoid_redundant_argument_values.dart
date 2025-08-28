@@ -142,8 +142,10 @@ class _Visitor extends SimpleAstVisitor<void> {
         );
       } else {
         // Count which positional argument we're at.
-        var positionalCount =
-            arguments.take(i + 1).where((a) => a is! NamedExpression).length;
+        var positionalCount = arguments
+            .take(i + 1)
+            .where((a) => a is! NamedExpression)
+            .length;
         var positionalIndex = positionalCount - 1;
         if (positionalIndex < parameters.length) {
           if (parameters[positionalIndex].isPositional) {

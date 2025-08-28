@@ -224,10 +224,11 @@ class _Visitor extends SimpleAstVisitor<void> {
     Set<AstNode> lintedNodes,
     CompilationUnit node,
   ) {
-    for (var directive in node.directives.reversed
-        .skipWhile(_isPartDirective)
-        .skipWhile(_isExportDirective)
-        .where(_isExportDirective)) {
+    for (var directive
+        in node.directives.reversed
+            .skipWhile(_isPartDirective)
+            .skipWhile(_isExportDirective)
+            .where(_isExportDirective)) {
       if (lintedNodes.add(directive)) {
         rule._reportLintWithExportDirectiveAfterImportDirectiveMessage(
           directive,

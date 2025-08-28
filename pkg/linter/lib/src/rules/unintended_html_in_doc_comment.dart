@@ -201,8 +201,9 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   @override
   void visitComment(Comment node) {
-    var codeBlockLines =
-        node.codeBlocks.map((codeBlock) => codeBlock.lines).flattened;
+    var codeBlockLines = node.codeBlocks
+        .map((codeBlock) => codeBlock.lines)
+        .flattened;
 
     for (var token in node.tokens) {
       // Make sure that the current doc comment line isn't contained in a code

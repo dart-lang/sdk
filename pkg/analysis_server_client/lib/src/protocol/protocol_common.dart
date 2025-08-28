@@ -51,7 +51,7 @@ class AddContentOverlay implements HasToJson {
         content =
             jsonDecoder.decodeString('$jsonPath.content', json['content']);
       } else {
-        throw jsonDecoder.mismatch(jsonPath, 'content');
+        throw jsonDecoder.mismatch(jsonPath, 'content', json);
       }
       int? version;
       if (json.containsKey('version')) {
@@ -162,28 +162,28 @@ class AnalysisError implements HasToJson {
         severity = AnalysisErrorSeverity.fromJson(
             jsonDecoder, '$jsonPath.severity', json['severity']);
       } else {
-        throw jsonDecoder.mismatch(jsonPath, 'severity');
+        throw jsonDecoder.mismatch(jsonPath, 'severity', json);
       }
       AnalysisErrorType type;
       if (json.containsKey('type')) {
         type = AnalysisErrorType.fromJson(
             jsonDecoder, '$jsonPath.type', json['type']);
       } else {
-        throw jsonDecoder.mismatch(jsonPath, 'type');
+        throw jsonDecoder.mismatch(jsonPath, 'type', json);
       }
       Location location;
       if (json.containsKey('location')) {
         location = Location.fromJson(
             jsonDecoder, '$jsonPath.location', json['location']);
       } else {
-        throw jsonDecoder.mismatch(jsonPath, 'location');
+        throw jsonDecoder.mismatch(jsonPath, 'location', json);
       }
       String message;
       if (json.containsKey('message')) {
         message =
             jsonDecoder.decodeString('$jsonPath.message', json['message']);
       } else {
-        throw jsonDecoder.mismatch(jsonPath, 'message');
+        throw jsonDecoder.mismatch(jsonPath, 'message', json);
       }
       String? correction;
       if (json.containsKey('correction')) {
@@ -194,7 +194,7 @@ class AnalysisError implements HasToJson {
       if (json.containsKey('code')) {
         code = jsonDecoder.decodeString('$jsonPath.code', json['code']);
       } else {
-        throw jsonDecoder.mismatch(jsonPath, 'code');
+        throw jsonDecoder.mismatch(jsonPath, 'code', json);
       }
       String? url;
       if (json.containsKey('url')) {
@@ -408,7 +408,7 @@ class ChangeContentOverlay implements HasToJson {
             (String jsonPath, Object? json) =>
                 SourceEdit.fromJson(jsonDecoder, jsonPath, json));
       } else {
-        throw jsonDecoder.mismatch(jsonPath, 'edits');
+        throw jsonDecoder.mismatch(jsonPath, 'edits', json);
       }
       int? version;
       if (json.containsKey('version')) {
@@ -648,21 +648,21 @@ class CompletionSuggestion implements HasToJson {
         kind = CompletionSuggestionKind.fromJson(
             jsonDecoder, '$jsonPath.kind', json['kind']);
       } else {
-        throw jsonDecoder.mismatch(jsonPath, 'kind');
+        throw jsonDecoder.mismatch(jsonPath, 'kind', json);
       }
       int relevance;
       if (json.containsKey('relevance')) {
         relevance =
             jsonDecoder.decodeInt('$jsonPath.relevance', json['relevance']);
       } else {
-        throw jsonDecoder.mismatch(jsonPath, 'relevance');
+        throw jsonDecoder.mismatch(jsonPath, 'relevance', json);
       }
       String completion;
       if (json.containsKey('completion')) {
         completion = jsonDecoder.decodeString(
             '$jsonPath.completion', json['completion']);
       } else {
-        throw jsonDecoder.mismatch(jsonPath, 'completion');
+        throw jsonDecoder.mismatch(jsonPath, 'completion', json);
       }
       String? displayText;
       if (json.containsKey('displayText')) {
@@ -684,28 +684,28 @@ class CompletionSuggestion implements HasToJson {
         selectionOffset = jsonDecoder.decodeInt(
             '$jsonPath.selectionOffset', json['selectionOffset']);
       } else {
-        throw jsonDecoder.mismatch(jsonPath, 'selectionOffset');
+        throw jsonDecoder.mismatch(jsonPath, 'selectionOffset', json);
       }
       int selectionLength;
       if (json.containsKey('selectionLength')) {
         selectionLength = jsonDecoder.decodeInt(
             '$jsonPath.selectionLength', json['selectionLength']);
       } else {
-        throw jsonDecoder.mismatch(jsonPath, 'selectionLength');
+        throw jsonDecoder.mismatch(jsonPath, 'selectionLength', json);
       }
       bool isDeprecated;
       if (json.containsKey('isDeprecated')) {
         isDeprecated = jsonDecoder.decodeBool(
             '$jsonPath.isDeprecated', json['isDeprecated']);
       } else {
-        throw jsonDecoder.mismatch(jsonPath, 'isDeprecated');
+        throw jsonDecoder.mismatch(jsonPath, 'isDeprecated', json);
       }
       bool isPotential;
       if (json.containsKey('isPotential')) {
         isPotential = jsonDecoder.decodeBool(
             '$jsonPath.isPotential', json['isPotential']);
       } else {
-        throw jsonDecoder.mismatch(jsonPath, 'isPotential');
+        throw jsonDecoder.mismatch(jsonPath, 'isPotential', json);
       }
       String? docSummary;
       if (json.containsKey('docSummary')) {
@@ -1064,14 +1064,14 @@ class DiagnosticMessage implements HasToJson {
         message =
             jsonDecoder.decodeString('$jsonPath.message', json['message']);
       } else {
-        throw jsonDecoder.mismatch(jsonPath, 'message');
+        throw jsonDecoder.mismatch(jsonPath, 'message', json);
       }
       Location location;
       if (json.containsKey('location')) {
         location = Location.fromJson(
             jsonDecoder, '$jsonPath.location', json['location']);
       } else {
-        throw jsonDecoder.mismatch(jsonPath, 'location');
+        throw jsonDecoder.mismatch(jsonPath, 'location', json);
       }
       return DiagnosticMessage(message, location);
     } else {
@@ -1200,13 +1200,13 @@ class Element implements HasToJson {
         kind =
             ElementKind.fromJson(jsonDecoder, '$jsonPath.kind', json['kind']);
       } else {
-        throw jsonDecoder.mismatch(jsonPath, 'kind');
+        throw jsonDecoder.mismatch(jsonPath, 'kind', json);
       }
       String name;
       if (json.containsKey('name')) {
         name = jsonDecoder.decodeString('$jsonPath.name', json['name']);
       } else {
-        throw jsonDecoder.mismatch(jsonPath, 'name');
+        throw jsonDecoder.mismatch(jsonPath, 'name', json);
       }
       Location? location;
       if (json.containsKey('location')) {
@@ -1217,7 +1217,7 @@ class Element implements HasToJson {
       if (json.containsKey('flags')) {
         flags = jsonDecoder.decodeInt('$jsonPath.flags', json['flags']);
       } else {
-        throw jsonDecoder.mismatch(jsonPath, 'flags');
+        throw jsonDecoder.mismatch(jsonPath, 'flags', json);
       }
       String? parameters;
       if (json.containsKey('parameters')) {
@@ -1517,19 +1517,19 @@ class FoldingRegion implements HasToJson {
         kind =
             FoldingKind.fromJson(jsonDecoder, '$jsonPath.kind', json['kind']);
       } else {
-        throw jsonDecoder.mismatch(jsonPath, 'kind');
+        throw jsonDecoder.mismatch(jsonPath, 'kind', json);
       }
       int offset;
       if (json.containsKey('offset')) {
         offset = jsonDecoder.decodeInt('$jsonPath.offset', json['offset']);
       } else {
-        throw jsonDecoder.mismatch(jsonPath, 'offset');
+        throw jsonDecoder.mismatch(jsonPath, 'offset', json);
       }
       int length;
       if (json.containsKey('length')) {
         length = jsonDecoder.decodeInt('$jsonPath.length', json['length']);
       } else {
-        throw jsonDecoder.mismatch(jsonPath, 'length');
+        throw jsonDecoder.mismatch(jsonPath, 'length', json);
       }
       return FoldingRegion(kind, offset, length);
     } else {
@@ -1597,19 +1597,19 @@ class HighlightRegion implements HasToJson {
         type = HighlightRegionType.fromJson(
             jsonDecoder, '$jsonPath.type', json['type']);
       } else {
-        throw jsonDecoder.mismatch(jsonPath, 'type');
+        throw jsonDecoder.mismatch(jsonPath, 'type', json);
       }
       int offset;
       if (json.containsKey('offset')) {
         offset = jsonDecoder.decodeInt('$jsonPath.offset', json['offset']);
       } else {
-        throw jsonDecoder.mismatch(jsonPath, 'offset');
+        throw jsonDecoder.mismatch(jsonPath, 'offset', json);
       }
       int length;
       if (json.containsKey('length')) {
         length = jsonDecoder.decodeInt('$jsonPath.length', json['length']);
       } else {
-        throw jsonDecoder.mismatch(jsonPath, 'length');
+        throw jsonDecoder.mismatch(jsonPath, 'length', json);
       }
       return HighlightRegion(type, offset, length);
     } else {
@@ -1970,13 +1970,13 @@ class LinkedEditGroup implements HasToJson {
             (String jsonPath, Object? json) =>
                 Position.fromJson(jsonDecoder, jsonPath, json));
       } else {
-        throw jsonDecoder.mismatch(jsonPath, 'positions');
+        throw jsonDecoder.mismatch(jsonPath, 'positions', json);
       }
       int length;
       if (json.containsKey('length')) {
         length = jsonDecoder.decodeInt('$jsonPath.length', json['length']);
       } else {
-        throw jsonDecoder.mismatch(jsonPath, 'length');
+        throw jsonDecoder.mismatch(jsonPath, 'length', json);
       }
       List<LinkedEditSuggestion> suggestions;
       if (json.containsKey('suggestions')) {
@@ -1986,7 +1986,7 @@ class LinkedEditGroup implements HasToJson {
             (String jsonPath, Object? json) =>
                 LinkedEditSuggestion.fromJson(jsonDecoder, jsonPath, json));
       } else {
-        throw jsonDecoder.mismatch(jsonPath, 'suggestions');
+        throw jsonDecoder.mismatch(jsonPath, 'suggestions', json);
       }
       return LinkedEditGroup(positions, length, suggestions);
     } else {
@@ -2068,14 +2068,14 @@ class LinkedEditSuggestion implements HasToJson {
       if (json.containsKey('value')) {
         value = jsonDecoder.decodeString('$jsonPath.value', json['value']);
       } else {
-        throw jsonDecoder.mismatch(jsonPath, 'value');
+        throw jsonDecoder.mismatch(jsonPath, 'value', json);
       }
       LinkedEditSuggestionKind kind;
       if (json.containsKey('kind')) {
         kind = LinkedEditSuggestionKind.fromJson(
             jsonDecoder, '$jsonPath.kind', json['kind']);
       } else {
-        throw jsonDecoder.mismatch(jsonPath, 'kind');
+        throw jsonDecoder.mismatch(jsonPath, 'kind', json);
       }
       return LinkedEditSuggestion(value, kind);
     } else {
@@ -2197,33 +2197,33 @@ class Location implements HasToJson {
       if (json.containsKey('file')) {
         file = jsonDecoder.decodeString('$jsonPath.file', json['file']);
       } else {
-        throw jsonDecoder.mismatch(jsonPath, 'file');
+        throw jsonDecoder.mismatch(jsonPath, 'file', json);
       }
       int offset;
       if (json.containsKey('offset')) {
         offset = jsonDecoder.decodeInt('$jsonPath.offset', json['offset']);
       } else {
-        throw jsonDecoder.mismatch(jsonPath, 'offset');
+        throw jsonDecoder.mismatch(jsonPath, 'offset', json);
       }
       int length;
       if (json.containsKey('length')) {
         length = jsonDecoder.decodeInt('$jsonPath.length', json['length']);
       } else {
-        throw jsonDecoder.mismatch(jsonPath, 'length');
+        throw jsonDecoder.mismatch(jsonPath, 'length', json);
       }
       int startLine;
       if (json.containsKey('startLine')) {
         startLine =
             jsonDecoder.decodeInt('$jsonPath.startLine', json['startLine']);
       } else {
-        throw jsonDecoder.mismatch(jsonPath, 'startLine');
+        throw jsonDecoder.mismatch(jsonPath, 'startLine', json);
       }
       int startColumn;
       if (json.containsKey('startColumn')) {
         startColumn =
             jsonDecoder.decodeInt('$jsonPath.startColumn', json['startColumn']);
       } else {
-        throw jsonDecoder.mismatch(jsonPath, 'startColumn');
+        throw jsonDecoder.mismatch(jsonPath, 'startColumn', json);
       }
       int? endLine;
       if (json.containsKey('endLine')) {
@@ -2320,20 +2320,20 @@ class NavigationRegion implements HasToJson {
       if (json.containsKey('offset')) {
         offset = jsonDecoder.decodeInt('$jsonPath.offset', json['offset']);
       } else {
-        throw jsonDecoder.mismatch(jsonPath, 'offset');
+        throw jsonDecoder.mismatch(jsonPath, 'offset', json);
       }
       int length;
       if (json.containsKey('length')) {
         length = jsonDecoder.decodeInt('$jsonPath.length', json['length']);
       } else {
-        throw jsonDecoder.mismatch(jsonPath, 'length');
+        throw jsonDecoder.mismatch(jsonPath, 'length', json);
       }
       List<int> targets;
       if (json.containsKey('targets')) {
         targets = jsonDecoder.decodeList(
             '$jsonPath.targets', json['targets'], jsonDecoder.decodeInt);
       } else {
-        throw jsonDecoder.mismatch(jsonPath, 'targets');
+        throw jsonDecoder.mismatch(jsonPath, 'targets', json);
       }
       return NavigationRegion(offset, length, targets);
     } else {
@@ -2426,40 +2426,40 @@ class NavigationTarget implements HasToJson {
         kind =
             ElementKind.fromJson(jsonDecoder, '$jsonPath.kind', json['kind']);
       } else {
-        throw jsonDecoder.mismatch(jsonPath, 'kind');
+        throw jsonDecoder.mismatch(jsonPath, 'kind', json);
       }
       int fileIndex;
       if (json.containsKey('fileIndex')) {
         fileIndex =
             jsonDecoder.decodeInt('$jsonPath.fileIndex', json['fileIndex']);
       } else {
-        throw jsonDecoder.mismatch(jsonPath, 'fileIndex');
+        throw jsonDecoder.mismatch(jsonPath, 'fileIndex', json);
       }
       int offset;
       if (json.containsKey('offset')) {
         offset = jsonDecoder.decodeInt('$jsonPath.offset', json['offset']);
       } else {
-        throw jsonDecoder.mismatch(jsonPath, 'offset');
+        throw jsonDecoder.mismatch(jsonPath, 'offset', json);
       }
       int length;
       if (json.containsKey('length')) {
         length = jsonDecoder.decodeInt('$jsonPath.length', json['length']);
       } else {
-        throw jsonDecoder.mismatch(jsonPath, 'length');
+        throw jsonDecoder.mismatch(jsonPath, 'length', json);
       }
       int startLine;
       if (json.containsKey('startLine')) {
         startLine =
             jsonDecoder.decodeInt('$jsonPath.startLine', json['startLine']);
       } else {
-        throw jsonDecoder.mismatch(jsonPath, 'startLine');
+        throw jsonDecoder.mismatch(jsonPath, 'startLine', json);
       }
       int startColumn;
       if (json.containsKey('startColumn')) {
         startColumn =
             jsonDecoder.decodeInt('$jsonPath.startColumn', json['startColumn']);
       } else {
-        throw jsonDecoder.mismatch(jsonPath, 'startColumn');
+        throw jsonDecoder.mismatch(jsonPath, 'startColumn', json);
       }
       int? codeOffset;
       if (json.containsKey('codeOffset')) {
@@ -2560,20 +2560,20 @@ class Occurrences implements HasToJson {
         element =
             Element.fromJson(jsonDecoder, '$jsonPath.element', json['element']);
       } else {
-        throw jsonDecoder.mismatch(jsonPath, 'element');
+        throw jsonDecoder.mismatch(jsonPath, 'element', json);
       }
       List<int> offsets;
       if (json.containsKey('offsets')) {
         offsets = jsonDecoder.decodeList(
             '$jsonPath.offsets', json['offsets'], jsonDecoder.decodeInt);
       } else {
-        throw jsonDecoder.mismatch(jsonPath, 'offsets');
+        throw jsonDecoder.mismatch(jsonPath, 'offsets', json);
       }
       int length;
       if (json.containsKey('length')) {
         length = jsonDecoder.decodeInt('$jsonPath.length', json['length']);
       } else {
-        throw jsonDecoder.mismatch(jsonPath, 'length');
+        throw jsonDecoder.mismatch(jsonPath, 'length', json);
       }
       return Occurrences(element, offsets, length);
     } else {
@@ -2660,33 +2660,33 @@ class Outline implements HasToJson {
         element =
             Element.fromJson(jsonDecoder, '$jsonPath.element', json['element']);
       } else {
-        throw jsonDecoder.mismatch(jsonPath, 'element');
+        throw jsonDecoder.mismatch(jsonPath, 'element', json);
       }
       int offset;
       if (json.containsKey('offset')) {
         offset = jsonDecoder.decodeInt('$jsonPath.offset', json['offset']);
       } else {
-        throw jsonDecoder.mismatch(jsonPath, 'offset');
+        throw jsonDecoder.mismatch(jsonPath, 'offset', json);
       }
       int length;
       if (json.containsKey('length')) {
         length = jsonDecoder.decodeInt('$jsonPath.length', json['length']);
       } else {
-        throw jsonDecoder.mismatch(jsonPath, 'length');
+        throw jsonDecoder.mismatch(jsonPath, 'length', json);
       }
       int codeOffset;
       if (json.containsKey('codeOffset')) {
         codeOffset =
             jsonDecoder.decodeInt('$jsonPath.codeOffset', json['codeOffset']);
       } else {
-        throw jsonDecoder.mismatch(jsonPath, 'codeOffset');
+        throw jsonDecoder.mismatch(jsonPath, 'codeOffset', json);
       }
       int codeLength;
       if (json.containsKey('codeLength')) {
         codeLength =
             jsonDecoder.decodeInt('$jsonPath.codeLength', json['codeLength']);
       } else {
-        throw jsonDecoder.mismatch(jsonPath, 'codeLength');
+        throw jsonDecoder.mismatch(jsonPath, 'codeLength', json);
       }
       List<Outline>? children;
       if (json.containsKey('children')) {
@@ -2781,19 +2781,19 @@ class ParameterInfo implements HasToJson {
         kind =
             ParameterKind.fromJson(jsonDecoder, '$jsonPath.kind', json['kind']);
       } else {
-        throw jsonDecoder.mismatch(jsonPath, 'kind');
+        throw jsonDecoder.mismatch(jsonPath, 'kind', json);
       }
       String name;
       if (json.containsKey('name')) {
         name = jsonDecoder.decodeString('$jsonPath.name', json['name']);
       } else {
-        throw jsonDecoder.mismatch(jsonPath, 'name');
+        throw jsonDecoder.mismatch(jsonPath, 'name', json);
       }
       String type;
       if (json.containsKey('type')) {
         type = jsonDecoder.decodeString('$jsonPath.type', json['type']);
       } else {
-        throw jsonDecoder.mismatch(jsonPath, 'type');
+        throw jsonDecoder.mismatch(jsonPath, 'type', json);
       }
       String? defaultValue;
       if (json.containsKey('defaultValue')) {
@@ -2908,13 +2908,13 @@ class Position implements HasToJson {
       if (json.containsKey('file')) {
         file = jsonDecoder.decodeString('$jsonPath.file', json['file']);
       } else {
-        throw jsonDecoder.mismatch(jsonPath, 'file');
+        throw jsonDecoder.mismatch(jsonPath, 'file', json);
       }
       int offset;
       if (json.containsKey('offset')) {
         offset = jsonDecoder.decodeInt('$jsonPath.offset', json['offset']);
       } else {
-        throw jsonDecoder.mismatch(jsonPath, 'offset');
+        throw jsonDecoder.mismatch(jsonPath, 'offset', json);
       }
       return Position(file, offset);
     } else {
@@ -3047,19 +3047,19 @@ class RefactoringMethodParameter implements HasToJson {
         kind = RefactoringMethodParameterKind.fromJson(
             jsonDecoder, '$jsonPath.kind', json['kind']);
       } else {
-        throw jsonDecoder.mismatch(jsonPath, 'kind');
+        throw jsonDecoder.mismatch(jsonPath, 'kind', json);
       }
       String type;
       if (json.containsKey('type')) {
         type = jsonDecoder.decodeString('$jsonPath.type', json['type']);
       } else {
-        throw jsonDecoder.mismatch(jsonPath, 'type');
+        throw jsonDecoder.mismatch(jsonPath, 'type', json);
       }
       String name;
       if (json.containsKey('name')) {
         name = jsonDecoder.decodeString('$jsonPath.name', json['name']);
       } else {
-        throw jsonDecoder.mismatch(jsonPath, 'name');
+        throw jsonDecoder.mismatch(jsonPath, 'name', json);
       }
       String? parameters;
       if (json.containsKey('parameters')) {
@@ -3182,14 +3182,14 @@ class RefactoringProblem implements HasToJson {
         severity = RefactoringProblemSeverity.fromJson(
             jsonDecoder, '$jsonPath.severity', json['severity']);
       } else {
-        throw jsonDecoder.mismatch(jsonPath, 'severity');
+        throw jsonDecoder.mismatch(jsonPath, 'severity', json);
       }
       String message;
       if (json.containsKey('message')) {
         message =
             jsonDecoder.decodeString('$jsonPath.message', json['message']);
       } else {
-        throw jsonDecoder.mismatch(jsonPath, 'message');
+        throw jsonDecoder.mismatch(jsonPath, 'message', json);
       }
       Location? location;
       if (json.containsKey('location')) {
@@ -3395,7 +3395,7 @@ class SourceChange implements HasToJson {
         message =
             jsonDecoder.decodeString('$jsonPath.message', json['message']);
       } else {
-        throw jsonDecoder.mismatch(jsonPath, 'message');
+        throw jsonDecoder.mismatch(jsonPath, 'message', json);
       }
       List<SourceFileEdit> edits;
       if (json.containsKey('edits')) {
@@ -3405,7 +3405,7 @@ class SourceChange implements HasToJson {
             (String jsonPath, Object? json) =>
                 SourceFileEdit.fromJson(jsonDecoder, jsonPath, json));
       } else {
-        throw jsonDecoder.mismatch(jsonPath, 'edits');
+        throw jsonDecoder.mismatch(jsonPath, 'edits', json);
       }
       List<LinkedEditGroup> linkedEditGroups;
       if (json.containsKey('linkedEditGroups')) {
@@ -3415,7 +3415,7 @@ class SourceChange implements HasToJson {
             (String jsonPath, Object? json) =>
                 LinkedEditGroup.fromJson(jsonDecoder, jsonPath, json));
       } else {
-        throw jsonDecoder.mismatch(jsonPath, 'linkedEditGroups');
+        throw jsonDecoder.mismatch(jsonPath, 'linkedEditGroups', json);
       }
       Position? selection;
       if (json.containsKey('selection')) {
@@ -3577,20 +3577,20 @@ class SourceEdit implements HasToJson {
       if (json.containsKey('offset')) {
         offset = jsonDecoder.decodeInt('$jsonPath.offset', json['offset']);
       } else {
-        throw jsonDecoder.mismatch(jsonPath, 'offset');
+        throw jsonDecoder.mismatch(jsonPath, 'offset', json);
       }
       int length;
       if (json.containsKey('length')) {
         length = jsonDecoder.decodeInt('$jsonPath.length', json['length']);
       } else {
-        throw jsonDecoder.mismatch(jsonPath, 'length');
+        throw jsonDecoder.mismatch(jsonPath, 'length', json);
       }
       String replacement;
       if (json.containsKey('replacement')) {
         replacement = jsonDecoder.decodeString(
             '$jsonPath.replacement', json['replacement']);
       } else {
-        throw jsonDecoder.mismatch(jsonPath, 'replacement');
+        throw jsonDecoder.mismatch(jsonPath, 'replacement', json);
       }
       String? id;
       if (json.containsKey('id')) {
@@ -3690,14 +3690,14 @@ class SourceFileEdit implements HasToJson {
       if (json.containsKey('file')) {
         file = jsonDecoder.decodeString('$jsonPath.file', json['file']);
       } else {
-        throw jsonDecoder.mismatch(jsonPath, 'file');
+        throw jsonDecoder.mismatch(jsonPath, 'file', json);
       }
       int fileStamp;
       if (json.containsKey('fileStamp')) {
         fileStamp =
             jsonDecoder.decodeInt('$jsonPath.fileStamp', json['fileStamp']);
       } else {
-        throw jsonDecoder.mismatch(jsonPath, 'fileStamp');
+        throw jsonDecoder.mismatch(jsonPath, 'fileStamp', json);
       }
       List<SourceEdit> edits;
       if (json.containsKey('edits')) {
@@ -3707,7 +3707,7 @@ class SourceFileEdit implements HasToJson {
             (String jsonPath, Object? json) =>
                 SourceEdit.fromJson(jsonDecoder, jsonPath, json));
       } else {
-        throw jsonDecoder.mismatch(jsonPath, 'edits');
+        throw jsonDecoder.mismatch(jsonPath, 'edits', json);
       }
       return SourceFileEdit(file, fileStamp, edits: edits);
     } else {

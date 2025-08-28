@@ -71,8 +71,8 @@ bool isLowerCamelCase(String id) =>
 
 /// Whether this [id] is `lower_camel_case_with_underscores_or.dots`.
 bool isLowerCaseUnderScoreWithDots(String id) =>
-// ignore: deprecated_member_use_from_same_package
-_lowerCaseUnderScoreWithDots.hasMatch(id);
+    // ignore: deprecated_member_use_from_same_package
+    _lowerCaseUnderScoreWithDots.hasMatch(id);
 
 /// Whether the given code unit [c] is upper case.
 bool isUpperCase(int c) => c >= 0x40 && c <= 0x5A;

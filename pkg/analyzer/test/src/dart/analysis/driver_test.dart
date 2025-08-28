@@ -268,6 +268,36 @@ void f() {
 ''');
   }
 
+  test_addFile_missingDartLibrary_async() async {
+    var driver = driverFor(testFile);
+    var collector = DriverEventCollector(driver);
+
+    sdkRoot.getChildAssumingFile('lib/async/async.dart').delete();
+
+    var a = newFile('$testPackageLibPath/a.dart', '');
+    driver.addFile2(a);
+
+    await assertEventsText(collector, r'''
+[status] working
+[status] idle
+''');
+  }
+
+  test_addFile_missingDartLibrary_core() async {
+    var driver = driverFor(testFile);
+    var collector = DriverEventCollector(driver);
+
+    sdkRoot.getChildAssumingFile('lib/core/core.dart').delete();
+
+    var a = newFile('$testPackageLibPath/a.dart', '');
+    driver.addFile2(a);
+
+    await assertEventsText(collector, r'''
+[status] working
+[status] idle
+''');
+  }
+
   test_addFile_notAbsolutePath() async {
     var driver = driverFor(testFile);
     expect(() {
@@ -1551,6 +1581,42 @@ part of 'a.dart';
 ''');
   }
 
+  test_getErrors_missingDartLibrary_async() async {
+    var driver = driverFor(testFile);
+    var collector = DriverEventCollector(driver);
+
+    sdkRoot.getChildAssumingFile('lib/async/async.dart').delete();
+
+    var a = newFile('$testPackageLibPath/a.dart', '');
+    collector.getErrors('A1', a);
+
+    await assertEventsText(collector, r'''
+[status] working
+[future] getErrors A1
+  MissingSdkLibraryResult #0
+    missingUri: dart:async
+[status] idle
+''');
+  }
+
+  test_getErrors_missingDartLibrary_core() async {
+    var driver = driverFor(testFile);
+    var collector = DriverEventCollector(driver);
+
+    sdkRoot.getChildAssumingFile('lib/core/core.dart').delete();
+
+    var a = newFile('$testPackageLibPath/a.dart', '');
+    collector.getErrors('A1', a);
+
+    await assertEventsText(collector, r'''
+[status] working
+[future] getErrors A1
+  MissingSdkLibraryResult #0
+    missingUri: dart:core
+[status] idle
+''');
+  }
+
   test_getErrors_notAbsolutePath() async {
     var driver = driverFor(testFile);
     var result = await driver.getErrors('not_absolute.dart');
@@ -1865,6 +1931,38 @@ void f() {
 ''');
   }
 
+  test_getIndex_missingDartLibrary_async() async {
+    var driver = driverFor(testFile);
+    var collector = DriverEventCollector(driver);
+
+    sdkRoot.getChildAssumingFile('lib/async/async.dart').delete();
+
+    var a = newFile('$testPackageLibPath/a.dart', '');
+    collector.getIndex('A1', a);
+
+    await assertEventsText(collector, r'''
+[status] working
+[future] getIndex A1
+[status] idle
+''');
+  }
+
+  test_getIndex_missingDartLibrary_core() async {
+    var driver = driverFor(testFile);
+    var collector = DriverEventCollector(driver);
+
+    sdkRoot.getChildAssumingFile('lib/core/core.dart').delete();
+
+    var a = newFile('$testPackageLibPath/a.dart', '');
+    collector.getIndex('A1', a);
+
+    await assertEventsText(collector, r'''
+[status] working
+[future] getIndex A1
+[status] idle
+''');
+  }
+
   test_getIndex_notAbsolutePath() async {
     var driver = driverFor(testFile);
     expect(() async {
@@ -1918,6 +2016,42 @@ class B {}
     await assertEventsText(collector, r'''
 [future] getLibraryByUri X
   CannotResolveUriResult
+''');
+  }
+
+  test_getLibraryByUri_missingDartLibrary_async() async {
+    var driver = driverFor(testFile);
+    var collector = DriverEventCollector(driver);
+
+    sdkRoot.getChildAssumingFile('lib/async/async.dart').delete();
+
+    newFile('$testPackageLibPath/a.dart', '');
+    collector.getLibraryByUri('A1', 'package:test/a.dart');
+
+    await assertEventsText(collector, r'''
+[status] working
+[future] getLibraryByUri A1
+  MissingSdkLibraryResult #0
+    missingUri: dart:async
+[status] idle
+''');
+  }
+
+  test_getLibraryByUri_missingDartLibrary_core() async {
+    var driver = driverFor(testFile);
+    var collector = DriverEventCollector(driver);
+
+    sdkRoot.getChildAssumingFile('lib/core/core.dart').delete();
+
+    newFile('$testPackageLibPath/a.dart', '');
+    collector.getLibraryByUri('A1', 'package:test/a.dart');
+
+    await assertEventsText(collector, r'''
+[status] working
+[future] getLibraryByUri A1
+  MissingSdkLibraryResult #0
+    missingUri: dart:core
+[status] idle
 ''');
   }
 
@@ -2160,6 +2294,48 @@ part of 'a.dart';
 ''');
   }
 
+  test_getResolvedLibrary_missingDartLibrary_async() async {
+    var driver = driverFor(testFile);
+    var collector = DriverEventCollector(driver);
+
+    sdkRoot.getChildAssumingFile('lib/async/async.dart').delete();
+
+    var a = newFile('$testPackageLibPath/a.dart', '');
+    collector.getResolvedLibrary('A1', a);
+
+    await assertEventsText(collector, r'''
+[status] working
+[operation] analyzeFile
+  file: /home/test/lib/a.dart
+  library: /home/test/lib/a.dart
+[future] getResolvedLibrary A1
+  MissingSdkLibraryResult #0
+    missingUri: dart:async
+[status] idle
+''');
+  }
+
+  test_getResolvedLibrary_missingDartLibrary_core() async {
+    var driver = driverFor(testFile);
+    var collector = DriverEventCollector(driver);
+
+    sdkRoot.getChildAssumingFile('lib/core/core.dart').delete();
+
+    var a = newFile('$testPackageLibPath/a.dart', '');
+    collector.getResolvedLibrary('A1', a);
+
+    await assertEventsText(collector, r'''
+[status] working
+[operation] analyzeFile
+  file: /home/test/lib/a.dart
+  library: /home/test/lib/a.dart
+[future] getResolvedLibrary A1
+  MissingSdkLibraryResult #0
+    missingUri: dart:core
+[status] idle
+''');
+  }
+
   test_getResolvedLibrary_notAbsolutePath() async {
     var driver = driverFor(testFile);
     var result = await driver.getResolvedLibrary('not_absolute.dart');
@@ -2307,6 +2483,48 @@ part of 'a.dart';
   ResolvedUnitResult #0
 [stream]
   ResolvedUnitResult #1
+[status] idle
+''');
+  }
+
+  test_getResolvedLibraryByUri_missingDartLibrary_async() async {
+    var driver = driverFor(testFile);
+    var collector = DriverEventCollector(driver);
+
+    sdkRoot.getChildAssumingFile('lib/async/async.dart').delete();
+
+    newFile('$testPackageLibPath/a.dart', '');
+    collector.getResolvedLibraryByUri('A1', Uri.parse('package:test/a.dart'));
+
+    await assertEventsText(collector, r'''
+[status] working
+[operation] analyzeFile
+  file: /home/test/lib/a.dart
+  library: /home/test/lib/a.dart
+[future] getResolvedLibraryByUri A1
+  MissingSdkLibraryResult #0
+    missingUri: dart:async
+[status] idle
+''');
+  }
+
+  test_getResolvedLibraryByUri_missingDartLibrary_core() async {
+    var driver = driverFor(testFile);
+    var collector = DriverEventCollector(driver);
+
+    sdkRoot.getChildAssumingFile('lib/core/core.dart').delete();
+
+    newFile('$testPackageLibPath/a.dart', '');
+    collector.getResolvedLibraryByUri('A1', Uri.parse('package:test/a.dart'));
+
+    await assertEventsText(collector, r'''
+[status] working
+[operation] analyzeFile
+  file: /home/test/lib/a.dart
+  library: /home/test/lib/a.dart
+[future] getResolvedLibraryByUri A1
+  MissingSdkLibraryResult #0
+    missingUri: dart:core
 [status] idle
 ''');
   }
@@ -2619,6 +2837,48 @@ part of 'a.dart';
     path: /home/test/lib/b.dart
     uri: package:test/b.dart
     flags: exists isPart
+[status] idle
+''');
+  }
+
+  test_getResolvedUnit_missingDartLibrary_async() async {
+    var driver = driverFor(testFile);
+    var collector = DriverEventCollector(driver);
+
+    sdkRoot.getChildAssumingFile('lib/async/async.dart').delete();
+
+    var a = newFile('$testPackageLibPath/a.dart', '');
+    collector.getResolvedUnit('A1', a);
+
+    await assertEventsText(collector, r'''
+[status] working
+[operation] analyzeFile
+  file: /home/test/lib/a.dart
+  library: /home/test/lib/a.dart
+[future] getResolvedUnit A1
+  MissingSdkLibraryResult #0
+    missingUri: dart:async
+[status] idle
+''');
+  }
+
+  test_getResolvedUnit_missingDartLibrary_core() async {
+    var driver = driverFor(testFile);
+    var collector = DriverEventCollector(driver);
+
+    sdkRoot.getChildAssumingFile('lib/core/core.dart').delete();
+
+    var a = newFile('$testPackageLibPath/a.dart', '');
+    collector.getResolvedUnit('A1', a);
+
+    await assertEventsText(collector, r'''
+[status] working
+[operation] analyzeFile
+  file: /home/test/lib/a.dart
+  library: /home/test/lib/a.dart
+[future] getResolvedUnit A1
+  MissingSdkLibraryResult #0
+    missingUri: dart:core
 [status] idle
 ''');
   }
@@ -3038,6 +3298,42 @@ import 'package:test/b.dart';
     expect(result, isA<InvalidPathResult>());
   }
 
+  test_getUnitElement_missingDartLibrary_async() async {
+    var driver = driverFor(testFile);
+    var collector = DriverEventCollector(driver);
+
+    sdkRoot.getChildAssumingFile('lib/async/async.dart').delete();
+
+    var a = newFile('$testPackageLibPath/a.dart', '');
+    collector.getUnitElement('A1', a);
+
+    await assertEventsText(collector, r'''
+[status] working
+[future] getUnitElement A1
+  MissingSdkLibraryResult #0
+    missingUri: dart:async
+[status] idle
+''');
+  }
+
+  test_getUnitElement_missingDartLibrary_core() async {
+    var driver = driverFor(testFile);
+    var collector = DriverEventCollector(driver);
+
+    sdkRoot.getChildAssumingFile('lib/core/core.dart').delete();
+
+    var a = newFile('$testPackageLibPath/a.dart', '');
+    collector.getUnitElement('A1', a);
+
+    await assertEventsText(collector, r'''
+[status] working
+[future] getUnitElement A1
+  MissingSdkLibraryResult #0
+    missingUri: dart:core
+[status] idle
+''');
+  }
+
   test_hermetic_modifyLibraryFile_resolvePart() async {
     var a = newFile('$testPackageLibPath/a.dart', r'''
 part 'b.dart';
@@ -3292,32 +3588,6 @@ elementFactory
   hasElement
     package:test/a.dart
 ''');
-  }
-
-  test_missingDartLibrary_async() async {
-    var driver = driverFor(testFile);
-
-    sdkRoot.getChildAssumingFile('lib/async/async.dart').delete();
-
-    var a = newFile('$testPackageLibPath/a.dart', '');
-    var result = await driver.getErrors(a.path);
-    result as ErrorsResult;
-    assertErrorsInList(result.diagnostics, [
-      error(CompileTimeErrorCode.missingDartLibrary, 0, 0),
-    ]);
-  }
-
-  test_missingDartLibrary_core() async {
-    var driver = driverFor(testFile);
-
-    sdkRoot.getChildAssumingFile('lib/core/core.dart').delete();
-
-    var a = newFile('$testPackageLibPath/a.dart', '');
-    var result = await driver.getErrors(a.path);
-    result as ErrorsResult;
-    assertErrorsInList(result.diagnostics, [
-      error(CompileTimeErrorCode.missingDartLibrary, 0, 0),
-    ]);
   }
 
   test_parseFileSync_appliesPendingFileChanges() async {

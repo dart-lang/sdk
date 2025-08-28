@@ -120,10 +120,9 @@ class _Visitor extends SimpleAstVisitor<void> {
       return;
     }
 
-    var ancestorTypeParameterNames =
-        ancestorTypeParameters.typeParameters
-            .map((tp) => tp.name.lexeme)
-            .toSet();
+    var ancestorTypeParameterNames = ancestorTypeParameters.typeParameters
+        .map((tp) => tp.name.lexeme)
+        .toSet();
 
     for (var parameter in typeParameters.typeParameters) {
       var lexeme = parameter.name.lexeme;

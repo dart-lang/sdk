@@ -51,10 +51,9 @@ class _Visitor extends SimpleAstVisitor<void> {
         return;
       }
 
-      var exp =
-          condition.operator.type == TokenType.EQ_EQ
-              ? node.elseExpression
-              : node.thenExpression;
+      var exp = condition.operator.type == TokenType.EQ_EQ
+          ? node.elseExpression
+          : node.thenExpression;
       if (exp.toString() == expression.toString()) {
         rule.reportAtNode(node);
       }

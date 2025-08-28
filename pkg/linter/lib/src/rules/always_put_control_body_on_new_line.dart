@@ -70,8 +70,9 @@ class _Visitor extends SimpleAstVisitor<void> {
     if (node == null || node is Block && node.statements.isEmpty) return;
 
     var unit = node.root as CompilationUnit;
-    var offsetFirstStatement =
-        node is Block ? node.statements.first.offset : node.offset;
+    var offsetFirstStatement = node is Block
+        ? node.statements.first.offset
+        : node.offset;
     var lineInfo = unit.lineInfo;
     if (lineInfo.getLocation(controlEnd).lineNumber ==
         lineInfo.getLocation(offsetFirstStatement).lineNumber) {

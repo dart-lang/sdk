@@ -52,9 +52,9 @@ class _Visitor extends SimpleAstVisitor<void> {
         _isExtensionOnNullableType(
           node.inSetterContext()
               ? node
-                  .thisOrAncestorOfType<AssignmentExpression>()
-                  ?.writeElement
-                  ?.enclosingElement
+                    .thisOrAncestorOfType<AssignmentExpression>()
+                    ?.writeElement
+                    ?.enclosingElement
               : node.element?.enclosingElement,
         )) {
       rule.reportAtToken(question);

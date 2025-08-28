@@ -10,7 +10,6 @@ import 'package:analysis_server/src/lsp/handlers/handlers.dart';
 import 'package:analysis_server/src/scheduler/scheduled_message.dart';
 import 'package:analysis_server/src/services/correction/fix/data_driven/transform_set_parser.dart';
 import 'package:analyzer/dart/analysis/analysis_context.dart';
-import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/file_system/file_system.dart';
@@ -597,17 +596,7 @@ class ContextManagerImpl implements ContextManager {
               packagesFile: packagesFile,
               fileContentCache: _fileContentCache,
               unlinkedUnitStore: _unlinkedUnitStore,
-              updateAnalysisOptions3: ({
-                required analysisOptions,
-                required sdk,
-              }) {
-                if (_enabledExperiments.isNotEmpty) {
-                  analysisOptions.contextFeatures = FeatureSet.fromEnableFlags2(
-                    sdkLanguageVersion: sdk.languageVersion,
-                    flags: _enabledExperiments,
-                  );
-                }
-              },
+              enabledExperiments: _enabledExperiments,
             );
 
         for (var analysisContext in collection.contexts) {

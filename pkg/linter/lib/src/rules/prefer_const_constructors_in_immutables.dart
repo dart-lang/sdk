@@ -90,16 +90,16 @@ class _Visitor extends SimpleAstVisitor<void> {
     }
     var clazz = declaredElement.enclosingElement;
     // Constructor with super-initializer.
-    var superInvocation =
-        node.initializers.whereType<SuperConstructorInvocation>().firstOrNull;
+    var superInvocation = node.initializers
+        .whereType<SuperConstructorInvocation>()
+        .firstOrNull;
     if (superInvocation != null) {
       return superInvocation.element?.isConst ?? false;
     }
     // Constructor with 'this' redirecting initializer.
-    var redirectInvocation =
-        node.initializers
-            .whereType<RedirectingConstructorInvocation>()
-            .firstOrNull;
+    var redirectInvocation = node.initializers
+        .whereType<RedirectingConstructorInvocation>()
+        .firstOrNull;
     if (redirectInvocation != null) {
       return redirectInvocation.element?.isConst ?? false;
     }

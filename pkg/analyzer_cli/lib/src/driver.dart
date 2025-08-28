@@ -21,7 +21,6 @@ import 'package:analyzer/src/dart/analysis/driver_based_analysis_context.dart';
 import 'package:analyzer/src/dart/analysis/file_content_cache.dart';
 import 'package:analyzer/src/dart/analysis/file_state.dart';
 import 'package:analyzer/src/dart/analysis/results.dart';
-import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/manifest/manifest_validator.dart';
 import 'package:analyzer/src/pubspec/pubspec_validator.dart';
 import 'package:analyzer/src/source/path_filter.dart';
@@ -617,7 +616,7 @@ class _AnalysisContextProvider {
       packagesFile: _commandLineOptions!.defaultPackagesPath,
       resourceProvider: _resourceProvider,
       sdkPath: _commandLineOptions!.dartSdkPath,
-      updateAnalysisOptions3: _updateAnalysisOptions,
+      updateAnalysisOptions4: _updateAnalysisOptions,
       fileContentCache: _fileContentCache,
     );
     _toDispose.add(_collection!);
@@ -652,10 +651,7 @@ class _AnalysisContextProvider {
     _analysisContext = _collection!.contextFor(path);
   }
 
-  void _updateAnalysisOptions({
-    required AnalysisOptionsImpl analysisOptions,
-    required DartSdk sdk,
-  }) {
+  void _updateAnalysisOptions({required AnalysisOptionsImpl analysisOptions}) {
     _commandLineOptions!.updateAnalysisOptions(analysisOptions);
   }
 }

@@ -287,6 +287,13 @@ class LibraryElementResultImpl implements LibraryElementResult {
   LibraryElement get element2 => element;
 }
 
+class MissingSdkLibraryResultImpl implements MissingSdkLibraryResult {
+  @override
+  final Uri missingUri;
+
+  MissingSdkLibraryResultImpl({required this.missingUri});
+}
+
 class ParsedLibraryResultImpl extends AnalysisResultImpl
     implements ParsedLibraryResult {
   @override

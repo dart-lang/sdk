@@ -52,14 +52,15 @@ class TestLinter implements DiagnosticListener {
   Future<List<Diagnostic>> _analyze(Iterable<io.File> files) async {
     AnalysisEngine.instance.instrumentationService = _StdInstrumentation();
 
-    var filePaths =
-        files.map((file) => _absoluteNormalizedPath(file.path)).toList();
+    var filePaths = files
+        .map((file) => _absoluteNormalizedPath(file.path))
+        .toList();
 
     var contextCollection = AnalysisContextCollectionImpl(
       resourceProvider: _resourceProvider,
       sdkPath: _dartSdkPath,
       includedPaths: filePaths,
-      updateAnalysisOptions3: ({required analysisOptions, required sdk}) {
+      updateAnalysisOptions4: ({required analysisOptions}) {
         analysisOptions.lint = true;
         analysisOptions.warning = false;
         analysisOptions.lintRules = _rules;

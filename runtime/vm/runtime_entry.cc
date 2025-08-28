@@ -6,6 +6,7 @@
 
 #include <memory>
 
+#include "platform/globals.h"
 #include "platform/memory_sanitizer.h"
 #include "platform/thread_sanitizer.h"
 #include "vm/bootstrap.h"
@@ -1201,7 +1202,7 @@ struct FfiCallArguments {
   uword target;
 };
 
-#if defined(TARGET_ARCH_ARM64)
+#if defined(HOST_ARCH_ARM64)
 extern "C" void FfiCallTrampoline(FfiCallArguments* args);
 #else
 extern "C" typedef void (*ffiCallTrampoline)(FfiCallArguments* args);
@@ -1445,9 +1446,9 @@ DEFINE_RUNTIME_ENTRY(FfiCall, 2) {
 
   {
     TransitionVMToNative transition(thread);
-#if defined(TARGET_ARCH_ARM64)
+#if defined(HOST_ARCH_ARM64)
     FfiCallTrampoline(&args);
-#elif defined(TARGET_ARCH_X64)
+#elif defined(HOST_ARCH_X64)
     reinterpret_cast<ffiCallTrampoline>(
         StubCode::FfiCallTrampoline().EntryPoint())(&args);
 #else

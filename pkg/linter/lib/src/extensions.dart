@@ -377,10 +377,9 @@ extension ExpressionExtension on Expression {
     if (enclosingElement is! InterfaceElement) return false;
 
     var superTypes = enclosingElement.allSupertypes;
-    var superMembers =
-        element is MethodElement
-            ? superTypes.map((t) => t.getMethod(elementName))
-            : superTypes.map((t) => t.getGetter(elementName));
+    var superMembers = element is MethodElement
+        ? superTypes.map((t) => t.getMethod(elementName))
+        : superTypes.map((t) => t.getGetter(elementName));
     return superMembers.any((e) => e.hasAwaitNotRequired);
   }
 }

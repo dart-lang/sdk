@@ -115,8 +115,9 @@ class _Visitor extends SimpleAstVisitor<void> {
   void _validateArgument(Expression expression) {
     if (expression is PropertyAccess) {
       var expressionType = expression.realTarget.staticType;
-      var targetType =
-          (expressionType is InterfaceType) ? expressionType : thisType;
+      var targetType = (expressionType is InterfaceType)
+          ? expressionType
+          : thisType;
       _reportIfToStringOnCoreTypeClass(targetType, expression.propertyName);
     } else if (expression is PrefixedIdentifier) {
       var prefixType = expression.prefix.staticType;

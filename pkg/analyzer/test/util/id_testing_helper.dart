@@ -144,7 +144,7 @@ Future<TestResult<T>> runTestForConfig<T>(
     resourceProvider: resourceProvider,
     retainDataForTesting: true,
     sdkPath: sdkRoot.path,
-    updateAnalysisOptions3: ({required analysisOptions, required sdk}) {
+    updateAnalysisOptions4: ({required analysisOptions}) {
       analysisOptions.contextFeatures = config.featureSet;
     },
   );

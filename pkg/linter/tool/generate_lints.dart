@@ -79,7 +79,8 @@ class LinterLintCode extends LintCodeWithExpectedTypes {
       }
 
       var removedLintName = 'removedLint';
-      memberAccumulator.constants[removedLintName] = '''
+      memberAccumulator.constants[removedLintName] =
+          '''
   /// A lint code that removed lints can specify as their `lintCode`.
   ///
   /// Avoid other usages as it should be made unnecessary and removed.

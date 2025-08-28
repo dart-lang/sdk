@@ -53,10 +53,9 @@ class AnalyzerPublicApiTest extends LintRuleTest {
   void setUp() {
     super.setUp();
 
-    var builder =
-        PackageConfigFileBuilder()
-          ..add(name: 'analyzer', rootPath: testPackageRootPath)
-          ..add(name: 'nonAnalyzer', rootPath: nonAnalyzerPackageRootPath);
+    var builder = PackageConfigFileBuilder()
+      ..add(name: 'analyzer', rootPath: testPackageRootPath)
+      ..add(name: 'nonAnalyzer', rootPath: nonAnalyzerPackageRootPath);
     newPackageConfigJsonFileFromBuilder(testPackageRootPath, builder);
   }
 
