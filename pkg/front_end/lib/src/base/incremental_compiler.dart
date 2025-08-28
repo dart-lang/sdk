@@ -1625,6 +1625,20 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
     _ticker.logMs("Appended libraries");
   }
 
+  // Coverage-ignore(suite): Not run.
+  /// Attempt to translates a package-uri (or dart uri) to a file uri via the
+  /// package setup.
+  ///
+  /// If the uri cannot be translated it will be returned unchanged.
+  Uri translateUri(Uri uri) {
+    IncrementalKernelTarget? lastGoodKernelTarget = this._lastGoodKernelTarget;
+    if (lastGoodKernelTarget != null &&
+        (uri.isScheme("package") || uri.isScheme("dart"))) {
+      return lastGoodKernelTarget.uriTranslator.translate(uri, false) ?? uri;
+    }
+    return uri;
+  }
+
   @override
   // Coverage-ignore(suite): Not run.
   Future<Procedure?> compileExpression(

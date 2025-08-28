@@ -69,9 +69,13 @@ class ExpressionCompiler {
   /// Compiles [expression] in library [libraryUri] and file [scriptUri]
   /// at [line]:[column] to JavaScript in [moduleName].
   ///
-  /// [libraryUri] and [scriptUri] can be the same, but if for instance
+  /// [libraryUri] and [scriptUriString] can be the same, but if for instance
   /// evaluating expressions in a part file the [libraryUri] will be the uri of
-  /// the "part of" file whereas [scriptUri] will be the uri of the part.
+  /// the "part of" file whereas [scriptUriString] will be the uri of the part.
+  /// The [libraryUri] should be an import-uri, i.e. a package uri if it exists.
+  /// The [scriptUriString] is allowed to be a package uri in which case it will
+  /// be attempted translated to a file uri to match what is recorded in the
+  /// kernel file.
   ///
   /// [line] and [column] are 1-based. Library level expressions typically use
   /// [line] and [column] 1 as an indicator that there is no relevant location.
@@ -89,7 +93,7 @@ class ExpressionCompiler {
   /// { 'x': '1', 'y': 'y', 'o': 'null' }
   Future<String?> compileExpressionToJs(
     String libraryUri,
-    String? scriptUri,
+    String? scriptUriString,
     int line,
     int column,
     Map<String, String> jsScope,
@@ -100,9 +104,26 @@ class ExpressionCompiler {
 
       _log('Compiling expression \n$expression');
 
+      var scriptUri = scriptUriString == null
+          ? null
+          : Uri.parse(scriptUriString);
+      if (scriptUri != null && scriptUri.isScheme('package')) {
+        scriptUri = _compiler.translateUri(scriptUri);
+        if (scriptUri.isScheme('package')) {
+          // No packages. Try to translate via the component source.
+          for (final source in _component.uriToSource.values) {
+            if (source.importUri == scriptUri && source.fileUri != null) {
+              scriptUri = source.fileUri!;
+            }
+          }
+          // The uri could still be a package-uri, but then failing to do
+          // expression compilation seems fair.
+        }
+      }
+
       var dartScope = _findScopeAt(
         Uri.parse(libraryUri),
-        scriptUri == null ? null : Uri.parse(scriptUri),
+        scriptUri,
         line,
         column,
         jsScope,
