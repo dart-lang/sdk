@@ -4,7 +4,7 @@
 
 # Run
 #
-#     dart run pkg/front_end/tool/generate_messages.dart
+#     dart pkg/front_end/tool/cfe.dart generate-messages
 #
 # to regenerate messages after having edited this file.
 #
