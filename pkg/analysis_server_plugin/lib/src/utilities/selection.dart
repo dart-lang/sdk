@@ -22,8 +22,11 @@ class Selection {
   /// Initialize a newly created selection to include the characters starting at
   /// the [offset] and including [length] characters, all of which fall within
   /// the [coveringNode].
-  Selection(
-      {required this.offset, required this.length, required this.coveringNode});
+  Selection({
+    required this.offset,
+    required this.length,
+    required this.coveringNode,
+  });
 
   bool isCoveredByNode(AstNode node) {
     return node.offset <= offset && offset + length <= node.end;
@@ -297,19 +300,22 @@ class _ChildrenFinder extends SimpleAstVisitor<void> {
 
   @override
   void visitRecordTypeAnnotationNamedField(
-      RecordTypeAnnotationNamedField node) {
+    RecordTypeAnnotationNamedField node,
+  ) {
     _fromList(node.metadata);
   }
 
   @override
   void visitRecordTypeAnnotationNamedFields(
-      RecordTypeAnnotationNamedFields node) {
+    RecordTypeAnnotationNamedFields node,
+  ) {
     _fromList(node.fields);
   }
 
   @override
   void visitRecordTypeAnnotationPositionalField(
-      RecordTypeAnnotationPositionalField node) {
+    RecordTypeAnnotationPositionalField node,
+  ) {
     _fromList(node.metadata);
   }
 
@@ -431,6 +437,9 @@ extension CompilationUnitExtension on CompilationUnit {
       return null;
     }
     return Selection(
-        offset: offset, length: length, coveringNode: coveringNode);
+      offset: offset,
+      length: length,
+      coveringNode: coveringNode,
+    );
   }
 }

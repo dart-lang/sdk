@@ -13,12 +13,10 @@ import 'package:analyzer/src/generated/java_core.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/change_builder/conflicting_edit_exception.dart';
 
-Future<List<Assist>> computeAssists(DartAssistContext context,
-        {AssistPerformance? performance}) =>
-    AssistProcessor(
-      context,
-      performance: performance,
-    ).compute();
+Future<List<Assist>> computeAssists(
+  DartAssistContext context, {
+  AssistPerformance? performance,
+}) => AssistProcessor(context, performance: performance).compute();
 
 /// The computer for Dart assists.
 class AssistProcessor {
@@ -29,7 +27,7 @@ class AssistProcessor {
   final List<Assist> _assists = [];
 
   AssistProcessor(this._assistContext, {AssistPerformance? performance})
-      : _performance = performance;
+    : _performance = performance;
 
   Future<List<Assist>> compute() async {
     _timer.start();
@@ -68,10 +66,7 @@ class AssistProcessor {
         return;
       }
       change.id = assistKind.id;
-      change.message = formatList(
-        assistKind.message,
-        producer.assistArguments,
-      );
+      change.message = formatList(assistKind.message, producer.assistArguments);
       _assists.add(Assist(assistKind, change));
     } on ConflictingEditException catch (exception, stackTrace) {
       // Handle the exception by (a) not adding an assist based on the

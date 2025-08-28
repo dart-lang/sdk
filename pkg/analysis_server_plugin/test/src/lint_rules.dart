@@ -19,7 +19,9 @@ class NoBoolsRule extends AnalysisRule {
 
   @override
   void registerNodeProcessors(
-      RuleVisitorRegistry registry, RuleContext context) {
+    RuleVisitorRegistry registry,
+    RuleContext context,
+  ) {
     var visitor = _NoBoolsVisitor(this);
     registry.addBooleanLiteral(this, visitor);
   }
@@ -29,14 +31,16 @@ class NoDoublesRule extends AnalysisRule {
   static const LintCode code = LintCode('no_doubles', 'No doubles message');
 
   NoDoublesRule()
-      : super(name: 'no_doubles', description: 'No doubles message');
+    : super(name: 'no_doubles', description: 'No doubles message');
 
   @override
   DiagnosticCode get diagnosticCode => code;
 
   @override
   void registerNodeProcessors(
-      RuleVisitorRegistry registry, RuleContext context) {
+    RuleVisitorRegistry registry,
+    RuleContext context,
+  ) {
     var visitor = _NoDoublesVisitor(this);
     registry.addDoubleLiteral(this, visitor);
   }
@@ -50,14 +54,16 @@ class NoDoublesWarningRule extends AnalysisRule {
   );
 
   NoDoublesWarningRule()
-      : super(name: 'no_doubles_warning', description: 'No doubles message');
+    : super(name: 'no_doubles_warning', description: 'No doubles message');
 
   @override
   DiagnosticCode get diagnosticCode => code;
 
   @override
   void registerNodeProcessors(
-      RuleVisitorRegistry registry, RuleContext context) {
+    RuleVisitorRegistry registry,
+    RuleContext context,
+  ) {
     var visitor = _NoDoublesVisitor(this);
     registry.addDoubleLiteral(this, visitor);
   }

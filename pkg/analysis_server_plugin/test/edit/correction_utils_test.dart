@@ -199,10 +199,7 @@ var j = 1;
   }
 
   Future<void> test_replaceSourceIndent_noLeading_nonEmpty_lf() async {
-    await assertReplacedIndentation(
-      '  a\n  b\n  c',
-      '  a\n    b\n    c',
-    );
+    await assertReplacedIndentation('  a\n  b\n  c', '  a\n    b\n    c');
   }
 
   Future<void> test_replaceSourceIndent_noTrailing_crlf() async {
@@ -213,10 +210,7 @@ var j = 1;
   }
 
   Future<void> test_replaceSourceIndent_noTrailing_lf() async {
-    await assertReplacedIndentation(
-      '  a\n  b\n  c',
-      '  a\n    b\n    c',
-    );
+    await assertReplacedIndentation('  a\n  b\n  c', '  a\n    b\n    c');
   }
 
   Future<void> test_replaceSourceIndent_trailing_added_crlf() async {
