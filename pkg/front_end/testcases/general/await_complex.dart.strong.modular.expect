@@ -138,7 +138,7 @@ static method asserts() → dynamic async /* emittedValueType= dynamic */ {
 static method controlFlow() → dynamic async /* emittedValueType= dynamic */ {
   for (final <T extends core::Object? = dynamic>(T%) → FutureOr<T%>func in <<T extends core::Object? = dynamic>(T%) → FutureOr<T%>>[#C1, #C2]) {
     core::int c = 0;
-    for (core::int i = await func<core::int>(0){(core::int) → FutureOr<core::int>} /* runtimeCheckType= asy::Future<core::int> */ ; await func<core::bool>(i.{core::num::<}(5){(core::num) → core::bool}){(core::bool) → FutureOr<core::bool>} /* runtimeCheckType= asy::Future<core::bool> */ ; await func<core::int>(let final core::int #t1 = i in let final core::int #t2 = i = #t1.{core::num::+}(1){(core::num) → core::int} in #t1){(core::int) → FutureOr<core::int>} /* runtimeCheckType= asy::Future<core::int> */ ) {
+    for (core::int i = await func<core::int>(0){(core::int) → FutureOr<core::int>} /* runtimeCheckType= asy::Future<core::int> */ ; await func<core::bool>(i.{core::num::<}(5){(core::num) → core::bool}){(core::bool) → FutureOr<core::bool>} /* runtimeCheckType= asy::Future<core::bool> */ ; await func<core::int>(let final core::int #t1 = i in let final void #t2 = i = #t1.{core::num::+}(1){(core::num) → core::int} in #t1){(core::int) → FutureOr<core::int>} /* runtimeCheckType= asy::Future<core::int> */ ) {
       c = c.{core::num::+}(1){(core::num) → core::int};
     }
     self::expect(5, c);

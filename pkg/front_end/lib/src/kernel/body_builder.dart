@@ -3220,14 +3220,19 @@ class BodyBuilder extends StackListenerImpl
     ]));
   }
 
-  /// Helper method to create a [VariableGet] of the [variable] using
-  /// [charOffset] as the file offset.
   @override
-  VariableGet createVariableGet(VariableDeclaration variable, int charOffset) {
+  void registerVariableRead(VariableDeclaration variable) {
     if (!(variable as VariableDeclarationImpl).isLocalFunction &&
         !variable.isWildcard) {
       typeInferrer.assignedVariables.read(variable);
     }
+  }
+
+  /// Helper method to create a [VariableGet] of the [variable] using
+  /// [charOffset] as the file offset.
+  @override
+  VariableGet createVariableGet(VariableDeclaration variable, int charOffset) {
+    registerVariableRead(variable);
     return new VariableGet(variable)..fileOffset = charOffset;
   }
 

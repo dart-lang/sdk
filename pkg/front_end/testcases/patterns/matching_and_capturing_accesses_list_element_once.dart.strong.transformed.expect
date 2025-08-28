@@ -511,7 +511,7 @@ abstract class _A&Object&ListMixin extends core::Object implements col::ListBase
         for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
           core::int element = :sync-for-iterator.{core::Iterator::current}{core::int};
           {
-            this.{core::List::[]=}(let final core::int #t8 = index in let final core::int #t9 = index = #t8.{core::num::+}(1){(core::num) → core::int} in #t8, element){(core::int, core::int) → void};
+            this.{core::List::[]=}(let final core::int #t8 = index in let final void #t9 = index = #t8.{core::num::+}(1){(core::num) → core::int} in #t8, element){(core::int, core::int) → void};
           }
         }
       }

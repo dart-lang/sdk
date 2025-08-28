@@ -169,6 +169,11 @@ abstract class ExpressionGeneratorHelper implements InferenceHelper {
   /// offset of the created node.
   Expression createVariableGet(VariableDeclaration variable, int charOffset);
 
+  /// Registers that [variable] is read from.
+  ///
+  /// This is needed for type promotion.
+  void registerVariableRead(VariableDeclaration variable);
+
   /// Registers that [variable] is assigned to.
   ///
   /// This is needed for type promotion.

@@ -1907,28 +1907,63 @@ class ExtensionIncDec extends InternalExpression {
 ///
 ///     let v1 = a in let v2 = a = v1 + 1 in v1
 ///
-class LocalPostIncDec extends InternalExpression {
-  /// The expression that reads the local variable.
-  VariableDeclarationImpl read;
+class LocalIncDec extends InternalExpression {
+  /// The accessed variable.
+  final VariableDeclarationImpl variable;
 
-  /// The expression that writes the result of the binary operation to the
-  /// local variable.
-  VariableDeclarationImpl write;
+  /// `true` if the inc/dec is a postfix expression, i.e. of the form `a++` as
+  /// opposed the prefix expression `++a`.
+  final bool isPost;
 
-  LocalPostIncDec(this.read, this.write) {
-    read.parent = this;
-    write.parent = this;
-  }
+  /// If `true` the assignment is need for its effect and not for its value.
+  final bool forEffect;
+
+  /// `true` if this is an post increment, i.e. `a++` as opposed to `a--`.
+  final bool isInc;
+
+  /// The file offset of the name of the getter/setter, i.e. `a` in `a++`.
+  final int nameOffset;
+
+  /// The file offset of the `++` or `--` operator.
+  final int operatorOffset;
+
+  LocalIncDec(
+      {required this.variable,
+      required this.forEffect,
+      required this.isPost,
+      required this.isInc,
+      required this.nameOffset,
+      required this.operatorOffset});
 
   @override
   ExpressionInferenceResult acceptInference(
       InferenceVisitorImpl visitor, DartType typeContext) {
-    return visitor.visitLocalPostIncDec(this, typeContext);
+    return visitor.visitLocalIncDec(this, typeContext);
+  }
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  void toTextInternal(AstPrinter printer) {
+    if (!isPost) {
+      if (isInc) {
+        printer.write('++');
+      } else {
+        printer.write('--');
+      }
+    }
+    printer.write(variable.name!);
+    if (isPost) {
+      if (isInc) {
+        printer.write('++');
+      } else {
+        printer.write('--');
+      }
+    }
   }
 
   @override
   String toString() {
-    return "LocalPostIncDec(${toStringInternal()})";
+    return "LocalIncDec(${toStringInternal()})";
   }
 }
 

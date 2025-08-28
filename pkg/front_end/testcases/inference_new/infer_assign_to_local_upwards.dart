@@ -18,7 +18,7 @@ void test1(int t, int? t2) {
 
   var /*@type=int*/ v10 = /*@target=num.+*/ ++t;
 
-  var /*@type=int*/ v11 = /*@type=int*/ t /*@type=int*/ /*@target=num.+*/ ++;
+  var /*@type=int*/ v11 = t /*@target=num.+*/ ++;
 }
 
 void test2(num t, num? t2, num? t3, num? t4) {
@@ -42,7 +42,7 @@ void test2(num t, num? t2, num? t3, num? t4) {
 
   var /*@type=num*/ v10 = /*@target=num.+*/ ++t;
 
-  var /*@type=num*/ v11 = /*@type=num*/ t /*@type=num*/ /*@target=num.+*/ ++;
+  var /*@type=num*/ v11 = t /*@target=num.+*/ ++;
 }
 
 void test3(double t, double? t2) {
@@ -58,8 +58,7 @@ void test3(double t, double? t2) {
 
   var /*@type=double*/ v10 = /*@target=double.+*/ ++t;
 
-  var /*@type=double*/ v11 =
-      /*@type=double*/ t /*@type=double*/ /*@target=double.+*/ ++;
+  var /*@type=double*/ v11 = t /*@target=double.+*/ ++;
 }
 
 main() {}

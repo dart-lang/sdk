@@ -585,7 +585,7 @@ abstract class _CustomList&Object&ListMixin<E extends core::Object? = dynamic> e
         for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
           cac::_CustomList&Object&ListMixin::E% element = :sync-for-iterator.{core::Iterator::current}{cac::_CustomList&Object&ListMixin::E%};
           {
-            this.{core::List::[]=}(let final core::int #t20 = index in let final core::int #t21 = index = #t20.{core::num::+}(1){(core::num) → core::int} in #t20, element){(core::int, cac::_CustomList&Object&ListMixin::E%) → void};
+            this.{core::List::[]=}(let final core::int #t20 = index in let final void #t21 = index = #t20.{core::num::+}(1){(core::num) → core::int} in #t20, element){(core::int, cac::_CustomList&Object&ListMixin::E%) → void};
           }
         }
       }

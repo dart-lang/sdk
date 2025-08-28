@@ -176,8 +176,8 @@ static method testLocals() → dynamic {
   self::expect(n0, v = self::NumberExtension|-(v, n1));
   self::expect(n1, v = self::NumberExtension|+(v, 1));
   self::expect(n0, v = self::NumberExtension|-(v, 1));
-  self::expect(n0, let final self::Number #t45 = v in let final self::Number #t46 = v = self::NumberExtension|+(#t45, 1) in #t45);
-  self::expect(n1, let final self::Number #t47 = v in let final self::Number #t48 = v = self::NumberExtension|-(#t47, 1) in #t47);
+  self::expect(n0, let final self::Number #t45 = v in let final void #t46 = v = self::NumberExtension|+(#t45, 1) in #t45);
+  self::expect(n1, let final self::Number #t47 = v in let final void #t48 = v = self::NumberExtension|-(#t47, 1) in #t47);
   self::expect(n0, v);
   self::expect(n0, v);
   v = self::NumberExtension|+(v, n1);
