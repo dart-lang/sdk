@@ -1026,7 +1026,7 @@ class MethodInvocationResolver with ScopeHelpers {
 
       _resolver.diagnosticReporter.report(
         CompileTimeErrorCode.abstractSuperMemberReference
-            .withArguments(kind: target.kind.displayName, name: name)
+            .withArguments(memberKind: target.kind.displayName, name: name)
             .at(nameNode),
       );
       return null;

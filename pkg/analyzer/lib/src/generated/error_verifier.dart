@@ -2152,13 +2152,13 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
                 !interfaceElement.isSealed) {
               diagnosticReporter.report(
                 CompileTimeErrorCode.baseClassImplementedOutsideOfLibrary
-                    .withArguments(superElementName: interfaceElement.name!)
+                    .withArguments(implementedClassName: interfaceElement.name!)
                     .at(interface),
               );
             } else if (interfaceElement is MixinElement) {
               diagnosticReporter.report(
                 CompileTimeErrorCode.baseMixinImplementedOutsideOfLibrary
-                    .withArguments(superElementName: interfaceElement.name!)
+                    .withArguments(implementedMixinName: interfaceElement.name!)
                     .at(interface),
               );
             }

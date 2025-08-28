@@ -945,7 +945,7 @@ class PropertyElementResolver with ScopeHelpers {
             diagnosticReporter.report(
               CompileTimeErrorCode.abstractSuperMemberReference
                   .withArguments(
-                    kind: readElement.kind.displayName,
+                    memberKind: readElement.kind.displayName,
                     name: propertyName.name,
                   )
                   .at(propertyName),
@@ -996,7 +996,7 @@ class PropertyElementResolver with ScopeHelpers {
             diagnosticReporter.report(
               CompileTimeErrorCode.abstractSuperMemberReference
                   .withArguments(
-                    kind: writeElement.kind.displayName,
+                    memberKind: writeElement.kind.displayName,
                     name: propertyName.name,
                   )
                   .at(propertyName),
