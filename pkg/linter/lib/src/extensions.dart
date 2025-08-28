@@ -628,7 +628,7 @@ extension TokenExtension on Token? {
   /// Whether the given identifier has a private name.
   bool get isPrivate {
     var self = this;
-    return self != null ? Identifier.isPrivateName(self.lexeme) : false;
+    return self != null && Identifier.isPrivateName(self.lexeme);
   }
 }
 

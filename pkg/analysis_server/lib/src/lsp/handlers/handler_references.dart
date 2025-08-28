@@ -106,7 +106,7 @@ class ReferencesHandler
       (_) => convert(results, toLocation).nonNulls.toList(),
     );
 
-    if (params.context.includeDeclaration == true) {
+    if (params.context.includeDeclaration) {
       // Also include the definition for the resolved element.
       referenceResults.addAll(
         performance.run('_getDeclarations', (_) => _getDeclarations(element)),

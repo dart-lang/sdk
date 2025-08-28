@@ -164,7 +164,7 @@ class AbstractNavigationTest extends PubPackageAnalysisServerTest {
     for (var region in regions) {
       if (region.offset == offset &&
           (length == -1 || region.length == length)) {
-        if (exists == false) {
+        if (!exists) {
           fail(
             'Not expected to find (offset=$offset; length=$length) in\n'
             '${regions.join('\n')}',
@@ -176,7 +176,7 @@ class AbstractNavigationTest extends PubPackageAnalysisServerTest {
         return;
       }
     }
-    if (exists == true) {
+    if (exists) {
       fail(
         'Expected to find (offset=$offset; length=$length) in\n'
         '${regions.join('\n')}',

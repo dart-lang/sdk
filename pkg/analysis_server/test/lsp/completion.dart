@@ -31,7 +31,7 @@ mixin CompletionTestMixin on AbstractLspAnalysisServerTest {
     var code = TestCode.parse(content);
     // If verifyInsertReplaceRanges is true, we need both expected contents.
     assert(
-      verifyInsertReplaceRanges == false ||
+      !verifyInsertReplaceRanges ||
           (expectedContent != null && expectedContentIfInserting != null),
     );
 

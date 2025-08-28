@@ -21,8 +21,10 @@ linter:
     - always_use_package_imports
     - avoid_dynamic_calls
     - avoid_redundant_argument_values
+    - avoid_bool_literals_in_conditional_expressions
     - avoid_unused_constructor_parameters
     - flutter_style_todos
+    - no_literal_bool_comparisons
     - prefer_single_quotes
     - unawaited_futures
     - unnecessary_async
@@ -31,4 +33,5 @@ linter:
     - unnecessary_parenthesis
     - unreachable_from_main
     - use_null_aware_elements
+
 

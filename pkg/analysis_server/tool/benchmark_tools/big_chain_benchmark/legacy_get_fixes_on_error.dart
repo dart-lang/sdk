@@ -61,7 +61,7 @@ class LegacyGetFixesOnErrorBenchmark extends DartLanguageServerBenchmark {
     );
 
     bool isAnalyzing = await isNowAnalyzingFuture;
-    if (isAnalyzing == false) throw 'Expected true.';
+    if (!isAnalyzing) throw 'Expected true.';
     await waitWhileAnalyzing();
 
     // It's done analyzing: Ask for fixes on the error.

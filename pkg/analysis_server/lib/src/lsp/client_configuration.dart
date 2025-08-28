@@ -333,7 +333,7 @@ class LspGlobalClientConfiguration extends LspResourceClientConfiguration {
 
   // Whether diagnostics should be generated for all `TODO` comments.
   bool get showAllTodos =>
-      _settings['showTodos'] is bool ? _settings['showTodos'] as bool : false;
+      _settings['showTodos'] is bool && _settings['showTodos'] as bool;
 
   /// A specific set of `TODO` comments that should generate diagnostics.
   ///
