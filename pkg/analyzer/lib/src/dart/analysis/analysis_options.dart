@@ -604,7 +604,10 @@ class AnalysisOptionsImpl implements AnalysisOptions {
             in pluginConfiguration.diagnosticConfigs.values) {
           buffer.addString(diagnosticConfig.group ?? '');
           buffer.addString(diagnosticConfig.name);
-          buffer.addBool(diagnosticConfig.isEnabled);
+          buffer.addInt(diagnosticConfig.severity.index);
+        }
+        if (pluginsOptions.dependencyOverrides case var dependencyOverrides?) {
+          buffer.addString(dependencyOverrides);
         }
       }
 
