@@ -285,7 +285,7 @@ class A<T> {
 }
 
 class B {
-  void operator +(Map other) {}
+  void operator +(Map<int, Object?> other) {}
 }
 ''');
   }

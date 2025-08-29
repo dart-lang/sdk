@@ -403,7 +403,7 @@ Future<void> f() async {
   print(x);
 }
 
-Future myUndefinedFunction() async {
+Future<dynamic> myUndefinedFunction() async {
 }
 ''');
   }
@@ -689,7 +689,7 @@ class A<T> {
   }
 }
 
-void process(Map items) {
+void process(Map<int, Object?> items) {
 }
 ''');
   }
@@ -712,7 +712,7 @@ void f() {
   test(getFuture());
 }
 
-void test(Future future) {
+void test(Future<dynamic> future) {
 }
 ''');
   }

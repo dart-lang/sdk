@@ -192,7 +192,13 @@ int f(A a) {
   return a.b();
 }
 ''');
-    await assertNoFix();
+    await assertHasFix('''
+import 'package:test/a.dart';
+
+Object f(A a) {
+  return a.b();
+}
+''');
   }
 
   Future<void> test_upperBound_function() async {

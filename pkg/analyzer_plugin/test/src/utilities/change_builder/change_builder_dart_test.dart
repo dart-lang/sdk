@@ -171,6 +171,47 @@ class A {}
   Future<void> test_writeType_recordType_positional() async {
     await _assertwriteType2('(int, int)');
   }
+
+  Future<void> test_writeTypeParameter_extends_keyword_canWriteType() async {
+    var path = convertPath('$testPackageRootPath/lib/test.dart');
+    var content = '''
+class A<T extends int>{}
+''';
+    addSource(path, content);
+    var unitResult = await resolveFile(path);
+    var a = unitResult.libraryElement.getClass('A')!;
+    var type = a.typeParameters.first;
+
+    var builder = await newBuilder();
+    await builder.addDartFileEdit(path, (builder) {
+      builder.addInsertion(content.length - 1, (builder) {
+        builder.writeTypeParameter(type);
+      });
+    });
+    var edit = getEdit(builder);
+    expect(edit.replacement, equalsIgnoringWhitespace('T extends int'));
+  }
+
+  Future<void>
+      test_writeTypeParameter_no_extends_keyword_canNotWriteType() async {
+    var path = convertPath('$testPackageRootPath/lib/test.dart');
+    var content = '''
+class A<T extends UnresolvedType>{}
+''';
+    addSource(path, content);
+    var unitResult = await resolveFile(path);
+    var a = unitResult.libraryElement.getClass('A')!;
+    var type = a.typeParameters.first;
+
+    var builder = await newBuilder();
+    await builder.addDartFileEdit(path, (builder) {
+      builder.addInsertion(content.length - 1, (builder) {
+        builder.writeTypeParameter(type);
+      });
+    });
+    var edit = getEdit(builder);
+    expect(edit.replacement, equalsIgnoringWhitespace('T'));
+  }
 }
 
 class DartEditBuilderImplTest extends AbstractContextTest
@@ -1640,11 +1681,11 @@ a''');
     await builder.addDartFileEdit(path, (builder) {
       builder.addInsertion(content.length, (builder) {
         // "T" cannot be written, because we are outside of "A".
-        // So, we also should not create linked groups.
+        // So, we write `Object?` instead.
         builder.writeType(typeT, groupName: 'type');
       });
     });
-    expect(builder.sourceChange.linkedEditGroups, isEmpty);
+    expect(builder.sourceChange.linkedEditGroups, isNotEmpty);
   }
 
   Future<void> test_writeType_interface_typeArguments() async {
@@ -1652,7 +1693,7 @@ a''');
   }
 
   Future<void> test_writeType_interface_typeArguments_allDynamic() async {
-    await _assertwriteType2('Map');
+    await _assertwriteType2('Map', resultingEdit: 'Map<dynamic, dynamic>');
   }
 
   Future<void> test_writeType_null() async {
@@ -2122,8 +2163,11 @@ A'''));
     expect(edit.replacement, equalsIgnoringWhitespace('implements A, B'));
   }
 
-  Future<void> _assertwriteType2(String typeCode,
-      {String? declarations}) async {
+  Future<void> _assertwriteType2(
+    String typeCode, {
+    String? declarations,
+    String? resultingEdit,
+  }) async {
     var path = convertPath('/home/test/lib/test.dart');
     var content = '${declarations ?? ''}$typeCode v;';
     addSource(path, content);
@@ -2137,7 +2181,7 @@ A'''));
       });
     });
     var edit = getEdit(builder);
-    expect(edit.replacement, typeCode);
+    expect(edit.replacement, resultingEdit ?? typeCode);
   }
 
   Future<ClassElement> _getClassElement(String path, String name) async {

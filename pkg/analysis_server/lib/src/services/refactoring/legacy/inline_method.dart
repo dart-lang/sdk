@@ -81,7 +81,8 @@ Future<String> _getMethodSourceForInvocation(
           builder.writeType(
             instanceArgumentTypes[element],
             shouldWriteDynamic: true,
-            methodBeingCopied: contextNode.enclosingExecutableElement,
+            typeParametersInScope:
+                contextNode.enclosingExecutableElement?.typeParameters,
           );
         });
       }

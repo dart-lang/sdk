@@ -812,7 +812,12 @@ void f() {
   foo((^test) {});
 }
 ''');
-    await assertNoAssist();
+    await assertHasAssist('''
+import 'my_lib.dart';
+void f() {
+  foo((A test) {});
+}
+''');
   }
 
   Future<void> test_privateType_declaredIdentifier() async {
@@ -831,7 +836,15 @@ class A<T> {
   }
 }
 ''');
-    await assertNoAssist();
+    await assertHasAssist('''
+import 'my_lib.dart';
+class A<T> {
+  void m() {
+    for (A item in getValues()) {
+    }
+  }
+}
+''');
   }
 
   Future<void> test_privateType_list() async {
@@ -852,7 +865,7 @@ void f() {
     await assertHasAssist('''
 import 'my_lib.dart';
 void f() {
-  List v = getValues();
+  List<A> v = getValues();
 }
 ''');
   }
@@ -887,7 +900,12 @@ void f() {
   ^var v = getValue();
 }
 ''');
-    await assertNoAssist();
+    await assertHasAssist('''
+import 'my_lib.dart';
+void f() {
+  A v = getValue();
+}
+''');
   }
 
   Future<void> test_topLevelVariable_int() async {

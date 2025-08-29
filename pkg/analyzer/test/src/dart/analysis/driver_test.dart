@@ -411,14 +411,14 @@ void f() {
 [operation] analyzeFile
   file: /home/test/lib/a.dart
   library: /home/test/lib/a.dart
-[future] getResolvedUnit A1
+[stream]
   ResolvedUnitResult #0
     path: /home/test/lib/a.dart
     uri: package:test/a.dart
     flags: exists isLibrary
-[stream]
-  ResolvedUnitResult #0
 [status] idle
+[future] getResolvedUnit A1
+  ResolvedUnitResult #0
 ''');
 
     // Get the (cached) result, not reported to the stream.
@@ -453,14 +453,14 @@ void f() {
 [operation] analyzeFile
   file: /home/test/lib/a.dart
   library: /home/test/lib/a.dart
-[future] getResolvedUnit A1
+[stream]
   ResolvedUnitResult #0
     path: /home/test/lib/a.dart
     uri: package:test/a.dart
     flags: exists isLibrary
-[stream]
-  ResolvedUnitResult #0
 [status] idle
+[future] getResolvedUnit A1
+  ResolvedUnitResult #0
 ''');
 
     // Change a file.
@@ -472,14 +472,14 @@ void f() {
 [operation] analyzeFile
   file: /home/test/lib/a.dart
   library: /home/test/lib/a.dart
-[future] getResolvedUnit A2
+[stream]
   ResolvedUnitResult #1
     path: /home/test/lib/a.dart
     uri: package:test/a.dart
     flags: exists isLibrary
-[stream]
-  ResolvedUnitResult #1
 [status] idle
+[future] getResolvedUnit A2
+  ResolvedUnitResult #1
 ''');
 
     // Add `b`.
@@ -491,13 +491,11 @@ void f() {
 [operation] analyzeFile
   file: /home/test/lib/a.dart
   library: /home/test/lib/a.dart
-[future] getResolvedUnit A3
+[stream]
   ResolvedUnitResult #2
     path: /home/test/lib/a.dart
     uri: package:test/a.dart
     flags: exists isLibrary
-[stream]
-  ResolvedUnitResult #2
 [operation] analyzeFile
   file: /home/test/lib/b.dart
   library: /home/test/lib/b.dart
@@ -507,6 +505,8 @@ void f() {
     uri: package:test/b.dart
     flags: exists isLibrary
 [status] idle
+[future] getResolvedUnit A3
+  ResolvedUnitResult #2
 ''');
 
     // Remove `b`.
@@ -518,14 +518,14 @@ void f() {
 [operation] analyzeFile
   file: /home/test/lib/a.dart
   library: /home/test/lib/a.dart
-[future] getResolvedUnit A4
+[stream]
   ResolvedUnitResult #4
     path: /home/test/lib/a.dart
     uri: package:test/a.dart
     flags: exists isLibrary
-[stream]
-  ResolvedUnitResult #4
 [status] idle
+[future] getResolvedUnit A4
+  ResolvedUnitResult #4
 ''');
   }
 
@@ -545,14 +545,14 @@ void f() {
 [operation] analyzeFile
   file: /home/test/lib/a.dart
   library: /home/test/lib/a.dart
-[future] getResolvedUnit A1
+[stream]
   ResolvedUnitResult #0
     path: /home/test/lib/a.dart
     uri: package:test/a.dart
     flags: exists isLibrary
-[stream]
-  ResolvedUnitResult #0
 [status] idle
+[future] getResolvedUnit A1
+  ResolvedUnitResult #0
 ''');
 
     // Make `a` and `b` priority.
@@ -561,9 +561,9 @@ void f() {
     collector.getResolvedUnit('A2', a);
     await assertEventsText(collector, r'''
 [status] working
+[status] idle
 [future] getResolvedUnit A2
   ResolvedUnitResult #0
-[status] idle
 ''');
 
     // Get the result for `b`, new.
@@ -573,14 +573,14 @@ void f() {
 [operation] analyzeFile
   file: /home/test/lib/b.dart
   library: /home/test/lib/b.dart
-[future] getResolvedUnit B1
+[stream]
   ResolvedUnitResult #1
     path: /home/test/lib/b.dart
     uri: package:test/b.dart
     flags: exists isLibrary
-[stream]
-  ResolvedUnitResult #1
 [status] idle
+[future] getResolvedUnit B1
+  ResolvedUnitResult #1
 ''');
 
     // Get the result for `b`, cached.
@@ -599,14 +599,14 @@ void f() {
 [operation] analyzeFile
   file: /home/test/lib/a.dart
   library: /home/test/lib/a.dart
-[future] getResolvedUnit A3
+[stream]
   ResolvedUnitResult #2
     path: /home/test/lib/a.dart
     uri: package:test/a.dart
     flags: exists isLibrary
-[stream]
-  ResolvedUnitResult #2
 [status] idle
+[future] getResolvedUnit A3
+  ResolvedUnitResult #2
 ''');
   }
 
@@ -623,14 +623,14 @@ void f() {
 [operation] analyzeFile
   file: /home/test/lib/a.dart
   library: /home/test/lib/a.dart
-[future] getResolvedUnit A1
+[stream]
   ResolvedUnitResult #0
     path: /home/test/lib/a.dart
     uri: package:test/a.dart
     flags: exists isLibrary
-[stream]
-  ResolvedUnitResult #0
 [status] idle
+[future] getResolvedUnit A1
+  ResolvedUnitResult #0
 ''');
 
     // Analyzed again, because `a` is not priority.
@@ -640,14 +640,14 @@ void f() {
 [operation] analyzeFile
   file: /home/test/lib/a.dart
   library: /home/test/lib/a.dart
-[future] getResolvedUnit A2
+[stream]
   ResolvedUnitResult #1
     path: /home/test/lib/a.dart
     uri: package:test/a.dart
     flags: exists isLibrary
-[stream]
-  ResolvedUnitResult #1
 [status] idle
+[future] getResolvedUnit A2
+  ResolvedUnitResult #1
 ''');
   }
 
@@ -672,19 +672,19 @@ part of 'a.dart';
 [operation] analyzeFile
   file: /home/test/lib/a.dart
   library: /home/test/lib/a.dart
-[future] getResolvedUnit A1
+[stream]
   ResolvedUnitResult #0
     path: /home/test/lib/a.dart
     uri: package:test/a.dart
     flags: exists isLibrary
-[stream]
-  ResolvedUnitResult #0
 [stream]
   ResolvedUnitResult #1
     path: /home/test/lib/b.dart
     uri: package:test/b.dart
     flags: exists isPart
 [status] idle
+[future] getResolvedUnit A1
+  ResolvedUnitResult #0
 ''');
 
     // Verify that the results for `a` and `b` are cached.
@@ -733,19 +733,19 @@ part of 'a.dart';
 [operation] analyzeFile
   file: /home/test/lib/b.dart
   library: /home/test/lib/a.dart
-[future] getResolvedUnit B1
-  ResolvedUnitResult #0
-    path: /home/test/lib/b.dart
-    uri: package:test/b.dart
-    flags: exists isPart
 [stream]
-  ResolvedUnitResult #1
+  ResolvedUnitResult #0
     path: /home/test/lib/a.dart
     uri: package:test/a.dart
     flags: exists isLibrary
 [stream]
-  ResolvedUnitResult #0
+  ResolvedUnitResult #1
+    path: /home/test/lib/b.dart
+    uri: package:test/b.dart
+    flags: exists isPart
 [status] idle
+[future] getResolvedUnit B1
+  ResolvedUnitResult #1
 ''');
 
     // Verify that the results for `a` and `b` are cached.
@@ -754,9 +754,9 @@ part of 'a.dart';
     collector.getResolvedUnit('B2', b);
     await assertEventsText(collector, r'''
 [future] getResolvedUnit A1
-  ResolvedUnitResult #1
-[future] getResolvedUnit B2
   ResolvedUnitResult #0
+[future] getResolvedUnit B2
+  ResolvedUnitResult #1
 ''');
 
     // Ask for resolved library.
@@ -768,8 +768,8 @@ part of 'a.dart';
   ResolvedLibraryResult #2
     element: package:test/a.dart
     units
-      ResolvedUnitResult #1
       ResolvedUnitResult #0
+      ResolvedUnitResult #1
 ''');
   }
 
@@ -794,19 +794,19 @@ part of 'a.dart';
 [operation] analyzeFile
   file: /home/test/lib/b.dart
   library: /home/test/lib/a.dart
-[future] getResolvedUnit B1
-  ResolvedUnitResult #0
-    path: /home/test/lib/b.dart
-    uri: package:test/b.dart
-    flags: exists isPart
 [stream]
-  ResolvedUnitResult #1
+  ResolvedUnitResult #0
     path: /home/test/lib/a.dart
     uri: package:test/a.dart
     flags: exists isLibrary
 [stream]
-  ResolvedUnitResult #0
+  ResolvedUnitResult #1
+    path: /home/test/lib/b.dart
+    uri: package:test/b.dart
+    flags: exists isPart
 [status] idle
+[future] getResolvedUnit B1
+  ResolvedUnitResult #1
 ''');
 
     // Verify that the results for `a` and `b` are cached.
@@ -815,9 +815,9 @@ part of 'a.dart';
     collector.getResolvedUnit('B2', b);
     await assertEventsText(collector, r'''
 [future] getResolvedUnit A1
-  ResolvedUnitResult #1
-[future] getResolvedUnit B2
   ResolvedUnitResult #0
+[future] getResolvedUnit B2
+  ResolvedUnitResult #1
 ''');
 
     // Ask for resolved library.
@@ -829,8 +829,8 @@ part of 'a.dart';
   ResolvedLibraryResult #2
     element: package:test/a.dart
     units
-      ResolvedUnitResult #1
       ResolvedUnitResult #0
+      ResolvedUnitResult #1
 ''');
   }
 
@@ -1468,14 +1468,14 @@ final v = 2;
 [operation] analyzeFile
   file: /home/test/lib/a.dart
   library: /home/test/lib/a.dart
-[future] getResolvedUnit A2
+[stream]
   ResolvedUnitResult #0
     path: /home/test/lib/a.dart
     uri: package:test/a.dart
     flags: exists isLibrary
-[stream]
-  ResolvedUnitResult #0
 [status] idle
+[future] getResolvedUnit A2
+  ResolvedUnitResult #0
 ''');
 
     // Has cached.
@@ -1498,24 +1498,24 @@ var v = 0
     collector.getErrors('A1', a);
     await assertEventsText(collector, r'''
 [status] working
-[future] getErrors A1
-  ErrorsResult #0
-    path: /home/test/lib/a.dart
-    uri: package:test/a.dart
-    flags: isLibrary
-    errors
-      8 +1 EXPECTED_TOKEN
 [operation] analyzeFile
   file: /home/test/lib/a.dart
   library: /home/test/lib/a.dart
 [stream]
-  ResolvedUnitResult #1
+  ResolvedUnitResult #0
     path: /home/test/lib/a.dart
     uri: package:test/a.dart
     flags: exists isLibrary
     errors
       8 +1 EXPECTED_TOKEN
 [status] idle
+[future] getErrors A1
+  ErrorsResult #1
+    path: /home/test/lib/a.dart
+    uri: package:test/a.dart
+    flags: isLibrary
+    errors
+      8 +1 EXPECTED_TOKEN
 ''');
 
     // The result is produced from bytes.
@@ -1525,6 +1525,7 @@ var v = 0
 [operation] getErrorsFromBytes
   file: /home/test/lib/a.dart
   library: /home/test/lib/a.dart
+[status] idle
 [future] getErrors A2
   ErrorsResult #2
     path: /home/test/lib/a.dart
@@ -1532,7 +1533,6 @@ var v = 0
     flags: isLibrary
     errors
       8 +1 EXPECTED_TOKEN
-[status] idle
 ''');
   }
 
@@ -1554,30 +1554,30 @@ part of 'a.dart';
     // Note, both `getErrors()` returned during the library analysis.
     await assertEventsText(collector, r'''
 [status] working
-[future] getErrors A1
-  ErrorsResult #0
-    path: /home/test/lib/a.dart
-    uri: package:test/a.dart
-    flags: isLibrary
-[future] getErrors B1
-  ErrorsResult #1
-    path: /home/test/lib/b.dart
-    uri: package:test/b.dart
-    flags: isPart
 [operation] analyzeFile
   file: /home/test/lib/a.dart
   library: /home/test/lib/a.dart
 [stream]
-  ResolvedUnitResult #2
+  ResolvedUnitResult #0
     path: /home/test/lib/a.dart
     uri: package:test/a.dart
     flags: exists isLibrary
 [stream]
-  ResolvedUnitResult #3
+  ResolvedUnitResult #1
     path: /home/test/lib/b.dart
     uri: package:test/b.dart
     flags: exists isPart
 [status] idle
+[future] getErrors A1
+  ErrorsResult #2
+    path: /home/test/lib/a.dart
+    uri: package:test/a.dart
+    flags: isLibrary
+[future] getErrors B1
+  ErrorsResult #3
+    path: /home/test/lib/b.dart
+    uri: package:test/b.dart
+    flags: isPart
 ''');
   }
 
@@ -1592,10 +1592,10 @@ part of 'a.dart';
 
     await assertEventsText(collector, r'''
 [status] working
+[status] idle
 [future] getErrors A1
   MissingSdkLibraryResult #0
     missingUri: dart:async
-[status] idle
 ''');
   }
 
@@ -1610,10 +1610,10 @@ part of 'a.dart';
 
     await assertEventsText(collector, r'''
 [status] working
+[status] idle
 [future] getErrors A1
   MissingSdkLibraryResult #0
     missingUri: dart:core
-[status] idle
 ''');
   }
 
@@ -1798,14 +1798,14 @@ void f(A a) {}
 [operation] analyzeFile
   file: /home/test/lib/a.dart
   library: /home/test/lib/a.dart
-[future] getResolvedUnit A1
+[stream]
   ResolvedUnitResult #0
     path: /home/test/lib/a.dart
     uri: package:test/a.dart
     flags: exists isLibrary
-[stream]
-  ResolvedUnitResult #0
 [status] idle
+[future] getResolvedUnit A1
+  ResolvedUnitResult #0
 ''');
 
     // Update the file, changing its API signature.
@@ -1826,16 +1826,16 @@ void f(A a) {}
 [operation] analyzeFile
   file: /home/test/lib/b.dart
   library: /home/test/lib/b.dart
-[future] getResolvedUnit B1
+[stream]
   ResolvedUnitResult #1
     path: /home/test/lib/b.dart
     uri: package:test/b.dart
     flags: exists isLibrary
     errors
       25 +1 UNDEFINED_CLASS
-[stream]
-  ResolvedUnitResult #1
 [status] idle
+[future] getResolvedUnit B1
+  ResolvedUnitResult #1
 ''');
 
     // Notify the driver that the file was changed.
@@ -1858,14 +1858,14 @@ void f(A a) {}
 [operation] analyzeFile
   file: /home/test/lib/b.dart
   library: /home/test/lib/b.dart
-[future] getResolvedUnit B2
+[stream]
   ResolvedUnitResult #2
     path: /home/test/lib/b.dart
     uri: package:test/b.dart
     flags: exists isLibrary
-[stream]
-  ResolvedUnitResult #2
 [status] idle
+[future] getResolvedUnit B2
+  ResolvedUnitResult #2
 ''');
   }
 
@@ -1917,17 +1917,17 @@ void f() {
 [operation] analyzeFile
   file: /home/test/lib/a.dart
   library: /home/test/lib/a.dart
-[future] getIndex A1
-  strings
-    --nullString--
-    foo
-    package:test/a.dart
 [stream]
   ResolvedUnitResult #0
     path: /home/test/lib/a.dart
     uri: package:test/a.dart
     flags: exists isLibrary
 [status] idle
+[future] getIndex A1
+  strings
+    --nullString--
+    foo
+    package:test/a.dart
 ''');
   }
 
@@ -1942,8 +1942,8 @@ void f() {
 
     await assertEventsText(collector, r'''
 [status] working
-[future] getIndex A1
 [status] idle
+[future] getIndex A1
 ''');
   }
 
@@ -1958,8 +1958,8 @@ void f() {
 
     await assertEventsText(collector, r'''
 [status] working
-[future] getIndex A1
 [status] idle
+[future] getIndex A1
 ''');
   }
 
@@ -2030,10 +2030,10 @@ class B {}
 
     await assertEventsText(collector, r'''
 [status] working
+[status] idle
 [future] getLibraryByUri A1
   MissingSdkLibraryResult #0
     missingUri: dart:async
-[status] idle
 ''');
   }
 
@@ -2048,10 +2048,10 @@ class B {}
 
     await assertEventsText(collector, r'''
 [status] working
+[status] idle
 [future] getLibraryByUri A1
   MissingSdkLibraryResult #0
     missingUri: dart:core
-[status] idle
 ''');
   }
 
@@ -2215,17 +2215,17 @@ class A {}
 [operation] analyzeFile
   file: /home/test/lib/a.dart
   library: /home/test/lib/a.dart
+[stream]
+  ResolvedUnitResult #0
+    path: /home/test/lib/a.dart
+    uri: package:test/a.dart
+    flags: exists isLibrary
+[status] idle
 [future] getResolvedLibrary A1
-  ResolvedLibraryResult #0
+  ResolvedLibraryResult #1
     element: package:test/a.dart
     units
-      ResolvedUnitResult #1
-        path: /home/test/lib/a.dart
-        uri: package:test/a.dart
-        flags: exists isLibrary
-[stream]
-  ResolvedUnitResult #1
-[status] idle
+      ResolvedUnitResult #0
 ''');
   }
 
@@ -2249,23 +2249,23 @@ part of 'a.dart';
 [operation] analyzeFile
   file: /home/test/lib/a.dart
   library: /home/test/lib/a.dart
-[future] getResolvedLibrary A1
-  ResolvedLibraryResult #0
-    element: package:test/a.dart
-    units
-      ResolvedUnitResult #1
-        path: /home/test/lib/a.dart
-        uri: package:test/a.dart
-        flags: exists isLibrary
-      ResolvedUnitResult #2
-        path: /home/test/lib/b.dart
-        uri: package:test/b.dart
-        flags: exists isPart
+[stream]
+  ResolvedUnitResult #0
+    path: /home/test/lib/a.dart
+    uri: package:test/a.dart
+    flags: exists isLibrary
 [stream]
   ResolvedUnitResult #1
-[stream]
-  ResolvedUnitResult #2
+    path: /home/test/lib/b.dart
+    uri: package:test/b.dart
+    flags: exists isPart
 [status] idle
+[future] getResolvedLibrary A1
+  ResolvedLibraryResult #2
+    element: package:test/a.dart
+    units
+      ResolvedUnitResult #0
+      ResolvedUnitResult #1
 ''');
 
     // Ask again, the same cached instance should be returned.
@@ -2274,7 +2274,7 @@ part of 'a.dart';
     collector.getResolvedLibrary('A2', a);
     await assertEventsText(collector, r'''
 [future] getResolvedLibrary A2
-  ResolvedLibraryResult #0
+  ResolvedLibraryResult #2
 ''');
 
     // Ask `a`, returns cached.
@@ -2282,7 +2282,7 @@ part of 'a.dart';
     collector.getResolvedUnit('A3', a);
     await assertEventsText(collector, r'''
 [future] getResolvedUnit A3
-  ResolvedUnitResult #1
+  ResolvedUnitResult #0
 ''');
 
     // Ask `b`, returns cached.
@@ -2290,7 +2290,7 @@ part of 'a.dart';
     collector.getResolvedUnit('B1', b);
     await assertEventsText(collector, r'''
 [future] getResolvedUnit B1
-  ResolvedUnitResult #2
+  ResolvedUnitResult #1
 ''');
   }
 
@@ -2308,10 +2308,10 @@ part of 'a.dart';
 [operation] analyzeFile
   file: /home/test/lib/a.dart
   library: /home/test/lib/a.dart
+[status] idle
 [future] getResolvedLibrary A1
   MissingSdkLibraryResult #0
     missingUri: dart:async
-[status] idle
 ''');
   }
 
@@ -2329,10 +2329,10 @@ part of 'a.dart';
 [operation] analyzeFile
   file: /home/test/lib/a.dart
   library: /home/test/lib/a.dart
+[status] idle
 [future] getResolvedLibrary A1
   MissingSdkLibraryResult #0
     missingUri: dart:core
-[status] idle
 ''');
   }
 
@@ -2354,9 +2354,9 @@ part of 'b.dart';
 
     await assertEventsText(collector, r'''
 [status] working
+[status] idle
 [future] getResolvedLibrary X
   NotLibraryButPartResult
-[status] idle
 ''');
   }
 
@@ -2384,17 +2384,17 @@ class A {}
 [operation] analyzeFile
   file: /home/test/lib/a.dart
   library: /home/test/lib/a.dart
+[stream]
+  ResolvedUnitResult #0
+    path: /home/test/lib/a.dart
+    uri: package:test/a.dart
+    flags: exists isLibrary
+[status] idle
 [future] getResolvedLibrary A1
-  ResolvedLibraryResult #0
+  ResolvedLibraryResult #1
     element: package:test/a.dart
     units
-      ResolvedUnitResult #1
-        path: /home/test/lib/a.dart
-        uri: package:test/a.dart
-        flags: exists isLibrary
-[stream]
-  ResolvedUnitResult #1
-[status] idle
+      ResolvedUnitResult #0
 ''');
   }
 
@@ -2412,17 +2412,17 @@ class A {}
 [operation] analyzeFile
   file: /home/test/lib/a.dart
   library: /home/test/lib/a.dart
+[stream]
+  ResolvedUnitResult #0
+    path: /home/test/lib/a.dart
+    uri: package:test/a.dart
+    flags: exists isLibrary
+[status] idle
 [future] getResolvedLibraryByUri A1
-  ResolvedLibraryResult #0
+  ResolvedLibraryResult #1
     element: package:test/a.dart
     units
-      ResolvedUnitResult #1
-        path: /home/test/lib/a.dart
-        uri: package:test/a.dart
-        flags: exists isLibrary
-[stream]
-  ResolvedUnitResult #1
-[status] idle
+      ResolvedUnitResult #0
 ''');
   }
 
@@ -2463,27 +2463,27 @@ part of 'a.dart';
 [operation] analyzeFile
   file: /home/test/lib/a.dart
   library: /home/test/lib/a.dart
-[future] getResolvedUnit A1
+[stream]
   ResolvedUnitResult #0
     path: /home/test/lib/a.dart
     uri: package:test/a.dart
     flags: exists isLibrary
-[future] getResolvedUnit B1
+[stream]
   ResolvedUnitResult #1
     path: /home/test/lib/b.dart
     uri: package:test/b.dart
     flags: exists isPart
+[status] idle
+[future] getResolvedUnit A1
+  ResolvedUnitResult #0
+[future] getResolvedUnit B1
+  ResolvedUnitResult #1
 [future] getResolvedLibraryByUri A2
   ResolvedLibraryResult #2
     element: package:test/a.dart
     units
       ResolvedUnitResult #0
       ResolvedUnitResult #1
-[stream]
-  ResolvedUnitResult #0
-[stream]
-  ResolvedUnitResult #1
-[status] idle
 ''');
   }
 
@@ -2501,10 +2501,10 @@ part of 'a.dart';
 [operation] analyzeFile
   file: /home/test/lib/a.dart
   library: /home/test/lib/a.dart
+[status] idle
 [future] getResolvedLibraryByUri A1
   MissingSdkLibraryResult #0
     missingUri: dart:async
-[status] idle
 ''');
   }
 
@@ -2522,10 +2522,10 @@ part of 'a.dart';
 [operation] analyzeFile
   file: /home/test/lib/a.dart
   library: /home/test/lib/a.dart
+[status] idle
 [future] getResolvedLibraryByUri A1
   MissingSdkLibraryResult #0
     missingUri: dart:core
-[status] idle
 ''');
   }
 
@@ -2542,9 +2542,9 @@ part of 'b.dart';
 
     await assertEventsText(collector, r'''
 [status] working
+[status] idle
 [future] getResolvedLibraryByUri X
   NotLibraryButPartResult
-[status] idle
 ''');
   }
 
@@ -2559,9 +2559,9 @@ part of 'b.dart';
 
     await assertEventsText(collector, r'''
 [status] working
+[status] idle
 [future] getResolvedLibraryByUri A1
   NotLibraryButPartResult
-[status] idle
 ''');
   }
 
@@ -2590,14 +2590,14 @@ part of 'b.dart';
 [operation] analyzeFile
   file: /home/test/lib/a.dart
   library: /home/test/lib/a.dart
-[future] getResolvedUnit A1
+[stream]
   ResolvedUnitResult #0
     path: /home/test/lib/a.dart
     uri: package:test/a.dart
     flags: exists isLibrary
-[stream]
-  ResolvedUnitResult #0
 [status] idle
+[future] getResolvedUnit A1
+  ResolvedUnitResult #0
 ''');
   }
 
@@ -2616,14 +2616,14 @@ part of 'b.dart';
 [operation] analyzeFile
   file: /home/test/lib/a.dart
   library: /home/test/lib/a.dart
-[future] getResolvedUnit A1
+[stream]
   ResolvedUnitResult #0
     path: /home/test/lib/a.dart
     uri: package:test/a.dart
     flags: exists isLibrary
-[stream]
-  ResolvedUnitResult #0
 [status] idle
+[future] getResolvedUnit A1
+  ResolvedUnitResult #0
 ''');
   }
 
@@ -2649,13 +2649,11 @@ class B extends A {}
 [operation] analyzeFile
   file: /home/test/lib/b.dart
   library: /home/test/lib/b.dart
-[future] getResolvedUnit B1
+[stream]
   ResolvedUnitResult #0
     path: /home/test/lib/b.dart
     uri: package:test/b.dart
     flags: exists isLibrary
-[stream]
-  ResolvedUnitResult #0
 [operation] analyzeFile
   file: /home/test/lib/a.dart
   library: /home/test/lib/a.dart
@@ -2665,6 +2663,8 @@ class B extends A {}
     uri: package:test/a.dart
     flags: exists isLibrary
 [status] idle
+[future] getResolvedUnit B1
+  ResolvedUnitResult #0
 ''');
 
     // Remove `a` and reanalyze.
@@ -2678,7 +2678,7 @@ class B extends A {}
 [operation] analyzeFile
   file: /home/test/lib/b.dart
   library: /home/test/lib/b.dart
-[future] getResolvedUnit B2
+[stream]
   ResolvedUnitResult #2
     path: /home/test/lib/b.dart
     uri: package:test/b.dart
@@ -2686,9 +2686,9 @@ class B extends A {}
     errors
       7 +8 URI_DOES_NOT_EXIST
       33 +1 EXTENDS_NON_CLASS
-[stream]
-  ResolvedUnitResult #2
 [status] idle
+[future] getResolvedUnit B2
+  ResolvedUnitResult #2
 ''');
 
     // Restore `a`.
@@ -2702,13 +2702,11 @@ class B extends A {}
 [operation] analyzeFile
   file: /home/test/lib/b.dart
   library: /home/test/lib/b.dart
-[future] getResolvedUnit B2
+[stream]
   ResolvedUnitResult #3
     path: /home/test/lib/b.dart
     uri: package:test/b.dart
     flags: exists isLibrary
-[stream]
-  ResolvedUnitResult #3
 [operation] getErrorsFromBytes
   file: /home/test/lib/a.dart
   library: /home/test/lib/a.dart
@@ -2718,6 +2716,8 @@ class B extends A {}
     uri: package:test/a.dart
     flags: isLibrary
 [status] idle
+[future] getResolvedUnit B2
+  ResolvedUnitResult #3
 ''');
   }
 
@@ -2744,19 +2744,19 @@ part of 'a.dart';
 [operation] analyzeFile
   file: /home/test/lib/a.dart
   library: /home/test/lib/a.dart
-[future] getResolvedUnit A1
+[stream]
   ResolvedUnitResult #0
     path: /home/test/lib/a.dart
     uri: package:test/a.dart
     flags: exists isLibrary
-[stream]
-  ResolvedUnitResult #0
 [stream]
   ResolvedUnitResult #1
     path: /home/test/lib/b.dart
     uri: package:test/b.dart
     flags: exists isPart
 [status] idle
+[future] getResolvedUnit A1
+  ResolvedUnitResult #0
 ''');
   }
 
@@ -2781,21 +2781,21 @@ part of 'a.dart';
 [operation] analyzeFile
   file: /home/test/lib/a.dart
   library: /home/test/lib/a.dart
-[future] getResolvedUnit A1
+[stream]
   ResolvedUnitResult #0
     path: /home/test/lib/a.dart
     uri: package:test/a.dart
     flags: exists isLibrary
-[future] getResolvedUnit B1
+[stream]
   ResolvedUnitResult #1
     path: /home/test/lib/b.dart
     uri: package:test/b.dart
     flags: exists isPart
-[stream]
-  ResolvedUnitResult #0
-[stream]
-  ResolvedUnitResult #1
 [status] idle
+[future] getResolvedUnit A1
+  ResolvedUnitResult #0
+[future] getResolvedUnit B1
+  ResolvedUnitResult #1
 ''');
   }
 
@@ -2820,24 +2820,24 @@ part of 'a.dart';
 [operation] analyzeFile
   file: /home/test/lib/a.dart
   library: /home/test/lib/a.dart
-[future] getResolvedUnit A1
+[stream]
   ResolvedUnitResult #0
     path: /home/test/lib/a.dart
     uri: package:test/a.dart
     flags: exists isLibrary
-[future] getErrors B1
-  ErrorsResult #1
-    path: /home/test/lib/b.dart
-    uri: package:test/b.dart
-    flags: isPart
 [stream]
-  ResolvedUnitResult #0
-[stream]
-  ResolvedUnitResult #2
+  ResolvedUnitResult #1
     path: /home/test/lib/b.dart
     uri: package:test/b.dart
     flags: exists isPart
 [status] idle
+[future] getErrors B1
+  ErrorsResult #2
+    path: /home/test/lib/b.dart
+    uri: package:test/b.dart
+    flags: isPart
+[future] getResolvedUnit A1
+  ResolvedUnitResult #0
 ''');
   }
 
@@ -2855,10 +2855,10 @@ part of 'a.dart';
 [operation] analyzeFile
   file: /home/test/lib/a.dart
   library: /home/test/lib/a.dart
+[status] idle
 [future] getResolvedUnit A1
   MissingSdkLibraryResult #0
     missingUri: dart:async
-[status] idle
 ''');
   }
 
@@ -2876,10 +2876,10 @@ part of 'a.dart';
 [operation] analyzeFile
   file: /home/test/lib/a.dart
   library: /home/test/lib/a.dart
+[status] idle
 [future] getResolvedUnit A1
   MissingSdkLibraryResult #0
     missingUri: dart:core
-[status] idle
 ''');
   }
 
@@ -2904,16 +2904,16 @@ final foo = 0;
 [operation] analyzeFile
   file: /home/test/lib/a.txt
   library: /home/test/lib/a.txt
-[future] getResolvedUnit A1
+[stream]
   ResolvedUnitResult #0
     path: /home/test/lib/a.txt
     uri: package:test/a.txt
     flags: exists isLibrary
     selectedVariableTypes
       foo: int
-[stream]
-  ResolvedUnitResult #0
 [status] idle
+[future] getResolvedUnit A1
+  ResolvedUnitResult #0
 ''');
   }
 
@@ -3012,21 +3012,21 @@ part of 'a.dart';
 [operation] analyzeFile
   file: /home/test/lib/b.dart
   library: /home/test/lib/a.dart
-[future] getResolvedUnit A1
+[stream]
   ResolvedUnitResult #0
     path: /home/test/lib/a.dart
     uri: package:test/a.dart
     flags: exists isLibrary
-[future] getResolvedUnit B1
+[stream]
   ResolvedUnitResult #1
     path: /home/test/lib/b.dart
     uri: package:test/b.dart
     flags: exists isPart
-[stream]
-  ResolvedUnitResult #0
-[stream]
-  ResolvedUnitResult #1
 [status] idle
+[future] getResolvedUnit B1
+  ResolvedUnitResult #1
+[future] getResolvedUnit A1
+  ResolvedUnitResult #0
 ''');
   }
 
@@ -3051,24 +3051,24 @@ part of 'a.dart';
 [operation] analyzeFile
   file: /home/test/lib/b.dart
   library: /home/test/lib/a.dart
-[future] getErrors A1
-  ErrorsResult #0
-    path: /home/test/lib/a.dart
-    uri: package:test/a.dart
-    flags: isLibrary
-[future] getResolvedUnit B1
-  ResolvedUnitResult #1
-    path: /home/test/lib/b.dart
-    uri: package:test/b.dart
-    flags: exists isPart
 [stream]
-  ResolvedUnitResult #2
+  ResolvedUnitResult #0
     path: /home/test/lib/a.dart
     uri: package:test/a.dart
     flags: exists isLibrary
 [stream]
   ResolvedUnitResult #1
+    path: /home/test/lib/b.dart
+    uri: package:test/b.dart
+    flags: exists isPart
 [status] idle
+[future] getErrors A1
+  ErrorsResult #2
+    path: /home/test/lib/a.dart
+    uri: package:test/a.dart
+    flags: isLibrary
+[future] getResolvedUnit B1
+  ResolvedUnitResult #1
 ''');
   }
 
@@ -3087,19 +3087,19 @@ part of 'a.dart';
 [operation] analyzeFile
   file: /home/test/lib/a.dart
   library: /home/test/lib/a.dart
-[future] getResolvedUnit A1
+[stream]
   ResolvedUnitResult #0
     path: /home/test/lib/a.dart
     uri: package:test/a.dart
     flags: exists isLibrary
+[status] idle
+[future] getResolvedUnit A1
+  ResolvedUnitResult #0
 [future] getErrors A2
   ErrorsResult #1
     path: /home/test/lib/a.dart
     uri: package:test/a.dart
     flags: isLibrary
-[stream]
-  ResolvedUnitResult #0
-[status] idle
 ''');
   }
 
@@ -3118,19 +3118,19 @@ part of 'a.dart';
 [operation] analyzeFile
   file: /home/test/lib/a.dart
   library: /home/test/lib/a.dart
-[future] getResolvedUnit A2
+[stream]
   ResolvedUnitResult #0
     path: /home/test/lib/a.dart
     uri: package:test/a.dart
     flags: exists isLibrary
+[status] idle
 [future] getErrors A1
   ErrorsResult #1
     path: /home/test/lib/a.dart
     uri: package:test/a.dart
     flags: isLibrary
-[stream]
+[future] getResolvedUnit A2
   ResolvedUnitResult #0
-[status] idle
 ''');
   }
 
@@ -3149,17 +3149,17 @@ part of 'a.dart';
 [operation] analyzeFile
   file: /home/test/lib/a.dart
   library: /home/test/lib/a.dart
-[future] getResolvedUnit A2
+[stream]
   ResolvedUnitResult #0
     path: /home/test/lib/a.dart
     uri: package:test/a.dart
     flags: exists isLibrary
+[status] idle
 [future] getIndex A1
   strings
     --nullString--
-[stream]
+[future] getResolvedUnit A2
   ResolvedUnitResult #0
-[status] idle
 ''');
   }
 
@@ -3181,14 +3181,14 @@ part of 'a.dart';
 [operation] analyzeFile
   file: /home/test/lib/a.dart
   library: /home/test/lib/a.dart
-[future] getResolvedUnit A1
+[stream]
   ResolvedUnitResult #0
     path: /home/test/lib/a.dart
     uri: package:test/a.dart
     flags: exists isLibrary
-[stream]
-  ResolvedUnitResult #0
 [status] idle
+[future] getResolvedUnit A1
+  ResolvedUnitResult #0
 ''');
   }
 
@@ -3208,16 +3208,16 @@ part of 'a.dart';
 [operation] analyzeFile
   file: /home/test/lib/a.dart
   library: /home/test/lib/a.dart
-[future] getResolvedUnit A1
+[stream]
   ResolvedUnitResult #0
     path: /home/test/lib/a.dart
     uri: package:test/a.dart
     flags: exists isLibrary
+[status] idle
+[future] getResolvedUnit A1
+  ResolvedUnitResult #0
 [future] getResolvedUnit A2
   ResolvedUnitResult #0
-[stream]
-  ResolvedUnitResult #0
-[status] idle
 ''');
   }
 
@@ -3239,6 +3239,7 @@ void bar() {}
     collector.getUnitElement('A1', a);
     await assertEventsText(collector, r'''
 [status] working
+[status] idle
 [future] getUnitElement A1
   path: /home/test/lib/a.dart
   uri: package:test/a.dart
@@ -3247,7 +3248,6 @@ void bar() {}
   selectedElements
     package:test/a.dart::@function::foo
     package:test/a.dart::@function::bar
-[status] idle
 ''');
   }
 
@@ -3265,30 +3265,30 @@ import 'package:test/b.dart';
 [operation] analyzeFile
   file: /home/test/lib/a.dart
   library: /home/test/lib/a.dart
+[stream]
+  ResolvedUnitResult #0
+    path: /home/test/lib/a.dart
+    uri: package:test/a.dart
+    flags: exists isLibrary
+    errors
+      7 +21 URI_DOES_NOT_EXIST
+[status] idle
 [future] getResolvedLibrary A1
-  ResolvedLibraryResult #0
+  ResolvedLibraryResult #1
     element: package:test/a.dart
     units
-      ResolvedUnitResult #1
-        path: /home/test/lib/a.dart
-        uri: package:test/a.dart
-        flags: exists isLibrary
-        errors
-          7 +21 URI_DOES_NOT_EXIST
-[stream]
-  ResolvedUnitResult #1
-[status] idle
+      ResolvedUnitResult #0
 ''');
 
     collector.getUnitElement('A2', a);
     await assertEventsText(collector, r'''
 [status] working
+[status] idle
 [future] getUnitElement A2
   path: /home/test/lib/a.dart
   uri: package:test/a.dart
   flags: isLibrary
   enclosing: <null>
-[status] idle
 ''');
   }
 
@@ -3309,10 +3309,10 @@ import 'package:test/b.dart';
 
     await assertEventsText(collector, r'''
 [status] working
+[status] idle
 [future] getUnitElement A1
   MissingSdkLibraryResult #0
     missingUri: dart:async
-[status] idle
 ''');
   }
 
@@ -3327,10 +3327,10 @@ import 'package:test/b.dart';
 
     await assertEventsText(collector, r'''
 [status] working
+[status] idle
 [future] getUnitElement A1
   MissingSdkLibraryResult #0
     missingUri: dart:core
-[status] idle
 ''');
   }
 
@@ -3364,21 +3364,21 @@ final B = A;
 [operation] analyzeFile
   file: /home/test/lib/b.dart
   library: /home/test/lib/a.dart
-[future] getResolvedUnit B1
+[stream]
   ResolvedUnitResult #0
+    path: /home/test/lib/a.dart
+    uri: package:test/a.dart
+    flags: exists isLibrary
+[stream]
+  ResolvedUnitResult #1
     path: /home/test/lib/b.dart
     uri: package:test/b.dart
     flags: exists isPart
     selectedVariableTypes
       B: int
-[stream]
-  ResolvedUnitResult #1
-    path: /home/test/lib/a.dart
-    uri: package:test/a.dart
-    flags: exists isLibrary
-[stream]
-  ResolvedUnitResult #0
 [status] idle
+[future] getResolvedUnit B1
+  ResolvedUnitResult #1
 ''');
 
     // Modify the library, but don't notify the driver.
@@ -3395,21 +3395,21 @@ final A = 1.2;
 [operation] analyzeFile
   file: /home/test/lib/b.dart
   library: /home/test/lib/a.dart
-[future] getResolvedUnit B2
+[stream]
   ResolvedUnitResult #2
+    path: /home/test/lib/a.dart
+    uri: package:test/a.dart
+    flags: exists isLibrary
+[stream]
+  ResolvedUnitResult #3
     path: /home/test/lib/b.dart
     uri: package:test/b.dart
     flags: exists isPart
     selectedVariableTypes
       B: int
-[stream]
-  ResolvedUnitResult #3
-    path: /home/test/lib/a.dart
-    uri: package:test/a.dart
-    flags: exists isLibrary
-[stream]
-  ResolvedUnitResult #2
 [status] idle
+[future] getResolvedUnit B2
+  ResolvedUnitResult #3
 ''');
   }
 
@@ -3630,14 +3630,14 @@ void f(A a) {}
 [operation] analyzeFile
   file: /home/test/lib/a.dart
   library: /home/test/lib/a.dart
-[future] getResolvedUnit A1
+[stream]
   ResolvedUnitResult #0
     path: /home/test/lib/a.dart
     uri: package:test/a.dart
     flags: exists isLibrary
-[stream]
-  ResolvedUnitResult #0
 [status] idle
+[future] getResolvedUnit A1
+  ResolvedUnitResult #0
 ''');
 
     // Update the file, changing its API signature.
@@ -3663,16 +3663,16 @@ class A {}
 [operation] analyzeFile
   file: /home/test/lib/b.dart
   library: /home/test/lib/b.dart
-[future] getResolvedUnit B1
+[stream]
   ResolvedUnitResult #1
     path: /home/test/lib/b.dart
     uri: package:test/b.dart
     flags: exists isLibrary
     errors
       48 +1 UNDEFINED_CLASS
-[stream]
-  ResolvedUnitResult #1
 [status] idle
+[future] getResolvedUnit B1
+  ResolvedUnitResult #1
 ''');
 
     // Notify the driver that `a` was changed.
@@ -3686,14 +3686,14 @@ class A {}
 [operation] analyzeFile
   file: /home/test/lib/b.dart
   library: /home/test/lib/b.dart
-[future] getResolvedUnit B2
+[stream]
   ResolvedUnitResult #2
     path: /home/test/lib/b.dart
     uri: package:test/b.dart
     flags: exists isLibrary
-[stream]
-  ResolvedUnitResult #2
 [status] idle
+[future] getResolvedUnit B2
+  ResolvedUnitResult #2
 ''');
 
     // We apply pending changes while handling request.
@@ -3785,25 +3785,25 @@ final a = A();
     collector.getErrors('A1', a);
     await assertEventsText(collector, r'''
 [status] working
-[future] getErrors A1
-  ErrorsResult #0
-    path: /home/test/lib/hidden/a.dart
-    uri: package:test/hidden/a.dart
-    flags: isLibrary
 [operation] analyzeFile
   file: /home/test/lib/hidden/a.dart
   library: /home/test/lib/hidden/a.dart
 [stream]
-  ResolvedUnitResult #1
+  ResolvedUnitResult #0
     path: /home/test/lib/hidden/a.dart
     uri: package:test/hidden/a.dart
     flags: exists isLibrary
 [stream]
-  ResolvedUnitResult #2
+  ResolvedUnitResult #1
     path: /home/test/lib/b.dart
     uri: package:test/b.dart
     flags: exists isPart
 [status] idle
+[future] getErrors A1
+  ErrorsResult #2
+    path: /home/test/lib/hidden/a.dart
+    uri: package:test/hidden/a.dart
+    flags: isLibrary
 ''');
 
     // We return cached errors.
@@ -3814,12 +3814,12 @@ final a = A();
 [operation] getErrorsFromBytes
   file: /home/test/lib/b.dart
   library: /home/test/lib/hidden/a.dart
+[status] idle
 [future] getErrors B1
   ErrorsResult #3
     path: /home/test/lib/b.dart
     uri: package:test/b.dart
     flags: isPart
-[status] idle
 ''');
   }
 
@@ -3851,25 +3851,25 @@ final a = A();
     collector.getErrors('B1', b);
     await assertEventsText(collector, r'''
 [status] working
-[future] getErrors B1
-  ErrorsResult #0
-    path: /home/test/lib/b.dart
-    uri: package:test/b.dart
-    flags: isPart
 [operation] analyzeFile
   file: /home/test/lib/b.dart
   library: /home/test/lib/hidden/a.dart
 [stream]
-  ResolvedUnitResult #1
+  ResolvedUnitResult #0
     path: /home/test/lib/hidden/a.dart
     uri: package:test/hidden/a.dart
     flags: exists isLibrary
 [stream]
-  ResolvedUnitResult #2
+  ResolvedUnitResult #1
     path: /home/test/lib/b.dart
     uri: package:test/b.dart
     flags: exists isPart
 [status] idle
+[future] getErrors B1
+  ErrorsResult #2
+    path: /home/test/lib/b.dart
+    uri: package:test/b.dart
+    flags: isPart
 ''');
   }
 
@@ -3898,25 +3898,25 @@ final a = new A();
     collector.getErrors('B1', b);
     await assertEventsText(collector, r'''
 [status] working
-[future] getErrors B1
-  ErrorsResult #0
-    path: /home/test/lib/b.dart
-    uri: package:test/b.dart
-    flags: isPart
 [operation] analyzeFile
   file: /home/test/lib/b.dart
   library: /home/test/lib/a.dart
 [stream]
-  ResolvedUnitResult #1
+  ResolvedUnitResult #0
     path: /home/test/lib/a.dart
     uri: package:test/a.dart
     flags: exists isLibrary
 [stream]
-  ResolvedUnitResult #2
+  ResolvedUnitResult #1
     path: /home/test/lib/b.dart
     uri: package:test/b.dart
     flags: exists isPart
 [status] idle
+[future] getErrors B1
+  ErrorsResult #2
+    path: /home/test/lib/b.dart
+    uri: package:test/b.dart
+    flags: isPart
 ''');
   }
 
@@ -3944,24 +3944,24 @@ final a = new A();
     collector.getErrors('B1', b);
     await assertEventsText(collector, r'''
 [status] working
-[future] getErrors B1
-  ErrorsResult #0
-    path: /home/test/lib/b.dart
-    uri: package:test/b.dart
-    flags: isPart
-    errors
-      60 +1 CREATION_WITH_NON_TYPE
 [operation] analyzeFile
   file: /home/test/lib/b.dart
   library: /home/test/lib/b.dart
 [stream]
-  ResolvedUnitResult #1
+  ResolvedUnitResult #0
     path: /home/test/lib/b.dart
     uri: package:test/b.dart
     flags: exists isPart
     errors
       60 +1 CREATION_WITH_NON_TYPE
 [status] idle
+[future] getErrors B1
+  ErrorsResult #1
+    path: /home/test/lib/b.dart
+    uri: package:test/b.dart
+    flags: isPart
+    errors
+      60 +1 CREATION_WITH_NON_TYPE
 ''');
   }
 
@@ -3991,19 +3991,19 @@ final a = new A();
 [operation] analyzeFile
   file: /home/test/lib/hidden/a.dart
   library: /home/test/lib/hidden/a.dart
-[future] getResolvedUnit A1
+[stream]
   ResolvedUnitResult #0
     path: /home/test/lib/hidden/a.dart
     uri: package:test/hidden/a.dart
     flags: exists isLibrary
-[stream]
-  ResolvedUnitResult #0
 [stream]
   ResolvedUnitResult #1
     path: /home/test/lib/b.dart
     uri: package:test/b.dart
     flags: exists isPart
 [status] idle
+[future] getResolvedUnit A1
+  ResolvedUnitResult #0
 ''');
 
     // We know that `b` is analyzed as part of `a`.
@@ -4013,19 +4013,19 @@ final a = new A();
 [operation] analyzeFile
   file: /home/test/lib/b.dart
   library: /home/test/lib/hidden/a.dart
-[future] getResolvedUnit B1
-  ResolvedUnitResult #2
-    path: /home/test/lib/b.dart
-    uri: package:test/b.dart
-    flags: exists isPart
 [stream]
-  ResolvedUnitResult #3
+  ResolvedUnitResult #2
     path: /home/test/lib/hidden/a.dart
     uri: package:test/hidden/a.dart
     flags: exists isLibrary
 [stream]
-  ResolvedUnitResult #2
+  ResolvedUnitResult #3
+    path: /home/test/lib/b.dart
+    uri: package:test/b.dart
+    flags: exists isPart
 [status] idle
+[future] getResolvedUnit B1
+  ResolvedUnitResult #3
 ''');
   }
 
@@ -4059,19 +4059,19 @@ final a = new A();
 [operation] analyzeFile
   file: /home/test/lib/b.dart
   library: /home/test/lib/hidden/a.dart
-[future] getResolvedUnit B1
-  ResolvedUnitResult #0
-    path: /home/test/lib/b.dart
-    uri: package:test/b.dart
-    flags: exists isPart
 [stream]
-  ResolvedUnitResult #1
+  ResolvedUnitResult #0
     path: /home/test/lib/hidden/a.dart
     uri: package:test/hidden/a.dart
     flags: exists isLibrary
 [stream]
-  ResolvedUnitResult #0
+  ResolvedUnitResult #1
+    path: /home/test/lib/b.dart
+    uri: package:test/b.dart
+    flags: exists isPart
 [status] idle
+[future] getResolvedUnit B1
+  ResolvedUnitResult #1
 ''');
   }
 
@@ -4102,16 +4102,16 @@ final a = new A();
 [operation] analyzeFile
   file: /home/test/lib/b.dart
   library: /home/test/lib/b.dart
-[future] getResolvedUnit B1
+[stream]
   ResolvedUnitResult #0
     path: /home/test/lib/b.dart
     uri: package:test/b.dart
     flags: exists isPart
     errors
       60 +1 CREATION_WITH_NON_TYPE
-[stream]
-  ResolvedUnitResult #0
 [status] idle
+[future] getResolvedUnit B1
+  ResolvedUnitResult #0
 ''');
   }
 
@@ -4163,19 +4163,19 @@ Future<int>? f;
 [operation] analyzeFile
   file: /home/test/lib/b.dart
   library: /home/test/lib/a.dart
-[future] getResolvedUnit B1
-  ResolvedUnitResult #1
-    path: /home/test/lib/b.dart
-    uri: package:test/b.dart
-    flags: exists isPart
 [stream]
-  ResolvedUnitResult #2
+  ResolvedUnitResult #1
     path: /home/test/lib/a.dart
     uri: package:test/a.dart
     flags: exists isLibrary
 [stream]
-  ResolvedUnitResult #1
+  ResolvedUnitResult #2
+    path: /home/test/lib/b.dart
+    uri: package:test/b.dart
+    flags: exists isPart
 [status] idle
+[future] getResolvedUnit B1
+  ResolvedUnitResult #2
 ''');
   }
 
@@ -4206,16 +4206,16 @@ final a = new A();
 [operation] analyzeFile
   file: /home/test/lib/b.dart
   library: /home/test/lib/b.dart
-[future] getResolvedUnit B1
+[stream]
   ResolvedUnitResult #0
     path: /home/test/lib/b.dart
     uri: package:test/b.dart
     flags: exists isPart
     errors
       65 +1 CREATION_WITH_NON_TYPE
-[stream]
-  ResolvedUnitResult #0
 [status] idle
+[future] getResolvedUnit B1
+  ResolvedUnitResult #0
 ''');
   }
 
@@ -4237,16 +4237,16 @@ var a = new A();
 [operation] analyzeFile
   file: /home/test/lib/b.dart
   library: /home/test/lib/b.dart
-[future] getResolvedUnit B1
+[stream]
   ResolvedUnitResult #0
     path: /home/test/lib/b.dart
     uri: package:test/b.dart
     flags: exists isPart
     errors
       63 +1 CREATION_WITH_NON_TYPE
-[stream]
-  ResolvedUnitResult #0
 [status] idle
+[future] getResolvedUnit B1
+  ResolvedUnitResult #0
 ''');
   }
 
@@ -4276,31 +4276,31 @@ final a = new A();
 [operation] analyzeFile
   file: /home/test/lib/hidden/a.dart
   library: /home/test/lib/hidden/a.dart
-[future] getResolvedUnit A1
+[stream]
   ResolvedUnitResult #0
     path: /home/test/lib/hidden/a.dart
     uri: package:test/hidden/a.dart
     flags: exists isLibrary
-[stream]
-  ResolvedUnitResult #0
 [stream]
   ResolvedUnitResult #1
     path: /home/test/lib/b.dart
     uri: package:test/b.dart
     flags: exists isPart
 [status] idle
+[future] getResolvedUnit A1
+  ResolvedUnitResult #0
 ''');
 
     // We know that `a` is the library for `b`.
     collector.getUnitElement('B1', b);
     await assertEventsText(collector, r'''
 [status] working
+[status] idle
 [future] getUnitElement B1
   path: /home/test/lib/b.dart
   uri: package:test/b.dart
   flags: isPart
   enclosing: #F0
-[status] idle
 ''');
   }
 
@@ -4331,11 +4331,6 @@ final a = new A();
     collector.getUnitElement('B1', b);
     await assertEventsText(collector, r'''
 [status] working
-[future] getUnitElement B1
-  path: /home/test/lib/b.dart
-  uri: package:test/b.dart
-  flags: isPart
-  enclosing: #F0
 [operation] analyzeFile
   file: /home/test/lib/hidden/a.dart
   library: /home/test/lib/hidden/a.dart
@@ -4350,6 +4345,11 @@ final a = new A();
     uri: package:test/b.dart
     flags: exists isPart
 [status] idle
+[future] getUnitElement B1
+  path: /home/test/lib/b.dart
+  uri: package:test/b.dart
+  flags: isPart
+  enclosing: #F0
 ''');
   }
 
@@ -4369,12 +4369,12 @@ final a = new A();
     collector.getUnitElement('B1', b);
     await assertEventsText(collector, r'''
 [status] working
+[status] idle
 [future] getUnitElement B1
   path: /home/test/lib/b.dart
   uri: package:test/b.dart
   flags: isPart
   enclosing: <null>
-[status] idle
 ''');
   }
 
@@ -4814,11 +4814,6 @@ class B2 {}
 [operation] analyzeFile
   file: /home/test2/lib/b.dart
   library: /home/test2/lib/b.dart
-[future] getResolvedUnit B1
-  ResolvedUnitResult #0
-    path: /home/test2/lib/b.dart
-    uri: package:test2/b.dart
-    flags: exists isLibrary
 [operation] analyzeFile
   file: /home/test1/lib/a.dart
   library: /home/test1/lib/a.dart
@@ -4826,6 +4821,11 @@ class B2 {}
   file: /home/test2/lib/c.dart
   library: /home/test2/lib/c.dart
 [status] idle
+[future] getResolvedUnit B1
+  ResolvedUnitResult #0
+    path: /home/test2/lib/b.dart
+    uri: package:test2/b.dart
+    flags: exists isLibrary
 ''');
   }
 
@@ -5563,8 +5563,9 @@ class A2 {}
 class DriverEventCollector {
   final IdProvider idProvider;
   late AnalysisDriver driver;
-  List<DriverEvent> events = [];
-  final List<Completer<void>> statusIdleCompleters = [];
+  final List<DriverEvent> _events = [];
+  final List<_PendingFuture> _pendingFutures = [];
+  final List<Completer<void>> _statusIdleCompleters = [];
 
   DriverEventCollector(this.driver, {IdProvider? idProvider})
     : idProvider = idProvider ?? IdProvider() {
@@ -5578,49 +5579,51 @@ class DriverEventCollector {
     _listenSchedulerEvents(collection.scheduler);
   }
 
+  Future<void> awaitPendingFutures() async {
+    var futures = _pendingFutures.toList();
+    _pendingFutures.clear();
+    for (var future in futures) {
+      await future.resolve();
+    }
+  }
+
   void getCachedResolvedUnit(String name, File file) {
     var value = driver.getCachedResolvedUnit2(file);
-    events.add(GetCachedResolvedUnitEvent(name: name, result: value));
+    _events.add(GetCachedResolvedUnitEvent(name: name, result: value));
   }
 
   void getErrors(String name, File file) {
-    var future = driver.getErrors(file.path);
-    unawaited(
-      future.then((value) {
-        events.add(GetErrorsEvent(name: name, result: value));
-      }),
+    _addPending(
+      driver.getErrors(file.path),
+      (value) => GetErrorsEvent(name: name, result: value),
     );
   }
 
-  void getIndex(String name, File file) async {
-    var value = await driver.getIndex(file.path);
-    events.add(GetIndexEvent(name: name, result: value));
+  void getIndex(String name, File file) {
+    _addPending(
+      driver.getIndex(file.path),
+      (value) => GetIndexEvent(name: name, result: value),
+    );
   }
 
   void getLibraryByUri(String name, String uriStr) {
-    var future = driver.getLibraryByUri(uriStr);
-    unawaited(
-      future.then((value) {
-        events.add(GetLibraryByUriEvent(name: name, result: value));
-      }),
+    _addPending(
+      driver.getLibraryByUri(uriStr),
+      (value) => GetLibraryByUriEvent(name: name, result: value),
     );
   }
 
   void getResolvedLibrary(String name, File file) {
-    var future = driver.getResolvedLibrary(file.path);
-    unawaited(
-      future.then((value) {
-        events.add(GetResolvedLibraryEvent(name: name, result: value));
-      }),
+    _addPending(
+      driver.getResolvedLibrary(file.path),
+      (value) => GetResolvedLibraryEvent(name: name, result: value),
     );
   }
 
   void getResolvedLibraryByUri(String name, Uri uri) {
-    var future = driver.getResolvedLibraryByUri(uri);
-    unawaited(
-      future.then((value) {
-        events.add(GetResolvedLibraryByUriEvent(name: name, result: value));
-      }),
+    _addPending(
+      driver.getResolvedLibraryByUri(uri),
+      (value) => GetResolvedLibraryByUriEvent(name: name, result: value),
     );
   }
 
@@ -5629,47 +5632,55 @@ class DriverEventCollector {
     File file, {
     bool sendCachedToStream = false,
   }) {
-    var future = driver.getResolvedUnit(
-      file.path,
-      sendCachedToStream: sendCachedToStream,
-    );
-
-    unawaited(
-      future.then((value) {
-        events.add(GetResolvedUnitEvent(name: name, result: value));
-      }),
+    _addPending(
+      driver.getResolvedUnit(file.path, sendCachedToStream: sendCachedToStream),
+      (value) => GetResolvedUnitEvent(name: name, result: value),
     );
   }
 
   void getUnitElement(String name, File file) {
-    var future = driver.getUnitElement2(file);
-    unawaited(
-      future.then((value) {
-        events.add(GetUnitElementEvent(name: name, result: value));
-      }),
+    _addPending(
+      driver.getUnitElement2(file),
+      (value) => GetUnitElementEvent(name: name, result: value),
     );
   }
 
   Future<void> nextStatusIdle() {
     var completer = Completer<void>();
-    statusIdleCompleters.add(completer);
+    _statusIdleCompleters.add(completer);
     return completer.future;
   }
 
   List<DriverEvent> take() {
-    var result = events;
-    events = [];
+    if (_pendingFutures.isNotEmpty) {
+      throw StateError('Some futures are not complete.');
+    }
+    var result = _events.toList();
+    _events.clear();
     return result;
+  }
+
+  void _addPending<T>(
+    Future<T> future,
+    DriverEvent Function(T value) createEvent,
+  ) {
+    _pendingFutures.add(
+      _PendingFuture<T>(
+        future: future,
+        createEvent: createEvent,
+        eventsList: _events,
+      ),
+    );
   }
 
   void _listenSchedulerEvents(AnalysisDriverScheduler scheduler) {
     scheduler.eventsBroadcast.listen((event) {
       switch (event) {
         case AnalysisStatus():
-          events.add(SchedulerStatusEvent(event));
+          _events.add(SchedulerStatusEvent(event));
           if (event.isIdle) {
-            statusIdleCompleters.completeAll();
-            statusIdleCompleters.clear();
+            _statusIdleCompleters.completeAll();
+            _statusIdleCompleters.clear();
           }
         case driver_events.AnalyzeFile():
         case driver_events.AnalyzedLibrary():
@@ -5682,7 +5693,7 @@ class DriverEventCollector {
         case driver_events.ReuseLinkLibraryCycleBundle():
         case ErrorsResult():
         case ResolvedUnitResult():
-          events.add(ResultStreamEvent(object: event));
+          _events.add(ResultStreamEvent(object: event));
       }
     });
   }
@@ -5727,13 +5738,6 @@ import 'a.dart';
       expectedInitialEvents: r'''
 [status] working
 [operation] linkLibraryCycle SDK
-[future] getErrors T1
-  ErrorsResult #0
-    path: /home/test/lib/test.dart
-    uri: package:test/test.dart
-    flags: isLibrary
-    errors
-      7 +8 UNUSED_IMPORT
 [operation] linkLibraryCycle
   package:test/a.dart
     declaredClasses
@@ -5753,7 +5757,7 @@ import 'a.dart';
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
 [stream]
-  ResolvedUnitResult #1
+  ResolvedUnitResult #0
     path: /home/test/lib/test.dart
     uri: package:test/test.dart
     flags: exists isLibrary
@@ -5771,6 +5775,13 @@ import 'a.dart';
             requestedDeclaredFields
               foo: #M1
 [status] idle
+[future] getErrors T1
+  ErrorsResult #1
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
+    errors
+      7 +8 UNUSED_IMPORT
 ''',
       updatedA: r'''
 class A {
@@ -5791,13 +5802,6 @@ class A {
           map
             foo: #M5
   requirements
-[future] getErrors T2
-  ErrorsResult #2
-    path: /home/test/lib/test.dart
-    uri: package:test/test.dart
-    flags: isLibrary
-    errors
-      7 +8 UNUSED_IMPORT
 [operation] readLibraryCycleBundle
   package:test/test.dart
 [operation] checkLibraryDiagnosticsRequirements
@@ -5812,7 +5816,7 @@ class A {
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
 [stream]
-  ResolvedUnitResult #3
+  ResolvedUnitResult #2
     path: /home/test/lib/test.dart
     uri: package:test/test.dart
     flags: exists isLibrary
@@ -5830,6 +5834,13 @@ class A {
             requestedDeclaredFields
               foo: #M4
 [status] idle
+[future] getErrors T2
+  ErrorsResult #3
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
+    errors
+      7 +8 UNUSED_IMPORT
 ''',
     );
   }
@@ -5854,13 +5865,6 @@ import 'a.dart';
       expectedInitialEvents: r'''
 [status] working
 [operation] linkLibraryCycle SDK
-[future] getErrors T1
-  ErrorsResult #0
-    path: /home/test/lib/test.dart
-    uri: package:test/test.dart
-    flags: isLibrary
-    errors
-      7 +8 UNUSED_IMPORT
 [operation] linkLibraryCycle
   package:test/a.dart
     declaredClasses
@@ -5883,7 +5887,7 @@ import 'a.dart';
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
 [stream]
-  ResolvedUnitResult #1
+  ResolvedUnitResult #0
     path: /home/test/lib/test.dart
     uri: package:test/test.dart
     flags: exists isLibrary
@@ -5901,6 +5905,13 @@ import 'a.dart';
             requestedDeclaredFields
               foo: #M2
 [status] idle
+[future] getErrors T1
+  ErrorsResult #1
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
+    errors
+      7 +8 UNUSED_IMPORT
 ''',
       updatedA: r'''
 class A {
@@ -5925,13 +5936,6 @@ class A {
             bar: #M7
             foo: #M4
   requirements
-[future] getErrors T2
-  ErrorsResult #2
-    path: /home/test/lib/test.dart
-    uri: package:test/test.dart
-    flags: isLibrary
-    errors
-      7 +8 UNUSED_IMPORT
 [operation] readLibraryCycleBundle
   package:test/test.dart
 [operation] checkLibraryDiagnosticsRequirements
@@ -5941,6 +5945,13 @@ class A {
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
 [status] idle
+[future] getErrors T2
+  ErrorsResult #2
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
+    errors
+      7 +8 UNUSED_IMPORT
 ''',
     );
   }
@@ -5961,13 +5972,6 @@ class B extends A {}
       expectedInitialEvents: r'''
 [status] working
 [operation] linkLibraryCycle SDK
-[future] getLibraryByUri T1
-  library
-    classes
-      class B
-        supertype: A
-        constructors
-          synthetic new
 [operation] linkLibraryCycle
   package:test/a.dart
     declaredClasses
@@ -5998,6 +6002,13 @@ class B extends A {}
             requestedConstructors
               new: #M6
 [status] idle
+[future] getLibraryByUri T1
+  library
+    classes
+      class B
+        supertype: A
+        constructors
+          synthetic new
 ''',
       updatedA: r'''
 class A {
@@ -6022,13 +6033,6 @@ class A {
             bar: #M8
             foo: #M2
   requirements
-[future] getLibraryByUri T2
-  library
-    classes
-      class B
-        supertype: A
-        constructors
-          synthetic new
 [operation] cannotReuseLinkedBundle
   interfaceIdMismatch
     libraryUri: package:test/a.dart
@@ -6054,6 +6058,13 @@ class A {
             requestedConstructors
               new: #M6
 [status] idle
+[future] getLibraryByUri T2
+  library
+    classes
+      class B
+        supertype: A
+        constructors
+          synthetic new
 ''',
     );
   }
@@ -6077,13 +6088,6 @@ import 'a.dart';
       expectedInitialEvents: r'''
 [status] working
 [operation] linkLibraryCycle SDK
-[future] getErrors T1
-  ErrorsResult #0
-    path: /home/test/lib/test.dart
-    uri: package:test/test.dart
-    flags: isLibrary
-    errors
-      7 +8 UNUSED_IMPORT
 [operation] linkLibraryCycle
   package:test/a.dart
     declaredClasses
@@ -6103,7 +6107,7 @@ import 'a.dart';
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
 [stream]
-  ResolvedUnitResult #1
+  ResolvedUnitResult #0
     path: /home/test/lib/test.dart
     uri: package:test/test.dart
     flags: exists isLibrary
@@ -6120,6 +6124,13 @@ import 'a.dart';
           A
             allDeclaredGetters: #M2
 [status] idle
+[future] getErrors T1
+  ErrorsResult #1
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
+    errors
+      7 +8 UNUSED_IMPORT
 ''',
       updatedA: r'''
 class A {
@@ -6144,13 +6155,6 @@ class A {
             bar: #M5
             foo: #M2
   requirements
-[future] getErrors T2
-  ErrorsResult #2
-    path: /home/test/lib/test.dart
-    uri: package:test/test.dart
-    flags: isLibrary
-    errors
-      7 +8 UNUSED_IMPORT
 [operation] readLibraryCycleBundle
   package:test/test.dart
 [operation] checkLibraryDiagnosticsRequirements
@@ -6165,7 +6169,7 @@ class A {
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
 [stream]
-  ResolvedUnitResult #3
+  ResolvedUnitResult #2
     path: /home/test/lib/test.dart
     uri: package:test/test.dart
     flags: exists isLibrary
@@ -6182,6 +6186,13 @@ class A {
           A
             allDeclaredGetters: #M2 #M5
 [status] idle
+[future] getErrors T2
+  ErrorsResult #3
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
+    errors
+      7 +8 UNUSED_IMPORT
 ''',
     );
   }
@@ -6204,11 +6215,6 @@ class B extends A {}
       expectedInitialEvents: r'''
 [status] working
 [operation] linkLibraryCycle SDK
-[future] getErrors T1
-  ErrorsResult #0
-    path: /home/test/lib/test.dart
-    uri: package:test/test.dart
-    flags: isLibrary
 [operation] linkLibraryCycle
   package:test/a.dart
     declaredClasses
@@ -6264,6 +6270,11 @@ class B extends A {}
             requestedConstructors
               new: #M7
 [status] idle
+[future] getErrors T1
+  ErrorsResult #0
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
 ''',
       updatedA: r'''
 class A {
@@ -6288,11 +6299,6 @@ class A {
             foo: #M9
             foo=: #M3
   requirements
-[future] getErrors T2
-  ErrorsResult #1
-    path: /home/test/lib/test.dart
-    uri: package:test/test.dart
-    flags: isLibrary
 [operation] cannotReuseLinkedBundle
   interfaceIdMismatch
     libraryUri: package:test/a.dart
@@ -6347,6 +6353,11 @@ class A {
             requestedConstructors
               new: #M7
 [status] idle
+[future] getErrors T2
+  ErrorsResult #1
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
 ''',
     );
   }
@@ -6370,13 +6381,6 @@ import 'a.dart';
       expectedInitialEvents: r'''
 [status] working
 [operation] linkLibraryCycle SDK
-[future] getErrors T1
-  ErrorsResult #0
-    path: /home/test/lib/test.dart
-    uri: package:test/test.dart
-    flags: isLibrary
-    errors
-      7 +8 UNUSED_IMPORT
 [operation] linkLibraryCycle
   package:test/a.dart
     declaredClasses
@@ -6396,7 +6400,7 @@ import 'a.dart';
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
 [stream]
-  ResolvedUnitResult #1
+  ResolvedUnitResult #0
     path: /home/test/lib/test.dart
     uri: package:test/test.dart
     flags: exists isLibrary
@@ -6416,6 +6420,13 @@ import 'a.dart';
             requestedDeclaredGetters
               foo: #M2
 [status] idle
+[future] getErrors T1
+  ErrorsResult #1
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
+    errors
+      7 +8 UNUSED_IMPORT
 ''',
       updatedA: r'''
 class A {
@@ -6436,13 +6447,6 @@ class A {
           map
             foo: #M5
   requirements
-[future] getErrors T2
-  ErrorsResult #2
-    path: /home/test/lib/test.dart
-    uri: package:test/test.dart
-    flags: isLibrary
-    errors
-      7 +8 UNUSED_IMPORT
 [operation] readLibraryCycleBundle
   package:test/test.dart
 [operation] checkLibraryDiagnosticsRequirements
@@ -6457,7 +6461,7 @@ class A {
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
 [stream]
-  ResolvedUnitResult #3
+  ResolvedUnitResult #2
     path: /home/test/lib/test.dart
     uri: package:test/test.dart
     flags: exists isLibrary
@@ -6477,6 +6481,13 @@ class A {
             requestedDeclaredGetters
               foo: #M5
 [status] idle
+[future] getErrors T2
+  ErrorsResult #3
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
+    errors
+      7 +8 UNUSED_IMPORT
 ''',
     );
   }
@@ -6500,13 +6511,6 @@ import 'a.dart';
       expectedInitialEvents: r'''
 [status] working
 [operation] linkLibraryCycle SDK
-[future] getErrors T1
-  ErrorsResult #0
-    path: /home/test/lib/test.dart
-    uri: package:test/test.dart
-    flags: isLibrary
-    errors
-      7 +8 UNUSED_IMPORT
 [operation] linkLibraryCycle
   package:test/a.dart
     declaredClasses
@@ -6526,7 +6530,7 @@ import 'a.dart';
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
 [stream]
-  ResolvedUnitResult #1
+  ResolvedUnitResult #0
     path: /home/test/lib/test.dart
     uri: package:test/test.dart
     flags: exists isLibrary
@@ -6544,6 +6548,13 @@ import 'a.dart';
             requestedDeclaredGetters
               foo: #M2
 [status] idle
+[future] getErrors T1
+  ErrorsResult #1
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
+    errors
+      7 +8 UNUSED_IMPORT
 ''',
       updatedA: r'''
 class A {
@@ -6564,13 +6575,6 @@ class A {
           map
             foo: #M5
   requirements
-[future] getErrors T2
-  ErrorsResult #2
-    path: /home/test/lib/test.dart
-    uri: package:test/test.dart
-    flags: isLibrary
-    errors
-      7 +8 UNUSED_IMPORT
 [operation] readLibraryCycleBundle
   package:test/test.dart
 [operation] checkLibraryDiagnosticsRequirements
@@ -6585,7 +6589,7 @@ class A {
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
 [stream]
-  ResolvedUnitResult #3
+  ResolvedUnitResult #2
     path: /home/test/lib/test.dart
     uri: package:test/test.dart
     flags: exists isLibrary
@@ -6603,6 +6607,13 @@ class A {
             requestedDeclaredGetters
               foo: #M5
 [status] idle
+[future] getErrors T2
+  ErrorsResult #3
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
+    errors
+      7 +8 UNUSED_IMPORT
 ''',
     );
   }
@@ -6627,13 +6638,6 @@ import 'a.dart';
       expectedInitialEvents: r'''
 [status] working
 [operation] linkLibraryCycle SDK
-[future] getErrors T1
-  ErrorsResult #0
-    path: /home/test/lib/test.dart
-    uri: package:test/test.dart
-    flags: isLibrary
-    errors
-      7 +8 UNUSED_IMPORT
 [operation] linkLibraryCycle
   package:test/a.dart
     declaredClasses
@@ -6656,7 +6660,7 @@ import 'a.dart';
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
 [stream]
-  ResolvedUnitResult #1
+  ResolvedUnitResult #0
     path: /home/test/lib/test.dart
     uri: package:test/test.dart
     flags: exists isLibrary
@@ -6674,6 +6678,13 @@ import 'a.dart';
             requestedDeclaredGetters
               foo: #M4
 [status] idle
+[future] getErrors T1
+  ErrorsResult #1
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
+    errors
+      7 +8 UNUSED_IMPORT
 ''',
       updatedA: r'''
 class A {
@@ -6698,13 +6709,6 @@ class A {
             bar: #M7
             foo: #M4
   requirements
-[future] getErrors T2
-  ErrorsResult #2
-    path: /home/test/lib/test.dart
-    uri: package:test/test.dart
-    flags: isLibrary
-    errors
-      7 +8 UNUSED_IMPORT
 [operation] readLibraryCycleBundle
   package:test/test.dart
 [operation] checkLibraryDiagnosticsRequirements
@@ -6714,6 +6718,13 @@ class A {
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
 [status] idle
+[future] getErrors T2
+  ErrorsResult #2
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
+    errors
+      7 +8 UNUSED_IMPORT
 ''',
     );
   }
@@ -6735,11 +6746,6 @@ void f(A a) {
       expectedInitialEvents: r'''
 [status] working
 [operation] linkLibraryCycle SDK
-[future] getErrors T1
-  ErrorsResult #0
-    path: /home/test/lib/test.dart
-    uri: package:test/test.dart
-    flags: isLibrary
 [operation] linkLibraryCycle
   package:test/a.dart
     declaredClasses
@@ -6765,7 +6771,7 @@ void f(A a) {
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
 [stream]
-  ResolvedUnitResult #1
+  ResolvedUnitResult #0
     path: /home/test/lib/test.dart
     uri: package:test/test.dart
     flags: exists isLibrary
@@ -6785,6 +6791,11 @@ void f(A a) {
             methods
               foo: #M2
 [status] idle
+[future] getErrors T1
+  ErrorsResult #1
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
 ''',
       updatedA: r'''
 class A {
@@ -6805,11 +6816,6 @@ class A {
           map
             foo: #M6
   requirements
-[future] getErrors T2
-  ErrorsResult #2
-    path: /home/test/lib/test.dart
-    uri: package:test/test.dart
-    flags: isLibrary
 [operation] readLibraryCycleBundle
   package:test/test.dart
 [operation] checkLibraryDiagnosticsRequirements
@@ -6824,7 +6830,7 @@ class A {
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
 [stream]
-  ResolvedUnitResult #3
+  ResolvedUnitResult #2
     path: /home/test/lib/test.dart
     uri: package:test/test.dart
     flags: exists isLibrary
@@ -6844,6 +6850,11 @@ class A {
             methods
               foo: #M6
 [status] idle
+[future] getErrors T2
+  ErrorsResult #3
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
 ''',
     );
   }
@@ -6870,11 +6881,6 @@ void f() {
       expectedInitialEvents: r'''
 [status] working
 [operation] linkLibraryCycle SDK
-[future] getErrors T1
-  ErrorsResult #0
-    path: /home/test/lib/test.dart
-    uri: package:test/test.dart
-    flags: isLibrary
 [operation] linkLibraryCycle
   package:test/a.dart
     declaredClasses
@@ -6919,6 +6925,11 @@ void f() {
               foo: #M2
               foo=: #M3
 [status] idle
+[future] getErrors T1
+  ErrorsResult #0
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
 ''',
       updatedA: r'''
 class A {
@@ -6946,11 +6957,6 @@ class A {
             foo: #M8
             foo=: #M3
   requirements
-[future] getErrors T2
-  ErrorsResult #1
-    path: /home/test/lib/test.dart
-    uri: package:test/test.dart
-    flags: isLibrary
 [operation] readLibraryCycleBundle
   package:test/test.dart
 [operation] checkLibraryDiagnosticsRequirements
@@ -6983,6 +6989,11 @@ class A {
               foo: #M8
               foo=: #M3
 [status] idle
+[future] getErrors T2
+  ErrorsResult #1
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
 ''',
     );
   }
@@ -7005,11 +7016,6 @@ void f(A a) {
       expectedInitialEvents: r'''
 [status] working
 [operation] linkLibraryCycle SDK
-[future] getErrors T1
-  ErrorsResult #0
-    path: /home/test/lib/test.dart
-    uri: package:test/test.dart
-    flags: isLibrary
 [operation] linkLibraryCycle
   package:test/a.dart
     declaredClasses
@@ -7038,7 +7044,7 @@ void f(A a) {
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
 [stream]
-  ResolvedUnitResult #1
+  ResolvedUnitResult #0
     path: /home/test/lib/test.dart
     uri: package:test/test.dart
     flags: exists isLibrary
@@ -7058,6 +7064,11 @@ void f(A a) {
             methods
               foo: #M4
 [status] idle
+[future] getErrors T1
+  ErrorsResult #1
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
 ''',
       updatedA: r'''
 class A {
@@ -7078,11 +7089,6 @@ class A {
           map
             foo: #M4
   requirements
-[future] getErrors T2
-  ErrorsResult #2
-    path: /home/test/lib/test.dart
-    uri: package:test/test.dart
-    flags: isLibrary
 [operation] readLibraryCycleBundle
   package:test/test.dart
 [operation] checkLibraryDiagnosticsRequirements
@@ -7092,6 +7098,11 @@ class A {
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
 [status] idle
+[future] getErrors T2
+  ErrorsResult #2
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
 ''',
     );
   }
@@ -7116,11 +7127,6 @@ void f(B b) {
       expectedInitialEvents: r'''
 [status] working
 [operation] linkLibraryCycle SDK
-[future] getErrors T1
-  ErrorsResult #0
-    path: /home/test/lib/test.dart
-    uri: package:test/test.dart
-    flags: isLibrary
 [operation] linkLibraryCycle
   package:test/a.dart
     declaredClasses
@@ -7165,6 +7171,11 @@ void f(B b) {
             methods
               foo: #M2
 [status] idle
+[future] getErrors T1
+  ErrorsResult #0
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
 ''',
       updatedA: r'''
 class A<T> {
@@ -7191,11 +7202,6 @@ class B extends A<double> {}
           map
             foo: #M2
   requirements
-[future] getErrors T2
-  ErrorsResult #1
-    path: /home/test/lib/test.dart
-    uri: package:test/test.dart
-    flags: isLibrary
 [operation] cannotReuseLinkedBundle
   topLevelIdMismatch
     libraryUri: package:test/a.dart
@@ -7237,6 +7243,11 @@ class B extends A<double> {}
             methods
               foo: #M2
 [status] idle
+[future] getErrors T2
+  ErrorsResult #1
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
 ''',
     );
   }
@@ -7261,11 +7272,6 @@ void f(B b) {
       expectedInitialEvents: r'''
 [status] working
 [operation] linkLibraryCycle SDK
-[future] getErrors T1
-  ErrorsResult #0
-    path: /home/test/lib/test.dart
-    uri: package:test/test.dart
-    flags: isLibrary
 [operation] linkLibraryCycle
   package:test/a.dart
     declaredClasses
@@ -7310,6 +7316,11 @@ void f(B b) {
             methods
               foo: #M2
 [status] idle
+[future] getErrors T1
+  ErrorsResult #0
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
 ''',
       updatedA: r'''
 class A<T> {
@@ -7336,11 +7347,6 @@ class B implements A<double> {}
           map
             foo: #M2
   requirements
-[future] getErrors T2
-  ErrorsResult #1
-    path: /home/test/lib/test.dart
-    uri: package:test/test.dart
-    flags: isLibrary
 [operation] cannotReuseLinkedBundle
   topLevelIdMismatch
     libraryUri: package:test/a.dart
@@ -7382,6 +7388,11 @@ class B implements A<double> {}
             methods
               foo: #M2
 [status] idle
+[future] getErrors T2
+  ErrorsResult #1
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
 ''',
     );
   }
@@ -7406,11 +7417,6 @@ void f(B b) {
       expectedInitialEvents: r'''
 [status] working
 [operation] linkLibraryCycle SDK
-[future] getErrors T1
-  ErrorsResult #0
-    path: /home/test/lib/test.dart
-    uri: package:test/test.dart
-    flags: isLibrary
 [operation] linkLibraryCycle
   package:test/a.dart
     declaredClasses
@@ -7455,6 +7461,11 @@ void f(B b) {
             methods
               foo: #M2
 [status] idle
+[future] getErrors T1
+  ErrorsResult #0
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
 ''',
       updatedA: r'''
 class A<T> {
@@ -7481,11 +7492,6 @@ class B with A<double> {}
           map
             foo: #M2
   requirements
-[future] getErrors T2
-  ErrorsResult #1
-    path: /home/test/lib/test.dart
-    uri: package:test/test.dart
-    flags: isLibrary
 [operation] cannotReuseLinkedBundle
   topLevelIdMismatch
     libraryUri: package:test/a.dart
@@ -7527,6 +7533,11 @@ class B with A<double> {}
             methods
               foo: #M2
 [status] idle
+[future] getErrors T2
+  ErrorsResult #1
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
 ''',
     );
   }
@@ -7555,11 +7566,6 @@ void f (B b) {
       expectedInitialEvents: r'''
 [status] working
 [operation] linkLibraryCycle SDK
-[future] getErrors T1
-  ErrorsResult #0
-    path: /home/test/lib/test.dart
-    uri: package:test/test.dart
-    flags: isLibrary
 [operation] linkLibraryCycle
   package:test/test.dart
     declaredClasses
@@ -7581,6 +7587,11 @@ void f (B b) {
   file: /home/test/lib/test.dart
   requirements
 [status] idle
+[future] getErrors T1
+  ErrorsResult #0
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
 ''',
       updateFiles: () {
         modifyFile2(testFile, r'''
@@ -7612,13 +7623,6 @@ void f (B b) {
     declaredFunctions
       f: #M6
   requirements
-[future] getErrors T2
-  ErrorsResult #1
-    path: /home/test/lib/test.dart
-    uri: package:test/test.dart
-    flags: isLibrary
-    errors
-      84 +6 UNDEFINED_GETTER
 [operation] analyzeFile
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
@@ -7626,6 +7630,13 @@ void f (B b) {
   file: /home/test/lib/test.dart
   requirements
 [status] idle
+[future] getErrors T2
+  ErrorsResult #1
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
+    errors
+      84 +6 UNDEFINED_GETTER
 ''',
     );
   }
@@ -7646,13 +7657,6 @@ class B extends A {}
       expectedInitialEvents: r'''
 [status] working
 [operation] linkLibraryCycle SDK
-[future] getLibraryByUri T1
-  library
-    classes
-      class B
-        supertype: A
-        constructors
-          synthetic new
 [operation] linkLibraryCycle
   package:test/a.dart
     declaredClasses
@@ -7681,6 +7685,13 @@ class B extends A {}
             requestedConstructors
               new: #M5
 [status] idle
+[future] getLibraryByUri T1
+  library
+    classes
+      class B
+        supertype: A
+        constructors
+          synthetic new
 ''',
       updatedA: r'''
 class A {
@@ -7702,13 +7713,6 @@ class A {
             bar: #M6
             foo: #M1
   requirements
-[future] getLibraryByUri T2
-  library
-    classes
-      class B
-        supertype: A
-        constructors
-          synthetic new
 [operation] cannotReuseLinkedBundle
   interfaceIdMismatch
     libraryUri: package:test/a.dart
@@ -7734,6 +7738,13 @@ class A {
             requestedConstructors
               new: #M5
 [status] idle
+[future] getLibraryByUri T2
+  library
+    classes
+      class B
+        supertype: A
+        constructors
+          synthetic new
 ''',
     );
   }
@@ -7757,13 +7768,6 @@ import 'a.dart';
       expectedInitialEvents: r'''
 [status] working
 [operation] linkLibraryCycle SDK
-[future] getErrors T1
-  ErrorsResult #0
-    path: /home/test/lib/test.dart
-    uri: package:test/test.dart
-    flags: isLibrary
-    errors
-      7 +8 UNUSED_IMPORT
 [operation] linkLibraryCycle
   package:test/a.dart
     declaredClasses
@@ -7781,7 +7785,7 @@ import 'a.dart';
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
 [stream]
-  ResolvedUnitResult #1
+  ResolvedUnitResult #0
     path: /home/test/lib/test.dart
     uri: package:test/test.dart
     flags: exists isLibrary
@@ -7798,6 +7802,13 @@ import 'a.dart';
           A
             allDeclaredMethods: #M1
 [status] idle
+[future] getErrors T1
+  ErrorsResult #1
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
+    errors
+      7 +8 UNUSED_IMPORT
 ''',
       updatedA: r'''
 class A {
@@ -7819,13 +7830,6 @@ class A {
             bar: #M3
             foo: #M1
   requirements
-[future] getErrors T2
-  ErrorsResult #2
-    path: /home/test/lib/test.dart
-    uri: package:test/test.dart
-    flags: isLibrary
-    errors
-      7 +8 UNUSED_IMPORT
 [operation] readLibraryCycleBundle
   package:test/test.dart
 [operation] checkLibraryDiagnosticsRequirements
@@ -7840,7 +7844,7 @@ class A {
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
 [stream]
-  ResolvedUnitResult #3
+  ResolvedUnitResult #2
     path: /home/test/lib/test.dart
     uri: package:test/test.dart
     flags: exists isLibrary
@@ -7857,6 +7861,13 @@ class A {
           A
             allDeclaredMethods: #M1 #M3
 [status] idle
+[future] getErrors T2
+  ErrorsResult #3
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
+    errors
+      7 +8 UNUSED_IMPORT
 ''',
     );
   }
@@ -7877,13 +7888,6 @@ void f(A a) {
       expectedInitialEvents: r'''
 [status] working
 [operation] linkLibraryCycle SDK
-[future] getErrors T1
-  ErrorsResult #0
-    path: /home/test/lib/test.dart
-    uri: package:test/test.dart
-    flags: isLibrary
-    errors
-      35 +3 UNDEFINED_METHOD
 [operation] linkLibraryCycle
   package:test/a.dart
     declaredClasses
@@ -7922,6 +7926,13 @@ void f(A a) {
               foo=: <null>
         exportedExtensions: []
 [status] idle
+[future] getErrors T1
+  ErrorsResult #0
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
+    errors
+      35 +3 UNDEFINED_METHOD
 ''',
       updatedA: r'''
 class A {
@@ -7940,11 +7951,6 @@ class A {
           map
             foo: #M3
   requirements
-[future] getErrors T2
-  ErrorsResult #1
-    path: /home/test/lib/test.dart
-    uri: package:test/test.dart
-    flags: isLibrary
 [operation] readLibraryCycleBundle
   package:test/test.dart
 [operation] checkLibraryDiagnosticsRequirements
@@ -7970,6 +7976,11 @@ class A {
             methods
               foo: #M3
 [status] idle
+[future] getErrors T2
+  ErrorsResult #1
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
 ''',
     );
   }
@@ -7992,11 +8003,6 @@ class B extends A {}
       expectedInitialEvents: r'''
 [status] working
 [operation] linkLibraryCycle SDK
-[future] getErrors T1
-  ErrorsResult #0
-    path: /home/test/lib/test.dart
-    uri: package:test/test.dart
-    flags: isLibrary
 [operation] linkLibraryCycle
   package:test/a.dart
     declaredClasses
@@ -8046,6 +8052,11 @@ class B extends A {}
             requestedConstructors
               new: #M6
 [status] idle
+[future] getErrors T1
+  ErrorsResult #0
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
 ''',
       updatedA: r'''
 class A {
@@ -8067,11 +8078,6 @@ class A {
             bar: #M1
             foo: #M7
   requirements
-[future] getErrors T2
-  ErrorsResult #1
-    path: /home/test/lib/test.dart
-    uri: package:test/test.dart
-    flags: isLibrary
 [operation] cannotReuseLinkedBundle
   interfaceIdMismatch
     libraryUri: package:test/a.dart
@@ -8123,6 +8129,11 @@ class A {
             requestedConstructors
               new: #M6
 [status] idle
+[future] getErrors T2
+  ErrorsResult #1
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
 ''',
     );
   }
@@ -8150,11 +8161,6 @@ class X extends C {}
       expectedInitialEvents: r'''
 [status] working
 [operation] linkLibraryCycle SDK
-[future] getErrors T1
-  ErrorsResult #0
-    path: /home/test/lib/test.dart
-    uri: package:test/test.dart
-    flags: isLibrary
 [operation] linkLibraryCycle
   package:test/a.dart
     declaredClasses
@@ -8216,6 +8222,11 @@ class X extends C {}
             requestedConstructors
               new: #M11
 [status] idle
+[future] getErrors T1
+  ErrorsResult #0
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
 ''',
       updatedA: r'''
 class A {
@@ -8252,11 +8263,6 @@ class C extends A implements B {}
           combinedIds
             [#M12, #M4]: #M15
   requirements
-[future] getErrors T2
-  ErrorsResult #1
-    path: /home/test/lib/test.dart
-    uri: package:test/test.dart
-    flags: isLibrary
 [operation] cannotReuseLinkedBundle
   interfaceIdMismatch
     libraryUri: package:test/a.dart
@@ -8310,6 +8316,11 @@ class C extends A implements B {}
             requestedConstructors
               new: #M11
 [status] idle
+[future] getErrors T2
+  ErrorsResult #1
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
 ''',
     );
   }
@@ -8333,13 +8344,6 @@ import 'a.dart';
       expectedInitialEvents: r'''
 [status] working
 [operation] linkLibraryCycle SDK
-[future] getErrors T1
-  ErrorsResult #0
-    path: /home/test/lib/test.dart
-    uri: package:test/test.dart
-    flags: isLibrary
-    errors
-      7 +8 UNUSED_IMPORT
 [operation] linkLibraryCycle
   package:test/a.dart
     declaredClasses
@@ -8357,7 +8361,7 @@ import 'a.dart';
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
 [stream]
-  ResolvedUnitResult #1
+  ResolvedUnitResult #0
     path: /home/test/lib/test.dart
     uri: package:test/test.dart
     flags: exists isLibrary
@@ -8375,6 +8379,13 @@ import 'a.dart';
             requestedDeclaredMethods
               foo: #M1
 [status] idle
+[future] getErrors T1
+  ErrorsResult #1
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
+    errors
+      7 +8 UNUSED_IMPORT
 ''',
       updatedA: r'''
 class A {
@@ -8393,13 +8404,6 @@ class A {
           map
             foo: #M3
   requirements
-[future] getErrors T2
-  ErrorsResult #2
-    path: /home/test/lib/test.dart
-    uri: package:test/test.dart
-    flags: isLibrary
-    errors
-      7 +8 UNUSED_IMPORT
 [operation] readLibraryCycleBundle
   package:test/test.dart
 [operation] checkLibraryDiagnosticsRequirements
@@ -8414,7 +8418,7 @@ class A {
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
 [stream]
-  ResolvedUnitResult #3
+  ResolvedUnitResult #2
     path: /home/test/lib/test.dart
     uri: package:test/test.dart
     flags: exists isLibrary
@@ -8432,6 +8436,13 @@ class A {
             requestedDeclaredMethods
               foo: #M3
 [status] idle
+[future] getErrors T2
+  ErrorsResult #3
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
+    errors
+      7 +8 UNUSED_IMPORT
 ''',
     );
   }
@@ -8456,13 +8467,6 @@ import 'a.dart';
       expectedInitialEvents: r'''
 [status] working
 [operation] linkLibraryCycle SDK
-[future] getErrors T1
-  ErrorsResult #0
-    path: /home/test/lib/test.dart
-    uri: package:test/test.dart
-    flags: isLibrary
-    errors
-      7 +8 UNUSED_IMPORT
 [operation] linkLibraryCycle
   package:test/a.dart
     declaredClasses
@@ -8482,7 +8486,7 @@ import 'a.dart';
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
 [stream]
-  ResolvedUnitResult #1
+  ResolvedUnitResult #0
     path: /home/test/lib/test.dart
     uri: package:test/test.dart
     flags: exists isLibrary
@@ -8500,6 +8504,13 @@ import 'a.dart';
             requestedDeclaredMethods
               foo: #M2
 [status] idle
+[future] getErrors T1
+  ErrorsResult #1
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
+    errors
+      7 +8 UNUSED_IMPORT
 ''',
       updatedA: r'''
 class A {
@@ -8521,13 +8532,6 @@ class A {
             bar: #M4
             foo: #M2
   requirements
-[future] getErrors T2
-  ErrorsResult #2
-    path: /home/test/lib/test.dart
-    uri: package:test/test.dart
-    flags: isLibrary
-    errors
-      7 +8 UNUSED_IMPORT
 [operation] readLibraryCycleBundle
   package:test/test.dart
 [operation] checkLibraryDiagnosticsRequirements
@@ -8537,6 +8541,13 @@ class A {
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
 [status] idle
+[future] getErrors T2
+  ErrorsResult #2
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
+    errors
+      7 +8 UNUSED_IMPORT
 ''',
     );
   }
@@ -8558,11 +8569,6 @@ void f(A a) {
       expectedInitialEvents: r'''
 [status] working
 [operation] linkLibraryCycle SDK
-[future] getErrors T1
-  ErrorsResult #0
-    path: /home/test/lib/test.dart
-    uri: package:test/test.dart
-    flags: isLibrary
 [operation] linkLibraryCycle
   package:test/a.dart
     declaredClasses
@@ -8586,7 +8592,7 @@ void f(A a) {
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
 [stream]
-  ResolvedUnitResult #1
+  ResolvedUnitResult #0
     path: /home/test/lib/test.dart
     uri: package:test/test.dart
     flags: exists isLibrary
@@ -8602,6 +8608,11 @@ void f(A a) {
             methods
               foo: #M1
 [status] idle
+[future] getErrors T1
+  ErrorsResult #1
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
 ''',
       updatedA: r'''
 class A {
@@ -8620,11 +8631,6 @@ class A {
           map
             foo: #M4
   requirements
-[future] getErrors T2
-  ErrorsResult #2
-    path: /home/test/lib/test.dart
-    uri: package:test/test.dart
-    flags: isLibrary
 [operation] readLibraryCycleBundle
   package:test/test.dart
 [operation] checkLibraryDiagnosticsRequirements
@@ -8639,7 +8645,7 @@ class A {
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
 [stream]
-  ResolvedUnitResult #3
+  ResolvedUnitResult #2
     path: /home/test/lib/test.dart
     uri: package:test/test.dart
     flags: exists isLibrary
@@ -8655,6 +8661,11 @@ class A {
             methods
               foo: #M4
 [status] idle
+[future] getErrors T2
+  ErrorsResult #3
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
 ''',
     );
   }
@@ -8678,11 +8689,6 @@ void f() {
       expectedInitialEvents: r'''
 [status] working
 [operation] linkLibraryCycle SDK
-[future] getErrors T1
-  ErrorsResult #0
-    path: /home/test/lib/test.dart
-    uri: package:test/test.dart
-    flags: isLibrary
 [operation] linkLibraryCycle
   package:test/a.dart
     declaredClasses
@@ -8717,6 +8723,11 @@ void f() {
             methods
               foo: #M1
 [status] idle
+[future] getErrors T1
+  ErrorsResult #0
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
 ''',
       updatedA: r'''
 class A {
@@ -8738,11 +8749,6 @@ class A {
           map
             foo: #M5
   requirements
-[future] getErrors T2
-  ErrorsResult #1
-    path: /home/test/lib/test.dart
-    uri: package:test/test.dart
-    flags: isLibrary
 [operation] readLibraryCycleBundle
   package:test/test.dart
 [operation] checkLibraryDiagnosticsRequirements
@@ -8770,6 +8776,11 @@ class A {
             methods
               foo: #M5
 [status] idle
+[future] getErrors T2
+  ErrorsResult #1
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
 ''',
     );
   }
@@ -8800,11 +8811,6 @@ void f(B b) {
       expectedInitialEvents: r'''
 [status] working
 [operation] linkLibraryCycle SDK
-[future] getErrors T1
-  ErrorsResult #0
-    path: /home/test/lib/test.dart
-    uri: package:test/test.dart
-    flags: isLibrary
 [operation] linkLibraryCycle
   package:test/test.dart
     declaredClasses
@@ -8824,6 +8830,11 @@ void f(B b) {
   file: /home/test/lib/test.dart
   requirements
 [status] idle
+[future] getErrors T1
+  ErrorsResult #0
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
 ''',
       updateFiles: () {
         modifyFile2(testFile, r'''
@@ -8853,11 +8864,6 @@ void f(B b) {
     declaredFunctions
       f: #M5
   requirements
-[future] getErrors T2
-  ErrorsResult #1
-    path: /home/test/lib/test.dart
-    uri: package:test/test.dart
-    flags: isLibrary
 [operation] analyzeFile
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
@@ -8865,6 +8871,11 @@ void f(B b) {
   file: /home/test/lib/test.dart
   requirements
 [status] idle
+[future] getErrors T2
+  ErrorsResult #1
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
 ''',
     );
   }
@@ -8901,11 +8912,6 @@ void f(B b) {
       expectedInitialEvents: r'''
 [status] working
 [operation] linkLibraryCycle SDK
-[future] getErrors T1
-  ErrorsResult #0
-    path: /home/test/lib/test.dart
-    uri: package:test/test.dart
-    flags: isLibrary
 [operation] linkLibraryCycle
   package:test/a.dart
     declaredClasses
@@ -8931,6 +8937,11 @@ void f(B b) {
         exportedTopLevels
           B: #M0
 [status] idle
+[future] getErrors T1
+  ErrorsResult #0
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
 ''',
       updateFiles: () {
         modifyFile2(testFile, r'''
@@ -8962,14 +8973,6 @@ void f(B b) {
     declaredFunctions
       f: #M5
   requirements
-[future] getErrors T2
-  ErrorsResult #1
-    path: /home/test/lib/test.dart
-    uri: package:test/test.dart
-    flags: isLibrary
-    errors
-      66 +4 UNDEFINED_METHOD
-      35 +4 UNUSED_ELEMENT
 [operation] analyzeFile
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
@@ -8988,6 +8991,14 @@ void f(B b) {
               _foo: <null>
         exportedExtensions: []
 [status] idle
+[future] getErrors T2
+  ErrorsResult #1
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
+    errors
+      66 +4 UNDEFINED_METHOD
+      35 +4 UNUSED_ELEMENT
 ''',
     );
   }
@@ -9010,11 +9021,6 @@ void f(A a) {
       expectedInitialEvents: r'''
 [status] working
 [operation] linkLibraryCycle SDK
-[future] getErrors T1
-  ErrorsResult #0
-    path: /home/test/lib/test.dart
-    uri: package:test/test.dart
-    flags: isLibrary
 [operation] linkLibraryCycle
   package:test/a.dart
     declaredClasses
@@ -9040,7 +9046,7 @@ void f(A a) {
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
 [stream]
-  ResolvedUnitResult #1
+  ResolvedUnitResult #0
     path: /home/test/lib/test.dart
     uri: package:test/test.dart
     flags: exists isLibrary
@@ -9056,6 +9062,11 @@ void f(A a) {
             methods
               foo: #M2
 [status] idle
+[future] getErrors T1
+  ErrorsResult #1
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
 ''',
       updatedA: r'''
 class A {
@@ -9077,11 +9088,6 @@ class A {
             bar: #M5
             foo: #M2
   requirements
-[future] getErrors T2
-  ErrorsResult #2
-    path: /home/test/lib/test.dart
-    uri: package:test/test.dart
-    flags: isLibrary
 [operation] readLibraryCycleBundle
   package:test/test.dart
 [operation] checkLibraryDiagnosticsRequirements
@@ -9091,6 +9097,11 @@ class A {
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
 [status] idle
+[future] getErrors T2
+  ErrorsResult #2
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
 ''',
     );
   }
@@ -9117,11 +9128,6 @@ void f(C c) {
       expectedInitialEvents: r'''
 [status] working
 [operation] linkLibraryCycle SDK
-[future] getErrors T1
-  ErrorsResult #0
-    path: /home/test/lib/test.dart
-    uri: package:test/test.dart
-    flags: isLibrary
 [operation] linkLibraryCycle
   package:test/a.dart
     declaredClasses
@@ -9164,6 +9170,11 @@ void f(C c) {
             methods
               foo: #M1
 [status] idle
+[future] getErrors T1
+  ErrorsResult #0
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
 ''',
       updatedA: r'''
 class A<T> {
@@ -9194,11 +9205,6 @@ class C extends B {}
           map
             foo: #M1
   requirements
-[future] getErrors T2
-  ErrorsResult #1
-    path: /home/test/lib/test.dart
-    uri: package:test/test.dart
-    flags: isLibrary
 [operation] cannotReuseLinkedBundle
   topLevelIdMismatch
     libraryUri: package:test/a.dart
@@ -9236,6 +9242,11 @@ class C extends B {}
             methods
               foo: #M1
 [status] idle
+[future] getErrors T2
+  ErrorsResult #1
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
 ''',
     );
   }
@@ -9260,11 +9271,6 @@ void f(B b) {
       expectedInitialEvents: r'''
 [status] working
 [operation] linkLibraryCycle SDK
-[future] getErrors T1
-  ErrorsResult #0
-    path: /home/test/lib/test.dart
-    uri: package:test/test.dart
-    flags: isLibrary
 [operation] linkLibraryCycle
   package:test/a.dart
     declaredClasses
@@ -9303,6 +9309,11 @@ void f(B b) {
             methods
               foo: #M1
 [status] idle
+[future] getErrors T1
+  ErrorsResult #0
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
 ''',
       updatedA: r'''
 class A<T> {
@@ -9327,11 +9338,6 @@ class B extends A<double> {}
           map
             foo: #M1
   requirements
-[future] getErrors T2
-  ErrorsResult #1
-    path: /home/test/lib/test.dart
-    uri: package:test/test.dart
-    flags: isLibrary
 [operation] cannotReuseLinkedBundle
   topLevelIdMismatch
     libraryUri: package:test/a.dart
@@ -9369,6 +9375,11 @@ class B extends A<double> {}
             methods
               foo: #M1
 [status] idle
+[future] getErrors T2
+  ErrorsResult #1
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
 ''',
     );
   }
@@ -9393,11 +9404,6 @@ void f(B b) {
       expectedInitialEvents: r'''
 [status] working
 [operation] linkLibraryCycle SDK
-[future] getErrors T1
-  ErrorsResult #0
-    path: /home/test/lib/test.dart
-    uri: package:test/test.dart
-    flags: isLibrary
 [operation] linkLibraryCycle
   package:test/a.dart
     declaredClasses
@@ -9436,6 +9442,11 @@ void f(B b) {
             methods
               foo: #M1
 [status] idle
+[future] getErrors T1
+  ErrorsResult #0
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
 ''',
       updatedA: r'''
 class A<T> {
@@ -9460,11 +9471,6 @@ class B implements A<double> {}
           map
             foo: #M1
   requirements
-[future] getErrors T2
-  ErrorsResult #1
-    path: /home/test/lib/test.dart
-    uri: package:test/test.dart
-    flags: isLibrary
 [operation] cannotReuseLinkedBundle
   topLevelIdMismatch
     libraryUri: package:test/a.dart
@@ -9502,6 +9508,11 @@ class B implements A<double> {}
             methods
               foo: #M1
 [status] idle
+[future] getErrors T2
+  ErrorsResult #1
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
 ''',
     );
   }
@@ -9526,11 +9537,6 @@ void f(B b) {
       expectedInitialEvents: r'''
 [status] working
 [operation] linkLibraryCycle SDK
-[future] getErrors T1
-  ErrorsResult #0
-    path: /home/test/lib/test.dart
-    uri: package:test/test.dart
-    flags: isLibrary
 [operation] linkLibraryCycle
   package:test/a.dart
     declaredClasses
@@ -9569,6 +9575,11 @@ void f(B b) {
             methods
               foo: #M1
 [status] idle
+[future] getErrors T1
+  ErrorsResult #0
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
 ''',
       updatedA: r'''
 class A<T> {
@@ -9593,11 +9604,6 @@ class B with A<double> {}
           map
             foo: #M1
   requirements
-[future] getErrors T2
-  ErrorsResult #1
-    path: /home/test/lib/test.dart
-    uri: package:test/test.dart
-    flags: isLibrary
 [operation] cannotReuseLinkedBundle
   topLevelIdMismatch
     libraryUri: package:test/a.dart
@@ -9635,6 +9641,11 @@ class B with A<double> {}
             methods
               foo: #M1
 [status] idle
+[future] getErrors T2
+  ErrorsResult #1
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
 ''',
     );
   }
@@ -9663,11 +9674,6 @@ void f (B b) {
       expectedInitialEvents: r'''
 [status] working
 [operation] linkLibraryCycle SDK
-[future] getErrors T1
-  ErrorsResult #0
-    path: /home/test/lib/test.dart
-    uri: package:test/test.dart
-    flags: isLibrary
 [operation] linkLibraryCycle
   package:test/test.dart
     declaredClasses
@@ -9687,6 +9693,11 @@ void f (B b) {
   file: /home/test/lib/test.dart
   requirements
 [status] idle
+[future] getErrors T1
+  ErrorsResult #0
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
 ''',
       updateFiles: () {
         modifyFile2(testFile, r'''
@@ -9716,13 +9727,6 @@ void f (B b) {
     declaredFunctions
       f: #M5
   requirements
-[future] getErrors T2
-  ErrorsResult #1
-    path: /home/test/lib/test.dart
-    uri: package:test/test.dart
-    flags: isLibrary
-    errors
-      84 +6 UNDEFINED_GETTER
 [operation] analyzeFile
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
@@ -9730,6 +9734,13 @@ void f (B b) {
   file: /home/test/lib/test.dart
   requirements
 [status] idle
+[future] getErrors T2
+  ErrorsResult #1
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
+    errors
+      84 +6 UNDEFINED_GETTER
 ''',
     );
   }
@@ -9752,11 +9763,6 @@ void f(A a) {
       expectedInitialEvents: r'''
 [status] working
 [operation] linkLibraryCycle SDK
-[future] getErrors T1
-  ErrorsResult #0
-    path: /home/test/lib/test.dart
-    uri: package:test/test.dart
-    flags: isLibrary
 [operation] linkLibraryCycle
   package:test/a.dart
     declaredClasses
@@ -9791,6 +9797,11 @@ void f(A a) {
             methods
               foo: #M1
 [status] idle
+[future] getErrors T1
+  ErrorsResult #0
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
 ''',
       updatedA: r'''
 class A {}
@@ -9803,13 +9814,6 @@ class A {}
       A: #M0
         interface: #M4
   requirements
-[future] getErrors T2
-  ErrorsResult #1
-    path: /home/test/lib/test.dart
-    uri: package:test/test.dart
-    flags: isLibrary
-    errors
-      35 +3 UNDEFINED_METHOD
 [operation] readLibraryCycleBundle
   package:test/test.dart
 [operation] checkLibraryDiagnosticsRequirements
@@ -9843,6 +9847,13 @@ class A {}
               foo=: <null>
         exportedExtensions: []
 [status] idle
+[future] getErrors T2
+  ErrorsResult #1
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
+    errors
+      35 +3 UNDEFINED_METHOD
 ''',
     );
   }
@@ -9862,13 +9873,6 @@ void f(A a) {
       expectedInitialEvents: r'''
 [status] working
 [operation] linkLibraryCycle SDK
-[future] getErrors T1
-  ErrorsResult #0
-    path: /home/test/lib/test.dart
-    uri: package:test/test.dart
-    flags: isLibrary
-    errors
-      35 +3 UNDEFINED_SETTER
 [operation] linkLibraryCycle
   package:test/a.dart
     declaredClasses
@@ -9888,7 +9892,7 @@ void f(A a) {
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
 [stream]
-  ResolvedUnitResult #1
+  ResolvedUnitResult #0
     path: /home/test/lib/test.dart
     uri: package:test/test.dart
     flags: exists isLibrary
@@ -9916,6 +9920,13 @@ void f(A a) {
               foo=: <null>
         exportedExtensions: []
 [status] idle
+[future] getErrors T1
+  ErrorsResult #1
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
+    errors
+      35 +3 UNDEFINED_SETTER
 ''',
       updatedA: r'''
 class A {
@@ -9936,11 +9947,6 @@ class A {
           map
             foo=: #M4
   requirements
-[future] getErrors T2
-  ErrorsResult #2
-    path: /home/test/lib/test.dart
-    uri: package:test/test.dart
-    flags: isLibrary
 [operation] readLibraryCycleBundle
   package:test/test.dart
 [operation] checkLibraryDiagnosticsRequirements
@@ -9955,7 +9961,7 @@ class A {
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
 [stream]
-  ResolvedUnitResult #3
+  ResolvedUnitResult #2
     path: /home/test/lib/test.dart
     uri: package:test/test.dart
     flags: exists isLibrary
@@ -9975,6 +9981,11 @@ class A {
             methods
               foo=: #M4
 [status] idle
+[future] getErrors T2
+  ErrorsResult #3
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
 ''',
     );
   }
@@ -9999,13 +10010,6 @@ import 'a.dart';
       expectedInitialEvents: r'''
 [status] working
 [operation] linkLibraryCycle SDK
-[future] getErrors T1
-  ErrorsResult #0
-    path: /home/test/lib/test.dart
-    uri: package:test/test.dart
-    flags: isLibrary
-    errors
-      7 +8 UNUSED_IMPORT
 [operation] linkLibraryCycle
   package:test/a.dart
     declaredClasses
@@ -10028,7 +10032,7 @@ import 'a.dart';
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
 [stream]
-  ResolvedUnitResult #1
+  ResolvedUnitResult #0
     path: /home/test/lib/test.dart
     uri: package:test/test.dart
     flags: exists isLibrary
@@ -10048,6 +10052,13 @@ import 'a.dart';
             requestedDeclaredSetters
               foo=: #M3
 [status] idle
+[future] getErrors T1
+  ErrorsResult #1
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
+    errors
+      7 +8 UNUSED_IMPORT
 ''',
       updatedA: r'''
 class A {
@@ -10072,13 +10083,6 @@ class A {
             foo: #M2
             foo=: #M5
   requirements
-[future] getErrors T2
-  ErrorsResult #2
-    path: /home/test/lib/test.dart
-    uri: package:test/test.dart
-    flags: isLibrary
-    errors
-      7 +8 UNUSED_IMPORT
 [operation] readLibraryCycleBundle
   package:test/test.dart
 [operation] checkLibraryDiagnosticsRequirements
@@ -10093,7 +10097,7 @@ class A {
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
 [stream]
-  ResolvedUnitResult #3
+  ResolvedUnitResult #2
     path: /home/test/lib/test.dart
     uri: package:test/test.dart
     flags: exists isLibrary
@@ -10113,6 +10117,13 @@ class A {
             requestedDeclaredSetters
               foo=: #M5
 [status] idle
+[future] getErrors T2
+  ErrorsResult #3
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
+    errors
+      7 +8 UNUSED_IMPORT
 ''',
     );
   }
@@ -10136,13 +10147,6 @@ import 'a.dart';
       expectedInitialEvents: r'''
 [status] working
 [operation] linkLibraryCycle SDK
-[future] getErrors T1
-  ErrorsResult #0
-    path: /home/test/lib/test.dart
-    uri: package:test/test.dart
-    flags: isLibrary
-    errors
-      7 +8 UNUSED_IMPORT
 [operation] linkLibraryCycle
   package:test/a.dart
     declaredClasses
@@ -10162,7 +10166,7 @@ import 'a.dart';
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
 [stream]
-  ResolvedUnitResult #1
+  ResolvedUnitResult #0
     path: /home/test/lib/test.dart
     uri: package:test/test.dart
     flags: exists isLibrary
@@ -10180,6 +10184,13 @@ import 'a.dart';
             requestedDeclaredSetters
               foo=: #M2
 [status] idle
+[future] getErrors T1
+  ErrorsResult #1
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
+    errors
+      7 +8 UNUSED_IMPORT
 ''',
       updatedA: r'''
 class A {
@@ -10200,13 +10211,6 @@ class A {
           map
             foo=: #M5
   requirements
-[future] getErrors T2
-  ErrorsResult #2
-    path: /home/test/lib/test.dart
-    uri: package:test/test.dart
-    flags: isLibrary
-    errors
-      7 +8 UNUSED_IMPORT
 [operation] readLibraryCycleBundle
   package:test/test.dart
 [operation] checkLibraryDiagnosticsRequirements
@@ -10221,7 +10225,7 @@ class A {
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
 [stream]
-  ResolvedUnitResult #3
+  ResolvedUnitResult #2
     path: /home/test/lib/test.dart
     uri: package:test/test.dart
     flags: exists isLibrary
@@ -10239,6 +10243,13 @@ class A {
             requestedDeclaredSetters
               foo=: #M5
 [status] idle
+[future] getErrors T2
+  ErrorsResult #3
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
+    errors
+      7 +8 UNUSED_IMPORT
 ''',
     );
   }
@@ -10263,13 +10274,6 @@ import 'a.dart';
       expectedInitialEvents: r'''
 [status] working
 [operation] linkLibraryCycle SDK
-[future] getErrors T1
-  ErrorsResult #0
-    path: /home/test/lib/test.dart
-    uri: package:test/test.dart
-    flags: isLibrary
-    errors
-      7 +8 UNUSED_IMPORT
 [operation] linkLibraryCycle
   package:test/a.dart
     declaredClasses
@@ -10292,7 +10296,7 @@ import 'a.dart';
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
 [stream]
-  ResolvedUnitResult #1
+  ResolvedUnitResult #0
     path: /home/test/lib/test.dart
     uri: package:test/test.dart
     flags: exists isLibrary
@@ -10310,6 +10314,13 @@ import 'a.dart';
             requestedDeclaredSetters
               foo=: #M4
 [status] idle
+[future] getErrors T1
+  ErrorsResult #1
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
+    errors
+      7 +8 UNUSED_IMPORT
 ''',
       updatedA: r'''
 class A {
@@ -10334,13 +10345,6 @@ class A {
             bar=: #M7
             foo=: #M4
   requirements
-[future] getErrors T2
-  ErrorsResult #2
-    path: /home/test/lib/test.dart
-    uri: package:test/test.dart
-    flags: isLibrary
-    errors
-      7 +8 UNUSED_IMPORT
 [operation] readLibraryCycleBundle
   package:test/test.dart
 [operation] checkLibraryDiagnosticsRequirements
@@ -10350,6 +10354,13 @@ class A {
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
 [status] idle
+[future] getErrors T2
+  ErrorsResult #2
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
+    errors
+      7 +8 UNUSED_IMPORT
 ''',
     );
   }
@@ -10371,11 +10382,6 @@ void f(A a) {
       expectedInitialEvents: r'''
 [status] working
 [operation] linkLibraryCycle SDK
-[future] getErrors T1
-  ErrorsResult #0
-    path: /home/test/lib/test.dart
-    uri: package:test/test.dart
-    flags: isLibrary
 [operation] linkLibraryCycle
   package:test/a.dart
     declaredClasses
@@ -10401,7 +10407,7 @@ void f(A a) {
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
 [stream]
-  ResolvedUnitResult #1
+  ResolvedUnitResult #0
     path: /home/test/lib/test.dart
     uri: package:test/test.dart
     flags: exists isLibrary
@@ -10421,6 +10427,11 @@ void f(A a) {
             methods
               foo=: #M2
 [status] idle
+[future] getErrors T1
+  ErrorsResult #1
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
 ''',
       updatedA: r'''
 class A {
@@ -10441,11 +10452,6 @@ class A {
           map
             foo=: #M6
   requirements
-[future] getErrors T2
-  ErrorsResult #2
-    path: /home/test/lib/test.dart
-    uri: package:test/test.dart
-    flags: isLibrary
 [operation] readLibraryCycleBundle
   package:test/test.dart
 [operation] checkLibraryDiagnosticsRequirements
@@ -10460,7 +10466,7 @@ class A {
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
 [stream]
-  ResolvedUnitResult #3
+  ResolvedUnitResult #2
     path: /home/test/lib/test.dart
     uri: package:test/test.dart
     flags: exists isLibrary
@@ -10480,6 +10486,11 @@ class A {
             methods
               foo=: #M6
 [status] idle
+[future] getErrors T2
+  ErrorsResult #3
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
 ''',
     );
   }
@@ -10506,11 +10517,6 @@ void f() {
       expectedInitialEvents: r'''
 [status] working
 [operation] linkLibraryCycle SDK
-[future] getErrors T1
-  ErrorsResult #0
-    path: /home/test/lib/test.dart
-    uri: package:test/test.dart
-    flags: isLibrary
 [operation] linkLibraryCycle
   package:test/a.dart
     declaredClasses
@@ -10555,6 +10561,11 @@ void f() {
               foo: #M2
               foo=: #M3
 [status] idle
+[future] getErrors T1
+  ErrorsResult #0
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
 ''',
       updatedA: r'''
 class A {
@@ -10582,11 +10593,6 @@ class A {
             foo: #M2
             foo=: #M7
   requirements
-[future] getErrors T2
-  ErrorsResult #1
-    path: /home/test/lib/test.dart
-    uri: package:test/test.dart
-    flags: isLibrary
 [operation] readLibraryCycleBundle
   package:test/test.dart
 [operation] checkLibraryDiagnosticsRequirements
@@ -10619,6 +10625,11 @@ class A {
               foo: #M2
               foo=: #M7
 [status] idle
+[future] getErrors T2
+  ErrorsResult #1
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
 ''',
     );
   }
@@ -10641,11 +10652,6 @@ void f(A a) {
       expectedInitialEvents: r'''
 [status] working
 [operation] linkLibraryCycle SDK
-[future] getErrors T1
-  ErrorsResult #0
-    path: /home/test/lib/test.dart
-    uri: package:test/test.dart
-    flags: isLibrary
 [operation] linkLibraryCycle
   package:test/a.dart
     declaredClasses
@@ -10674,7 +10680,7 @@ void f(A a) {
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
 [stream]
-  ResolvedUnitResult #1
+  ResolvedUnitResult #0
     path: /home/test/lib/test.dart
     uri: package:test/test.dart
     flags: exists isLibrary
@@ -10694,6 +10700,11 @@ void f(A a) {
             methods
               foo=: #M4
 [status] idle
+[future] getErrors T1
+  ErrorsResult #1
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
 ''',
       updatedA: r'''
 class A {
@@ -10718,11 +10729,6 @@ class A {
             bar=: #M8
             foo=: #M4
   requirements
-[future] getErrors T2
-  ErrorsResult #2
-    path: /home/test/lib/test.dart
-    uri: package:test/test.dart
-    flags: isLibrary
 [operation] readLibraryCycleBundle
   package:test/test.dart
 [operation] checkLibraryDiagnosticsRequirements
@@ -10732,6 +10738,11 @@ class A {
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
 [status] idle
+[future] getErrors T2
+  ErrorsResult #2
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
 ''',
     );
   }
@@ -10756,11 +10767,6 @@ void f(B b) {
       expectedInitialEvents: r'''
 [status] working
 [operation] linkLibraryCycle SDK
-[future] getErrors T1
-  ErrorsResult #0
-    path: /home/test/lib/test.dart
-    uri: package:test/test.dart
-    flags: isLibrary
 [operation] linkLibraryCycle
   package:test/a.dart
     declaredClasses
@@ -10805,6 +10811,11 @@ void f(B b) {
             methods
               foo=: #M2
 [status] idle
+[future] getErrors T1
+  ErrorsResult #0
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
 ''',
       updatedA: r'''
 class A<T> {
@@ -10831,11 +10842,6 @@ class B extends A<double> {}
           map
             foo=: #M2
   requirements
-[future] getErrors T2
-  ErrorsResult #1
-    path: /home/test/lib/test.dart
-    uri: package:test/test.dart
-    flags: isLibrary
 [operation] cannotReuseLinkedBundle
   topLevelIdMismatch
     libraryUri: package:test/a.dart
@@ -10877,6 +10883,11 @@ class B extends A<double> {}
             methods
               foo=: #M2
 [status] idle
+[future] getErrors T2
+  ErrorsResult #1
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
 ''',
     );
   }
@@ -10901,11 +10912,6 @@ void f(B b) {
       expectedInitialEvents: r'''
 [status] working
 [operation] linkLibraryCycle SDK
-[future] getErrors T1
-  ErrorsResult #0
-    path: /home/test/lib/test.dart
-    uri: package:test/test.dart
-    flags: isLibrary
 [operation] linkLibraryCycle
   package:test/a.dart
     declaredClasses
@@ -10950,6 +10956,11 @@ void f(B b) {
             methods
               foo=: #M2
 [status] idle
+[future] getErrors T1
+  ErrorsResult #0
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
 ''',
       updatedA: r'''
 class A<T> {
@@ -10976,11 +10987,6 @@ class B implements A<double> {}
           map
             foo=: #M2
   requirements
-[future] getErrors T2
-  ErrorsResult #1
-    path: /home/test/lib/test.dart
-    uri: package:test/test.dart
-    flags: isLibrary
 [operation] cannotReuseLinkedBundle
   topLevelIdMismatch
     libraryUri: package:test/a.dart
@@ -11022,6 +11028,11 @@ class B implements A<double> {}
             methods
               foo=: #M2
 [status] idle
+[future] getErrors T2
+  ErrorsResult #1
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
 ''',
     );
   }
@@ -11046,11 +11057,6 @@ void f(B b) {
       expectedInitialEvents: r'''
 [status] working
 [operation] linkLibraryCycle SDK
-[future] getErrors T1
-  ErrorsResult #0
-    path: /home/test/lib/test.dart
-    uri: package:test/test.dart
-    flags: isLibrary
 [operation] linkLibraryCycle
   package:test/a.dart
     declaredClasses
@@ -11095,6 +11101,11 @@ void f(B b) {
             methods
               foo=: #M2
 [status] idle
+[future] getErrors T1
+  ErrorsResult #0
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
 ''',
       updatedA: r'''
 class A<T> {
@@ -11121,11 +11132,6 @@ class B with A<double> {}
           map
             foo=: #M2
   requirements
-[future] getErrors T2
-  ErrorsResult #1
-    path: /home/test/lib/test.dart
-    uri: package:test/test.dart
-    flags: isLibrary
 [operation] cannotReuseLinkedBundle
   topLevelIdMismatch
     libraryUri: package:test/a.dart
@@ -11167,6 +11173,11 @@ class B with A<double> {}
             methods
               foo=: #M2
 [status] idle
+[future] getErrors T2
+  ErrorsResult #1
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
 ''',
     );
   }
@@ -11195,11 +11206,6 @@ void f (B b) {
       expectedInitialEvents: r'''
 [status] working
 [operation] linkLibraryCycle SDK
-[future] getErrors T1
-  ErrorsResult #0
-    path: /home/test/lib/test.dart
-    uri: package:test/test.dart
-    flags: isLibrary
 [operation] linkLibraryCycle
   package:test/test.dart
     declaredClasses
@@ -11221,6 +11227,11 @@ void f (B b) {
   file: /home/test/lib/test.dart
   requirements
 [status] idle
+[future] getErrors T1
+  ErrorsResult #0
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
 ''',
       updateFiles: () {
         modifyFile2(testFile, r'''
@@ -11252,13 +11263,6 @@ void f (B b) {
     declaredFunctions
       f: #M6
   requirements
-[future] getErrors T2
-  ErrorsResult #1
-    path: /home/test/lib/test.dart
-    uri: package:test/test.dart
-    flags: isLibrary
-    errors
-      85 +1 INVALID_ASSIGNMENT
 [operation] analyzeFile
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
@@ -11266,6 +11270,13 @@ void f (B b) {
   file: /home/test/lib/test.dart
   requirements
 [status] idle
+[future] getErrors T2
+  ErrorsResult #1
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
+    errors
+      85 +1 INVALID_ASSIGNMENT
 ''',
     );
   }
@@ -11287,11 +11298,6 @@ void f(A a) {
       expectedInitialEvents: r'''
 [status] working
 [operation] linkLibraryCycle SDK
-[future] getErrors T1
-  ErrorsResult #0
-    path: /home/test/lib/test.dart
-    uri: package:test/test.dart
-    flags: isLibrary
 [operation] linkLibraryCycle
   package:test/a.dart
     declaredClasses
@@ -11317,7 +11323,7 @@ void f(A a) {
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
 [stream]
-  ResolvedUnitResult #1
+  ResolvedUnitResult #0
     path: /home/test/lib/test.dart
     uri: package:test/test.dart
     flags: exists isLibrary
@@ -11337,6 +11343,11 @@ void f(A a) {
             methods
               foo=: #M2
 [status] idle
+[future] getErrors T1
+  ErrorsResult #1
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
 ''',
       updatedA: r'''
 class A {}
@@ -11349,13 +11360,6 @@ class A {}
       A: #M0
         interface: #M5
   requirements
-[future] getErrors T2
-  ErrorsResult #2
-    path: /home/test/lib/test.dart
-    uri: package:test/test.dart
-    flags: isLibrary
-    errors
-      35 +3 UNDEFINED_SETTER
 [operation] readLibraryCycleBundle
   package:test/test.dart
 [operation] checkLibraryDiagnosticsRequirements
@@ -11370,7 +11374,7 @@ class A {}
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
 [stream]
-  ResolvedUnitResult #3
+  ResolvedUnitResult #2
     path: /home/test/lib/test.dart
     uri: package:test/test.dart
     flags: exists isLibrary
@@ -11398,6 +11402,13 @@ class A {}
               foo=: <null>
         exportedExtensions: []
 [status] idle
+[future] getErrors T2
+  ErrorsResult #3
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
+    errors
+      35 +3 UNDEFINED_SETTER
 ''',
     );
   }
@@ -11421,13 +11432,6 @@ import 'a.dart';
       expectedInitialEvents: r'''
 [status] working
 [operation] linkLibraryCycle SDK
-[future] getErrors T1
-  ErrorsResult #0
-    path: /home/test/lib/test.dart
-    uri: package:test/test.dart
-    flags: isLibrary
-    errors
-      7 +8 UNUSED_IMPORT
 [operation] linkLibraryCycle
   package:test/a.dart
     declaredClasses
@@ -11447,7 +11451,7 @@ import 'a.dart';
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
 [stream]
-  ResolvedUnitResult #1
+  ResolvedUnitResult #0
     path: /home/test/lib/test.dart
     uri: package:test/test.dart
     flags: exists isLibrary
@@ -11464,6 +11468,13 @@ import 'a.dart';
           A
             allDeclaredSetters: #M2
 [status] idle
+[future] getErrors T1
+  ErrorsResult #1
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
+    errors
+      7 +8 UNUSED_IMPORT
 ''',
       updatedA: r'''
 class A {
@@ -11488,13 +11499,6 @@ class A {
             bar=: #M5
             foo=: #M2
   requirements
-[future] getErrors T2
-  ErrorsResult #2
-    path: /home/test/lib/test.dart
-    uri: package:test/test.dart
-    flags: isLibrary
-    errors
-      7 +8 UNUSED_IMPORT
 [operation] readLibraryCycleBundle
   package:test/test.dart
 [operation] checkLibraryDiagnosticsRequirements
@@ -11509,7 +11513,7 @@ class A {
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
 [stream]
-  ResolvedUnitResult #3
+  ResolvedUnitResult #2
     path: /home/test/lib/test.dart
     uri: package:test/test.dart
     flags: exists isLibrary
@@ -11526,6 +11530,13 @@ class A {
           A
             allDeclaredSetters: #M2 #M5
 [status] idle
+[future] getErrors T2
+  ErrorsResult #3
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
+    errors
+      7 +8 UNUSED_IMPORT
 ''',
     );
   }
@@ -11541,13 +11552,6 @@ A foo() {}
       expectedInitialEvents: r'''
 [status] working
 [operation] linkLibraryCycle SDK
-[future] getErrors T1
-  ErrorsResult #0
-    path: /home/test/lib/test.dart
-    uri: package:test/test.dart
-    flags: isLibrary
-    errors
-      17 +1 UNDEFINED_CLASS
 [operation] linkLibraryCycle
   package:test/a.dart
   requirements
@@ -11564,7 +11568,7 @@ A foo() {}
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
 [stream]
-  ResolvedUnitResult #1
+  ResolvedUnitResult #0
     path: /home/test/lib/test.dart
     uri: package:test/test.dart
     flags: exists isLibrary
@@ -11578,6 +11582,13 @@ A foo() {}
         exportedTopLevels
           A: <null>
 [status] idle
+[future] getErrors T1
+  ErrorsResult #1
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
+    errors
+      17 +1 UNDEFINED_CLASS
 ''',
       updatedA: r'''
 class A {}
@@ -11590,13 +11601,6 @@ class A {}
       A: #M1
         interface: #M2
   requirements
-[future] getErrors T2
-  ErrorsResult #2
-    path: /home/test/lib/test.dart
-    uri: package:test/test.dart
-    flags: isLibrary
-    errors
-      19 +3 BODY_MIGHT_COMPLETE_NORMALLY
 [operation] cannotReuseLinkedBundle
   topLevelIdMismatch
     libraryUri: package:test/a.dart
@@ -11623,7 +11627,7 @@ class A {}
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
 [stream]
-  ResolvedUnitResult #3
+  ResolvedUnitResult #2
     path: /home/test/lib/test.dart
     uri: package:test/test.dart
     flags: exists isLibrary
@@ -11637,6 +11641,13 @@ class A {}
         exportedTopLevels
           A: #M1
 [status] idle
+[future] getErrors T2
+  ErrorsResult #3
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
+    errors
+      19 +3 BODY_MIGHT_COMPLETE_NORMALLY
 ''',
     );
   }
@@ -11654,13 +11665,6 @@ A foo() {}
       expectedInitialEvents: r'''
 [status] working
 [operation] linkLibraryCycle SDK
-[future] getErrors T1
-  ErrorsResult #0
-    path: /home/test/lib/test.dart
-    uri: package:test/test.dart
-    flags: isLibrary
-    errors
-      19 +3 BODY_MIGHT_COMPLETE_NORMALLY
 [operation] linkLibraryCycle
   package:test/a.dart
     declaredClasses
@@ -11680,7 +11684,7 @@ A foo() {}
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
 [stream]
-  ResolvedUnitResult #1
+  ResolvedUnitResult #0
     path: /home/test/lib/test.dart
     uri: package:test/test.dart
     flags: exists isLibrary
@@ -11694,6 +11698,13 @@ A foo() {}
         exportedTopLevels
           A: #M0
 [status] idle
+[future] getErrors T1
+  ErrorsResult #1
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
+    errors
+      19 +3 BODY_MIGHT_COMPLETE_NORMALLY
 ''',
       updatedA: r'''
 class A {}
@@ -11709,13 +11720,6 @@ class B {}
       B: #M3
         interface: #M4
   requirements
-[future] getErrors T2
-  ErrorsResult #2
-    path: /home/test/lib/test.dart
-    uri: package:test/test.dart
-    flags: isLibrary
-    errors
-      19 +3 BODY_MIGHT_COMPLETE_NORMALLY
 [operation] readLibraryCycleBundle
   package:test/test.dart
 [operation] checkLibraryDiagnosticsRequirements
@@ -11725,6 +11729,13 @@ class B {}
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
 [status] idle
+[future] getErrors T2
+  ErrorsResult #2
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
+    errors
+      19 +3 BODY_MIGHT_COMPLETE_NORMALLY
 ''',
     );
   }
@@ -11743,13 +11754,6 @@ A foo() {}
       expectedInitialEvents: r'''
 [status] working
 [operation] linkLibraryCycle SDK
-[future] getErrors T1
-  ErrorsResult #0
-    path: /home/test/lib/test.dart
-    uri: package:test/test.dart
-    flags: isLibrary
-    errors
-      19 +3 BODY_MIGHT_COMPLETE_NORMALLY
 [operation] linkLibraryCycle
   package:test/a.dart
     declaredClasses
@@ -11771,7 +11775,7 @@ A foo() {}
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
 [stream]
-  ResolvedUnitResult #1
+  ResolvedUnitResult #0
     path: /home/test/lib/test.dart
     uri: package:test/test.dart
     flags: exists isLibrary
@@ -11785,6 +11789,13 @@ A foo() {}
         exportedTopLevels
           A: #M0
 [status] idle
+[future] getErrors T1
+  ErrorsResult #1
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
+    errors
+      19 +3 BODY_MIGHT_COMPLETE_NORMALLY
 ''',
       updatedA: r'''
 class A extends B {}
@@ -11800,13 +11811,6 @@ class B {}
       B: #M2
         interface: #M3
   requirements
-[future] getErrors T2
-  ErrorsResult #2
-    path: /home/test/lib/test.dart
-    uri: package:test/test.dart
-    flags: isLibrary
-    errors
-      19 +3 BODY_MIGHT_COMPLETE_NORMALLY
 [operation] cannotReuseLinkedBundle
   topLevelIdMismatch
     libraryUri: package:test/a.dart
@@ -11833,7 +11837,7 @@ class B {}
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
 [stream]
-  ResolvedUnitResult #3
+  ResolvedUnitResult #2
     path: /home/test/lib/test.dart
     uri: package:test/test.dart
     flags: exists isLibrary
@@ -11847,6 +11851,13 @@ class B {}
         exportedTopLevels
           A: #M5
 [status] idle
+[future] getErrors T2
+  ErrorsResult #3
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
+    errors
+      19 +3 BODY_MIGHT_COMPLETE_NORMALLY
 ''',
     );
   }
@@ -11866,13 +11877,6 @@ A foo() {}
       expectedInitialEvents: r'''
 [status] working
 [operation] linkLibraryCycle SDK
-[future] getErrors T1
-  ErrorsResult #0
-    path: /home/test/lib/test.dart
-    uri: package:test/test.dart
-    flags: isLibrary
-    errors
-      19 +3 BODY_MIGHT_COMPLETE_NORMALLY
 [operation] linkLibraryCycle
   package:test/a.dart
     declaredClasses
@@ -11896,7 +11900,7 @@ A foo() {}
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
 [stream]
-  ResolvedUnitResult #1
+  ResolvedUnitResult #0
     path: /home/test/lib/test.dart
     uri: package:test/test.dart
     flags: exists isLibrary
@@ -11910,6 +11914,13 @@ A foo() {}
         exportedTopLevels
           A: #M0
 [status] idle
+[future] getErrors T1
+  ErrorsResult #1
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
+    errors
+      19 +3 BODY_MIGHT_COMPLETE_NORMALLY
 ''',
       updatedA: r'''
 class A {}
@@ -11928,13 +11939,6 @@ class C {}
       C: #M4
         interface: #M5
   requirements
-[future] getErrors T2
-  ErrorsResult #2
-    path: /home/test/lib/test.dart
-    uri: package:test/test.dart
-    flags: isLibrary
-    errors
-      19 +3 BODY_MIGHT_COMPLETE_NORMALLY
 [operation] readLibraryCycleBundle
   package:test/test.dart
 [operation] checkLibraryDiagnosticsRequirements
@@ -11944,6 +11948,13 @@ class C {}
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
 [status] idle
+[future] getErrors T2
+  ErrorsResult #2
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
+    errors
+      19 +3 BODY_MIGHT_COMPLETE_NORMALLY
 ''',
     );
   }
@@ -11961,11 +11972,6 @@ A foo() => throw 0;
       expectedInitialEvents: r'''
 [status] working
 [operation] linkLibraryCycle SDK
-[future] getErrors T1
-  ErrorsResult #0
-    path: /home/test/lib/test.dart
-    uri: package:test/test.dart
-    flags: isLibrary
 [operation] linkLibraryCycle
   package:test/a.dart
     declaredClasses
@@ -11985,7 +11991,7 @@ A foo() => throw 0;
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
 [stream]
-  ResolvedUnitResult #1
+  ResolvedUnitResult #0
     path: /home/test/lib/test.dart
     uri: package:test/test.dart
     flags: exists isLibrary
@@ -11997,6 +12003,11 @@ A foo() => throw 0;
         exportedTopLevels
           A: #M0
 [status] idle
+[future] getErrors T1
+  ErrorsResult #1
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
 ''',
       updatedA: '',
       expectedUpdatedEvents: r'''
@@ -12004,13 +12015,6 @@ A foo() => throw 0;
 [operation] linkLibraryCycle
   package:test/a.dart
   requirements
-[future] getErrors T2
-  ErrorsResult #2
-    path: /home/test/lib/test.dart
-    uri: package:test/test.dart
-    flags: isLibrary
-    errors
-      17 +1 UNDEFINED_CLASS
 [operation] cannotReuseLinkedBundle
   topLevelIdMismatch
     libraryUri: package:test/a.dart
@@ -12037,7 +12041,7 @@ A foo() => throw 0;
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
 [stream]
-  ResolvedUnitResult #3
+  ResolvedUnitResult #2
     path: /home/test/lib/test.dart
     uri: package:test/test.dart
     flags: exists isLibrary
@@ -12051,6 +12055,13 @@ A foo() => throw 0;
         exportedTopLevels
           A: <null>
 [status] idle
+[future] getErrors T2
+  ErrorsResult #3
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
+    errors
+      17 +1 UNDEFINED_CLASS
 ''',
     );
   }
@@ -12069,11 +12080,6 @@ A foo() => throw 0;
       expectedInitialEvents: r'''
 [status] working
 [operation] linkLibraryCycle SDK
-[future] getErrors T1
-  ErrorsResult #0
-    path: /home/test/lib/test.dart
-    uri: package:test/test.dart
-    flags: isLibrary
 [operation] linkLibraryCycle
   package:test/a.dart
     declaredClasses
@@ -12095,7 +12101,7 @@ A foo() => throw 0;
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
 [stream]
-  ResolvedUnitResult #1
+  ResolvedUnitResult #0
     path: /home/test/lib/test.dart
     uri: package:test/test.dart
     flags: exists isLibrary
@@ -12107,6 +12113,11 @@ A foo() => throw 0;
         exportedTopLevels
           A: #M0
 [status] idle
+[future] getErrors T1
+  ErrorsResult #1
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
 ''',
       updatedA: r'''
 class A {}
@@ -12119,11 +12130,6 @@ class A {}
       A: #M0
         interface: #M1
   requirements
-[future] getErrors T2
-  ErrorsResult #2
-    path: /home/test/lib/test.dart
-    uri: package:test/test.dart
-    flags: isLibrary
 [operation] readLibraryCycleBundle
   package:test/test.dart
 [operation] checkLibraryDiagnosticsRequirements
@@ -12133,6 +12139,11 @@ class A {}
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
 [status] idle
+[future] getErrors T2
+  ErrorsResult #2
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
 ''',
     );
   }
@@ -12155,13 +12166,6 @@ void f() {
       expectedInitialEvents: r'''
 [status] working
 [operation] linkLibraryCycle SDK
-[future] getErrors T1
-  ErrorsResult #0
-    path: /home/test/lib/test.dart
-    uri: package:test/test.dart
-    flags: isLibrary
-    errors
-      32 +2 UNDEFINED_METHOD
 [operation] linkLibraryCycle
   package:test/a.dart
     declaredClasses
@@ -12196,6 +12200,13 @@ void f() {
             requestedConstructors
               c2: <null>
 [status] idle
+[future] getErrors T1
+  ErrorsResult #0
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
+    errors
+      32 +2 UNDEFINED_METHOD
 ''',
       updatedA: r'''
 class A {
@@ -12214,11 +12225,6 @@ class A {
           c2: #M4
         interface: #M2
   requirements
-[future] getErrors T2
-  ErrorsResult #1
-    path: /home/test/lib/test.dart
-    uri: package:test/test.dart
-    flags: isLibrary
 [operation] readLibraryCycleBundle
   package:test/test.dart
 [operation] checkLibraryDiagnosticsRequirements
@@ -12244,6 +12250,11 @@ class A {
             requestedConstructors
               c2: #M4
 [status] idle
+[future] getErrors T2
+  ErrorsResult #1
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
 ''',
     );
   }
@@ -12270,13 +12281,6 @@ import 'a.dart';
       expectedInitialEvents: r'''
 [status] working
 [operation] linkLibraryCycle SDK
-[future] getErrors T1
-  ErrorsResult #0
-    path: /home/test/lib/test.dart
-    uri: package:test/test.dart
-    flags: isLibrary
-    errors
-      7 +8 UNUSED_IMPORT
 [operation] linkLibraryCycle
   package:test/a.dart
     declaredClasses
@@ -12293,7 +12297,7 @@ import 'a.dart';
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
 [stream]
-  ResolvedUnitResult #1
+  ResolvedUnitResult #0
     path: /home/test/lib/test.dart
     uri: package:test/test.dart
     flags: exists isLibrary
@@ -12310,6 +12314,13 @@ import 'a.dart';
           A
             allConstructors: #M2 #M1
 [status] idle
+[future] getErrors T1
+  ErrorsResult #1
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
+    errors
+      7 +8 UNUSED_IMPORT
 ''',
       updatedA: r'''
 class A {
@@ -12328,13 +12339,6 @@ class A {
           new: #M2
         interface: #M3
   requirements
-[future] getErrors T2
-  ErrorsResult #2
-    path: /home/test/lib/test.dart
-    uri: package:test/test.dart
-    flags: isLibrary
-    errors
-      7 +8 UNUSED_IMPORT
 [operation] readLibraryCycleBundle
   package:test/test.dart
 [operation] checkLibraryDiagnosticsRequirements
@@ -12349,7 +12353,7 @@ class A {
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
 [stream]
-  ResolvedUnitResult #3
+  ResolvedUnitResult #2
     path: /home/test/lib/test.dart
     uri: package:test/test.dart
     flags: exists isLibrary
@@ -12366,6 +12370,13 @@ class A {
           A
             allConstructors: #M2 #M4
 [status] idle
+[future] getErrors T2
+  ErrorsResult #3
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
+    errors
+      7 +8 UNUSED_IMPORT
 ''',
     );
   }
@@ -12389,13 +12400,6 @@ import 'a.dart';
       expectedInitialEvents: r'''
 [status] working
 [operation] linkLibraryCycle SDK
-[future] getErrors T1
-  ErrorsResult #0
-    path: /home/test/lib/test.dart
-    uri: package:test/test.dart
-    flags: isLibrary
-    errors
-      7 +8 UNUSED_IMPORT
 [operation] linkLibraryCycle
   package:test/a.dart
     declaredClasses
@@ -12411,7 +12415,7 @@ import 'a.dart';
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
 [stream]
-  ResolvedUnitResult #1
+  ResolvedUnitResult #0
     path: /home/test/lib/test.dart
     uri: package:test/test.dart
     flags: exists isLibrary
@@ -12429,6 +12433,13 @@ import 'a.dart';
             requestedConstructors
               foo: #M1
 [status] idle
+[future] getErrors T1
+  ErrorsResult #1
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
+    errors
+      7 +8 UNUSED_IMPORT
 ''',
       updatedA: r'''
 class A {
@@ -12445,13 +12456,6 @@ class A {
           foo: #M3
         interface: #M2
   requirements
-[future] getErrors T2
-  ErrorsResult #2
-    path: /home/test/lib/test.dart
-    uri: package:test/test.dart
-    flags: isLibrary
-    errors
-      7 +8 UNUSED_IMPORT
 [operation] readLibraryCycleBundle
   package:test/test.dart
 [operation] checkLibraryDiagnosticsRequirements
@@ -12466,7 +12470,7 @@ class A {
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
 [stream]
-  ResolvedUnitResult #3
+  ResolvedUnitResult #2
     path: /home/test/lib/test.dart
     uri: package:test/test.dart
     flags: exists isLibrary
@@ -12484,6 +12488,13 @@ class A {
             requestedConstructors
               foo: #M3
 [status] idle
+[future] getErrors T2
+  ErrorsResult #3
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
+    errors
+      7 +8 UNUSED_IMPORT
 ''',
     );
   }
@@ -12508,13 +12519,6 @@ import 'a.dart';
       expectedInitialEvents: r'''
 [status] working
 [operation] linkLibraryCycle SDK
-[future] getErrors T1
-  ErrorsResult #0
-    path: /home/test/lib/test.dart
-    uri: package:test/test.dart
-    flags: isLibrary
-    errors
-      7 +8 UNUSED_IMPORT
 [operation] linkLibraryCycle
   package:test/a.dart
     declaredClasses
@@ -12531,7 +12535,7 @@ import 'a.dart';
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
 [stream]
-  ResolvedUnitResult #1
+  ResolvedUnitResult #0
     path: /home/test/lib/test.dart
     uri: package:test/test.dart
     flags: exists isLibrary
@@ -12549,6 +12553,13 @@ import 'a.dart';
             requestedConstructors
               foo: #M2
 [status] idle
+[future] getErrors T1
+  ErrorsResult #1
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
+    errors
+      7 +8 UNUSED_IMPORT
 ''',
       updatedA: r'''
 class A {
@@ -12567,13 +12578,6 @@ class A {
           foo: #M2
         interface: #M3
   requirements
-[future] getErrors T2
-  ErrorsResult #2
-    path: /home/test/lib/test.dart
-    uri: package:test/test.dart
-    flags: isLibrary
-    errors
-      7 +8 UNUSED_IMPORT
 [operation] readLibraryCycleBundle
   package:test/test.dart
 [operation] checkLibraryDiagnosticsRequirements
@@ -12583,6 +12587,13 @@ class A {
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
 [status] idle
+[future] getErrors T2
+  ErrorsResult #2
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
+    errors
+      7 +8 UNUSED_IMPORT
 ''',
     );
   }
@@ -12609,13 +12620,6 @@ import 'a.dart';
       expectedInitialEvents: r'''
 [status] working
 [operation] linkLibraryCycle SDK
-[future] getErrors T1
-  ErrorsResult #0
-    path: /home/test/lib/test.dart
-    uri: package:test/test.dart
-    flags: isLibrary
-    errors
-      7 +8 UNUSED_IMPORT
 [operation] linkLibraryCycle
   package:test/a.dart
     declaredClasses
@@ -12632,7 +12636,7 @@ import 'a.dart';
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
 [stream]
-  ResolvedUnitResult #1
+  ResolvedUnitResult #0
     path: /home/test/lib/test.dart
     uri: package:test/test.dart
     flags: exists isLibrary
@@ -12650,6 +12654,13 @@ import 'a.dart';
             requestedConstructors
               new: #M2
 [status] idle
+[future] getErrors T1
+  ErrorsResult #1
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
+    errors
+      7 +8 UNUSED_IMPORT
 ''',
       updatedA: r'''
 class A {
@@ -12668,13 +12679,6 @@ class A {
           new: #M2
         interface: #M3
   requirements
-[future] getErrors T2
-  ErrorsResult #2
-    path: /home/test/lib/test.dart
-    uri: package:test/test.dart
-    flags: isLibrary
-    errors
-      7 +8 UNUSED_IMPORT
 [operation] readLibraryCycleBundle
   package:test/test.dart
 [operation] checkLibraryDiagnosticsRequirements
@@ -12684,6 +12688,13 @@ class A {
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
 [status] idle
+[future] getErrors T2
+  ErrorsResult #2
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
+    errors
+      7 +8 UNUSED_IMPORT
 ''',
     );
   }
@@ -12706,11 +12717,6 @@ void f() {
       expectedInitialEvents: r'''
 [status] working
 [operation] linkLibraryCycle SDK
-[future] getErrors T1
-  ErrorsResult #0
-    path: /home/test/lib/test.dart
-    uri: package:test/test.dart
-    flags: isLibrary
 [operation] linkLibraryCycle
   package:test/a.dart
     declaredClasses
@@ -12739,6 +12745,11 @@ void f() {
             requestedConstructors
               named: #M1
 [status] idle
+[future] getErrors T1
+  ErrorsResult #0
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
 ''',
       updatedA: r'''
 class A {
@@ -12755,11 +12766,6 @@ class A {
           named: #M4
         interface: #M2
   requirements
-[future] getErrors T2
-  ErrorsResult #1
-    path: /home/test/lib/test.dart
-    uri: package:test/test.dart
-    flags: isLibrary
 [operation] readLibraryCycleBundle
   package:test/test.dart
 [operation] checkLibraryDiagnosticsRequirements
@@ -12785,6 +12791,11 @@ class A {
             requestedConstructors
               named: #M4
 [status] idle
+[future] getErrors T2
+  ErrorsResult #1
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
 ''',
     );
   }
@@ -12812,11 +12823,6 @@ void f() {
       expectedInitialEvents: r'''
 [status] working
 [operation] linkLibraryCycle SDK
-[future] getErrors T1
-  ErrorsResult #0
-    path: /home/test/lib/test.dart
-    uri: package:test/test.dart
-    flags: isLibrary
 [operation] linkLibraryCycle
   package:test/a.dart
     declaredClasses
@@ -12861,6 +12867,11 @@ void f() {
               foo: #M2
               foo=: #M3
 [status] idle
+[future] getErrors T1
+  ErrorsResult #0
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
 ''',
       updatedA: r'''
 class A {
@@ -12888,11 +12899,6 @@ class A {
             foo: #M2
             foo=: #M3
   requirements
-[future] getErrors T2
-  ErrorsResult #1
-    path: /home/test/lib/test.dart
-    uri: package:test/test.dart
-    flags: isLibrary
 [operation] readLibraryCycleBundle
   package:test/test.dart
 [operation] checkLibraryDiagnosticsRequirements
@@ -12925,6 +12931,11 @@ class A {
               foo: #M2
               foo=: #M3
 [status] idle
+[future] getErrors T2
+  ErrorsResult #1
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
 ''',
     );
   }
@@ -12948,11 +12959,6 @@ void f() {
       expectedInitialEvents: r'''
 [status] working
 [operation] linkLibraryCycle SDK
-[future] getErrors T1
-  ErrorsResult #0
-    path: /home/test/lib/test.dart
-    uri: package:test/test.dart
-    flags: isLibrary
 [operation] linkLibraryCycle
   package:test/a.dart
     declaredClasses
@@ -12987,6 +12993,11 @@ void f() {
             methods
               foo: #M1
 [status] idle
+[future] getErrors T1
+  ErrorsResult #0
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
 ''',
       updatedA: r'''
 class A {
@@ -13008,11 +13019,6 @@ class A {
           map
             foo: #M1
   requirements
-[future] getErrors T2
-  ErrorsResult #1
-    path: /home/test/lib/test.dart
-    uri: package:test/test.dart
-    flags: isLibrary
 [operation] readLibraryCycleBundle
   package:test/test.dart
 [operation] checkLibraryDiagnosticsRequirements
@@ -13040,6 +13046,11 @@ class A {
             methods
               foo: #M1
 [status] idle
+[future] getErrors T2
+  ErrorsResult #1
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
 ''',
     );
   }
@@ -13062,11 +13073,6 @@ class B extends A {
       expectedInitialEvents: r'''
 [status] working
 [operation] linkLibraryCycle SDK
-[future] getErrors T1
-  ErrorsResult #0
-    path: /home/test/lib/test.dart
-    uri: package:test/test.dart
-    flags: isLibrary
 [operation] linkLibraryCycle
   package:test/a.dart
     declaredClasses
@@ -13112,6 +13118,11 @@ class B extends A {
             requestedConstructors
               named: #M1
 [status] idle
+[future] getErrors T1
+  ErrorsResult #0
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
 ''',
       updatedA: r'''
 class A {
@@ -13128,11 +13139,6 @@ class A {
           named: #M6
         interface: #M2
   requirements
-[future] getErrors T2
-  ErrorsResult #1
-    path: /home/test/lib/test.dart
-    uri: package:test/test.dart
-    flags: isLibrary
 [operation] cannotReuseLinkedBundle
   interfaceConstructorIdMismatch
     libraryUri: package:test/a.dart
@@ -13185,6 +13191,11 @@ class A {
             requestedConstructors
               named: #M6
 [status] idle
+[future] getErrors T2
+  ErrorsResult #1
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
 ''',
     );
   }
@@ -13208,11 +13219,6 @@ void f() {
       expectedInitialEvents: r'''
 [status] working
 [operation] linkLibraryCycle SDK
-[future] getErrors T1
-  ErrorsResult #0
-    path: /home/test/lib/test.dart
-    uri: package:test/test.dart
-    flags: isLibrary
 [operation] linkLibraryCycle
   package:test/a.dart
     declaredClasses
@@ -13242,6 +13248,11 @@ void f() {
             requestedConstructors
               c1: #M1
 [status] idle
+[future] getErrors T1
+  ErrorsResult #0
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
 ''',
       updatedA: r'''
 class A {
@@ -13260,11 +13271,6 @@ class A {
           c2: #M5
         interface: #M3
   requirements
-[future] getErrors T2
-  ErrorsResult #1
-    path: /home/test/lib/test.dart
-    uri: package:test/test.dart
-    flags: isLibrary
 [operation] readLibraryCycleBundle
   package:test/test.dart
 [operation] checkLibraryDiagnosticsRequirements
@@ -13274,6 +13280,11 @@ class A {
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
 [status] idle
+[future] getErrors T2
+  ErrorsResult #1
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
 ''',
     );
   }
@@ -13297,11 +13308,6 @@ void f() {
       expectedInitialEvents: r'''
 [status] working
 [operation] linkLibraryCycle SDK
-[future] getErrors T1
-  ErrorsResult #0
-    path: /home/test/lib/test.dart
-    uri: package:test/test.dart
-    flags: isLibrary
 [operation] linkLibraryCycle
   package:test/a.dart
     declaredClasses
@@ -13331,6 +13337,11 @@ void f() {
             requestedConstructors
               c2: #M2
 [status] idle
+[future] getErrors T1
+  ErrorsResult #0
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
 ''',
       updatedA: r'''
 class A {
@@ -13347,13 +13358,6 @@ class A {
           c1: #M1
         interface: #M3
   requirements
-[future] getErrors T2
-  ErrorsResult #1
-    path: /home/test/lib/test.dart
-    uri: package:test/test.dart
-    flags: isLibrary
-    errors
-      32 +2 UNDEFINED_METHOD
 [operation] readLibraryCycleBundle
   package:test/test.dart
 [operation] checkLibraryDiagnosticsRequirements
@@ -13385,6 +13389,13 @@ class A {
             requestedConstructors
               c2: <null>
 [status] idle
+[future] getErrors T2
+  ErrorsResult #1
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
+    errors
+      32 +2 UNDEFINED_METHOD
 ''',
     );
   }
@@ -13408,13 +13419,6 @@ import 'a.dart';
       expectedInitialEvents: r'''
 [status] working
 [operation] linkLibraryCycle SDK
-[future] getErrors T1
-  ErrorsResult #0
-    path: /home/test/lib/test.dart
-    uri: package:test/test.dart
-    flags: isLibrary
-    errors
-      7 +8 UNUSED_IMPORT
 [operation] linkLibraryCycle
   package:test/a.dart
     declaredClasses
@@ -13432,7 +13436,7 @@ import 'a.dart';
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
 [stream]
-  ResolvedUnitResult #1
+  ResolvedUnitResult #0
     path: /home/test/lib/test.dart
     uri: package:test/test.dart
     flags: exists isLibrary
@@ -13449,6 +13453,13 @@ import 'a.dart';
           A
             allDeclaredFields: #M1
 [status] idle
+[future] getErrors T1
+  ErrorsResult #1
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
+    errors
+      7 +8 UNUSED_IMPORT
 ''',
       updatedA: r'''
 class A {
@@ -13470,13 +13481,6 @@ class A {
           foo: #M2
         interface: #M3
   requirements
-[future] getErrors T2
-  ErrorsResult #2
-    path: /home/test/lib/test.dart
-    uri: package:test/test.dart
-    flags: isLibrary
-    errors
-      7 +8 UNUSED_IMPORT
 [operation] readLibraryCycleBundle
   package:test/test.dart
 [operation] checkLibraryDiagnosticsRequirements
@@ -13491,7 +13495,7 @@ class A {
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
 [stream]
-  ResolvedUnitResult #3
+  ResolvedUnitResult #2
     path: /home/test/lib/test.dart
     uri: package:test/test.dart
     flags: exists isLibrary
@@ -13508,6 +13512,13 @@ class A {
           A
             allDeclaredFields: #M1 #M4
 [status] idle
+[future] getErrors T2
+  ErrorsResult #3
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
+    errors
+      7 +8 UNUSED_IMPORT
 ''',
     );
   }
@@ -13529,11 +13540,6 @@ void f() {
       expectedInitialEvents: r'''
 [status] working
 [operation] linkLibraryCycle SDK
-[future] getErrors T1
-  ErrorsResult #0
-    path: /home/test/lib/test.dart
-    uri: package:test/test.dart
-    flags: isLibrary
 [operation] linkLibraryCycle
   package:test/a.dart
     declaredClasses
@@ -13553,7 +13559,7 @@ void f() {
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
 [stream]
-  ResolvedUnitResult #1
+  ResolvedUnitResult #0
     path: /home/test/lib/test.dart
     uri: package:test/test.dart
     flags: exists isLibrary
@@ -13575,6 +13581,11 @@ void f() {
             requestedConstructors
               foo: <null>
 [status] idle
+[future] getErrors T1
+  ErrorsResult #1
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
 ''',
       updatedA: r'''
 class A {
@@ -13593,11 +13604,6 @@ class A {
           foo: #M6
         interface: #M3
   requirements
-[future] getErrors T2
-  ErrorsResult #2
-    path: /home/test/lib/test.dart
-    uri: package:test/test.dart
-    flags: isLibrary
 [operation] readLibraryCycleBundle
   package:test/test.dart
 [operation] checkLibraryDiagnosticsRequirements
@@ -13612,7 +13618,7 @@ class A {
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
 [stream]
-  ResolvedUnitResult #3
+  ResolvedUnitResult #2
     path: /home/test/lib/test.dart
     uri: package:test/test.dart
     flags: exists isLibrary
@@ -13634,6 +13640,11 @@ class A {
             requestedConstructors
               foo: <null>
 [status] idle
+[future] getErrors T2
+  ErrorsResult #3
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
 ''',
     );
   }
@@ -13656,11 +13667,6 @@ void f() {
       expectedInitialEvents: r'''
 [status] working
 [operation] linkLibraryCycle SDK
-[future] getErrors T1
-  ErrorsResult #0
-    path: /home/test/lib/test.dart
-    uri: package:test/test.dart
-    flags: isLibrary
 [operation] linkLibraryCycle
   package:test/a.dart
     declaredClasses
@@ -13682,7 +13688,7 @@ void f() {
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
 [stream]
-  ResolvedUnitResult #1
+  ResolvedUnitResult #0
     path: /home/test/lib/test.dart
     uri: package:test/test.dart
     flags: exists isLibrary
@@ -13704,6 +13710,11 @@ void f() {
             requestedConstructors
               foo: <null>
 [status] idle
+[future] getErrors T1
+  ErrorsResult #1
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
 ''',
       updatedA: r'''
 class A {
@@ -13725,11 +13736,6 @@ class A {
           foo: #M4
         interface: #M5
   requirements
-[future] getErrors T2
-  ErrorsResult #2
-    path: /home/test/lib/test.dart
-    uri: package:test/test.dart
-    flags: isLibrary
 [operation] readLibraryCycleBundle
   package:test/test.dart
 [operation] checkLibraryDiagnosticsRequirements
@@ -13739,6 +13745,11 @@ class A {
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
 [status] idle
+[future] getErrors T2
+  ErrorsResult #2
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
 ''',
     );
   }
@@ -13760,11 +13771,6 @@ void f() {
       expectedInitialEvents: r'''
 [status] working
 [operation] linkLibraryCycle SDK
-[future] getErrors T1
-  ErrorsResult #0
-    path: /home/test/lib/test.dart
-    uri: package:test/test.dart
-    flags: isLibrary
 [operation] linkLibraryCycle
   package:test/a.dart
     declaredClasses
@@ -13782,7 +13788,7 @@ void f() {
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
 [stream]
-  ResolvedUnitResult #1
+  ResolvedUnitResult #0
     path: /home/test/lib/test.dart
     uri: package:test/test.dart
     flags: exists isLibrary
@@ -13804,6 +13810,11 @@ void f() {
             requestedConstructors
               foo: <null>
 [status] idle
+[future] getErrors T1
+  ErrorsResult #1
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
 ''',
       updatedA: r'''
 class A {
@@ -13820,11 +13831,6 @@ class A {
           foo: #M4
         interface: #M2
   requirements
-[future] getErrors T2
-  ErrorsResult #2
-    path: /home/test/lib/test.dart
-    uri: package:test/test.dart
-    flags: isLibrary
 [operation] readLibraryCycleBundle
   package:test/test.dart
 [operation] checkLibraryDiagnosticsRequirements
@@ -13839,7 +13845,7 @@ class A {
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
 [stream]
-  ResolvedUnitResult #3
+  ResolvedUnitResult #2
     path: /home/test/lib/test.dart
     uri: package:test/test.dart
     flags: exists isLibrary
@@ -13861,6 +13867,11 @@ class A {
             requestedConstructors
               foo: <null>
 [status] idle
+[future] getErrors T2
+  ErrorsResult #3
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
 ''',
     );
   }
@@ -13883,11 +13894,6 @@ void f() {
       expectedInitialEvents: r'''
 [status] working
 [operation] linkLibraryCycle SDK
-[future] getErrors T1
-  ErrorsResult #0
-    path: /home/test/lib/test.dart
-    uri: package:test/test.dart
-    flags: isLibrary
 [operation] linkLibraryCycle
   package:test/a.dart
     declaredClasses
@@ -13906,7 +13912,7 @@ void f() {
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
 [stream]
-  ResolvedUnitResult #1
+  ResolvedUnitResult #0
     path: /home/test/lib/test.dart
     uri: package:test/test.dart
     flags: exists isLibrary
@@ -13928,6 +13934,11 @@ void f() {
             requestedConstructors
               foo: <null>
 [status] idle
+[future] getErrors T1
+  ErrorsResult #1
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
 ''',
       updatedA: r'''
 class A {
@@ -13946,11 +13957,6 @@ class A {
           foo: #M2
         interface: #M3
   requirements
-[future] getErrors T2
-  ErrorsResult #2
-    path: /home/test/lib/test.dart
-    uri: package:test/test.dart
-    flags: isLibrary
 [operation] readLibraryCycleBundle
   package:test/test.dart
 [operation] checkLibraryDiagnosticsRequirements
@@ -13960,6 +13966,11 @@ class A {
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
 [status] idle
+[future] getErrors T2
+  ErrorsResult #2
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
 ''',
     );
   }
@@ -13981,11 +13992,6 @@ void f() {
       expectedInitialEvents: r'''
 [status] working
 [operation] linkLibraryCycle SDK
-[future] getErrors T1
-  ErrorsResult #0
-    path: /home/test/lib/test.dart
-    uri: package:test/test.dart
-    flags: isLibrary
 [operation] linkLibraryCycle
   package:test/a.dart
     declaredClasses
@@ -14005,7 +14011,7 @@ void f() {
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
 [stream]
-  ResolvedUnitResult #1
+  ResolvedUnitResult #0
     path: /home/test/lib/test.dart
     uri: package:test/test.dart
     flags: exists isLibrary
@@ -14023,6 +14029,11 @@ void f() {
             requestedDeclaredSetters
               foo=: #M2
 [status] idle
+[future] getErrors T1
+  ErrorsResult #1
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
 ''',
       updatedA: r'''
 class A {
@@ -14041,11 +14052,6 @@ class A {
           foo=: #M6
         interface: #M3
   requirements
-[future] getErrors T2
-  ErrorsResult #2
-    path: /home/test/lib/test.dart
-    uri: package:test/test.dart
-    flags: isLibrary
 [operation] readLibraryCycleBundle
   package:test/test.dart
 [operation] checkLibraryDiagnosticsRequirements
@@ -14060,7 +14066,7 @@ class A {
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
 [stream]
-  ResolvedUnitResult #3
+  ResolvedUnitResult #2
     path: /home/test/lib/test.dart
     uri: package:test/test.dart
     flags: exists isLibrary
@@ -14078,6 +14084,11 @@ class A {
             requestedDeclaredSetters
               foo=: #M6
 [status] idle
+[future] getErrors T2
+  ErrorsResult #3
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
 ''',
     );
   }
@@ -14100,11 +14111,6 @@ void f() {
       expectedInitialEvents: r'''
 [status] working
 [operation] linkLibraryCycle SDK
-[future] getErrors T1
-  ErrorsResult #0
-    path: /home/test/lib/test.dart
-    uri: package:test/test.dart
-    flags: isLibrary
 [operation] linkLibraryCycle
   package:test/a.dart
     declaredClasses
@@ -14126,7 +14132,7 @@ void f() {
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
 [stream]
-  ResolvedUnitResult #1
+  ResolvedUnitResult #0
     path: /home/test/lib/test.dart
     uri: package:test/test.dart
     flags: exists isLibrary
@@ -14144,6 +14150,11 @@ void f() {
             requestedDeclaredSetters
               foo=: #M4
 [status] idle
+[future] getErrors T1
+  ErrorsResult #1
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
 ''',
       updatedA: r'''
 class A {
@@ -14165,11 +14176,6 @@ class A {
           foo=: #M4
         interface: #M5
   requirements
-[future] getErrors T2
-  ErrorsResult #2
-    path: /home/test/lib/test.dart
-    uri: package:test/test.dart
-    flags: isLibrary
 [operation] readLibraryCycleBundle
   package:test/test.dart
 [operation] checkLibraryDiagnosticsRequirements
@@ -14179,6 +14185,11 @@ class A {
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
 [status] idle
+[future] getErrors T2
+  ErrorsResult #2
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
 ''',
     );
   }
@@ -14205,13 +14216,6 @@ import 'a.dart';
       expectedInitialEvents: r'''
 [status] working
 [operation] linkLibraryCycle SDK
-[future] getErrors T1
-  ErrorsResult #0
-    path: /home/test/lib/test.dart
-    uri: package:test/test.dart
-    flags: isLibrary
-    errors
-      7 +8 UNUSED_IMPORT
 [operation] linkLibraryCycle
   package:test/a.dart
     declaredClasses
@@ -14228,7 +14232,7 @@ import 'a.dart';
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
 [stream]
-  ResolvedUnitResult #1
+  ResolvedUnitResult #0
     path: /home/test/lib/test.dart
     uri: package:test/test.dart
     flags: exists isLibrary
@@ -14245,6 +14249,13 @@ import 'a.dart';
           A
             allConstructors: #M2 #M1
 [status] idle
+[future] getErrors T1
+  ErrorsResult #1
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
+    errors
+      7 +8 UNUSED_IMPORT
 ''',
       updatedA: r'''
 class A {
@@ -14263,13 +14274,6 @@ class A {
           new: #M4
         interface: #M3
   requirements
-[future] getErrors T2
-  ErrorsResult #2
-    path: /home/test/lib/test.dart
-    uri: package:test/test.dart
-    flags: isLibrary
-    errors
-      7 +8 UNUSED_IMPORT
 [operation] readLibraryCycleBundle
   package:test/test.dart
 [operation] checkLibraryDiagnosticsRequirements
@@ -14284,7 +14288,7 @@ class A {
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
 [stream]
-  ResolvedUnitResult #3
+  ResolvedUnitResult #2
     path: /home/test/lib/test.dart
     uri: package:test/test.dart
     flags: exists isLibrary
@@ -14301,6 +14305,13 @@ class A {
           A
             allConstructors: #M4 #M1
 [status] idle
+[future] getErrors T2
+  ErrorsResult #3
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
+    errors
+      7 +8 UNUSED_IMPORT
 ''',
     );
   }
@@ -14326,13 +14337,6 @@ import 'a.dart';
       expectedInitialEvents: r'''
 [status] working
 [operation] linkLibraryCycle SDK
-[future] getErrors T1
-  ErrorsResult #0
-    path: /home/test/lib/test.dart
-    uri: package:test/test.dart
-    flags: isLibrary
-    errors
-      7 +8 UNUSED_IMPORT
 [operation] linkLibraryCycle
   package:test/a.dart
     declaredClasses
@@ -14348,7 +14352,7 @@ import 'a.dart';
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
 [stream]
-  ResolvedUnitResult #1
+  ResolvedUnitResult #0
     path: /home/test/lib/test.dart
     uri: package:test/test.dart
     flags: exists isLibrary
@@ -14366,6 +14370,13 @@ import 'a.dart';
             requestedConstructors
               new: #M1
 [status] idle
+[future] getErrors T1
+  ErrorsResult #1
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
+    errors
+      7 +8 UNUSED_IMPORT
 ''',
       updatedA: r'''
 class A {
@@ -14376,6 +14387,12 @@ class A {
 [status] working
 [operation] readLibraryCycleBundle
   package:test/a.dart
+[operation] readLibraryCycleBundle
+  package:test/test.dart
+[operation] getErrorsFromBytes
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[status] idle
 [future] getErrors T2
   ErrorsResult #2
     path: /home/test/lib/test.dart
@@ -14383,12 +14400,6 @@ class A {
     flags: isLibrary
     errors
       7 +8 UNUSED_IMPORT
-[operation] readLibraryCycleBundle
-  package:test/test.dart
-[operation] getErrorsFromBytes
-  file: /home/test/lib/test.dart
-  library: /home/test/lib/test.dart
-[status] idle
 ''',
     );
   }
@@ -14413,11 +14424,6 @@ void f() {
       expectedInitialEvents: r'''
 [status] working
 [operation] linkLibraryCycle SDK
-[future] getErrors T1
-  ErrorsResult #0
-    path: /home/test/lib/test.dart
-    uri: package:test/test.dart
-    flags: isLibrary
 [operation] linkLibraryCycle
   package:test/a.dart
     declaredClasses
@@ -14446,6 +14452,11 @@ void f() {
             requestedConstructors
               new: #M1
 [status] idle
+[future] getErrors T1
+  ErrorsResult #0
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
 ''',
       updatedA: r'''
 class A {
@@ -14462,11 +14473,6 @@ class A {
           new: #M4
         interface: #M2
   requirements
-[future] getErrors T2
-  ErrorsResult #1
-    path: /home/test/lib/test.dart
-    uri: package:test/test.dart
-    flags: isLibrary
 [operation] readLibraryCycleBundle
   package:test/test.dart
 [operation] checkLibraryDiagnosticsRequirements
@@ -14492,6 +14498,11 @@ class A {
             requestedConstructors
               new: #M4
 [status] idle
+[future] getErrors T2
+  ErrorsResult #1
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
 ''',
     );
   }
@@ -14517,11 +14528,6 @@ void f() {
       expectedInitialEvents: r'''
 [status] working
 [operation] linkLibraryCycle SDK
-[future] getErrors T1
-  ErrorsResult #0
-    path: /home/test/lib/test.dart
-    uri: package:test/test.dart
-    flags: isLibrary
 [operation] linkLibraryCycle
   package:test/a.dart
     declaredClasses
@@ -14551,6 +14557,11 @@ void f() {
             requestedConstructors
               named: #M1
 [status] idle
+[future] getErrors T1
+  ErrorsResult #0
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
 ''',
       updatedA: r'''
 class A {
@@ -14569,11 +14580,6 @@ class A {
           new: #M5
         interface: #M3
   requirements
-[future] getErrors T2
-  ErrorsResult #1
-    path: /home/test/lib/test.dart
-    uri: package:test/test.dart
-    flags: isLibrary
 [operation] readLibraryCycleBundle
   package:test/test.dart
 [operation] checkLibraryDiagnosticsRequirements
@@ -14583,6 +14589,11 @@ class A {
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
 [status] idle
+[future] getErrors T2
+  ErrorsResult #1
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
 ''',
     );
   }
@@ -14607,11 +14618,6 @@ void f() {
       expectedInitialEvents: r'''
 [status] working
 [operation] linkLibraryCycle SDK
-[future] getErrors T1
-  ErrorsResult #0
-    path: /home/test/lib/test.dart
-    uri: package:test/test.dart
-    flags: isLibrary
 [operation] linkLibraryCycle
   package:test/a.dart
     declaredClasses
@@ -14647,6 +14653,11 @@ void f() {
             requestedConstructors
               named: #M1
 [status] idle
+[future] getErrors T1
+  ErrorsResult #0
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
 ''',
       updatedA: r'''
 class A {
@@ -14672,11 +14683,6 @@ class B = A with M;
       M: #M5
         interface: #M6
   requirements
-[future] getErrors T2
-  ErrorsResult #1
-    path: /home/test/lib/test.dart
-    uri: package:test/test.dart
-    flags: isLibrary
 [operation] readLibraryCycleBundle
   package:test/test.dart
 [operation] checkLibraryDiagnosticsRequirements
@@ -14702,6 +14708,11 @@ class B = A with M;
             requestedConstructors
               named: #M8
 [status] idle
+[future] getErrors T2
+  ErrorsResult #1
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
 ''',
     );
   }
@@ -14724,11 +14735,6 @@ void f() {
       expectedInitialEvents: r'''
 [status] working
 [operation] linkLibraryCycle SDK
-[future] getErrors T1
-  ErrorsResult #0
-    path: /home/test/lib/test.dart
-    uri: package:test/test.dart
-    flags: isLibrary
 [operation] linkLibraryCycle
   package:test/a.dart
     declaredEnums
@@ -14752,7 +14758,7 @@ void f() {
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
 [stream]
-  ResolvedUnitResult #1
+  ResolvedUnitResult #0
     path: /home/test/lib/test.dart
     uri: package:test/test.dart
     flags: exists isLibrary
@@ -14774,6 +14780,11 @@ void f() {
             requestedConstructors
               foo: <null>
 [status] idle
+[future] getErrors T1
+  ErrorsResult #1
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
 ''',
       updatedA: r'''
 enum A {
@@ -14797,11 +14808,6 @@ enum A {
           map
             index: #M6
   requirements
-[future] getErrors T2
-  ErrorsResult #2
-    path: /home/test/lib/test.dart
-    uri: package:test/test.dart
-    flags: isLibrary
 [operation] readLibraryCycleBundle
   package:test/test.dart
 [operation] checkLibraryDiagnosticsRequirements
@@ -14816,7 +14822,7 @@ enum A {
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
 [stream]
-  ResolvedUnitResult #3
+  ResolvedUnitResult #2
     path: /home/test/lib/test.dart
     uri: package:test/test.dart
     flags: exists isLibrary
@@ -14838,6 +14844,11 @@ enum A {
             requestedConstructors
               foo: <null>
 [status] idle
+[future] getErrors T2
+  ErrorsResult #3
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
 ''',
     );
   }
@@ -14860,11 +14871,6 @@ void f(A a) {
       expectedInitialEvents: r'''
 [status] working
 [operation] linkLibraryCycle SDK
-[future] getErrors T1
-  ErrorsResult #0
-    path: /home/test/lib/test.dart
-    uri: package:test/test.dart
-    flags: isLibrary
 [operation] linkLibraryCycle
   package:test/a.dart
     declaredEnums
@@ -14895,7 +14901,7 @@ void f(A a) {
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
 [stream]
-  ResolvedUnitResult #1
+  ResolvedUnitResult #0
     path: /home/test/lib/test.dart
     uri: package:test/test.dart
     flags: exists isLibrary
@@ -14915,6 +14921,11 @@ void f(A a) {
             methods
               foo: #M4
 [status] idle
+[future] getErrors T1
+  ErrorsResult #1
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
 ''',
       updatedA: r'''
 enum A {
@@ -14941,11 +14952,6 @@ enum A {
             foo: #M11
             index: #M8
   requirements
-[future] getErrors T2
-  ErrorsResult #2
-    path: /home/test/lib/test.dart
-    uri: package:test/test.dart
-    flags: isLibrary
 [operation] readLibraryCycleBundle
   package:test/test.dart
 [operation] checkLibraryDiagnosticsRequirements
@@ -14960,7 +14966,7 @@ enum A {
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
 [stream]
-  ResolvedUnitResult #3
+  ResolvedUnitResult #2
     path: /home/test/lib/test.dart
     uri: package:test/test.dart
     flags: exists isLibrary
@@ -14980,6 +14986,11 @@ enum A {
             methods
               foo: #M11
 [status] idle
+[future] getErrors T2
+  ErrorsResult #3
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
 ''',
     );
   }
@@ -15003,11 +15014,6 @@ void f(A a) {
       expectedInitialEvents: r'''
 [status] working
 [operation] linkLibraryCycle SDK
-[future] getErrors T1
-  ErrorsResult #0
-    path: /home/test/lib/test.dart
-    uri: package:test/test.dart
-    flags: isLibrary
 [operation] linkLibraryCycle
   package:test/a.dart
     declaredEnums
@@ -15041,7 +15047,7 @@ void f(A a) {
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
 [stream]
-  ResolvedUnitResult #1
+  ResolvedUnitResult #0
     path: /home/test/lib/test.dart
     uri: package:test/test.dart
     flags: exists isLibrary
@@ -15061,6 +15067,11 @@ void f(A a) {
             methods
               foo: #M6
 [status] idle
+[future] getErrors T1
+  ErrorsResult #1
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
 ''',
       updatedA: r'''
 enum A {
@@ -15091,11 +15102,6 @@ enum A {
             foo: #M6
             index: #M10
   requirements
-[future] getErrors T2
-  ErrorsResult #2
-    path: /home/test/lib/test.dart
-    uri: package:test/test.dart
-    flags: isLibrary
 [operation] readLibraryCycleBundle
   package:test/test.dart
 [operation] checkLibraryDiagnosticsRequirements
@@ -15105,6 +15111,11 @@ enum A {
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
 [status] idle
+[future] getErrors T2
+  ErrorsResult #2
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
 ''',
     );
   }
@@ -15127,11 +15138,6 @@ void f(A a) {
       expectedInitialEvents: r'''
 [status] working
 [operation] linkLibraryCycle SDK
-[future] getErrors T1
-  ErrorsResult #0
-    path: /home/test/lib/test.dart
-    uri: package:test/test.dart
-    flags: isLibrary
 [operation] linkLibraryCycle
   package:test/a.dart
     declaredEnums
@@ -15162,7 +15168,7 @@ void f(A a) {
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
 [stream]
-  ResolvedUnitResult #1
+  ResolvedUnitResult #0
     path: /home/test/lib/test.dart
     uri: package:test/test.dart
     flags: exists isLibrary
@@ -15178,6 +15184,11 @@ void f(A a) {
             methods
               foo: #M5
 [status] idle
+[future] getErrors T1
+  ErrorsResult #1
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
 ''',
       updatedA: r'''
 enum A {
@@ -15204,11 +15215,6 @@ enum A {
             foo: #M9
             index: #M7
   requirements
-[future] getErrors T2
-  ErrorsResult #2
-    path: /home/test/lib/test.dart
-    uri: package:test/test.dart
-    flags: isLibrary
 [operation] readLibraryCycleBundle
   package:test/test.dart
 [operation] checkLibraryDiagnosticsRequirements
@@ -15223,7 +15229,7 @@ enum A {
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
 [stream]
-  ResolvedUnitResult #3
+  ResolvedUnitResult #2
     path: /home/test/lib/test.dart
     uri: package:test/test.dart
     flags: exists isLibrary
@@ -15239,6 +15245,11 @@ enum A {
             methods
               foo: #M9
 [status] idle
+[future] getErrors T2
+  ErrorsResult #3
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
 ''',
     );
   }
@@ -15262,11 +15273,6 @@ void f(A a) {
       expectedInitialEvents: r'''
 [status] working
 [operation] linkLibraryCycle SDK
-[future] getErrors T1
-  ErrorsResult #0
-    path: /home/test/lib/test.dart
-    uri: package:test/test.dart
-    flags: isLibrary
 [operation] linkLibraryCycle
   package:test/a.dart
     declaredEnums
@@ -15299,7 +15305,7 @@ void f(A a) {
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
 [stream]
-  ResolvedUnitResult #1
+  ResolvedUnitResult #0
     path: /home/test/lib/test.dart
     uri: package:test/test.dart
     flags: exists isLibrary
@@ -15315,6 +15321,11 @@ void f(A a) {
             methods
               foo: #M6
 [status] idle
+[future] getErrors T1
+  ErrorsResult #1
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
 ''',
       updatedA: r'''
 enum A {
@@ -15344,11 +15355,6 @@ enum A {
             foo: #M6
             index: #M8
   requirements
-[future] getErrors T2
-  ErrorsResult #2
-    path: /home/test/lib/test.dart
-    uri: package:test/test.dart
-    flags: isLibrary
 [operation] readLibraryCycleBundle
   package:test/test.dart
 [operation] checkLibraryDiagnosticsRequirements
@@ -15358,6 +15364,11 @@ enum A {
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
 [status] idle
+[future] getErrors T2
+  ErrorsResult #2
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
 ''',
     );
   }
@@ -15380,11 +15391,6 @@ void f(A a) {
       expectedInitialEvents: r'''
 [status] working
 [operation] linkLibraryCycle SDK
-[future] getErrors T1
-  ErrorsResult #0
-    path: /home/test/lib/test.dart
-    uri: package:test/test.dart
-    flags: isLibrary
 [operation] linkLibraryCycle
   package:test/a.dart
     declaredEnums
@@ -15416,7 +15422,7 @@ void f(A a) {
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
 [stream]
-  ResolvedUnitResult #1
+  ResolvedUnitResult #0
     path: /home/test/lib/test.dart
     uri: package:test/test.dart
     flags: exists isLibrary
@@ -15436,6 +15442,11 @@ void f(A a) {
             methods
               foo=: #M6
 [status] idle
+[future] getErrors T1
+  ErrorsResult #1
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
 ''',
       updatedA: r'''
 enum A {
@@ -15463,11 +15474,6 @@ enum A {
             foo=: #M11
             index: #M8
   requirements
-[future] getErrors T2
-  ErrorsResult #2
-    path: /home/test/lib/test.dart
-    uri: package:test/test.dart
-    flags: isLibrary
 [operation] readLibraryCycleBundle
   package:test/test.dart
 [operation] checkLibraryDiagnosticsRequirements
@@ -15482,7 +15488,7 @@ enum A {
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
 [stream]
-  ResolvedUnitResult #3
+  ResolvedUnitResult #2
     path: /home/test/lib/test.dart
     uri: package:test/test.dart
     flags: exists isLibrary
@@ -15502,6 +15508,11 @@ enum A {
             methods
               foo=: #M11
 [status] idle
+[future] getErrors T2
+  ErrorsResult #3
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
 ''',
     );
   }
@@ -15525,11 +15536,6 @@ void f(A a) {
       expectedInitialEvents: r'''
 [status] working
 [operation] linkLibraryCycle SDK
-[future] getErrors T1
-  ErrorsResult #0
-    path: /home/test/lib/test.dart
-    uri: package:test/test.dart
-    flags: isLibrary
 [operation] linkLibraryCycle
   package:test/a.dart
     declaredEnums
@@ -15564,7 +15570,7 @@ void f(A a) {
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
 [stream]
-  ResolvedUnitResult #1
+  ResolvedUnitResult #0
     path: /home/test/lib/test.dart
     uri: package:test/test.dart
     flags: exists isLibrary
@@ -15584,6 +15590,11 @@ void f(A a) {
             methods
               foo=: #M8
 [status] idle
+[future] getErrors T1
+  ErrorsResult #1
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
 ''',
       updatedA: r'''
 enum A {
@@ -15615,11 +15626,6 @@ enum A {
             foo=: #M8
             index: #M10
   requirements
-[future] getErrors T2
-  ErrorsResult #2
-    path: /home/test/lib/test.dart
-    uri: package:test/test.dart
-    flags: isLibrary
 [operation] readLibraryCycleBundle
   package:test/test.dart
 [operation] checkLibraryDiagnosticsRequirements
@@ -15629,6 +15635,11 @@ enum A {
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
 [status] idle
+[future] getErrors T2
+  ErrorsResult #2
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
 ''',
     );
   }
@@ -15651,11 +15662,6 @@ void f() {
       expectedInitialEvents: r'''
 [status] working
 [operation] linkLibraryCycle SDK
-[future] getErrors T1
-  ErrorsResult #0
-    path: /home/test/lib/test.dart
-    uri: package:test/test.dart
-    flags: isLibrary
 [operation] linkLibraryCycle
   package:test/a.dart
     declaredEnums
@@ -15681,7 +15687,7 @@ void f() {
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
 [stream]
-  ResolvedUnitResult #1
+  ResolvedUnitResult #0
     path: /home/test/lib/test.dart
     uri: package:test/test.dart
     flags: exists isLibrary
@@ -15703,6 +15709,11 @@ void f() {
             requestedConstructors
               foo: <null>
 [status] idle
+[future] getErrors T1
+  ErrorsResult #1
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
 ''',
       updatedA: r'''
 enum A {
@@ -15728,11 +15739,6 @@ enum A {
           map
             index: #M8
   requirements
-[future] getErrors T2
-  ErrorsResult #2
-    path: /home/test/lib/test.dart
-    uri: package:test/test.dart
-    flags: isLibrary
 [operation] readLibraryCycleBundle
   package:test/test.dart
 [operation] checkLibraryDiagnosticsRequirements
@@ -15747,7 +15753,7 @@ enum A {
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
 [stream]
-  ResolvedUnitResult #3
+  ResolvedUnitResult #2
     path: /home/test/lib/test.dart
     uri: package:test/test.dart
     flags: exists isLibrary
@@ -15769,6 +15775,11 @@ enum A {
             requestedConstructors
               foo: <null>
 [status] idle
+[future] getErrors T2
+  ErrorsResult #3
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
 ''',
     );
   }
@@ -15792,11 +15803,6 @@ void f() {
       expectedInitialEvents: r'''
 [status] working
 [operation] linkLibraryCycle SDK
-[future] getErrors T1
-  ErrorsResult #0
-    path: /home/test/lib/test.dart
-    uri: package:test/test.dart
-    flags: isLibrary
 [operation] linkLibraryCycle
   package:test/a.dart
     declaredEnums
@@ -15824,7 +15830,7 @@ void f() {
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
 [stream]
-  ResolvedUnitResult #1
+  ResolvedUnitResult #0
     path: /home/test/lib/test.dart
     uri: package:test/test.dart
     flags: exists isLibrary
@@ -15846,6 +15852,11 @@ void f() {
             requestedConstructors
               foo: <null>
 [status] idle
+[future] getErrors T1
+  ErrorsResult #1
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
 ''',
       updatedA: r'''
 enum A {
@@ -15874,11 +15885,6 @@ enum A {
           map
             index: #M10
   requirements
-[future] getErrors T2
-  ErrorsResult #2
-    path: /home/test/lib/test.dart
-    uri: package:test/test.dart
-    flags: isLibrary
 [operation] readLibraryCycleBundle
   package:test/test.dart
 [operation] checkLibraryDiagnosticsRequirements
@@ -15888,6 +15894,11 @@ enum A {
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
 [status] idle
+[future] getErrors T2
+  ErrorsResult #2
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
 ''',
     );
   }
@@ -15910,11 +15921,6 @@ void f() {
       expectedInitialEvents: r'''
 [status] working
 [operation] linkLibraryCycle SDK
-[future] getErrors T1
-  ErrorsResult #0
-    path: /home/test/lib/test.dart
-    uri: package:test/test.dart
-    flags: isLibrary
 [operation] linkLibraryCycle
   package:test/a.dart
     declaredEnums
@@ -15940,7 +15946,7 @@ void f() {
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
 [stream]
-  ResolvedUnitResult #1
+  ResolvedUnitResult #0
     path: /home/test/lib/test.dart
     uri: package:test/test.dart
     flags: exists isLibrary
@@ -15962,6 +15968,11 @@ void f() {
             requestedConstructors
               foo: <null>
 [status] idle
+[future] getErrors T1
+  ErrorsResult #1
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
 ''',
       updatedA: r'''
 enum A {
@@ -15987,11 +15998,6 @@ enum A {
           map
             index: #M7
   requirements
-[future] getErrors T2
-  ErrorsResult #2
-    path: /home/test/lib/test.dart
-    uri: package:test/test.dart
-    flags: isLibrary
 [operation] readLibraryCycleBundle
   package:test/test.dart
 [operation] checkLibraryDiagnosticsRequirements
@@ -16006,7 +16012,7 @@ enum A {
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
 [stream]
-  ResolvedUnitResult #3
+  ResolvedUnitResult #2
     path: /home/test/lib/test.dart
     uri: package:test/test.dart
     flags: exists isLibrary
@@ -16028,6 +16034,11 @@ enum A {
             requestedConstructors
               foo: <null>
 [status] idle
+[future] getErrors T2
+  ErrorsResult #3
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
 ''',
     );
   }
@@ -16051,11 +16062,6 @@ void f() {
       expectedInitialEvents: r'''
 [status] working
 [operation] linkLibraryCycle SDK
-[future] getErrors T1
-  ErrorsResult #0
-    path: /home/test/lib/test.dart
-    uri: package:test/test.dart
-    flags: isLibrary
 [operation] linkLibraryCycle
   package:test/a.dart
     declaredEnums
@@ -16082,7 +16088,7 @@ void f() {
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
 [stream]
-  ResolvedUnitResult #1
+  ResolvedUnitResult #0
     path: /home/test/lib/test.dart
     uri: package:test/test.dart
     flags: exists isLibrary
@@ -16104,6 +16110,11 @@ void f() {
             requestedConstructors
               foo: <null>
 [status] idle
+[future] getErrors T1
+  ErrorsResult #1
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
 ''',
       updatedA: r'''
 enum A {
@@ -16131,11 +16142,6 @@ enum A {
           map
             index: #M8
   requirements
-[future] getErrors T2
-  ErrorsResult #2
-    path: /home/test/lib/test.dart
-    uri: package:test/test.dart
-    flags: isLibrary
 [operation] readLibraryCycleBundle
   package:test/test.dart
 [operation] checkLibraryDiagnosticsRequirements
@@ -16145,6 +16151,11 @@ enum A {
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
 [status] idle
+[future] getErrors T2
+  ErrorsResult #2
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
 ''',
     );
   }
@@ -16167,11 +16178,6 @@ void f() {
       expectedInitialEvents: r'''
 [status] working
 [operation] linkLibraryCycle SDK
-[future] getErrors T1
-  ErrorsResult #0
-    path: /home/test/lib/test.dart
-    uri: package:test/test.dart
-    flags: isLibrary
 [operation] linkLibraryCycle
   package:test/a.dart
     declaredEnums
@@ -16198,7 +16204,7 @@ void f() {
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
 [stream]
-  ResolvedUnitResult #1
+  ResolvedUnitResult #0
     path: /home/test/lib/test.dart
     uri: package:test/test.dart
     flags: exists isLibrary
@@ -16216,6 +16222,11 @@ void f() {
             requestedDeclaredSetters
               foo=: #M6
 [status] idle
+[future] getErrors T1
+  ErrorsResult #1
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
 ''',
       updatedA: r'''
 enum A {
@@ -16242,11 +16253,6 @@ enum A {
           map
             index: #M8
   requirements
-[future] getErrors T2
-  ErrorsResult #2
-    path: /home/test/lib/test.dart
-    uri: package:test/test.dart
-    flags: isLibrary
 [operation] readLibraryCycleBundle
   package:test/test.dart
 [operation] checkLibraryDiagnosticsRequirements
@@ -16261,7 +16267,7 @@ enum A {
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
 [stream]
-  ResolvedUnitResult #3
+  ResolvedUnitResult #2
     path: /home/test/lib/test.dart
     uri: package:test/test.dart
     flags: exists isLibrary
@@ -16279,6 +16285,11 @@ enum A {
             requestedDeclaredSetters
               foo=: #M11
 [status] idle
+[future] getErrors T2
+  ErrorsResult #3
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
 ''',
     );
   }
@@ -16302,11 +16313,6 @@ void f() {
       expectedInitialEvents: r'''
 [status] working
 [operation] linkLibraryCycle SDK
-[future] getErrors T1
-  ErrorsResult #0
-    path: /home/test/lib/test.dart
-    uri: package:test/test.dart
-    flags: isLibrary
 [operation] linkLibraryCycle
   package:test/a.dart
     declaredEnums
@@ -16335,7 +16341,7 @@ void f() {
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
 [stream]
-  ResolvedUnitResult #1
+  ResolvedUnitResult #0
     path: /home/test/lib/test.dart
     uri: package:test/test.dart
     flags: exists isLibrary
@@ -16353,6 +16359,11 @@ void f() {
             requestedDeclaredSetters
               foo=: #M8
 [status] idle
+[future] getErrors T1
+  ErrorsResult #1
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
 ''',
       updatedA: r'''
 enum A {
@@ -16382,11 +16393,6 @@ enum A {
           map
             index: #M10
   requirements
-[future] getErrors T2
-  ErrorsResult #2
-    path: /home/test/lib/test.dart
-    uri: package:test/test.dart
-    flags: isLibrary
 [operation] readLibraryCycleBundle
   package:test/test.dart
 [operation] checkLibraryDiagnosticsRequirements
@@ -16396,6 +16402,11 @@ enum A {
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
 [status] idle
+[future] getErrors T2
+  ErrorsResult #2
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
 ''',
     );
   }
@@ -16416,12 +16427,6 @@ export 'a.dart';
       expectedInitialEvents: r'''
 [status] working
 [operation] linkLibraryCycle SDK
-[future] getLibraryByUri T1
-  library
-    exportedReferences
-      exported[(0, 0)] package:test/a.dart::@class::A
-    exportNamespace
-      A: package:test/a.dart::@class::A
 [operation] linkLibraryCycle
   package:test/a.dart
     declaredClasses
@@ -16441,6 +16446,12 @@ export 'a.dart';
           package:test/a.dart
             A: #M0
 [status] idle
+[future] getLibraryByUri T1
+  library
+    exportedReferences
+      exported[(0, 0)] package:test/a.dart::@class::A
+    exportNamespace
+      A: package:test/a.dart::@class::A
 ''',
       updateFiles: () {
         modifyFile2(a, r'''
@@ -16459,15 +16470,15 @@ class _B2 {}
       _B2: #M4
         interface: #M5
   requirements
+[operation] readLibraryCycleBundle
+  package:test/test.dart
+[status] idle
 [future] getLibraryByUri T2
   library
     exportedReferences
       exported[(0, 0)] package:test/a.dart::@class::A
     exportNamespace
       A: package:test/a.dart::@class::A
-[operation] readLibraryCycleBundle
-  package:test/test.dart
-[status] idle
 ''',
     );
   }
@@ -16490,23 +16501,6 @@ class C {}
       expectedInitialEvents: r'''
 [status] working
 [operation] linkLibraryCycle SDK
-[future] getLibraryByUri T1
-  library
-    classes
-      class B
-        constructors
-          synthetic new
-      class C
-        constructors
-          synthetic new
-    exportedReferences
-      exported[(0, 0)] package:test/a.dart::@class::A
-      declared <testLibrary>::@class::B
-      declared <testLibrary>::@class::C
-    exportNamespace
-      A: package:test/a.dart::@class::A
-      B: <testLibrary>::@class::B
-      C: <testLibrary>::@class::C
 [operation] linkLibraryCycle
   package:test/a.dart
     declaredClasses
@@ -16532,6 +16526,23 @@ class C {}
           package:test/a.dart
             A: #M0
 [status] idle
+[future] getLibraryByUri T1
+  library
+    classes
+      class B
+        constructors
+          synthetic new
+      class C
+        constructors
+          synthetic new
+    exportedReferences
+      exported[(0, 0)] package:test/a.dart::@class::A
+      declared <testLibrary>::@class::B
+      declared <testLibrary>::@class::C
+    exportNamespace
+      A: package:test/a.dart::@class::A
+      B: <testLibrary>::@class::B
+      C: <testLibrary>::@class::C
 ''',
       updateFiles: () {
         modifyFile2(a, r'''
@@ -16553,6 +16564,9 @@ class C {}
       C: #M8
         interface: #M9
   requirements
+[operation] readLibraryCycleBundle
+  package:test/test.dart
+[status] idle
 [future] getLibraryByUri T2
   library
     classes
@@ -16570,9 +16584,6 @@ class C {}
       A: package:test/a.dart::@class::A
       B: <testLibrary>::@class::B
       C: <testLibrary>::@class::C
-[operation] readLibraryCycleBundle
-  package:test/test.dart
-[status] idle
 ''',
     );
   }
@@ -16594,18 +16605,6 @@ class B {}
       expectedInitialEvents: r'''
 [status] working
 [operation] linkLibraryCycle SDK
-[future] getLibraryByUri T1
-  library
-    classes
-      class B
-        constructors
-          synthetic new
-    exportedReferences
-      exported[(0, 0)] package:test/a.dart::@class::A
-      declared <testLibrary>::@class::B
-    exportNamespace
-      A: package:test/a.dart::@class::A
-      B: <testLibrary>::@class::B
 [operation] linkLibraryCycle
   package:test/a.dart
     declaredClasses
@@ -16629,6 +16628,18 @@ class B {}
           package:test/a.dart
             A: #M0
 [status] idle
+[future] getLibraryByUri T1
+  library
+    classes
+      class B
+        constructors
+          synthetic new
+    exportedReferences
+      exported[(0, 0)] package:test/a.dart::@class::A
+      declared <testLibrary>::@class::B
+    exportNamespace
+      A: package:test/a.dart::@class::A
+      B: <testLibrary>::@class::B
 ''',
       updateFiles: () {
         modifyFile2(a, r'''
@@ -16650,20 +16661,6 @@ class C {}
       C: #M6
         interface: #M7
   requirements
-[future] getLibraryByUri T2
-  library
-    classes
-      class B
-        constructors
-          synthetic new
-    exportedReferences
-      exported[(0, 0)] package:test/a.dart::@class::A
-      exported[(0, 0)] package:test/a.dart::@class::C
-      declared <testLibrary>::@class::B
-    exportNamespace
-      A: package:test/a.dart::@class::A
-      B: <testLibrary>::@class::B
-      C: package:test/a.dart::@class::C
 [operation] cannotReuseLinkedBundle
   exportIdMismatch
     fragmentUri: package:test/test.dart
@@ -16688,6 +16685,20 @@ class C {}
             A: #M0
             C: #M6
 [status] idle
+[future] getLibraryByUri T2
+  library
+    classes
+      class B
+        constructors
+          synthetic new
+    exportedReferences
+      exported[(0, 0)] package:test/a.dart::@class::A
+      exported[(0, 0)] package:test/a.dart::@class::C
+      declared <testLibrary>::@class::B
+    exportNamespace
+      A: package:test/a.dart::@class::A
+      B: <testLibrary>::@class::B
+      C: package:test/a.dart::@class::C
 ''',
     );
   }
@@ -16712,14 +16723,6 @@ export 'b.dart';
       expectedInitialEvents: r'''
 [status] working
 [operation] linkLibraryCycle SDK
-[future] getLibraryByUri T1
-  library
-    exportedReferences
-      exported[(0, 0)] package:test/a.dart::@class::A
-      exported[(0, 0)] package:test/b.dart::@class::B
-    exportNamespace
-      A: package:test/a.dart::@class::A
-      B: package:test/b.dart::@class::B
 [operation] linkLibraryCycle
   package:test/a.dart
     declaredClasses
@@ -16755,6 +16758,14 @@ export 'b.dart';
             A: #M0
             B: #M2
 [status] idle
+[future] getLibraryByUri T1
+  library
+    exportedReferences
+      exported[(0, 0)] package:test/a.dart::@class::A
+      exported[(0, 0)] package:test/b.dart::@class::B
+    exportNamespace
+      A: package:test/a.dart::@class::A
+      B: package:test/b.dart::@class::B
 ''',
       updateFiles: () {
         modifyFile2(a, r'''
@@ -16773,6 +16784,11 @@ class A2 {}
       A2: #M4
         interface: #M5
   requirements
+[operation] readLibraryCycleBundle
+  package:test/b.dart
+[operation] readLibraryCycleBundle
+  package:test/test.dart
+[status] idle
 [future] getLibraryByUri T2
   library
     exportedReferences
@@ -16781,11 +16797,6 @@ class A2 {}
     exportNamespace
       A: package:test/a.dart::@class::A
       B: package:test/b.dart::@class::B
-[operation] readLibraryCycleBundle
-  package:test/b.dart
-[operation] readLibraryCycleBundle
-  package:test/test.dart
-[status] idle
 ''',
     );
   }
@@ -16806,12 +16817,6 @@ export 'a.dart';
       expectedInitialEvents: r'''
 [status] working
 [operation] linkLibraryCycle SDK
-[future] getLibraryByUri T1
-  library
-    exportedReferences
-      exported[(0, 0)] package:test/a.dart::@enum::E
-    exportNamespace
-      E: package:test/a.dart::@enum::E
 [operation] linkLibraryCycle
   package:test/a.dart
     declaredEnums
@@ -16847,6 +16852,12 @@ export 'a.dart';
           package:test/a.dart
             E: #M0
 [status] idle
+[future] getLibraryByUri T1
+  library
+    exportedReferences
+      exported[(0, 0)] package:test/a.dart::@enum::E
+    exportNamespace
+      E: package:test/a.dart::@enum::E
 ''',
       updateFiles: () {
         modifyFile2(a, r'''
@@ -16881,15 +16892,15 @@ enum _E2 {v}
           map
             index: #M6
   requirements
+[operation] readLibraryCycleBundle
+  package:test/test.dart
+[status] idle
 [future] getLibraryByUri T2
   library
     exportedReferences
       exported[(0, 0)] package:test/a.dart::@enum::E
     exportNamespace
       E: package:test/a.dart::@enum::E
-[operation] readLibraryCycleBundle
-  package:test/test.dart
-[status] idle
 ''',
     );
   }
@@ -16910,12 +16921,6 @@ export 'a.dart';
       expectedInitialEvents: r'''
 [status] working
 [operation] linkLibraryCycle SDK
-[future] getLibraryByUri T1
-  library
-    exportedReferences
-      exported[(0, 0)] package:test/a.dart::@extension::E
-    exportNamespace
-      E: package:test/a.dart::@extension::E
 [operation] linkLibraryCycle
   package:test/a.dart
     declaredExtensions
@@ -16935,6 +16940,12 @@ export 'a.dart';
           package:test/a.dart
             E: #M0
 [status] idle
+[future] getLibraryByUri T1
+  library
+    exportedReferences
+      exported[(0, 0)] package:test/a.dart::@extension::E
+    exportNamespace
+      E: package:test/a.dart::@extension::E
 ''',
       updateFiles: () {
         modifyFile2(a, r'''
@@ -16952,15 +16963,15 @@ extension _E2 on int {}
       _E2: #M2
     exportedExtensions: #M0
   requirements
+[operation] readLibraryCycleBundle
+  package:test/test.dart
+[status] idle
 [future] getLibraryByUri T2
   library
     exportedReferences
       exported[(0, 0)] package:test/a.dart::@extension::E
     exportNamespace
       E: package:test/a.dart::@extension::E
-[operation] readLibraryCycleBundle
-  package:test/test.dart
-[status] idle
 ''',
     );
   }
@@ -16984,12 +16995,6 @@ export 'a.dart';
       expectedInitialEvents: r'''
 [status] working
 [operation] linkLibraryCycle SDK
-[future] getLibraryByUri T1
-  library
-    exportedReferences
-      exported[(0, 0)] package:test/a.dart::@extension::E
-    exportNamespace
-      E: package:test/a.dart::@extension::E
 [operation] linkLibraryCycle
   package:test/a.dart
     declaredExtensions
@@ -17015,6 +17020,12 @@ export 'a.dart';
           package:test/a.dart
             E: #M0
 [status] idle
+[future] getLibraryByUri T1
+  library
+    exportedReferences
+      exported[(0, 0)] package:test/a.dart::@extension::E
+    exportNamespace
+      E: package:test/a.dart::@extension::E
 ''',
       updateFiles: () {
         modifyFile2(a, r'''
@@ -17044,15 +17055,15 @@ extension E on int {
             returnType: int @ dart:core
     exportedExtensions: #M0
   requirements
+[operation] readLibraryCycleBundle
+  package:test/test.dart
+[status] idle
 [future] getLibraryByUri T2
   library
     exportedReferences
       exported[(0, 0)] package:test/a.dart::@extension::E
     exportNamespace
       E: package:test/a.dart::@extension::E
-[operation] readLibraryCycleBundle
-  package:test/test.dart
-[status] idle
 ''',
     );
   }
@@ -17077,12 +17088,6 @@ export 'a.dart';
       expectedInitialEvents: r'''
 [status] working
 [operation] linkLibraryCycle SDK
-[future] getLibraryByUri T1
-  library
-    exportedReferences
-      exported[(0, 0)] package:test/a.dart::@extension::E
-    exportNamespace
-      E: package:test/a.dart::@extension::E
 [operation] linkLibraryCycle
   package:test/a.dart
     declaredExtensions
@@ -17112,6 +17117,12 @@ export 'a.dart';
           package:test/a.dart
             E: #M0
 [status] idle
+[future] getLibraryByUri T1
+  library
+    exportedReferences
+      exported[(0, 0)] package:test/a.dart::@extension::E
+    exportNamespace
+      E: package:test/a.dart::@extension::E
 ''',
       updateFiles: () {
         modifyFile2(a, r'''
@@ -17141,15 +17152,15 @@ extension E on int {
             returnType: int @ dart:core
     exportedExtensions: #M0
   requirements
+[operation] readLibraryCycleBundle
+  package:test/test.dart
+[status] idle
 [future] getLibraryByUri T2
   library
     exportedReferences
       exported[(0, 0)] package:test/a.dart::@extension::E
     exportNamespace
       E: package:test/a.dart::@extension::E
-[operation] readLibraryCycleBundle
-  package:test/test.dart
-[status] idle
 ''',
     );
   }
@@ -17174,12 +17185,6 @@ export 'a.dart';
       expectedInitialEvents: r'''
 [status] working
 [operation] linkLibraryCycle SDK
-[future] getLibraryByUri T1
-  library
-    exportedReferences
-      exported[(0, 0)] package:test/a.dart::@extension::E
-    exportNamespace
-      E: package:test/a.dart::@extension::E
 [operation] linkLibraryCycle
   package:test/a.dart
     declaredExtensions
@@ -17209,6 +17214,12 @@ export 'a.dart';
           package:test/a.dart
             E: #M0
 [status] idle
+[future] getLibraryByUri T1
+  library
+    exportedReferences
+      exported[(0, 0)] package:test/a.dart::@extension::E
+    exportNamespace
+      E: package:test/a.dart::@extension::E
 ''',
       updateFiles: () {
         modifyFile2(a, r'''
@@ -17233,15 +17244,15 @@ extension E on int {
             returnType: int @ dart:core
     exportedExtensions: #M0
   requirements
+[operation] readLibraryCycleBundle
+  package:test/test.dart
+[status] idle
 [future] getLibraryByUri T2
   library
     exportedReferences
       exported[(0, 0)] package:test/a.dart::@extension::E
     exportNamespace
       E: package:test/a.dart::@extension::E
-[operation] readLibraryCycleBundle
-  package:test/test.dart
-[status] idle
 ''',
     );
   }
@@ -17263,12 +17274,6 @@ export 'a.dart';
       expectedInitialEvents: r'''
 [status] working
 [operation] linkLibraryCycle SDK
-[future] getLibraryByUri T1
-  library
-    exportedReferences
-      exported[(0, 0)] package:test/a.dart::@extension::E1
-    exportNamespace
-      E1: package:test/a.dart::@extension::E1
 [operation] linkLibraryCycle
   package:test/a.dart
     declaredExtensions
@@ -17288,6 +17293,12 @@ export 'a.dart';
           package:test/a.dart
             E1: #M0
 [status] idle
+[future] getLibraryByUri T1
+  library
+    exportedReferences
+      exported[(0, 0)] package:test/a.dart::@extension::E1
+    exportNamespace
+      E1: package:test/a.dart::@extension::E1
 ''',
       updateFiles: () {
         modifyFile2(a, r'''
@@ -17307,14 +17318,6 @@ extension E2 on int {}
         extendedType: int @ dart:core
     exportedExtensions: #M0 #M1
   requirements
-[future] getLibraryByUri T2
-  library
-    exportedReferences
-      exported[(0, 0)] package:test/a.dart::@extension::E1
-      exported[(0, 0)] package:test/a.dart::@extension::E2
-    exportNamespace
-      E1: package:test/a.dart::@extension::E1
-      E2: package:test/a.dart::@extension::E2
 [operation] cannotReuseLinkedBundle
   exportIdMismatch
     fragmentUri: package:test/test.dart
@@ -17336,6 +17339,14 @@ extension E2 on int {}
             E1: #M0
             E2: #M1
 [status] idle
+[future] getLibraryByUri T2
+  library
+    exportedReferences
+      exported[(0, 0)] package:test/a.dart::@extension::E1
+      exported[(0, 0)] package:test/a.dart::@extension::E2
+    exportNamespace
+      E1: package:test/a.dart::@extension::E1
+      E2: package:test/a.dart::@extension::E2
 ''',
     );
   }
@@ -17358,14 +17369,6 @@ export 'a.dart';
       expectedInitialEvents: r'''
 [status] working
 [operation] linkLibraryCycle SDK
-[future] getLibraryByUri T1
-  library
-    exportedReferences
-      exported[(0, 0)] package:test/a.dart::@extension::E1
-      exported[(0, 0)] package:test/a.dart::@extension::E2
-    exportNamespace
-      E1: package:test/a.dart::@extension::E1
-      E2: package:test/a.dart::@extension::E2
 [operation] linkLibraryCycle
   package:test/a.dart
     declaredExtensions
@@ -17389,6 +17392,14 @@ export 'a.dart';
             E1: #M0
             E2: #M1
 [status] idle
+[future] getLibraryByUri T1
+  library
+    exportedReferences
+      exported[(0, 0)] package:test/a.dart::@extension::E1
+      exported[(0, 0)] package:test/a.dart::@extension::E2
+    exportNamespace
+      E1: package:test/a.dart::@extension::E1
+      E2: package:test/a.dart::@extension::E2
 ''',
       updateFiles: () {
         modifyFile2(a, r'''
@@ -17405,12 +17416,6 @@ extension E1 on int {}
         extendedType: int @ dart:core
     exportedExtensions: #M0
   requirements
-[future] getLibraryByUri T2
-  library
-    exportedReferences
-      exported[(0, 0)] package:test/a.dart::@extension::E1
-    exportNamespace
-      E1: package:test/a.dart::@extension::E1
 [operation] cannotReuseLinkedBundle
   exportCountMismatch
     fragmentUri: package:test/test.dart
@@ -17429,6 +17434,12 @@ extension E1 on int {}
           package:test/a.dart
             E1: #M0
 [status] idle
+[future] getLibraryByUri T2
+  library
+    exportedReferences
+      exported[(0, 0)] package:test/a.dart::@extension::E1
+    exportNamespace
+      E1: package:test/a.dart::@extension::E1
 ''',
     );
   }
@@ -17452,12 +17463,6 @@ export 'a.dart';
       expectedInitialEvents: r'''
 [status] working
 [operation] linkLibraryCycle SDK
-[future] getLibraryByUri T1
-  library
-    exportedReferences
-      exported[(0, 0)] package:test/a.dart::@extension::E
-    exportNamespace
-      E: package:test/a.dart::@extension::E
 [operation] linkLibraryCycle
   package:test/a.dart
     declaredExtensions
@@ -17481,6 +17486,12 @@ export 'a.dart';
           package:test/a.dart
             E: #M0
 [status] idle
+[future] getLibraryByUri T1
+  library
+    exportedReferences
+      exported[(0, 0)] package:test/a.dart::@extension::E
+    exportNamespace
+      E: package:test/a.dart::@extension::E
 ''',
       updateFiles: () {
         modifyFile2(a, r'''
@@ -17507,15 +17518,15 @@ extension E on int {
               returnType: void
     exportedExtensions: #M0
   requirements
+[operation] readLibraryCycleBundle
+  package:test/test.dart
+[status] idle
 [future] getLibraryByUri T2
   library
     exportedReferences
       exported[(0, 0)] package:test/a.dart::@extension::E
     exportNamespace
       E: package:test/a.dart::@extension::E
-[operation] readLibraryCycleBundle
-  package:test/test.dart
-[status] idle
 ''',
     );
   }
@@ -17540,12 +17551,6 @@ export 'a.dart';
       expectedInitialEvents: r'''
 [status] working
 [operation] linkLibraryCycle SDK
-[future] getLibraryByUri T1
-  library
-    exportedReferences
-      exported[(0, 0)] package:test/a.dart::@extension::E
-    exportNamespace
-      E: package:test/a.dart::@extension::E
 [operation] linkLibraryCycle
   package:test/a.dart
     declaredExtensions
@@ -17572,6 +17577,12 @@ export 'a.dart';
           package:test/a.dart
             E: #M0
 [status] idle
+[future] getLibraryByUri T1
+  library
+    exportedReferences
+      exported[(0, 0)] package:test/a.dart::@extension::E
+    exportNamespace
+      E: package:test/a.dart::@extension::E
 ''',
       updateFiles: () {
         modifyFile2(a, r'''
@@ -17600,15 +17611,15 @@ extension E on int {
               returnType: void
     exportedExtensions: #M0
   requirements
+[operation] readLibraryCycleBundle
+  package:test/test.dart
+[status] idle
 [future] getLibraryByUri T2
   library
     exportedReferences
       exported[(0, 0)] package:test/a.dart::@extension::E
     exportNamespace
       E: package:test/a.dart::@extension::E
-[operation] readLibraryCycleBundle
-  package:test/test.dart
-[status] idle
 ''',
     );
   }
@@ -17633,12 +17644,6 @@ export 'a.dart';
       expectedInitialEvents: r'''
 [status] working
 [operation] linkLibraryCycle SDK
-[future] getLibraryByUri T1
-  library
-    exportedReferences
-      exported[(0, 0)] package:test/a.dart::@extension::E
-    exportNamespace
-      E: package:test/a.dart::@extension::E
 [operation] linkLibraryCycle
   package:test/a.dart
     declaredExtensions
@@ -17665,6 +17670,12 @@ export 'a.dart';
           package:test/a.dart
             E: #M0
 [status] idle
+[future] getLibraryByUri T1
+  library
+    exportedReferences
+      exported[(0, 0)] package:test/a.dart::@extension::E
+    exportNamespace
+      E: package:test/a.dart::@extension::E
 ''',
       updateFiles: () {
         modifyFile2(a, r'''
@@ -17687,15 +17698,15 @@ extension E on int {
               returnType: void
     exportedExtensions: #M0
   requirements
+[operation] readLibraryCycleBundle
+  package:test/test.dart
+[status] idle
 [future] getLibraryByUri T2
   library
     exportedReferences
       exported[(0, 0)] package:test/a.dart::@extension::E
     exportNamespace
       E: package:test/a.dart::@extension::E
-[operation] readLibraryCycleBundle
-  package:test/test.dart
-[status] idle
 ''',
     );
   }
@@ -17719,12 +17730,6 @@ export 'a.dart';
       expectedInitialEvents: r'''
 [status] working
 [operation] linkLibraryCycle SDK
-[future] getLibraryByUri T1
-  library
-    exportedReferences
-      exported[(0, 0)] package:test/a.dart::@extension::E
-    exportNamespace
-      E: package:test/a.dart::@extension::E
 [operation] linkLibraryCycle
   package:test/a.dart
     declaredExtensions
@@ -17750,6 +17755,12 @@ export 'a.dart';
           package:test/a.dart
             E: #M0
 [status] idle
+[future] getLibraryByUri T1
+  library
+    exportedReferences
+      exported[(0, 0)] package:test/a.dart::@extension::E
+    exportNamespace
+      E: package:test/a.dart::@extension::E
 ''',
       updateFiles: () {
         modifyFile2(a, r'''
@@ -17779,15 +17790,15 @@ extension E on int {
             valueType: int @ dart:core
     exportedExtensions: #M0
   requirements
+[operation] readLibraryCycleBundle
+  package:test/test.dart
+[status] idle
 [future] getLibraryByUri T2
   library
     exportedReferences
       exported[(0, 0)] package:test/a.dart::@extension::E
     exportNamespace
       E: package:test/a.dart::@extension::E
-[operation] readLibraryCycleBundle
-  package:test/test.dart
-[status] idle
 ''',
     );
   }
@@ -17812,12 +17823,6 @@ export 'a.dart';
       expectedInitialEvents: r'''
 [status] working
 [operation] linkLibraryCycle SDK
-[future] getLibraryByUri T1
-  library
-    exportedReferences
-      exported[(0, 0)] package:test/a.dart::@extension::E
-    exportNamespace
-      E: package:test/a.dart::@extension::E
 [operation] linkLibraryCycle
   package:test/a.dart
     declaredExtensions
@@ -17847,6 +17852,12 @@ export 'a.dart';
           package:test/a.dart
             E: #M0
 [status] idle
+[future] getLibraryByUri T1
+  library
+    exportedReferences
+      exported[(0, 0)] package:test/a.dart::@extension::E
+    exportNamespace
+      E: package:test/a.dart::@extension::E
 ''',
       updateFiles: () {
         modifyFile2(a, r'''
@@ -17876,15 +17887,15 @@ extension E on int {
             valueType: int @ dart:core
     exportedExtensions: #M0
   requirements
+[operation] readLibraryCycleBundle
+  package:test/test.dart
+[status] idle
 [future] getLibraryByUri T2
   library
     exportedReferences
       exported[(0, 0)] package:test/a.dart::@extension::E
     exportNamespace
       E: package:test/a.dart::@extension::E
-[operation] readLibraryCycleBundle
-  package:test/test.dart
-[status] idle
 ''',
     );
   }
@@ -17909,12 +17920,6 @@ export 'a.dart';
       expectedInitialEvents: r'''
 [status] working
 [operation] linkLibraryCycle SDK
-[future] getLibraryByUri T1
-  library
-    exportedReferences
-      exported[(0, 0)] package:test/a.dart::@extension::E
-    exportNamespace
-      E: package:test/a.dart::@extension::E
 [operation] linkLibraryCycle
   package:test/a.dart
     declaredExtensions
@@ -17944,6 +17949,12 @@ export 'a.dart';
           package:test/a.dart
             E: #M0
 [status] idle
+[future] getLibraryByUri T1
+  library
+    exportedReferences
+      exported[(0, 0)] package:test/a.dart::@extension::E
+    exportNamespace
+      E: package:test/a.dart::@extension::E
 ''',
       updateFiles: () {
         modifyFile2(a, r'''
@@ -17968,15 +17979,15 @@ extension E on int {
             valueType: int @ dart:core
     exportedExtensions: #M0
   requirements
+[operation] readLibraryCycleBundle
+  package:test/test.dart
+[status] idle
 [future] getLibraryByUri T2
   library
     exportedReferences
       exported[(0, 0)] package:test/a.dart::@extension::E
     exportNamespace
       E: package:test/a.dart::@extension::E
-[operation] readLibraryCycleBundle
-  package:test/test.dart
-[status] idle
 ''',
     );
   }
@@ -17997,12 +18008,6 @@ export 'a.dart';
       expectedInitialEvents: r'''
 [status] working
 [operation] linkLibraryCycle SDK
-[future] getLibraryByUri T1
-  library
-    exportedReferences
-      exported[(0, 0)] package:test/a.dart::@extensionType::E
-    exportNamespace
-      E: package:test/a.dart::@extensionType::E
 [operation] linkLibraryCycle
   package:test/a.dart
     declaredExtensionTypes
@@ -18034,6 +18039,12 @@ export 'a.dart';
           package:test/a.dart
             E: #M0
 [status] idle
+[future] getLibraryByUri T1
+  library
+    exportedReferences
+      exported[(0, 0)] package:test/a.dart::@extensionType::E
+    exportNamespace
+      E: package:test/a.dart::@extensionType::E
 ''',
       updateFiles: () {
         modifyFile2(a, r'''
@@ -18064,15 +18075,15 @@ extension type _E2(int it) {}
           map
             it: #M10
   requirements
+[operation] readLibraryCycleBundle
+  package:test/test.dart
+[status] idle
 [future] getLibraryByUri T2
   library
     exportedReferences
       exported[(0, 0)] package:test/a.dart::@extensionType::E
     exportNamespace
       E: package:test/a.dart::@extensionType::E
-[operation] readLibraryCycleBundle
-  package:test/test.dart
-[status] idle
 ''',
     );
   }
@@ -18093,12 +18104,6 @@ export 'a.dart';
       expectedInitialEvents: r'''
 [status] working
 [operation] linkLibraryCycle SDK
-[future] getLibraryByUri T1
-  library
-    exportedReferences
-      exported[(0, 0)] package:test/a.dart::@mixin::M
-    exportNamespace
-      M: package:test/a.dart::@mixin::M
 [operation] linkLibraryCycle
   package:test/a.dart
     declaredMixins
@@ -18118,6 +18123,12 @@ export 'a.dart';
           package:test/a.dart
             M: #M0
 [status] idle
+[future] getLibraryByUri T1
+  library
+    exportedReferences
+      exported[(0, 0)] package:test/a.dart::@mixin::M
+    exportNamespace
+      M: package:test/a.dart::@mixin::M
 ''',
       updateFiles: () {
         modifyFile2(a, r'''
@@ -18136,15 +18147,15 @@ mixin _M2 {}
       _M2: #M4
         interface: #M5
   requirements
+[operation] readLibraryCycleBundle
+  package:test/test.dart
+[status] idle
 [future] getLibraryByUri T2
   library
     exportedReferences
       exported[(0, 0)] package:test/a.dart::@mixin::M
     exportNamespace
       M: package:test/a.dart::@mixin::M
-[operation] readLibraryCycleBundle
-  package:test/test.dart
-[status] idle
 ''',
     );
   }
@@ -18165,12 +18176,6 @@ export ':';
       expectedInitialEvents: r'''
 [status] working
 [operation] linkLibraryCycle SDK
-[future] getLibraryByUri T1
-  library
-    exportedReferences
-      exported[(0, 0)] package:test/a.dart::@getter::a
-    exportNamespace
-      a: package:test/a.dart::@getter::a
 [operation] linkLibraryCycle
   package:test/a.dart
     declaredGetters
@@ -18189,6 +18194,12 @@ export ':';
           package:test/a.dart
             a: #M0
 [status] idle
+[future] getLibraryByUri T1
+  library
+    exportedReferences
+      exported[(0, 0)] package:test/a.dart::@getter::a
+    exportNamespace
+      a: package:test/a.dart::@getter::a
 ''',
       updateFiles: () {
         modifyFile2(a, r'''
@@ -18205,15 +18216,15 @@ final a = 1;
     declaredVariables
       a: #M1
   requirements
+[operation] readLibraryCycleBundle
+  package:test/test.dart
+[status] idle
 [future] getLibraryByUri T2
   library
     exportedReferences
       exported[(0, 0)] package:test/a.dart::@getter::a
     exportNamespace
       a: package:test/a.dart::@getter::a
-[operation] readLibraryCycleBundle
-  package:test/test.dart
-[status] idle
 ''',
     );
   }
@@ -18233,12 +18244,6 @@ export 'a.dart';
       expectedInitialEvents: r'''
 [status] working
 [operation] linkLibraryCycle SDK
-[future] getLibraryByUri T1
-  library
-    exportedReferences
-      exported[(0, 0)] package:test/a.dart::@getter::a
-    exportNamespace
-      a: package:test/a.dart::@getter::a
 [operation] linkLibraryCycle
   package:test/a.dart
     declaredGetters
@@ -18257,6 +18262,12 @@ export 'a.dart';
           package:test/a.dart
             a: #M0
 [status] idle
+[future] getLibraryByUri T1
+  library
+    exportedReferences
+      exported[(0, 0)] package:test/a.dart::@getter::a
+    exportNamespace
+      a: package:test/a.dart::@getter::a
 ''',
       updateFiles: () {
         modifyFile2(a, r'''
@@ -18276,14 +18287,6 @@ final b = 0;
       a: #M1
       b: #M3
   requirements
-[future] getLibraryByUri T2
-  library
-    exportedReferences
-      exported[(0, 0)] package:test/a.dart::@getter::a
-      exported[(0, 0)] package:test/a.dart::@getter::b
-    exportNamespace
-      a: package:test/a.dart::@getter::a
-      b: package:test/a.dart::@getter::b
 [operation] cannotReuseLinkedBundle
   exportIdMismatch
     fragmentUri: package:test/test.dart
@@ -18304,6 +18307,14 @@ final b = 0;
             a: #M0
             b: #M2
 [status] idle
+[future] getLibraryByUri T2
+  library
+    exportedReferences
+      exported[(0, 0)] package:test/a.dart::@getter::a
+      exported[(0, 0)] package:test/a.dart::@getter::b
+    exportNamespace
+      a: package:test/a.dart::@getter::a
+      b: package:test/a.dart::@getter::b
 ''',
     );
   }
@@ -18323,12 +18334,6 @@ export 'a.dart' hide b;
       expectedInitialEvents: r'''
 [status] working
 [operation] linkLibraryCycle SDK
-[future] getLibraryByUri T1
-  library
-    exportedReferences
-      exported[(0, 0)] package:test/a.dart::@getter::a
-    exportNamespace
-      a: package:test/a.dart::@getter::a
 [operation] linkLibraryCycle
   package:test/a.dart
     declaredGetters
@@ -18349,6 +18354,12 @@ export 'a.dart' hide b;
               hide b
             a: #M0
 [status] idle
+[future] getLibraryByUri T1
+  library
+    exportedReferences
+      exported[(0, 0)] package:test/a.dart::@getter::a
+    exportNamespace
+      a: package:test/a.dart::@getter::a
 ''',
       updateFiles: () {
         modifyFile2(a, r'''
@@ -18368,15 +18379,15 @@ final b = 0;
       a: #M1
       b: #M3
   requirements
+[operation] readLibraryCycleBundle
+  package:test/test.dart
+[status] idle
 [future] getLibraryByUri T2
   library
     exportedReferences
       exported[(0, 0)] package:test/a.dart::@getter::a
     exportNamespace
       a: package:test/a.dart::@getter::a
-[operation] readLibraryCycleBundle
-  package:test/test.dart
-[status] idle
 ''',
     );
   }
@@ -18396,12 +18407,6 @@ export 'a.dart' hide c;
       expectedInitialEvents: r'''
 [status] working
 [operation] linkLibraryCycle SDK
-[future] getLibraryByUri T1
-  library
-    exportedReferences
-      exported[(0, 0)] package:test/a.dart::@getter::a
-    exportNamespace
-      a: package:test/a.dart::@getter::a
 [operation] linkLibraryCycle
   package:test/a.dart
     declaredGetters
@@ -18422,6 +18427,12 @@ export 'a.dart' hide c;
               hide c
             a: #M0
 [status] idle
+[future] getLibraryByUri T1
+  library
+    exportedReferences
+      exported[(0, 0)] package:test/a.dart::@getter::a
+    exportNamespace
+      a: package:test/a.dart::@getter::a
 ''',
       updateFiles: () {
         modifyFile2(a, r'''
@@ -18441,14 +18452,6 @@ final b = 0;
       a: #M1
       b: #M3
   requirements
-[future] getLibraryByUri T2
-  library
-    exportedReferences
-      exported[(0, 0)] package:test/a.dart::@getter::a
-      exported[(0, 0)] package:test/a.dart::@getter::b
-    exportNamespace
-      a: package:test/a.dart::@getter::a
-      b: package:test/a.dart::@getter::b
 [operation] cannotReuseLinkedBundle
   exportIdMismatch
     fragmentUri: package:test/test.dart
@@ -18471,6 +18474,14 @@ final b = 0;
             a: #M0
             b: #M2
 [status] idle
+[future] getLibraryByUri T2
+  library
+    exportedReferences
+      exported[(0, 0)] package:test/a.dart::@getter::a
+      exported[(0, 0)] package:test/a.dart::@getter::b
+    exportNamespace
+      a: package:test/a.dart::@getter::a
+      b: package:test/a.dart::@getter::b
 ''',
     );
   }
@@ -18490,12 +18501,6 @@ export 'a.dart' show a;
       expectedInitialEvents: r'''
 [status] working
 [operation] linkLibraryCycle SDK
-[future] getLibraryByUri T1
-  library
-    exportedReferences
-      exported[(0, 0)] package:test/a.dart::@getter::a
-    exportNamespace
-      a: package:test/a.dart::@getter::a
 [operation] linkLibraryCycle
   package:test/a.dart
     declaredGetters
@@ -18516,6 +18521,12 @@ export 'a.dart' show a;
               show a
             a: #M0
 [status] idle
+[future] getLibraryByUri T1
+  library
+    exportedReferences
+      exported[(0, 0)] package:test/a.dart::@getter::a
+    exportNamespace
+      a: package:test/a.dart::@getter::a
 ''',
       updateFiles: () {
         modifyFile2(a, r'''
@@ -18535,15 +18546,15 @@ final b = 0;
       a: #M1
       b: #M3
   requirements
+[operation] readLibraryCycleBundle
+  package:test/test.dart
+[status] idle
 [future] getLibraryByUri T2
   library
     exportedReferences
       exported[(0, 0)] package:test/a.dart::@getter::a
     exportNamespace
       a: package:test/a.dart::@getter::a
-[operation] readLibraryCycleBundle
-  package:test/test.dart
-[status] idle
 ''',
     );
   }
@@ -18563,12 +18574,6 @@ export 'a.dart' show a, b;
       expectedInitialEvents: r'''
 [status] working
 [operation] linkLibraryCycle SDK
-[future] getLibraryByUri T1
-  library
-    exportedReferences
-      exported[(0, 0)] package:test/a.dart::@getter::a
-    exportNamespace
-      a: package:test/a.dart::@getter::a
 [operation] linkLibraryCycle
   package:test/a.dart
     declaredGetters
@@ -18589,6 +18594,12 @@ export 'a.dart' show a, b;
               show a, b
             a: #M0
 [status] idle
+[future] getLibraryByUri T1
+  library
+    exportedReferences
+      exported[(0, 0)] package:test/a.dart::@getter::a
+    exportNamespace
+      a: package:test/a.dart::@getter::a
 ''',
       updateFiles: () {
         modifyFile2(a, r'''
@@ -18608,14 +18619,6 @@ final b = 0;
       a: #M1
       b: #M3
   requirements
-[future] getLibraryByUri T2
-  library
-    exportedReferences
-      exported[(0, 0)] package:test/a.dart::@getter::a
-      exported[(0, 0)] package:test/a.dart::@getter::b
-    exportNamespace
-      a: package:test/a.dart::@getter::a
-      b: package:test/a.dart::@getter::b
 [operation] cannotReuseLinkedBundle
   exportIdMismatch
     fragmentUri: package:test/test.dart
@@ -18638,6 +18641,14 @@ final b = 0;
             a: #M0
             b: #M2
 [status] idle
+[future] getLibraryByUri T2
+  library
+    exportedReferences
+      exported[(0, 0)] package:test/a.dart::@getter::a
+      exported[(0, 0)] package:test/a.dart::@getter::b
+    exportNamespace
+      a: package:test/a.dart::@getter::a
+      b: package:test/a.dart::@getter::b
 ''',
     );
   }
@@ -18657,12 +18668,6 @@ export 'a.dart' show a, b hide c;
       expectedInitialEvents: r'''
 [status] working
 [operation] linkLibraryCycle SDK
-[future] getLibraryByUri T1
-  library
-    exportedReferences
-      exported[(0, 0)] package:test/a.dart::@getter::a
-    exportNamespace
-      a: package:test/a.dart::@getter::a
 [operation] linkLibraryCycle
   package:test/a.dart
     declaredGetters
@@ -18684,6 +18689,12 @@ export 'a.dart' show a, b hide c;
               hide c
             a: #M0
 [status] idle
+[future] getLibraryByUri T1
+  library
+    exportedReferences
+      exported[(0, 0)] package:test/a.dart::@getter::a
+    exportNamespace
+      a: package:test/a.dart::@getter::a
 ''',
       updateFiles: () {
         modifyFile2(a, r'''
@@ -18703,14 +18714,6 @@ final b = 0;
       a: #M1
       b: #M3
   requirements
-[future] getLibraryByUri T2
-  library
-    exportedReferences
-      exported[(0, 0)] package:test/a.dart::@getter::a
-      exported[(0, 0)] package:test/a.dart::@getter::b
-    exportNamespace
-      a: package:test/a.dart::@getter::a
-      b: package:test/a.dart::@getter::b
 [operation] cannotReuseLinkedBundle
   exportIdMismatch
     fragmentUri: package:test/test.dart
@@ -18734,6 +18737,14 @@ final b = 0;
             a: #M0
             b: #M2
 [status] idle
+[future] getLibraryByUri T2
+  library
+    exportedReferences
+      exported[(0, 0)] package:test/a.dart::@getter::a
+      exported[(0, 0)] package:test/a.dart::@getter::b
+    exportNamespace
+      a: package:test/a.dart::@getter::a
+      b: package:test/a.dart::@getter::b
 ''',
     );
   }
@@ -18753,12 +18764,6 @@ export 'a.dart';
       expectedInitialEvents: r'''
 [status] working
 [operation] linkLibraryCycle SDK
-[future] getLibraryByUri T1
-  library
-    exportedReferences
-      exported[(0, 0)] package:test/a.dart::@getter::a
-    exportNamespace
-      a: package:test/a.dart::@getter::a
 [operation] linkLibraryCycle
   package:test/a.dart
     declaredGetters
@@ -18777,6 +18782,12 @@ export 'a.dart';
           package:test/a.dart
             a: #M0
 [status] idle
+[future] getLibraryByUri T1
+  library
+    exportedReferences
+      exported[(0, 0)] package:test/a.dart::@getter::a
+    exportNamespace
+      a: package:test/a.dart::@getter::a
 ''',
       updateFiles: () {
         modifyFile2(a, r'''
@@ -18796,15 +18807,15 @@ final _b = 0;
       _b: #M3
       a: #M1
   requirements
+[operation] readLibraryCycleBundle
+  package:test/test.dart
+[status] idle
 [future] getLibraryByUri T2
   library
     exportedReferences
       exported[(0, 0)] package:test/a.dart::@getter::a
     exportNamespace
       a: package:test/a.dart::@getter::a
-[operation] readLibraryCycleBundle
-  package:test/test.dart
-[status] idle
 ''',
     );
   }
@@ -18825,14 +18836,6 @@ export 'a.dart';
       expectedInitialEvents: r'''
 [status] working
 [operation] linkLibraryCycle SDK
-[future] getLibraryByUri T1
-  library
-    exportedReferences
-      exported[(0, 0)] package:test/a.dart::@getter::a
-      exported[(0, 0)] package:test/a.dart::@getter::b
-    exportNamespace
-      a: package:test/a.dart::@getter::a
-      b: package:test/a.dart::@getter::b
 [operation] linkLibraryCycle
   package:test/a.dart
     declaredGetters
@@ -18855,6 +18858,14 @@ export 'a.dart';
             a: #M0
             b: #M1
 [status] idle
+[future] getLibraryByUri T1
+  library
+    exportedReferences
+      exported[(0, 0)] package:test/a.dart::@getter::a
+      exported[(0, 0)] package:test/a.dart::@getter::b
+    exportNamespace
+      a: package:test/a.dart::@getter::a
+      b: package:test/a.dart::@getter::b
 ''',
       updateFiles: () {
         modifyFile2(a, r'''
@@ -18871,12 +18882,6 @@ final a = 0;
     declaredVariables
       a: #M2
   requirements
-[future] getLibraryByUri T2
-  library
-    exportedReferences
-      exported[(0, 0)] package:test/a.dart::@getter::a
-    exportNamespace
-      a: package:test/a.dart::@getter::a
 [operation] cannotReuseLinkedBundle
   exportCountMismatch
     fragmentUri: package:test/test.dart
@@ -18894,6 +18899,12 @@ final a = 0;
           package:test/a.dart
             a: #M0
 [status] idle
+[future] getLibraryByUri T2
+  library
+    exportedReferences
+      exported[(0, 0)] package:test/a.dart::@getter::a
+    exportNamespace
+      a: package:test/a.dart::@getter::a
 ''',
     );
   }
@@ -18914,12 +18925,6 @@ export 'a.dart' show a;
       expectedInitialEvents: r'''
 [status] working
 [operation] linkLibraryCycle SDK
-[future] getLibraryByUri T1
-  library
-    exportedReferences
-      exported[(0, 0)] package:test/a.dart::@getter::a
-    exportNamespace
-      a: package:test/a.dart::@getter::a
 [operation] linkLibraryCycle
   package:test/a.dart
     declaredGetters
@@ -18942,6 +18947,12 @@ export 'a.dart' show a;
               show a
             a: #M0
 [status] idle
+[future] getLibraryByUri T1
+  library
+    exportedReferences
+      exported[(0, 0)] package:test/a.dart::@getter::a
+    exportNamespace
+      a: package:test/a.dart::@getter::a
 ''',
       updateFiles: () {
         modifyFile2(a, r'''
@@ -18958,15 +18969,15 @@ final a = 0;
     declaredVariables
       a: #M2
   requirements
+[operation] readLibraryCycleBundle
+  package:test/test.dart
+[status] idle
 [future] getLibraryByUri T2
   library
     exportedReferences
       exported[(0, 0)] package:test/a.dart::@getter::a
     exportNamespace
       a: package:test/a.dart::@getter::a
-[operation] readLibraryCycleBundle
-  package:test/test.dart
-[status] idle
 ''',
     );
   }
@@ -18987,14 +18998,6 @@ export 'a.dart';
       expectedInitialEvents: r'''
 [status] working
 [operation] linkLibraryCycle SDK
-[future] getLibraryByUri T1
-  library
-    exportedReferences
-      exported[(0, 0)] package:test/a.dart::@getter::a
-      exported[(0, 0)] package:test/a.dart::@getter::b
-    exportNamespace
-      a: package:test/a.dart::@getter::a
-      b: package:test/a.dart::@getter::b
 [operation] linkLibraryCycle
   package:test/a.dart
     declaredGetters
@@ -19017,6 +19020,14 @@ export 'a.dart';
             a: #M0
             b: #M1
 [status] idle
+[future] getLibraryByUri T1
+  library
+    exportedReferences
+      exported[(0, 0)] package:test/a.dart::@getter::a
+      exported[(0, 0)] package:test/a.dart::@getter::b
+    exportNamespace
+      a: package:test/a.dart::@getter::a
+      b: package:test/a.dart::@getter::b
 ''',
       updateFiles: () {
         modifyFile2(a, r'''
@@ -19036,14 +19047,6 @@ final c = 0;
       a: #M2
       c: #M5
   requirements
-[future] getLibraryByUri T2
-  library
-    exportedReferences
-      exported[(0, 0)] package:test/a.dart::@getter::a
-      exported[(0, 0)] package:test/a.dart::@getter::c
-    exportNamespace
-      a: package:test/a.dart::@getter::a
-      c: package:test/a.dart::@getter::c
 [operation] cannotReuseLinkedBundle
   exportIdMismatch
     fragmentUri: package:test/test.dart
@@ -19064,6 +19067,14 @@ final c = 0;
             a: #M0
             c: #M4
 [status] idle
+[future] getLibraryByUri T2
+  library
+    exportedReferences
+      exported[(0, 0)] package:test/a.dart::@getter::a
+      exported[(0, 0)] package:test/a.dart::@getter::c
+    exportNamespace
+      a: package:test/a.dart::@getter::a
+      c: package:test/a.dart::@getter::c
 ''',
     );
   }
@@ -19089,15 +19100,6 @@ final x = a;
       expectedInitialEvents: r'''
 [status] working
 [operation] linkLibraryCycle SDK
-[future] getLibraryByUri T1
-  library
-    topLevelVariables
-      final hasInitializer x
-        type: int
-    exportedReferences
-      declared <testLibrary>::@getter::x
-    exportNamespace
-      x: <testLibrary>::@getter::x
 [operation] linkLibraryCycle
   package:test/a.dart
     declaredGetters
@@ -19127,6 +19129,15 @@ final x = a;
         exportedTopLevels
           a: #M0
 [status] idle
+[future] getLibraryByUri T1
+  library
+    topLevelVariables
+      final hasInitializer x
+        type: int
+    exportedReferences
+      declared <testLibrary>::@getter::x
+    exportNamespace
+      x: <testLibrary>::@getter::x
 ''',
       // Change the initializer, now `double`.
       updateFiles: () {
@@ -19145,15 +19156,6 @@ final a = 1.2;
     declaredVariables
       a: #M5
   requirements
-[future] getLibraryByUri T2
-  library
-    topLevelVariables
-      final hasInitializer x
-        type: double
-    exportedReferences
-      declared <testLibrary>::@getter::x
-    exportNamespace
-      x: <testLibrary>::@getter::x
 [operation] cannotReuseLinkedBundle
   exportIdMismatch
     fragmentUri: package:test/b.dart
@@ -19189,6 +19191,15 @@ final a = 1.2;
         exportedTopLevels
           a: #M4
 [status] idle
+[future] getLibraryByUri T2
+  library
+    topLevelVariables
+      final hasInitializer x
+        type: double
+    exportedReferences
+      declared <testLibrary>::@getter::x
+    exportNamespace
+      x: <testLibrary>::@getter::x
 ''',
     );
   }
@@ -19209,12 +19220,6 @@ export 'a.dart';
       expectedInitialEvents: r'''
 [status] working
 [operation] linkLibraryCycle SDK
-[future] getLibraryByUri T1
-  library
-    exportedReferences
-      exported[(0, 0)] package:test/a.dart::@typeAlias::A
-    exportNamespace
-      A: package:test/a.dart::@typeAlias::A
 [operation] linkLibraryCycle
   package:test/a.dart
     declaredTypeAliases
@@ -19232,6 +19237,12 @@ export 'a.dart';
           package:test/a.dart
             A: #M0
 [status] idle
+[future] getLibraryByUri T1
+  library
+    exportedReferences
+      exported[(0, 0)] package:test/a.dart::@typeAlias::A
+    exportNamespace
+      A: package:test/a.dart::@typeAlias::A
 ''',
       updateFiles: () {
         modifyFile2(a, r'''
@@ -19248,15 +19259,15 @@ typedef _A2 = int;
       A: #M0
       _A2: #M2
   requirements
+[operation] readLibraryCycleBundle
+  package:test/test.dart
+[status] idle
 [future] getLibraryByUri T2
   library
     exportedReferences
       exported[(0, 0)] package:test/a.dart::@typeAlias::A
     exportNamespace
       A: package:test/a.dart::@typeAlias::A
-[operation] readLibraryCycleBundle
-  package:test/test.dart
-[status] idle
 ''',
     );
   }
@@ -19277,13 +19288,6 @@ import 'a.dart';
       expectedInitialEvents: r'''
 [status] working
 [operation] linkLibraryCycle SDK
-[future] getErrors T1
-  ErrorsResult #0
-    path: /home/test/lib/test.dart
-    uri: package:test/test.dart
-    flags: isLibrary
-    errors
-      7 +8 UNUSED_IMPORT
 [operation] linkLibraryCycle
   package:test/a.dart
     declaredExtensions
@@ -19297,7 +19301,7 @@ import 'a.dart';
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
 [stream]
-  ResolvedUnitResult #1
+  ResolvedUnitResult #0
     path: /home/test/lib/test.dart
     uri: package:test/test.dart
     flags: exists isLibrary
@@ -19310,6 +19314,13 @@ import 'a.dart';
       package:test/a.dart
         exportedExtensions: #M0
 [status] idle
+[future] getErrors T1
+  ErrorsResult #1
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
+    errors
+      7 +8 UNUSED_IMPORT
 ''',
       updatedA: r'''
 extension E1 on Object {}
@@ -19324,13 +19335,6 @@ extension E2 on Object {}
       E2: #M1
     exportedExtensions: #M0 #M1
   requirements
-[future] getErrors T2
-  ErrorsResult #2
-    path: /home/test/lib/test.dart
-    uri: package:test/test.dart
-    flags: isLibrary
-    errors
-      7 +8 UNUSED_IMPORT
 [operation] readLibraryCycleBundle
   package:test/test.dart
 [operation] checkLibraryDiagnosticsRequirements
@@ -19343,7 +19347,7 @@ extension E2 on Object {}
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
 [stream]
-  ResolvedUnitResult #3
+  ResolvedUnitResult #2
     path: /home/test/lib/test.dart
     uri: package:test/test.dart
     flags: exists isLibrary
@@ -19356,6 +19360,13 @@ extension E2 on Object {}
       package:test/a.dart
         exportedExtensions: #M0 #M1
 [status] idle
+[future] getErrors T2
+  ErrorsResult #3
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
+    errors
+      7 +8 UNUSED_IMPORT
 ''',
     );
   }
@@ -19376,13 +19387,6 @@ import 'a.dart';
       expectedInitialEvents: r'''
 [status] working
 [operation] linkLibraryCycle SDK
-[future] getErrors T1
-  ErrorsResult #0
-    path: /home/test/lib/test.dart
-    uri: package:test/test.dart
-    flags: isLibrary
-    errors
-      7 +8 UNUSED_IMPORT
 [operation] linkLibraryCycle
   package:test/a.dart
     declaredExtensions
@@ -19396,7 +19400,7 @@ import 'a.dart';
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
 [stream]
-  ResolvedUnitResult #1
+  ResolvedUnitResult #0
     path: /home/test/lib/test.dart
     uri: package:test/test.dart
     flags: exists isLibrary
@@ -19409,6 +19413,13 @@ import 'a.dart';
       package:test/a.dart
         exportedExtensions: #M0
 [status] idle
+[future] getErrors T1
+  ErrorsResult #1
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
+    errors
+      7 +8 UNUSED_IMPORT
 ''',
       updatedA: r'''
 extension E on Object {}
@@ -19423,13 +19434,6 @@ extension _E on Object {}
       _E: #M1
     exportedExtensions: #M0
   requirements
-[future] getErrors T2
-  ErrorsResult #2
-    path: /home/test/lib/test.dart
-    uri: package:test/test.dart
-    flags: isLibrary
-    errors
-      7 +8 UNUSED_IMPORT
 [operation] readLibraryCycleBundle
   package:test/test.dart
 [operation] checkLibraryDiagnosticsRequirements
@@ -19439,6 +19443,13 @@ extension _E on Object {}
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
 [status] idle
+[future] getErrors T2
+  ErrorsResult #2
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
+    errors
+      7 +8 UNUSED_IMPORT
 ''',
     );
   }
@@ -19460,13 +19471,6 @@ import 'a.dart';
       expectedInitialEvents: r'''
 [status] working
 [operation] linkLibraryCycle SDK
-[future] getErrors T1
-  ErrorsResult #0
-    path: /home/test/lib/test.dart
-    uri: package:test/test.dart
-    flags: isLibrary
-    errors
-      7 +8 UNUSED_IMPORT
 [operation] linkLibraryCycle
   package:test/a.dart
     declaredExtensions
@@ -19481,7 +19485,7 @@ import 'a.dart';
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
 [stream]
-  ResolvedUnitResult #1
+  ResolvedUnitResult #0
     path: /home/test/lib/test.dart
     uri: package:test/test.dart
     flags: exists isLibrary
@@ -19494,6 +19498,13 @@ import 'a.dart';
       package:test/a.dart
         exportedExtensions: #M0 #M1
 [status] idle
+[future] getErrors T1
+  ErrorsResult #1
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
+    errors
+      7 +8 UNUSED_IMPORT
 ''',
       updatedA: r'''
 extension E1 on Object {}
@@ -19506,13 +19517,6 @@ extension E1 on Object {}
       E1: #M0
     exportedExtensions: #M0
   requirements
-[future] getErrors T2
-  ErrorsResult #2
-    path: /home/test/lib/test.dart
-    uri: package:test/test.dart
-    flags: isLibrary
-    errors
-      7 +8 UNUSED_IMPORT
 [operation] readLibraryCycleBundle
   package:test/test.dart
 [operation] checkLibraryDiagnosticsRequirements
@@ -19525,7 +19529,7 @@ extension E1 on Object {}
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
 [stream]
-  ResolvedUnitResult #3
+  ResolvedUnitResult #2
     path: /home/test/lib/test.dart
     uri: package:test/test.dart
     flags: exists isLibrary
@@ -19538,6 +19542,13 @@ extension E1 on Object {}
       package:test/a.dart
         exportedExtensions: #M0
 [status] idle
+[future] getErrors T2
+  ErrorsResult #3
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
+    errors
+      7 +8 UNUSED_IMPORT
 ''',
     );
   }
@@ -19561,11 +19572,6 @@ void f() {
       expectedInitialEvents: r'''
 [status] working
 [operation] linkLibraryCycle SDK
-[future] getErrors T1
-  ErrorsResult #0
-    path: /home/test/lib/test.dart
-    uri: package:test/test.dart
-    flags: isLibrary
 [operation] linkLibraryCycle
   package:test/a.dart
     declaredExtensions
@@ -19589,7 +19595,7 @@ void f() {
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
 [stream]
-  ResolvedUnitResult #1
+  ResolvedUnitResult #0
     path: /home/test/lib/test.dart
     uri: package:test/test.dart
     flags: exists isLibrary
@@ -19610,6 +19616,11 @@ void f() {
               foo: <null>
         exportedExtensions: #M0
 [status] idle
+[future] getErrors T1
+  ErrorsResult #1
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
 ''',
       updatedA: r'''
 extension E on Object {
@@ -19634,11 +19645,6 @@ extension E on Object {
           foo=: #M5
     exportedExtensions: #M0
   requirements
-[future] getErrors T2
-  ErrorsResult #2
-    path: /home/test/lib/test.dart
-    uri: package:test/test.dart
-    flags: isLibrary
 [operation] readLibraryCycleBundle
   package:test/test.dart
 [operation] checkLibraryDiagnosticsRequirements
@@ -19648,6 +19654,11 @@ extension E on Object {
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
 [status] idle
+[future] getErrors T2
+  ErrorsResult #2
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
 ''',
     );
   }
@@ -19670,11 +19681,6 @@ void f() {
       expectedInitialEvents: r'''
 [status] working
 [operation] linkLibraryCycle SDK
-[future] getErrors T1
-  ErrorsResult #0
-    path: /home/test/lib/test.dart
-    uri: package:test/test.dart
-    flags: isLibrary
 [operation] linkLibraryCycle
   package:test/a.dart
     declaredExtensions
@@ -19696,7 +19702,7 @@ void f() {
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
 [stream]
-  ResolvedUnitResult #1
+  ResolvedUnitResult #0
     path: /home/test/lib/test.dart
     uri: package:test/test.dart
     flags: exists isLibrary
@@ -19717,6 +19723,11 @@ void f() {
               foo: <null>
         exportedExtensions: #M0
 [status] idle
+[future] getErrors T1
+  ErrorsResult #1
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
 ''',
       updatedA: r'''
 extension E on Object {
@@ -19738,11 +19749,6 @@ extension E on Object {
           foo=: #M3
     exportedExtensions: #M0
   requirements
-[future] getErrors T2
-  ErrorsResult #2
-    path: /home/test/lib/test.dart
-    uri: package:test/test.dart
-    flags: isLibrary
 [operation] readLibraryCycleBundle
   package:test/test.dart
 [operation] checkLibraryDiagnosticsRequirements
@@ -19757,7 +19763,7 @@ extension E on Object {
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
 [stream]
-  ResolvedUnitResult #3
+  ResolvedUnitResult #2
     path: /home/test/lib/test.dart
     uri: package:test/test.dart
     flags: exists isLibrary
@@ -19778,6 +19784,11 @@ extension E on Object {
               foo: <null>
         exportedExtensions: #M0
 [status] idle
+[future] getErrors T2
+  ErrorsResult #3
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
 ''',
     );
   }
@@ -19804,13 +19815,6 @@ void f() {
       expectedInitialEvents: r'''
 [status] working
 [operation] linkLibraryCycle SDK
-[future] getErrors T1
-  ErrorsResult #0
-    path: /home/test/lib/test.dart
-    uri: package:test/test.dart
-    flags: isLibrary
-    errors
-      7 +8 UNUSED_IMPORT
 [operation] linkLibraryCycle
   package:test/a.dart
     declaredExtensions
@@ -19842,7 +19846,7 @@ void f() {
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
 [stream]
-  ResolvedUnitResult #1
+  ResolvedUnitResult #0
     path: /home/test/lib/test.dart
     uri: package:test/test.dart
     flags: exists isLibrary
@@ -19858,6 +19862,13 @@ void f() {
           int: <null>
         exportedExtensions: #M0
 [status] idle
+[future] getErrors T1
+  ErrorsResult #1
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
+    errors
+      7 +8 UNUSED_IMPORT
 ''',
       updatedA: r'''
 extension A on Object {
@@ -19876,13 +19887,6 @@ extension A on Object {
           _foo: #M8
     exportedExtensions: #M0
   requirements
-[future] getErrors T2
-  ErrorsResult #2
-    path: /home/test/lib/test.dart
-    uri: package:test/test.dart
-    flags: isLibrary
-    errors
-      7 +8 UNUSED_IMPORT
 [operation] readLibraryCycleBundle
   package:test/test.dart
 [operation] checkLibraryDiagnosticsRequirements
@@ -19892,6 +19896,13 @@ extension A on Object {
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
 [status] idle
+[future] getErrors T2
+  ErrorsResult #2
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
+    errors
+      7 +8 UNUSED_IMPORT
 ''',
     );
   }
@@ -19916,11 +19927,6 @@ void f() {
       expectedInitialEvents: r'''
 [status] working
 [operation] linkLibraryCycle SDK
-[future] getErrors T1
-  ErrorsResult #0
-    path: /home/test/lib/test.dart
-    uri: package:test/test.dart
-    flags: isLibrary
 [operation] linkLibraryCycle
   package:test/a.dart
     declaredExtensions
@@ -19941,7 +19947,7 @@ void f() {
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
 [stream]
-  ResolvedUnitResult #1
+  ResolvedUnitResult #0
     path: /home/test/lib/test.dart
     uri: package:test/test.dart
     flags: exists isLibrary
@@ -19963,6 +19969,11 @@ void f() {
               foo: <null>
         exportedExtensions: #M0 #M2
 [status] idle
+[future] getErrors T1
+  ErrorsResult #1
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
 ''',
       updatedA: r'''
 extension E1 on Object {
@@ -19985,11 +19996,6 @@ extension E2 on Object {
           bar: #M5
     exportedExtensions: #M0 #M2
   requirements
-[future] getErrors T2
-  ErrorsResult #2
-    path: /home/test/lib/test.dart
-    uri: package:test/test.dart
-    flags: isLibrary
 [operation] readLibraryCycleBundle
   package:test/test.dart
 [operation] checkLibraryDiagnosticsRequirements
@@ -19999,6 +20005,11 @@ extension E2 on Object {
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
 [status] idle
+[future] getErrors T2
+  ErrorsResult #2
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
 ''',
     );
   }
@@ -20023,11 +20034,6 @@ void f() {
       expectedInitialEvents: r'''
 [status] working
 [operation] linkLibraryCycle SDK
-[future] getErrors T1
-  ErrorsResult #0
-    path: /home/test/lib/test.dart
-    uri: package:test/test.dart
-    flags: isLibrary
 [operation] linkLibraryCycle
   package:test/a.dart
     declaredExtensions
@@ -20048,7 +20054,7 @@ void f() {
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
 [stream]
-  ResolvedUnitResult #1
+  ResolvedUnitResult #0
     path: /home/test/lib/test.dart
     uri: package:test/test.dart
     flags: exists isLibrary
@@ -20070,6 +20076,11 @@ void f() {
               foo: <null>
         exportedExtensions: #M0 #M2
 [status] idle
+[future] getErrors T1
+  ErrorsResult #1
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
 ''',
       updatedA: r'''
 extension E1 on Object {
@@ -20092,11 +20103,6 @@ extension E2 on Object {
           bar: #M3
     exportedExtensions: #M0 #M2
   requirements
-[future] getErrors T2
-  ErrorsResult #2
-    path: /home/test/lib/test.dart
-    uri: package:test/test.dart
-    flags: isLibrary
 [operation] readLibraryCycleBundle
   package:test/test.dart
 [operation] checkLibraryDiagnosticsRequirements
@@ -20111,7 +20117,7 @@ extension E2 on Object {
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
 [stream]
-  ResolvedUnitResult #3
+  ResolvedUnitResult #2
     path: /home/test/lib/test.dart
     uri: package:test/test.dart
     flags: exists isLibrary
@@ -20133,6 +20139,11 @@ extension E2 on Object {
               foo: <null>
         exportedExtensions: #M0 #M2
 [status] idle
+[future] getErrors T2
+  ErrorsResult #3
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
 ''',
     );
   }
@@ -20155,11 +20166,6 @@ void f() {
       expectedInitialEvents: r'''
 [status] working
 [operation] linkLibraryCycle SDK
-[future] getErrors T1
-  ErrorsResult #0
-    path: /home/test/lib/test.dart
-    uri: package:test/test.dart
-    flags: isLibrary
 [operation] linkLibraryCycle
   package:test/a.dart
     declaredExtensions
@@ -20177,7 +20183,7 @@ void f() {
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
 [stream]
-  ResolvedUnitResult #1
+  ResolvedUnitResult #0
     path: /home/test/lib/test.dart
     uri: package:test/test.dart
     flags: exists isLibrary
@@ -20194,6 +20200,11 @@ void f() {
               foo: #M1
         exportedExtensions: #M0
 [status] idle
+[future] getErrors T1
+  ErrorsResult #1
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
 ''',
       updatedA: r'''
 extension E on Object {
@@ -20210,11 +20221,6 @@ extension E on Object {
           foo: #M3
     exportedExtensions: #M0
   requirements
-[future] getErrors T2
-  ErrorsResult #2
-    path: /home/test/lib/test.dart
-    uri: package:test/test.dart
-    flags: isLibrary
 [operation] readLibraryCycleBundle
   package:test/test.dart
 [operation] checkLibraryDiagnosticsRequirements
@@ -20229,7 +20235,7 @@ extension E on Object {
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
 [stream]
-  ResolvedUnitResult #3
+  ResolvedUnitResult #2
     path: /home/test/lib/test.dart
     uri: package:test/test.dart
     flags: exists isLibrary
@@ -20246,6 +20252,11 @@ extension E on Object {
               foo: #M3
         exportedExtensions: #M0
 [status] idle
+[future] getErrors T2
+  ErrorsResult #3
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
 ''',
     );
   }
@@ -20268,11 +20279,6 @@ void f() {
       expectedInitialEvents: r'''
 [status] working
 [operation] linkLibraryCycle SDK
-[future] getErrors T1
-  ErrorsResult #0
-    path: /home/test/lib/test.dart
-    uri: package:test/test.dart
-    flags: isLibrary
 [operation] linkLibraryCycle
   package:test/a.dart
     declaredExtensions
@@ -20294,7 +20300,7 @@ void f() {
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
 [stream]
-  ResolvedUnitResult #1
+  ResolvedUnitResult #0
     path: /home/test/lib/test.dart
     uri: package:test/test.dart
     flags: exists isLibrary
@@ -20315,6 +20321,11 @@ void f() {
               foo: <null>
         exportedExtensions: #M0
 [status] idle
+[future] getErrors T1
+  ErrorsResult #1
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
 ''',
       updatedA: r'''
 extension E on Object {
@@ -20336,11 +20347,6 @@ extension E on Object {
           foo=: #M5
     exportedExtensions: #M0
   requirements
-[future] getErrors T2
-  ErrorsResult #2
-    path: /home/test/lib/test.dart
-    uri: package:test/test.dart
-    flags: isLibrary
 [operation] readLibraryCycleBundle
   package:test/test.dart
 [operation] checkLibraryDiagnosticsRequirements
@@ -20355,7 +20361,7 @@ extension E on Object {
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
 [stream]
-  ResolvedUnitResult #3
+  ResolvedUnitResult #2
     path: /home/test/lib/test.dart
     uri: package:test/test.dart
     flags: exists isLibrary
@@ -20376,6 +20382,11 @@ extension E on Object {
               foo: <null>
         exportedExtensions: #M0
 [status] idle
+[future] getErrors T2
+  ErrorsResult #3
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
 ''',
     );
   }
@@ -20397,11 +20408,6 @@ void f() {
       expectedInitialEvents: r'''
 [status] working
 [operation] linkLibraryCycle SDK
-[future] getErrors T1
-  ErrorsResult #0
-    path: /home/test/lib/test.dart
-    uri: package:test/test.dart
-    flags: isLibrary
 [operation] linkLibraryCycle
   package:test/a.dart
     declaredExtensions
@@ -20419,7 +20425,7 @@ void f() {
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
 [stream]
-  ResolvedUnitResult #1
+  ResolvedUnitResult #0
     path: /home/test/lib/test.dart
     uri: package:test/test.dart
     flags: exists isLibrary
@@ -20436,6 +20442,11 @@ void f() {
               foo: #M1
         exportedExtensions: #M0
 [status] idle
+[future] getErrors T1
+  ErrorsResult #1
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
 ''',
       updatedA: r'''
 extension E1 on Object {
@@ -20458,11 +20469,6 @@ extension E2 on int {
           bar: #M4
     exportedExtensions: #M0 #M3
   requirements
-[future] getErrors T2
-  ErrorsResult #2
-    path: /home/test/lib/test.dart
-    uri: package:test/test.dart
-    flags: isLibrary
 [operation] readLibraryCycleBundle
   package:test/test.dart
 [operation] checkLibraryDiagnosticsRequirements
@@ -20475,7 +20481,7 @@ extension E2 on int {
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
 [stream]
-  ResolvedUnitResult #3
+  ResolvedUnitResult #2
     path: /home/test/lib/test.dart
     uri: package:test/test.dart
     flags: exists isLibrary
@@ -20497,6 +20503,11 @@ extension E2 on int {
               foo: <null>
         exportedExtensions: #M0 #M3
 [status] idle
+[future] getErrors T2
+  ErrorsResult #3
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
 ''',
     );
   }
@@ -20518,11 +20529,6 @@ void f() {
       expectedInitialEvents: r'''
 [status] working
 [operation] linkLibraryCycle SDK
-[future] getErrors T1
-  ErrorsResult #0
-    path: /home/test/lib/test.dart
-    uri: package:test/test.dart
-    flags: isLibrary
 [operation] linkLibraryCycle
   package:test/a.dart
     declaredExtensions
@@ -20540,7 +20546,7 @@ void f() {
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
 [stream]
-  ResolvedUnitResult #1
+  ResolvedUnitResult #0
     path: /home/test/lib/test.dart
     uri: package:test/test.dart
     flags: exists isLibrary
@@ -20557,6 +20563,11 @@ void f() {
               foo: #M1
         exportedExtensions: #M0
 [status] idle
+[future] getErrors T1
+  ErrorsResult #1
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
 ''',
       updatedA: r'''
 extension E1 on Object {
@@ -20575,11 +20586,6 @@ extension E1 on Object {
           foo: #M1
     exportedExtensions: #M0
   requirements
-[future] getErrors T2
-  ErrorsResult #2
-    path: /home/test/lib/test.dart
-    uri: package:test/test.dart
-    flags: isLibrary
 [operation] readLibraryCycleBundle
   package:test/test.dart
 [operation] checkLibraryDiagnosticsRequirements
@@ -20589,6 +20595,11 @@ extension E1 on Object {
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
 [status] idle
+[future] getErrors T2
+  ErrorsResult #2
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
 ''',
     );
   }
@@ -20610,11 +20621,6 @@ void f() {
       expectedInitialEvents: r'''
 [status] working
 [operation] linkLibraryCycle SDK
-[future] getErrors T1
-  ErrorsResult #0
-    path: /home/test/lib/test.dart
-    uri: package:test/test.dart
-    flags: isLibrary
 [operation] linkLibraryCycle
   package:test/a.dart
     declaredExtensions
@@ -20632,7 +20638,7 @@ void f() {
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
 [stream]
-  ResolvedUnitResult #1
+  ResolvedUnitResult #0
     path: /home/test/lib/test.dart
     uri: package:test/test.dart
     flags: exists isLibrary
@@ -20649,6 +20655,11 @@ void f() {
               foo: #M1
         exportedExtensions: #M0
 [status] idle
+[future] getErrors T1
+  ErrorsResult #1
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
 ''',
       updatedA: r'''
 extension E1 on Object {
@@ -20671,11 +20682,6 @@ extension E2 on int {
           foo: #M4
     exportedExtensions: #M0 #M3
   requirements
-[future] getErrors T2
-  ErrorsResult #2
-    path: /home/test/lib/test.dart
-    uri: package:test/test.dart
-    flags: isLibrary
 [operation] readLibraryCycleBundle
   package:test/test.dart
 [operation] checkLibraryDiagnosticsRequirements
@@ -20688,7 +20694,7 @@ extension E2 on int {
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
 [stream]
-  ResolvedUnitResult #3
+  ResolvedUnitResult #2
     path: /home/test/lib/test.dart
     uri: package:test/test.dart
     flags: exists isLibrary
@@ -20710,6 +20716,11 @@ extension E2 on int {
               foo: #M4
         exportedExtensions: #M0 #M3
 [status] idle
+[future] getErrors T2
+  ErrorsResult #3
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
 ''',
     );
   }
@@ -20729,14 +20740,6 @@ void f() {
       expectedInitialEvents: r'''
 [status] working
 [operation] linkLibraryCycle SDK
-[future] getErrors T1
-  ErrorsResult #0
-    path: /home/test/lib/test.dart
-    uri: package:test/test.dart
-    flags: isLibrary
-    errors
-      32 +3 UNDEFINED_METHOD
-      7 +8 UNUSED_IMPORT
 [operation] linkLibraryCycle
   package:test/a.dart
     declaredExtensions
@@ -20752,7 +20755,7 @@ void f() {
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
 [stream]
-  ResolvedUnitResult #1
+  ResolvedUnitResult #0
     path: /home/test/lib/test.dart
     uri: package:test/test.dart
     flags: exists isLibrary
@@ -20772,6 +20775,14 @@ void f() {
               foo: <null>
         exportedExtensions: #M0
 [status] idle
+[future] getErrors T1
+  ErrorsResult #1
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
+    errors
+      32 +3 UNDEFINED_METHOD
+      7 +8 UNUSED_IMPORT
 ''',
       updatedA: r'''
 extension E on Object {
@@ -20788,11 +20799,6 @@ extension E on Object {
           foo: #M2
     exportedExtensions: #M0
   requirements
-[future] getErrors T2
-  ErrorsResult #2
-    path: /home/test/lib/test.dart
-    uri: package:test/test.dart
-    flags: isLibrary
 [operation] readLibraryCycleBundle
   package:test/test.dart
 [operation] checkLibraryDiagnosticsRequirements
@@ -20807,7 +20813,7 @@ extension E on Object {
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
 [stream]
-  ResolvedUnitResult #3
+  ResolvedUnitResult #2
     path: /home/test/lib/test.dart
     uri: package:test/test.dart
     flags: exists isLibrary
@@ -20824,6 +20830,11 @@ extension E on Object {
               foo: #M2
         exportedExtensions: #M0
 [status] idle
+[future] getErrors T2
+  ErrorsResult #3
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
 ''',
     );
   }
@@ -20848,11 +20859,6 @@ void f() {
       expectedInitialEvents: r'''
 [status] working
 [operation] linkLibraryCycle SDK
-[future] getErrors T1
-  ErrorsResult #0
-    path: /home/test/lib/test.dart
-    uri: package:test/test.dart
-    flags: isLibrary
 [operation] linkLibraryCycle
   package:test/a.dart
     declaredExtensions
@@ -20873,7 +20879,7 @@ void f() {
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
 [stream]
-  ResolvedUnitResult #1
+  ResolvedUnitResult #0
     path: /home/test/lib/test.dart
     uri: package:test/test.dart
     flags: exists isLibrary
@@ -20895,6 +20901,11 @@ void f() {
               foo: <null>
         exportedExtensions: #M0 #M2
 [status] idle
+[future] getErrors T1
+  ErrorsResult #1
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
 ''',
       updatedA: r'''
 extension E1 on Object {
@@ -20911,11 +20922,6 @@ extension E1 on Object {
           foo: #M1
     exportedExtensions: #M0
   requirements
-[future] getErrors T2
-  ErrorsResult #2
-    path: /home/test/lib/test.dart
-    uri: package:test/test.dart
-    flags: isLibrary
 [operation] readLibraryCycleBundle
   package:test/test.dart
 [operation] checkLibraryDiagnosticsRequirements
@@ -20927,7 +20933,7 @@ extension E1 on Object {
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
 [stream]
-  ResolvedUnitResult #3
+  ResolvedUnitResult #2
     path: /home/test/lib/test.dart
     uri: package:test/test.dart
     flags: exists isLibrary
@@ -20944,6 +20950,11 @@ extension E1 on Object {
               foo: #M1
         exportedExtensions: #M0
 [status] idle
+[future] getErrors T2
+  ErrorsResult #3
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
 ''',
     );
   }
@@ -20968,11 +20979,6 @@ void f() {
       expectedInitialEvents: r'''
 [status] working
 [operation] linkLibraryCycle SDK
-[future] getErrors T1
-  ErrorsResult #0
-    path: /home/test/lib/test.dart
-    uri: package:test/test.dart
-    flags: isLibrary
 [operation] linkLibraryCycle
   package:test/a.dart
     declaredExtensions
@@ -20993,7 +20999,7 @@ void f() {
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
 [stream]
-  ResolvedUnitResult #1
+  ResolvedUnitResult #0
     path: /home/test/lib/test.dart
     uri: package:test/test.dart
     flags: exists isLibrary
@@ -21015,6 +21021,11 @@ void f() {
               foo: #M3
         exportedExtensions: #M0 #M2
 [status] idle
+[future] getErrors T1
+  ErrorsResult #1
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
 ''',
       updatedA: r'''
 extension E1 on Object {
@@ -21031,11 +21042,6 @@ extension E1 on Object {
           foo: #M1
     exportedExtensions: #M0
   requirements
-[future] getErrors T2
-  ErrorsResult #2
-    path: /home/test/lib/test.dart
-    uri: package:test/test.dart
-    flags: isLibrary
 [operation] readLibraryCycleBundle
   package:test/test.dart
 [operation] checkLibraryDiagnosticsRequirements
@@ -21047,7 +21053,7 @@ extension E1 on Object {
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
 [stream]
-  ResolvedUnitResult #3
+  ResolvedUnitResult #2
     path: /home/test/lib/test.dart
     uri: package:test/test.dart
     flags: exists isLibrary
@@ -21064,6 +21070,11 @@ extension E1 on Object {
               foo: #M1
         exportedExtensions: #M0
 [status] idle
+[future] getErrors T2
+  ErrorsResult #3
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
 ''',
     );
   }
@@ -21088,11 +21099,6 @@ void f() {
       expectedInitialEvents: r'''
 [status] working
 [operation] linkLibraryCycle SDK
-[future] getErrors T1
-  ErrorsResult #0
-    path: /home/test/lib/test.dart
-    uri: package:test/test.dart
-    flags: isLibrary
 [operation] linkLibraryCycle
   package:test/a.dart
     declaredExtensions
@@ -21113,7 +21119,7 @@ void f() {
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
 [stream]
-  ResolvedUnitResult #1
+  ResolvedUnitResult #0
     path: /home/test/lib/test.dart
     uri: package:test/test.dart
     flags: exists isLibrary
@@ -21135,6 +21141,11 @@ void f() {
               foo: #M3
         exportedExtensions: #M0 #M2
 [status] idle
+[future] getErrors T1
+  ErrorsResult #1
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
 ''',
       updatedA: r'''
 extension E1 on Object {
@@ -21151,11 +21162,6 @@ extension E1 on Object {
           foo: #M1
     exportedExtensions: #M0
   requirements
-[future] getErrors T2
-  ErrorsResult #2
-    path: /home/test/lib/test.dart
-    uri: package:test/test.dart
-    flags: isLibrary
 [operation] readLibraryCycleBundle
   package:test/test.dart
 [operation] checkLibraryDiagnosticsRequirements
@@ -21167,7 +21173,7 @@ extension E1 on Object {
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
 [stream]
-  ResolvedUnitResult #3
+  ResolvedUnitResult #2
     path: /home/test/lib/test.dart
     uri: package:test/test.dart
     flags: exists isLibrary
@@ -21184,6 +21190,11 @@ extension E1 on Object {
               foo: #M1
         exportedExtensions: #M0
 [status] idle
+[future] getErrors T2
+  ErrorsResult #3
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
 ''',
     );
   }
@@ -21206,11 +21217,6 @@ void f() {
       expectedInitialEvents: r'''
 [status] working
 [operation] linkLibraryCycle SDK
-[future] getErrors T1
-  ErrorsResult #0
-    path: /home/test/lib/test.dart
-    uri: package:test/test.dart
-    flags: isLibrary
 [operation] linkLibraryCycle
   package:test/a.dart
     declaredExtensions
@@ -21229,7 +21235,7 @@ void f() {
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
 [stream]
-  ResolvedUnitResult #1
+  ResolvedUnitResult #0
     path: /home/test/lib/test.dart
     uri: package:test/test.dart
     flags: exists isLibrary
@@ -21245,6 +21251,11 @@ void f() {
               []=: #M2
         exportedExtensions: #M0
 [status] idle
+[future] getErrors T1
+  ErrorsResult #1
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
 ''',
       updatedA: r'''
 extension E1 on Object {
@@ -21263,11 +21274,6 @@ extension E1 on Object {
           []=: #M2
     exportedExtensions: #M0
   requirements
-[future] getErrors T2
-  ErrorsResult #2
-    path: /home/test/lib/test.dart
-    uri: package:test/test.dart
-    flags: isLibrary
 [operation] readLibraryCycleBundle
   package:test/test.dart
 [operation] checkLibraryDiagnosticsRequirements
@@ -21282,7 +21288,7 @@ extension E1 on Object {
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
 [stream]
-  ResolvedUnitResult #3
+  ResolvedUnitResult #2
     path: /home/test/lib/test.dart
     uri: package:test/test.dart
     flags: exists isLibrary
@@ -21298,6 +21304,11 @@ extension E1 on Object {
               []=: #M2
         exportedExtensions: #M0
 [status] idle
+[future] getErrors T2
+  ErrorsResult #3
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
 ''',
     );
   }
@@ -21320,11 +21331,6 @@ void f() {
       expectedInitialEvents: r'''
 [status] working
 [operation] linkLibraryCycle SDK
-[future] getErrors T1
-  ErrorsResult #0
-    path: /home/test/lib/test.dart
-    uri: package:test/test.dart
-    flags: isLibrary
 [operation] linkLibraryCycle
   package:test/a.dart
     declaredExtensions
@@ -21343,7 +21349,7 @@ void f() {
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
 [stream]
-  ResolvedUnitResult #1
+  ResolvedUnitResult #0
     path: /home/test/lib/test.dart
     uri: package:test/test.dart
     flags: exists isLibrary
@@ -21359,6 +21365,11 @@ void f() {
               []=: #M2
         exportedExtensions: #M0
 [status] idle
+[future] getErrors T1
+  ErrorsResult #1
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
 ''',
       updatedA: r'''
 extension E1 on Object {
@@ -21377,11 +21388,6 @@ extension E1 on Object {
           []=: #M2
     exportedExtensions: #M0
   requirements
-[future] getErrors T2
-  ErrorsResult #2
-    path: /home/test/lib/test.dart
-    uri: package:test/test.dart
-    flags: isLibrary
 [operation] readLibraryCycleBundle
   package:test/test.dart
 [operation] checkLibraryDiagnosticsRequirements
@@ -21396,7 +21402,7 @@ extension E1 on Object {
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
 [stream]
-  ResolvedUnitResult #3
+  ResolvedUnitResult #2
     path: /home/test/lib/test.dart
     uri: package:test/test.dart
     flags: exists isLibrary
@@ -21412,6 +21418,11 @@ extension E1 on Object {
               []=: #M2
         exportedExtensions: #M0
 [status] idle
+[future] getErrors T2
+  ErrorsResult #3
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
 ''',
     );
   }
@@ -21434,11 +21445,6 @@ void f() {
       expectedInitialEvents: r'''
 [status] working
 [operation] linkLibraryCycle SDK
-[future] getErrors T1
-  ErrorsResult #0
-    path: /home/test/lib/test.dart
-    uri: package:test/test.dart
-    flags: isLibrary
 [operation] linkLibraryCycle
   package:test/a.dart
     declaredExtensions
@@ -21457,7 +21463,7 @@ void f() {
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
 [stream]
-  ResolvedUnitResult #1
+  ResolvedUnitResult #0
     path: /home/test/lib/test.dart
     uri: package:test/test.dart
     flags: exists isLibrary
@@ -21473,6 +21479,11 @@ void f() {
               []=: #M2
         exportedExtensions: #M0
 [status] idle
+[future] getErrors T1
+  ErrorsResult #1
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
 ''',
       updatedA: r'''
 extension E1 on Object {
@@ -21491,11 +21502,6 @@ extension E1 on Object {
           []=: #M4
     exportedExtensions: #M0
   requirements
-[future] getErrors T2
-  ErrorsResult #2
-    path: /home/test/lib/test.dart
-    uri: package:test/test.dart
-    flags: isLibrary
 [operation] readLibraryCycleBundle
   package:test/test.dart
 [operation] checkLibraryDiagnosticsRequirements
@@ -21510,7 +21516,7 @@ extension E1 on Object {
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
 [stream]
-  ResolvedUnitResult #3
+  ResolvedUnitResult #2
     path: /home/test/lib/test.dart
     uri: package:test/test.dart
     flags: exists isLibrary
@@ -21526,6 +21532,11 @@ extension E1 on Object {
               []=: #M4
         exportedExtensions: #M0
 [status] idle
+[future] getErrors T2
+  ErrorsResult #3
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
 ''',
     );
   }
@@ -21548,11 +21559,6 @@ void f() {
       expectedInitialEvents: r'''
 [status] working
 [operation] linkLibraryCycle SDK
-[future] getErrors T1
-  ErrorsResult #0
-    path: /home/test/lib/test.dart
-    uri: package:test/test.dart
-    flags: isLibrary
 [operation] linkLibraryCycle
   package:test/a.dart
     declaredExtensions
@@ -21571,7 +21577,7 @@ void f() {
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
 [stream]
-  ResolvedUnitResult #1
+  ResolvedUnitResult #0
     path: /home/test/lib/test.dart
     uri: package:test/test.dart
     flags: exists isLibrary
@@ -21587,6 +21593,11 @@ void f() {
               []=: #M2
         exportedExtensions: #M0
 [status] idle
+[future] getErrors T1
+  ErrorsResult #1
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
 ''',
       updatedA: r'''
 extension E1 on Object {
@@ -21605,11 +21616,6 @@ extension E1 on Object {
           []=: #M4
     exportedExtensions: #M0
   requirements
-[future] getErrors T2
-  ErrorsResult #2
-    path: /home/test/lib/test.dart
-    uri: package:test/test.dart
-    flags: isLibrary
 [operation] readLibraryCycleBundle
   package:test/test.dart
 [operation] checkLibraryDiagnosticsRequirements
@@ -21624,7 +21630,7 @@ extension E1 on Object {
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
 [stream]
-  ResolvedUnitResult #3
+  ResolvedUnitResult #2
     path: /home/test/lib/test.dart
     uri: package:test/test.dart
     flags: exists isLibrary
@@ -21640,6 +21646,11 @@ extension E1 on Object {
               []=: #M4
         exportedExtensions: #M0
 [status] idle
+[future] getErrors T2
+  ErrorsResult #3
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
 ''',
     );
   }
@@ -21661,11 +21672,6 @@ void f() {
       expectedInitialEvents: r'''
 [status] working
 [operation] linkLibraryCycle SDK
-[future] getErrors T1
-  ErrorsResult #0
-    path: /home/test/lib/test.dart
-    uri: package:test/test.dart
-    flags: isLibrary
 [operation] linkLibraryCycle
   package:test/a.dart
     declaredExtensions
@@ -21685,7 +21691,7 @@ void f() {
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
 [stream]
-  ResolvedUnitResult #1
+  ResolvedUnitResult #0
     path: /home/test/lib/test.dart
     uri: package:test/test.dart
     flags: exists isLibrary
@@ -21703,6 +21709,11 @@ void f() {
             requestedDeclaredGetters
               foo: #M2
 [status] idle
+[future] getErrors T1
+  ErrorsResult #1
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
 ''',
       updatedA: r'''
 extension A on int {
@@ -21721,11 +21732,6 @@ extension A on int {
           foo: #M5
     exportedExtensions: #M0
   requirements
-[future] getErrors T2
-  ErrorsResult #2
-    path: /home/test/lib/test.dart
-    uri: package:test/test.dart
-    flags: isLibrary
 [operation] readLibraryCycleBundle
   package:test/test.dart
 [operation] checkLibraryDiagnosticsRequirements
@@ -21740,7 +21746,7 @@ extension A on int {
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
 [stream]
-  ResolvedUnitResult #3
+  ResolvedUnitResult #2
     path: /home/test/lib/test.dart
     uri: package:test/test.dart
     flags: exists isLibrary
@@ -21758,6 +21764,11 @@ extension A on int {
             requestedDeclaredGetters
               foo: #M5
 [status] idle
+[future] getErrors T2
+  ErrorsResult #3
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
 ''',
     );
   }
@@ -21780,11 +21791,6 @@ void f() {
       expectedInitialEvents: r'''
 [status] working
 [operation] linkLibraryCycle SDK
-[future] getErrors T1
-  ErrorsResult #0
-    path: /home/test/lib/test.dart
-    uri: package:test/test.dart
-    flags: isLibrary
 [operation] linkLibraryCycle
   package:test/a.dart
     declaredExtensions
@@ -21806,7 +21812,7 @@ void f() {
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
 [stream]
-  ResolvedUnitResult #1
+  ResolvedUnitResult #0
     path: /home/test/lib/test.dart
     uri: package:test/test.dart
     flags: exists isLibrary
@@ -21824,6 +21830,11 @@ void f() {
             requestedDeclaredGetters
               foo: #M4
 [status] idle
+[future] getErrors T1
+  ErrorsResult #1
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
 ''',
       updatedA: r'''
 extension A on int {
@@ -21845,11 +21856,6 @@ extension A on int {
           foo: #M4
     exportedExtensions: #M0
   requirements
-[future] getErrors T2
-  ErrorsResult #2
-    path: /home/test/lib/test.dart
-    uri: package:test/test.dart
-    flags: isLibrary
 [operation] readLibraryCycleBundle
   package:test/test.dart
 [operation] checkLibraryDiagnosticsRequirements
@@ -21859,6 +21865,11 @@ extension A on int {
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
 [status] idle
+[future] getErrors T2
+  ErrorsResult #2
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
 ''',
     );
   }
@@ -21880,11 +21891,6 @@ void f() {
       expectedInitialEvents: r'''
 [status] working
 [operation] linkLibraryCycle SDK
-[future] getErrors T1
-  ErrorsResult #0
-    path: /home/test/lib/test.dart
-    uri: package:test/test.dart
-    flags: isLibrary
 [operation] linkLibraryCycle
   package:test/a.dart
     declaredExtensions
@@ -21902,7 +21908,7 @@ void f() {
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
 [stream]
-  ResolvedUnitResult #1
+  ResolvedUnitResult #0
     path: /home/test/lib/test.dart
     uri: package:test/test.dart
     flags: exists isLibrary
@@ -21920,6 +21926,11 @@ void f() {
             requestedDeclaredMethods
               foo: #M1
 [status] idle
+[future] getErrors T1
+  ErrorsResult #1
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
 ''',
       updatedA: r'''
 extension A on int {
@@ -21936,11 +21947,6 @@ extension A on int {
           foo: #M3
     exportedExtensions: #M0
   requirements
-[future] getErrors T2
-  ErrorsResult #2
-    path: /home/test/lib/test.dart
-    uri: package:test/test.dart
-    flags: isLibrary
 [operation] readLibraryCycleBundle
   package:test/test.dart
 [operation] checkLibraryDiagnosticsRequirements
@@ -21955,7 +21961,7 @@ extension A on int {
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
 [stream]
-  ResolvedUnitResult #3
+  ResolvedUnitResult #2
     path: /home/test/lib/test.dart
     uri: package:test/test.dart
     flags: exists isLibrary
@@ -21973,6 +21979,11 @@ extension A on int {
             requestedDeclaredMethods
               foo: #M3
 [status] idle
+[future] getErrors T2
+  ErrorsResult #3
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
 ''',
     );
   }
@@ -21995,11 +22006,6 @@ void f() {
       expectedInitialEvents: r'''
 [status] working
 [operation] linkLibraryCycle SDK
-[future] getErrors T1
-  ErrorsResult #0
-    path: /home/test/lib/test.dart
-    uri: package:test/test.dart
-    flags: isLibrary
 [operation] linkLibraryCycle
   package:test/a.dart
     declaredExtensions
@@ -22018,7 +22024,7 @@ void f() {
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
 [stream]
-  ResolvedUnitResult #1
+  ResolvedUnitResult #0
     path: /home/test/lib/test.dart
     uri: package:test/test.dart
     flags: exists isLibrary
@@ -22036,6 +22042,11 @@ void f() {
             requestedDeclaredMethods
               foo: #M2
 [status] idle
+[future] getErrors T1
+  ErrorsResult #1
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
 ''',
       updatedA: r'''
 extension A on int {
@@ -22054,11 +22065,6 @@ extension A on int {
           foo: #M2
     exportedExtensions: #M0
   requirements
-[future] getErrors T2
-  ErrorsResult #2
-    path: /home/test/lib/test.dart
-    uri: package:test/test.dart
-    flags: isLibrary
 [operation] readLibraryCycleBundle
   package:test/test.dart
 [operation] checkLibraryDiagnosticsRequirements
@@ -22068,6 +22074,11 @@ extension A on int {
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
 [status] idle
+[future] getErrors T2
+  ErrorsResult #2
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
 ''',
     );
   }
@@ -22089,11 +22100,6 @@ void f() {
       expectedInitialEvents: r'''
 [status] working
 [operation] linkLibraryCycle SDK
-[future] getErrors T1
-  ErrorsResult #0
-    path: /home/test/lib/test.dart
-    uri: package:test/test.dart
-    flags: isLibrary
 [operation] linkLibraryCycle
   package:test/a.dart
     declaredExtensions
@@ -22113,7 +22119,7 @@ void f() {
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
 [stream]
-  ResolvedUnitResult #1
+  ResolvedUnitResult #0
     path: /home/test/lib/test.dart
     uri: package:test/test.dart
     flags: exists isLibrary
@@ -22131,6 +22137,11 @@ void f() {
             requestedDeclaredSetters
               foo=: #M2
 [status] idle
+[future] getErrors T1
+  ErrorsResult #1
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
 ''',
       updatedA: r'''
 extension A on int {
@@ -22149,11 +22160,6 @@ extension A on int {
           foo=: #M5
     exportedExtensions: #M0
   requirements
-[future] getErrors T2
-  ErrorsResult #2
-    path: /home/test/lib/test.dart
-    uri: package:test/test.dart
-    flags: isLibrary
 [operation] readLibraryCycleBundle
   package:test/test.dart
 [operation] checkLibraryDiagnosticsRequirements
@@ -22168,7 +22174,7 @@ extension A on int {
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
 [stream]
-  ResolvedUnitResult #3
+  ResolvedUnitResult #2
     path: /home/test/lib/test.dart
     uri: package:test/test.dart
     flags: exists isLibrary
@@ -22186,6 +22192,11 @@ extension A on int {
             requestedDeclaredSetters
               foo=: #M5
 [status] idle
+[future] getErrors T2
+  ErrorsResult #3
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
 ''',
     );
   }
@@ -22208,11 +22219,6 @@ void f() {
       expectedInitialEvents: r'''
 [status] working
 [operation] linkLibraryCycle SDK
-[future] getErrors T1
-  ErrorsResult #0
-    path: /home/test/lib/test.dart
-    uri: package:test/test.dart
-    flags: isLibrary
 [operation] linkLibraryCycle
   package:test/a.dart
     declaredExtensions
@@ -22234,7 +22240,7 @@ void f() {
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
 [stream]
-  ResolvedUnitResult #1
+  ResolvedUnitResult #0
     path: /home/test/lib/test.dart
     uri: package:test/test.dart
     flags: exists isLibrary
@@ -22252,6 +22258,11 @@ void f() {
             requestedDeclaredSetters
               foo=: #M4
 [status] idle
+[future] getErrors T1
+  ErrorsResult #1
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
 ''',
       updatedA: r'''
 extension A on int {
@@ -22273,11 +22284,6 @@ extension A on int {
           foo=: #M4
     exportedExtensions: #M0
   requirements
-[future] getErrors T2
-  ErrorsResult #2
-    path: /home/test/lib/test.dart
-    uri: package:test/test.dart
-    flags: isLibrary
 [operation] readLibraryCycleBundle
   package:test/test.dart
 [operation] checkLibraryDiagnosticsRequirements
@@ -22287,6 +22293,11 @@ extension A on int {
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
 [status] idle
+[future] getErrors T2
+  ErrorsResult #2
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
 ''',
     );
   }
@@ -22308,11 +22319,6 @@ void f(A a) {
       expectedInitialEvents: r'''
 [status] working
 [operation] linkLibraryCycle SDK
-[future] getErrors T1
-  ErrorsResult #0
-    path: /home/test/lib/test.dart
-    uri: package:test/test.dart
-    flags: isLibrary
 [operation] linkLibraryCycle
   package:test/a.dart
     declaredExtensionTypes
@@ -22341,7 +22347,7 @@ void f(A a) {
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
 [stream]
-  ResolvedUnitResult #1
+  ResolvedUnitResult #0
     path: /home/test/lib/test.dart
     uri: package:test/test.dart
     flags: exists isLibrary
@@ -22361,6 +22367,11 @@ void f(A a) {
             methods
               foo: #M3
 [status] idle
+[future] getErrors T1
+  ErrorsResult #1
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
 ''',
       updatedA: r'''
 extension type A(int it) {
@@ -22384,11 +22395,6 @@ extension type A(int it) {
             foo: #M8
             it: #M4
   requirements
-[future] getErrors T2
-  ErrorsResult #2
-    path: /home/test/lib/test.dart
-    uri: package:test/test.dart
-    flags: isLibrary
 [operation] readLibraryCycleBundle
   package:test/test.dart
 [operation] checkLibraryDiagnosticsRequirements
@@ -22403,7 +22409,7 @@ extension type A(int it) {
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
 [stream]
-  ResolvedUnitResult #3
+  ResolvedUnitResult #2
     path: /home/test/lib/test.dart
     uri: package:test/test.dart
     flags: exists isLibrary
@@ -22423,6 +22429,11 @@ extension type A(int it) {
             methods
               foo: #M8
 [status] idle
+[future] getErrors T2
+  ErrorsResult #3
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
 ''',
     );
   }
@@ -22445,11 +22456,6 @@ void f(A a) {
       expectedInitialEvents: r'''
 [status] working
 [operation] linkLibraryCycle SDK
-[future] getErrors T1
-  ErrorsResult #0
-    path: /home/test/lib/test.dart
-    uri: package:test/test.dart
-    flags: isLibrary
 [operation] linkLibraryCycle
   package:test/a.dart
     declaredExtensionTypes
@@ -22481,7 +22487,7 @@ void f(A a) {
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
 [stream]
-  ResolvedUnitResult #1
+  ResolvedUnitResult #0
     path: /home/test/lib/test.dart
     uri: package:test/test.dart
     flags: exists isLibrary
@@ -22501,6 +22507,11 @@ void f(A a) {
             methods
               foo: #M5
 [status] idle
+[future] getErrors T1
+  ErrorsResult #1
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
 ''',
       updatedA: r'''
 extension type A(int it) {
@@ -22528,11 +22539,6 @@ extension type A(int it) {
             foo: #M5
             it: #M6
   requirements
-[future] getErrors T2
-  ErrorsResult #2
-    path: /home/test/lib/test.dart
-    uri: package:test/test.dart
-    flags: isLibrary
 [operation] readLibraryCycleBundle
   package:test/test.dart
 [operation] checkLibraryDiagnosticsRequirements
@@ -22542,6 +22548,11 @@ extension type A(int it) {
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
 [status] idle
+[future] getErrors T2
+  ErrorsResult #2
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
 ''',
     );
   }
@@ -22563,11 +22574,6 @@ void f(A a) {
       expectedInitialEvents: r'''
 [status] working
 [operation] linkLibraryCycle SDK
-[future] getErrors T1
-  ErrorsResult #0
-    path: /home/test/lib/test.dart
-    uri: package:test/test.dart
-    flags: isLibrary
 [operation] linkLibraryCycle
   package:test/a.dart
     declaredExtensionTypes
@@ -22596,7 +22602,7 @@ void f(A a) {
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
 [stream]
-  ResolvedUnitResult #1
+  ResolvedUnitResult #0
     path: /home/test/lib/test.dart
     uri: package:test/test.dart
     flags: exists isLibrary
@@ -22612,6 +22618,11 @@ void f(A a) {
             methods
               foo: #M3
 [status] idle
+[future] getErrors T1
+  ErrorsResult #1
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
 ''',
       updatedA: r'''
 extension type A(int it) {
@@ -22635,11 +22646,6 @@ extension type A(int it) {
             foo: #M6
             it: #M2
   requirements
-[future] getErrors T2
-  ErrorsResult #2
-    path: /home/test/lib/test.dart
-    uri: package:test/test.dart
-    flags: isLibrary
 [operation] readLibraryCycleBundle
   package:test/test.dart
 [operation] checkLibraryDiagnosticsRequirements
@@ -22654,7 +22660,7 @@ extension type A(int it) {
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
 [stream]
-  ResolvedUnitResult #3
+  ResolvedUnitResult #2
     path: /home/test/lib/test.dart
     uri: package:test/test.dart
     flags: exists isLibrary
@@ -22670,6 +22676,11 @@ extension type A(int it) {
             methods
               foo: #M6
 [status] idle
+[future] getErrors T2
+  ErrorsResult #3
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
 ''',
     );
   }
@@ -22692,11 +22703,6 @@ void f(A a) {
       expectedInitialEvents: r'''
 [status] working
 [operation] linkLibraryCycle SDK
-[future] getErrors T1
-  ErrorsResult #0
-    path: /home/test/lib/test.dart
-    uri: package:test/test.dart
-    flags: isLibrary
 [operation] linkLibraryCycle
   package:test/a.dart
     declaredExtensionTypes
@@ -22727,7 +22733,7 @@ void f(A a) {
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
 [stream]
-  ResolvedUnitResult #1
+  ResolvedUnitResult #0
     path: /home/test/lib/test.dart
     uri: package:test/test.dart
     flags: exists isLibrary
@@ -22743,6 +22749,11 @@ void f(A a) {
             methods
               foo: #M4
 [status] idle
+[future] getErrors T1
+  ErrorsResult #1
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
 ''',
       updatedA: r'''
 extension type A(int it) {
@@ -22769,11 +22780,6 @@ extension type A(int it) {
             foo: #M4
             it: #M2
   requirements
-[future] getErrors T2
-  ErrorsResult #2
-    path: /home/test/lib/test.dart
-    uri: package:test/test.dart
-    flags: isLibrary
 [operation] readLibraryCycleBundle
   package:test/test.dart
 [operation] checkLibraryDiagnosticsRequirements
@@ -22783,6 +22789,11 @@ extension type A(int it) {
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
 [status] idle
+[future] getErrors T2
+  ErrorsResult #2
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
 ''',
     );
   }
@@ -22804,11 +22815,6 @@ void f(A a) {
       expectedInitialEvents: r'''
 [status] working
 [operation] linkLibraryCycle SDK
-[future] getErrors T1
-  ErrorsResult #0
-    path: /home/test/lib/test.dart
-    uri: package:test/test.dart
-    flags: isLibrary
 [operation] linkLibraryCycle
   package:test/a.dart
     declaredExtensionTypes
@@ -22838,7 +22844,7 @@ void f(A a) {
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
 [stream]
-  ResolvedUnitResult #1
+  ResolvedUnitResult #0
     path: /home/test/lib/test.dart
     uri: package:test/test.dart
     flags: exists isLibrary
@@ -22858,6 +22864,11 @@ void f(A a) {
             methods
               foo=: #M4
 [status] idle
+[future] getErrors T1
+  ErrorsResult #1
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
 ''',
       updatedA: r'''
 extension type A(int it) {
@@ -22882,11 +22893,6 @@ extension type A(int it) {
             foo=: #M8
             it: #M3
   requirements
-[future] getErrors T2
-  ErrorsResult #2
-    path: /home/test/lib/test.dart
-    uri: package:test/test.dart
-    flags: isLibrary
 [operation] readLibraryCycleBundle
   package:test/test.dart
 [operation] checkLibraryDiagnosticsRequirements
@@ -22901,7 +22907,7 @@ extension type A(int it) {
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
 [stream]
-  ResolvedUnitResult #3
+  ResolvedUnitResult #2
     path: /home/test/lib/test.dart
     uri: package:test/test.dart
     flags: exists isLibrary
@@ -22921,6 +22927,11 @@ extension type A(int it) {
             methods
               foo=: #M8
 [status] idle
+[future] getErrors T2
+  ErrorsResult #3
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
 ''',
     );
   }
@@ -22943,11 +22954,6 @@ void f(A a) {
       expectedInitialEvents: r'''
 [status] working
 [operation] linkLibraryCycle SDK
-[future] getErrors T1
-  ErrorsResult #0
-    path: /home/test/lib/test.dart
-    uri: package:test/test.dart
-    flags: isLibrary
 [operation] linkLibraryCycle
   package:test/a.dart
     declaredExtensionTypes
@@ -22980,7 +22986,7 @@ void f(A a) {
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
 [stream]
-  ResolvedUnitResult #1
+  ResolvedUnitResult #0
     path: /home/test/lib/test.dart
     uri: package:test/test.dart
     flags: exists isLibrary
@@ -23000,6 +23006,11 @@ void f(A a) {
             methods
               foo=: #M6
 [status] idle
+[future] getErrors T1
+  ErrorsResult #1
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
 ''',
       updatedA: r'''
 extension type A(int it) {
@@ -23028,11 +23039,6 @@ extension type A(int it) {
             foo=: #M6
             it: #M4
   requirements
-[future] getErrors T2
-  ErrorsResult #2
-    path: /home/test/lib/test.dart
-    uri: package:test/test.dart
-    flags: isLibrary
 [operation] readLibraryCycleBundle
   package:test/test.dart
 [operation] checkLibraryDiagnosticsRequirements
@@ -23042,6 +23048,11 @@ extension type A(int it) {
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
 [status] idle
+[future] getErrors T2
+  ErrorsResult #2
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
 ''',
     );
   }
@@ -23067,13 +23078,6 @@ import 'a.dart';
       expectedInitialEvents: r'''
 [status] working
 [operation] linkLibraryCycle SDK
-[future] getErrors T1
-  ErrorsResult #0
-    path: /home/test/lib/test.dart
-    uri: package:test/test.dart
-    flags: isLibrary
-    errors
-      7 +8 UNUSED_IMPORT
 [operation] linkLibraryCycle
   package:test/a.dart
     declaredExtensionTypes
@@ -23096,7 +23100,7 @@ import 'a.dart';
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
 [stream]
-  ResolvedUnitResult #1
+  ResolvedUnitResult #0
     path: /home/test/lib/test.dart
     uri: package:test/test.dart
     flags: exists isLibrary
@@ -23113,6 +23117,13 @@ import 'a.dart';
           A
             allConstructors: #M4 #M3
 [status] idle
+[future] getErrors T1
+  ErrorsResult #1
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
+    errors
+      7 +8 UNUSED_IMPORT
 ''',
       updatedA: r'''
 extension type A(int it) {
@@ -23136,13 +23147,6 @@ extension type A(int it) {
           map
             it: #M2
   requirements
-[future] getErrors T2
-  ErrorsResult #2
-    path: /home/test/lib/test.dart
-    uri: package:test/test.dart
-    flags: isLibrary
-    errors
-      7 +8 UNUSED_IMPORT
 [operation] readLibraryCycleBundle
   package:test/test.dart
 [operation] checkLibraryDiagnosticsRequirements
@@ -23157,7 +23161,7 @@ extension type A(int it) {
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
 [stream]
-  ResolvedUnitResult #3
+  ResolvedUnitResult #2
     path: /home/test/lib/test.dart
     uri: package:test/test.dart
     flags: exists isLibrary
@@ -23174,6 +23178,13 @@ extension type A(int it) {
           A
             allConstructors: #M4 #M6
 [status] idle
+[future] getErrors T2
+  ErrorsResult #3
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
+    errors
+      7 +8 UNUSED_IMPORT
 ''',
     );
   }
@@ -23196,11 +23207,6 @@ void f() {
       expectedInitialEvents: r'''
 [status] working
 [operation] linkLibraryCycle SDK
-[future] getErrors T1
-  ErrorsResult #0
-    path: /home/test/lib/test.dart
-    uri: package:test/test.dart
-    flags: isLibrary
 [operation] linkLibraryCycle
   package:test/a.dart
     declaredExtensionTypes
@@ -23225,7 +23231,7 @@ void f() {
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
 [stream]
-  ResolvedUnitResult #1
+  ResolvedUnitResult #0
     path: /home/test/lib/test.dart
     uri: package:test/test.dart
     flags: exists isLibrary
@@ -23241,6 +23247,11 @@ void f() {
             requestedConstructors
               named: #M3
 [status] idle
+[future] getErrors T1
+  ErrorsResult #1
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
 ''',
       updatedA: r'''
 extension type A(int it) {
@@ -23264,11 +23275,6 @@ extension type A(int it) {
           map
             it: #M2
   requirements
-[future] getErrors T2
-  ErrorsResult #2
-    path: /home/test/lib/test.dart
-    uri: package:test/test.dart
-    flags: isLibrary
 [operation] readLibraryCycleBundle
   package:test/test.dart
 [operation] checkLibraryDiagnosticsRequirements
@@ -23283,7 +23289,7 @@ extension type A(int it) {
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
 [stream]
-  ResolvedUnitResult #3
+  ResolvedUnitResult #2
     path: /home/test/lib/test.dart
     uri: package:test/test.dart
     flags: exists isLibrary
@@ -23299,6 +23305,11 @@ extension type A(int it) {
             requestedConstructors
               named: #M7
 [status] idle
+[future] getErrors T2
+  ErrorsResult #3
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
 ''',
     );
   }
@@ -23321,11 +23332,6 @@ void f() {
       expectedInitialEvents: r'''
 [status] working
 [operation] linkLibraryCycle SDK
-[future] getErrors T1
-  ErrorsResult #0
-    path: /home/test/lib/test.dart
-    uri: package:test/test.dart
-    flags: isLibrary
 [operation] linkLibraryCycle
   package:test/a.dart
     declaredExtensionTypes
@@ -23350,7 +23356,7 @@ void f() {
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
 [stream]
-  ResolvedUnitResult #1
+  ResolvedUnitResult #0
     path: /home/test/lib/test.dart
     uri: package:test/test.dart
     flags: exists isLibrary
@@ -23366,6 +23372,11 @@ void f() {
             requestedConstructors
               new: #M4
 [status] idle
+[future] getErrors T1
+  ErrorsResult #1
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
 ''',
       updatedA: r'''
 extension type A(int it) {
@@ -23389,11 +23400,6 @@ extension type A(int it) {
           map
             it: #M2
   requirements
-[future] getErrors T2
-  ErrorsResult #2
-    path: /home/test/lib/test.dart
-    uri: package:test/test.dart
-    flags: isLibrary
 [operation] readLibraryCycleBundle
   package:test/test.dart
 [operation] checkLibraryDiagnosticsRequirements
@@ -23403,6 +23409,11 @@ extension type A(int it) {
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
 [status] idle
+[future] getErrors T2
+  ErrorsResult #2
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
 ''',
     );
   }
@@ -23424,11 +23435,6 @@ void f() {
       expectedInitialEvents: r'''
 [status] working
 [operation] linkLibraryCycle SDK
-[future] getErrors T1
-  ErrorsResult #0
-    path: /home/test/lib/test.dart
-    uri: package:test/test.dart
-    flags: isLibrary
 [operation] linkLibraryCycle
   package:test/a.dart
     declaredExtensionTypes
@@ -23452,7 +23458,7 @@ void f() {
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
 [stream]
-  ResolvedUnitResult #1
+  ResolvedUnitResult #0
     path: /home/test/lib/test.dart
     uri: package:test/test.dart
     flags: exists isLibrary
@@ -23474,6 +23480,11 @@ void f() {
             requestedConstructors
               foo: <null>
 [status] idle
+[future] getErrors T1
+  ErrorsResult #1
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
 ''',
       updatedA: r'''
 extension type A(int it) {
@@ -23496,11 +23507,6 @@ extension type A(int it) {
           map
             it: #M4
   requirements
-[future] getErrors T2
-  ErrorsResult #2
-    path: /home/test/lib/test.dart
-    uri: package:test/test.dart
-    flags: isLibrary
 [operation] readLibraryCycleBundle
   package:test/test.dart
 [operation] checkLibraryDiagnosticsRequirements
@@ -23515,7 +23521,7 @@ extension type A(int it) {
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
 [stream]
-  ResolvedUnitResult #3
+  ResolvedUnitResult #2
     path: /home/test/lib/test.dart
     uri: package:test/test.dart
     flags: exists isLibrary
@@ -23537,6 +23543,11 @@ extension type A(int it) {
             requestedConstructors
               foo: <null>
 [status] idle
+[future] getErrors T2
+  ErrorsResult #3
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
 ''',
     );
   }
@@ -23559,11 +23570,6 @@ void f() {
       expectedInitialEvents: r'''
 [status] working
 [operation] linkLibraryCycle SDK
-[future] getErrors T1
-  ErrorsResult #0
-    path: /home/test/lib/test.dart
-    uri: package:test/test.dart
-    flags: isLibrary
 [operation] linkLibraryCycle
   package:test/a.dart
     declaredExtensionTypes
@@ -23589,7 +23595,7 @@ void f() {
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
 [stream]
-  ResolvedUnitResult #1
+  ResolvedUnitResult #0
     path: /home/test/lib/test.dart
     uri: package:test/test.dart
     flags: exists isLibrary
@@ -23611,6 +23617,11 @@ void f() {
             requestedConstructors
               foo: <null>
 [status] idle
+[future] getErrors T1
+  ErrorsResult #1
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
 ''',
       updatedA: r'''
 extension type A(int it) {
@@ -23636,11 +23647,6 @@ extension type A(int it) {
           map
             it: #M6
   requirements
-[future] getErrors T2
-  ErrorsResult #2
-    path: /home/test/lib/test.dart
-    uri: package:test/test.dart
-    flags: isLibrary
 [operation] readLibraryCycleBundle
   package:test/test.dart
 [operation] checkLibraryDiagnosticsRequirements
@@ -23650,6 +23656,11 @@ extension type A(int it) {
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
 [status] idle
+[future] getErrors T2
+  ErrorsResult #2
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
 ''',
     );
   }
@@ -23671,11 +23682,6 @@ void f() {
       expectedInitialEvents: r'''
 [status] working
 [operation] linkLibraryCycle SDK
-[future] getErrors T1
-  ErrorsResult #0
-    path: /home/test/lib/test.dart
-    uri: package:test/test.dart
-    flags: isLibrary
 [operation] linkLibraryCycle
   package:test/a.dart
     declaredExtensionTypes
@@ -23699,7 +23705,7 @@ void f() {
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
 [stream]
-  ResolvedUnitResult #1
+  ResolvedUnitResult #0
     path: /home/test/lib/test.dart
     uri: package:test/test.dart
     flags: exists isLibrary
@@ -23721,6 +23727,11 @@ void f() {
             requestedConstructors
               foo: <null>
 [status] idle
+[future] getErrors T1
+  ErrorsResult #1
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
 ''',
       updatedA: r'''
 extension type A(int it) {
@@ -23743,11 +23754,6 @@ extension type A(int it) {
           map
             it: #M2
   requirements
-[future] getErrors T2
-  ErrorsResult #2
-    path: /home/test/lib/test.dart
-    uri: package:test/test.dart
-    flags: isLibrary
 [operation] readLibraryCycleBundle
   package:test/test.dart
 [operation] checkLibraryDiagnosticsRequirements
@@ -23762,7 +23768,7 @@ extension type A(int it) {
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
 [stream]
-  ResolvedUnitResult #3
+  ResolvedUnitResult #2
     path: /home/test/lib/test.dart
     uri: package:test/test.dart
     flags: exists isLibrary
@@ -23784,6 +23790,11 @@ extension type A(int it) {
             requestedConstructors
               foo: <null>
 [status] idle
+[future] getErrors T2
+  ErrorsResult #3
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
 ''',
     );
   }
@@ -23806,11 +23817,6 @@ void f() {
       expectedInitialEvents: r'''
 [status] working
 [operation] linkLibraryCycle SDK
-[future] getErrors T1
-  ErrorsResult #0
-    path: /home/test/lib/test.dart
-    uri: package:test/test.dart
-    flags: isLibrary
 [operation] linkLibraryCycle
   package:test/a.dart
     declaredExtensionTypes
@@ -23835,7 +23841,7 @@ void f() {
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
 [stream]
-  ResolvedUnitResult #1
+  ResolvedUnitResult #0
     path: /home/test/lib/test.dart
     uri: package:test/test.dart
     flags: exists isLibrary
@@ -23857,6 +23863,11 @@ void f() {
             requestedConstructors
               foo: <null>
 [status] idle
+[future] getErrors T1
+  ErrorsResult #1
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
 ''',
       updatedA: r'''
 extension type A(int it) {
@@ -23881,11 +23892,6 @@ extension type A(int it) {
           map
             it: #M2
   requirements
-[future] getErrors T2
-  ErrorsResult #2
-    path: /home/test/lib/test.dart
-    uri: package:test/test.dart
-    flags: isLibrary
 [operation] readLibraryCycleBundle
   package:test/test.dart
 [operation] checkLibraryDiagnosticsRequirements
@@ -23895,6 +23901,11 @@ extension type A(int it) {
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
 [status] idle
+[future] getErrors T2
+  ErrorsResult #2
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
 ''',
     );
   }
@@ -23916,11 +23927,6 @@ void f() {
       expectedInitialEvents: r'''
 [status] working
 [operation] linkLibraryCycle SDK
-[future] getErrors T1
-  ErrorsResult #0
-    path: /home/test/lib/test.dart
-    uri: package:test/test.dart
-    flags: isLibrary
 [operation] linkLibraryCycle
   package:test/a.dart
     declaredExtensionTypes
@@ -23945,7 +23951,7 @@ void f() {
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
 [stream]
-  ResolvedUnitResult #1
+  ResolvedUnitResult #0
     path: /home/test/lib/test.dart
     uri: package:test/test.dart
     flags: exists isLibrary
@@ -23963,6 +23969,11 @@ void f() {
             requestedDeclaredSetters
               foo=: #M4
 [status] idle
+[future] getErrors T1
+  ErrorsResult #1
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
 ''',
       updatedA: r'''
 extension type A(int it) {
@@ -23986,11 +23997,6 @@ extension type A(int it) {
           map
             it: #M3
   requirements
-[future] getErrors T2
-  ErrorsResult #2
-    path: /home/test/lib/test.dart
-    uri: package:test/test.dart
-    flags: isLibrary
 [operation] readLibraryCycleBundle
   package:test/test.dart
 [operation] checkLibraryDiagnosticsRequirements
@@ -24005,7 +24011,7 @@ extension type A(int it) {
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
 [stream]
-  ResolvedUnitResult #3
+  ResolvedUnitResult #2
     path: /home/test/lib/test.dart
     uri: package:test/test.dart
     flags: exists isLibrary
@@ -24023,6 +24029,11 @@ extension type A(int it) {
             requestedDeclaredSetters
               foo=: #M8
 [status] idle
+[future] getErrors T2
+  ErrorsResult #3
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
 ''',
     );
   }
@@ -24045,11 +24056,6 @@ void f() {
       expectedInitialEvents: r'''
 [status] working
 [operation] linkLibraryCycle SDK
-[future] getErrors T1
-  ErrorsResult #0
-    path: /home/test/lib/test.dart
-    uri: package:test/test.dart
-    flags: isLibrary
 [operation] linkLibraryCycle
   package:test/a.dart
     declaredExtensionTypes
@@ -24076,7 +24082,7 @@ void f() {
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
 [stream]
-  ResolvedUnitResult #1
+  ResolvedUnitResult #0
     path: /home/test/lib/test.dart
     uri: package:test/test.dart
     flags: exists isLibrary
@@ -24094,6 +24100,11 @@ void f() {
             requestedDeclaredSetters
               foo=: #M6
 [status] idle
+[future] getErrors T1
+  ErrorsResult #1
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
 ''',
       updatedA: r'''
 extension type A(int it) {
@@ -24120,11 +24131,6 @@ extension type A(int it) {
           map
             it: #M4
   requirements
-[future] getErrors T2
-  ErrorsResult #2
-    path: /home/test/lib/test.dart
-    uri: package:test/test.dart
-    flags: isLibrary
 [operation] readLibraryCycleBundle
   package:test/test.dart
 [operation] checkLibraryDiagnosticsRequirements
@@ -24134,6 +24140,11 @@ extension type A(int it) {
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
 [status] idle
+[future] getErrors T2
+  ErrorsResult #2
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
 ''',
     );
   }
@@ -24159,13 +24170,6 @@ import 'a.dart';
       expectedInitialEvents: r'''
 [status] working
 [operation] linkLibraryCycle SDK
-[future] getErrors T1
-  ErrorsResult #0
-    path: /home/test/lib/test.dart
-    uri: package:test/test.dart
-    flags: isLibrary
-    errors
-      7 +8 UNUSED_IMPORT
 [operation] linkLibraryCycle
   package:test/a.dart
     declaredExtensionTypes
@@ -24188,7 +24192,7 @@ import 'a.dart';
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
 [stream]
-  ResolvedUnitResult #1
+  ResolvedUnitResult #0
     path: /home/test/lib/test.dart
     uri: package:test/test.dart
     flags: exists isLibrary
@@ -24205,6 +24209,13 @@ import 'a.dart';
           A
             allConstructors: #M4 #M3
 [status] idle
+[future] getErrors T1
+  ErrorsResult #1
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
+    errors
+      7 +8 UNUSED_IMPORT
 ''',
       updatedA: r'''
 extension type A(double it) {
@@ -24228,13 +24239,6 @@ extension type A(double it) {
           map
             it: #M7
   requirements
-[future] getErrors T2
-  ErrorsResult #2
-    path: /home/test/lib/test.dart
-    uri: package:test/test.dart
-    flags: isLibrary
-    errors
-      7 +8 UNUSED_IMPORT
 [operation] readLibraryCycleBundle
   package:test/test.dart
 [operation] checkLibraryDiagnosticsRequirements
@@ -24249,7 +24253,7 @@ extension type A(double it) {
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
 [stream]
-  ResolvedUnitResult #3
+  ResolvedUnitResult #2
     path: /home/test/lib/test.dart
     uri: package:test/test.dart
     flags: exists isLibrary
@@ -24266,6 +24270,13 @@ extension type A(double it) {
           A
             allConstructors: #M8 #M3
 [status] idle
+[future] getErrors T2
+  ErrorsResult #3
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
+    errors
+      7 +8 UNUSED_IMPORT
 ''',
     );
   }
@@ -24286,11 +24297,6 @@ void f() {
       expectedInitialEvents: r'''
 [status] working
 [operation] linkLibraryCycle SDK
-[future] getErrors T1
-  ErrorsResult #0
-    path: /home/test/lib/test.dart
-    uri: package:test/test.dart
-    flags: isLibrary
 [operation] linkLibraryCycle
   package:test/a.dart
     declaredExtensionTypes
@@ -24314,7 +24320,7 @@ void f() {
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
 [stream]
-  ResolvedUnitResult #1
+  ResolvedUnitResult #0
     path: /home/test/lib/test.dart
     uri: package:test/test.dart
     flags: exists isLibrary
@@ -24330,6 +24336,11 @@ void f() {
             requestedConstructors
               new: #M3
 [status] idle
+[future] getErrors T1
+  ErrorsResult #1
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
 ''',
       updatedA: r'''
 extension type A(double it) {}
@@ -24350,11 +24361,6 @@ extension type A(double it) {}
           map
             it: #M7
   requirements
-[future] getErrors T2
-  ErrorsResult #2
-    path: /home/test/lib/test.dart
-    uri: package:test/test.dart
-    flags: isLibrary
 [operation] readLibraryCycleBundle
   package:test/test.dart
 [operation] checkLibraryDiagnosticsRequirements
@@ -24369,7 +24375,7 @@ extension type A(double it) {}
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
 [stream]
-  ResolvedUnitResult #3
+  ResolvedUnitResult #2
     path: /home/test/lib/test.dart
     uri: package:test/test.dart
     flags: exists isLibrary
@@ -24385,6 +24391,11 @@ extension type A(double it) {}
             requestedConstructors
               new: #M8
 [status] idle
+[future] getErrors T2
+  ErrorsResult #3
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
 ''',
     );
   }
@@ -24407,11 +24418,6 @@ void f() {
       expectedInitialEvents: r'''
 [status] working
 [operation] linkLibraryCycle SDK
-[future] getErrors T1
-  ErrorsResult #0
-    path: /home/test/lib/test.dart
-    uri: package:test/test.dart
-    flags: isLibrary
 [operation] linkLibraryCycle
   package:test/a.dart
     declaredExtensionTypes
@@ -24436,7 +24442,7 @@ void f() {
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
 [stream]
-  ResolvedUnitResult #1
+  ResolvedUnitResult #0
     path: /home/test/lib/test.dart
     uri: package:test/test.dart
     flags: exists isLibrary
@@ -24452,6 +24458,11 @@ void f() {
             requestedConstructors
               named: #M3
 [status] idle
+[future] getErrors T1
+  ErrorsResult #1
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
 ''',
       updatedA: r'''
 extension type A(double it) {
@@ -24475,11 +24486,6 @@ extension type A(double it) {
           map
             it: #M8
   requirements
-[future] getErrors T2
-  ErrorsResult #2
-    path: /home/test/lib/test.dart
-    uri: package:test/test.dart
-    flags: isLibrary
 [operation] readLibraryCycleBundle
   package:test/test.dart
 [operation] checkLibraryDiagnosticsRequirements
@@ -24489,6 +24495,11 @@ extension type A(double it) {
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
 [status] idle
+[future] getErrors T2
+  ErrorsResult #2
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
 ''',
     );
   }
@@ -24510,11 +24521,6 @@ void f(A a) {
       expectedInitialEvents: r'''
 [status] working
 [operation] linkLibraryCycle SDK
-[future] getErrors T1
-  ErrorsResult #0
-    path: /home/test/lib/test.dart
-    uri: package:test/test.dart
-    flags: isLibrary
 [operation] linkLibraryCycle
   package:test/a.dart
     declaredMixins
@@ -24540,7 +24546,7 @@ void f(A a) {
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
 [stream]
-  ResolvedUnitResult #1
+  ResolvedUnitResult #0
     path: /home/test/lib/test.dart
     uri: package:test/test.dart
     flags: exists isLibrary
@@ -24560,6 +24566,11 @@ void f(A a) {
             methods
               foo: #M2
 [status] idle
+[future] getErrors T1
+  ErrorsResult #1
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
 ''',
       updatedA: r'''
 mixin A {
@@ -24580,11 +24591,6 @@ mixin A {
           map
             foo: #M6
   requirements
-[future] getErrors T2
-  ErrorsResult #2
-    path: /home/test/lib/test.dart
-    uri: package:test/test.dart
-    flags: isLibrary
 [operation] readLibraryCycleBundle
   package:test/test.dart
 [operation] checkLibraryDiagnosticsRequirements
@@ -24599,7 +24605,7 @@ mixin A {
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
 [stream]
-  ResolvedUnitResult #3
+  ResolvedUnitResult #2
     path: /home/test/lib/test.dart
     uri: package:test/test.dart
     flags: exists isLibrary
@@ -24619,6 +24625,11 @@ mixin A {
             methods
               foo: #M6
 [status] idle
+[future] getErrors T2
+  ErrorsResult #3
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
 ''',
     );
   }
@@ -24641,11 +24652,6 @@ void f(A a) {
       expectedInitialEvents: r'''
 [status] working
 [operation] linkLibraryCycle SDK
-[future] getErrors T1
-  ErrorsResult #0
-    path: /home/test/lib/test.dart
-    uri: package:test/test.dart
-    flags: isLibrary
 [operation] linkLibraryCycle
   package:test/a.dart
     declaredMixins
@@ -24674,7 +24680,7 @@ void f(A a) {
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
 [stream]
-  ResolvedUnitResult #1
+  ResolvedUnitResult #0
     path: /home/test/lib/test.dart
     uri: package:test/test.dart
     flags: exists isLibrary
@@ -24694,6 +24700,11 @@ void f(A a) {
             methods
               foo: #M4
 [status] idle
+[future] getErrors T1
+  ErrorsResult #1
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
 ''',
       updatedA: r'''
 mixin A {
@@ -24714,11 +24725,6 @@ mixin A {
           map
             foo: #M4
   requirements
-[future] getErrors T2
-  ErrorsResult #2
-    path: /home/test/lib/test.dart
-    uri: package:test/test.dart
-    flags: isLibrary
 [operation] readLibraryCycleBundle
   package:test/test.dart
 [operation] checkLibraryDiagnosticsRequirements
@@ -24728,6 +24734,11 @@ mixin A {
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
 [status] idle
+[future] getErrors T2
+  ErrorsResult #2
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
 ''',
     );
   }
@@ -24752,11 +24763,6 @@ void f(B b) {
       expectedInitialEvents: r'''
 [status] working
 [operation] linkLibraryCycle SDK
-[future] getErrors T1
-  ErrorsResult #0
-    path: /home/test/lib/test.dart
-    uri: package:test/test.dart
-    flags: isLibrary
 [operation] linkLibraryCycle
   package:test/a.dart
     declaredMixins
@@ -24801,6 +24807,11 @@ void f(B b) {
             methods
               foo: #M2
 [status] idle
+[future] getErrors T1
+  ErrorsResult #0
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
 ''',
       updatedA: r'''
 mixin A<T> {
@@ -24827,11 +24838,6 @@ mixin B on A<double> {}
           map
             foo: #M2
   requirements
-[future] getErrors T2
-  ErrorsResult #1
-    path: /home/test/lib/test.dart
-    uri: package:test/test.dart
-    flags: isLibrary
 [operation] cannotReuseLinkedBundle
   topLevelIdMismatch
     libraryUri: package:test/a.dart
@@ -24873,6 +24879,11 @@ mixin B on A<double> {}
             methods
               foo: #M2
 [status] idle
+[future] getErrors T2
+  ErrorsResult #1
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
 ''',
     );
   }
@@ -24893,13 +24904,6 @@ void f(A a) {
       expectedInitialEvents: r'''
 [status] working
 [operation] linkLibraryCycle SDK
-[future] getErrors T1
-  ErrorsResult #0
-    path: /home/test/lib/test.dart
-    uri: package:test/test.dart
-    flags: isLibrary
-    errors
-      35 +3 UNDEFINED_METHOD
 [operation] linkLibraryCycle
   package:test/a.dart
     declaredMixins
@@ -24938,6 +24942,13 @@ void f(A a) {
               foo=: <null>
         exportedExtensions: []
 [status] idle
+[future] getErrors T1
+  ErrorsResult #0
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
+    errors
+      35 +3 UNDEFINED_METHOD
 ''',
       updatedA: r'''
 mixin A {
@@ -24956,11 +24967,6 @@ mixin A {
           map
             foo: #M3
   requirements
-[future] getErrors T2
-  ErrorsResult #1
-    path: /home/test/lib/test.dart
-    uri: package:test/test.dart
-    flags: isLibrary
 [operation] readLibraryCycleBundle
   package:test/test.dart
 [operation] checkLibraryDiagnosticsRequirements
@@ -24986,6 +24992,11 @@ mixin A {
             methods
               foo: #M3
 [status] idle
+[future] getErrors T2
+  ErrorsResult #1
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
 ''',
     );
   }
@@ -25007,11 +25018,6 @@ void f(A a) {
       expectedInitialEvents: r'''
 [status] working
 [operation] linkLibraryCycle SDK
-[future] getErrors T1
-  ErrorsResult #0
-    path: /home/test/lib/test.dart
-    uri: package:test/test.dart
-    flags: isLibrary
 [operation] linkLibraryCycle
   package:test/a.dart
     declaredMixins
@@ -25035,7 +25041,7 @@ void f(A a) {
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
 [stream]
-  ResolvedUnitResult #1
+  ResolvedUnitResult #0
     path: /home/test/lib/test.dart
     uri: package:test/test.dart
     flags: exists isLibrary
@@ -25051,6 +25057,11 @@ void f(A a) {
             methods
               foo: #M1
 [status] idle
+[future] getErrors T1
+  ErrorsResult #1
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
 ''',
       updatedA: r'''
 mixin A {
@@ -25069,11 +25080,6 @@ mixin A {
           map
             foo: #M4
   requirements
-[future] getErrors T2
-  ErrorsResult #2
-    path: /home/test/lib/test.dart
-    uri: package:test/test.dart
-    flags: isLibrary
 [operation] readLibraryCycleBundle
   package:test/test.dart
 [operation] checkLibraryDiagnosticsRequirements
@@ -25088,7 +25094,7 @@ mixin A {
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
 [stream]
-  ResolvedUnitResult #3
+  ResolvedUnitResult #2
     path: /home/test/lib/test.dart
     uri: package:test/test.dart
     flags: exists isLibrary
@@ -25104,6 +25110,11 @@ mixin A {
             methods
               foo: #M4
 [status] idle
+[future] getErrors T2
+  ErrorsResult #3
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
 ''',
     );
   }
@@ -25126,11 +25137,6 @@ void f(A a) {
       expectedInitialEvents: r'''
 [status] working
 [operation] linkLibraryCycle SDK
-[future] getErrors T1
-  ErrorsResult #0
-    path: /home/test/lib/test.dart
-    uri: package:test/test.dart
-    flags: isLibrary
 [operation] linkLibraryCycle
   package:test/a.dart
     declaredMixins
@@ -25156,7 +25162,7 @@ void f(A a) {
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
 [stream]
-  ResolvedUnitResult #1
+  ResolvedUnitResult #0
     path: /home/test/lib/test.dart
     uri: package:test/test.dart
     flags: exists isLibrary
@@ -25172,6 +25178,11 @@ void f(A a) {
             methods
               foo: #M2
 [status] idle
+[future] getErrors T1
+  ErrorsResult #1
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
 ''',
       updatedA: r'''
 mixin A {
@@ -25193,11 +25204,6 @@ mixin A {
             bar: #M5
             foo: #M2
   requirements
-[future] getErrors T2
-  ErrorsResult #2
-    path: /home/test/lib/test.dart
-    uri: package:test/test.dart
-    flags: isLibrary
 [operation] readLibraryCycleBundle
   package:test/test.dart
 [operation] checkLibraryDiagnosticsRequirements
@@ -25207,6 +25213,11 @@ mixin A {
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
 [status] idle
+[future] getErrors T2
+  ErrorsResult #2
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
 ''',
     );
   }
@@ -25231,11 +25242,6 @@ void f(B b) {
       expectedInitialEvents: r'''
 [status] working
 [operation] linkLibraryCycle SDK
-[future] getErrors T1
-  ErrorsResult #0
-    path: /home/test/lib/test.dart
-    uri: package:test/test.dart
-    flags: isLibrary
 [operation] linkLibraryCycle
   package:test/a.dart
     declaredMixins
@@ -25274,6 +25280,11 @@ void f(B b) {
             methods
               foo: #M1
 [status] idle
+[future] getErrors T1
+  ErrorsResult #0
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
 ''',
       updatedA: r'''
 mixin A<T> {
@@ -25298,11 +25309,6 @@ mixin B implements A<double> {}
           map
             foo: #M1
   requirements
-[future] getErrors T2
-  ErrorsResult #1
-    path: /home/test/lib/test.dart
-    uri: package:test/test.dart
-    flags: isLibrary
 [operation] cannotReuseLinkedBundle
   topLevelIdMismatch
     libraryUri: package:test/a.dart
@@ -25340,6 +25346,11 @@ mixin B implements A<double> {}
             methods
               foo: #M1
 [status] idle
+[future] getErrors T2
+  ErrorsResult #1
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
 ''',
     );
   }
@@ -25364,11 +25375,6 @@ void f(B b) {
       expectedInitialEvents: r'''
 [status] working
 [operation] linkLibraryCycle SDK
-[future] getErrors T1
-  ErrorsResult #0
-    path: /home/test/lib/test.dart
-    uri: package:test/test.dart
-    flags: isLibrary
 [operation] linkLibraryCycle
   package:test/a.dart
     declaredMixins
@@ -25407,6 +25413,11 @@ void f(B b) {
             methods
               foo: #M1
 [status] idle
+[future] getErrors T1
+  ErrorsResult #0
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
 ''',
       updatedA: r'''
 mixin A<T> {
@@ -25431,11 +25442,6 @@ mixin B on A<double> {}
           map
             foo: #M1
   requirements
-[future] getErrors T2
-  ErrorsResult #1
-    path: /home/test/lib/test.dart
-    uri: package:test/test.dart
-    flags: isLibrary
 [operation] cannotReuseLinkedBundle
   topLevelIdMismatch
     libraryUri: package:test/a.dart
@@ -25473,6 +25479,11 @@ mixin B on A<double> {}
             methods
               foo: #M1
 [status] idle
+[future] getErrors T2
+  ErrorsResult #1
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
 ''',
     );
   }
@@ -25495,11 +25506,6 @@ void f(A a) {
       expectedInitialEvents: r'''
 [status] working
 [operation] linkLibraryCycle SDK
-[future] getErrors T1
-  ErrorsResult #0
-    path: /home/test/lib/test.dart
-    uri: package:test/test.dart
-    flags: isLibrary
 [operation] linkLibraryCycle
   package:test/a.dart
     declaredMixins
@@ -25534,6 +25540,11 @@ void f(A a) {
             methods
               foo: #M1
 [status] idle
+[future] getErrors T1
+  ErrorsResult #0
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
 ''',
       updatedA: r'''
 mixin A {}
@@ -25546,13 +25557,6 @@ mixin A {}
       A: #M0
         interface: #M4
   requirements
-[future] getErrors T2
-  ErrorsResult #1
-    path: /home/test/lib/test.dart
-    uri: package:test/test.dart
-    flags: isLibrary
-    errors
-      35 +3 UNDEFINED_METHOD
 [operation] readLibraryCycleBundle
   package:test/test.dart
 [operation] checkLibraryDiagnosticsRequirements
@@ -25586,6 +25590,13 @@ mixin A {}
               foo=: <null>
         exportedExtensions: []
 [status] idle
+[future] getErrors T2
+  ErrorsResult #1
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
+    errors
+      35 +3 UNDEFINED_METHOD
 ''',
     );
   }
@@ -25605,13 +25616,6 @@ void f(A a) {
       expectedInitialEvents: r'''
 [status] working
 [operation] linkLibraryCycle SDK
-[future] getErrors T1
-  ErrorsResult #0
-    path: /home/test/lib/test.dart
-    uri: package:test/test.dart
-    flags: isLibrary
-    errors
-      35 +3 UNDEFINED_SETTER
 [operation] linkLibraryCycle
   package:test/a.dart
     declaredMixins
@@ -25631,7 +25635,7 @@ void f(A a) {
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
 [stream]
-  ResolvedUnitResult #1
+  ResolvedUnitResult #0
     path: /home/test/lib/test.dart
     uri: package:test/test.dart
     flags: exists isLibrary
@@ -25659,6 +25663,13 @@ void f(A a) {
               foo=: <null>
         exportedExtensions: []
 [status] idle
+[future] getErrors T1
+  ErrorsResult #1
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
+    errors
+      35 +3 UNDEFINED_SETTER
 ''',
       updatedA: r'''
 mixin A {
@@ -25679,11 +25690,6 @@ mixin A {
           map
             foo=: #M4
   requirements
-[future] getErrors T2
-  ErrorsResult #2
-    path: /home/test/lib/test.dart
-    uri: package:test/test.dart
-    flags: isLibrary
 [operation] readLibraryCycleBundle
   package:test/test.dart
 [operation] checkLibraryDiagnosticsRequirements
@@ -25698,7 +25704,7 @@ mixin A {
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
 [stream]
-  ResolvedUnitResult #3
+  ResolvedUnitResult #2
     path: /home/test/lib/test.dart
     uri: package:test/test.dart
     flags: exists isLibrary
@@ -25718,6 +25724,11 @@ mixin A {
             methods
               foo=: #M4
 [status] idle
+[future] getErrors T2
+  ErrorsResult #3
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
 ''',
     );
   }
@@ -25739,11 +25750,6 @@ void f(A a) {
       expectedInitialEvents: r'''
 [status] working
 [operation] linkLibraryCycle SDK
-[future] getErrors T1
-  ErrorsResult #0
-    path: /home/test/lib/test.dart
-    uri: package:test/test.dart
-    flags: isLibrary
 [operation] linkLibraryCycle
   package:test/a.dart
     declaredMixins
@@ -25769,7 +25775,7 @@ void f(A a) {
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
 [stream]
-  ResolvedUnitResult #1
+  ResolvedUnitResult #0
     path: /home/test/lib/test.dart
     uri: package:test/test.dart
     flags: exists isLibrary
@@ -25789,6 +25795,11 @@ void f(A a) {
             methods
               foo=: #M2
 [status] idle
+[future] getErrors T1
+  ErrorsResult #1
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
 ''',
       updatedA: r'''
 mixin A {
@@ -25809,11 +25820,6 @@ mixin A {
           map
             foo=: #M6
   requirements
-[future] getErrors T2
-  ErrorsResult #2
-    path: /home/test/lib/test.dart
-    uri: package:test/test.dart
-    flags: isLibrary
 [operation] readLibraryCycleBundle
   package:test/test.dart
 [operation] checkLibraryDiagnosticsRequirements
@@ -25828,7 +25834,7 @@ mixin A {
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
 [stream]
-  ResolvedUnitResult #3
+  ResolvedUnitResult #2
     path: /home/test/lib/test.dart
     uri: package:test/test.dart
     flags: exists isLibrary
@@ -25848,6 +25854,11 @@ mixin A {
             methods
               foo=: #M6
 [status] idle
+[future] getErrors T2
+  ErrorsResult #3
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
 ''',
     );
   }
@@ -25870,11 +25881,6 @@ void f(A a) {
       expectedInitialEvents: r'''
 [status] working
 [operation] linkLibraryCycle SDK
-[future] getErrors T1
-  ErrorsResult #0
-    path: /home/test/lib/test.dart
-    uri: package:test/test.dart
-    flags: isLibrary
 [operation] linkLibraryCycle
   package:test/a.dart
     declaredMixins
@@ -25903,7 +25909,7 @@ void f(A a) {
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
 [stream]
-  ResolvedUnitResult #1
+  ResolvedUnitResult #0
     path: /home/test/lib/test.dart
     uri: package:test/test.dart
     flags: exists isLibrary
@@ -25923,6 +25929,11 @@ void f(A a) {
             methods
               foo=: #M4
 [status] idle
+[future] getErrors T1
+  ErrorsResult #1
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
 ''',
       updatedA: r'''
 mixin A {
@@ -25947,11 +25958,6 @@ mixin A {
             bar=: #M8
             foo=: #M4
   requirements
-[future] getErrors T2
-  ErrorsResult #2
-    path: /home/test/lib/test.dart
-    uri: package:test/test.dart
-    flags: isLibrary
 [operation] readLibraryCycleBundle
   package:test/test.dart
 [operation] checkLibraryDiagnosticsRequirements
@@ -25961,6 +25967,11 @@ mixin A {
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
 [status] idle
+[future] getErrors T2
+  ErrorsResult #2
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
 ''',
     );
   }
@@ -25985,11 +25996,6 @@ void f(B b) {
       expectedInitialEvents: r'''
 [status] working
 [operation] linkLibraryCycle SDK
-[future] getErrors T1
-  ErrorsResult #0
-    path: /home/test/lib/test.dart
-    uri: package:test/test.dart
-    flags: isLibrary
 [operation] linkLibraryCycle
   package:test/a.dart
     declaredMixins
@@ -26034,6 +26040,11 @@ void f(B b) {
             methods
               foo=: #M2
 [status] idle
+[future] getErrors T1
+  ErrorsResult #0
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
 ''',
       updatedA: r'''
 mixin A<T> {
@@ -26060,11 +26071,6 @@ mixin B on A<double> {}
           map
             foo=: #M2
   requirements
-[future] getErrors T2
-  ErrorsResult #1
-    path: /home/test/lib/test.dart
-    uri: package:test/test.dart
-    flags: isLibrary
 [operation] cannotReuseLinkedBundle
   topLevelIdMismatch
     libraryUri: package:test/a.dart
@@ -26106,6 +26112,11 @@ mixin B on A<double> {}
             methods
               foo=: #M2
 [status] idle
+[future] getErrors T2
+  ErrorsResult #1
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
 ''',
     );
   }
@@ -26127,11 +26138,6 @@ void f(A a) {
       expectedInitialEvents: r'''
 [status] working
 [operation] linkLibraryCycle SDK
-[future] getErrors T1
-  ErrorsResult #0
-    path: /home/test/lib/test.dart
-    uri: package:test/test.dart
-    flags: isLibrary
 [operation] linkLibraryCycle
   package:test/a.dart
     declaredMixins
@@ -26157,7 +26163,7 @@ void f(A a) {
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
 [stream]
-  ResolvedUnitResult #1
+  ResolvedUnitResult #0
     path: /home/test/lib/test.dart
     uri: package:test/test.dart
     flags: exists isLibrary
@@ -26177,6 +26183,11 @@ void f(A a) {
             methods
               foo=: #M2
 [status] idle
+[future] getErrors T1
+  ErrorsResult #1
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
 ''',
       updatedA: r'''
 mixin A {}
@@ -26189,13 +26200,6 @@ mixin A {}
       A: #M0
         interface: #M5
   requirements
-[future] getErrors T2
-  ErrorsResult #2
-    path: /home/test/lib/test.dart
-    uri: package:test/test.dart
-    flags: isLibrary
-    errors
-      35 +3 UNDEFINED_SETTER
 [operation] readLibraryCycleBundle
   package:test/test.dart
 [operation] checkLibraryDiagnosticsRequirements
@@ -26210,7 +26214,7 @@ mixin A {}
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
 [stream]
-  ResolvedUnitResult #3
+  ResolvedUnitResult #2
     path: /home/test/lib/test.dart
     uri: package:test/test.dart
     flags: exists isLibrary
@@ -26238,6 +26242,13 @@ mixin A {}
               foo=: <null>
         exportedExtensions: []
 [status] idle
+[future] getErrors T2
+  ErrorsResult #3
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
+    errors
+      35 +3 UNDEFINED_SETTER
 ''',
     );
   }
@@ -26253,13 +26264,6 @@ A foo() {}
       expectedInitialEvents: r'''
 [status] working
 [operation] linkLibraryCycle SDK
-[future] getErrors T1
-  ErrorsResult #0
-    path: /home/test/lib/test.dart
-    uri: package:test/test.dart
-    flags: isLibrary
-    errors
-      17 +1 UNDEFINED_CLASS
 [operation] linkLibraryCycle
   package:test/a.dart
   requirements
@@ -26276,7 +26280,7 @@ A foo() {}
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
 [stream]
-  ResolvedUnitResult #1
+  ResolvedUnitResult #0
     path: /home/test/lib/test.dart
     uri: package:test/test.dart
     flags: exists isLibrary
@@ -26290,6 +26294,13 @@ A foo() {}
         exportedTopLevels
           A: <null>
 [status] idle
+[future] getErrors T1
+  ErrorsResult #1
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
+    errors
+      17 +1 UNDEFINED_CLASS
 ''',
       updatedA: r'''
 mixin A {}
@@ -26302,13 +26313,6 @@ mixin A {}
       A: #M1
         interface: #M2
   requirements
-[future] getErrors T2
-  ErrorsResult #2
-    path: /home/test/lib/test.dart
-    uri: package:test/test.dart
-    flags: isLibrary
-    errors
-      19 +3 BODY_MIGHT_COMPLETE_NORMALLY
 [operation] cannotReuseLinkedBundle
   topLevelIdMismatch
     libraryUri: package:test/a.dart
@@ -26335,7 +26339,7 @@ mixin A {}
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
 [stream]
-  ResolvedUnitResult #3
+  ResolvedUnitResult #2
     path: /home/test/lib/test.dart
     uri: package:test/test.dart
     flags: exists isLibrary
@@ -26349,6 +26353,13 @@ mixin A {}
         exportedTopLevels
           A: #M1
 [status] idle
+[future] getErrors T2
+  ErrorsResult #3
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
+    errors
+      19 +3 BODY_MIGHT_COMPLETE_NORMALLY
 ''',
     );
   }
@@ -26366,13 +26377,6 @@ A foo() {}
       expectedInitialEvents: r'''
 [status] working
 [operation] linkLibraryCycle SDK
-[future] getErrors T1
-  ErrorsResult #0
-    path: /home/test/lib/test.dart
-    uri: package:test/test.dart
-    flags: isLibrary
-    errors
-      19 +3 BODY_MIGHT_COMPLETE_NORMALLY
 [operation] linkLibraryCycle
   package:test/a.dart
     declaredMixins
@@ -26392,7 +26396,7 @@ A foo() {}
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
 [stream]
-  ResolvedUnitResult #1
+  ResolvedUnitResult #0
     path: /home/test/lib/test.dart
     uri: package:test/test.dart
     flags: exists isLibrary
@@ -26406,6 +26410,13 @@ A foo() {}
         exportedTopLevels
           A: #M0
 [status] idle
+[future] getErrors T1
+  ErrorsResult #1
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
+    errors
+      19 +3 BODY_MIGHT_COMPLETE_NORMALLY
 ''',
       updatedA: r'''
 mixin A {}
@@ -26421,13 +26432,6 @@ mixin B {}
       B: #M3
         interface: #M4
   requirements
-[future] getErrors T2
-  ErrorsResult #2
-    path: /home/test/lib/test.dart
-    uri: package:test/test.dart
-    flags: isLibrary
-    errors
-      19 +3 BODY_MIGHT_COMPLETE_NORMALLY
 [operation] readLibraryCycleBundle
   package:test/test.dart
 [operation] checkLibraryDiagnosticsRequirements
@@ -26437,6 +26441,13 @@ mixin B {}
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
 [status] idle
+[future] getErrors T2
+  ErrorsResult #2
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
+    errors
+      19 +3 BODY_MIGHT_COMPLETE_NORMALLY
 ''',
     );
   }
@@ -26455,13 +26466,6 @@ A foo() {}
       expectedInitialEvents: r'''
 [status] working
 [operation] linkLibraryCycle SDK
-[future] getErrors T1
-  ErrorsResult #0
-    path: /home/test/lib/test.dart
-    uri: package:test/test.dart
-    flags: isLibrary
-    errors
-      19 +3 BODY_MIGHT_COMPLETE_NORMALLY
 [operation] linkLibraryCycle
   package:test/a.dart
     declaredMixins
@@ -26483,7 +26487,7 @@ A foo() {}
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
 [stream]
-  ResolvedUnitResult #1
+  ResolvedUnitResult #0
     path: /home/test/lib/test.dart
     uri: package:test/test.dart
     flags: exists isLibrary
@@ -26497,6 +26501,13 @@ A foo() {}
         exportedTopLevels
           A: #M0
 [status] idle
+[future] getErrors T1
+  ErrorsResult #1
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
+    errors
+      19 +3 BODY_MIGHT_COMPLETE_NORMALLY
 ''',
       updatedA: r'''
 mixin A on B {}
@@ -26512,13 +26523,6 @@ mixin B {}
       B: #M2
         interface: #M3
   requirements
-[future] getErrors T2
-  ErrorsResult #2
-    path: /home/test/lib/test.dart
-    uri: package:test/test.dart
-    flags: isLibrary
-    errors
-      19 +3 BODY_MIGHT_COMPLETE_NORMALLY
 [operation] cannotReuseLinkedBundle
   topLevelIdMismatch
     libraryUri: package:test/a.dart
@@ -26545,7 +26549,7 @@ mixin B {}
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
 [stream]
-  ResolvedUnitResult #3
+  ResolvedUnitResult #2
     path: /home/test/lib/test.dart
     uri: package:test/test.dart
     flags: exists isLibrary
@@ -26559,6 +26563,13 @@ mixin B {}
         exportedTopLevels
           A: #M5
 [status] idle
+[future] getErrors T2
+  ErrorsResult #3
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
+    errors
+      19 +3 BODY_MIGHT_COMPLETE_NORMALLY
 ''',
     );
   }
@@ -26578,13 +26589,6 @@ A foo() {}
       expectedInitialEvents: r'''
 [status] working
 [operation] linkLibraryCycle SDK
-[future] getErrors T1
-  ErrorsResult #0
-    path: /home/test/lib/test.dart
-    uri: package:test/test.dart
-    flags: isLibrary
-    errors
-      19 +3 BODY_MIGHT_COMPLETE_NORMALLY
 [operation] linkLibraryCycle
   package:test/a.dart
     declaredMixins
@@ -26608,7 +26612,7 @@ A foo() {}
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
 [stream]
-  ResolvedUnitResult #1
+  ResolvedUnitResult #0
     path: /home/test/lib/test.dart
     uri: package:test/test.dart
     flags: exists isLibrary
@@ -26622,6 +26626,13 @@ A foo() {}
         exportedTopLevels
           A: #M0
 [status] idle
+[future] getErrors T1
+  ErrorsResult #1
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
+    errors
+      19 +3 BODY_MIGHT_COMPLETE_NORMALLY
 ''',
       updatedA: r'''
 mixin A {}
@@ -26640,13 +26651,6 @@ mixin C {}
       C: #M4
         interface: #M5
   requirements
-[future] getErrors T2
-  ErrorsResult #2
-    path: /home/test/lib/test.dart
-    uri: package:test/test.dart
-    flags: isLibrary
-    errors
-      19 +3 BODY_MIGHT_COMPLETE_NORMALLY
 [operation] readLibraryCycleBundle
   package:test/test.dart
 [operation] checkLibraryDiagnosticsRequirements
@@ -26656,6 +26660,13 @@ mixin C {}
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
 [status] idle
+[future] getErrors T2
+  ErrorsResult #2
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
+    errors
+      19 +3 BODY_MIGHT_COMPLETE_NORMALLY
 ''',
     );
   }
@@ -26673,11 +26684,6 @@ A foo() => throw 0;
       expectedInitialEvents: r'''
 [status] working
 [operation] linkLibraryCycle SDK
-[future] getErrors T1
-  ErrorsResult #0
-    path: /home/test/lib/test.dart
-    uri: package:test/test.dart
-    flags: isLibrary
 [operation] linkLibraryCycle
   package:test/a.dart
     declaredMixins
@@ -26697,7 +26703,7 @@ A foo() => throw 0;
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
 [stream]
-  ResolvedUnitResult #1
+  ResolvedUnitResult #0
     path: /home/test/lib/test.dart
     uri: package:test/test.dart
     flags: exists isLibrary
@@ -26709,6 +26715,11 @@ A foo() => throw 0;
         exportedTopLevels
           A: #M0
 [status] idle
+[future] getErrors T1
+  ErrorsResult #1
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
 ''',
       updatedA: '',
       expectedUpdatedEvents: r'''
@@ -26716,13 +26727,6 @@ A foo() => throw 0;
 [operation] linkLibraryCycle
   package:test/a.dart
   requirements
-[future] getErrors T2
-  ErrorsResult #2
-    path: /home/test/lib/test.dart
-    uri: package:test/test.dart
-    flags: isLibrary
-    errors
-      17 +1 UNDEFINED_CLASS
 [operation] cannotReuseLinkedBundle
   topLevelIdMismatch
     libraryUri: package:test/a.dart
@@ -26749,7 +26753,7 @@ A foo() => throw 0;
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
 [stream]
-  ResolvedUnitResult #3
+  ResolvedUnitResult #2
     path: /home/test/lib/test.dart
     uri: package:test/test.dart
     flags: exists isLibrary
@@ -26763,6 +26767,13 @@ A foo() => throw 0;
         exportedTopLevels
           A: <null>
 [status] idle
+[future] getErrors T2
+  ErrorsResult #3
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
+    errors
+      17 +1 UNDEFINED_CLASS
 ''',
     );
   }
@@ -26781,11 +26792,6 @@ A foo() => throw 0;
       expectedInitialEvents: r'''
 [status] working
 [operation] linkLibraryCycle SDK
-[future] getErrors T1
-  ErrorsResult #0
-    path: /home/test/lib/test.dart
-    uri: package:test/test.dart
-    flags: isLibrary
 [operation] linkLibraryCycle
   package:test/a.dart
     declaredMixins
@@ -26807,7 +26813,7 @@ A foo() => throw 0;
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
 [stream]
-  ResolvedUnitResult #1
+  ResolvedUnitResult #0
     path: /home/test/lib/test.dart
     uri: package:test/test.dart
     flags: exists isLibrary
@@ -26819,6 +26825,11 @@ A foo() => throw 0;
         exportedTopLevels
           A: #M0
 [status] idle
+[future] getErrors T1
+  ErrorsResult #1
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
 ''',
       updatedA: r'''
 mixin A {}
@@ -26831,11 +26842,6 @@ mixin A {}
       A: #M0
         interface: #M1
   requirements
-[future] getErrors T2
-  ErrorsResult #2
-    path: /home/test/lib/test.dart
-    uri: package:test/test.dart
-    flags: isLibrary
 [operation] readLibraryCycleBundle
   package:test/test.dart
 [operation] checkLibraryDiagnosticsRequirements
@@ -26845,6 +26851,11 @@ mixin A {}
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
 [status] idle
+[future] getErrors T2
+  ErrorsResult #2
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
 ''',
     );
   }
@@ -26866,11 +26877,6 @@ void f() {
       expectedInitialEvents: r'''
 [status] working
 [operation] linkLibraryCycle SDK
-[future] getErrors T1
-  ErrorsResult #0
-    path: /home/test/lib/test.dart
-    uri: package:test/test.dart
-    flags: isLibrary
 [operation] linkLibraryCycle
   package:test/a.dart
     declaredMixins
@@ -26890,7 +26896,7 @@ void f() {
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
 [stream]
-  ResolvedUnitResult #1
+  ResolvedUnitResult #0
     path: /home/test/lib/test.dart
     uri: package:test/test.dart
     flags: exists isLibrary
@@ -26912,6 +26918,11 @@ void f() {
             requestedConstructors
               foo: <null>
 [status] idle
+[future] getErrors T1
+  ErrorsResult #1
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
 ''',
       updatedA: r'''
 mixin A {
@@ -26930,11 +26941,6 @@ mixin A {
           foo: #M6
         interface: #M3
   requirements
-[future] getErrors T2
-  ErrorsResult #2
-    path: /home/test/lib/test.dart
-    uri: package:test/test.dart
-    flags: isLibrary
 [operation] readLibraryCycleBundle
   package:test/test.dart
 [operation] checkLibraryDiagnosticsRequirements
@@ -26949,7 +26955,7 @@ mixin A {
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
 [stream]
-  ResolvedUnitResult #3
+  ResolvedUnitResult #2
     path: /home/test/lib/test.dart
     uri: package:test/test.dart
     flags: exists isLibrary
@@ -26971,6 +26977,11 @@ mixin A {
             requestedConstructors
               foo: <null>
 [status] idle
+[future] getErrors T2
+  ErrorsResult #3
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
 ''',
     );
   }
@@ -26993,11 +27004,6 @@ void f() {
       expectedInitialEvents: r'''
 [status] working
 [operation] linkLibraryCycle SDK
-[future] getErrors T1
-  ErrorsResult #0
-    path: /home/test/lib/test.dart
-    uri: package:test/test.dart
-    flags: isLibrary
 [operation] linkLibraryCycle
   package:test/a.dart
     declaredMixins
@@ -27019,7 +27025,7 @@ void f() {
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
 [stream]
-  ResolvedUnitResult #1
+  ResolvedUnitResult #0
     path: /home/test/lib/test.dart
     uri: package:test/test.dart
     flags: exists isLibrary
@@ -27041,6 +27047,11 @@ void f() {
             requestedConstructors
               foo: <null>
 [status] idle
+[future] getErrors T1
+  ErrorsResult #1
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
 ''',
       updatedA: r'''
 mixin A {
@@ -27062,11 +27073,6 @@ mixin A {
           foo: #M4
         interface: #M5
   requirements
-[future] getErrors T2
-  ErrorsResult #2
-    path: /home/test/lib/test.dart
-    uri: package:test/test.dart
-    flags: isLibrary
 [operation] readLibraryCycleBundle
   package:test/test.dart
 [operation] checkLibraryDiagnosticsRequirements
@@ -27076,6 +27082,11 @@ mixin A {
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
 [status] idle
+[future] getErrors T2
+  ErrorsResult #2
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
 ''',
     );
   }
@@ -27097,11 +27108,6 @@ void f() {
       expectedInitialEvents: r'''
 [status] working
 [operation] linkLibraryCycle SDK
-[future] getErrors T1
-  ErrorsResult #0
-    path: /home/test/lib/test.dart
-    uri: package:test/test.dart
-    flags: isLibrary
 [operation] linkLibraryCycle
   package:test/a.dart
     declaredMixins
@@ -27119,7 +27125,7 @@ void f() {
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
 [stream]
-  ResolvedUnitResult #1
+  ResolvedUnitResult #0
     path: /home/test/lib/test.dart
     uri: package:test/test.dart
     flags: exists isLibrary
@@ -27141,6 +27147,11 @@ void f() {
             requestedConstructors
               foo: <null>
 [status] idle
+[future] getErrors T1
+  ErrorsResult #1
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
 ''',
       updatedA: r'''
 mixin A {
@@ -27157,11 +27168,6 @@ mixin A {
           foo: #M4
         interface: #M2
   requirements
-[future] getErrors T2
-  ErrorsResult #2
-    path: /home/test/lib/test.dart
-    uri: package:test/test.dart
-    flags: isLibrary
 [operation] readLibraryCycleBundle
   package:test/test.dart
 [operation] checkLibraryDiagnosticsRequirements
@@ -27176,7 +27182,7 @@ mixin A {
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
 [stream]
-  ResolvedUnitResult #3
+  ResolvedUnitResult #2
     path: /home/test/lib/test.dart
     uri: package:test/test.dart
     flags: exists isLibrary
@@ -27198,6 +27204,11 @@ mixin A {
             requestedConstructors
               foo: <null>
 [status] idle
+[future] getErrors T2
+  ErrorsResult #3
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
 ''',
     );
   }
@@ -27220,11 +27231,6 @@ void f() {
       expectedInitialEvents: r'''
 [status] working
 [operation] linkLibraryCycle SDK
-[future] getErrors T1
-  ErrorsResult #0
-    path: /home/test/lib/test.dart
-    uri: package:test/test.dart
-    flags: isLibrary
 [operation] linkLibraryCycle
   package:test/a.dart
     declaredMixins
@@ -27243,7 +27249,7 @@ void f() {
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
 [stream]
-  ResolvedUnitResult #1
+  ResolvedUnitResult #0
     path: /home/test/lib/test.dart
     uri: package:test/test.dart
     flags: exists isLibrary
@@ -27265,6 +27271,11 @@ void f() {
             requestedConstructors
               foo: <null>
 [status] idle
+[future] getErrors T1
+  ErrorsResult #1
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
 ''',
       updatedA: r'''
 mixin A {
@@ -27283,11 +27294,6 @@ mixin A {
           foo: #M2
         interface: #M3
   requirements
-[future] getErrors T2
-  ErrorsResult #2
-    path: /home/test/lib/test.dart
-    uri: package:test/test.dart
-    flags: isLibrary
 [operation] readLibraryCycleBundle
   package:test/test.dart
 [operation] checkLibraryDiagnosticsRequirements
@@ -27297,6 +27303,11 @@ mixin A {
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
 [status] idle
+[future] getErrors T2
+  ErrorsResult #2
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
 ''',
     );
   }
@@ -27318,11 +27329,6 @@ void f() {
       expectedInitialEvents: r'''
 [status] working
 [operation] linkLibraryCycle SDK
-[future] getErrors T1
-  ErrorsResult #0
-    path: /home/test/lib/test.dart
-    uri: package:test/test.dart
-    flags: isLibrary
 [operation] linkLibraryCycle
   package:test/a.dart
     declaredMixins
@@ -27342,7 +27348,7 @@ void f() {
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
 [stream]
-  ResolvedUnitResult #1
+  ResolvedUnitResult #0
     path: /home/test/lib/test.dart
     uri: package:test/test.dart
     flags: exists isLibrary
@@ -27360,6 +27366,11 @@ void f() {
             requestedDeclaredSetters
               foo=: #M2
 [status] idle
+[future] getErrors T1
+  ErrorsResult #1
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
 ''',
       updatedA: r'''
 mixin A {
@@ -27378,11 +27389,6 @@ mixin A {
           foo=: #M6
         interface: #M3
   requirements
-[future] getErrors T2
-  ErrorsResult #2
-    path: /home/test/lib/test.dart
-    uri: package:test/test.dart
-    flags: isLibrary
 [operation] readLibraryCycleBundle
   package:test/test.dart
 [operation] checkLibraryDiagnosticsRequirements
@@ -27397,7 +27403,7 @@ mixin A {
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
 [stream]
-  ResolvedUnitResult #3
+  ResolvedUnitResult #2
     path: /home/test/lib/test.dart
     uri: package:test/test.dart
     flags: exists isLibrary
@@ -27415,6 +27421,11 @@ mixin A {
             requestedDeclaredSetters
               foo=: #M6
 [status] idle
+[future] getErrors T2
+  ErrorsResult #3
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
 ''',
     );
   }
@@ -27437,11 +27448,6 @@ void f() {
       expectedInitialEvents: r'''
 [status] working
 [operation] linkLibraryCycle SDK
-[future] getErrors T1
-  ErrorsResult #0
-    path: /home/test/lib/test.dart
-    uri: package:test/test.dart
-    flags: isLibrary
 [operation] linkLibraryCycle
   package:test/a.dart
     declaredMixins
@@ -27463,7 +27469,7 @@ void f() {
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
 [stream]
-  ResolvedUnitResult #1
+  ResolvedUnitResult #0
     path: /home/test/lib/test.dart
     uri: package:test/test.dart
     flags: exists isLibrary
@@ -27481,6 +27487,11 @@ void f() {
             requestedDeclaredSetters
               foo=: #M4
 [status] idle
+[future] getErrors T1
+  ErrorsResult #1
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
 ''',
       updatedA: r'''
 mixin A {
@@ -27502,11 +27513,6 @@ mixin A {
           foo=: #M4
         interface: #M5
   requirements
-[future] getErrors T2
-  ErrorsResult #2
-    path: /home/test/lib/test.dart
-    uri: package:test/test.dart
-    flags: isLibrary
 [operation] readLibraryCycleBundle
   package:test/test.dart
 [operation] checkLibraryDiagnosticsRequirements
@@ -27516,6 +27522,11 @@ mixin A {
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
 [status] idle
+[future] getErrors T2
+  ErrorsResult #2
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
 ''',
     );
   }
@@ -27534,13 +27545,6 @@ base class X implements A {}
       expectedInitialEvents: r'''
 [status] working
 [operation] linkLibraryCycle SDK
-[future] getErrors T1
-  ErrorsResult #0
-    path: /home/test/lib/test.dart
-    uri: package:test/test.dart
-    flags: isLibrary
-    errors
-      41 +1 INVALID_USE_OF_TYPE_OUTSIDE_LIBRARY
 [operation] linkLibraryCycle
   package:test/a.dart
     declaredClasses
@@ -27573,6 +27577,13 @@ base class X implements A {}
         instances
           A
 [status] idle
+[future] getErrors T1
+  ErrorsResult #0
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
+    errors
+      41 +1 INVALID_USE_OF_TYPE_OUTSIDE_LIBRARY
 ''',
       updatedA: r'''
 base class A {}
@@ -27588,13 +27599,6 @@ class B {}
       B: #M4
         interface: #M5
   requirements
-[future] getErrors T2
-  ErrorsResult #1
-    path: /home/test/lib/test.dart
-    uri: package:test/test.dart
-    flags: isLibrary
-    errors
-      41 +1 INVALID_USE_OF_TYPE_OUTSIDE_LIBRARY
 [operation] readLibraryCycleBundle
   package:test/test.dart
 [operation] checkLibraryDiagnosticsRequirements
@@ -27604,6 +27608,13 @@ class B {}
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
 [status] idle
+[future] getErrors T2
+  ErrorsResult #1
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
+    errors
+      41 +1 INVALID_USE_OF_TYPE_OUTSIDE_LIBRARY
 ''',
     );
   }
@@ -27625,13 +27636,6 @@ import 'a.dart';
       expectedInitialEvents: r'''
 [status] working
 [operation] linkLibraryCycle SDK
-[future] getErrors T1
-  ErrorsResult #0
-    path: /home/test/lib/test.dart
-    uri: package:test/test.dart
-    flags: isLibrary
-    errors
-      7 +8 UNUSED_IMPORT
 [operation] linkLibraryCycle
   package:test/a.dart
     declaredClasses
@@ -27645,7 +27649,7 @@ import 'a.dart';
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
 [stream]
-  ResolvedUnitResult #1
+  ResolvedUnitResult #0
     path: /home/test/lib/test.dart
     uri: package:test/test.dart
     flags: exists isLibrary
@@ -27663,6 +27667,13 @@ import 'a.dart';
         targetElementLibraryUri: package:test/a.dart
         targetElementName: A
 [status] idle
+[future] getErrors T1
+  ErrorsResult #1
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
+    errors
+      7 +8 UNUSED_IMPORT
 ''',
       updatedA: r'''
 class A {}
@@ -27678,13 +27689,6 @@ class B {}
       B: #M2
         interface: #M3
   requirements
-[future] getErrors T2
-  ErrorsResult #2
-    path: /home/test/lib/test.dart
-    uri: package:test/test.dart
-    flags: isLibrary
-    errors
-      7 +8 UNUSED_IMPORT
 [operation] readLibraryCycleBundle
   package:test/test.dart
 [operation] checkLibraryDiagnosticsRequirements
@@ -27697,7 +27701,7 @@ class B {}
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
 [stream]
-  ResolvedUnitResult #3
+  ResolvedUnitResult #2
     path: /home/test/lib/test.dart
     uri: package:test/test.dart
     flags: exists isLibrary
@@ -27715,6 +27719,13 @@ class B {}
         targetElementLibraryUri: package:test/a.dart
         targetElementName: A
 [status] idle
+[future] getErrors T2
+  ErrorsResult #3
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
+    errors
+      7 +8 UNUSED_IMPORT
 ''',
     );
   }
@@ -27732,11 +27743,6 @@ final x = foo();
       expectedInitialEvents: r'''
 [status] working
 [operation] linkLibraryCycle SDK
-[future] getLibraryByUri T1
-  library
-    topLevelVariables
-      final hasInitializer x
-        type: int
 [operation] linkLibraryCycle
   package:test/a.dart
     declaredFunctions
@@ -27754,6 +27760,11 @@ final x = foo();
         exportedTopLevels
           foo: #M0
 [status] idle
+[future] getLibraryByUri T1
+  library
+    topLevelVariables
+      final hasInitializer x
+        type: int
 ''',
       updatedA: r'''
 double foo() {}
@@ -27765,11 +27776,6 @@ double foo() {}
     declaredFunctions
       foo: #M3
   requirements
-[future] getLibraryByUri T2
-  library
-    topLevelVariables
-      final hasInitializer x
-        type: double
 [operation] cannotReuseLinkedBundle
   topLevelIdMismatch
     libraryUri: package:test/a.dart
@@ -27788,6 +27794,11 @@ double foo() {}
         exportedTopLevels
           foo: #M3
 [status] idle
+[future] getLibraryByUri T2
+  library
+    topLevelVariables
+      final hasInitializer x
+        type: double
 ''',
     );
   }
@@ -27806,11 +27817,6 @@ final x = foo();
       expectedInitialEvents: r'''
 [status] working
 [operation] linkLibraryCycle SDK
-[future] getLibraryByUri T1
-  library
-    topLevelVariables
-      final hasInitializer x
-        type: int
 [operation] linkLibraryCycle
   package:test/a.dart
     declaredFunctions
@@ -27829,6 +27835,11 @@ final x = foo();
         exportedTopLevels
           foo: #M1
 [status] idle
+[future] getLibraryByUri T1
+  library
+    topLevelVariables
+      final hasInitializer x
+        type: int
 ''',
       updatedA: r'''
 int foo() {}
@@ -27842,14 +27853,14 @@ double bar() {}
       bar: #M4
       foo: #M1
   requirements
+[operation] readLibraryCycleBundle
+  package:test/test.dart
+[status] idle
 [future] getLibraryByUri T2
   library
     topLevelVariables
       final hasInitializer x
         type: int
-[operation] readLibraryCycleBundle
-  package:test/test.dart
-[status] idle
 ''',
     );
   }
@@ -27867,11 +27878,6 @@ final x = a;
       expectedInitialEvents: r'''
 [status] working
 [operation] linkLibraryCycle SDK
-[future] getLibraryByUri T1
-  library
-    topLevelVariables
-      final hasInitializer x
-        type: int
 [operation] linkLibraryCycle
   package:test/a.dart
     declaredGetters
@@ -27891,6 +27897,11 @@ final x = a;
         exportedTopLevels
           a: #M0
 [status] idle
+[future] getLibraryByUri T1
+  library
+    topLevelVariables
+      final hasInitializer x
+        type: int
 ''',
       updatedA: r'''
 double get a => 1.2;
@@ -27904,11 +27915,6 @@ double get a => 1.2;
     declaredVariables
       a: #M5
   requirements
-[future] getLibraryByUri T2
-  library
-    topLevelVariables
-      final hasInitializer x
-        type: double
 [operation] cannotReuseLinkedBundle
   topLevelIdMismatch
     libraryUri: package:test/a.dart
@@ -27927,6 +27933,11 @@ double get a => 1.2;
         exportedTopLevels
           a: #M4
 [status] idle
+[future] getLibraryByUri T2
+  library
+    topLevelVariables
+      final hasInitializer x
+        type: double
 ''',
     );
   }
@@ -27945,11 +27956,6 @@ final x = a;
       expectedInitialEvents: r'''
 [status] working
 [operation] linkLibraryCycle SDK
-[future] getLibraryByUri T1
-  library
-    topLevelVariables
-      final hasInitializer x
-        type: int
 [operation] linkLibraryCycle
   package:test/a.dart
     declaredGetters
@@ -27971,6 +27977,11 @@ final x = a;
         exportedTopLevels
           a: #M0
 [status] idle
+[future] getLibraryByUri T1
+  library
+    topLevelVariables
+      final hasInitializer x
+        type: int
 ''',
       updatedA: r'''
 int get a => 0;
@@ -27987,14 +27998,14 @@ double get b => 1.2;
       a: #M2
       b: #M7
   requirements
+[operation] readLibraryCycleBundle
+  package:test/test.dart
+[status] idle
 [future] getLibraryByUri T2
   library
     topLevelVariables
       final hasInitializer x
         type: int
-[operation] readLibraryCycleBundle
-  package:test/test.dart
-[status] idle
 ''',
     );
   }
@@ -28019,11 +28030,6 @@ final x = a;
       expectedInitialEvents: r'''
 [status] working
 [operation] linkLibraryCycle SDK
-[future] getLibraryByUri T1
-  library
-    topLevelVariables
-      final hasInitializer x
-        type: int
 [operation] linkLibraryCycle
   package:test/a.dart
     declaredGetters
@@ -28053,6 +28059,11 @@ final x = a;
         exportedTopLevels
           a: #M0
 [status] idle
+[future] getLibraryByUri T1
+  library
+    topLevelVariables
+      final hasInitializer x
+        type: int
 ''',
       // Change the initializer, now `double`.
       updateFiles: () {
@@ -28071,11 +28082,6 @@ final a = 1.2;
     declaredVariables
       a: #M5
   requirements
-[future] getLibraryByUri T2
-  library
-    topLevelVariables
-      final hasInitializer x
-        type: double
 [operation] cannotReuseLinkedBundle
   exportIdMismatch
     fragmentUri: package:test/b.dart
@@ -28111,6 +28117,11 @@ final a = 1.2;
         exportedTopLevels
           a: #M4
 [status] idle
+[future] getLibraryByUri T2
+  library
+    topLevelVariables
+      final hasInitializer x
+        type: double
 ''',
     );
   }
@@ -28128,11 +28139,6 @@ final x = a;
       expectedInitialEvents: r'''
 [status] working
 [operation] linkLibraryCycle SDK
-[future] getLibraryByUri T1
-  library
-    topLevelVariables
-      final hasInitializer x
-        type: int
 [operation] linkLibraryCycle
   package:test/a.dart
     declaredGetters
@@ -28152,6 +28158,11 @@ final x = a;
         exportedTopLevels
           a: #M0
 [status] idle
+[future] getLibraryByUri T1
+  library
+    topLevelVariables
+      final hasInitializer x
+        type: int
 ''',
       // Change the initializer, now `double`.
       updatedA: r'''
@@ -28167,11 +28178,6 @@ final a = 1.2;
     declaredVariables
       a: #M5
   requirements
-[future] getLibraryByUri T2
-  library
-    topLevelVariables
-      final hasInitializer x
-        type: double
 [operation] cannotReuseLinkedBundle
   topLevelIdMismatch
     libraryUri: package:test/a.dart
@@ -28190,6 +28196,11 @@ final a = 1.2;
         exportedTopLevels
           a: #M4
 [status] idle
+[future] getLibraryByUri T2
+  library
+    topLevelVariables
+      final hasInitializer x
+        type: double
 ''',
     );
   }
@@ -28208,11 +28219,6 @@ void foo(A _) {}
       expectedInitialEvents: r'''
 [status] working
 [operation] linkLibraryCycle SDK
-[future] getErrors T1
-  ErrorsResult #0
-    path: /home/test/lib/test.dart
-    uri: package:test/test.dart
-    flags: isLibrary
 [operation] linkLibraryCycle
   package:test/a.dart
     declaredTypeAliases
@@ -28232,7 +28238,7 @@ void foo(A _) {}
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
 [stream]
-  ResolvedUnitResult #1
+  ResolvedUnitResult #0
     path: /home/test/lib/test.dart
     uri: package:test/test.dart
     flags: exists isLibrary
@@ -28244,6 +28250,11 @@ void foo(A _) {}
         exportedTopLevels
           A: #M0
 [status] idle
+[future] getErrors T1
+  ErrorsResult #1
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
 ''',
       updatedA: r'''
 typedef A = int;
@@ -28257,11 +28268,6 @@ typedef B = double;
       A: #M0
       B: #M3
   requirements
-[future] getErrors T2
-  ErrorsResult #2
-    path: /home/test/lib/test.dart
-    uri: package:test/test.dart
-    flags: isLibrary
 [operation] readLibraryCycleBundle
   package:test/test.dart
 [operation] checkLibraryDiagnosticsRequirements
@@ -28271,6 +28277,11 @@ typedef B = double;
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
 [status] idle
+[future] getErrors T2
+  ErrorsResult #2
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
 ''',
     );
   }
@@ -28288,11 +28299,6 @@ void foo(A _) {}
       expectedInitialEvents: r'''
 [status] working
 [operation] linkLibraryCycle SDK
-[future] getErrors T1
-  ErrorsResult #0
-    path: /home/test/lib/test.dart
-    uri: package:test/test.dart
-    flags: isLibrary
 [operation] linkLibraryCycle
   package:test/a.dart
     declaredTypeAliases
@@ -28311,7 +28317,7 @@ void foo(A _) {}
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
 [stream]
-  ResolvedUnitResult #1
+  ResolvedUnitResult #0
     path: /home/test/lib/test.dart
     uri: package:test/test.dart
     flags: exists isLibrary
@@ -28323,6 +28329,11 @@ void foo(A _) {}
         exportedTopLevels
           A: #M0
 [status] idle
+[future] getErrors T1
+  ErrorsResult #1
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
 ''',
       updatedA: r'''
 typedef A = double;
@@ -28334,11 +28345,6 @@ typedef A = double;
     declaredTypeAliases
       A: #M2
   requirements
-[future] getErrors T2
-  ErrorsResult #2
-    path: /home/test/lib/test.dart
-    uri: package:test/test.dart
-    flags: isLibrary
 [operation] cannotReuseLinkedBundle
   topLevelIdMismatch
     libraryUri: package:test/a.dart
@@ -28365,7 +28371,7 @@ typedef A = double;
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
 [stream]
-  ResolvedUnitResult #3
+  ResolvedUnitResult #2
     path: /home/test/lib/test.dart
     uri: package:test/test.dart
     flags: exists isLibrary
@@ -28377,6 +28383,11 @@ typedef A = double;
         exportedTopLevels
           A: #M2
 [status] idle
+[future] getErrors T2
+  ErrorsResult #3
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
 ''',
     );
   }
@@ -28399,11 +28410,6 @@ void foo() {
       expectedInitialEvents: r'''
 [status] working
 [operation] linkLibraryCycle SDK
-[future] getErrors T1
-  ErrorsResult #0
-    path: /home/test/lib/test.dart
-    uri: package:test/test.dart
-    flags: isLibrary
 [operation] linkLibraryCycle
   package:test/a.dart
     declaredClasses
@@ -28423,7 +28429,7 @@ void foo() {
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
 [stream]
-  ResolvedUnitResult #1
+  ResolvedUnitResult #0
     path: /home/test/lib/test.dart
     uri: package:test/test.dart
     flags: exists isLibrary
@@ -28439,6 +28445,11 @@ void foo() {
             requestedConstructors
               named: #M1
 [status] idle
+[future] getErrors T1
+  ErrorsResult #1
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
 ''',
       updatedA: r'''
 class A {
@@ -28458,11 +28469,6 @@ typedef B = A;
     declaredTypeAliases
       B: #M3
   requirements
-[future] getErrors T2
-  ErrorsResult #2
-    path: /home/test/lib/test.dart
-    uri: package:test/test.dart
-    flags: isLibrary
 [operation] readLibraryCycleBundle
   package:test/test.dart
 [operation] checkLibraryDiagnosticsRequirements
@@ -28477,7 +28483,7 @@ typedef B = A;
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
 [stream]
-  ResolvedUnitResult #3
+  ResolvedUnitResult #2
     path: /home/test/lib/test.dart
     uri: package:test/test.dart
     flags: exists isLibrary
@@ -28493,6 +28499,11 @@ typedef B = A;
             requestedConstructors
               named: #M5
 [status] idle
+[future] getErrors T2
+  ErrorsResult #3
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
 ''',
     );
   }
@@ -56270,22 +56281,22 @@ void f() {
 
     await assertEventsText(collector, r'''
 [status] working
-[future] getErrors T1
-  ErrorsResult #0
-    path: /home/test/lib/test.dart
-    uri: package:test/test.dart
-    flags: isLibrary
 [operation] analyzeFile
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
 [stream]
-  ResolvedUnitResult #1
+  ResolvedUnitResult #0
     path: /home/test/lib/test.dart
     uri: package:test/test.dart
     flags: exists isLibrary
 [operation] analyzedLibrary
   file: /home/test/lib/test.dart
 [status] idle
+[future] getErrors T1
+  ErrorsResult #1
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
 ''');
 
     modifyFile2(a, r'''
@@ -56296,11 +56307,6 @@ double get a => 0;
 
     await assertEventsText(collector, r'''
 [status] working
-[future] getErrors T2
-  ErrorsResult #2
-    path: /home/test/lib/test.dart
-    uri: package:test/test.dart
-    flags: isLibrary
 [operation] checkLibraryDiagnosticsRequirements
   library: /home/test/lib/test.dart
   topLevelIdMismatch
@@ -56312,13 +56318,18 @@ double get a => 0;
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
 [stream]
-  ResolvedUnitResult #3
+  ResolvedUnitResult #2
     path: /home/test/lib/test.dart
     uri: package:test/test.dart
     flags: exists isLibrary
 [operation] analyzedLibrary
   file: /home/test/lib/test.dart
 [status] idle
+[future] getErrors T2
+  ErrorsResult #3
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
 ''');
   }
 
@@ -56341,22 +56352,22 @@ void f() {
 
     await assertEventsText(collector, r'''
 [status] working
-[future] getErrors T1
-  ErrorsResult #0
-    path: /home/test/lib/test.dart
-    uri: package:test/test.dart
-    flags: isLibrary
 [operation] analyzeFile
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
 [stream]
-  ResolvedUnitResult #1
+  ResolvedUnitResult #0
     path: /home/test/lib/test.dart
     uri: package:test/test.dart
     flags: exists isLibrary
 [operation] analyzedLibrary
   file: /home/test/lib/test.dart
 [status] idle
+[future] getErrors T1
+  ErrorsResult #1
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
 ''');
 
     modifyFile2(a, r'''
@@ -56368,11 +56379,6 @@ int get b => 0;
 
     await assertEventsText(collector, r'''
 [status] working
-[future] getErrors T2
-  ErrorsResult #2
-    path: /home/test/lib/test.dart
-    uri: package:test/test.dart
-    flags: isLibrary
 [operation] checkLibraryDiagnosticsRequirements
   library: /home/test/lib/test.dart
   failure: null
@@ -56380,6 +56386,11 @@ int get b => 0;
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
 [status] idle
+[future] getErrors T2
+  ErrorsResult #2
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
 ''');
   }
 
@@ -56395,22 +56406,22 @@ void f() {}
 
     await assertEventsText(collector, r'''
 [status] working
-[future] getErrors T1
-  ErrorsResult #0
-    path: /home/test/lib/test.dart
-    uri: package:test/test.dart
-    flags: isLibrary
 [operation] analyzeFile
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
 [stream]
-  ResolvedUnitResult #1
+  ResolvedUnitResult #0
     path: /home/test/lib/test.dart
     uri: package:test/test.dart
     flags: exists isLibrary
 [operation] analyzedLibrary
   file: /home/test/lib/test.dart
 [status] idle
+[future] getErrors T1
+  ErrorsResult #1
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
 ''');
 
     // Note, no check for requirements operation.
@@ -56421,12 +56432,12 @@ void f() {}
 [operation] getErrorsFromBytes
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
+[status] idle
 [future] getErrors T2
   ErrorsResult #2
     path: /home/test/lib/test.dart
     uri: package:test/test.dart
     flags: isLibrary
-[status] idle
 ''');
 
     // Repeating requests still uses the shortcut.
@@ -56436,12 +56447,12 @@ void f() {}
 [operation] getErrorsFromBytes
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
+[status] idle
 [future] getErrors T3
   ErrorsResult #3
     path: /home/test/lib/test.dart
     uri: package:test/test.dart
     flags: isLibrary
-[status] idle
 ''');
   }
 
@@ -56458,11 +56469,6 @@ final x = a;
       expectedInitialEvents: r'''
 [status] working
 [operation] linkLibraryCycle SDK
-[future] getErrors T1
-  ErrorsResult #0
-    path: /home/test/lib/test.dart
-    uri: package:test/test.dart
-    flags: isLibrary
 [operation] linkLibraryCycle
   package:test/a.dart
     declaredGetters
@@ -56485,7 +56491,7 @@ final x = a;
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
 [stream]
-  ResolvedUnitResult #1
+  ResolvedUnitResult #0
     path: /home/test/lib/test.dart
     uri: package:test/test.dart
     flags: exists isLibrary
@@ -56497,6 +56503,11 @@ final x = a;
         exportedTopLevels
           a: #M0
 [status] idle
+[future] getErrors T1
+  ErrorsResult #1
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
 ''',
       updatedA: r'''
 int get a => 0;
@@ -56513,11 +56524,6 @@ int get b => 0;
       a: #M1
       b: #M5
   requirements
-[future] getErrors T2
-  ErrorsResult #2
-    path: /home/test/lib/test.dart
-    uri: package:test/test.dart
-    flags: isLibrary
 [operation] readLibraryCycleBundle
   package:test/test.dart
 [operation] checkLibraryDiagnosticsRequirements
@@ -56527,6 +56533,11 @@ int get b => 0;
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
 [status] idle
+[future] getErrors T2
+  ErrorsResult #2
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
 ''',
     );
   }
@@ -56544,11 +56555,6 @@ final x = a;
       expectedInitialEvents: r'''
 [status] working
 [operation] linkLibraryCycle SDK
-[future] getLibraryByUri T1
-  library
-    topLevelVariables
-      final hasInitializer x
-        type: int
 [operation] linkLibraryCycle
   package:test/a.dart
     declaredGetters
@@ -56568,6 +56574,11 @@ final x = a;
         exportedTopLevels
           a: #M0
 [status] idle
+[future] getLibraryByUri T1
+  library
+    topLevelVariables
+      final hasInitializer x
+        type: int
 ''',
       updatedA: r'''
 double get a => 1.2;
@@ -56581,11 +56592,6 @@ double get a => 1.2;
     declaredVariables
       a: #M5
   requirements
-[future] getLibraryByUri T2
-  library
-    topLevelVariables
-      final hasInitializer x
-        type: double
 [operation] cannotReuseLinkedBundle
   topLevelIdMismatch
     libraryUri: package:test/a.dart
@@ -56604,6 +56610,11 @@ double get a => 1.2;
         exportedTopLevels
           a: #M4
 [status] idle
+[future] getLibraryByUri T2
+  library
+    topLevelVariables
+      final hasInitializer x
+        type: double
 ''',
     );
   }
@@ -56621,11 +56632,6 @@ final x = a;
       expectedInitialEvents: r'''
 [status] working
 [operation] linkLibraryCycle SDK
-[future] getLibraryByUri T1
-  library
-    topLevelVariables
-      final hasInitializer x
-        type: int
 [operation] linkLibraryCycle
   package:test/a.dart
     declaredGetters
@@ -56645,6 +56651,11 @@ final x = a;
         exportedTopLevels
           a: #M0
 [status] idle
+[future] getLibraryByUri T1
+  library
+    topLevelVariables
+      final hasInitializer x
+        type: int
 ''',
       updatedA: r'''
 int get a => 0;
@@ -56661,14 +56672,14 @@ int get b => 0;
       a: #M1
       b: #M5
   requirements
+[operation] readLibraryCycleBundle
+  package:test/test.dart
+[status] idle
 [future] getLibraryByUri T2
   library
     topLevelVariables
       final hasInitializer x
         type: int
-[operation] readLibraryCycleBundle
-  package:test/test.dart
-[status] idle
 ''',
     );
   }
@@ -57732,6 +57743,9 @@ mixin _EventsMixin {
   ) async {
     await pumpEventQueue(times: 5000);
 
+    // The waiting above must be enough to complete all futures.
+    await collector.awaitPendingFutures();
+
     var buffer = StringBuffer();
     var sink = TreeStringSink(sink: buffer, indent: '');
 
@@ -57820,6 +57834,23 @@ class _ManualRequirementsUnit {
 
   InterfaceElementImpl scopeInterfaceElement(String name) {
     return scopeInstanceElement(name) as InterfaceElementImpl;
+  }
+}
+
+class _PendingFuture<T> {
+  final Future<T> future;
+  final DriverEvent Function(T value) createEvent;
+  final List<DriverEvent> eventsList;
+
+  _PendingFuture({
+    required this.future,
+    required this.createEvent,
+    required this.eventsList,
+  });
+
+  Future<void> resolve() async {
+    var value = await future;
+    eventsList.add(createEvent(value));
   }
 }
 

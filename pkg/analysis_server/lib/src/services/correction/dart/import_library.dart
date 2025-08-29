@@ -179,8 +179,10 @@ class ImportLibrary extends MultiCorrectionProducer {
       ];
     }
     var codeStyleOptions = getCodeStyleOptions(unitResult.file);
-    if (codeStyleOptions.usePackageUris) {
-      return [
+    var usePackageUris = codeStyleOptions.usePackageUris;
+    var useRelativeUris = codeStyleOptions.useRelativeUris;
+    return [
+      if (usePackageUris || !useRelativeUris) ...[
         _ImportAbsoluteLibrary(fixKind, library, prefix, context: context),
         _ImportAbsoluteLibrary(
           fixKindShow,
@@ -189,10 +191,8 @@ class ImportLibrary extends MultiCorrectionProducer {
           show: name,
           context: context,
         ),
-      ];
-    }
-    if (codeStyleOptions.useRelativeUris) {
-      return [
+      ],
+      if (useRelativeUris || !usePackageUris) ...[
         _ImportRelativeLibrary(fixKind, library, prefix, context: context),
         _ImportRelativeLibrary(
           fixKindShow,
@@ -201,25 +201,7 @@ class ImportLibrary extends MultiCorrectionProducer {
           show: name,
           context: context,
         ),
-      ];
-    }
-    return [
-      _ImportAbsoluteLibrary(fixKind, library, prefix, context: context),
-      _ImportAbsoluteLibrary(
-        fixKindShow,
-        library,
-        prefix,
-        show: name,
-        context: context,
-      ),
-      _ImportRelativeLibrary(fixKind, library, prefix, context: context),
-      _ImportRelativeLibrary(
-        fixKindShow,
-        library,
-        prefix,
-        show: name,
-        context: context,
-      ),
+      ],
     ];
   }
 
@@ -237,8 +219,13 @@ class ImportLibrary extends MultiCorrectionProducer {
     // Maybe there is an existing import, but it is with prefix and we don't use
     // this prefix.
     var alreadyImportedWithPrefix = <LibraryElement>{};
-    for (var import in unitResult.libraryFragment.libraryImports) {
+    for (var importDirective
+        in unitResult.unit.directives.whereType<ImportDirective>()) {
       // Prepare the element.
+      var import = importDirective.libraryImport;
+      if (import == null) {
+        continue;
+      }
       var libraryElement = import.importedLibrary;
       if (libraryElement == null) {
         continue;
@@ -260,7 +247,7 @@ class ImportLibrary extends MultiCorrectionProducer {
       ) = await _importEditCombinators(
         import,
         libraryElement,
-        libraryElement.uri.toString(),
+        importDirective.uri.stringValue!,
         name,
         prefix: prefix,
       );
