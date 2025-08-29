@@ -28,22 +28,6 @@ final class AnalyzeFile extends AnalysisDriverEvent {
   AnalyzeFile({required this.file, required this.library});
 }
 
-/// The event that we were not able to reuse the existing linked bundle
-/// for [cycle], because found the [failure].
-///
-/// Currently this means that the whole bundle will be linked.
-final class CannotReuseLinkedBundle extends AnalysisDriverEvent {
-  final LinkedElementFactory elementFactory;
-  final LibraryCycle cycle;
-  final RequirementFailure failure;
-
-  CannotReuseLinkedBundle({
-    required this.elementFactory,
-    required this.cycle,
-    required this.failure,
-  });
-}
-
 /// The event that we checked requirements of the library diagnostics.
 /// This is much cheaper than computing the result again, but not free.
 final class CheckLibraryDiagnosticsRequirements extends AnalysisDriverEvent {
@@ -56,15 +40,13 @@ final class CheckLibraryDiagnosticsRequirements extends AnalysisDriverEvent {
   });
 }
 
-/// The event that we were not able to reuse the existing analysis results
-/// for [library], because found the [failure].
-///
-/// Currently this means that the whole library will be analyzed.
-final class GetErrorsCannotReuse extends AnalysisDriverEvent {
-  final LibraryFileKind library;
-  final RequirementFailure failure;
+/// The event that we checked requirements of the linked bundle.
+/// This is much cheaper than relinking it, but not free.
+final class CheckLinkedBundleRequirements extends AnalysisDriverEvent {
+  final LibraryCycle cycle;
+  final RequirementFailure? failure;
 
-  GetErrorsCannotReuse({required this.library, required this.failure});
+  CheckLinkedBundleRequirements({required this.cycle, required this.failure});
 }
 
 final class GetErrorsFromBytes extends AnalysisDriverEvent {
@@ -88,21 +70,9 @@ final class LinkLibraryCycle extends AnalysisDriverEvent {
   });
 }
 
-/// The event that we were not able to reuse the existing analysis results
-/// for [library], because found the [failure].
-///
-/// Currently this means that the whole library will be analyzed.
-final class ProduceErrorsCannotReuse extends AnalysisDriverEvent {
-  final LibraryFileKind library;
-  final RequirementFailure failure;
-
-  ProduceErrorsCannotReuse({required this.library, required this.failure});
-}
-
-/// The event that the existing summary bundle for [cycle] were reused,
-/// because its requirements are still satisfied.
-final class ReuseLinkLibraryCycleBundle extends AnalysisDriverEvent {
+/// The event that the existing summary bundle for [cycle] was reused.
+final class ReuseLinkedBundle extends AnalysisDriverEvent {
   final LibraryCycle cycle;
 
-  ReuseLinkLibraryCycleBundle({required this.cycle});
+  ReuseLinkedBundle({required this.cycle});
 }
