@@ -1672,27 +1672,9 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
     bool isConst = false,
     bool isImplicitCall = false,
     Member? staticTarget,
-    bool isExtensionMemberInvocation = false,
   }) {
     FunctionType calleeType =
         invocationTargetType.computeFunctionTypeForInference(arguments);
-    int extensionTypeParameterCount = getExtensionTypeParameterCount(arguments);
-    if (extensionTypeParameterCount != 0) {
-      return _inferGenericExtensionMethodInvocation(
-        visitor,
-        extensionTypeParameterCount,
-        typeContext,
-        offset,
-        calleeType,
-        arguments,
-        hoistedExpressions,
-        isSpecialCasedBinaryOperator: isSpecialCasedBinaryOperator,
-        isSpecialCasedTernaryOperator: isSpecialCasedTernaryOperator,
-        receiverType: receiverType,
-        skipTypeArgumentInference: skipTypeArgumentInference,
-        isConst: isConst,
-      );
-    }
     return _inferInvocation(
       visitor,
       typeContext,
@@ -1707,103 +1689,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
       isConst: isConst,
       isImplicitCall: isImplicitCall,
       staticTarget: staticTarget,
-      isExtensionMemberInvocation: isExtensionMemberInvocation,
     );
-  }
-
-  InvocationInferenceResult _inferGenericExtensionMethodInvocation(
-    InferenceVisitor visitor,
-    int extensionTypeParameterCount,
-    DartType typeContext,
-    int offset,
-    FunctionType calleeType,
-    Arguments arguments,
-    List<VariableDeclaration>? hoistedExpressions, {
-    bool isSpecialCasedBinaryOperator = false,
-    bool isSpecialCasedTernaryOperator = false,
-    DartType? receiverType,
-    bool skipTypeArgumentInference = false,
-    bool isConst = false,
-    bool isImplicitCall = false,
-    Member? staticTarget,
-  }) {
-    FunctionType extensionFunctionType = new FunctionType(
-      [calleeType.positionalParameters.first],
-      const DynamicType(),
-      Nullability.nonNullable,
-      requiredParameterCount: 1,
-      typeParameters:
-          calleeType.typeParameters.take(extensionTypeParameterCount).toList(),
-    );
-    ArgumentsImpl extensionArguments = new ArgumentsImpl(
-      [arguments.positional.first],
-      types: getExplicitExtensionTypeArguments(arguments),
-    )..fileOffset = arguments.fileOffset;
-    _inferInvocation(
-      visitor,
-      const UnknownType(),
-      offset,
-      extensionFunctionType,
-      extensionArguments,
-      hoistedExpressions,
-      skipTypeArgumentInference: skipTypeArgumentInference,
-      receiverType: receiverType,
-      isImplicitCall: isImplicitCall,
-      staticTarget: staticTarget,
-      isExtensionMemberInvocation: true,
-    );
-    FunctionTypeInstantiator extensionInstantiator =
-        new FunctionTypeInstantiator.fromIterables(
-      extensionFunctionType.typeParameters,
-      extensionArguments.types,
-    );
-
-    List<StructuralParameter> targetTypeParameters =
-        const <StructuralParameter>[];
-    if (calleeType.typeParameters.length > extensionTypeParameterCount) {
-      targetTypeParameters =
-          calleeType.typeParameters.skip(extensionTypeParameterCount).toList();
-    }
-    FunctionType targetFunctionType = new FunctionType(
-      calleeType.positionalParameters.skip(1).toList(),
-      calleeType.returnType,
-      Nullability.nonNullable,
-      requiredParameterCount: calleeType.requiredParameterCount - 1,
-      namedParameters: calleeType.namedParameters,
-      typeParameters: targetTypeParameters,
-    );
-    targetFunctionType =
-        extensionInstantiator.substitute(targetFunctionType) as FunctionType;
-    ArgumentsImpl targetArguments = new ArgumentsImpl(
-      arguments.positional.skip(1).toList(),
-      named: arguments.named,
-      types: getExplicitTypeArguments(arguments),
-    )..fileOffset = arguments.fileOffset;
-    InvocationInferenceResult result = _inferInvocation(
-      visitor,
-      typeContext,
-      offset,
-      targetFunctionType,
-      targetArguments,
-      hoistedExpressions,
-      isSpecialCasedBinaryOperator: isSpecialCasedBinaryOperator,
-      isSpecialCasedTernaryOperator: isSpecialCasedTernaryOperator,
-      skipTypeArgumentInference: skipTypeArgumentInference,
-      isConst: isConst,
-      isImplicitCall: isImplicitCall,
-      staticTarget: staticTarget,
-    );
-    arguments.positional.clear();
-    arguments.positional.addAll(extensionArguments.positional);
-    arguments.positional.addAll(targetArguments.positional);
-    setParents(arguments.positional, arguments);
-    // The `targetArguments.named` is the same list as `arguments.named` so
-    // we just need to ensure that parent relations are realigned.
-    setParents(arguments.named, arguments);
-    arguments.types.clear();
-    arguments.types.addAll(extensionArguments.types);
-    arguments.types.addAll(targetArguments.types);
-    return result;
   }
 
   /// Performs the type inference steps that are shared by all kinds of
@@ -1822,7 +1708,6 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
     bool isConst = false,
     required bool isImplicitCall,
     Member? staticTarget,
-    bool isExtensionMemberInvocation = false,
   }) {
     // [receiverType] must be provided for special-cased operators.
     assert(
@@ -2017,22 +1902,6 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
         formalType = getNamedParameterType(calleeType, namedArgument.name);
         argumentExpression = namedArgument.value;
       }
-      if (isExpression && isExtensionMemberInvocation && index == 0) {
-        assert(
-          receiverType != null,
-          "No receiver type provided for implicit extension member "
-          "invocation.",
-        );
-        Expression expression = _hoist(
-          argumentExpression,
-          receiverType!,
-          hoistedExpressions,
-        );
-        formalTypes.add(formalType);
-        actualTypes.add(receiverType);
-        arguments.positional[index] = expression..parent = arguments;
-        continue;
-      }
       Expression unparenthesizedExpression = argumentExpression;
       while (unparenthesizedExpression is ParenthesizedExpression) {
         unparenthesizedExpression = unparenthesizedExpression.expression;
@@ -2165,12 +2034,8 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
     );
 
     if (isSpecialCasedBinaryOperator || isSpecialCasedTernaryOperator) {
-      LocatedMessage? argMessage = helper.checkArgumentsForType(
-        calleeType,
-        arguments,
-        offset,
-        isExtensionMemberInvocation: isExtensionMemberInvocation,
-      );
+      LocatedMessage? argMessage =
+          helper.checkArgumentsForType(calleeType, arguments, offset);
       if (argMessage != null) {
         return new WrapInProblemInferenceResult(
           const InvalidType(),
@@ -2274,19 +2139,17 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
               ) ??
               false);
         }
-        if (!(isExtensionMemberInvocation && positionalIndex == 0)) {
-          argumentHandlingCallback(
-            actualType: actualType,
-            expectedType: expectedType,
-            formalType: formalType,
-            argumentExpression: expression,
-            namedArgumentExpression: namedExpression,
-            coerceExpression: coerceExpression,
-            positionalArgumentIndex: positionalIndex,
-            overallArgumentIndex: overallArgumentIndex,
-          );
-          overallArgumentIndex++;
-        }
+        argumentHandlingCallback(
+          actualType: actualType,
+          expectedType: expectedType,
+          formalType: formalType,
+          argumentExpression: expression,
+          namedArgumentExpression: namedExpression,
+          coerceExpression: coerceExpression,
+          positionalArgumentIndex: positionalIndex,
+          overallArgumentIndex: overallArgumentIndex,
+        );
+        overallArgumentIndex++;
 
         if (namedExpression == null) {
           positionalIndex++;
@@ -2384,12 +2247,8 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
       }
     }
 
-    LocatedMessage? argMessage = helper.checkArgumentsForType(
-      calleeType,
-      arguments,
-      offset,
-      isExtensionMemberInvocation: isExtensionMemberInvocation,
-    );
+    LocatedMessage? argMessage =
+        helper.checkArgumentsForType(calleeType, arguments, offset);
     if (argMessage != null) {
       return new WrapInProblemInferenceResult(
         const InvalidType(),
@@ -2717,7 +2576,9 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
         namedArguments: arguments.named,
         typeArguments: arguments.types,
         argumentsOriginalOrder: arguments.argumentsOriginalOrder != null
-            ? [receiver, ...arguments.argumentsOriginalOrder!]
+            ?
+            // Coverage-ignore(suite): Not run.
+            [receiver, ...arguments.argumentsOriginalOrder!]
             : null)
       ..fileOffset = arguments.fileOffset;
   }
@@ -2920,19 +2781,18 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
 
       return result;
     } else {
-      ArgumentsImpl extensionInvocationArguments =
-          createExtensionInvocationArgument(target, receiver, arguments);
       InvocationInferenceResult result = inferInvocation(
         visitor,
         typeContext,
         fileOffset,
         invocationTargetType,
-        extensionInvocationArguments,
+        arguments,
         hoistedExpressions: hoistedExpressions,
         receiverType: receiverType,
         isImplicitCall: isImplicitCall,
-        isExtensionMemberInvocation: true,
       );
+      ArgumentsImpl extensionInvocationArguments =
+          createExtensionInvocationArgument(target, receiver, arguments);
       StaticInvocation staticInvocation = createExtensionInvocation(
         fileOffset,
         target,
@@ -2946,7 +2806,8 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
         getTypeArgumentsInfo(arguments),
       );
 
-      Expression replacement = result.applyResult(staticInvocation);
+      Expression replacement = result.applyResult(staticInvocation,
+          extensionReceiverType: receiverType);
       if (target.isNullable) {
         List<LocatedMessage>? context = getWhyNotPromotedContext(
           flowAnalysis.whyNotPromoted(receiver)(),

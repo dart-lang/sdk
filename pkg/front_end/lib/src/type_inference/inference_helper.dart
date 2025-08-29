@@ -16,8 +16,7 @@ abstract class InferenceHelper {
       Expression? expression});
 
   LocatedMessage? checkArgumentsForType(
-      FunctionType function, Arguments arguments, int offset,
-      {bool isExtensionMemberInvocation = false});
+      FunctionType function, Arguments arguments, int offset);
 
   void addProblem(Message message, int charOffset, int length,
       {List<LocatedMessage>? context, bool wasHandled = false});

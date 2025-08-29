@@ -350,8 +350,8 @@ class C extends self::Super {
     ;
   method method() → dynamic {
     this.{self::C::new}{core::int};
-    let final core::int #t1 = this.{self::C::new}{core::int} in self::E|call<dynamic>(#t1);
-    let final core::int #t2 = this.{self::C::new}{core::int} in self::E|call<core::int>(#t2);
+    self::E|call<dynamic>(this.{self::C::new}{core::int});
+    self::E|call<core::int>(this.{self::C::new}{core::int});
     this.{self::C::new} = 87;
   }
 }
@@ -372,7 +372,7 @@ static method method(dynamic d) → dynamic
   return d{dynamic}.new;
 static method test() → dynamic {
   new self::C::•().{self::C::new}{core::int};
-  let final core::int #t3 = new self::C::•().{self::C::new}{core::int} in self::E|call<dynamic>(#t3);
+  self::E|call<dynamic>(new self::C::•().{self::C::new}{core::int});
   new self::C::•().{self::C::new} = 87;
   self::C c = new self::C::•();
   c.{self::C::new}{core::int};
@@ -381,27 +381,27 @@ static method test() → dynamic {
   foo{dynamic}.new;
   foo{dynamic}.new();
   foo{dynamic}.new<core::int>();
-  let final dynamic #t4 = foo in #t4 == null ?{dynamic} null : #t4{dynamic}.new;
-  let final dynamic #t5 = foo in #t5 == null ?{dynamic} null : #t5{dynamic}.new();
-  let final dynamic #t6 = foo in #t6 == null ?{dynamic} null : #t6{dynamic}.new<core::int>();
-  let final dynamic #t7 = foo in block {
-    #t7{dynamic}.new;
-  } =>#t7;
-  let final dynamic #t8 = foo in block {
-    #t8{dynamic}.new();
-  } =>#t8;
-  let final dynamic #t9 = foo in block {
-    #t9{dynamic}.new<core::int>();
-  } =>#t9;
+  let final dynamic #t1 = foo in #t1 == null ?{dynamic} null : #t1{dynamic}.new;
+  let final dynamic #t2 = foo in #t2 == null ?{dynamic} null : #t2{dynamic}.new();
+  let final dynamic #t3 = foo in #t3 == null ?{dynamic} null : #t3{dynamic}.new<core::int>();
+  let final dynamic #t4 = foo in block {
+    #t4{dynamic}.new;
+  } =>#t4;
+  let final dynamic #t5 = foo in block {
+    #t5{dynamic}.new();
+  } =>#t5;
+  let final dynamic #t6 = foo in block {
+    #t6{dynamic}.new<core::int>();
+  } =>#t6;
   foo{dynamic}.new;
   foo{dynamic}.new();
   foo{dynamic}.new<core::int>();
   self::new;
   self::E|call<dynamic>(self::new);
   self::E|call<core::int>(self::new);
-  let final dynamic #t10 = CheckLibraryIsLoaded(prefix2) in self::c.{self::C::new}{core::int};
-  let final dynamic #t11 = CheckLibraryIsLoaded(prefix2) in let final core::int #t12 = self::c.{self::C::new}{core::int} in self::E|call<dynamic>(#t12);
-  let final dynamic #t13 = CheckLibraryIsLoaded(prefix2) in let final core::int #t14 = self::c.{self::C::new}{core::int} in self::E|call<core::int>(#t14);
+  let final dynamic #t7 = CheckLibraryIsLoaded(prefix2) in self::c.{self::C::new}{core::int};
+  let final dynamic #t8 = CheckLibraryIsLoaded(prefix2) in self::E|call<dynamic>(self::c.{self::C::new}{core::int});
+  let final dynamic #t9 = CheckLibraryIsLoaded(prefix2) in self::E|call<core::int>(self::c.{self::C::new}{core::int});
   self::E|get#new(0);
   self::E|call<dynamic>(self::E|get#new(0));
   self::E|call<core::int>(self::E|get#new(0));

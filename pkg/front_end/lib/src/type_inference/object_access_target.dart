@@ -1036,7 +1036,34 @@ class ExtensionAccessTarget extends ObjectAccessTarget {
       case ClassMemberKind.Method:
         FunctionType functionType =
             member.function!.computeFunctionType(Nullability.nonNullable);
-        return new InvocationTargetFunctionType(functionType);
+
+        List<StructuralParameter> targetTypeParameters =
+            const <StructuralParameter>[];
+        if (functionType.typeParameters.length > receiverTypeArguments.length) {
+          targetTypeParameters = functionType.typeParameters
+              .skip(receiverTypeArguments.length)
+              .toList();
+        }
+        FunctionType targetFunctionType = new FunctionType(
+          functionType.positionalParameters.skip(1).toList(),
+          functionType.returnType,
+          Nullability.nonNullable,
+          requiredParameterCount: functionType.requiredParameterCount - 1,
+          namedParameters: functionType.namedParameters,
+          typeParameters: targetTypeParameters,
+        );
+        if (receiverTypeArguments.isNotEmpty) {
+          FunctionTypeInstantiator instantiator =
+              new FunctionTypeInstantiator.fromIterables(
+            functionType.typeParameters
+                .take(receiverTypeArguments.length)
+                .toList(),
+            receiverTypeArguments,
+          );
+          targetFunctionType =
+              instantiator.substitute(targetFunctionType) as FunctionType;
+        }
+        return new InvocationTargetFunctionType(targetFunctionType);
       case ClassMemberKind.Getter:
         // TODO(johnniwinther): Handle implicit .call on extension getter.
         return _getFunctionType(base, member.function!.returnType);
@@ -1428,7 +1455,34 @@ class ExtensionTypeAccessTarget extends ObjectAccessTarget {
       case ClassMemberKind.Method:
         FunctionType functionType =
             member.function!.computeFunctionType(Nullability.nonNullable);
-        return new InvocationTargetFunctionType(functionType);
+
+        List<StructuralParameter> targetTypeParameters =
+            const <StructuralParameter>[];
+        if (functionType.typeParameters.length > receiverTypeArguments.length) {
+          targetTypeParameters = functionType.typeParameters
+              .skip(receiverTypeArguments.length)
+              .toList();
+        }
+        FunctionType targetFunctionType = new FunctionType(
+          functionType.positionalParameters.skip(1).toList(),
+          functionType.returnType,
+          Nullability.nonNullable,
+          requiredParameterCount: functionType.requiredParameterCount - 1,
+          namedParameters: functionType.namedParameters,
+          typeParameters: targetTypeParameters,
+        );
+        if (receiverTypeArguments.isNotEmpty) {
+          FunctionTypeInstantiator instantiator =
+              new FunctionTypeInstantiator.fromIterables(
+            functionType.typeParameters
+                .take(receiverTypeArguments.length)
+                .toList(),
+            receiverTypeArguments,
+          );
+          targetFunctionType =
+              instantiator.substitute(targetFunctionType) as FunctionType;
+        }
+        return new InvocationTargetFunctionType(targetFunctionType);
       // Coverage-ignore(suite): Not run.
       case ClassMemberKind.Getter:
         // TODO(johnniwinther): Handle implicit .call on extension getter.

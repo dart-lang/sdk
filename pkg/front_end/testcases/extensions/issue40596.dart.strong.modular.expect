@@ -11,7 +11,7 @@ extension Extension<T extends core::Object? = dynamic> on asy::Stream<T%> {
 }
 static method main() → void {
   asy::StreamController<core::String> controller = asy::StreamController::•<core::String>();
-  let final asy::StreamController<core::String> #t1 = controller in let final asy::Stream<core::String> #t2 = #t1.{asy::StreamController::stream}{asy::Stream<core::String>} in self::Extension|call<core::String>(#t2, (dynamic s) → Null {
+  let final asy::StreamController<core::String> #t1 = controller in self::Extension|call<core::String>(#t1.{asy::StreamController::stream}{asy::Stream<core::String>}, (dynamic s) → Null {
     core::print(s);
   });
 }

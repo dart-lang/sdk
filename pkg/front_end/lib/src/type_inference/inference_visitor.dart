@@ -1538,27 +1538,24 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     receiver = ensureAssignable(extensionOnType, receiverType, receiver);
     receiverType = extensionOnType;
 
+    InvocationTargetType invocationTargetType = target.getFunctionType(this);
+    InvocationInferenceResult result = inferInvocation(this, typeContext,
+        node.fileOffset, invocationTargetType, node.arguments,
+        staticTarget: node.method, receiverType: receiverType);
+
     ArgumentsImpl extensionInvocationArguments =
         createExtensionInvocationArgument(target, receiver, node.arguments);
-
-    InvocationTargetType invocationTargetType = target.getFunctionType(this);
-    TypeArgumentsInfo typeArgumentsInfo =
-        getTypeArgumentsInfo(extensionInvocationArguments);
-    InvocationInferenceResult result = inferInvocation(this, typeContext,
-        node.fileOffset, invocationTargetType, extensionInvocationArguments,
-        staticTarget: node.method,
-        receiverType: receiverType,
-        isExtensionMemberInvocation: true);
-
     StaticInvocation replacement = createStaticInvocation(
         node.method, extensionInvocationArguments,
         fileOffset: node.fileOffset);
 
+    TypeArgumentsInfo typeArgumentsInfo =
+        getTypeArgumentsInfo(extensionInvocationArguments);
     libraryBuilder.checkBoundsInStaticInvocation(replacement, node.name,
         typeSchemaEnvironment, helper.uri, typeArgumentsInfo);
 
-    return new ExpressionInferenceResult(
-        result.inferredType, result.applyResult(replacement));
+    return new ExpressionInferenceResult(result.inferredType,
+        result.applyResult(replacement, extensionReceiverType: receiverType));
   }
 
   ExpressionInferenceResult visitExtensionIfNullSet(

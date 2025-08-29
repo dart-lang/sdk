@@ -109,7 +109,12 @@ abstract class InvocationInferenceResult {
   ///
   /// A successful result leaves [expression] intact, and an error detected
   /// during inference would wrap the expression into an [InvalidExpression].
-  Expression applyResult(Expression expression);
+  ///
+  /// If the [expression] is an invocation of an extension instance method or
+  /// an extension type instance method, then [extensionReceiverType] must be
+  /// provided to support hoisting the receiver, if necessary.
+  Expression applyResult(Expression expression,
+      {DartType? extensionReceiverType});
 
   /// Returns `true` if the arguments of the call where not applicable to the
   /// target.
@@ -141,7 +146,8 @@ class SuccessfulInferenceResult implements InvocationInferenceResult {
       {required this.hoistedArguments, this.inferredReceiverType});
 
   @override
-  Expression applyResult(Expression expression) {
+  Expression applyResult(Expression expression,
+      {DartType? extensionReceiverType}) {
     List<VariableDeclaration>? hoistedArguments = this.hoistedArguments;
     if (hoistedArguments == null || hoistedArguments.isEmpty) {
       return expression;
@@ -189,6 +195,19 @@ class SuccessfulInferenceResult implements InvocationInferenceResult {
         return InvocationInferenceResult._insertHoistedExpressions(
             expression, hoistedArguments);
       } else if (expression is StaticInvocation) {
+        if (extensionReceiverType != null) {
+          Expression receiver = expression.arguments.positional.first;
+          if (!isPureExpression(receiver)) {
+            VariableDeclaration receiverVariable =
+                createVariable(receiver, extensionReceiverType);
+            expression.arguments.positional.first =
+                createVariableGet(receiverVariable)..parent = expression;
+            return createLet(
+                receiverVariable,
+                InvocationInferenceResult._insertHoistedExpressions(
+                    expression, hoistedArguments));
+          }
+        }
         return InvocationInferenceResult._insertHoistedExpressions(
             expression, hoistedArguments);
       } else if (expression is SuperMethodInvocation) {
@@ -233,7 +252,8 @@ class WrapInProblemInferenceResult implements InvocationInferenceResult {
       {required this.isInapplicable, required this.hoistedArguments});
 
   @override
-  Expression applyResult(Expression expression) {
+  Expression applyResult(Expression expression,
+      {DartType? extensionReceiverType}) {
     expression = helper.wrapInProblem(expression, message, fileOffset, length);
     List<VariableDeclaration>? hoistedArguments = this.hoistedArguments;
     if (hoistedArguments == null || hoistedArguments.isEmpty) {

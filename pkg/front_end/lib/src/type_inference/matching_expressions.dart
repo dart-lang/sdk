@@ -604,7 +604,7 @@ class MatchingExpressionVisitor
             break;
           case RelationalAccessKind.Static:
             FunctionType functionType = node.functionType!;
-            DartType argumentType = functionType.positionalParameters[1];
+            DartType argumentType = functionType.positionalParameters.single;
             expression = new DelayedExtensionInvocation(
                 node.target!,
                 [

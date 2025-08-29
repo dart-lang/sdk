@@ -18,6 +18,7 @@ typedef Function1_ = () →? void;
 typedef Record1 = (core::int, {required named: core::String});
 typedef Record1_ = (core::int, {required named: core::String})?;
 typedef Class_ = self::Class?;
+typedef ExtensionType_ = self::ExtensionType? /* erasure=core::int? */;
 class Class extends core::Object {
   field dynamic field;
   synthetic constructor •() → self::Class
@@ -56,6 +57,16 @@ extension /* unnamed */ _extension#2 on core::String {
 extension /* unnamed */ _extension#3 on core::String {
   operator <= = self::_extension#3|<=;
 }
+extension type ExtensionType(core::int it) {
+  abstract extension-type-member representation-field get it() → core::int;
+  get getter = self::ExtensionType|get#getter;
+  method method = self::ExtensionType|method;
+  method tearoff method = self::ExtensionType|get#method;
+  operator < = self::ExtensionType|<;
+  operator > = self::ExtensionType|>;
+  constructor • = self::ExtensionType|constructor#;
+  constructor tearoff • = self::ExtensionType|constructor#_#new#tearOff;
+}
 static extension-member method _extension#0|get#extensionGetter(lowered final self::Class #this) → core::int
   ;
 static extension-member method _extension#0|extensionMethod(lowered final self::Class #this) → void
@@ -74,9 +85,23 @@ static extension-member method _extension#2|<=(lowered final core::String #this,
   ;
 static extension-member method _extension#3|<=(lowered final core::String #this, dynamic other) → core::bool
   ;
+static extension-type-member method ExtensionType|constructor#(core::int it) → self::ExtensionType% /* erasure=core::int, declared=! */
+  ;
+static extension-type-member synthetic method ExtensionType|constructor#_#new#tearOff(core::int it) → self::ExtensionType% /* erasure=core::int, declared=! */
+  return self::ExtensionType|constructor#(it);
+static extension-type-member method ExtensionType|get#getter(lowered final self::ExtensionType% /* erasure=core::int, declared=! */ #this) → core::int
+  ;
+static extension-type-member method ExtensionType|method(lowered final self::ExtensionType% /* erasure=core::int, declared=! */ #this) → void
+  ;
+static extension-type-member method ExtensionType|get#method(lowered final self::ExtensionType% /* erasure=core::int, declared=! */ #this) → () → void
+  return () → void => self::ExtensionType|method(#this);
+static extension-type-member method ExtensionType|<(lowered final self::ExtensionType% /* erasure=core::int, declared=! */ #this, core::int i) → core::bool
+  ;
+static extension-type-member method ExtensionType|>(lowered final self::ExtensionType% /* erasure=core::int, declared=! */ #this, core::int i) → core::int
+  ;
 static method objectPattern(dynamic o) → dynamic
   ;
-static method relationalPattern(dynamic dyn, Never never, self::Class cls, self::Class? cls_, invalid-type invalid, core::String string, self::Class2 cls2, self::Class2? cls2_) → dynamic
+static method relationalPattern(dynamic dyn, Never never, self::Class cls, self::Class? cls_, invalid-type invalid, core::String string, self::Class2 cls2, self::Class2? cls2_, self::ExtensionType% /* erasure=core::int, declared=! */ extensionType) → dynamic
   ;
 
 library;

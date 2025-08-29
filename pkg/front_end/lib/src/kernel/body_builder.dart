@@ -6323,20 +6323,12 @@ class BodyBuilder extends StackListenerImpl
 
   @override
   LocatedMessage? checkArgumentsForType(
-      FunctionType function, Arguments arguments, int offset,
-      {bool isExtensionMemberInvocation = false}) {
+      FunctionType function, Arguments arguments, int offset) {
     int requiredPositionalParameterCountToReport =
         function.requiredParameterCount;
     int positionalParameterCountToReport = function.positionalParameters.length;
     int positionalArgumentCountToReport =
         forest.argumentsPositional(arguments).length;
-    if (isExtensionMemberInvocation) {
-      // Extension member invocations have additional synthetic parameter for
-      // `this`.
-      --requiredPositionalParameterCountToReport;
-      --positionalParameterCountToReport;
-      --positionalArgumentCountToReport;
-    }
     if (forest.argumentsPositional(arguments).length <
         function.requiredParameterCount) {
       return cfe.codeTooFewArguments

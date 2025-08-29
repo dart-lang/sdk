@@ -37,6 +37,7 @@ import '../type_inference/type_schema.dart' show UnknownType;
 typedef SharedMatchContext = shared.MatchContext<TreeNode, Expression, Pattern,
     SharedTypeView, VariableDeclaration>;
 
+// Coverage-ignore(suite): Not run.
 int getExtensionTypeParameterCount(Arguments arguments) {
   if (arguments is ArgumentsImpl) {
     return arguments._extensionTypeParameterCount;
@@ -46,6 +47,7 @@ int getExtensionTypeParameterCount(Arguments arguments) {
   }
 }
 
+// Coverage-ignore(suite): Not run.
 List<DartType>? getExplicitExtensionTypeArguments(Arguments arguments) {
   if (arguments is ArgumentsImpl) {
     if (arguments._explicitExtensionTypeArgumentCount == 0) {
@@ -141,6 +143,7 @@ List<DartType>? getExplicitTypeArguments(Arguments arguments) {
     } else if (arguments._extensionTypeParameterCount == 0) {
       return arguments.types;
     } else {
+      // Coverage-ignore-block(suite): Not run.
       return arguments.types
           .skip(arguments._extensionTypeParameterCount)
           .toList();
@@ -475,6 +478,7 @@ class ArgumentsImpl extends Arguments {
   static List<DartType> _normalizeTypeArguments(
       int length, List<DartType> arguments) {
     if (arguments.isEmpty && length > 0) {
+      // Coverage-ignore-block(suite): Not run.
       return new List<DartType>.filled(length, const UnknownType());
     }
     return arguments;
