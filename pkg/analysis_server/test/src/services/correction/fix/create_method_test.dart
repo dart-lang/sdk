@@ -1526,13 +1526,13 @@ class A {
 class A {
   a() => b((c) => c.d);
 
-  b(Function(dynamic c) param0) {}
+  b(Function(c) param0) {}
 }
 ''');
     var groups = change.linkedEditGroups;
     var index = 0;
     assertLinkedGroup(groups[index++], ['b((c', 'b(Function']);
-    assertLinkedGroup(groups[index++], ['Function(dynamic c)']);
+    assertLinkedGroup(groups[index++], ['Function(c)']);
     assertLinkedGroup(groups[index++], ['param0']);
   }
 
@@ -1668,7 +1668,7 @@ class A<T> {
 }
 
 class B {
-  void process(Map items) {}
+  void process(Map<int, Object?> items) {}
 }
 ''');
   }
@@ -1742,7 +1742,7 @@ class A<T> {
 }
 
 class B {
-  compute() {}
+  Object? compute() {}
 }
 ''');
   }

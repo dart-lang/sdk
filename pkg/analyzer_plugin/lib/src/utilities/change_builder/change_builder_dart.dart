@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/analysis/code_style_options.dart';
+import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
@@ -13,6 +14,7 @@ import 'package:analyzer/dart/element/type_provider.dart';
 import 'package:analyzer/dart/element/type_system.dart';
 import 'package:analyzer/source/line_info.dart';
 import 'package:analyzer/source/source_range.dart';
+import 'package:analyzer/src/dart/element/extensions.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/services/top_level_declarations.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart'
@@ -28,6 +30,9 @@ import 'package:analyzer_plugin/utilities/change_builder/change_builder_dart.dar
 import 'package:analyzer_plugin/utilities/range_factory.dart';
 import 'package:collection/collection.dart';
 import 'package:dart_style/dart_style.dart';
+
+const _deprecationMessageMethodBeingCopied = 'Use `typeParametersInScope` '
+    'instead. You can use `methodBeingCopied.typeParameters`.';
 
 /// An [EditBuilder] used to build edits in Dart files.
 class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
@@ -57,6 +62,12 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
   DartFileEditBuilderImpl get _dartFileEditBuilder =>
       fileEditBuilder as DartFileEditBuilderImpl;
 
+  FeatureSet get _featureSet =>
+      _dartFileEditBuilder.resolvedLibrary.element.featureSet;
+
+  TypeProvider get _typeProvider =>
+      _dartFileEditBuilder.resolvedUnit.typeProvider;
+
   @override
   void addLinkedEdit(String groupName,
           void Function(DartLinkedEditBuilder builder) buildLinkedEdit) =>
@@ -64,10 +75,21 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
           (builder) => buildLinkedEdit(builder as DartLinkedEditBuilder));
 
   @override
-  bool canWriteType(DartType? type, {ExecutableElement? methodBeingCopied}) =>
-      type != null && type is! DynamicType
-          ? _canWriteType(type, methodBeingCopied: methodBeingCopied)
-          : false;
+  bool canWriteType(
+    DartType? type, {
+    @Deprecated(_deprecationMessageMethodBeingCopied)
+    ExecutableElement? methodBeingCopied,
+    List<TypeParameterElement>? typeParametersInScope,
+  }) {
+    assert(typeParametersInScope == null || methodBeingCopied == null);
+    typeParametersInScope ??= methodBeingCopied?.typeParameters;
+    return type != null && type is! DynamicType
+        ? _canWriteType(
+            type,
+            typeParametersInScope: typeParametersInScope,
+          )
+        : false;
+  }
 
   @override
   LinkedEditBuilderImpl createLinkedEditBuilder() {
@@ -84,14 +106,16 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
   }
 
   @override
-  void writeClassDeclaration(String name,
-      {Iterable<DartType>? interfaces,
-      bool isAbstract = false,
-      void Function()? membersWriter,
-      Iterable<DartType>? mixins,
-      String? nameGroupName,
-      DartType? superclass,
-      String? superclassGroupName}) {
+  void writeClassDeclaration(
+    String name, {
+    Iterable<DartType>? interfaces,
+    bool isAbstract = false,
+    void Function()? membersWriter,
+    Iterable<DartType>? mixins,
+    String? nameGroupName,
+    DartType? superclass,
+    String? superclassGroupName,
+  }) {
     // TODO(brianwilkerson): Add support for type parameters, probably as a
     // parameterWriter parameter.
     if (isAbstract) {
@@ -222,25 +246,46 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
   }
 
   @override
-  void writeFormalParameter(String name,
-      {bool isCovariant = false,
-      bool isRequiredNamed = false,
-      ExecutableElement? methodBeingCopied,
-      String? nameGroupName,
-      DartType? type,
-      String? typeGroupName,
-      bool isRequiredType = false}) {
+  void writeFormalParameter(
+    String name, {
+    bool isCovariant = false,
+    bool isRequiredNamed = false,
+    @Deprecated(_deprecationMessageMethodBeingCopied)
+    ExecutableElement? methodBeingCopied,
+    List<TypeParameterElement>? typeParametersInScope,
+    String? nameGroupName,
+    DartType? type,
+    String? typeGroupName,
+    bool isRequiredType = false,
+  }) {
+    assert(typeParametersInScope == null || methodBeingCopied == null);
+    typeParametersInScope ??= methodBeingCopied?.typeParameters;
+    bool writeTypeIfCan() {
+      if (_canWriteType(
+            type,
+            typeParametersInScope: typeParametersInScope,
+          ) &&
+          (isRequiredType || type is! DynamicType)) {
+        _writeType(
+          type,
+          typeParametersInScope: typeParametersInScope,
+          shouldWriteDynamic: isRequiredType,
+        );
+        return true;
+      }
+      return false;
+    }
+
     bool writeType() {
       if (typeGroupName != null) {
         late bool hasType;
         addLinkedEdit(typeGroupName, (DartLinkedEditBuilder builder) {
-          hasType = _writeType(type,
-              methodBeingCopied: methodBeingCopied, required: isRequiredType);
+          hasType = writeTypeIfCan();
           builder.addSuperTypesAsSuggestions(type);
         });
         return hasType;
       }
-      return _writeType(type, methodBeingCopied: methodBeingCopied);
+      return writeTypeIfCan();
     }
 
     void writeName() {
@@ -273,10 +318,22 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
   }
 
   @override
-  void writeFormalParameters(Iterable<FormalParameterElement> parameters,
-      {ExecutableElement? methodBeingCopied,
-      bool includeDefaultValues = true,
-      bool requiredTypes = false}) {
+  void writeFormalParameters(
+    Iterable<FormalParameterElement> parameters, {
+    @Deprecated(
+      '$_deprecationMessageMethodBeingCopied And for the group prefix, '
+      'inform `groupNamePrefix`.',
+    )
+    ExecutableElement? methodBeingCopied,
+    List<TypeParameterElement>? typeParametersInScope,
+    String? groupNamePrefix,
+    bool includeDefaultValues = true,
+    bool requiredTypes = false,
+  }) {
+    assert(typeParametersInScope == null || methodBeingCopied == null);
+    assert(groupNamePrefix == null || methodBeingCopied == null);
+    typeParametersInScope ??= methodBeingCopied?.typeParameters;
+    groupNamePrefix ??= methodBeingCopied?.name;
     var parameterNames = parameters.map((e) => e.name).nonNulls.toSet();
 
     write('(');
@@ -305,16 +362,17 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
         name = _generateUniqueName(parameterNames, 'p');
         parameterNames.add(name);
       }
-      var groupPrefix =
-          methodBeingCopied != null ? '${methodBeingCopied.name}:' : '';
-      writeFormalParameter(name,
-          isCovariant: parameter.isCovariant,
-          isRequiredNamed: parameter.isRequiredNamed,
-          methodBeingCopied: methodBeingCopied,
-          nameGroupName: parameter.isNamed ? null : '${groupPrefix}PARAM$i',
-          type: parameter.type,
-          typeGroupName: '${groupPrefix}TYPE$i',
-          isRequiredType: requiredTypes);
+      var groupPrefix = groupNamePrefix != null ? '$groupNamePrefix:' : '';
+      writeFormalParameter(
+        name,
+        isCovariant: parameter.isCovariant,
+        isRequiredNamed: parameter.isRequiredNamed,
+        typeParametersInScope: typeParametersInScope,
+        nameGroupName: parameter.isNamed ? null : '${groupPrefix}PARAM$i',
+        type: parameter.type,
+        typeGroupName: '${groupPrefix}TYPE$i',
+        isRequiredType: requiredTypes,
+      );
       // default value
       if (includeDefaultValues) {
         var defaultCode = parameter.defaultValueCode;
@@ -536,8 +594,11 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
     // Return type.
     var returnType = element.returnType;
     if (!isSetter) {
-      var typeWritten = writeType(returnType,
-          groupName: returnTypeGroupName, methodBeingCopied: element);
+      var typeWritten = writeType(
+        returnType,
+        groupName: returnTypeGroupName,
+        typeParametersInScope: element.typeParameters,
+      );
       if (typeWritten) {
         write(' ');
       }
@@ -576,9 +637,15 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
     // Method.
     var parameters = element.formalParameters;
     withCarbonCopyBuffer(() {
-      writeTypeParameters(element.type.typeParameters,
-          methodBeingCopied: element);
-      writeFormalParameters(parameters, methodBeingCopied: element);
+      writeTypeParameters(
+        element.type.typeParameters,
+        typeParametersInScope: element.typeParameters,
+      );
+      writeFormalParameters(
+        parameters,
+        typeParametersInScope: element.typeParameters,
+        groupNamePrefix: memberName,
+      );
     });
     writeln(' {');
 
@@ -626,25 +693,46 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
   }
 
   @override
-  void writeParameter(String name,
-      {bool isCovariant = false,
-      bool isRequiredNamed = false,
-      ExecutableElement? methodBeingCopied,
-      String? nameGroupName,
-      DartType? type,
-      String? typeGroupName,
-      bool isRequiredType = false}) {
+  void writeParameter(
+    String name, {
+    bool isCovariant = false,
+    bool isRequiredNamed = false,
+    @Deprecated(_deprecationMessageMethodBeingCopied)
+    ExecutableElement? methodBeingCopied,
+    List<TypeParameterElement>? typeParametersInScope,
+    String? nameGroupName,
+    DartType? type,
+    String? typeGroupName,
+    bool isRequiredType = false,
+  }) {
+    assert(typeParametersInScope == null || methodBeingCopied == null);
+    typeParametersInScope ??= methodBeingCopied?.typeParameters;
+    bool writeTypeIfCan() {
+      if (_canWriteType(
+            type,
+            typeParametersInScope: typeParametersInScope,
+          ) &&
+          (isRequiredType || type is! DynamicType)) {
+        _writeType(
+          type,
+          typeParametersInScope: typeParametersInScope,
+          shouldWriteDynamic: isRequiredType,
+        );
+        return true;
+      }
+      return false;
+    }
+
     bool writeType() {
       if (typeGroupName != null) {
         late bool hasType;
         addLinkedEdit(typeGroupName, (DartLinkedEditBuilder builder) {
-          hasType = _writeType(type,
-              methodBeingCopied: methodBeingCopied, required: isRequiredType);
+          hasType = writeTypeIfCan();
           builder.addSuperTypesAsSuggestions(type);
         });
         return hasType;
       }
-      return _writeType(type, methodBeingCopied: methodBeingCopied);
+      return writeTypeIfCan();
     }
 
     void writeName() {
@@ -678,8 +766,15 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
 
   @override
   void writeParameterMatchingArgument(
-      Expression argument, int index, Set<String> usedNames,
-      {ExecutableElement? methodBeingCopied}) {
+    Expression argument,
+    int index,
+    Set<String> usedNames, {
+    @Deprecated(_deprecationMessageMethodBeingCopied)
+    ExecutableElement? methodBeingCopied,
+    List<TypeParameterElement>? typeParametersInScope,
+  }) {
+    assert(typeParametersInScope == null || methodBeingCopied == null);
+    typeParametersInScope ??= methodBeingCopied?.typeParameters;
     // Append type name.
     var type = argument.staticType;
     if (type == null || type.isBottom || type.isDartCoreNull) {
@@ -693,7 +788,7 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
       type,
       addSupertypeProposals: true,
       groupName: 'TYPE$index',
-      methodBeingCopied: methodBeingCopied,
+      typeParametersInScope: typeParametersInScope,
     )) {
       write(' ');
     }
@@ -711,8 +806,14 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
   }
 
   @override
-  void writeParametersMatchingArguments(ArgumentList argumentList,
-      {ExecutableElement? methodBeingCopied}) {
+  void writeParametersMatchingArguments(
+    ArgumentList argumentList, {
+    @Deprecated(_deprecationMessageMethodBeingCopied)
+    ExecutableElement? methodBeingCopied,
+    List<TypeParameterElement>? typeParametersInScope,
+  }) {
+    assert(typeParametersInScope == null || methodBeingCopied == null);
+    typeParametersInScope ??= methodBeingCopied?.typeParameters;
     // TODO(brianwilkerson): Handle the case when there are required parameters
     // after named parameters.
     var usedNames = <String>{};
@@ -727,8 +828,12 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
         hasNamedParameters = true;
         write('{');
       }
-      writeParameterMatchingArgument(argument, i, usedNames,
-          methodBeingCopied: methodBeingCopied);
+      writeParameterMatchingArgument(
+        argument,
+        i,
+        usedNames,
+        typeParametersInScope: typeParametersInScope,
+      );
     }
     if (hasNamedParameters) {
       write('}');
@@ -751,8 +856,12 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
     String? nameGroupName,
     DartType? parameterType,
     String? parameterTypeGroupName,
+    @Deprecated(_deprecationMessageMethodBeingCopied)
     ExecutableElement? methodBeingCopied,
+    List<TypeParameterElement>? typeParametersInScope,
   }) {
+    assert(typeParametersInScope == null || methodBeingCopied == null);
+    typeParametersInScope ??= methodBeingCopied?.typeParameters;
     if (isStatic) {
       write(Keyword.STATIC.lexeme);
       write(' ');
@@ -766,9 +875,11 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
     }
     write('(');
     if (parameterType != null && parameterType is! DynamicType) {
-      if (writeType(parameterType,
-          groupName: parameterTypeGroupName,
-          methodBeingCopied: methodBeingCopied)) {
+      if (writeType(
+        parameterType,
+        groupName: parameterTypeGroupName,
+        typeParametersInScope: typeParametersInScope,
+      )) {
         write(' ');
       }
     }
@@ -788,29 +899,44 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
     DartType? type, {
     bool addSupertypeProposals = false,
     String? groupName,
+    @Deprecated(_deprecationMessageMethodBeingCopied)
     ExecutableElement? methodBeingCopied,
+    List<TypeParameterElement>? typeParametersInScope,
     bool required = false,
     bool shouldWriteDynamic = false,
   }) {
+    assert(typeParametersInScope == null || methodBeingCopied == null);
+    typeParametersInScope ??= methodBeingCopied?.typeParameters;
     var wroteType = false;
-    if (type != null && (shouldWriteDynamic || type is! DynamicType)) {
+    if (type != null) {
+      // TODO(FMorschel): Refactor all similar (same name) local functions to
+      // a private method.
+      void writeTypeIfCan() {
+        if (_canWriteType(
+              type,
+              typeParametersInScope: typeParametersInScope,
+            ) &&
+            (shouldWriteDynamic || type is! DynamicType)) {
+          _writeType(
+            type,
+            typeParametersInScope: typeParametersInScope,
+            shouldWriteDynamic: shouldWriteDynamic,
+          );
+          wroteType = true;
+          return;
+        }
+        wroteType = false;
+      }
+
       if (groupName != null) {
         addLinkedEdit(groupName, (LinkedEditBuilder builder) {
-          wroteType = _writeType(
-            type,
-            methodBeingCopied: methodBeingCopied,
-            required: shouldWriteDynamic,
-          );
+          writeTypeIfCan();
           if (wroteType && addSupertypeProposals) {
             _addSuperTypeProposals(builder, type, {});
           }
         });
       } else {
-        wroteType = _writeType(
-          type,
-          methodBeingCopied: methodBeingCopied,
-          required: shouldWriteDynamic,
-        );
+        writeTypeIfCan();
       }
     }
     if (!wroteType && required) {
@@ -821,25 +947,51 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
   }
 
   @override
-  void writeTypeParameter(TypeParameterElement typeParameter,
-      {ExecutableElement? methodBeingCopied}) {
+  void writeTypeParameter(
+    TypeParameterElement typeParameter, {
+    @Deprecated(_deprecationMessageMethodBeingCopied)
+    ExecutableElement? methodBeingCopied,
+    List<TypeParameterElement>? typeParametersInScope,
+  }) {
+    assert(typeParametersInScope == null || methodBeingCopied == null);
+    typeParametersInScope ??= methodBeingCopied?.typeParameters;
     write(typeParameter.name ?? '');
     if (typeParameter.bound != null) {
-      write(' extends ');
-      _writeType(typeParameter.bound, methodBeingCopied: methodBeingCopied);
+      if (_canWriteType(
+        typeParameter.bound,
+        typeParametersInScope: typeParametersInScope,
+      )) {
+        write(' extends ');
+        _writeType(
+          typeParameter.bound,
+          typeParametersInScope: typeParametersInScope,
+          shouldWriteDynamic: true,
+        );
+      }
     }
   }
 
   @override
-  void writeTypeParameters(List<TypeParameterElement> typeParameters,
-      {ExecutableElement? methodBeingCopied}) {
+  void writeTypeParameters(
+    List<TypeParameterElement> typeParameters, {
+    @Deprecated(_deprecationMessageMethodBeingCopied)
+    ExecutableElement? methodBeingCopied,
+    List<TypeParameterElement>? typeParametersInScope,
+  }) {
+    assert(typeParametersInScope == null || methodBeingCopied == null);
+    typeParametersInScope ??= methodBeingCopied?.typeParameters;
     if (typeParameters.isNotEmpty) {
       write('<');
-      writeTypeParameter(typeParameters.first,
-          methodBeingCopied: methodBeingCopied);
+      writeTypeParameter(
+        typeParameters.first,
+        typeParametersInScope: typeParametersInScope,
+      );
       for (var typeParameter in typeParameters.skip(1)) {
         write(', ');
-        writeTypeParameter(typeParameter, methodBeingCopied: methodBeingCopied);
+        writeTypeParameter(
+          typeParameter,
+          typeParametersInScope: typeParametersInScope,
+        );
       }
       write('>');
     }
@@ -917,15 +1069,25 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
   /// written.
   ///
   /// See also [_writeType].
-  bool _canWriteType(DartType? type, {ExecutableElement? methodBeingCopied}) {
-    type = _getVisibleType(type, methodBeingCopied: methodBeingCopied);
-
+  bool _canWriteType(
+    DartType? type, {
+    required List<TypeParameterElement>? typeParametersInScope,
+  }) {
     // If not a useful type, don't write it.
     if (type == null) {
       return false;
     }
-    if (type is DynamicType || type is InvalidType) {
+
+    type = _getVisibleType(
+      type,
+      typeParametersInScope: typeParametersInScope,
+    );
+
+    if (type is InvalidType) {
       return false;
+    }
+    if (type is DynamicType) {
+      return true;
     }
     if (type.isBottom) {
       return true;
@@ -937,11 +1099,35 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
     }
 
     if (type is FunctionType) {
-      return true;
+      var typeParameters = type.typeParameters.toList();
+      if (typeParametersInScope != null) {
+        typeParameters.addAll(typeParametersInScope);
+      }
+      return _canWriteType(
+            type.returnType,
+            typeParametersInScope: typeParameters,
+          ) &&
+          type.typeParameters.every((type) =>
+              typeParameters.contains(type) ||
+              (type.bound != null &&
+                  _canWriteType(
+                    type.bound,
+                    typeParametersInScope: typeParameters,
+                  )) ||
+              // This ensures we consider valid when the type parameter is
+              // declared in another scope, to write `Object?`
+              type.bound == null) &&
+          type.formalParameters.every((parameter) => _canWriteType(
+                parameter.type,
+                typeParametersInScope: typeParameters,
+              ));
     }
 
     if (type is InterfaceType) {
-      return true;
+      return type.typeArguments.every((argument) => _canWriteType(
+            argument,
+            typeParametersInScope: typeParametersInScope,
+          ));
     }
 
     if (type is NeverType) {
@@ -957,9 +1143,11 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
     }
 
     if (type is RecordType) {
-      // TODO(brianwilkerson): This should return `false` if the `records`
-      //  feature is not enabled.
-      return true;
+      return _featureSet.isEnabled(Feature.records) &&
+          type.fields.every((field) => _canWriteType(
+                field.type,
+                typeParametersInScope: typeParametersInScope,
+              ));
     }
 
     throw UnimplementedError('(${type.runtimeType}) $type');
@@ -1152,30 +1340,45 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
   /// [_enclosingClass], or if there is a local equivalent to the type (such as
   /// in the case of a type parameter from a superclass), then returns the type
   /// that is locally visible. Otherwise, return `null`.
-  DartType? _getVisibleType(DartType? type,
-      {ExecutableElement? methodBeingCopied}) {
+  DartType _getVisibleType(
+    DartType type, {
+    required List<TypeParameterElement>? typeParametersInScope,
+  }) {
     if (type is InterfaceType) {
       var element = type.element;
       if (element.isPrivate &&
           !_dartFileEditBuilder._isDefinedLocally(element)) {
-        return null;
+        if (element.supertype case InterfaceTypeImpl superType) {
+          return _getVisibleType(
+            superType.withNullability(type.nullabilitySuffix),
+            typeParametersInScope: typeParametersInScope,
+          );
+        }
+        return _typeProvider.objectElement.instantiate(
+          typeArguments: const [],
+          nullabilitySuffix: type.nullabilitySuffix,
+        );
       }
       return type;
     }
     if (type is TypeParameterType) {
       _initializeEnclosingElements();
       var element = type.element;
+      if (typeParametersInScope?.contains(element) ?? false) {
+        return type;
+      }
       var enclosing = element.enclosingElement;
       while (enclosing is GenericFunctionTypeElement ||
           enclosing is FormalParameterElement) {
         enclosing = enclosing!.enclosingElement;
       }
-      if (enclosing == _enclosingExecutable ||
-          enclosing == _enclosingClass ||
-          enclosing == methodBeingCopied) {
+      if (enclosing == _enclosingExecutable || enclosing == _enclosingClass) {
         return type;
       }
-      return null;
+      return _getVisibleType(
+        type.element.bound ?? _typeProvider.objectQuestionType,
+        typeParametersInScope: typeParametersInScope,
+      );
     }
     return type;
   }
@@ -1201,12 +1404,6 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
   void _writeLibraryReference(Element element) {
     // If the element is defined in the library, then no prefix needed.
     if (_dartFileEditBuilder._isDefinedLocally(element)) {
-      return;
-    }
-
-    // TODO(scheglov): We should use "methodBeingCopied" to verify that
-    // we really are just copying this type parameter.
-    if (element is TypeParameterElement) {
       return;
     }
 
@@ -1248,32 +1445,43 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
 
   /// Writes the code to reference [type] in this compilation unit.
   ///
-  /// If a [methodBeingCopied] is provided, then the type parameters of that
-  /// method will be duplicated in the copy and will therefore be visible.
+  /// This shouldn't be called unless [_canWriteType] returns `true` for the
+  /// [type].
   ///
-  /// If [required] it `true`, then the type will be written even if it would
-  /// normally be omitted, such as with `dynamic`.
+  /// If [typeParametersInScope] is provided, then the type parameters are
+  /// known to be visible in the scope in which the type will be written.
+  ///
+  /// If [shouldWriteDynamic] it `true`, then the type will be written even if
+  /// it would normally be omitted, such as with `dynamic`.
   ///
   /// Causes any libraries whose elements are used by the generated code, to be
   /// imported.
-  bool _writeType(DartType? type,
-      {ExecutableElement? methodBeingCopied, bool required = false}) {
-    type = _getVisibleType(type, methodBeingCopied: methodBeingCopied);
+  void _writeType(
+    DartType? type, {
+    required List<TypeParameterElement>? typeParametersInScope,
+    required bool shouldWriteDynamic,
+  }) {
+    type ??= _typeProvider.objectQuestionType;
 
-    // If not a useful type, don't write it.
-    if (type == null) {
-      return false;
+    type = _getVisibleType(
+      type,
+      typeParametersInScope: typeParametersInScope,
+    );
+
+    if (type is InvalidType) {
+      type = _typeProvider.objectQuestionType;
     }
-    if (type is DynamicType || type is InvalidType) {
-      if (required) {
+
+    if (type is DynamicType) {
+      if (shouldWriteDynamic) {
         write('dynamic');
-        return true;
       }
-      return false;
+      return;
     }
+
     if (type.isBottom) {
       write('Never');
-      return true;
+      return;
     }
 
     var alias = type.alias;
@@ -1281,67 +1489,65 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
       _writeTypeElementArguments(
         element: alias.element,
         typeArguments: alias.typeArguments,
-        methodBeingCopied: methodBeingCopied,
+        typeParametersInScope: typeParametersInScope,
       );
       _writeTypeNullability(type);
-      return true;
+      return;
     }
 
     if (type is FunctionType) {
-      if (_writeType(type.returnType, methodBeingCopied: methodBeingCopied)) {
+      _writeType(
+        type.returnType,
+        typeParametersInScope: typeParametersInScope,
+        shouldWriteDynamic: shouldWriteDynamic,
+      );
+      if (shouldWriteDynamic || type.returnType is! DynamicType) {
         write(' ');
       }
       write('Function');
-      writeTypeParameters(type.typeParameters,
-          methodBeingCopied: methodBeingCopied);
+      writeTypeParameters(
+        type.typeParameters,
+        typeParametersInScope: typeParametersInScope,
+      );
       writeFormalParameters(
         type.formalParameters,
-        methodBeingCopied: methodBeingCopied,
+        typeParametersInScope: typeParametersInScope,
         includeDefaultValues: false,
-        requiredTypes: true,
       );
       if (type.nullabilitySuffix == NullabilitySuffix.question) {
         write('?');
       }
-      return true;
+      return;
     }
 
     if (type is InterfaceType) {
       _writeTypeElementArguments(
         element: type.element,
         typeArguments: type.typeArguments,
-        methodBeingCopied: methodBeingCopied,
+        typeParametersInScope: typeParametersInScope,
       );
       _writeTypeNullability(type);
-      return true;
+      return;
     }
 
     if (type is NeverType) {
       write('Never');
       _writeTypeNullability(type);
-      return true;
+      return;
     }
 
     if (type is TypeParameterType) {
       write(type.element.name!);
       _writeTypeNullability(type);
-      return true;
+      return;
     }
 
     if (type is VoidType) {
       write('void');
-      return true;
+      return;
     }
 
     if (type is RecordType) {
-      // TODO(brianwilkerson): This should return `false` if the `records`
-      //  feature is not enabled. More importantly, we can't currently return
-      //  `false` if some portion of a type has already been written, so we
-      //  need to figure out what to do when a record type is nested in another
-      //  type in a context where it isn't allowed. For example, we might
-      //  enhance `_canWriteType` to be recursive, then guard all invocations of
-      //  this method with a call to `_canWriteType` (and remove the return type
-      //  from this method).
       write('(');
       var isFirst = true;
       for (var field in type.positionalFields) {
@@ -1350,7 +1556,11 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
         } else {
           write(', ');
         }
-        _writeType(field.type);
+        _writeType(
+          field.type,
+          typeParametersInScope: typeParametersInScope,
+          shouldWriteDynamic: shouldWriteDynamic,
+        );
       }
       var namedFields = type.namedFields;
       if (namedFields.isNotEmpty) {
@@ -1366,7 +1576,11 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
           } else {
             write(', ');
           }
-          _writeType(field.type);
+          _writeType(
+            field.type,
+            typeParametersInScope: typeParametersInScope,
+            shouldWriteDynamic: shouldWriteDynamic,
+          );
           write(' ');
           write(field.name);
         }
@@ -1374,7 +1588,7 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
       }
       write(')');
       _writeTypeNullability(type);
-      return true;
+      return;
     }
 
     throw UnimplementedError('(${type.runtimeType}) $type');
@@ -1383,7 +1597,7 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
   void _writeTypeElementArguments({
     required Element element,
     required List<DartType> typeArguments,
-    required ExecutableElement? methodBeingCopied,
+    required List<TypeParameterElement>? typeParametersInScope,
   }) {
     // Ensure that the element is imported.
     _writeLibraryReference(element);
@@ -1394,28 +1608,24 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
 
     // Write type arguments.
     if (typeArguments.isNotEmpty) {
-      // Check if has arguments.
-      var hasArguments = false;
-      var allArgumentsVisible = true;
-      for (var argument in typeArguments) {
-        hasArguments = hasArguments || argument is! DynamicType;
-        allArgumentsVisible = allArgumentsVisible &&
-            _getVisibleType(argument, methodBeingCopied: methodBeingCopied) !=
-                null;
-      }
       // Write type arguments only if they are useful.
-      if (hasArguments && allArgumentsVisible) {
-        write('<');
-        for (var i = 0; i < typeArguments.length; i++) {
-          var argument = typeArguments[i];
-          if (i != 0) {
-            write(', ');
-          }
-          _writeType(argument,
-              required: true, methodBeingCopied: methodBeingCopied);
+      write('<');
+      for (var i = 0; i < typeArguments.length; i++) {
+        DartType? argument = typeArguments[i];
+        argument = _getVisibleType(
+          argument,
+          typeParametersInScope: typeParametersInScope,
+        );
+        if (i != 0) {
+          write(', ');
         }
-        write('>');
+        _writeType(
+          argument,
+          typeParametersInScope: typeParametersInScope,
+          shouldWriteDynamic: true,
+        );
       }
+      write('>');
     }
   }
 
@@ -1431,6 +1641,9 @@ class DartFileEditBuilderImpl extends FileEditBuilderImpl
     implements DartFileEditBuilder {
   /// The resolved unit for the file.
   final ResolvedUnitResult resolvedUnit;
+
+  /// The resolved unit for the file.
+  final ResolvedLibraryResult resolvedLibrary;
 
   /// The change builder for the library or `null` if the receiver is the
   /// builder for the library.
@@ -1463,8 +1676,8 @@ class DartFileEditBuilderImpl extends FileEditBuilderImpl
   /// change being built by the given [changeBuilder].
   ///
   /// The file being edited has the given [resolvedUnit] and [timeStamp].
-  DartFileEditBuilderImpl(ChangeBuilderImpl changeBuilder, this.resolvedUnit,
-      int timeStamp, this.libraryChangeBuilder,
+  DartFileEditBuilderImpl(ChangeBuilderImpl changeBuilder, this.resolvedLibrary,
+      this.resolvedUnit, int timeStamp, this.libraryChangeBuilder,
       {required String eol, bool createEditsForImports = true})
       : _createEditsForImports = createEditsForImports,
         super(changeBuilder, resolvedUnit.path, timeStamp, eol: eol);
@@ -1495,9 +1708,19 @@ class DartFileEditBuilderImpl extends FileEditBuilderImpl
           range, (builder) => buildEdit(builder as DartEditBuilder));
 
   @override
-  bool canWriteType(DartType? type, {ExecutableElement? methodBeingCopied}) {
+  bool canWriteType(
+    DartType? type, {
+    @Deprecated(_deprecationMessageMethodBeingCopied)
+    ExecutableElement? methodBeingCopied,
+    List<TypeParameterElement>? typeParametersInScope,
+  }) {
+    assert(typeParametersInScope == null || methodBeingCopied == null);
+    typeParametersInScope ??= methodBeingCopied?.typeParameters;
     var builder = createEditBuilder(0, 0);
-    return builder.canWriteType(type, methodBeingCopied: methodBeingCopied);
+    return builder.canWriteType(
+      type,
+      typeParametersInScope: typeParametersInScope,
+    );
   }
 
   @override
@@ -1565,8 +1788,8 @@ class DartFileEditBuilderImpl extends FileEditBuilderImpl
   DartFileEditBuilderImpl copyWith(ChangeBuilderImpl changeBuilder,
       {Map<DartFileEditBuilderImpl, DartFileEditBuilderImpl> editBuilderMap =
           const {}}) {
-    var copy = DartFileEditBuilderImpl(changeBuilder, resolvedUnit,
-        fileEdit.fileStamp, editBuilderMap[libraryChangeBuilder],
+    var copy = DartFileEditBuilderImpl(changeBuilder, resolvedLibrary,
+        resolvedUnit, fileEdit.fileStamp, editBuilderMap[libraryChangeBuilder],
         eol: eol, createEditsForImports: _createEditsForImports);
     copy.fileEdit.edits.addAll(fileEdit.edits);
     copy.importPrefixGenerator = importPrefixGenerator;

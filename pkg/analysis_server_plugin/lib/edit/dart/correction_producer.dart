@@ -573,11 +573,11 @@ abstract class ResolvedCorrectionProducer
       var variableDeclaration = parent;
       if (variableDeclaration.initializer == expression) {
         var variableElement = variableDeclaration.declaredFragment?.element;
-        if (variableElement != null) {
-          if (variableElement.type is! InvalidType) {
-            return variableElement.type;
+        if (variableElement case VariableElement(:var type)) {
+          if (type is InvalidType) {
+            return typeProvider.dynamicType;
           }
-          return typeProvider.dynamicType;
+          return type;
         }
       }
     }

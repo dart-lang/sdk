@@ -749,7 +749,7 @@ class A {
   void a() => c((cell) => cell.south);
   void b() => c((cell) => cell.west);
 
-  ${1:void} ${2:c}(${3:Function(dynamic cell)} ${4:param0}) {}
+  ${1:void} ${2:c}(${3:Function(cell)} ${4:param0}) {}
 }
 ''';
 
@@ -807,7 +807,7 @@ useFunction(int g(a, b)) {}
 
     const expectedContent = r'''
 void f() {
-  ${1:int Function(dynamic a, dynamic b)} ${2:test};
+  ${1:int Function(a, b)} ${2:test};
   useFunction(test);
 }
 

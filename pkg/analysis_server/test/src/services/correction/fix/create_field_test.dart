@@ -820,7 +820,7 @@ class B<T> {
 ''');
     await assertHasFix('''
 class A {
-  List test;
+  List<Object?> test;
 }
 class B<T> {
   List<T> items = [];

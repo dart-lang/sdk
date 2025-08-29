@@ -71,7 +71,14 @@ f(A a) {
   print(v);
 }
 ''');
-    await assertNoFix();
+    await assertHasFix('''
+import 'package:test/a.dart';
+
+f(A a) {
+  Object v = a.b();
+  print(v);
+}
+''');
   }
 
   Future<void> test_recordType_from() async {
