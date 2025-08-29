@@ -53,8 +53,8 @@ const String TEST_3 = r"""
         '#.toUpperCase()', s);
     print(s2);
 
-    // absent: 'toLowerCase' - removed since s.toUpperCase() generates the same
-    // noSuchMethod.
+    // present: 'toLowerCase'
+    // present: 'toUpperCase'
   }
 """;
 
@@ -85,6 +85,23 @@ const String TEST_5 = r"""
   }
 """;
 
+const String TEST_6 = r"""
+  import 'dart:_foreign_helper';
+  main() {
+    var s = JS('String|Null', '"Hello"');
+    s!;
+    var s1 = JS('returns:String;depends:none;effects:none;throws:null(1)',
+        '#.toLowerCase()', s);
+    var s2 = JS('returns:String;depends:none;effects:none;throws:null(1)',
+        '#.toUpperCase()', s);
+    print(s2);
+    // absent: 'toLowerCase' - removed since has no effect after null check.
+    // present: 'toUpperCase' - retained since used.
+    // present: '"Hello".toUpperCase' - null check folded into call.
+    // absent: '.toString;' - no null check as folded into 's.toUpperCase()'
+  }
+""";
+
 main() {
   runTests() async {
     check(String test) async {
@@ -112,6 +129,7 @@ main() {
     await check(TEST_3);
     await check(TEST_4);
     await check(TEST_5);
+    await check(TEST_6);
   }
 
   asyncTest(() async {

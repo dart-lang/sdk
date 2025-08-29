@@ -3213,56 +3213,6 @@ class SsaDeadCodeEliminator extends HGraphVisitor implements OptimizationPhase {
     closedWorld,
   );
 
-  /// Determines whether we can delete [instruction] because the only thing it
-  /// does is throw the same exception as the next instruction that throws or
-  /// has an effect.
-  bool canFoldIntoFollowingInstruction(HInstruction instruction) {
-    assert(instruction.usedBy.isEmpty);
-    assert(instruction.canThrow(_abstractValueDomain));
-
-    if (!instruction.onlyThrowsNSM()) return false;
-
-    final receiver = instruction.getDartReceiver();
-    HInstruction? current = instruction.next;
-    do {
-      if ((current!.getDartReceiver() == receiver) &&
-          current.canThrow(_abstractValueDomain)) {
-        return true;
-      }
-      if (current is HForeignCode && current.isNullGuardFor(receiver)) {
-        return true;
-      }
-      if (current.canThrow(_abstractValueDomain) ||
-          current.sideEffects.hasSideEffects()) {
-        return false;
-      }
-
-      HInstruction? next = current.next;
-      if (next == null) {
-        // We do not merge blocks in our SSA graph, so if this block just jumps
-        // to a single successor, visit the successor, avoiding back-edges.
-        HBasicBlock? successor;
-        if (current is HGoto) {
-          successor = current.block!.successors.single;
-        } else if (current is HIf) {
-          // We also leave HIf nodes in place when one branch is dead.
-          HInstruction condition = current.inputs.first;
-          if (condition is HConstant) {
-            successor = condition.constant is TrueConstantValue
-                ? current.thenBlock
-                : current.elseBlock;
-            assert(successor.isLive);
-          }
-        }
-        if (successor != null && successor.id > current.block!.id) {
-          next = successor.first;
-        }
-      }
-      current = next;
-    } while (current != null);
-    return false;
-  }
-
   bool isTrivialDeadStoreReceiver(HInstruction instruction) {
     // For an allocation, if all the loads are dead (awaiting removal after
     // SsaLoadElimination) and the only other uses are stores, then the
@@ -3297,14 +3247,7 @@ class SsaDeadCodeEliminator extends HGraphVisitor implements OptimizationPhase {
     if (isTrivialDeadStore(instruction)) return true;
     if (instruction.allowDCE) return true;
     if (instruction.sideEffects.hasSideEffects()) return false;
-    if (instruction.canThrow(_abstractValueDomain)) {
-      if (canFoldIntoFollowingInstruction(instruction)) {
-        // TODO(35996): If we remove [instruction], the source location of the
-        // 'equivalent' instruction should be updated.
-        return true;
-      }
-      return false;
-    }
+    if (instruction.canThrow(_abstractValueDomain)) return false;
     if (instruction is HParameterValue) return false;
     if (instruction is HLocalSet) return false;
     return true;

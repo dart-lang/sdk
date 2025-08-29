@@ -4377,6 +4377,81 @@ library
 ''');
   }
 
+  test_class_constructor_redirected_factory_named_generic_inference() async {
+    var library = await buildLibrary('''
+class A<T, U> implements B<T, U> {
+  A.named();
+}
+
+class B<T2, U2> {
+  factory B() = A.named;
+}
+''');
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      classes
+        #F1 class A (nameOffset:6) (firstTokenOffset:0) (offset:6)
+          element: <testLibrary>::@class::A
+          typeParameters
+            #F2 T (nameOffset:8) (firstTokenOffset:8) (offset:8)
+              element: #E0 T
+            #F3 U (nameOffset:11) (firstTokenOffset:11) (offset:11)
+              element: #E1 U
+          constructors
+            #F4 named (nameOffset:39) (firstTokenOffset:37) (offset:39)
+              element: <testLibrary>::@class::A::@constructor::named
+              typeName: A
+              typeNameOffset: 37
+              periodOffset: 38
+        #F5 class B (nameOffset:57) (firstTokenOffset:51) (offset:57)
+          element: <testLibrary>::@class::B
+          typeParameters
+            #F6 T2 (nameOffset:59) (firstTokenOffset:59) (offset:59)
+              element: #E2 T2
+            #F7 U2 (nameOffset:63) (firstTokenOffset:63) (offset:63)
+              element: #E3 U2
+          constructors
+            #F8 factory new (nameOffset:<null>) (firstTokenOffset:71) (offset:79)
+              element: <testLibrary>::@class::B::@constructor::new
+              typeName: B
+              typeNameOffset: 79
+  classes
+    class A
+      reference: <testLibrary>::@class::A
+      firstFragment: #F1
+      typeParameters
+        #E0 T
+          firstFragment: #F2
+        #E1 U
+          firstFragment: #F3
+      interfaces
+        B<T, U>
+      constructors
+        named
+          reference: <testLibrary>::@class::A::@constructor::named
+          firstFragment: #F4
+    class B
+      reference: <testLibrary>::@class::B
+      firstFragment: #F5
+      typeParameters
+        #E2 T2
+          firstFragment: #F6
+        #E3 U2
+          firstFragment: #F7
+      constructors
+        factory new
+          reference: <testLibrary>::@class::B::@constructor::new
+          firstFragment: #F8
+          redirectedConstructor: ConstructorMember
+            baseElement: <testLibrary>::@class::A::@constructor::named
+            substitution: {T: T2, U: U2}
+''');
+  }
+
   test_class_constructor_redirected_factory_named_generic_viaTypeAlias() async {
     var library = await buildLibrary('''
 typedef A<T, U> = C<T, U>;
@@ -4936,6 +5011,129 @@ library
           superConstructor: ConstructorMember
             baseElement: <testLibrary>::@class::C::@constructor::_
             substitution: {T: U, U: T}
+''');
+  }
+
+  test_class_constructor_redirected_factory_unnamed_generic_inference() async {
+    var library = await buildLibrary('''
+class A<T, U> implements B<T, U> {
+  A();
+}
+
+class B<T2, U2> {
+  factory B() = A;
+}
+''');
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      classes
+        #F1 class A (nameOffset:6) (firstTokenOffset:0) (offset:6)
+          element: <testLibrary>::@class::A
+          typeParameters
+            #F2 T (nameOffset:8) (firstTokenOffset:8) (offset:8)
+              element: #E0 T
+            #F3 U (nameOffset:11) (firstTokenOffset:11) (offset:11)
+              element: #E1 U
+          constructors
+            #F4 new (nameOffset:<null>) (firstTokenOffset:37) (offset:37)
+              element: <testLibrary>::@class::A::@constructor::new
+              typeName: A
+              typeNameOffset: 37
+        #F5 class B (nameOffset:51) (firstTokenOffset:45) (offset:51)
+          element: <testLibrary>::@class::B
+          typeParameters
+            #F6 T2 (nameOffset:53) (firstTokenOffset:53) (offset:53)
+              element: #E2 T2
+            #F7 U2 (nameOffset:57) (firstTokenOffset:57) (offset:57)
+              element: #E3 U2
+          constructors
+            #F8 factory new (nameOffset:<null>) (firstTokenOffset:65) (offset:73)
+              element: <testLibrary>::@class::B::@constructor::new
+              typeName: B
+              typeNameOffset: 73
+  classes
+    class A
+      reference: <testLibrary>::@class::A
+      firstFragment: #F1
+      typeParameters
+        #E0 T
+          firstFragment: #F2
+        #E1 U
+          firstFragment: #F3
+      interfaces
+        B<T, U>
+      constructors
+        new
+          reference: <testLibrary>::@class::A::@constructor::new
+          firstFragment: #F4
+    class B
+      reference: <testLibrary>::@class::B
+      firstFragment: #F5
+      typeParameters
+        #E2 T2
+          firstFragment: #F6
+        #E3 U2
+          firstFragment: #F7
+      constructors
+        factory new
+          reference: <testLibrary>::@class::B::@constructor::new
+          firstFragment: #F8
+          redirectedConstructor: ConstructorMember
+            baseElement: <testLibrary>::@class::A::@constructor::new
+            substitution: {T: T2, U: U2}
+''');
+  }
+
+  test_class_constructor_redirected_factory_unnamed_generic_inference_self() async {
+    var library = await buildLibrary('''
+class A<T> {
+  A();
+  factory A.redirected() = A;
+}
+''');
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      classes
+        #F1 class A (nameOffset:6) (firstTokenOffset:0) (offset:6)
+          element: <testLibrary>::@class::A
+          typeParameters
+            #F2 T (nameOffset:8) (firstTokenOffset:8) (offset:8)
+              element: #E0 T
+          constructors
+            #F3 new (nameOffset:<null>) (firstTokenOffset:15) (offset:15)
+              element: <testLibrary>::@class::A::@constructor::new
+              typeName: A
+              typeNameOffset: 15
+            #F4 factory redirected (nameOffset:32) (firstTokenOffset:22) (offset:32)
+              element: <testLibrary>::@class::A::@constructor::redirected
+              typeName: A
+              typeNameOffset: 30
+              periodOffset: 31
+  classes
+    class A
+      reference: <testLibrary>::@class::A
+      firstFragment: #F1
+      typeParameters
+        #E0 T
+          firstFragment: #F2
+      constructors
+        new
+          reference: <testLibrary>::@class::A::@constructor::new
+          firstFragment: #F3
+        factory redirected
+          reference: <testLibrary>::@class::A::@constructor::redirected
+          firstFragment: #F4
+          redirectedConstructor: ConstructorMember
+            baseElement: <testLibrary>::@class::A::@constructor::new
+            substitution: {T: T}
 ''');
   }
 

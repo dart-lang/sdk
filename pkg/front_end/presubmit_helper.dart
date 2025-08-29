@@ -13,10 +13,13 @@ import 'test/utils/io_utils.dart';
 Future<void> main(List<String> args) async {
   Directory.current = Directory.fromUri(_repoDir);
   Stopwatch stopwatch = new Stopwatch()..start();
-  // Expect something like /full/path/to/sdk/pkg/some_dir/whatever/else
-  if (args.length != 1) throw "Need exactly one argument.";
+  // Expect something like:
+  //   /full/path/to/sdk/pkg/some_dir/whatever/else upstreamBranch
+  if (args.length != 2) throw "Need exactly two arguments.";
 
-  final List<String> changedFiles = getChangedFiles(collectUncommitted: false);
+  String upstreamBranch = args[1];
+  final List<String> changedFiles = getChangedFiles(
+      collectUncommitted: false, upstreamBranch: upstreamBranch);
   String callerPath = args[0].replaceAll("\\", "/");
   if (!_shouldRun(changedFiles, callerPath)) {
     return;
@@ -291,7 +294,8 @@ Future<void> _executePendingWorkItems(List<Work> workItems) async {
 /// Queries git about changes against upstream, or origin/main if no upstream is
 /// set. This is similar (but different), I believe, to what
 /// `git cl presubmit` does.
-List<String> getChangedFiles({required bool collectUncommitted}) {
+List<String> getChangedFiles(
+    {required bool collectUncommitted, required String upstreamBranch}) {
   Set<String> paths = {};
   void collectChanges(ProcessResult processResult) {
     for (String line in processResult.stdout.toString().split("\n")) {
@@ -311,7 +315,7 @@ List<String> getChangedFiles({required bool collectUncommitted}) {
         "diff",
         "--name-status",
         "--no-renames",
-        "@{u}...HEAD",
+        "$upstreamBranch...HEAD",
       ],
       runInShell: true);
   if (result.exitCode != 0) {

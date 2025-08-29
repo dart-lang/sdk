@@ -177,6 +177,13 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
 
   TypeImpl get _dynamicType => _typeProvider.dynamicType;
 
+  /// Set information about enclosing declarations.
+  void prepareEnclosingDeclarations({
+    InterfaceElementImpl? enclosingClassElement,
+  }) {
+    _namedTypeResolver.enclosingClass = enclosingClassElement;
+  }
+
   @override
   void visitAnnotation(covariant AnnotationImpl node) {
     if (_elementWalker == null) {
@@ -371,7 +378,7 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
           });
           _defineFormalParameters(element.formalParameters);
 
-          _resolveRedirectedConstructor(node);
+          node.redirectedConstructor?.accept(this);
           node.initializers.accept(this);
           node.body.accept(this);
         });
@@ -1690,18 +1697,6 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
       clause: clause,
       namedTypes: clause.superclassConstraints,
     );
-  }
-
-  void _resolveRedirectedConstructor(ConstructorDeclaration node) {
-    var redirectedConstructor = node.redirectedConstructor;
-    if (redirectedConstructor == null) return;
-
-    var namedType = redirectedConstructor.type;
-    _namedTypeResolver.redirectedConstructor_namedType = namedType;
-
-    redirectedConstructor.accept(this);
-
-    _namedTypeResolver.redirectedConstructor_namedType = null;
   }
 
   /// Resolves the given [namedType], reports errors if the resulting type

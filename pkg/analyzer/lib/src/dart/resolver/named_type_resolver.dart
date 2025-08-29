@@ -48,10 +48,6 @@ class NamedTypeResolver with ScopeHelpers {
   /// If not `null`, a direct child the [WithClause] in the [enclosingClass].
   NamedType? withClause_namedType;
 
-  /// If not `null`, the [NamedType] of the redirected constructor being
-  /// resolved, in the [enclosingClass].
-  NamedType? redirectedConstructor_namedType;
-
   /// If [resolve] finds out that the given [NamedType] with a
   /// [PrefixedIdentifier] name is actually the name of a class and the name of
   /// the constructor, it rewrites the [ConstructorName] to correctly represent
@@ -266,7 +262,7 @@ class NamedTypeResolver with ScopeHelpers {
         }
       }
 
-      if (identical(node, redirectedConstructor_namedType)) {
+      if (_ErrorHelper._isRedirectingConstructor(node)) {
         return _inferRedirectedConstructor(
           element,
           dataForTesting: dataForTesting,
@@ -374,9 +370,6 @@ class NamedTypeResolver with ScopeHelpers {
         typeArguments: null,
         question: null,
       )..element = importPrefixElement;
-      if (identical(node, redirectedConstructor_namedType)) {
-        redirectedConstructor_namedType = namedType;
-      }
 
       constructorName.type = namedType;
       constructorName.period = importPrefix.period;
