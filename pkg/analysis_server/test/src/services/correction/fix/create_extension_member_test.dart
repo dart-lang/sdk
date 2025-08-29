@@ -250,6 +250,23 @@ extension E on int {
 ''');
   }
 
+  Future<void> test_nullableObject_target() async {
+    await resolveTestCode('''
+void f(Object? o) {
+  int _ = o.test;
+}
+''');
+    await assertHasFix('''
+void f(Object? o) {
+  int _ = o.test;
+}
+
+extension on Object? {
+  int get test => null;
+}
+''');
+  }
+
   Future<void> test_nullableTargetType() async {
     await resolveTestCode('''
 void f(int? p) {
@@ -823,6 +840,23 @@ extension E on int {
   ({int v,}) get test => (v: v(),);
 
   int v() {}
+}
+''');
+  }
+
+  Future<void> test_nullableObject_target() async {
+    await resolveTestCode('''
+void f(Object? o) {
+  int _ = o.test();
+}
+''');
+    await assertHasFix('''
+void f(Object? o) {
+  int _ = o.test();
+}
+
+extension on Object? {
+  int test() {}
 }
 ''');
   }
@@ -1533,6 +1567,23 @@ extension on int {
 ''');
   }
 
+  Future<void> test_nullableObject_target() async {
+    await resolveTestCode('''
+void f(Object? o) {
+  o + 0;
+}
+''');
+    await assertHasFix('''
+void f(Object? o) {
+  o + 0;
+}
+
+extension on Object? {
+  void operator +(int other) {}
+}
+''');
+  }
+
   Future<void> test_nullableTargetType() async {
     await resolveTestCode('''
 void f(int? p) {
@@ -1743,6 +1794,23 @@ extension on String {
 }
 
 extension on int {}
+''');
+  }
+
+  Future<void> test_nullableObject_target() async {
+    await resolveTestCode('''
+void f(Object? o) {
+  o.test = 0;
+}
+''');
+    await assertHasFix('''
+void f(Object? o) {
+  o.test = 0;
+}
+
+extension on Object? {
+  set test(int test) {}
+}
 ''');
   }
 
