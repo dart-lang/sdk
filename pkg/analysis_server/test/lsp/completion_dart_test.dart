@@ -105,6 +105,11 @@ $lintsYaml
 
 @reflectiveTest
 class CompletionDocumentationResolutionTest extends AbstractCompletionTest {
+  Future<void> assertNoCompletionItem(String label) async {
+    var completions = await getCompletion(mainFileUri, code.position.position);
+    expect(completions.where((c) => c.label == label), isEmpty);
+  }
+
   Future<CompletionItem> getCompletionItem(String label) async {
     var completions = await getCompletion(mainFileUri, code.position.position);
     return completions.singleWhere((c) => c.label == label);
@@ -272,6 +277,47 @@ void f() {
 
     var resolved = await resolveCompletion(completion);
     expectDocumentation(resolved, contains('Enum Member.'));
+  }
+
+  Future<void> test_enum_values() async {
+    content = '''
+void f() {
+  print(va^)
+}
+
+enum MyEnum {
+  value,
+}
+''';
+
+    await initializeServer();
+
+    await getCompletionItem('MyEnum.value');
+    await assertNoCompletionItem('MyEnum.values');
+    await assertNoCompletionItem('values');
+  }
+
+  Future<void> test_enum_values_insideEnum() async {
+    content = '''
+enum E {value}
+enum MyEnum {
+  value;
+
+  void f() {
+    print(^);
+  }
+}
+''';
+
+    await initializeServer();
+
+    await getCompletionItem('index');
+    await getCompletionItem('name');
+    await getCompletionItem('value');
+    await getCompletionItem('values');
+    await getCompletionItem('E.value');
+    await assertNoCompletionItem('MyEnum.values');
+    await assertNoCompletionItem('E.values');
   }
 
   Future<void> test_innerPatternKeyword() async {

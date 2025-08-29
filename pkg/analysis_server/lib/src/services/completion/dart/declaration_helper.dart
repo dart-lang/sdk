@@ -1349,7 +1349,8 @@ class DeclarationHelper {
     var referencingInterface = _referencingInterfaceFor(element);
 
     for (var accessor in element.getters) {
-      if (!accessor.isSynthetic && (!mustBeStatic || accessor.isStatic)) {
+      if ((!accessor.isSynthetic || accessor.isEnumValues) &&
+          (!mustBeStatic || accessor.isStatic)) {
         _suggestProperty(
           accessor: accessor,
           referencingInterface: referencingInterface,
@@ -2253,7 +2254,8 @@ class DeclarationHelper {
   void _suggestStaticField(FieldElement element, ImportData? importData) {
     if (!element.isStatic ||
         (mustBeAssignable && !(element.isFinal || element.isConst)) ||
-        (mustBeConstant && !element.isConst)) {
+        (mustBeConstant && !element.isConst) ||
+        (!element.isEnumConstant && element.enclosingElement is EnumElement)) {
       return;
     }
     var contextType = request.contextType;
@@ -2722,6 +2724,18 @@ class DeclarationHelper {
       }
     }
   }
+}
+
+extension on GetterElement {
+  /// Whether this getter is the `values` getter for an enum.
+  ///
+  /// Since we have `values_declaration_in_enum` this is a special case that
+  /// will always be valid.
+  bool get isEnumValues =>
+      name == 'values' &&
+      isStatic &&
+      isSynthetic &&
+      enclosingElement is EnumElement;
 }
 
 extension on Element {
