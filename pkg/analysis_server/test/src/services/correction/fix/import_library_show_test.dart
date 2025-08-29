@@ -502,6 +502,29 @@ void f() {
 ''');
   }
 
+  Future<void> test_relativeImport() async {
+    newFile('$testPackageLibPath/lib.dart', '''
+class C {}
+extension E on String {
+  void m() {}
+}
+''');
+    await resolveTestCode('''
+import 'lib.dart' as lib show C;
+
+void f(String s, lib.C c) {
+  s.m();
+}
+''');
+    await assertHasFix('''
+import 'lib.dart' as lib show C, E;
+
+void f(String s, lib.C c) {
+  s.m();
+}
+''', matchFixMessage: "Import 'E' from lib.dart");
+  }
+
   Future<void> test_sdk() async {
     await resolveTestCode(r'''
 import 'dart:collection' show HashMap;
