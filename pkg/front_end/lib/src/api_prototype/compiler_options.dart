@@ -9,7 +9,8 @@ import 'package:_fe_analyzer_shared/src/messages/diagnostic_message.dart'
 import 'package:_fe_analyzer_shared/src/messages/severity.dart'
     show CfeSeverity;
 import 'package:kernel/ast.dart' show Component, Version;
-import 'package:kernel/default_language_version.dart' as kernel
+import 'package:kernel/default_language_version.dart'
+    as kernel
     show defaultLanguageVersion;
 import 'package:kernel/target/targets.dart' show Target;
 
@@ -20,7 +21,8 @@ import 'experimental_flags.dart'
         ExperimentalFlag,
         GlobalFeatures,
         parseExperimentalFlag;
-import 'experimental_flags.dart' as flags
+import 'experimental_flags.dart'
+    as flags
     show
         getExperimentEnabledVersionInLibrary,
         isExperimentEnabledInLibraryByVersion;
@@ -226,7 +228,8 @@ class CompilerOptions {
   /// The current sdk version string, e.g. "2.6.0-edge.sha1hash".
   /// For instance used for language versioning (specifying the maximum
   /// version).
-  String currentSdkVersion = "${kernel.defaultLanguageVersion.major}"
+  String currentSdkVersion =
+      "${kernel.defaultLanguageVersion.major}"
       "."
       "${kernel.defaultLanguageVersion.minor}";
 
@@ -247,11 +250,12 @@ class CompilerOptions {
   GlobalFeatures? _globalFeatures;
 
   GlobalFeatures get globalFeatures => _globalFeatures ??= new GlobalFeatures(
-      explicitExperimentalFlags,
-      defaultExperimentFlagsForTesting: defaultExperimentFlagsForTesting,
-      experimentEnabledVersionForTesting: experimentEnabledVersionForTesting,
-      experimentReleasedVersionForTesting: experimentReleasedVersionForTesting,
-      allowedExperimentalFlags: allowedExperimentalFlagsForTesting);
+    explicitExperimentalFlags,
+    defaultExperimentFlagsForTesting: defaultExperimentFlagsForTesting,
+    experimentEnabledVersionForTesting: experimentEnabledVersionForTesting,
+    experimentReleasedVersionForTesting: experimentReleasedVersionForTesting,
+    allowedExperimentalFlags: allowedExperimentalFlagsForTesting,
+  );
 
   // Coverage-ignore(suite): Not run.
   /// Returns the minimum language version needed for a library with the given
@@ -260,34 +264,46 @@ class CompilerOptions {
   /// Note that the experiment might not be enabled at all for the library, as
   /// computed by [isExperimentEnabledInLibrary].
   Version getExperimentEnabledVersionInLibrary(
-      ExperimentalFlag flag, Uri importUri) {
+    ExperimentalFlag flag,
+    Uri importUri,
+  ) {
     return flags.getExperimentEnabledVersionInLibrary(
-        flag, importUri, explicitExperimentalFlags,
-        defaultExperimentFlagsForTesting: defaultExperimentFlagsForTesting,
-        allowedExperimentalFlags: allowedExperimentalFlagsForTesting,
-        experimentEnabledVersionForTesting: experimentEnabledVersionForTesting,
-        experimentReleasedVersionForTesting:
-            experimentReleasedVersionForTesting);
+      flag,
+      importUri,
+      explicitExperimentalFlags,
+      defaultExperimentFlagsForTesting: defaultExperimentFlagsForTesting,
+      allowedExperimentalFlags: allowedExperimentalFlagsForTesting,
+      experimentEnabledVersionForTesting: experimentEnabledVersionForTesting,
+      experimentReleasedVersionForTesting: experimentReleasedVersionForTesting,
+    );
   }
 
   /// Return `true` if the experiment with the given [flag] is enabled for the
   /// library with the given [importUri] and language [version].
   bool isExperimentEnabledInLibraryByVersion(
-      ExperimentalFlag flag, Uri importUri, Version version) {
-    return flags.isExperimentEnabledInLibraryByVersion(flag, importUri, version,
-        explicitExperimentalFlags: explicitExperimentalFlags,
-        defaultExperimentFlagsForTesting: defaultExperimentFlagsForTesting,
-        allowedExperimentalFlags: allowedExperimentalFlagsForTesting,
-        experimentEnabledVersionForTesting: experimentEnabledVersionForTesting,
-        experimentReleasedVersionForTesting:
-            experimentReleasedVersionForTesting);
+    ExperimentalFlag flag,
+    Uri importUri,
+    Version version,
+  ) {
+    return flags.isExperimentEnabledInLibraryByVersion(
+      flag,
+      importUri,
+      version,
+      explicitExperimentalFlags: explicitExperimentalFlags,
+      defaultExperimentFlagsForTesting: defaultExperimentFlagsForTesting,
+      allowedExperimentalFlags: allowedExperimentalFlagsForTesting,
+      experimentEnabledVersionForTesting: experimentEnabledVersionForTesting,
+      experimentReleasedVersionForTesting: experimentReleasedVersionForTesting,
+    );
   }
 
-  bool equivalent(CompilerOptions other,
-      {bool ignoreOnDiagnostic = true,
-      bool ignoreVerbose = true,
-      bool ignoreVerify = true,
-      bool ignoreDebugDump = true}) {
+  bool equivalent(
+    CompilerOptions other, {
+    bool ignoreOnDiagnostic = true,
+    bool ignoreVerbose = true,
+    bool ignoreVerify = true,
+    bool ignoreDebugDump = true,
+  }) {
     if (sdkRoot != other.sdkRoot) return false;
     if (librariesSpecificationUri != other.librariesSpecificationUri) {
       return false;
@@ -310,7 +326,9 @@ class CompilerOptions {
     // chaseDependencies aren't used anywhere, so ignored here.
     // targetPatches aren't used anywhere, so ignored here.
     if (!equalMaps(
-        explicitExperimentalFlags, other.explicitExperimentalFlags)) {
+      explicitExperimentalFlags,
+      other.explicitExperimentalFlags,
+    )) {
       return false;
     }
     if (!equalMaps(environmentDefines, other.environmentDefines)) return false;
@@ -389,9 +407,10 @@ Map<String, bool> parseExperimentalArguments(Iterable<String>? arguments) {
 /// If an expired flag is set to its default value the supplied warning
 /// handler is called with a warning message.
 Map<ExperimentalFlag, bool> parseExperimentalFlags(
-    Map<String, bool>? experiments,
-    {required void Function(String message) onError,
-    void Function(String message)? onWarning}) {
+  Map<String, bool>? experiments, {
+  required void Function(String message) onError,
+  void Function(String message)? onWarning,
+}) {
   Map<ExperimentalFlag, bool> flags = <ExperimentalFlag, bool>{};
   if (experiments != null) {
     for (String experiment in experiments.keys) {
@@ -404,7 +423,8 @@ Map<ExperimentalFlag, bool> parseExperimentalFlags(
         // Coverage-ignore-block(suite): Not run.
         if (flags[flag] != value) {
           onError(
-              "Experiment specified with conflicting values: " + experiment);
+            "Experiment specified with conflicting values: " + experiment,
+          );
         }
       } else {
         if (flag.isExpired) {
@@ -412,27 +432,35 @@ Map<ExperimentalFlag, bool> parseExperimentalFlags(
           if (value != flag.isEnabledByDefault) {
             /// Produce an error when the value is not the default value.
             if (value) {
-              onError("Enabling experiment " +
-                  experiment +
-                  " is no longer supported.");
+              onError(
+                "Enabling experiment " +
+                    experiment +
+                    " is no longer supported.",
+              );
             } else {
-              onError("Disabling experiment " +
-                  experiment +
-                  " is no longer supported.");
+              onError(
+                "Disabling experiment " +
+                    experiment +
+                    " is no longer supported.",
+              );
             }
             value = flag.isEnabledByDefault;
           } else if (onWarning != null) {
             /// Produce a warning when the value is the default value.
             if (value) {
-              onWarning("Experiment " +
-                  experiment +
-                  " is enabled by default. "
-                      "The use of the flag is deprecated.");
+              onWarning(
+                "Experiment " +
+                    experiment +
+                    " is enabled by default. "
+                        "The use of the flag is deprecated.",
+              );
             } else {
-              onWarning("Experiment " +
-                  experiment +
-                  " is disabled by default. "
-                      "The use of the flag is deprecated.");
+              onWarning(
+                "Experiment " +
+                    experiment +
+                    " is disabled by default. "
+                        "The use of the flag is deprecated.",
+              );
             }
           }
           flags[flag] = value;
@@ -464,8 +492,10 @@ class InvocationMode {
   ///
   /// If a name isn't recognized and [onError] isn't provided, an error is
   /// thrown.
-  static Set<InvocationMode> parseArguments(String arg,
-      {void Function(String)? onError}) {
+  static Set<InvocationMode> parseArguments(
+    String arg, {
+    void Function(String)? onError,
+  }) {
     Set<InvocationMode> result = {};
     for (String name in arg.split(',')) {
       if (name.isNotEmpty) {
@@ -503,16 +533,22 @@ class InvocationMode {
 /// Verbosity level used for filtering messages during compilation.
 class Verbosity {
   /// Only error messages are emitted.
-  static const Verbosity error =
-      const Verbosity('error', 'Show only error messages');
+  static const Verbosity error = const Verbosity(
+    'error',
+    'Show only error messages',
+  );
 
   /// Error and warning messages are emitted.
-  static const Verbosity warning =
-      const Verbosity('warning', 'Show only error and warning messages');
+  static const Verbosity warning = const Verbosity(
+    'warning',
+    'Show only error and warning messages',
+  );
 
   /// Error, warning, and info messages are emitted.
-  static const Verbosity info =
-      const Verbosity('info', 'Show error, warning, and info messages');
+  static const Verbosity info = const Verbosity(
+    'info',
+    'Show error, warning, and info messages',
+  );
 
   /// All messages are emitted.
   static const Verbosity all = const Verbosity('all', 'Show all messages');
@@ -521,13 +557,15 @@ class Verbosity {
 
   // Coverage-ignore(suite): Not run.
   /// Returns the names of all options.
-  static List<String> get allowedValues =>
-      [for (Verbosity value in values) value.name];
+  static List<String> get allowedValues => [
+    for (Verbosity value in values) value.name,
+  ];
 
   // Coverage-ignore(suite): Not run.
   /// Returns a map from option name to option help messages.
-  static Map<String, String> get allowedValuesHelp =>
-      {for (Verbosity value in values) value.name: value.help};
+  static Map<String, String> get allowedValuesHelp => {
+    for (Verbosity value in values) value.name: value.help,
+  };
 
   /// Returns the verbosity corresponding to the given [name].
   ///
@@ -536,9 +574,11 @@ class Verbosity {
   ///
   /// If [name] isn't recognized and [onError] isn't provided, an error is
   /// thrown.
-  static Verbosity parseArgument(String name,
-      {void Function(String)? onError,
-      Verbosity defaultValue = Verbosity.all}) {
+  static Verbosity parseArgument(
+    String name, {
+    void Function(String)? onError,
+    Verbosity defaultValue = Verbosity.all,
+  }) {
     for (Verbosity verbosity in values) {
       if (name == verbosity.name) {
         return verbosity;
@@ -594,7 +634,8 @@ class Verbosity {
         return true;
     }
     throw new UnsupportedError(
-        "Unsupported verbosity $verbosity and severity $severity.");
+      "Unsupported verbosity $verbosity and severity $severity.",
+    );
   }
 
   static const String defaultValue = 'all';

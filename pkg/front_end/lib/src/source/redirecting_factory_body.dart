@@ -5,9 +5,13 @@
 import 'package:kernel/ast.dart';
 
 ReturnStatement createRedirectingFactoryBody(
-    Member target, List<DartType> typeArguments, FunctionNode function) {
+  Member target,
+  List<DartType> typeArguments,
+  FunctionNode function,
+) {
   return new ReturnStatement(
-      _makeForwardingCall(target, typeArguments, function));
+    _makeForwardingCall(target, typeArguments, function),
+  );
 }
 
 ReturnStatement createRedirectingFactoryErrorBody(String errorMessage) {
@@ -15,17 +19,26 @@ ReturnStatement createRedirectingFactoryErrorBody(String errorMessage) {
 }
 
 Expression _makeForwardingCall(
-    Member target, List<DartType> typeArguments, FunctionNode function) {
+  Member target,
+  List<DartType> typeArguments,
+  FunctionNode function,
+) {
   final List<Expression> positional = function.positionalParameters
       .map<Expression>((v) => new VariableGet(v)..fileOffset = v.fileOffset)
       .toList();
   final List<NamedExpression> named = function.namedParameters
-      .map((v) => new NamedExpression(
-          v.name!, new VariableGet(v)..fileOffset = v.fileOffset)
-        ..fileOffset = v.fileOffset)
+      .map(
+        (v) => new NamedExpression(
+          v.name!,
+          new VariableGet(v)..fileOffset = v.fileOffset,
+        )..fileOffset = v.fileOffset,
+      )
       .toList();
-  final Arguments args =
-      new Arguments(positional, named: named, types: typeArguments);
+  final Arguments args = new Arguments(
+    positional,
+    named: named,
+    types: typeArguments,
+  );
   if (target is Procedure) {
     return new StaticInvocation(target, args)..fileOffset = function.fileOffset;
   } else if (target is Constructor) {

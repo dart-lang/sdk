@@ -18,13 +18,15 @@ Future<void> main() async {
 }
 
 Future<void> testRunningTests() async {
-  MemoryFileSystem memoryFileSystem =
-      new MemoryFileSystem(new Uri(scheme: "darttest", path: "/"));
+  MemoryFileSystem memoryFileSystem = new MemoryFileSystem(
+    new Uri(scheme: "darttest", path: "/"),
+  );
   HybridFileSystem hybridFileSystem = new HybridFileSystem(memoryFileSystem);
   impl.DartDocTest dartDocTest = new impl.DartDocTest(
-      underlyingFileSystem: hybridFileSystem,
-      silent: true,
-      onlyIncludeFirstError: true);
+    underlyingFileSystem: hybridFileSystem,
+    silent: true,
+    onlyIncludeFirstError: true,
+  );
 
   // Good test
   Uri test1 = new Uri(scheme: "darttest", path: "/test1.dart");
@@ -85,9 +87,7 @@ Future<int> _internal() async {
 """;
   tests = extractTests(test, test3);
   expect(tests.length, 1);
-  expected = [
-    new impl.TestResult(tests[0], impl.TestOutcome.Pass),
-  ];
+  expected = [new impl.TestResult(tests[0], impl.TestOutcome.Pass)];
   memoryFileSystem.entityForUri(test3).writeAsStringSync(test);
   expect(await dartDocTest.process(test3), expected);
 
@@ -152,7 +152,8 @@ dynamic _internal() {
   expected = [
     new impl.TestResult(tests[0], impl.TestOutcome.Crash)
       // this weird message is from the VM!
-      ..message = "type 'int' is not a subtype of type 'String' of 'other'\n"
+      ..message =
+          "type 'int' is not a subtype of type 'String' of 'other'\n"
           "\n"
           "Stacktrace:",
     new impl.TestResult(tests[1], impl.TestOutcome.Pass),
@@ -191,9 +192,7 @@ dynamic _internal() {
   """;
   tests = extractTests(test, test8);
   expect(tests.length, 1);
-  expected = [
-    new impl.TestResult(tests[0], impl.TestOutcome.Pass),
-  ];
+  expected = [new impl.TestResult(tests[0], impl.TestOutcome.Pass)];
   memoryFileSystem.entityForUri(test8).writeAsStringSync(test);
   expect(await dartDocTest.process(test8), expected);
 
@@ -208,9 +207,7 @@ Future<void> _internal() async {
 """;
   tests = extractTests(test, test9);
   expect(tests.length, 1);
-  expected = [
-    new impl.TestResult(tests[0], impl.TestOutcome.Pass),
-  ];
+  expected = [new impl.TestResult(tests[0], impl.TestOutcome.Pass)];
   memoryFileSystem.entityForUri(test9).writeAsStringSync(test);
   expect(await dartDocTest.process(test9), expected);
 
@@ -228,7 +225,8 @@ Future<int> _internal() async {
   expect(tests.length, 1);
   expected = [
     new impl.TestResult(tests[0], impl.TestOutcome.Crash)
-      ..message = "I threw!"
+      ..message =
+          "I threw!"
           "\n"
           "\nStacktrace:"
           "\n#0      _internal (darttest:/test10.dart:4:15)"
@@ -286,78 +284,78 @@ void testTestExtraction() {
   expect(extractTests(""), <impl.Test>[]);
 
   // One test.
-  expect(extractTests("""
+  expect(
+    extractTests("""
     // not a test comment
     void foo_bar_long_name() {}
 
-    // DartDocTest(1+1, 2)"""), <impl.Test>[
-    new impl.ExpectTest("1+1", "2", "darttest:/foo.dart:4:20"),
-  ]);
+    // DartDocTest(1+1, 2)"""),
+    <impl.Test>[new impl.ExpectTest("1+1", "2", "darttest:/foo.dart:4:20")],
+  );
 
   // Two tests.
-  expect(extractTests("""
+  expect(
+    extractTests("""
 // DartDocTest(1+1, 2)
 // DartDocTest(2+40, 42)
-"""), <impl.Test>[
-    new impl.ExpectTest("1+1", "2", "darttest:/foo.dart:1:16"),
-    new impl.ExpectTest("2+40", "42", "darttest:/foo.dart:2:16"),
-  ]);
+"""),
+    <impl.Test>[
+      new impl.ExpectTest("1+1", "2", "darttest:/foo.dart:1:16"),
+      new impl.ExpectTest("2+40", "42", "darttest:/foo.dart:2:16"),
+    ],
+  );
 
   // Two valid tests. Four invalid ones.
-  expect(extractTests("""
+  expect(
+    extractTests("""
 // DartDocTest(1+1, 2)
 // DartDocTest(2+40; 42]
 // DartDocTest(2+40+, 42]
 // DartDocTest(2+40, 42]
 // DartDocTest(2+40, 42)
 // DartDocTest(2+40, 42+)
-"""), <impl.Test>[
-    new impl.ExpectTest(
-      "1+1",
-      "2",
-      "darttest:/foo.dart:1:16",
-    ),
-    new impl.TestParseError(
-      """darttest:/foo.dart:2:20: Expected ',' before this.
+"""),
+    <impl.Test>[
+      new impl.ExpectTest("1+1", "2", "darttest:/foo.dart:1:16"),
+      new impl.TestParseError(
+        """darttest:/foo.dart:2:20: Expected ',' before this.
 // DartDocTest(2+40; 42]
                    ^""",
-      42,
-      "darttest:/foo.dart:2:20",
-    ),
-    new impl.TestParseError(
-      """Parse error(s):
+        42,
+        "darttest:/foo.dart:2:20",
+      ),
+      new impl.TestParseError(
+        """Parse error(s):
 
 darttest:/foo.dart:3:21: Expected an identifier, but got ','.
 // DartDocTest(2+40+, 42]
                     ^""",
-      68,
-      "darttest:/foo.dart:3:21",
-    ),
-    new impl.TestParseError(
-      """darttest:/foo.dart:4:24: Expected ')' before this.
+        68,
+        "darttest:/foo.dart:3:21",
+      ),
+      new impl.TestParseError(
+        """darttest:/foo.dart:4:24: Expected ')' before this.
 // DartDocTest(2+40, 42]
                        ^""",
-      97,
-      "darttest:/foo.dart:4:24",
-    ),
-    new impl.ExpectTest(
-      "2+40",
-      "42",
-      "darttest:/foo.dart:5:16",
-    ),
-    new impl.TestParseError(
-      """Parse error(s):
+        97,
+        "darttest:/foo.dart:4:24",
+      ),
+      new impl.ExpectTest("2+40", "42", "darttest:/foo.dart:5:16"),
+      new impl.TestParseError(
+        """Parse error(s):
 
 darttest:/foo.dart:6:25: Expected an identifier, but got ')'.
 // DartDocTest(2+40, 42+)
                         ^""",
-      148,
-      "darttest:/foo.dart:6:25",
-    ),
-  ]);
+        148,
+        "darttest:/foo.dart:6:25",
+      ),
+    ],
+  );
 
   // Two tests in block comments with back-ticks around tests.
-  expect(extractTests("""
+  expect(
+    extractTests("""
 /**
  * This is a test:
  * ```
@@ -368,13 +366,16 @@ darttest:/foo.dart:6:25: Expected an identifier, but got ')'.
  * DartDocTest(2+40, 42)
  * ```
  */
-"""), <impl.Test>[
-    new impl.ExpectTest("1+1", "2", "darttest:/foo.dart:4:16"),
-    new impl.ExpectTest("2+40", "42", "darttest:/foo.dart:8:16"),
-  ]);
+"""),
+    <impl.Test>[
+      new impl.ExpectTest("1+1", "2", "darttest:/foo.dart:4:16"),
+      new impl.ExpectTest("2+40", "42", "darttest:/foo.dart:8:16"),
+    ],
+  );
 
   // Two tests --- include linebreaks.
-  expect(extractTests("""
+  expect(
+    extractTests("""
 /*
   This is a test:
   DartDocTest(1+1,
@@ -384,53 +385,65 @@ darttest:/foo.dart:6:25: Expected an identifier, but got ')'.
   40,
   42)
  */
-"""), <impl.Test>[
-    new impl.ExpectTest("1+1", "2", "darttest:/foo.dart:3:15"),
-    // The linebreak etc here is not stripped (at the moment at least)
-    new impl.ExpectTest("2+\n  40", "42", "darttest:/foo.dart:6:15"),
-  ]);
+"""),
+    <impl.Test>[
+      new impl.ExpectTest("1+1", "2", "darttest:/foo.dart:3:15"),
+      // The linebreak etc here is not stripped (at the moment at least)
+      new impl.ExpectTest("2+\n  40", "42", "darttest:/foo.dart:6:15"),
+    ],
+  );
 
   // Two tests --- with parens and commas as string...
-  expect(extractTests("""
+  expect(
+    extractTests("""
 // DartDocTest("(", "(")
 // and so is this:
 // DartDocTest(",)", ",)")
-"""), <impl.Test>[
-    new impl.ExpectTest('"("', '"("', "darttest:/foo.dart:1:16"),
-    new impl.ExpectTest('",)"', '",)"', "darttest:/foo.dart:3:16"),
-  ]);
+"""),
+    <impl.Test>[
+      new impl.ExpectTest('"("', '"("', "darttest:/foo.dart:1:16"),
+      new impl.ExpectTest('",)"', '",)"', "darttest:/foo.dart:3:16"),
+    ],
+  );
 
   // Await expression.
-  expect(extractTests("""
+  expect(
+    extractTests("""
 // DartDocTest(await foo(), 42)
-"""), <impl.Test>[
-    new impl.ExpectTest('await foo()', '42', "darttest:/foo.dart:1:16"),
-  ]);
+"""),
+    <impl.Test>[
+      new impl.ExpectTest('await foo()', '42', "darttest:/foo.dart:1:16"),
+    ],
+  );
 
   // One throws test.
-  expect(extractTests("""
+  expect(
+    extractTests("""
     // not a test comment
     void foo_bar_long_name() {}
 
-    // DartDocTestThrows(1~/0)"""), <impl.Test>[
-    new impl.ThrowsTest("1~/0", "darttest:/foo.dart:4:26"),
-  ]);
+    // DartDocTestThrows(1~/0)"""),
+    <impl.Test>[new impl.ThrowsTest("1~/0", "darttest:/foo.dart:4:26")],
+  );
 
   // Mixture of expect and throws tests.
-  expect(extractTests("""
+  expect(
+    extractTests("""
     // not a test comment
     void foo_bar_long_name() {}
 
     // DartDocTestThrows(1~/0)
     // DartDocTest(1+1, 2)
     // DartDocTest(2+2, 4)
-    // DartDocTestThrows(2~/0)"""), <impl.Test>[
-    // For now the order is expect tests first.
-    new impl.ExpectTest("1+1", "2", "darttest:/foo.dart:5:20"),
-    new impl.ExpectTest("2+2", "4", "darttest:/foo.dart:6:20"),
-    new impl.ThrowsTest("1~/0", "darttest:/foo.dart:4:26"),
-    new impl.ThrowsTest("2~/0", "darttest:/foo.dart:7:26"),
-  ]);
+    // DartDocTestThrows(2~/0)"""),
+    <impl.Test>[
+      // For now the order is expect tests first.
+      new impl.ExpectTest("1+1", "2", "darttest:/foo.dart:5:20"),
+      new impl.ExpectTest("2+2", "4", "darttest:/foo.dart:6:20"),
+      new impl.ThrowsTest("1~/0", "darttest:/foo.dart:4:26"),
+      new impl.ThrowsTest("2~/0", "darttest:/foo.dart:7:26"),
+    ],
+  );
 }
 
 void testCommentExtraction() {
@@ -444,11 +457,14 @@ void testCommentExtraction() {
   );
 
   // Simple line comment at position 5.
-  expect(extractFirstComment("     // Hello"),
-      new impl.CommentString("   Hello", 5));
+  expect(
+    extractFirstComment("     // Hello"),
+    new impl.CommentString("   Hello", 5),
+  );
 
   // Multiline simple comment at position 20.
-  expect(extractFirstComment("""
+  expect(
+    extractFirstComment("""
 import 'foo.dart';
 
 // This is
@@ -456,14 +472,17 @@ import 'foo.dart';
 // multiline
 // comment
 
-import 'bar.dart'"""), new impl.CommentString("""
+import 'bar.dart'"""),
+    new impl.CommentString("""
    This is
    a
    multiline
-   comment""", 20));
+   comment""", 20),
+  );
 
   // Multiline simple comment (with 3 slashes) at position 20.
-  expect(extractFirstComment("""
+  expect(
+    extractFirstComment("""
 import 'foo.dart';
 
 /// This is
@@ -471,14 +490,17 @@ import 'foo.dart';
 /// multiline
 /// comment
 
-import 'bar.dart'"""), new impl.CommentString("""
+import 'bar.dart'"""),
+    new impl.CommentString("""
     This is
     a
     multiline
-    comment""", 20));
+    comment""", 20),
+  );
 
   // Multiline comments with /* at position 20.
-  expect(extractFirstComment("""
+  expect(
+    extractFirstComment("""
 import 'foo.dart';
 
 /* This is
@@ -487,17 +509,20 @@ a
 comment
 */
 
-import 'bar.dart'"""), new impl.CommentString("""
+import 'bar.dart'"""),
+    new impl.CommentString("""
    This is
 a
  multiline
 comment
-  """, 20));
+  """, 20),
+  );
 
   // Multiline comments with /* at position 20. Note that the comment has
   // * at the start of the line but that they aren't stripped because the
   // comments starts with /* and NOT with /**.
-  expect(extractFirstComment("""
+  expect(
+    extractFirstComment("""
 import 'foo.dart';
 
 /* This is
@@ -506,17 +531,20 @@ import 'foo.dart';
 *comment
 */
 
-import 'bar.dart'"""), new impl.CommentString("""
+import 'bar.dart'"""),
+    new impl.CommentString("""
    This is
 *a
 * multiline
 *comment
-  """, 20));
+  """, 20),
+  );
 
   // Multiline comments with /** */ at position 20. Note that the comment has
   // * at the start of the line and that they are stripped because the
   // comments starts with /** and NOT with only /*.
-  expect(extractFirstComment("""
+  expect(
+    extractFirstComment("""
 import 'foo.dart';
 
 /** This is
@@ -525,24 +553,29 @@ import 'foo.dart';
 *comment
 */
 
-import 'bar.dart'"""), new impl.CommentString("""
+import 'bar.dart'"""),
+    new impl.CommentString("""
     This is
  a
   multiline
  comment
-  """, 20));
+  """, 20),
+  );
 
   // Multiline comment with block comment inside at position 20.
   // The block comment data is not stripped.
-  expect(extractFirstComment("""
+  expect(
+    extractFirstComment("""
 import 'foo.dart';
 
 /// This is
 /// /*a*/
-/// multiline comment"""), new impl.CommentString("""
+/// multiline comment"""),
+    new impl.CommentString("""
     This is
     /*a*/
-    multiline comment""", 20));
+    multiline comment""", 20),
+  );
 }
 
 int expectCalls = 0;
@@ -569,19 +602,25 @@ bool _expectImpl(dynamic actual, dynamic expected, StringBuffer explainer) {
   if (actual == null || expected == null) return false;
   if (actual is List && expected is List) {
     if (actual.runtimeType != expected.runtimeType) {
-      explainer.write("List runtimeType difference: "
-          "${actual.runtimeType} vs ${expected.runtimeType}");
+      explainer.write(
+        "List runtimeType difference: "
+        "${actual.runtimeType} vs ${expected.runtimeType}",
+      );
       return false;
     }
     if (actual.length != expected.length) {
-      explainer.write("List length difference: "
-          "${actual.length} vs ${expected.length}");
+      explainer.write(
+        "List length difference: "
+        "${actual.length} vs ${expected.length}",
+      );
       return false;
     }
     for (int i = 0; i < actual.length; i++) {
       if (actual[i] != expected[i]) {
-        explainer.write("List difference at index $i:\n"
-            "${actual[i]}\nvs\n${expected[i]}");
+        explainer.write(
+          "List difference at index $i:\n"
+          "${actual[i]}\nvs\n${expected[i]}",
+        );
         return false;
       }
     }
@@ -632,5 +671,7 @@ impl.CommentString? extractFirstComment(String test) {
 
 List<impl.Test> extractTests(String test, [Uri? uri]) {
   return impl.extractTests(
-      utf8.encode(test), uri ?? new Uri(scheme: "darttest", path: "/foo.dart"));
+    utf8.encode(test),
+    uri ?? new Uri(scheme: "darttest", path: "/foo.dart"),
+  );
 }

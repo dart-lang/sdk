@@ -10,9 +10,12 @@ import 'source_type_parameter_builder.dart';
 class NominalParameterNameSpace {
   Map<String, SourceNominalParameterBuilder> _typeParametersByName = {};
 
-  void addTypeParameters(ProblemReporting _problemReporting,
-      List<SourceNominalParameterBuilder>? typeParameters,
-      {required String? ownerName, required bool allowNameConflict}) {
+  void addTypeParameters(
+    ProblemReporting _problemReporting,
+    List<SourceNominalParameterBuilder>? typeParameters, {
+    required String? ownerName,
+    required bool allowNameConflict,
+  }) {
     if (typeParameters == null || typeParameters.isEmpty) return;
     for (SourceNominalParameterBuilder tv in typeParameters) {
       SourceNominalParameterBuilder? existing = _typeParametersByName[tv.name];
@@ -24,14 +27,21 @@ class NominalParameterNameSpace {
           existing.parameter.name = '#${existing.name}';
           _typeParametersByName[tv.name] = tv;
         } else {
-          _problemReporting.addProblem(codeTypeParameterDuplicatedName,
-              tv.fileOffset, tv.name.length, tv.fileUri,
-              context: [
-                codeTypeParameterDuplicatedNameCause
-                    .withArguments(tv.name)
-                    .withLocation(existing.fileUri, existing.fileOffset,
-                        existing.name.length)
-              ]);
+          _problemReporting.addProblem(
+            codeTypeParameterDuplicatedName,
+            tv.fileOffset,
+            tv.name.length,
+            tv.fileUri,
+            context: [
+              codeTypeParameterDuplicatedNameCause
+                  .withArguments(tv.name)
+                  .withLocation(
+                    existing.fileUri,
+                    existing.fileOffset,
+                    existing.name.length,
+                  ),
+            ],
+          );
         }
       } else {
         _typeParametersByName[tv.name] = tv;
@@ -40,8 +50,12 @@ class NominalParameterNameSpace {
         // [#29555](https://github.com/dart-lang/sdk/issues/29555) and
         // [#54602](https://github.com/dart-lang/sdk/issues/54602).
         if (tv.name == ownerName && !allowNameConflict) {
-          _problemReporting.addProblem(codeTypeParameterSameNameAsEnclosing,
-              tv.fileOffset, tv.name.length, tv.fileUri);
+          _problemReporting.addProblem(
+            codeTypeParameterSameNameAsEnclosing,
+            tv.fileOffset,
+            tv.name.length,
+            tv.fileUri,
+          );
         }
       }
     }

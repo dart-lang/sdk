@@ -33,60 +33,74 @@ class DillTarget {
 
   final Benchmarker? benchmarker;
 
-  DillTarget(this.context, this.ticker, this.uriTranslator, this.backendTarget,
-      {this.benchmarker}) {
+  DillTarget(
+    this.context,
+    this.ticker,
+    this.uriTranslator,
+    this.backendTarget, {
+    this.benchmarker,
+  }) {
     loader = new DillLoader(this);
   }
 
   void loadExtraRequiredLibraries(DillLoader loader) {
     for (String uri in backendTarget.extraRequiredLibraries) {
-      loader.read(Uri.parse(uri), 0,
-          accessor: loader.coreLibraryCompilationUnit);
+      loader.read(
+        Uri.parse(uri),
+        0,
+        accessor: loader.coreLibraryCompilationUnit,
+      );
     }
     if (context.compilingPlatform) {
       // Coverage-ignore-block(suite): Not run.
       for (String uri in backendTarget.extraRequiredLibrariesPlatform) {
-        loader.read(Uri.parse(uri), 0,
-            accessor: loader.coreLibraryCompilationUnit);
+        loader.read(
+          Uri.parse(uri),
+          0,
+          accessor: loader.coreLibraryCompilationUnit,
+        );
       }
     }
   }
 
   FormattedMessage createFormattedMessage(
-      Message message,
-      int charOffset,
-      int length,
-      Uri? fileUri,
-      List<LocatedMessage>? messageContext,
-      CfeSeverity severity,
-      {List<Uri>? involvedFiles}) {
+    Message message,
+    int charOffset,
+    int length,
+    Uri? fileUri,
+    List<LocatedMessage>? messageContext,
+    CfeSeverity severity, {
+    List<Uri>? involvedFiles,
+  }) {
     ProcessedOptions processedOptions = context.options;
     return processedOptions.format(
-        context,
-        fileUri != null
-            ? message.withLocation(fileUri, charOffset, length)
-            :
+      context,
+      fileUri != null
+          ? message.withLocation(fileUri, charOffset, length)
+          :
             // Coverage-ignore(suite): Not run.
             message.withoutLocation(),
-        severity,
-        messageContext,
-        involvedFiles: involvedFiles);
+      severity,
+      messageContext,
+      involvedFiles: involvedFiles,
+    );
   }
 
   void buildOutlines({bool suppressFinalizationErrors = false}) {
     if (loader.libraries.isNotEmpty) {
       benchmarker
-          // Coverage-ignore(suite): Not run.
-          ?.enterPhase(BenchmarkPhases.dill_buildOutlines);
+      // Coverage-ignore(suite): Not run.
+      ?.enterPhase(BenchmarkPhases.dill_buildOutlines);
       loader.buildOutlines();
       benchmarker
-          // Coverage-ignore(suite): Not run.
-          ?.enterPhase(BenchmarkPhases.dill_finalizeExports);
+      // Coverage-ignore(suite): Not run.
+      ?.enterPhase(BenchmarkPhases.dill_finalizeExports);
       loader.finalizeExports(
-          suppressFinalizationErrors: suppressFinalizationErrors);
+        suppressFinalizationErrors: suppressFinalizationErrors,
+      );
       benchmarker
-          // Coverage-ignore(suite): Not run.
-          ?.enterPhase(BenchmarkPhases.unknownDillTarget);
+      // Coverage-ignore(suite): Not run.
+      ?.enterPhase(BenchmarkPhases.unknownDillTarget);
     }
     isLoaded = true;
   }

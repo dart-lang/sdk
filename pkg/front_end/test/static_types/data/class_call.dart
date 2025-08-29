@@ -13,10 +13,9 @@ class Class {
   int method() =>
       /*ClassWithCall!*/
       classWithCall
-              /*invoke: ClassWithCall!*/
-              ()
-          . /*invoke: int!*/
-          method();
+          /*invoke: ClassWithCall!*/
+          ()
+          . /*invoke: int!*/ method();
 }
 
 abstract class GenericClassWithCall<T> {
@@ -33,12 +32,13 @@ class GenericClass<S, T extends GenericClassWithCall<S>> {
 }
 
 main() {
-  new /*GenericClass<String!,GenericClassWithCall<String!>!>!*/
-      GenericClass<String, GenericClassWithCall<String>>
-          /*<String!,GenericClassWithCall<String!>!>*/
-          ()
-      . /*GenericClassWithCall<GenericClassWithCall<String!>!>!*/
-      classWithCall
+  new /*GenericClass<String!,GenericClassWithCall<String!>!>!*/ GenericClass<
+        String,
+        GenericClassWithCall<String>
+      >
+      /*<String!,GenericClassWithCall<String!>!>*/
+      ()
+      . /*GenericClassWithCall<GenericClassWithCall<String!>!>!*/ classWithCall
       /*invoke: GenericClassWithCall<String!>!*/
       ()
       . /*invoke: String!*/ method();

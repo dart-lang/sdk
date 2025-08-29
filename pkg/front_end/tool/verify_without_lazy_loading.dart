@@ -23,7 +23,9 @@ void main(List<String> args) {
 
 Component loadComponent(File f) {
   Component component = new Component();
-  new BinaryBuilder(f.readAsBytesSync(), disableLazyReading: true)
-      .readComponent(component);
+  new BinaryBuilder(
+    f.readAsBytesSync(),
+    disableLazyReading: true,
+  ).readComponent(component);
   return component;
 }

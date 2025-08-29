@@ -39,8 +39,10 @@ class StringValue extends Value<String> {
   String read(dynamic value, {String context = ''}) {
     if (value is String) {
       if (options != null && !options!.contains(value)) {
-        throw new ArgumentError("${context}Unexpected value '${value}'. "
-            "Expected one of: ${options!.join(',')}.");
+        throw new ArgumentError(
+          "${context}Unexpected value '${value}'. "
+          "Expected one of: ${options!.join(',')}.",
+        );
       }
       return value;
     } else {
@@ -126,8 +128,10 @@ class EnumValue<E extends Enum> extends Value<E> {
           return enumValue;
         }
       }
-      throw new ArgumentError("${context}Unexpected value: '${value}'. "
-          "Expected one of: ${enumValues.map((e) => e.name).join(',')}.");
+      throw new ArgumentError(
+        "${context}Unexpected value: '${value}'. "
+        "Expected one of: ${enumValues.map((e) => e.name).join(',')}.",
+      );
     } else {
       throw new ArgumentError("${context}Value must be a string.");
     }
@@ -171,15 +175,15 @@ class Property<T> {
   /// Creates a required property with given [name] that uses [valueReader] to
   /// decode its value.
   const Property.required(this.name, this.valueReader)
-      : required = true,
-        defaultValue = null,
-        assert(null is! T);
+    : required = true,
+      defaultValue = null,
+      assert(null is! T);
 
   /// Creates an optional property with given [name] that uses [valueReader] to
   /// decode its value when present and [defaultValue] if omitted.
   const Property.optional(this.name, this.valueReader, {this.defaultValue})
-      : required = false,
-        assert(defaultValue is T);
+    : required = false,
+      assert(defaultValue is T);
 
   /// Reads this property from [map].
   ///

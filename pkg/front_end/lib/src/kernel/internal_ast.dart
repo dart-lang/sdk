@@ -34,8 +34,14 @@ import '../type_inference/inference_results.dart';
 import '../type_inference/inference_visitor.dart';
 import '../type_inference/type_schema.dart' show UnknownType;
 
-typedef SharedMatchContext = shared.MatchContext<TreeNode, Expression, Pattern,
-    SharedTypeView, VariableDeclaration>;
+typedef SharedMatchContext =
+    shared.MatchContext<
+      TreeNode,
+      Expression,
+      Pattern,
+      SharedTypeView,
+      VariableDeclaration
+    >;
 
 // Coverage-ignore(suite): Not run.
 int getExtensionTypeParameterCount(Arguments arguments) {
@@ -172,14 +178,20 @@ mixin InternalTreeNode implements TreeNode {
   // Coverage-ignore(suite): Not run.
   void transformChildren(Transformer v) {
     unsupported(
-        "${runtimeType}.transformChildren on ${v.runtimeType}", -1, null);
+      "${runtimeType}.transformChildren on ${v.runtimeType}",
+      -1,
+      null,
+    );
   }
 
   @override
   // Coverage-ignore(suite): Not run.
   void transformOrRemoveChildren(RemovingTransformer v) {
-    unsupported("${runtimeType}.transformOrRemoveChildren on ${v.runtimeType}",
-        -1, null);
+    unsupported(
+      "${runtimeType}.transformOrRemoveChildren on ${v.runtimeType}",
+      -1,
+      null,
+    );
   }
 
   @override
@@ -199,11 +211,17 @@ abstract class InternalStatement extends AuxiliaryStatement {
 
   @override
   void transformChildren(Transformer v) => unsupported(
-      "${runtimeType}.transformChildren on ${v.runtimeType}", -1, null);
+    "${runtimeType}.transformChildren on ${v.runtimeType}",
+    -1,
+    null,
+  );
 
   @override
   void transformOrRemoveChildren(RemovingTransformer v) => unsupported(
-      "${runtimeType}.transformOrRemoveChildren on ${v.runtimeType}", -1, null);
+    "${runtimeType}.transformOrRemoveChildren on ${v.runtimeType}",
+    -1,
+    null,
+  );
 
   @override
   void visitChildren(Visitor v) =>
@@ -222,9 +240,15 @@ class ForInStatementWithSynthesizedVariable extends InternalStatement {
   final bool hasProblem;
   int bodyOffset = TreeNode.noOffset;
 
-  ForInStatementWithSynthesizedVariable(this.variable, this.iterable,
-      this.syntheticAssignment, this.expressionEffects, this.body,
-      {required this.isAsync, required this.hasProblem}) {
+  ForInStatementWithSynthesizedVariable(
+    this.variable,
+    this.iterable,
+    this.syntheticAssignment,
+    this.expressionEffects,
+    this.body, {
+    required this.isAsync,
+    required this.hasProblem,
+  }) {
     variable?.parent = this;
     iterable.parent = this;
     syntheticAssignment?.parent = this;
@@ -290,10 +314,14 @@ class SwitchCaseImpl extends SwitchCase {
   final List<int> caseOffsets;
   final bool hasLabel;
 
-  SwitchCaseImpl(this.caseOffsets, List<Expression> expressions,
-      List<int> expressionOffsets, Statement body,
-      {bool isDefault = false, required this.hasLabel})
-      : super(expressions, expressionOffsets, body, isDefault: isDefault);
+  SwitchCaseImpl(
+    this.caseOffsets,
+    List<Expression> expressions,
+    List<int> expressionOffsets,
+    Statement body, {
+    bool isDefault = false,
+    required this.hasLabel,
+  }) : super(expressions, expressionOffsets, body, isDefault: isDefault);
 
   @override
   String toString() {
@@ -354,7 +382,9 @@ abstract class InternalExpression extends AuxiliaryExpression {
       unsupported("${runtimeType}.transformOrRemoveChildren", -1, null);
 
   ExpressionInferenceResult acceptInference(
-      InferenceVisitorImpl visitor, DartType typeContext);
+    InferenceVisitorImpl visitor,
+    DartType typeContext,
+  );
 
   @override
   void toTextInternal(AstPrinter printer) {
@@ -404,79 +434,95 @@ class ArgumentsImpl extends Arguments {
   /// super-positional, the field is null.
   Set<String>? namedSuperParameterNames;
 
-  ArgumentsImpl.internal(
-      {required List<Expression> positional,
-      required List<DartType>? types,
-      required List<NamedExpression>? named,
-      required int extensionTypeParameterCount,
-      required int explicitExtensionTypeArgumentCount,
-      required int? extensionTypeArgumentOffset,
-      required int explicitTypeArgumentCount})
-      : this._extensionTypeParameterCount = extensionTypeParameterCount,
-        this._explicitExtensionTypeArgumentCount =
-            explicitExtensionTypeArgumentCount,
-        this._extensionTypeArgumentOffset = extensionTypeArgumentOffset,
-        this._explicitTypeArgumentCount = explicitTypeArgumentCount,
-        this.argumentsOriginalOrder = null,
-        super(positional, types: types, named: named);
+  ArgumentsImpl.internal({
+    required List<Expression> positional,
+    required List<DartType>? types,
+    required List<NamedExpression>? named,
+    required int extensionTypeParameterCount,
+    required int explicitExtensionTypeArgumentCount,
+    required int? extensionTypeArgumentOffset,
+    required int explicitTypeArgumentCount,
+  }) : this._extensionTypeParameterCount = extensionTypeParameterCount,
+       this._explicitExtensionTypeArgumentCount =
+           explicitExtensionTypeArgumentCount,
+       this._extensionTypeArgumentOffset = extensionTypeArgumentOffset,
+       this._explicitTypeArgumentCount = explicitTypeArgumentCount,
+       this.argumentsOriginalOrder = null,
+       super(positional, types: types, named: named);
 
-  ArgumentsImpl(List<Expression> positional,
-      {List<DartType>? types,
-      List<NamedExpression>? named,
-      this.argumentsOriginalOrder})
-      : _explicitTypeArgumentCount = types?.length ?? 0,
-        _extensionTypeParameterCount = 0,
-        _explicitExtensionTypeArgumentCount = 0,
-        // The offset is unused in this case.
-        _extensionTypeArgumentOffset = null,
-        super(positional, types: types, named: named);
+  ArgumentsImpl(
+    List<Expression> positional, {
+    List<DartType>? types,
+    List<NamedExpression>? named,
+    this.argumentsOriginalOrder,
+  }) : _explicitTypeArgumentCount = types?.length ?? 0,
+       _extensionTypeParameterCount = 0,
+       _explicitExtensionTypeArgumentCount = 0,
+       // The offset is unused in this case.
+       _extensionTypeArgumentOffset = null,
+       super(positional, types: types, named: named);
 
   ArgumentsImpl.empty()
-      : _explicitTypeArgumentCount = 0,
-        _extensionTypeArgumentOffset = -1,
-        _explicitExtensionTypeArgumentCount = 0,
-        _extensionTypeParameterCount = 0,
-        super.empty();
+    : _explicitTypeArgumentCount = 0,
+      _extensionTypeArgumentOffset = -1,
+      _explicitExtensionTypeArgumentCount = 0,
+      _extensionTypeParameterCount = 0,
+      super.empty();
 
-  ArgumentsImpl.forExtensionMethod(int extensionTypeParameterCount,
-      int typeParameterCount, Expression receiver,
-      {List<DartType> extensionTypeArguments = const <DartType>[],
-      int? extensionTypeArgumentOffset,
-      List<DartType> typeArguments = const <DartType>[],
-      List<Expression> positionalArguments = const <Expression>[],
-      List<NamedExpression> namedArguments = const <NamedExpression>[],
-      this.argumentsOriginalOrder})
-      : _extensionTypeParameterCount = extensionTypeParameterCount,
-        _explicitExtensionTypeArgumentCount = extensionTypeArguments.length,
-        _explicitTypeArgumentCount = typeArguments.length,
-        _extensionTypeArgumentOffset = extensionTypeArgumentOffset,
-        assert(
-            extensionTypeArguments.isEmpty ||
-                extensionTypeArguments.length == extensionTypeParameterCount,
-            "Extension type arguments must be empty or complete."),
-        super(<Expression>[receiver]..addAll(positionalArguments),
-            named: namedArguments,
-            types: <DartType>[]
-              ..addAll(_normalizeTypeArguments(
-                  extensionTypeParameterCount, extensionTypeArguments))
-              ..addAll(
-                  _normalizeTypeArguments(typeParameterCount, typeArguments)));
+  ArgumentsImpl.forExtensionMethod(
+    int extensionTypeParameterCount,
+    int typeParameterCount,
+    Expression receiver, {
+    List<DartType> extensionTypeArguments = const <DartType>[],
+    int? extensionTypeArgumentOffset,
+    List<DartType> typeArguments = const <DartType>[],
+    List<Expression> positionalArguments = const <Expression>[],
+    List<NamedExpression> namedArguments = const <NamedExpression>[],
+    this.argumentsOriginalOrder,
+  }) : _extensionTypeParameterCount = extensionTypeParameterCount,
+       _explicitExtensionTypeArgumentCount = extensionTypeArguments.length,
+       _explicitTypeArgumentCount = typeArguments.length,
+       _extensionTypeArgumentOffset = extensionTypeArgumentOffset,
+       assert(
+         extensionTypeArguments.isEmpty ||
+             extensionTypeArguments.length == extensionTypeParameterCount,
+         "Extension type arguments must be empty or complete.",
+       ),
+       super(
+         <Expression>[receiver]..addAll(positionalArguments),
+         named: namedArguments,
+         types: <DartType>[]
+           ..addAll(
+             _normalizeTypeArguments(
+               extensionTypeParameterCount,
+               extensionTypeArguments,
+             ),
+           )
+           ..addAll(_normalizeTypeArguments(typeParameterCount, typeArguments)),
+       );
 
-  static ArgumentsImpl clone(ArgumentsImpl node, List<Expression> positional,
-      List<NamedExpression> named, List<DartType> types) {
+  static ArgumentsImpl clone(
+    ArgumentsImpl node,
+    List<Expression> positional,
+    List<NamedExpression> named,
+    List<DartType> types,
+  ) {
     return new ArgumentsImpl.internal(
-        positional: positional,
-        named: named,
-        types: types,
-        extensionTypeParameterCount: node._extensionTypeParameterCount,
-        explicitExtensionTypeArgumentCount:
-            node._explicitExtensionTypeArgumentCount,
-        explicitTypeArgumentCount: node._explicitTypeArgumentCount,
-        extensionTypeArgumentOffset: node._extensionTypeArgumentOffset);
+      positional: positional,
+      named: named,
+      types: types,
+      extensionTypeParameterCount: node._extensionTypeParameterCount,
+      explicitExtensionTypeArgumentCount:
+          node._explicitExtensionTypeArgumentCount,
+      explicitTypeArgumentCount: node._explicitTypeArgumentCount,
+      extensionTypeArgumentOffset: node._extensionTypeArgumentOffset,
+    );
   }
 
   static List<DartType> _normalizeTypeArguments(
-      int length, List<DartType> arguments) {
+    int length,
+    List<DartType> arguments,
+  ) {
     if (arguments.isEmpty && length > 0) {
       // Coverage-ignore-block(suite): Not run.
       return new List<DartType>.filled(length, const UnknownType());
@@ -485,7 +531,9 @@ class ArgumentsImpl extends Arguments {
   }
 
   static void setNonInferrableArgumentTypes(
-      ArgumentsImpl arguments, List<DartType> types) {
+    ArgumentsImpl arguments,
+    List<DartType> types,
+  ) {
     arguments.types.clear();
     arguments.types.addAll(types);
     arguments._explicitTypeArgumentCount = types.length;
@@ -536,7 +584,9 @@ class Cascade extends InternalExpression {
 
   @override
   ExpressionInferenceResult acceptInference(
-      InferenceVisitorImpl visitor, DartType typeContext) {
+    InferenceVisitorImpl visitor,
+    DartType typeContext,
+  ) {
     return visitor.visitCascade(this, typeContext);
   }
 
@@ -586,7 +636,9 @@ class DeferredCheck extends InternalExpression {
 
   @override
   ExpressionInferenceResult acceptInference(
-      InferenceVisitorImpl visitor, DartType typeContext) {
+    InferenceVisitorImpl visitor,
+    DartType typeContext,
+  ) {
     return visitor.visitDeferredCheck(this, typeContext);
   }
 
@@ -611,7 +663,9 @@ abstract class ExpressionJudgment extends AuxiliaryExpression {
   /// Calls back to [inferrer] to perform type inference for whatever concrete
   /// type of [Expression] this is.
   ExpressionInferenceResult acceptInference(
-      InferenceVisitorImpl visitor, DartType typeContext);
+    InferenceVisitorImpl visitor,
+    DartType typeContext,
+  );
 }
 
 /// Shadow object for [StaticInvocation] when the procedure being invoked is a
@@ -620,13 +674,17 @@ class FactoryConstructorInvocation extends StaticInvocation
     implements ExpressionJudgment {
   bool hasBeenInferred = false;
 
-  FactoryConstructorInvocation(Procedure target, Arguments arguments,
-      {bool isConst = false})
-      : super(target, arguments, isConst: isConst);
+  FactoryConstructorInvocation(
+    Procedure target,
+    Arguments arguments, {
+    bool isConst = false,
+  }) : super(target, arguments, isConst: isConst);
 
   @override
   ExpressionInferenceResult acceptInference(
-      InferenceVisitorImpl visitor, DartType typeContext) {
+    InferenceVisitorImpl visitor,
+    DartType typeContext,
+  ) {
     return visitor.visitFactoryConstructorInvocation(this, typeContext);
   }
 
@@ -661,13 +719,17 @@ class TypeAliasedConstructorInvocation extends ConstructorInvocation
   final TypeAliasBuilder typeAliasBuilder;
 
   TypeAliasedConstructorInvocation(
-      this.typeAliasBuilder, Constructor target, Arguments arguments,
-      {bool isConst = false})
-      : super(target, arguments, isConst: isConst);
+    this.typeAliasBuilder,
+    Constructor target,
+    Arguments arguments, {
+    bool isConst = false,
+  }) : super(target, arguments, isConst: isConst);
 
   @override
   ExpressionInferenceResult acceptInference(
-      InferenceVisitorImpl visitor, DartType typeContext) {
+    InferenceVisitorImpl visitor,
+    DartType typeContext,
+  ) {
     return visitor.visitTypeAliasedConstructorInvocation(this, typeContext);
   }
 
@@ -702,13 +764,17 @@ class TypeAliasedFactoryInvocation extends StaticInvocation
   final TypeAliasBuilder typeAliasBuilder;
 
   TypeAliasedFactoryInvocation(
-      this.typeAliasBuilder, Procedure target, Arguments arguments,
-      {bool isConst = false})
-      : super(target, arguments, isConst: isConst);
+    this.typeAliasBuilder,
+    Procedure target,
+    Arguments arguments, {
+    bool isConst = false,
+  }) : super(target, arguments, isConst: isConst);
 
   @override
   ExpressionInferenceResult acceptInference(
-      InferenceVisitorImpl visitor, DartType typeContext) {
+    InferenceVisitorImpl visitor,
+    DartType typeContext,
+  ) {
     return visitor.visitTypeAliasedFactoryInvocation(this, typeContext);
   }
 
@@ -740,10 +806,12 @@ class FunctionDeclarationImpl extends FunctionDeclaration {
   bool hasImplicitReturnType = false;
 
   FunctionDeclarationImpl(VariableDeclaration variable, FunctionNode function)
-      : super(variable, function);
+    : super(variable, function);
 
   static void setHasImplicitReturnType(
-      FunctionDeclarationImpl declaration, bool hasImplicitReturnType) {
+    FunctionDeclarationImpl declaration,
+    bool hasImplicitReturnType,
+  ) {
     declaration.hasImplicitReturnType = hasImplicitReturnType;
   }
 
@@ -770,7 +838,9 @@ class IfNullExpression extends InternalExpression {
 
   @override
   ExpressionInferenceResult acceptInference(
-      InferenceVisitorImpl visitor, DartType typeContext) {
+    InferenceVisitorImpl visitor,
+    DartType typeContext,
+  ) {
     return visitor.visitIfNullExpression(this, typeContext);
   }
 
@@ -784,8 +854,10 @@ class IfNullExpression extends InternalExpression {
   void toTextInternal(AstPrinter printer) {
     printer.writeExpression(left, minimumPrecedence: Precedence.CONDITIONAL);
     printer.write(' ?? ');
-    printer.writeExpression(right,
-        minimumPrecedence: Precedence.CONDITIONAL + 1);
+    printer.writeExpression(
+      right,
+      minimumPrecedence: Precedence.CONDITIONAL + 1,
+    );
   }
 }
 
@@ -817,7 +889,9 @@ class IntJudgment extends IntLiteral implements ExpressionJudgment {
 
   @override
   ExpressionInferenceResult acceptInference(
-      InferenceVisitorImpl visitor, DartType typeContext) {
+    InferenceVisitorImpl visitor,
+    DartType typeContext,
+  ) {
     return visitor.visitIntJudgment(this, typeContext);
   }
 
@@ -848,11 +922,12 @@ class ShadowLargeIntLiteral extends IntLiteral implements ExpressionJudgment {
   bool isParenthesized = false;
 
   ShadowLargeIntLiteral(this._strippedLiteral, this.literal, this.fileOffset)
-      : super(0);
+    : super(0);
 
   double? asDouble({bool negated = false}) {
-    BigInt? intValue =
-        BigInt.tryParse(negated ? '-${_strippedLiteral}' : _strippedLiteral);
+    BigInt? intValue = BigInt.tryParse(
+      negated ? '-${_strippedLiteral}' : _strippedLiteral,
+    );
     if (intValue == null) {
       return null;
     }
@@ -870,7 +945,9 @@ class ShadowLargeIntLiteral extends IntLiteral implements ExpressionJudgment {
 
   @override
   ExpressionInferenceResult acceptInference(
-      InferenceVisitorImpl visitor, DartType typeContext) {
+    InferenceVisitorImpl visitor,
+    DartType typeContext,
+  ) {
     return visitor.visitShadowLargeIntLiteral(this, typeContext);
   }
 
@@ -909,7 +986,7 @@ class ShadowInvalidFieldInitializer extends LocalInitializer
   Expression value;
 
   ShadowInvalidFieldInitializer(this.fieldType, this.value, Expression effect)
-      : super(new VariableDeclaration.forValue(effect)) {
+    : super(new VariableDeclaration.forValue(effect)) {
     value.parent = this;
   }
 
@@ -935,7 +1012,9 @@ class ExpressionInvocation extends InternalExpression {
 
   @override
   ExpressionInferenceResult acceptInference(
-      InferenceVisitorImpl visitor, DartType typeContext) {
+    InferenceVisitorImpl visitor,
+    DartType typeContext,
+  ) {
     return visitor.visitExpressionInvocation(this, typeContext);
   }
 
@@ -957,7 +1036,7 @@ class ReturnStatementImpl extends ReturnStatement {
   final bool isArrow;
 
   ReturnStatementImpl(this.isArrow, [Expression? expression])
-      : super(expression);
+    : super(expression);
 
   @override
   String toString() {
@@ -1007,53 +1086,56 @@ class VariableDeclarationImpl extends VariableDeclaration {
   /// used.
   bool isStaticLate;
 
-  VariableDeclarationImpl(String? name,
-      {this.forSyntheticToken = false,
-      bool hasDeclaredInitializer = false,
-      Expression? initializer,
-      DartType? type,
-      bool isFinal = false,
-      bool isConst = false,
-      bool isInitializingFormal = false,
-      bool isSuperInitializingFormal = false,
-      bool isCovariantByDeclaration = false,
-      bool isLocalFunction = false,
-      bool isLate = false,
-      bool isRequired = false,
-      bool isLowered = false,
-      bool isSynthesized = false,
-      this.isStaticLate = false,
-      bool isWildcard = false})
-      : isImplicitlyTyped = type == null,
-        isLocalFunction = isLocalFunction,
-        super(name,
-            initializer: initializer,
-            type: type ?? const DynamicType(),
-            isFinal: isFinal,
-            isConst: isConst,
-            isInitializingFormal: isInitializingFormal,
-            isSuperInitializingFormal: isSuperInitializingFormal,
-            isCovariantByDeclaration: isCovariantByDeclaration,
-            isLate: isLate,
-            isRequired: isRequired,
-            isLowered: isLowered,
-            isSynthesized: isSynthesized,
-            hasDeclaredInitializer: hasDeclaredInitializer,
-            isWildcard: isWildcard);
+  VariableDeclarationImpl(
+    String? name, {
+    this.forSyntheticToken = false,
+    bool hasDeclaredInitializer = false,
+    Expression? initializer,
+    DartType? type,
+    bool isFinal = false,
+    bool isConst = false,
+    bool isInitializingFormal = false,
+    bool isSuperInitializingFormal = false,
+    bool isCovariantByDeclaration = false,
+    bool isLocalFunction = false,
+    bool isLate = false,
+    bool isRequired = false,
+    bool isLowered = false,
+    bool isSynthesized = false,
+    this.isStaticLate = false,
+    bool isWildcard = false,
+  }) : isImplicitlyTyped = type == null,
+       isLocalFunction = isLocalFunction,
+       super(
+         name,
+         initializer: initializer,
+         type: type ?? const DynamicType(),
+         isFinal: isFinal,
+         isConst: isConst,
+         isInitializingFormal: isInitializingFormal,
+         isSuperInitializingFormal: isSuperInitializingFormal,
+         isCovariantByDeclaration: isCovariantByDeclaration,
+         isLate: isLate,
+         isRequired: isRequired,
+         isLowered: isLowered,
+         isSynthesized: isSynthesized,
+         hasDeclaredInitializer: hasDeclaredInitializer,
+         isWildcard: isWildcard,
+       );
 
   VariableDeclarationImpl.forEffect(Expression initializer)
-      : forSyntheticToken = false,
-        isImplicitlyTyped = false,
-        isLocalFunction = false,
-        isStaticLate = false,
-        super.forValue(initializer);
+    : forSyntheticToken = false,
+      isImplicitlyTyped = false,
+      isLocalFunction = false,
+      isStaticLate = false,
+      super.forValue(initializer);
 
   VariableDeclarationImpl.forValue(Expression initializer)
-      : forSyntheticToken = false,
-        isImplicitlyTyped = true,
-        isLocalFunction = false,
-        isStaticLate = false,
-        super.forValue(initializer);
+    : forSyntheticToken = false,
+      isImplicitlyTyped = true,
+      isLocalFunction = false,
+      isStaticLate = false,
+      super.forValue(initializer);
 
   // The synthesized local getter function for a lowered late variable.
   //
@@ -1095,8 +1177,11 @@ class VariableDeclarationImpl extends VariableDeclaration {
   @override
   // Coverage-ignore(suite): Not run.
   void toTextInternal(AstPrinter printer) {
-    printer.writeVariableDeclaration(this,
-        isLate: isLate || lateGetter != null, type: lateType ?? type);
+    printer.writeVariableDeclaration(
+      this,
+      isLate: isLate || lateGetter != null,
+      type: lateType ?? type,
+    );
     printer.write(';');
   }
 
@@ -1139,7 +1224,9 @@ class LoadLibraryTearOff extends InternalExpression {
 
   @override
   ExpressionInferenceResult acceptInference(
-      InferenceVisitorImpl visitor, DartType typeContext) {
+    InferenceVisitorImpl visitor,
+    DartType typeContext,
+  ) {
     return visitor.visitLoadLibraryTearOff(this, typeContext);
   }
 
@@ -1189,18 +1276,24 @@ class IfNullPropertySet extends InternalExpression {
   /// `true` if the access is null-aware, i.e. of the form `o?.a ??= b`.
   final bool isNullAware;
 
-  IfNullPropertySet(this.receiver, this.propertyName, this.rhs,
-      {required this.forEffect,
-      required this.readOffset,
-      required this.writeOffset,
-      required this.isNullAware}) {
+  IfNullPropertySet(
+    this.receiver,
+    this.propertyName,
+    this.rhs, {
+    required this.forEffect,
+    required this.readOffset,
+    required this.writeOffset,
+    required this.isNullAware,
+  }) {
     receiver.parent = this;
     rhs.parent = this;
   }
 
   @override
   ExpressionInferenceResult acceptInference(
-      InferenceVisitorImpl visitor, DartType typeContext) {
+    InferenceVisitorImpl visitor,
+    DartType typeContext,
+  ) {
     return visitor.visitIfNullPropertySet(this, typeContext);
   }
 
@@ -1251,7 +1344,9 @@ class IfNullSet extends InternalExpression {
 
   @override
   ExpressionInferenceResult acceptInference(
-      InferenceVisitorImpl visitor, DartType typeContext) {
+    InferenceVisitorImpl visitor,
+    DartType typeContext,
+  ) {
     return visitor.visitIfNullSet(this, typeContext);
   }
 
@@ -1340,68 +1435,92 @@ class ExtensionIfNullSet extends InternalExpression {
   /// not implicit like `a ??= b` inside the extension `E`.
   final bool _isExplicit;
 
-  ExtensionIfNullSet.explicit(
-      {required Extension extension,
-      required List<DartType>? explicitTypeArguments,
-      required Expression receiver,
-      required Name propertyName,
-      required Procedure getter,
-      required Expression rhs,
-      required Procedure setter,
-      required bool forEffect,
-      required int readOffset,
-      required int binaryOffset,
-      required int writeOffset,
-      required bool isNullAware})
-      : this._(extension, explicitTypeArguments, receiver, propertyName, getter,
-            rhs, setter,
-            forEffect: forEffect,
-            readOffset: readOffset,
-            binaryOffset: binaryOffset,
-            writeOffset: writeOffset,
-            isNullAware: isNullAware,
-            isExplicit: true);
+  ExtensionIfNullSet.explicit({
+    required Extension extension,
+    required List<DartType>? explicitTypeArguments,
+    required Expression receiver,
+    required Name propertyName,
+    required Procedure getter,
+    required Expression rhs,
+    required Procedure setter,
+    required bool forEffect,
+    required int readOffset,
+    required int binaryOffset,
+    required int writeOffset,
+    required bool isNullAware,
+  }) : this._(
+         extension,
+         explicitTypeArguments,
+         receiver,
+         propertyName,
+         getter,
+         rhs,
+         setter,
+         forEffect: forEffect,
+         readOffset: readOffset,
+         binaryOffset: binaryOffset,
+         writeOffset: writeOffset,
+         isNullAware: isNullAware,
+         isExplicit: true,
+       );
 
-  ExtensionIfNullSet.implicit(
-      {required Extension extension,
-      required List<DartType>? thisTypeArguments,
-      required Expression thisAccess,
-      required Name propertyName,
-      required Procedure getter,
-      required Expression rhs,
-      required Procedure setter,
-      required bool forEffect,
-      required int readOffset,
-      required int binaryOffset,
-      required int writeOffset})
-      : this._(extension, thisTypeArguments, thisAccess, propertyName, getter,
-            rhs, setter,
-            forEffect: forEffect,
-            readOffset: readOffset,
-            binaryOffset: binaryOffset,
-            writeOffset: writeOffset,
-            isNullAware: false,
-            isExplicit: false);
+  ExtensionIfNullSet.implicit({
+    required Extension extension,
+    required List<DartType>? thisTypeArguments,
+    required Expression thisAccess,
+    required Name propertyName,
+    required Procedure getter,
+    required Expression rhs,
+    required Procedure setter,
+    required bool forEffect,
+    required int readOffset,
+    required int binaryOffset,
+    required int writeOffset,
+  }) : this._(
+         extension,
+         thisTypeArguments,
+         thisAccess,
+         propertyName,
+         getter,
+         rhs,
+         setter,
+         forEffect: forEffect,
+         readOffset: readOffset,
+         binaryOffset: binaryOffset,
+         writeOffset: writeOffset,
+         isNullAware: false,
+         isExplicit: false,
+       );
 
-  ExtensionIfNullSet._(this.extension, this.knownTypeArguments, this.receiver,
-      this.propertyName, this.getter, this.rhs, this.setter,
-      {required this.forEffect,
-      required this.readOffset,
-      required this.binaryOffset,
-      required this.writeOffset,
-      required this.isNullAware,
-      required bool isExplicit})
-      : _isExplicit = isExplicit,
-        assert(knownTypeArguments == null ||
-            extension.typeParameters.isNotEmpty &&
-                knownTypeArguments.length == extension.typeParameters.length) {
+  ExtensionIfNullSet._(
+    this.extension,
+    this.knownTypeArguments,
+    this.receiver,
+    this.propertyName,
+    this.getter,
+    this.rhs,
+    this.setter, {
+    required this.forEffect,
+    required this.readOffset,
+    required this.binaryOffset,
+    required this.writeOffset,
+    required this.isNullAware,
+    required bool isExplicit,
+  }) : _isExplicit = isExplicit,
+       assert(
+         knownTypeArguments == null ||
+             extension.typeParameters.isNotEmpty &&
+                 knownTypeArguments.length == extension.typeParameters.length,
+       ) {
     receiver.parent = this;
     rhs.parent = this;
   }
 
   @override
   ExpressionInferenceResult acceptInference(
-      InferenceVisitorImpl visitor, DartType typeContext) {
+    InferenceVisitorImpl visitor,
+    DartType typeContext,
+  ) {
     return visitor.visitExtensionIfNullSet(this, typeContext);
   }
 
@@ -1504,70 +1623,97 @@ class ExtensionCompoundSet extends InternalExpression {
   /// not implicit like `a += b` inside the extension `E`.
   final bool _isExplicit;
 
-  ExtensionCompoundSet.explicit(
-      {required Extension extension,
-      required List<DartType>? explicitTypeArguments,
-      required Expression receiver,
-      required Name propertyName,
-      required Procedure getter,
-      required Name binaryName,
-      required Expression rhs,
-      required Procedure setter,
-      required bool forEffect,
-      required int readOffset,
-      required int binaryOffset,
-      required int writeOffset,
-      required bool isNullAware})
-      : this._(extension, explicitTypeArguments, receiver, propertyName, getter,
-            binaryName, rhs, setter,
-            forEffect: forEffect,
-            readOffset: readOffset,
-            binaryOffset: binaryOffset,
-            writeOffset: writeOffset,
-            isNullAware: isNullAware,
-            isExplicit: true);
+  ExtensionCompoundSet.explicit({
+    required Extension extension,
+    required List<DartType>? explicitTypeArguments,
+    required Expression receiver,
+    required Name propertyName,
+    required Procedure getter,
+    required Name binaryName,
+    required Expression rhs,
+    required Procedure setter,
+    required bool forEffect,
+    required int readOffset,
+    required int binaryOffset,
+    required int writeOffset,
+    required bool isNullAware,
+  }) : this._(
+         extension,
+         explicitTypeArguments,
+         receiver,
+         propertyName,
+         getter,
+         binaryName,
+         rhs,
+         setter,
+         forEffect: forEffect,
+         readOffset: readOffset,
+         binaryOffset: binaryOffset,
+         writeOffset: writeOffset,
+         isNullAware: isNullAware,
+         isExplicit: true,
+       );
 
-  ExtensionCompoundSet.implicit(
-      {required Extension extension,
-      required List<DartType>? thisTypeArguments,
-      required Expression thisAccess,
-      required Name propertyName,
-      required Procedure getter,
-      required Name binaryName,
-      required Expression rhs,
-      required Procedure setter,
-      required bool forEffect,
-      required int readOffset,
-      required int binaryOffset,
-      required int writeOffset})
-      : this._(extension, thisTypeArguments, thisAccess, propertyName, getter,
-            binaryName, rhs, setter,
-            forEffect: forEffect,
-            readOffset: readOffset,
-            binaryOffset: binaryOffset,
-            writeOffset: writeOffset,
-            isNullAware: false,
-            isExplicit: false);
+  ExtensionCompoundSet.implicit({
+    required Extension extension,
+    required List<DartType>? thisTypeArguments,
+    required Expression thisAccess,
+    required Name propertyName,
+    required Procedure getter,
+    required Name binaryName,
+    required Expression rhs,
+    required Procedure setter,
+    required bool forEffect,
+    required int readOffset,
+    required int binaryOffset,
+    required int writeOffset,
+  }) : this._(
+         extension,
+         thisTypeArguments,
+         thisAccess,
+         propertyName,
+         getter,
+         binaryName,
+         rhs,
+         setter,
+         forEffect: forEffect,
+         readOffset: readOffset,
+         binaryOffset: binaryOffset,
+         writeOffset: writeOffset,
+         isNullAware: false,
+         isExplicit: false,
+       );
 
-  ExtensionCompoundSet._(this.extension, this.knownTypeArguments, this.receiver,
-      this.propertyName, this.getter, this.binaryName, this.rhs, this.setter,
-      {required this.forEffect,
-      required this.readOffset,
-      required this.binaryOffset,
-      required this.writeOffset,
-      required this.isNullAware,
-      required bool isExplicit})
-      : _isExplicit = isExplicit,
-        assert(knownTypeArguments == null ||
-            extension.typeParameters.isNotEmpty &&
-                knownTypeArguments.length == extension.typeParameters.length) {
+  ExtensionCompoundSet._(
+    this.extension,
+    this.knownTypeArguments,
+    this.receiver,
+    this.propertyName,
+    this.getter,
+    this.binaryName,
+    this.rhs,
+    this.setter, {
+    required this.forEffect,
+    required this.readOffset,
+    required this.binaryOffset,
+    required this.writeOffset,
+    required this.isNullAware,
+    required bool isExplicit,
+  }) : _isExplicit = isExplicit,
+       assert(
+         knownTypeArguments == null ||
+             extension.typeParameters.isNotEmpty &&
+                 knownTypeArguments.length == extension.typeParameters.length,
+       ) {
     receiver.parent = this;
     rhs.parent = this;
   }
 
   @override
   ExpressionInferenceResult acceptInference(
-      InferenceVisitorImpl visitor, DartType typeContext) {
+    InferenceVisitorImpl visitor,
+    DartType typeContext,
+  ) {
     return visitor.visitExtensionCompoundSet(this, typeContext);
   }
 
@@ -1642,19 +1788,25 @@ class CompoundPropertySet extends InternalExpression {
   final bool isNullAware;
 
   CompoundPropertySet(
-      this.receiver, this.propertyName, this.binaryName, this.rhs,
-      {required this.forEffect,
-      required this.readOffset,
-      required this.binaryOffset,
-      required this.writeOffset,
-      required this.isNullAware}) {
+    this.receiver,
+    this.propertyName,
+    this.binaryName,
+    this.rhs, {
+    required this.forEffect,
+    required this.readOffset,
+    required this.binaryOffset,
+    required this.writeOffset,
+    required this.isNullAware,
+  }) {
     receiver.parent = this;
     rhs.parent = this;
   }
 
   @override
   ExpressionInferenceResult acceptInference(
-      InferenceVisitorImpl visitor, DartType typeContext) {
+    InferenceVisitorImpl visitor,
+    DartType typeContext,
+  ) {
     return visitor.visitCompoundPropertySet(this, typeContext);
   }
 
@@ -1718,19 +1870,24 @@ class PropertyIncDec extends InternalExpression {
   /// The file offset of the `++` or `--` operator.
   final int operatorOffset;
 
-  PropertyIncDec(this.receiver, this.name,
-      {required this.forEffect,
-      required this.isPost,
-      required this.isInc,
-      required this.isNullAware,
-      required this.nameOffset,
-      required this.operatorOffset}) {
+  PropertyIncDec(
+    this.receiver,
+    this.name, {
+    required this.forEffect,
+    required this.isPost,
+    required this.isInc,
+    required this.isNullAware,
+    required this.nameOffset,
+    required this.operatorOffset,
+  }) {
     receiver.parent = this;
   }
 
   @override
   ExpressionInferenceResult acceptInference(
-      InferenceVisitorImpl visitor, DartType typeContext) {
+    InferenceVisitorImpl visitor,
+    DartType typeContext,
+  ) {
     return visitor.visitPropertyIncDec(this, typeContext);
   }
 
@@ -1815,59 +1972,82 @@ class ExtensionIncDec extends InternalExpression {
   /// to the implicit access of `a++` occurring within the extension `E`.
   final bool _isExplicit;
 
-  ExtensionIncDec.explicit(
-      {required Extension extension,
-      required List<DartType>? explicitTypeArguments,
-      required Expression receiver,
-      required Name name,
-      required Procedure getter,
-      required Procedure setter,
-      required bool isPost,
-      required bool isInc,
-      required bool forEffect,
-      required isNullAware})
-      : this._(extension, explicitTypeArguments, receiver, name, getter, setter,
-            isPost: isPost,
-            isInc: isInc,
-            forEffect: forEffect,
-            isNullAware: isNullAware,
-            isExplicit: true);
+  ExtensionIncDec.explicit({
+    required Extension extension,
+    required List<DartType>? explicitTypeArguments,
+    required Expression receiver,
+    required Name name,
+    required Procedure getter,
+    required Procedure setter,
+    required bool isPost,
+    required bool isInc,
+    required bool forEffect,
+    required isNullAware,
+  }) : this._(
+         extension,
+         explicitTypeArguments,
+         receiver,
+         name,
+         getter,
+         setter,
+         isPost: isPost,
+         isInc: isInc,
+         forEffect: forEffect,
+         isNullAware: isNullAware,
+         isExplicit: true,
+       );
 
-  ExtensionIncDec.implicit(
-      {required Extension extension,
-      required List<DartType>? thisTypeArguments,
-      required Expression thisAccess,
-      required Name name,
-      required Procedure getter,
-      required Procedure setter,
-      required bool isPost,
-      required bool isInc,
-      required bool forEffect})
-      : this._(extension, thisTypeArguments, thisAccess, name, getter, setter,
-            isPost: isPost,
-            isInc: isInc,
-            forEffect: forEffect,
-            isNullAware: false,
-            isExplicit: false);
+  ExtensionIncDec.implicit({
+    required Extension extension,
+    required List<DartType>? thisTypeArguments,
+    required Expression thisAccess,
+    required Name name,
+    required Procedure getter,
+    required Procedure setter,
+    required bool isPost,
+    required bool isInc,
+    required bool forEffect,
+  }) : this._(
+         extension,
+         thisTypeArguments,
+         thisAccess,
+         name,
+         getter,
+         setter,
+         isPost: isPost,
+         isInc: isInc,
+         forEffect: forEffect,
+         isNullAware: false,
+         isExplicit: false,
+       );
 
-  ExtensionIncDec._(this.extension, this.knownTypeArguments, this.receiver,
-      this.name, this.getter, this.setter,
-      {required this.isPost,
-      required this.isInc,
-      required this.forEffect,
-      required this.isNullAware,
-      required bool isExplicit})
-      : _isExplicit = isExplicit,
-        assert(knownTypeArguments == null ||
-            // Coverage-ignore(suite): Not run.
-            extension.typeParameters.isNotEmpty &&
-                knownTypeArguments.length == extension.typeParameters.length) {
+  ExtensionIncDec._(
+    this.extension,
+    this.knownTypeArguments,
+    this.receiver,
+    this.name,
+    this.getter,
+    this.setter, {
+    required this.isPost,
+    required this.isInc,
+    required this.forEffect,
+    required this.isNullAware,
+    required bool isExplicit,
+  }) : _isExplicit = isExplicit,
+       assert(
+         knownTypeArguments == null ||
+             // Coverage-ignore(suite): Not run.
+             extension.typeParameters.isNotEmpty &&
+                 knownTypeArguments.length == extension.typeParameters.length,
+       ) {
     receiver.parent = this;
   }
 
   @override
   ExpressionInferenceResult acceptInference(
-      InferenceVisitorImpl visitor, DartType typeContext) {
+    InferenceVisitorImpl visitor,
+    DartType typeContext,
+  ) {
     return visitor.visitExtensionPostIncDec(this, typeContext);
   }
 
@@ -1931,17 +2111,20 @@ class LocalIncDec extends InternalExpression {
   /// The file offset of the `++` or `--` operator.
   final int operatorOffset;
 
-  LocalIncDec(
-      {required this.variable,
-      required this.forEffect,
-      required this.isPost,
-      required this.isInc,
-      required this.nameOffset,
-      required this.operatorOffset});
+  LocalIncDec({
+    required this.variable,
+    required this.forEffect,
+    required this.isPost,
+    required this.isInc,
+    required this.nameOffset,
+    required this.operatorOffset,
+  });
 
   @override
   ExpressionInferenceResult acceptInference(
-      InferenceVisitorImpl visitor, DartType typeContext) {
+    InferenceVisitorImpl visitor,
+    DartType typeContext,
+  ) {
     return visitor.visitLocalIncDec(this, typeContext);
   }
 
@@ -2009,19 +2192,22 @@ class StaticIncDec extends InternalExpression {
   /// The file offset of the `++` or `--` operator.
   final int operatorOffset;
 
-  StaticIncDec(
-      {required this.getter,
-      required this.setter,
-      required this.name,
-      required this.forEffect,
-      required this.isPost,
-      required this.isInc,
-      required this.nameOffset,
-      required this.operatorOffset});
+  StaticIncDec({
+    required this.getter,
+    required this.setter,
+    required this.name,
+    required this.forEffect,
+    required this.isPost,
+    required this.isInc,
+    required this.nameOffset,
+    required this.operatorOffset,
+  });
 
   @override
   ExpressionInferenceResult acceptInference(
-      InferenceVisitorImpl visitor, DartType typeContext) {
+    InferenceVisitorImpl visitor,
+    DartType typeContext,
+  ) {
     return visitor.visitStaticIncDec(this, typeContext);
   }
 
@@ -2090,19 +2276,22 @@ class SuperIncDec extends InternalExpression {
   /// The file offset of the `++` or `--` operator.
   final int operatorOffset;
 
-  SuperIncDec(
-      {required this.getter,
-      required this.setter,
-      required this.name,
-      required this.forEffect,
-      required this.isPost,
-      required this.isInc,
-      required this.nameOffset,
-      required this.operatorOffset});
+  SuperIncDec({
+    required this.getter,
+    required this.setter,
+    required this.name,
+    required this.forEffect,
+    required this.isPost,
+    required this.isInc,
+    required this.nameOffset,
+    required this.operatorOffset,
+  });
 
   @override
   ExpressionInferenceResult acceptInference(
-      InferenceVisitorImpl visitor, DartType typeContext) {
+    InferenceVisitorImpl visitor,
+    DartType typeContext,
+  ) {
     return visitor.visitSuperIncDec(this, typeContext);
   }
 
@@ -2151,7 +2340,9 @@ class IndexGet extends InternalExpression {
 
   @override
   ExpressionInferenceResult acceptInference(
-      InferenceVisitorImpl visitor, DartType typeContext) {
+    InferenceVisitorImpl visitor,
+    DartType typeContext,
+  ) {
     return visitor.visitIndexGet(this, typeContext);
   }
 
@@ -2203,8 +2394,13 @@ class IndexSet extends InternalExpression {
   /// `true` if the access is null-aware, i.e. of the form `o?[a] = b`.
   final bool isNullAware;
 
-  IndexSet(this.receiver, this.index, this.value,
-      {required this.forEffect, required this.isNullAware}) {
+  IndexSet(
+    this.receiver,
+    this.index,
+    this.value, {
+    required this.forEffect,
+    required this.isNullAware,
+  }) {
     receiver.parent = this;
     index.parent = this;
     value.parent = this;
@@ -2212,7 +2408,9 @@ class IndexSet extends InternalExpression {
 
   @override
   ExpressionInferenceResult acceptInference(
-      InferenceVisitorImpl visitor, DartType typeContext) {
+    InferenceVisitorImpl visitor,
+    DartType typeContext,
+  ) {
     return visitor.visitIndexSet(this, typeContext);
   }
 
@@ -2265,7 +2463,9 @@ class SuperIndexSet extends InternalExpression {
 
   @override
   ExpressionInferenceResult acceptInference(
-      InferenceVisitorImpl visitor, DartType typeContext) {
+    InferenceVisitorImpl visitor,
+    DartType typeContext,
+  ) {
     return visitor.visitSuperIndexSet(this, typeContext);
   }
 
@@ -2305,17 +2505,26 @@ class ExtensionIndexGet extends InternalExpression {
   /// `Extension(o)?[a]`.
   final bool isNullAware;
 
-  ExtensionIndexGet(this.extension, this.explicitTypeArguments, this.receiver,
-      this.getter, this.index, {required this.isNullAware})
-      : assert(explicitTypeArguments == null ||
-            explicitTypeArguments.length == extension.typeParameters.length) {
+  ExtensionIndexGet(
+    this.extension,
+    this.explicitTypeArguments,
+    this.receiver,
+    this.getter,
+    this.index, {
+    required this.isNullAware,
+  }) : assert(
+         explicitTypeArguments == null ||
+             explicitTypeArguments.length == extension.typeParameters.length,
+       ) {
     receiver.parent = this;
     index.parent = this;
   }
 
   @override
   ExpressionInferenceResult acceptInference(
-      InferenceVisitorImpl visitor, DartType typeContext) {
+    InferenceVisitorImpl visitor,
+    DartType typeContext,
+  ) {
     return visitor.visitExtensionIndexGet(this, typeContext);
   }
 
@@ -2386,11 +2595,19 @@ class ExtensionIndexSet extends InternalExpression {
   /// If `true`, the expression is only need for effect and not for its value.
   final bool forEffect;
 
-  ExtensionIndexSet(this.extension, this.explicitTypeArguments, this.receiver,
-      this.setter, this.index, this.value,
-      {required this.isNullAware, required this.forEffect})
-      : assert(explicitTypeArguments == null ||
-            explicitTypeArguments.length == extension.typeParameters.length) {
+  ExtensionIndexSet(
+    this.extension,
+    this.explicitTypeArguments,
+    this.receiver,
+    this.setter,
+    this.index,
+    this.value, {
+    required this.isNullAware,
+    required this.forEffect,
+  }) : assert(
+         explicitTypeArguments == null ||
+             explicitTypeArguments.length == extension.typeParameters.length,
+       ) {
     receiver.parent = this;
     index.parent = this;
     value.parent = this;
@@ -2398,7 +2615,9 @@ class ExtensionIndexSet extends InternalExpression {
 
   @override
   ExpressionInferenceResult acceptInference(
-      InferenceVisitorImpl visitor, DartType typeContext) {
+    InferenceVisitorImpl visitor,
+    DartType typeContext,
+  ) {
     return visitor.visitExtensionIndexSet(this, typeContext);
   }
 
@@ -2475,12 +2694,16 @@ class IfNullIndexSet extends InternalExpression {
   /// `true` if the access is null-aware, i.e. of the form `o?[a] ??= b`.
   final bool isNullAware;
 
-  IfNullIndexSet(this.receiver, this.index, this.value,
-      {required this.readOffset,
-      required this.testOffset,
-      required this.writeOffset,
-      required this.forEffect,
-      required this.isNullAware}) {
+  IfNullIndexSet(
+    this.receiver,
+    this.index,
+    this.value, {
+    required this.readOffset,
+    required this.testOffset,
+    required this.writeOffset,
+    required this.forEffect,
+    required this.isNullAware,
+  }) {
     receiver.parent = this;
     index.parent = this;
     value.parent = this;
@@ -2488,7 +2711,9 @@ class IfNullIndexSet extends InternalExpression {
 
   @override
   ExpressionInferenceResult acceptInference(
-      InferenceVisitorImpl visitor, DartType typeContext) {
+    InferenceVisitorImpl visitor,
+    DartType typeContext,
+  ) {
     return visitor.visitIfNullIndexSet(this, typeContext);
   }
 
@@ -2542,18 +2767,25 @@ class IfNullSuperIndexSet extends InternalExpression {
   /// If `true`, the expression is only need for effect and not for its value.
   final bool forEffect;
 
-  IfNullSuperIndexSet(this.getter, this.setter, this.index, this.value,
-      {required this.readOffset,
-      required this.testOffset,
-      required this.writeOffset,
-      required this.forEffect}) {
+  IfNullSuperIndexSet(
+    this.getter,
+    this.setter,
+    this.index,
+    this.value, {
+    required this.readOffset,
+    required this.testOffset,
+    required this.writeOffset,
+    required this.forEffect,
+  }) {
     index.parent = this;
     value.parent = this;
   }
 
   @override
   ExpressionInferenceResult acceptInference(
-      InferenceVisitorImpl visitor, DartType typeContext) {
+    InferenceVisitorImpl visitor,
+    DartType typeContext,
+  ) {
     return visitor.visitIfNullSuperIndexSet(this, typeContext);
   }
 
@@ -2622,15 +2854,23 @@ class ExtensionIfNullIndexSet extends InternalExpression {
   /// `E(o)?[a] ??= b`.
   final bool isNullAware;
 
-  ExtensionIfNullIndexSet(this.extension, this.knownTypeArguments,
-      this.receiver, this.getter, this.setter, this.index, this.value,
-      {required this.readOffset,
-      required this.testOffset,
-      required this.writeOffset,
-      required this.forEffect,
-      required this.isNullAware})
-      : assert(knownTypeArguments == null ||
-            knownTypeArguments.length == extension.typeParameters.length) {
+  ExtensionIfNullIndexSet(
+    this.extension,
+    this.knownTypeArguments,
+    this.receiver,
+    this.getter,
+    this.setter,
+    this.index,
+    this.value, {
+    required this.readOffset,
+    required this.testOffset,
+    required this.writeOffset,
+    required this.forEffect,
+    required this.isNullAware,
+  }) : assert(
+         knownTypeArguments == null ||
+             knownTypeArguments.length == extension.typeParameters.length,
+       ) {
     receiver.parent = this;
     index.parent = this;
     value.parent = this;
@@ -2638,7 +2878,9 @@ class ExtensionIfNullIndexSet extends InternalExpression {
 
   @override
   ExpressionInferenceResult acceptInference(
-      InferenceVisitorImpl visitor, DartType typeContext) {
+    InferenceVisitorImpl visitor,
+    DartType typeContext,
+  ) {
     return visitor.visitExtensionIfNullIndexSet(this, typeContext);
   }
 
@@ -2693,13 +2935,18 @@ class CompoundIndexSet extends InternalExpression {
   /// `true` if the access is null-aware, i.e. of the form `o?[a] += b`.
   final bool isNullAware;
 
-  CompoundIndexSet(this.receiver, this.index, this.binaryName, this.rhs,
-      {required this.readOffset,
-      required this.binaryOffset,
-      required this.writeOffset,
-      required this.forEffect,
-      required this.forPostIncDec,
-      required this.isNullAware}) {
+  CompoundIndexSet(
+    this.receiver,
+    this.index,
+    this.binaryName,
+    this.rhs, {
+    required this.readOffset,
+    required this.binaryOffset,
+    required this.writeOffset,
+    required this.forEffect,
+    required this.forPostIncDec,
+    required this.isNullAware,
+  }) {
     receiver.parent = this;
     index.parent = this;
     rhs.parent = this;
@@ -2708,7 +2955,9 @@ class CompoundIndexSet extends InternalExpression {
 
   @override
   ExpressionInferenceResult acceptInference(
-      InferenceVisitorImpl visitor, DartType typeContext) {
+    InferenceVisitorImpl visitor,
+    DartType typeContext,
+  ) {
     return visitor.visitCompoundIndexSet(this, typeContext);
   }
 
@@ -2790,12 +3039,17 @@ class CompoundSuperIndexSet extends InternalExpression {
   final bool forPostIncDec;
 
   CompoundSuperIndexSet(
-      this.getter, this.setter, this.index, this.binaryName, this.rhs,
-      {required this.readOffset,
-      required this.binaryOffset,
-      required this.writeOffset,
-      required this.forEffect,
-      required this.forPostIncDec}) {
+    this.getter,
+    this.setter,
+    this.index,
+    this.binaryName,
+    this.rhs, {
+    required this.readOffset,
+    required this.binaryOffset,
+    required this.writeOffset,
+    required this.forEffect,
+    required this.forPostIncDec,
+  }) {
     index.parent = this;
     rhs.parent = this;
     fileOffset = binaryOffset;
@@ -2803,7 +3057,9 @@ class CompoundSuperIndexSet extends InternalExpression {
 
   @override
   ExpressionInferenceResult acceptInference(
-      InferenceVisitorImpl visitor, DartType typeContext) {
+    InferenceVisitorImpl visitor,
+    DartType typeContext,
+  ) {
     return visitor.visitCompoundSuperIndexSet(this, typeContext);
   }
 
@@ -2877,23 +3133,25 @@ class ExtensionCompoundIndexSet extends InternalExpression {
   /// `Extension(o)?[a] += b`.
   final bool isNullAware;
 
-  ExtensionCompoundIndexSet(
-      {required this.extension,
-      required this.explicitTypeArguments,
-      required this.receiver,
-      required this.getter,
-      required this.setter,
-      required this.index,
-      required this.binaryName,
-      required this.rhs,
-      required this.readOffset,
-      required this.binaryOffset,
-      required this.writeOffset,
-      required this.forEffect,
-      required this.forPostIncDec,
-      required this.isNullAware})
-      : assert(explicitTypeArguments == null ||
-            explicitTypeArguments.length == extension.typeParameters.length) {
+  ExtensionCompoundIndexSet({
+    required this.extension,
+    required this.explicitTypeArguments,
+    required this.receiver,
+    required this.getter,
+    required this.setter,
+    required this.index,
+    required this.binaryName,
+    required this.rhs,
+    required this.readOffset,
+    required this.binaryOffset,
+    required this.writeOffset,
+    required this.forEffect,
+    required this.forPostIncDec,
+    required this.isNullAware,
+  }) : assert(
+         explicitTypeArguments == null ||
+             explicitTypeArguments.length == extension.typeParameters.length,
+       ) {
     receiver.parent = this;
     index.parent = this;
     rhs.parent = this;
@@ -2902,7 +3160,9 @@ class ExtensionCompoundIndexSet extends InternalExpression {
 
   @override
   ExpressionInferenceResult acceptInference(
-      InferenceVisitorImpl visitor, DartType typeContext) {
+    InferenceVisitorImpl visitor,
+    DartType typeContext,
+  ) {
     return visitor.visitExtensionCompoundIndexSet(this, typeContext);
   }
 
@@ -2974,38 +3234,61 @@ class ExtensionGet extends InternalExpression {
   /// not implicit like `a` inside the extension `E`.
   final bool _isExplicit;
 
-  ExtensionGet.implicit(
-      {required Extension extension,
-      required List<DartType>? thisTypeArguments,
-      required Expression thisAccess,
-      required Name name,
-      required Procedure getter})
-      : this._(extension, thisTypeArguments, thisAccess, name, getter,
-            isNullAware: false, isExplicit: false);
+  ExtensionGet.implicit({
+    required Extension extension,
+    required List<DartType>? thisTypeArguments,
+    required Expression thisAccess,
+    required Name name,
+    required Procedure getter,
+  }) : this._(
+         extension,
+         thisTypeArguments,
+         thisAccess,
+         name,
+         getter,
+         isNullAware: false,
+         isExplicit: false,
+       );
 
-  ExtensionGet.explicit(
-      {required Extension extension,
-      required List<DartType>? explicitTypeArguments,
-      required Expression receiver,
-      required Name name,
-      required Procedure getter,
-      required bool isNullAware})
-      : this._(extension, explicitTypeArguments, receiver, name, getter,
-            isNullAware: isNullAware, isExplicit: true);
+  ExtensionGet.explicit({
+    required Extension extension,
+    required List<DartType>? explicitTypeArguments,
+    required Expression receiver,
+    required Name name,
+    required Procedure getter,
+    required bool isNullAware,
+  }) : this._(
+         extension,
+         explicitTypeArguments,
+         receiver,
+         name,
+         getter,
+         isNullAware: isNullAware,
+         isExplicit: true,
+       );
 
-  ExtensionGet._(this.extension, this.knownTypeArguments, this.receiver,
-      this.name, this.getter,
-      {required this.isNullAware, required bool isExplicit})
-      : _isExplicit = isExplicit,
-        assert(knownTypeArguments == null ||
-            extension.typeParameters.isNotEmpty &&
-                knownTypeArguments.length == extension.typeParameters.length) {
+  ExtensionGet._(
+    this.extension,
+    this.knownTypeArguments,
+    this.receiver,
+    this.name,
+    this.getter, {
+    required this.isNullAware,
+    required bool isExplicit,
+  }) : _isExplicit = isExplicit,
+       assert(
+         knownTypeArguments == null ||
+             extension.typeParameters.isNotEmpty &&
+                 knownTypeArguments.length == extension.typeParameters.length,
+       ) {
     receiver.parent = this;
   }
 
   @override
   ExpressionInferenceResult acceptInference(
-      InferenceVisitorImpl visitor, DartType typeContext) {
+    InferenceVisitorImpl visitor,
+    DartType typeContext,
+  ) {
     return visitor.visitExtensionGet(this, typeContext);
   }
 
@@ -3092,45 +3375,72 @@ class ExtensionSet extends InternalExpression {
   /// not implicit like `a = b` inside the extension `E`.
   final bool _isExplicit;
 
-  ExtensionSet.implicit(
-      {required Extension extension,
-      required List<DartType>? thisTypeArguments,
-      required Expression thisAccess,
-      required Name name,
-      required Procedure setter,
-      required Expression value,
-      required bool forEffect})
-      : this._(extension, thisTypeArguments, thisAccess, name, setter, value,
-            forEffect: forEffect, isNullAware: false, isExplicit: false);
+  ExtensionSet.implicit({
+    required Extension extension,
+    required List<DartType>? thisTypeArguments,
+    required Expression thisAccess,
+    required Name name,
+    required Procedure setter,
+    required Expression value,
+    required bool forEffect,
+  }) : this._(
+         extension,
+         thisTypeArguments,
+         thisAccess,
+         name,
+         setter,
+         value,
+         forEffect: forEffect,
+         isNullAware: false,
+         isExplicit: false,
+       );
 
-  ExtensionSet.explicit(
-      {required Extension extension,
-      required List<DartType>? explicitTypeArguments,
-      required Expression receiver,
-      required Name name,
-      required Procedure setter,
-      required Expression value,
-      required bool forEffect,
-      required bool isNullAware})
-      : this._(extension, explicitTypeArguments, receiver, name, setter, value,
-            forEffect: forEffect, isNullAware: isNullAware, isExplicit: true);
+  ExtensionSet.explicit({
+    required Extension extension,
+    required List<DartType>? explicitTypeArguments,
+    required Expression receiver,
+    required Name name,
+    required Procedure setter,
+    required Expression value,
+    required bool forEffect,
+    required bool isNullAware,
+  }) : this._(
+         extension,
+         explicitTypeArguments,
+         receiver,
+         name,
+         setter,
+         value,
+         forEffect: forEffect,
+         isNullAware: isNullAware,
+         isExplicit: true,
+       );
 
-  ExtensionSet._(this.extension, this.knownTypeArguments, this.receiver,
-      this.name, this.setter, this.value,
-      {required this.forEffect,
-      required this.isNullAware,
-      required bool isExplicit})
-      : _isExplicit = isExplicit,
-        assert(knownTypeArguments == null ||
-            extension.typeParameters.isNotEmpty &&
-                knownTypeArguments.length == extension.typeParameters.length) {
+  ExtensionSet._(
+    this.extension,
+    this.knownTypeArguments,
+    this.receiver,
+    this.name,
+    this.setter,
+    this.value, {
+    required this.forEffect,
+    required this.isNullAware,
+    required bool isExplicit,
+  }) : _isExplicit = isExplicit,
+       assert(
+         knownTypeArguments == null ||
+             extension.typeParameters.isNotEmpty &&
+                 knownTypeArguments.length == extension.typeParameters.length,
+       ) {
     receiver.parent = this;
     value.parent = this;
   }
 
   @override
   ExpressionInferenceResult acceptInference(
-      InferenceVisitorImpl visitor, DartType typeContext) {
+    InferenceVisitorImpl visitor,
+    DartType typeContext,
+  ) {
     return visitor.visitExtensionSet(this, typeContext);
   }
 
@@ -3203,51 +3513,71 @@ class ExtensionMethodInvocation extends InternalExpression {
 
   final int extensionTypeArgumentOffset;
 
-  ExtensionMethodInvocation.implicit(
-      {required Extension extension,
-      required List<DartType>? thisTypeArguments,
-      required Expression thisAccess,
-      required Name name,
-      required Procedure target,
-      required ArgumentsImpl arguments})
-      : this._(extension, thisAccess, name, target, arguments,
-            isExplicit: false,
-            knownTypeArguments: thisTypeArguments,
-            extensionTypeArgumentOffset: -1,
-            isNullAware: false);
+  ExtensionMethodInvocation.implicit({
+    required Extension extension,
+    required List<DartType>? thisTypeArguments,
+    required Expression thisAccess,
+    required Name name,
+    required Procedure target,
+    required ArgumentsImpl arguments,
+  }) : this._(
+         extension,
+         thisAccess,
+         name,
+         target,
+         arguments,
+         isExplicit: false,
+         knownTypeArguments: thisTypeArguments,
+         extensionTypeArgumentOffset: -1,
+         isNullAware: false,
+       );
 
-  ExtensionMethodInvocation.explicit(
-      {required Extension extension,
-      required Expression receiver,
-      required Name name,
-      required Procedure target,
-      required ArgumentsImpl arguments,
-      required List<DartType>? explicitTypeArguments,
-      required int extensionTypeArgumentOffset,
-      required bool isNullAware})
-      : this._(extension, receiver, name, target, arguments,
-            isExplicit: true,
-            knownTypeArguments: explicitTypeArguments,
-            extensionTypeArgumentOffset: extensionTypeArgumentOffset,
-            isNullAware: isNullAware);
+  ExtensionMethodInvocation.explicit({
+    required Extension extension,
+    required Expression receiver,
+    required Name name,
+    required Procedure target,
+    required ArgumentsImpl arguments,
+    required List<DartType>? explicitTypeArguments,
+    required int extensionTypeArgumentOffset,
+    required bool isNullAware,
+  }) : this._(
+         extension,
+         receiver,
+         name,
+         target,
+         arguments,
+         isExplicit: true,
+         knownTypeArguments: explicitTypeArguments,
+         extensionTypeArgumentOffset: extensionTypeArgumentOffset,
+         isNullAware: isNullAware,
+       );
 
   ExtensionMethodInvocation._(
-      this.extension, this.receiver, this.name, this.method, this.arguments,
-      {required this.knownTypeArguments,
-      required bool isExplicit,
-      required this.isNullAware,
-      required this.extensionTypeArgumentOffset})
-      : _isExplicit = isExplicit,
-        assert(knownTypeArguments == null ||
-            extension.typeParameters.isNotEmpty &&
-                knownTypeArguments.length == extension.typeParameters.length) {
+    this.extension,
+    this.receiver,
+    this.name,
+    this.method,
+    this.arguments, {
+    required this.knownTypeArguments,
+    required bool isExplicit,
+    required this.isNullAware,
+    required this.extensionTypeArgumentOffset,
+  }) : _isExplicit = isExplicit,
+       assert(
+         knownTypeArguments == null ||
+             extension.typeParameters.isNotEmpty &&
+                 knownTypeArguments.length == extension.typeParameters.length,
+       ) {
     receiver.parent = this;
     arguments.parent = this;
   }
 
   @override
   ExpressionInferenceResult acceptInference(
-      InferenceVisitorImpl visitor, DartType typeContext) {
+    InferenceVisitorImpl visitor,
+    DartType typeContext,
+  ) {
     return visitor.visitExtensionMethodInvocation(this, typeContext);
   }
 
@@ -3320,51 +3650,71 @@ class ExtensionGetterInvocation extends InternalExpression {
 
   final int extensionTypeArgumentOffset;
 
-  ExtensionGetterInvocation.implicit(
-      {required Extension extension,
-      required List<DartType>? thisTypeArguments,
-      required Expression thisAccess,
-      required Name name,
-      required Procedure target,
-      required ArgumentsImpl arguments})
-      : this._(extension, thisAccess, name, target, arguments,
-            isExplicit: false,
-            knownTypeArguments: thisTypeArguments,
-            extensionTypeArgumentOffset: -1,
-            isNullAware: false);
+  ExtensionGetterInvocation.implicit({
+    required Extension extension,
+    required List<DartType>? thisTypeArguments,
+    required Expression thisAccess,
+    required Name name,
+    required Procedure target,
+    required ArgumentsImpl arguments,
+  }) : this._(
+         extension,
+         thisAccess,
+         name,
+         target,
+         arguments,
+         isExplicit: false,
+         knownTypeArguments: thisTypeArguments,
+         extensionTypeArgumentOffset: -1,
+         isNullAware: false,
+       );
 
-  ExtensionGetterInvocation.explicit(
-      {required Extension extension,
-      required Expression receiver,
-      required Name name,
-      required Procedure target,
-      required ArgumentsImpl arguments,
-      required List<DartType>? explicitTypeArguments,
-      required int extensionTypeArgumentOffset,
-      required bool isNullAware})
-      : this._(extension, receiver, name, target, arguments,
-            isExplicit: true,
-            knownTypeArguments: explicitTypeArguments,
-            extensionTypeArgumentOffset: extensionTypeArgumentOffset,
-            isNullAware: isNullAware);
+  ExtensionGetterInvocation.explicit({
+    required Extension extension,
+    required Expression receiver,
+    required Name name,
+    required Procedure target,
+    required ArgumentsImpl arguments,
+    required List<DartType>? explicitTypeArguments,
+    required int extensionTypeArgumentOffset,
+    required bool isNullAware,
+  }) : this._(
+         extension,
+         receiver,
+         name,
+         target,
+         arguments,
+         isExplicit: true,
+         knownTypeArguments: explicitTypeArguments,
+         extensionTypeArgumentOffset: extensionTypeArgumentOffset,
+         isNullAware: isNullAware,
+       );
 
   ExtensionGetterInvocation._(
-      this.extension, this.receiver, this.name, this.getter, this.arguments,
-      {required this.knownTypeArguments,
-      required bool isExplicit,
-      required this.isNullAware,
-      required this.extensionTypeArgumentOffset})
-      : _isExplicit = isExplicit,
-        assert(knownTypeArguments == null ||
-            extension.typeParameters.isNotEmpty &&
-                knownTypeArguments.length == extension.typeParameters.length) {
+    this.extension,
+    this.receiver,
+    this.name,
+    this.getter,
+    this.arguments, {
+    required this.knownTypeArguments,
+    required bool isExplicit,
+    required this.isNullAware,
+    required this.extensionTypeArgumentOffset,
+  }) : _isExplicit = isExplicit,
+       assert(
+         knownTypeArguments == null ||
+             extension.typeParameters.isNotEmpty &&
+                 knownTypeArguments.length == extension.typeParameters.length,
+       ) {
     receiver.parent = this;
     arguments.parent = this;
   }
 
   @override
   ExpressionInferenceResult acceptInference(
-      InferenceVisitorImpl visitor, DartType typeContext) {
+    InferenceVisitorImpl visitor,
+    DartType typeContext,
+  ) {
     return visitor.visitExtensionGetterInvocation(this, typeContext);
   }
 
@@ -3432,38 +3782,61 @@ class ExtensionTearOff extends InternalExpression {
   /// not implicit like `a` inside the extension `E`.
   final bool _isExplicit;
 
-  ExtensionTearOff.implicit(
-      {required Extension extension,
-      required List<DartType>? thisTypeArguments,
-      required Expression thisAccess,
-      required Name name,
-      required Procedure tearOff})
-      : this._(extension, thisTypeArguments, thisAccess, name, tearOff,
-            isNullAware: false, isExplicit: false);
+  ExtensionTearOff.implicit({
+    required Extension extension,
+    required List<DartType>? thisTypeArguments,
+    required Expression thisAccess,
+    required Name name,
+    required Procedure tearOff,
+  }) : this._(
+         extension,
+         thisTypeArguments,
+         thisAccess,
+         name,
+         tearOff,
+         isNullAware: false,
+         isExplicit: false,
+       );
 
-  ExtensionTearOff.explicit(
-      {required Extension extension,
-      required List<DartType>? explicitTypeArguments,
-      required Expression receiver,
-      required Name name,
-      required Procedure tearOff,
-      required bool isNullAware})
-      : this._(extension, explicitTypeArguments, receiver, name, tearOff,
-            isNullAware: isNullAware, isExplicit: true);
+  ExtensionTearOff.explicit({
+    required Extension extension,
+    required List<DartType>? explicitTypeArguments,
+    required Expression receiver,
+    required Name name,
+    required Procedure tearOff,
+    required bool isNullAware,
+  }) : this._(
+         extension,
+         explicitTypeArguments,
+         receiver,
+         name,
+         tearOff,
+         isNullAware: isNullAware,
+         isExplicit: true,
+       );
 
-  ExtensionTearOff._(this.extension, this.knownTypeArguments, this.receiver,
-      this.name, this.tearOff,
-      {required this.isNullAware, required bool isExplicit})
-      : _isExplicit = isExplicit,
-        assert(knownTypeArguments == null ||
-            extension.typeParameters.isNotEmpty &&
-                knownTypeArguments.length == extension.typeParameters.length) {
+  ExtensionTearOff._(
+    this.extension,
+    this.knownTypeArguments,
+    this.receiver,
+    this.name,
+    this.tearOff, {
+    required this.isNullAware,
+    required bool isExplicit,
+  }) : _isExplicit = isExplicit,
+       assert(
+         knownTypeArguments == null ||
+             extension.typeParameters.isNotEmpty &&
+                 knownTypeArguments.length == extension.typeParameters.length,
+       ) {
     receiver.parent = this;
   }
 
   @override
   ExpressionInferenceResult acceptInference(
-      InferenceVisitorImpl visitor, DartType typeContext) {
+    InferenceVisitorImpl visitor,
+    DartType typeContext,
+  ) {
     return visitor.visitExtensionTearOff(this, typeContext);
   }
 
@@ -3507,7 +3880,9 @@ class EqualsExpression extends InternalExpression {
 
   @override
   ExpressionInferenceResult acceptInference(
-      InferenceVisitorImpl visitor, DartType typeContext) {
+    InferenceVisitorImpl visitor,
+    DartType typeContext,
+  ) {
     return visitor.visitEquals(this, typeContext);
   }
 
@@ -3542,7 +3917,9 @@ class BinaryExpression extends InternalExpression {
 
   @override
   ExpressionInferenceResult acceptInference(
-      InferenceVisitorImpl visitor, DartType typeContext) {
+    InferenceVisitorImpl visitor,
+    DartType typeContext,
+  ) {
     return visitor.visitBinary(this, typeContext);
   }
 
@@ -3575,7 +3952,9 @@ class UnaryExpression extends InternalExpression {
 
   @override
   ExpressionInferenceResult acceptInference(
-      InferenceVisitorImpl visitor, DartType typeContext) {
+    InferenceVisitorImpl visitor,
+    DartType typeContext,
+  ) {
     return visitor.visitUnary(this, typeContext);
   }
 
@@ -3610,7 +3989,9 @@ class ParenthesizedExpression extends InternalExpression {
 
   @override
   ExpressionInferenceResult acceptInference(
-      InferenceVisitorImpl visitor, DartType typeContext) {
+    InferenceVisitorImpl visitor,
+    DartType typeContext,
+  ) {
     return visitor.visitParenthesized(this, typeContext);
   }
 
@@ -3653,9 +4034,10 @@ Expression clonePureExpression(Expression node) {
     return new ThisExpression()..fileOffset = node.fileOffset;
   } else if (node is VariableGet) {
     assert(
-        node.variable.isFinal && !node.variable.isLate,
-        "Trying to clone VariableGet of non-final variable"
-        " ${node.variable}.");
+      node.variable.isFinal && !node.variable.isLate,
+      "Trying to clone VariableGet of non-final variable"
+      " ${node.variable}.",
+    );
     return new VariableGet(node.variable, node.promotedType)
       ..fileOffset = node.fileOffset;
   }
@@ -3681,15 +4063,21 @@ class MethodInvocation extends InternalExpression {
   /// `true` if the access is null-aware, i.e. of the form `o?.a()`.
   final bool isNullAware;
 
-  MethodInvocation(this.receiver, this.name, this.arguments,
-      {required this.isNullAware}) {
+  MethodInvocation(
+    this.receiver,
+    this.name,
+    this.arguments, {
+    required this.isNullAware,
+  }) {
     receiver.parent = this;
     arguments.parent = this;
   }
 
   @override
   ExpressionInferenceResult acceptInference(
-      InferenceVisitorImpl visitor, DartType typeContext) {
+    InferenceVisitorImpl visitor,
+    DartType typeContext,
+  ) {
     return visitor.visitMethodInvocation(this, typeContext);
   }
 
@@ -3736,7 +4124,9 @@ class PropertyGet extends InternalExpression {
 
   @override
   ExpressionInferenceResult acceptInference(
-      InferenceVisitorImpl visitor, DartType typeContext) {
+    InferenceVisitorImpl visitor,
+    DartType typeContext,
+  ) {
     return visitor.visitPropertyGet(this, typeContext);
   }
 
@@ -3786,17 +4176,23 @@ class PropertySet extends InternalExpression {
   /// `true` if the access is null-aware, i.e. of the form `o?.a = b`.
   final bool isNullAware;
 
-  PropertySet(this.receiver, this.name, this.value,
-      {required this.forEffect,
-      required this.readOnlyReceiver,
-      required this.isNullAware}) {
+  PropertySet(
+    this.receiver,
+    this.name,
+    this.value, {
+    required this.forEffect,
+    required this.readOnlyReceiver,
+    required this.isNullAware,
+  }) {
     receiver.parent = this;
     value.parent = this;
   }
 
   @override
   ExpressionInferenceResult acceptInference(
-      InferenceVisitorImpl visitor, DartType typeContext) {
+    InferenceVisitorImpl visitor,
+    DartType typeContext,
+  ) {
     return visitor.visitPropertySet(this, typeContext);
   }
 
@@ -3829,15 +4225,20 @@ class AugmentSuperInvocation extends InternalExpression {
 
   Arguments arguments;
 
-  AugmentSuperInvocation(this.target, this.arguments,
-      {required int fileOffset}) {
+  AugmentSuperInvocation(
+    this.target,
+    this.arguments, {
+    required int fileOffset,
+  }) {
     arguments.parent = this;
     this.fileOffset = fileOffset;
   }
 
   @override
   ExpressionInferenceResult acceptInference(
-      InferenceVisitorImpl visitor, DartType typeContext) {
+    InferenceVisitorImpl visitor,
+    DartType typeContext,
+  ) {
     return visitor.visitAugmentSuperInvocation(this, typeContext);
   }
 
@@ -3871,7 +4272,9 @@ class AugmentSuperGet extends InternalExpression {
 
   @override
   ExpressionInferenceResult acceptInference(
-      InferenceVisitorImpl visitor, DartType typeContext) {
+    InferenceVisitorImpl visitor,
+    DartType typeContext,
+  ) {
     return visitor.visitAugmentSuperGet(this, typeContext);
   }
 
@@ -3902,15 +4305,21 @@ class AugmentSuperSet extends InternalExpression {
   /// If `true` the assignment is need for its effect and not for its value.
   final bool forEffect;
 
-  AugmentSuperSet(this.target, this.value,
-      {required this.forEffect, required int fileOffset}) {
+  AugmentSuperSet(
+    this.target,
+    this.value, {
+    required this.forEffect,
+    required int fileOffset,
+  }) {
     value.parent = this;
     this.fileOffset = fileOffset;
   }
 
   @override
   ExpressionInferenceResult acceptInference(
-      InferenceVisitorImpl visitor, DartType typeContext) {
+    InferenceVisitorImpl visitor,
+    DartType typeContext,
+  ) {
     return visitor.visitAugmentSuperSet(this, typeContext);
   }
 
@@ -3930,18 +4339,25 @@ class InternalRecordLiteral extends InternalExpression {
   final List<Expression> positional;
   final List<NamedExpression> named;
   final Map<String, NamedExpression>? namedElements;
-  final List<Object /*Expression|NamedExpression*/ > originalElementOrder;
+  final List<Object /*Expression|NamedExpression*/> originalElementOrder;
   final bool isConst;
 
-  InternalRecordLiteral(this.positional, this.named, this.namedElements,
-      this.originalElementOrder,
-      {required this.isConst, required int offset}) {
+  InternalRecordLiteral(
+    this.positional,
+    this.named,
+    this.namedElements,
+    this.originalElementOrder, {
+    required this.isConst,
+    required int offset,
+  }) {
     fileOffset = offset;
   }
 
   @override
   ExpressionInferenceResult acceptInference(
-      InferenceVisitorImpl visitor, DartType typeContext) {
+    InferenceVisitorImpl visitor,
+    DartType typeContext,
+  ) {
     return visitor.visitInternalRecordLiteral(this, typeContext);
   }
 
@@ -3985,8 +4401,12 @@ class ObjectPatternInternal extends ObjectPattern {
   /// `true` this means that no further type inference needs to be performed.
   final bool hasExplicitTypeArguments;
 
-  ObjectPatternInternal(super.requiredType, super.fields, this.typedef,
-      {required this.hasExplicitTypeArguments});
+  ObjectPatternInternal(
+    super.requiredType,
+    super.fields,
+    this.typedef, {
+    required this.hasExplicitTypeArguments,
+  });
 }
 
 class ExtensionTypeRedirectingInitializer extends InternalInitializer {
@@ -3994,13 +4414,16 @@ class ExtensionTypeRedirectingInitializer extends InternalInitializer {
   Arguments arguments;
 
   ExtensionTypeRedirectingInitializer(Procedure target, Arguments arguments)
-      : this.byReference(
-            // Getter vs setter doesn't matter for procedures.
-            getNonNullableMemberReferenceGetter(target),
-            arguments);
+    : this.byReference(
+        // Getter vs setter doesn't matter for procedures.
+        getNonNullableMemberReferenceGetter(target),
+        arguments,
+      );
 
   ExtensionTypeRedirectingInitializer.byReference(
-      this.targetReference, this.arguments) {
+    this.targetReference,
+    this.arguments,
+  ) {
     arguments.parent = this;
   }
 
@@ -4040,8 +4463,8 @@ class ExtensionTypeRepresentationFieldInitializer extends InternalInitializer {
   Expression value;
 
   ExtensionTypeRepresentationFieldInitializer(Procedure field, this.value)
-      : assert(field.stubKind == ProcedureStubKind.RepresentationField),
-        this.fieldReference = field.reference {
+    : assert(field.stubKind == ProcedureStubKind.RepresentationField),
+      this.fieldReference = field.reference {
     value.parent = this;
   }
 
@@ -4084,7 +4507,9 @@ class DotShorthand extends InternalExpression {
 
   @override
   ExpressionInferenceResult acceptInference(
-      InferenceVisitorImpl visitor, DartType typeContext) {
+    InferenceVisitorImpl visitor,
+    DartType typeContext,
+  ) {
     return visitor.visitDotShorthand(this, typeContext);
   }
 
@@ -4111,12 +4536,18 @@ class DotShorthandInvocation extends InternalExpression {
   final Arguments arguments;
   final bool isConst;
 
-  DotShorthandInvocation(this.name, this.arguments,
-      {required this.nameOffset, required this.isConst});
+  DotShorthandInvocation(
+    this.name,
+    this.arguments, {
+    required this.nameOffset,
+    required this.isConst,
+  });
 
   @override
   ExpressionInferenceResult acceptInference(
-      InferenceVisitorImpl visitor, DartType typeContext) {
+    InferenceVisitorImpl visitor,
+    DartType typeContext,
+  ) {
     return visitor.visitDotShorthandInvocation(this, typeContext);
   }
 
@@ -4151,12 +4582,17 @@ class DotShorthandPropertyGet extends InternalExpression {
   /// [InferenceVisitor].
   bool hasTypeParameters;
 
-  DotShorthandPropertyGet(this.name,
-      {required this.nameOffset, this.hasTypeParameters = false});
+  DotShorthandPropertyGet(
+    this.name, {
+    required this.nameOffset,
+    this.hasTypeParameters = false,
+  });
 
   @override
   ExpressionInferenceResult acceptInference(
-      InferenceVisitorImpl visitor, DartType typeContext) {
+    InferenceVisitorImpl visitor,
+    DartType typeContext,
+  ) {
     return visitor.visitDotShorthandPropertyGet(this, typeContext);
   }
 

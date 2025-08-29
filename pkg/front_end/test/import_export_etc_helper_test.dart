@@ -7,154 +7,165 @@ import 'package:front_end/src/util/import_export_etc_helper.dart';
 void main() {
   // Simple imports.
   expect(
-      getFileInfoHelperFromString("""
+    getFileInfoHelperFromString("""
 import "foo.dart";
 import "bar.dart";
 """).getContent(),
-      """
+    """
 Imports:
  - foo.dart
  - bar.dart
 """
-          .trim());
+        .trim(),
+  );
 
   // "Advanced" imports.
   expect(
-      getFileInfoHelperFromString("""
+    getFileInfoHelperFromString("""
 import "foo"
             ".dart";
 import '''
 bar.dart''';
 """).getContent(),
-      """
+    """
 Imports:
  - foo.dart
  - bar.dart
 """
-          .trim());
+        .trim(),
+  );
 
   // Simple exports.
   expect(
-      getFileInfoHelperFromString("""
+    getFileInfoHelperFromString("""
 export "foo.dart";
 export "bar.dart";
 """).getContent(),
-      """
+    """
 Exports:
  - foo.dart
  - bar.dart
 """
-          .trim());
+        .trim(),
+  );
 
   // "Advanced" exports.
   expect(
-      getFileInfoHelperFromString("""
+    getFileInfoHelperFromString("""
 export "foo"
 ".dart";
 export '''
 bar.dart''';
 """).getContent(),
-      """
+    """
 Exports:
  - foo.dart
  - bar.dart
 """
-          .trim());
+        .trim(),
+  );
 
   // Simple parts.
   expect(
-      getFileInfoHelperFromString("""
+    getFileInfoHelperFromString("""
 part "foo.dart";
 part "bar.dart";
 """).getContent(),
-      """
+    """
 Parts:
  - foo.dart
  - bar.dart
 """
-          .trim());
+        .trim(),
+  );
 
   // "Advanced" parts.
   expect(
-      getFileInfoHelperFromString("""
+    getFileInfoHelperFromString("""
 part "foo"
 ".dart";
 part '''
 bar.dart''';
 """).getContent(),
-      """
+    """
 Parts:
  - foo.dart
  - bar.dart
 """
-          .trim());
+        .trim(),
+  );
 
   // Simple part of uri.
   expect(
-      getFileInfoHelperFromString("""
+    getFileInfoHelperFromString("""
 part of "foo.dart";
 """).getContent(),
-      """
+    """
 Part of uris:
  - foo.dart
 """
-          .trim());
+        .trim(),
+  );
 
   // "Advanced" part of uri.
   expect(
-      getFileInfoHelperFromString("""
+    getFileInfoHelperFromString("""
 part of "foo"
 ".dart";
 part of '''
 bar.dart''';
 """).getContent(),
-      """
+    """
 Part of uris:
  - foo.dart
  - bar.dart
 """
-          .trim());
+        .trim(),
+  );
 
   // Simple part of name.
   expect(
-      getFileInfoHelperFromString("""
+    getFileInfoHelperFromString("""
 part of foo.bar.baz;
 """).getContent(),
-      """
+    """
 Part of identifiers:
  - foo.bar.baz
 """
-          .trim());
+        .trim(),
+  );
 
   // "Advanced" part of name.
   expect(
-      getFileInfoHelperFromString("""
+    getFileInfoHelperFromString("""
 part of foo
 .
 bar
 .
 baz;
 """).getContent(),
-      """
+    """
 Part of identifiers:
  - foo.bar.baz
 """
-          .trim());
+        .trim(),
+  );
 
   // Simple library with name
   expect(
-      getFileInfoHelperFromString("""
+    getFileInfoHelperFromString("""
 library foo.bar.baz;
 """).getContent(),
-      """
+    """
 Library names:
  - foo.bar.baz
 """
-          .trim());
+        .trim(),
+  );
 
   // "Advanced" library with name
   expect(
-      getFileInfoHelperFromString("""
+    getFileInfoHelperFromString("""
 library
 
 foo
@@ -163,24 +174,26 @@ foo
 bar
 .baz;
 """).getContent(),
-      """
+    """
 Library names:
  - foo.bar.baz
 """
-          .trim());
+        .trim(),
+  );
 
   // Library without name
   expect(
-      getFileInfoHelperFromString("""
+    getFileInfoHelperFromString("""
 library;
 """).getContent(),
-      """
+    """
 """
-          .trim());
+        .trim(),
+  );
 
   // Weird combination
   expect(
-      getFileInfoHelperFromString("""
+    getFileInfoHelperFromString("""
 import "foo.dart";
 export "foo.dart";
 export "bar.dart";
@@ -235,7 +248,7 @@ library;
 library;
 
 """).getContent(),
-      """
+    """
 Imports:
  - foo.dart
  - bar.dart
@@ -266,7 +279,8 @@ Library names:
  - foo.bar
  - foo.bar.baz
 """
-          .trim());
+        .trim(),
+  );
 }
 
 void expect(Object? actual, Object? expect) {

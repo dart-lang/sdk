@@ -20,13 +20,16 @@ class MethodFragmentBodyBuilderContext extends BodyBuilderContext {
   final MethodFragmentDeclaration _declaration;
 
   MethodFragmentBodyBuilderContext(
-      this._fragment,
-      this._declaration,
-      SourceLibraryBuilder libraryBuilder,
-      DeclarationBuilder? declarationBuilder,
-      {required bool isDeclarationInstanceMember})
-      : super(libraryBuilder, declarationBuilder,
-            isDeclarationInstanceMember: isDeclarationInstanceMember);
+    this._fragment,
+    this._declaration,
+    SourceLibraryBuilder libraryBuilder,
+    DeclarationBuilder? declarationBuilder, {
+    required bool isDeclarationInstanceMember,
+  }) : super(
+         libraryBuilder,
+         declarationBuilder,
+         isDeclarationInstanceMember: isDeclarationInstanceMember,
+       );
 
   @override
   List<FormalParameterBuilder>? get formals => _declaration.formals;
@@ -50,7 +53,7 @@ class MethodFragmentBodyBuilderContext extends BodyBuilderContext {
   DartType get returnTypeContext {
     final bool isReturnTypeUndeclared =
         _fragment.returnType is OmittedTypeBuilder &&
-            function.returnType is DynamicType;
+        function.returnType is DynamicType;
     return isReturnTypeUndeclared ? const UnknownType() : function.returnType;
   }
 
@@ -85,8 +88,9 @@ class MethodFragmentBodyBuilderContext extends BodyBuilderContext {
   @override
   void setAsyncModifier(AsyncMarker asyncModifier) {
     assert(
-        asyncModifier == _fragment.asyncModifier,
-        "Unexpected change in async modifier on $_fragment from "
-        "${_fragment.asyncModifier} to $asyncModifier.");
+      asyncModifier == _fragment.asyncModifier,
+      "Unexpected change in async modifier on $_fragment from "
+      "${_fragment.asyncModifier} to $asyncModifier.",
+    );
   }
 }

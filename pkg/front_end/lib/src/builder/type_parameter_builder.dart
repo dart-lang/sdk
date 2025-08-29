@@ -70,8 +70,10 @@ sealed class TypeParameterBuilder extends TypeDeclarationBuilderImpl
   Nullability? _nullabilityFromParameterBound;
 
   Nullability get nullabilityFromParameterBound {
-    assert(_nullabilityFromParameterBound != null,
-        "Nullability has not been computed for $this.");
+    assert(
+      _nullabilityFromParameterBound != null,
+      "Nullability has not been computed for $this.",
+    );
     return _nullabilityFromParameterBound!;
   }
 
@@ -80,22 +82,29 @@ sealed class TypeParameterBuilder extends TypeDeclarationBuilderImpl
 
   void set parameterDefaultType(DartType defaultType);
 
-  void finish(SourceLibraryBuilder library, ClassBuilder object,
-      TypeBuilder dynamicType);
+  void finish(
+    SourceLibraryBuilder library,
+    ClassBuilder object,
+    TypeBuilder dynamicType,
+  );
 
-  Nullability _computeNullabilityFromType(TypeBuilder? typeBuilder,
-      {required Map<TypeParameterBuilder, TraversalState>
-          typeParametersTraversalState}) {
+  Nullability _computeNullabilityFromType(
+    TypeBuilder? typeBuilder, {
+    required Map<TypeParameterBuilder, TraversalState>
+    typeParametersTraversalState,
+  }) {
     if (typeBuilder == null) {
       return Nullability.undetermined;
     }
     return typeBuilder.computeNullability(
-        typeParametersTraversalState: typeParametersTraversalState);
+      typeParametersTraversalState: typeParametersTraversalState,
+    );
   }
 
-  Nullability computeNullability(
-      {required Map<TypeParameterBuilder, TraversalState>
-          typeParametersTraversalState}) {
+  Nullability computeNullability({
+    required Map<TypeParameterBuilder, TraversalState>
+    typeParametersTraversalState,
+  }) {
     if (_nullabilityFromParameterBound != null) {
       return _nullabilityFromParameterBound!;
     }
@@ -108,28 +117,34 @@ sealed class TypeParameterBuilder extends TypeDeclarationBuilderImpl
         return _nullabilityFromParameterBound = Nullability.undetermined;
       case TraversalState.unvisited:
         typeParametersTraversalState[this] = TraversalState.active;
-        Nullability nullability = _computeNullabilityFromType(bound,
-            typeParametersTraversalState: typeParametersTraversalState);
+        Nullability nullability = _computeNullabilityFromType(
+          bound,
+          typeParametersTraversalState: typeParametersTraversalState,
+        );
         typeParametersTraversalState[this] = TraversalState.visited;
         return _nullabilityFromParameterBound =
             nullability == Nullability.nullable
-                ? Nullability.undetermined
-                : nullability;
+            ? Nullability.undetermined
+            : nullability;
     }
   }
 
   @override
-  Nullability computeNullabilityWithArguments(List<TypeBuilder>? typeArguments,
-      {required Map<TypeParameterBuilder, TraversalState>
-          typeParametersTraversalState}) {
+  Nullability computeNullabilityWithArguments(
+    List<TypeBuilder>? typeArguments, {
+    required Map<TypeParameterBuilder, TraversalState>
+    typeParametersTraversalState,
+  }) {
     return computeNullability(
-        typeParametersTraversalState: typeParametersTraversalState);
+      typeParametersTraversalState: typeParametersTraversalState,
+    );
   }
 
-  TypeParameterCyclicDependency? findCyclicDependency(
-      {required Map<TypeParameterBuilder, TraversalState>
-          typeParametersTraversalState,
-      Map<TypeParameterBuilder, TypeParameterBuilder>? cycleElements}) {
+  TypeParameterCyclicDependency? findCyclicDependency({
+    required Map<TypeParameterBuilder, TraversalState>
+    typeParametersTraversalState,
+    Map<TypeParameterBuilder, TypeParameterBuilder>? cycleElements,
+  }) {
     cycleElements ??= {};
 
     switch (typeParametersTraversalState[this] ??= TraversalState.unvisited) {
@@ -143,8 +158,10 @@ sealed class TypeParameterBuilder extends TypeDeclarationBuilderImpl
           (viaTypeParameters ??= []).add(nextViaTypeParameter);
           nextViaTypeParameter = cycleElements[nextViaTypeParameter];
         }
-        return new TypeParameterCyclicDependency(this,
-            viaTypeParameters: viaTypeParameters);
+        return new TypeParameterCyclicDependency(
+          this,
+          viaTypeParameters: viaTypeParameters,
+        );
       case TraversalState.unvisited:
         typeParametersTraversalState[this] = TraversalState.active;
         TypeBuilder? unaliasedAndErasedBound = bound?.unaliasAndErase();
@@ -157,10 +174,11 @@ sealed class TypeParameterBuilder extends TypeDeclarationBuilderImpl
 
         if (nextVariable != null) {
           cycleElements[this] = nextVariable;
-          TypeParameterCyclicDependency? result =
-              nextVariable.findCyclicDependency(
-                  typeParametersTraversalState: typeParametersTraversalState,
-                  cycleElements: cycleElements);
+          TypeParameterCyclicDependency? result = nextVariable
+              .findCyclicDependency(
+                typeParametersTraversalState: typeParametersTraversalState,
+                cycleElements: cycleElements,
+              );
           typeParametersTraversalState[this] = TraversalState.visited;
           return result;
         } else {
@@ -176,10 +194,12 @@ abstract class NominalParameterBuilder extends TypeParameterBuilder {
   /// used for error recovery.
   static const String noNameSentinel = 'no name sentinel';
 
-  NominalParameterBuilder(
-      {Variance? variableVariance, Nullability? nullability})
-      : _varianceCalculationValue = new VarianceCalculationValue.fromVariance(
-            variableVariance ?? Variance.covariant) {
+  NominalParameterBuilder({
+    Variance? variableVariance,
+    Nullability? nullability,
+  }) : _varianceCalculationValue = new VarianceCalculationValue.fromVariance(
+         variableVariance ?? Variance.covariant,
+       ) {
     _nullabilityFromParameterBound = nullability;
   }
 
@@ -211,8 +231,9 @@ abstract class NominalParameterBuilder extends TypeParameterBuilder {
 
   @override
   void set variance(Variance value) {
-    _varianceCalculationValue =
-        new VarianceCalculationValue.fromVariance(value);
+    _varianceCalculationValue = new VarianceCalculationValue.fromVariance(
+      value,
+    );
     parameter.variance = value;
   }
 
@@ -239,37 +260,47 @@ abstract class NominalParameterBuilder extends TypeParameterBuilder {
 
   @override
   TypeParameterType buildAliasedTypeWithBuiltArguments(
-      LibraryBuilder library,
-      Nullability nullability,
-      List<DartType>? arguments,
-      TypeUse typeUse,
-      Uri fileUri,
-      int charOffset,
-      {required bool hasExplicitTypeArguments}) {
+    LibraryBuilder library,
+    Nullability nullability,
+    List<DartType>? arguments,
+    TypeUse typeUse,
+    Uri fileUri,
+    int charOffset, {
+    required bool hasExplicitTypeArguments,
+  }) {
     if (arguments != null) {
       // Coverage-ignore-block(suite): Not run.
       int charOffset = -1; // TODO(ahe): Provide these.
       Uri? fileUri = null; // TODO(ahe): Provide these.
-      library.addProblem(codeTypeArgumentsOnTypeVariable.withArguments(name),
-          charOffset, name.length, fileUri);
+      library.addProblem(
+        codeTypeArgumentsOnTypeVariable.withArguments(name),
+        charOffset,
+        name.length,
+        fileUri,
+      );
     }
     return new TypeParameterType(parameter, nullability);
   }
 
   @override
   DartType buildAliasedType(
-      LibraryBuilder library,
-      NullabilityBuilder nullabilityBuilder,
-      List<TypeBuilder>? arguments,
-      TypeUse typeUse,
-      Uri fileUri,
-      int charOffset,
-      ClassHierarchyBase? hierarchy,
-      {required bool hasExplicitTypeArguments}) {
+    LibraryBuilder library,
+    NullabilityBuilder nullabilityBuilder,
+    List<TypeBuilder>? arguments,
+    TypeUse typeUse,
+    Uri fileUri,
+    int charOffset,
+    ClassHierarchyBase? hierarchy, {
+    required bool hasExplicitTypeArguments,
+  }) {
     if (arguments != null) {
       // Coverage-ignore-block(suite): Not run.
-      library.addProblem(codeTypeArgumentsOnTypeVariable.withArguments(name),
-          charOffset, name.length, fileUri);
+      library.addProblem(
+        codeTypeArgumentsOnTypeVariable.withArguments(name),
+        charOffset,
+        name.length,
+        fileUri,
+      );
     }
     // If the bound is not set yet, the actual value is not important yet as it
     // will be set later.
@@ -280,24 +311,34 @@ abstract class NominalParameterBuilder extends TypeParameterBuilder {
       nullability = nullabilityBuilder.build();
     }
     TypeParameterType type = buildAliasedTypeWithBuiltArguments(
-        library, nullability, null, typeUse, fileUri, charOffset,
-        hasExplicitTypeArguments: hasExplicitTypeArguments);
+      library,
+      nullability,
+      null,
+      typeUse,
+      fileUri,
+      charOffset,
+      hasExplicitTypeArguments: hasExplicitTypeArguments,
+    );
     return type;
   }
 
   @override
-  void finish(SourceLibraryBuilder library, ClassBuilder object,
-      TypeBuilder dynamicType) {
+  void finish(
+    SourceLibraryBuilder library,
+    ClassBuilder object,
+    TypeBuilder dynamicType,
+  ) {
     DartType objectType = object.buildAliasedType(
-        library,
-        const NullabilityBuilder.nullable(),
-        /* arguments = */ null,
-        TypeUse.typeParameterBound,
-        fileUri ?? // Coverage-ignore(suite): Not run.
-            missingUri,
-        fileOffset,
-        /* hierarchy = */ null,
-        hasExplicitTypeArguments: false);
+      library,
+      const NullabilityBuilder.nullable(),
+      /* arguments = */ null,
+      TypeUse.typeParameterBound,
+      fileUri ?? // Coverage-ignore(suite): Not run.
+          missingUri,
+      fileOffset,
+      /* hierarchy = */ null,
+      hasExplicitTypeArguments: false,
+    );
     if (hasUnsetParameterBound) {
       parameterBound =
           bound?.build(library, TypeUse.typeParameterBound) ?? objectType;
@@ -307,8 +348,8 @@ abstract class NominalParameterBuilder extends TypeParameterBuilder {
     // Object. This makes sure instantiation of generic function types with an
     // explicit Object bound results in Object as the instantiated type.
     if (hasUnsetParameterDefaultType) {
-      parameterDefaultType = defaultType?.build(
-              library, TypeUse.typeParameterDefaultType) ??
+      parameterDefaultType =
+          defaultType?.build(library, TypeUse.typeParameterDefaultType) ??
           (bound != null && parameterBound == objectType
               ? objectType
               : dynamicType.build(library, TypeUse.typeParameterDefaultType));
@@ -317,7 +358,8 @@ abstract class NominalParameterBuilder extends TypeParameterBuilder {
 }
 
 List<TypeParameterBuilder> sortAllTypeParametersTopologically(
-    Iterable<TypeParameterBuilder> typeParameters) {
+  Iterable<TypeParameterBuilder> typeParameters,
+) {
   Set<TypeParameterBuilder> unhandled = new Set<TypeParameterBuilder>.identity()
     ..addAll(typeParameters);
   List<TypeParameterBuilder> result = <TypeParameterBuilder>[];
@@ -335,15 +377,21 @@ List<TypeParameterBuilder> sortAllTypeParametersTopologically(
 
     if (rootVariableBound != null) {
       _sortAllTypeParametersTopologicallyFromRoot(
-          rootVariableBound, unhandled, result);
+        rootVariableBound,
+        unhandled,
+        result,
+      );
     }
     result.add(rootVariable);
   }
   return result;
 }
 
-void _sortAllTypeParametersTopologicallyFromRoot(TypeBuilder root,
-    Set<TypeParameterBuilder> unhandled, List<TypeParameterBuilder> result) {
+void _sortAllTypeParametersTopologicallyFromRoot(
+  TypeBuilder root,
+  Set<TypeParameterBuilder> unhandled,
+  List<TypeParameterBuilder> result,
+) {
   List<TypeParameterBuilder>? foundTypeParameters;
   List<TypeBuilder>? internalDependents;
 
@@ -367,10 +415,10 @@ void _sortAllTypeParametersTopologicallyFromRoot(TypeBuilder root,
         case null:
       }
     case FunctionTypeBuilder(
-        typeParameters: List<StructuralParameterBuilder>? typeParameters,
-        :List<ParameterBuilder>? formals,
-        :TypeBuilder returnType
-      ):
+      typeParameters: List<StructuralParameterBuilder>? typeParameters,
+      :List<ParameterBuilder>? formals,
+      :TypeBuilder returnType,
+    ):
       foundTypeParameters = typeParameters;
       if (formals != null) {
         internalDependents = <TypeBuilder>[];
@@ -382,9 +430,9 @@ void _sortAllTypeParametersTopologicallyFromRoot(TypeBuilder root,
         (internalDependents ??= <TypeBuilder>[]).add(returnType);
       }
     case RecordTypeBuilder(
-        :List<RecordTypeFieldBuilder>? positionalFields,
-        :List<RecordTypeFieldBuilder>? namedFields
-      ):
+      :List<RecordTypeFieldBuilder>? positionalFields,
+      :List<RecordTypeFieldBuilder>? namedFields,
+    ):
       if (positionalFields != null) {
         internalDependents = <TypeBuilder>[];
         for (RecordTypeFieldBuilder field in positionalFields) {
@@ -418,7 +466,10 @@ void _sortAllTypeParametersTopologicallyFromRoot(TypeBuilder root,
 
         if (parameterBound != null) {
           _sortAllTypeParametersTopologicallyFromRoot(
-              parameterBound, unhandled, result);
+            parameterBound,
+            unhandled,
+            result,
+          );
         }
         result.add(parameterBuilder);
       }
@@ -472,7 +523,9 @@ abstract class StructuralParameterBuilder extends TypeParameterBuilder {
   @override
   // Coverage-ignore(suite): Not run.
   bool get hasUnsetParameterDefaultType => identical(
-      parameter.defaultType, StructuralParameter.unsetDefaultTypeSentinel);
+    parameter.defaultType,
+    StructuralParameter.unsetDefaultTypeSentinel,
+  );
 
   @override
   // Coverage-ignore(suite): Not run.
@@ -490,18 +543,23 @@ abstract class StructuralParameterBuilder extends TypeParameterBuilder {
 
   @override
   DartType buildAliasedType(
-      LibraryBuilder library,
-      NullabilityBuilder nullabilityBuilder,
-      List<TypeBuilder>? arguments,
-      TypeUse typeUse,
-      Uri fileUri,
-      int charOffset,
-      ClassHierarchyBase? hierarchy,
-      {required bool hasExplicitTypeArguments}) {
+    LibraryBuilder library,
+    NullabilityBuilder nullabilityBuilder,
+    List<TypeBuilder>? arguments,
+    TypeUse typeUse,
+    Uri fileUri,
+    int charOffset,
+    ClassHierarchyBase? hierarchy, {
+    required bool hasExplicitTypeArguments,
+  }) {
     if (arguments != null) {
       // Coverage-ignore-block(suite): Not run.
-      library.addProblem(codeTypeArgumentsOnTypeVariable.withArguments(name),
-          charOffset, name.length, fileUri);
+      library.addProblem(
+        codeTypeArgumentsOnTypeVariable.withArguments(name),
+        charOffset,
+        name.length,
+        fileUri,
+      );
     }
     // If the bound is not set yet, the actual value is not important yet as it
     // will be set later.
@@ -513,43 +571,58 @@ abstract class StructuralParameterBuilder extends TypeParameterBuilder {
       nullability = nullabilityBuilder.build();
     }
     StructuralParameterType type = buildAliasedTypeWithBuiltArguments(
-        library, nullability, null, typeUse, fileUri, charOffset,
-        hasExplicitTypeArguments: hasExplicitTypeArguments);
+      library,
+      nullability,
+      null,
+      typeUse,
+      fileUri,
+      charOffset,
+      hasExplicitTypeArguments: hasExplicitTypeArguments,
+    );
     return type;
   }
 
   @override
   StructuralParameterType buildAliasedTypeWithBuiltArguments(
-      LibraryBuilder library,
-      Nullability nullability,
-      List<DartType>? arguments,
-      TypeUse typeUse,
-      Uri fileUri,
-      int charOffset,
-      {required bool hasExplicitTypeArguments}) {
+    LibraryBuilder library,
+    Nullability nullability,
+    List<DartType>? arguments,
+    TypeUse typeUse,
+    Uri fileUri,
+    int charOffset, {
+    required bool hasExplicitTypeArguments,
+  }) {
     if (arguments != null) {
       // Coverage-ignore-block(suite): Not run.
       int charOffset = -1; // TODO(ahe): Provide these.
       Uri? fileUri = null; // TODO(ahe): Provide these.
-      library.addProblem(codeTypeArgumentsOnTypeVariable.withArguments(name),
-          charOffset, name.length, fileUri);
+      library.addProblem(
+        codeTypeArgumentsOnTypeVariable.withArguments(name),
+        charOffset,
+        name.length,
+        fileUri,
+      );
     }
     return new StructuralParameterType(parameter, nullability);
   }
 
   @override
   void finish(
-      LibraryBuilder library, ClassBuilder object, TypeBuilder dynamicType) {
+    LibraryBuilder library,
+    ClassBuilder object,
+    TypeBuilder dynamicType,
+  ) {
     DartType objectType = object.buildAliasedType(
-        library,
-        const NullabilityBuilder.nullable(),
-        /* arguments = */ null,
-        TypeUse.typeParameterBound,
-        fileUri ?? // Coverage-ignore(suite): Not run.
-            missingUri,
-        fileOffset,
-        /* hierarchy = */ null,
-        hasExplicitTypeArguments: false);
+      library,
+      const NullabilityBuilder.nullable(),
+      /* arguments = */ null,
+      TypeUse.typeParameterBound,
+      fileUri ?? // Coverage-ignore(suite): Not run.
+          missingUri,
+      fileOffset,
+      /* hierarchy = */ null,
+      hasExplicitTypeArguments: false,
+    );
     if (identical(parameter.bound, StructuralParameter.unsetBoundSentinel)) {
       parameter.bound =
           bound?.build(library, TypeUse.typeParameterBound) ?? objectType;
@@ -559,9 +632,11 @@ abstract class StructuralParameterBuilder extends TypeParameterBuilder {
     // Object. This makes sure instantiation of generic function types with an
     // explicit Object bound results in Object as the instantiated type.
     if (identical(
-        parameter.defaultType, StructuralParameter.unsetDefaultTypeSentinel)) {
-      parameter.defaultType = defaultType?.build(
-              library, TypeUse.typeParameterDefaultType) ??
+      parameter.defaultType,
+      StructuralParameter.unsetDefaultTypeSentinel,
+    )) {
+      parameter.defaultType =
+          defaultType?.build(library, TypeUse.typeParameterDefaultType) ??
           (bound != null && parameter.bound == objectType
               ? objectType
               : dynamicType.build(library, TypeUse.typeParameterDefaultType));
@@ -579,7 +654,7 @@ enum TraversalState {
   active,
 
   /// A [visited] builder is fully processed.
-  visited;
+  visited,
 }
 
 /// Represents a cyclic dependency of a type parameter on itself.
@@ -603,8 +678,10 @@ class TypeParameterCyclicDependency {
   /// variable.
   final List<TypeParameterBuilder>? viaTypeParameters;
 
-  TypeParameterCyclicDependency(this.typeParameterBoundOfItself,
-      {this.viaTypeParameters});
+  TypeParameterCyclicDependency(
+    this.typeParameterBoundOfItself, {
+    this.viaTypeParameters,
+  });
 
   @override
   String toString() {

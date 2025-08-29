@@ -26,19 +26,21 @@ import 'source_type_parameter_builder.dart';
 /// to the function. This is done to avoid adding type parameters to
 /// [Constructor]s which don't support them.
 void buildTypeParametersAndFormals(
-    SourceLibraryBuilder libraryBuilder,
-    FunctionNode function,
-    List<SourceNominalParameterBuilder>? declaredTypeParameters,
-    List<FormalParameterBuilder>? declaredFormals,
-    {required List<TypeParameter>? classTypeParameters,
-    required bool supportsTypeParameters}) {
+  SourceLibraryBuilder libraryBuilder,
+  FunctionNode function,
+  List<SourceNominalParameterBuilder>? declaredTypeParameters,
+  List<FormalParameterBuilder>? declaredFormals, {
+  required List<TypeParameter>? classTypeParameters,
+  required bool supportsTypeParameters,
+}) {
   IncludesTypeParametersNonCovariantly? needsCheckVisitor;
   if (classTypeParameters != null && classTypeParameters.isNotEmpty) {
-    needsCheckVisitor =
-        new IncludesTypeParametersNonCovariantly(classTypeParameters,
-            // We are checking the parameter types which are in a
-            // contravariant position.
-            initialVariance: Variance.contravariant);
+    needsCheckVisitor = new IncludesTypeParametersNonCovariantly(
+      classTypeParameters,
+      // We are checking the parameter types which are in a
+      // contravariant position.
+      initialVariance: Variance.contravariant,
+    );
   }
   if (declaredTypeParameters != null) {
     for (int i = 0; i < declaredTypeParameters.length; i++) {
@@ -77,11 +79,13 @@ void buildTypeParametersAndFormals(
       // Required named parameters can't have default values.
       if (formal.isRequiredNamed && formal.initializerToken != null) {
         libraryBuilder.addProblem(
-            codeRequiredNamedParameterHasDefaultValueError
-                .withArguments(formal.name),
-            formal.fileOffset,
-            formal.name.length,
-            formal.fileUri);
+          codeRequiredNamedParameterHasDefaultValueError.withArguments(
+            formal.name,
+          ),
+          formal.fileOffset,
+          formal.name.length,
+          formal.fileUri,
+        );
       }
     }
   }

@@ -17,8 +17,9 @@ Future<void> main(List<String> args) async {
   for (int i = 0; i < args.length; i++) {
     String arg = args[i];
     if (arg.startsWith("--output=")) {
-      outputDirectory =
-          new Directory(arg.substring("--output=".length)).absolute;
+      outputDirectory = new Directory(
+        arg.substring("--output=".length),
+      ).absolute;
     } else {
       Directory d = new Directory(arg);
       if (d.existsSync()) {
@@ -49,11 +50,13 @@ Future<void> main(List<String> args) async {
         String category = categorize(result.$2);
         print("${filename}: Still crashes: $category");
         bad++;
-        Directory d =
-            new Directory.fromUri(outputDirectory.uri.resolve("$category/"));
+        Directory d = new Directory.fromUri(
+          outputDirectory.uri.resolve("$category/"),
+        );
         d.createSync(recursive: true);
         File f = new File.fromUri(
-            outputDirectory.uri.resolve("$category/$bad.input"));
+          outputDirectory.uri.resolve("$category/$bad.input"),
+        );
         f.writeAsStringSync(content);
       }
     }

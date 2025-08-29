@@ -47,11 +47,7 @@ Future<void> runAllSpecialSuites([List<String>? args]) async {
         : args.map((String arg) => '${suite}/$arg').toList();
     testingArguments.addAll(tests);
   }
-  await cfe.main([
-    'testing',
-    ...testingArguments,
-    '-DupdateExpectations=true',
-  ]);
+  await cfe.main(['testing', ...testingArguments, '-DupdateExpectations=true']);
 }
 
 Future<void> main(List<String> args) async {

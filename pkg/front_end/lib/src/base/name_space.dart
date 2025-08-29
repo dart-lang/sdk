@@ -37,19 +37,22 @@ abstract class ComputedMutableNameSpace
   /// Adds [builder] to the extensions in this name space.
   void addExtension(ExtensionBuilder builder);
 
-  void replaceLocalMember(String name, NamedBuilder member,
-      {required bool setter});
+  void replaceLocalMember(
+    String name,
+    NamedBuilder member, {
+    required bool setter,
+  });
 }
 
 abstract class DeclarationNameSpace implements NameSpace {
   final Map<String, MemberLookupResult> _content;
   final Map<String, MemberLookupResult> _constructors;
 
-  DeclarationNameSpace(
-      {required Map<String, MemberLookupResult> content,
-      required Map<String, MemberLookupResult> constructors})
-      : _content = content,
-        _constructors = constructors;
+  DeclarationNameSpace({
+    required Map<String, MemberLookupResult> content,
+    required Map<String, MemberLookupResult> constructors,
+  }) : _content = content,
+       _constructors = constructors;
 
   @override
   void forEachLocalExtension(void Function(ExtensionBuilder member) f) {}
@@ -67,27 +70,32 @@ base class ComputedMutableNameSpaceImpl implements ComputedMutableNameSpace {
   ComputedMutableNameSpaceImpl._();
 
   @override
-  void addLocalMember(String name, NamedBuilder member,
-      {required bool setter}) {
+  void addLocalMember(
+    String name,
+    NamedBuilder member, {
+    required bool setter,
+  }) {
     Map<String, LookupResult> content = _content ??= {};
     LookupResult? existing = content[name];
     if (existing != null) {
       if (setter) {
         assert(
-            existing.setable == null ||
-                // Coverage-ignore(suite): Not run.
-                existing.setable == member,
-            "Trying to map setable $member to $name "
-            "replacing the existing value ${existing.setable}");
+          existing.setable == null ||
+              // Coverage-ignore(suite): Not run.
+              existing.setable == member,
+          "Trying to map setable $member to $name "
+          "replacing the existing value ${existing.setable}",
+        );
         if (existing.getable != null) {
           content[name] = new GetableSetableResult(existing.getable!, member);
           return;
         }
       } else {
         assert(
-            existing.getable == null || existing.getable == member,
-            "Trying to map getable $member to $name "
-            "replacing the existing value ${existing.getable}");
+          existing.getable == null || existing.getable == member,
+          "Trying to map getable $member to $name "
+          "replacing the existing value ${existing.getable}",
+        );
         if (existing.setable != null) {
           content[name] = new GetableSetableResult(member, existing.setable!);
           return;
@@ -99,24 +107,28 @@ base class ComputedMutableNameSpaceImpl implements ComputedMutableNameSpace {
     } else {
       content[name] = setter
           ?
-          // Coverage-ignore(suite): Not run.
-          new SetableResult(member)
+            // Coverage-ignore(suite): Not run.
+            new SetableResult(member)
           : new GetableResult(member);
     }
   }
 
   @override
-  void replaceLocalMember(String name, NamedBuilder member,
-      {required bool setter}) {
+  void replaceLocalMember(
+    String name,
+    NamedBuilder member, {
+    required bool setter,
+  }) {
     Map<String, LookupResult> content = _content!;
     LookupResult? existing = content[name];
     assert(existing != null, "No existing result for $name.");
     if (existing != null) {
       if (setter) {
         assert(
-            existing.setable != null,
-            "Trying to map setable $member to $name "
-            "replacing the existing value ${existing.setable}");
+          existing.setable != null,
+          "Trying to map setable $member to $name "
+          "replacing the existing value ${existing.setable}",
+        );
         if (existing.getable != null) {
           // Coverage-ignore-block(suite): Not run.
           content[name] = new GetableSetableResult(existing.getable!, member);
@@ -124,9 +136,10 @@ base class ComputedMutableNameSpaceImpl implements ComputedMutableNameSpace {
         }
       } else {
         assert(
-            existing.getable != null,
-            "Trying to map setable $member to $name "
-            "replacing the existing value ${existing.getable}");
+          existing.getable != null,
+          "Trying to map setable $member to $name "
+          "replacing the existing value ${existing.getable}",
+        );
         if (existing.setable != null) {
           content[name] = new GetableSetableResult(member, existing.setable!);
           return;
@@ -137,8 +150,9 @@ base class ComputedMutableNameSpaceImpl implements ComputedMutableNameSpace {
       content[name] = member as LookupResult;
     } else {
       // Coverage-ignore-block(suite): Not run.
-      content[name] =
-          setter ? new SetableResult(member) : new GetableResult(member);
+      content[name] = setter
+          ? new SetableResult(member)
+          : new GetableResult(member);
     }
   }
 
@@ -150,12 +164,14 @@ base class ComputedMutableNameSpaceImpl implements ComputedMutableNameSpace {
   @override
   Iterator<T> filteredIterator<T extends NamedBuilder>() {
     return new FilteredIterator<T>(
-        new LookupResultIterator(
-            _content?.values.iterator,
-            _extensions
-                // Coverage-ignore(suite): Not run.
-                ?.iterator),
-        includeDuplicates: false);
+      new LookupResultIterator(
+        _content?.values.iterator,
+        _extensions
+            // Coverage-ignore(suite): Not run.
+            ?.iterator,
+      ),
+      includeDuplicates: false,
+    );
   }
 
   @override
@@ -171,15 +187,17 @@ final class LibraryNameSpace implements NameSpace {
   final Map<String, LookupResult> _content;
   final Set<ExtensionBuilder>? _extensions;
 
-  LibraryNameSpace(
-      {required Map<String, LookupResult> content,
-      required Set<ExtensionBuilder> extensions})
-      : _content = content,
-        _extensions = extensions;
+  LibraryNameSpace({
+    required Map<String, LookupResult> content,
+    required Set<ExtensionBuilder> extensions,
+  }) : _content = content,
+       _extensions = extensions;
 
   void addLocalMember(String name, LookupResult member) {
-    assert(!_content.containsKey(name),
-        "Unexpected replacement of ${_content[name]} by $member.");
+    assert(
+      !_content.containsKey(name),
+      "Unexpected replacement of ${_content[name]} by $member.",
+    );
     _content[name] = member;
   }
 
@@ -197,10 +215,11 @@ final class LibraryNameSpace implements NameSpace {
 /// [dillNameSpace] are not equivalent.
 ///
 /// This should be used for assertions only.
-String? areNameSpacesEquivalent(
-    {required Uri importUri,
-    required NameSpace sourceNameSpace,
-    required NameSpace dillNameSpace}) {
+String? areNameSpacesEquivalent({
+  required Uri importUri,
+  required NameSpace sourceNameSpace,
+  required NameSpace dillNameSpace,
+}) {
   sourceNameSpace as ComputedMutableNameSpaceImpl;
   dillNameSpace as ComputedMutableNameSpaceImpl;
 
@@ -224,7 +243,8 @@ String? areNameSpacesEquivalent(
             // corresponding classes in the AST.
           } else {
             sb.writeln(
-                'No dill getable for ${sourceEntry.key}: ${sourceResult}');
+              'No dill getable for ${sourceEntry.key}: ${sourceResult}',
+            );
             isEquivalent = false;
           }
         }
@@ -263,27 +283,34 @@ String? areNameSpacesEquivalent(
 }
 
 final class SourceDeclarationNameSpace extends DeclarationNameSpace {
-  SourceDeclarationNameSpace(
-      {required super.content, required super.constructors});
+  SourceDeclarationNameSpace({
+    required super.content,
+    required super.constructors,
+  });
 
   void addConstructor(String name, MemberLookupResult constructor) {
     assert(
-        !_constructors.containsKey(name),
-        "Unexpected existing constructor ${_constructors[name]}, "
-        "trying to add ${constructor}.");
+      !_constructors.containsKey(name),
+      "Unexpected existing constructor ${_constructors[name]}, "
+      "trying to add ${constructor}.",
+    );
     _constructors[name] = constructor;
   }
 
   void addLocalMember(String name, MemberLookupResult member) {
-    assert(!_content.containsKey(name),
-        "Unexpected replacement of ${_content[name]} by $member.");
+    assert(
+      !_content.containsKey(name),
+      "Unexpected replacement of ${_content[name]} by $member.",
+    );
     _content[name] = member;
   }
 }
 
 final class DillDeclarationNameSpace extends DeclarationNameSpace {
-  DillDeclarationNameSpace(
-      {required super.content, required super.constructors});
+  DillDeclarationNameSpace({
+    required super.content,
+    required super.constructors,
+  });
 }
 
 final class DillExportNameSpace extends ComputedMutableNameSpaceImpl {
@@ -327,8 +354,8 @@ final class DillExportNameSpace extends ComputedMutableNameSpaceImpl {
         LookupResult? replacementResult;
         if (existingGetter != null && existingSetter != null) {
           if (existingGetter == existingSetter) {
-            replacementResult =
-                replacementNameSpaceMap[existingGetter.parent]!.lookup(name);
+            replacementResult = replacementNameSpaceMap[existingGetter.parent]!
+                .lookup(name);
           } else {
             NamedBuilder? replacementGetter =
                 replacementNameSpaceMap[existingGetter.parent]
@@ -339,25 +366,29 @@ final class DillExportNameSpace extends ComputedMutableNameSpaceImpl {
                     ?.lookup(name)
                     ?.setable;
             replacementResult = LookupResult.createResult(
-                replacementGetter ?? existingGetter,
-                replacementSetter ?? existingSetter);
+              replacementGetter ?? existingGetter,
+              replacementSetter ?? existingSetter,
+            );
           }
         } else if (existingGetter != null) {
           replacementResult = LookupResult.createResult(
-              replacementNameSpaceMap[existingGetter.parent]
-                  ?.lookup(name)
-                  ?.getable,
-              null);
+            replacementNameSpaceMap[existingGetter.parent]
+                ?.lookup(name)
+                ?.getable,
+            null,
+          );
         } else if (existingSetter != null) {
           replacementResult = LookupResult.createResult(
-              null,
-              replacementNameSpaceMap[existingSetter.parent]
-                  ?.lookup(name)
-                  ?.setable);
+            null,
+            replacementNameSpaceMap[existingSetter.parent]
+                ?.lookup(name)
+                ?.setable,
+          );
         }
         if (replacementResult != null) {
           (_content ??= // Coverage-ignore(suite): Not run.
-              {})[name] = replacementResult;
+                  {})[name] =
+              replacementResult;
         } else {
           // Coverage-ignore-block(suite): Not run.
           _content?.remove(name);
@@ -369,8 +400,9 @@ final class DillExportNameSpace extends ComputedMutableNameSpaceImpl {
       // Coverage-ignore-block(suite): Not run.
       bool needsPatching = false;
       for (ExtensionBuilder extensionBuilder in _extensions!) {
-        if (replacementNameSpaceMap
-            .containsKey(extensionBuilder.libraryBuilder)) {
+        if (replacementNameSpaceMap.containsKey(
+          extensionBuilder.libraryBuilder,
+        )) {
           needsPatching = true;
           break;
         }
@@ -379,16 +411,21 @@ final class DillExportNameSpace extends ComputedMutableNameSpaceImpl {
         Set<ExtensionBuilder> extensionsReplacement =
             new Set<ExtensionBuilder>();
         for (ExtensionBuilder extensionBuilder in _extensions!) {
-          if (replacementNameSpaceMap
-              .containsKey(extensionBuilder.libraryBuilder)) {
-            assert(replacementNameSpaceMap[extensionBuilder.libraryBuilder]!
-                    .lookup(extensionBuilder.name)!
-                    .getable !=
-                null);
+          if (replacementNameSpaceMap.containsKey(
+            extensionBuilder.libraryBuilder,
+          )) {
+            assert(
+              replacementNameSpaceMap[extensionBuilder.libraryBuilder]!
+                      .lookup(extensionBuilder.name)!
+                      .getable !=
+                  null,
+            );
             extensionsReplacement.add(
-                replacementNameSpaceMap[extensionBuilder.libraryBuilder]!
-                    .lookup(extensionBuilder.name)!
-                    .getable as ExtensionBuilder);
+              replacementNameSpaceMap[extensionBuilder.libraryBuilder]!
+                      .lookup(extensionBuilder.name)!
+                      .getable
+                  as ExtensionBuilder,
+            );
             break;
           } else {
             extensionsReplacement.add(extensionBuilder);

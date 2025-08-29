@@ -30,12 +30,15 @@ import 'compiler_options.dart';
 /// was compiled from sources.
 ///
 /// The return value is a list of bytes to write to the summary file.
-Future<Uint8List?> summaryFor(List<Uri> sources, CompilerOptions options,
-    {bool truncate = false}) async {
+Future<Uint8List?> summaryFor(
+  List<Uri> sources,
+  CompilerOptions options, {
+  bool truncate = false,
+}) async {
   return (await generateKernel(
-          new ProcessedOptions(options: options, inputs: sources),
-          buildSummary: true,
-          buildComponent: false,
-          truncateSummary: truncate))
-      .summary;
+    new ProcessedOptions(options: options, inputs: sources),
+    buildSummary: true,
+    buildComponent: false,
+    truncateSummary: truncate,
+  )).summary;
 }

@@ -37,14 +37,17 @@ Future<void> main(List<String> args) async {
 
   Stopwatch stopwatch = new Stopwatch()..start();
 
-  IncrementalCompiler compiler =
-      new IncrementalCompiler(new CompilerContext(options));
+  IncrementalCompiler compiler = new IncrementalCompiler(
+    new CompilerContext(options),
+  );
   IncrementalCompilerResult compilerResult = await compiler.computeDelta();
   Component component = compilerResult.component;
   List<Warning> warnings = UnreachableIfFinder.find(component);
 
-  print("Done in ${stopwatch.elapsedMilliseconds} ms. "
-      "Found ${warnings.length} warnings.");
+  print(
+    "Done in ${stopwatch.elapsedMilliseconds} ms. "
+    "Found ${warnings.length} warnings.",
+  );
   if (warnings.length > 0) {
     for (Warning warning in warnings) {
       print(warning);

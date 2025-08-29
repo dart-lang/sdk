@@ -7,5 +7,6 @@
 /*cfe.member: main:main*/
 main() {
   // ignore: undefined_function
-  /*error: Method not found: 'foo'.*/ foo();
+  /*error: Method not found: 'foo'.*/
+  foo();
 }

@@ -18,8 +18,9 @@ Future<void> main() async {
 }
 
 Future<Component?> compileHelper(Map<Uri, String> data) async {
-  MemoryFileSystem mfs =
-      new MemoryFileSystem(new Uri(scheme: "org-dartlang-debug", path: "/"));
+  MemoryFileSystem mfs = new MemoryFileSystem(
+    new Uri(scheme: "org-dartlang-debug", path: "/"),
+  );
   for (MapEntry<Uri, String> entry in data.entries) {
     mfs.entityForUri(entry.key).writeAsStringSync(entry.value);
   }

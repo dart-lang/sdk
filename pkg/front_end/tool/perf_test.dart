@@ -10,8 +10,9 @@ import 'perf.dart' as m;
 
 Future<void> main() async {
   var benchIds = ['scan', 'parse'];
-  var inputFile =
-      Platform.script.resolve('../lib/src/api_prototype/file_system.dart').path;
+  var inputFile = Platform.script
+      .resolve('../lib/src/api_prototype/file_system.dart')
+      .path;
   for (var id in benchIds) {
     await m.main([id, inputFile]);
   }

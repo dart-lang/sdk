@@ -123,15 +123,23 @@ class Direct {
    classBuilder=Direct,
    isSourceDeclaration
   */
-  void optional(
-      [covariant int a = 0, int b = 0, covariant int c = 0, int d = 0]) {}
+  void optional([
+    covariant int a = 0,
+    int b = 0,
+    covariant int c = 0,
+    int d = 0,
+  ]) {}
 
   /*member: Direct.named#cls:
    classBuilder=Direct,
    isSourceDeclaration
   */
-  void named(
-      {covariant int a = 0, int b = 0, covariant int c = 0, int d = 0}) {}
+  void named({
+    covariant int a = 0,
+    int b = 0,
+    covariant int c = 0,
+    int d = 0,
+  }) {}
 }
 
 /*class: Inherited:

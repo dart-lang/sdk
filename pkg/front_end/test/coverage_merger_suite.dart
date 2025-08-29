@@ -23,26 +23,20 @@ import 'utils/kernel_chain.dart';
 import 'utils/suite_utils.dart';
 import 'vm_service_coverage.dart';
 
-void main([List<String> arguments = const []]) => internalMain(createContext,
-    arguments: arguments,
-    displayName: "coverage merger suite",
-    configurationPath: "../testing.json");
+void main([List<String> arguments = const []]) => internalMain(
+  createContext,
+  arguments: arguments,
+  displayName: "coverage merger suite",
+  configurationPath: "../testing.json",
+);
 
 const List<Map<String, String>> EXPECTATIONS = [
-  {
-    "name": "ExpectationFileMismatch",
-    "group": "Fail",
-  },
-  {
-    "name": "ExpectationFileMissing",
-    "group": "Fail",
-  },
+  {"name": "ExpectationFileMismatch", "group": "Fail"},
+  {"name": "ExpectationFileMissing", "group": "Fail"},
 ];
 
 Future<Context> createContext(Chain suite, Map<String, String> environment) {
-  const Set<String> knownEnvironmentKeys = {
-    EnvironmentKeys.updateExpectations,
-  };
+  const Set<String> knownEnvironmentKeys = {EnvironmentKeys.updateExpectations};
   checkEnvironment(environment, knownEnvironmentKeys);
 
   return new Future.value(new Context(suite.name, environment));
@@ -56,14 +50,17 @@ class CheckCoverageData extends Step<TestDescription, void, Context> {
 
   @override
   Future<Result<void>> run(TestDescription description, Context context) async {
-    Directory tmpDir =
-        Directory.systemTemp.createTempSync("coverage_merger_test");
+    Directory tmpDir = Directory.systemTemp.createTempSync(
+      "coverage_merger_test",
+    );
     try {
-      Directory dartToolDir =
-          new Directory.fromUri(tmpDir.uri.resolve(".dart_tool/"));
+      Directory dartToolDir = new Directory.fromUri(
+        tmpDir.uri.resolve(".dart_tool/"),
+      );
       dartToolDir.createSync(recursive: true);
       File packageConfig = new File.fromUri(
-          tmpDir.uri.resolve(".dart_tool/package_config.json"));
+        tmpDir.uri.resolve(".dart_tool/package_config.json"),
+      );
       // We claim it being called 'front_end' as that's (currently at least) the
       // only package we process (almost) all files for.
       packageConfig.writeAsStringSync("""{
@@ -89,7 +86,7 @@ class CheckCoverageData extends Step<TestDescription, void, Context> {
           "--disable-dart-dev",
           "--enable-asserts",
           "--pause_isolates_on_exit",
-          main.path
+          main.path,
         ],
         stdoutReceiver: (String line) {
           print(" > $line");
@@ -99,38 +96,41 @@ class CheckCoverageData extends Step<TestDescription, void, Context> {
         },
       );
       Coverage coverage = await helper.completer.future;
-      Directory coverageDir =
-          new Directory.fromUri(tmpDir.uri.resolve("coverage/"));
+      Directory coverageDir = new Directory.fromUri(
+        tmpDir.uri.resolve("coverage/"),
+      );
       coverageDir.createSync(recursive: true);
-      File coverageFile =
-          new File.fromUri(tmpDir.uri.resolve("coverage/coverage.json"));
+      File coverageFile = new File.fromUri(
+        tmpDir.uri.resolve("coverage/coverage.json"),
+      );
       coverage.writeToFile(coverageFile);
 
-      Map<Uri, coverageMerger.CoverageInfo> coverageData =
-          (await coverageMerger.mergeFromDirUri(
-        packageConfig.uri,
-        coverageDir.uri,
-        silent: true,
-        extraCoverageIgnores: ["coverage-ignore(suite):"],
-        extraCoverageBlockIgnores: ["coverage-ignore-block(suite):"],
-        addAndRemoveCommentsInFiles: false,
-        stdoutReceiver: (String line) {
-          print(" > $line");
-        },
-        stderrReceiver: (String line) {
-          print("e> $line");
-        },
-      ))!;
+      Map<Uri, coverageMerger.CoverageInfo> coverageData = (await coverageMerger
+          .mergeFromDirUri(
+            packageConfig.uri,
+            coverageDir.uri,
+            silent: true,
+            extraCoverageIgnores: ["coverage-ignore(suite):"],
+            extraCoverageBlockIgnores: ["coverage-ignore-block(suite):"],
+            addAndRemoveCommentsInFiles: false,
+            stdoutReceiver: (String line) {
+              print(" > $line");
+            },
+            stderrReceiver: (String line) {
+              print("e> $line");
+            },
+          ))!;
       if (coverageData.values.first.error) {
         print("Warning: Got an error.");
       }
 
-      Result<TestDescription> expectMatch =
-          await context.match<TestDescription>(
-              ".visualization.expect",
-              coverageData.values.first.visualization.trim(),
-              description.uri,
-              description);
+      Result<TestDescription> expectMatch = await context
+          .match<TestDescription>(
+            ".visualization.expect",
+            coverageData.values.first.visualization.trim(),
+            description.uri,
+            description,
+          );
       if (expectMatch.outcome != Expectation.pass) return expectMatch;
 
       coverageData = (await coverageMerger.mergeFromDirUri(
@@ -151,8 +151,12 @@ class CheckCoverageData extends Step<TestDescription, void, Context> {
       print("Reading ${main.path}");
 
       String outputWithComments = main.readAsStringSync().trim();
-      return await context.match<TestDescription>(".commented.expect",
-          outputWithComments, description.uri, description);
+      return await context.match<TestDescription>(
+        ".commented.expect",
+        outputWithComments,
+        description.uri,
+        description,
+      );
     } finally {
       try {
         tmpDir.deleteSync(recursive: true);
@@ -184,20 +188,19 @@ class Context extends ChainContext with MatchContext {
   final String suiteName;
 
   @override
-  final List<Step> steps = const <Step>[
-    const CheckCoverageData(),
-  ];
+  final List<Step> steps = const <Step>[const CheckCoverageData()];
 
   @override
   final bool updateExpectations;
 
   @override
-  final ExpectationSet expectationSet =
-      new ExpectationSet.fromJsonList(EXPECTATIONS);
+  final ExpectationSet expectationSet = new ExpectationSet.fromJsonList(
+    EXPECTATIONS,
+  );
 
   Context(this.suiteName, Map<String, String> environment)
-      : updateExpectations =
-            environment[EnvironmentKeys.updateExpectations] == "true";
+    : updateExpectations =
+          environment[EnvironmentKeys.updateExpectations] == "true";
 
   @override
   bool get canBeFixWithUpdateExpectations => true;

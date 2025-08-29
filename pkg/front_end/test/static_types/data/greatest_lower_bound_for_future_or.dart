@@ -24,10 +24,12 @@ void func1<T extends Foo>(T t) {
       /*Never*/ throw /*int!*/ 42;
 
   // Type of the expression is GLB(FutureOr<T>, Foo) = T.
-  /*invoke: void*/ context(
-      /*invoke: T!*/ expr
-          /*<T!>*/
-          ());
+  /*invoke: void*/
+  context(
+    /*invoke: T!*/ expr
+    /*<T!>*/
+    (),
+  );
 }
 
 // -----------------------------------------------------------------------------
@@ -39,11 +41,13 @@ void func2<T extends Foo>() {
       /*Never*/ throw /*int!*/ 42;
 
   // Type of the expression is GLB(FutureOr<T>, Future<Foo>) = Future<T>.
-  /*invoke: void*/ context(
-      /*invoke: Future<T!>!*/
-      expr
-          /*<Future<T!>!>*/
-          ());
+  /*invoke: void*/
+  context(
+    /*invoke: Future<T!>!*/
+    expr
+    /*<Future<T!>!>*/
+    (),
+  );
 }
 
 // -----------------------------------------------------------------------------
@@ -55,10 +59,12 @@ void func3<T extends Foo>() {
       /*Never*/ throw /*int!*/ 42;
 
   // Type of the expression is GLB(T, FutureOr<Foo>) = T.
-  /*invoke: void*/ context(
-      /*invoke: T!*/ expr
-          /*<T!>*/
-          ());
+  /*invoke: void*/
+  context(
+    /*invoke: T!*/ expr
+    /*<T!>*/
+    (),
+  );
 }
 
 // -----------------------------------------------------------------------------
@@ -70,11 +76,13 @@ void func4<T extends Foo>() {
       /*Never*/ throw /*int!*/ 42;
 
   // Type of the expression is GLB(Future<T>, FutureOr<Foo>) = Future<T>.
-  /*invoke: void*/ context(
-      /*invoke: Future<T!>!*/
-      expr
-          /*<Future<T!>!>*/
-          ());
+  /*invoke: void*/
+  context(
+    /*invoke: Future<T!>!*/
+    expr
+    /*<Future<T!>!>*/
+    (),
+  );
 }
 
 // -----------------------------------------------------------------------------
@@ -88,11 +96,13 @@ void func5<T extends Foo>() {
 
   // Type of the expression is GLB(FutureOr<FutureOr<T>>, FutureOr<Future<Foo>>)
   // = FutureOr<Future<T>>.
-  /*invoke: void*/ context(
-      /*invoke: FutureOr<Future<T!>!>!*/
-      expr
-          /*<FutureOr<Future<T!>!>!>*/
-          ());
+  /*invoke: void*/
+  context(
+    /*invoke: FutureOr<Future<T!>!>!*/
+    expr
+    /*<FutureOr<Future<T!>!>!>*/
+    (),
+  );
 }
 
 // -----------------------------------------------------------------------------

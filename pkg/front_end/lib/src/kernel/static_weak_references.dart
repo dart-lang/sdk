@@ -28,7 +28,9 @@ class StaticWeakReferences {
       node.target.hasWeakTearoffReferencePragma;
 
   static bool isAnnotatedWithWeakReferencePragma(
-      Annotatable node, CoreTypes coreTypes) {
+    Annotatable node,
+    CoreTypes coreTypes,
+  ) {
     List<Expression> annotations = node.annotations;
     for (int i = 0; i < annotations.length; i++) {
       Expression annotation = annotations[i];
@@ -51,12 +53,19 @@ class StaticWeakReferences {
   }
 
   static void validateWeakReferenceUse(
-      StaticInvocation node, ErrorReporter errorReporter) {
+    StaticInvocation node,
+    ErrorReporter errorReporter,
+  ) {
     final Arguments arguments = node.arguments;
     if (arguments.positional.length != 1 || arguments.named.isNotEmpty) {
       // Coverage-ignore-block(suite): Not run.
-      errorReporter.report(codeWeakReferenceNotOneArgument.withLocation(
-          node.location!.file, node.fileOffset, 1));
+      errorReporter.report(
+        codeWeakReferenceNotOneArgument.withLocation(
+          node.location!.file,
+          node.fileOffset,
+          1,
+        ),
+      );
       return;
     }
     final Expression arg = arguments.positional.single;
@@ -71,42 +80,74 @@ class StaticWeakReferences {
               function.namedParameters.isNotEmpty ||
               // Coverage-ignore(suite): Not run.
               function.typeParameters.isNotEmpty) {
-            errorReporter.report(codeWeakReferenceTargetHasParameters
-                .withLocation(node.location!.file, node.fileOffset, 1));
+            errorReporter.report(
+              codeWeakReferenceTargetHasParameters.withLocation(
+                node.location!.file,
+                node.fileOffset,
+                1,
+              ),
+            );
           }
           return;
         }
       }
     }
-    errorReporter.report(codeWeakReferenceTargetNotStaticTearoff.withLocation(
-        node.location!.file, node.fileOffset, 1));
+    errorReporter.report(
+      codeWeakReferenceTargetNotStaticTearoff.withLocation(
+        node.location!.file,
+        node.fileOffset,
+        1,
+      ),
+    );
   }
 
   static void validateWeakReferenceDeclaration(
-      Annotatable node, ErrorReporter errorReporter) {
+    Annotatable node,
+    ErrorReporter errorReporter,
+  ) {
     if (node is! Procedure ||
         !node.isStatic ||
         node.kind != ProcedureKind.Method) {
-      errorReporter.report(codeWeakReferenceNotStatic.withLocation(
-          node.location!.file, node.fileOffset, 1));
+      errorReporter.report(
+        codeWeakReferenceNotStatic.withLocation(
+          node.location!.file,
+          node.fileOffset,
+          1,
+        ),
+      );
       return;
     }
     final FunctionNode function = node.function;
     if (function.positionalParameters.length != 1 ||
         function.requiredParameterCount != 1 ||
         function.namedParameters.isNotEmpty) {
-      errorReporter.report(codeWeakReferenceNotOneArgument.withLocation(
-          node.location!.file, node.fileOffset, 1));
+      errorReporter.report(
+        codeWeakReferenceNotOneArgument.withLocation(
+          node.location!.file,
+          node.fileOffset,
+          1,
+        ),
+      );
       return;
     }
     final DartType returnType = function.returnType;
     if (returnType.nullability != Nullability.nullable) {
-      errorReporter.report(codeWeakReferenceReturnTypeNotNullable.withLocation(
-          node.location!.file, node.fileOffset, 1));
+      errorReporter.report(
+        codeWeakReferenceReturnTypeNotNullable.withLocation(
+          node.location!.file,
+          node.fileOffset,
+          1,
+        ),
+      );
     }
     if (returnType != function.positionalParameters.single.type) {
-      errorReporter.report(codeWeakReferenceMismatchReturnAndArgumentTypes
-          .withLocation(node.location!.file, node.fileOffset, 1));
+      errorReporter.report(
+        codeWeakReferenceMismatchReturnAndArgumentTypes.withLocation(
+          node.location!.file,
+          node.fileOffset,
+          1,
+        ),
+      );
     }
     node.hasWeakTearoffReferencePragma = true;
   }

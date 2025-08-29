@@ -23,8 +23,8 @@ class StandardFileSystem implements FileSystem {
 
   // Coverage-ignore(suite): Not run.
   static StandardFileSystem instanceWithTracking(
-          FileSystemDependencyTracker tracker) =>
-      new StandardFileSystem._(tracker);
+    FileSystemDependencyTracker tracker,
+  ) => new StandardFileSystem._(tracker);
 
   final FileSystemDependencyTracker? tracker;
 
@@ -43,7 +43,9 @@ class StandardFileSystem implements FileSystem {
       return new DataFileSystemEntity(Uri.base.resolveUri(uri));
     } else {
       throw new FileSystemException(
-          uri, 'StandardFileSystem only supports file:* and data:* URIs');
+        uri,
+        'StandardFileSystem only supports file:* and data:* URIs',
+      );
     }
   }
 }
@@ -97,7 +99,9 @@ class _IoFileSystemEntity implements FileSystemEntity {
       return new Future.value(new io.File.fromUri(uri).readAsBytesSync());
     } on io.FileSystemException catch (exception) {
       return new Future.error(
-          _toFileSystemException(exception), StackTrace.current);
+        _toFileSystemException(exception),
+        StackTrace.current,
+      );
     }
   }
 
@@ -144,8 +148,8 @@ class DataFileSystemEntity implements FileSystemEntity {
   final Uri uri;
 
   DataFileSystemEntity(this.uri)
-      : assert(uri.isScheme('data')),
-        assert(uri.data != null);
+    : assert(uri.isScheme('data')),
+      assert(uri.data != null);
 
   @override
   int get hashCode => uri.hashCode;

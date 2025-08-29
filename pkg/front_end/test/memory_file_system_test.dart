@@ -25,8 +25,9 @@ void main() {
   });
 }
 
-final Matcher _throwsFileSystemException =
-    throwsA(const TypeMatcher<FileSystemException>());
+final Matcher _throwsFileSystemException = throwsA(
+  const TypeMatcher<FileSystemException>(),
+);
 
 @reflectiveTest
 class FileTest extends _BaseTestNative {
@@ -125,7 +126,9 @@ class FileTest extends _BaseTestNative {
   Future<void> test_writeAsBytesSync_directory() async {
     file.createDirectory();
     await expectLater(
-        () => file.writeAsBytesSync([0]), _throwsFileSystemException);
+      () => file.writeAsBytesSync([0]),
+      _throwsFileSystemException,
+    );
   }
 
   Future<void> test_writeAsBytesSync_modifyAfterRead() async {
@@ -162,7 +165,9 @@ class FileTest extends _BaseTestNative {
   Future<void> test_writeAsStringSync_directory() async {
     file.createDirectory();
     await expectLater(
-        () => file.writeAsStringSync(''), _throwsFileSystemException);
+      () => file.writeAsStringSync(''),
+      _throwsFileSystemException,
+    );
   }
 
   Future<void> test_writeAsStringSync_overwrite() async {
@@ -191,34 +196,47 @@ mixin MemoryFileSystemTestMixin implements _BaseTest {
     // A trailing slash should automatically be appended when creating a
     // MemoryFileSystem.
     var path = fileSystem.currentDirectory.path;
-    var currentDirectoryWithoutSlash = fileSystem.currentDirectory
-        .replace(path: path.substring(0, path.length - 1));
-    expect(new MemoryFileSystem(currentDirectoryWithoutSlash).currentDirectory,
-        fileSystem.currentDirectory);
+    var currentDirectoryWithoutSlash = fileSystem.currentDirectory.replace(
+      path: path.substring(0, path.length - 1),
+    );
+    expect(
+      new MemoryFileSystem(currentDirectoryWithoutSlash).currentDirectory,
+      fileSystem.currentDirectory,
+    );
     // If the currentDirectory supplied to the MemoryFileSystem constructor
     // already has a trailing slash, no further trailing slash should be added.
-    expect(new MemoryFileSystem(fileSystem.currentDirectory).currentDirectory,
-        fileSystem.currentDirectory);
+    expect(
+      new MemoryFileSystem(fileSystem.currentDirectory).currentDirectory,
+      fileSystem.currentDirectory,
+    );
   }
 
   void test_entityForPath_absolutize() {
-    expect(entityForPath('file.txt').uri,
-        fileSystem.currentDirectory.resolve('file.txt'));
+    expect(
+      entityForPath('file.txt').uri,
+      fileSystem.currentDirectory.resolve('file.txt'),
+    );
   }
 
   void test_entityForPath_normalize_dot() {
-    expect(entityForPath(join(tempPath, '.', 'file.txt')).uri,
-        Uri.parse('$tempUri/file.txt'));
+    expect(
+      entityForPath(join(tempPath, '.', 'file.txt')).uri,
+      Uri.parse('$tempUri/file.txt'),
+    );
   }
 
   void test_entityForPath_normalize_dotDot() {
-    expect(entityForPath(join(tempPath, 'foo', '..', 'file.txt')).uri,
-        Uri.parse('$tempUri/file.txt'));
+    expect(
+      entityForPath(join(tempPath, 'foo', '..', 'file.txt')).uri,
+      Uri.parse('$tempUri/file.txt'),
+    );
   }
 
   void test_entityForUri() {
-    expect(fileSystem.entityForUri(Uri.parse('$tempUri/file.txt')).uri,
-        Uri.parse('$tempUri/file.txt'));
+    expect(
+      fileSystem.entityForUri(Uri.parse('$tempUri/file.txt')).uri,
+      Uri.parse('$tempUri/file.txt'),
+    );
   }
 
   Future<void> test_entityForUri_fileUri_relative() async {
@@ -231,11 +249,13 @@ mixin MemoryFileSystemTestMixin implements _BaseTest {
       Uri.parse('file:file.txt'),
       Uri.parse('file:/file.txt'),
       Uri.parse('file://file.txt'),
-      Uri.parse('file:///file.txt')
+      Uri.parse('file:///file.txt'),
     ]) {
       if (!uri.path.startsWith('/')) {
-        await expectLater(() => fileSystem.entityForUri(uri),
-            throwsA(const TypeMatcher<Error>()));
+        await expectLater(
+          () => fileSystem.entityForUri(uri),
+          throwsA(const TypeMatcher<Error>()),
+        );
       }
     }
   }
@@ -246,13 +266,17 @@ mixin MemoryFileSystemTestMixin implements _BaseTest {
   }
 
   void test_entityForUri_normalize_dot() {
-    expect(fileSystem.entityForUri(Uri.parse('$tempUri/./file.txt')).uri,
-        Uri.parse('$tempUri/file.txt'));
+    expect(
+      fileSystem.entityForUri(Uri.parse('$tempUri/./file.txt')).uri,
+      Uri.parse('$tempUri/file.txt'),
+    );
   }
 
   void test_entityForUri_normalize_dotDot() {
-    expect(fileSystem.entityForUri(Uri.parse('$tempUri/foo/../file.txt')).uri,
-        Uri.parse('$tempUri/file.txt'));
+    expect(
+      fileSystem.entityForUri(Uri.parse('$tempUri/foo/../file.txt')).uri,
+      Uri.parse('$tempUri/file.txt'),
+    );
   }
 }
 

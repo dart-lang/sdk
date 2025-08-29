@@ -51,7 +51,11 @@ Future<void> main(List<String> args) async {
     }
 
     await vm.filterAndPrintInstances(
-        isolateId, classToFind, fieldToFilter, fieldValues);
+      isolateId,
+      classToFind,
+      fieldToFilter,
+      fieldValues,
+    );
   }
 
   await vm.disconnect();
@@ -64,11 +68,13 @@ String ask(String question) {
 }
 
 class VMServiceHeapHelperPrinter extends vmService.VMServiceHelper {
-  Future<void> printAllocationProfile(String isolateId,
-      {String? filter}) async {
+  Future<void> printAllocationProfile(
+    String isolateId, {
+    String? filter,
+  }) async {
     await waitUntilIsolateIsRunnable(isolateId);
-    vmService.AllocationProfile allocationProfile =
-        await serviceClient.getAllocationProfile(isolateId);
+    vmService.AllocationProfile allocationProfile = await serviceClient
+        .getAllocationProfile(isolateId);
     for (vmService.ClassHeapStats member in allocationProfile.members!) {
       if (filter != null) {
         if (member.classRef!.name != filter) continue;
@@ -76,45 +82,60 @@ class VMServiceHeapHelperPrinter extends vmService.VMServiceHelper {
         if (member.classRef!.name == "") continue;
         if (member.instancesCurrent == 0) continue;
       }
-      vmService.Class c = await serviceClient.getObject(
-          isolateId, member.classRef!.id!) as vmService.Class;
+      vmService.Class c =
+          await serviceClient.getObject(isolateId, member.classRef!.id!)
+              as vmService.Class;
       if (c.location?.script?.uri == null) continue;
       print("${member.classRef!.name}: ${member.instancesCurrent}");
     }
   }
 
-  Future<void> filterAndPrintInstances(String isolateId, String filter,
-      String fieldName, Set<String> fieldValues) async {
+  Future<void> filterAndPrintInstances(
+    String isolateId,
+    String filter,
+    String fieldName,
+    Set<String> fieldValues,
+  ) async {
     await waitUntilIsolateIsRunnable(isolateId);
-    vmService.AllocationProfile allocationProfile =
-        await serviceClient.getAllocationProfile(isolateId);
+    vmService.AllocationProfile allocationProfile = await serviceClient
+        .getAllocationProfile(isolateId);
     for (vmService.ClassHeapStats member in allocationProfile.members!) {
       if (member.classRef!.name != filter) continue;
-      vmService.Class c = await serviceClient.getObject(
-          isolateId, member.classRef!.id!) as vmService.Class;
+      vmService.Class c =
+          await serviceClient.getObject(isolateId, member.classRef!.id!)
+              as vmService.Class;
       if (c.location?.script?.uri == null) continue;
       print("${member.classRef!.name}: ${member.instancesCurrent}");
       print(c.location!.script!.uri);
 
       vmService.InstanceSet instances = await serviceClient.getInstances(
-          isolateId, member.classRef!.id!, 10000);
+        isolateId,
+        member.classRef!.id!,
+        10000,
+      );
       int instanceNum = 0;
       for (vmService.ObjRef instance in instances.instances!) {
         instanceNum++;
-        vmService.Obj receivedObject =
-            await serviceClient.getObject(isolateId, instance.id!);
+        vmService.Obj receivedObject = await serviceClient.getObject(
+          isolateId,
+          instance.id!,
+        );
         if (receivedObject is! vmService.Instance) continue;
         vmService.Instance object = receivedObject;
         for (vmService.BoundField field in object.fields!) {
           if (field.decl!.name == fieldName) {
             if (field.value is vmService.Sentinel) continue;
-            vmService.Obj receivedValue =
-                await serviceClient.getObject(isolateId, field.value.id);
+            vmService.Obj receivedValue = await serviceClient.getObject(
+              isolateId,
+              field.value.id,
+            );
             if (receivedValue is! vmService.Instance) continue;
             String value = receivedValue.valueAsString!;
             if (!fieldValues.contains(value)) continue;
-            print("${instanceNum}: ${field.decl!.name}: "
-                "${value} --- ${instance.id}");
+            print(
+              "${instanceNum}: ${field.decl!.name}: "
+              "${value} --- ${instance.id}",
+            );
           }
         }
       }
@@ -124,28 +145,36 @@ class VMServiceHeapHelperPrinter extends vmService.VMServiceHelper {
 
   Future<void> printRetainingPaths(String isolateId, String filter) async {
     await waitUntilIsolateIsRunnable(isolateId);
-    vmService.AllocationProfile allocationProfile =
-        await serviceClient.getAllocationProfile(isolateId);
+    vmService.AllocationProfile allocationProfile = await serviceClient
+        .getAllocationProfile(isolateId);
     for (vmService.ClassHeapStats member in allocationProfile.members!) {
       if (member.classRef!.name != filter) continue;
-      vmService.Class c = await serviceClient.getObject(
-          isolateId, member.classRef!.id!) as vmService.Class;
+      vmService.Class c =
+          await serviceClient.getObject(isolateId, member.classRef!.id!)
+              as vmService.Class;
       print("Found ${c.name} (location: ${c.location})");
-      print("${member.classRef!.name}: "
-          "(instancesCurrent: ${member.instancesCurrent})");
+      print(
+        "${member.classRef!.name}: "
+        "(instancesCurrent: ${member.instancesCurrent})",
+      );
       print("");
 
       vmService.InstanceSet instances = await serviceClient.getInstances(
-          isolateId, member.classRef!.id!, 10000);
+        isolateId,
+        member.classRef!.id!,
+        10000,
+      );
       print(" => Got ${instances.instances!.length} instances");
       print("");
 
       for (vmService.ObjRef instance in instances.instances!) {
-        vmService.Obj receivedObject =
-            await serviceClient.getObject(isolateId, instance.id!);
+        vmService.Obj receivedObject = await serviceClient.getObject(
+          isolateId,
+          instance.id!,
+        );
         print("Instance: $receivedObject");
-        vmService.RetainingPath retainingPath =
-            await serviceClient.getRetainingPath(isolateId, instance.id!, 1000);
+        vmService.RetainingPath retainingPath = await serviceClient
+            .getRetainingPath(isolateId, instance.id!, 1000);
         print("Retaining path: (length ${retainingPath.length}");
         for (int i = 0; i < retainingPath.elements!.length; i++) {
           print("  [$i] = ${retainingPath.elements![i]}");

@@ -12,9 +12,12 @@ class DynamicVisitor extends VerifyingAnalysis {
   // TODO(johnniwinther): Enable this when it is less noisy.
   static const bool checkReturnTypes = false;
 
-  DynamicVisitor(DiagnosticMessageHandler onDiagnostic, Component component,
-      String? allowedListPath, UriFilter? analyzedUrisFilter)
-      : super(onDiagnostic, component, allowedListPath, analyzedUrisFilter);
+  DynamicVisitor(
+    DiagnosticMessageHandler onDiagnostic,
+    Component component,
+    String? allowedListPath,
+    UriFilter? analyzedUrisFilter,
+  ) : super(onDiagnostic, component, allowedListPath, analyzedUrisFilter);
 
   @override
   void visitDynamicGet(DynamicGet node) {

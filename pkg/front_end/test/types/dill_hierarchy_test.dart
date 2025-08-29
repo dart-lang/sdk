@@ -62,38 +62,51 @@ F:
 
 void main() {
   final Ticker ticker = new Ticker(isVerbose: false);
-  final Component component = parseComponent("""
+  final Component component = parseComponent(
+    """
 class A;
 class B<T> implements A;
 class C<U> implements A;
 class D<T, U> implements B<T>, C<U>;
 class E implements D<int, double>;
 class F implements D<int, bool>;""",
-      Uri.parse("org-dartlang-test:///library.dart"));
+    Uri.parse("org-dartlang-test:///library.dart"),
+  );
 
-  final CompilerContext context = new CompilerContext(new ProcessedOptions(
+  final CompilerContext context = new CompilerContext(
+    new ProcessedOptions(
       options: new CompilerOptions()
-        ..packagesFileUri =
-            Uri.base.resolve(".dart_tool/package_config.json")));
+        ..packagesFileUri = Uri.base.resolve(".dart_tool/package_config.json"),
+    ),
+  );
 
-  asyncTest(() => context.runInContext<void>((_) async {
-        DillTarget target = new DillTarget(
-            context,
-            ticker,
-            await context.options.getUriTranslator(),
-            new NoneTarget(new TargetFlags()));
-        final DillLoader loader = target.loader;
-        loader.appendLibraries(component);
-        target.buildOutlines();
-        ClassBuilder objectClass = loader.coreLibrary
-            .lookupRequiredLocalMember("Object") as ClassBuilder;
-        ClassHierarchyBuilder hierarchy = new ClassHierarchyBuilder(
-            objectClass, loader, new CoreTypes(component));
-        Library library = component.libraries.last;
-        for (Class cls in library.classes) {
-          hierarchy.getNodeFromClass(cls);
-        }
-        Expect.stringEquals(
-            expectedHierarchy, hierarchy.classNodes.values.join("\n"));
-      }));
+  asyncTest(
+    () => context.runInContext<void>((_) async {
+      DillTarget target = new DillTarget(
+        context,
+        ticker,
+        await context.options.getUriTranslator(),
+        new NoneTarget(new TargetFlags()),
+      );
+      final DillLoader loader = target.loader;
+      loader.appendLibraries(component);
+      target.buildOutlines();
+      ClassBuilder objectClass =
+          loader.coreLibrary.lookupRequiredLocalMember("Object")
+              as ClassBuilder;
+      ClassHierarchyBuilder hierarchy = new ClassHierarchyBuilder(
+        objectClass,
+        loader,
+        new CoreTypes(component),
+      );
+      Library library = component.libraries.last;
+      for (Class cls in library.classes) {
+        hierarchy.getNodeFromClass(cls);
+      }
+      Expect.stringEquals(
+        expectedHierarchy,
+        hierarchy.classNodes.values.join("\n"),
+      );
+    }),
+  );
 }

@@ -9,7 +9,8 @@ import "utils/io_utils.dart";
 
 void main(List<String> args) {
   Uri dart = repoDir.resolve(
-      "tools/sdks/dart-sdk/bin/dart${Platform.isWindows ? ".exe" : ""}");
+    "tools/sdks/dart-sdk/bin/dart${Platform.isWindows ? ".exe" : ""}",
+  );
   if (!new File.fromUri(dart).existsSync()) {
     throw "Couldn't find $dart executable.";
   }
@@ -19,8 +20,9 @@ void main(List<String> args) {
     throw "Couldn't find $d8 executable.";
   }
 
-  Uri fileHelper =
-      repoDir.resolve("pkg/front_end/test/web_parser_git_test_helper.dart");
+  Uri fileHelper = repoDir.resolve(
+    "pkg/front_end/test/web_parser_git_test_helper.dart",
+  );
   if (!new File.fromUri(fileHelper).existsSync()) {
     throw "Couldn't find $fileHelper file.";
   }
@@ -34,7 +36,7 @@ void main(List<String> args) {
       "--output",
       outFile.toFilePath(),
       "--enable-asserts",
-      fileHelper.toFilePath()
+      fileHelper.toFilePath(),
     ]);
     if (dartRun.exitCode != 0) {
       throw "---\n"
@@ -43,8 +45,9 @@ void main(List<String> args) {
           "stderr: ${dartRun.stderr}"
           "---";
     }
-    ProcessResult d8Run =
-        Process.runSync(d8.toFilePath(), [outFile.toFilePath()]);
+    ProcessResult d8Run = Process.runSync(d8.toFilePath(), [
+      outFile.toFilePath(),
+    ]);
     if (d8Run.exitCode != 0) {
       throw "---\n"
           "D8 run returned ${d8Run.exitCode}.\n"

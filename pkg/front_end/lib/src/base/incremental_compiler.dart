@@ -147,8 +147,10 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
 
   RecorderForTesting? get recorderForTesting => null;
 
-  static final Uri debugExprUri =
-      new Uri(scheme: "org-dartlang-debug", path: "synthetic_debug_expression");
+  static final Uri debugExprUri = new Uri(
+    scheme: "org-dartlang-debug",
+    path: "synthetic_debug_expression",
+  );
 
   IncrementalKernelTarget? _lastGoodKernelTarget;
   Set<Library>? _previousSourceBuilders;
@@ -158,45 +160,52 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
   Completer<dynamic>? _currentlyCompiling;
 
   IncrementalCompiler.fromComponent(
-      this.context, Component? _componentToInitializeFrom,
-      [bool? outlineOnly, this._incrementalSerializer])
-      : _ticker = context.options.ticker,
-        _resetTicker = true,
-        _previousPackagesUri = context.options.packagesUriRaw,
-        _initializationStrategy = new _InitializationStrategy.fromComponent(
-            _componentToInitializeFrom),
-        this.outlineOnly = outlineOnly ?? false,
-        this._initializedForExpressionCompilationOnly = false {
+    this.context,
+    Component? _componentToInitializeFrom, [
+    bool? outlineOnly,
+    this._incrementalSerializer,
+  ]) : _ticker = context.options.ticker,
+       _resetTicker = true,
+       _previousPackagesUri = context.options.packagesUriRaw,
+       _initializationStrategy = new _InitializationStrategy.fromComponent(
+         _componentToInitializeFrom,
+       ),
+       this.outlineOnly = outlineOnly ?? false,
+       this._initializedForExpressionCompilationOnly = false {
     _enableExperimentsBasedOnEnvironment();
   }
 
   // Coverage-ignore(suite): Not run.
-  IncrementalCompiler(this.context,
-      [Uri? _initializeFromDillUri,
-      bool? outlineOnly,
-      this._incrementalSerializer])
-      : _ticker = context.options.ticker,
-        _resetTicker = true,
-        _previousPackagesUri = context.options.packagesUriRaw,
-        _initializationStrategy =
-            new _InitializationStrategy.fromUri(_initializeFromDillUri),
-        this.outlineOnly = outlineOnly ?? false,
-        this._initializedForExpressionCompilationOnly = false {
+  IncrementalCompiler(
+    this.context, [
+    Uri? _initializeFromDillUri,
+    bool? outlineOnly,
+    this._incrementalSerializer,
+  ]) : _ticker = context.options.ticker,
+       _resetTicker = true,
+       _previousPackagesUri = context.options.packagesUriRaw,
+       _initializationStrategy = new _InitializationStrategy.fromUri(
+         _initializeFromDillUri,
+       ),
+       this.outlineOnly = outlineOnly ?? false,
+       this._initializedForExpressionCompilationOnly = false {
     _enableExperimentsBasedOnEnvironment();
   }
 
   // Coverage-ignore(suite): Not run.
   IncrementalCompiler.forExpressionCompilationOnly(
-      this.context, Component? _componentToInitializeFrom,
-      [bool? resetTicker])
-      : _ticker = context.options.ticker,
-        this._resetTicker = resetTicker ?? true,
-        _previousPackagesUri = context.options.packagesUriRaw,
-        _initializationStrategy = new _InitializationStrategy.fromComponent(
-            _componentToInitializeFrom),
-        this.outlineOnly = false,
-        this._incrementalSerializer = null,
-        this._initializedForExpressionCompilationOnly = true {
+    this.context,
+    Component? _componentToInitializeFrom, [
+    bool? resetTicker,
+  ]) : _ticker = context.options.ticker,
+       this._resetTicker = resetTicker ?? true,
+       _previousPackagesUri = context.options.packagesUriRaw,
+       _initializationStrategy = new _InitializationStrategy.fromComponent(
+         _componentToInitializeFrom,
+       ),
+       this.outlineOnly = false,
+       this._incrementalSerializer = null,
+       this._initializedForExpressionCompilationOnly = true {
     _enableExperimentsBasedOnEnvironment();
   }
 
@@ -245,10 +254,11 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
   }
 
   @override
-  Future<IncrementalCompilerResult> computeDelta(
-      {List<Uri>? entryPoints,
-      bool fullComponent = false,
-      bool trackNeededDillLibraries = false}) async {
+  Future<IncrementalCompilerResult> computeDelta({
+    List<Uri>? entryPoints,
+    bool fullComponent = false,
+    bool trackNeededDillLibraries = false,
+  }) async {
     while (_currentlyCompiling != null) {
       // Coverage-ignore-block(suite): Not run.
       await _currentlyCompiling!.future;
@@ -258,8 +268,9 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
       _ticker.reset();
     }
     List<Uri>? entryPointsSavedForLaterOverwrite = entryPoints;
-    return context
-        .runInContext<IncrementalCompilerResult>((CompilerContext c) async {
+    return context.runInContext<IncrementalCompilerResult>((
+      CompilerContext c,
+    ) async {
       if (!context.options.haveBeenValidated) {
         await context.options.validateOptions(errorOnMissingInput: false);
       }
@@ -267,8 +278,10 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
       List<Uri> entryPoints =
           entryPointsSavedForLaterOverwrite ?? context.options.inputs;
       if (_computeDeltaRunOnce && _initializedForExpressionCompilationOnly) {
-        throw new StateError("Initialized for expression compilation: "
-            "cannot do another general compile.");
+        throw new StateError(
+          "Initialized for expression compilation: "
+          "cannot do another general compile.",
+        );
       }
       _computeDeltaRunOnce = true;
       IncrementalKernelTarget? lastGoodKernelTarget = _lastGoodKernelTarget;
@@ -278,47 +291,63 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
 
       // Initial setup: Load platform, initialize from dill or component etc.
       _benchmarker
-          // Coverage-ignore(suite): Not run.
-          ?.enterPhase(BenchmarkPhases.incremental_setupPackages);
+      // Coverage-ignore(suite): Not run.
+      ?.enterPhase(BenchmarkPhases.incremental_setupPackages);
       UriTranslator uriTranslator = await _setupPackagesAndUriTranslator(c);
       _benchmarker
-          // Coverage-ignore(suite): Not run.
-          ?.enterPhase(BenchmarkPhases.incremental_ensurePlatform);
-      IncrementalCompilerData data =
-          await _ensurePlatformAndInitialize(uriTranslator, c);
+      // Coverage-ignore(suite): Not run.
+      ?.enterPhase(BenchmarkPhases.incremental_ensurePlatform);
+      IncrementalCompilerData data = await _ensurePlatformAndInitialize(
+        uriTranslator,
+        c,
+      );
 
       // Figure out what to keep and what to throw away.
       _benchmarker
-          // Coverage-ignore(suite): Not run.
-          ?.enterPhase(BenchmarkPhases.incremental_invalidate);
+      // Coverage-ignore(suite): Not run.
+      ?.enterPhase(BenchmarkPhases.incremental_invalidate);
       Set<Uri?> invalidatedUris = this._invalidatedUris.toSet();
       _invalidateNotKeptUserBuilders(invalidatedUris);
       ReusageResult? reusedResult = _computeReusedLibraries(
-          lastGoodKernelTarget, _userBuilders, invalidatedUris, uriTranslator);
+        lastGoodKernelTarget,
+        _userBuilders,
+        invalidatedUris,
+        uriTranslator,
+      );
 
       // Experimental invalidation initialization (e.g. figure out if we can).
       _benchmarker
-          // Coverage-ignore(suite): Not run.
-          ?.enterPhase(BenchmarkPhases.incremental_experimentalInvalidation);
+      // Coverage-ignore(suite): Not run.
+      ?.enterPhase(BenchmarkPhases.incremental_experimentalInvalidation);
       ExperimentalInvalidation? experimentalInvalidation =
           await _initializeExperimentalInvalidation(
-              reusedResult, c, uriTranslator);
+            reusedResult,
+            c,
+            uriTranslator,
+          );
       recorderForTesting?.recordRebuildBodiesCount(
-          experimentalInvalidation?.missingSources.length ?? 0);
+        experimentalInvalidation?.missingSources.length ?? 0,
+      );
 
       _benchmarker
-          // Coverage-ignore(suite): Not run.
-          ?.enterPhase(BenchmarkPhases.incremental_rewriteEntryPointsIfPart);
+      // Coverage-ignore(suite): Not run.
+      ?.enterPhase(BenchmarkPhases.incremental_rewriteEntryPointsIfPart);
       _rewriteEntryPointsIfPart(
-          entryPoints, reusedResult, experimentalInvalidation != null);
+        entryPoints,
+        reusedResult,
+        experimentalInvalidation != null,
+      );
 
       // Cleanup: After (potentially) removing builders we have stuff to cleanup
       // to not leak, and we might need to re-create the dill target.
       _benchmarker
-          // Coverage-ignore(suite): Not run.
-          ?.enterPhase(BenchmarkPhases.incremental_cleanup);
+      // Coverage-ignore(suite): Not run.
+      ?.enterPhase(BenchmarkPhases.incremental_cleanup);
       _cleanupRemovedBuilders(
-          lastGoodKernelTarget, reusedResult, uriTranslator);
+        lastGoodKernelTarget,
+        reusedResult,
+        uriTranslator,
+      );
       _recreateDillTargetIfPackageWasUpdated(uriTranslator, c);
       ClassHierarchy? hierarchy = lastGoodKernelTarget?.loader.hierarchy;
       _cleanupHierarchy(hierarchy, experimentalInvalidation, reusedResult);
@@ -326,16 +355,18 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
       reusedResult = null;
 
       if (lastGoodKernelTarget != null) {
-        _ticker.logMs("Decided to reuse ${reusedLibraries.length}"
-            " of ${lastGoodKernelTarget.loader.loadedLibraryBuilders.length}"
-            " libraries");
+        _ticker.logMs(
+          "Decided to reuse ${reusedLibraries.length}"
+          " of ${lastGoodKernelTarget.loader.loadedLibraryBuilders.length}"
+          " libraries",
+        );
       }
 
       // For modular compilation we can be asked to load components and track
       // which libraries we actually use for the compilation. Set that up now.
       _benchmarker
-          // Coverage-ignore(suite): Not run.
-          ?.enterPhase(BenchmarkPhases.incremental_loadEnsureLoadedComponents);
+      // Coverage-ignore(suite): Not run.
+      ?.enterPhase(BenchmarkPhases.incremental_loadEnsureLoadedComponents);
       _loadEnsureLoadedComponents(reusedLibraries);
       if (trackNeededDillLibraries) {
         // Coverage-ignore-block(suite): Not run.
@@ -348,25 +379,37 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
       IncrementalKernelTarget currentKernelTarget;
 
       _benchmarker
-          // Coverage-ignore(suite): Not run.
-          ?.enterPhase(BenchmarkPhases.incremental_setupInLoop);
-      currentKernelTarget = _setupNewKernelTarget(c, uriTranslator, hierarchy,
-          reusedLibraries, experimentalInvalidation, entryPoints);
+      // Coverage-ignore(suite): Not run.
+      ?.enterPhase(BenchmarkPhases.incremental_setupInLoop);
+      currentKernelTarget = _setupNewKernelTarget(
+        c,
+        uriTranslator,
+        hierarchy,
+        reusedLibraries,
+        experimentalInvalidation,
+        entryPoints,
+      );
       Map<DillLibraryBuilder, CompilationUnit>? rebuildBodiesMap =
           _experimentalInvalidationCreateRebuildBodiesBuilders(
-              currentKernelTarget, experimentalInvalidation, uriTranslator);
+            currentKernelTarget,
+            experimentalInvalidation,
+            uriTranslator,
+          );
       entryPoints = currentKernelTarget.setEntryPoints(entryPoints);
 
       _benchmarker
-          // Coverage-ignore(suite): Not run.
-          ?.enterPhase(BenchmarkPhases.incremental_precompileMacros);
+      // Coverage-ignore(suite): Not run.
+      ?.enterPhase(BenchmarkPhases.incremental_precompileMacros);
       await currentKernelTarget.computeNeededPrecompilations();
       _benchmarker
-          // Coverage-ignore(suite): Not run.
-          ?.enterPhase(BenchmarkPhases
-              .incremental_experimentalInvalidationPatchUpScopes);
+      // Coverage-ignore(suite): Not run.
+      ?.enterPhase(
+        BenchmarkPhases.incremental_experimentalInvalidationPatchUpScopes,
+      );
       _experimentalInvalidationPatchUpScopes(
-          experimentalInvalidation, rebuildBodiesMap);
+        experimentalInvalidation,
+        rebuildBodiesMap,
+      );
       rebuildBodiesMap = null;
 
       // Checkpoint: Build the actual outline.
@@ -381,35 +424,44 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
 
       if (!outlineOnly) {
         // Checkpoint: Build the actual bodies.
-        buildResult =
-            await currentKernelTarget.buildComponent(verify: c.options.verify);
+        buildResult = await currentKernelTarget.buildComponent(
+          verify: c.options.verify,
+        );
         componentWithDill = buildResult.component;
       }
 
       _benchmarker
-          // Coverage-ignore(suite): Not run.
-          ?.enterPhase(BenchmarkPhases.incremental_hierarchy);
+      // Coverage-ignore(suite): Not run.
+      ?.enterPhase(BenchmarkPhases.incremental_hierarchy);
       hierarchy ??= currentKernelTarget.loader.hierarchy;
       if (currentKernelTarget.classHierarchyChanges != null) {
         // Coverage-ignore-block(suite): Not run.
         hierarchy.applyTreeChanges(
-            [], [], currentKernelTarget.classHierarchyChanges!);
+          [],
+          [],
+          currentKernelTarget.classHierarchyChanges!,
+        );
       }
       if (currentKernelTarget.classMemberChanges != null) {
         // Coverage-ignore-block(suite): Not run.
-        hierarchy.applyMemberChanges(currentKernelTarget.classMemberChanges!,
-            findDescendants: true);
+        hierarchy.applyMemberChanges(
+          currentKernelTarget.classMemberChanges!,
+          findDescendants: true,
+        );
       }
       recorderForTesting?.recordNonFullComponent(componentWithDill!);
 
       Set<Library>? neededDillLibraries;
       if (trackNeededDillLibraries) {
         // Coverage-ignore-block(suite): Not run.
-        _benchmarker
-            ?.enterPhase(BenchmarkPhases.incremental_performDillUsageTracking);
+        _benchmarker?.enterPhase(
+          BenchmarkPhases.incremental_performDillUsageTracking,
+        );
         // Perform actual dill usage tracking.
-        neededDillLibraries =
-            _performDillUsageTracking(currentKernelTarget, hierarchy);
+        neededDillLibraries = _performDillUsageTracking(
+          currentKernelTarget,
+          hierarchy,
+        );
       }
 
       // If we actually got a result we can throw away the
@@ -418,8 +470,8 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
       // assumed always to be non-null.
       if (componentWithDill != null) {
         _benchmarker
-            // Coverage-ignore(suite): Not run.
-            ?.enterPhase(BenchmarkPhases.incremental_releaseAncillaryResources);
+        // Coverage-ignore(suite): Not run.
+        ?.enterPhase(BenchmarkPhases.incremental_releaseAncillaryResources);
         this._invalidatedUris.clear();
         _hasToCheckPackageUris = false;
         lastGoodKernelTarget?.loader.releaseAncillaryResources();
@@ -429,44 +481,54 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
       // Compute which libraries to output and which (previous) errors/warnings
       // we have to reissue. In the process do some cleanup too.
       _benchmarker
-          // Coverage-ignore(suite): Not run.
-          ?.enterPhase(BenchmarkPhases.incremental_releaseAncillaryResources);
-      List<Library> compiledLibraries =
-          new List<Library>.of(currentKernelTarget.loader.libraries);
+      // Coverage-ignore(suite): Not run.
+      ?.enterPhase(BenchmarkPhases.incremental_releaseAncillaryResources);
+      List<Library> compiledLibraries = new List<Library>.of(
+        currentKernelTarget.loader.libraries,
+      );
       Map<Uri, Source> uriToSource = componentWithDill!.uriToSource;
 
       _benchmarker
-          // Coverage-ignore(suite): Not run.
-          ?.enterPhase(BenchmarkPhases
-              .incremental_experimentalCompilationPostCompilePatchup);
+      // Coverage-ignore(suite): Not run.
+      ?.enterPhase(
+        BenchmarkPhases.incremental_experimentalCompilationPostCompilePatchup,
+      );
       _experimentalCompilationPostCompilePatchup(
-          experimentalInvalidation, compiledLibraries, uriToSource);
+        experimentalInvalidation,
+        compiledLibraries,
+        uriToSource,
+      );
 
       _benchmarker
-          // Coverage-ignore(suite): Not run.
-          ?.enterPhase(BenchmarkPhases
-              .incremental_calculateOutputLibrariesAndIssueLibraryProblems);
+      // Coverage-ignore(suite): Not run.
+      ?.enterPhase(
+        BenchmarkPhases
+            .incremental_calculateOutputLibrariesAndIssueLibraryProblems,
+      );
 
       Set<LibraryBuilder> cleanedUpBuilders = {};
       List<Library> outputLibraries =
           _calculateOutputLibrariesAndIssueLibraryProblems(
-        currentKernelTarget,
-        data.component != null || fullComponent,
-        compiledLibraries,
-        entryPoints,
-        reusedLibraries,
-        hierarchy,
-        uriTranslator,
-        uriToSource,
-        c,
-        cleanedUpBuilders: cleanedUpBuilders,
-      );
+            currentKernelTarget,
+            data.component != null || fullComponent,
+            compiledLibraries,
+            entryPoints,
+            reusedLibraries,
+            hierarchy,
+            uriTranslator,
+            uriToSource,
+            c,
+            cleanedUpBuilders: cleanedUpBuilders,
+          );
       List<String> problemsAsJson = _componentProblems.reissueProblems(
-          context, currentKernelTarget, componentWithDill);
+        context,
+        currentKernelTarget,
+        componentWithDill,
+      );
 
       // If we didn't get a result, go back to the previous one so expression
       // calculation has the potential to work.
-      // ignore: unnecessary_null_comparison
+      // ignore: unnecessary_null_comparison, dead_code
       if (componentWithDill == null) {
         // Coverage-ignore-block(suite): Not run.
         currentKernelTarget.loader.clearLibraryBuilders();
@@ -475,9 +537,10 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
             currentKernelTarget.loader;
       } else {
         _benchmarker
-            // Coverage-ignore(suite): Not run.
-            ?.enterPhase(
-                BenchmarkPhases.incremental_convertSourceLibraryBuildersToDill);
+        // Coverage-ignore(suite): Not run.
+        ?.enterPhase(
+          BenchmarkPhases.incremental_convertSourceLibraryBuildersToDill,
+        );
         _previousSourceBuilders = _convertSourceLibraryBuildersToDill(
           currentKernelTarget,
           experimentalInvalidation,
@@ -486,22 +549,28 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
       }
 
       _benchmarker
-          // Coverage-ignore(suite): Not run.
-          ?.enterPhase(BenchmarkPhases.incremental_end);
+      // Coverage-ignore(suite): Not run.
+      ?.enterPhase(BenchmarkPhases.incremental_end);
       experimentalInvalidation = null;
 
       // Output result.
       // ignore: unnecessary_null_comparison
       Procedure? mainMethod = componentWithDill == null
           ?
-          // Coverage-ignore(suite): Not run.
-          data.component?.mainMethod
+            // Coverage-ignore(suite): Not run.
+            // ignore: dead_code
+            data.component?.mainMethod
           : componentWithDill.mainMethod;
       // ignore: unnecessary_null_comparison
-      Component result = context.options.target.configureComponent(
-          new Component(libraries: outputLibraries, uriToSource: uriToSource))
-        ..setMainMethodAndMode(mainMethod?.reference, true)
-        ..problemsAsJson = problemsAsJson;
+      Component result =
+          context.options.target.configureComponent(
+              new Component(
+                libraries: outputLibraries,
+                uriToSource: uriToSource,
+              ),
+            )
+            ..setMainMethodAndMode(mainMethod?.reference, true)
+            ..problemsAsJson = problemsAsJson;
 
       // Copy the metadata *just created*. This will likely not contain metadata
       // about other libraries.
@@ -525,15 +594,20 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
         print(encoder.convert(_benchmarker));
       }
 
-      return new IncrementalCompilerResult(result,
-          classHierarchy: currentKernelTarget.loader.hierarchy,
-          coreTypes: currentKernelTarget.loader.coreTypes,
-          neededDillLibraries: neededDillLibraries);
+      return new IncrementalCompilerResult(
+        result,
+        classHierarchy: currentKernelTarget.loader.hierarchy,
+        coreTypes: currentKernelTarget.loader.coreTypes,
+        neededDillLibraries: neededDillLibraries,
+      );
     });
   }
 
-  void _rewriteEntryPointsIfPart(List<Uri> entryPoints,
-      ReusageResult reusedResult, bool doingAdvancedInvalidation) {
+  void _rewriteEntryPointsIfPart(
+    List<Uri> entryPoints,
+    ReusageResult reusedResult,
+    bool doingAdvancedInvalidation,
+  ) {
     for (int i = 0; i < entryPoints.length; i++) {
       Uri entryPoint = entryPoints[i];
       LibraryBuilder? parent = reusedResult.partUriToParent[entryPoint];
@@ -575,8 +649,9 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
       if (cleanedUpBuilders.contains(builder)) {
         continue;
       }
-      DillLibraryBuilder dillBuilder =
-          _dillLoadedData!.loader.appendLibrary(builder.library);
+      DillLibraryBuilder dillBuilder = _dillLoadedData!.loader.appendLibrary(
+        builder.library,
+      );
       nextGoodKernelTarget.loader.registerLoadedDillLibraryBuilder(dillBuilder);
       _userBuilders![builder.importUri] = dillBuilder;
       newDillLibraryBuilders.add(builder.library);
@@ -591,8 +666,12 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
       // We suppress finalization errors because they have already been
       // reported.
       _dillLoadedData!.buildOutlines(suppressFinalizationErrors: true);
-      assert(_checkEquivalentScopes(
-          nextGoodKernelTarget.loader, _dillLoadedData!.loader));
+      assert(
+        _checkEquivalentScopes(
+          nextGoodKernelTarget.loader,
+          _dillLoadedData!.loader,
+        ),
+      );
 
       if (experimentalInvalidation != null) {
         /// If doing experimental invalidation that means that some of the old
@@ -603,7 +682,9 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
         Map<LibraryBuilder, NameSpace>? replacementNameSpaceMap = {};
 
         _experimentalInvalidationFillReplacementMaps(
-            convertedLibraries!, replacementNameSpaceMap);
+          convertedLibraries!,
+          replacementNameSpaceMap,
+        );
 
         for (DillLibraryBuilder builder
             in experimentalInvalidation.originalNotReusedLibraries) {
@@ -612,8 +693,8 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
 
             // Clear cached calculations that points (potential) to now replaced
             // things.
-            Iterator<DillClassBuilder> iterator =
-                builder.filteredMembersIterator(includeDuplicates: true);
+            Iterator<DillClassBuilder> iterator = builder
+                .filteredMembersIterator(includeDuplicates: true);
             while (iterator.moveNext()) {
               iterator.current.clearCachedValues();
             }
@@ -636,28 +717,34 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
   }
 
   bool _checkEquivalentScopes(
-      SourceLoader sourceLoader, DillLoader dillLoader) {
+    SourceLoader sourceLoader,
+    DillLoader dillLoader,
+  ) {
     for (SourceLibraryBuilder sourceLibraryBuilder
         in sourceLoader.sourceLibraryBuilders) {
       // Coverage-ignore-block(suite): Not run.
       Uri uri = sourceLibraryBuilder.importUri;
-      DillLibraryBuilder dillLibraryBuilder =
-          dillLoader.lookupLibraryBuilder(uri)!;
+      DillLibraryBuilder dillLibraryBuilder = dillLoader.lookupLibraryBuilder(
+        uri,
+      )!;
       assert(
-          _hasEquivalentScopes(sourceLibraryBuilder, dillLibraryBuilder) ==
-              null,
-          _hasEquivalentScopes(sourceLibraryBuilder, dillLibraryBuilder));
+        _hasEquivalentScopes(sourceLibraryBuilder, dillLibraryBuilder) == null,
+        _hasEquivalentScopes(sourceLibraryBuilder, dillLibraryBuilder),
+      );
     }
     return true;
   }
 
   // Coverage-ignore(suite): Not run.
-  String? _hasEquivalentScopes(SourceLibraryBuilder sourceLibraryBuilder,
-      DillLibraryBuilder dillLibraryBuilder) {
+  String? _hasEquivalentScopes(
+    SourceLibraryBuilder sourceLibraryBuilder,
+    DillLibraryBuilder dillLibraryBuilder,
+  ) {
     return areNameSpacesEquivalent(
-        importUri: sourceLibraryBuilder.importUri,
-        sourceNameSpace: sourceLibraryBuilder.exportNameSpace,
-        dillNameSpace: dillLibraryBuilder.exportNameSpace);
+      importUri: sourceLibraryBuilder.importUri,
+      sourceNameSpace: sourceLibraryBuilder.exportNameSpace,
+      dillNameSpace: dillLibraryBuilder.exportNameSpace,
+    );
   }
 
   /// Compute which libraries to output and which (previous) errors/warnings we
@@ -723,9 +810,10 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
   /// This might be a temporary thing, but we need to figure out if the VM
   /// can (always) work with only getting the actually rebuild stuff.
   void _experimentalCompilationPostCompilePatchup(
-      ExperimentalInvalidation? experimentalInvalidation,
-      List<Library> compiledLibraries,
-      Map<Uri, Source> uriToSource) {
+    ExperimentalInvalidation? experimentalInvalidation,
+    List<Library> compiledLibraries,
+    Map<Uri, Source> uriToSource,
+  ) {
     if (experimentalInvalidation != null) {
       // uriToSources are created in the outline stage which we skipped for
       // some of the libraries.
@@ -742,7 +830,9 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
   /// well as the class hierarchy to figure out which dill libraries was
   /// actually used by the compilation.
   Set<Library> _performDillUsageTracking(
-      IncrementalKernelTarget target, ClassHierarchy hierarchy) {
+    IncrementalKernelTarget target,
+    ClassHierarchy hierarchy,
+  ) {
     // Which dill builders were built?
     Set<Library> neededDillLibraries = {};
 
@@ -760,7 +850,10 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
     }
 
     updateNeededDillLibrariesWithHierarchy(
-        neededDillLibraries, hierarchy, target.loader.hierarchyBuilder);
+      neededDillLibraries,
+      hierarchy,
+      target.loader.hierarchyBuilder,
+    );
 
     return neededDillLibraries;
   }
@@ -768,8 +861,9 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
   /// Fill in the replacement maps that describe the replacements that need to
   /// happen because of experimental invalidation.
   void _experimentalInvalidationFillReplacementMaps(
-      Map<LibraryBuilder, CompilationUnit> rebuildBodiesMap,
-      Map<LibraryBuilder, NameSpace> replacementNameSpaceMap) {
+    Map<LibraryBuilder, CompilationUnit> rebuildBodiesMap,
+    Map<LibraryBuilder, NameSpace> replacementNameSpaceMap,
+  ) {
     for (MapEntry<LibraryBuilder, CompilationUnit> entry
         in rebuildBodiesMap.entries) {
       CompilationUnit mainCompilationUnit = rebuildBodiesMap[entry.key]!;
@@ -783,10 +877,11 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
   /// [currentKernelTarget.loader.read] with references from the original
   /// [Library] for things to work.
   Map<DillLibraryBuilder, CompilationUnit>
-      _experimentalInvalidationCreateRebuildBodiesBuilders(
-          IncrementalKernelTarget currentKernelTarget,
-          ExperimentalInvalidation? experimentalInvalidation,
-          UriTranslator uriTranslator) {
+  _experimentalInvalidationCreateRebuildBodiesBuilders(
+    IncrementalKernelTarget currentKernelTarget,
+    ExperimentalInvalidation? experimentalInvalidation,
+    UriTranslator uriTranslator,
+  ) {
     // Any builder(s) in [rebuildBodies] should be semi-reused: Create source
     // compilation units based on the underlying libraries.
     // Maps from old library builder to list of new compilation unit(s).
@@ -796,9 +891,11 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
       for (DillLibraryBuilder library
           in experimentalInvalidation.rebuildBodies) {
         CompilationUnit newMainCompilationUnit = currentKernelTarget.loader
-            .readAsEntryPoint(library.importUri,
-                fileUri: library.fileUri,
-                referencesFromIndex: new IndexedLibrary(library.library));
+            .readAsEntryPoint(
+              library.importUri,
+              fileUri: library.fileUri,
+              referencesFromIndex: new IndexedLibrary(library.library),
+            );
         rebuildBodiesMap[library] = newMainCompilationUnit;
       }
     }
@@ -809,14 +906,17 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
   /// the libraries we're not recompiling but should have recompiled if we
   /// didn't do anything special.
   void _experimentalInvalidationPatchUpScopes(
-      ExperimentalInvalidation? experimentalInvalidation,
-      Map<DillLibraryBuilder, CompilationUnit> rebuildBodiesMap) {
+    ExperimentalInvalidation? experimentalInvalidation,
+    Map<DillLibraryBuilder, CompilationUnit> rebuildBodiesMap,
+  ) {
     if (experimentalInvalidation != null) {
       // Map from old library builder to name space of new content.
       Map<LibraryBuilder, NameSpace> replacementNameSpaceMap = {};
 
       _experimentalInvalidationFillReplacementMaps(
-          rebuildBodiesMap, replacementNameSpaceMap);
+        rebuildBodiesMap,
+        replacementNameSpaceMap,
+      );
 
       for (DillLibraryBuilder builder
           in experimentalInvalidation.originalNotReusedLibraries) {
@@ -829,31 +929,39 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
   }
 
   IncrementalKernelTarget createIncrementalKernelTarget(
-      FileSystem fileSystem,
-      bool includeComments,
-      DillTarget dillTarget,
-      UriTranslator uriTranslator) {
+    FileSystem fileSystem,
+    bool includeComments,
+    DillTarget dillTarget,
+    UriTranslator uriTranslator,
+  ) {
     return new IncrementalKernelTarget(
-        context, fileSystem, includeComments, dillTarget, uriTranslator);
+      context,
+      fileSystem,
+      includeComments,
+      dillTarget,
+      uriTranslator,
+    );
   }
 
   /// Create a new [IncrementalKernelTarget] object, and add the reused builders
   /// to it.
   IncrementalKernelTarget _setupNewKernelTarget(
-      CompilerContext c,
-      UriTranslator uriTranslator,
-      ClassHierarchy? hierarchy,
-      List<DillLibraryBuilder> reusedLibraries,
-      ExperimentalInvalidation? experimentalInvalidation,
-      List<Uri> entryPoints) {
+    CompilerContext c,
+    UriTranslator uriTranslator,
+    ClassHierarchy? hierarchy,
+    List<DillLibraryBuilder> reusedLibraries,
+    ExperimentalInvalidation? experimentalInvalidation,
+    List<Uri> entryPoints,
+  ) {
     IncrementalKernelTarget kernelTarget = createIncrementalKernelTarget(
-        new HybridFileSystem(
-            new MemoryFileSystem(
-                new Uri(scheme: "org-dartlang-debug", path: "/")),
-            c.fileSystem),
-        false,
-        _dillLoadedData!,
-        uriTranslator);
+      new HybridFileSystem(
+        new MemoryFileSystem(new Uri(scheme: "org-dartlang-debug", path: "/")),
+        c.fileSystem,
+      ),
+      false,
+      _dillLoadedData!,
+      uriTranslator,
+    );
     kernelTarget.loader.hierarchy = hierarchy;
     _dillLoadedData!.loader.currentSourceLoader = kernelTarget.loader;
 
@@ -882,8 +990,9 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
         if (builder.isBuiltAndMarked) {
           // Clear cached calculations in classes which upon calculation can
           // mark things as needed.
-          Iterator<DillClassBuilder> iterator =
-              builder.filteredMembersIterator(includeDuplicates: true);
+          Iterator<DillClassBuilder> iterator = builder.filteredMembersIterator(
+            includeDuplicates: true,
+          );
           while (iterator.moveNext()) {
             iterator.current.clearCachedValues();
           }
@@ -901,9 +1010,10 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
   /// invalidating (or would normally have invalidated if we hadn't done any
   /// experimental invalidation).
   void _cleanupHierarchy(
-      ClassHierarchy? hierarchy,
-      ExperimentalInvalidation? experimentalInvalidation,
-      ReusageResult reusedResult) {
+    ClassHierarchy? hierarchy,
+    ExperimentalInvalidation? experimentalInvalidation,
+    ReusageResult reusedResult,
+  ) {
     if (hierarchy != null) {
       List<Library> removedLibraries = <Library>[];
       // TODO(jensj): For now remove all the original from the class hierarchy
@@ -927,22 +1037,29 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
   /// and the [DillTarget] needs to get the new uri translator. We do that
   /// by creating a new one.
   void _recreateDillTargetIfPackageWasUpdated(
-      UriTranslator uriTranslator, CompilerContext c) {
+    UriTranslator uriTranslator,
+    CompilerContext c,
+  ) {
     if (_hasToCheckPackageUris) {
       // Coverage-ignore-block(suite): Not run.
       // The package file was changed.
       // Make sure the dill loader is on the same page.
       DillTarget oldDillLoadedData = _dillLoadedData!;
       DillTarget newDillLoadedData = _dillLoadedData = new DillTarget(
-          c, _ticker, uriTranslator, c.options.target,
-          benchmarker: _benchmarker);
+        c,
+        _ticker,
+        uriTranslator,
+        c.options.target,
+        benchmarker: _benchmarker,
+      );
       for (DillLibraryBuilder library
           in oldDillLoadedData.loader.libraryBuilders) {
         newDillLoadedData.loader.registerLibraryBuilder(library);
       }
       newDillLoadedData.loader.first = oldDillLoadedData.loader.first;
-      newDillLoadedData.loader.libraries
-          .addAll(oldDillLoadedData.loader.libraries);
+      newDillLoadedData.loader.libraries.addAll(
+        oldDillLoadedData.loader.libraries,
+      );
     }
   }
 
@@ -953,18 +1070,26 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
   /// We also have to remove any component problems belonging to any such
   /// no-longer-used library (to avoid re-issuing errors about no longer
   /// relevant stuff).
-  void _cleanupRemovedBuilders(IncrementalKernelTarget? lastGoodKernelTarget,
-      ReusageResult reusedResult, UriTranslator uriTranslator) {
+  void _cleanupRemovedBuilders(
+    IncrementalKernelTarget? lastGoodKernelTarget,
+    ReusageResult reusedResult,
+    UriTranslator uriTranslator,
+  ) {
     bool removedDillBuilders = false;
     for (LibraryBuilder builder in reusedResult.notReusedLibraries) {
-      _cleanupSourcesForBuilder(lastGoodKernelTarget, reusedResult, builder,
-          uriTranslator, context.uriToSource);
+      _cleanupSourcesForBuilder(
+        lastGoodKernelTarget,
+        reusedResult,
+        builder,
+        uriTranslator,
+        context.uriToSource,
+      );
       _incrementalSerializer
-          // Coverage-ignore(suite): Not run.
-          ?.invalidate(builder.fileUri);
+      // Coverage-ignore(suite): Not run.
+      ?.invalidate(builder.fileUri);
 
-      LibraryBuilder? dillBuilder =
-          _dillLoadedData!.loader.deregisterLibraryBuilder(builder.importUri);
+      LibraryBuilder? dillBuilder = _dillLoadedData!.loader
+          .deregisterLibraryBuilder(builder.importUri);
       if (dillBuilder != null) {
         removedDillBuilders = true;
         _userBuilders?.remove(builder.importUri);
@@ -1000,35 +1125,43 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
   /// Note that - when doing experimental invalidation - [reusedResult] is
   /// updated.
   Future<ExperimentalInvalidation?> _initializeExperimentalInvalidation(
-      ReusageResult reusedResult,
-      CompilerContext c,
-      UriTranslator uriTranslator) async {
+    ReusageResult reusedResult,
+    CompilerContext c,
+    UriTranslator uriTranslator,
+  ) async {
     Set<DillLibraryBuilder>? rebuildBodies;
     Set<DillLibraryBuilder> originalNotReusedLibraries;
     Set<Uri>? missingSources;
 
     if (!context
-        .options.globalFeatures.alternativeInvalidationStrategy.isEnabled) {
+        .options
+        .globalFeatures
+        .alternativeInvalidationStrategy
+        .isEnabled) {
       // Coverage-ignore-block(suite): Not run.
       recorderForTesting?.recordAdvancedInvalidationResult(
-          AdvancedInvalidationResult.disabled);
+        AdvancedInvalidationResult.disabled,
+      );
       return null;
     }
     if (_modulesToLoad != null) {
       // Coverage-ignore-block(suite): Not run.
       recorderForTesting?.recordAdvancedInvalidationResult(
-          AdvancedInvalidationResult.modulesToLoad);
+        AdvancedInvalidationResult.modulesToLoad,
+      );
       return null;
     }
     if (reusedResult.directlyInvalidated.isEmpty) {
       recorderForTesting?.recordAdvancedInvalidationResult(
-          AdvancedInvalidationResult.noDirectlyInvalidated);
+        AdvancedInvalidationResult.noDirectlyInvalidated,
+      );
       return null;
     }
     if (reusedResult.invalidatedBecauseOfPackageUpdate) {
       // Coverage-ignore-block(suite): Not run.
       recorderForTesting?.recordAdvancedInvalidationResult(
-          AdvancedInvalidationResult.packageUpdate);
+        AdvancedInvalidationResult.packageUpdate,
+      );
       return null;
     }
 
@@ -1038,14 +1171,17 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
       if (builder.library.problemsAsJson != null) {
         assert(builder.library.problemsAsJson!.isNotEmpty);
         recorderForTesting?.recordAdvancedInvalidationResult(
-            AdvancedInvalidationResult.problemsInLibrary);
+          AdvancedInvalidationResult.problemsInLibrary,
+        );
         return null;
       }
 
       List<Uri> builderUris = [builder.fileUri];
       for (LibraryPart part in builder.library.parts) {
-        Uri? fileUri =
-            uriTranslator.getPartFileUri(builder.library.fileUri, part);
+        Uri? fileUri = uriTranslator.getPartFileUri(
+          builder.library.fileUri,
+          part,
+        );
         if (fileUri != null) builderUris.add(fileUri);
       }
 
@@ -1053,39 +1189,50 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
         Uint8List? previousSource = context.uriToSource[uri]?.source;
         if (previousSource == null || previousSource.isEmpty) {
           recorderForTesting?.recordAdvancedInvalidationResult(
-              AdvancedInvalidationResult.noPreviousSource);
+            AdvancedInvalidationResult.noPreviousSource,
+          );
           return null;
         }
         ScannerConfiguration scannerConfiguration = new ScannerConfiguration(
-            enableTripleShift:
-                /* should this be on the library? */
-                /* this is effectively what the constant evaluator does */
-                context.options.globalFeatures.tripleShift.isEnabled);
+          enableTripleShift:
+              /* should this be on the library? */
+              /* this is effectively what the constant evaluator does */
+              context.options.globalFeatures.tripleShift.isEnabled,
+        );
         bool enablePatterns =
             builder.languageVersion >= ExperimentalFlag.patterns.enabledVersion;
-        bool enableEnhancedParts = builder.languageVersion >=
+        bool enableEnhancedParts =
+            builder.languageVersion >=
             ExperimentalFlag.enhancedParts.enabledVersion;
-        String? before = textualOutline(previousSource, scannerConfiguration,
-            performModelling: true,
-            enablePatterns: enablePatterns,
-            enableEnhancedParts: enableEnhancedParts);
+        String? before = textualOutline(
+          previousSource,
+          scannerConfiguration,
+          performModelling: true,
+          enablePatterns: enablePatterns,
+          enableEnhancedParts: enableEnhancedParts,
+        );
         if (before == null) {
           // Coverage-ignore-block(suite): Not run.
           recorderForTesting?.recordAdvancedInvalidationResult(
-              AdvancedInvalidationResult.noPreviousOutline);
+            AdvancedInvalidationResult.noPreviousOutline,
+          );
           return null;
         }
         String? now;
         FileSystemEntity entity = c.options.fileSystem.entityForUri(uri);
         if (await entity.exists()) {
-          now = textualOutline(await entity.readAsBytes(), scannerConfiguration,
-              performModelling: true,
-              enablePatterns: enablePatterns,
-              enableEnhancedParts: enableEnhancedParts);
+          now = textualOutline(
+            await entity.readAsBytes(),
+            scannerConfiguration,
+            performModelling: true,
+            enablePatterns: enablePatterns,
+            enableEnhancedParts: enableEnhancedParts,
+          );
         }
         if (before != now) {
           recorderForTesting?.recordAdvancedInvalidationResult(
-              AdvancedInvalidationResult.outlineChange);
+            AdvancedInvalidationResult.outlineChange,
+          );
           return null;
         }
         missingSources ??= new Set<Uri>();
@@ -1119,7 +1266,8 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
               // TODO(jensj): We can probably add this to the rebuildBodies
               // list and just rebuild that library too.
               recorderForTesting?.recordAdvancedInvalidationResult(
-                  AdvancedInvalidationResult.mixin);
+                AdvancedInvalidationResult.mixin,
+              );
               return null;
             }
           }
@@ -1142,7 +1290,8 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
             if (importLibrary.importUri == dartFfiUri) {
               // Explicitly imports dart:ffi.
               recorderForTesting?.recordAdvancedInvalidationResult(
-                  AdvancedInvalidationResult.importsFfi);
+                AdvancedInvalidationResult.importsFfi,
+              );
               return null;
             }
             for (Reference exportReference
@@ -1155,7 +1304,8 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
                 if (c.enclosingLibrary.importUri == dartFfiUri) {
                   // Implicitly imports a dart:ffi class.
                   recorderForTesting?.recordAdvancedInvalidationResult(
-                      AdvancedInvalidationResult.importsFfiClass);
+                    AdvancedInvalidationResult.importsFfiClass,
+                  );
                   return null;
                 }
               }
@@ -1183,15 +1333,20 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
     }
 
     recorderForTesting?.recordAdvancedInvalidationResult(
-        AdvancedInvalidationResult.bodiesOnly);
+      AdvancedInvalidationResult.bodiesOnly,
+    );
     return new ExperimentalInvalidation(
-        rebuildBodies, originalNotReusedLibraries, missingSources);
+      rebuildBodies,
+      originalNotReusedLibraries,
+      missingSources,
+    );
   }
 
   /// Get UriTranslator, and figure out if the packages file was (potentially)
   /// changed.
   Future<UriTranslator> _setupPackagesAndUriTranslator(
-      CompilerContext c) async {
+    CompilerContext c,
+  ) async {
     bool bypassCache = false;
     if (!identical(_previousPackagesUri, c.options.packagesUriRaw)) {
       // Coverage-ignore-block(suite): Not run.
@@ -1200,8 +1355,9 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
     } else if (this._invalidatedUris.contains(c.options.packagesUri)) {
       bypassCache = true;
     }
-    UriTranslator uriTranslator =
-        await c.options.getUriTranslator(bypassCache: bypassCache);
+    UriTranslator uriTranslator = await c.options.getUriTranslator(
+      bypassCache: bypassCache,
+    );
     _previousPackagesMap = _currentPackagesMap;
     _currentPackagesMap = _createPackagesMap(uriTranslator.packages);
     // TODO(jensj): We can probably (from the maps above) figure out if anything
@@ -1226,20 +1382,27 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
   /// Load platform and (potentially) initialize from dill,
   /// or initialize from component.
   Future<IncrementalCompilerData> _ensurePlatformAndInitialize(
-      UriTranslator uriTranslator, CompilerContext context) async {
+    UriTranslator uriTranslator,
+    CompilerContext context,
+  ) async {
     IncrementalCompilerData data = new IncrementalCompilerData();
     if (_dillLoadedData == null) {
       DillTarget dillLoadedData = _dillLoadedData = new DillTarget(
-          context, _ticker, uriTranslator, context.options.target,
-          benchmarker: _benchmarker);
+        context,
+        _ticker,
+        uriTranslator,
+        context.options.target,
+        benchmarker: _benchmarker,
+      );
       int bytesLength = await _initializationStrategy.initialize(
-          dillLoadedData,
-          uriTranslator,
-          context,
-          data,
-          _componentProblems,
-          _incrementalSerializer,
-          recorderForTesting);
+        dillLoadedData,
+        uriTranslator,
+        context,
+        data,
+        _componentProblems,
+        _incrementalSerializer,
+        recorderForTesting,
+      );
       _appendLibraries(data, bytesLength);
 
       // We suppress finalization errors because they will reported via
@@ -1275,8 +1438,10 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
   /// (though handling of the case where all bets are off should probably still
   /// live locally).
   void updateNeededDillLibrariesWithHierarchy(
-      Set<Library> neededDillLibraries, ClassHierarchy hierarchy,
-      [ClassHierarchyBuilder? builderHierarchy]) {
+    Set<Library> neededDillLibraries,
+    ClassHierarchy hierarchy, [
+    ClassHierarchyBuilder? builderHierarchy,
+  ]) {
     if (hierarchy is ClosedWorldClassHierarchy && !hierarchy.allBetsOff) {
       Set<Class> classes = new Set<Class>();
       List<Class> worklist = <Class>[];
@@ -1369,8 +1534,9 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
           if (!_dillLoadedData!.loader.containsLibraryBuilder(lib.importUri)) {
             _dillLoadedData!.loader.libraries.add(lib);
             _dillLoadedData!.loader.registerKnownLibrary(lib);
-            reusedLibraries
-                .add(_dillLoadedData!.loader.read(lib.importUri, -1));
+            reusedLibraries.add(
+              _dillLoadedData!.loader.read(lib.importUri, -1),
+            );
             usedComponent = true;
           }
         }
@@ -1407,7 +1573,9 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
 
   /// Internal method.
   void _reissueLibraryProblems(
-      Set<Library> allLibraries, List<Library> compiledLibraries) {
+    Set<Library> allLibraries,
+    List<Library> compiledLibraries,
+  ) {
     // The newly-compiled libraries have issued problems already. Re-issue
     // problems for the libraries that weren't re-compiled (ignore compile
     // expression problems)
@@ -1505,8 +1673,10 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
             inputLibrariesFiltered?.add(library);
           }
           for (LibraryPart part in library.parts) {
-            Uri? partFileUri =
-                uriTranslator.getPartFileUri(library.fileUri, part);
+            Uri? partFileUri = uriTranslator.getPartFileUri(
+              library.fileUri,
+              part,
+            );
             partsUsed.add(partFileUri);
           }
         }
@@ -1517,27 +1687,34 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
     bool removedDillBuilders = false;
     for (Uri uri in potentiallyReferencedLibraries.keys) {
       if (uri.isScheme("package")) continue;
-      LibraryBuilder? builder =
-          currentKernelTarget.loader.deregisterLoadedLibraryBuilder(uri);
+      LibraryBuilder? builder = currentKernelTarget.loader
+          .deregisterLoadedLibraryBuilder(uri);
       if (builder != null) {
         cleanedUpBuilders.add(builder);
         Library lib = builder.library;
         removedLibraries.add(lib);
-        DillLibraryBuilder? removedDillBuilder =
-            _dillLoadedData!.loader.deregisterLibraryBuilder(uri);
+        DillLibraryBuilder? removedDillBuilder = _dillLoadedData!.loader
+            .deregisterLibraryBuilder(uri);
         if (removedDillBuilder != null) {
           cleanedUpBuilders.add(removedDillBuilder);
           removedDillBuilders = true;
         }
-        _cleanupSourcesForBuilder(currentKernelTarget, null, builder,
-            uriTranslator, context.uriToSource, uriToSource, partsUsed);
+        _cleanupSourcesForBuilder(
+          currentKernelTarget,
+          null,
+          builder,
+          uriTranslator,
+          context.uriToSource,
+          uriToSource,
+          partsUsed,
+        );
         _userBuilders?.remove(uri);
         _componentProblems.removeLibrary(lib, uriTranslator, partsUsed);
 
         // Technically this isn't necessary as the uri is not a package-uri.
         _incrementalSerializer
-            // Coverage-ignore(suite): Not run.
-            ?.invalidate(builder.fileUri);
+        // Coverage-ignore(suite): Not run.
+        ?.invalidate(builder.fileUri);
       }
     }
     hierarchy.applyTreeChanges(removedLibraries, const [], const []);
@@ -1566,13 +1743,14 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
   /// Those parts will not be cleaned up. This is useful when a part has been
   /// "moved" to be part of another library.
   void _cleanupSourcesForBuilder(
-      IncrementalKernelTarget? lastGoodKernelTarget,
-      ReusageResult? reusedResult,
-      LibraryBuilder builder,
-      UriTranslator uriTranslator,
-      Map<Uri, Source> uriToSource,
-      [Map<Uri, Source>? uriToSourceExtra,
-      Set<Uri?>? partsUsed]) {
+    IncrementalKernelTarget? lastGoodKernelTarget,
+    ReusageResult? reusedResult,
+    LibraryBuilder builder,
+    UriTranslator uriTranslator,
+    Map<Uri, Source> uriToSource, [
+    Map<Uri, Source>? uriToSourceExtra,
+    Set<Uri?>? partsUsed,
+  ]) {
     uriToSource.remove(builder.fileUri);
     uriToSourceExtra?.remove(builder.fileUri);
     Library lib = builder.library;
@@ -1589,8 +1767,9 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
       if (lastGoodKernelTarget?.loader != null) {
         Uri? partImportUri = uriToSource[partFileUri]?.importUri;
         if (partImportUri != null &&
-            lastGoodKernelTarget!.loader
-                .containsLoadedLibraryBuilder(partImportUri)) {
+            lastGoodKernelTarget!.loader.containsLoadedLibraryBuilder(
+              partImportUri,
+            )) {
           continue;
         }
       }
@@ -1619,8 +1798,10 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
   /// Internal method.
   void _appendLibraries(IncrementalCompilerData data, int bytesLength) {
     if (data.component != null) {
-      _dillLoadedData!.loader
-          .appendLibraries(data.component!, byteCount: bytesLength);
+      _dillLoadedData!.loader.appendLibraries(
+        data.component!,
+        byteCount: bytesLength,
+      );
     }
     _ticker.logMs("Appended libraries");
   }
@@ -1655,12 +1836,13 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
   }) async {
     IncrementalKernelTarget? lastGoodKernelTarget = this._lastGoodKernelTarget;
     assert(_dillLoadedData != null && lastGoodKernelTarget != null);
-    Map<String, DartType> usedDefinitions =
-        new Map<String, DartType>.of(inputDefinitions);
+    Map<String, DartType> usedDefinitions = new Map<String, DartType>.of(
+      inputDefinitions,
+    );
 
     return await context.runInContext((_) async {
-      CompilationUnit? compilationUnit =
-          lastGoodKernelTarget!.loader.lookupCompilationUnit(libraryUri);
+      CompilationUnit? compilationUnit = lastGoodKernelTarget!.loader
+          .lookupCompilationUnit(libraryUri);
       compilationUnit ??= lastGoodKernelTarget.loader
           .lookupCompilationUnitByFileUri(libraryUri);
       if (compilationUnit == null) {
@@ -1676,8 +1858,11 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
             // TODO(jensj): Add tests for this.
             // Methods etc saves file uris, so try to convert the script uri to
             // a file uri.
-            scriptUriAsUri = lastGoodKernelTarget.uriTranslator
-                    .translate(scriptUriAsUri, false) ??
+            scriptUriAsUri =
+                lastGoodKernelTarget.uriTranslator.translate(
+                  scriptUriAsUri,
+                  false,
+                ) ??
                 scriptUriAsUri;
           }
           Library library = libraryBuilder.library;
@@ -1691,9 +1876,15 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
             }
           }
           DartScope foundScope = DartScopeBuilder2.findScopeFromOffsetAndClass(
-              library, scriptUriAsUri, cls, offset);
+            library,
+            scriptUriAsUri,
+            cls,
+            offset,
+          );
           final bool alwaysInlineConstants = lastGoodKernelTarget
-              .backendTarget.constantsBackend.alwaysInlineConstants;
+              .backendTarget
+              .constantsBackend
+              .alwaysInlineConstants;
           // For now, if any definition is (or contains) an Extension Type,
           // we'll overwrite the given (runtime?) definitions so we know about
           // the extension type. If any definition is said to be dynamic we'll
@@ -1710,12 +1901,15 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
               if (alwaysInlineConstants &&
                   def.value.isConst &&
                   def.value.initializer is ConstantExpression) {
-                extraKnownVariables.add(new VariableDeclarationImpl(def.key,
+                extraKnownVariables.add(
+                  new VariableDeclarationImpl(
+                    def.key,
                     type: def.value.type,
                     isConst: true,
                     hasDeclaredInitializer: true,
-                    initializer: def.value.initializer)
-                  ..fileOffset = def.value.fileOffset);
+                    initializer: def.value.initializer,
+                  )..fileOffset = def.value.fileOffset,
+                );
               } else if (def.value.isInitializingFormal ||
                   def.value.isSuperInitializingFormal) {
                 // An (super) initializing formal parameter of a constructor
@@ -1726,15 +1920,18 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
                 // about. Maybe the variable was optimized out? Maybe it wasn't
                 // captured? Either way there's something shadowing any fields
                 // etc.
-                extraKnownVariables.add(new VariableDeclarationImpl(
-                  def.key,
-                  type: def.value.type,
-                  isConst: false,
-                )..fileOffset = def.value.fileOffset);
+                extraKnownVariables.add(
+                  new VariableDeclarationImpl(
+                    def.key,
+                    type: def.value.type,
+                    isConst: false,
+                  )..fileOffset = def.value.fileOffset,
+                );
               }
             } else if (existingType is DynamicType ||
                 _ExtensionTypeFinder.isOrContainsExtensionType(
-                    def.value.type)) {
+                  def.value.type,
+                )) {
               usedDefinitions[def.key] = def.value.type;
             }
           }
@@ -1745,8 +1942,9 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
 
       Class? cls;
       if (className != null) {
-        Builder? scopeMember =
-            libraryBuilder.libraryNameSpace.lookup(className)?.getable;
+        Builder? scopeMember = libraryBuilder.libraryNameSpace
+            .lookup(className)
+            ?.getable;
         if (scopeMember is ClassBuilder) {
           cls = scopeMember.cls;
         } else {
@@ -1761,15 +1959,17 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
         if (indexOfDot >= 0) {
           String beforeDot = methodName.substring(0, indexOfDot);
           String afterDot = methodName.substring(indexOfDot + 1);
-          Builder? builder =
-              libraryBuilder.libraryNameSpace.lookup(beforeDot)?.getable;
+          Builder? builder = libraryBuilder.libraryNameSpace
+              .lookup(beforeDot)
+              ?.getable;
 
           if (builder == null && hasUnnamedExtensionNamePrefix(beforeDot)) {
             // If the name looks like an unnamed extension, try to find if we
             // can find such a builder.
             ExtensionBuilder? foundExtensionBuilder;
-            libraryBuilder.libraryNameSpace
-                .forEachLocalExtension((ExtensionBuilder extension) {
+            libraryBuilder.libraryNameSpace.forEachLocalExtension((
+              ExtensionBuilder extension,
+            ) {
               if (extension.name == beforeDot) {
                 foundExtensionBuilder = extension;
               }
@@ -1813,11 +2013,13 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
       for (TypeParameter typeParam in typeDefinitions) {
         if (!isLegalIdentifier(typeParam.name!)) {
           lastGoodKernelTarget.loader.addProblem(
-              codeIncrementalCompilerIllegalTypeParameter
-                  .withArguments('$typeParam'),
-              typeParam.fileOffset,
-              0,
-              libraryUri);
+            codeIncrementalCompilerIllegalTypeParameter.withArguments(
+              '$typeParam',
+            ),
+            typeParam.fileOffset,
+            0,
+            libraryUri,
+          );
           return null;
         }
       }
@@ -1830,13 +2032,14 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
                 index == 1 &&
                 isExtensionThisName(name)))) {
           lastGoodKernelTarget.loader.addProblem(
-              codeIncrementalCompilerIllegalParameter.withArguments(name),
-              // TODO: pass variable declarations instead of
-              // parameter names for proper location detection.
-              // https://github.com/dart-lang/sdk/issues/44158
-              -1,
-              -1,
-              libraryUri);
+            codeIncrementalCompilerIllegalParameter.withArguments(name),
+            // TODO: pass variable declarations instead of
+            // parameter names for proper location detection.
+            // https://github.com/dart-lang/sdk/issues/44158
+            -1,
+            -1,
+            libraryUri,
+          );
           return null;
         }
       }
@@ -1853,22 +2056,24 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
       // some circumstances).
       SourceCompilationUnit debugCompilationUnit =
           new SourceCompilationUnitImpl(
-              importUri: libraryUri,
-              fileUri: debugExprUri,
-              originImportUri: libraryUri,
-              packageLanguageVersion:
-                  new ImplicitLanguageVersion(libraryBuilder.languageVersion),
-              loader: lastGoodKernelTarget.loader,
-              resolveInLibrary: libraryBuilder,
-              isUnsupported: libraryBuilder.isUnsupported,
-              forAugmentationLibrary: false,
-              forPatchLibrary: false,
-              referenceIsPartOwner: null,
-              packageUri: null,
-              augmentationRoot: null,
-              isAugmenting: false,
-              indexedLibrary: null,
-              mayImplementRestrictedTypes: false);
+            importUri: libraryUri,
+            fileUri: debugExprUri,
+            originImportUri: libraryUri,
+            packageLanguageVersion: new ImplicitLanguageVersion(
+              libraryBuilder.languageVersion,
+            ),
+            loader: lastGoodKernelTarget.loader,
+            resolveInLibrary: libraryBuilder,
+            isUnsupported: libraryBuilder.isUnsupported,
+            forAugmentationLibrary: false,
+            forPatchLibrary: false,
+            referenceIsPartOwner: null,
+            packageUri: null,
+            augmentationRoot: null,
+            isAugmenting: false,
+            indexedLibrary: null,
+            mayImplementRestrictedTypes: false,
+          );
       debugCompilationUnit.markLanguageVersionFinal();
 
       SourceLibraryBuilder debugLibrary = debugCompilationUnit.createLibrary();
@@ -1886,19 +2091,27 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
           for (kernel.Combinator combinator in dependency.combinators) {
             combinators ??= <CombinatorBuilder>[];
 
-            combinators.add(combinator.isShow
-                ? new CombinatorBuilder.show(combinator.names,
-                    combinator.fileOffset, libraryBuilder.fileUri)
-                : new CombinatorBuilder.hide(combinator.names,
-                    combinator.fileOffset, libraryBuilder.fileUri));
+            combinators.add(
+              combinator.isShow
+                  ? new CombinatorBuilder.show(
+                      combinator.names,
+                      combinator.fileOffset,
+                      libraryBuilder.fileUri,
+                    )
+                  : new CombinatorBuilder.hide(
+                      combinator.names,
+                      combinator.fileOffset,
+                      libraryBuilder.fileUri,
+                    ),
+            );
           }
 
           debugLibrary.compilationUnit.addSyntheticImport(
-              importUri:
-                  dependency.importedLibraryReference.asLibrary.importUri,
-              prefix: dependency.name,
-              combinators: combinators,
-              deferred: dependency.isDeferred);
+            importUri: dependency.importedLibraryReference.asLibrary.importUri,
+            prefix: dependency.name,
+            combinators: combinators,
+            deferred: dependency.isDeferred,
+          );
         }
 
         debugLibrary.buildInitialScopes();
@@ -1906,23 +2119,25 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
         _ticker.logMs("Added imports");
       }
       debugCompilationUnit = new SourceCompilationUnitImpl(
-          importUri: libraryUri,
-          fileUri: debugExprUri,
-          originImportUri: libraryUri,
-          packageLanguageVersion:
-              new ImplicitLanguageVersion(libraryBuilder.languageVersion),
-          loader: lastGoodKernelTarget.loader,
-          resolveInLibrary: libraryBuilder,
-          parentScope: debugCompilationUnit.compilationUnitScope,
-          isUnsupported: libraryBuilder.isUnsupported,
-          forAugmentationLibrary: false,
-          forPatchLibrary: false,
-          referenceIsPartOwner: null,
-          packageUri: null,
-          augmentationRoot: null,
-          isAugmenting: false,
-          indexedLibrary: null,
-          mayImplementRestrictedTypes: false);
+        importUri: libraryUri,
+        fileUri: debugExprUri,
+        originImportUri: libraryUri,
+        packageLanguageVersion: new ImplicitLanguageVersion(
+          libraryBuilder.languageVersion,
+        ),
+        loader: lastGoodKernelTarget.loader,
+        resolveInLibrary: libraryBuilder,
+        parentScope: debugCompilationUnit.compilationUnitScope,
+        isUnsupported: libraryBuilder.isUnsupported,
+        forAugmentationLibrary: false,
+        forPatchLibrary: false,
+        referenceIsPartOwner: null,
+        packageUri: null,
+        augmentationRoot: null,
+        isAugmenting: false,
+        indexedLibrary: null,
+        mayImplementRestrictedTypes: false,
+      );
       debugCompilationUnit.markLanguageVersionFinal();
 
       debugLibrary = debugCompilationUnit.createLibrary();
@@ -1935,16 +2150,21 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
       // TODO: pass variable declarations instead of
       // parameter names for proper location detection.
       // https://github.com/dart-lang/sdk/issues/44158
-      FunctionNode parameters = new FunctionNode(null,
-          typeParameters: typeDefinitions,
-          positionalParameters: usedDefinitions.entries
-              .map<VariableDeclaration>((MapEntry<String, DartType> def) =>
+      FunctionNode parameters = new FunctionNode(
+        null,
+        typeParameters: typeDefinitions,
+        positionalParameters: usedDefinitions.entries
+            .map<VariableDeclaration>(
+              (MapEntry<String, DartType> def) =>
                   new VariableDeclarationImpl(def.key, type: def.value)
-                    ..fileOffset = cls?.fileOffset ??
+                    ..fileOffset =
+                        cls?.fileOffset ??
                         extension?.fileOffset ??
                         extensionType?.fileOffset ??
-                        libraryBuilder.library.fileOffset)
-              .toList());
+                        libraryBuilder.library.fileOffset,
+            )
+            .toList(),
+      );
 
       VariableDeclaration? extensionThis;
       if ((extension != null || extensionType != null) &&
@@ -1956,19 +2176,26 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
           extensionThis.isLowered = true;
         }
       }
-      lastGoodKernelTarget
-          .buildSyntheticLibrariesUntilBuildScopes([debugLibrary]);
-      lastGoodKernelTarget
-          .buildSyntheticLibrariesUntilComputeDefaultTypes([debugLibrary]);
+      lastGoodKernelTarget.buildSyntheticLibrariesUntilBuildScopes([
+        debugLibrary,
+      ]);
+      lastGoodKernelTarget.buildSyntheticLibrariesUntilComputeDefaultTypes([
+        debugLibrary,
+      ]);
       lastGoodKernelTarget.loader.finishTypeParameters(
-          [debugLibrary],
-          lastGoodKernelTarget.objectClassBuilder,
-          lastGoodKernelTarget.dynamicType);
+        [debugLibrary],
+        lastGoodKernelTarget.objectClassBuilder,
+        lastGoodKernelTarget.dynamicType,
+      );
       debugLibrary.buildOutlineNodes(lastGoodKernelTarget.loader.coreLibrary);
 
       Procedure procedure = new Procedure(
-          new Name(syntheticProcedureName), ProcedureKind.Method, parameters,
-          isStatic: isStatic, fileUri: debugLibrary.fileUri);
+        new Name(syntheticProcedureName),
+        ProcedureKind.Method,
+        parameters,
+        isStatic: isStatic,
+        fileUri: debugLibrary.fileUri,
+      );
 
       ClassHierarchy hierarchy = lastGoodKernelTarget.loader.hierarchy;
 
@@ -1977,13 +2204,14 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
 
       Expression compiledExpression = await lastGoodKernelTarget.loader
           .buildExpression(
-              debugLibrary,
-              className ?? extensionName,
-              (className != null && !isStatic) || extensionThis != null,
-              procedure,
-              extensionThis,
-              extraKnownVariables,
-              expressionEvaluationHelper);
+            debugLibrary,
+            className ?? extensionName,
+            (className != null && !isStatic) || extensionThis != null,
+            procedure,
+            extensionThis,
+            extraKnownVariables,
+            expressionEvaluationHelper,
+          );
 
       parameters.body = new ReturnStatement(compiledExpression)
         ..parent = parameters;
@@ -2018,10 +2246,11 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
 
   /// Internal method.
   ReusageResult _computeReusedLibraries(
-      IncrementalKernelTarget? lastGoodKernelTarget,
-      Map<Uri, DillLibraryBuilder>? _userBuilders,
-      Set<Uri?> invalidatedUris,
-      UriTranslator uriTranslator) {
+    IncrementalKernelTarget? lastGoodKernelTarget,
+    Map<Uri, DillLibraryBuilder>? _userBuilders,
+    Set<Uri?> invalidatedUris,
+    UriTranslator uriTranslator,
+  ) {
     Set<Uri> seenUris = new Set<Uri>();
     List<DillLibraryBuilder> reusedLibraries = [];
     for (int i = 0; i < _platformBuilders!.length; i++) {
@@ -2060,8 +2289,10 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
         int firstSlash = path.indexOf('/');
         String packageName = path.substring(0, firstSlash);
         if (_previousPackagesMap == null ||
-            !_packagesEqual(_previousPackagesMap![packageName],
-                _currentPackagesMap![packageName])) {
+            !_packagesEqual(
+              _previousPackagesMap![packageName],
+              _currentPackagesMap![packageName],
+            )) {
           Uri? newFileUri = uriTranslator.translate(importUri, false);
           if (newFileUri != fileUri) {
             invalidatedBecauseOfPackageUpdate = true;
@@ -2074,7 +2305,9 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
     }
 
     void addBuilderAndInvalidateUris(
-        Uri uri, DillLibraryBuilder libraryBuilder) {
+      Uri uri,
+      DillLibraryBuilder libraryBuilder,
+    ) {
       if (uri.isScheme("dart") && !libraryBuilder.isSynthetic) {
         if (seenUris.add(libraryBuilder.importUri)) {
           reusedLibraries.add(libraryBuilder);
@@ -2087,8 +2320,10 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
       }
       for (LibraryPart part in libraryBuilder.library.parts) {
         Uri partUri = getPartUri(libraryBuilder.importUri, part);
-        Uri? fileUri =
-            uriTranslator.getPartFileUri(libraryBuilder.library.fileUri, part);
+        Uri? fileUri = uriTranslator.getPartFileUri(
+          libraryBuilder.library.fileUri,
+          part,
+        );
         partUriToParent[partUri] = libraryBuilder;
         partUriToParent[fileUri] = libraryBuilder;
 
@@ -2111,7 +2346,9 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
       for (LibraryBuilder libraryBuilder
           in lastGoodKernelTarget.loader.loadedLibraryBuilders) {
         addBuilderAndInvalidateUris(
-            libraryBuilder.importUri, libraryBuilder as DillLibraryBuilder);
+          libraryBuilder.importUri,
+          libraryBuilder as DillLibraryBuilder,
+        );
       }
     } else {
       // Coverage-ignore-block(suite): Not run.
@@ -2171,8 +2408,13 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
       if (!seenUris.add(builder.importUri)) continue;
       reusedLibraries.add(builder);
     }
-    return new ReusageResult(notReusedLibraries, directlyInvalidated,
-        invalidatedBecauseOfPackageUpdate, reusedLibraries, partUriToParent);
+    return new ReusageResult(
+      notReusedLibraries,
+      directlyInvalidated,
+      invalidatedBecauseOfPackageUpdate,
+      reusedLibraries,
+      partUriToParent,
+    );
   }
 
   @override
@@ -2185,8 +2427,9 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
   void invalidateAllSources() {
     IncrementalKernelTarget? lastGoodKernelTarget = this._lastGoodKernelTarget;
     if (lastGoodKernelTarget != null) {
-      Set<Uri> uris =
-          new Set<Uri>.of(lastGoodKernelTarget.loader.loadedLibraryImportUris);
+      Set<Uri> uris = new Set<Uri>.of(
+        lastGoodKernelTarget.loader.loadedLibraryImportUris,
+      );
       uris.removeAll(_dillLoadedData!.loader.libraryImportUris);
       if (_previousSourceBuilders != null) {
         for (Library library in _previousSourceBuilders!) {
@@ -2210,7 +2453,9 @@ class ExpressionEvaluationHelperImpl implements ExpressionEvaluationHelper {
   final ClassHierarchy hierarchy;
 
   ExpressionEvaluationHelperImpl(
-      List<VariableDeclarationImpl> extraKnown, this.hierarchy) {
+    List<VariableDeclarationImpl> extraKnown,
+    this.hierarchy,
+  ) {
     for (VariableDeclarationImpl variable in extraKnown) {
       if (variable.isConst) {
         // We allow const variables - these are inlined (we check
@@ -2223,7 +2468,10 @@ class ExpressionEvaluationHelperImpl implements ExpressionEvaluationHelper {
 
   @override
   ExpressionInferenceResult? visitVariableGet(
-      VariableGet node, DartType typeContext, InferenceHelper helper) {
+    VariableGet node,
+    DartType typeContext,
+    InferenceHelper helper,
+  ) {
     if (knownButUnavailable.contains(node.variable)) {
       return _returnKnownVariableUnavailable(node, node.variable, helper);
     }
@@ -2232,7 +2480,10 @@ class ExpressionEvaluationHelperImpl implements ExpressionEvaluationHelper {
 
   @override
   ExpressionInferenceResult? visitVariableSet(
-      VariableSet node, DartType typeContext, InferenceHelper helper) {
+    VariableSet node,
+    DartType typeContext,
+    InferenceHelper helper,
+  ) {
     if (knownButUnavailable.contains(node.variable)) {
       return _returnKnownVariableUnavailable(node, node.variable, helper);
     }
@@ -2240,18 +2491,23 @@ class ExpressionEvaluationHelperImpl implements ExpressionEvaluationHelper {
   }
 
   ExpressionInferenceResult _returnKnownVariableUnavailable(
-      Expression node, VariableDeclaration variable, InferenceHelper helper) {
+    Expression node,
+    VariableDeclaration variable,
+    InferenceHelper helper,
+  ) {
     return new ExpressionInferenceResult(
-        variable.type,
-        helper.wrapInProblem(
-          node,
-          codeExpressionEvaluationKnownVariableUnavailable
-              .withArguments(variable.name!),
-          node.fileOffset,
-          variable.name!.length,
-          errorHasBeenReported: false,
-          includeExpression: false,
-        ));
+      variable.type,
+      helper.wrapInProblem(
+        node,
+        codeExpressionEvaluationKnownVariableUnavailable.withArguments(
+          variable.name!,
+        ),
+        node.fileOffset,
+        variable.name!.length,
+        errorHasBeenReported: false,
+        includeExpression: false,
+      ),
+    );
   }
 
   @override
@@ -2270,11 +2526,12 @@ class ExpressionEvaluationHelperImpl implements ExpressionEvaluationHelper {
           hierarchy is ClosedWorldClassHierarchy) {
         // Find all libraries that contains a subtype of this type with a
         // textually matching name.
-        ClassHierarchySubtypes subtypeInformation =
-            hierarchy.computeSubtypesInformation();
+        ClassHierarchySubtypes subtypeInformation = hierarchy
+            .computeSubtypesInformation();
         Set<Library> foundMatchInLibrary = {};
-        for (Class cls
-            in subtypeInformation.getSubtypesOf(receiverType.classNode)) {
+        for (Class cls in subtypeInformation.getSubtypesOf(
+          receiverType.classNode,
+        )) {
           for (Member member in cls.members) {
             if (member.name.text == name.text) {
               foundMatchInLibrary.add(cls.enclosingLibrary);
@@ -2290,7 +2547,9 @@ class ExpressionEvaluationHelperImpl implements ExpressionEvaluationHelper {
         }
       }
       return new OverwrittenInterfaceMember(
-          target: const ObjectAccessTarget.dynamic(), name: name);
+        target: const ObjectAccessTarget.dynamic(),
+        name: name,
+      );
     }
     return null;
   }
@@ -2345,17 +2604,18 @@ class ReusageResult {
   final Map<Uri?, LibraryBuilder> partUriToParent;
 
   ReusageResult.reusedLibrariesOnly(this.reusedLibraries)
-      : notReusedLibraries = const {},
-        directlyInvalidated = const {},
-        invalidatedBecauseOfPackageUpdate = false,
-        partUriToParent = const {};
+    : notReusedLibraries = const {},
+      directlyInvalidated = const {},
+      invalidatedBecauseOfPackageUpdate = false,
+      partUriToParent = const {};
 
   ReusageResult(
-      this.notReusedLibraries,
-      this.directlyInvalidated,
-      this.invalidatedBecauseOfPackageUpdate,
-      this.reusedLibraries,
-      this.partUriToParent);
+    this.notReusedLibraries,
+    this.directlyInvalidated,
+    this.invalidatedBecauseOfPackageUpdate,
+    this.reusedLibraries,
+    this.partUriToParent,
+  );
 }
 
 class ExperimentalInvalidation {
@@ -2364,7 +2624,10 @@ class ExperimentalInvalidation {
   final Set<Uri> missingSources;
 
   ExperimentalInvalidation(
-      this.rebuildBodies, this.originalNotReusedLibraries, this.missingSources);
+    this.rebuildBodies,
+    this.originalNotReusedLibraries,
+    this.missingSources,
+  );
 }
 
 class IncrementalKernelTarget extends KernelTarget
@@ -2374,13 +2637,18 @@ class IncrementalKernelTarget extends KernelTarget
   Set<Library> librariesUsed = {};
 
   IncrementalKernelTarget(
-      CompilerContext compilerContext,
-      FileSystem fileSystem,
-      bool includeComments,
-      DillTarget dillTarget,
-      UriTranslator uriTranslator)
-      : super(compilerContext, fileSystem, includeComments, dillTarget,
-            uriTranslator);
+    CompilerContext compilerContext,
+    FileSystem fileSystem,
+    bool includeComments,
+    DillTarget dillTarget,
+    UriTranslator uriTranslator,
+  ) : super(
+        compilerContext,
+        fileSystem,
+        includeComments,
+        dillTarget,
+        uriTranslator,
+      );
 
   @override
   ChangedStructureNotifier get changedStructureNotifier => this;
@@ -2428,13 +2696,14 @@ abstract class _InitializationStrategy {
   bool get initializedIncrementalSerializerForTesting => false;
 
   Future<int> initialize(
-      DillTarget dillLoadedData,
-      UriTranslator uriTranslator,
-      CompilerContext context,
-      IncrementalCompilerData data,
-      _ComponentProblems componentProblems,
-      IncrementalSerializer? incrementalSerializer,
-      RecorderForTesting? recorderForTesting);
+    DillTarget dillLoadedData,
+    UriTranslator uriTranslator,
+    CompilerContext context,
+    IncrementalCompilerData data,
+    _ComponentProblems componentProblems,
+    IncrementalSerializer? incrementalSerializer,
+    RecorderForTesting? recorderForTesting,
+  );
 }
 
 class _InitializationFromSdkSummary extends _InitializationStrategy {
@@ -2443,35 +2712,45 @@ class _InitializationFromSdkSummary extends _InitializationStrategy {
   @override
   // Coverage-ignore(suite): Not run.
   Future<int> initialize(
-      DillTarget dillLoadedData,
-      UriTranslator uriTranslator,
-      CompilerContext context,
-      IncrementalCompilerData data,
-      _ComponentProblems componentProblems,
-      IncrementalSerializer? incrementalSerializer,
-      RecorderForTesting? recorderForTesting) async {
+    DillTarget dillLoadedData,
+    UriTranslator uriTranslator,
+    CompilerContext context,
+    IncrementalCompilerData data,
+    _ComponentProblems componentProblems,
+    IncrementalSerializer? incrementalSerializer,
+    RecorderForTesting? recorderForTesting,
+  ) async {
     Uint8List? summaryBytes = await context.options.loadSdkSummaryBytes();
     return _prepareSummary(
-        dillLoadedData, summaryBytes, uriTranslator, context, data);
+      dillLoadedData,
+      summaryBytes,
+      uriTranslator,
+      context,
+      data,
+    );
   }
 
   // Coverage-ignore(suite): Not run.
   int _prepareSummary(
-      DillTarget dillLoadedTarget,
-      Uint8List? summaryBytes,
-      UriTranslator uriTranslator,
-      CompilerContext context,
-      IncrementalCompilerData data) {
+    DillTarget dillLoadedTarget,
+    Uint8List? summaryBytes,
+    UriTranslator uriTranslator,
+    CompilerContext context,
+    IncrementalCompilerData data,
+  ) {
     int bytesLength = 0;
 
     data.component = context.options.target.configureComponent(new Component());
     if (summaryBytes != null) {
       dillLoadedTarget.ticker.logMs("Read ${context.options.sdkSummary}");
-      new BinaryBuilderWithMetadata(summaryBytes,
-              disableLazyReading: false, disableLazyClassReading: true)
-          .readComponent(data.component!);
-      dillLoadedTarget.ticker
-          .logMs("Deserialized ${context.options.sdkSummary}");
+      new BinaryBuilderWithMetadata(
+        summaryBytes,
+        disableLazyReading: false,
+        disableLazyClassReading: true,
+      ).readComponent(data.component!);
+      dillLoadedTarget.ticker.logMs(
+        "Deserialized ${context.options.sdkSummary}",
+      );
       bytesLength += summaryBytes.length;
     }
 
@@ -2483,17 +2762,18 @@ class _InitializationFromComponent extends _InitializationStrategy {
   Component? _componentToInitializeFrom;
 
   _InitializationFromComponent(Component componentToInitializeFrom)
-      : _componentToInitializeFrom = componentToInitializeFrom;
+    : _componentToInitializeFrom = componentToInitializeFrom;
 
   @override
   Future<int> initialize(
-      DillTarget dillLoadedData,
-      UriTranslator uriTranslator,
-      CompilerContext context,
-      IncrementalCompilerData data,
-      _ComponentProblems componentProblems,
-      IncrementalSerializer? incrementalSerializer,
-      RecorderForTesting? recorderForTesting) {
+    DillTarget dillLoadedData,
+    UriTranslator uriTranslator,
+    CompilerContext context,
+    IncrementalCompilerData data,
+    _ComponentProblems componentProblems,
+    IncrementalSerializer? incrementalSerializer,
+    RecorderForTesting? recorderForTesting,
+  ) {
     Component? componentToInitializeFrom = _componentToInitializeFrom;
     _componentToInitializeFrom = null;
     if (componentToInitializeFrom == null) {
@@ -2501,15 +2781,17 @@ class _InitializationFromComponent extends _InitializationStrategy {
     }
     dillLoadedData.ticker.logMs("About to initializeFromComponent");
 
-    Component component = data.component = new Component(
-        libraries: componentToInitializeFrom.libraries,
-        uriToSource: componentToInitializeFrom.uriToSource)
-      ..setMainMethodAndMode(
+    Component component = data.component =
+        new Component(
+          libraries: componentToInitializeFrom.libraries,
+          uriToSource: componentToInitializeFrom.uriToSource,
+        )..setMainMethodAndMode(
           componentToInitializeFrom
               .mainMethod
               // Coverage-ignore(suite): Not run.
               ?.reference,
-          true);
+          true,
+        );
     componentProblems.saveComponentProblems(component);
 
     bool foundDartCore = false;
@@ -2523,8 +2805,10 @@ class _InitializationFromComponent extends _InitializationStrategy {
     }
 
     if (!foundDartCore) {
-      throw const InitializeFromComponentError("Did not find dart:core when "
-          "tried to initialize from component.");
+      throw const InitializeFromComponentError(
+        "Did not find dart:core when "
+        "tried to initialize from component.",
+      );
     }
 
     dillLoadedData.ticker.logMs("Ran initializeFromComponent");
@@ -2540,30 +2824,42 @@ class _InitializationFromUri extends _InitializationFromSdkSummary {
 
   @override
   Future<int> initialize(
-      DillTarget dillLoadedData,
-      UriTranslator uriTranslator,
-      CompilerContext context,
-      IncrementalCompilerData data,
-      _ComponentProblems componentProblems,
-      IncrementalSerializer? incrementalSerializer,
-      RecorderForTesting? recorderForTesting) async {
+    DillTarget dillLoadedData,
+    UriTranslator uriTranslator,
+    CompilerContext context,
+    IncrementalCompilerData data,
+    _ComponentProblems componentProblems,
+    IncrementalSerializer? incrementalSerializer,
+    RecorderForTesting? recorderForTesting,
+  ) async {
     Uint8List? summaryBytes = await context.options.loadSdkSummaryBytes();
     int bytesLength = _prepareSummary(
-        dillLoadedData, summaryBytes, uriTranslator, context, data);
+      dillLoadedData,
+      summaryBytes,
+      uriTranslator,
+      context,
+      data,
+    );
     try {
       bytesLength += await _initializeFromDill(
-          dillLoadedData,
-          initializeFromDillUri,
-          uriTranslator,
-          context,
-          data,
-          componentProblems,
-          incrementalSerializer);
+        dillLoadedData,
+        initializeFromDillUri,
+        uriTranslator,
+        context,
+        data,
+        componentProblems,
+        incrementalSerializer,
+      );
     } catch (e, st) {
       // We might have loaded x out of y libraries into the component.
       // To avoid any unforeseen problems start over.
       bytesLength = _prepareSummary(
-          dillLoadedData, summaryBytes, uriTranslator, context, data);
+        dillLoadedData,
+        summaryBytes,
+        uriTranslator,
+        context,
+        data,
+      );
 
       if (e is InvalidKernelVersionError ||
           e is InvalidKernelSdkVersionError ||
@@ -2574,16 +2870,21 @@ class _InitializationFromUri extends _InitializationFromSdkSummary {
       } else {
         Uri? gzInitializedFrom;
         if (context.options.writeFileOnCrashReport) {
-          gzInitializedFrom =
-              saveAsGzip(data.initializationBytes!, "initialize_from.dill");
+          gzInitializedFrom = saveAsGzip(
+            data.initializationBytes!,
+            "initialize_from.dill",
+          );
           recorderForTesting?.recordTemporaryFile(gzInitializedFrom);
         }
         if (e is CanonicalNameError) {
           Message message = gzInitializedFrom != null
               ? codeInitializeFromDillNotSelfContained.withArguments(
-                  initializeFromDillUri.toString(), gzInitializedFrom)
-              : codeInitializeFromDillNotSelfContainedNoDump
-                  .withArguments(initializeFromDillUri.toString());
+                  initializeFromDillUri.toString(),
+                  gzInitializedFrom,
+                )
+              : codeInitializeFromDillNotSelfContainedNoDump.withArguments(
+                  initializeFromDillUri.toString(),
+                );
           dillLoadedData.loader.addProblem(message, TreeNode.noOffset, 1, null);
         } else {
           // Unknown error: Report problem as such.
@@ -2592,9 +2893,13 @@ class _InitializationFromUri extends _InitializationFromSdkSummary {
                   initializeFromDillUri.toString(),
                   "$e",
                   "$st",
-                  gzInitializedFrom)
+                  gzInitializedFrom,
+                )
               : codeInitializeFromDillUnknownProblemNoDump.withArguments(
-                  initializeFromDillUri.toString(), "$e", "$st");
+                  initializeFromDillUri.toString(),
+                  "$e",
+                  "$st",
+                );
           dillLoadedData.loader.addProblem(message, TreeNode.noOffset, 1, null);
         }
       }
@@ -2614,16 +2919,18 @@ class _InitializationFromUri extends _InitializationFromSdkSummary {
 
   // This procedure will try to load the dill file and will crash if it cannot.
   Future<int> _initializeFromDill(
-      DillTarget dillLoadedData,
-      Uri initializeFromDillUri,
-      UriTranslator uriTranslator,
-      CompilerContext context,
-      IncrementalCompilerData data,
-      _ComponentProblems _componentProblems,
-      IncrementalSerializer? incrementalSerializer) async {
+    DillTarget dillLoadedData,
+    Uri initializeFromDillUri,
+    UriTranslator uriTranslator,
+    CompilerContext context,
+    IncrementalCompilerData data,
+    _ComponentProblems _componentProblems,
+    IncrementalSerializer? incrementalSerializer,
+  ) async {
     int bytesLength = 0;
-    FileSystemEntity entity =
-        context.options.fileSystem.entityForUri(initializeFromDillUri);
+    FileSystemEntity entity = context.options.fileSystem.entityForUri(
+      initializeFromDillUri,
+    );
     if (await entity.exists()) {
       Uint8List initializationBytes = await entity.readAsBytes();
       if (initializationBytes.isNotEmpty) {
@@ -2632,11 +2939,15 @@ class _InitializationFromUri extends _InitializationFromSdkSummary {
 
         // We're going to output all we read here so lazy loading it
         // doesn't make sense.
-        List<SubComponentView> views = new BinaryBuilderWithMetadata(
-                initializationBytes,
-                disableLazyReading: true)
-            .readComponent(data.component!,
-                checkCanonicalNames: true, createView: true)!;
+        List<SubComponentView> views =
+            new BinaryBuilderWithMetadata(
+              initializationBytes,
+              disableLazyReading: true,
+            ).readComponent(
+              data.component!,
+              checkCanonicalNames: true,
+              createView: true,
+            )!;
 
         // Check the any package-urls still point to the same file
         // (e.g. the package still exists and hasn't been updated).
@@ -2657,7 +2968,7 @@ class _InitializationFromUri extends _InitializationFromSdkSummary {
         // actually use the data loaded from dill.
         _initializedIncrementalSerializer =
             incrementalSerializer?.initialize(initializationBytes, views) ??
-                false;
+            false;
 
         _initializedFromDill = true;
         bytesLength += initializationBytes.length;
@@ -2675,8 +2986,11 @@ class _ComponentProblems {
   /// [partsUsed] indicates part uris that are used by (other/alive) libraries.
   /// Those parts will not be removed from the component problems.
   /// This is useful when a part has been "moved" to be part of another library.
-  void removeLibrary(Library lib, UriTranslator uriTranslator,
-      [Set<Uri?>? partsUsed]) {
+  void removeLibrary(
+    Library lib,
+    UriTranslator uriTranslator, [
+    Set<Uri?>? partsUsed,
+  ]) {
     if (_remainingComponentProblems.isNotEmpty) {
       _remainingComponentProblems.remove(lib.fileUri);
       // Remove parts too.
@@ -2690,9 +3004,10 @@ class _ComponentProblems {
 
   /// Re-issue problems on the component and return the filtered list.
   List<String> reissueProblems(
-      CompilerContext context,
-      IncrementalKernelTarget currentKernelTarget,
-      Component componentWithDill) {
+    CompilerContext context,
+    IncrementalKernelTarget currentKernelTarget,
+    Component componentWithDill,
+  ) {
     // These problems have already been reported.
     Set<String> issuedProblems = new Set<String>();
     if (componentWithDill.problemsAsJson != null) {
@@ -2725,11 +3040,12 @@ class _ComponentProblems {
         DiagnosticMessageFromJson message =
             new DiagnosticMessageFromJson.fromJson(jsonString);
         assert(
-            message.uri != null ||
-                // Coverage-ignore(suite): Not run.
-                (message.involvedFiles != null &&
-                    message.involvedFiles!.isNotEmpty),
-            jsonString);
+          message.uri != null ||
+              // Coverage-ignore(suite): Not run.
+              (message.involvedFiles != null &&
+                  message.involvedFiles!.isNotEmpty),
+          jsonString,
+        );
         if (message.uri != null) {
           List<DiagnosticMessageFromJson> messages =
               _remainingComponentProblems[message.uri!] ??=

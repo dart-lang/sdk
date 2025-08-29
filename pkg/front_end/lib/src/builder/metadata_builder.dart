@@ -35,8 +35,8 @@ class MetadataBuilder {
   final Uri fileUri;
 
   MetadataBuilder(Token this._atToken, this.fileUri)
-      : atOffset = _atToken.charOffset,
-        hasPatch = _atToken.next?.lexeme == 'patch';
+    : atOffset = _atToken.charOffset,
+      hasPatch = _atToken.next?.lexeme == 'patch';
 
   // Coverage-ignore(suite): Not run.
   Token? get beginToken => _atToken;
@@ -52,13 +52,14 @@ class MetadataBuilder {
   shared.Expression? get unresolvedExpressionForTesting =>
       _unresolvedSharedExpressionForTesting;
 
-  static void buildAnnotations(
-      {required Annotatable annotatable,
-      required Uri annotatableFileUri,
-      required List<MetadataBuilder>? metadata,
-      required BodyBuilderContext bodyBuilderContext,
-      required SourceLibraryBuilder libraryBuilder,
-      required LookupScope scope}) {
+  static void buildAnnotations({
+    required Annotatable annotatable,
+    required Uri annotatableFileUri,
+    required List<MetadataBuilder>? metadata,
+    required BodyBuilderContext bodyBuilderContext,
+    required SourceLibraryBuilder libraryBuilder,
+    required LookupScope scope,
+  }) {
     if (metadata == null) return;
 
     // [BodyBuilder] used to build annotations from [Token]s.
@@ -82,28 +83,39 @@ class MetadataBuilder {
         if (computeSharedExpressionForTesting) {
           // Coverage-ignore-block(suite): Not run.
           annotationBuilder._sharedExpression = _parseSharedExpression(
-              libraryBuilder.loader,
-              beginToken,
-              libraryBuilder.importUri,
-              annotationBuilder.fileUri,
-              scope);
+            libraryBuilder.loader,
+            beginToken,
+            libraryBuilder.importUri,
+            annotationBuilder.fileUri,
+            scope,
+          );
           if (delaySharedExpressionLookupForTesting) {
             annotationBuilder._unresolvedSharedExpressionForTesting =
-                _parseSharedExpression(libraryBuilder.loader, beginToken,
-                    libraryBuilder.importUri, annotationBuilder.fileUri, scope,
-                    delayLookupForTesting: true);
+                _parseSharedExpression(
+                  libraryBuilder.loader,
+                  beginToken,
+                  libraryBuilder.importUri,
+                  annotationBuilder.fileUri,
+                  scope,
+                  delayLookupForTesting: true,
+                );
           }
         }
 
         bodyBuilder ??= libraryBuilder.loader
-            .createBodyBuilderForOutlineExpression(libraryBuilder,
-                bodyBuilderContext, scope, annotationBuilder.fileUri);
+            .createBodyBuilderForOutlineExpression(
+              libraryBuilder,
+              bodyBuilderContext,
+              scope,
+              annotationBuilder.fileUri,
+            );
         Expression annotation = bodyBuilder.parseAnnotation(beginToken);
         annotationBuilder._atToken = null;
         if (createFileUriExpression) {
-          annotation =
-              new FileUriExpression(annotation, annotationBuilder.fileUri)
-                ..fileOffset = annotationBuilder.atOffset;
+          annotation = new FileUriExpression(
+            annotation,
+            annotationBuilder.fileUri,
+          )..fileOffset = annotationBuilder.atOffset;
         }
         // Record the index of [annotation] in `parent.annotations`.
         parsedAnnotationBuilders[annotationBuilder] =
@@ -130,13 +142,15 @@ class MetadataBuilder {
         //     }
         //
         cloner ??= new CloneVisitorNotMembers();
-        Expression annotation =
-            cloner.cloneInContext(annotationBuilder._expression!);
+        Expression annotation = cloner.cloneInContext(
+          annotationBuilder._expression!,
+        );
         // Coverage-ignore(suite): Not run.
         if (createFileUriExpression && annotation is! FileUriExpression) {
-          annotation =
-              new FileUriExpression(annotation, annotationBuilder.fileUri)
-                ..fileOffset = annotationBuilder.atOffset;
+          annotation = new FileUriExpression(
+            annotation,
+            annotationBuilder.fileUri,
+          )..fileOffset = annotationBuilder.atOffset;
         }
         annotatable.addAnnotation(annotation);
       }
@@ -158,8 +172,19 @@ class MetadataBuilder {
 
 // Coverage-ignore(suite): Not run.
 shared.Expression _parseSharedExpression(
-    Loader loader, Token atToken, Uri importUri, Uri fileUri, LookupScope scope,
-    {bool delayLookupForTesting = false}) {
-  return parseAnnotation(loader, atToken, importUri, fileUri, scope,
-      delayLookupForTesting: delayLookupForTesting);
+  Loader loader,
+  Token atToken,
+  Uri importUri,
+  Uri fileUri,
+  LookupScope scope, {
+  bool delayLookupForTesting = false,
+}) {
+  return parseAnnotation(
+    loader,
+    atToken,
+    importUri,
+    fileUri,
+    scope,
+    delayLookupForTesting: delayLookupForTesting,
+  );
 }

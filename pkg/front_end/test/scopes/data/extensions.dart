@@ -95,8 +95,7 @@ extension GenericExtension<T> on T {
     x;
   }
 
-  static var field = /*member=GenericExtension|field*/
-      x;
+  static var field = /*member=GenericExtension|field*/ x;
 
   static empty() {
     /*

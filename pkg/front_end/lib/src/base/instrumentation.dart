@@ -44,7 +44,8 @@ class InstrumentationValueForMember extends InstrumentationValue {
 
   @override
   String toString() => _shortenInstrumentationString(
-      qualifiedMemberNameToString(member, includeLibraryName: true));
+    qualifiedMemberNameToString(member, includeLibraryName: true),
+  );
 }
 
 /// Instance of [InstrumentationValue] describing a [DartType].

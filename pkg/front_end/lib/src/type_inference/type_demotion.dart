@@ -29,7 +29,9 @@ class _HasPromotedTypeParameterVisitor extends FindTypeVisitor {
 /// with legacy types.
 DartType demoteTypeInLibrary(DartType type) {
   return type.accept1(
-          const _DemotionNullabilityNormalization(), Variance.covariant) ??
+        const _DemotionNullabilityNormalization(),
+        Variance.covariant,
+      ) ??
       type;
 }
 
@@ -55,6 +57,8 @@ class _DemotionNullabilityNormalization extends ReplacementVisitor {
   DartType? visitIntersectionType(IntersectionType node, Variance variance) {
     Nullability? newNullability = visitNullability(node);
     return new TypeParameterType(
-        node.left.parameter, newNullability ?? node.left.nullability);
+      node.left.parameter,
+      newNullability ?? node.left.nullability,
+    );
   }
 }

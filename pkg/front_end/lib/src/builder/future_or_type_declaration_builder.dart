@@ -13,44 +13,51 @@ import 'type_builder.dart';
 // Coverage-ignore(suite): Not run.
 class FutureOrTypeDeclarationBuilder extends BuiltinTypeDeclarationBuilder {
   FutureOrTypeDeclarationBuilder(
-      DartType type, LibraryBuilder compilationUnit, int charOffset)
-      : super("FutureOr", type, compilationUnit, charOffset);
+    DartType type,
+    LibraryBuilder compilationUnit,
+    int charOffset,
+  ) : super("FutureOr", type, compilationUnit, charOffset);
 
   @override
   DartType buildAliasedType(
-      LibraryBuilder library,
-      NullabilityBuilder nullabilityBuilder,
-      List<TypeBuilder>? arguments,
-      TypeUse typeUse,
-      Uri fileUri,
-      int charOffset,
-      ClassHierarchyBase? hierarchy,
-      {required bool hasExplicitTypeArguments}) {
+    LibraryBuilder library,
+    NullabilityBuilder nullabilityBuilder,
+    List<TypeBuilder>? arguments,
+    TypeUse typeUse,
+    Uri fileUri,
+    int charOffset,
+    ClassHierarchyBase? hierarchy, {
+    required bool hasExplicitTypeArguments,
+  }) {
     return new FutureOrType(
-        arguments!.single
-            .buildAliased(library, TypeUse.typeArgument, hierarchy),
-        nullabilityBuilder.build());
+      arguments!.single.buildAliased(library, TypeUse.typeArgument, hierarchy),
+      nullabilityBuilder.build(),
+    );
   }
 
   @override
   DartType buildAliasedTypeWithBuiltArguments(
-      LibraryBuilder library,
-      Nullability nullability,
-      List<DartType> arguments,
-      TypeUse typeUse,
-      Uri fileUri,
-      int charOffset,
-      {required bool hasExplicitTypeArguments}) {
+    LibraryBuilder library,
+    Nullability nullability,
+    List<DartType> arguments,
+    TypeUse typeUse,
+    Uri fileUri,
+    int charOffset, {
+    required bool hasExplicitTypeArguments,
+  }) {
     return new FutureOrType(arguments.single, nullability);
   }
 
   @override
-  Nullability computeNullabilityWithArguments(List<TypeBuilder>? typeArguments,
-      {required Map<TypeParameterBuilder, TraversalState>
-          typeParametersTraversalState}) {
+  Nullability computeNullabilityWithArguments(
+    List<TypeBuilder>? typeArguments, {
+    required Map<TypeParameterBuilder, TraversalState>
+    typeParametersTraversalState,
+  }) {
     if (typeArguments != null && typeArguments.length == 1) {
       return typeArguments.single.computeNullability(
-          typeParametersTraversalState: typeParametersTraversalState);
+        typeParametersTraversalState: typeParametersTraversalState,
+      );
     } else {
       // This is `FutureOr<dynamic>`.
       return Nullability.nullable;

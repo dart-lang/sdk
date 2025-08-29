@@ -21,12 +21,13 @@ import 'package:kernel/core_types.dart';
 
 Future<void> main(List<String> args) async {
   Directory dataDir = new Directory.fromUri(Platform.script.resolve('data'));
-  await runTests<Features>(dataDir,
-      args: args,
-      createUriForFileName: createUriForFileName,
-      onFailure: onFailure,
-      runTest:
-          runTestFor(const ClassHierarchyDataComputer(), [defaultCfeConfig]));
+  await runTests<Features>(
+    dataDir,
+    args: args,
+    createUriForFileName: createUriForFileName,
+    onFailure: onFailure,
+    runTest: runTestFor(const ClassHierarchyDataComputer(), [defaultCfeConfig]),
+  );
 }
 
 class ClassHierarchyDataComputer extends CfeDataComputer<Features> {
@@ -36,29 +37,42 @@ class ClassHierarchyDataComputer extends CfeDataComputer<Features> {
   ///
   /// Fills [actualMap] with the data.
   @override
-  void computeLibraryData(CfeTestResultData testResultData, Library library,
-      Map<Id, ActualData<Features>> actualMap,
-      {bool? verbose}) {
-    new InheritanceDataExtractor(testResultData.compilerResult, actualMap)
-        .computeForLibrary(library);
+  void computeLibraryData(
+    CfeTestResultData testResultData,
+    Library library,
+    Map<Id, ActualData<Features>> actualMap, {
+    bool? verbose,
+  }) {
+    new InheritanceDataExtractor(
+      testResultData.compilerResult,
+      actualMap,
+    ).computeForLibrary(library);
   }
 
   @override
-  void computeClassData(CfeTestResultData testResultData, Class cls,
-      Map<Id, ActualData<Features>> actualMap,
-      {bool? verbose}) {
-    new InheritanceDataExtractor(testResultData.compilerResult, actualMap)
-        .computeForClass(cls);
+  void computeClassData(
+    CfeTestResultData testResultData,
+    Class cls,
+    Map<Id, ActualData<Features>> actualMap, {
+    bool? verbose,
+  }) {
+    new InheritanceDataExtractor(
+      testResultData.compilerResult,
+      actualMap,
+    ).computeForClass(cls);
   }
 
   @override
   void computeExtensionTypeDeclarationData(
-      CfeTestResultData testResultData,
-      ExtensionTypeDeclaration extensionTypeDeclaration,
-      Map<Id, ActualData<Features>> actualMap,
-      {bool? verbose}) {
-    new InheritanceDataExtractor(testResultData.compilerResult, actualMap)
-        .computeForExtensionTypeDeclaration(extensionTypeDeclaration);
+    CfeTestResultData testResultData,
+    ExtensionTypeDeclaration extensionTypeDeclaration,
+    Map<Id, ActualData<Features>> actualMap, {
+    bool? verbose,
+  }) {
+    new InheritanceDataExtractor(
+      testResultData.compilerResult,
+      actualMap,
+    ).computeForExtensionTypeDeclaration(extensionTypeDeclaration);
   }
 
   @override
@@ -66,7 +80,10 @@ class ClassHierarchyDataComputer extends CfeDataComputer<Features> {
 
   @override
   Features? computeErrorData(
-      CfeTestResultData testResultData, Id id, List<FormattedMessage> errors) {
+    CfeTestResultData testResultData,
+    Id id,
+    List<FormattedMessage> errors,
+  ) {
     return null; //errorsToText(errors, useCodes: true);
   }
 
@@ -106,8 +123,9 @@ class InheritanceDataExtractor extends CfeDataExtractor<Features> {
   final InternalCompilerResult _compilerResult;
 
   InheritanceDataExtractor(
-      this._compilerResult, Map<Id, ActualData<Features>> actualMap)
-      : super(_compilerResult, actualMap);
+    this._compilerResult,
+    Map<Id, ActualData<Features>> actualMap,
+  ) : super(_compilerResult, actualMap);
 
   CoreTypes get _coreTypes => _compilerResult.coreTypes!;
 
@@ -120,11 +138,15 @@ class InheritanceDataExtractor extends CfeDataExtractor<Features> {
   @override
   void computeForClass(Class node) {
     super.computeForClass(node);
-    ClassMembersNode classMembersNode =
-        _classMembersBuilder.getNodeFromClass(node);
+    ClassMembersNode classMembersNode = _classMembersBuilder.getNodeFromClass(
+      node,
+    );
     ClassHierarchyNodeDataForTesting data = classMembersNode.dataForTesting!;
-    void addMember(ClassMember classMember,
-        {required bool isSetter, required bool isClassMember}) {
+    void addMember(
+      ClassMember classMember, {
+      required bool isSetter,
+      required bool isClassMember,
+    }) {
       Member member = classMember.getMember(_classMembersBuilder);
       Member memberOrigin = member.memberSignatureOrigin ?? member;
       if (memberOrigin.enclosingClass == _coreTypes.objectClass) {
@@ -153,7 +175,9 @@ class InheritanceDataExtractor extends CfeDataExtractor<Features> {
         if (classMember.hasDeclarations) {
           for (ClassMember declaration in classMember.declarations) {
             features.addElement(
-                Tag.declarations, classMemberQualifiedName(declaration));
+              Tag.declarations,
+              classMemberQualifiedName(declaration),
+            );
           }
         }
       }
@@ -164,7 +188,9 @@ class InheritanceDataExtractor extends CfeDataExtractor<Features> {
       if (declaredOverrides != null) {
         for (ClassMember override in declaredOverrides) {
           features.addElement(
-              Tag.declaredOverrides, classMemberQualifiedName(override));
+            Tag.declaredOverrides,
+            classMemberQualifiedName(override),
+          );
         }
       }
 
@@ -172,8 +198,10 @@ class InheritanceDataExtractor extends CfeDataExtractor<Features> {
           .mixinApplicationOverrides[data.aliasMap[classMember] ?? classMember];
       if (mixinApplicationOverrides != null) {
         for (ClassMember override in mixinApplicationOverrides) {
-          features.addElement(Tag.mixinApplicationOverrides,
-              classMemberQualifiedName(override));
+          features.addElement(
+            Tag.mixinApplicationOverrides,
+            classMemberQualifiedName(override),
+          );
         }
       }
 
@@ -182,7 +210,9 @@ class InheritanceDataExtractor extends CfeDataExtractor<Features> {
       if (inheritedImplements != null) {
         for (ClassMember implement in inheritedImplements) {
           features.addElement(
-              Tag.inheritedImplements, classMemberQualifiedName(implement));
+            Tag.inheritedImplements,
+            classMemberQualifiedName(implement),
+          );
         }
       }
 
@@ -194,14 +224,16 @@ class InheritanceDataExtractor extends CfeDataExtractor<Features> {
           case ProcedureStubKind.AbstractForwardingStub:
             features.add(Tag.abstractForwardingStub);
             features[Tag.type] = procedureType(member);
-            features[Tag.covariance] =
-                classMember.getCovariance(_classMembersBuilder).toString();
+            features[Tag.covariance] = classMember
+                .getCovariance(_classMembersBuilder)
+                .toString();
             break;
           case ProcedureStubKind.ConcreteForwardingStub:
             features.add(Tag.concreteForwardingStub);
             features[Tag.type] = procedureType(member);
-            features[Tag.covariance] =
-                classMember.getCovariance(_classMembersBuilder).toString();
+            features[Tag.covariance] = classMember
+                .getCovariance(_classMembersBuilder)
+                .toString();
             features[Tag.stubTarget] = memberQualifiedName(member.stubTarget!);
             break;
           case ProcedureStubKind.NoSuchMethodForwarder:
@@ -210,8 +242,9 @@ class InheritanceDataExtractor extends CfeDataExtractor<Features> {
           case ProcedureStubKind.MemberSignature:
             features.add(Tag.memberSignature);
             features[Tag.type] = procedureType(member);
-            features[Tag.covariance] =
-                classMember.getCovariance(_classMembersBuilder).toString();
+            features[Tag.covariance] = classMember
+                .getCovariance(_classMembersBuilder)
+                .toString();
             break;
           case ProcedureStubKind.AbstractMixinStub:
             features.add(Tag.abstractMixinStub);
@@ -226,26 +259,39 @@ class InheritanceDataExtractor extends CfeDataExtractor<Features> {
         }
       }
 
-      registerValue(nodeWithOffset.location!.file, nodeWithOffset.fileOffset,
-          id, features, member);
+      registerValue(
+        nodeWithOffset.location!.file,
+        nodeWithOffset.fileOffset,
+        id,
+        features,
+        member,
+      );
     }
 
-    classMembersNode.classMemberMap
-        .forEach((Name name, ClassMember classMember) {
+    classMembersNode.classMemberMap.forEach((
+      Name name,
+      ClassMember classMember,
+    ) {
       addMember(classMember, isSetter: false, isClassMember: true);
     });
-    classMembersNode.classSetterMap
-        .forEach((Name name, ClassMember classMember) {
+    classMembersNode.classSetterMap.forEach((
+      Name name,
+      ClassMember classMember,
+    ) {
       addMember(classMember, isSetter: true, isClassMember: true);
     });
-    classMembersNode.interfaceMemberMap
-        ?.forEach((Name name, ClassMember classMember) {
+    classMembersNode.interfaceMemberMap?.forEach((
+      Name name,
+      ClassMember classMember,
+    ) {
       if (!identical(classMember, classMembersNode.classMemberMap[name])) {
         addMember(classMember, isSetter: false, isClassMember: false);
       }
     });
-    classMembersNode.interfaceSetterMap
-        ?.forEach((Name name, ClassMember classMember) {
+    classMembersNode.interfaceSetterMap?.forEach((
+      Name name,
+      ClassMember classMember,
+    ) {
       if (!identical(classMember, classMembersNode.classSetterMap[name])) {
         addMember(classMember, isSetter: true, isClassMember: false);
       }
@@ -255,10 +301,11 @@ class InheritanceDataExtractor extends CfeDataExtractor<Features> {
   @override
   Features computeClassValue(Id id, Class node) {
     Features features = new Features();
-    ClassHierarchyNode classHierarchyNode =
-        _classHierarchyBuilder.getNodeFromClass(node);
-    ClassMembersNode classMembersNode =
-        _classMembersBuilder.getNodeFromClass(node);
+    ClassHierarchyNode classHierarchyNode = _classHierarchyBuilder
+        .getNodeFromClass(node);
+    ClassMembersNode classMembersNode = _classMembersBuilder.getNodeFromClass(
+      node,
+    );
     ClassHierarchyNodeDataForTesting data = classMembersNode.dataForTesting!;
     classHierarchyNode.superclasses.forEach((Supertype supertype) {
       features.addElement(Tag.superclasses, supertypeToText(supertype));
@@ -267,10 +314,13 @@ class InheritanceDataExtractor extends CfeDataExtractor<Features> {
       features.addElement(Tag.interfaces, supertypeToText(supertype));
     });
     if (data.abstractMembers.isNotEmpty) {
-      for (ClassMember abstractMember
-          in unfoldDeclarations(data.abstractMembers)) {
+      for (ClassMember abstractMember in unfoldDeclarations(
+        data.abstractMembers,
+      )) {
         features.addElement(
-            Tag.abstractMembers, classMemberQualifiedName(abstractMember));
+          Tag.abstractMembers,
+          classMemberQualifiedName(abstractMember),
+        );
       }
     }
     features[Tag.maxInheritancePath] =
@@ -284,10 +334,13 @@ class InheritanceDataExtractor extends CfeDataExtractor<Features> {
   @override
   void computeForExtensionTypeDeclaration(ExtensionTypeDeclaration node) {
     super.computeForExtensionTypeDeclaration(node);
-    ExtensionTypeMembersNode extensionTypeMembersNode =
-        _classMembersBuilder.getNodeFromExtensionTypeDeclaration(node);
-    void addMember(ClassMember classMember,
-        {required bool isSetter, required bool isNonExtensionTypeMember}) {
+    ExtensionTypeMembersNode extensionTypeMembersNode = _classMembersBuilder
+        .getNodeFromExtensionTypeDeclaration(node);
+    void addMember(
+      ClassMember classMember, {
+      required bool isSetter,
+      required bool isNonExtensionTypeMember,
+    }) {
       Member member = classMember.getMember(_classMembersBuilder);
       Member memberOrigin = member.memberSignatureOrigin ?? member;
       if (memberOrigin.enclosingClass == _coreTypes.objectClass) {
@@ -315,7 +368,9 @@ class InheritanceDataExtractor extends CfeDataExtractor<Features> {
         if (classMember.hasDeclarations) {
           for (ClassMember declaration in classMember.declarations) {
             features.addElement(
-                Tag.declarations, classMemberQualifiedName(declaration));
+              Tag.declarations,
+              classMemberQualifiedName(declaration),
+            );
           }
         }
       }
@@ -335,14 +390,16 @@ class InheritanceDataExtractor extends CfeDataExtractor<Features> {
           case ProcedureStubKind.AbstractForwardingStub:
             features.add(Tag.abstractForwardingStub);
             features[Tag.type] = procedureType(member);
-            features[Tag.covariance] =
-                classMember.getCovariance(_classMembersBuilder).toString();
+            features[Tag.covariance] = classMember
+                .getCovariance(_classMembersBuilder)
+                .toString();
             break;
           case ProcedureStubKind.ConcreteForwardingStub:
             features.add(Tag.concreteForwardingStub);
             features[Tag.type] = procedureType(member);
-            features[Tag.covariance] =
-                classMember.getCovariance(_classMembersBuilder).toString();
+            features[Tag.covariance] = classMember
+                .getCovariance(_classMembersBuilder)
+                .toString();
             features[Tag.stubTarget] = memberQualifiedName(member.stubTarget!);
             break;
           case ProcedureStubKind.NoSuchMethodForwarder:
@@ -351,8 +408,9 @@ class InheritanceDataExtractor extends CfeDataExtractor<Features> {
           case ProcedureStubKind.MemberSignature:
             features.add(Tag.memberSignature);
             features[Tag.type] = procedureType(member);
-            features[Tag.covariance] =
-                classMember.getCovariance(_classMembersBuilder).toString();
+            features[Tag.covariance] = classMember
+                .getCovariance(_classMembersBuilder)
+                .toString();
             break;
           case ProcedureStubKind.AbstractMixinStub:
             features.add(Tag.abstractMixinStub);
@@ -367,44 +425,64 @@ class InheritanceDataExtractor extends CfeDataExtractor<Features> {
         }
       }
 
-      registerValue(nodeWithOffset.location!.file, nodeWithOffset.fileOffset,
-          id, features, member);
+      registerValue(
+        nodeWithOffset.location!.file,
+        nodeWithOffset.fileOffset,
+        id,
+        features,
+        member,
+      );
     }
 
-    extensionTypeMembersNode.extensionTypeGetableMap
-        ?.forEach((Name name, ClassMember classMember) {
+    extensionTypeMembersNode.extensionTypeGetableMap?.forEach((
+      Name name,
+      ClassMember classMember,
+    ) {
       addMember(classMember, isSetter: false, isNonExtensionTypeMember: false);
     });
-    extensionTypeMembersNode.extensionTypeSetableMap
-        ?.forEach((Name name, ClassMember classMember) {
+    extensionTypeMembersNode.extensionTypeSetableMap?.forEach((
+      Name name,
+      ClassMember classMember,
+    ) {
       addMember(classMember, isSetter: true, isNonExtensionTypeMember: false);
     });
-    extensionTypeMembersNode.nonExtensionTypeGetableMap
-        ?.forEach((Name name, ClassMember classMember) {
+    extensionTypeMembersNode.nonExtensionTypeGetableMap?.forEach((
+      Name name,
+      ClassMember classMember,
+    ) {
       addMember(classMember, isSetter: false, isNonExtensionTypeMember: true);
     });
-    extensionTypeMembersNode.nonExtensionTypeSetableMap
-        ?.forEach((Name name, ClassMember classMember) {
+    extensionTypeMembersNode.nonExtensionTypeSetableMap?.forEach((
+      Name name,
+      ClassMember classMember,
+    ) {
       addMember(classMember, isSetter: true, isNonExtensionTypeMember: true);
     });
   }
 
   @override
   Features computeExtensionTypeDeclarationValue(
-      Id id, ExtensionTypeDeclaration node) {
+    Id id,
+    ExtensionTypeDeclaration node,
+  ) {
     Features features = new Features();
     ExtensionTypeHierarchyNode extensionTypeDeclarationHierarchyNode =
         _classHierarchyBuilder.getNodeFromExtensionType(node);
-    extensionTypeDeclarationHierarchyNode.superclasses
-        .forEach((Supertype supertype) {
+    extensionTypeDeclarationHierarchyNode.superclasses.forEach((
+      Supertype supertype,
+    ) {
       features.addElement(Tag.superExtensionTypes, supertypeToText(supertype));
     });
-    extensionTypeDeclarationHierarchyNode.superExtensionTypes
-        .forEach((ExtensionType superExtensionType) {
+    extensionTypeDeclarationHierarchyNode.superExtensionTypes.forEach((
+      ExtensionType superExtensionType,
+    ) {
       features.addElement(
-          Tag.superExtensionTypes,
-          typeToText(superExtensionType,
-              TypeRepresentation.analyzerNonNullableByDefault));
+        Tag.superExtensionTypes,
+        typeToText(
+          superExtensionType,
+          TypeRepresentation.analyzerNonNullableByDefault,
+        ),
+      );
     });
     return features;
   }
@@ -437,16 +515,21 @@ String memberQualifiedName(Member member) {
 
 String procedureType(Procedure procedure) {
   if (procedure.kind == ProcedureKind.Getter) {
-    return typeToText(procedure.function.returnType,
-        TypeRepresentation.analyzerNonNullableByDefault);
+    return typeToText(
+      procedure.function.returnType,
+      TypeRepresentation.analyzerNonNullableByDefault,
+    );
   } else if (procedure.kind == ProcedureKind.Setter) {
-    return typeToText(procedure.function.positionalParameters.single.type,
-        TypeRepresentation.analyzerNonNullableByDefault);
+    return typeToText(
+      procedure.function.positionalParameters.single.type,
+      TypeRepresentation.analyzerNonNullableByDefault,
+    );
   } else {
     Nullability functionTypeNullability =
         procedure.enclosingLibrary.nonNullable;
     return typeToText(
-        procedure.function.computeThisFunctionType(functionTypeNullability),
-        TypeRepresentation.analyzerNonNullableByDefault);
+      procedure.function.computeThisFunctionType(functionTypeNullability),
+      TypeRepresentation.analyzerNonNullableByDefault,
+    );
   }
 }

@@ -134,8 +134,11 @@ extension type NonNullableNestedGenericExtensionType<T extends self::Object>(sel
 """;
 
 Component parseSdk(Uri uri, TypeParserEnvironment environment) {
-  Library library =
-      parseLibrary(uri, mockSdk + testSdk, environment: environment);
+  Library library = parseLibrary(
+    uri,
+    mockSdk + testSdk,
+    environment: environment,
+  );
   StringBuffer sb = new StringBuffer();
   Printer printer = new Printer(sb);
   printer.writeLibraryFile(library);
@@ -171,13 +174,17 @@ class KernelSubtypeTest extends SubtypeTest<DartType, TypeParserEnvironment> {
 
   @override
   IsSubtypeOf isSubtypeImpl(DartType subtype, DartType supertype) {
-    return new TypeEnvironment(coreTypes, hierarchy)
-        .performSubtypeCheck(subtype, supertype);
+    return new TypeEnvironment(
+      coreTypes,
+      hierarchy,
+    ).performSubtypeCheck(subtype, supertype);
   }
 
   @override
-  TypeParserEnvironment extend(
-      {String? typeParameters, String? functionTypeTypeParameters}) {
+  TypeParserEnvironment extend({
+    String? typeParameters,
+    String? functionTypeTypeParameters,
+  }) {
     return environment
         .extendWithTypeParameters(typeParameters)
         .extendWithStructuralParameters(functionTypeTypeParameters);

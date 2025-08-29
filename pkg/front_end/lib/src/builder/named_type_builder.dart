@@ -123,11 +123,13 @@ abstract class NamedTypeBuilderImpl extends NamedTypeBuilder {
   bool _isDeferred = false;
 
   factory NamedTypeBuilderImpl(
-      TypeName name, NullabilityBuilder nullabilityBuilder,
-      {List<TypeBuilder>? arguments,
-      Uri? fileUri,
-      int? charOffset,
-      required InstanceTypeParameterAccessState instanceTypeParameterAccess}) {
+    TypeName name,
+    NullabilityBuilder nullabilityBuilder, {
+    List<TypeBuilder>? arguments,
+    Uri? fileUri,
+    int? charOffset,
+    required InstanceTypeParameterAccessState instanceTypeParameterAccess,
+  }) {
     bool isExplicit = true;
     if (arguments != null) {
       for (int i = 0; i < arguments.length; i++) {
@@ -138,52 +140,63 @@ abstract class NamedTypeBuilderImpl extends NamedTypeBuilder {
       }
     }
     return isExplicit
-        ? new _ExplicitNamedTypeBuilder(name, nullabilityBuilder,
+        ? new _ExplicitNamedTypeBuilder(
+            name,
+            nullabilityBuilder,
             arguments: arguments,
             fileUri: fileUri,
             charOffset: charOffset,
-            instanceTypeParameterAccess: instanceTypeParameterAccess)
+            instanceTypeParameterAccess: instanceTypeParameterAccess,
+          )
         :
-        // Coverage-ignore(suite): Not run.
-        new _InferredNamedTypeBuilder(name, nullabilityBuilder,
+          // Coverage-ignore(suite): Not run.
+          new _InferredNamedTypeBuilder(
+            name,
+            nullabilityBuilder,
             arguments: arguments,
             fileUri: fileUri,
             charOffset: charOffset,
-            instanceTypeParameterAccess: instanceTypeParameterAccess);
+            instanceTypeParameterAccess: instanceTypeParameterAccess,
+          );
   }
 
-  NamedTypeBuilderImpl._(
-      {required this.typeName,
-      required this.nullabilityBuilder,
-      this.typeArguments,
-      this.fileUri,
-      this.charOffset,
-      required InstanceTypeParameterAccessState instanceTypeParameterAccess,
-      TypeDeclarationBuilder? declaration})
-      : this._instanceTypeParameterAccess = instanceTypeParameterAccess,
-        this.hasExplicitTypeArguments = typeArguments != null,
-        this._declaration = declaration;
+  NamedTypeBuilderImpl._({
+    required this.typeName,
+    required this.nullabilityBuilder,
+    this.typeArguments,
+    this.fileUri,
+    this.charOffset,
+    required InstanceTypeParameterAccessState instanceTypeParameterAccess,
+    TypeDeclarationBuilder? declaration,
+  }) : this._instanceTypeParameterAccess = instanceTypeParameterAccess,
+       this.hasExplicitTypeArguments = typeArguments != null,
+       this._declaration = declaration;
 
   factory NamedTypeBuilderImpl.forDartType(
-      DartType type,
-      TypeDeclarationBuilder _declaration,
-      NullabilityBuilder nullabilityBuilder,
-      {List<TypeBuilder>? arguments,
-      Uri? fileUri,
-      int? charOffset}) = _ExplicitNamedTypeBuilder.forDartType;
+    DartType type,
+    TypeDeclarationBuilder _declaration,
+    NullabilityBuilder nullabilityBuilder, {
+    List<TypeBuilder>? arguments,
+    Uri? fileUri,
+    int? charOffset,
+  }) = _ExplicitNamedTypeBuilder.forDartType;
 
   factory NamedTypeBuilderImpl.fromTypeDeclarationBuilder(
-      TypeDeclarationBuilder declaration, NullabilityBuilder nullabilityBuilder,
-      {List<TypeBuilder>? arguments,
-      Uri? fileUri,
-      int? charOffset,
-      required InstanceTypeParameterAccessState instanceTypeParameterAccess,
-      DartType? type}) = _ExplicitNamedTypeBuilder.fromTypeDeclarationBuilder;
+    TypeDeclarationBuilder declaration,
+    NullabilityBuilder nullabilityBuilder, {
+    List<TypeBuilder>? arguments,
+    Uri? fileUri,
+    int? charOffset,
+    required InstanceTypeParameterAccessState instanceTypeParameterAccess,
+    DartType? type,
+  }) = _ExplicitNamedTypeBuilder.fromTypeDeclarationBuilder;
 
-  factory NamedTypeBuilderImpl.forInvalidType(String name,
-          NullabilityBuilder nullabilityBuilder, LocatedMessage message,
-          {List<LocatedMessage>? context}) =
-      _ExplicitNamedTypeBuilder.forInvalidType;
+  factory NamedTypeBuilderImpl.forInvalidType(
+    String name,
+    NullabilityBuilder nullabilityBuilder,
+    LocatedMessage message, {
+    List<LocatedMessage>? context,
+  }) = _ExplicitNamedTypeBuilder.forInvalidType;
 
   @override
   TypeDeclarationBuilder get declaration {
@@ -196,14 +209,20 @@ abstract class NamedTypeBuilderImpl extends NamedTypeBuilder {
 
   @override
   void bind(
-      ProblemReporting problemReporting, TypeDeclarationBuilder declaration) {
+    ProblemReporting problemReporting,
+    TypeDeclarationBuilder declaration,
+  ) {
     _declaration = declaration;
     _check(problemReporting);
   }
 
   @override
-  void resolveIn(LookupScope scope, int charOffset, Uri fileUri,
-      ProblemReporting problemReporting) {
+  void resolveIn(
+    LookupScope scope,
+    int charOffset,
+    Uri fileUri,
+    ProblemReporting problemReporting,
+  ) {
     if (_declaration != null) return;
     Builder? member;
     String? qualifier = typeName.qualifier;
@@ -211,13 +230,17 @@ abstract class NamedTypeBuilderImpl extends NamedTypeBuilder {
       LookupResult? result = scope.lookup(qualifier);
       if (result != null && result.isInvalidLookup) {
         bind(
-            problemReporting,
-            buildInvalidTypeDeclarationBuilder(
-                LookupResult.createDuplicateMessage(result,
-                    name: qualifier,
-                    fileUri: fileUri,
-                    fileOffset: typeName.fullNameOffset,
-                    length: typeName.fullNameLength)));
+          problemReporting,
+          buildInvalidTypeDeclarationBuilder(
+            LookupResult.createDuplicateMessage(
+              result,
+              name: qualifier,
+              fileUri: fileUri,
+              fileOffset: typeName.fullNameOffset,
+              length: typeName.fullNameLength,
+            ),
+          ),
+        );
         return;
       }
       Builder? prefix = result?.getable;
@@ -227,13 +250,17 @@ abstract class NamedTypeBuilderImpl extends NamedTypeBuilder {
         if (result != null && result.isInvalidLookup) {
           // Coverage-ignore-block(suite): Not run.
           bind(
-              problemReporting,
-              buildInvalidTypeDeclarationBuilder(
-                  LookupResult.createDuplicateMessage(result,
-                      name: qualifier,
-                      fileUri: fileUri,
-                      fileOffset: typeName.fullNameOffset,
-                      length: typeName.fullNameLength)));
+            problemReporting,
+            buildInvalidTypeDeclarationBuilder(
+              LookupResult.createDuplicateMessage(
+                result,
+                name: qualifier,
+                fileUri: fileUri,
+                fileOffset: typeName.fullNameOffset,
+                length: typeName.fullNameLength,
+              ),
+            ),
+          );
           return;
         }
         member = result?.getable;
@@ -242,25 +269,33 @@ abstract class NamedTypeBuilderImpl extends NamedTypeBuilder {
         int nameOffset = typeName.fullNameOffset;
         int nameLength = typeName.fullNameLength;
         Message message = codeNotAPrefixInTypeAnnotation.withArguments(
-            qualifier, typeName.name);
+          qualifier,
+          typeName.name,
+        );
         problemReporting.addProblem(message, nameOffset, nameLength, fileUri);
         bind(
-            problemReporting,
-            buildInvalidTypeDeclarationBuilder(
-                message.withLocation(fileUri, nameOffset, nameLength)));
+          problemReporting,
+          buildInvalidTypeDeclarationBuilder(
+            message.withLocation(fileUri, nameOffset, nameLength),
+          ),
+        );
         return;
       }
     } else {
       LookupResult? result = scope.lookup(typeName.name);
       if (result != null && result.isInvalidLookup) {
         bind(
-            problemReporting,
-            buildInvalidTypeDeclarationBuilder(
-                LookupResult.createDuplicateMessage(result,
-                    name: typeName.name,
-                    fileUri: fileUri,
-                    fileOffset: typeName.fullNameOffset,
-                    length: typeName.fullNameLength)));
+          problemReporting,
+          buildInvalidTypeDeclarationBuilder(
+            LookupResult.createDuplicateMessage(
+              result,
+              name: typeName.name,
+              fileUri: fileUri,
+              fileOffset: typeName.fullNameOffset,
+              length: typeName.fullNameLength,
+            ),
+          ),
+        );
         return;
       }
       member = result?.getable;
@@ -268,8 +303,9 @@ abstract class NamedTypeBuilderImpl extends NamedTypeBuilder {
     if (member is TypeDeclarationBuilder) {
       bind(problemReporting, member);
     } else {
-      Template<Message Function(String name)> template =
-          member == null ? codeTypeNotFound : codeNotAType;
+      Template<Message Function(String name)> template = member == null
+          ? codeTypeNotFound
+          : codeNotAType;
       String nameText = typeName.fullName;
       int nameOffset = typeName.fullNameOffset;
       int nameLength = typeName.fullNameLength;
@@ -282,15 +318,24 @@ abstract class NamedTypeBuilderImpl extends NamedTypeBuilder {
         template = codeNotAType;
         context = <LocatedMessage>[
           codeNotATypeContext.withLocation(
-              member.fileUri!, member.fileOffset, nameLength)
+            member.fileUri!,
+            member.fileOffset,
+            nameLength,
+          ),
         ];
         message = template.withArguments(nameText);
       }
-      problemReporting.addProblem(message, nameOffset, nameLength, fileUri,
-          context: context);
+      problemReporting.addProblem(
+        message,
+        nameOffset,
+        nameLength,
+        fileUri,
+        context: context,
+      );
       TypeDeclarationBuilder declaration = buildInvalidTypeDeclarationBuilder(
-          message.withLocation(fileUri, nameOffset, nameLength),
-          context: context);
+        message.withLocation(fileUri, nameOffset, nameLength),
+        context: context,
+      );
       bind(problemReporting, declaration);
     }
   }
@@ -304,21 +349,25 @@ abstract class NamedTypeBuilderImpl extends NamedTypeBuilder {
         String nameText = typeName.name;
         int nameOffset = typeName.nameOffset;
         int nameLength = typeName.nameLength;
-        Message message =
-            codeTypeArgumentsOnTypeVariable.withArguments(nameText);
+        Message message = codeTypeArgumentsOnTypeVariable.withArguments(
+          nameText,
+        );
         problemReporting.addProblem(message, nameOffset, nameLength, fileUri);
         // TODO(johnniwinther): Should we retain the declaration to support
         //  additional errors?
         _declaration = buildInvalidTypeDeclarationBuilder(
-            message.withLocation(fileUri!, nameOffset, nameLength));
+          message.withLocation(fileUri!, nameOffset, nameLength),
+        );
       } else if (typeArguments!.length != declaration.typeParametersCount) {
         int nameOffset = typeName.nameOffset;
         int nameLength = typeName.nameLength;
-        Message message = codeTypeArgumentMismatch
-            .withArguments(declaration.typeParametersCount);
+        Message message = codeTypeArgumentMismatch.withArguments(
+          declaration.typeParametersCount,
+        );
         problemReporting.addProblem(message, nameOffset, nameLength, fileUri);
         _declaration = buildInvalidTypeDeclarationBuilder(
-            message.withLocation(fileUri!, nameOffset, nameLength));
+          message.withLocation(fileUri!, nameOffset, nameLength),
+        );
       }
     }
     // TODO(johnniwinther): Remove check for `is SourceLibraryBuilder`.
@@ -331,7 +380,8 @@ abstract class NamedTypeBuilderImpl extends NamedTypeBuilder {
       Message message = codeNotAType.withArguments(nameText);
       problemReporting.addProblem(message, nameOffset, nameLength, fileUri);
       _declaration = buildInvalidTypeDeclarationBuilder(
-          message.withLocation(fileUri!, nameOffset, nameLength));
+        message.withLocation(fileUri!, nameOffset, nameLength),
+      );
     } else if (_declaration is NominalParameterBuilder) {
       NominalParameterBuilder typeParameterBuilder =
           _declaration as NominalParameterBuilder;
@@ -345,21 +395,29 @@ abstract class NamedTypeBuilderImpl extends NamedTypeBuilder {
             int nameLength = typeName.nameLength;
             Message message = codeTypeVariableInStaticContext;
             problemReporting.addProblem(
-                message, nameOffset, nameLength, fileUri);
+              message,
+              nameOffset,
+              nameLength,
+              fileUri,
+            );
             _declaration = buildInvalidTypeDeclarationBuilder(
-                message.withLocation(fileUri!, nameOffset, nameLength));
+              message.withLocation(fileUri!, nameOffset, nameLength),
+            );
             return;
           case InstanceTypeParameterAccessState.Invalid:
             int nameOffset = typeName.nameOffset;
             int nameLength = typeName.nameLength;
             Message message = codeTypeVariableInStaticContext;
             _declaration = buildInvalidTypeDeclarationBuilder(
-                message.withLocation(fileUri!, nameOffset, nameLength));
+              message.withLocation(fileUri!, nameOffset, nameLength),
+            );
             return;
           case InstanceTypeParameterAccessState.Unexpected:
             // Coverage-ignore(suite): Not run.
-            assert(false,
-                "Unexpected instance type parameter $typeParameterBuilder");
+            assert(
+              false,
+              "Unexpected instance type parameter $typeParameterBuilder",
+            );
             break;
           case InstanceTypeParameterAccessState.Allowed:
             break;
@@ -393,23 +451,32 @@ abstract class NamedTypeBuilderImpl extends NamedTypeBuilder {
   }
 
   @override
-  InvalidBuilder buildInvalidTypeDeclarationBuilder(LocatedMessage message,
-      {List<LocatedMessage>? context}) {
+  InvalidBuilder buildInvalidTypeDeclarationBuilder(
+    LocatedMessage message, {
+    List<LocatedMessage>? context,
+  }) {
     return new InvalidBuilder(typeName.fullName, message, context: context);
   }
 
   Supertype? _handleInvalidSupertype(LibraryBuilder library) {
     Template<Message Function(String name)> template =
         declaration.isTypeParameter
-            ? codeSupertypeIsTypeParameter
-            : codeSupertypeIsIllegal;
-    library.addProblem(template.withArguments(fullNameForErrors), charOffset!,
-        noLength, fileUri);
+        ? codeSupertypeIsTypeParameter
+        : codeSupertypeIsIllegal;
+    library.addProblem(
+      template.withArguments(fullNameForErrors),
+      charOffset!,
+      noLength,
+      fileUri,
+    );
     return null;
   }
 
   Supertype? _handleInvalidAliasedSupertype(
-      LibraryBuilder library, TypeAliasBuilder aliasBuilder, DartType type) {
+    LibraryBuilder library,
+    TypeAliasBuilder aliasBuilder,
+    DartType type,
+  ) {
     // Don't report the error in case of InvalidType. An error has already been
     // reported in this case.
     if (type is InvalidType) return null;
@@ -419,16 +486,29 @@ abstract class NamedTypeBuilderImpl extends NamedTypeBuilder {
       // Coverage-ignore-block(suite): Not run.
       message = codeSupertypeIsTypeParameter.withArguments(fullNameForErrors);
     } else if (type.nullability == Nullability.nullable) {
-      message =
-          codeSupertypeIsNullableAliased.withArguments(fullNameForErrors, type);
+      message = codeSupertypeIsNullableAliased.withArguments(
+        fullNameForErrors,
+        type,
+      );
     } else {
-      message =
-          codeSupertypeIsIllegalAliased.withArguments(fullNameForErrors, type);
+      message = codeSupertypeIsIllegalAliased.withArguments(
+        fullNameForErrors,
+        type,
+      );
     }
-    library.addProblem(message, charOffset!, noLength, fileUri, context: [
-      codeTypedefCause.withLocation(
-          aliasBuilder.fileUri, aliasBuilder.fileOffset, noLength),
-    ]);
+    library.addProblem(
+      message,
+      charOffset!,
+      noLength,
+      fileUri,
+      context: [
+        codeTypedefCause.withLocation(
+          aliasBuilder.fileUri,
+          aliasBuilder.fileOffset,
+          noLength,
+        ),
+      ],
+    );
     return null;
   }
 
@@ -437,39 +517,44 @@ abstract class NamedTypeBuilderImpl extends NamedTypeBuilder {
       switch (typeUse) {
         case TypeUse.classExtendsType:
           libraryBuilder.addProblem(
-              codeExtendsDeferredClass,
-              typeName.fullNameOffset,
-              typeName.fullNameLength,
-              fileUri ?? // Coverage-ignore(suite): Not run.
-                  libraryBuilder.fileUri);
+            codeExtendsDeferredClass,
+            typeName.fullNameOffset,
+            typeName.fullNameLength,
+            fileUri ?? // Coverage-ignore(suite): Not run.
+                libraryBuilder.fileUri,
+          );
         case TypeUse.classImplementsType:
           libraryBuilder.addProblem(
-              codeClassImplementsDeferredClass,
-              typeName.fullNameOffset,
-              typeName.fullNameLength,
-              fileUri ?? // Coverage-ignore(suite): Not run.
-                  libraryBuilder.fileUri);
+            codeClassImplementsDeferredClass,
+            typeName.fullNameOffset,
+            typeName.fullNameLength,
+            fileUri ?? // Coverage-ignore(suite): Not run.
+                libraryBuilder.fileUri,
+          );
         case TypeUse.mixinOnType:
           libraryBuilder.addProblem(
-              codeMixinSuperClassConstraintDeferredClass,
-              typeName.fullNameOffset,
-              typeName.fullNameLength,
-              fileUri ?? // Coverage-ignore(suite): Not run.
-                  libraryBuilder.fileUri);
+            codeMixinSuperClassConstraintDeferredClass,
+            typeName.fullNameOffset,
+            typeName.fullNameLength,
+            fileUri ?? // Coverage-ignore(suite): Not run.
+                libraryBuilder.fileUri,
+          );
         case TypeUse.extensionTypeImplementsType:
           libraryBuilder.addProblem(
-              codeExtensionTypeImplementsDeferred,
-              typeName.fullNameOffset,
-              typeName.fullNameLength,
-              fileUri ?? // Coverage-ignore(suite): Not run.
-                  libraryBuilder.fileUri);
+            codeExtensionTypeImplementsDeferred,
+            typeName.fullNameOffset,
+            typeName.fullNameLength,
+            fileUri ?? // Coverage-ignore(suite): Not run.
+                libraryBuilder.fileUri,
+          );
         case TypeUse.classWithType:
           libraryBuilder.addProblem(
-              codeMixinDeferredMixin,
-              typeName.fullNameOffset,
-              typeName.fullNameLength,
-              fileUri ?? // Coverage-ignore(suite): Not run.
-                  libraryBuilder.fileUri);
+            codeMixinDeferredMixin,
+            typeName.fullNameOffset,
+            typeName.fullNameLength,
+            fileUri ?? // Coverage-ignore(suite): Not run.
+                libraryBuilder.fileUri,
+          );
         case TypeUse.literalTypeArgument:
         case TypeUse.variableType:
         case TypeUse.typeParameterBound:
@@ -506,10 +591,16 @@ abstract class NamedTypeBuilderImpl extends NamedTypeBuilder {
     }
   }
 
-  DartType _buildInternal(LibraryBuilder libraryBuilder, TypeUse typeUse,
-      ClassHierarchyBase? hierarchy) {
-    DartType aliasedType =
-        _buildAliasedInternal(libraryBuilder, typeUse, hierarchy);
+  DartType _buildInternal(
+    LibraryBuilder libraryBuilder,
+    TypeUse typeUse,
+    ClassHierarchyBase? hierarchy,
+  ) {
+    DartType aliasedType = _buildAliasedInternal(
+      libraryBuilder,
+      typeUse,
+      hierarchy,
+    );
     if (libraryBuilder is SourceLibraryBuilder) {
       _checkDeferred(libraryBuilder, typeUse);
       if (!isRecordAccessAllowed(libraryBuilder) &&
@@ -517,29 +608,36 @@ abstract class NamedTypeBuilderImpl extends NamedTypeBuilder {
           isDartCoreRecord(aliasedType)) {
         // Coverage-ignore-block(suite): Not run.
         libraryBuilder.reportFeatureNotEnabled(
-            libraryBuilder.libraryFeatures.records,
-            fileUri ?? libraryBuilder.fileUri,
-            typeName.fullNameOffset,
-            typeName.fullNameLength);
+          libraryBuilder.libraryFeatures.records,
+          fileUri ?? libraryBuilder.fileUri,
+          typeName.fullNameOffset,
+          typeName.fullNameLength,
+        );
       }
     }
     return unaliasing.unalias(aliasedType);
   }
 
   @override
-  TypeBuilder? unalias(
-      {Set<TypeAliasBuilder>? usedTypeAliasBuilders,
-      List<TypeBuilder>? unboundTypes}) {
+  TypeBuilder? unalias({
+    Set<TypeAliasBuilder>? usedTypeAliasBuilders,
+    List<TypeBuilder>? unboundTypes,
+  }) {
     if (declaration is TypeAliasBuilder) {
-      return (declaration as TypeAliasBuilder)
-          .unalias(typeArguments, usedTypeAliasBuilders: usedTypeAliasBuilders);
+      return (declaration as TypeAliasBuilder).unalias(
+        typeArguments,
+        usedTypeAliasBuilders: usedTypeAliasBuilders,
+      );
     }
     return this;
   }
 
   @override
   DartType buildAliased(
-      LibraryBuilder library, TypeUse typeUse, ClassHierarchyBase? hierarchy) {
+    LibraryBuilder library,
+    TypeUse typeUse,
+    ClassHierarchyBase? hierarchy,
+  ) {
     assert(hierarchy != null || isExplicit, "Cannot build $this.");
     DartType builtType = _buildAliasedInternal(library, typeUse, hierarchy);
     if (library is SourceLibraryBuilder &&
@@ -548,26 +646,31 @@ abstract class NamedTypeBuilderImpl extends NamedTypeBuilder {
         isDartCoreRecord(builtType)) {
       // Coverage-ignore-block(suite): Not run.
       library.reportFeatureNotEnabled(
-          library.libraryFeatures.records,
-          fileUri ?? library.fileUri,
-          typeName.fullNameOffset,
-          typeName.fullNameLength);
+        library.libraryFeatures.records,
+        fileUri ?? library.fileUri,
+        typeName.fullNameOffset,
+        typeName.fullNameLength,
+      );
     }
 
     return builtType;
   }
 
   DartType _buildAliasedInternal(
-      LibraryBuilder library, TypeUse typeUse, ClassHierarchyBase? hierarchy) {
+    LibraryBuilder library,
+    TypeUse typeUse,
+    ClassHierarchyBase? hierarchy,
+  ) {
     return declaration.buildAliasedType(
-        library,
-        nullabilityBuilder,
-        typeArguments,
-        typeUse,
-        fileUri ?? missingUri,
-        charOffset ?? TreeNode.noOffset,
-        hierarchy,
-        hasExplicitTypeArguments: hasExplicitTypeArguments);
+      library,
+      nullabilityBuilder,
+      typeArguments,
+      typeUse,
+      fileUri ?? missingUri,
+      charOffset ?? TreeNode.noOffset,
+      hierarchy,
+      hasExplicitTypeArguments: hasExplicitTypeArguments,
+    );
   }
 
   @override
@@ -579,10 +682,11 @@ abstract class NamedTypeBuilderImpl extends NamedTypeBuilder {
           // Coverage-ignore-block(suite): Not run.
           if (!library.mayImplementRestrictedTypes) {
             library.addProblem(
-                codeExtendingRestricted.withArguments(declaration.name),
-                charOffset!,
-                noLength,
-                fileUri);
+              codeExtendingRestricted.withArguments(declaration.name),
+              charOffset!,
+              noLength,
+              fileUri,
+            );
           }
         }
         DartType type = build(library, typeUse);
@@ -617,10 +721,14 @@ abstract class NamedTypeBuilderImpl extends NamedTypeBuilder {
             unaliasedDeclaration = unaliasedDeclaration.type.declaration;
             assert(unaliasedDeclaration != null);
           }
-          assert(unaliasedDeclaration is ClassBuilder &&
-              unaliasedDeclaration.name == "Null");
+          assert(
+            unaliasedDeclaration is ClassBuilder &&
+                unaliasedDeclaration.name == "Null",
+          );
           return new Supertype(
-              (unaliasedDeclaration as ClassBuilder).cls, const <DartType>[]);
+            (unaliasedDeclaration as ClassBuilder).cls,
+            const <DartType>[],
+          );
         } else if (type is FutureOrType) {
           // Coverage-ignore-block(suite): Not run.
           // Even though `FutureOr` is disallowed as a supertype,
@@ -640,21 +748,26 @@ abstract class NamedTypeBuilderImpl extends NamedTypeBuilder {
             unaliasedDeclaration = unaliasedDeclaration.type.declaration;
             assert(unaliasedDeclaration != null);
           }
-          assert(unaliasedDeclaration is ClassBuilder &&
-              unaliasedDeclaration.name == "FutureOr");
-          return new Supertype((unaliasedDeclaration as ClassBuilder).cls,
-              <DartType>[type.typeArgument]);
+          assert(
+            unaliasedDeclaration is ClassBuilder &&
+                unaliasedDeclaration.name == "FutureOr",
+          );
+          return new Supertype(
+            (unaliasedDeclaration as ClassBuilder).cls,
+            <DartType>[type.typeArgument],
+          );
         }
         return _handleInvalidAliasedSupertype(library, aliasBuilder, type);
       case InvalidBuilder():
         if (!declaration.errorHasBeenReported) {
           // Coverage-ignore-block(suite): Not run.
           library.addProblem(
-              declaration.message.messageObject,
-              declaration.message.charOffset,
-              declaration.message.length,
-              declaration.message.uri,
-              severity: CfeSeverity.error);
+            declaration.message.messageObject,
+            declaration.message.charOffset,
+            declaration.message.length,
+            declaration.message.uri,
+            severity: CfeSeverity.error,
+          );
         }
         return null;
       case NominalParameterBuilder():
@@ -682,16 +795,20 @@ abstract class NamedTypeBuilderImpl extends NamedTypeBuilder {
           return new Supertype(type.classNode, type.typeArguments);
         }
         return _handleInvalidAliasedSupertype(
-            libraryBuilder, aliasBuilder, type);
+          libraryBuilder,
+          aliasBuilder,
+          type,
+        );
       case InvalidBuilder():
         if (!declaration.errorHasBeenReported) {
           // Coverage-ignore-block(suite): Not run.
           libraryBuilder.addProblem(
-              declaration.message.messageObject,
-              declaration.message.charOffset,
-              declaration.message.length,
-              declaration.message.uri,
-              severity: CfeSeverity.error);
+            declaration.message.messageObject,
+            declaration.message.charOffset,
+            declaration.message.length,
+            declaration.message.uri,
+            severity: CfeSeverity.error,
+          );
         }
         return null;
       case NominalParameterBuilder():
@@ -705,13 +822,16 @@ abstract class NamedTypeBuilderImpl extends NamedTypeBuilder {
 
   @override
   NamedTypeBuilder withNullabilityBuilder(
-      NullabilityBuilder nullabilityBuilder) {
+    NullabilityBuilder nullabilityBuilder,
+  ) {
     return new NamedTypeBuilderImpl.fromTypeDeclarationBuilder(
-        declaration, nullabilityBuilder,
-        arguments: typeArguments,
-        fileUri: fileUri,
-        charOffset: charOffset,
-        instanceTypeParameterAccess: _instanceTypeParameterAccess);
+      declaration,
+      nullabilityBuilder,
+      arguments: typeArguments,
+      fileUri: fileUri,
+      charOffset: charOffset,
+      instanceTypeParameterAccess: _instanceTypeParameterAccess,
+    );
   }
 
   /// Returns a copy of this named type using the provided type [arguments]
@@ -720,35 +840,45 @@ abstract class NamedTypeBuilderImpl extends NamedTypeBuilder {
   NamedTypeBuilder withTypeArguments(List<TypeBuilder> arguments) {
     if (_declaration != null) {
       return new NamedTypeBuilderImpl.fromTypeDeclarationBuilder(
-          _declaration!, nullabilityBuilder,
-          arguments: arguments,
-          fileUri: fileUri,
-          charOffset: charOffset,
-          instanceTypeParameterAccess: _instanceTypeParameterAccess);
+        _declaration!,
+        nullabilityBuilder,
+        arguments: arguments,
+        fileUri: fileUri,
+        charOffset: charOffset,
+        instanceTypeParameterAccess: _instanceTypeParameterAccess,
+      );
     } else {
       // Coverage-ignore-block(suite): Not run.
-      return new NamedTypeBuilderImpl(typeName, nullabilityBuilder,
-          arguments: arguments,
-          fileUri: fileUri,
-          charOffset: charOffset,
-          instanceTypeParameterAccess: _instanceTypeParameterAccess);
+      return new NamedTypeBuilderImpl(
+        typeName,
+        nullabilityBuilder,
+        arguments: arguments,
+        fileUri: fileUri,
+        charOffset: charOffset,
+        instanceTypeParameterAccess: _instanceTypeParameterAccess,
+      );
     }
   }
 
   @override
-  Nullability computeNullability(
-      {required Map<TypeParameterBuilder, TraversalState>
-          typeParametersTraversalState}) {
+  Nullability computeNullability({
+    required Map<TypeParameterBuilder, TraversalState>
+    typeParametersTraversalState,
+  }) {
     return combineNullabilitiesForSubstitution(
-        inner: declaration.computeNullabilityWithArguments(typeArguments,
-            typeParametersTraversalState: typeParametersTraversalState),
-        outer: nullabilityBuilder.build());
+      inner: declaration.computeNullabilityWithArguments(
+        typeArguments,
+        typeParametersTraversalState: typeParametersTraversalState,
+      ),
+      outer: nullabilityBuilder.build(),
+    );
   }
 
   @override
   VarianceCalculationValue computeTypeParameterBuilderVariance(
-      NominalParameterBuilder variable,
-      {required SourceLoader sourceLoader}) {
+    NominalParameterBuilder variable, {
+    required SourceLoader sourceLoader,
+  }) {
     TypeDeclarationBuilder declaration = this.declaration;
     List<TypeBuilder>? arguments = this.typeArguments;
     switch (declaration) {
@@ -756,11 +886,16 @@ abstract class NamedTypeBuilderImpl extends NamedTypeBuilder {
         Variance result = Variance.unrelated;
         if (arguments != null) {
           for (int i = 0; i < arguments.length; ++i) {
-            result = result.meet(declaration.cls.typeParameters[i].variance
-                .combine(arguments[i]
-                    .computeTypeParameterBuilderVariance(variable,
-                        sourceLoader: sourceLoader)
-                    .variance!));
+            result = result.meet(
+              declaration.cls.typeParameters[i].variance.combine(
+                arguments[i]
+                    .computeTypeParameterBuilderVariance(
+                      variable,
+                      sourceLoader: sourceLoader,
+                    )
+                    .variance!,
+              ),
+            );
           }
         }
         return new VarianceCalculationValue.fromVariance(result);
@@ -780,39 +915,46 @@ abstract class NamedTypeBuilderImpl extends NamedTypeBuilder {
               declarationTypeParameter.varianceCalculationValue =
                   VarianceCalculationValue.inProgress;
               Variance computedVariance = declaration.type
-                  .computeTypeParameterBuilderVariance(declarationTypeParameter,
-                      sourceLoader: sourceLoader)
+                  .computeTypeParameterBuilderVariance(
+                    declarationTypeParameter,
+                    sourceLoader: sourceLoader,
+                  )
                   .variance!;
 
-              declarationTypeParameter.varianceCalculationValue =
-                  declarationTypeParameterVariance =
-                      new VarianceCalculationValue.fromVariance(
-                          computedVariance);
+              declarationTypeParameter
+                  .varianceCalculationValue = declarationTypeParameterVariance =
+                  new VarianceCalculationValue.fromVariance(computedVariance);
             } else if (declarationTypeParameterVariance ==
                 VarianceCalculationValue.inProgress) {
               assert(!declaration.fromDill);
               NominalParameterBuilder declarationTypeParameter =
                   declaration.typeParameters![i];
               // Cyclic type alias.
-              assert(sourceLoader.assertProblemReportedElsewhere(
+              assert(
+                sourceLoader.assertProblemReportedElsewhere(
                   "computeTypeParameterBuilderVariance: Cyclic type alias.",
-                  expectedPhase: CompilationPhaseForProblemReporting.outline));
+                  expectedPhase: CompilationPhaseForProblemReporting.outline,
+                ),
+              );
 
               // Use [Variance.unrelated] for recovery.  The type with the
               // cyclic dependency will be replaced with an [InvalidType]
               // elsewhere.
-              declarationTypeParameter.varianceCalculationValue =
-                  declarationTypeParameterVariance =
-                      new VarianceCalculationValue.fromVariance(
-                          Variance.unrelated);
+              declarationTypeParameter
+                  .varianceCalculationValue = declarationTypeParameterVariance =
+                  new VarianceCalculationValue.fromVariance(Variance.unrelated);
               declarationTypeParameter.variance = Variance.unrelated;
             }
 
-            result = result.meet(arguments[i]
-                .computeTypeParameterBuilderVariance(variable,
-                    sourceLoader: sourceLoader)
-                .variance!
-                .combine(declarationTypeParameterVariance.variance!));
+            result = result.meet(
+              arguments[i]
+                  .computeTypeParameterBuilderVariance(
+                    variable,
+                    sourceLoader: sourceLoader,
+                  )
+                  .variance!
+                  .combine(declarationTypeParameterVariance.variance!),
+            );
           }
         }
         return new VarianceCalculationValue.fromVariance(result);
@@ -820,12 +962,17 @@ abstract class NamedTypeBuilderImpl extends NamedTypeBuilder {
         Variance result = Variance.unrelated;
         if (arguments != null) {
           for (int i = 0; i < arguments.length; ++i) {
-            result = result.meet(declaration
-                .extensionTypeDeclaration.typeParameters[i].variance
-                .combine(arguments[i]
-                    .computeTypeParameterBuilderVariance(variable,
-                        sourceLoader: sourceLoader)
-                    .variance!));
+            result = result.meet(
+              declaration.extensionTypeDeclaration.typeParameters[i].variance
+                  .combine(
+                    arguments[i]
+                        .computeTypeParameterBuilderVariance(
+                          variable,
+                          sourceLoader: sourceLoader,
+                        )
+                        .variance!,
+                  ),
+            );
           }
         }
         return new VarianceCalculationValue.fromVariance(result);
@@ -844,21 +991,27 @@ abstract class NamedTypeBuilderImpl extends NamedTypeBuilder {
   }
 
   @override
-  TypeDeclarationBuilder? computeUnaliasedDeclaration(
-      {required bool isUsedAsClass}) {
+  TypeDeclarationBuilder? computeUnaliasedDeclaration({
+    required bool isUsedAsClass,
+  }) {
     TypeDeclarationBuilder? declaration = this.declaration;
     if (declaration is TypeAliasBuilder) {
-      declaration = declaration.unaliasDeclaration(typeArguments,
-          isUsedAsClass: isUsedAsClass,
-          usedAsClassCharOffset: charOffset,
-          usedAsClassFileUri: fileUri);
+      declaration = declaration.unaliasDeclaration(
+        typeArguments,
+        isUsedAsClass: isUsedAsClass,
+        usedAsClassCharOffset: charOffset,
+        usedAsClassFileUri: fileUri,
+      );
     }
     return declaration;
   }
 
   @override
-  void collectReferencesFrom(Map<TypeParameterBuilder, int> parameterIndices,
-      List<List<int>> edges, int index) {
+  void collectReferencesFrom(
+    Map<TypeParameterBuilder, int> parameterIndices,
+    List<List<int>> edges,
+    int index,
+  ) {
     TypeDeclarationBuilder declaration = this.declaration;
     List<TypeBuilder>? arguments = this.typeArguments;
     if (declaration is NominalParameterBuilder &&
@@ -874,10 +1027,11 @@ abstract class NamedTypeBuilderImpl extends NamedTypeBuilder {
 
   @override
   TypeBuilder? substituteRange(
-      Map<TypeParameterBuilder, TypeBuilder> upperSubstitution,
-      Map<TypeParameterBuilder, TypeBuilder> lowerSubstitution,
-      TypeParameterFactory typeParameterFactory,
-      {final Variance variance = Variance.covariant}) {
+    Map<TypeParameterBuilder, TypeBuilder> upperSubstitution,
+    Map<TypeParameterBuilder, TypeBuilder> lowerSubstitution,
+    TypeParameterFactory typeParameterFactory, {
+    final Variance variance = Variance.covariant,
+  }) {
     TypeDeclarationBuilder declaration = this.declaration;
     List<TypeBuilder>? arguments = this.typeArguments;
 
@@ -886,16 +1040,22 @@ abstract class NamedTypeBuilderImpl extends NamedTypeBuilder {
         TypeBuilder? replacement = lowerSubstitution[declaration];
         if (replacement != null) {
           return replacement.withNullabilityBuilder(
-              combineNullabilityBuildersForSubstitution(
-                  replacement.nullabilityBuilder, nullabilityBuilder));
+            combineNullabilityBuildersForSubstitution(
+              replacement.nullabilityBuilder,
+              nullabilityBuilder,
+            ),
+          );
         }
         return null;
       } else {
         TypeBuilder? replacement = upperSubstitution[declaration];
         if (replacement != null) {
           return replacement.withNullabilityBuilder(
-              combineNullabilityBuildersForSubstitution(
-                  replacement.nullabilityBuilder, nullabilityBuilder));
+            combineNullabilityBuildersForSubstitution(
+              replacement.nullabilityBuilder,
+              nullabilityBuilder,
+            ),
+          );
         }
         return null;
       }
@@ -909,8 +1069,11 @@ abstract class NamedTypeBuilderImpl extends NamedTypeBuilder {
       case ClassBuilder():
         for (int i = 0; i < arguments.length; ++i) {
           TypeBuilder? substitutedArgument = arguments[i].substituteRange(
-              upperSubstitution, lowerSubstitution, typeParameterFactory,
-              variance: variance);
+            upperSubstitution,
+            lowerSubstitution,
+            typeParameterFactory,
+            variance: variance,
+          );
           if (substitutedArgument != null) {
             newArguments ??= arguments.toList();
             newArguments[i] = substitutedArgument;
@@ -919,8 +1082,11 @@ abstract class NamedTypeBuilderImpl extends NamedTypeBuilder {
       case ExtensionTypeDeclarationBuilder():
         for (int i = 0; i < arguments.length; ++i) {
           TypeBuilder? substitutedArgument = arguments[i].substituteRange(
-              upperSubstitution, lowerSubstitution, typeParameterFactory,
-              variance: variance);
+            upperSubstitution,
+            lowerSubstitution,
+            typeParameterFactory,
+            variance: variance,
+          );
           if (substitutedArgument != null) {
             newArguments ??= arguments.toList();
             newArguments[i] = substitutedArgument;
@@ -930,8 +1096,11 @@ abstract class NamedTypeBuilderImpl extends NamedTypeBuilder {
         for (int i = 0; i < arguments.length; ++i) {
           NominalParameterBuilder variable = declaration.typeParameters![i];
           TypeBuilder? substitutedArgument = arguments[i].substituteRange(
-              upperSubstitution, lowerSubstitution, typeParameterFactory,
-              variance: variance.combine(variable.variance));
+            upperSubstitution,
+            lowerSubstitution,
+            typeParameterFactory,
+            variance: variance.combine(variable.variance),
+          );
           if (substitutedArgument != null) {
             newArguments ??= arguments.toList();
             newArguments[i] = substitutedArgument;
@@ -953,7 +1122,9 @@ abstract class NamedTypeBuilderImpl extends NamedTypeBuilder {
       case ExtensionBuilder():
       case BuiltinTypeDeclarationBuilder():
         assert(
-            false, "Unexpected named type builder declaration: $declaration.");
+          false,
+          "Unexpected named type builder declaration: $declaration.",
+        );
     }
     if (newArguments != null) {
       return withTypeArguments(newArguments);
@@ -984,8 +1155,11 @@ abstract class NamedTypeBuilderImpl extends NamedTypeBuilder {
         List<TypeBuilder>? typeArguments = this.typeArguments;
         if (typeParameters != null && typeArguments != null) {
           representationType = representationType.subst(
-              new Map<NominalParameterBuilder, TypeBuilder>.fromIterables(
-                  typeParameters, typeArguments));
+            new Map<NominalParameterBuilder, TypeBuilder>.fromIterables(
+              typeParameters,
+              typeArguments,
+            ),
+          );
         }
         return representationType.unaliasAndErase();
       }
@@ -1022,20 +1196,25 @@ abstract class NamedTypeBuilderImpl extends NamedTypeBuilder {
             List<TypeParameter> typeParameters = declaration.cls.typeParameters;
             for (int i = 0; i < typeParameters.length && !hasInbound; ++i) {
               if (containsTypeParameter(
-                  typeParameters[i].bound, typeParameters.toSet())) {
+                typeParameters[i].bound,
+                typeParameters.toSet(),
+              )) {
                 hasInbound = true;
               }
             }
             if (hasInbound) {
-              typesAndDependencies
-                  .add(new TypeWithInBoundReferences(this, const []));
+              typesAndDependencies.add(
+                new TypeWithInBoundReferences(this, const []),
+              );
             }
           } else if (declaration.typeParameters != null) {
-            List<InBoundReferences> dependencies =
-                findInboundReferences(declaration.typeParameters!);
+            List<InBoundReferences> dependencies = findInboundReferences(
+              declaration.typeParameters!,
+            );
             if (dependencies.length != 0) {
-              typesAndDependencies
-                  .add(new TypeWithInBoundReferences(this, dependencies));
+              typesAndDependencies.add(
+                new TypeWithInBoundReferences(this, dependencies),
+              );
             }
           }
         case TypeAliasBuilder():
@@ -1045,46 +1224,55 @@ abstract class NamedTypeBuilderImpl extends NamedTypeBuilder {
                 declaration.typedef.typeParameters;
             for (int i = 0; i < typeParameters.length && !hasInbound; ++i) {
               if (containsTypeParameter(
-                  typeParameters[i].bound, typeParameters.toSet())) {
+                typeParameters[i].bound,
+                typeParameters.toSet(),
+              )) {
                 hasInbound = true;
               }
             }
             if (hasInbound) {
               // Coverage-ignore-block(suite): Not run.
-              typesAndDependencies
-                  .add(new TypeWithInBoundReferences(this, const []));
+              typesAndDependencies.add(
+                new TypeWithInBoundReferences(this, const []),
+              );
             }
           } else {
             if (declaration.typeParameters != null) {
-              List<InBoundReferences> dependencies =
-                  findInboundReferences(declaration.typeParameters!);
+              List<InBoundReferences> dependencies = findInboundReferences(
+                declaration.typeParameters!,
+              );
               if (dependencies.length != 0) {
-                typesAndDependencies
-                    .add(new TypeWithInBoundReferences(this, dependencies));
+                typesAndDependencies.add(
+                  new TypeWithInBoundReferences(this, dependencies),
+                );
               }
             }
             if (declaration.type is FunctionTypeBuilder) {
               FunctionTypeBuilder type =
                   declaration.type as FunctionTypeBuilder;
               if (type.typeParameters != null) {
-                List<InBoundReferences> dependencies =
-                    findInboundReferences(type.typeParameters!);
+                List<InBoundReferences> dependencies = findInboundReferences(
+                  type.typeParameters!,
+                );
                 if (dependencies.length != 0) {
                   // Coverage-ignore-block(suite): Not run.
-                  typesAndDependencies
-                      .add(new TypeWithInBoundReferences(type, dependencies));
+                  typesAndDependencies.add(
+                    new TypeWithInBoundReferences(type, dependencies),
+                  );
                 }
               }
             }
           }
         case ExtensionTypeDeclarationBuilder():
           if (declaration.typeParameters != null) {
-            List<InBoundReferences> dependencies =
-                findInboundReferences(declaration.typeParameters!);
+            List<InBoundReferences> dependencies = findInboundReferences(
+              declaration.typeParameters!,
+            );
             if (dependencies.length != 0) {
               // Coverage-ignore-block(suite): Not run.
-              typesAndDependencies
-                  .add(new TypeWithInBoundReferences(this, dependencies));
+              typesAndDependencies.add(
+                new TypeWithInBoundReferences(this, dependencies),
+              );
             }
           }
         case NominalParameterBuilder():
@@ -1095,8 +1283,9 @@ abstract class NamedTypeBuilderImpl extends NamedTypeBuilder {
       }
     } else {
       for (TypeBuilder argument in arguments) {
-        typesAndDependencies
-            .addAll(argument.findRawTypesWithInboundReferences());
+        typesAndDependencies.addAll(
+          argument.findRawTypesWithInboundReferences(),
+        );
       }
     }
     return typesAndDependencies;
@@ -1111,69 +1300,84 @@ class _ExplicitNamedTypeBuilder extends NamedTypeBuilderImpl {
   DartType? _type;
 
   _ExplicitNamedTypeBuilder(
-      TypeName name, NullabilityBuilder nullabilityBuilder,
-      {List<TypeBuilder>? arguments,
-      Uri? fileUri,
-      int? charOffset,
-      required InstanceTypeParameterAccessState instanceTypeParameterAccess})
-      : super._(
-            typeName: name,
-            nullabilityBuilder: nullabilityBuilder,
-            typeArguments: arguments,
-            fileUri: fileUri,
-            charOffset: charOffset,
-            instanceTypeParameterAccess: instanceTypeParameterAccess);
+    TypeName name,
+    NullabilityBuilder nullabilityBuilder, {
+    List<TypeBuilder>? arguments,
+    Uri? fileUri,
+    int? charOffset,
+    required InstanceTypeParameterAccessState instanceTypeParameterAccess,
+  }) : super._(
+         typeName: name,
+         nullabilityBuilder: nullabilityBuilder,
+         typeArguments: arguments,
+         fileUri: fileUri,
+         charOffset: charOffset,
+         instanceTypeParameterAccess: instanceTypeParameterAccess,
+       );
 
-  _ExplicitNamedTypeBuilder.forDartType(DartType type,
-      TypeDeclarationBuilder declaration, NullabilityBuilder nullabilityBuilder,
-      {List<TypeBuilder>? arguments, Uri? fileUri, int? charOffset})
-      : _type = type,
-        super._(
-            declaration: declaration,
-            typeName: new PredefinedTypeName(declaration.name),
-            nullabilityBuilder: nullabilityBuilder,
-            typeArguments: arguments,
-            instanceTypeParameterAccess:
-                InstanceTypeParameterAccessState.Unexpected,
-            fileUri: fileUri,
-            charOffset: charOffset);
+  _ExplicitNamedTypeBuilder.forDartType(
+    DartType type,
+    TypeDeclarationBuilder declaration,
+    NullabilityBuilder nullabilityBuilder, {
+    List<TypeBuilder>? arguments,
+    Uri? fileUri,
+    int? charOffset,
+  }) : _type = type,
+       super._(
+         declaration: declaration,
+         typeName: new PredefinedTypeName(declaration.name),
+         nullabilityBuilder: nullabilityBuilder,
+         typeArguments: arguments,
+         instanceTypeParameterAccess:
+             InstanceTypeParameterAccessState.Unexpected,
+         fileUri: fileUri,
+         charOffset: charOffset,
+       );
 
   _ExplicitNamedTypeBuilder.fromTypeDeclarationBuilder(
-      TypeDeclarationBuilder declaration, NullabilityBuilder nullabilityBuilder,
-      {List<TypeBuilder>? arguments,
-      Uri? fileUri,
-      int? charOffset,
-      required InstanceTypeParameterAccessState instanceTypeParameterAccess,
-      DartType? type})
-      : this._type = type,
-        super._(
-            typeName: new PredefinedTypeName(declaration.name),
-            declaration: declaration,
-            nullabilityBuilder: nullabilityBuilder,
-            typeArguments: arguments,
-            fileUri: fileUri,
-            charOffset: charOffset,
-            instanceTypeParameterAccess: instanceTypeParameterAccess);
+    TypeDeclarationBuilder declaration,
+    NullabilityBuilder nullabilityBuilder, {
+    List<TypeBuilder>? arguments,
+    Uri? fileUri,
+    int? charOffset,
+    required InstanceTypeParameterAccessState instanceTypeParameterAccess,
+    DartType? type,
+  }) : this._type = type,
+       super._(
+         typeName: new PredefinedTypeName(declaration.name),
+         declaration: declaration,
+         nullabilityBuilder: nullabilityBuilder,
+         typeArguments: arguments,
+         fileUri: fileUri,
+         charOffset: charOffset,
+         instanceTypeParameterAccess: instanceTypeParameterAccess,
+       );
 
-  _ExplicitNamedTypeBuilder.forInvalidType(String name,
-      NullabilityBuilder nullabilityBuilder, LocatedMessage message,
-      {List<LocatedMessage>? context})
-      : _type = const InvalidType(),
-        super._(
-            typeName: new PredefinedTypeName(name),
-            nullabilityBuilder: nullabilityBuilder,
-            declaration: new InvalidBuilder(name, message, context: context),
-            fileUri: message.uri,
-            charOffset: message.charOffset,
-            instanceTypeParameterAccess:
-                InstanceTypeParameterAccessState.Unexpected);
+  _ExplicitNamedTypeBuilder.forInvalidType(
+    String name,
+    NullabilityBuilder nullabilityBuilder,
+    LocatedMessage message, {
+    List<LocatedMessage>? context,
+  }) : _type = const InvalidType(),
+       super._(
+         typeName: new PredefinedTypeName(name),
+         nullabilityBuilder: nullabilityBuilder,
+         declaration: new InvalidBuilder(name, message, context: context),
+         fileUri: message.uri,
+         charOffset: message.charOffset,
+         instanceTypeParameterAccess:
+             InstanceTypeParameterAccessState.Unexpected,
+       );
 
   @override
   bool get isExplicit => true;
 
   @override
-  DartType build(LibraryBuilder library, TypeUse typeUse,
-      {ClassHierarchyBase? hierarchy}) {
+  DartType build(
+    LibraryBuilder library,
+    TypeUse typeUse, {
+    ClassHierarchyBase? hierarchy,
+  }) {
     return _type ??= _buildInternal(library, typeUse, hierarchy);
   }
 }
@@ -1186,32 +1390,40 @@ class _ExplicitNamedTypeBuilder extends NamedTypeBuilderImpl {
 class _InferredNamedTypeBuilder extends NamedTypeBuilderImpl
     with InferableTypeBuilderMixin {
   _InferredNamedTypeBuilder(
-      TypeName name, NullabilityBuilder nullabilityBuilder,
-      {List<TypeBuilder>? arguments,
-      Uri? fileUri,
-      int? charOffset,
-      required InstanceTypeParameterAccessState instanceTypeParameterAccess})
-      : super._(
-            typeName: name,
-            nullabilityBuilder: nullabilityBuilder,
-            typeArguments: arguments,
-            fileUri: fileUri,
-            charOffset: charOffset,
-            instanceTypeParameterAccess: instanceTypeParameterAccess);
+    TypeName name,
+    NullabilityBuilder nullabilityBuilder, {
+    List<TypeBuilder>? arguments,
+    Uri? fileUri,
+    int? charOffset,
+    required InstanceTypeParameterAccessState instanceTypeParameterAccess,
+  }) : super._(
+         typeName: name,
+         nullabilityBuilder: nullabilityBuilder,
+         typeArguments: arguments,
+         fileUri: fileUri,
+         charOffset: charOffset,
+         instanceTypeParameterAccess: instanceTypeParameterAccess,
+       );
 
   @override
   bool get isExplicit => false;
 
   @override
-  DartType build(LibraryBuilder library, TypeUse typeUse,
-      {ClassHierarchyBase? hierarchy}) {
+  DartType build(
+    LibraryBuilder library,
+    TypeUse typeUse, {
+    ClassHierarchyBase? hierarchy,
+  }) {
     if (hasType) {
       return type;
     } else if (hierarchy != null) {
       return registerType(_buildInternal(library, typeUse, hierarchy));
     } else {
-      InferableTypeUse inferableTypeUse =
-          new InferableTypeUse(library as SourceLibraryBuilder, this, typeUse);
+      InferableTypeUse inferableTypeUse = new InferableTypeUse(
+        library as SourceLibraryBuilder,
+        this,
+        typeUse,
+      );
       library.loader.inferableTypes.registerInferableType(inferableTypeUse);
       return new InferredType.fromInferableTypeUse(inferableTypeUse);
     }

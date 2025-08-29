@@ -10,8 +10,8 @@ import '../base/problems.dart';
 import '../codes/cfe_codes.dart';
 import 'constant_evaluator.dart';
 
-typedef ReportErrorFunction = void Function(
-    LocatedMessage message, List<LocatedMessage>? context);
+typedef ReportErrorFunction =
+    void Function(LocatedMessage message, List<LocatedMessage>? context);
 
 class TryConstantEvaluator extends ConstantEvaluator {
   final bool _supportReevaluationForTesting;
@@ -20,35 +20,49 @@ class TryConstantEvaluator extends ConstantEvaluator {
   final _ErrorReporter errorReporter;
 
   TryConstantEvaluator(
-      DartLibrarySupport librarySupport,
-      ConstantsBackend constantsBackend,
-      Component component,
-      TypeEnvironment typeEnvironment,
-      ReportErrorFunction reportError,
-      {Map<String, String>? environmentDefines,
-      bool supportReevaluationForTesting = false})
-      : this._(librarySupport, constantsBackend, component, typeEnvironment,
-            new _ErrorReporter(reportError),
-            environmentDefines: environmentDefines,
-            supportReevaluationForTesting: supportReevaluationForTesting);
+    DartLibrarySupport librarySupport,
+    ConstantsBackend constantsBackend,
+    Component component,
+    TypeEnvironment typeEnvironment,
+    ReportErrorFunction reportError, {
+    Map<String, String>? environmentDefines,
+    bool supportReevaluationForTesting = false,
+  }) : this._(
+         librarySupport,
+         constantsBackend,
+         component,
+         typeEnvironment,
+         new _ErrorReporter(reportError),
+         environmentDefines: environmentDefines,
+         supportReevaluationForTesting: supportReevaluationForTesting,
+       );
 
   TryConstantEvaluator._(
-      DartLibrarySupport librarySupport,
-      ConstantsBackend constantsBackend,
-      Component component,
-      TypeEnvironment typeEnvironment,
-      this.errorReporter,
-      {Map<String, String>? environmentDefines,
-      bool supportReevaluationForTesting = false})
-      : _supportReevaluationForTesting = supportReevaluationForTesting,
-        super(librarySupport, constantsBackend, component,
-            environmentDefines ?? const {}, typeEnvironment, errorReporter,
-            enableTripleShift: true);
+    DartLibrarySupport librarySupport,
+    ConstantsBackend constantsBackend,
+    Component component,
+    TypeEnvironment typeEnvironment,
+    this.errorReporter, {
+    Map<String, String>? environmentDefines,
+    bool supportReevaluationForTesting = false,
+  }) : _supportReevaluationForTesting = supportReevaluationForTesting,
+       super(
+         librarySupport,
+         constantsBackend,
+         component,
+         environmentDefines ?? const {},
+         typeEnvironment,
+         errorReporter,
+         enableTripleShift: true,
+       );
 
   @override
   // Coverage-ignore(suite): Not run.
-  Constant evaluate(StaticTypeContext staticTypeContext, Expression node,
-      {TreeNode? contextNode}) {
+  Constant evaluate(
+    StaticTypeContext staticTypeContext,
+    Expression node, {
+    TreeNode? contextNode,
+  }) {
     return evaluateOrNull(staticTypeContext, node, contextNode: contextNode)!;
   }
 
@@ -57,8 +71,12 @@ class TryConstantEvaluator extends ConstantEvaluator {
   /// If [requireConstant] is `true`, an error is reported if [node] is not
   /// a valid constant. Otherwise, returns `null` if [node] is not a valid
   /// constant.
-  Constant? evaluateOrNull(StaticTypeContext staticTypeContext, Expression node,
-      {TreeNode? contextNode, bool requireConstant = true}) {
+  Constant? evaluateOrNull(
+    StaticTypeContext staticTypeContext,
+    Expression node, {
+    TreeNode? contextNode,
+    bool requireConstant = true,
+  }) {
     errorReporter.requiresConstant = requireConstant;
     if (node is ConstantExpression) {
       // Coverage-ignore-block(suite): Not run.
@@ -66,12 +84,16 @@ class TryConstantEvaluator extends ConstantEvaluator {
       // TODO(fishythefish): Add more control over what to do with
       // [UnevaluatedConstant]s.
       if (constant is UnevaluatedConstant) {
-        Constant result = super.evaluate(staticTypeContext, constant.expression,
-            contextNode: contextNode);
+        Constant result = super.evaluate(
+          staticTypeContext,
+          constant.expression,
+          contextNode: contextNode,
+        );
         assert(
-            result is UnevaluatedConstant ||
-                !(new UnevaluatedConstantFinder().visitConstant(result)),
-            "Invalid constant result $result from ${constant.expression}.");
+          result is UnevaluatedConstant ||
+              !(new UnevaluatedConstantFinder().visitConstant(result)),
+          "Invalid constant result $result from ${constant.expression}.",
+        );
         if (!_supportReevaluationForTesting) {
           node.constant = result;
         }
@@ -83,8 +105,11 @@ class TryConstantEvaluator extends ConstantEvaluator {
       // Coverage-ignore-block(suite): Not run.
       return super.evaluate(staticTypeContext, node, contextNode: contextNode);
     } else {
-      Constant constant =
-          super.evaluate(staticTypeContext, node, contextNode: contextNode);
+      Constant constant = super.evaluate(
+        staticTypeContext,
+        node,
+        contextNode: contextNode,
+      );
       if (constant is UnevaluatedConstant &&
           constant.expression is InvalidExpression) {
         return null;
@@ -205,8 +230,8 @@ class UnevaluatedConstantFinder extends ComputeOnceConstantVisitor<bool> {
 
   @override
   bool visitRedirectingFactoryTearOffConstant(
-          RedirectingFactoryTearOffConstant node) =>
-      false;
+    RedirectingFactoryTearOffConstant node,
+  ) => false;
 
   @override
   bool visitStaticTearOffConstant(StaticTearOffConstant node) => false;
@@ -226,6 +251,7 @@ class UnevaluatedConstantFinder extends ComputeOnceConstantVisitor<bool> {
   @override
   bool visitAuxiliaryConstant(AuxiliaryConstant node) {
     throw new UnsupportedError(
-        "Unsupported auxiliary constant ${node} (${node.runtimeType}).");
+      "Unsupported auxiliary constant ${node} (${node.runtimeType}).",
+    );
   }
 }

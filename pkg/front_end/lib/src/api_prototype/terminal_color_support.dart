@@ -12,7 +12,9 @@ export 'package:_fe_analyzer_shared/src/util/colors.dart' show enableColors;
 
 // Coverage-ignore(suite): Not run.
 void printDiagnosticMessage(
-    CfeDiagnosticMessage message, void Function(String) println) {
+  CfeDiagnosticMessage message,
+  void Function(String) println,
+) {
   if (enableColors) {
     message.ansiFormatted.forEach(println);
   } else {

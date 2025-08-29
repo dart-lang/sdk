@@ -10,33 +10,55 @@ import '../kernel/internal_ast.dart';
 abstract class InferenceHelper {
   Uri get uri;
 
-  InvalidExpression buildProblem(Message message, int charOffset, int length,
-      {List<LocatedMessage>? context,
-      bool errorHasBeenReported = false,
-      Expression? expression});
+  InvalidExpression buildProblem(
+    Message message,
+    int charOffset,
+    int length, {
+    List<LocatedMessage>? context,
+    bool errorHasBeenReported = false,
+    Expression? expression,
+  });
 
   LocatedMessage? checkArgumentsForType(
-      FunctionType function, Arguments arguments, int offset);
+    FunctionType function,
+    Arguments arguments,
+    int offset,
+  );
 
-  void addProblem(Message message, int charOffset, int length,
-      {List<LocatedMessage>? context, bool wasHandled = false});
+  void addProblem(
+    Message message,
+    int charOffset,
+    int length, {
+    List<LocatedMessage>? context,
+    bool wasHandled = false,
+  });
 
   Expression wrapInProblem(
-      Expression expression, Message message, int fileOffset, int length,
-      {List<LocatedMessage>? context,
-      bool? errorHasBeenReported,
-      bool includeExpression = true});
+    Expression expression,
+    Message message,
+    int fileOffset,
+    int length, {
+    List<LocatedMessage>? context,
+    bool? errorHasBeenReported,
+    bool includeExpression = true,
+  });
 
   String superConstructorNameForDiagnostics(String name);
 
   String constructorNameForDiagnostics(String name, {String? className});
 
   Expression unaliasSingleTypeAliasedConstructorInvocation(
-      TypeAliasedConstructorInvocation invocation);
+    TypeAliasedConstructorInvocation invocation,
+  );
 
   Expression? resolveRedirectingFactoryTarget(
-      Procedure target, Arguments arguments, int fileOffset, bool isConst);
+    Procedure target,
+    Arguments arguments,
+    int fileOffset,
+    bool isConst,
+  );
 
   Expression? unaliasSingleTypeAliasedFactoryInvocation(
-      TypeAliasedFactoryInvocation invocation);
+    TypeAliasedFactoryInvocation invocation,
+  );
 }

@@ -27,8 +27,15 @@ class SimpleTTestStat {
     if (confidence < diffMean.abs()) {
       double percentDiff = diffMean * 100 / bMean;
       double percentDiffConfidence = confidence * 100 / bMean;
-      return new TTestResult(true, percentDiff, percentDiffConfidence, diffMean,
-          confidence, aMean, bMean);
+      return new TTestResult(
+        true,
+        percentDiff,
+        percentDiffConfidence,
+        diffMean,
+        confidence,
+        aMean,
+        bMean,
+      );
     } else {
       return new TTestResult(false, 0, 0, 0, 0, 0, 0);
     }
@@ -109,8 +116,15 @@ class TTestResult {
   final double aMean;
   final double bMean;
 
-  TTestResult(this.significant, this.percentDiff, this.percentDiffConfidence,
-      this.diff, this.confidence, this.aMean, this.bMean);
+  TTestResult(
+    this.significant,
+    this.percentDiff,
+    this.percentDiffConfidence,
+    this.diff,
+    this.confidence,
+    this.aMean,
+    this.bMean,
+  );
 
   @override
   String toString() {

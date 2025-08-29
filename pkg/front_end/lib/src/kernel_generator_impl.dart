@@ -35,91 +35,109 @@ import 'source/source_loader.dart' show SourceLoader;
 /// Implementation for the
 /// `package:front_end/src/api_prototype/kernel_generator.dart` and
 /// `package:front_end/src/api_prototype/summary_generator.dart` APIs.
-Future<CompilerResult> generateKernel(ProcessedOptions options,
-    {bool buildSummary = false,
-    bool buildComponent = true,
-    bool truncateSummary = false,
-    bool includeOffsets = true,
-    bool includeHierarchyAndCoreTypes = false}) async {
-  return await CompilerContext.runWithOptions(options,
-      (CompilerContext c) async {
-    return await generateKernelInternal(c,
-        buildSummary: buildSummary,
-        buildComponent: buildComponent,
-        truncateSummary: truncateSummary,
-        includeOffsets: includeOffsets,
-        includeHierarchyAndCoreTypes: includeHierarchyAndCoreTypes);
+Future<CompilerResult> generateKernel(
+  ProcessedOptions options, {
+  bool buildSummary = false,
+  bool buildComponent = true,
+  bool truncateSummary = false,
+  bool includeOffsets = true,
+  bool includeHierarchyAndCoreTypes = false,
+}) async {
+  return await CompilerContext.runWithOptions(options, (
+    CompilerContext c,
+  ) async {
+    return await generateKernelInternal(
+      c,
+      buildSummary: buildSummary,
+      buildComponent: buildComponent,
+      truncateSummary: truncateSummary,
+      includeOffsets: includeOffsets,
+      includeHierarchyAndCoreTypes: includeHierarchyAndCoreTypes,
+    );
   });
 }
 
 /// Note that if [buildSummary] is true it will be default serialize the summary
 /// but this can be disabled by setting [serializeIfBuildingSummary] to false.
 Future<InternalCompilerResult> generateKernelInternal(
-    CompilerContext compilerContext,
-    {bool buildSummary = false,
-    bool serializeIfBuildingSummary = true,
-    bool buildComponent = true,
-    bool truncateSummary = false,
-    bool includeOffsets = true,
-    bool includeHierarchyAndCoreTypes = false,
-    bool retainDataForTesting = false,
-    Benchmarker? benchmarker,
-    Instrumentation? instrumentation,
-    List<Component>? additionalDillsForTesting,
-    bool allowVerificationErrorForTesting = false}) async {
+  CompilerContext compilerContext, {
+  bool buildSummary = false,
+  bool serializeIfBuildingSummary = true,
+  bool buildComponent = true,
+  bool truncateSummary = false,
+  bool includeOffsets = true,
+  bool includeHierarchyAndCoreTypes = false,
+  bool retainDataForTesting = false,
+  Benchmarker? benchmarker,
+  Instrumentation? instrumentation,
+  List<Component>? additionalDillsForTesting,
+  bool allowVerificationErrorForTesting = false,
+}) async {
   ProcessedOptions options = compilerContext.options;
   assert(options.haveBeenValidated, "Options have not been validated");
 
   FileSystem fs = options.fileSystem;
 
   SourceLoader? sourceLoader;
-  return withCrashReporting<InternalCompilerResult>(() async {
-    UriTranslator uriTranslator = await options.getUriTranslator();
+  return withCrashReporting<InternalCompilerResult>(
+    () async {
+      UriTranslator uriTranslator = await options.getUriTranslator();
 
-    DillTarget dillTarget = new DillTarget(
-        compilerContext, options.ticker, uriTranslator, options.target,
-        benchmarker: benchmarker);
+      DillTarget dillTarget = new DillTarget(
+        compilerContext,
+        options.ticker,
+        uriTranslator,
+        options.target,
+        benchmarker: benchmarker,
+      );
 
-    List<Component> loadedComponents = <Component>[];
+      List<Component> loadedComponents = <Component>[];
 
-    Component? sdkSummary = await options.loadSdkSummary(null);
-    if (sdkSummary != null) {
-      dillTarget.loader.appendLibraries(sdkSummary);
-    }
-
-    // By using the nameRoot of the summary, we enable sharing the
-    // sdkSummary between multiple invocations.
-    CanonicalName? nameRoot;
-    if (additionalDillsForTesting != null) {
-      for (Component additionalDill in additionalDillsForTesting) {
-        loadedComponents.add(additionalDill);
-        dillTarget.loader.appendLibraries(additionalDill);
+      Component? sdkSummary = await options.loadSdkSummary(null);
+      if (sdkSummary != null) {
+        dillTarget.loader.appendLibraries(sdkSummary);
       }
-    } else if (options.hasAdditionalDills) {
-      // Coverage-ignore-block(suite): Not run.
-      nameRoot = sdkSummary?.root ?? new CanonicalName.root();
-      for (Component additionalDill
-          in await options.loadAdditionalDills(nameRoot)) {
-        loadedComponents.add(additionalDill);
-        dillTarget.loader.appendLibraries(additionalDill);
+
+      // By using the nameRoot of the summary, we enable sharing the
+      // sdkSummary between multiple invocations.
+      CanonicalName? nameRoot;
+      if (additionalDillsForTesting != null) {
+        for (Component additionalDill in additionalDillsForTesting) {
+          loadedComponents.add(additionalDill);
+          dillTarget.loader.appendLibraries(additionalDill);
+        }
+      } else if (options.hasAdditionalDills) {
+        // Coverage-ignore-block(suite): Not run.
+        nameRoot = sdkSummary?.root ?? new CanonicalName.root();
+        for (Component additionalDill in await options.loadAdditionalDills(
+          nameRoot,
+        )) {
+          loadedComponents.add(additionalDill);
+          dillTarget.loader.appendLibraries(additionalDill);
+        }
       }
-    }
 
-    dillTarget.buildOutlines();
+      dillTarget.buildOutlines();
 
-    KernelTarget kernelTarget =
-        new KernelTarget(compilerContext, fs, false, dillTarget, uriTranslator);
-    sourceLoader = kernelTarget.loader;
-    sourceLoader!.instrumentation = instrumentation;
-    kernelTarget.setEntryPoints(options.inputs);
-    await kernelTarget.computeNeededPrecompilations();
-    kernelTarget.benchmarker
-        // Coverage-ignore(suite): Not run.
-        ?.enterPhase(BenchmarkPhases.precompileMacros);
-    kernelTarget.benchmarker
-        // Coverage-ignore(suite): Not run.
-        ?.enterPhase(BenchmarkPhases.unknownGenerateKernelInternal);
-    return _buildInternal(compilerContext,
+      KernelTarget kernelTarget = new KernelTarget(
+        compilerContext,
+        fs,
+        false,
+        dillTarget,
+        uriTranslator,
+      );
+      sourceLoader = kernelTarget.loader;
+      sourceLoader!.instrumentation = instrumentation;
+      kernelTarget.setEntryPoints(options.inputs);
+      await kernelTarget.computeNeededPrecompilations();
+      kernelTarget.benchmarker
+      // Coverage-ignore(suite): Not run.
+      ?.enterPhase(BenchmarkPhases.precompileMacros);
+      kernelTarget.benchmarker
+      // Coverage-ignore(suite): Not run.
+      ?.enterPhase(BenchmarkPhases.unknownGenerateKernelInternal);
+      return _buildInternal(
+        compilerContext,
         options: options,
         kernelTarget: kernelTarget,
         nameRoot: nameRoot,
@@ -132,46 +150,56 @@ Future<InternalCompilerResult> generateKernelInternal(
         includeOffsets: includeOffsets,
         includeHierarchyAndCoreTypes: includeHierarchyAndCoreTypes,
         retainDataForTesting: retainDataForTesting,
-        allowVerificationErrorForTesting: allowVerificationErrorForTesting);
-  },
-      // Coverage-ignore(suite): Not run.
-      () =>
-          sourceLoader?.currentUriForCrashReporting ??
-          new UriOffset(options.inputs.first, TreeNode.noOffset));
+        allowVerificationErrorForTesting: allowVerificationErrorForTesting,
+      );
+    },
+    // Coverage-ignore(suite): Not run.
+    () =>
+        sourceLoader?.currentUriForCrashReporting ??
+        new UriOffset(options.inputs.first, TreeNode.noOffset),
+  );
 }
 
-Future<InternalCompilerResult> _buildInternal(CompilerContext compilerContext,
-    {required ProcessedOptions options,
-    required KernelTarget kernelTarget,
-    required CanonicalName? nameRoot,
-    required Component? sdkSummary,
-    required List<Component> loadedComponents,
-    required bool buildSummary,
-    required bool serializeIfBuildingSummary,
-    required bool truncateSummary,
-    required bool buildComponent,
-    required bool includeOffsets,
-    required bool includeHierarchyAndCoreTypes,
-    required bool retainDataForTesting,
-    required bool allowVerificationErrorForTesting}) async {
-  BuildResult buildResult =
-      await kernelTarget.buildOutlines(nameRoot: nameRoot);
+Future<InternalCompilerResult> _buildInternal(
+  CompilerContext compilerContext, {
+  required ProcessedOptions options,
+  required KernelTarget kernelTarget,
+  required CanonicalName? nameRoot,
+  required Component? sdkSummary,
+  required List<Component> loadedComponents,
+  required bool buildSummary,
+  required bool serializeIfBuildingSummary,
+  required bool truncateSummary,
+  required bool buildComponent,
+  required bool includeOffsets,
+  required bool includeHierarchyAndCoreTypes,
+  required bool retainDataForTesting,
+  required bool allowVerificationErrorForTesting,
+}) async {
+  BuildResult buildResult = await kernelTarget.buildOutlines(
+    nameRoot: nameRoot,
+  );
   Component summaryComponent = buildResult.component!;
   Uint8List? summary = null;
   if (buildSummary) {
     // Coverage-ignore-block(suite): Not run.
     if (options.verify) {
       List<LocatedMessage> errors = verifyComponent(
-          compilerContext, VerificationStage.outline, summaryComponent);
+        compilerContext,
+        VerificationStage.outline,
+        summaryComponent,
+      );
       for (LocatedMessage error in errors) {
         options.report(compilerContext, error, CfeSeverity.error);
       }
       assert(errors.isEmpty, "Verification errors found.");
     }
     if (options.debugDump) {
-      printComponentText(summaryComponent,
-          libraryFilter: kernelTarget.isSourceLibraryForDebugging,
-          showOffsets: options.debugDumpShowOffsets);
+      printComponentText(
+        summaryComponent,
+        libraryFilter: kernelTarget.isSourceLibraryForDebugging,
+        showOffsets: options.debugDumpShowOffsets,
+      );
     }
 
     // Create the requested component ("truncating" or not).
@@ -181,14 +209,18 @@ Future<InternalCompilerResult> _buildInternal(CompilerContext compilerContext,
     // to the component within KernelTarget).
     Component trimmedSummaryComponent =
         new Component(nameRoot: summaryComponent.root)
-          ..libraries.addAll(truncateSummary
-              ? kernelTarget.loader.libraries
-              : summaryComponent.libraries);
+          ..libraries.addAll(
+            truncateSummary
+                ? kernelTarget.loader.libraries
+                : summaryComponent.libraries,
+          );
     trimmedSummaryComponent.metadata.addAll(summaryComponent.metadata);
     trimmedSummaryComponent.uriToSource.addAll(summaryComponent.uriToSource);
 
     trimmedSummaryComponent.setMainMethodAndMode(
-        trimmedSummaryComponent.mainMethodName, false);
+      trimmedSummaryComponent.mainMethodName,
+      false,
+    );
 
     // As documented, we only run outline transformations when we are building
     // summaries without building a full component (at this time, that's
@@ -199,8 +231,11 @@ Future<InternalCompilerResult> _buildInternal(CompilerContext compilerContext,
     }
     if (serializeIfBuildingSummary) {
       // Don't include source (but do add it above to include importUris).
-      summary = serializeComponent(trimmedSummaryComponent,
-          includeSources: false, includeOffsets: includeOffsets);
+      summary = serializeComponent(
+        trimmedSummaryComponent,
+        includeSources: false,
+        includeOffsets: includeOffsets,
+      );
     }
     options.ticker.logMs("Generated outline");
   }
@@ -208,14 +243,17 @@ Future<InternalCompilerResult> _buildInternal(CompilerContext compilerContext,
   Component? component;
   if (buildComponent) {
     buildResult = await kernelTarget.buildComponent(
-        verify: options.verify,
-        allowVerificationErrorForTesting: allowVerificationErrorForTesting);
+      verify: options.verify,
+      allowVerificationErrorForTesting: allowVerificationErrorForTesting,
+    );
     component = buildResult.component;
     if (options.debugDump) {
       // Coverage-ignore-block(suite): Not run.
-      printComponentText(component,
-          libraryFilter: kernelTarget.isSourceLibraryForDebugging,
-          showOffsets: options.debugDumpShowOffsets);
+      printComponentText(
+        component,
+        libraryFilter: kernelTarget.isSourceLibraryForDebugging,
+        showOffsets: options.debugDumpShowOffsets,
+      );
     }
     options.ticker.logMs("Generated component");
   } else {
@@ -223,15 +261,18 @@ Future<InternalCompilerResult> _buildInternal(CompilerContext compilerContext,
   }
 
   return new InternalCompilerResult(
-      summary: summary,
-      component: component,
-      sdkComponent: sdkSummary,
-      loadedComponents: loadedComponents,
-      classHierarchy:
-          includeHierarchyAndCoreTypes ? kernelTarget.loader.hierarchy : null,
-      coreTypes:
-          includeHierarchyAndCoreTypes ? kernelTarget.loader.coreTypes : null,
-      kernelTargetForTesting: retainDataForTesting ? kernelTarget : null);
+    summary: summary,
+    component: component,
+    sdkComponent: sdkSummary,
+    loadedComponents: loadedComponents,
+    classHierarchy: includeHierarchyAndCoreTypes
+        ? kernelTarget.loader.hierarchy
+        : null,
+    coreTypes: includeHierarchyAndCoreTypes
+        ? kernelTarget.loader.coreTypes
+        : null,
+    kernelTargetForTesting: retainDataForTesting ? kernelTarget : null,
+  );
 }
 
 /// Result object of [generateKernel].
@@ -261,12 +302,13 @@ class InternalCompilerResult implements CompilerResult {
   /// This is only provided for use in testing.
   final KernelTarget? kernelTargetForTesting;
 
-  InternalCompilerResult(
-      {this.summary,
-      this.component,
-      this.sdkComponent,
-      required this.loadedComponents,
-      this.classHierarchy,
-      this.coreTypes,
-      this.kernelTargetForTesting});
+  InternalCompilerResult({
+    this.summary,
+    this.component,
+    this.sdkComponent,
+    required this.loadedComponents,
+    this.classHierarchy,
+    this.coreTypes,
+    this.kernelTargetForTesting,
+  });
 }

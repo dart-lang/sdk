@@ -38,8 +38,12 @@ Test generateTest() {
   // [additionalOffset] specifies an offset in characters from the opening
   // parenthesis of the assert statement to the first character of the
   // condition.
-  void makeAssertWithMessage(String condition,
-      {String? message, bool trailingComma = false, int additionalOffset = 0}) {
+  void makeAssertWithMessage(
+    String condition, {
+    String? message,
+    bool trailingComma = false,
+    int additionalOffset = 0,
+  }) {
     final name = 'testCase${spans.length}';
     sb.writeln('void $name(x) {');
     sb.write('assert(');
@@ -61,14 +65,22 @@ Test generateTest() {
   // the given condition.
   void makeAssert(String condition, {int additionalOffset = 0}) {
     makeAssertWithMessage(condition, additionalOffset: additionalOffset);
-    makeAssertWithMessage(condition,
-        trailingComma: true, additionalOffset: additionalOffset);
-    makeAssertWithMessage(condition,
-        message: 'message message', additionalOffset: additionalOffset);
-    makeAssertWithMessage(condition,
-        message: 'message message',
-        trailingComma: true,
-        additionalOffset: additionalOffset);
+    makeAssertWithMessage(
+      condition,
+      trailingComma: true,
+      additionalOffset: additionalOffset,
+    );
+    makeAssertWithMessage(
+      condition,
+      message: 'message message',
+      additionalOffset: additionalOffset,
+    );
+    makeAssertWithMessage(
+      condition,
+      message: 'message message',
+      trailingComma: true,
+      additionalOffset: additionalOffset,
+    );
   }
 
   // Create all test cases.
@@ -129,11 +141,14 @@ void main() {
     CompilerOptions options = new CompilerOptions()
       ..onDiagnostic = (CfeDiagnosticMessage message) {
         Expect.fail(
-            "Unexpected message: ${message.plainTextFormatted.join('\n')}");
+          "Unexpected message: ${message.plainTextFormatted.join('\n')}",
+        );
       };
-    Component? p = (await compileScript(test.source,
-            options: options, fileName: 'synthetic-test.dart'))
-        ?.component;
+    Component? p = (await compileScript(
+      test.source,
+      options: options,
+      fileName: 'synthetic-test.dart',
+    ))?.component;
     Expect.isNotNull(p);
     VerifyingVisitor visitor = new VerifyingVisitor(test);
     p!.mainMethod!.enclosingLibrary.accept(visitor);

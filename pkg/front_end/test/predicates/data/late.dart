@@ -797,51 +797,51 @@ extension Extension on int? {
 
 method() {
   late int
-      /*
+  /*
        lateLocal,
        lateLocalGetter,
        lateLocalSetter,
        name=localNonNullableWithoutInitializer
       */
-      localNonNullableWithoutInitializer;
+  localNonNullableWithoutInitializer;
   late final int
-      /*
+  /*
        lateLocal,
        lateLocalGetter,
        lateLocalSetter,
        name=finalLocalNonNullableWithoutInitializer
       */
-      finalLocalNonNullableWithoutInitializer;
+  finalLocalNonNullableWithoutInitializer;
   late int?
-      /*is-null.
+  /*is-null.
        lateIsSetLocal,
        lateLocal,
        lateLocalGetter,
        lateLocalSetter,
        name=localNullableWithoutInitializer
       */
-      /*sentinel.
+  /*sentinel.
        lateLocal,
        lateLocalGetter,
        lateLocalSetter,
        name=localNullableWithoutInitializer
       */
-      localNullableWithoutInitializer;
+  localNullableWithoutInitializer;
   late final int?
-      /*is-null.
+  /*is-null.
        lateIsSetLocal,
        lateLocal,
        lateLocalGetter,
        lateLocalSetter,
        name=finalLocalNullableWithoutInitializer
       */
-      /*sentinel.
+  /*sentinel.
        lateLocal,
        lateLocalGetter,
        lateLocalSetter,
        name=finalLocalNullableWithoutInitializer
       */
-      finalLocalNullableWithoutInitializer;
+  finalLocalNullableWithoutInitializer;
   late int
       /*
        lateLocal,
@@ -849,13 +849,14 @@ method() {
        lateLocalSetter,
        name=localNonNullableWithInitializer
       */
-      localNonNullableWithInitializer = 21;
+      localNonNullableWithInitializer =
+      21;
   late final int /*
    lateLocal,
    lateLocalGetter,
    name=finalLocalNonNullableWithInitializer
   */
-      finalLocalNonNullableWithInitializer = 22;
+  finalLocalNonNullableWithInitializer = 22;
   late int?
       /*is-null.
        lateIsSetLocal,
@@ -870,7 +871,8 @@ method() {
        lateLocalSetter,
        name=localNullableWithInitializer
       */
-      localNullableWithInitializer = 23;
+      localNullableWithInitializer =
+      23;
   late final int?
       /*is-null.
        lateIsSetLocal,
@@ -883,5 +885,6 @@ method() {
        lateLocalGetter,
        name=finalLocalNullableWithInitializer
       */
-      finalLocalNullableWithInitializer = 24;
+      finalLocalNullableWithInitializer =
+      24;
 }

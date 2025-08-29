@@ -64,7 +64,10 @@ class CoverageVisitorStrategy extends Visitor0Strategy {
 
   @override
   void handleVisitReference(
-      AstModel astModel, AstClass astClass, StringBuffer sb) {
+    AstModel astModel,
+    AstClass astClass,
+    StringBuffer sb,
+  ) {
     if (astClass.kind == AstClassKind.auxiliary) {
       sb.writeln('''
         throw new UnsupportedError(

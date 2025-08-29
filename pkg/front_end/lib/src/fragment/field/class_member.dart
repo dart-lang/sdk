@@ -39,8 +39,10 @@ class _FieldClassMember implements ClassMember {
   @override
   Covariance getCovariance(ClassMembersBuilder membersBuilder) {
     return _covariance ??= forSetter
-        ? new Covariance.fromMember(getMember(membersBuilder),
-            forSetter: forSetter)
+        ? new Covariance.fromMember(
+            getMember(membersBuilder),
+            forSetter: forSetter,
+          )
         : const Covariance.empty();
   }
 
@@ -54,21 +56,30 @@ class _FieldClassMember implements ClassMember {
   // Coverage-ignore(suite): Not run.
   MemberResult getMemberResult(ClassMembersBuilder membersBuilder) {
     if (isStatic) {
-      return new StaticMemberResult(getMember(membersBuilder), memberKind,
-          isDeclaredAsField: true,
-          fullName: '${declarationBuilder.name}.${_builder.memberName.text}');
+      return new StaticMemberResult(
+        getMember(membersBuilder),
+        memberKind,
+        isDeclaredAsField: true,
+        fullName: '${declarationBuilder.name}.${_builder.memberName.text}',
+      );
     } else if (_builder.isExtensionTypeMember) {
       ExtensionTypeDeclaration extensionTypeDeclaration =
           (declarationBuilder as ExtensionTypeDeclarationBuilder)
               .extensionTypeDeclaration;
       Member member = getTearOff(membersBuilder) ?? getMember(membersBuilder);
       return new ExtensionTypeMemberResult(
-          extensionTypeDeclaration, member, memberKind, name,
-          isDeclaredAsField: true);
+        extensionTypeDeclaration,
+        member,
+        memberKind,
+        name,
+        isDeclaredAsField: true,
+      );
     } else {
       return new TypeDeclarationInstanceMemberResult(
-          getMember(membersBuilder), memberKind,
-          isDeclaredAsField: true);
+        getMember(membersBuilder),
+        memberKind,
+        isDeclaredAsField: true,
+      );
     }
   }
 
@@ -138,13 +149,19 @@ class _FieldClassMember implements ClassMember {
 
   @override
   void registerOverrideDependency(
-      ClassMembersBuilder membersBuilder, Set<ClassMember> overriddenMembers) {
+    ClassMembersBuilder membersBuilder,
+    Set<ClassMember> overriddenMembers,
+  ) {
     if (forSetter) {
       _builder.registerSetterOverrideDependency(
-          membersBuilder, overriddenMembers);
+        membersBuilder,
+        overriddenMembers,
+      );
     } else {
       _builder.registerGetterOverrideDependency(
-          membersBuilder, overriddenMembers);
+        membersBuilder,
+        overriddenMembers,
+      );
     }
   }
 
@@ -168,8 +185,14 @@ class _SynthesizedFieldClassMember implements ClassMember {
   @override
   final UriOffsetLength uriOffset;
 
-  _SynthesizedFieldClassMember(this._builder, this._member, this._name,
-      this._kind, this.memberKind, this.uriOffset);
+  _SynthesizedFieldClassMember(
+    this._builder,
+    this._member,
+    this._name,
+    this._kind,
+    this.memberKind,
+    this.uriOffset,
+  );
 
   @override
   Member getMember(ClassMembersBuilder membersBuilder) {
@@ -186,16 +209,20 @@ class _SynthesizedFieldClassMember implements ClassMember {
 
   @override
   Covariance getCovariance(ClassMembersBuilder membersBuilder) {
-    return _covariance ??= new Covariance.fromMember(getMember(membersBuilder),
-        forSetter: forSetter);
+    return _covariance ??= new Covariance.fromMember(
+      getMember(membersBuilder),
+      forSetter: forSetter,
+    );
   }
 
   @override
   // Coverage-ignore(suite): Not run.
   MemberResult getMemberResult(ClassMembersBuilder membersBuilder) {
     return new TypeDeclarationInstanceMemberResult(
-        getMember(membersBuilder), memberKind,
-        isDeclaredAsField: isDeclaredAsField(_builder, forSetter: forSetter));
+      getMember(membersBuilder),
+      memberKind,
+      isDeclaredAsField: isDeclaredAsField(_builder, forSetter: forSetter),
+    );
   }
 
   @override
@@ -205,13 +232,19 @@ class _SynthesizedFieldClassMember implements ClassMember {
 
   @override
   void registerOverrideDependency(
-      ClassMembersBuilder membersBuilder, Set<ClassMember> overriddenMembers) {
+    ClassMembersBuilder membersBuilder,
+    Set<ClassMember> overriddenMembers,
+  ) {
     if (forSetter) {
       _builder.registerSetterOverrideDependency(
-          membersBuilder, overriddenMembers);
+        membersBuilder,
+        overriddenMembers,
+      );
     } else {
       _builder.registerGetterOverrideDependency(
-          membersBuilder, overriddenMembers);
+        membersBuilder,
+        overriddenMembers,
+      );
     }
   }
 
@@ -288,7 +321,8 @@ class _SynthesizedFieldClassMember implements ClassMember {
   bool get isNoSuchMethodForwarder => false;
 
   @override
-  String toString() => '_SynthesizedFieldClassMember('
+  String toString() =>
+      '_SynthesizedFieldClassMember('
       '$_builder,$_member,$_kind,forSetter=${forSetter})';
 
   @override

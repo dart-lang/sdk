@@ -3,11 +3,18 @@
 // BSD-style license that can be found in the LICENSE file.
 
 main() {
-  /*Null*/ null;
-  /*bool!*/ true;
-  /*bool!*/ false;
-  /*String!*/ 'foo';
-  /*int!*/ 42;
-  /*double!*/ 0.5;
-  /*Symbol!*/ #main;
+  /*Null*/
+  null;
+  /*bool!*/
+  true;
+  /*bool!*/
+  false;
+  /*String!*/
+  'foo';
+  /*int!*/
+  42;
+  /*double!*/
+  0.5;
+  /*Symbol!*/
+  #main;
 }

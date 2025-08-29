@@ -17,7 +17,8 @@ import 'package:testing/src/test_description.dart' show TestDescription;
 
 import 'dartdoctest_suite.dart' as dartdoctest show createContext;
 import 'expression_suite.dart' as expression show createContext;
-import 'incremental_dartino_suite.dart' as incremental_dartino
+import 'incremental_dartino_suite.dart'
+    as incremental_dartino
     show createContext;
 import 'messages_suite.dart' as messages show createContext;
 import 'modular_suite.dart' as modular show createContext;
@@ -25,7 +26,8 @@ import 'outline_suite.dart' as outline show createContext;
 import 'strong_suite.dart' as strong show createContext;
 import 'textual_outline_suite.dart' as textual_outline show createContext;
 import 'coverage_merger_suite.dart' as coverage_merger show createContext;
-import 'incremental_bulk_compiler_smoke_suite.dart' as incremental_bulk_compiler
+import 'incremental_bulk_compiler_smoke_suite.dart'
+    as incremental_bulk_compiler
     show createContext;
 import 'incremental_suite.dart' as incremental show createContext;
 import 'lint_suite.dart' as lint show createContext;
@@ -33,7 +35,8 @@ import 'outline_extractor_suite.dart' as outline_extractor show createContext;
 import 'parser_all_suite.dart' as parserAll show createContext;
 import 'parser_equivalence_suite.dart' as parserEquivalence show createContext;
 import 'parser_suite.dart' as parser show createContext;
-import 'spelling_test_not_src_suite.dart' as spelling_not_src
+import 'spelling_test_not_src_suite.dart'
+    as spelling_not_src
     show createContext;
 import 'spelling_test_src_suite.dart' as spelling_src show createContext;
 
@@ -76,29 +79,50 @@ class Options {
 
   static Options parse(List<String> args) {
     var parser = new ArgParser()
-      ..addOption("named-configuration",
-          abbr: "n",
-          help: "configuration name to use for emitting json result files")
-      ..addOption("output-directory",
-          help: "directory to which results.json and logs.json are written")
-      ..addFlag("verbose",
-          abbr: "v", help: "print additional information", defaultsTo: false)
-      ..addFlag("print",
-          abbr: "p", help: "print failure logs", defaultsTo: false)
-      ..addMultiOption('environment',
-          abbr: 'D', help: "environment options for the test suite")
-      ..addOption("tasks",
-          abbr: "j",
-          help: "The number of parallel tasks to run.",
-          defaultsTo: "${getDefaultThreads()}")
+      ..addOption(
+        "named-configuration",
+        abbr: "n",
+        help: "configuration name to use for emitting json result files",
+      )
+      ..addOption(
+        "output-directory",
+        help: "directory to which results.json and logs.json are written",
+      )
+      ..addFlag(
+        "verbose",
+        abbr: "v",
+        help: "print additional information",
+        defaultsTo: false,
+      )
+      ..addFlag(
+        "print",
+        abbr: "p",
+        help: "print failure logs",
+        defaultsTo: false,
+      )
+      ..addMultiOption(
+        'environment',
+        abbr: 'D',
+        help: "environment options for the test suite",
+      )
+      ..addOption(
+        "tasks",
+        abbr: "j",
+        help: "The number of parallel tasks to run.",
+        defaultsTo: "${getDefaultThreads()}",
+      )
       ..addOption("shards", help: "Number of shards", defaultsTo: "1")
       ..addOption("shard", help: "Which shard to run", defaultsTo: "1")
-      ..addFlag("skipTestsThatRequireGit",
-          help: "Whether to skip tests that require git to run",
-          defaultsTo: false)
-      ..addFlag("onlyTestsThatRequireGit",
-          help: "Whether to only run tests that require git",
-          defaultsTo: false);
+      ..addFlag(
+        "skipTestsThatRequireGit",
+        help: "Whether to skip tests that require git to run",
+        defaultsTo: false,
+      )
+      ..addFlag(
+        "onlyTestsThatRequireGit",
+        help: "Whether to only run tests that require git",
+        defaultsTo: false,
+      );
     var parsedOptions = parser.parse(args);
     String outputPath = parsedOptions["output-directory"] ?? ".";
     Uri outputDirectory = Uri.base.resolveUri(Uri.directory(outputPath));
@@ -136,18 +160,20 @@ class Options {
     }
 
     if (verbose) {
-      print("NOTE: Created with options\n  "
-          "${parsedOptions["named-configuration"]},\n  "
-          "${verbose},\n  "
-          "${parsedOptions["print"]},\n  "
-          "${outputDirectory},\n  "
-          "${filter},\n  "
-          "${parsedOptions['environment']},\n  "
-          "shardCount: ${shardCount},\n  "
-          "shard: ${shard - 1 /* make it 0-indexed */},\n  "
-          "onlyTestsThatRequireGit: ${onlyTestsThatRequireGit},\n  "
-          "skipTestsThatRequireGit: ${skipTestsThatRequireGit},\n  "
-          "numberOfWorkers: ${tasks}");
+      print(
+        "NOTE: Created with options\n  "
+        "${parsedOptions["named-configuration"]},\n  "
+        "${verbose},\n  "
+        "${parsedOptions["print"]},\n  "
+        "${outputDirectory},\n  "
+        "${filter},\n  "
+        "${parsedOptions['environment']},\n  "
+        "shardCount: ${shardCount},\n  "
+        "shard: ${shard - 1 /* make it 0-indexed */},\n  "
+        "onlyTestsThatRequireGit: ${onlyTestsThatRequireGit},\n  "
+        "skipTestsThatRequireGit: ${skipTestsThatRequireGit},\n  "
+        "numberOfWorkers: ${tasks}",
+      );
     }
 
     return Options(
@@ -177,8 +203,14 @@ class ResultLogger implements Logger {
   final Set<String> seenTests = {};
   bool gotFrameworkError = false;
 
-  ResultLogger(this.prefix, this.resultsPort, this.logsPort, this.verbose,
-      this.printFailureLog, this.configurationName);
+  ResultLogger(
+    this.prefix,
+    this.resultsPort,
+    this.logsPort,
+    this.verbose,
+    this.printFailureLog,
+    this.configurationName,
+  );
 
   String getTestName(TestDescription description) {
     return "$prefix/${description.shortName}";
@@ -194,12 +226,24 @@ class ResultLogger implements Logger {
   void logProgress(String message) {}
 
   @override
-  void logStepComplete(int completed, int failed, int total,
-      testing.Suite suite, TestDescription description, Step step) {}
+  void logStepComplete(
+    int completed,
+    int failed,
+    int total,
+    testing.Suite suite,
+    TestDescription description,
+    Step step,
+  ) {}
 
   @override
-  void logStepStart(int completed, int failed, int total, testing.Suite suite,
-      TestDescription description, Step step) {}
+  void logStepStart(
+    int completed,
+    int failed,
+    int total,
+    testing.Suite suite,
+    TestDescription description,
+    Step step,
+  ) {}
 
   @override
   void logSuiteStarted(testing.Suite suite) {}
@@ -208,25 +252,28 @@ class ResultLogger implements Logger {
   void logSuiteComplete(testing.Suite suite) {}
 
   void handleTestResult(
-      testing.Suite suite,
-      TestDescription testDescription,
-      Result result,
-      String fullSuiteName,
-      bool matchedExpectations,
-      Set<Expectation> expectedOutcomes) {
+    testing.Suite suite,
+    TestDescription testDescription,
+    Result result,
+    String fullSuiteName,
+    bool matchedExpectations,
+    Set<Expectation> expectedOutcomes,
+  ) {
     String testName = getTestName(testDescription);
     String suiteName = "pkg";
     String shortTestName = testName.substring(suiteName.length + 1);
-    resultsPort.send(jsonEncode({
-      "name": testName,
-      "configuration": configurationName,
-      "suite": suiteName,
-      "test_name": shortTestName,
-      "time_ms": stopwatches[testName]!.elapsedMilliseconds,
-      "expected": "Pass",
-      "result": matchedExpectations ? "Pass" : "Fail",
-      "matches": matchedExpectations,
-    }));
+    resultsPort.send(
+      jsonEncode({
+        "name": testName,
+        "configuration": configurationName,
+        "suite": suiteName,
+        "test_name": shortTestName,
+        "time_ms": stopwatches[testName]!.elapsedMilliseconds,
+        "expected": "Pass",
+        "result": matchedExpectations ? "Pass" : "Fail",
+        "matches": matchedExpectations,
+      }),
+    );
     if (!matchedExpectations) {
       StringBuffer sb = new StringBuffer();
       if (printFailureLog) {
@@ -243,48 +290,63 @@ class ResultLogger implements Logger {
       sb.write("\n\nTo re-run this test, run:");
       var extraFlags = _assertsEnabled ? ' --enable-asserts' : '';
       sb.write(
-          "\n\n   dart$extraFlags pkg/front_end/test/unit_test_suites.dart -p "
-          "$testName");
+        "\n\n   dart$extraFlags pkg/front_end/test/unit_test_suites.dart -p "
+        "$testName",
+      );
       if (result.autoFixCommand != null) {
         sb.write("\n\nTo automatically update the test expectations, run:");
-        sb.write("\n\n   dart pkg/front_end/test/unit_test_suites.dart -p "
-            "$testName -D${result.autoFixCommand}");
+        sb.write(
+          "\n\n   dart pkg/front_end/test/unit_test_suites.dart -p "
+          "$testName -D${result.autoFixCommand}",
+        );
         if (result.canBeFixWithUpdateExpectations) {
-          sb.write('\n\nTo update test expectations for all tests at once, '
-              'run:');
+          sb.write(
+            '\n\nTo update test expectations for all tests at once, '
+            'run:',
+          );
           sb.write('\n\n  dart pkg/front_end/tool/update_expectations.dart');
-          sb.write('\n\nNote that this takes a long time and should only be '
-              'used when many tests need updating.\n');
+          sb.write(
+            '\n\nNote that this takes a long time and should only be '
+            'used when many tests need updating.\n',
+          );
         }
       }
       if (result.outcome == Expectation.pass) {
-        String expectedString =
-            expectedOutcomes.map((e) => e.toString()).join(", ");
-        sb.write("\n\nThe test passed, but wasn't expected to. "
-            "You should update the status file for this test."
-            "\nThere's a status entry looking something like"
-            "\n\n  ${testDescription.shortName}: ${expectedString}"
-            "\n\nwhich should be removed."
-            "\n\nThe status file is ${suite.statusFile}.");
+        String expectedString = expectedOutcomes
+            .map((e) => e.toString())
+            .join(", ");
+        sb.write(
+          "\n\nThe test passed, but wasn't expected to. "
+          "You should update the status file for this test."
+          "\nThere's a status entry looking something like"
+          "\n\n  ${testDescription.shortName}: ${expectedString}"
+          "\n\nwhich should be removed."
+          "\n\nThe status file is ${suite.statusFile}.",
+        );
       } else if (result.autoFixCommand == null) {
-        String expectedString =
-            expectedOutcomes.map((e) => e.toString()).join(", ");
-        sb.write("\n\nThe test has outcome ${result.outcome}, "
-            "but was expected to have outcome(s) ${expectedOutcomes}. "
-            "You might have to update the status file to the new outcome"
-            "\nThere's a status entry looking something like"
-            "\n\n  ${testDescription.shortName}: ${expectedString}"
-            "\n\nwhich should be updated."
-            "\n\nThe status file is ${suite.statusFile}.");
+        String expectedString = expectedOutcomes
+            .map((e) => e.toString())
+            .join(", ");
+        sb.write(
+          "\n\nThe test has outcome ${result.outcome}, "
+          "but was expected to have outcome(s) ${expectedOutcomes}. "
+          "You might have to update the status file to the new outcome"
+          "\nThere's a status entry looking something like"
+          "\n\n  ${testDescription.shortName}: ${expectedString}"
+          "\n\nwhich should be updated."
+          "\n\nThe status file is ${suite.statusFile}.",
+        );
       }
       String failureLog = sb.toString();
       String outcome = "${result.outcome}";
-      logsPort.send(jsonEncode({
-        "name": testName,
-        "configuration": configurationName,
-        "result": outcome,
-        "log": failureLog,
-      }));
+      logsPort.send(
+        jsonEncode({
+          "name": testName,
+          "configuration": configurationName,
+          "result": outcome,
+          "log": failureLog,
+        }),
+      );
       if (printFailureLog) {
         print(failureLog);
       }
@@ -296,29 +358,53 @@ class ResultLogger implements Logger {
   }
 
   @override
-  void logTestStart(int completed, int failed, int total, testing.Suite suite,
-      TestDescription description) {
+  void logTestStart(
+    int completed,
+    int failed,
+    int total,
+    testing.Suite suite,
+    TestDescription description,
+  ) {
     String name = getTestName(description);
     stopwatches[name] = Stopwatch()..start();
   }
 
   @override
-  void logTestComplete(int completed, int failed, int total,
-      testing.Suite suite, TestDescription description) {}
+  void logTestComplete(
+    int completed,
+    int failed,
+    int total,
+    testing.Suite suite,
+    TestDescription description,
+  ) {}
 
   @override
   void logUncaughtError(error, StackTrace stackTrace) {}
 
   @override
-  void logExpectedResult(testing.Suite suite, TestDescription description,
-      Result result, Set<Expectation> expectedOutcomes) {
+  void logExpectedResult(
+    testing.Suite suite,
+    TestDescription description,
+    Result result,
+    Set<Expectation> expectedOutcomes,
+  ) {
     handleTestResult(
-        suite, description, result, prefix, true, expectedOutcomes);
+      suite,
+      description,
+      result,
+      prefix,
+      true,
+      expectedOutcomes,
+    );
   }
 
   @override
-  void logUnexpectedResult(testing.Suite suite, TestDescription description,
-      Result result, Set<Expectation> expectedOutcomes) {
+  void logUnexpectedResult(
+    testing.Suite suite,
+    TestDescription description,
+    Result result,
+    Set<Expectation> expectedOutcomes,
+  ) {
     // The test framework (pkg/testing) calls the logger with an unexpected
     // results a second time to create a summary. We ignore the second call
     // here.
@@ -326,7 +412,13 @@ class ResultLogger implements Logger {
     if (seenTests.contains(testName)) return;
     seenTests.add(testName);
     handleTestResult(
-        suite, description, result, prefix, false, expectedOutcomes);
+      suite,
+      description,
+      result,
+      prefix,
+      false,
+      expectedOutcomes,
+    );
   }
 
   @override
@@ -411,12 +503,7 @@ const List<Suite> suites = [
     shardCount: 1,
     requiresGit: true,
   ),
-  const Suite(
-    "parser",
-    parser.createContext,
-    "../testing.json",
-    shardCount: 1,
-  ),
+  const Suite("parser", parser.createContext, "../testing.json", shardCount: 1),
   const Suite(
     "parser_equivalence",
     parserEquivalence.createContext,
@@ -428,10 +515,8 @@ const List<Suite> suites = [
     parserAll.createContext,
     "../testing.json",
     shardCount: 4,
-    requiresGit:
-        true /* technically not true, but tests *many* more files
-         than in test_matrix.json file set */
-    ,
+    requiresGit: true /* technically not true, but tests *many* more files
+         than in test_matrix.json file set */,
   ),
   const Suite(
     "spelling_test_not_src",
@@ -509,12 +594,13 @@ Future<void> runSuite(SuiteConfiguration configuration) async {
     throw "File doesn't exist: $suiteUri";
   }
   ResultLogger logger = ResultLogger(
-      fullSuiteName,
-      configuration.resultsPort,
-      configuration.logsPort,
-      configuration.verbose,
-      configuration.printFailureLog,
-      configuration.configurationName);
+    fullSuiteName,
+    configuration.resultsPort,
+    configuration.logsPort,
+    configuration.verbose,
+    configuration.printFailureLog,
+    configuration.configurationName,
+  );
   await runMe(
     <String>[
       if (configuration.testFilter != null) configuration.testFilter!,
@@ -579,15 +665,16 @@ Future<void> main([List<String> arguments = const <String>[]]) async {
       ReceivePort exitPort = new ReceivePort();
       ReceivePort errorPort = new ReceivePort();
       SuiteConfiguration configuration = new SuiteConfiguration(
-          suite,
-          resultsPort.sendPort,
-          logsPort.sendPort,
-          options.verbose,
-          options.printFailureLog,
-          options.configurationName,
-          filter,
-          options.environmentOptions,
-          shard);
+        suite,
+        resultsPort.sendPort,
+        logsPort.sendPort,
+        options.verbose,
+        options.printFailureLog,
+        options.configurationName,
+        filter,
+        options.environmentOptions,
+        shard,
+      );
       Future<bool> future = new Future<bool>(() async {
         try {
           Stopwatch stopwatch = new Stopwatch()..start();
@@ -597,13 +684,18 @@ Future<void> main([List<String> arguments = const <String>[]]) async {
           }
           print("Running suite $naming");
           Isolate isolate = await Isolate.spawn<SuiteConfiguration>(
-              runSuite, configuration,
-              onExit: exitPort.sendPort, onError: errorPort.sendPort);
+            runSuite,
+            configuration,
+            onExit: exitPort.sendPort,
+            onError: errorPort.sendPort,
+          );
           bool timedOutOrCrash = false;
           Timer timer = new Timer(timeoutDuration, () {
             timedOutOrCrash = true;
-            print("Suite $naming timed out after "
-                "${timeoutDuration.inMilliseconds}ms");
+            print(
+              "Suite $naming timed out after "
+              "${timeoutDuration.inMilliseconds}ms",
+            );
             isolate.kill(priority: Isolate.immediate);
           });
           await exitPort.first;
@@ -626,8 +718,10 @@ Future<void> main([List<String> arguments = const <String>[]]) async {
           if (!timedOutOrCrash) {
             print("Suite $naming finished (took ${seconds} seconds)");
           } else {
-            print("Suite $naming finished badly (see above) "
-                "(took ${seconds} seconds)");
+            print(
+              "Suite $naming finished badly (see above) "
+              "(took ${seconds} seconds)",
+            );
           }
           return timedOutOrCrash;
         } finally {
@@ -646,8 +740,10 @@ Future<void> main([List<String> arguments = const <String>[]]) async {
   Uri logsJsonUri = options.outputDirectory.resolve("logs.json");
   await writeLinesToFile(resultJsonUri, results);
   await writeLinesToFile(logsJsonUri, logs);
-  print("Log files written to ${resultJsonUri.toFilePath()} and"
-      " ${logsJsonUri.toFilePath()}");
+  print(
+    "Log files written to ${resultJsonUri.toFilePath()} and"
+    " ${logsJsonUri.toFilePath()}",
+  );
   print("Entire run took ${totalRuntime.elapsed}.");
   // Return with exit code 1 if at least one suite timed out.
   bool timedOutOrCrashed = timeoutsOrCrashes.any((timeout) => timeout);

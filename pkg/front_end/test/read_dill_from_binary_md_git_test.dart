@@ -17,8 +17,10 @@ Future<void> main() async {
 Future<void> testDart2jsCompile() async {
   final Uri dart2jsUrl = Uri.base.resolve("pkg/compiler/lib/src/dart2js.dart");
   Stopwatch stopwatch = new Stopwatch()..start();
-  List<int> bytes = await normalCompileToBytes(dart2jsUrl,
-      options: getOptions(target: new NoneTarget(new TargetFlags())));
+  List<int> bytes = await normalCompileToBytes(
+    dart2jsUrl,
+    options: getOptions(target: new NoneTarget(new TargetFlags())),
+  );
   print("Compiled dart2js in ${stopwatch.elapsedMilliseconds} ms");
 
   stopwatch.reset();
@@ -27,11 +29,15 @@ Future<void> testDart2jsCompile() async {
   print("Read binary.md in ${stopwatch.elapsedMilliseconds} ms");
 
   stopwatch.reset();
-  BinaryMdDillReader binaryMdDillReader =
-      new BinaryMdDillReader(binaryMdContent, bytes);
+  BinaryMdDillReader binaryMdDillReader = new BinaryMdDillReader(
+    binaryMdContent,
+    bytes,
+  );
   binaryMdDillReader.attemptRead();
-  print("Parsed dart2js compiled bytes via binary.md "
-      "in ${stopwatch.elapsedMilliseconds} ms");
+  print(
+    "Parsed dart2js compiled bytes via binary.md "
+    "in ${stopwatch.elapsedMilliseconds} ms",
+  );
 }
 
 final String repoDir = computeRepoDir();

@@ -25,7 +25,7 @@ class TypeConstraintGathererTest {
   late Env env;
 
   final Map<String, DartType Function()> additionalTypes = {
-    'UNKNOWN': () => UnknownType()
+    'UNKNOWN': () => UnknownType(),
   };
 
   late Library _coreLibrary;
@@ -45,9 +45,10 @@ class TypeConstraintGathererTest {
   void parseTestLibrary(String testLibraryText) {
     env = new Env(testLibraryText);
     assert(
-        env.component.libraries.length == 2,
-        "The tests are supposed to have exactly two libraries: "
-        "the core library and the test library.");
+      env.component.libraries.length == 2,
+      "The tests are supposed to have exactly two libraries: "
+      "the core library and the test library.",
+    );
     Library firstLibrary = env.component.libraries.first;
     Library secondLibrary = env.component.libraries.last;
     if (firstLibrary.importUri.isScheme("dart") &&
@@ -56,9 +57,10 @@ class TypeConstraintGathererTest {
       _testLibrary = secondLibrary;
     } else {
       assert(
-          secondLibrary.importUri.isScheme("dart") &&
-              secondLibrary.importUri.path == "core",
-          "One of the libraries is expected to be 'dart:core'.");
+        secondLibrary.importUri.isScheme("dart") &&
+            secondLibrary.importUri.path == "core",
+        "One of the libraries is expected to be 'dart:core'.",
+      );
       _coreLibrary == secondLibrary;
       _testLibrary = firstLibrary;
     }
@@ -67,8 +69,9 @@ class TypeConstraintGathererTest {
   void test_any_subtype_parameter() {
     parseTestLibrary('class P; class Q;');
 
-    checkConstraintsLower('T1', 'Q', ['lib::Q <: T1'],
-        typeParameters: 'T1 extends Object?');
+    checkConstraintsLower('T1', 'Q', [
+      'lib::Q <: T1',
+    ], typeParameters: 'T1 extends Object?');
   }
 
   void test_any_subtype_top() {
@@ -85,19 +88,32 @@ class TypeConstraintGathererTest {
 
     checkConstraintsUpper('P', 'UNKNOWN', []);
     checkConstraintsUpper('P?', 'UNKNOWN', []);
-    checkConstraintsUpper('T1', 'UNKNOWN', [],
-        typeParameters: 'T1 extends Object?');
-    checkConstraintsUpper('T1?', 'UNKNOWN', [],
-        typeParameters: 'T1 extends Object?');
+    checkConstraintsUpper(
+      'T1',
+      'UNKNOWN',
+      [],
+      typeParameters: 'T1 extends Object?',
+    );
+    checkConstraintsUpper(
+      'T1?',
+      'UNKNOWN',
+      [],
+      typeParameters: 'T1 extends Object?',
+    );
   }
 
   void test_different_classes() {
     parseTestLibrary('class P; class Q;');
 
-    checkConstraintsUpper('List<T1>', 'Iterable<Q>', ['T1 <: lib::Q'],
-        typeParameters: 'T1 extends Object?');
-    checkConstraintsUpper('Iterable<T1>', 'List<Q>', null,
-        typeParameters: 'T1 extends Object?');
+    checkConstraintsUpper('List<T1>', 'Iterable<Q>', [
+      'T1 <: lib::Q',
+    ], typeParameters: 'T1 extends Object?');
+    checkConstraintsUpper(
+      'Iterable<T1>',
+      'List<Q>',
+      null,
+      typeParameters: 'T1 extends Object?',
+    );
   }
 
   void test_equal_types() {
@@ -111,13 +127,22 @@ class TypeConstraintGathererTest {
 
     // <T>() -> dynamic <: () -> dynamic, never
     checkConstraintsUpper(
-        '<T extends Object?>() -> dynamic', '() -> dynamic', null);
+      '<T extends Object?>() -> dynamic',
+      '() -> dynamic',
+      null,
+    );
     // () -> dynamic <: <T>() -> dynamic, never
     checkConstraintsUpper(
-        '() -> dynamic', '<T extends Object?>() -> dynamic', null);
+      '() -> dynamic',
+      '<T extends Object?>() -> dynamic',
+      null,
+    );
     // <T>(T) -> T <: <U>(U) -> U, always
     checkConstraintsUpper(
-        '<T extends Object?>(T) -> T', '<U extends Object?>(U) -> U', []);
+      '<T extends Object?>(T) -> T',
+      '<U extends Object?>(U) -> U',
+      [],
+    );
   }
 
   void test_function_parameter_mismatch() {
@@ -141,31 +166,40 @@ class TypeConstraintGathererTest {
     parseTestLibrary('class P; class Q;');
 
     // (T1) -> dynamic <: (Q) -> dynamic, under constraint Q <: T1
-    checkConstraintsUpper('(T1) -> dynamic', '(Q) -> dynamic', ['lib::Q <: T1'],
-        typeParameters: 'T1 extends Object?');
+    checkConstraintsUpper('(T1) -> dynamic', '(Q) -> dynamic', [
+      'lib::Q <: T1',
+    ], typeParameters: 'T1 extends Object?');
     // (T1?) -> dynamic <: (Q?) -> dynamic, under constraint Q <: T1
-    checkConstraintsUpper(
-        '(T1?) -> dynamic', '(Q?) -> dynamic', ['lib::Q <: T1'],
-        typeParameters: 'T1 extends Object?');
+    checkConstraintsUpper('(T1?) -> dynamic', '(Q?) -> dynamic', [
+      'lib::Q <: T1',
+    ], typeParameters: 'T1 extends Object?');
     // ({x: T1}) -> dynamic <: ({x: Q}) -> dynamic, under constraint Q <: T1
     checkConstraintsUpper(
-        '({T1 x}) -> dynamic', '({Q x}) -> dynamic', ['lib::Q <: T1'],
-        typeParameters: 'T1 extends Object?');
+      '({T1 x}) -> dynamic',
+      '({Q x}) -> dynamic',
+      ['lib::Q <: T1'],
+      typeParameters: 'T1 extends Object?',
+    );
     // ({x: T1?}) -> dynamic <: ({x: Q?}) -> dynamic, under constraint Q <: T1
     checkConstraintsUpper(
-        '({T1? x}) -> dynamic', '({Q? x}) -> dynamic', ['lib::Q <: T1'],
-        typeParameters: 'T1 extends Object?');
+      '({T1? x}) -> dynamic',
+      '({Q? x}) -> dynamic',
+      ['lib::Q <: T1'],
+      typeParameters: 'T1 extends Object?',
+    );
   }
 
   void test_function_return_type() {
     parseTestLibrary('class P; class Q;');
 
     // () -> T1 <: () -> Q, under constraint T1 <: Q
-    checkConstraintsUpper('() -> T1', '() -> Q', ['T1 <: lib::Q'],
-        typeParameters: 'T1 extends Object?');
+    checkConstraintsUpper('() -> T1', '() -> Q', [
+      'T1 <: lib::Q',
+    ], typeParameters: 'T1 extends Object?');
     // () -> T1? <: () -> Q?, under constraint T1 <: Q
-    checkConstraintsUpper('() -> T1?', '() -> Q?', ['T1 <: lib::Q'],
-        typeParameters: 'T1 extends Object?');
+    checkConstraintsUpper('() -> T1?', '() -> Q?', [
+      'T1 <: lib::Q',
+    ], typeParameters: 'T1 extends Object?');
     // () -> P <: () -> void, always
     checkConstraintsUpper('() -> P', '() -> void', []);
     // () -> P? <: () -> void, always
@@ -190,69 +224,110 @@ class TypeConstraintGathererTest {
   void test_nonInferredParameter_subtype_any() {
     parseTestLibrary('class P; class Q;');
 
-    checkConstraintsLower('List<T1>', 'U', ['lib::P <: T1'],
-        typeParameters: 'T1 extends Object, U extends List<P>',
-        typeParametersToConstrain: 'T1');
-    checkConstraintsLower('List<T1?>', 'U', ['lib::P <: T1'],
-        typeParameters: 'T1 extends Object, U extends List<P?>',
-        typeParametersToConstrain: 'T1');
+    checkConstraintsLower(
+      'List<T1>',
+      'U',
+      ['lib::P <: T1'],
+      typeParameters: 'T1 extends Object, U extends List<P>',
+      typeParametersToConstrain: 'T1',
+    );
+    checkConstraintsLower(
+      'List<T1?>',
+      'U',
+      ['lib::P <: T1'],
+      typeParameters: 'T1 extends Object, U extends List<P?>',
+      typeParametersToConstrain: 'T1',
+    );
   }
 
   void test_null_subtype_any() {
     parseTestLibrary('class P; class Q;');
 
-    checkConstraintsLower('T1', 'Null', ['Null <: T1'],
-        typeParameters: 'T1 extends Object?');
-    checkConstraintsLower('T1?', 'Null', ['Null <: T1'],
-        typeParameters: 'T1 extends Object?');
+    checkConstraintsLower('T1', 'Null', [
+      'Null <: T1',
+    ], typeParameters: 'T1 extends Object?');
+    checkConstraintsLower('T1?', 'Null', [
+      'Null <: T1',
+    ], typeParameters: 'T1 extends Object?');
     checkConstraintsUpper('Null', 'Q?', []);
   }
 
   void test_parameter_subtype_any() {
     parseTestLibrary('class P; class Q;');
 
-    checkConstraintsUpper('T1', 'Q', ['T1 <: lib::Q'],
-        typeParameters: 'T1 extends Object?');
+    checkConstraintsUpper('T1', 'Q', [
+      'T1 <: lib::Q',
+    ], typeParameters: 'T1 extends Object?');
   }
 
   void test_same_classes() {
     parseTestLibrary('class P; class Q;');
 
-    checkConstraintsUpper('List<T1>', 'List<Q>', ['T1 <: lib::Q'],
-        typeParameters: 'T1 extends Object?');
-    checkConstraintsUpper('List<T1?>', 'List<Q?>', ['T1 <: lib::Q'],
-        typeParameters: 'T1 extends Object?');
-    checkConstraintsUpper('List<T1>?', 'List<Q>?', ['T1 <: lib::Q'],
-        typeParameters: 'T1 extends Object?');
-    checkConstraintsUpper('List<T1?>?', 'List<Q?>?', ['T1 <: lib::Q'],
-        typeParameters: 'T1 extends Object?');
+    checkConstraintsUpper('List<T1>', 'List<Q>', [
+      'T1 <: lib::Q',
+    ], typeParameters: 'T1 extends Object?');
+    checkConstraintsUpper('List<T1?>', 'List<Q?>', [
+      'T1 <: lib::Q',
+    ], typeParameters: 'T1 extends Object?');
+    checkConstraintsUpper('List<T1>?', 'List<Q>?', [
+      'T1 <: lib::Q',
+    ], typeParameters: 'T1 extends Object?');
+    checkConstraintsUpper('List<T1?>?', 'List<Q?>?', [
+      'T1 <: lib::Q',
+    ], typeParameters: 'T1 extends Object?');
   }
 
   void test_typeParameters() {
     parseTestLibrary('class P; class Q; class Map<X, Y>;');
 
     checkConstraintsUpper(
-        'Map<T1, T2>', 'Map<P, Q>', ['T1 <: lib::P', 'T2 <: lib::Q'],
-        typeParameters: 'T1 extends Object?, T2 extends Object?');
+      'Map<T1, T2>',
+      'Map<P, Q>',
+      ['T1 <: lib::P', 'T2 <: lib::Q'],
+      typeParameters: 'T1 extends Object?, T2 extends Object?',
+    );
     checkConstraintsUpper(
-        'Map<T1, T2>', 'Map<P?, Q?>', ['T1 <: lib::P?', 'T2 <: lib::Q?'],
-        typeParameters: 'T1 extends Object?, T2 extends Object?');
-    checkConstraintsUpper('Map<T1?, T2?>', 'Map<P, Q>', null,
-        typeParameters: 'T1 extends Object?, T2 extends Object?');
+      'Map<T1, T2>',
+      'Map<P?, Q?>',
+      ['T1 <: lib::P?', 'T2 <: lib::Q?'],
+      typeParameters: 'T1 extends Object?, T2 extends Object?',
+    );
     checkConstraintsUpper(
-        'Map<T1?, T2?>', 'Map<P?, Q?>', ['T1 <: lib::P', 'T2 <: lib::Q'],
-        typeParameters: 'T1 extends Object?, T2 extends Object?');
+      'Map<T1?, T2?>',
+      'Map<P, Q>',
+      null,
+      typeParameters: 'T1 extends Object?, T2 extends Object?',
+    );
     checkConstraintsUpper(
-        'Map<T1, T2>?', 'Map<P, Q>?', ['T1 <: lib::P', 'T2 <: lib::Q'],
-        typeParameters: 'T1 extends Object?, T2 extends Object?');
+      'Map<T1?, T2?>',
+      'Map<P?, Q?>',
+      ['T1 <: lib::P', 'T2 <: lib::Q'],
+      typeParameters: 'T1 extends Object?, T2 extends Object?',
+    );
     checkConstraintsUpper(
-        'Map<T1, T2>?', 'Map<P?, Q?>?', ['T1 <: lib::P?', 'T2 <: lib::Q?'],
-        typeParameters: 'T1 extends Object?, T2 extends Object?');
-    checkConstraintsUpper('Map<T1?, T2?>?', 'Map<P, Q>?', null,
-        typeParameters: 'T1 extends Object?, T2 extends Object?');
+      'Map<T1, T2>?',
+      'Map<P, Q>?',
+      ['T1 <: lib::P', 'T2 <: lib::Q'],
+      typeParameters: 'T1 extends Object?, T2 extends Object?',
+    );
     checkConstraintsUpper(
-        'Map<T1?, T2?>?', 'Map<P?, Q?>?', ['T1 <: lib::P', 'T2 <: lib::Q'],
-        typeParameters: 'T1 extends Object?, T2 extends Object?');
+      'Map<T1, T2>?',
+      'Map<P?, Q?>?',
+      ['T1 <: lib::P?', 'T2 <: lib::Q?'],
+      typeParameters: 'T1 extends Object?, T2 extends Object?',
+    );
+    checkConstraintsUpper(
+      'Map<T1?, T2?>?',
+      'Map<P, Q>?',
+      null,
+      typeParameters: 'T1 extends Object?, T2 extends Object?',
+    );
+    checkConstraintsUpper(
+      'Map<T1?, T2?>?',
+      'Map<P?, Q?>?',
+      ['T1 <: lib::P', 'T2 <: lib::Q'],
+      typeParameters: 'T1 extends Object?, T2 extends Object?',
+    );
   }
 
   void test_unknown_subtype_any() {
@@ -260,20 +335,36 @@ class TypeConstraintGathererTest {
 
     checkConstraintsUpper('Q', 'UNKNOWN', []);
     checkConstraintsUpper('Q?', 'UNKNOWN', []);
-    checkConstraintsUpper('T1', 'UNKNOWN', [],
-        typeParameters: 'T1 extends Object?');
-    checkConstraintsUpper('T1?', 'UNKNOWN', [],
-        typeParameters: 'T1 extends Object?');
+    checkConstraintsUpper(
+      'T1',
+      'UNKNOWN',
+      [],
+      typeParameters: 'T1 extends Object?',
+    );
+    checkConstraintsUpper(
+      'T1?',
+      'UNKNOWN',
+      [],
+      typeParameters: 'T1 extends Object?',
+    );
   }
 
-  void checkConstraintsLower(String type, String bound, List<String>? expected,
-      {String? typeParameters, String? typeParametersToConstrain}) {
-    env.withStructuralParameters(typeParameters ?? '',
-        (List<StructuralParameter> typeParameterNodes) {
+  void checkConstraintsLower(
+    String type,
+    String bound,
+    List<String>? expected, {
+    String? typeParameters,
+    String? typeParametersToConstrain,
+  }) {
+    env.withStructuralParameters(typeParameters ?? '', (
+      List<StructuralParameter> typeParameterNodes,
+    ) {
       List<StructuralParameter> typeParameterNodesToConstrain;
       if (typeParametersToConstrain != null) {
-        Set<String> namesToConstrain =
-            typeParametersToConstrain.split(",").map((s) => s.trim()).toSet();
+        Set<String> namesToConstrain = typeParametersToConstrain
+            .split(",")
+            .map((s) => s.trim())
+            .toSet();
         typeParameterNodesToConstrain = typeParameterNodes
             .where((p) => namesToConstrain.contains(p.name))
             .toList();
@@ -281,38 +372,49 @@ class TypeConstraintGathererTest {
         typeParameterNodesToConstrain = typeParameterNodes;
       }
       _checkConstraintsLowerTypes(
-          env.parseType(type, additionalTypes: additionalTypes),
-          env.parseType(bound, additionalTypes: additionalTypes),
-          testLibrary,
-          expected,
-          typeParameterNodesToConstrain);
+        env.parseType(type, additionalTypes: additionalTypes),
+        env.parseType(bound, additionalTypes: additionalTypes),
+        testLibrary,
+        expected,
+        typeParameterNodesToConstrain,
+      );
     });
   }
 
   void _checkConstraintsLowerTypes(
-      DartType type,
-      DartType bound,
-      Library clientLibrary,
-      List<String>? expectedConstraints,
-      List<StructuralParameter> typeParameterNodesToConstrain) {
+    DartType type,
+    DartType bound,
+    Library clientLibrary,
+    List<String>? expectedConstraints,
+    List<StructuralParameter> typeParameterNodesToConstrain,
+  ) {
     _checkConstraintsHelper(
-        type,
-        bound,
-        clientLibrary,
-        expectedConstraints,
-        (gatherer, type, bound) =>
-            gatherer.tryConstrainLower(type, bound, treeNodeForTesting: null),
-        typeParameterNodesToConstrain);
+      type,
+      bound,
+      clientLibrary,
+      expectedConstraints,
+      (gatherer, type, bound) =>
+          gatherer.tryConstrainLower(type, bound, treeNodeForTesting: null),
+      typeParameterNodesToConstrain,
+    );
   }
 
-  void checkConstraintsUpper(String type, String bound, List<String>? expected,
-      {String? typeParameters, String? typeParametersToConstrain}) {
-    env.withStructuralParameters(typeParameters ?? '',
-        (List<StructuralParameter> typeParameterNodes) {
+  void checkConstraintsUpper(
+    String type,
+    String bound,
+    List<String>? expected, {
+    String? typeParameters,
+    String? typeParametersToConstrain,
+  }) {
+    env.withStructuralParameters(typeParameters ?? '', (
+      List<StructuralParameter> typeParameterNodes,
+    ) {
       List<StructuralParameter> typeParameterNodesToConstrain;
       if (typeParametersToConstrain != null) {
-        Set<String> namesToConstrain =
-            typeParametersToConstrain.split(",").map((s) => s.trim()).toSet();
+        Set<String> namesToConstrain = typeParametersToConstrain
+            .split(",")
+            .map((s) => s.trim())
+            .toSet();
         typeParameterNodesToConstrain = typeParameterNodes
             .where((p) => namesToConstrain.contains(p.name))
             .toList();
@@ -320,49 +422,61 @@ class TypeConstraintGathererTest {
         typeParameterNodesToConstrain = typeParameterNodes;
       }
       _checkConstraintsUpperTypes(
-          env.parseType(type, additionalTypes: additionalTypes),
-          env.parseType(bound, additionalTypes: additionalTypes),
-          testLibrary,
-          expected,
-          typeParameterNodesToConstrain);
+        env.parseType(type, additionalTypes: additionalTypes),
+        env.parseType(bound, additionalTypes: additionalTypes),
+        testLibrary,
+        expected,
+        typeParameterNodesToConstrain,
+      );
     });
   }
 
   void _checkConstraintsUpperTypes(
-      DartType type,
-      DartType bound,
-      Library clientLibrary,
-      List<String>? expectedConstraints,
-      List<StructuralParameter> typeParameterNodesToConstrain) {
+    DartType type,
+    DartType bound,
+    Library clientLibrary,
+    List<String>? expectedConstraints,
+    List<StructuralParameter> typeParameterNodesToConstrain,
+  ) {
     _checkConstraintsHelper(
-        type,
-        bound,
-        clientLibrary,
-        expectedConstraints,
-        (gatherer, type, bound) =>
-            gatherer.tryConstrainUpper(type, bound, treeNodeForTesting: null),
-        typeParameterNodesToConstrain);
+      type,
+      bound,
+      clientLibrary,
+      expectedConstraints,
+      (gatherer, type, bound) =>
+          gatherer.tryConstrainUpper(type, bound, treeNodeForTesting: null),
+      typeParameterNodesToConstrain,
+    );
   }
 
   void _checkConstraintsHelper(
-      DartType a,
-      DartType b,
-      Library clientLibrary,
-      List<String>? expectedConstraints,
-      bool Function(TypeConstraintGatherer, DartType, DartType) tryConstrain,
-      List<StructuralParameter> typeParameterNodesToConstrain) {
+    DartType a,
+    DartType b,
+    Library clientLibrary,
+    List<String>? expectedConstraints,
+    bool Function(TypeConstraintGatherer, DartType, DartType) tryConstrain,
+    List<StructuralParameter> typeParameterNodesToConstrain,
+  ) {
     var typeSchemaEnvironment = new TypeSchemaEnvironment(
-        coreTypes, new ClassHierarchy(component, coreTypes));
+      coreTypes,
+      new ClassHierarchy(component, coreTypes),
+    );
     var typeConstraintGatherer = new TypeConstraintGatherer(
-        typeSchemaEnvironment, typeParameterNodesToConstrain,
-        typeOperations: new OperationsCfe(typeSchemaEnvironment,
-            fieldNonPromotabilityInfo: new FieldNonPromotabilityInfo(
-                fieldNameInfo: {}, individualPropertyReasons: {}),
-            typeCacheNonNullable: {},
-            typeCacheNullable: {},
-            typeCacheLegacy: {}),
-        inferenceResultForTesting: null,
-        inferenceUsingBoundsIsEnabled: false);
+      typeSchemaEnvironment,
+      typeParameterNodesToConstrain,
+      typeOperations: new OperationsCfe(
+        typeSchemaEnvironment,
+        fieldNonPromotabilityInfo: new FieldNonPromotabilityInfo(
+          fieldNameInfo: {},
+          individualPropertyReasons: {},
+        ),
+        typeCacheNonNullable: {},
+        typeCacheNullable: {},
+        typeCacheLegacy: {},
+      ),
+      inferenceResultForTesting: null,
+      inferenceUsingBoundsIsEnabled: false,
+    );
     var constraints = tryConstrain(typeConstraintGatherer, a, b)
         ? typeConstraintGatherer.computeConstraints()
         : null;
@@ -377,16 +491,14 @@ class TypeConstraintGathererTest {
           constraint.upper is! UnknownType) {
         var s = t.name;
         if (constraint.lower is! UnknownType) {
-          s = '${typeSchemaToString(
-            constraint.lower.unwrapTypeSchemaView(),
-          )}'
+          s =
+              '${typeSchemaToString(constraint.lower.unwrapTypeSchemaView())}'
               ' <: $s';
         }
         if (constraint.upper is! UnknownType) {
-          s = '$s <: '
-              '${typeSchemaToString(
-            constraint.upper.unwrapTypeSchemaView(),
-          )}';
+          s =
+              '$s <: '
+              '${typeSchemaToString(constraint.upper.unwrapTypeSchemaView())}';
         }
         constraintStrings.add(s as String);
       }

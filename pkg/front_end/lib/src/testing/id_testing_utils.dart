@@ -76,8 +76,11 @@ Class? lookupClass(Library library, String className, {bool required = true}) {
 /// Finds the first [Extension] in [library] with the given [extensionName].
 ///
 /// If [required] is `true` an error is thrown if no extension was found.
-Extension? lookupExtension(Library library, String extensionName,
-    {bool required = true}) {
+Extension? lookupExtension(
+  Library library,
+  String extensionName, {
+  bool required = true,
+}) {
   for (Extension extension in library.extensions) {
     if (extension.name == extensionName) {
       return extension;
@@ -85,7 +88,8 @@ Extension? lookupExtension(Library library, String extensionName,
   }
   if (required) {
     throw new ArgumentError(
-        "Extension '$extensionName' not found in '${library.importUri}'.");
+      "Extension '$extensionName' not found in '${library.importUri}'.",
+    );
   }
   return null;
 }
@@ -95,8 +99,10 @@ Extension? lookupExtension(Library library, String extensionName,
 ///
 /// If [required] is `true` an error is thrown if no extension type was found.
 ExtensionTypeDeclaration? lookupExtensionTypeDeclaration(
-    Library library, String extensionTypeName,
-    {bool required = true}) {
+  Library library,
+  String extensionTypeName, {
+  bool required = true,
+}) {
   for (ExtensionTypeDeclaration extensionTypeDeclaration
       in library.extensionTypeDeclarations) {
     if (extensionTypeDeclaration.name == extensionTypeName) {
@@ -104,8 +110,10 @@ ExtensionTypeDeclaration? lookupExtensionTypeDeclaration(
     }
   }
   if (required) {
-    throw new ArgumentError("Extension type '$extensionTypeName' not found in "
-        "'${library.importUri}'.");
+    throw new ArgumentError(
+      "Extension type '$extensionTypeName' not found in "
+      "'${library.importUri}'.",
+    );
   }
   return null;
 }
@@ -114,8 +122,11 @@ ExtensionTypeDeclaration? lookupExtensionTypeDeclaration(
 /// [memberName] as computed by [getMemberName].
 ///
 /// If [required] is `true` an error is thrown if no member was found.
-Member? lookupLibraryMember(Library library, String memberName,
-    {bool required = true}) {
+Member? lookupLibraryMember(
+  Library library,
+  String memberName, {
+  bool required = true,
+}) {
   for (Member member in library.members) {
     if (getMemberName(member) == memberName) {
       return member;
@@ -131,8 +142,11 @@ Member? lookupLibraryMember(Library library, String memberName,
 /// [memberName] as computed by [getMemberName].
 ///
 /// If [required] is `true` an error is thrown if no member was found.
-Member? lookupClassMember(Class cls, String memberName,
-    {bool required = true}) {
+Member? lookupClassMember(
+  Class cls,
+  String memberName, {
+  bool required = true,
+}) {
   for (Member member in cls.members) {
     if (getMemberName(member) == memberName) {
       return member;
@@ -145,11 +159,14 @@ Member? lookupClassMember(Class cls, String memberName,
 }
 
 LibraryBuilder? lookupLibraryBuilder(
-    InternalCompilerResult compilerResult, Library library,
-    {bool required = true}) {
+  InternalCompilerResult compilerResult,
+  Library library, {
+  bool required = true,
+}) {
   SourceLoader loader = compilerResult.kernelTargetForTesting!.loader;
-  LibraryBuilder? builder =
-      loader.lookupLoadedLibraryBuilder(library.importUri);
+  LibraryBuilder? builder = loader.lookupLoadedLibraryBuilder(
+    library.importUri,
+  );
   if (builder == null && required) {
     throw new ArgumentError("DeclarationBuilder for $library not found.");
   }
@@ -157,14 +174,18 @@ LibraryBuilder? lookupLibraryBuilder(
 }
 
 ClassBuilder? lookupClassBuilder(
-    InternalCompilerResult compilerResult, Class cls,
-    {bool required = true}) {
+  InternalCompilerResult compilerResult,
+  Class cls, {
+  bool required = true,
+}) {
   LibraryBuilder libraryBuilder = lookupLibraryBuilder(
-      compilerResult, cls.enclosingLibrary,
-      required: required)!;
-  ClassBuilder? clsBuilder = libraryBuilder.libraryNameSpace
-      .lookup(cls.name)
-      ?.getable as ClassBuilder?;
+    compilerResult,
+    cls.enclosingLibrary,
+    required: required,
+  )!;
+  ClassBuilder? clsBuilder =
+      libraryBuilder.libraryNameSpace.lookup(cls.name)?.getable
+          as ClassBuilder?;
   if (clsBuilder == null && required) {
     throw new ArgumentError("ClassBuilder for $cls not found.");
   }
@@ -172,14 +193,19 @@ ClassBuilder? lookupClassBuilder(
 }
 
 ExtensionBuilder? lookupExtensionBuilder(
-    InternalCompilerResult compilerResult, Extension extension,
-    {bool required = true}) {
+  InternalCompilerResult compilerResult,
+  Extension extension, {
+  bool required = true,
+}) {
   LibraryBuilder libraryBuilder = lookupLibraryBuilder(
-      compilerResult, extension.enclosingLibrary,
-      required: required)!;
+    compilerResult,
+    extension.enclosingLibrary,
+    required: required,
+  )!;
   ExtensionBuilder? extensionBuilder;
-  libraryBuilder.libraryNameSpace
-      .forEachLocalExtension((ExtensionBuilder builder) {
+  libraryBuilder.libraryNameSpace.forEachLocalExtension((
+    ExtensionBuilder builder,
+  ) {
     if (builder.extension == extension) {
       extensionBuilder = builder;
     }
@@ -191,12 +217,15 @@ ExtensionBuilder? lookupExtensionBuilder(
 }
 
 ExtensionTypeDeclarationBuilder? lookupExtensionTypeDeclarationBuilder(
-    InternalCompilerResult compilerResult,
-    ExtensionTypeDeclaration extensionTypeDeclaration,
-    {bool required = true}) {
+  InternalCompilerResult compilerResult,
+  ExtensionTypeDeclaration extensionTypeDeclaration, {
+  bool required = true,
+}) {
   LibraryBuilder libraryBuilder = lookupLibraryBuilder(
-      compilerResult, extensionTypeDeclaration.enclosingLibrary,
-      required: required)!;
+    compilerResult,
+    extensionTypeDeclaration.enclosingLibrary,
+    required: required,
+  )!;
   ExtensionTypeDeclarationBuilder? extensionTypeDeclarationBuilder;
   Builder? builder = libraryBuilder.libraryNameSpace
       .lookup(extensionTypeDeclaration.name)
@@ -207,24 +236,33 @@ ExtensionTypeDeclarationBuilder? lookupExtensionTypeDeclarationBuilder(
   }
   if (extensionTypeDeclarationBuilder == null && required) {
     throw new ArgumentError(
-        "ExtensionTypeDeclarationBuilder for $extensionTypeDeclaration "
-        "not found.");
+      "ExtensionTypeDeclarationBuilder for $extensionTypeDeclaration "
+      "not found.",
+    );
   }
   return extensionTypeDeclarationBuilder;
 }
 
 /// Look up the [MemberBuilder] for [member] through the [ClassBuilder] for
 /// [cls] using [memberName] as its name.
-MemberBuilder? lookupClassMemberBuilder(InternalCompilerResult compilerResult,
-    Class cls, Member member, String memberName,
-    {bool required = true}) {
-  ClassBuilder? classBuilder =
-      lookupClassBuilder(compilerResult, cls, required: required);
+MemberBuilder? lookupClassMemberBuilder(
+  InternalCompilerResult compilerResult,
+  Class cls,
+  Member member,
+  String memberName, {
+  bool required = true,
+}) {
+  ClassBuilder? classBuilder = lookupClassBuilder(
+    compilerResult,
+    cls,
+    required: required,
+  );
   MemberBuilder? memberBuilder;
   if (classBuilder != null) {
     if (member is Constructor || member is Procedure && member.isFactory) {
-      memberBuilder =
-          classBuilder.nameSpace.lookupConstructor(memberName)?.getable;
+      memberBuilder = classBuilder.nameSpace
+          .lookupConstructor(memberName)
+          ?.getable;
     } else {
       bool isSetter = member is Procedure && member.isSetter;
       LookupResult? result = classBuilder.nameSpace.lookup(memberName);
@@ -239,8 +277,10 @@ MemberBuilder? lookupClassMemberBuilder(InternalCompilerResult compilerResult,
 }
 
 MemberBuilder? lookupMemberBuilder(
-    InternalCompilerResult compilerResult, Member member,
-    {bool required = true}) {
+  InternalCompilerResult compilerResult,
+  Member member, {
+  bool required = true,
+}) {
   MemberBuilder? memberBuilder;
   if (member.isExtensionMember) {
     String memberName = member.name.text;
@@ -254,11 +294,18 @@ MemberBuilder? lookupMemberBuilder(
       memberName = memberName.substring(4);
     }
     Extension extension = lookupExtension(
-        member.enclosingLibrary, extensionName,
-        required: true)!;
+      member.enclosingLibrary,
+      extensionName,
+      required: true,
+    )!;
     memberBuilder = lookupExtensionMemberBuilder(
-        compilerResult, extension, member, memberName,
-        isSetter: isSetter, required: required);
+      compilerResult,
+      extension,
+      member,
+      memberName,
+      isSetter: isSetter,
+      required: required,
+    );
   } else if (member.isExtensionTypeMember) {
     String memberName = member.name.text;
     String extensionTypeName = memberName.substring(0, memberName.indexOf('|'));
@@ -275,22 +322,37 @@ MemberBuilder? lookupMemberBuilder(
       isConstructor = true;
     }
     ExtensionTypeDeclaration extensionType = lookupExtensionTypeDeclaration(
-        member.enclosingLibrary, extensionTypeName,
-        required: true)!;
+      member.enclosingLibrary,
+      extensionTypeName,
+      required: true,
+    )!;
     memberBuilder = lookupExtensionTypeMemberBuilder(
-        compilerResult, extensionType, member, memberName,
-        isConstructor: isConstructor, isSetter: isSetter, required: required);
+      compilerResult,
+      extensionType,
+      member,
+      memberName,
+      isConstructor: isConstructor,
+      isSetter: isSetter,
+      required: required,
+    );
   } else if (member.enclosingClass != null) {
     memberBuilder = lookupClassMemberBuilder(
-        compilerResult, member.enclosingClass!, member, member.name.text,
-        required: required);
+      compilerResult,
+      member.enclosingClass!,
+      member,
+      member.name.text,
+      required: required,
+    );
   } else {
     LibraryBuilder libraryBuilder = lookupLibraryBuilder(
-        compilerResult, member.enclosingLibrary,
-        required: required)!;
+      compilerResult,
+      member.enclosingLibrary,
+      required: required,
+    )!;
     bool isSetter = member is Procedure && member.isSetter;
-    LookupResult? result =
-        libraryBuilder.libraryNameSpace.lookup(member.name.text);
+    LookupResult? result = libraryBuilder.libraryNameSpace.lookup(
+      member.name.text,
+    );
     memberBuilder =
         (isSetter ? result?.setable : result?.getable) as MemberBuilder?;
   }
@@ -303,14 +365,18 @@ MemberBuilder? lookupMemberBuilder(
 /// Look up the [MemberBuilder] for [member] through the [ExtensionBuilder] for
 /// [extension] using [memberName] as its name.
 MemberBuilder? lookupExtensionMemberBuilder(
-    InternalCompilerResult compilerResult,
-    Extension extension,
-    Member member,
-    String memberName,
-    {bool isSetter = false,
-    bool required = true}) {
-  ExtensionBuilder? extensionBuilder =
-      lookupExtensionBuilder(compilerResult, extension, required: required);
+  InternalCompilerResult compilerResult,
+  Extension extension,
+  Member member,
+  String memberName, {
+  bool isSetter = false,
+  bool required = true,
+}) {
+  ExtensionBuilder? extensionBuilder = lookupExtensionBuilder(
+    compilerResult,
+    extension,
+    required: required,
+  );
   MemberBuilder? memberBuilder;
   if (extensionBuilder != null) {
     bool isSetter = member is Procedure && member.isSetter;
@@ -327,21 +393,26 @@ MemberBuilder? lookupExtensionMemberBuilder(
 /// Look up the [MemberBuilder] for [member] through the [ExtensionBuilder] for
 /// [extensionType] using [memberName] as its name.
 MemberBuilder? lookupExtensionTypeMemberBuilder(
-    InternalCompilerResult compilerResult,
-    ExtensionTypeDeclaration extensionType,
-    Member member,
-    String memberName,
-    {bool isConstructor = false,
-    bool isSetter = false,
-    bool required = true}) {
+  InternalCompilerResult compilerResult,
+  ExtensionTypeDeclaration extensionType,
+  Member member,
+  String memberName, {
+  bool isConstructor = false,
+  bool isSetter = false,
+  bool required = true,
+}) {
   ExtensionTypeDeclarationBuilder? extensionTypeBuilder =
-      lookupExtensionTypeDeclarationBuilder(compilerResult, extensionType,
-          required: required);
+      lookupExtensionTypeDeclarationBuilder(
+        compilerResult,
+        extensionType,
+        required: required,
+      );
   MemberBuilder? memberBuilder;
   if (extensionTypeBuilder != null) {
     if (isConstructor) {
-      memberBuilder =
-          extensionTypeBuilder.nameSpace.lookupConstructor(memberName)?.getable;
+      memberBuilder = extensionTypeBuilder.nameSpace
+          .lookupConstructor(memberName)
+          ?.getable;
     } else {
       bool isSetter = member is Procedure && member.isSetter;
       LookupResult? result = extensionTypeBuilder.nameSpace.lookup(memberName);
@@ -357,8 +428,10 @@ MemberBuilder? lookupExtensionTypeMemberBuilder(
 
 /// Returns a textual representation of the constant [node] to be used in
 /// testing.
-String constantToText(Constant node,
-    {TypeRepresentation typeRepresentation = TypeRepresentation.legacy}) {
+String constantToText(
+  Constant node, {
+  TypeRepresentation typeRepresentation = TypeRepresentation.legacy,
+}) {
   StringBuffer sb = new StringBuffer();
   new ConstantToTextVisitor(sb, typeRepresentation).visit(node);
   return sb.toString();
@@ -374,8 +447,10 @@ enum TypeRepresentation {
 
 /// Returns a textual representation of the type [node] to be used in
 /// testing.
-String typeToText(DartType node,
-    [TypeRepresentation typeRepresentation = TypeRepresentation.legacy]) {
+String typeToText(
+  DartType node, [
+  TypeRepresentation typeRepresentation = TypeRepresentation.legacy,
+]) {
   StringBuffer sb = new StringBuffer();
   new DartTypeToTextVisitor(sb, typeRepresentation).visit(node);
   return sb.toString();
@@ -401,14 +476,18 @@ void _getAllSuperclasses(Class node, Set<Class> set) {
   }
 }
 
-String supertypeToText(Supertype node,
-    [TypeRepresentation typeRepresentation = TypeRepresentation.legacy]) {
+String supertypeToText(
+  Supertype node, [
+  TypeRepresentation typeRepresentation = TypeRepresentation.legacy,
+]) {
   StringBuffer sb = new StringBuffer();
   sb.write(node.classNode.name);
   if (node.typeArguments.isNotEmpty) {
     sb.write('<');
-    new DartTypeToTextVisitor(sb, typeRepresentation)
-        .visitList(node.typeArguments);
+    new DartTypeToTextVisitor(
+      sb,
+      typeRepresentation,
+    ).visitList(node.typeArguments);
     sb.write('>');
   }
   return sb.toString();
@@ -419,7 +498,7 @@ class ConstantToTextVisitor implements ConstantVisitor<void> {
   final DartTypeToTextVisitor typeToText;
 
   ConstantToTextVisitor(this.sb, TypeRepresentation typeRepresentation)
-      : typeToText = new DartTypeToTextVisitor(sb, typeRepresentation);
+    : typeToText = new DartTypeToTextVisitor(sb, typeRepresentation);
 
   void visit(Constant node) => node.accept(this);
 
@@ -605,7 +684,8 @@ class ConstantToTextVisitor implements ConstantVisitor<void> {
 
   @override
   void visitRedirectingFactoryTearOffConstant(
-      RedirectingFactoryTearOffConstant node) {
+    RedirectingFactoryTearOffConstant node,
+  ) {
     sb.write('RedirectingFactory(');
     sb.write(getMemberName(node.target));
     sb.write(')');
@@ -626,7 +706,8 @@ class ConstantToTextVisitor implements ConstantVisitor<void> {
   @override
   bool visitAuxiliaryConstant(AuxiliaryConstant node) {
     throw new UnsupportedError(
-        "Unsupported auxiliary constant ${node} (${node.runtimeType}).");
+      "Unsupported auxiliary constant ${node} (${node.runtimeType}).",
+    );
   }
 }
 
@@ -658,7 +739,8 @@ class DartTypeToTextVisitor implements DartTypeVisitor<void> {
   @override
   void visitAuxiliaryType(AuxiliaryType node) {
     throw new UnsupportedError(
-        "Unsupported auxiliary type ${node} (${node.runtimeType}).");
+      "Unsupported auxiliary type ${node} (${node.runtimeType}).",
+    );
   }
 
   @override
@@ -885,7 +967,8 @@ String errorsToText(List<FormattedMessage> errors, {bool useCodes = false}) {
 
 /// Returns a textual representation of [descriptor] to be used in testing.
 List<String> extensionMethodDescriptorToText(
-    ExtensionMemberDescriptor descriptor) {
+  ExtensionMemberDescriptor descriptor,
+) {
   String descriptorToText(Reference reference, {required bool forTearOff}) {
     StringBuffer sb = new StringBuffer();
     if (descriptor.isStatic) {
@@ -932,7 +1015,9 @@ List<String> extensionMethodDescriptorToText(
 
 /// Returns a textual representation of [nullability] to be used in testing.
 String nullabilityToText(
-    Nullability nullability, TypeRepresentation typeRepresentation) {
+  Nullability nullability,
+  TypeRepresentation typeRepresentation,
+) {
   switch (nullability) {
     case Nullability.nonNullable:
       switch (typeRepresentation) {

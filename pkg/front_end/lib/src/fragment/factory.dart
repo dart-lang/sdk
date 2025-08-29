@@ -34,7 +34,10 @@ class FactoryFragment implements Fragment, FunctionFragment {
 
   @override
   late final UriOffsetLength uriOffset = new UriOffsetLength(
-      fileUri, constructorName.fullNameOffset, constructorName.fullNameLength);
+    fileUri,
+    constructorName.fullNameOffset,
+    constructorName.fullNameLength,
+  );
 
   FactoryFragment({
     required this.constructorName,
@@ -68,13 +71,17 @@ class FactoryFragment implements Fragment, FunctionFragment {
 
   FactoryFragmentDeclaration get declaration {
     assert(
-        _declaration != null, "Declaration has not been computed for $this.");
+      _declaration != null,
+      "Declaration has not been computed for $this.",
+    );
     return _declaration!;
   }
 
   void set declaration(FactoryFragmentDeclaration value) {
-    assert(_declaration == null,
-        "Declaration has already been computed for $this.");
+    assert(
+      _declaration == null,
+      "Declaration has already been computed for $this.",
+    );
     _declaration = value;
   }
 

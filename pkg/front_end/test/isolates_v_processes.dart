@@ -13,12 +13,7 @@ import "strong_suite.dart" as strong;
 
 const bool doPrint = false;
 
-enum What {
-  Process,
-  Isolate,
-  Direct,
-  Unknown;
-}
+enum What { Process, Isolate, Direct, Unknown }
 
 Future<void> main(List<String> args) async {
   int j = 2;
@@ -76,14 +71,18 @@ Future<void> useIsolates(final int j) async {
   List<Future> futures = [];
   for (int i = 0; i <= j; i++) {
     ReceivePort exitPort = new ReceivePort();
-    futures.add(exitPort.first.then((_) {
-      if (i == j) {
-        print("Isolate #$i (checking startup cost) finished after "
-            "${stopwatch.elapsed}");
-      } else {
-        print("Isolate #$i finished after ${stopwatch.elapsed}");
-      }
-    }));
+    futures.add(
+      exitPort.first.then((_) {
+        if (i == j) {
+          print(
+            "Isolate #$i (checking startup cost) finished after "
+            "${stopwatch.elapsed}",
+          );
+        } else {
+          print("Isolate #$i finished after ${stopwatch.elapsed}");
+        }
+      }),
+    );
     await Isolate.spawn(entry, [j, i], onExit: exitPort.sendPort);
   }
   await Future.wait(futures);
@@ -95,19 +94,23 @@ Future<void> useProcesses(final int j) async {
   String script = Platform.script.toFilePath();
   List<Future> futures = [];
   for (int i = 0; i <= j; i++) {
-    futures.add(Process.run(Platform.resolvedExecutable, [
-      script,
-      "--direct",
-      "-j$j",
-      "-x$i",
-    ]).then((_) {
-      if (i == j) {
-        print("Process #$i (checking startup cost) finished after "
-            "${stopwatch.elapsed}");
-      } else {
-        print("Process #$i finished after ${stopwatch.elapsed}");
-      }
-    }));
+    futures.add(
+      Process.run(Platform.resolvedExecutable, [
+        script,
+        "--direct",
+        "-j$j",
+        "-x$i",
+      ]).then((_) {
+        if (i == j) {
+          print(
+            "Process #$i (checking startup cost) finished after "
+            "${stopwatch.elapsed}",
+          );
+        } else {
+          print("Process #$i finished after ${stopwatch.elapsed}");
+        }
+      }),
+    );
   }
   await Future.wait(futures);
 }
@@ -116,8 +119,12 @@ class DevNullLogger implements Logger {
   const DevNullLogger();
 
   @override
-  void logExpectedResult(Suite suite, TestDescription description,
-      Result result, Set<Expectation> expectedOutcomes) {}
+  void logExpectedResult(
+    Suite suite,
+    TestDescription description,
+    Result result,
+    Set<Expectation> expectedOutcomes,
+  ) {}
 
   @override
   void logMessage(Object message) {}
@@ -129,12 +136,24 @@ class DevNullLogger implements Logger {
   void logProgress(String message) {}
 
   @override
-  void logStepComplete(int completed, int failed, int total, Suite suite,
-      TestDescription description, Step<dynamic, dynamic, ChainContext> step) {}
+  void logStepComplete(
+    int completed,
+    int failed,
+    int total,
+    Suite suite,
+    TestDescription description,
+    Step<dynamic, dynamic, ChainContext> step,
+  ) {}
 
   @override
-  void logStepStart(int completed, int failed, int total, Suite suite,
-      TestDescription description, Step<dynamic, dynamic, ChainContext> step) {}
+  void logStepStart(
+    int completed,
+    int failed,
+    int total,
+    Suite suite,
+    TestDescription description,
+    Step<dynamic, dynamic, ChainContext> step,
+  ) {}
 
   @override
   void logSuiteComplete(Suite suite) {}
@@ -143,19 +162,33 @@ class DevNullLogger implements Logger {
   void logSuiteStarted(Suite suite) {}
 
   @override
-  void logTestComplete(int completed, int failed, int total, Suite suite,
-      TestDescription description) {}
+  void logTestComplete(
+    int completed,
+    int failed,
+    int total,
+    Suite suite,
+    TestDescription description,
+  ) {}
 
   @override
-  void logTestStart(int completed, int failed, int total, Suite suite,
-      TestDescription description) {}
+  void logTestStart(
+    int completed,
+    int failed,
+    int total,
+    Suite suite,
+    TestDescription description,
+  ) {}
 
   @override
   void logUncaughtError(error, StackTrace stackTrace) {}
 
   @override
-  void logUnexpectedResult(Suite suite, TestDescription description,
-      Result result, Set<Expectation> expectedOutcomes) {}
+  void logUnexpectedResult(
+    Suite suite,
+    TestDescription description,
+    Result result,
+    Set<Expectation> expectedOutcomes,
+  ) {}
 
   @override
   void noticeFrameworkCatchError(error, StackTrace stackTrace) {}

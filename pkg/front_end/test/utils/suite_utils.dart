@@ -33,8 +33,9 @@ Future<void> internalMain(
       logger = new TracingLogger();
       trimmed = true;
     } else if (argument.startsWith("--coverage=")) {
-      coverageUri = Uri.base
-          .resolveUri(Uri.file(argument.substring("--coverage=".length)));
+      coverageUri = Uri.base.resolveUri(
+        Uri.file(argument.substring("--coverage=".length)),
+      );
       trimmed = true;
     } else if (argument.startsWith("--shards=")) {
       shards = int.parse(argument.substring("--shards=".length));
@@ -72,12 +73,15 @@ Future<void> internalMain(
   );
   if (coverageUri != null) {
     File f = new File.fromUri(
-        coverageUri.resolve("$displayName.$shard.$shards.coverage"));
+      coverageUri.resolve("$displayName.$shard.$shards.coverage"),
+    );
     // Suites generally takes a while to run --- so setting force compile to
     // true shouldn't be a big issue. It seems to add something like a second
     // to the collection time.
-    (await collectCoverage(displayName: displayName, forceCompile: true))
-        ?.writeToFile(f);
+    (await collectCoverage(
+      displayName: displayName,
+      forceCompile: true,
+    ))?.writeToFile(f);
   }
 }
 
@@ -85,8 +89,14 @@ class TracingLogger extends StdoutLogger {
   Map<TestDescription, Map<Step, Stopwatch>> stopwatches = {};
 
   @override
-  void logStepStart(int completed, int failed, int total, testing.Suite? suite,
-      TestDescription description, Step step) {
+  void logStepStart(
+    int completed,
+    int failed,
+    int total,
+    testing.Suite? suite,
+    TestDescription description,
+    Step step,
+  ) {
     Map<Step, Stopwatch> map = stopwatches[description] ??= {};
     Stopwatch stopwatch = map[step] ??= new Stopwatch();
     if (stopwatch.isRunning) throw "unexpectedly already running @ $step";
@@ -95,8 +105,14 @@ class TracingLogger extends StdoutLogger {
   }
 
   @override
-  void logStepComplete(int completed, int failed, int total,
-      testing.Suite? suite, TestDescription description, Step step) {
+  void logStepComplete(
+    int completed,
+    int failed,
+    int total,
+    testing.Suite? suite,
+    TestDescription description,
+    Step step,
+  ) {
     Map<Step, Stopwatch> map = stopwatches[description]!;
     Stopwatch stopwatch = map[step] = map[step]!;
     if (!stopwatch.isRunning) throw "unexpectedly not running";
@@ -119,11 +135,11 @@ class TracingLogger extends StdoutLogger {
         entry.value.elapsed + entry.value.elapsed;
         totalRuntimesForSteps[entry.key.name] =
             (totalRuntimesForSteps[entry.key.name] ?? new Duration()) +
-                entry.value.elapsed;
+            entry.value.elapsed;
       }
     }
-    List<MapEntry<String, Duration>> entries =
-        totalRuntimesForSteps.entries.toList();
+    List<MapEntry<String, Duration>> entries = totalRuntimesForSteps.entries
+        .toList();
     entries.sort((a, b) => a.value.compareTo(b.value));
     for (MapEntry<String, Duration> entry in entries) {
       const int maxLength = 25;

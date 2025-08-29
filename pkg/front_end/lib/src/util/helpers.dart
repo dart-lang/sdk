@@ -10,7 +10,13 @@ import '../source/source_library_builder.dart';
 /// Returns `true` if access to `Record` from `dart:core` is allowed.
 bool isRecordAccessAllowed(SourceLibraryBuilder library) {
   return library
-          .loader.target.context.options.globalFeatures.records.isEnabled ||
+          .loader
+          .target
+          .context
+          .options
+          .globalFeatures
+          .records
+          .isEnabled ||
       // Coverage-ignore(suite): Not run.
       ExperimentalFlag.records.isEnabledByDefault ||
       // Coverage-ignore(suite): Not run.

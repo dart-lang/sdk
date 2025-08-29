@@ -8,67 +8,83 @@ double doubleTopLevel = /*double!*/ 0.0;
 dynamic dynamicTopLevel = /*int!*/ 0;
 
 main() {
-  /*num!*/ numTopLevel
+  /*num!*/
+  numTopLevel
       /*invoke: num!*/ +
       /*num!*/ numTopLevel;
 
-  /*num!*/ numTopLevel
+  /*num!*/
+  numTopLevel
       /*invoke: num!*/ +
       /*int!*/ intTopLevel;
 
-  /*num!*/ numTopLevel
+  /*num!*/
+  numTopLevel
       /*invoke: double!*/ +
       /*double!*/ doubleTopLevel;
 
-  /*num!*/ numTopLevel
+  /*num!*/
+  numTopLevel
       /*invoke: num!*/ +
       /*as: num!*/ /*dynamic*/ dynamicTopLevel;
 
-  /*int!*/ intTopLevel
+  /*int!*/
+  intTopLevel
       /*invoke: num!*/ +
       /*num!*/ numTopLevel;
 
-  /*int!*/ intTopLevel
+  /*int!*/
+  intTopLevel
       /*invoke: int!*/ +
       /*int!*/ intTopLevel;
 
-  /*int!*/ intTopLevel
+  /*int!*/
+  intTopLevel
       /*invoke: double!*/ +
       /*double!*/ doubleTopLevel;
 
-  /*int!*/ intTopLevel
+  /*int!*/
+  intTopLevel
       /*invoke: num!*/ +
       /*as: num!*/ /*dynamic*/ dynamicTopLevel;
 
-  /*double!*/ doubleTopLevel
+  /*double!*/
+  doubleTopLevel
       /*invoke: double!*/ +
       /*num!*/ numTopLevel;
 
-  /*double!*/ doubleTopLevel
+  /*double!*/
+  doubleTopLevel
       /*invoke: double!*/ +
       /*int!*/ intTopLevel;
 
-  /*double!*/ doubleTopLevel
+  /*double!*/
+  doubleTopLevel
       /*invoke: double!*/ +
       /*double!*/ doubleTopLevel;
 
-  /*double!*/ doubleTopLevel
+  /*double!*/
+  doubleTopLevel
       /*invoke: double!*/ +
       /*as: num!*/ /*dynamic*/ dynamicTopLevel;
 
-  /*dynamic*/ dynamicTopLevel
+  /*dynamic*/
+  dynamicTopLevel
       /*invoke: dynamic*/ +
       /*num!*/ numTopLevel;
 
-  /*dynamic*/ dynamicTopLevel
+  /*dynamic*/
+  dynamicTopLevel
       /*invoke: dynamic*/ +
       /*int!*/ intTopLevel;
 
-  /*dynamic*/ dynamicTopLevel
+  /*dynamic*/
+  dynamicTopLevel
       /*invoke: dynamic*/ +
       /*double!*/ doubleTopLevel;
 
-  /*dynamic*/ dynamicTopLevel
+  /*dynamic*/
+  dynamicTopLevel
       /*invoke: dynamic*/ +
       /*dynamic*/ dynamicTopLevel;
 }

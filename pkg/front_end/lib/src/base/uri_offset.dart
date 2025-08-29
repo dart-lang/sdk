@@ -40,17 +40,24 @@ class UriOffsetLength {
 extension ProblemReportingExtension on ProblemReporting {
   /// Helper method for calling [ProblemReporting.addProblem] with a
   /// [UriOffsetLength].
-  void addProblem2(Message message, UriOffsetLength uriOffset,
-      {bool wasHandled = false,
-      List<LocatedMessage>? context,
-      CfeSeverity? severity,
-      bool problemOnLibrary = false}) {
+  void addProblem2(
+    Message message,
+    UriOffsetLength uriOffset, {
+    bool wasHandled = false,
+    List<LocatedMessage>? context,
+    CfeSeverity? severity,
+    bool problemOnLibrary = false,
+  }) {
     addProblem(
-        message, uriOffset.fileOffset, uriOffset.length, uriOffset.fileUri,
-        wasHandled: wasHandled,
-        context: context,
-        severity: severity,
-        problemOnLibrary: problemOnLibrary);
+      message,
+      uriOffset.fileOffset,
+      uriOffset.length,
+      uriOffset.fileUri,
+      wasHandled: wasHandled,
+      context: context,
+      severity: severity,
+      problemOnLibrary: problemOnLibrary,
+    );
   }
 }
 
@@ -58,6 +65,9 @@ extension MessageExtension on Message {
   /// Helper method for calling [Message.withLocation] with a [UriOffsetLength].
   LocatedMessage withLocation2(UriOffsetLength uriOffset) {
     return withLocation(
-        uriOffset.fileUri, uriOffset.fileOffset, uriOffset.length);
+      uriOffset.fileUri,
+      uriOffset.fileOffset,
+      uriOffset.length,
+    );
   }
 }

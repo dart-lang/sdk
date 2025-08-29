@@ -16,14 +16,20 @@ import 'package:kernel/ast.dart';
 
 Future<void> main(List<String> args) async {
   Directory dataDir = new Directory.fromUri(
-      Platform.script.resolve('../../../_fe_analyzer_shared/test/'
-          'inference/type_constraint_generation/data'));
-  await runTests<List<GeneratedTypeConstraint>>(dataDir,
-      args: args,
-      createUriForFileName: createUriForFileName,
-      onFailure: onFailure,
-      runTest: runTestFor(
-          const InferredTypeArgumentDataComputer(), [defaultCfeConfig]));
+    Platform.script.resolve(
+      '../../../_fe_analyzer_shared/test/'
+      'inference/type_constraint_generation/data',
+    ),
+  );
+  await runTests<List<GeneratedTypeConstraint>>(
+    dataDir,
+    args: args,
+    createUriForFileName: createUriForFileName,
+    onFailure: onFailure,
+    runTest: runTestFor(const InferredTypeArgumentDataComputer(), [
+      defaultCfeConfig,
+    ]),
+  );
 }
 
 class InferredTypeArgumentDataComputer
@@ -41,16 +47,22 @@ class InferredTypeArgumentDataComputer
   ///
   /// Fills [actualMap] with the data.
   @override
-  void computeMemberData(CfeTestResultData testResultData, Member member,
-      Map<Id, ActualData<List<GeneratedTypeConstraint>>> actualMap,
-      {bool? verbose}) {
+  void computeMemberData(
+    CfeTestResultData testResultData,
+    Member member,
+    Map<Id, ActualData<List<GeneratedTypeConstraint>>> actualMap, {
+    bool? verbose,
+  }) {
     SourceMemberBuilder memberBuilder =
         lookupMemberBuilder(testResultData.compilerResult, member)
             as SourceMemberBuilder;
-    member.accept(new TypeConstraintGenerationDataExtractor(
+    member.accept(
+      new TypeConstraintGenerationDataExtractor(
         testResultData.compilerResult,
         memberBuilder.dataForTesting!.inferenceData.typeInferenceResult,
-        actualMap));
+        actualMap,
+      ),
+    );
   }
 }
 
@@ -59,10 +71,10 @@ class TypeConstraintGenerationDataExtractor
   final TypeInferenceResultForTesting typeInferenceResult;
 
   TypeConstraintGenerationDataExtractor(
-      InternalCompilerResult compilerResult,
-      this.typeInferenceResult,
-      Map<Id, ActualData<List<GeneratedTypeConstraint>>> actualMap)
-      : super(compilerResult, actualMap);
+    InternalCompilerResult compilerResult,
+    this.typeInferenceResult,
+    Map<Id, ActualData<List<GeneratedTypeConstraint>>> actualMap,
+  ) : super(compilerResult, actualMap);
 
   @override
   List<GeneratedTypeConstraint>? computeNodeValue(Id id, TreeNode node) {
@@ -81,8 +93,10 @@ class _InferredTypeArgumentsDataInterpreter
   const _InferredTypeArgumentsDataInterpreter();
 
   @override
-  String getText(List<GeneratedTypeConstraint> actualData,
-      [String? indentation]) {
+  String getText(
+    List<GeneratedTypeConstraint> actualData, [
+    String? indentation,
+  ]) {
     StringBuffer sb = new StringBuffer();
     if (actualData.isNotEmpty) {
       for (int i = 0; i < actualData.length; i++) {
@@ -90,23 +104,31 @@ class _InferredTypeArgumentsDataInterpreter
           sb.write(',');
         }
         if (actualData[i].isUpper) {
-          String? parameterName = actualData[i]
-              .typeParameter
+          String? parameterName = actualData[i].typeParameter
               .unwrapTypeParameterViewAsTypeParameterStructure<
-                  StructuralParameter>()
+                StructuralParameter
+              >()
               .name;
           sb.write("${parameterName} <: ");
-          sb.write(typeToText(actualData[i].constraint.unwrapTypeSchemaView(),
-              TypeRepresentation.analyzerNonNullableByDefault));
+          sb.write(
+            typeToText(
+              actualData[i].constraint.unwrapTypeSchemaView(),
+              TypeRepresentation.analyzerNonNullableByDefault,
+            ),
+          );
         } else {
-          String? parameterName = actualData[i]
-              .typeParameter
+          String? parameterName = actualData[i].typeParameter
               .unwrapTypeParameterViewAsTypeParameterStructure<
-                  StructuralParameter>()
+                StructuralParameter
+              >()
               .name;
           sb.write("${parameterName} :> ");
-          sb.write(typeToText(actualData[i].constraint.unwrapTypeSchemaView(),
-              TypeRepresentation.analyzerNonNullableByDefault));
+          sb.write(
+            typeToText(
+              actualData[i].constraint.unwrapTypeSchemaView(),
+              TypeRepresentation.analyzerNonNullableByDefault,
+            ),
+          );
         }
       }
     }
@@ -115,7 +137,9 @@ class _InferredTypeArgumentsDataInterpreter
 
   @override
   String? isAsExpected(
-      List<GeneratedTypeConstraint> actualData, String? expectedData) {
+    List<GeneratedTypeConstraint> actualData,
+    String? expectedData,
+  ) {
     if (getText(actualData) == expectedData) {
       return null;
     } else {

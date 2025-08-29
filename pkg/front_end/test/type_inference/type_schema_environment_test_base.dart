@@ -37,17 +37,24 @@ abstract class TypeSchemaEnvironmentTestBase {
   void parseTestLibrary(String testLibraryText) {
     typeParserEnvironment = new Env(testLibraryText);
     typeSchemaEnvironment = new TypeSchemaEnvironment(
-        coreTypes, new ClassHierarchy(component, coreTypes));
+      coreTypes,
+      new ClassHierarchy(component, coreTypes),
+    );
     assert(
-        typeParserEnvironment.component.libraries.length == 2,
-        "The tests are supposed to have exactly two libraries: "
-        "the core library and the test library.");
-    _operations = new OperationsCfe(typeSchemaEnvironment,
-        fieldNonPromotabilityInfo: FieldNonPromotabilityInfo(
-            fieldNameInfo: {}, individualPropertyReasons: {}),
-        typeCacheNonNullable: {},
-        typeCacheNullable: {},
-        typeCacheLegacy: {});
+      typeParserEnvironment.component.libraries.length == 2,
+      "The tests are supposed to have exactly two libraries: "
+      "the core library and the test library.",
+    );
+    _operations = new OperationsCfe(
+      typeSchemaEnvironment,
+      fieldNonPromotabilityInfo: FieldNonPromotabilityInfo(
+        fieldNameInfo: {},
+        individualPropertyReasons: {},
+      ),
+      typeCacheNonNullable: {},
+      typeCacheNullable: {},
+      typeCacheLegacy: {},
+    );
     Library firstLibrary = typeParserEnvironment.component.libraries.first;
     Library secondLibrary = typeParserEnvironment.component.libraries.last;
     if (firstLibrary.importUri.isScheme("dart") &&
@@ -56,88 +63,116 @@ abstract class TypeSchemaEnvironmentTestBase {
       _testLibrary = secondLibrary;
     } else {
       assert(
-          secondLibrary.importUri.isScheme("dart") &&
-              secondLibrary.importUri.path == "core",
-          "One of the libraries is expected to be 'dart:core'.");
+        secondLibrary.importUri.isScheme("dart") &&
+            secondLibrary.importUri.path == "core",
+        "One of the libraries is expected to be 'dart:core'.",
+      );
       _coreLibrary == secondLibrary;
       _testLibrary = firstLibrary;
     }
   }
 
-  void checkConstraintSolving(String constraint, String expected,
-      {required bool grounded}) {
+  void checkConstraintSolving(
+    String constraint,
+    String expected, {
+    required bool grounded,
+  }) {
     expect(
-        _operations.chooseTypeFromConstraint(parseConstraint(constraint),
-            grounded: grounded, isContravariant: false),
-        parseType(expected));
+      _operations.chooseTypeFromConstraint(
+        parseConstraint(constraint),
+        grounded: grounded,
+        isContravariant: false,
+      ),
+      parseType(expected),
+    );
   }
 
-  void checkConstraintUpperBound(
-      {required String constraint, required String bound}) {
+  void checkConstraintUpperBound({
+    required String constraint,
+    required String bound,
+  }) {
     expect(parseConstraint(constraint).upper, parseType(bound));
   }
 
-  void checkConstraintLowerBound(
-      {required String constraint, required String bound}) {
+  void checkConstraintLowerBound({
+    required String constraint,
+    required String bound,
+  }) {
     expect(parseConstraint(constraint).lower, parseType(bound));
   }
 
   void checkTypeSatisfiesConstraint(String type, String constraint) {
     expect(
-        typeSchemaEnvironment.typeSatisfiesConstraint(
-            parseType(type), parseConstraint(constraint)),
-        isTrue);
+      typeSchemaEnvironment.typeSatisfiesConstraint(
+        parseType(type),
+        parseConstraint(constraint),
+      ),
+      isTrue,
+    );
   }
 
   void checkTypeDoesntSatisfyConstraint(String type, String constraint) {
     expect(
-        typeSchemaEnvironment.typeSatisfiesConstraint(
-            parseType(type), parseConstraint(constraint)),
-        isFalse);
+      typeSchemaEnvironment.typeSatisfiesConstraint(
+        parseType(type),
+        parseConstraint(constraint),
+      ),
+      isFalse,
+    );
   }
 
   void checkIsSubtype(String subtype, String supertype) {
     expect(
-        typeSchemaEnvironment
-            .performSubtypeCheck(parseType(subtype), parseType(supertype))
-            .isSuccess(),
-        isTrue);
+      typeSchemaEnvironment
+          .performSubtypeCheck(parseType(subtype), parseType(supertype))
+          .isSuccess(),
+      isTrue,
+    );
   }
 
   void checkIsNotSubtype(String subtype, String supertype) {
     expect(
-        typeSchemaEnvironment
-            .performSubtypeCheck(parseType(subtype), parseType(supertype))
-            .isSuccess(),
-        isFalse);
+      typeSchemaEnvironment
+          .performSubtypeCheck(parseType(subtype), parseType(supertype))
+          .isSuccess(),
+      isFalse,
+    );
   }
 
-  void checkLowerBound(
-      {required String type1,
-      required String type2,
-      required String lowerBound,
-      String? typeParameters}) {
-    typeParserEnvironment.withTypeParameters(typeParameters,
-        (List<TypeParameter> typeParameterNodes) {
+  void checkLowerBound({
+    required String type1,
+    required String type2,
+    required String lowerBound,
+    String? typeParameters,
+  }) {
+    typeParserEnvironment.withTypeParameters(typeParameters, (
+      List<TypeParameter> typeParameterNodes,
+    ) {
       expect(
-          typeSchemaEnvironment.getStandardLowerBound(
-              parseType(type1), parseType(type2)),
-          parseType(lowerBound));
+        typeSchemaEnvironment.getStandardLowerBound(
+          parseType(type1),
+          parseType(type2),
+        ),
+        parseType(lowerBound),
+      );
     });
   }
 
-  void checkInference(
-      {required String typeParametersToInfer,
-      required String functionType,
-      String? actualParameterTypes,
-      String? returnContextType,
-      String? inferredTypesFromDownwardPhase,
-      required String expectedTypes}) {
-    typeParserEnvironment.withStructuralParameters(typeParametersToInfer,
-        (List<StructuralParameter> typeParameterNodesToInfer) {
+  void checkInference({
+    required String typeParametersToInfer,
+    required String functionType,
+    String? actualParameterTypes,
+    String? returnContextType,
+    String? inferredTypesFromDownwardPhase,
+    required String expectedTypes,
+  }) {
+    typeParserEnvironment.withStructuralParameters(typeParametersToInfer, (
+      List<StructuralParameter> typeParameterNodesToInfer,
+    ) {
       FunctionType functionTypeNode = parseType(functionType) as FunctionType;
-      DartType? returnContextTypeNode =
-          returnContextType == null ? null : parseType(returnContextType);
+      DartType? returnContextTypeNode = returnContextType == null
+          ? null
+          : parseType(returnContextType);
       List<DartType>? actualTypeNodes = actualParameterTypes == null
           ? null
           : parseTypes(actualParameterTypes);
@@ -154,62 +189,75 @@ abstract class TypeSchemaEnvironmentTestBase {
         inferredTypeNodes = parseTypes(inferredTypesFromDownwardPhase);
       }
 
-      TypeConstraintGatherer gatherer =
-          typeSchemaEnvironment.setupGenericTypeInference(
-              declaredReturnTypeNode,
-              typeParameterNodesToInfer,
-              returnContextTypeNode,
-              inferenceUsingBoundsIsEnabled: false,
-              typeOperations: new OperationsCfe(typeSchemaEnvironment,
-                  fieldNonPromotabilityInfo: new FieldNonPromotabilityInfo(
-                      fieldNameInfo: {}, individualPropertyReasons: {}),
-                  typeCacheNonNullable: {},
-                  typeCacheNullable: {},
-                  typeCacheLegacy: {}),
-              inferenceResultForTesting: null,
-              treeNodeForTesting: null);
+      TypeConstraintGatherer gatherer = typeSchemaEnvironment
+          .setupGenericTypeInference(
+            declaredReturnTypeNode,
+            typeParameterNodesToInfer,
+            returnContextTypeNode,
+            inferenceUsingBoundsIsEnabled: false,
+            typeOperations: new OperationsCfe(
+              typeSchemaEnvironment,
+              fieldNonPromotabilityInfo: new FieldNonPromotabilityInfo(
+                fieldNameInfo: {},
+                individualPropertyReasons: {},
+              ),
+              typeCacheNonNullable: {},
+              typeCacheNullable: {},
+              typeCacheLegacy: {},
+            ),
+            inferenceResultForTesting: null,
+            treeNodeForTesting: null,
+          );
       if (formalTypeNodes == null) {
         inferredTypeNodes = typeSchemaEnvironment.choosePreliminaryTypes(
-            gatherer.computeConstraints(),
-            typeParameterNodesToInfer,
-            inferredTypeNodes,
-            inferenceUsingBoundsIsEnabled: true,
-            dataForTesting: null,
-            treeNodeForTesting: null,
-            typeOperations: _operations);
+          gatherer.computeConstraints(),
+          typeParameterNodesToInfer,
+          inferredTypeNodes,
+          inferenceUsingBoundsIsEnabled: true,
+          dataForTesting: null,
+          treeNodeForTesting: null,
+          typeOperations: _operations,
+        );
       } else {
-        gatherer.constrainArguments(formalTypeNodes, actualTypeNodes!,
-            treeNodeForTesting: null);
+        gatherer.constrainArguments(
+          formalTypeNodes,
+          actualTypeNodes!,
+          treeNodeForTesting: null,
+        );
         inferredTypeNodes = typeSchemaEnvironment.chooseFinalTypes(
-            gatherer.computeConstraints(),
-            typeParameterNodesToInfer,
-            inferredTypeNodes!,
-            inferenceUsingBoundsIsEnabled: true,
-            dataForTesting: null,
-            treeNodeForTesting: null,
-            typeOperations: _operations);
+          gatherer.computeConstraints(),
+          typeParameterNodesToInfer,
+          inferredTypeNodes!,
+          inferenceUsingBoundsIsEnabled: true,
+          dataForTesting: null,
+          treeNodeForTesting: null,
+          typeOperations: _operations,
+        );
       }
 
       assert(
-          inferredTypeNodes.length == expectedTypeNodes.length,
-          "The numbers of expected types and type parameters to infer "
-          "mismatch.");
+        inferredTypeNodes.length == expectedTypeNodes.length,
+        "The numbers of expected types and type parameters to infer "
+        "mismatch.",
+      );
       for (int i = 0; i < inferredTypeNodes.length; ++i) {
         expect(inferredTypeNodes[i], expectedTypeNodes[i]);
       }
     });
   }
 
-  void checkInferenceFromConstraints(
-      {required String typeParameter,
-      required String constraints,
-      String? inferredTypeFromDownwardPhase,
-      required bool downwardsInferPhase,
-      required String expected}) {
+  void checkInferenceFromConstraints({
+    required String typeParameter,
+    required String constraints,
+    String? inferredTypeFromDownwardPhase,
+    required bool downwardsInferPhase,
+    required String expected,
+  }) {
     assert(inferredTypeFromDownwardPhase == null || !downwardsInferPhase);
 
-    typeParserEnvironment.withStructuralParameters(typeParameter,
-        (List<StructuralParameter> typeParameterNodes) {
+    typeParserEnvironment.withStructuralParameters(typeParameter, (
+      List<StructuralParameter> typeParameterNodes,
+    ) {
       assert(typeParameterNodes.length == 1);
 
       MergedTypeConstraint typeConstraint = parseConstraint(constraints);
@@ -219,22 +267,28 @@ abstract class TypeSchemaEnvironmentTestBase {
           ? null
           : <DartType>[parseType(inferredTypeFromDownwardPhase)];
 
-      inferredTypeNodes = _operations.chooseTypes([typeParameterNode],
-          {typeParameterNode: typeConstraint}, inferredTypeNodes,
-          preliminary: downwardsInferPhase,
-          inferenceUsingBoundsIsEnabled: true,
-          dataForTesting: null,
-          treeNodeForTesting: null).cast();
+      inferredTypeNodes = _operations
+          .chooseTypes(
+            [typeParameterNode],
+            {typeParameterNode: typeConstraint},
+            inferredTypeNodes,
+            preliminary: downwardsInferPhase,
+            inferenceUsingBoundsIsEnabled: true,
+            dataForTesting: null,
+            treeNodeForTesting: null,
+          )
+          .cast();
 
       expect(inferredTypeNodes.single, expectedTypeNode);
     });
   }
 
-  void checkTypeShapeCheckSufficiency(
-      {required String expressionStaticType,
-      required String checkTargetType,
-      required String typeParameters,
-      required TypeShapeCheckSufficiency sufficiency});
+  void checkTypeShapeCheckSufficiency({
+    required String expressionStaticType,
+    required String checkTargetType,
+    required String typeParameters,
+    required TypeShapeCheckSufficiency sufficiency,
+  });
 
   /// Parses a string like "<: T <: S >: R" into a [TypeConstraint].
   ///
@@ -245,9 +299,10 @@ abstract class TypeSchemaEnvironmentTestBase {
   /// the [constraint] string, from left to right.
   MergedTypeConstraint parseConstraint(String constraint) {
     MergedTypeConstraint result = new MergedTypeConstraint(
-        lower: SharedTypeSchemaView(const UnknownType()),
-        upper: SharedTypeSchemaView(const UnknownType()),
-        origin: const UnknownTypeConstraintOrigin());
+      lower: SharedTypeSchemaView(const UnknownType()),
+      upper: SharedTypeSchemaView(const UnknownType()),
+      origin: const UnknownTypeConstraintOrigin(),
+    );
     List<String> upperBoundSegments = constraint.split("<:");
     bool firstUpperBoundSegment = true;
     for (String upperBoundSegment in upperBoundSegments) {
@@ -264,11 +319,15 @@ abstract class TypeSchemaEnvironmentTestBase {
           firstLowerBoundSegment = false;
           if (segment.isNotEmpty) {
             result.mergeInTypeSchemaUpper(
-                SharedTypeSchemaView(parseType(segment)), _operations);
+              SharedTypeSchemaView(parseType(segment)),
+              _operations,
+            );
           }
         } else {
           result.mergeInTypeSchemaLower(
-              SharedTypeSchemaView(parseType(segment)), _operations);
+            SharedTypeSchemaView(parseType(segment)),
+            _operations,
+          );
         }
       }
     }
@@ -276,12 +335,16 @@ abstract class TypeSchemaEnvironmentTestBase {
   }
 
   DartType parseType(String type) {
-    return typeParserEnvironment.parseType(type,
-        additionalTypes: additionalTypes);
+    return typeParserEnvironment.parseType(
+      type,
+      additionalTypes: additionalTypes,
+    );
   }
 
   List<DartType> parseTypes(String types) {
-    return typeParserEnvironment.parseTypes(types,
-        additionalTypes: additionalTypes);
+    return typeParserEnvironment.parseTypes(
+      types,
+      additionalTypes: additionalTypes,
+    );
   }
 }

@@ -80,72 +80,128 @@ class Visitor extends RecursiveParserAstVisitorWithDefaultNodeAsync {
   Future<void> defaultNode(ParserAstNode node) async {
     if (node is BeginAndEndTokenParserAstNode) {
       if (await _canRemove(
-          node.what, node.runtimeType, node.beginToken, node.endToken)) {
+        node.what,
+        node.runtimeType,
+        node.beginToken,
+        node.endToken,
+      )) {
         return;
       }
     } else if (node is BinaryExpressionEnd) {
       if (await _canRemove(
-          node.what, node.runtimeType, node.token, node.endToken)) {
+        node.what,
+        node.runtimeType,
+        node.token,
+        node.endToken,
+      )) {
         return;
       }
     } else if (node is ThrowExpressionHandle) {
       if (await _canRemove(
-          node.what, node.runtimeType, node.throwToken, node.endToken)) {
+        node.what,
+        node.runtimeType,
+        node.throwToken,
+        node.endToken,
+      )) {
         return;
       }
     } else if (node is LabelHandle) {
       if (await _canRemove(
-          node.what, node.runtimeType, node.token.previous!, node.token)) {
+        node.what,
+        node.runtimeType,
+        node.token.previous!,
+        node.token,
+      )) {
         return;
       }
     } else if (node is CaseExpressionEnd) {
       if (await _canRemove(
-          node.what, node.runtimeType, node.caseKeyword, node.colon)) {
+        node.what,
+        node.runtimeType,
+        node.caseKeyword,
+        node.colon,
+      )) {
         return;
       }
     } else if (node is UnaryPrefixAssignmentExpressionHandle) {
       if (await _canRemove(
-          node.what, node.runtimeType, node.token, node.token)) {
+        node.what,
+        node.runtimeType,
+        node.token,
+        node.token,
+      )) {
         return;
       }
     } else if (node is UnaryPrefixExpressionHandle) {
       if (await _canRemove(
-          node.what, node.runtimeType, node.token, node.token)) {
+        node.what,
+        node.runtimeType,
+        node.token,
+        node.token,
+      )) {
         return;
       }
     } else if (node is EmptyStatementHandle) {
       if (await _canRemove(
-          node.what, node.runtimeType, node.token, node.token)) {
+        node.what,
+        node.runtimeType,
+        node.token,
+        node.token,
+      )) {
         return;
       }
     } else if (node is AssignmentExpressionHandle) {
       if (await _canRemove(
-          node.what, node.runtimeType, node.token, node.endToken)) {
+        node.what,
+        node.runtimeType,
+        node.token,
+        node.endToken,
+      )) {
         return;
       }
     } else if (node is ConditionalExpressionEnd) {
-      if (await _canRemove(node.what, node.runtimeType, node.question.next!,
-          node.colon.previous!)) {
+      if (await _canRemove(
+        node.what,
+        node.runtimeType,
+        node.question.next!,
+        node.colon.previous!,
+      )) {
         // Fine, but we still have to recurse.
       }
       if (await _canRemove(
-          node.what, node.runtimeType, node.colon.next!, node.endToken)) {
+        node.what,
+        node.runtimeType,
+        node.colon.next!,
+        node.endToken,
+      )) {
         // Fine, but we still have to recurse.
       }
     } else if (node is BinaryPatternEnd) {
       // This seems a little dicy.
       if (await _canRemove(
-          node.what, node.runtimeType, node.token, node.token)) {
+        node.what,
+        node.runtimeType,
+        node.token,
+        node.token,
+      )) {
         return;
       }
     } else if (node is PartEnd) {
       if (await _canRemove(
-          node.what, node.runtimeType, node.partKeyword, node.semicolon)) {
+        node.what,
+        node.runtimeType,
+        node.partKeyword,
+        node.semicolon,
+      )) {
         return;
       }
     } else if (node is TypedefEnd) {
-      if (await _canRemove(node.what, node.runtimeType,
-          node.augmentToken ?? node.typedefKeyword, node.endToken)) {
+      if (await _canRemove(
+        node.what,
+        node.runtimeType,
+        node.augmentToken ?? node.typedefKeyword,
+        node.endToken,
+      )) {
         return;
       }
     }
@@ -154,11 +210,18 @@ class Visitor extends RecursiveParserAstVisitorWithDefaultNodeAsync {
   }
 
   Future<bool> _canRemove(
-      String what, Type type, Token beginToken, Token endToken) async {
+    String what,
+    Type type,
+    Token beginToken,
+    Token endToken,
+  ) async {
     int length = endToken.charEnd - beginToken.offset;
     if (length > 0) {
-      String newSource =
-          _constructSourceFromRemovableAnd((type, beginToken, endToken));
+      String newSource = _constructSourceFromRemovableAnd((
+        type,
+        beginToken,
+        endToken,
+      ));
       print("Compile (${newSource.length} vs ${initialSource.length})");
       (Object, StackTrace)? compile = await helper.compile(newSource);
       if (compile != null) {
@@ -175,11 +238,14 @@ class Visitor extends RecursiveParserAstVisitorWithDefaultNodeAsync {
   }
 
   String _constructSourceFromRemovableAnd(
-      (Type type, Token beginToken, Token endToken)? nodeInfo) {
+    (Type type, Token beginToken, Token endToken)? nodeInfo,
+  ) {
     IntervalListBuilder intervalListBuilder = new IntervalListBuilder();
     if (nodeInfo != null) {
       intervalListBuilder.addIntervalExcludingEnd(
-          nodeInfo.$2.charOffset, nodeInfo.$3.charEnd);
+        nodeInfo.$2.charOffset,
+        nodeInfo.$3.charEnd,
+      );
     }
     for ((int, int) removeThis in removeable) {
       intervalListBuilder.addIntervalExcludingEnd(removeThis.$1, removeThis.$2);
@@ -196,9 +262,11 @@ class Visitor extends RecursiveParserAstVisitorWithDefaultNodeAsync {
     if (debug) {
       String braceInfo = output.getBraceCountString();
       if (braceInfo != prevBraceInfo) {
-        print("After cutting out ${nodeInfo?.$1} at "
-            "${nodeInfo?.$2.charOffset} brace info: "
-            "$braceInfo");
+        print(
+          "After cutting out ${nodeInfo?.$1} at "
+          "${nodeInfo?.$2.charOffset} brace info: "
+          "$braceInfo",
+        );
         prevBraceInfo = braceInfo;
       }
     }

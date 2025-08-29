@@ -16,8 +16,12 @@ class DijkstrasAlgorithm<E> {
   Map<GraphNode<E>, int> dist = new Map<GraphNode<E>, int>();
   Map<GraphNode<E>, GraphNode<E>> prev = new Map<GraphNode<E>, GraphNode<E>>();
 
-  DijkstrasAlgorithm(Iterable<GraphNode<E>> graphNodes, GraphNode<E> source,
-      int Function(E, E) comparator, int Function(E, E) distance) {
+  DijkstrasAlgorithm(
+    Iterable<GraphNode<E>> graphNodes,
+    GraphNode<E> source,
+    int Function(E, E) comparator,
+    int Function(E, E) distance,
+  ) {
     SplayTreeSet<GraphNode<E>> q = new SplayTreeSet<GraphNode<E>>((a, b) {
       int? distA = dist[a];
       int? distB = dist[b];

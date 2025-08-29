@@ -16,9 +16,10 @@ class SchemeBasedFileSystem implements FileSystem {
     FileSystem? delegate = fileSystemByScheme[uri.scheme];
     if (delegate == null) {
       throw new FileSystemException(
-          uri,
-          "SchemeBasedFileSystem doesn't handle URIs with "
-          "scheme '${uri.scheme}': $uri");
+        uri,
+        "SchemeBasedFileSystem doesn't handle URIs with "
+        "scheme '${uri.scheme}': $uri",
+      );
     }
     return delegate.entityForUri(uri);
   }

@@ -68,20 +68,25 @@ class Helper {
     compiler!.invalidate(uri);
 
     try {
-      ZoneSpecification specification =
-          new ZoneSpecification(print: (_1, _2, _3, String line) {
-        // Swallow!
-      });
+      ZoneSpecification specification = new ZoneSpecification(
+        print: (_1, _2, _3, String line) {
+          // Swallow!
+        },
+      );
       await runZoned(() async {
         Stopwatch stopwatch = new Stopwatch()..start();
-        IncrementalCompilerResult result = await compiler!
-            .computeDelta(entryPoints: [uri], fullComponent: true);
+        IncrementalCompilerResult result = await compiler!.computeDelta(
+          entryPoints: [uri],
+          fullComponent: true,
+        );
         Component component = result.component;
 
         util.throwOnEmptyMixinBodies(component);
         await util.throwOnInsufficientUriToSource(component);
-        print("Compile took ${stopwatch.elapsedMilliseconds} ms. "
-            "Got $diagnostics");
+        print(
+          "Compile took ${stopwatch.elapsedMilliseconds} ms. "
+          "Got $diagnostics",
+        );
       }, zoneSpecification: specification);
       return null;
     } catch (e, st) {

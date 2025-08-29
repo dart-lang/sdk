@@ -15,14 +15,20 @@ import 'package:kernel/ast.dart';
 
 Future<void> main(List<String> args) async {
   Directory dataDir = new Directory.fromUri(
-      Platform.script.resolve('../../../_fe_analyzer_shared/test/'
-          'inference/inferred_type_arguments/data'));
-  await runTests<List<DartType>>(dataDir,
-      args: args,
-      createUriForFileName: createUriForFileName,
-      onFailure: onFailure,
-      runTest: runTestFor(
-          const InferredTypeArgumentDataComputer(), [defaultCfeConfig]));
+    Platform.script.resolve(
+      '../../../_fe_analyzer_shared/test/'
+      'inference/inferred_type_arguments/data',
+    ),
+  );
+  await runTests<List<DartType>>(
+    dataDir,
+    args: args,
+    createUriForFileName: createUriForFileName,
+    onFailure: onFailure,
+    runTest: runTestFor(const InferredTypeArgumentDataComputer(), [
+      defaultCfeConfig,
+    ]),
+  );
 }
 
 class InferredTypeArgumentDataComputer extends CfeDataComputer<List<DartType>> {
@@ -39,16 +45,22 @@ class InferredTypeArgumentDataComputer extends CfeDataComputer<List<DartType>> {
   ///
   /// Fills [actualMap] with the data.
   @override
-  void computeMemberData(CfeTestResultData testResultData, Member member,
-      Map<Id, ActualData<List<DartType>>> actualMap,
-      {bool? verbose}) {
+  void computeMemberData(
+    CfeTestResultData testResultData,
+    Member member,
+    Map<Id, ActualData<List<DartType>>> actualMap, {
+    bool? verbose,
+  }) {
     SourceMemberBuilder memberBuilder =
         lookupMemberBuilder(testResultData.compilerResult, member)
             as SourceMemberBuilder;
-    member.accept(new InferredTypeArgumentDataExtractor(
+    member.accept(
+      new InferredTypeArgumentDataExtractor(
         testResultData.compilerResult,
         memberBuilder.dataForTesting!.inferenceData.typeInferenceResult,
-        actualMap));
+        actualMap,
+      ),
+    );
   }
 }
 
@@ -56,9 +68,11 @@ class InferredTypeArgumentDataExtractor
     extends CfeDataExtractor<List<DartType>> {
   final TypeInferenceResultForTesting typeInferenceResult;
 
-  InferredTypeArgumentDataExtractor(InternalCompilerResult compilerResult,
-      this.typeInferenceResult, Map<Id, ActualData<List<DartType>>> actualMap)
-      : super(compilerResult, actualMap);
+  InferredTypeArgumentDataExtractor(
+    InternalCompilerResult compilerResult,
+    this.typeInferenceResult,
+    Map<Id, ActualData<List<DartType>>> actualMap,
+  ) : super(compilerResult, actualMap);
 
   @override
   List<DartType>? computeNodeValue(Id id, TreeNode node) {
@@ -85,8 +99,12 @@ class _InferredTypeArgumentsDataInterpreter
         if (i > 0) {
           sb.write(',');
         }
-        sb.write(typeToText(
-            actualData[i], TypeRepresentation.analyzerNonNullableByDefault));
+        sb.write(
+          typeToText(
+            actualData[i],
+            TypeRepresentation.analyzerNonNullableByDefault,
+          ),
+        );
       }
       sb.write('>');
     }

@@ -52,7 +52,16 @@ class BinaryMdDillReader {
     readingInstructions = {
       "Byte": ["byte"],
       "UInt32": ["byte", "byte", "byte", "byte"],
-      "Double": ["byte", "byte", "byte", "byte", "byte", "byte", "byte", "byte"]
+      "Double": [
+        "byte",
+        "byte",
+        "byte",
+        "byte",
+        "byte",
+        "byte",
+        "byte",
+        "byte",
+      ],
     };
     _generics = {};
     _abstractTypes = {};
@@ -230,8 +239,9 @@ class BinaryMdDillReader {
     String? cached = _typeCache[inputString];
     if (cached != null) return cached;
     int end = math.max(
-        math.max(inputString.indexOf(" "), inputString.lastIndexOf(">") + 1),
-        inputString.lastIndexOf("]") + 1);
+      math.max(inputString.indexOf(" "), inputString.lastIndexOf(">") + 1),
+      inputString.lastIndexOf("]") + 1,
+    );
     if (end <= 0) end = inputString.length;
     String result = inputString.substring(0, end);
     if (result.contains(" extends")) {
@@ -353,8 +363,9 @@ class BinaryMdDillReader {
   /// i.e. not yet finished (not ending in a semi-colon).
   void _binaryMdHandleContent(String s) {
     if (s.trim().startsWith("UInt32 formatVersion = ")) {
-      String versionString =
-          s.trim().substring("UInt32 formatVersion = ".length);
+      String versionString = s.trim().substring(
+        "UInt32 formatVersion = ".length,
+      );
       if (versionString.endsWith(";")) {
         versionString = versionString.substring(0, versionString.length - 1);
       }
@@ -468,7 +479,8 @@ class BinaryMdDillReader {
         (_dillStringsPointer["endOffsets"]["items"] as List<dynamic>).cast();
     List<int> utf8 = (_dillStringsPointer["utf8Bytes"] as List<dynamic>).cast();
     return new String.fromCharCodes(
-        utf8.sublist(num == 0 ? 0 : endOffsets[num - 1], endOffsets[num]));
+      utf8.sublist(num == 0 ? 0 : endOffsets[num - 1], endOffsets[num]),
+    );
   }
 
   RegExp regExpSplit = new RegExp(r"[\. ]");
@@ -556,9 +568,11 @@ class BinaryMdDillReader {
       int oldOffset = _binaryOffset;
 
       if (verboseLevel > 1) {
-        print("".padLeft(_depth * 2 + 1) +
-            " -> $instruction ($type) (@ $_binaryOffset) "
-                "($orgWhat @ $orgPosition)");
+        print(
+          "".padLeft(_depth * 2 + 1) +
+              " -> $instruction ($type) (@ $_binaryOffset) "
+                  "($orgWhat @ $orgPosition)",
+        );
       }
 
       bool readNothingIsOk = false;
@@ -574,8 +588,10 @@ class BinaryMdDillReader {
           if (vars[count] != null && vars[count] is int) {
             intCount = vars[count];
           } else if (count.contains(".")) {
-            List<String> countData =
-                count.split(regExpSplit).map((s) => s.trim()).toList();
+            List<String> countData = count
+                .split(regExpSplit)
+                .map((s) => s.trim())
+                .toList();
             if (vars[countData[0]] != null) {
               dynamic v = vars[countData[0]];
               if (v is Map &&
@@ -687,7 +703,10 @@ class BinaryMdDillReader {
   /// * (["T"], "T", ["Expression"]) into "Expression"
   /// * (["T0", "T1"], "T0", ["FileOffset", "Expression"]) into "FileOffset"
   String _lookupGenericType(
-      List<String> typeNames, String type, List<String> types) {
+    List<String> typeNames,
+    String type,
+    List<String> types,
+  ) {
     for (int i = 0; i < typeNames.length; ++i) {
       if (typeNames[i] == type) {
         type = types[i];
@@ -805,14 +824,16 @@ class BinaryMdDillReader {
       return b;
     }
     if (b & 192 == 128) {
-      int value = (_dillContent[_binaryOffset] & 63) << 8 |
+      int value =
+          (_dillContent[_binaryOffset] & 63) << 8 |
           _dillContent[_binaryOffset + 1];
       _binaryOffset += 2;
       --_depth;
       return value;
     }
     if (b & 192 == 192) {
-      int value = (_dillContent[_binaryOffset] & 63) << 24 |
+      int value =
+          (_dillContent[_binaryOffset] & 63) << 24 |
           _dillContent[_binaryOffset + 1] << 16 |
           _dillContent[_binaryOffset + 2] << 8 |
           _dillContent[_binaryOffset + 3];
@@ -827,7 +848,8 @@ class BinaryMdDillReader {
   /// Note that this decrements the [_depth] and increments the
   /// [_binaryOffset] correctly.
   int _readUint32() {
-    int value = (_dillContent[_binaryOffset] & 63) << 24 |
+    int value =
+        (_dillContent[_binaryOffset] & 63) << 24 |
         _dillContent[_binaryOffset + 1] << 16 |
         _dillContent[_binaryOffset + 2] << 8 |
         _dillContent[_binaryOffset + 3];
@@ -850,8 +872,12 @@ class DillComparer {
   Map<int, String>? tagToName;
   StringBuffer? outputTo;
 
-  bool compare(List<int> a, List<int> b, String binaryMd,
-      [StringBuffer? outputTo]) {
+  bool compare(
+    List<int> a,
+    List<int> b,
+    String binaryMd, [
+    StringBuffer? outputTo,
+  ]) {
     this.outputTo = outputTo;
     bool printOnExit = false;
     if (this.outputTo == null) {
@@ -885,7 +911,8 @@ class DillComparer {
   bool _compareInternal(dynamic a, dynamic b) {
     if (a.runtimeType != b.runtimeType) {
       printDifference(
-          "Different runtime types (${a.runtimeType} and ${b.runtimeType})");
+        "Different runtime types (${a.runtimeType} and ${b.runtimeType})",
+      );
       return false;
     }
 
@@ -896,7 +923,8 @@ class DillComparer {
       int length = listA.length;
       if (listA.length != listB.length) {
         printDifference(
-            "Lists have different length (${listA.length} vs ${listB.length})");
+          "Lists have different length (${listA.length} vs ${listB.length})",
+        );
         result = false;
         if (listB.length < listA.length) length = listB.length;
       }
@@ -925,8 +953,10 @@ class DillComparer {
         if (outputLines > 1000) return result;
       }
       if (mapA.length != mapB.length) {
-        printDifference("Maps have different number of entries "
-            "(${mapA.length} vs ${mapB.length}). ${_getTag(a)}");
+        printDifference(
+          "Maps have different number of entries "
+          "(${mapA.length} vs ${mapB.length}). ${_getTag(a)}",
+        );
         result = false;
       }
       return result;

@@ -19,7 +19,9 @@ class KernelLegacyUpperBoundTest extends LegacyUpperBoundTest {
   @override
   DartType getLegacyLeastUpperBound(DartType a, DartType b) {
     return hierarchy.getLegacyLeastUpperBound(
-        a as InterfaceType, b as InterfaceType);
+      a as InterfaceType,
+      b as InterfaceType,
+    );
   }
 }
 

@@ -18,16 +18,22 @@ import '../codes/cfe_codes.dart'
 import '../base/compiler_context.dart' show CompilerContext;
 
 List<LocatedMessage> verifyComponent(
-    CompilerContext context, VerificationStage stage, Component component,
-    {bool skipPlatform = false,
-    bool Function(Library library)? librarySkipFilter}) {
-  CfeVerificationErrorListener listener =
-      new CfeVerificationErrorListener(context);
+  CompilerContext context,
+  VerificationStage stage,
+  Component component, {
+  bool skipPlatform = false,
+  bool Function(Library library)? librarySkipFilter,
+}) {
+  CfeVerificationErrorListener listener = new CfeVerificationErrorListener(
+    context,
+  );
   VerifyingVisitor verifier = new VerifyingVisitor(
-      context.options.target, stage,
-      skipPlatform: skipPlatform,
-      librarySkipFilter: librarySkipFilter,
-      listener: listener);
+    context.options.target,
+    stage,
+    skipPlatform: skipPlatform,
+    librarySkipFilter: librarySkipFilter,
+    listener: listener,
+  );
   component.accept(verifier);
   return listener.errors;
 }
@@ -40,33 +46,48 @@ class CfeVerificationErrorListener implements VerificationErrorListener {
 
   @override
   // Coverage-ignore(suite): Not run.
-  void reportError(String details,
-      {required TreeNode? node,
-      required Uri? problemUri,
-      required int? problemOffset,
-      required TreeNode? context,
-      required TreeNode? origin}) {
-    Message message =
-        codeInternalProblemVerificationError.withArguments(details);
+  void reportError(
+    String details, {
+    required TreeNode? node,
+    required Uri? problemUri,
+    required int? problemOffset,
+    required TreeNode? context,
+    required TreeNode? origin,
+  }) {
+    Message message = codeInternalProblemVerificationError.withArguments(
+      details,
+    );
     LocatedMessage locatedMessage = problemUri != null
         ? message.withLocation(
-            problemUri, problemOffset ?? TreeNode.noOffset, noLength)
+            problemUri,
+            problemOffset ?? TreeNode.noOffset,
+            noLength,
+          )
         : message.withoutLocation();
     List<LocatedMessage>? contextMessages;
     if (origin != null) {
       contextMessages = [
         codeVerificationErrorOriginContext.withLocation(
-            origin.location!.file, origin.fileOffset, noLength)
+          origin.location!.file,
+          origin.fileOffset,
+          noLength,
+        ),
       ];
     }
-    compilerContext.report(locatedMessage, CfeSeverity.error,
-        context: contextMessages);
+    compilerContext.report(
+      locatedMessage,
+      CfeSeverity.error,
+      context: contextMessages,
+    );
     errors.add(locatedMessage);
   }
 }
 
-void verifyGetStaticType(TypeEnvironment env, Component component,
-    {bool skipPlatform = false}) {
+void verifyGetStaticType(
+  TypeEnvironment env,
+  Component component, {
+  bool skipPlatform = false,
+}) {
   component.accept(new CfeVerifyGetStaticType(env, skipPlatform));
 }
 

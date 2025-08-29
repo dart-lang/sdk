@@ -73,8 +73,9 @@ abstract class LibraryBuilder implements Builder, ProblemReporting {
   /// [Iterator] for all declarations declared in this library of type [T].
   ///
   /// If [includeDuplicates] is `true`, duplicate declarations are included.
-  Iterator<T> filteredMembersIterator<T extends NamedBuilder>(
-      {required bool includeDuplicates});
+  Iterator<T> filteredMembersIterator<T extends NamedBuilder>({
+    required bool includeDuplicates,
+  });
 
   /// Looks up [constructorName] in the class named [className].
   ///
@@ -88,8 +89,11 @@ abstract class LibraryBuilder implements Builder, ProblemReporting {
   /// If [constructorName] is null or the empty string, it's assumed to be an
   /// unnamed constructor. it's an error if [constructorName] starts with
   /// `"_"`, and [bypassLibraryPrivacy] is false.
-  MemberBuilder getConstructor(String className,
-      {String constructorName, bool bypassLibraryPrivacy = false});
+  MemberBuilder getConstructor(
+    String className, {
+    String constructorName,
+    bool bypassLibraryPrivacy = false,
+  });
 
   void becomeCoreLibrary();
 
@@ -102,12 +106,18 @@ abstract class LibraryBuilder implements Builder, ProblemReporting {
   NamedBuilder? lookupRequiredLocalMember(String name);
 
   void recordAccess(
-      CompilationUnit accessor, int charOffset, int length, Uri fileUri);
+    CompilationUnit accessor,
+    int charOffset,
+    int length,
+    Uri fileUri,
+  );
 
   /// Returns `true` if [typeDeclarationBuilder] is the 'Function' class defined
   /// in [coreLibrary].
-  static bool isFunction(TypeDeclarationBuilder? typeDeclarationBuilder,
-      LibraryBuilder coreLibrary) {
+  static bool isFunction(
+    TypeDeclarationBuilder? typeDeclarationBuilder,
+    LibraryBuilder coreLibrary,
+  ) {
     return typeDeclarationBuilder is ClassBuilder &&
         typeDeclarationBuilder.name == 'Function' &&
         typeDeclarationBuilder.libraryBuilder == coreLibrary;
@@ -115,8 +125,10 @@ abstract class LibraryBuilder implements Builder, ProblemReporting {
 
   /// Returns `true` if [typeDeclarationBuilder] is the 'Record' class defined
   /// in [coreLibrary].
-  static bool isRecord(TypeDeclarationBuilder? typeDeclarationBuilder,
-      LibraryBuilder coreLibrary) {
+  static bool isRecord(
+    TypeDeclarationBuilder? typeDeclarationBuilder,
+    LibraryBuilder coreLibrary,
+  ) {
     return typeDeclarationBuilder is ClassBuilder &&
         typeDeclarationBuilder.name == 'Record' &&
         typeDeclarationBuilder.libraryBuilder == coreLibrary;
@@ -152,30 +164,44 @@ abstract class LibraryBuilderImpl extends BuilderImpl
 
   @override
   FormattedMessage? addProblem(
-      Message message, int charOffset, int length, Uri? fileUri,
-      {bool wasHandled = false,
-      List<LocatedMessage>? context,
-      CfeSeverity? severity,
-      bool problemOnLibrary = false}) {
+    Message message,
+    int charOffset,
+    int length,
+    Uri? fileUri, {
+    bool wasHandled = false,
+    List<LocatedMessage>? context,
+    CfeSeverity? severity,
+    bool problemOnLibrary = false,
+  }) {
     fileUri ??= this.fileUri;
 
-    return loader.addProblem(message, charOffset, length, fileUri,
-        wasHandled: wasHandled,
-        context: context,
-        severity: severity,
-        problemOnLibrary: true);
+    return loader.addProblem(
+      message,
+      charOffset,
+      length,
+      fileUri,
+      wasHandled: wasHandled,
+      context: context,
+      severity: severity,
+      problemOnLibrary: true,
+    );
   }
 
   @override
-  MemberBuilder getConstructor(String className,
-      {String? constructorName, bool bypassLibraryPrivacy = false}) {
+  MemberBuilder getConstructor(
+    String className, {
+    String? constructorName,
+    bool bypassLibraryPrivacy = false,
+  }) {
     constructorName ??= "";
     if (constructorName.startsWith("_") && !bypassLibraryPrivacy) {
       return internalProblem(
-          codeInternalProblemPrivateConstructorAccess
-              .withArguments(constructorName),
-          -1,
-          null);
+        codeInternalProblemPrivateConstructorAccess.withArguments(
+          constructorName,
+        ),
+        -1,
+        null,
+      );
     }
     Builder? cls = (bypassLibraryPrivacy ? libraryNameSpace : exportNameSpace)
         .lookup(className)
@@ -191,8 +217,10 @@ abstract class LibraryBuilderImpl extends BuilderImpl
     if (cls is ClassBuilder) {
       // TODO(ahe): This code is similar to code in `endNewExpression` in
       // `body_builder.dart`, try to share it.
-      MemberLookupResult? result =
-          cls.findConstructorOrFactory(constructorName, this);
+      MemberLookupResult? result = cls.findConstructorOrFactory(
+        constructorName,
+        this,
+      );
       if (result != null && !result.isInvalidLookup) {
         MemberBuilder? constructor = result.getable;
         if (constructor == null) {
@@ -210,10 +238,13 @@ abstract class LibraryBuilderImpl extends BuilderImpl
     }
     // Coverage-ignore-block(suite): Not run.
     throw internalProblem(
-        codeInternalProblemConstructorNotFound.withArguments(
-            "$className.$constructorName", importUri),
-        -1,
-        null);
+      codeInternalProblemConstructorNotFound.withArguments(
+        "$className.$constructorName",
+        importUri,
+      ),
+      -1,
+      null,
+    );
   }
 
   @override
@@ -226,16 +257,21 @@ abstract class LibraryBuilderImpl extends BuilderImpl
     NamedBuilder? builder = libraryNameSpace.lookup(name)?.getable;
     if (builder == null) {
       internalProblem(
-          codeInternalProblemNotFoundIn.withArguments(name, fullNameForErrors),
-          -1,
-          null);
+        codeInternalProblemNotFoundIn.withArguments(name, fullNameForErrors),
+        -1,
+        null,
+      );
     }
     return builder;
   }
 
   @override
   void recordAccess(
-      CompilationUnit accessor, int charOffset, int length, Uri fileUri) {}
+    CompilationUnit accessor,
+    int charOffset,
+    int length,
+    Uri fileUri,
+  ) {}
 
   @override
   String toString() {

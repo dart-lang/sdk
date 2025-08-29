@@ -7,13 +7,18 @@ import "dart:convert";
 import "dart:io";
 import "dart:typed_data";
 
-Future<(Object, StackTrace)?> compileWithAnalyzer(AnalyzerHelper analyzerHelper,
-    String program, Uri fileUri, int version) async {
+Future<(Object, StackTrace)?> compileWithAnalyzer(
+  AnalyzerHelper analyzerHelper,
+  String program,
+  Uri fileUri,
+  int version,
+) async {
   try {
-    ZoneSpecification specification =
-        new ZoneSpecification(print: (_1, _2, _3, String line) {
-      // Swallow!
-    });
+    ZoneSpecification specification = new ZoneSpecification(
+      print: (_1, _2, _3, String line) {
+        // Swallow!
+      },
+    );
     await runZoned(() async {
       Stopwatch stopwatch = new Stopwatch()..start();
       await analyzerHelper.changeFileContent(fileUri, program, version);
@@ -36,12 +41,18 @@ Future<void> main() async {
   await analyzerHelper.setup(root.uri);
 
   await analyzerHelper.changeFileContent(
-      f.uri, "void main() { foo; }", version++);
+    f.uri,
+    "void main() { foo; }",
+    version++,
+  );
 
   await analyzerHelper.changeFileContent(f.uri, "void main() { }", version++);
 
   await analyzerHelper.changeFileContent(
-      f.uri, "void main() { foo; } get foo => 42; ", version++);
+    f.uri,
+    "void main() { foo; } get foo => 42; ",
+    version++,
+  );
 
   analyzerHelper.shutdown();
   root.deleteSync(recursive: true);
@@ -81,7 +92,7 @@ class AnalyzerHelper {
         "--profiler",
         "pkg/analysis_server/bin/server.dart",
         "--lsp",
-        "--port=9101"
+        "--port=9101",
       ]);
     }
     // ignore: unawaited_futures
@@ -94,8 +105,10 @@ class AnalyzerHelper {
       }
     });
     _p.stdout.listen(_listenToStdout);
-    _periodicTimer =
-        Timer.periodic(const Duration(seconds: 1), _checkLongRunningRequests);
+    _periodicTimer = Timer.periodic(
+      const Duration(seconds: 1),
+      _checkLongRunningRequests,
+    );
     await _initialize(sdkUri, rootUri, []);
   }
 
@@ -106,9 +119,13 @@ class AnalyzerHelper {
   }
 
   Future<void> _initialize(
-      Uri sdkUri, Uri rootUri, List<Uri> additionalWorkspaceUris) async {
+    Uri sdkUri,
+    Uri rootUri,
+    List<Uri> additionalWorkspaceUris,
+  ) async {
     OutstandingRequest? request = await _send(
-        Messages.initMessage(pid, rootUri, additionalWorkspaceUris));
+      Messages.initMessage(pid, rootUri, additionalWorkspaceUris),
+    );
     await request?.completer.future;
     _resetAnalyzingBool();
     await _send(Messages.initNotification);
@@ -119,7 +136,10 @@ class AnalyzerHelper {
   Set<Uri> _openFiles = {};
 
   Future<void> changeFileContent(
-      Uri file, String newContent, int fileVersion) async {
+    Uri file,
+    String newContent,
+    int fileVersion,
+  ) async {
     _resetAnalyzingBool();
     if (_openFiles.add(file)) {
       await _send(Messages.openFile(file, fileVersion, newContent));
@@ -132,8 +152,9 @@ class AnalyzerHelper {
 
   void _checkCorrectDart() {
     Uri exe = Uri.base.resolveUri(Uri.file(Platform.resolvedExecutable));
-    Uri librariesDart =
-        exe.resolve("../lib/_internal/sdk_library_metadata/lib/libraries.dart");
+    Uri librariesDart = exe.resolve(
+      "../lib/_internal/sdk_library_metadata/lib/libraries.dart",
+    );
     if (!File.fromUri(librariesDart).existsSync()) {
       throw "Execute with a dart that has "
           "'../lib/_internal/sdk_library_metadata/lib/libraries.dart' "
@@ -150,8 +171,10 @@ class AnalyzerHelper {
           print("----");
           reportedSomething = true;
         }
-        print("==> Has been waiting for ${waitingFor.key} for "
-            "${waitingFor.value.stopwatch.elapsed}");
+        print(
+          "==> Has been waiting for ${waitingFor.key} for "
+          "${waitingFor.value.stopwatch.elapsed}",
+        );
       }
     }
     if (reportedSomething) {
@@ -212,9 +235,11 @@ class AnalyzerHelper {
       if (_verbosity > 3 &&
           _buffer.length >= 1000 &&
           _buffer.length % 1000 == 0) {
-        print("DEBUG MESSAGE: Stdout buffer with length "
-            "${_buffer.length} so far: "
-            "${utf8.decode(_buffer)}");
+        print(
+          "DEBUG MESSAGE: Stdout buffer with length "
+          "${_buffer.length} so far: "
+          "${utf8.decode(_buffer)}",
+        );
       }
       if (_headerContentLength == null && _endsWithCrLfCrLf()) {
         String headerRaw = utf8.decode(_buffer);
@@ -231,8 +256,9 @@ class AnalyzerHelper {
             _printedVmServiceStuff = true;
           }
           if (header.startsWith("Content-Length:")) {
-            String contentLength =
-                header.substring("Content-Length:".length).trim();
+            String contentLength = header
+                .substring("Content-Length:".length)
+                .trim();
             _headerContentLength = int.parse(contentLength);
             break;
           }
@@ -267,27 +293,33 @@ class AnalyzerHelper {
 
           if (_verbosity > 0) {
             if (messageString.length > _printSizeCap) {
-              print("Got message "
-                  "${messageString.substring(0, _printSizeCap)}...");
+              print(
+                "Got message "
+                "${messageString.substring(0, _printSizeCap)}...",
+              );
             } else {
               print("Got message $messageString");
             }
           }
 
-          OutstandingRequest? outstandingRequest =
-              _outstandingRequestsWithId.remove(possibleId);
+          OutstandingRequest? outstandingRequest = _outstandingRequestsWithId
+              .remove(possibleId);
           if (outstandingRequest != null) {
             outstandingRequest.stopwatch.stop();
             outstandingRequest.completer.complete(message);
             if (_verbosity > 2) {
-              print(" => Got response for $possibleId in "
-                  "${outstandingRequest.stopwatch.elapsed}");
+              print(
+                " => Got response for $possibleId in "
+                "${outstandingRequest.stopwatch.elapsed}",
+              );
             }
           }
         } else if (_verbosity > 1) {
           if (messageString.length > _printSizeCap) {
-            print("Got message "
-                "${messageString.substring(0, _printSizeCap)}...");
+            print(
+              "Got message "
+              "${messageString.substring(0, _printSizeCap)}...",
+            );
           } else {
             print("Got message $messageString");
           }
@@ -302,7 +334,8 @@ class AnalyzerHelper {
     // pkg/analysis_server/lib/src/lsp/channel/lsp_byte_stream_channel.dart
     String jsonEncodedBody = jsonEncode(json);
     Uint8List utf8EncodedBody = utf8.encode(jsonEncodedBody);
-    String header = "Content-Length: ${utf8EncodedBody.length}\r\n"
+    String header =
+        "Content-Length: ${utf8EncodedBody.length}\r\n"
         "Content-Type: application/vscode-jsonrpc; charset=utf-8\r\n\r\n";
     Uint8List asciiEncodedHeader = ascii.encode(header);
 
@@ -358,7 +391,7 @@ class Messages {
   static Map<String, dynamic> initNotification = {
     "jsonrpc": "2.0",
     "method": "initialized",
-    "params": {}
+    "params": {},
   };
 
   static Map<String, dynamic> gotoDef(int id, Location location) {
@@ -368,8 +401,8 @@ class Messages {
       "method": "textDocument/definition",
       "params": {
         "textDocument": {"uri": "${location.uri}"},
-        "position": {"line": location.line, "character": location.column}
-      }
+        "position": {"line": location.line, "character": location.column},
+      },
     };
   }
 
@@ -380,13 +413,16 @@ class Messages {
       "method": "textDocument/implementation",
       "params": {
         "textDocument": {"uri": "${location.uri}"},
-        "position": {"line": location.line, "character": location.column}
-      }
+        "position": {"line": location.line, "character": location.column},
+      },
     };
   }
 
   static Map<String, dynamic> initMessage(
-      int processId, Uri rootUri, List<Uri> additionalWorkspaceUris) {
+    int processId,
+    Uri rootUri,
+    List<Uri> additionalWorkspaceUris,
+  ) {
     String rootPath = rootUri.toFilePath();
     String name = rootUri.pathSegments.last;
     if (name.isEmpty) {
@@ -411,13 +447,10 @@ class Messages {
             if (name.isEmpty) {
               name = uri.pathSegments[uri.pathSegments.length - 2];
             }
-            return {
-              "uri": "$uri",
-              "name": name,
-            };
-          })
-        ]
-      }
+            return {"uri": "$uri", "name": name};
+          }),
+        ],
+      },
     };
   }
 
@@ -427,12 +460,8 @@ class Messages {
       // "id": 1,
       "jsonrpc": "2.0",
       "result": [
-        {
-          "useLsp": true,
-          "sdkPath": sdkPath,
-          "allowAnalytics": false,
-        }
-      ]
+        {"useLsp": true, "sdkPath": sdkPath, "allowAnalytics": false},
+      ],
     };
   }
 
@@ -444,13 +473,16 @@ class Messages {
       "params": {
         "textDocument": {"uri": "${location.uri}"},
         "position": {"line": location.line, "character": location.column},
-        "context": {"includeDeclaration": true}
-      }
+        "context": {"includeDeclaration": true},
+      },
     };
   }
 
   static Map<String, dynamic> openFile(
-      Uri file, int fileVersion, String content) {
+    Uri file,
+    int fileVersion,
+    String content,
+  ) {
     return {
       "jsonrpc": "2.0",
       "method": "textDocument/didOpen",
@@ -459,23 +491,26 @@ class Messages {
           "uri": "$file",
           "languageId": "dart",
           "version": fileVersion,
-          "text": content
+          "text": content,
         },
-      }
+      },
     };
   }
 
   static Map<String, dynamic> changeFileContent(
-      Uri file, String newContent, int fileVersion) {
+    Uri file,
+    String newContent,
+    int fileVersion,
+  ) {
     return {
       "jsonrpc": "2.0",
       "method": "textDocument/didChange",
       "params": {
         "textDocument": {"uri": "$file", "version": fileVersion},
         "contentChanges": [
-          {"text": newContent}
-        ]
-      }
+          {"text": newContent},
+        ],
+      },
     };
   }
 }

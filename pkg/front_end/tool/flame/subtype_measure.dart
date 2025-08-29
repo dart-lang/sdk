@@ -20,13 +20,17 @@ class SubtypeInstrumenterConfig implements InstrumenterConfig {
 
   @override
   Arguments createAfterArguments(
-      List<Procedure> procedures, List<Constructor> constructors) {
+    List<Procedure> procedures,
+    List<Constructor> constructors,
+  ) {
     return new Arguments([]);
   }
 
   @override
   Arguments createBeforeArguments(
-      List<Procedure> procedures, List<Constructor> constructors) {
+    List<Procedure> procedures,
+    List<Constructor> constructors,
+  ) {
     return new Arguments([]);
   }
 
@@ -35,8 +39,9 @@ class SubtypeInstrumenterConfig implements InstrumenterConfig {
     FunctionNode function = member.function!;
     return new Arguments([
       new ThisExpression(),
-      ...function.positionalParameters
-          .map<Expression>((e) => new VariableGet(e))
+      ...function.positionalParameters.map<Expression>(
+        (e) => new VariableGet(e),
+      ),
     ]);
   }
 
@@ -79,7 +84,11 @@ Future<void> main(List<String> arguments) async {
   try {
     Uri output = parseCompilerArguments(arguments);
     await compileInstrumentationLibrary(
-        tmpDir, const SubtypeInstrumenterConfig(), arguments, output);
+      tmpDir,
+      const SubtypeInstrumenterConfig(),
+      arguments,
+      output,
+    );
   } finally {
     tmpDir.deleteSync(recursive: true);
   }

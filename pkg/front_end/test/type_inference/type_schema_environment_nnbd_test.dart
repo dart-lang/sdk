@@ -162,7 +162,9 @@ class TypeSchemaEnvironmentTest extends TypeSchemaEnvironmentTestBase {
   };
 
   static String? joinTypeParameters(
-      String? typeParameters1, String? typeParameters2) {
+    String? typeParameters1,
+    String? typeParameters2,
+  ) {
     if (typeParameters1 == null) return typeParameters2;
     if (typeParameters2 == null) return typeParameters1;
     if (typeParameters1 == typeParameters2) return typeParameters1;
@@ -178,17 +180,20 @@ class TypeSchemaEnvironmentTest extends TypeSchemaEnvironmentTestBase {
     for (String t1 in bottomPredicateEnumeration.keys) {
       for (String t2 in bottomPredicateEnumeration.keys) {
         String? typeParameters = joinTypeParameters(
-            bottomPredicateEnumeration[t1], bottomPredicateEnumeration[t2]);
+          bottomPredicateEnumeration[t1],
+          bottomPredicateEnumeration[t2],
+        );
         typeParserEnvironment.withTypeParameters(typeParameters, (_) {
           String expected =
               typeSchemaEnvironment.morebottom(parseType(t1), parseType(t2))
-                  ? t1
-                  : t2;
+              ? t1
+              : t2;
           checkLowerBound(
-              type1: t1,
-              type2: t2,
-              lowerBound: expected,
-              typeParameters: typeParameters);
+            type1: t1,
+            type2: t2,
+            lowerBound: expected,
+            typeParameters: typeParameters,
+          );
         });
       }
     }
@@ -197,10 +202,11 @@ class TypeSchemaEnvironmentTest extends TypeSchemaEnvironmentTestBase {
     for (String type in ["A", "A?"]) {
       for (String t2 in bottomPredicateEnumeration.keys) {
         checkLowerBound(
-            type1: type,
-            type2: t2,
-            lowerBound: t2,
-            typeParameters: bottomPredicateEnumeration[t2]);
+          type1: type,
+          type2: t2,
+          lowerBound: t2,
+          typeParameters: bottomPredicateEnumeration[t2],
+        );
       }
     }
 
@@ -208,10 +214,11 @@ class TypeSchemaEnvironmentTest extends TypeSchemaEnvironmentTestBase {
     for (String t1 in bottomPredicateEnumeration.keys) {
       for (String type in ["A", "A?"]) {
         checkLowerBound(
-            type1: t1,
-            type2: type,
-            lowerBound: t1,
-            typeParameters: bottomPredicateEnumeration[t1]);
+          type1: t1,
+          type2: type,
+          lowerBound: t1,
+          typeParameters: bottomPredicateEnumeration[t1],
+        );
       }
     }
 
@@ -221,17 +228,20 @@ class TypeSchemaEnvironmentTest extends TypeSchemaEnvironmentTestBase {
     for (String t1 in nullPredicateEnumeration.keys) {
       for (String t2 in nullPredicateEnumeration.keys) {
         String? typeParameters = joinTypeParameters(
-            nullPredicateEnumeration[t1], nullPredicateEnumeration[t2]);
+          nullPredicateEnumeration[t1],
+          nullPredicateEnumeration[t2],
+        );
         typeParserEnvironment.withTypeParameters(typeParameters, (_) {
           String expected =
               typeSchemaEnvironment.morebottom(parseType(t1), parseType(t2))
-                  ? t1
-                  : t2;
+              ? t1
+              : t2;
           checkLowerBound(
-              type1: t1,
-              type2: t2,
-              lowerBound: expected,
-              typeParameters: typeParameters);
+            type1: t1,
+            type2: t2,
+            lowerBound: expected,
+            typeParameters: typeParameters,
+          );
         });
       }
     }
@@ -241,15 +251,17 @@ class TypeSchemaEnvironmentTest extends TypeSchemaEnvironmentTestBase {
     //   Never otherwise
     for (String t1 in nullPredicateEnumeration.keys) {
       checkLowerBound(
-          type1: t1,
-          type2: "A?",
-          lowerBound: t1,
-          typeParameters: nullPredicateEnumeration[t1]);
+        type1: t1,
+        type2: "A?",
+        lowerBound: t1,
+        typeParameters: nullPredicateEnumeration[t1],
+      );
       checkLowerBound(
-          type1: t1,
-          type2: "A",
-          lowerBound: "Never",
-          typeParameters: nullPredicateEnumeration[t1]);
+        type1: t1,
+        type2: "A",
+        lowerBound: "Never",
+        typeParameters: nullPredicateEnumeration[t1],
+      );
     }
 
     // DOWN(T1, Null) =
@@ -257,15 +269,17 @@ class TypeSchemaEnvironmentTest extends TypeSchemaEnvironmentTestBase {
     //   Never otherwise
     for (String t2 in nullPredicateEnumeration.keys) {
       checkLowerBound(
-          type1: "A?",
-          type2: t2,
-          lowerBound: t2,
-          typeParameters: nullPredicateEnumeration[t2]);
+        type1: "A?",
+        type2: t2,
+        lowerBound: t2,
+        typeParameters: nullPredicateEnumeration[t2],
+      );
       checkLowerBound(
-          type1: "A",
-          type2: t2,
-          lowerBound: "Never",
-          typeParameters: nullPredicateEnumeration[t2]);
+        type1: "A",
+        type2: t2,
+        lowerBound: "Never",
+        typeParameters: nullPredicateEnumeration[t2],
+      );
     }
   }
 
@@ -273,33 +287,53 @@ class TypeSchemaEnvironmentTest extends TypeSchemaEnvironmentTestBase {
     parseTestLibrary("");
 
     checkLowerBound(
-        type1: "Object", type2: "FutureOr<Null>", lowerBound: "Never");
+      type1: "Object",
+      type2: "FutureOr<Null>",
+      lowerBound: "Never",
+    );
     checkLowerBound(
-        type1: "FutureOr<Null>", type2: "Object", lowerBound: "Never");
+      type1: "FutureOr<Null>",
+      type2: "Object",
+      lowerBound: "Never",
+    );
 
     // FutureOr<dynamic> is top.
     checkLowerBound(
-        type1: "Object", type2: "FutureOr<dynamic>", lowerBound: "Object");
+      type1: "Object",
+      type2: "FutureOr<dynamic>",
+      lowerBound: "Object",
+    );
     checkLowerBound(
-        type1: "FutureOr<dynamic>", type2: "Object", lowerBound: "Object");
+      type1: "FutureOr<dynamic>",
+      type2: "Object",
+      lowerBound: "Object",
+    );
 
     // FutureOr<X> is not top and cannot be made non-nullable.
     checkLowerBound(
-        type1: "Object",
-        type2: "FutureOr<X>",
-        lowerBound: "Never",
-        typeParameters: 'X extends dynamic');
+      type1: "Object",
+      type2: "FutureOr<X>",
+      lowerBound: "Never",
+      typeParameters: 'X extends dynamic',
+    );
     checkLowerBound(
-        type1: "FutureOr<X>",
-        type2: "Object",
-        lowerBound: "Never",
-        typeParameters: 'X extends dynamic');
+      type1: "FutureOr<X>",
+      type2: "Object",
+      lowerBound: "Never",
+      typeParameters: 'X extends dynamic',
+    );
 
     // FutureOr<void> is top.
     checkLowerBound(
-        type1: "Object", type2: "FutureOr<void>", lowerBound: "Object");
+      type1: "Object",
+      type2: "FutureOr<void>",
+      lowerBound: "Object",
+    );
     checkLowerBound(
-        type1: "FutureOr<void>", type2: "Object", lowerBound: "Object");
+      type1: "FutureOr<void>",
+      type2: "Object",
+      lowerBound: "Object",
+    );
   }
 
   void test_lower_bound_function() {
@@ -311,79 +345,107 @@ class TypeSchemaEnvironmentTest extends TypeSchemaEnvironmentTestBase {
     // TODO(cstefantsova): Test for various nullabilities.
     checkLowerBound(type1: "() -> A", type2: "() -> B", lowerBound: "() -> B");
     checkLowerBound(
-        type1: "() -> void",
-        type2: "(A, B) -> void",
-        lowerBound: "([A, B]) -> void");
+      type1: "() -> void",
+      type2: "(A, B) -> void",
+      lowerBound: "([A, B]) -> void",
+    );
     checkLowerBound(
-        type1: "(A, B) -> void",
-        type2: "() -> void",
-        lowerBound: "([A, B]) -> void");
+      type1: "(A, B) -> void",
+      type2: "() -> void",
+      lowerBound: "([A, B]) -> void",
+    );
     checkLowerBound(
-        type1: "(A) -> void", type2: "(B) -> void", lowerBound: "(A) -> void");
+      type1: "(A) -> void",
+      type2: "(B) -> void",
+      lowerBound: "(A) -> void",
+    );
     checkLowerBound(
-        type1: "(B) -> void", type2: "(A) -> void", lowerBound: "(A) -> void");
+      type1: "(B) -> void",
+      type2: "(A) -> void",
+      lowerBound: "(A) -> void",
+    );
     checkLowerBound(
-        type1: "({A a}) -> void",
-        type2: "({B b}) -> void",
-        lowerBound: "({A a, B b}) -> void");
+      type1: "({A a}) -> void",
+      type2: "({B b}) -> void",
+      lowerBound: "({A a, B b}) -> void",
+    );
     checkLowerBound(
-        type1: "({B b}) -> void",
-        type2: "({A a}) -> void",
-        lowerBound: "({A a, B b}) -> void");
+      type1: "({B b}) -> void",
+      type2: "({A a}) -> void",
+      lowerBound: "({A a, B b}) -> void",
+    );
     checkLowerBound(
-        type1: "({A a, A c}) -> void",
-        type2: "({B b, B d}) -> void",
-        lowerBound: "({A a, B b, A c, B d}) -> void");
+      type1: "({A a, A c}) -> void",
+      type2: "({B b, B d}) -> void",
+      lowerBound: "({A a, B b, A c, B d}) -> void",
+    );
     checkLowerBound(
-        type1: "({A a, B b}) -> void",
-        type2: "({B a, A b}) -> void",
-        lowerBound: "({A a, A b}) -> void");
+      type1: "({A a, B b}) -> void",
+      type2: "({B a, A b}) -> void",
+      lowerBound: "({A a, A b}) -> void",
+    );
     checkLowerBound(
-        type1: "({B a, A b}) -> void",
-        type2: "({A a, B b}) -> void",
-        lowerBound: "({A a, A b}) -> void");
+      type1: "({B a, A b}) -> void",
+      type2: "({A a, B b}) -> void",
+      lowerBound: "({A a, A b}) -> void",
+    );
     checkLowerBound(
-        type1: "(B, {A a}) -> void",
-        type2: "(B) -> void",
-        lowerBound: "(B, {A a}) -> void");
+      type1: "(B, {A a}) -> void",
+      type2: "(B) -> void",
+      lowerBound: "(B, {A a}) -> void",
+    );
     checkLowerBound(
-        type1: "({A a}) -> void", type2: "(B) -> void", lowerBound: "Never");
+      type1: "({A a}) -> void",
+      type2: "(B) -> void",
+      lowerBound: "Never",
+    );
     checkLowerBound(
-        type1: "({A a}) -> void", type2: "([B]) -> void", lowerBound: "Never");
+      type1: "({A a}) -> void",
+      type2: "([B]) -> void",
+      lowerBound: "Never",
+    );
     checkLowerBound(
-        type1: "<X>() -> void",
-        type2: "<Y>() -> void",
-        lowerBound: "<Z>() -> void");
+      type1: "<X>() -> void",
+      type2: "<Y>() -> void",
+      lowerBound: "<Z>() -> void",
+    );
     checkLowerBound(
-        type1: "<X>(X) -> List<X>",
-        type2: "<Y>(Y) -> List<Y>",
-        lowerBound: "<Z>(Z) -> List<Z>");
+      type1: "<X>(X) -> List<X>",
+      type2: "<Y>(Y) -> List<Y>",
+      lowerBound: "<Z>(Z) -> List<Z>",
+    );
     checkLowerBound(
-        type1: "<X1, X2 extends List<X1>>(X1) -> X2",
-        type2: "<Y1, Y2 extends List<Y1>>(Y1) -> Y2",
-        lowerBound: "<Z1, Z2 extends List<Z1>>(Z1) -> Z2");
+      type1: "<X1, X2 extends List<X1>>(X1) -> X2",
+      type2: "<Y1, Y2 extends List<Y1>>(Y1) -> Y2",
+      lowerBound: "<Z1, Z2 extends List<Z1>>(Z1) -> Z2",
+    );
     checkLowerBound(
-        type1: "<X extends int>(X) -> void",
-        type2: "<Y extends double>(Y) -> void",
-        lowerBound: "Never");
+      type1: "<X extends int>(X) -> void",
+      type2: "<Y extends double>(Y) -> void",
+      lowerBound: "Never",
+    );
 
     checkLowerBound(
-        type1: "({required A a, A b, required A c, A d, required A e}) -> A",
-        type2: "({required B a, required B b, B c, B f, required B g}) -> B",
-        lowerBound: "({required A a, A b, A c, A d, A e, B f, B g}) -> B");
+      type1: "({required A a, A b, required A c, A d, required A e}) -> A",
+      type2: "({required B a, required B b, B c, B f, required B g}) -> B",
+      lowerBound: "({required A a, A b, A c, A d, A e, B f, B g}) -> B",
+    );
 
     checkLowerBound(
-        type1: "<X extends dynamic>() -> void",
-        type2: "<Y extends Object?>() -> void",
-        lowerBound: "<Z extends dynamic>() -> void");
+      type1: "<X extends dynamic>() -> void",
+      type2: "<Y extends Object?>() -> void",
+      lowerBound: "<Z extends dynamic>() -> void",
+    );
     checkLowerBound(
-        type1: "<X extends Null>() -> void",
-        type2: "<Y extends Never?>() -> void",
-        lowerBound: "<Z extends Null>() -> void");
+      type1: "<X extends Null>() -> void",
+      type2: "<Y extends Never?>() -> void",
+      lowerBound: "<Z extends Null>() -> void",
+    );
     checkLowerBound(
-        type1: "<X extends FutureOr<dynamic>?>() -> void",
-        type2: "<Y extends FutureOr<Object?>>() -> void",
-        lowerBound: "<Z extends FutureOr<dynamic>?>() -> void");
+      type1: "<X extends FutureOr<dynamic>?>() -> void",
+      type2: "<Y extends FutureOr<Object?>>() -> void",
+      lowerBound: "<Z extends FutureOr<dynamic>?>() -> void",
+    );
   }
 
   void test_lower_bound_record() {
@@ -394,11 +456,15 @@ class TypeSchemaEnvironmentTest extends TypeSchemaEnvironmentTestBase {
 
     checkLowerBound(type1: "(A, B)", type2: "(B, A)", lowerBound: "(B, B)");
     checkLowerBound(
-        type1: "(A, {B b})", type2: "(B, {A b})", lowerBound: "(B, {B b})");
+      type1: "(A, {B b})",
+      type2: "(B, {A b})",
+      lowerBound: "(B, {B b})",
+    );
     checkLowerBound(
-        type1: "(A, {(B, {A a}) b})",
-        type2: "(B, {(A, {B a}) b})",
-        lowerBound: "(B, {(B, {B a}) b})");
+      type1: "(A, {(B, {A a}) b})",
+      type2: "(B, {(A, {B a}) b})",
+      lowerBound: "(B, {(B, {B a}) b})",
+    );
     checkLowerBound(type1: "(A?, B)", type2: "(B, A?)", lowerBound: "(B, B)");
     checkLowerBound(type1: "(A, B?)", type2: "(B?, A)", lowerBound: "(B, B)");
 
@@ -406,13 +472,19 @@ class TypeSchemaEnvironmentTest extends TypeSchemaEnvironmentTestBase {
     checkLowerBound(type1: "(A, A)", type2: "(A, {A a})", lowerBound: "Never");
     checkLowerBound(type1: "({A a})", type2: "(A, A)", lowerBound: "Never");
     checkLowerBound(
-        type1: "({A a, B b})", type2: "({A a})", lowerBound: "Never");
+      type1: "({A a, B b})",
+      type2: "({A a})",
+      lowerBound: "Never",
+    );
 
     checkLowerBound(type1: "(A, B)", type2: "Record", lowerBound: "(A, B)");
     checkLowerBound(type1: "Record", type2: "(A, B)", lowerBound: "(A, B)");
 
     checkLowerBound(
-        type1: "(A, B)", type2: "(A, B) -> void", lowerBound: "Never");
+      type1: "(A, B)",
+      type2: "(A, B) -> void",
+      lowerBound: "Never",
+    );
     checkLowerBound(type1: "Record", type2: "A", lowerBound: "Never");
   }
 
@@ -442,24 +514,48 @@ class TypeSchemaEnvironmentTest extends TypeSchemaEnvironmentTestBase {
     checkLowerBound(type1: "B?", type2: "A?", lowerBound: "B?");
 
     checkLowerBound(
-        type1: "Iterable<A>", type2: "List<B>", lowerBound: "List<B>");
+      type1: "Iterable<A>",
+      type2: "List<B>",
+      lowerBound: "List<B>",
+    );
     checkLowerBound(
-        type1: "Iterable<A>", type2: "List<B>?", lowerBound: "List<B>");
+      type1: "Iterable<A>",
+      type2: "List<B>?",
+      lowerBound: "List<B>",
+    );
 
     checkLowerBound(
-        type1: "Iterable<A>?", type2: "List<B>", lowerBound: "List<B>");
+      type1: "Iterable<A>?",
+      type2: "List<B>",
+      lowerBound: "List<B>",
+    );
     checkLowerBound(
-        type1: "Iterable<A>?", type2: "List<B>?", lowerBound: "List<B>?");
+      type1: "Iterable<A>?",
+      type2: "List<B>?",
+      lowerBound: "List<B>?",
+    );
 
     checkLowerBound(
-        type1: "List<B>", type2: "Iterable<A>", lowerBound: "List<B>");
+      type1: "List<B>",
+      type2: "Iterable<A>",
+      lowerBound: "List<B>",
+    );
     checkLowerBound(
-        type1: "List<B>?", type2: "Iterable<A>", lowerBound: "List<B>");
+      type1: "List<B>?",
+      type2: "Iterable<A>",
+      lowerBound: "List<B>",
+    );
 
     checkLowerBound(
-        type1: "List<B>", type2: "Iterable<A>?", lowerBound: "List<B>");
+      type1: "List<B>",
+      type2: "Iterable<A>?",
+      lowerBound: "List<B>",
+    );
     checkLowerBound(
-        type1: "List<B>?", type2: "Iterable<A>?", lowerBound: "List<B>?");
+      type1: "List<B>?",
+      type2: "Iterable<A>?",
+      lowerBound: "List<B>?",
+    );
   }
 
   void test_lower_bound_top() {
@@ -471,17 +567,20 @@ class TypeSchemaEnvironmentTest extends TypeSchemaEnvironmentTestBase {
     for (String t1 in topPredicateEnumeration.keys) {
       for (String t2 in topPredicateEnumeration.keys) {
         String? typeParameters = joinTypeParameters(
-            topPredicateEnumeration[t1], topPredicateEnumeration[t2]);
+          topPredicateEnumeration[t1],
+          topPredicateEnumeration[t2],
+        );
         typeParserEnvironment.withTypeParameters(typeParameters, (_) {
           String expected =
               typeSchemaEnvironment.moretop(parseType(t2), parseType(t1))
-                  ? t1
-                  : t2;
+              ? t1
+              : t2;
           checkLowerBound(
-              type1: t1,
-              type2: t2,
-              lowerBound: expected,
-              typeParameters: typeParameters);
+            type1: t1,
+            type2: t2,
+            lowerBound: expected,
+            typeParameters: typeParameters,
+          );
         });
       }
     }
@@ -489,19 +588,21 @@ class TypeSchemaEnvironmentTest extends TypeSchemaEnvironmentTestBase {
     // DOWN(T1, T2) = T2 if TOP(T1)
     for (String t1 in topPredicateEnumeration.keys) {
       checkLowerBound(
-          type1: t1,
-          type2: "A",
-          lowerBound: "A",
-          typeParameters: topPredicateEnumeration[t1]);
+        type1: t1,
+        type2: "A",
+        lowerBound: "A",
+        typeParameters: topPredicateEnumeration[t1],
+      );
     }
 
     // DOWN(T1, T2) = T1 if TOP(T2)
     for (String t2 in topPredicateEnumeration.keys) {
       checkLowerBound(
-          type1: "A",
-          type2: t2,
-          lowerBound: "A",
-          typeParameters: topPredicateEnumeration[t2]);
+        type1: "A",
+        type2: t2,
+        lowerBound: "A",
+        typeParameters: topPredicateEnumeration[t2],
+      );
     }
   }
 
@@ -536,69 +637,77 @@ class TypeSchemaEnvironmentTest extends TypeSchemaEnvironmentTestBase {
     // Test an instantiation of [1, 2.0] with no context.  This should infer
     // as List<?> during downwards inference.
     checkInference(
-        typeParametersToInfer: "T extends Object?",
-        functionType: "(T, T) -> List<T>",
-        actualParameterTypes: null,
-        returnContextType: null,
-        expectedTypes: "UNKNOWN");
+      typeParametersToInfer: "T extends Object?",
+      functionType: "(T, T) -> List<T>",
+      actualParameterTypes: null,
+      returnContextType: null,
+      expectedTypes: "UNKNOWN",
+    );
     // And upwards inference should refine it to List<num>.
     checkInference(
-        typeParametersToInfer: "T extends Object?",
-        functionType: "(T, T) -> List<T>",
-        actualParameterTypes: "int, double",
-        returnContextType: null,
-        inferredTypesFromDownwardPhase: "UNKNOWN",
-        expectedTypes: "num");
+      typeParametersToInfer: "T extends Object?",
+      functionType: "(T, T) -> List<T>",
+      actualParameterTypes: "int, double",
+      returnContextType: null,
+      inferredTypesFromDownwardPhase: "UNKNOWN",
+      expectedTypes: "num",
+    );
 
     // Test an instantiation of [1, 2.0] with a context of List<Object>.  This
     // should infer as List<Object> during downwards inference.
     checkInference(
-        typeParametersToInfer: "T extends Object?",
-        functionType: "(T, T) -> List<T>",
-        actualParameterTypes: null,
-        returnContextType: "List<Object>",
-        expectedTypes: "Object");
+      typeParametersToInfer: "T extends Object?",
+      functionType: "(T, T) -> List<T>",
+      actualParameterTypes: null,
+      returnContextType: "List<Object>",
+      expectedTypes: "Object",
+    );
     // And upwards inference should preserve the type.
     checkInference(
-        typeParametersToInfer: "T extends Object?",
-        functionType: "(T, T) -> List<T>",
-        actualParameterTypes: "int, double",
-        returnContextType: "List<Object>",
-        inferredTypesFromDownwardPhase: "Object",
-        expectedTypes: "Object");
+      typeParametersToInfer: "T extends Object?",
+      functionType: "(T, T) -> List<T>",
+      actualParameterTypes: "int, double",
+      returnContextType: "List<Object>",
+      inferredTypesFromDownwardPhase: "Object",
+      expectedTypes: "Object",
+    );
 
     // Test an instantiation of [1, 2.0, null] with no context.  This should
     // infer as List<?> during downwards inference.
     checkInference(
-        typeParametersToInfer: "T extends Object?",
-        functionType: "(T, T, T) -> List<T>",
-        actualParameterTypes: null,
-        returnContextType: null,
-        expectedTypes: "UNKNOWN");
+      typeParametersToInfer: "T extends Object?",
+      functionType: "(T, T, T) -> List<T>",
+      actualParameterTypes: null,
+      returnContextType: null,
+      expectedTypes: "UNKNOWN",
+    );
     // And upwards inference should refine it to List<num?>.
     checkInference(
-        typeParametersToInfer: "T extends Object?",
-        functionType: "(T, T, T) -> List<T>",
-        actualParameterTypes: "int, double, Null",
-        returnContextType: null,
-        inferredTypesFromDownwardPhase: "UNKNOWN",
-        expectedTypes: "num?");
+      typeParametersToInfer: "T extends Object?",
+      functionType: "(T, T, T) -> List<T>",
+      actualParameterTypes: "int, double, Null",
+      returnContextType: null,
+      inferredTypesFromDownwardPhase: "UNKNOWN",
+      expectedTypes: "num?",
+    );
 
     // Test an instantiation of legacy [1, 2.0] with no context.
     // This should infer as List<?> during downwards inference.
     checkInference(
-        typeParametersToInfer: "T extends Object?",
-        functionType: "(T, T) -> List<T>",
-        actualParameterTypes: null,
-        returnContextType: null,
-        expectedTypes: "UNKNOWN");
+      typeParametersToInfer: "T extends Object?",
+      functionType: "(T, T) -> List<T>",
+      actualParameterTypes: null,
+      returnContextType: null,
+      expectedTypes: "UNKNOWN",
+    );
     checkInference(
-        typeParametersToInfer: "T extends Object?",
-        functionType: "(T, T) -> List<T>",
-        actualParameterTypes: "int, double",
-        returnContextType: null,
-        inferredTypesFromDownwardPhase: "UNKNOWN",
-        expectedTypes: "num");
+      typeParametersToInfer: "T extends Object?",
+      functionType: "(T, T) -> List<T>",
+      actualParameterTypes: "int, double",
+      returnContextType: null,
+      inferredTypesFromDownwardPhase: "UNKNOWN",
+      expectedTypes: "num",
+    );
   }
 
   void test_inferTypeFromConstraints_applyBound() {
@@ -611,40 +720,45 @@ class TypeSchemaEnvironmentTest extends TypeSchemaEnvironmentTestBase {
     // With no constraints:
     // Downward inference should infer A<?>
     checkInferenceFromConstraints(
-        typeParameter: "T extends num",
-        constraints: "",
-        downwardsInferPhase: true,
-        expected: "UNKNOWN");
+      typeParameter: "T extends num",
+      constraints: "",
+      downwardsInferPhase: true,
+      expected: "UNKNOWN",
+    );
     // Upward inference should infer A<num>
     checkInferenceFromConstraints(
-        typeParameter: "T extends num",
-        constraints: "",
-        downwardsInferPhase: false,
-        inferredTypeFromDownwardPhase: "UNKNOWN",
-        expected: "num");
+      typeParameter: "T extends num",
+      constraints: "",
+      downwardsInferPhase: false,
+      inferredTypeFromDownwardPhase: "UNKNOWN",
+      expected: "num",
+    );
 
     // With an upper bound of Object:
     // Downward inference should infer A<num>
     checkInferenceFromConstraints(
-        typeParameter: "T extends num",
-        constraints: "<: Object",
-        downwardsInferPhase: true,
-        expected: "num");
+      typeParameter: "T extends num",
+      constraints: "<: Object",
+      downwardsInferPhase: true,
+      expected: "num",
+    );
     // Upward inference should infer A<num>
     checkInferenceFromConstraints(
-        typeParameter: "T extends num",
-        constraints: "<: Object",
-        downwardsInferPhase: false,
-        inferredTypeFromDownwardPhase: "num",
-        expected: "num");
+      typeParameter: "T extends num",
+      constraints: "<: Object",
+      downwardsInferPhase: false,
+      inferredTypeFromDownwardPhase: "num",
+      expected: "num",
+    );
     // Upward inference should still infer A<num> even if there are more
     // constraints now, because num was finalized during downward inference.
     checkInferenceFromConstraints(
-        typeParameter: "T extends num",
-        constraints: ":> int <: int",
-        downwardsInferPhase: false,
-        inferredTypeFromDownwardPhase: "num",
-        expected: "num");
+      typeParameter: "T extends num",
+      constraints: ":> int <: int",
+      downwardsInferPhase: false,
+      inferredTypeFromDownwardPhase: "num",
+      expected: "num",
+    );
   }
 
   void test_inferTypeFromConstraints_simple() {
@@ -655,17 +769,19 @@ class TypeSchemaEnvironmentTest extends TypeSchemaEnvironmentTestBase {
     // With an upper bound of List<?>:
     // Downwards inference should infer List<List<?>>
     checkInferenceFromConstraints(
-        typeParameter: "T extends Object?",
-        constraints: "<: List<UNKNOWN>",
-        downwardsInferPhase: true,
-        expected: "List<UNKNOWN>");
+      typeParameter: "T extends Object?",
+      constraints: "<: List<UNKNOWN>",
+      downwardsInferPhase: true,
+      expected: "List<UNKNOWN>",
+    );
     // Upwards inference should refine that to List<List<Object?>>
     checkInferenceFromConstraints(
-        typeParameter: "T extends Object?",
-        constraints: "<: List<UNKNOWN>",
-        downwardsInferPhase: false,
-        inferredTypeFromDownwardPhase: "List<UNKNOWN>",
-        expected: "List<Object?>");
+      typeParameter: "T extends Object?",
+      constraints: "<: List<UNKNOWN>",
+      downwardsInferPhase: false,
+      inferredTypeFromDownwardPhase: "List<UNKNOWN>",
+      expected: "List<Object?>",
+    );
   }
 
   void test_upper_bound_classic() {
@@ -701,18 +817,30 @@ class TypeSchemaEnvironmentTest extends TypeSchemaEnvironmentTestBase {
     parseTestLibrary("");
 
     checkUpperBound(
-        type1: "List<int>", type2: "List<double>", upperBound: "List<num>");
+      type1: "List<int>",
+      type2: "List<double>",
+      upperBound: "List<num>",
+    );
     checkUpperBound(
-        type1: "List<int?>", type2: "List<double>", upperBound: "List<num?>");
+      type1: "List<int?>",
+      type2: "List<double>",
+      upperBound: "List<num?>",
+    );
   }
 
   void test_upper_bound_object() {
     parseTestLibrary("");
 
     checkUpperBound(
-        type1: "Object", type2: "FutureOr<Function?>", upperBound: "Object?");
+      type1: "Object",
+      type2: "FutureOr<Function?>",
+      upperBound: "Object?",
+    );
     checkUpperBound(
-        type1: "FutureOr<Function?>", type2: "Object", upperBound: "Object?");
+      type1: "FutureOr<Function?>",
+      type2: "Object",
+      upperBound: "Object?",
+    );
   }
 
   void test_upper_bound_function() {
@@ -722,84 +850,123 @@ class TypeSchemaEnvironmentTest extends TypeSchemaEnvironmentTestBase {
     """);
 
     checkUpperBound(
-        type1: "() ->? A", type2: "() -> B?", upperBound: "() ->? A?");
+      type1: "() ->? A",
+      type2: "() -> B?",
+      upperBound: "() ->? A?",
+    );
     checkUpperBound(
-        type1: "([A]) -> void", type2: "(A) -> void", upperBound: "Function");
+      type1: "([A]) -> void",
+      type2: "(A) -> void",
+      upperBound: "Function",
+    );
     checkUpperBound(
-        type1: "() -> void", type2: "(A, B) -> void", upperBound: "Function");
+      type1: "() -> void",
+      type2: "(A, B) -> void",
+      upperBound: "Function",
+    );
     checkUpperBound(
-        type1: "(A, B) -> void", type2: "() -> void", upperBound: "Function");
+      type1: "(A, B) -> void",
+      type2: "() -> void",
+      upperBound: "Function",
+    );
     checkUpperBound(
-        type1: "(A) -> void", type2: "(B) -> void", upperBound: "(B) -> void");
+      type1: "(A) -> void",
+      type2: "(B) -> void",
+      upperBound: "(B) -> void",
+    );
     checkUpperBound(
-        type1: "(B) -> void", type2: "(A) -> void", upperBound: "(B) -> void");
+      type1: "(B) -> void",
+      type2: "(A) -> void",
+      upperBound: "(B) -> void",
+    );
     checkUpperBound(
-        type1: "({A a}) -> void",
-        type2: "({B b}) -> void",
-        upperBound: "() -> void");
+      type1: "({A a}) -> void",
+      type2: "({B b}) -> void",
+      upperBound: "() -> void",
+    );
     checkUpperBound(
-        type1: "({B b}) -> void",
-        type2: "({A a}) -> void",
-        upperBound: "() -> void");
+      type1: "({B b}) -> void",
+      type2: "({A a}) -> void",
+      upperBound: "() -> void",
+    );
     checkUpperBound(
-        type1: "({A a, A c}) -> void",
-        type2: "({B b, B d}) -> void",
-        upperBound: "() -> void");
+      type1: "({A a, A c}) -> void",
+      type2: "({B b, B d}) -> void",
+      upperBound: "() -> void",
+    );
     checkUpperBound(
-        type1: "({A a, B b}) -> void",
-        type2: "({B a, A b}) -> void",
-        upperBound: "({B a, B b}) -> void");
+      type1: "({A a, B b}) -> void",
+      type2: "({B a, A b}) -> void",
+      upperBound: "({B a, B b}) -> void",
+    );
     checkUpperBound(
-        type1: "({B a, A b}) -> void",
-        type2: "({A a, B b}) -> void",
-        upperBound: "({B a, B b}) -> void");
+      type1: "({B a, A b}) -> void",
+      type2: "({A a, B b}) -> void",
+      upperBound: "({B a, B b}) -> void",
+    );
     checkUpperBound(
-        type1: "(B, {A a}) -> void",
-        type2: "(B) -> void",
-        upperBound: "(B) -> void");
+      type1: "(B, {A a}) -> void",
+      type2: "(B) -> void",
+      upperBound: "(B) -> void",
+    );
     checkUpperBound(
-        type1: "({A a}) -> void", type2: "(B) -> void", upperBound: "Function");
+      type1: "({A a}) -> void",
+      type2: "(B) -> void",
+      upperBound: "Function",
+    );
     checkUpperBound(
-        type1: "() -> void", type2: "([B]) -> void", upperBound: "() -> void");
+      type1: "() -> void",
+      type2: "([B]) -> void",
+      upperBound: "() -> void",
+    );
     checkUpperBound(
-        type1: "<X>() -> void",
-        type2: "<Y>() -> void",
-        upperBound: "<Z>() -> void");
+      type1: "<X>() -> void",
+      type2: "<Y>() -> void",
+      upperBound: "<Z>() -> void",
+    );
     checkUpperBound(
-        type1: "<X>(X) -> List<X>",
-        type2: "<Y>(Y) -> List<Y>",
-        upperBound: "<Z>(Z) -> List<Z>");
+      type1: "<X>(X) -> List<X>",
+      type2: "<Y>(Y) -> List<Y>",
+      upperBound: "<Z>(Z) -> List<Z>",
+    );
     checkUpperBound(
-        type1: "<X1, X2 extends List<X1>>(X1) -> X2",
-        type2: "<Y1, Y2 extends List<Y1>>(Y1) -> Y2",
-        upperBound: "<Z1, Z2 extends List<Z1>>(Z1) -> Z2");
+      type1: "<X1, X2 extends List<X1>>(X1) -> X2",
+      type2: "<Y1, Y2 extends List<Y1>>(Y1) -> Y2",
+      upperBound: "<Z1, Z2 extends List<Z1>>(Z1) -> Z2",
+    );
     checkUpperBound(
-        type1: "<X extends int>() -> void",
-        type2: "<Y extends double>() -> void",
-        upperBound: "Function");
+      type1: "<X extends int>() -> void",
+      type2: "<Y extends double>() -> void",
+      upperBound: "Function",
+    );
 
     checkUpperBound(
-        type1: "({required A a, B b}) -> A",
-        type2: "({B a, required A b}) -> B",
-        upperBound: "({required B a, required B b}) -> A");
+      type1: "({required A a, B b}) -> A",
+      type2: "({B a, required A b}) -> B",
+      upperBound: "({required B a, required B b}) -> A",
+    );
 
     checkUpperBound(
-        type1: "<X extends dynamic>() -> void",
-        type2: "<Y extends Object?>() -> void",
-        upperBound: "<Z extends dynamic>() -> void");
+      type1: "<X extends dynamic>() -> void",
+      type2: "<Y extends Object?>() -> void",
+      upperBound: "<Z extends dynamic>() -> void",
+    );
     checkUpperBound(
-        type1: "<X extends Null>() -> void",
-        type2: "<Y extends Never?>() -> void",
-        upperBound: "<Z extends Null>() -> void");
+      type1: "<X extends Null>() -> void",
+      type2: "<Y extends Never?>() -> void",
+      upperBound: "<Z extends Null>() -> void",
+    );
     checkUpperBound(
-        type1: "<X extends FutureOr<dynamic>?>() -> void",
-        type2: "<Y extends FutureOr<Object?>>() -> void",
-        upperBound: "<Z extends FutureOr<dynamic>?>() -> void");
+      type1: "<X extends FutureOr<dynamic>?>() -> void",
+      type2: "<Y extends FutureOr<Object?>>() -> void",
+      upperBound: "<Z extends FutureOr<dynamic>?>() -> void",
+    );
 
     checkUpperBound(
-        type1: "([dynamic]) -> dynamic",
-        type2: "([dynamic]) -> dynamic",
-        upperBound: "([dynamic]) -> dynamic");
+      type1: "([dynamic]) -> dynamic",
+      type2: "([dynamic]) -> dynamic",
+      upperBound: "([dynamic]) -> dynamic",
+    );
   }
 
   void test_upper_bound_record() {
@@ -810,11 +977,15 @@ class TypeSchemaEnvironmentTest extends TypeSchemaEnvironmentTestBase {
 
     checkUpperBound(type1: "(A, B)", type2: "(B, A)", upperBound: "(A, A)");
     checkUpperBound(
-        type1: "(A, {B b})", type2: "(B, {A b})", upperBound: "(A, {A b})");
+      type1: "(A, {B b})",
+      type2: "(B, {A b})",
+      upperBound: "(A, {A b})",
+    );
     checkUpperBound(
-        type1: "(A, {(B, {A a}) b})",
-        type2: "(B, {(A, {B a}) b})",
-        upperBound: "(A, {(A, {A a}) b})");
+      type1: "(A, {(B, {A a}) b})",
+      type2: "(B, {(A, {B a}) b})",
+      upperBound: "(A, {(A, {A a}) b})",
+    );
     checkUpperBound(type1: "(A?, B)", type2: "(B, A?)", upperBound: "(A?, A?)");
     checkUpperBound(type1: "(A, B?)", type2: "(B?, A)", upperBound: "(A?, A?)");
 
@@ -822,13 +993,19 @@ class TypeSchemaEnvironmentTest extends TypeSchemaEnvironmentTestBase {
     checkUpperBound(type1: "(A, A)", type2: "(A, {A a})", upperBound: "Record");
     checkUpperBound(type1: "({A a})", type2: "(A, A)", upperBound: "Record");
     checkUpperBound(
-        type1: "({A a, B b})", type2: "({A a})", upperBound: "Record");
+      type1: "({A a, B b})",
+      type2: "({A a})",
+      upperBound: "Record",
+    );
 
     checkUpperBound(type1: "(A, B)", type2: "Record", upperBound: "Record");
     checkUpperBound(type1: "Record", type2: "(A, B)", upperBound: "Record");
 
     checkUpperBound(
-        type1: "(A, B)", type2: "(A, B) -> void", upperBound: "Object");
+      type1: "(A, B)",
+      type2: "(A, B) -> void",
+      upperBound: "Object",
+    );
     checkUpperBound(type1: "Record", type2: "A", upperBound: "Object");
   }
 
@@ -850,11 +1027,20 @@ class TypeSchemaEnvironmentTest extends TypeSchemaEnvironmentTestBase {
     """);
 
     checkUpperBound(
-        type1: "Pair<A, B>", type2: "Pair<B, A>", upperBound: "Pair<A, A>");
+      type1: "Pair<A, B>",
+      type2: "Pair<B, A>",
+      upperBound: "Pair<A, A>",
+    );
     checkUpperBound(
-        type1: "Pair<A, B>", type2: "Pair<B?, A>", upperBound: "Pair<A?, A>");
+      type1: "Pair<A, B>",
+      type2: "Pair<B?, A>",
+      upperBound: "Pair<A?, A>",
+    );
     checkUpperBound(
-        type1: "Pair<A?, B?>", type2: "Pair<B, A>", upperBound: "Pair<A?, A?>");
+      type1: "Pair<A?, B?>",
+      type2: "Pair<B, A>",
+      upperBound: "Pair<A?, A?>",
+    );
   }
 
   void test_upper_bound_subtype() {
@@ -866,45 +1052,87 @@ class TypeSchemaEnvironmentTest extends TypeSchemaEnvironmentTestBase {
     // UP(T1, T2) = T2 if T1 <: T2
     //   Note that both types must be class types at this point
     checkUpperBound(
-        type1: "List<B>", type2: "Iterable<A>", upperBound: "Iterable<A>");
+      type1: "List<B>",
+      type2: "Iterable<A>",
+      upperBound: "Iterable<A>",
+    );
     checkUpperBound(
-        type1: "List<B>", type2: "Iterable<A?>", upperBound: "Iterable<A?>");
+      type1: "List<B>",
+      type2: "Iterable<A?>",
+      upperBound: "Iterable<A?>",
+    );
     checkUpperBound(
-        type1: "List<B>", type2: "Iterable<A>?", upperBound: "Iterable<A>?");
+      type1: "List<B>",
+      type2: "Iterable<A>?",
+      upperBound: "Iterable<A>?",
+    );
     checkUpperBound(
-        type1: "List<B>?", type2: "Iterable<A>", upperBound: "Iterable<A>?");
+      type1: "List<B>?",
+      type2: "Iterable<A>",
+      upperBound: "Iterable<A>?",
+    );
     checkUpperBound(
-        type1: "List<B>?", type2: "Iterable<A>?", upperBound: "Iterable<A>?");
+      type1: "List<B>?",
+      type2: "Iterable<A>?",
+      upperBound: "Iterable<A>?",
+    );
 
     // UP(T1, T2) = T2 if T1 <: T2
     //   Note that both types must be class types at this point
     checkUpperBound(
-        type1: "List<B?>", type2: "Iterable<A?>", upperBound: "Iterable<A?>");
+      type1: "List<B?>",
+      type2: "Iterable<A?>",
+      upperBound: "Iterable<A?>",
+    );
 
     // UP(C0<T0, ..., Tn>, C1<S0, ..., Sk>)
     //     = least upper bound of two interfaces as in Dart 1.
     checkUpperBound(
-        type1: "List<B?>", type2: "Iterable<A>", upperBound: "Object");
+      type1: "List<B?>",
+      type2: "Iterable<A>",
+      upperBound: "Object",
+    );
 
     // UP(T1, T2) = T1 if T2 <: T1
     //   Note that both types must be class types at this point
     checkUpperBound(
-        type1: "Iterable<A>", type2: "List<B>", upperBound: "Iterable<A>");
+      type1: "Iterable<A>",
+      type2: "List<B>",
+      upperBound: "Iterable<A>",
+    );
     checkUpperBound(
-        type1: "Iterable<A>", type2: "List<B?>", upperBound: "Object");
+      type1: "Iterable<A>",
+      type2: "List<B?>",
+      upperBound: "Object",
+    );
     checkUpperBound(
-        type1: "Iterable<A>", type2: "List<B>?", upperBound: "Iterable<A>?");
+      type1: "Iterable<A>",
+      type2: "List<B>?",
+      upperBound: "Iterable<A>?",
+    );
 
     // UP(T1, T2) = T1 if T2 <: T1
     //   Note that both types must be class types at this point
     checkUpperBound(
-        type1: "Iterable<A?>", type2: "List<B>", upperBound: "Iterable<A?>");
+      type1: "Iterable<A?>",
+      type2: "List<B>",
+      upperBound: "Iterable<A?>",
+    );
     checkUpperBound(
-        type1: "Iterable<A?>", type2: "List<B?>", upperBound: "Iterable<A?>");
+      type1: "Iterable<A?>",
+      type2: "List<B?>",
+      upperBound: "Iterable<A?>",
+    );
     checkUpperBound(
-        type1: "Iterable<A>?", type2: "List<B>", upperBound: "Iterable<A>?");
+      type1: "Iterable<A>?",
+      type2: "List<B>",
+      upperBound: "Iterable<A>?",
+    );
     checkUpperBound(
-        type1: "Iterable<A>?", type2: "List<B>?", upperBound: "Iterable<A>?");
+      type1: "Iterable<A>?",
+      type2: "List<B>?",
+      upperBound: "Iterable<A>?",
+    );
   }
 
   void test_upper_bound_top() {
@@ -916,17 +1144,20 @@ class TypeSchemaEnvironmentTest extends TypeSchemaEnvironmentTestBase {
     for (String t1 in topPredicateEnumeration.keys) {
       for (String t2 in topPredicateEnumeration.keys) {
         String? typeParameters = joinTypeParameters(
-            topPredicateEnumeration[t1], topPredicateEnumeration[t2]);
+          topPredicateEnumeration[t1],
+          topPredicateEnumeration[t2],
+        );
         typeParserEnvironment.withTypeParameters(typeParameters, (_) {
           String expected =
               typeSchemaEnvironment.moretop(parseType(t1), parseType(t2))
-                  ? t1
-                  : t2;
+              ? t1
+              : t2;
           checkUpperBound(
-              type1: t1,
-              type2: t2,
-              upperBound: expected,
-              typeParameters: typeParameters);
+            type1: t1,
+            type2: t2,
+            upperBound: expected,
+            typeParameters: typeParameters,
+          );
         });
       }
     }
@@ -935,10 +1166,11 @@ class TypeSchemaEnvironmentTest extends TypeSchemaEnvironmentTestBase {
     for (String t1 in topPredicateEnumeration.keys) {
       for (String t2 in ["A", "A?"]) {
         checkUpperBound(
-            type1: t1,
-            type2: t2,
-            upperBound: t1,
-            typeParameters: topPredicateEnumeration[t1]);
+          type1: t1,
+          type2: t2,
+          upperBound: t1,
+          typeParameters: topPredicateEnumeration[t1],
+        );
       }
     }
 
@@ -946,10 +1178,11 @@ class TypeSchemaEnvironmentTest extends TypeSchemaEnvironmentTestBase {
     for (String t1 in ["A", "A?"]) {
       for (String t2 in topPredicateEnumeration.keys) {
         checkUpperBound(
-            type1: t1,
-            type2: t2,
-            upperBound: t2,
-            typeParameters: topPredicateEnumeration[t2]);
+          type1: t1,
+          type2: t2,
+          upperBound: t2,
+          typeParameters: topPredicateEnumeration[t2],
+        );
       }
     }
 
@@ -959,17 +1192,20 @@ class TypeSchemaEnvironmentTest extends TypeSchemaEnvironmentTestBase {
     for (String t1 in objectPredicateEnumeration.keys) {
       for (String t2 in objectPredicateEnumeration.keys) {
         String? typeParameters = joinTypeParameters(
-            objectPredicateEnumeration[t1], objectPredicateEnumeration[t2]);
+          objectPredicateEnumeration[t1],
+          objectPredicateEnumeration[t2],
+        );
         typeParserEnvironment.withTypeParameters(typeParameters, (_) {
           String expected =
               typeSchemaEnvironment.moretop(parseType(t1), parseType(t2))
-                  ? t1
-                  : t2;
+              ? t1
+              : t2;
           checkUpperBound(
-              type1: t1,
-              type2: t2,
-              upperBound: expected,
-              typeParameters: typeParameters);
+            type1: t1,
+            type2: t2,
+            upperBound: expected,
+            typeParameters: typeParameters,
+          );
         });
       }
     }
@@ -979,10 +1215,11 @@ class TypeSchemaEnvironmentTest extends TypeSchemaEnvironmentTestBase {
     //   T1? otherwise
     for (String t1 in objectPredicateEnumeration.keys) {
       checkUpperBound(
-          type1: t1,
-          type2: "A?",
-          upperBound: "${t1}?",
-          typeParameters: objectPredicateEnumeration[t1]);
+        type1: t1,
+        type2: "A?",
+        upperBound: "${t1}?",
+        typeParameters: objectPredicateEnumeration[t1],
+      );
       checkUpperBound(type1: t1, type2: "A", upperBound: t1);
     }
 
@@ -1004,17 +1241,20 @@ class TypeSchemaEnvironmentTest extends TypeSchemaEnvironmentTestBase {
     for (String t1 in bottomPredicateEnumeration.keys) {
       for (String t2 in bottomPredicateEnumeration.keys) {
         String? typeParameters = joinTypeParameters(
-            bottomPredicateEnumeration[t1], bottomPredicateEnumeration[t2]);
+          bottomPredicateEnumeration[t1],
+          bottomPredicateEnumeration[t2],
+        );
         typeParserEnvironment.withTypeParameters(typeParameters, (_) {
           String expected =
               typeSchemaEnvironment.morebottom(parseType(t1), parseType(t2))
-                  ? t2
-                  : t1;
+              ? t2
+              : t1;
           checkUpperBound(
-              type1: t1,
-              type2: t2,
-              upperBound: expected,
-              typeParameters: typeParameters);
+            type1: t1,
+            type2: t2,
+            upperBound: expected,
+            typeParameters: typeParameters,
+          );
         });
       }
     }
@@ -1023,10 +1263,11 @@ class TypeSchemaEnvironmentTest extends TypeSchemaEnvironmentTestBase {
     for (String t1 in bottomPredicateEnumeration.keys) {
       for (String t2 in ["A", "A?"]) {
         checkUpperBound(
-            type1: t1,
-            type2: t2,
-            upperBound: t2,
-            typeParameters: bottomPredicateEnumeration[t1]);
+          type1: t1,
+          type2: t2,
+          upperBound: t2,
+          typeParameters: bottomPredicateEnumeration[t1],
+        );
       }
     }
 
@@ -1034,10 +1275,11 @@ class TypeSchemaEnvironmentTest extends TypeSchemaEnvironmentTestBase {
     for (String t1 in ["A", "A?"]) {
       for (String t2 in bottomPredicateEnumeration.keys) {
         checkUpperBound(
-            type1: t1,
-            type2: t2,
-            upperBound: t1,
-            typeParameters: bottomPredicateEnumeration[t2]);
+          type1: t1,
+          type2: t2,
+          upperBound: t1,
+          typeParameters: bottomPredicateEnumeration[t2],
+        );
       }
     }
 
@@ -1047,17 +1289,20 @@ class TypeSchemaEnvironmentTest extends TypeSchemaEnvironmentTestBase {
     for (String t1 in nullPredicateEnumeration.keys) {
       for (String t2 in nullPredicateEnumeration.keys) {
         String? typeParameters = joinTypeParameters(
-            nullPredicateEnumeration[t1], nullPredicateEnumeration[t2]);
+          nullPredicateEnumeration[t1],
+          nullPredicateEnumeration[t2],
+        );
         typeParserEnvironment.withTypeParameters(typeParameters, (_) {
           String expected =
               typeSchemaEnvironment.morebottom(parseType(t1), parseType(t2))
-                  ? t2
-                  : t1;
+              ? t2
+              : t1;
           checkUpperBound(
-              type1: t1,
-              type2: t2,
-              upperBound: expected,
-              typeParameters: typeParameters);
+            type1: t1,
+            type2: t2,
+            upperBound: expected,
+            typeParameters: typeParameters,
+          );
         });
       }
     }
@@ -1067,15 +1312,17 @@ class TypeSchemaEnvironmentTest extends TypeSchemaEnvironmentTestBase {
     //   T2? otherwise
     for (String t1 in nullPredicateEnumeration.keys) {
       checkUpperBound(
-          type1: t1,
-          type2: "A",
-          upperBound: "A?",
-          typeParameters: nullPredicateEnumeration[t1]);
+        type1: t1,
+        type2: "A",
+        upperBound: "A?",
+        typeParameters: nullPredicateEnumeration[t1],
+      );
       checkUpperBound(
-          type1: t1,
-          type2: "A?",
-          upperBound: "A?",
-          typeParameters: nullPredicateEnumeration[t1]);
+        type1: t1,
+        type2: "A?",
+        upperBound: "A?",
+        typeParameters: nullPredicateEnumeration[t1],
+      );
     }
 
     // UP(T1, T2) where NULL(T2) =
@@ -1083,15 +1330,17 @@ class TypeSchemaEnvironmentTest extends TypeSchemaEnvironmentTestBase {
     //   T1? otherwise
     for (String t2 in nullPredicateEnumeration.keys) {
       checkUpperBound(
-          type1: "A",
-          type2: t2,
-          upperBound: "A?",
-          typeParameters: nullPredicateEnumeration[t2]);
+        type1: "A",
+        type2: t2,
+        upperBound: "A?",
+        typeParameters: nullPredicateEnumeration[t2],
+      );
       checkUpperBound(
-          type1: "A?",
-          type2: t2,
-          upperBound: "A?",
-          typeParameters: nullPredicateEnumeration[t2]);
+        type1: "A?",
+        type2: t2,
+        upperBound: "A?",
+        typeParameters: nullPredicateEnumeration[t2],
+      );
     }
   }
 
@@ -1100,35 +1349,41 @@ class TypeSchemaEnvironmentTest extends TypeSchemaEnvironmentTestBase {
 
     // TODO(cstefantsova): Test for various nullabilities.
     checkUpperBound(
-        type1: "T",
-        type2: "T",
-        upperBound: "T",
-        typeParameters: "T extends Object");
+      type1: "T",
+      type2: "T",
+      upperBound: "T",
+      typeParameters: "T extends Object",
+    );
     checkUpperBound(
-        type1: "T",
-        type2: "List<Never>",
-        upperBound: "List<Object?>",
-        typeParameters: "T extends List<T>");
+      type1: "T",
+      type2: "List<Never>",
+      upperBound: "List<Object?>",
+      typeParameters: "T extends List<T>",
+    );
     checkUpperBound(
-        type1: "List<Never>",
-        type2: "T",
-        upperBound: "List<Object?>",
-        typeParameters: "T extends List<T>");
+      type1: "List<Never>",
+      type2: "T",
+      upperBound: "List<Object?>",
+      typeParameters: "T extends List<T>",
+    );
     checkUpperBound(
-        type1: "T",
-        type2: "U",
-        upperBound: "List<Object?>",
-        typeParameters: "T extends List<T>, U extends List<Never>");
+      type1: "T",
+      type2: "U",
+      upperBound: "List<Object?>",
+      typeParameters: "T extends List<T>, U extends List<Never>",
+    );
     checkUpperBound(
-        type1: "U",
-        type2: "T",
-        upperBound: "List<Object?>",
-        typeParameters: "T extends List<T>, U extends List<Never>");
+      type1: "U",
+      type2: "T",
+      upperBound: "List<Object?>",
+      typeParameters: "T extends List<T>, U extends List<Never>",
+    );
     checkUpperBound(
-        type1: "T",
-        type2: "T",
-        upperBound: "T",
-        typeParameters: "T extends Object?");
+      type1: "T",
+      type2: "T",
+      upperBound: "T",
+      typeParameters: "T extends Object?",
+    );
 
     // These cases are observed through `a ?? b`. Here the resulting type
     // is `UP(NonNull(a), b)`, where `NonNull(a)` is an intersection type
@@ -1144,11 +1399,12 @@ class TypeSchemaEnvironmentTest extends TypeSchemaEnvironmentTestBase {
     //     Up(Object, Null) = Object?
     //
     checkUpperBound(
-        type1: "T",
-        type2: "Null",
-        upperBound: "Object?",
-        typeParameters: "T extends Object?",
-        nonNull1: true);
+      type1: "T",
+      type2: "Null",
+      upperBound: "Object?",
+      typeParameters: "T extends Object?",
+      nonNull1: true,
+    );
 
     // We have
     //
@@ -1159,11 +1415,12 @@ class TypeSchemaEnvironmentTest extends TypeSchemaEnvironmentTestBase {
     //     Up(bool, Null) = bool?
     //
     checkUpperBound(
-        type1: "T",
-        type2: "Null",
-        upperBound: "bool?",
-        typeParameters: "T extends bool?",
-        nonNull1: true);
+      type1: "T",
+      type2: "Null",
+      upperBound: "bool?",
+      typeParameters: "T extends bool?",
+      nonNull1: true,
+    );
 
     // We have
     //
@@ -1174,11 +1431,12 @@ class TypeSchemaEnvironmentTest extends TypeSchemaEnvironmentTestBase {
     //     Up(T, Null) = T?
     //
     checkUpperBound(
-        type1: "T",
-        type2: "Null",
-        upperBound: "T?",
-        typeParameters: "T extends bool",
-        nonNull1: true);
+      type1: "T",
+      type2: "Null",
+      upperBound: "T?",
+      typeParameters: "T extends bool",
+      nonNull1: true,
+    );
   }
 
   void test_upper_bound_unknown() {
@@ -1232,36 +1490,60 @@ class TypeSchemaEnvironmentTest extends TypeSchemaEnvironmentTestBase {
     checkConstraintSolving("<: A<UNKNOWN>", "A<Object?>", grounded: true);
 
     // Solve(B <: T <: A) => B
-    checkConstraintSolving(":> B<dynamic> <: A<dynamic>", "B<dynamic>",
-        grounded: false);
+    checkConstraintSolving(
+      ":> B<dynamic> <: A<dynamic>",
+      "B<dynamic>",
+      grounded: false,
+    );
 
     // Solve(B <: T <: A, grounded) => B
-    checkConstraintSolving(":> B<dynamic> <: A<dynamic>", "B<dynamic>",
-        grounded: true);
+    checkConstraintSolving(
+      ":> B<dynamic> <: A<dynamic>",
+      "B<dynamic>",
+      grounded: true,
+    );
 
     // Solve(B<?> <: T <: A) => A
-    checkConstraintSolving(":> B<UNKNOWN> <: A<dynamic>", "A<dynamic>",
-        grounded: false);
+    checkConstraintSolving(
+      ":> B<UNKNOWN> <: A<dynamic>",
+      "A<dynamic>",
+      grounded: false,
+    );
 
     // Solve(B<?> <: T <: A, grounded) => A
-    checkConstraintSolving(":> B<UNKNOWN> <: A<dynamic>", "A<dynamic>",
-        grounded: true);
+    checkConstraintSolving(
+      ":> B<UNKNOWN> <: A<dynamic>",
+      "A<dynamic>",
+      grounded: true,
+    );
 
     // Solve(B <: T <: A<?>) => B
-    checkConstraintSolving(":> B<dynamic> <: A<UNKNOWN>", "B<dynamic>",
-        grounded: false);
+    checkConstraintSolving(
+      ":> B<dynamic> <: A<UNKNOWN>",
+      "B<dynamic>",
+      grounded: false,
+    );
 
     // Solve(B <: T <: A<?>, grounded) => B
-    checkConstraintSolving(":> B<dynamic> <: A<UNKNOWN>", "B<dynamic>",
-        grounded: true);
+    checkConstraintSolving(
+      ":> B<dynamic> <: A<UNKNOWN>",
+      "B<dynamic>",
+      grounded: true,
+    );
 
     // Solve(B<?> <: T <: A<?>) => B<?>
-    checkConstraintSolving(":> B<UNKNOWN> <: A<UNKNOWN>", "B<UNKNOWN>",
-        grounded: false);
+    checkConstraintSolving(
+      ":> B<UNKNOWN> <: A<UNKNOWN>",
+      "B<UNKNOWN>",
+      grounded: false,
+    );
 
     // Solve(B<?> <: T <: A<?>, grounded) => B<Never>
-    checkConstraintSolving(":> B<UNKNOWN> <: A<UNKNOWN>", "B<Never>",
-        grounded: true);
+    checkConstraintSolving(
+      ":> B<UNKNOWN> <: A<UNKNOWN>",
+      "B<Never>",
+      grounded: true,
+    );
   }
 
   void test_typeConstraint_default() {
@@ -1304,11 +1586,13 @@ class TypeSchemaEnvironmentTest extends TypeSchemaEnvironmentTestBase {
   }
 
   void test_upper_bound_extension_type() {
-    parseTestLibrary("extension type E1(Object? it); "
-        "extension type E2(Object it);"
-        "extension type E3<X>(X it); "
-        "extension type E4(Object it) implements Object; "
-        "extension type E5<X extends Object>(X it) implements Object;");
+    parseTestLibrary(
+      "extension type E1(Object? it); "
+      "extension type E2(Object it);"
+      "extension type E3<X>(X it); "
+      "extension type E4(Object it) implements Object; "
+      "extension type E5<X extends Object>(X it) implements Object;",
+    );
     checkUpperBound(type1: "E1", type2: "E1", upperBound: "E1");
     checkUpperBound(type1: "E2", type2: "E2", upperBound: "E2");
     checkUpperBound(type1: "E1", type2: "E2", upperBound: "Object?");
@@ -1321,18 +1605,20 @@ class TypeSchemaEnvironmentTest extends TypeSchemaEnvironmentTestBase {
   }
 
   void test_upper_bound_extension_type_implements() {
-    parseTestLibrary("extension type E1(int it) implements num; "
-        "extension type E2(double it) implements double; "
-        "extension type E3<X extends num>(X it) implements num; "
-        "extension type E4<X extends num>(X it) implements E3<X>; "
-        "extension type E5(num? it); "
-        "extension type E6(num? it) implements E5; "
-        "extension type E7(String it) implements String; "
-        "extension type E8(bool it); "
-        "extension type E9(int it) implements E6; "
-        "extension type E10(double it) implements E5; "
-        "extension type E11<X>(X it); "
-        "extension type E12(bool it) implements Object;");
+    parseTestLibrary(
+      "extension type E1(int it) implements num; "
+      "extension type E2(double it) implements double; "
+      "extension type E3<X extends num>(X it) implements num; "
+      "extension type E4<X extends num>(X it) implements E3<X>; "
+      "extension type E5(num? it); "
+      "extension type E6(num? it) implements E5; "
+      "extension type E7(String it) implements String; "
+      "extension type E8(bool it); "
+      "extension type E9(int it) implements E6; "
+      "extension type E10(double it) implements E5; "
+      "extension type E11<X>(X it); "
+      "extension type E12(bool it) implements Object;",
+    );
     checkUpperBound(type1: "E1", type2: "E2", upperBound: "num");
     checkUpperBound(type1: "E1", type2: "E3<int>", upperBound: "num");
     checkUpperBound(type1: "E2", type2: "E3<double>", upperBound: "num");
@@ -1356,19 +1642,27 @@ class TypeSchemaEnvironmentTest extends TypeSchemaEnvironmentTestBase {
     checkUpperBound(type1: "E6?", type2: "E10", upperBound: "E5?");
     checkUpperBound(type1: "E6", type2: "E10?", upperBound: "E5?");
     checkUpperBound(
-        type1: "E11<num>", type2: "E11<num?>", upperBound: "E11<num?>");
+      type1: "E11<num>",
+      type2: "E11<num?>",
+      upperBound: "E11<num?>",
+    );
     checkUpperBound(
-        type1: "E11<int>", type2: "E11<String>", upperBound: "E11<Object>");
+      type1: "E11<int>",
+      type2: "E11<String>",
+      upperBound: "E11<Object>",
+    );
   }
 
   void test_upper_bound_extension_and_interface_types() {
-    parseTestLibrary("class A<X>; class B implements A<String>;"
-        "extension type E1(num? it); "
-        "extension type E2(num it); "
-        "extension type E3(num? it) implements E1; "
-        "extension type E4(num it) implements num; "
-        "extension type E5<Y extends Object>(Y it) implements A<Y>; "
-        "extension type E6(num it) implements Object;");
+    parseTestLibrary(
+      "class A<X>; class B implements A<String>;"
+      "extension type E1(num? it); "
+      "extension type E2(num it); "
+      "extension type E3(num? it) implements E1; "
+      "extension type E4(num it) implements num; "
+      "extension type E5<Y extends Object>(Y it) implements A<Y>; "
+      "extension type E6(num it) implements Object;",
+    );
     checkUpperBound(type1: "E1", type2: "num?", upperBound: "Object?");
     checkUpperBound(type1: "E1", type2: "num", upperBound: "Object?");
     checkUpperBound(type1: "E1", type2: "int?", upperBound: "Object?");
@@ -1397,23 +1691,47 @@ class TypeSchemaEnvironmentTest extends TypeSchemaEnvironmentTestBase {
     checkUpperBound(type1: "E4?", type2: "int", upperBound: "num?");
 
     checkUpperBound(
-        type1: "E5<String>", type2: "A<String?>", upperBound: "A<String?>");
+      type1: "E5<String>",
+      type2: "A<String?>",
+      upperBound: "A<String?>",
+    );
     checkUpperBound(
-        type1: "E5<String>", type2: "A<String>", upperBound: "A<String>");
+      type1: "E5<String>",
+      type2: "A<String>",
+      upperBound: "A<String>",
+    );
     checkUpperBound(
-        type1: "E5<String>", type2: "A<Object?>", upperBound: "A<Object?>");
+      type1: "E5<String>",
+      type2: "A<Object?>",
+      upperBound: "A<Object?>",
+    );
     checkUpperBound(
-        type1: "E5<String>", type2: "A<Object>", upperBound: "A<Object>");
+      type1: "E5<String>",
+      type2: "A<Object>",
+      upperBound: "A<Object>",
+    );
     checkUpperBound(type1: "E5<String>", type2: "B", upperBound: "A<String>");
 
     checkUpperBound(
-        type1: "E5<String>?", type2: "A<String?>", upperBound: "A<String?>?");
+      type1: "E5<String>?",
+      type2: "A<String?>",
+      upperBound: "A<String?>?",
+    );
     checkUpperBound(
-        type1: "E5<String>?", type2: "A<String>", upperBound: "A<String>?");
+      type1: "E5<String>?",
+      type2: "A<String>",
+      upperBound: "A<String>?",
+    );
     checkUpperBound(
-        type1: "E5<String>?", type2: "A<Object?>", upperBound: "A<Object?>?");
+      type1: "E5<String>?",
+      type2: "A<Object?>",
+      upperBound: "A<Object?>?",
+    );
     checkUpperBound(
-        type1: "E5<String>?", type2: "A<Object>", upperBound: "A<Object>?");
+      type1: "E5<String>?",
+      type2: "A<Object>",
+      upperBound: "A<Object>?",
+    );
     checkUpperBound(type1: "E5<String>?", type2: "B", upperBound: "A<String>?");
   }
 
@@ -1431,362 +1749,431 @@ class TypeSchemaEnvironmentTest extends TypeSchemaEnvironmentTestBase {
     """);
 
     checkTypeShapeCheckSufficiency(
-        expressionStaticType: "A<int>",
-        checkTargetType: "C<int>",
-        typeParameters: "",
-        sufficiency: TypeShapeCheckSufficiency.insufficient);
+      expressionStaticType: "A<int>",
+      checkTargetType: "C<int>",
+      typeParameters: "",
+      sufficiency: TypeShapeCheckSufficiency.insufficient,
+    );
     checkTypeShapeCheckSufficiency(
-        expressionStaticType: "A<int>",
-        checkTargetType: "C<String>",
-        typeParameters: "",
-        sufficiency: TypeShapeCheckSufficiency.insufficient);
+      expressionStaticType: "A<int>",
+      checkTargetType: "C<String>",
+      typeParameters: "",
+      sufficiency: TypeShapeCheckSufficiency.insufficient,
+    );
     checkTypeShapeCheckSufficiency(
-        expressionStaticType: "A<int>",
-        checkTargetType: "C<dynamic>",
-        typeParameters: "",
-        sufficiency: TypeShapeCheckSufficiency.interfaceShape);
+      expressionStaticType: "A<int>",
+      checkTargetType: "C<dynamic>",
+      typeParameters: "",
+      sufficiency: TypeShapeCheckSufficiency.interfaceShape,
+    );
     checkTypeShapeCheckSufficiency(
-        expressionStaticType: "B",
-        checkTargetType: "C<int>",
-        typeParameters: "",
-        sufficiency: TypeShapeCheckSufficiency.insufficient);
+      expressionStaticType: "B",
+      checkTargetType: "C<int>",
+      typeParameters: "",
+      sufficiency: TypeShapeCheckSufficiency.insufficient,
+    );
     checkTypeShapeCheckSufficiency(
-        expressionStaticType: "B",
-        checkTargetType: "C<Object?>",
-        typeParameters: "",
-        sufficiency: TypeShapeCheckSufficiency.interfaceShape);
+      expressionStaticType: "B",
+      checkTargetType: "C<Object?>",
+      typeParameters: "",
+      sufficiency: TypeShapeCheckSufficiency.interfaceShape,
+    );
 
     checkTypeShapeCheckSufficiency(
-        expressionStaticType: "D<int>",
-        checkTargetType: "E<int>",
-        typeParameters: "",
-        sufficiency: TypeShapeCheckSufficiency.interfaceShape);
+      expressionStaticType: "D<int>",
+      checkTargetType: "E<int>",
+      typeParameters: "",
+      sufficiency: TypeShapeCheckSufficiency.interfaceShape,
+    );
     checkTypeShapeCheckSufficiency(
-        expressionStaticType: "D<int>",
-        checkTargetType: "E<num>",
-        typeParameters: "",
-        sufficiency: TypeShapeCheckSufficiency.interfaceShape);
+      expressionStaticType: "D<int>",
+      checkTargetType: "E<num>",
+      typeParameters: "",
+      sufficiency: TypeShapeCheckSufficiency.interfaceShape,
+    );
     checkTypeShapeCheckSufficiency(
-        expressionStaticType: "D<int>",
-        checkTargetType: "E<dynamic>",
-        typeParameters: "",
-        sufficiency: TypeShapeCheckSufficiency.interfaceShape);
+      expressionStaticType: "D<int>",
+      checkTargetType: "E<dynamic>",
+      typeParameters: "",
+      sufficiency: TypeShapeCheckSufficiency.interfaceShape,
+    );
     checkTypeShapeCheckSufficiency(
-        expressionStaticType: "D<num>",
-        checkTargetType: "E<int>",
-        typeParameters: "",
-        sufficiency: TypeShapeCheckSufficiency.insufficient);
+      expressionStaticType: "D<num>",
+      checkTargetType: "E<int>",
+      typeParameters: "",
+      sufficiency: TypeShapeCheckSufficiency.insufficient,
+    );
 
     checkTypeShapeCheckSufficiency(
-        expressionStaticType: "F<int>",
-        checkTargetType: "G<int, String>",
-        typeParameters: "",
-        sufficiency: TypeShapeCheckSufficiency.insufficient);
+      expressionStaticType: "F<int>",
+      checkTargetType: "G<int, String>",
+      typeParameters: "",
+      sufficiency: TypeShapeCheckSufficiency.insufficient,
+    );
     checkTypeShapeCheckSufficiency(
-        expressionStaticType: "F<int>",
-        checkTargetType: "G<num, String>",
-        typeParameters: "",
-        sufficiency: TypeShapeCheckSufficiency.insufficient);
+      expressionStaticType: "F<int>",
+      checkTargetType: "G<num, String>",
+      typeParameters: "",
+      sufficiency: TypeShapeCheckSufficiency.insufficient,
+    );
     checkTypeShapeCheckSufficiency(
-        expressionStaticType: "F<int>",
-        checkTargetType: "G<dynamic, Object?>",
-        typeParameters: "",
-        sufficiency: TypeShapeCheckSufficiency.interfaceShape);
+      expressionStaticType: "F<int>",
+      checkTargetType: "G<dynamic, Object?>",
+      typeParameters: "",
+      sufficiency: TypeShapeCheckSufficiency.interfaceShape,
+    );
     checkTypeShapeCheckSufficiency(
-        expressionStaticType: "F<int>",
-        checkTargetType: "G<int, Object?>",
-        typeParameters: "",
-        sufficiency: TypeShapeCheckSufficiency.interfaceShape);
+      expressionStaticType: "F<int>",
+      checkTargetType: "G<int, Object?>",
+      typeParameters: "",
+      sufficiency: TypeShapeCheckSufficiency.interfaceShape,
+    );
     checkTypeShapeCheckSufficiency(
-        expressionStaticType: "F<int>",
-        checkTargetType: "G<num, Object?>",
-        typeParameters: "",
-        sufficiency: TypeShapeCheckSufficiency.interfaceShape);
+      expressionStaticType: "F<int>",
+      checkTargetType: "G<num, Object?>",
+      typeParameters: "",
+      sufficiency: TypeShapeCheckSufficiency.interfaceShape,
+    );
 
     checkTypeShapeCheckSufficiency(
-        expressionStaticType: "(int,)",
-        checkTargetType: "(dynamic,)",
-        typeParameters: "",
-        sufficiency: TypeShapeCheckSufficiency.recordShape);
+      expressionStaticType: "(int,)",
+      checkTargetType: "(dynamic,)",
+      typeParameters: "",
+      sufficiency: TypeShapeCheckSufficiency.recordShape,
+    );
     checkTypeShapeCheckSufficiency(
-        expressionStaticType: "(int,)",
-        checkTargetType: "(num,)",
-        typeParameters: "",
-        sufficiency: TypeShapeCheckSufficiency.recordShape);
+      expressionStaticType: "(int,)",
+      checkTargetType: "(num,)",
+      typeParameters: "",
+      sufficiency: TypeShapeCheckSufficiency.recordShape,
+    );
     checkTypeShapeCheckSufficiency(
-        expressionStaticType: "(int,)",
-        checkTargetType: "(String,)",
-        typeParameters: "",
-        sufficiency: TypeShapeCheckSufficiency.insufficient);
+      expressionStaticType: "(int,)",
+      checkTargetType: "(String,)",
+      typeParameters: "",
+      sufficiency: TypeShapeCheckSufficiency.insufficient,
+    );
     checkTypeShapeCheckSufficiency(
-        expressionStaticType: "(int, {String foo})",
-        checkTargetType: "(dynamic, {dynamic foo})",
-        typeParameters: "",
-        sufficiency: TypeShapeCheckSufficiency.recordShape);
+      expressionStaticType: "(int, {String foo})",
+      checkTargetType: "(dynamic, {dynamic foo})",
+      typeParameters: "",
+      sufficiency: TypeShapeCheckSufficiency.recordShape,
+    );
     checkTypeShapeCheckSufficiency(
-        expressionStaticType: "(int, {String foo})",
-        checkTargetType: "(dynamic, {String foo})",
-        typeParameters: "",
-        sufficiency: TypeShapeCheckSufficiency.recordShape);
+      expressionStaticType: "(int, {String foo})",
+      checkTargetType: "(dynamic, {String foo})",
+      typeParameters: "",
+      sufficiency: TypeShapeCheckSufficiency.recordShape,
+    );
     checkTypeShapeCheckSufficiency(
-        expressionStaticType: "(int, {String foo})",
-        checkTargetType: "(dynamic, {bool foo})",
-        typeParameters: "",
-        sufficiency: TypeShapeCheckSufficiency.insufficient);
+      expressionStaticType: "(int, {String foo})",
+      checkTargetType: "(dynamic, {bool foo})",
+      typeParameters: "",
+      sufficiency: TypeShapeCheckSufficiency.insufficient,
+    );
     checkTypeShapeCheckSufficiency(
-        expressionStaticType: "(int, {String foo})",
-        checkTargetType: "(dynamic, {String bar})",
-        typeParameters: "",
-        sufficiency: TypeShapeCheckSufficiency.insufficient);
+      expressionStaticType: "(int, {String foo})",
+      checkTargetType: "(dynamic, {String bar})",
+      typeParameters: "",
+      sufficiency: TypeShapeCheckSufficiency.insufficient,
+    );
 
     checkTypeShapeCheckSufficiency(
-        expressionStaticType: "(int) -> void",
-        checkTargetType: "(Never) -> void",
-        typeParameters: "",
-        sufficiency: TypeShapeCheckSufficiency.functionShape);
+      expressionStaticType: "(int) -> void",
+      checkTargetType: "(Never) -> void",
+      typeParameters: "",
+      sufficiency: TypeShapeCheckSufficiency.functionShape,
+    );
     checkTypeShapeCheckSufficiency(
-        expressionStaticType: "(num) -> String",
-        checkTargetType: "(int) -> Object",
-        typeParameters: "",
-        sufficiency: TypeShapeCheckSufficiency.functionShape);
+      expressionStaticType: "(num) -> String",
+      checkTargetType: "(int) -> Object",
+      typeParameters: "",
+      sufficiency: TypeShapeCheckSufficiency.functionShape,
+    );
     checkTypeShapeCheckSufficiency(
-        expressionStaticType: "(int) -> bool",
-        checkTargetType: "(String) -> dynamic",
-        typeParameters: "",
-        sufficiency: TypeShapeCheckSufficiency.insufficient);
+      expressionStaticType: "(int) -> bool",
+      checkTargetType: "(String) -> dynamic",
+      typeParameters: "",
+      sufficiency: TypeShapeCheckSufficiency.insufficient,
+    );
     checkTypeShapeCheckSufficiency(
-        expressionStaticType: "(dynamic, {dynamic foo}) -> void",
-        checkTargetType: "(int, {String foo}) -> void",
-        typeParameters: "",
-        sufficiency: TypeShapeCheckSufficiency.functionShape);
+      expressionStaticType: "(dynamic, {dynamic foo}) -> void",
+      checkTargetType: "(int, {String foo}) -> void",
+      typeParameters: "",
+      sufficiency: TypeShapeCheckSufficiency.functionShape,
+    );
     checkTypeShapeCheckSufficiency(
-        expressionStaticType: "(dynamic, {String foo}) -> Object?",
-        checkTargetType: "(bool, {String foo}) -> dynamic",
-        typeParameters: "",
-        sufficiency: TypeShapeCheckSufficiency.functionShape);
+      expressionStaticType: "(dynamic, {String foo}) -> Object?",
+      checkTargetType: "(bool, {String foo}) -> dynamic",
+      typeParameters: "",
+      sufficiency: TypeShapeCheckSufficiency.functionShape,
+    );
     checkTypeShapeCheckSufficiency(
-        expressionStaticType: "(dynamic, {bool foo}) -> Never?",
-        checkTargetType: "(int, {String foo}) -> Null",
-        typeParameters: "",
-        sufficiency: TypeShapeCheckSufficiency.insufficient);
+      expressionStaticType: "(dynamic, {bool foo}) -> Never?",
+      checkTargetType: "(int, {String foo}) -> Null",
+      typeParameters: "",
+      sufficiency: TypeShapeCheckSufficiency.insufficient,
+    );
     checkTypeShapeCheckSufficiency(
-        expressionStaticType: "(dynamic, {String foo}) -> Null",
-        checkTargetType: "(int, {String bar}) -> Null",
-        typeParameters: "",
-        sufficiency: TypeShapeCheckSufficiency.insufficient);
+      expressionStaticType: "(dynamic, {String foo}) -> Null",
+      checkTargetType: "(int, {String bar}) -> Null",
+      typeParameters: "",
+      sufficiency: TypeShapeCheckSufficiency.insufficient,
+    );
 
     checkTypeShapeCheckSufficiency(
-        expressionStaticType: "FutureOr<String>",
-        checkTargetType: "FutureOr<Object?>",
-        typeParameters: "",
-        sufficiency: TypeShapeCheckSufficiency.futureOrShape);
+      expressionStaticType: "FutureOr<String>",
+      checkTargetType: "FutureOr<Object?>",
+      typeParameters: "",
+      sufficiency: TypeShapeCheckSufficiency.futureOrShape,
+    );
     checkTypeShapeCheckSufficiency(
-        expressionStaticType: "FutureOr<String>",
-        checkTargetType: "FutureOr<Object>",
-        typeParameters: "",
-        sufficiency: TypeShapeCheckSufficiency.futureOrShape);
+      expressionStaticType: "FutureOr<String>",
+      checkTargetType: "FutureOr<Object>",
+      typeParameters: "",
+      sufficiency: TypeShapeCheckSufficiency.futureOrShape,
+    );
     checkTypeShapeCheckSufficiency(
-        expressionStaticType: "FutureOr<int>",
-        checkTargetType: "FutureOr<num>",
-        typeParameters: "",
-        sufficiency: TypeShapeCheckSufficiency.futureOrShape);
+      expressionStaticType: "FutureOr<int>",
+      checkTargetType: "FutureOr<num>",
+      typeParameters: "",
+      sufficiency: TypeShapeCheckSufficiency.futureOrShape,
+    );
     checkTypeShapeCheckSufficiency(
-        expressionStaticType: "FutureOr<bool>",
-        checkTargetType: "FutureOr<String>",
-        typeParameters: "",
-        sufficiency: TypeShapeCheckSufficiency.insufficient);
+      expressionStaticType: "FutureOr<bool>",
+      checkTargetType: "FutureOr<String>",
+      typeParameters: "",
+      sufficiency: TypeShapeCheckSufficiency.insufficient,
+    );
 
     checkTypeShapeCheckSufficiency(
-        expressionStaticType: "int",
-        checkTargetType: "(String,)",
-        typeParameters: "",
-        sufficiency: TypeShapeCheckSufficiency.insufficient);
+      expressionStaticType: "int",
+      checkTargetType: "(String,)",
+      typeParameters: "",
+      sufficiency: TypeShapeCheckSufficiency.insufficient,
+    );
     checkTypeShapeCheckSufficiency(
-        expressionStaticType: "int",
-        checkTargetType: "(num) -> void",
-        typeParameters: "",
-        sufficiency: TypeShapeCheckSufficiency.insufficient);
+      expressionStaticType: "int",
+      checkTargetType: "(num) -> void",
+      typeParameters: "",
+      sufficiency: TypeShapeCheckSufficiency.insufficient,
+    );
     checkTypeShapeCheckSufficiency(
-        expressionStaticType: "bool",
-        checkTargetType: "FutureOr<void>",
-        typeParameters: "",
-        sufficiency: TypeShapeCheckSufficiency.insufficient);
+      expressionStaticType: "bool",
+      checkTargetType: "FutureOr<void>",
+      typeParameters: "",
+      sufficiency: TypeShapeCheckSufficiency.insufficient,
+    );
 
     checkTypeShapeCheckSufficiency(
-        expressionStaticType: "(int,)",
-        checkTargetType: "String",
-        typeParameters: "",
-        sufficiency: TypeShapeCheckSufficiency.insufficient);
+      expressionStaticType: "(int,)",
+      checkTargetType: "String",
+      typeParameters: "",
+      sufficiency: TypeShapeCheckSufficiency.insufficient,
+    );
     checkTypeShapeCheckSufficiency(
-        expressionStaticType: "(int,)",
-        checkTargetType: "(num) -> void",
-        typeParameters: "",
-        sufficiency: TypeShapeCheckSufficiency.insufficient);
+      expressionStaticType: "(int,)",
+      checkTargetType: "(num) -> void",
+      typeParameters: "",
+      sufficiency: TypeShapeCheckSufficiency.insufficient,
+    );
     checkTypeShapeCheckSufficiency(
-        expressionStaticType: "(bool,)",
-        checkTargetType: "FutureOr<void>",
-        typeParameters: "",
-        sufficiency: TypeShapeCheckSufficiency.insufficient);
+      expressionStaticType: "(bool,)",
+      checkTargetType: "FutureOr<void>",
+      typeParameters: "",
+      sufficiency: TypeShapeCheckSufficiency.insufficient,
+    );
 
     checkTypeShapeCheckSufficiency(
-        expressionStaticType: "(int) -> void",
-        checkTargetType: "String",
-        typeParameters: "",
-        sufficiency: TypeShapeCheckSufficiency.insufficient);
+      expressionStaticType: "(int) -> void",
+      checkTargetType: "String",
+      typeParameters: "",
+      sufficiency: TypeShapeCheckSufficiency.insufficient,
+    );
     checkTypeShapeCheckSufficiency(
-        expressionStaticType: "(int) -> void",
-        checkTargetType: "(num,)",
-        typeParameters: "",
-        sufficiency: TypeShapeCheckSufficiency.insufficient);
+      expressionStaticType: "(int) -> void",
+      checkTargetType: "(num,)",
+      typeParameters: "",
+      sufficiency: TypeShapeCheckSufficiency.insufficient,
+    );
     checkTypeShapeCheckSufficiency(
-        expressionStaticType: "(bool) -> FutureOr<Object?>",
-        checkTargetType: "FutureOr<void>",
-        typeParameters: "",
-        sufficiency: TypeShapeCheckSufficiency.insufficient);
+      expressionStaticType: "(bool) -> FutureOr<Object?>",
+      checkTargetType: "FutureOr<void>",
+      typeParameters: "",
+      sufficiency: TypeShapeCheckSufficiency.insufficient,
+    );
 
     checkTypeShapeCheckSufficiency(
-        expressionStaticType: "A<int>",
-        checkTargetType: "C<int>?",
-        typeParameters: "",
-        sufficiency: TypeShapeCheckSufficiency.insufficient);
+      expressionStaticType: "A<int>",
+      checkTargetType: "C<int>?",
+      typeParameters: "",
+      sufficiency: TypeShapeCheckSufficiency.insufficient,
+    );
     checkTypeShapeCheckSufficiency(
-        expressionStaticType: "A<int>",
-        checkTargetType: "C<String>?",
-        typeParameters: "",
-        sufficiency: TypeShapeCheckSufficiency.insufficient);
+      expressionStaticType: "A<int>",
+      checkTargetType: "C<String>?",
+      typeParameters: "",
+      sufficiency: TypeShapeCheckSufficiency.insufficient,
+    );
     checkTypeShapeCheckSufficiency(
-        expressionStaticType: "A<int>",
-        checkTargetType: "C<dynamic>?",
-        typeParameters: "",
-        sufficiency: TypeShapeCheckSufficiency.interfaceShape);
+      expressionStaticType: "A<int>",
+      checkTargetType: "C<dynamic>?",
+      typeParameters: "",
+      sufficiency: TypeShapeCheckSufficiency.interfaceShape,
+    );
     checkTypeShapeCheckSufficiency(
-        expressionStaticType: "A<int>?",
-        checkTargetType: "C<dynamic>",
-        typeParameters: "",
-        sufficiency: TypeShapeCheckSufficiency.interfaceShape);
+      expressionStaticType: "A<int>?",
+      checkTargetType: "C<dynamic>",
+      typeParameters: "",
+      sufficiency: TypeShapeCheckSufficiency.interfaceShape,
+    );
     checkTypeShapeCheckSufficiency(
-        expressionStaticType: "B",
-        checkTargetType: "C<int>?",
-        typeParameters: "",
-        sufficiency: TypeShapeCheckSufficiency.insufficient);
+      expressionStaticType: "B",
+      checkTargetType: "C<int>?",
+      typeParameters: "",
+      sufficiency: TypeShapeCheckSufficiency.insufficient,
+    );
     checkTypeShapeCheckSufficiency(
-        expressionStaticType: "B?",
-        checkTargetType: "C<Object?>",
-        typeParameters: "",
-        sufficiency: TypeShapeCheckSufficiency.interfaceShape);
+      expressionStaticType: "B?",
+      checkTargetType: "C<Object?>",
+      typeParameters: "",
+      sufficiency: TypeShapeCheckSufficiency.interfaceShape,
+    );
     checkTypeShapeCheckSufficiency(
-        expressionStaticType: "B",
-        checkTargetType: "C<Object?>?",
-        typeParameters: "",
-        sufficiency: TypeShapeCheckSufficiency.interfaceShape);
+      expressionStaticType: "B",
+      checkTargetType: "C<Object?>?",
+      typeParameters: "",
+      sufficiency: TypeShapeCheckSufficiency.interfaceShape,
+    );
 
     checkTypeShapeCheckSufficiency(
-        expressionStaticType: "D<int>",
-        checkTargetType: "E<int>?",
-        typeParameters: "",
-        sufficiency: TypeShapeCheckSufficiency.interfaceShape);
+      expressionStaticType: "D<int>",
+      checkTargetType: "E<int>?",
+      typeParameters: "",
+      sufficiency: TypeShapeCheckSufficiency.interfaceShape,
+    );
     checkTypeShapeCheckSufficiency(
-        expressionStaticType: "D<int>?",
-        checkTargetType: "E<int>",
-        typeParameters: "",
-        sufficiency: TypeShapeCheckSufficiency.interfaceShape);
+      expressionStaticType: "D<int>?",
+      checkTargetType: "E<int>",
+      typeParameters: "",
+      sufficiency: TypeShapeCheckSufficiency.interfaceShape,
+    );
     checkTypeShapeCheckSufficiency(
-        expressionStaticType: "D<int>",
-        checkTargetType: "E<num>?",
-        typeParameters: "",
-        sufficiency: TypeShapeCheckSufficiency.interfaceShape);
+      expressionStaticType: "D<int>",
+      checkTargetType: "E<num>?",
+      typeParameters: "",
+      sufficiency: TypeShapeCheckSufficiency.interfaceShape,
+    );
     checkTypeShapeCheckSufficiency(
-        expressionStaticType: "D<int>?",
-        checkTargetType: "E<num>",
-        typeParameters: "",
-        sufficiency: TypeShapeCheckSufficiency.interfaceShape);
+      expressionStaticType: "D<int>?",
+      checkTargetType: "E<num>",
+      typeParameters: "",
+      sufficiency: TypeShapeCheckSufficiency.interfaceShape,
+    );
     checkTypeShapeCheckSufficiency(
-        expressionStaticType: "D<int>",
-        checkTargetType: "E<dynamic>?",
-        typeParameters: "",
-        sufficiency: TypeShapeCheckSufficiency.interfaceShape);
+      expressionStaticType: "D<int>",
+      checkTargetType: "E<dynamic>?",
+      typeParameters: "",
+      sufficiency: TypeShapeCheckSufficiency.interfaceShape,
+    );
     checkTypeShapeCheckSufficiency(
-        expressionStaticType: "D<int>?",
-        checkTargetType: "E<dynamic>",
-        typeParameters: "",
-        sufficiency: TypeShapeCheckSufficiency.interfaceShape);
+      expressionStaticType: "D<int>?",
+      checkTargetType: "E<dynamic>",
+      typeParameters: "",
+      sufficiency: TypeShapeCheckSufficiency.interfaceShape,
+    );
     checkTypeShapeCheckSufficiency(
-        expressionStaticType: "D<num>",
-        checkTargetType: "E<int>?",
-        typeParameters: "",
-        sufficiency: TypeShapeCheckSufficiency.insufficient);
+      expressionStaticType: "D<num>",
+      checkTargetType: "E<int>?",
+      typeParameters: "",
+      sufficiency: TypeShapeCheckSufficiency.insufficient,
+    );
     checkTypeShapeCheckSufficiency(
-        expressionStaticType: "D<num>?",
-        checkTargetType: "E<int>",
-        typeParameters: "",
-        sufficiency: TypeShapeCheckSufficiency.insufficient);
+      expressionStaticType: "D<num>?",
+      checkTargetType: "E<int>",
+      typeParameters: "",
+      sufficiency: TypeShapeCheckSufficiency.insufficient,
+    );
 
     checkTypeShapeCheckSufficiency(
-        expressionStaticType: "F<int>",
-        checkTargetType: "G<int, String>?",
-        typeParameters: "",
-        sufficiency: TypeShapeCheckSufficiency.insufficient);
+      expressionStaticType: "F<int>",
+      checkTargetType: "G<int, String>?",
+      typeParameters: "",
+      sufficiency: TypeShapeCheckSufficiency.insufficient,
+    );
     checkTypeShapeCheckSufficiency(
-        expressionStaticType: "F<int>?",
-        checkTargetType: "G<int, String>",
-        typeParameters: "",
-        sufficiency: TypeShapeCheckSufficiency.insufficient);
+      expressionStaticType: "F<int>?",
+      checkTargetType: "G<int, String>",
+      typeParameters: "",
+      sufficiency: TypeShapeCheckSufficiency.insufficient,
+    );
     checkTypeShapeCheckSufficiency(
-        expressionStaticType: "F<int>",
-        checkTargetType: "G<num, String>?",
-        typeParameters: "",
-        sufficiency: TypeShapeCheckSufficiency.insufficient);
+      expressionStaticType: "F<int>",
+      checkTargetType: "G<num, String>?",
+      typeParameters: "",
+      sufficiency: TypeShapeCheckSufficiency.insufficient,
+    );
     checkTypeShapeCheckSufficiency(
-        expressionStaticType: "F<int>?",
-        checkTargetType: "G<num, String>",
-        typeParameters: "",
-        sufficiency: TypeShapeCheckSufficiency.insufficient);
+      expressionStaticType: "F<int>?",
+      checkTargetType: "G<num, String>",
+      typeParameters: "",
+      sufficiency: TypeShapeCheckSufficiency.insufficient,
+    );
     checkTypeShapeCheckSufficiency(
-        expressionStaticType: "F<int>",
-        checkTargetType: "G<dynamic, Object?>?",
-        typeParameters: "",
-        sufficiency: TypeShapeCheckSufficiency.interfaceShape);
+      expressionStaticType: "F<int>",
+      checkTargetType: "G<dynamic, Object?>?",
+      typeParameters: "",
+      sufficiency: TypeShapeCheckSufficiency.interfaceShape,
+    );
     checkTypeShapeCheckSufficiency(
-        expressionStaticType: "F<int>?",
-        checkTargetType: "G<dynamic, Object?>",
-        typeParameters: "",
-        sufficiency: TypeShapeCheckSufficiency.interfaceShape);
+      expressionStaticType: "F<int>?",
+      checkTargetType: "G<dynamic, Object?>",
+      typeParameters: "",
+      sufficiency: TypeShapeCheckSufficiency.interfaceShape,
+    );
     checkTypeShapeCheckSufficiency(
-        expressionStaticType: "F<int>",
-        checkTargetType: "G<int, Object?>?",
-        typeParameters: "",
-        sufficiency: TypeShapeCheckSufficiency.interfaceShape);
+      expressionStaticType: "F<int>",
+      checkTargetType: "G<int, Object?>?",
+      typeParameters: "",
+      sufficiency: TypeShapeCheckSufficiency.interfaceShape,
+    );
     checkTypeShapeCheckSufficiency(
-        expressionStaticType: "F<int>?",
-        checkTargetType: "G<int, Object?>",
-        typeParameters: "",
-        sufficiency: TypeShapeCheckSufficiency.interfaceShape);
+      expressionStaticType: "F<int>?",
+      checkTargetType: "G<int, Object?>",
+      typeParameters: "",
+      sufficiency: TypeShapeCheckSufficiency.interfaceShape,
+    );
     checkTypeShapeCheckSufficiency(
-        expressionStaticType: "F<int>",
-        checkTargetType: "G<num, Object?>?",
-        typeParameters: "",
-        sufficiency: TypeShapeCheckSufficiency.interfaceShape);
+      expressionStaticType: "F<int>",
+      checkTargetType: "G<num, Object?>?",
+      typeParameters: "",
+      sufficiency: TypeShapeCheckSufficiency.interfaceShape,
+    );
     checkTypeShapeCheckSufficiency(
-        expressionStaticType: "F<int>?",
-        checkTargetType: "G<num, Object?>",
-        typeParameters: "",
-        sufficiency: TypeShapeCheckSufficiency.interfaceShape);
+      expressionStaticType: "F<int>?",
+      checkTargetType: "G<num, Object?>",
+      typeParameters: "",
+      sufficiency: TypeShapeCheckSufficiency.interfaceShape,
+    );
     checkTypeShapeCheckSufficiency(
-        expressionStaticType: "D<int?>",
-        checkTargetType: "E<int>",
-        typeParameters: "",
-        sufficiency: TypeShapeCheckSufficiency.insufficient);
+      expressionStaticType: "D<int?>",
+      checkTargetType: "E<int>",
+      typeParameters: "",
+      sufficiency: TypeShapeCheckSufficiency.insufficient,
+    );
   }
 
-  void checkUpperBound(
-      {required String type1,
-      required String type2,
-      required String upperBound,
-      String? typeParameters,
-      bool nonNull1 = false,
-      bool nonNull2 = false}) {
-    typeParserEnvironment.withTypeParameters(typeParameters,
-        (List<TypeParameter> typeParameterNodes) {
+  void checkUpperBound({
+    required String type1,
+    required String type2,
+    required String upperBound,
+    String? typeParameters,
+    bool nonNull1 = false,
+    bool nonNull2 = false,
+  }) {
+    typeParserEnvironment.withTypeParameters(typeParameters, (
+      List<TypeParameter> typeParameterNodes,
+    ) {
       DartType dartType1 = parseType(type1);
       DartType dartType2 = parseType(type2);
       if (nonNull1) {
@@ -1795,25 +2182,31 @@ class TypeSchemaEnvironmentTest extends TypeSchemaEnvironmentTestBase {
       if (nonNull2) {
         dartType2 = dartType2.toNonNull();
       }
-      expect(typeSchemaEnvironment.getStandardUpperBound(dartType1, dartType2),
-          parseType(upperBound));
+      expect(
+        typeSchemaEnvironment.getStandardUpperBound(dartType1, dartType2),
+        parseType(upperBound),
+      );
     });
   }
 
   @override
-  void checkTypeShapeCheckSufficiency(
-      {required String expressionStaticType,
-      required String checkTargetType,
-      required String typeParameters,
-      required TypeShapeCheckSufficiency sufficiency}) {
-    typeParserEnvironment.withStructuralParameters(typeParameters,
-        (List<StructuralParameter> structuralParameters) {
+  void checkTypeShapeCheckSufficiency({
+    required String expressionStaticType,
+    required String checkTargetType,
+    required String typeParameters,
+    required TypeShapeCheckSufficiency sufficiency,
+  }) {
+    typeParserEnvironment.withStructuralParameters(typeParameters, (
+      List<StructuralParameter> structuralParameters,
+    ) {
       expect(
-          typeSchemaEnvironment.computeTypeShapeCheckSufficiency(
-                  expressionStaticType: parseType(expressionStaticType),
-                  checkTargetType: parseType(checkTargetType)) ==
-              sufficiency,
-          isTrue);
+        typeSchemaEnvironment.computeTypeShapeCheckSufficiency(
+              expressionStaticType: parseType(expressionStaticType),
+              checkTargetType: parseType(checkTargetType),
+            ) ==
+            sufficiency,
+        isTrue,
+      );
     });
   }
 }

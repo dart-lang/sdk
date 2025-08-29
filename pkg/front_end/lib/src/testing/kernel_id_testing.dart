@@ -43,8 +43,12 @@ abstract class TestResultData<C extends TestConfig, R> {
 
 /// Abstract base class used for computing the id-test annotation data for
 /// different parts of a [Component].
-abstract class DataComputer<T, C extends TestConfig, R,
-    D extends TestResultData<C, R>> {
+abstract class DataComputer<
+  T,
+  C extends TestConfig,
+  R,
+  D extends TestResultData<C, R>
+> {
   const DataComputer();
 
   /// Called before testing to setup flags needed for data collection.
@@ -60,38 +64,51 @@ abstract class DataComputer<T, C extends TestConfig, R,
   ///
   /// Fills [actualMap] with the data.
   void computeMemberData(
-      D testResultData, Member member, Map<Id, ActualData<T>> actualMap,
-      {bool? verbose}) {}
+    D testResultData,
+    Member member,
+    Map<Id, ActualData<T>> actualMap, {
+    bool? verbose,
+  }) {}
 
   /// Function that computes a data mapping for [cls].
   ///
   /// Fills [actualMap] with the data.
   void computeClassData(
-      D testResultData, Class cls, Map<Id, ActualData<T>> actualMap,
-      {bool? verbose}) {}
+    D testResultData,
+    Class cls,
+    Map<Id, ActualData<T>> actualMap, {
+    bool? verbose,
+  }) {}
 
   /// Function that computes a data mapping for [extension].
   ///
   /// Fills [actualMap] with the data.
   void computeExtensionData(
-      D testResultData, Extension extension, Map<Id, ActualData<T>> actualMap,
-      {bool? verbose}) {}
+    D testResultData,
+    Extension extension,
+    Map<Id, ActualData<T>> actualMap, {
+    bool? verbose,
+  }) {}
 
   /// Function that computes a data mapping for [extensionTypeDeclaration].
   ///
   /// Fills [actualMap] with the data.
   void computeExtensionTypeDeclarationData(
-      D testResultData,
-      ExtensionTypeDeclaration extensionTypeDeclaration,
-      Map<Id, ActualData<T>> actualMap,
-      {bool? verbose}) {}
+    D testResultData,
+    ExtensionTypeDeclaration extensionTypeDeclaration,
+    Map<Id, ActualData<T>> actualMap, {
+    bool? verbose,
+  }) {}
 
   /// Function that computes a data mapping for [library].
   ///
   /// Fills [actualMap] with the data.
   void computeLibraryData(
-      D testResultData, Library library, Map<Id, ActualData<T>> actualMap,
-      {bool? verbose}) {}
+    D testResultData,
+    Library library,
+    Map<Id, ActualData<T>> actualMap, {
+    bool? verbose,
+  }) {}
 
   /// Returns `true` if this data computer supports tests with compile-time
   /// errors.
@@ -117,8 +134,13 @@ class KernelCompiledData<T, R> extends CompiledData<T> {
   final R compilerResult;
   final Component component;
 
-  KernelCompiledData(this.compilerResult, this.component, super.mainUri,
-      super.actualMaps, super.globalData);
+  KernelCompiledData(
+    this.compilerResult,
+    this.component,
+    super.mainUri,
+    super.actualMaps,
+    super.globalData,
+  );
 
   @override
   int getOffsetFromId(Id id, Uri uri) {
@@ -150,8 +172,11 @@ class KernelCompiledData<T, R> extends CompiledData<T> {
       return offset;
     } else if (id is ClassId) {
       Library library = lookupLibrary(component, uri)!;
-      Extension? extension =
-          lookupExtension(library, id.className, required: false);
+      Extension? extension = lookupExtension(
+        library,
+        id.className,
+        required: false,
+      );
       if (extension != null) {
         return extension.fileOffset;
       }
@@ -162,16 +187,29 @@ class KernelCompiledData<T, R> extends CompiledData<T> {
   }
 
   @override
-  void reportError(Uri uri, int offset, String message,
-      {bool succinct = false}) {
-    printMessageInLocation(component.uriToSource, uri, offset, message,
-        succinct: succinct);
+  void reportError(
+    Uri uri,
+    int offset,
+    String message, {
+    bool succinct = false,
+  }) {
+    printMessageInLocation(
+      component.uriToSource,
+      uri,
+      offset,
+      message,
+      succinct: succinct,
+    );
   }
 }
 
 String createMessageInLocation(
-    Map<Uri, Source> uriToSource, Uri? uri, int offset, String message,
-    {bool succinct = false}) {
+  Map<Uri, Source> uriToSource,
+  Uri? uri,
+  int offset,
+  String message, {
+  bool succinct = false,
+}) {
   StringBuffer sb = new StringBuffer();
   if (uri == null) {
     sb.write("(null uri)@$offset: $message");
@@ -197,27 +235,43 @@ String createMessageInLocation(
 }
 
 void printMessageInLocation(
-    Map<Uri, Source> uriToSource, Uri? uri, int offset, String message,
-    {bool succinct = false}) {
-  print(createMessageInLocation(uriToSource, uri, offset, message,
-      succinct: succinct));
+  Map<Uri, Source> uriToSource,
+  Uri? uri,
+  int offset,
+  String message, {
+  bool succinct = false,
+}) {
+  print(
+    createMessageInLocation(
+      uriToSource,
+      uri,
+      offset,
+      message,
+      succinct: succinct,
+    ),
+  );
 }
 
 /// Computes the [TestResult] for an id-test [testData] using the result of
 /// the compilation in [testResultData].
-Future<TestResult<T>> processCompiledResult<T, C extends TestConfig, R,
-        D extends TestResultData<C, R>>(
-    MarkerOptions markerOptions,
-    TestData testData,
-    DataComputer<T, C, R, D> dataComputer,
-    D testResultData,
-    List<FormattedMessage> errors,
-    {required bool fatalErrors,
-    required bool verbose,
-    required bool succinct,
-    bool forUserLibrariesOnly = true,
-    required void onFailure(String message),
-    required Uri nullUri}) async {
+Future<TestResult<T>> processCompiledResult<
+  T,
+  C extends TestConfig,
+  R,
+  D extends TestResultData<C, R>
+>(
+  MarkerOptions markerOptions,
+  TestData testData,
+  DataComputer<T, C, R, D> dataComputer,
+  D testResultData,
+  List<FormattedMessage> errors, {
+  required bool fatalErrors,
+  required bool verbose,
+  required bool succinct,
+  bool forUserLibrariesOnly = true,
+  required void onFailure(String message),
+  required Uri nullUri,
+}) async {
   C config = testResultData.config;
   R compilerResult = testResultData.compilerResult;
   Component component = testResultData.component;
@@ -230,15 +284,19 @@ Future<TestResult<T>> processCompiledResult<T, C extends TestConfig, R,
 
   if (errors.isNotEmpty) {
     if (!dataComputer.supportsErrors) {
-      onFailure("Compilation with compile-time errors not supported for this "
-          "testing setup.");
+      onFailure(
+        "Compilation with compile-time errors not supported for this "
+        "testing setup.",
+      );
     }
 
     Map<Uri, Map<int, List<FormattedMessage>>> errorMap = {};
     for (FormattedMessage error in errors) {
       Uri? uri = error.uri;
-      Map<int, List<FormattedMessage>> map =
-          errorMap.putIfAbsent(uri ?? nullUri, () => {});
+      Map<int, List<FormattedMessage>> map = errorMap.putIfAbsent(
+        uri ?? nullUri,
+        () => {},
+      );
       List<FormattedMessage> list = map.putIfAbsent(error.charOffset, () => []);
       list.add(error);
     }
@@ -297,26 +355,42 @@ Future<TestResult<T>> processCompiledResult<T, C extends TestConfig, R,
       }
     }
 
-    dataComputer.computeMemberData(testResultData, member, actualMap,
-        verbose: verbose);
+    dataComputer.computeMemberData(
+      testResultData,
+      member,
+      actualMap,
+      verbose: verbose,
+    );
   }
 
   void processClass(Class cls, Map<Id, ActualData<T>> actualMap) {
-    dataComputer.computeClassData(testResultData, cls, actualMap,
-        verbose: verbose);
+    dataComputer.computeClassData(
+      testResultData,
+      cls,
+      actualMap,
+      verbose: verbose,
+    );
   }
 
   void processExtension(Extension extension, Map<Id, ActualData<T>> actualMap) {
-    dataComputer.computeExtensionData(testResultData, extension, actualMap,
-        verbose: verbose);
+    dataComputer.computeExtensionData(
+      testResultData,
+      extension,
+      actualMap,
+      verbose: verbose,
+    );
   }
 
   void processExtensionTypeDeclaration(
-      ExtensionTypeDeclaration extensionTypeDeclaration,
-      Map<Id, ActualData<T>> actualMap) {
+    ExtensionTypeDeclaration extensionTypeDeclaration,
+    Map<Id, ActualData<T>> actualMap,
+  ) {
     dataComputer.computeExtensionTypeDeclarationData(
-        testResultData, extensionTypeDeclaration, actualMap,
-        verbose: verbose);
+      testResultData,
+      extensionTypeDeclaration,
+      actualMap,
+      verbose: verbose,
+    );
   }
 
   bool excludeLibrary(Library library) {
@@ -333,7 +407,10 @@ Future<TestResult<T>> processCompiledResult<T, C extends TestConfig, R,
       continue;
     }
     dataComputer.computeLibraryData(
-        testResultData, library, actualMapFor(library));
+      testResultData,
+      library,
+      actualMapFor(library),
+    );
     for (Class cls in library.classes) {
       processClass(cls, actualMapFor(cls));
       for (Member member in cls.members) {
@@ -349,7 +426,9 @@ Future<TestResult<T>> processCompiledResult<T, C extends TestConfig, R,
     for (ExtensionTypeDeclaration extensionTypeDeclaration
         in library.extensionTypeDeclarations) {
       processExtensionTypeDeclaration(
-          extensionTypeDeclaration, actualMapFor(extensionTypeDeclaration));
+        extensionTypeDeclaration,
+        actualMapFor(extensionTypeDeclaration),
+      );
     }
   }
 
@@ -415,8 +494,22 @@ Future<TestResult<T>> processCompiledResult<T, C extends TestConfig, R,
   }
 
   KernelCompiledData<T, R> compiledData = new KernelCompiledData<T, R>(
-      compilerResult, component, testData.entryPoint, actualMaps, globalData);
-  return checkCode(markerOptions, config.marker, config.name, testData,
-      memberAnnotations, compiledData, dataComputer.dataValidator,
-      fatalErrors: fatalErrors, succinct: succinct, onFailure: onFailure);
+    compilerResult,
+    component,
+    testData.entryPoint,
+    actualMaps,
+    globalData,
+  );
+  return checkCode(
+    markerOptions,
+    config.marker,
+    config.name,
+    testData,
+    memberAnnotations,
+    compiledData,
+    dataComputer.dataValidator,
+    fatalErrors: fatalErrors,
+    succinct: succinct,
+    onFailure: onFailure,
+  );
 }

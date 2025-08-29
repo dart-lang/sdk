@@ -4,7 +4,7 @@
 
 abstract class A {
   T foo<T>();
-  String bar() => /*invoke: String?*/ foo/*<String?>*/()!;
+  String bar() => /*invoke: String?*/ foo /*<String?>*/ ()!;
 }
 
 main() {}

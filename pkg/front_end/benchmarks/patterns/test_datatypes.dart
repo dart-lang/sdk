@@ -18,30 +18,42 @@ class Counter {
   }
 }
 
-const Strategy ifThenElseStrategy =
-    Strategy('ifThenElseStrategy', 'if-then-else', '''
+const Strategy ifThenElseStrategy = Strategy(
+  'ifThenElseStrategy',
+  'if-then-else',
+  '''
 Implements functionality in helper method. Invocation is done by an if-then-else
-sequence that uses is-tests to match functionality with subclasses.''');
+sequence that uses is-tests to match functionality with subclasses.''',
+);
 
-const Strategy dynamicDispatchStrategy =
-    Strategy('dynamicDispatchStrategy', 'dynamic-dispatch', '''
+const Strategy dynamicDispatchStrategy = Strategy(
+  'dynamicDispatchStrategy',
+  'dynamic-dispatch',
+  '''
 Implements functionality by adding a method to each subclass that implements an
 interface method. Invocation is done as a dynamic dispatch on the interface 
-method.''');
+method.''',
+);
 
 const Strategy visitorStrategy = Strategy('visitorStrategy', 'visitor', '''
 Implements functionality in a visitor. Invocation is done by invocation an
 accept method on the object which in turn calls the corresponding visit method
 on the visitor.''');
 
-const Strategy patternStrategy =
-    Strategy('patternStrategy', 'pattern-matching', '''
+const Strategy patternStrategy = Strategy(
+  'patternStrategy',
+  'pattern-matching',
+  '''
 Implements functionality in helper method. Invocation is done by a pattern
-matching on the subclasses to match functionality with subclasses.''');
+matching on the subclasses to match functionality with subclasses.''',
+);
 
-const Scenario increasingScenario =
-    Scenario('increasingScenario', 'increasing', '''
-Implementation is called equally between all subclasses.''');
+const Scenario increasingScenario = Scenario(
+  'increasingScenario',
+  'increasing',
+  '''
+Implementation is called equally between all subclasses.''',
+);
 // TODO(johnniwinther): Should Zipf's Law be used for 'first' and 'last'
 //  scenarios?
 const Scenario firstScenario = Scenario('firstScenario', 'first', '''
@@ -80,8 +92,14 @@ class Test<T> {
 
   const Test(this.size, this.createData, this.strategies);
 
-  void _test(Registry registry, SeriesKey key, int runs, int iterations,
-      List<T> data, TestFunction<T> testFunction) {
+  void _test(
+    Registry registry,
+    SeriesKey key,
+    int runs,
+    int iterations,
+    List<T> data,
+    TestFunction<T> testFunction,
+  ) {
     int length = data.length;
     for (int run = 0; run < runs; run++) {
       Counter counter = new Counter();
@@ -100,17 +118,24 @@ class Test<T> {
     }
   }
 
-  void performTest(
-      {required Registry registry,
-      required int runs,
-      required int iterations,
-      required Map<Scenario, DataFunction> scenarios}) {
+  void performTest({
+    required Registry registry,
+    required int runs,
+    required int iterations,
+    required Map<Scenario, DataFunction> scenarios,
+  }) {
     List<T> data = createData();
     for (MapEntry<Scenario, DataFunction> scenario in scenarios.entries) {
       List<T> scenarioData = scenario.value(data);
       for (MapEntry<Strategy, TestFunction<T>> entry in strategies.entries) {
-        _test(registry, new SeriesKey(entry.key, scenario.key), runs,
-            iterations, scenarioData, entry.value);
+        _test(
+          registry,
+          new SeriesKey(entry.key, scenario.key),
+          runs,
+          iterations,
+          scenarioData,
+          entry.value,
+        );
       }
     }
   }
@@ -120,16 +145,21 @@ void main() {
   // Dry run
   for (Test test in tests) {
     test.performTest(
-        registry: new Registry(),
-        runs: 5,
-        iterations: 10,
-        scenarios: scenarios);
+      registry: new Registry(),
+      runs: 5,
+      iterations: 10,
+      scenarios: scenarios,
+    );
   }
   // Actual test
   Registry registry = new Registry();
   for (Test test in tests) {
     test.performTest(
-        registry: registry, runs: 10, iterations: 100000, scenarios: scenarios);
+      registry: registry,
+      runs: 10,
+      iterations: 100000,
+      scenarios: scenarios,
+    );
   }
   SeriesSet seriesSet = registry.generateSeriesSet();
   print(seriesSet.toDartCode());

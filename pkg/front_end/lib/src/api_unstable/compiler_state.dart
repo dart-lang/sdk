@@ -21,12 +21,15 @@ class InitializedCompilerState {
   final Set<String>? tags;
   final Map<Uri, Uri>? libraryToInputDill;
 
-  InitializedCompilerState(this.options, this.processedOpts,
-      {this.workerInputCache,
-      this.workerInputCacheLibs,
-      this.incrementalCompiler,
-      this.tags,
-      this.libraryToInputDill});
+  InitializedCompilerState(
+    this.options,
+    this.processedOpts, {
+    this.workerInputCache,
+    this.workerInputCacheLibs,
+    this.incrementalCompiler,
+    this.tags,
+    this.libraryToInputDill,
+  });
 }
 
 // Coverage-ignore(suite): Not run.

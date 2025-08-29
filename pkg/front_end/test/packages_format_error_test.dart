@@ -22,21 +22,28 @@ void main() {
   Uri packages = root.resolve(".dart_tool/package_config.json");
   fs.entityForUri(packages).writeAsStringSync("bad\n");
   List<CfeDiagnosticMessage> messages = <CfeDiagnosticMessage>[];
-  CompilerContext c = new CompilerContext(new ProcessedOptions(
+  CompilerContext c = new CompilerContext(
+    new ProcessedOptions(
       options: new CompilerOptions()
         ..fileSystem = fs
         ..onDiagnostic = (message) {
           messages.add(message);
-        }));
+        },
+    ),
+  );
   asyncTest(() async {
-    await c
-        .runInContext<void>((_) => c.options.createPackagesFromFile(packages));
+    await c.runInContext<void>(
+      (_) => c.options.createPackagesFromFile(packages),
+    );
     Expect.identical(
-        codePackagesFileFormat, getMessageCodeObject(messages.single));
+      codePackagesFileFormat,
+      getMessageCodeObject(messages.single),
+    );
     messages.clear();
 
     await c.runInContext<void>(
-        (_) => c.options.createPackagesFromFile(root.resolve("missing-file")));
+      (_) => c.options.createPackagesFromFile(root.resolve("missing-file")),
+    );
     Expect.identical(codeCantReadFile, getMessageCodeObject(messages.single));
     messages.clear();
   });

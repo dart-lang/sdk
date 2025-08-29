@@ -9,8 +9,10 @@ import "../test/simple_stats.dart";
 void usage([String? extraMessage]) {
   print("Usage:");
   print("On Linux via bash you can do something like");
-  print("dart pkg/front_end/tool/stat_on_dash_v.dart \ "
-      "   now_run_{1..10}.data then_run_{1..10}.data");
+  print(
+    "dart pkg/front_end/tool/stat_on_dash_v.dart \ "
+    "   now_run_{1..10}.data then_run_{1..10}.data",
+  );
   if (extraMessage != null) {
     print("");
     print("Notice:");
@@ -113,8 +115,10 @@ void main(List<String> args) {
   }
   if (printedAnything) {
     for (String part in combinedChange.keys) {
-      print("Combined least change for $part: "
-          "${combinedChange[part]!.toStringAsFixed(2)} ms.");
+      print(
+        "Combined least change for $part: "
+        "${combinedChange[part]!.toStringAsFixed(2)} ms.",
+      );
     }
   } else {
     print("Nothing significant found.");

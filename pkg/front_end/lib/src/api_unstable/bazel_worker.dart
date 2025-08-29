@@ -17,7 +17,8 @@ import '../api_prototype/front_end.dart' show CompilerResult;
 import '../base/processed_options.dart' show ProcessedOptions;
 import '../kernel_generator_impl.dart' show generateKernel;
 import 'compiler_state.dart' show InitializedCompilerState;
-import 'modular_incremental_compilation.dart' as modular
+import 'modular_incremental_compilation.dart'
+    as modular
     show initializeIncrementalCompiler;
 
 export 'package:_fe_analyzer_shared/src/messages/diagnostic_message.dart'
@@ -55,41 +56,46 @@ Future<InitializedCompilerState> initializeIncrementalCompiler(
   bool trackNeededDillLibraries = false,
   bool verbose = false,
 }) {
-  List<Component> outputLoadedAdditionalDills =
-      new List<Component>.filled(additionalDills.length, dummyComponent);
+  List<Component> outputLoadedAdditionalDills = new List<Component>.filled(
+    additionalDills.length,
+    dummyComponent,
+  );
   Map<ExperimentalFlag, bool> experimentalFlags = parseExperimentalFlags(
-      parseExperimentalArguments(experiments),
-      onError: (e) => throw e);
+    parseExperimentalArguments(experiments),
+    onError: (e) => throw e,
+  );
   return modular.initializeIncrementalCompiler(
-      oldState,
-      tags,
-      outputLoadedAdditionalDills,
-      sdkSummary,
-      packagesFile,
-      librariesSpecificationUri,
-      additionalDills,
-      workerInputDigests,
-      target,
-      fileSystem: fileSystem,
-      explicitExperimentalFlags: experimentalFlags,
-      outlineOnly: outlineOnly,
-      omitPlatform: true,
-      trackNeededDillLibraries: trackNeededDillLibraries,
-      environmentDefines: environmentDefines,
-      verbose: verbose);
+    oldState,
+    tags,
+    outputLoadedAdditionalDills,
+    sdkSummary,
+    packagesFile,
+    librariesSpecificationUri,
+    additionalDills,
+    workerInputDigests,
+    target,
+    fileSystem: fileSystem,
+    explicitExperimentalFlags: experimentalFlags,
+    outlineOnly: outlineOnly,
+    omitPlatform: true,
+    trackNeededDillLibraries: trackNeededDillLibraries,
+    environmentDefines: environmentDefines,
+    verbose: verbose,
+  );
 }
 
 InitializedCompilerState initializeCompiler(
-    InitializedCompilerState? oldState,
-    Uri? sdkSummary,
-    Uri? librariesSpecificationUri,
-    Uri? packagesFile,
-    List<Uri> additionalDills,
-    Target target,
-    FileSystem fileSystem,
-    Iterable<String> experiments,
-    Map<String, String>? environmentDefines,
-    {bool verbose = false}) {
+  InitializedCompilerState? oldState,
+  Uri? sdkSummary,
+  Uri? librariesSpecificationUri,
+  Uri? packagesFile,
+  List<Uri> additionalDills,
+  Target target,
+  FileSystem fileSystem,
+  Iterable<String> experiments,
+  Map<String, String>? environmentDefines, {
+  bool verbose = false,
+}) {
   // TODO(sigmund): use incremental compiler when it supports our use case.
   // Note: it is common for the summary worker to invoke the compiler with the
   // same input summary URIs, but with different contents, so we'd need to be
@@ -104,8 +110,9 @@ InitializedCompilerState initializeCompiler(
     ..fileSystem = fileSystem
     ..environmentDefines = environmentDefines
     ..explicitExperimentalFlags = parseExperimentalFlags(
-        parseExperimentalArguments(experiments),
-        onError: (e) => throw e)
+      parseExperimentalArguments(experiments),
+      onError: (e) => throw e,
+    )
     ..verbose = verbose;
 
   ProcessedOptions processedOpts = new ProcessedOptions(options: options);
@@ -113,9 +120,14 @@ InitializedCompilerState initializeCompiler(
   return new InitializedCompilerState(options, processedOpts);
 }
 
-Future<CompilerResult> _compile(InitializedCompilerState compilerState,
-    List<Uri> inputs, DiagnosticMessageHandler diagnosticMessageHandler,
-    {bool? buildSummary, bool? buildComponent, bool includeOffsets = true}) {
+Future<CompilerResult> _compile(
+  InitializedCompilerState compilerState,
+  List<Uri> inputs,
+  DiagnosticMessageHandler diagnosticMessageHandler, {
+  bool? buildSummary,
+  bool? buildComponent,
+  bool includeOffsets = true,
+}) {
   buildSummary ??= true;
   buildComponent ??= true;
   CompilerOptions options = compilerState.options;
@@ -125,29 +137,44 @@ Future<CompilerResult> _compile(InitializedCompilerState compilerState,
   processedOpts.inputs.clear();
   processedOpts.inputs.addAll(inputs);
 
-  return generateKernel(processedOpts,
-      buildSummary: buildSummary,
-      buildComponent: buildComponent,
-      includeOffsets: includeOffsets);
+  return generateKernel(
+    processedOpts,
+    buildSummary: buildSummary,
+    buildComponent: buildComponent,
+    includeOffsets: includeOffsets,
+  );
 }
 
-Future<List<int>?> compileSummary(InitializedCompilerState compilerState,
-    List<Uri> inputs, DiagnosticMessageHandler diagnosticMessageHandler,
-    {bool includeOffsets = false}) async {
+Future<List<int>?> compileSummary(
+  InitializedCompilerState compilerState,
+  List<Uri> inputs,
+  DiagnosticMessageHandler diagnosticMessageHandler, {
+  bool includeOffsets = false,
+}) async {
   CompilerResult result = await _compile(
-      compilerState, inputs, diagnosticMessageHandler,
-      buildSummary: true,
-      buildComponent: false,
-      includeOffsets: includeOffsets);
+    compilerState,
+    inputs,
+    diagnosticMessageHandler,
+    buildSummary: true,
+    buildComponent: false,
+    includeOffsets: includeOffsets,
+  );
   return result.summary;
 }
 
-Future<Component?> compileComponent(InitializedCompilerState compilerState,
-    List<Uri> inputs, DiagnosticMessageHandler diagnosticMessageHandler,
-    {bool buildSummary = true}) async {
+Future<Component?> compileComponent(
+  InitializedCompilerState compilerState,
+  List<Uri> inputs,
+  DiagnosticMessageHandler diagnosticMessageHandler, {
+  bool buildSummary = true,
+}) async {
   CompilerResult result = await _compile(
-      compilerState, inputs, diagnosticMessageHandler,
-      buildSummary: buildSummary, buildComponent: true);
+    compilerState,
+    inputs,
+    diagnosticMessageHandler,
+    buildSummary: buildSummary,
+    buildComponent: true,
+  );
 
   Component? component = result.component;
   if (component != null) {

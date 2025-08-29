@@ -36,9 +36,10 @@ const String _augmentedNameSuffix = '#augment';
 /// the method body.
 Name augmentedName(String name, Library library, int index) {
   return new Name(
-      '$_augmentedNamePrefix'
-      '${name.isEmpty ? 'new' : name}'
-      '$_augmentedNameSuffix'
-      '$index',
-      library);
+    '$_augmentedNamePrefix'
+    '${name.isEmpty ? 'new' : name}'
+    '$_augmentedNameSuffix'
+    '$index',
+    library,
+  );
 }

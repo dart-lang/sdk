@@ -7,7 +7,10 @@ import 'dart:io' show Directory, File, FileSystemEntity, Process, ProcessResult;
 import 'package:testing/testing.dart' show Chain, TestDescription;
 
 Future<List<TestDescription>> filterList(
-    Chain suite, bool onlyInGit, List<TestDescription> base) async {
+  Chain suite,
+  bool onlyInGit,
+  List<TestDescription> base,
+) async {
   Set<Uri> gitFiles = {};
   if (onlyInGit) {
     for (Uri subRoot in suite.subRoots) {
@@ -25,9 +28,12 @@ Future<List<TestDescription>> filterList(
 }
 
 Future<Set<Uri>> getGitFiles(Uri uri) async {
-  ProcessResult result = await Process.run("git", ["ls-files", "."],
-      workingDirectory: new Directory.fromUri(uri).absolute.path,
-      runInShell: true);
+  ProcessResult result = await Process.run(
+    "git",
+    ["ls-files", "."],
+    workingDirectory: new Directory.fromUri(uri).absolute.path,
+    runInShell: true,
+  );
   if (result.exitCode != 0) {
     throw "Git returned non-zero error code (${result.exitCode}):\n\n"
         "stdout: ${result.stdout}\n\n"
@@ -41,7 +47,9 @@ Future<Set<Uri>> getGitFiles(Uri uri) async {
 }
 
 void checkEnvironment(
-    Map<String, String> environment, Set<String> knownEnvironmentKeys) {
+  Map<String, String> environment,
+  Set<String> knownEnvironmentKeys,
+) {
   Set<String> environmentKeys = environment.keys.toSet();
   environmentKeys.removeAll(knownEnvironmentKeys);
   if (environmentKeys.isNotEmpty) {
@@ -74,14 +82,16 @@ Future<List<Uri>> computeSourceFiles(Uri repoDir) async {
   List<Uri> inputs = [];
   for (Uri uri in libUris) {
     Set<Uri> gitFiles = await getGitFiles(uri);
-    List<FileSystemEntity> entities =
-        new Directory.fromUri(uri).listSync(recursive: true);
+    List<FileSystemEntity> entities = new Directory.fromUri(
+      uri,
+    ).listSync(recursive: true);
     for (FileSystemEntity entity in entities) {
       if (entity is File &&
           entity.path.endsWith(".dart") &&
           gitFiles.contains(entity.uri)) {
-        if (dataDirectories
-            .any((exclude) => entity.uri.path.contains(exclude))) {
+        if (dataDirectories.any(
+          (exclude) => entity.uri.path.contains(exclude),
+        )) {
           continue;
         }
         inputs.add(entity.uri);

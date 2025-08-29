@@ -11,8 +11,11 @@ Future<void> main() async {
   // prematurely.
   // Note: if you change this file, also change
   // pkg/compiler/test/analyses/analyze_test.dart
-  await testing.main(
-      <String>["--config=pkg/front_end/testing.json", "--verbose", "analyze"]);
+  await testing.main(<String>[
+    "--config=pkg/front_end/testing.json",
+    "--verbose",
+    "analyze",
+  ]);
   if (exitCode != 0) {
     throw "Exit-code was $exitCode!";
   }

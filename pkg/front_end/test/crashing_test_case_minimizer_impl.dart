@@ -122,7 +122,8 @@ class TestMinimizerSettings {
   void initializeFromJson(Map<String, dynamic> json) {
     entryUris.clear();
     entryUris.addAll(
-        (json["entryUris"] as List).map((uriString) => Uri.parse(uriString)));
+      (json["entryUris"] as List).map((uriString) => Uri.parse(uriString)),
+    );
     platformUri = Uri.parse(json["platformUri"]);
     packagesFileUri = Uri.parse(json["packagesFileUri"]);
     noPlatform = json["noPlatform"];
@@ -135,7 +136,8 @@ class TestMinimizerSettings {
     widgetTransformation = json["widgetTransformation"];
     invalidate.clear();
     invalidate.addAll(
-        (json["invalidate"] as List).map((uriString) => Uri.parse(uriString)));
+      (json["invalidate"] as List).map((uriString) => Uri.parse(uriString)),
+    );
     targetString = json["targetString"];
     noTryToDeleteEmptyFilesUpFront = json["noTryToDeleteEmptyFilesUpFront"];
     oldBlockDelete = json["oldBlockDelete"];
@@ -204,8 +206,10 @@ class TestMinimizer {
       stdin.echoMode = false;
       stdin.lineMode = false;
     } catch (e) {
-      print("Trying to setup 'stdin' failed. Continuing anyway, "
-          "but 'q', 'i' etc might not work.");
+      print(
+        "Trying to setup 'stdin' failed. Continuing anyway, "
+        "but 'q', 'i' etc might not work.",
+      );
     }
     _stdinSubscription = stdin.listen((List<int> event) {
       if (event.length == 1 && event.single == "q".codeUnits.single) {
@@ -220,8 +224,10 @@ class TestMinimizer {
       } else if (event.length == 1 && event.single == "i".codeUnits.single) {
         print("\n\n--- STATUS INFORMATION START ---\n\n");
         print("Currently looking for this crash: $_expectedCrashLine\n\n");
-        print("Currently on filesystem #$_currentFsNum out of "
-            "${_settings.fileSystems.length}\n\n");
+        print(
+          "Currently on filesystem #$_currentFsNum out of "
+          "${_settings.fileSystems.length}\n\n",
+        );
 
         int totalFiles = 0;
         int emptyFiles = 0;
@@ -266,11 +272,13 @@ class TestMinimizer {
         } catch (e) {
           if (e is _DoesntCrashOnInput) {
             print(
-                "Currently doesn't crash (or no longer crashes) the compiler.");
+              "Currently doesn't crash (or no longer crashes) the compiler.",
+            );
           } else {
             print(
-                "About to crash. Dumping settings including the filesystem so "
-                "we can (hopefully) continue later.");
+              "About to crash. Dumping settings including the filesystem so "
+              "we can (hopefully) continue later.",
+            );
             _dumpToJson();
             rethrow;
           }
@@ -369,8 +377,13 @@ class TestMinimizer {
             Uri uri = uris[i];
             if (_fs.data[uri] == null || _fs.data[uri]!.isNotEmpty) continue;
             print("About to work on file $i of ${uris.length}");
-            await _deleteContent(uris, i, false, initialComponent,
-                deleteFile: true);
+            await _deleteContent(
+              uris,
+              i,
+              false,
+              initialComponent,
+              deleteFile: true,
+            );
             if (_fs.data[uri] == null) {
               changedSome = true;
               changedSome2 = true;
@@ -422,8 +435,10 @@ class TestMinimizer {
           await _deleteLines(uri, initialComponent);
         }
 
-        print("We're now at ${_fs.data[uri]!.length} bytes for $uri "
-            "(was $prevLength).");
+        print(
+          "We're now at ${_fs.data[uri]!.length} bytes for $uri "
+          "(was $prevLength).",
+        );
         if (prevLength != _fs.data[uri]!.length) changedSome = true;
         if (_fs.data[uri]!.isEmpty) continue;
 
@@ -471,8 +486,10 @@ class TestMinimizer {
       if (!await _crashesOnCompile(initialComponent)) {
         throw "At a state where we should crash, we didn't!";
       }
-      await _tryToRemoveUnreferencedFileContent(initialComponent,
-          deleteFile: true);
+      await _tryToRemoveUnreferencedFileContent(
+        initialComponent,
+        deleteFile: true,
+      );
     }
 
     if (await _shouldQuit()) {
@@ -559,8 +576,11 @@ class TestMinimizer {
       if (uri == null || originalBytes == null || originalBytes.isEmpty) {
         continue;
       }
-      CompilationUnitEnd ast =
-          getAST(originalBytes, includeBody: false, includeComments: false);
+      CompilationUnitEnd ast = getAST(
+        originalBytes,
+        includeBody: false,
+        includeComments: false,
+      );
       // Find all imports/exports of this file (if any).
       // If finding any:
       // * remove all of them, then
@@ -573,23 +593,33 @@ class TestMinimizer {
         Token importUriToken = import.importKeyword.next!;
         Uri importUri = _getUri(importUriToken, uri);
         if (inlinableUri == importUri) {
-          replacements.add(new _Replacement(
-              import.importKeyword.offset - 1, import.semicolon!.offset + 1));
+          replacements.add(
+            new _Replacement(
+              import.importKeyword.offset - 1,
+              import.semicolon!.offset + 1,
+            ),
+          );
         }
       }
       for (ExportEnd export in ast.getExports()) {
         Token exportUriToken = export.exportKeyword.next!;
         Uri exportUri = _getUri(exportUriToken, uri);
         if (inlinableUri == exportUri) {
-          replacements.add(new _Replacement(
-              export.exportKeyword.offset - 1, export.semicolon.offset + 1));
+          replacements.add(
+            new _Replacement(
+              export.exportKeyword.offset - 1,
+              export.semicolon.offset + 1,
+            ),
+          );
         }
       }
       if (replacements.isEmpty) continue;
 
       // Step 1: Remove all imports/exports *of* this file (the inlinable file).
-      final Uint8List withoutInlineable =
-          _replaceRange(replacements, originalBytes);
+      final Uint8List withoutInlineable = _replaceRange(
+        replacements,
+        originalBytes,
+      );
 
       // Step 2: Find the last import/export.
       // TODO(jensj): This doesn't work if
@@ -597,8 +627,11 @@ class TestMinimizer {
       //   have a `library` declaration.
       // * The file we're inlining has a library declaration.
       int offsetOfLast = 0;
-      ast =
-          getAST(withoutInlineable, includeBody: false, includeComments: false);
+      ast = getAST(
+        withoutInlineable,
+        includeBody: false,
+        includeComments: false,
+      );
       for (ImportEnd import in ast.getImports()) {
         offsetOfLast = max(offsetOfLast, import.semicolon!.offset + 1);
       }
@@ -615,8 +648,9 @@ class TestMinimizer {
         builder.writeCharCode(withoutInlineableString.codeUnitAt(i));
       }
       builder.write("\n");
-      builder.write(utf8
-          .decode(_rewriteImportsExportsToUri(inlineData, uri, inlinableUri)));
+      builder.write(
+        utf8.decode(_rewriteImportsExportsToUri(inlineData, uri, inlinableUri)),
+      );
       builder.write("\n");
       for (int i = offsetOfLast; i < withoutInlineableString.length; i++) {
         builder.writeCharCode(withoutInlineableString.codeUnitAt(i));
@@ -654,9 +688,16 @@ class TestMinimizer {
           builder.writeCharCode(withoutInlineableString.codeUnitAt(i));
         }
         builder.write("\n");
-        builder.write(utf8.decode(_rewriteImportsExportsToUri(
-            inlineData, uri, inlinableUri,
-            convertExportToImport: true)));
+        builder.write(
+          utf8.decode(
+            _rewriteImportsExportsToUri(
+              inlineData,
+              uri,
+              inlinableUri,
+              convertExportToImport: true,
+            ),
+          ),
+        );
         builder.write("\n");
         for (int i = offsetOfLast; i < withoutInlineableString.length; i++) {
           builder.writeCharCode(withoutInlineableString.codeUnitAt(i));
@@ -680,8 +721,10 @@ class TestMinimizer {
         }
         _fs.data[uri] = inlinedWithChange;
         if (await _crashesOnCompile(initialComponent)) {
-          print("Could inline $inlinableUri into $uri "
-              "(by converting export to import).");
+          print(
+            "Could inline $inlinableUri into $uri "
+            "(by converting export to import).",
+          );
           changed = true;
           // File was already updated.
         } else {
@@ -696,25 +739,41 @@ class TestMinimizer {
   }
 
   Uint8List _rewriteImportsExportsToUri(
-      Uint8List oldData, Uri newUri, Uri oldUri,
-      {bool convertExportToImport = false}) {
-    CompilationUnitEnd ast =
-        getAST(oldData, includeBody: false, includeComments: false);
+    Uint8List oldData,
+    Uri newUri,
+    Uri oldUri, {
+    bool convertExportToImport = false,
+  }) {
+    CompilationUnitEnd ast = getAST(
+      oldData,
+      includeBody: false,
+      includeComments: false,
+    );
     List<_Replacement> replacements = [];
     for (ImportEnd import in ast.getImports()) {
       _rewriteImportsExportsToUriInternal(
-          import.importKeyword.next!, oldUri, replacements, newUri);
+        import.importKeyword.next!,
+        oldUri,
+        replacements,
+        newUri,
+      );
     }
     for (ExportEnd export in ast.getExports()) {
       if (convertExportToImport) {
-        replacements.add(new _Replacement(
-          export.exportKeyword.offset - 1,
-          export.exportKeyword.offset + export.exportKeyword.length,
-          nullOrReplacement: "import",
-        ));
+        replacements.add(
+          new _Replacement(
+            export.exportKeyword.offset - 1,
+            export.exportKeyword.offset + export.exportKeyword.length,
+            nullOrReplacement: "import",
+          ),
+        );
       }
       _rewriteImportsExportsToUriInternal(
-          export.exportKeyword.next!, oldUri, replacements, newUri);
+        export.exportKeyword.next!,
+        oldUri,
+        replacements,
+        newUri,
+      );
     }
     if (replacements.isNotEmpty) {
       Uint8List candidate = _replaceRange(replacements, oldData);
@@ -767,8 +826,10 @@ worlds:
         print("        $line");
       }
     }
-    print("    expectedLibraryCount: $dartFiles "
-        "# with parts this is not right");
+    print(
+      "    expectedLibraryCount: $dartFiles "
+      "# with parts this is not right",
+    );
     print("");
 
     if (_settings.invalidateAllAtOnce) {
@@ -785,8 +846,10 @@ worlds:
       for (Uri uri in _settings.invalidate) {
         print("      - $uri");
       }
-      print("    expectedLibraryCount: $dartFiles "
-          "# with parts this is not right");
+      print(
+        "    expectedLibraryCount: $dartFiles "
+        "# with parts this is not right",
+      );
       print("    advancedInvalidation: bodiesOnly # or something else?");
       print("");
     } else {
@@ -802,8 +865,10 @@ worlds:
         print("    expectInitializeFromDill: false # or true?");
         print("    invalidate:");
         print("      - $uri");
-        print("    expectedLibraryCount: $dartFiles "
-            "# with parts this is not right");
+        print(
+          "    expectedLibraryCount: $dartFiles "
+          "# with parts this is not right",
+        );
         print("    advancedInvalidation: bodiesOnly # or something else?");
         print("");
       }
@@ -813,26 +878,34 @@ worlds:
   }
 
   void _rewriteImportsExportsToUriInternal(
-      Token uriToken, Uri oldUri, List<_Replacement> replacements, Uri newUri) {
+    Token uriToken,
+    Uri oldUri,
+    List<_Replacement> replacements,
+    Uri newUri,
+  ) {
     Uri tokenUri = _getUri(uriToken, oldUri, resolvePackage: false);
     if (tokenUri.isScheme("package") || tokenUri.isScheme("dart")) return;
     Uri asPackageUri = _getImportUri(tokenUri);
     if (asPackageUri.isScheme("package")) {
       // Just replace with this package uri.
-      replacements.add(new _Replacement(
-        uriToken.offset - 1,
-        uriToken.offset + uriToken.length,
-        nullOrReplacement: '"${asPackageUri.toString()}"',
-      ));
+      replacements.add(
+        new _Replacement(
+          uriToken.offset - 1,
+          uriToken.offset + uriToken.length,
+          nullOrReplacement: '"${asPackageUri.toString()}"',
+        ),
+      );
     } else {
       String relative = relativizeUri(newUri, tokenUri, isWindows);
       // TODO(jensj): Maybe if the relative uri becomes too long or has to many
       // "../../" etc we should just use the absolute uri instead.
-      replacements.add(new _Replacement(
-        uriToken.offset - 1,
-        uriToken.offset + uriToken.length,
-        nullOrReplacement: '"${relative}"',
-      ));
+      replacements.add(
+        new _Replacement(
+          uriToken.offset - 1,
+          uriToken.offset + uriToken.length,
+          nullOrReplacement: '"${relative}"',
+        ),
+      );
     }
   }
 
@@ -843,8 +916,9 @@ worlds:
     if (resolvePackage && uriTokenUri.isScheme("package")) {
       Package package = _latestCrashingIncrementalCompiler!
           .getPackageForPackageName(uriTokenUri.pathSegments.first)!;
-      uriTokenUri = package.packageUriRoot
-          .resolve(uriTokenUri.pathSegments.skip(1).join("/"));
+      uriTokenUri = package.packageUriRoot.resolve(
+        uriTokenUri.pathSegments.skip(1).join("/"),
+      );
     }
     return uriTokenUri;
   }
@@ -860,15 +934,18 @@ worlds:
   }
 
   Future<void> _binarySearchDeleteData(
-      Uri uri, Component initialComponent) async {
+    Uri uri,
+    Component initialComponent,
+  ) async {
     Uint8List latestCrashData = _fs.data[uri]!;
     int offset = 0;
     while (offset < latestCrashData.length) {
       print("Working at offset $offset of ${latestCrashData.length}");
       BytesBuilder builder = new BytesBuilder();
       builder.add(_sublist(latestCrashData, 0, offset));
-      builder
-          .add(_sublist(latestCrashData, offset + 1, latestCrashData.length));
+      builder.add(
+        _sublist(latestCrashData, offset + 1, latestCrashData.length),
+      );
       Uint8List candidate = builder.takeBytes();
       _fs.data[uri] = candidate;
       if (!await _crashesOnCompile(initialComponent)) {
@@ -888,8 +965,13 @@ worlds:
         }
         builder = new BytesBuilder();
         builder.add(_sublist(latestCrashData, 0, offset));
-        builder.add(_sublist(
-            latestCrashData, offset + deleteChars, latestCrashData.length));
+        builder.add(
+          _sublist(
+            latestCrashData,
+            offset + deleteChars,
+            latestCrashData.length,
+          ),
+        );
         candidate = builder.takeBytes();
         _fs.data[uri] = candidate;
         if (!await _crashesOnCompile(initialComponent)) {
@@ -908,13 +990,15 @@ worlds:
 
       // Binary search between [crashingAt] and [noLongerCrashingAt].
       while (crashingAt < noLongerCrashingAt!) {
-        int mid = noLongerCrashingAt -
+        int mid =
+            noLongerCrashingAt -
             ((noLongerCrashingAt - crashingAt) >>
                 1); // Get middle, rounding up.
         builder = new BytesBuilder();
         builder.add(_sublist(latestCrashData, 0, offset));
         builder.add(
-            _sublist(latestCrashData, offset + mid, latestCrashData.length));
+          _sublist(latestCrashData, offset + mid, latestCrashData.length),
+        );
         candidate = builder.takeBytes();
         _fs.data[uri] = candidate;
         if (await _crashesOnCompile(initialComponent)) {
@@ -928,8 +1012,9 @@ worlds:
       // This is basically an assert.
       builder = new BytesBuilder();
       builder.add(_sublist(latestCrashData, 0, offset));
-      builder.add(_sublist(
-          latestCrashData, offset + crashingAt, latestCrashData.length));
+      builder.add(
+        _sublist(latestCrashData, offset + crashingAt, latestCrashData.length),
+      );
       candidate = builder.takeBytes();
       _fs.data[uri] = candidate;
       if (!await _crashesOnCompile(initialComponent)) {
@@ -941,8 +1026,10 @@ worlds:
     _fs.data[uri] = latestCrashData;
   }
 
-  Future<void> _tryToRemoveUnreferencedFileContent(Component initialComponent,
-      {bool deleteFile = false}) async {
+  Future<void> _tryToRemoveUnreferencedFileContent(
+    Component initialComponent, {
+    bool deleteFile = false,
+  }) async {
     // Check if there now are any unused files.
     if (_latestComponent == null) return;
     Set<Uri> neededUris = _latestComponent!.uriToSource.keys.toSet();
@@ -976,8 +1063,12 @@ worlds:
   }
 
   Future<void> _deleteContent(
-      List<Uri> uris, int uriIndex, bool limitTo1, Component initialComponent,
-      {bool deleteFile = false}) async {
+    List<Uri> uris,
+    int uriIndex,
+    bool limitTo1,
+    Component initialComponent, {
+    bool deleteFile = false,
+  }) async {
     String extraMessageText = "all content of ";
     if (deleteFile) extraMessageText = "";
 
@@ -1002,8 +1093,10 @@ worlds:
           Uri uri = uris[j];
           print("Can delete ${extraMessageText}file $uri");
         }
-        await _tryToRemoveUnreferencedFileContent(initialComponent,
-            deleteFile: deleteFile);
+        await _tryToRemoveUnreferencedFileContent(
+          initialComponent,
+          deleteFile: deleteFile,
+        );
         return;
       }
     }
@@ -1018,7 +1111,8 @@ worlds:
     }
     if (!await _crashesOnCompile(initialComponent)) {
       print(
-          "Can't delete ${extraMessageText}file $uri -- keeping it (for now)");
+        "Can't delete ${extraMessageText}file $uri -- keeping it (for now)",
+      );
       _fs.data[uri] = data;
 
       // For dart files we can't truncate completely try to "outline" them
@@ -1026,12 +1120,13 @@ worlds:
       if (uri.toString().endsWith(".dart")) {
         Version languageVersion = _getLanguageVersion(uri, crashOnFail: false);
         String? textualOutlined = textualOutline(
-                data!, _getScannerConfiguration(languageVersion),
-                enablePatterns:
-                    languageVersion >= ExperimentalFlag.patterns.enabledVersion,
-                enableEnhancedParts: languageVersion >=
-                    ExperimentalFlag.enhancedParts.enabledVersion)
-            ?.replaceAll(RegExp(r'\n+'), "\n");
+          data!,
+          _getScannerConfiguration(languageVersion),
+          enablePatterns:
+              languageVersion >= ExperimentalFlag.patterns.enabledVersion,
+          enableEnhancedParts:
+              languageVersion >= ExperimentalFlag.enhancedParts.enabledVersion,
+        )?.replaceAll(RegExp(r'\n+'), "\n");
 
         bool outlined = false;
         if (textualOutlined != null) {
@@ -1047,8 +1142,10 @@ worlds:
               _fs.data[uri] = data;
             } else {
               outlined = true;
-              print("Can outline the file $uri "
-                  "(now ${_fs.data[uri]!.length} bytes)");
+              print(
+                "Can outline the file $uri "
+                "(now ${_fs.data[uri]!.length} bytes)",
+              );
             }
           }
         }
@@ -1066,8 +1163,10 @@ worlds:
               if (await _shouldQuit()) return;
               _fs.data[uri] = candidate;
               if (!await _crashesOnCompile(initialComponent)) {
-                print("Can't remove comments for file $uri -- "
-                    "keeping it (for now)");
+                print(
+                  "Can't remove comments for file $uri -- "
+                  "keeping it (for now)",
+                );
                 _fs.data[uri] = data;
               } else {
                 print("Removed comments for the file $uri");
@@ -1120,8 +1219,11 @@ worlds:
 
     List<int> lineStarts = [];
 
-    Token firstToken =
-        parser_suite.scanRawBytes(data, _scannerConfiguration, lineStarts);
+    Token firstToken = parser_suite.scanRawBytes(
+      data,
+      _scannerConfiguration,
+      lineStarts,
+    );
 
     int compileTry = 0;
     Token? token = firstToken;
@@ -1134,8 +1236,9 @@ worlds:
       Token skipToToken = token;
       // Skip very small blocks (e.g. "{}" or "{\n}");
       if (token.endGroup != null && token.offset + 3 < token.endGroup!.offset) {
-        replacements
-            .add(new _Replacement(token.offset, token.endGroup!.offset));
+        replacements.add(
+          new _Replacement(token.offset, token.endGroup!.offset),
+        );
         tryCompile = true;
         skipToToken = token.endGroup!;
       } else if (token.lexeme == "@") {
@@ -1205,10 +1308,12 @@ worlds:
         Uint8List candidate = _replaceRange(replacements, data);
         _fs.data[uri] = candidate;
         if (await _crashesOnCompile(initialComponent)) {
-          print("Found block from "
-              "${replacements.last.from} to "
-              "${replacements.last.to} "
-              "that can be removed.");
+          print(
+            "Found block from "
+            "${replacements.last.from} to "
+            "${replacements.last.to} "
+            "that can be removed.",
+          );
           latestCrashData = candidate;
           token = skipToToken;
         } else {
@@ -1274,8 +1379,10 @@ worlds:
             packagesModified.insert(i, oldEntry);
             i++;
           } else {
-            print("Removed package from .json "
-                "(${packagesModified.length} left).");
+            print(
+              "Removed package from .json "
+              "(${packagesModified.length} left).",
+            );
           }
         }
       } catch (e) {
@@ -1286,8 +1393,11 @@ worlds:
     if (!uri.toString().endsWith(".dart")) return;
 
     Uint8List data = _fs.data[uri]!;
-    CompilationUnitEnd ast =
-        getAST(data, includeBody: true, includeComments: false);
+    CompilationUnitEnd ast = getAST(
+      data,
+      includeBody: true,
+      includeComments: false,
+    );
 
     _CompilationHelperClass helper = new _CompilationHelperClass(data);
 
@@ -1297,122 +1407,188 @@ worlds:
       String what = "";
       if (child.isClass()) {
         ClassDeclarationEnd cls = child.asClass();
-        helper.replacements.add(new _Replacement(
-            cls.beginToken.offset - 1, cls.endToken.offset + 1));
+        helper.replacements.add(
+          new _Replacement(cls.beginToken.offset - 1, cls.endToken.offset + 1),
+        );
         shouldCompile = true;
         what = "class";
       } else if (child.isMixinDeclaration()) {
         MixinDeclarationEnd decl = child.asMixinDeclaration();
-        helper.replacements.add(new _Replacement(
-            decl.beginToken.offset - 1, decl.endToken.offset + 1));
+        helper.replacements.add(
+          new _Replacement(
+            decl.beginToken.offset - 1,
+            decl.endToken.offset + 1,
+          ),
+        );
         shouldCompile = true;
         what = "mixin";
       } else if (child.isNamedMixinDeclaration()) {
         NamedMixinApplicationEnd decl = child.asNamedMixinDeclaration();
         helper.replacements.add(
-            new _Replacement(decl.begin.offset - 1, decl.endToken.offset + 1));
+          new _Replacement(decl.begin.offset - 1, decl.endToken.offset + 1),
+        );
         shouldCompile = true;
         what = "named mixin";
       } else if (child.isExtension()) {
         ExtensionDeclarationEnd decl = child.asExtension();
-        helper.replacements.add(new _Replacement(
-            decl.extensionKeyword.offset - 1, decl.endToken.offset + 1));
+        helper.replacements.add(
+          new _Replacement(
+            decl.extensionKeyword.offset - 1,
+            decl.endToken.offset + 1,
+          ),
+        );
         shouldCompile = true;
         what = "extension";
       } else if (child.isTopLevelFields()) {
         TopLevelFieldsEnd decl = child.asTopLevelFields();
-        helper.replacements.add(new _Replacement(
-            decl.beginToken.offset - 1, decl.endToken.offset + 1));
+        helper.replacements.add(
+          new _Replacement(
+            decl.beginToken.offset - 1,
+            decl.endToken.offset + 1,
+          ),
+        );
         shouldCompile = true;
         what = "toplevel fields";
       } else if (child.isTopLevelMethod()) {
         TopLevelMethodEnd decl = child.asTopLevelMethod();
-        helper.replacements.add(new _Replacement(
-            decl.beginToken.offset - 1, decl.endToken.offset + 1));
+        helper.replacements.add(
+          new _Replacement(
+            decl.beginToken.offset - 1,
+            decl.endToken.offset + 1,
+          ),
+        );
         shouldCompile = true;
         what = "toplevel method";
       } else if (child.isEnum()) {
         EnumEnd decl = child.asEnum();
-        helper.replacements.add(new _Replacement(
-            decl.enumKeyword.offset - 1, decl.leftBrace.endGroup!.offset + 1));
+        helper.replacements.add(
+          new _Replacement(
+            decl.enumKeyword.offset - 1,
+            decl.leftBrace.endGroup!.offset + 1,
+          ),
+        );
         shouldCompile = true;
         what = "enum";
       } else if (child.isTypedef()) {
         TypedefEnd decl = child.asTypedef();
-        helper.replacements.add(new _Replacement(
-            decl.typedefKeyword.offset - 1, decl.endToken.offset + 1));
+        helper.replacements.add(
+          new _Replacement(
+            decl.typedefKeyword.offset - 1,
+            decl.endToken.offset + 1,
+          ),
+        );
         shouldCompile = true;
         what = "typedef";
       } else if (child.isMetadata()) {
         MetadataStarEnd decl = child.asMetadata();
         List<MetadataEnd> metadata = decl.getMetadataEntries();
         if (metadata.isNotEmpty) {
-          helper.replacements.add(new _Replacement(
+          helper.replacements.add(
+            new _Replacement(
               metadata.first.beginToken.offset - 1,
-              metadata.last.endToken.charEnd));
+              metadata.last.endToken.charEnd,
+            ),
+          );
           shouldCompile = true;
         }
         what = "metadata";
       } else if (child.isImport()) {
         ImportEnd decl = child.asImport();
-        helper.replacements.add(new _Replacement(
-            decl.importKeyword.offset - 1, decl.semicolon!.offset + 1));
+        helper.replacements.add(
+          new _Replacement(
+            decl.importKeyword.offset - 1,
+            decl.semicolon!.offset + 1,
+          ),
+        );
         shouldCompile = true;
         what = "import";
       } else if (child.isExport()) {
         ExportEnd decl = child.asExport();
-        helper.replacements.add(new _Replacement(
-            decl.exportKeyword.offset - 1, decl.semicolon.offset + 1));
+        helper.replacements.add(
+          new _Replacement(
+            decl.exportKeyword.offset - 1,
+            decl.semicolon.offset + 1,
+          ),
+        );
         shouldCompile = true;
         what = "export";
       } else if (child.isLibraryName()) {
         LibraryNameEnd decl = child.asLibraryName();
-        helper.replacements.add(new _Replacement(
-            decl.libraryKeyword.offset - 1, decl.semicolon.offset + 1));
+        helper.replacements.add(
+          new _Replacement(
+            decl.libraryKeyword.offset - 1,
+            decl.semicolon.offset + 1,
+          ),
+        );
         shouldCompile = true;
         what = "library name";
       } else if (child.isPart()) {
         PartEnd decl = child.asPart();
-        helper.replacements.add(new _Replacement(
-            decl.partKeyword.offset - 1, decl.semicolon.offset + 1));
+        helper.replacements.add(
+          new _Replacement(
+            decl.partKeyword.offset - 1,
+            decl.semicolon.offset + 1,
+          ),
+        );
         shouldCompile = true;
         what = "part";
       } else if (child.isPartOf()) {
         PartOfEnd decl = child.asPartOf();
-        helper.replacements.add(new _Replacement(
-            decl.partKeyword.offset - 1, decl.semicolon.offset + 1));
+        helper.replacements.add(
+          new _Replacement(
+            decl.partKeyword.offset - 1,
+            decl.semicolon.offset + 1,
+          ),
+        );
         shouldCompile = true;
         what = "part of";
       } else if (child.isScript()) {
         ScriptHandle decl = child.asScript();
-        helper.replacements.add(new _Replacement(
-            decl.token.offset - 1, decl.token.offset + decl.token.length));
+        helper.replacements.add(
+          new _Replacement(
+            decl.token.offset - 1,
+            decl.token.offset + decl.token.length,
+          ),
+        );
         shouldCompile = true;
         what = "script";
       } else if (child.isExtensionType()) {
         ExtensionTypeDeclarationEnd decl = child.asExtensionType();
-        helper.replacements.add(new _Replacement(
-            decl.extensionKeyword.offset - 1, decl.endToken.charEnd));
+        helper.replacements.add(
+          new _Replacement(
+            decl.extensionKeyword.offset - 1,
+            decl.endToken.charEnd,
+          ),
+        );
         shouldCompile = true;
         what = "extension type";
       }
 
       if (shouldCompile) {
-        bool success =
-            await _tryReplaceAndCompile(helper, uri, initialComponent, what);
+        bool success = await _tryReplaceAndCompile(
+          helper,
+          uri,
+          initialComponent,
+          what,
+        );
         if (helper.shouldQuit) return;
         if (!success) {
           if (child.isClass()) {
             // Also try to remove all content of the class.
             ClassDeclarationEnd decl = child.asClass();
-            ClassOrMixinOrExtensionBodyEnd body =
-                decl.getClassOrMixinOrExtensionBody();
+            ClassOrMixinOrExtensionBodyEnd body = decl
+                .getClassOrMixinOrExtensionBody();
             if (body.beginToken.offset + 2 < body.endToken.offset) {
-              helper.replacements.add(new _Replacement(
-                  body.beginToken.offset, body.endToken.offset));
+              helper.replacements.add(
+                new _Replacement(body.beginToken.offset, body.endToken.offset),
+              );
               what = "class body";
               success = await _tryReplaceAndCompile(
-                  helper, uri, initialComponent, what);
+                helper,
+                uri,
+                initialComponent,
+                what,
+              );
               if (helper.shouldQuit) return;
             }
 
@@ -1427,43 +1603,69 @@ worlds:
             // _one_ part at a time. E:g. if it says "class A implements B, C {"
             // we could try to remove "B, " or ", C" etc.
             if (decl.getClassExtends().extendsKeyword != null) {
-              helper.replacements.add(new _Replacement(
+              helper.replacements.add(
+                new _Replacement(
                   decl.getClassExtends().extendsKeyword!.offset - 1,
-                  body.beginToken.offset));
+                  body.beginToken.offset,
+                ),
+              );
               what = "class extends";
               success = await _tryReplaceAndCompile(
-                  helper, uri, initialComponent, what);
+                helper,
+                uri,
+                initialComponent,
+                what,
+              );
               if (helper.shouldQuit) return;
             }
             if (decl.getClassImplements().implementsKeyword != null) {
-              helper.replacements.add(new _Replacement(
+              helper.replacements.add(
+                new _Replacement(
                   decl.getClassImplements().implementsKeyword!.offset - 1,
-                  body.beginToken.offset));
+                  body.beginToken.offset,
+                ),
+              );
               what = "class implements";
               success = await _tryReplaceAndCompile(
-                  helper, uri, initialComponent, what);
+                helper,
+                uri,
+                initialComponent,
+                what,
+              );
               if (helper.shouldQuit) return;
             }
             if (decl.getClassWithClause() != null) {
-              helper.replacements.add(new _Replacement(
+              helper.replacements.add(
+                new _Replacement(
                   decl.getClassWithClause()!.withKeyword.offset - 1,
-                  body.beginToken.offset));
+                  body.beginToken.offset,
+                ),
+              );
               what = "class with clause";
               success = await _tryReplaceAndCompile(
-                  helper, uri, initialComponent, what);
+                helper,
+                uri,
+                initialComponent,
+                what,
+              );
               if (helper.shouldQuit) return;
             }
           } else if (child.isMixinDeclaration()) {
             // Also try to remove all content of the mixin.
             MixinDeclarationEnd decl = child.asMixinDeclaration();
-            ClassOrMixinOrExtensionBodyEnd body =
-                decl.getClassOrMixinOrExtensionBody();
+            ClassOrMixinOrExtensionBodyEnd body = decl
+                .getClassOrMixinOrExtensionBody();
             if (body.beginToken.offset + 2 < body.endToken.offset) {
-              helper.replacements.add(new _Replacement(
-                  body.beginToken.offset, body.endToken.offset));
+              helper.replacements.add(
+                new _Replacement(body.beginToken.offset, body.endToken.offset),
+              );
               what = "mixin body";
               success = await _tryReplaceAndCompile(
-                  helper, uri, initialComponent, what);
+                helper,
+                uri,
+                initialComponent,
+                what,
+              );
               if (helper.shouldQuit) return;
             }
 
@@ -1473,14 +1675,19 @@ worlds:
           } else if (child.isExtensionType()) {
             // Also try to remove all content of the extension type.
             ExtensionTypeDeclarationEnd decl = child.asExtensionType();
-            ClassOrMixinOrExtensionBodyEnd body =
-                decl.getClassOrMixinOrExtensionBody();
+            ClassOrMixinOrExtensionBodyEnd body = decl
+                .getClassOrMixinOrExtensionBody();
             if (body.beginToken.offset + 2 < body.endToken.offset) {
-              helper.replacements.add(new _Replacement(
-                  body.beginToken.offset, body.endToken.offset));
+              helper.replacements.add(
+                new _Replacement(body.beginToken.offset, body.endToken.offset),
+              );
               what = "extension type body";
               success = await _tryReplaceAndCompile(
-                  helper, uri, initialComponent, what);
+                helper,
+                uri,
+                initialComponent,
+                what,
+              );
               if (helper.shouldQuit) return;
             }
 
@@ -1490,15 +1697,24 @@ worlds:
           } else if (child.isTopLevelMethod()) {
             // Try to remove parameters.
             TopLevelMethodEnd decl = child.asTopLevelMethod();
-            FormalParametersEnd? formal =
-                decl.children?.whereType<FormalParametersEnd>().firstOrNull;
+            FormalParametersEnd? formal = decl.children
+                ?.whereType<FormalParametersEnd>()
+                .firstOrNull;
             if (formal != null) {
               if (formal.beginToken.offset + 2 < formal.endToken.offset) {
-                helper.replacements.add(new _Replacement(
-                    formal.beginToken.offset, formal.endToken.offset));
+                helper.replacements.add(
+                  new _Replacement(
+                    formal.beginToken.offset,
+                    formal.endToken.offset,
+                  ),
+                );
                 what = "top level formals";
                 success = await _tryReplaceAndCompile(
-                    helper, uri, initialComponent, what);
+                  helper,
+                  uri,
+                  initialComponent,
+                  what,
+                );
                 if (helper.shouldQuit) return;
               }
             }
@@ -1509,126 +1725,175 @@ worlds:
   }
 
   Future<void> _deleteBlocksHelper(
-      ClassOrMixinOrExtensionBodyEnd body,
-      _CompilationHelperClass helper,
-      final Uri uri,
-      Component initialComponent) async {
+    ClassOrMixinOrExtensionBodyEnd body,
+    _CompilationHelperClass helper,
+    final Uri uri,
+    Component initialComponent,
+  ) async {
     for (ParserAstNode child in body.children!) {
       bool shouldCompile = false;
       String what = "";
       if (child is MemberEnd) {
         if (child.isClassConstructor()) {
           ClassConstructorEnd memberDecl = child.getClassConstructor();
-          helper.replacements.add(new _Replacement(
+          helper.replacements.add(
+            new _Replacement(
               memberDecl.beginToken.offset - 1,
-              memberDecl.endToken.offset + 1));
+              memberDecl.endToken.offset + 1,
+            ),
+          );
           what = "class constructor";
           shouldCompile = true;
         } else if (child.isClassFields()) {
           ClassFieldsEnd memberDecl = child.getClassFields();
-          helper.replacements.add(new _Replacement(
+          helper.replacements.add(
+            new _Replacement(
               memberDecl.beginToken.offset - 1,
-              memberDecl.endToken.offset + 1));
+              memberDecl.endToken.offset + 1,
+            ),
+          );
           what = "class fields";
           shouldCompile = true;
         } else if (child.isClassMethod()) {
           ClassMethodEnd memberDecl = child.getClassMethod();
-          helper.replacements.add(new _Replacement(
+          helper.replacements.add(
+            new _Replacement(
               memberDecl.beginToken.offset - 1,
-              memberDecl.endToken.offset + 1));
+              memberDecl.endToken.offset + 1,
+            ),
+          );
           what = "class method";
           shouldCompile = true;
         } else if (child.isClassFactoryMethod()) {
           ClassFactoryMethodEnd memberDecl = child.getClassFactoryMethod();
-          helper.replacements.add(new _Replacement(
+          helper.replacements.add(
+            new _Replacement(
               memberDecl.beginToken.offset - 1,
-              memberDecl.endToken.offset + 1));
+              memberDecl.endToken.offset + 1,
+            ),
+          );
           what = "class factory method";
           shouldCompile = true;
         } else if (child.isMixinConstructor()) {
           MixinConstructorEnd memberDecl = child.getMixinConstructor();
-          helper.replacements.add(new _Replacement(
+          helper.replacements.add(
+            new _Replacement(
               memberDecl.beginToken.offset - 1,
-              memberDecl.endToken.offset + 1));
+              memberDecl.endToken.offset + 1,
+            ),
+          );
           what = "mixin constructor";
           shouldCompile = true;
         } else if (child.isMixinFields()) {
           MixinFieldsEnd memberDecl = child.getMixinFields();
-          helper.replacements.add(new _Replacement(
+          helper.replacements.add(
+            new _Replacement(
               memberDecl.beginToken.offset - 1,
-              memberDecl.endToken.offset + 1));
+              memberDecl.endToken.offset + 1,
+            ),
+          );
           what = "mixin fields";
           shouldCompile = true;
         } else if (child.isMixinMethod()) {
           MixinMethodEnd memberDecl = child.getMixinMethod();
-          helper.replacements.add(new _Replacement(
+          helper.replacements.add(
+            new _Replacement(
               memberDecl.beginToken.offset - 1,
-              memberDecl.endToken.offset + 1));
+              memberDecl.endToken.offset + 1,
+            ),
+          );
           what = "mixin method";
           shouldCompile = true;
         } else if (child.isMixinFactoryMethod()) {
           MixinFactoryMethodEnd memberDecl = child.getMixinFactoryMethod();
-          helper.replacements.add(new _Replacement(
+          helper.replacements.add(
+            new _Replacement(
               memberDecl.beginToken.offset - 1,
-              memberDecl.endToken.offset + 1));
+              memberDecl.endToken.offset + 1,
+            ),
+          );
           what = "mixin factory method";
           shouldCompile = true;
         } else if (child.isExtensionTypeConstructor()) {
           var memberDecl = child.getExtensionTypeConstructor();
-          helper.replacements.add(new _Replacement(
+          helper.replacements.add(
+            new _Replacement(
               memberDecl.beginToken.offset - 1,
-              memberDecl.endToken.offset + 1));
+              memberDecl.endToken.offset + 1,
+            ),
+          );
           what = "extension type constructor";
           shouldCompile = true;
         } else if (child.isExtensionTypeFields()) {
           ExtensionTypeFieldsEnd memberDecl = child.getExtensionTypeFields();
-          helper.replacements.add(new _Replacement(
+          helper.replacements.add(
+            new _Replacement(
               memberDecl.beginToken.offset - 1,
-              memberDecl.endToken.offset + 1));
+              memberDecl.endToken.offset + 1,
+            ),
+          );
           what = "extension type fields";
           shouldCompile = true;
         } else if (child.isExtensionTypeMethod()) {
           ExtensionTypeMethodEnd memberDecl = child.getExtensionTypeMethod();
-          helper.replacements.add(new _Replacement(
+          helper.replacements.add(
+            new _Replacement(
               memberDecl.beginToken.offset - 1,
-              memberDecl.endToken.offset + 1));
+              memberDecl.endToken.offset + 1,
+            ),
+          );
           what = "extension type method";
           shouldCompile = true;
         } else if (child.isExtensionTypeFactoryMethod()) {
-          ExtensionTypeFactoryMethodEnd memberDecl =
-              child.getExtensionTypeFactoryMethod();
-          helper.replacements.add(new _Replacement(
+          ExtensionTypeFactoryMethodEnd memberDecl = child
+              .getExtensionTypeFactoryMethod();
+          helper.replacements.add(
+            new _Replacement(
               memberDecl.beginToken.offset - 1,
-              memberDecl.endToken.offset + 1));
+              memberDecl.endToken.offset + 1,
+            ),
+          );
           what = "extension type factory method";
           shouldCompile = true;
         } else if (child.isExtensionConstructor()) {
           var memberDecl = child.getExtensionConstructor();
-          helper.replacements.add(new _Replacement(
+          helper.replacements.add(
+            new _Replacement(
               memberDecl.beginToken.offset - 1,
-              memberDecl.endToken.offset + 1));
+              memberDecl.endToken.offset + 1,
+            ),
+          );
           what = "extension constructor";
           shouldCompile = true;
         } else if (child.isExtensionFields()) {
           ExtensionFieldsEnd memberDecl = child.getExtensionFields();
-          helper.replacements.add(new _Replacement(
+          helper.replacements.add(
+            new _Replacement(
               memberDecl.beginToken.offset - 1,
-              memberDecl.endToken.offset + 1));
+              memberDecl.endToken.offset + 1,
+            ),
+          );
           what = "extension fields";
           shouldCompile = true;
         } else if (child.isExtensionMethod()) {
           ExtensionMethodEnd memberDecl = child.getExtensionMethod();
-          helper.replacements.add(new _Replacement(
+          helper.replacements.add(
+            new _Replacement(
               memberDecl.beginToken.offset - 1,
-              memberDecl.endToken.offset + 1));
+              memberDecl.endToken.offset + 1,
+            ),
+          );
           what = "extension method";
           shouldCompile = true;
         } else if (child.isExtensionFactoryMethod()) {
-          ExtensionFactoryMethodEnd memberDecl =
-              child.getExtensionFactoryMethod();
-          helper.replacements.add(new _Replacement(
+          ExtensionFactoryMethodEnd memberDecl = child
+              .getExtensionFactoryMethod();
+          helper.replacements.add(
+            new _Replacement(
               memberDecl.beginToken.offset - 1,
-              memberDecl.endToken.offset + 1));
+              memberDecl.endToken.offset + 1,
+            ),
+          );
           what = "extension factory method";
           shouldCompile = true;
         } else {
@@ -1639,16 +1904,23 @@ worlds:
         MetadataStarEnd decl = child.asMetadata();
         List<MetadataEnd> metadata = decl.getMetadataEntries();
         if (metadata.isNotEmpty) {
-          helper.replacements.add(new _Replacement(
+          helper.replacements.add(
+            new _Replacement(
               metadata.first.beginToken.offset - 1,
-              metadata.last.endToken.charEnd));
+              metadata.last.endToken.charEnd,
+            ),
+          );
           shouldCompile = true;
         }
         what = "metadata";
       }
       if (shouldCompile) {
-        bool success =
-            await _tryReplaceAndCompile(helper, uri, initialComponent, what);
+        bool success = await _tryReplaceAndCompile(
+          helper,
+          uri,
+          initialComponent,
+          what,
+        );
         if (helper.shouldQuit) return;
         if (!success) {
           BlockFunctionBodyEnd? decl;
@@ -1663,7 +1935,8 @@ worlds:
           if (decl != null &&
               decl.beginToken.offset + 2 < decl.endToken.offset) {
             helper.replacements.add(
-                new _Replacement(decl.beginToken.offset, decl.endToken.offset));
+              new _Replacement(decl.beginToken.offset, decl.endToken.offset),
+            );
             what = "class member content";
             await _tryReplaceAndCompile(helper, uri, initialComponent, what);
             if (helper.shouldQuit) return;
@@ -1673,8 +1946,12 @@ worlds:
     }
   }
 
-  Future<bool> _tryReplaceAndCompile(_CompilationHelperClass data, Uri uri,
-      Component initialComponent, String what) async {
+  Future<bool> _tryReplaceAndCompile(
+    _CompilationHelperClass data,
+    Uri uri,
+    Component initialComponent,
+    String what,
+  ) async {
     if (await _shouldQuit()) {
       data.shouldQuit = true;
       return false;
@@ -1695,10 +1972,12 @@ worlds:
 
     _fs.data[uri] = candidate;
     if (await _crashesOnCompile(initialComponent)) {
-      print("Found $what from "
-          "${data.replacements.last.from} to "
-          "${data.replacements.last.to} "
-          "that can be removed.");
+      print(
+        "Found $what from "
+        "${data.replacements.last.from} to "
+        "${data.replacements.last.to} "
+        "that can be removed.",
+      );
       data.latestCrashData = candidate;
       return true;
     } else {
@@ -1813,8 +2092,10 @@ worlds:
           i++;
         }
       } else {
-        print("\nCan delete line $i (inclusive) - ${i + length} (exclusive) "
-            "(of ${lines.length})");
+        print(
+          "\nCan delete line $i (inclusive) - ${i + length} (exclusive) "
+          "(of ${lines.length})",
+        );
         latestCrashData = candidate;
         i += length;
         length *= 2;
@@ -1824,7 +2105,9 @@ worlds:
   }
 
   Future<bool> _tryRemoveIfNotKnownByCompiler(
-      Uri? uri, initialComponent) async {
+    Uri? uri,
+    initialComponent,
+  ) async {
     if (_fs.data[uri] == null || _fs.data[uri]!.isEmpty) return false;
     if (!uri.toString().endsWith(".dart")) return false;
 
@@ -1852,8 +2135,9 @@ worlds:
 
   ScannerConfiguration _getScannerConfiguration(Version languageVersion) {
     return new ScannerConfiguration(
-        enableTripleShift:
-            languageVersion >= ExperimentalFlag.tripleShift.enabledVersion);
+      enableTripleShift:
+          languageVersion >= ExperimentalFlag.tripleShift.enabledVersion,
+    );
   }
 
   Version _getLanguageVersion(Uri uri, {bool crashOnFail = true}) {
@@ -1915,7 +2199,10 @@ worlds:
       incrementalCompiler = new IncrementalCompiler(context, null, true);
     } else {
       incrementalCompiler = new IncrementalCompiler.fromComponent(
-          context, initialComponent, true);
+        context,
+        initialComponent,
+        true,
+      );
     }
     for (Uri entry in _entryUris) {
       incrementalCompiler.invalidate(entry);
@@ -1937,14 +2224,16 @@ worlds:
       knownInitialBuilders = <Uri, LibraryBuilder>{
         for (LibraryBuilder v
             in _latestKernelTarget!.loader.loadedLibraryBuilders)
-          v.importUri: v
+          v.importUri: v,
       };
 
       if (_gotWantedError) didNotGetWantedErrorAfterFirstCompile = false;
 
       if (_settings.loadFromComponentBeforeInvalidate) {
-        incrementalCompiler =
-            new IncrementalCompiler.fromComponent(context, _latestComponent!);
+        incrementalCompiler = new IncrementalCompiler.fromComponent(
+          context,
+          _latestComponent!,
+        );
       }
 
       if (_settings.invalidateAllAtOnce && _settings.invalidate.isNotEmpty) {
@@ -1952,8 +2241,8 @@ worlds:
           incrementalCompiler.invalidate(uri);
         }
 
-        IncrementalCompilerResult deltaResult =
-            await incrementalCompiler.computeDelta();
+        IncrementalCompilerResult deltaResult = await incrementalCompiler
+            .computeDelta();
         _latestKernelTarget = incrementalCompiler.kernelTargetForTesting!;
         Component delta = deltaResult.component;
         if (_settings.serialize) {
@@ -1967,8 +2256,8 @@ worlds:
       } else {
         for (Uri uri in _settings.invalidate) {
           incrementalCompiler.invalidate(uri);
-          IncrementalCompilerResult deltaResult =
-              await incrementalCompiler.computeDelta();
+          IncrementalCompilerResult deltaResult = await incrementalCompiler
+              .computeDelta();
           _latestKernelTarget = incrementalCompiler.kernelTargetForTesting!;
           Component delta = deltaResult.component;
           if (_settings.serialize) {
@@ -2047,8 +2336,10 @@ worlds:
             } else if (answer == "no" || answer == "n") {
               break;
             } else {
-              print("Didn't get that answer. "
-                  "Please answer 'yes, 'y', 'no' or 'n'");
+              print(
+                "Didn't get that answer. "
+                "Please answer 'yes, 'y', 'no' or 'n'",
+              );
             }
           }
         }
@@ -2058,8 +2349,9 @@ worlds:
   }
 
   Future<Component> _getInitialComponent() async {
-    IncrementalCompiler incrementalCompiler =
-        new IncrementalCompiler(_setupCompilerContext());
+    IncrementalCompiler incrementalCompiler = new IncrementalCompiler(
+      _setupCompilerContext(),
+    );
     IncrementalCompilerResult incrementalCompilerResult =
         await incrementalCompiler.computeDelta();
     Component originalComponent = incrementalCompilerResult.component;
@@ -2070,12 +2362,14 @@ worlds:
     CompilerOptions options = getOptions();
 
     if (_settings.experimentalInvalidation) {
-      options.explicitExperimentalFlags[
-          ExperimentalFlag.alternativeInvalidationStrategy] = true;
+      options.explicitExperimentalFlags[ExperimentalFlag
+              .alternativeInvalidationStrategy] =
+          true;
     }
 
-    TargetFlags targetFlags =
-        new TargetFlags(trackWidgetCreation: _settings.widgetTransformation);
+    TargetFlags targetFlags = new TargetFlags(
+      trackWidgetCreation: _settings.widgetTransformation,
+    );
     Target target;
     switch (_settings.targetString) {
       case "vm":
@@ -2103,8 +2397,9 @@ worlds:
       // don't care.
       // Except if we're looking to trigger a specific error on reload.
       if (_settings.lookForErrorErrorOnReload != null &&
-          message.ansiFormatted.first
-              .contains(_settings.lookForErrorErrorOnReload!)) {
+          message.ansiFormatted.first.contains(
+            _settings.lookForErrorErrorOnReload!,
+          )) {
         _gotWantedError = true;
       }
     };
@@ -2113,44 +2408,59 @@ worlds:
     }
 
     CompilerContext compilerContext = new CompilerContext(
-        new ProcessedOptions(options: options, inputs: _entryUris));
+      new ProcessedOptions(options: options, inputs: _entryUris),
+    );
     return compilerContext;
   }
 
   String _getFileAsStringContent(Uint8List rawBytes) {
     List<int> lineStarts = [];
 
-    Token firstToken =
-        parser_suite.scanRawBytes(rawBytes, _scannerConfiguration, lineStarts);
+    Token firstToken = parser_suite.scanRawBytes(
+      rawBytes,
+      _scannerConfiguration,
+      lineStarts,
+    );
 
     ParserTestListener parserTestListener = new ParserTestListener(false);
-    Parser parser = new Parser(parserTestListener,
-        useImplicitCreationExpression: useImplicitCreationExpressionInCfe);
+    Parser parser = new Parser(
+      parserTestListener,
+      useImplicitCreationExpression: useImplicitCreationExpressionInCfe,
+    );
     parser.parseUnit(firstToken);
-    String parsedString =
-        parser_suite.tokenStreamToString(firstToken, lineStarts).toString();
+    String parsedString = parser_suite
+        .tokenStreamToString(firstToken, lineStarts)
+        .toString();
     return parsedString;
   }
 
   bool _parsesWithoutError(Uint8List rawBytes) {
-    Token firstToken =
-        parser_suite.scanRawBytes(rawBytes, _scannerConfiguration, null);
+    Token firstToken = parser_suite.scanRawBytes(
+      rawBytes,
+      _scannerConfiguration,
+      null,
+    );
 
     ParserErrorListener parserErrorListener = new ParserErrorListener();
-    Parser parser = new Parser(parserErrorListener,
-        useImplicitCreationExpression: useImplicitCreationExpressionInCfe);
+    Parser parser = new Parser(
+      parserErrorListener,
+      useImplicitCreationExpression: useImplicitCreationExpressionInCfe,
+    );
     parser.parseUnit(firstToken);
     return !parserErrorListener.gotError;
   }
 
-  ScannerConfiguration _scannerConfiguration =
-      new ScannerConfiguration(enableTripleShift: true);
+  ScannerConfiguration _scannerConfiguration = new ScannerConfiguration(
+    enableTripleShift: true,
+  );
 
   List<int>? _dataCache;
   String? _dataCacheString;
 
   Uint8List _replaceRange(
-      List<_Replacement> unsortedReplacements, Uint8List rawData) {
+    List<_Replacement> unsortedReplacements,
+    Uint8List rawData,
+  ) {
     // The offsets are character offsets, not byte offsets, so for non-ascii
     // they are not the same so we need to work on the string, not the bytes.
     if (identical(rawData, _dataCache)) {
@@ -2161,8 +2471,9 @@ worlds:
     }
 
     // The below assumes these are sorted.
-    List<_Replacement> sortedReplacements =
-        new List<_Replacement>.from(unsortedReplacements)..sort();
+    List<_Replacement> sortedReplacements = new List<_Replacement>.from(
+      unsortedReplacements,
+    )..sort();
     final StringBuffer builder = new StringBuffer();
     int prev = 0;
     for (int i = 0; i < sortedReplacements.length; i++) {
@@ -2189,7 +2500,10 @@ class ParserErrorListener extends Listener {
   List<Message> messages = [];
   @override
   void handleRecoverableError(
-      Message message, Token startToken, Token endToken) {
+    Message message,
+    Token startToken,
+    Token endToken,
+  ) {
     gotError = true;
     messages.add(message);
   }
@@ -2261,10 +2575,7 @@ class _FakeFileSystem extends FileSystem {
       }
       tmp.add(out);
     }
-    return {
-      '_redirectAndRecord': _redirectAndRecord,
-      'data': tmp,
-    };
+    return {'_redirectAndRecord': _redirectAndRecord, 'data': tmp};
   }
 }
 

@@ -30,38 +30,54 @@ import 'package:kernel/ast.dart'
 
 Future<void> main(List<String> args) async {
   Directory dataDir = new Directory.fromUri(Platform.script.resolve('data'));
-  await runTests<String>(dataDir,
-      args: args,
-      createUriForFileName: createUriForFileName,
-      onFailure: onFailure,
-      runTest: runTestFor(const IdTestingDataComputer(), [defaultCfeConfig]));
+  await runTests<String>(
+    dataDir,
+    args: args,
+    createUriForFileName: createUriForFileName,
+    onFailure: onFailure,
+    runTest: runTestFor(const IdTestingDataComputer(), [defaultCfeConfig]),
+  );
 }
 
 class IdTestingDataComputer extends CfeDataComputer<String> {
   const IdTestingDataComputer();
 
   @override
-  void computeMemberData(CfeTestResultData testResultData, Member member,
-      Map<Id, ActualData<String>> actualMap,
-      {bool? verbose}) {
+  void computeMemberData(
+    CfeTestResultData testResultData,
+    Member member,
+    Map<Id, ActualData<String>> actualMap, {
+    bool? verbose,
+  }) {
     member.accept(
-        new IdTestingDataExtractor(testResultData.compilerResult, actualMap));
+      new IdTestingDataExtractor(testResultData.compilerResult, actualMap),
+    );
   }
 
   @override
-  void computeClassData(CfeTestResultData testResultData, Class cls,
-      Map<Id, ActualData<String>> actualMap,
-      {bool? verbose}) {
-    new IdTestingDataExtractor(testResultData.compilerResult, actualMap)
-        .computeForClass(cls);
+  void computeClassData(
+    CfeTestResultData testResultData,
+    Class cls,
+    Map<Id, ActualData<String>> actualMap, {
+    bool? verbose,
+  }) {
+    new IdTestingDataExtractor(
+      testResultData.compilerResult,
+      actualMap,
+    ).computeForClass(cls);
   }
 
   @override
-  void computeLibraryData(CfeTestResultData testResultData, Library library,
-      Map<Id, ActualData<String>> actualMap,
-      {bool? verbose}) {
-    new IdTestingDataExtractor(testResultData.compilerResult, actualMap)
-        .computeForLibrary(library);
+  void computeLibraryData(
+    CfeTestResultData testResultData,
+    Library library,
+    Map<Id, ActualData<String>> actualMap, {
+    bool? verbose,
+  }) {
+    new IdTestingDataExtractor(
+      testResultData.compilerResult,
+      actualMap,
+    ).computeForLibrary(library);
   }
 
   @override
@@ -69,7 +85,10 @@ class IdTestingDataComputer extends CfeDataComputer<String> {
 
   @override
   String computeErrorData(
-      CfeTestResultData testResultData, Id id, List<FormattedMessage> errors) {
+    CfeTestResultData testResultData,
+    Id id,
+    List<FormattedMessage> errors,
+  ) {
     return errorsToText(errors);
   }
 
@@ -78,9 +97,10 @@ class IdTestingDataComputer extends CfeDataComputer<String> {
 }
 
 class IdTestingDataExtractor extends CfeDataExtractor<String> {
-  IdTestingDataExtractor(InternalCompilerResult compilerResult,
-      Map<Id, ActualData<String>> actualMap)
-      : super(compilerResult, actualMap);
+  IdTestingDataExtractor(
+    InternalCompilerResult compilerResult,
+    Map<Id, ActualData<String>> actualMap,
+  ) : super(compilerResult, actualMap);
 
   @override
   String computeLibraryValue(Id id, Library library) {

@@ -6,11 +6,11 @@ final x = 'scope-marker';
 
 extension type ExtensionType(String field) {
   ExtensionType.empty()
-      : field = /*
+    : field = /*
    member=ExtensionType|constructor#empty,
    static
   */
-            x {
+          x {
     /*
    member=ExtensionType|constructor#empty,
    static,
@@ -20,12 +20,12 @@ extension type ExtensionType(String field) {
   }
 
   ExtensionType.oneParameter(a)
-      : field = /*
+    : field = /*
        member=ExtensionType|constructor#oneParameter,
        static,
        variables=[a]
       */
-            x {
+          x {
     /*
    member=ExtensionType|constructor#oneParameter,
    static,
@@ -37,14 +37,14 @@ extension type ExtensionType(String field) {
   }
 
   ExtensionType.twoParameters(a, b)
-      : field = /*
+    : field = /*
        member=ExtensionType|constructor#twoParameters,
        static,
        variables=[
         a,
         b]
       */
-            x {
+          x {
     /*
    member=ExtensionType|constructor#twoParameters,
    static,
@@ -57,14 +57,14 @@ extension type ExtensionType(String field) {
   }
 
   ExtensionType.optionalParameter(a, [b])
-      : field = /*
+    : field = /*
        member=ExtensionType|constructor#optionalParameter,
        static,
        variables=[
         a,
         b]
       */
-            x {
+          x {
     /*
    member=ExtensionType|constructor#optionalParameter,
    static,
@@ -77,14 +77,14 @@ extension type ExtensionType(String field) {
   }
 
   ExtensionType.namedParameter(a, {b})
-      : field = /*
+    : field = /*
        member=ExtensionType|constructor#namedParameter,
        static,
        variables=[
         a,
         b]
       */
-            x {
+          x {
     /*
    member=ExtensionType|constructor#namedParameter,
    static,
@@ -186,8 +186,7 @@ extension type GenericExtension<T>(T field) {
     x;
   }
 
-  static var staticField = /*member=GenericExtension|staticField*/
-      x;
+  static var staticField = /*member=GenericExtension|staticField*/ x;
 
   static empty() {
     /*

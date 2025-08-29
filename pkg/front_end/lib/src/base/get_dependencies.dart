@@ -18,12 +18,14 @@ import 'file_system_dependency_tracker.dart';
 import 'uri_translator.dart' show UriTranslator;
 
 // Coverage-ignore(suite): Not run.
-Future<List<Uri>> getDependencies(Uri script,
-    {Uri? sdk,
-    Uri? packages,
-    Uri? platform,
-    bool verbose = false,
-    Target? target}) async {
+Future<List<Uri>> getDependencies(
+  Uri script, {
+  Uri? sdk,
+  Uri? packages,
+  Uri? platform,
+  bool verbose = false,
+  Target? target,
+}) async {
   FileSystemDependencyTracker tracker = new FileSystemDependencyTracker();
   CompilerOptions options = new CompilerOptions()
     ..target = target
@@ -32,22 +34,34 @@ Future<List<Uri>> getDependencies(Uri script,
     ..sdkSummary = platform
     ..sdkRoot = sdk
     ..fileSystem = StandardFileSystem.instanceWithTracking(tracker);
-  ProcessedOptions pOptions =
-      new ProcessedOptions(options: options, inputs: <Uri>[script]);
-  return await CompilerContext.runWithOptions(pOptions,
-      (CompilerContext c) async {
+  ProcessedOptions pOptions = new ProcessedOptions(
+    options: options,
+    inputs: <Uri>[script],
+  );
+  return await CompilerContext.runWithOptions(pOptions, (
+    CompilerContext c,
+  ) async {
     FileSystem fileSystem = c.options.fileSystem;
     UriTranslator uriTranslator = await c.options.getUriTranslator();
     c.options.ticker.logMs("Read packages file");
-    DillTarget dillTarget =
-        new DillTarget(c, c.options.ticker, uriTranslator, c.options.target);
+    DillTarget dillTarget = new DillTarget(
+      c,
+      c.options.ticker,
+      uriTranslator,
+      c.options.target,
+    );
     if (platform != null) {
       Uint8List bytes = await fileSystem.entityForUri(platform).readAsBytes();
       Component platformComponent = loadComponentFromBytes(bytes);
       dillTarget.loader.appendLibraries(platformComponent);
     }
-    KernelTarget kernelTarget =
-        new KernelTarget(c, fileSystem, false, dillTarget, uriTranslator);
+    KernelTarget kernelTarget = new KernelTarget(
+      c,
+      fileSystem,
+      false,
+      dillTarget,
+      uriTranslator,
+    );
 
     kernelTarget.setEntryPoints(<Uri>[script]);
     dillTarget.buildOutlines();

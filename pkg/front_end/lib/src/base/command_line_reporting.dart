@@ -37,8 +37,11 @@ const bool hideWarnings = false;
 /// command-line tool. This includes source snippets and - in the colorized
 /// version - different colors based on [severity].
 PlainAndColorizedString format(
-    CompilerContext context, LocatedMessage message, CfeSeverity severity,
-    {Location? location}) {
+  CompilerContext context,
+  LocatedMessage message,
+  CfeSeverity severity, {
+  Location? location,
+}) {
   try {
     int length = message.length;
     if (length < 1) {
@@ -47,24 +50,40 @@ PlainAndColorizedString format(
       length = 1;
     }
     final String messageTextPlain = _createMessageText(severity, message);
-    String messageTextColorized =
-        _colorizeMessageText(severity, messageTextPlain);
+    String messageTextColorized = _colorizeMessageText(
+      severity,
+      messageTextPlain,
+    );
 
     if (message.uri != null) {
       String path = relativizeUri(
-          Uri.base, translateSdk(context, message.uri!), isWindows);
+        Uri.base,
+        translateSdk(context, message.uri!),
+        isWindows,
+      );
       int offset = message.charOffset;
-      location ??=
-          (offset == -1 ? null : getLocation(context, message.uri!, offset));
+      location ??= (offset == -1
+          ? null
+          : getLocation(context, message.uri!, offset));
       if (location?.line == TreeNode.noOffset) {
         location = null;
       }
       String? sourceLine = getSourceLine(context, location);
       return new PlainAndColorizedString(
         formatErrorMessage(
-            sourceLine, location, length, path, messageTextPlain),
+          sourceLine,
+          location,
+          length,
+          path,
+          messageTextPlain,
+        ),
         formatErrorMessage(
-            sourceLine, location, length, path, messageTextColorized),
+          sourceLine,
+          location,
+          length,
+          path,
+          messageTextColorized,
+        ),
       );
     } else {
       return new PlainAndColorizedString(
@@ -74,10 +93,12 @@ PlainAndColorizedString format(
     }
   } catch (error, trace) {
     // Coverage-ignore-block(suite): Not run.
-    print("Crash when formatting: "
-        "[${message.code.name}] ${safeToString(message.problemMessage)}\n"
-        "${safeToString(error)}\n"
-        "$trace");
+    print(
+      "Crash when formatting: "
+      "[${message.code.name}] ${safeToString(message.problemMessage)}\n"
+      "${safeToString(error)}\n"
+      "$trace",
+    );
     throw new Crash(message.uri, message.charOffset, error, trace);
   }
 }
@@ -87,8 +108,11 @@ PlainAndColorizedString format(
 /// command-line tool. This includes source snippets and - in the colorized
 /// version - different colors based on [severity].
 PlainAndColorizedString formatWithLocationNoSdk(
-    LocatedMessage message, CfeSeverity severity,
-    {required Location location, required Map<Uri, Source> uriToSource}) {
+  LocatedMessage message,
+  CfeSeverity severity, {
+  required Location location,
+  required Map<Uri, Source> uriToSource,
+}) {
   int length = message.length;
   if (length < 1) {
     // TODO(ahe): Throw in this situation. It is normally an error caused by
@@ -96,8 +120,10 @@ PlainAndColorizedString formatWithLocationNoSdk(
     length = 1;
   }
   final String messageTextPlain = _createMessageText(severity, message);
-  String messageTextColorized =
-      _colorizeMessageText(severity, messageTextPlain);
+  String messageTextColorized = _colorizeMessageText(
+    severity,
+    messageTextPlain,
+  );
 
   if (message.uri != null) {
     String path = relativizeUri(Uri.base, message.uri!, isWindows);
@@ -105,13 +131,15 @@ PlainAndColorizedString formatWithLocationNoSdk(
     return new PlainAndColorizedString(
       formatErrorMessage(sourceLine, location, length, path, messageTextPlain),
       formatErrorMessage(
-          sourceLine, location, length, path, messageTextColorized),
+        sourceLine,
+        location,
+        length,
+        path,
+        messageTextColorized,
+      ),
     );
   } else {
-    return new PlainAndColorizedString(
-      messageTextPlain,
-      messageTextColorized,
-    );
+    return new PlainAndColorizedString(messageTextPlain, messageTextColorized);
   }
 }
 
@@ -123,7 +151,9 @@ PlainAndColorizedString formatWithLocationNoSdk(
 /// looked up in uriToSource anyway, or we don't have or can get any
 /// line-position for it.
 PlainAndColorizedString formatNoSourceLine(
-    LocatedMessage message, CfeSeverity severity) {
+  LocatedMessage message,
+  CfeSeverity severity,
+) {
   int length = message.length;
   if (length < 1) {
     // TODO(ahe): Throw in this situation. It is normally an error caused by
@@ -131,8 +161,10 @@ PlainAndColorizedString formatNoSourceLine(
     length = 1;
   }
   final String messageTextPlain = _createMessageText(severity, message);
-  String messageTextColorized =
-      _colorizeMessageText(severity, messageTextPlain);
+  String messageTextColorized = _colorizeMessageText(
+    severity,
+    messageTextPlain,
+  );
 
   if (message.uri != null) {
     String path = relativizeUri(Uri.base, message.uri!, isWindows);
@@ -141,10 +173,7 @@ PlainAndColorizedString formatNoSourceLine(
       formatErrorMessage(null, null, length, path, messageTextColorized),
     );
   } else {
-    return new PlainAndColorizedString(
-      messageTextPlain,
-      messageTextColorized,
-    );
+    return new PlainAndColorizedString(messageTextPlain, messageTextColorized);
   }
 }
 
@@ -152,8 +181,8 @@ String _createMessageText(CfeSeverity severity, LocatedMessage message) {
   String? prefix = severityPrefixes[severity];
   String messageText = prefix == null
       ?
-      // Coverage-ignore(suite): Not run.
-      message.problemMessage
+        // Coverage-ignore(suite): Not run.
+        message.problemMessage
       : "$prefix: ${message.problemMessage}";
   if (message.correctionMessage != null) {
     messageText += "\n${message.correctionMessage}";
@@ -184,8 +213,13 @@ String _colorizeMessageText(CfeSeverity severity, String messageTextPlain) {
   }
 }
 
-String formatErrorMessage(String? sourceLine, Location? location,
-    int squigglyLength, String? path, String messageText) {
+String formatErrorMessage(
+  String? sourceLine,
+  Location? location,
+  int squigglyLength,
+  String? path,
+  String messageText,
+) {
   if (sourceLine == null || location == null) {
     sourceLine = "";
   } else if (sourceLine.isNotEmpty) {
@@ -218,8 +252,9 @@ String formatErrorMessage(String? sourceLine, Location? location,
     }
     sourceLine = "\n$sourceLine\n$pointer";
   }
-  String position =
-      location == null ? "" : ":${location.line}:${location.column}";
+  String position = location == null
+      ? ""
+      : ":${location.line}:${location.column}";
   return "$path$position: $messageText$sourceLine";
 }
 

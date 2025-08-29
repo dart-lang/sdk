@@ -19,7 +19,7 @@ class HybridFileSystem implements FileSystem {
   final FileSystem physical;
 
   HybridFileSystem(this.memory, [FileSystem? _physical])
-      : physical = _physical ?? StandardFileSystem.instance;
+    : physical = _physical ?? StandardFileSystem.instance;
 
   @override
   FileSystemEntity entityForUri(Uri uri) =>

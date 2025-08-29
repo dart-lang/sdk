@@ -7,8 +7,11 @@ import 'package:kernel/ast.dart';
 /// Writes constant coverage for [component] into [buffer}.
 ///
 /// Libraries for whose import uri [skipImportUri] returns `true` are skipped.
-void addConstantCoverageToExpectation(Component component, StringBuffer buffer,
-    {required bool Function(Uri?) skipImportUri}) {
+void addConstantCoverageToExpectation(
+  Component component,
+  StringBuffer buffer, {
+  required bool Function(Uri?) skipImportUri,
+}) {
   bool printedConstantCoverageHeader = false;
   for (Source source in component.uriToSource.values) {
     if (skipImportUri(source.importUri)) continue;
@@ -24,7 +27,8 @@ void addConstantCoverageToExpectation(Component component, StringBuffer buffer,
       buffer.writeln("${source.fileUri}:");
       for (Reference reference in source.constantCoverageConstructors!) {
         buffer.writeln(
-            "- ${reference.node} (from ${locationToString(reference)})");
+          "- ${reference.node} (from ${locationToString(reference)})",
+        );
       }
       buffer.writeln("");
     }

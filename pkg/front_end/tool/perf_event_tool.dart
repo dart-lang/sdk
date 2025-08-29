@@ -53,8 +53,10 @@ void mainImpl() {
       }
     }
     if (count > 0) {
-      print("Found $count perf event file descriptors for "
-          "process with pid $candidatePid:");
+      print(
+        "Found $count perf event file descriptors for "
+        "process with pid $candidatePid:",
+      );
       runPsForPid(candidatePid);
       print("");
       foundSomething = true;

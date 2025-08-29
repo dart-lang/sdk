@@ -11,8 +11,10 @@ import '../test/utils/io_utils.dart';
 
 Future<void> main() async {
   Uri executable = getDartExecutable();
-  final List<String> allChangedFiles =
-      getChangedFiles(collectUncommitted: true, upstreamBranch: '@{u}');
+  final List<String> allChangedFiles = getChangedFiles(
+    collectUncommitted: true,
+    upstreamBranch: '@{u}',
+  );
   if (allChangedFiles.isEmpty) {
     print("No changes in CL.");
     return;
@@ -27,19 +29,19 @@ Future<void> main() async {
     print("No changed dart files in CL.");
     return;
   }
-  Process p = await Process.start(
-      executable.toFilePath(), ["format", ...changedDartFiles]);
+  Process p = await Process.start(executable.toFilePath(), [
+    "format",
+    ...changedDartFiles,
+  ]);
 
-  p.stderr
-      .transform(utf8.decoder)
-      .transform(const LineSplitter())
-      .listen((String line) {
+  p.stderr.transform(utf8.decoder).transform(const LineSplitter()).listen((
+    String line,
+  ) {
     stderr.writeln("stderr> $line");
   });
-  p.stdout
-      .transform(utf8.decoder)
-      .transform(const LineSplitter())
-      .listen((String line) {
+  p.stdout.transform(utf8.decoder).transform(const LineSplitter()).listen((
+    String line,
+  ) {
     stdout.writeln("stdout> $line");
   });
 

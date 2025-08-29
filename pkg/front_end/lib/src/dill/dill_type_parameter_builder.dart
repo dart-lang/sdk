@@ -34,13 +34,16 @@ class DillNominalParameterBuilder extends NominalParameterBuilder {
   /// the example below.
   ///
   ///   class A<X extends A<X>> {}
-  DillNominalParameterBuilder(this.parameter,
-      {required Loader? loader, this.isWildcard = false})
-      : this.bound = loader?.computeTypeBuilder(parameter.bound),
-        this.defaultType = loader?.computeTypeBuilder(parameter.defaultType),
-        super(
-            variableVariance: parameter.variance,
-            nullability: parameter.computeNullabilityFromBound());
+  DillNominalParameterBuilder(
+    this.parameter, {
+    required Loader? loader,
+    this.isWildcard = false,
+  }) : this.bound = loader?.computeTypeBuilder(parameter.bound),
+       this.defaultType = loader?.computeTypeBuilder(parameter.defaultType),
+       super(
+         variableVariance: parameter.variance,
+         nullability: parameter.computeNullabilityFromBound(),
+       );
 
   @override
   String get name => parameter.name ?? "";
@@ -82,7 +85,7 @@ class DillStructuralParameterBuilder extends StructuralParameterBuilder {
   final StructuralParameter parameter;
 
   DillStructuralParameterBuilder(this.parameter, {this.isWildcard = false})
-      : super(nullability: parameter.computeNullabilityFromBound());
+    : super(nullability: parameter.computeNullabilityFromBound());
 
   @override
   String get name => parameter.name ?? "";

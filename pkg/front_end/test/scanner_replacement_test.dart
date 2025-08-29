@@ -27,14 +27,20 @@ void main() {
 @reflectiveTest
 class ScannerTest_Replacement extends ScannerTestBase {
   @override
-  Token scanWithListener(String source, ErrorListener listener,
-      {ScannerConfiguration? configuration}) {
+  Token scanWithListener(
+    String source,
+    ErrorListener listener, {
+    ScannerConfiguration? configuration,
+  }) {
     // Process the source similar to
     // pkg/analyzer/lib/src/dart/scanner/scanner.dart
     // to simulate replacing the analyzer scanner
 
-    ScannerResult result =
-        scanString(source, configuration: configuration, includeComments: true);
+    ScannerResult result = scanString(
+      source,
+      configuration: configuration,
+      includeComments: true,
+    );
 
     Token tokens = result.tokens;
     assertValidTokenStream(tokens, errorsFirst: true);
@@ -199,8 +205,11 @@ class ScannerTest_Replacement extends ScannerTestBase {
     // The default recovery strategy used by scanString
     // places all error tokens at the head of the stream.
     while (token.type == TokenType.BAD_INPUT) {
-      translateErrorToken(token as ErrorToken,
-          (ScannerErrorCode errorCode, int offset, List<Object>? arguments) {
+      translateErrorToken(token as ErrorToken, (
+        ScannerErrorCode errorCode,
+        int offset,
+        List<Object>? arguments,
+      ) {
         listener.errors.add(new TestError(offset, errorCode, arguments));
       });
       token = token.next!;

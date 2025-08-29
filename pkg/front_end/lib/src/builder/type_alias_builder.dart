@@ -35,8 +35,11 @@ abstract class TypeAliasBuilder implements TypeDeclarationBuilder {
 
   DartType buildThisType();
 
-  List<DartType> buildAliasedTypeArguments(LibraryBuilder library,
-      List<TypeBuilder>? arguments, ClassHierarchyBase? hierarchy);
+  List<DartType> buildAliasedTypeArguments(
+    LibraryBuilder library,
+    List<TypeBuilder>? arguments,
+    ClassHierarchyBase? hierarchy,
+  );
 
   /// Returns the unaliased type for this type alias with the given
   /// [typeArguments], or `null` if this type alias is cyclic.
@@ -57,8 +60,10 @@ abstract class TypeAliasBuilder implements TypeDeclarationBuilder {
   /// not part of the generated AST.
   // TODO(johnniwinther): Used this instead of [unaliasDeclaration] and
   // [unaliasTypeArguments].
-  TypeBuilder? unalias(List<TypeBuilder>? typeArguments,
-      {Set<TypeAliasBuilder>? usedTypeAliasBuilders});
+  TypeBuilder? unalias(
+    List<TypeBuilder>? typeArguments, {
+    Set<TypeAliasBuilder>? usedTypeAliasBuilders,
+  });
 
   /// Returns the [TypeDeclarationBuilder] for the type aliased by `this`,
   /// based on the given [typeArguments]. It expands type aliases repeatedly
@@ -79,10 +84,12 @@ abstract class TypeAliasBuilder implements TypeDeclarationBuilder {
   /// `const InvalidType()`). If `this` type alias expands to a
   /// [TypeParameterBuilder] then the type alias cannot be used in a constructor
   /// invocation. Then an error is emitted and `this` is returned.
-  TypeDeclarationBuilder? unaliasDeclaration(List<TypeBuilder>? typeArguments,
-      {bool isUsedAsClass = false,
-      int? usedAsClassCharOffset,
-      Uri? usedAsClassFileUri});
+  TypeDeclarationBuilder? unaliasDeclaration(
+    List<TypeBuilder>? typeArguments, {
+    bool isUsedAsClass = false,
+    int? usedAsClassCharOffset,
+    Uri? usedAsClassFileUri,
+  });
 
   /// Compute type arguments passed to [ClassBuilder] from unaliasDeclaration.
   /// This method does not check for cycles and may only be called if an
@@ -123,7 +130,11 @@ abstract class TypeAliasBuilder implements TypeDeclarationBuilder {
   /// which will be return by [findConstructorOrFactory] on `F`, `G`, `H` with
   /// name 'new' or ''.
   Procedure? findConstructorOrFactory(
-      String name, int charOffset, Uri uri, LibraryBuilder accessingLibrary);
+    String name,
+    int charOffset,
+    Uri uri,
+    LibraryBuilder accessingLibrary,
+  );
 }
 
 abstract class TypeAliasBuilderImpl extends TypeDeclarationBuilderImpl
@@ -141,19 +152,25 @@ abstract class TypeAliasBuilderImpl extends TypeDeclarationBuilderImpl
   /// [arguments] have already been built.
   @override
   DartType buildAliasedTypeWithBuiltArguments(
-      LibraryBuilder library,
-      Nullability nullability,
-      List<DartType>? arguments,
-      TypeUse typeUse,
-      Uri fileUri,
-      int charOffset,
-      {required bool hasExplicitTypeArguments}) {
+    LibraryBuilder library,
+    Nullability nullability,
+    List<DartType>? arguments,
+    TypeUse typeUse,
+    Uri fileUri,
+    int charOffset, {
+    required bool hasExplicitTypeArguments,
+  }) {
     buildThisType();
     TypedefType type = new TypedefType(typedef, nullability, arguments);
     if (library is SourceLibraryBuilder) {
       if (typeParametersCount != 0) {
-        library.registerBoundsCheck(type, fileUri, charOffset, typeUse,
-            inferred: !hasExplicitTypeArguments);
+        library.registerBoundsCheck(
+          type,
+          fileUri,
+          charOffset,
+          typeUse,
+          inferred: !hasExplicitTypeArguments,
+        );
       }
       if (!library.libraryFeatures.genericMetadata.isEnabled) {
         library.registerGenericFunctionTypeCheck(type, fileUri, charOffset);
@@ -165,26 +182,28 @@ abstract class TypeAliasBuilderImpl extends TypeDeclarationBuilderImpl
 
   @override
   DartType buildAliasedType(
-      LibraryBuilder library,
-      NullabilityBuilder nullabilityBuilder,
-      List<TypeBuilder>? arguments,
-      TypeUse typeUse,
-      Uri fileUri,
-      int charOffset,
-      ClassHierarchyBase? hierarchy,
-      {required bool hasExplicitTypeArguments}) {
+    LibraryBuilder library,
+    NullabilityBuilder nullabilityBuilder,
+    List<TypeBuilder>? arguments,
+    TypeUse typeUse,
+    Uri fileUri,
+    int charOffset,
+    ClassHierarchyBase? hierarchy, {
+    required bool hasExplicitTypeArguments,
+  }) {
     DartType thisType = buildThisType();
     if (thisType is InvalidType) return thisType;
 
     Nullability nullability = nullabilityBuilder.build();
     return buildAliasedTypeWithBuiltArguments(
-        library,
-        nullability,
-        buildAliasedTypeArguments(library, arguments, hierarchy),
-        typeUse,
-        fileUri,
-        charOffset,
-        hasExplicitTypeArguments: hasExplicitTypeArguments);
+      library,
+      nullability,
+      buildAliasedTypeArguments(library, arguments, hierarchy),
+      typeUse,
+      fileUri,
+      charOffset,
+      hasExplicitTypeArguments: hasExplicitTypeArguments,
+    );
   }
 
   void _ensureUnaliasedType() {
@@ -209,8 +228,9 @@ abstract class TypeAliasBuilderImpl extends TypeDeclarationBuilderImpl
             rhsTypeDeclaration.typeParameters;
         List<TypeBuilder>? typeArguments = type.typeArguments;
         TypeBuilder? unaliasedRhsType = rhsTypeDeclaration.unalias(
-            typeArguments,
-            usedTypeAliasBuilders: usedTypeAliasBuilders);
+          typeArguments,
+          usedTypeAliasBuilders: usedTypeAliasBuilders,
+        );
         _unaliasedRhsType = unaliasedRhsType;
         if (typeParameters != null) {
           if (typeArguments == null ||
@@ -218,27 +238,36 @@ abstract class TypeAliasBuilderImpl extends TypeDeclarationBuilderImpl
             // Coverage-ignore-block(suite): Not run.
             typeArguments = <TypeBuilder>[
               for (NominalParameterBuilder typeParameter in typeParameters)
-                typeParameter.defaultType!
+                typeParameter.defaultType!,
             ];
           }
 
           _unaliasedRhsType = _unaliasedRhsType
               ?.subst(
-                  new Map<NominalParameterBuilder, TypeBuilder>.fromIterables(
-                      typeParameters, typeArguments))
+                new Map<NominalParameterBuilder, TypeBuilder>.fromIterables(
+                  typeParameters,
+                  typeArguments,
+                ),
+              )
               .unalias(usedTypeAliasBuilders: usedTypeAliasBuilders);
         }
         _typeAliasesUsedInUnaliasing.addAll(usedTypeAliasBuilders);
       // Coverage-ignore(suite): Not run.
       case ExtensionBuilder():
         unexpected(
-            "type", "${rhsTypeDeclaration.runtimeType}", fileOffset, fileUri);
+          "type",
+          "${rhsTypeDeclaration.runtimeType}",
+          fileOffset,
+          fileUri,
+        );
     }
   }
 
   @override
-  TypeBuilder? unalias(List<TypeBuilder>? typeArguments,
-      {Set<TypeAliasBuilder>? usedTypeAliasBuilders}) {
+  TypeBuilder? unalias(
+    List<TypeBuilder>? typeArguments, {
+    Set<TypeAliasBuilder>? usedTypeAliasBuilders,
+  }) {
     _ensureUnaliasedType();
     if (usedTypeAliasBuilders != null) {
       usedTypeAliasBuilders.addAll(_typeAliasesUsedInUnaliasing);
@@ -252,7 +281,11 @@ abstract class TypeAliasBuilderImpl extends TypeDeclarationBuilderImpl
         // alias, which is ensured by the call to [_ensureUnaliasedType]
         // earlier.
         return unexpected(
-            "unaliased", "${rhsDeclaration.runtimeType}", fileOffset, fileUri);
+          "unaliased",
+          "${rhsDeclaration.runtimeType}",
+          fileOffset,
+          fileUri,
+        );
       case ClassBuilder():
       case ExtensionTypeDeclarationBuilder():
       case NominalParameterBuilder():
@@ -263,15 +296,18 @@ abstract class TypeAliasBuilderImpl extends TypeDeclarationBuilderImpl
               typeParameters.length != typeArguments.length) {
             typeArguments = <TypeBuilder>[
               for (NominalParameterBuilder typeParameter in typeParameters)
-                typeParameter.defaultType!
+                typeParameter.defaultType!,
             ];
           }
           // We allow creating new type parameters during unaliasing. The type
           // variables are short-lived and therefore don't need to be bound.
           return unaliasedRhsType!.subst(
-              new Map<NominalParameterBuilder, TypeBuilder>.fromIterables(
-                  typeParameters, typeArguments),
-              typeParameterFactory: new TypeParameterFactory());
+            new Map<NominalParameterBuilder, TypeBuilder>.fromIterables(
+              typeParameters,
+              typeArguments,
+            ),
+            typeParameterFactory: new TypeParameterFactory(),
+          );
         }
       case ExtensionBuilder():
       case BuiltinTypeDeclarationBuilder():
@@ -313,10 +349,12 @@ abstract class TypeAliasBuilderImpl extends TypeDeclarationBuilderImpl
   /// [TypeParameterBuilder] then the type alias cannot be used as a class, in
   /// which case an error is emitted and `this` is returned.
   @override
-  TypeDeclarationBuilder? unaliasDeclaration(List<TypeBuilder>? typeArguments,
-      {bool isUsedAsClass = false,
-      int? usedAsClassCharOffset,
-      Uri? usedAsClassFileUri}) {
+  TypeDeclarationBuilder? unaliasDeclaration(
+    List<TypeBuilder>? typeArguments, {
+    bool isUsedAsClass = false,
+    int? usedAsClassCharOffset,
+    Uri? usedAsClassFileUri,
+  }) {
     if (_cachedUnaliasedDeclaration != null) {
       return _cachedUnaliasedDeclaration;
     }
@@ -336,10 +374,11 @@ abstract class TypeAliasBuilderImpl extends TypeDeclarationBuilderImpl
         // Coverage-ignore-block(suite): Not run.
         // Cyclic type alias.
         currentAliasBuilder.libraryBuilder.addProblem(
-            codeCyclicTypedef.withArguments(this.name),
-            fileOffset,
-            noLength,
-            fileUri);
+          codeCyclicTypedef.withArguments(this.name),
+          fileOffset,
+          noLength,
+          fileUri,
+        );
         // Ensure that it is not reported again.
         thisType = const InvalidType();
         return _cachedUnaliasedDeclaration = this;
@@ -358,15 +397,18 @@ abstract class TypeAliasBuilderImpl extends TypeDeclarationBuilderImpl
             if (typeParameters != null)
               for (NominalParameterBuilder typeParameter in typeParameters!)
                 new NamedTypeBuilderImpl.fromTypeDeclarationBuilder(
-                    typeParameter, const NullabilityBuilder.omitted(),
-                    arguments: const [],
-                    fileUri: fileUri,
-                    charOffset: fileOffset,
-                    instanceTypeParameterAccess:
-                        InstanceTypeParameterAccessState.Unexpected),
+                  typeParameter,
+                  const NullabilityBuilder.omitted(),
+                  arguments: const [],
+                  fileUri: fileUri,
+                  charOffset: fileOffset,
+                  instanceTypeParameterAccess:
+                      InstanceTypeParameterAccessState.Unexpected,
+                ),
           ];
-          TypeDeclarationBuilder? typeDeclarationBuilder =
-              _unaliasDeclaration(freshTypeArguments);
+          TypeDeclarationBuilder? typeDeclarationBuilder = _unaliasDeclaration(
+            freshTypeArguments,
+          );
           bool found = false;
           for (TypeBuilder typeBuilder in freshTypeArguments) {
             if (typeBuilder.declaration == typeDeclarationBuilder) {
@@ -376,14 +418,18 @@ abstract class TypeAliasBuilderImpl extends TypeDeclarationBuilderImpl
           }
           if (found) {
             libraryBuilder.addProblem(
-                codeTypedefTypeParameterNotConstructor,
-                usedAsClassCharOffset ?? TreeNode.noOffset,
-                noLength,
-                usedAsClassFileUri,
-                context: [
-                  codeTypedefTypeParameterNotConstructorCause.withLocation(
-                      current.fileUri!, current.fileOffset, noLength),
-                ]);
+              codeTypedefTypeParameterNotConstructor,
+              usedAsClassCharOffset ?? TreeNode.noOffset,
+              noLength,
+              usedAsClassFileUri,
+              context: [
+                codeTypedefTypeParameterNotConstructorCause.withLocation(
+                  current.fileUri!,
+                  current.fileOffset,
+                  noLength,
+                ),
+              ],
+            );
             return this;
           }
           if (typeArguments == null) return typeDeclarationBuilder;
@@ -413,7 +459,8 @@ abstract class TypeAliasBuilderImpl extends TypeDeclarationBuilderImpl
   // variable. In this case, the unaliased declaration must be obtained from
   // the type argument, which is the reason why we must trace them.
   TypeDeclarationBuilder? _unaliasDeclaration(
-      List<TypeBuilder>? typeArguments) {
+    List<TypeBuilder>? typeArguments,
+  ) {
     TypeDeclarationBuilder? currentDeclarationBuilder = this;
     TypeAliasBuilder? previousAliasBuilder = null;
     List<TypeBuilder>? currentTypeArguments = typeArguments;
@@ -426,9 +473,12 @@ abstract class TypeAliasBuilderImpl extends TypeDeclarationBuilderImpl
         if (currentAliasBuilder.typeParameters != null) {
           List<TypeBuilder> defaultTypeArguments =
               new List<TypeBuilder>.generate(
-                  currentAliasBuilder.typeParameters!.length, (int i) {
-            return currentAliasBuilder.typeParameters![i].defaultType!;
-          }, growable: true);
+                currentAliasBuilder.typeParameters!.length,
+                (int i) {
+                  return currentAliasBuilder.typeParameters![i].defaultType!;
+                },
+                growable: true,
+              );
           currentTypeArguments = defaultTypeArguments;
         } else {
           currentTypeArguments = <TypeBuilder>[];
@@ -439,18 +489,24 @@ abstract class TypeAliasBuilderImpl extends TypeDeclarationBuilderImpl
         // Coverage-ignore-block(suite): Not run.
         if (previousAliasBuilder != null) {
           previousAliasBuilder.libraryBuilder.addProblem(
-              codeTypeArgumentMismatch.withArguments(
-                  currentAliasBuilder.typeParameters?.length ?? 0),
-              previousAliasBuilder.fileOffset,
-              noLength,
-              previousAliasBuilder.fileUri);
+            codeTypeArgumentMismatch.withArguments(
+              currentAliasBuilder.typeParameters?.length ?? 0,
+            ),
+            previousAliasBuilder.fileOffset,
+            noLength,
+            previousAliasBuilder.fileUri,
+          );
           previousAliasBuilder.thisType = const InvalidType();
           return this;
         } else {
           // This implies that `currentAliasBuilder` is [this], and the call
           // violated the precondition.
-          return unhandled("$this: Wrong number of type arguments",
-              "_unaliasDeclaration", -1, null);
+          return unhandled(
+            "$this: Wrong number of type arguments",
+            "_unaliasDeclaration",
+            -1,
+            null,
+          );
         }
       }
       for (NominalParameterBuilder typeParameterBuilder
@@ -469,7 +525,8 @@ abstract class TypeAliasBuilderImpl extends TypeDeclarationBuilderImpl
         // cyclic; we want to do it as well, because the result could be
         // cached.
         return substitutedBuilder.computeUnaliasedDeclaration(
-            isUsedAsClass: false);
+          isUsedAsClass: false,
+        );
       }
       // Not yet at the end of the chain, more named builders to come.
       currentDeclarationBuilder = substitutedBuilder.declaration;
@@ -509,16 +566,21 @@ abstract class TypeAliasBuilderImpl extends TypeDeclarationBuilderImpl
           // Coverage-ignore-block(suite): Not run.
           List<TypeBuilder> defaultTypeArguments =
               new List<TypeBuilder>.generate(
-                  currentAliasBuilder.typeParameters!.length, (int i) {
-            return currentAliasBuilder.typeParameters![i].defaultType!;
-          }, growable: false);
+                currentAliasBuilder.typeParameters!.length,
+                (int i) {
+                  return currentAliasBuilder.typeParameters![i].defaultType!;
+                },
+                growable: false,
+              );
           currentTypeArguments = defaultTypeArguments;
         } else {
           currentTypeArguments = <TypeBuilder>[];
         }
       }
-      assert((currentAliasBuilder.typeParameters?.length ?? 0) ==
-          currentTypeArguments.length);
+      assert(
+        (currentAliasBuilder.typeParameters?.length ?? 0) ==
+            currentTypeArguments.length,
+      );
       for (NominalParameterBuilder typeParameterBuilder
           in currentAliasBuilder.typeParameters ?? []) {
         substitution[typeParameterBuilder] = currentTypeArguments[index];
@@ -535,11 +597,14 @@ abstract class TypeAliasBuilderImpl extends TypeDeclarationBuilderImpl
         TypeDeclarationBuilder? declarationBuilder =
             substitutedBuilder.declaration;
         if (declarationBuilder is TypeAliasBuilder) {
-          return declarationBuilder
-              .unaliasTypeArguments(substitutedBuilder.typeArguments);
+          return declarationBuilder.unaliasTypeArguments(
+            substitutedBuilder.typeArguments,
+          );
         }
-        assert(declarationBuilder is ClassBuilder ||
-            declarationBuilder is ExtensionTypeDeclarationBuilder);
+        assert(
+          declarationBuilder is ClassBuilder ||
+              declarationBuilder is ExtensionTypeDeclarationBuilder,
+        );
         return substitutedBuilder.typeArguments ?? [];
       }
       // Not yet at the end of the chain, more named builders to come.
@@ -553,7 +618,11 @@ abstract class TypeAliasBuilderImpl extends TypeDeclarationBuilderImpl
 
   @override
   Procedure? findConstructorOrFactory(
-      String text, int charOffset, Uri uri, LibraryBuilder accessingLibrary) {
+    String text,
+    int charOffset,
+    Uri uri,
+    LibraryBuilder accessingLibrary,
+  ) {
     if (tearOffs != null) {
       Name name = new Name(text == 'new' ? '' : text, accessingLibrary.library);
       return tearOffs![name];
@@ -562,11 +631,14 @@ abstract class TypeAliasBuilderImpl extends TypeDeclarationBuilderImpl
   }
 
   @override
-  Nullability computeNullabilityWithArguments(List<TypeBuilder>? typeArguments,
-      {required Map<TypeParameterBuilder, TraversalState>
-          typeParametersTraversalState}) {
+  Nullability computeNullabilityWithArguments(
+    List<TypeBuilder>? typeArguments, {
+    required Map<TypeParameterBuilder, TraversalState>
+    typeParametersTraversalState,
+  }) {
     return unalias(typeArguments)!.computeNullability(
-        typeParametersTraversalState: typeParametersTraversalState);
+      typeParametersTraversalState: typeParametersTraversalState,
+    );
   }
 }
 

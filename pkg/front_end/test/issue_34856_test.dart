@@ -51,9 +51,10 @@ Future<void> test() async {
   final Uri base = Uri.parse("org-dartlang-test:///");
   final Uri platformDill = base.resolve(platformBaseName);
   final List<int> platformDillBytes = await new File.fromUri(
-          computePlatformBinariesLocation(forceBuildDir: true)
-              .resolve(platformBaseName))
-      .readAsBytes();
+    computePlatformBinariesLocation(
+      forceBuildDir: true,
+    ).resolve(platformBaseName),
+  ).readAsBytes();
   MemoryFileSystem fs = new MemoryFileSystem(base);
   fs.entityForUri(platformDill).writeAsBytesSync(platformDillBytes);
   fs
@@ -63,9 +64,9 @@ Future<void> test() async {
     ..fileSystem = fs
     ..sdkSummary = platformDill;
 
-  Component component =
-      (await kernelForModule(<Uri>[base.resolve("lib.dart")], options))
-          .component!;
+  Component component = (await kernelForModule(<Uri>[
+    base.resolve("lib.dart"),
+  ], options)).component!;
 
   fs = new MemoryFileSystem(base);
   fs.entityForUri(platformDill).writeAsBytesSync(platformDillBytes);
@@ -87,10 +88,16 @@ Future<void> test() async {
   component = (await kernelForModule(inputs, options)).component!;
 
   List<Object> errors = await CompilerContext.runWithOptions(
-      new ProcessedOptions(options: options, inputs: inputs),
-      (CompilerContext c) => new Future<List<Object>>.value(verifyComponent(
-          c, VerificationStage.afterModularTransformations, component,
-          skipPlatform: true)));
+    new ProcessedOptions(options: options, inputs: inputs),
+    (CompilerContext c) => new Future<List<Object>>.value(
+      verifyComponent(
+        c,
+        VerificationStage.afterModularTransformations,
+        component,
+        skipPlatform: true,
+      ),
+    ),
+  );
 
   serializeComponent(component);
 

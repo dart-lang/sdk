@@ -46,7 +46,8 @@ class LeakFinder extends vmService.LaunchingVMServiceHelper {
     });
 
     Completer<String> cRunDone = new Completer();
-    unawaited(runInternal(
+    unawaited(
+      runInternal(
         isolateRef,
         classInfo,
         instanceCounts,
@@ -54,9 +55,11 @@ class LeakFinder extends vmService.LaunchingVMServiceHelper {
             // Subtract 2 as it's logically one ahead and asks _before_ the run.
             (iteration - 2) > limit ||
             cTimeout.isCompleted ||
-            cProcessExited.isCompleted).then((value) {
-      cRunDone.complete("Done");
-    }));
+            cProcessExited.isCompleted,
+      ).then((value) {
+        cRunDone.complete("Done");
+      }),
+    );
 
     await Future.any([cRunDone.future, cTimeout.future, cProcessExited.future]);
     timer.cancel();
@@ -69,8 +72,10 @@ class LeakFinder extends vmService.LaunchingVMServiceHelper {
     killProcess();
   }
 
-  void findPossibleLeaks(Map<vmService.ClassRef, List<int>> instanceCounts,
-      Map<vmService.ClassRef, vmService.Class> classInfo) {
+  void findPossibleLeaks(
+    Map<vmService.ClassRef, List<int>> instanceCounts,
+    Map<vmService.ClassRef, vmService.Class> classInfo,
+  ) {
     bool foundLeak = false;
     for (vmService.ClassRef c in instanceCounts.keys) {
       List<int> listOfInstanceCounts = instanceCounts[c]!;
@@ -119,12 +124,16 @@ class LeakFinder extends vmService.LaunchingVMServiceHelper {
         // confidence is < 1% etc.
       }
       if (expectedStrictClassNumber > -1) {
-        print("Differences on ${c.name} (${uriString}): "
-            "Expected exactly $expectedStrictClassNumber but found "
-            "$listOfInstanceCounts ($ttestResult)");
+        print(
+          "Differences on ${c.name} (${uriString}): "
+          "Expected exactly $expectedStrictClassNumber but found "
+          "$listOfInstanceCounts ($ttestResult)",
+        );
       } else {
-        print("Differences on ${c.name} (${uriString}): "
-            "$listOfInstanceCounts ($ttestResult)");
+        print(
+          "Differences on ${c.name} (${uriString}): "
+          "$listOfInstanceCounts ($ttestResult)",
+        );
       }
       foundLeak = true;
     }
@@ -143,10 +152,11 @@ class LeakFinder extends vmService.LaunchingVMServiceHelper {
   }
 
   Future<void> runInternal(
-      vmService.IsolateRef isolateRef,
-      Map<vmService.ClassRef, vmService.Class> classInfo,
-      Map<vmService.ClassRef, List<int>> instanceCounts,
-      bool Function(int iteration) shouldBail) async {
+    vmService.IsolateRef isolateRef,
+    Map<vmService.ClassRef, vmService.Class> classInfo,
+    Map<vmService.ClassRef, List<int>> instanceCounts,
+    bool Function(int iteration) shouldBail,
+  ) async {
     int iterationNumber = 1;
     try {
       while (true) {
@@ -154,12 +164,17 @@ class LeakFinder extends vmService.LaunchingVMServiceHelper {
         if (!await waitUntilPaused(isolateRef.id!)) break;
         print("\n\n====================\n\nIteration #$iterationNumber");
         iterationNumber++;
-        vmService.AllocationProfile allocationProfile =
-            await forceGC(isolateRef.id!);
+        vmService.AllocationProfile allocationProfile = await forceGC(
+          isolateRef.id!,
+        );
         for (vmService.ClassHeapStats member in allocationProfile.members!) {
           if (!classInfo.containsKey(member.classRef)) {
-            vmService.Class c = (await serviceClient.getObject(
-                isolateRef.id!, member.classRef!.id!)) as vmService.Class;
+            vmService.Class c =
+                (await serviceClient.getObject(
+                      isolateRef.id!,
+                      member.classRef!.id!,
+                    ))
+                    as vmService.Class;
             classInfo[member.classRef!] = c;
           }
           List<int>? listOfInstanceCounts = instanceCounts[member.classRef];
@@ -223,7 +238,6 @@ class LeakFinder extends vmService.LaunchingVMServiceHelper {
     // "DillExtensionMemberBuilder",
     // "DillMemberBuilder",
     // "DillTypeAliasBuilder",
-
     "DillLibraryBuilder": -1 /* unknown amount */,
     "DillLoader": 1,
     "DillTarget": 1,
