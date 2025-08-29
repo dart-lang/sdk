@@ -22,6 +22,7 @@
 #include "vm/compiler/assembler/assembler.h"
 #include "vm/compiler/ffi/callback.h"
 #include "vm/compiler/ffi/marshaller.h"
+#include "vm/compiler/ffi/native_type.h"
 #include "vm/compiler/jit/compiler.h"
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
 
@@ -65,6 +66,142 @@ DEFINE_NATIVE_ENTRY(Ffi_updateNativeCallableKeepIsolateAliveCounter, 1, 1) {
       Integer::CheckedHandle(zone, arguments->NativeArg0()).Value();
   isolate->UpdateNativeCallableKeepIsolateAliveCounter(delta);
   return Object::null();
+}
+
+static ObjectPtr LoadStoreAbiSpecificInt(Zone* zone,
+                                         NativeArguments* arguments,
+                                         bool is_load,
+                                         bool at_index) {
+#if defined(DART_DYNAMIC_MODULES) && !defined(DART_PRECOMPILED_RUNTIME)
+  const auto& type_args =
+      TypeArguments::Handle(zone, arguments->NativeTypeArgs());
+  const auto& base = Instance::CheckedHandle(zone, arguments->NativeArgAt(0));
+  int64_t offset_in_bytes =
+      Integer::CheckedHandle(zone, arguments->NativeArgAt(1)).Value();
+
+  const AbstractType& type_argument =
+      AbstractType::Handle(zone, type_args.TypeAt(0));
+
+  // AbiSpecificTypes can have an incomplete mapping.
+  const char* error = nullptr;
+  const auto* native_type =
+      compiler::ffi::NativeType::FromAbstractType(zone, type_argument, &error);
+  if (error != nullptr) {
+    const auto& language_error = Error::Handle(
+        LanguageError::New(String::Handle(String::New(error, Heap::kOld)),
+                           Report::kError, Heap::kOld));
+    Report::LongJump(language_error);
+  }
+
+  if (at_index) {
+    const int64_t index =
+        Integer::CheckedHandle(zone, arguments->NativeArgAt(2)).Value();
+    offset_in_bytes += index * native_type->SizeInBytes();
+  }
+
+  int64_t value = 0;
+  if (!is_load) {
+    value =
+        Integer::CheckedHandle(zone, arguments->NativeArgAt(at_index ? 3 : 2))
+            .Value();
+  }
+  {
+    NoSafepointScope no_safepoint;
+    void* addr;
+    if (base.IsPointer()) {
+      addr = reinterpret_cast<void*>(Pointer::Cast(base).NativeAddress() +
+                                     offset_in_bytes);
+    } else if (base.IsTypedDataBase()) {
+      addr = TypedDataBase::Cast(base).DataAddr(offset_in_bytes);
+    } else {
+      UNREACHABLE();
+    }
+    if (is_load) {
+      ASSERT(native_type->IsPrimitive());
+      switch (native_type->AsPrimitive().representation()) {
+        case compiler::ffi::kInt8:
+          value = *reinterpret_cast<int8_t*>(addr);
+          break;
+        case compiler::ffi::kInt16:
+          value = *reinterpret_cast<int16_t*>(addr);
+          break;
+        case compiler::ffi::kInt32:
+          value = *reinterpret_cast<int32_t*>(addr);
+          break;
+        case compiler::ffi::kInt64:
+          value = *reinterpret_cast<int64_t*>(addr);
+          break;
+        case compiler::ffi::kUint8:
+          value = *reinterpret_cast<uint8_t*>(addr);
+          break;
+        case compiler::ffi::kUint16:
+          value = *reinterpret_cast<uint16_t*>(addr);
+          break;
+        case compiler::ffi::kUint32:
+          value = *reinterpret_cast<uint32_t*>(addr);
+          break;
+        case compiler::ffi::kUint64:
+          value = *reinterpret_cast<uint64_t*>(addr);
+          break;
+        default:
+          UNREACHABLE();
+      }
+    } else {
+      ASSERT(native_type->IsPrimitive());
+      switch (native_type->AsPrimitive().representation()) {
+        case compiler::ffi::kInt8:
+          *reinterpret_cast<int8_t*>(addr) = static_cast<int8_t>(value);
+          break;
+        case compiler::ffi::kInt16:
+          *reinterpret_cast<int16_t*>(addr) = static_cast<int16_t>(value);
+          break;
+        case compiler::ffi::kInt32:
+          *reinterpret_cast<int32_t*>(addr) = static_cast<int32_t>(value);
+          break;
+        case compiler::ffi::kInt64:
+          *reinterpret_cast<int64_t*>(addr) = value;
+          break;
+        case compiler::ffi::kUint8:
+          *reinterpret_cast<uint8_t*>(addr) = static_cast<uint8_t>(value);
+          break;
+        case compiler::ffi::kUint16:
+          *reinterpret_cast<uint16_t*>(addr) = static_cast<uint16_t>(value);
+          break;
+        case compiler::ffi::kUint32:
+          *reinterpret_cast<uint32_t*>(addr) = static_cast<uint32_t>(value);
+          break;
+        case compiler::ffi::kUint64:
+          *reinterpret_cast<uint64_t*>(addr) = static_cast<uint64_t>(value);
+          break;
+        default:
+          UNREACHABLE();
+      }
+    }
+  }
+  return is_load ? Integer::New(value) : Object::null();
+#else
+  UNIMPLEMENTED();
+#endif  // defined(DART_DYNAMIC_MODULES) && !defined(DART_PRECOMPILED_RUNTIME)
+}
+
+DEFINE_NATIVE_ENTRY(Ffi_loadAbiSpecificInt, 1, 2) {
+  return LoadStoreAbiSpecificInt(zone, arguments, /*is_load=*/true,
+                                 /*at_index=*/false);
+}
+
+DEFINE_NATIVE_ENTRY(Ffi_loadAbiSpecificIntAtIndex, 1, 3) {
+  return LoadStoreAbiSpecificInt(zone, arguments, /*is_load=*/true,
+                                 /*at_index=*/true);
+}
+
+DEFINE_NATIVE_ENTRY(Ffi_storeAbiSpecificInt, 1, 3) {
+  return LoadStoreAbiSpecificInt(zone, arguments, /*is_load=*/false,
+                                 /*at_index=*/false);
+}
+
+DEFINE_NATIVE_ENTRY(Ffi_storeAbiSpecificIntAtIndex, 1, 4) {
+  return LoadStoreAbiSpecificInt(zone, arguments, /*is_load=*/false,
+                                 /*at_index=*/true);
 }
 
 DEFINE_NATIVE_ENTRY(DartNativeApiFunctionPointer, 0, 1) {
