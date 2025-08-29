@@ -1161,8 +1161,10 @@ class _LibraryMatch {
             structureMismatched.add(element);
           }
         case ExtensionElementImpl():
-          if (!_matchExtension(name: name, element: element)) {
-            structureMismatched.add(element);
+          if (name != null) {
+            if (!_matchExtension(name: name, element: element)) {
+              structureMismatched.add(element);
+            }
           }
         case ExtensionTypeElementImpl():
           if (!_matchExtensionType(name: name, element: element)) {
