@@ -4,6 +4,7 @@
 
 import 'dart:typed_data';
 
+import 'package:_fe_analyzer_shared/src/base/analyzer_public_api.dart';
 import 'package:analyzer/dart/analysis/analysis_options.dart';
 import 'package:analyzer/dart/analysis/code_style_options.dart';
 import 'package:analyzer/dart/analysis/features.dart';
@@ -599,6 +600,20 @@ class AnalysisOptionsImpl implements AnalysisOptions {
       )) {
         buffer.addString(pluginConfiguration.name);
         buffer.addBool(pluginConfiguration.isEnabled);
+        switch (pluginConfiguration.source) {
+          case GitPluginSource source:
+            buffer.addString(source._url);
+            if (source._path case var path?) {
+              buffer.addString(path);
+            }
+            if (source._ref case var ref?) {
+              buffer.addString(ref);
+            }
+          case PathPluginSource source:
+            buffer.addString(source._path);
+          case VersionedPluginSource source:
+            buffer.addString(source._constraint);
+        }
         buffer.addInt(pluginConfiguration.diagnosticConfigs.length);
         for (var diagnosticConfig
             in pluginConfiguration.diagnosticConfigs.values) {
@@ -660,6 +675,83 @@ class AnalysisOptionsImpl implements AnalysisOptions {
   }
 }
 
+@AnalyzerPublicApi(
+  message: 'exported by lib/dart/analysis/analysis_options.dart',
+)
+final class GitPluginSource implements PluginSource {
+  final String _url;
+
+  final String? _path;
+
+  final String? _ref;
+
+  GitPluginSource({required String url, String? path, String? ref})
+    : _url = url,
+      _path = path,
+      _ref = ref;
+
+  @override
+  String toYaml({required String name}) {
+    var buffer = StringBuffer()
+      ..writeln('  $name:')
+      ..writeln('    git:')
+      ..writeln('      url: $_url');
+    if (_ref != null) {
+      buffer.writeln('      ref: $_ref');
+    }
+    if (_path != null) {
+      buffer.writeln('      path: $_path');
+    }
+    return buffer.toString();
+  }
+}
+
+@AnalyzerPublicApi(
+  message: 'exported by lib/dart/analysis/analysis_options.dart',
+)
+final class PathPluginSource implements PluginSource {
+  final String _path;
+
+  PathPluginSource({required String path}) : _path = path;
+
+  @override
+  String toYaml({required String name}) =>
+      '''
+  $name:
+    path: $_path
+''';
+}
+
+/// The configuration of a Dart Analysis Server plugin, as specified by
+/// analysis options.
+@AnalyzerPublicApi(
+  message: 'exported by lib/dart/analysis/analysis_options.dart',
+)
+final class PluginConfiguration {
+  /// The name of the plugin being configured.
+  final String name;
+
+  /// The source of the plugin being configured.
+  final PluginSource source;
+
+  /// The list of specified [DiagnosticConfig]s.
+  // ignore: analyzer_public_api_bad_type
+  final Map<String, DiagnosticConfig> diagnosticConfigs;
+
+  /// Whether the plugin is enabled.
+  final bool isEnabled;
+
+  // ignore: analyzer_public_api_bad_type
+  PluginConfiguration({
+    required this.name,
+    required this.source,
+    this.diagnosticConfigs = const {},
+    this.isEnabled = true,
+  });
+
+  String sourceYaml() => source.toYaml(name: name);
+}
+
 /// The analysis options for plugins, as specified in the top-level `plugins`
 /// section.
 final class PluginsOptions {
@@ -673,6 +765,36 @@ final class PluginsOptions {
     required this.configurations,
     required this.dependencyOverrides,
   });
+}
+
+/// A description of the source of a plugin.
+///
+/// We support all of the source formats documented at
+/// https://dart.dev/tools/pub/dependencies.
+@AnalyzerPublicApi(
+  message: 'exported by lib/dart/analysis/analysis_options.dart',
+)
+sealed class PluginSource {
+  /// Returns the YAML-formatted source, using [name] as a key, for writing into
+  /// a pubspec 'dependencies' section.
+  String toYaml({required String name});
+}
+
+/// A plugin source using a version constraint, hosted either at pub.dev or
+/// another host.
+// TODO(srawlins): Support a different 'hosted' URL.
+@AnalyzerPublicApi(
+  message: 'exported by lib/dart/analysis/analysis_options.dart',
+)
+final class VersionedPluginSource implements PluginSource {
+  /// The specified version constraint.
+  final String _constraint;
+
+  VersionedPluginSource({required String constraint})
+    : _constraint = constraint;
+
+  @override
+  String toYaml({required String name}) => '  $name: $_constraint\n';
 }
 
 extension on YamlNode? {
