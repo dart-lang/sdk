@@ -165,6 +165,27 @@ suggestions
 ''');
   }
 
+  Future<void> test_enum_static() async {
+    allowedIdentifiers = {'red', 'other'};
+    await computeSuggestions('''
+enum E {
+  red;
+
+  static const other = red;
+}
+void f() {
+  E e = .^
+}
+''');
+    assertResponse(r'''
+suggestions
+  other
+    kind: field
+  red
+    kind: enumConstant
+''');
+  }
+
   Future<void> test_enum_withPrefix() async {
     allowedIdentifiers = {'red', 'blue', 'yellow', 'black'};
     await computeSuggestions('''
