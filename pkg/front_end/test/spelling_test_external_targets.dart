@@ -12,19 +12,22 @@ void main([List<String> arguments = const []]) =>
     runMe(arguments, createContext, configurationPath: "../testing.json");
 
 Future<SpellContext> createContext(
-    Chain suite, Map<String, String> environment) {
+  Chain suite,
+  Map<String, String> environment,
+) {
   const Set<String> knownEnvironmentKeys = {"interactive", "onlyInGit"};
   checkEnvironment(environment, knownEnvironmentKeys);
 
   bool interactive = environment["interactive"] == "true";
   bool onlyInGit = environment["onlyInGit"] != "false";
   return new Future.value(
-      new SpellContextExternal(interactive: interactive, onlyInGit: onlyInGit));
+    new SpellContextExternal(interactive: interactive, onlyInGit: onlyInGit),
+  );
 }
 
 class SpellContextExternal extends SpellContext {
   SpellContextExternal({required bool interactive, required bool onlyInGit})
-      : super(interactive: interactive, onlyInGit: onlyInGit);
+    : super(interactive: interactive, onlyInGit: onlyInGit);
 
   @override
   List<spell.Dictionaries> get dictionaries => const <spell.Dictionaries>[];

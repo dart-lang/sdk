@@ -69,8 +69,9 @@ Future<void> main(List<String> arguments) async {
         } else if (arg == "--noTryToDeleteEmptyFilesUpFront") {
           settings.noTryToDeleteEmptyFilesUpFront = true;
         } else if (arg.startsWith("--wantErrorOnReload=")) {
-          String wantErrorOnReload =
-              arg.substring("--wantErrorOnReload=".length);
+          String wantErrorOnReload = arg.substring(
+            "--wantErrorOnReload=".length,
+          );
           settings.lookForErrorErrorOnReload = wantErrorOnReload;
         } else if (arg == "--oldBlockDelete") {
           settings.oldBlockDelete = true;

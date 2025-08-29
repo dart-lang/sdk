@@ -13,11 +13,15 @@ import 'package:front_end/src/api_prototype/experimental_flags.dart'
 import 'package:kernel/ast.dart' show Component, Version;
 import 'package:testing/testing.dart' show TestDescription;
 
-const Option<bool> fixNnbdReleaseVersion =
-    const Option('--fix-nnbd-release-version', const BoolValue(false));
+const Option<bool> fixNnbdReleaseVersion = const Option(
+  '--fix-nnbd-release-version',
+  const BoolValue(false),
+);
 
-const Option<Uri?> dynamicInterface =
-    const Option('--dynamic-interface', const UriValue());
+const Option<Uri?> dynamicInterface = const Option(
+  '--dynamic-interface',
+  const UriValue(),
+);
 
 const List<Option> testOptionsSpecification = [
   fixNnbdReleaseVersion,
@@ -32,35 +36,40 @@ class SuiteTestOptions {
     Directory directory = new File.fromUri(description.uri).parent;
     TestOptions? testOptions = _testOptions[directory.uri];
     if (testOptions == null) {
-      File optionsFile =
-          new File.fromUri(directory.uri.resolve('test.options'));
+      File optionsFile = new File.fromUri(
+        directory.uri.resolve('test.options'),
+      );
       Set<Uri> linkDependencies = new Set<Uri>();
       AllowedExperimentalFlags? allowedExperimentalFlags;
       Map<ExperimentalFlag, Version>? experimentEnabledVersion;
       Map<ExperimentalFlag, Version>? experimentReleasedVersion;
       Uri? dynamicInterfaceSpecificationUri;
       if (optionsFile.existsSync()) {
-        List<String> arguments =
-            ParsedOptions.readOptionsFile(optionsFile.readAsStringSync());
-        ParsedOptions parsedOptions =
-            ParsedOptions.parse(arguments, testOptionsSpecification);
+        List<String> arguments = ParsedOptions.readOptionsFile(
+          optionsFile.readAsStringSync(),
+        );
+        ParsedOptions parsedOptions = ParsedOptions.parse(
+          arguments,
+          testOptionsSpecification,
+        );
         if (fixNnbdReleaseVersion.read(parsedOptions)) {
           // Allow package:allowed_package to use nnbd features from version
           // 2.9.
           allowedExperimentalFlags = new AllowedExperimentalFlags(
-              sdkDefaultExperiments:
-                  defaultAllowedExperimentalFlags.sdkDefaultExperiments,
-              sdkLibraryExperiments:
-                  defaultAllowedExperimentalFlags.sdkLibraryExperiments,
-              packageExperiments: {
-                ...defaultAllowedExperimentalFlags.packageExperiments,
-                'allowed_package': {ExperimentalFlag.nonNullable}
-              });
+            sdkDefaultExperiments:
+                defaultAllowedExperimentalFlags.sdkDefaultExperiments,
+            sdkLibraryExperiments:
+                defaultAllowedExperimentalFlags.sdkLibraryExperiments,
+            packageExperiments: {
+              ...defaultAllowedExperimentalFlags.packageExperiments,
+              'allowed_package': {ExperimentalFlag.nonNullable},
+            },
+          );
           experimentEnabledVersion = const {
-            ExperimentalFlag.nonNullable: const Version(2, 10)
+            ExperimentalFlag.nonNullable: const Version(2, 10),
           };
           experimentReleasedVersion = const {
-            ExperimentalFlag.nonNullable: const Version(2, 9)
+            ExperimentalFlag.nonNullable: const Version(2, 9),
           };
         }
         dynamicInterfaceSpecificationUri = dynamicInterface.read(parsedOptions);
@@ -76,11 +85,13 @@ class SuiteTestOptions {
           linkDependencies.add(uri);
         }
       }
-      testOptions = new TestOptions(linkDependencies,
-          allowedExperimentalFlags: allowedExperimentalFlags,
-          experimentEnabledVersion: experimentEnabledVersion,
-          experimentReleasedVersion: experimentReleasedVersion,
-          dynamicInterfaceSpecificationUri: dynamicInterfaceSpecificationUri);
+      testOptions = new TestOptions(
+        linkDependencies,
+        allowedExperimentalFlags: allowedExperimentalFlags,
+        experimentEnabledVersion: experimentEnabledVersion,
+        experimentReleasedVersion: experimentReleasedVersion,
+        dynamicInterfaceSpecificationUri: dynamicInterfaceSpecificationUri,
+      );
       _testOptions[directory.uri] = testOptions;
     }
     return testOptions;
@@ -100,9 +111,11 @@ class TestOptions {
   Component? component;
   List<Iterable<String>>? errors;
 
-  TestOptions(this.linkDependencies,
-      {required this.allowedExperimentalFlags,
-      required this.experimentEnabledVersion,
-      required this.experimentReleasedVersion,
-      required this.dynamicInterfaceSpecificationUri});
+  TestOptions(
+    this.linkDependencies, {
+    required this.allowedExperimentalFlags,
+    required this.experimentEnabledVersion,
+    required this.experimentReleasedVersion,
+    required this.dynamicInterfaceSpecificationUri,
+  });
 }

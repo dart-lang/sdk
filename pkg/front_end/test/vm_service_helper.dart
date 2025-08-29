@@ -21,8 +21,10 @@ class VMServiceHelper {
     String path = observatoryUri.path;
     if (!path.endsWith("/")) path += "/";
     String wsUriString = 'ws://${observatoryUri.authority}${path}ws';
-    _serviceClient = await vmService.vmServiceConnectUri(wsUriString,
-        log: const StdOutLog());
+    _serviceClient = await vmService.vmServiceConnectUri(
+      wsUriString,
+      log: const StdOutLog(),
+    );
   }
 
   Future disconnect() async {
@@ -126,8 +128,10 @@ class VMServiceHelper {
     while (true) {
       vmService.AllocationProfile allocationProfile;
       try {
-        allocationProfile =
-            await _serviceClient.getAllocationProfile(isolateId, gc: true);
+        allocationProfile = await _serviceClient.getAllocationProfile(
+          isolateId,
+          gc: true,
+        );
       } catch (e) {
         print(e.runtimeType);
         rethrow;
@@ -208,40 +212,42 @@ abstract class LaunchingVMServiceHelper extends VMServiceHelper {
     _process = await Process.start(Platform.resolvedExecutable, [
       if (pauseIsolateOnStart) "--pause_isolates_on_start",
       "--enable-vm-service=0",
-      ...scriptAndArgs
+      ...scriptAndArgs,
     ]);
     _process.stdout
         .transform(utf8.decoder)
         .transform(new LineSplitter())
         .listen((line) {
-      const kDartVMServiceListening = 'The Dart VM service is listening on ';
-      if (line.startsWith(kDartVMServiceListening)) {
-        Uri observatoryUri =
-            Uri.parse(line.substring(kDartVMServiceListening.length));
-        _setupAndRun(observatoryUri).catchError((e, st) {
-          // Manually kill the process or it will leak,
-          // see http://dartbug.com/42918
-          killProcess();
-          // This seems to rethrow.
-          throw e;
+          const kDartVMServiceListening =
+              'The Dart VM service is listening on ';
+          if (line.startsWith(kDartVMServiceListening)) {
+            Uri observatoryUri = Uri.parse(
+              line.substring(kDartVMServiceListening.length),
+            );
+            _setupAndRun(observatoryUri).catchError((e, st) {
+              // Manually kill the process or it will leak,
+              // see http://dartbug.com/42918
+              killProcess();
+              // This seems to rethrow.
+              throw e;
+            });
+          }
+          if (stdoutReceiver != null) {
+            stdoutReceiver(line);
+          } else {
+            stdout.writeln("> $line");
+          }
         });
-      }
-      if (stdoutReceiver != null) {
-        stdoutReceiver(line);
-      } else {
-        stdout.writeln("> $line");
-      }
-    });
     _process.stderr
         .transform(utf8.decoder)
         .transform(new LineSplitter())
         .listen((line) {
-      if (stderrReceiver != null) {
-        stderrReceiver(line);
-      } else {
-        stderr.writeln("> $line");
-      }
-    });
+          if (stderrReceiver != null) {
+            stderrReceiver(line);
+          } else {
+            stderr.writeln("> $line");
+          }
+        });
     // ignore: unawaited_futures
     _process.exitCode.then((value) {
       processExited(value);

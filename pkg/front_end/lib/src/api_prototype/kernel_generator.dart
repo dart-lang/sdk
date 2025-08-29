@@ -42,11 +42,18 @@ import 'compiler_options.dart' show CompilerOptions;
 /// The input [source] is expected to be a script with a main method, otherwise
 /// an error is reported.
 // TODO(sigmund): rename to kernelForScript?
-Future<CompilerResult?> kernelForProgram(Uri source, CompilerOptions options,
-    {List<Uri> additionalSources = const <Uri>[],
-    bool requireMain = true}) async {
-  return (await kernelForProgramInternal(source, options,
-      additionalSources: additionalSources, requireMain: requireMain));
+Future<CompilerResult?> kernelForProgram(
+  Uri source,
+  CompilerOptions options, {
+  List<Uri> additionalSources = const <Uri>[],
+  bool requireMain = true,
+}) async {
+  return (await kernelForProgramInternal(
+    source,
+    options,
+    additionalSources: additionalSources,
+    requireMain: requireMain,
+  ));
 }
 
 // Coverage-ignore(suite): Not run.
@@ -59,7 +66,9 @@ Future<CompilerResult?> kernelForProgramInternal(
   bool buildComponent = true,
 }) async {
   ProcessedOptions pOptions = new ProcessedOptions(
-      options: options, inputs: [source, ...additionalSources]);
+    options: options,
+    inputs: [source, ...additionalSources],
+  );
   return await CompilerContext.runWithOptions(pOptions, (context) async {
     CompilerResult result = await generateKernelInternal(
       context,
@@ -73,9 +82,10 @@ Future<CompilerResult?> kernelForProgramInternal(
 
     if (requireMain && component.mainMethod == null) {
       context.options.report(
-          context,
-          codeMissingMain.withLocation(source, -1, noLength),
-          CfeSeverity.error);
+        context,
+        codeMissingMain.withLocation(source, -1, noLength),
+        CfeSeverity.error,
+      );
       return null;
     }
     return result;
@@ -104,10 +114,13 @@ Future<CompilerResult?> kernelForProgramInternal(
 /// the [Component] of its `component` property. The [Component] includes
 /// external libraries for those libraries loaded through summaries.
 Future<CompilerResult> kernelForModule(
-    List<Uri> sources, CompilerOptions options) async {
+  List<Uri> sources,
+  CompilerOptions options,
+) async {
   return (await generateKernel(
-      new ProcessedOptions(options: options, inputs: sources),
-      includeHierarchyAndCoreTypes: true));
+    new ProcessedOptions(options: options, inputs: sources),
+    includeHierarchyAndCoreTypes: true,
+  ));
 }
 
 /// Result object for [kernelForProgram] and [kernelForModule].

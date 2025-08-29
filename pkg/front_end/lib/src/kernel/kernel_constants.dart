@@ -27,13 +27,21 @@ class KernelConstantErrorReporter extends ErrorReporter {
     compilationUnit ??= loader.lookupCompilationUnitByFileUri(uri);
     if (compilationUnit == null) {
       // TODO(jensj): Probably a part or something.
-      loader.addProblem(message.messageObject, message.charOffset,
-          message.length, message.uri,
-          context: context);
+      loader.addProblem(
+        message.messageObject,
+        message.charOffset,
+        message.length,
+        message.uri,
+        context: context,
+      );
     } else {
-      compilationUnit.addProblem(message.messageObject, message.charOffset,
-          message.length, message.uri,
-          context: context);
+      compilationUnit.addProblem(
+        message.messageObject,
+        message.charOffset,
+        message.length,
+        message.uri,
+        context: context,
+      );
     }
   }
 }

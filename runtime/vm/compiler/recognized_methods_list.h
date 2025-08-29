@@ -130,9 +130,9 @@ namespace dart {
     FfiNativeIsolateGroupBoundCallbackFunction, 0xc20a0b32)                   \
   V(FfiLibrary, ::, _nativeIsolateGroupBoundClosureFunction,                  \
     FfiNativeIsolateGroupBoundClosureFunction, 0x0714be84)                    \
-  V(FfiLibrary, ::, _loadAbiSpecificInt, FfiLoadAbiSpecificInt, 0x6abf70a6)    \
+  V(FfiLibrary, ::, _loadAbiSpecificInt, FfiLoadAbiSpecificInt, 0x6abf7467)    \
   V(FfiLibrary, ::, _loadAbiSpecificIntAtIndex, FfiLoadAbiSpecificIntAtIndex,  \
-    0xc188dd75)                                                                \
+    0xc188e136)                                                                \
   V(FfiLibrary, ::, _loadInt8, FfiLoadInt8, 0xe4acfa39)                        \
   V(FfiLibrary, ::, _loadInt16, FfiLoadInt16, 0xefe48685)                      \
   V(FfiLibrary, ::, _loadInt32, FfiLoadInt32, 0xea00b1ac)                      \
@@ -146,9 +146,9 @@ namespace dart {
   V(FfiLibrary, ::, _loadDouble, FfiLoadDouble, 0xeaad7eac)                    \
   V(FfiLibrary, ::, _loadDoubleUnaligned, FfiLoadDoubleUnaligned, 0xf5f52363)  \
   V(FfiLibrary, ::, _loadPointer, FfiLoadPointer, 0x8a1d0159)                  \
-  V(FfiLibrary, ::, _storeAbiSpecificInt, FfiStoreAbiSpecificInt, 0xaa7305ae)  \
+  V(FfiLibrary, ::, _storeAbiSpecificInt, FfiStoreAbiSpecificInt, 0x4cc50c5e)  \
   V(FfiLibrary, ::, _storeAbiSpecificIntAtIndex,                               \
-    FfiStoreAbiSpecificIntAtIndex, 0x258c6495)                                 \
+    FfiStoreAbiSpecificIntAtIndex, 0x326439bf)                                 \
   V(FfiLibrary, ::, _storeInt8, FfiStoreInt8, 0xeea241c5)                      \
   V(FfiLibrary, ::, _storeInt16, FfiStoreInt16, 0xdb5cf594)                    \
   V(FfiLibrary, ::, _storeInt32, FfiStoreInt32, 0xd4dab471)                    \

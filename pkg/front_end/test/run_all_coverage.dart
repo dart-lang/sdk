@@ -16,11 +16,13 @@ Future<void> main() async {
   if (Platform.isWindows) {
     dartExtension = ".exe";
   }
-  Uri dart =
-      repoDirUri.resolve("out/ReleaseX64/dart-sdk/bin/dart$dartExtension");
+  Uri dart = repoDirUri.resolve(
+    "out/ReleaseX64/dart-sdk/bin/dart$dartExtension",
+  );
   if (!File.fromUri(dart).existsSync()) throw "Didn't find dart at $dart";
-  Directory coverageTmpDir =
-      Directory.systemTemp.createTempSync("cfe_coverage");
+  Directory coverageTmpDir = Directory.systemTemp.createTempSync(
+    "cfe_coverage",
+  );
   print("Using $coverageTmpDir for coverage.");
   List<List<String>> runThese = [];
   void addSuiteSkipVm(String suitePath) {
@@ -47,14 +49,13 @@ Future<void> main() async {
 
   addWithCoverageArgument("pkg/front_end/test/messages_suite.dart");
   addWithCoverageArgument("pkg/front_end/test/outline_suite.dart");
-  addWithCoverageArgument(
-      "pkg/front_end/test/textual_outline_suite.dart");
+  addWithCoverageArgument("pkg/front_end/test/textual_outline_suite.dart");
   addWithCoverageArgument("pkg/front_end/test/expression_suite.dart");
-  addWithCoverageArgument(
-      "pkg/front_end/test/incremental_dartino_suite.dart");
+  addWithCoverageArgument("pkg/front_end/test/incremental_dartino_suite.dart");
   addWithCoverageArgument("pkg/front_end/test/dartdoctest_suite.dart");
   addWithCoverageArgument(
-      "pkg/front_end/test/incremental_bulk_compiler_smoke_suite.dart");
+    "pkg/front_end/test/incremental_bulk_compiler_smoke_suite.dart",
+  );
   addWithCoverageArgument("pkg/front_end/test/incremental_suite.dart");
   addWithCoverageArgument("pkg/front_end/test/lint_suite.dart");
   addWithCoverageArgument("pkg/front_end/test/outline_extractor_suite.dart");
@@ -62,7 +63,8 @@ Future<void> main() async {
   addWithCoverageArgument("pkg/front_end/test/parser_equivalence_suite.dart");
   addWithCoverageArgument("pkg/front_end/test/parser_suite.dart");
   addWithCoverageArgument(
-      "pkg/front_end/test/spelling_test_not_src_suite.dart");
+    "pkg/front_end/test/spelling_test_not_src_suite.dart",
+  );
   addWithCoverageArgument("pkg/front_end/test/spelling_test_src_suite.dart");
   addWithCoverageArgument("pkg/front_end/test/compile_platform_coverage.dart");
 
@@ -72,17 +74,18 @@ Future<void> main() async {
     "-cfasta",
     "-mrelease",
     "-rnone",
-    "language"
+    "language",
   ]);
   runThese.add([
     dart.toFilePath(),
     repoDirUri
         .resolve("pkg/front_end/test/run_our_tests_with_coverage.dart")
-        .toFilePath()
+        .toFilePath(),
   ]);
 
-  Map<String, String> environment =
-      new Map<String, String>.of(Platform.environment);
+  Map<String, String> environment = new Map<String, String>.of(
+    Platform.environment,
+  );
   environment["CFE_COVERAGE"] = "${coverageTmpDir.path}/";
 
   for (List<String> runThis in runThese) {
@@ -92,16 +95,14 @@ Future<void> main() async {
       runThis.skip(1).toList(),
       environment: environment,
     );
-    p.stdout
-        .transform(utf8.decoder)
-        .transform(const LineSplitter())
-        .listen((String line) {
+    p.stdout.transform(utf8.decoder).transform(const LineSplitter()).listen((
+      String line,
+    ) {
       print("stdout> $line");
     });
-    p.stderr
-        .transform(utf8.decoder)
-        .transform(const LineSplitter())
-        .listen((String line) {
+    p.stderr.transform(utf8.decoder).transform(const LineSplitter()).listen((
+      String line,
+    ) {
       print("stderr> $line");
     });
     print("Exit code = ${await p.exitCode}");

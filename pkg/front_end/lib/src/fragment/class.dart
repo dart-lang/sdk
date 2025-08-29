@@ -22,8 +22,11 @@ class ClassFragment extends DeclarationFragmentImpl implements Fragment {
   late final int endOffset;
 
   @override
-  late final UriOffsetLength uriOffset =
-      new UriOffsetLength(fileUri, nameOffset, name.length);
+  late final UriOffsetLength uriOffset = new UriOffsetLength(
+    fileUri,
+    nameOffset,
+    name.length,
+  );
 
   ClassFragment({
     required this.name,

@@ -25,7 +25,10 @@ Future<Set<Class>> getAllTokens() async {
 /// Compiles either a File or a Directory and finds all subtypes of (including)
 /// the specified [className] in a file containing [classFilename].
 Future<Set<Class>> findIn(
-    Directory where, String className, String classFilename) async {
+  Directory where,
+  String className,
+  String classFilename,
+) async {
   List<Uri> files = [];
   for (FileSystemEntity subEntity in where.listSync(recursive: true)) {
     if (subEntity is File) {
@@ -67,9 +70,14 @@ Future<Component> compileOutline(List<Uri> input) async {
   CompilerOptions options = helper.getOptions();
   options.omitPlatform = true;
   // Give only one input so it automatically finds the packages file.
-  helper.TestIncrementalCompiler compiler =
-      new helper.TestIncrementalCompiler(options, input.first, null, true);
-  IncrementalCompilerResult compilerResult =
-      await compiler.computeDelta(entryPoints: input);
+  helper.TestIncrementalCompiler compiler = new helper.TestIncrementalCompiler(
+    options,
+    input.first,
+    null,
+    true,
+  );
+  IncrementalCompilerResult compilerResult = await compiler.computeDelta(
+    entryPoints: input,
+  );
   return compilerResult.component;
 }

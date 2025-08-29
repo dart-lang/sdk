@@ -15,10 +15,12 @@ import 'incremental_suite.dart'
 Future<void> main() async {
   final Uri dart2jsUrl = Uri.base.resolve("pkg/compiler/lib/src/dart2js.dart");
   Stopwatch stopwatch = new Stopwatch()..start();
-  Component compiledComponent = await normalCompilePlain(dart2jsUrl,
-      options: getOptions()
-        ..target = new NoneTarget(new TargetFlags())
-        ..omitPlatform = false);
+  Component compiledComponent = await normalCompilePlain(
+    dart2jsUrl,
+    options: getOptions()
+      ..target = new NoneTarget(new TargetFlags())
+      ..omitPlatform = false,
+  );
   print("Compiled dart2js in ${stopwatch.elapsedMilliseconds} ms");
   stopwatch.reset();
 
@@ -30,15 +32,23 @@ Future<void> main() async {
 
   print("Round-tripping with lazy disabled");
   roundTrip(
-      new BinaryBuilder(bytes,
-          disableLazyReading: true, disableLazyClassReading: true),
-      bytes);
+    new BinaryBuilder(
+      bytes,
+      disableLazyReading: true,
+      disableLazyClassReading: true,
+    ),
+    bytes,
+  );
 
   print("Round-tripping with lazy enabled");
   roundTrip(
-      new BinaryBuilder(bytes,
-          disableLazyReading: false, disableLazyClassReading: false),
-      bytes);
+    new BinaryBuilder(
+      bytes,
+      disableLazyReading: false,
+      disableLazyClassReading: false,
+    ),
+    bytes,
+  );
 
   print("OK");
 }

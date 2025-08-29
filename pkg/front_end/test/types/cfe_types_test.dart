@@ -26,26 +26,32 @@ import "shared_type_tests.dart" show SubtypeTest;
 
 void main() {
   final Ticker ticker = new Ticker(isVerbose: false);
-  final CompilerContext context = new CompilerContext(new ProcessedOptions(
+  final CompilerContext context = new CompilerContext(
+    new ProcessedOptions(
       options: new CompilerOptions()
-        ..packagesFileUri =
-            Uri.base.resolve(".dart_tool/package_config.json")));
+        ..packagesFileUri = Uri.base.resolve(".dart_tool/package_config.json"),
+    ),
+  );
   final Uri uri = Uri.parse("dart:core");
   final TypeParserEnvironment environment = new TypeParserEnvironment(uri, uri);
   final Component sdk = parseSdk(uri, environment);
   Future<void> doIt(_) async {
     DillTarget target = new DillTarget(
-        context,
-        ticker,
-        await context.options.getUriTranslator(),
-        new NoneTarget(new TargetFlags()));
+      context,
+      ticker,
+      await context.options.getUriTranslator(),
+      new NoneTarget(new TargetFlags()),
+    );
     final DillLoader loader = target.loader;
     loader.appendLibraries(sdk);
     target.buildOutlines();
     ClassBuilder objectClass =
         loader.coreLibrary.lookupRequiredLocalMember("Object") as ClassBuilder;
-    ClassHierarchyBuilder hierarchy =
-        new ClassHierarchyBuilder(objectClass, loader, new CoreTypes(sdk));
+    ClassHierarchyBuilder hierarchy = new ClassHierarchyBuilder(
+      objectClass,
+      loader,
+      new CoreTypes(sdk),
+    );
     new FastaTypesTest(hierarchy, environment).run();
   }
 
@@ -70,8 +76,10 @@ class FastaTypesTest extends SubtypeTest<DartType, TypeParserEnvironment> {
   }
 
   @override
-  TypeParserEnvironment extend(
-      {String? typeParameters, String? functionTypeTypeParameters}) {
+  TypeParserEnvironment extend({
+    String? typeParameters,
+    String? functionTypeTypeParameters,
+  }) {
     return environment
         .extendWithTypeParameters(typeParameters)
         .extendWithStructuralParameters(functionTypeTypeParameters);

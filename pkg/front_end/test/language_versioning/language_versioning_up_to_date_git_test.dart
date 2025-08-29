@@ -14,9 +14,11 @@ final String repoDir = computeRepoDir();
 String get dartVm => Platform.executable;
 
 Future<void> main(List<String> args) async {
-  ProcessResult result = await Process.run(
-      "python3", ["tools/make_version.py", "--no-git-hash", "-q"],
-      workingDirectory: repoDir);
+  ProcessResult result = await Process.run("python3", [
+    "tools/make_version.py",
+    "--no-git-hash",
+    "-q",
+  ], workingDirectory: repoDir);
 
   String stdout = result.stdout.toString();
   String stderr = result.stderr.toString();
@@ -46,8 +48,8 @@ Future<void> main(List<String> args) async {
 
   CompilerOptions compilerOptions = new CompilerOptions();
 
-  List<String> dotSeparatedPartsFromOptions =
-      compilerOptions.currentSdkVersion.split(".");
+  List<String> dotSeparatedPartsFromOptions = compilerOptions.currentSdkVersion
+      .split(".");
   int majorFromOptions = int.parse(dotSeparatedPartsFromOptions[0]);
   int minorFromOptions = int.parse(dotSeparatedPartsFromOptions[1]);
   if (majorFromOptions != major || minorFromOptions != minor) {

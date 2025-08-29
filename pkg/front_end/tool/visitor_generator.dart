@@ -11,8 +11,11 @@ import 'ast_model.dart';
 /// If [format] is `false`, the generated output will _not_ be formatted using
 /// the Dart formatter. Use this during development to support incomplete
 /// generation.
-String generateVisitor(AstModel astModel, VisitorStrategy strategy,
-    {bool format = true}) {
+String generateVisitor(
+  AstModel astModel,
+  VisitorStrategy strategy, {
+  bool format = true,
+}) {
   StringBuffer sb = new StringBuffer();
   strategy.generateHeader(astModel, sb);
 
@@ -72,8 +75,8 @@ String generateVisitor(AstModel astModel, VisitorStrategy strategy,
   String result = sb.toString();
   if (format) {
     result = new DartFormatter(
-            languageVersion: DartFormatter.latestShortStyleLanguageVersion)
-        .format(result);
+      languageVersion: DartFormatter.latestShortStyleLanguageVersion,
+    ).format(result);
   }
   return result;
 }
@@ -83,7 +86,8 @@ abstract class VisitorStrategy {
   const VisitorStrategy();
 
   /// Preamble comment used in the generated file.
-  String get preamble => '''
+  String get preamble =>
+      '''
 // Copyright (c) 2021, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -111,7 +115,10 @@ abstract class VisitorStrategy {
 
   /// Generates a `visitXReference` visitor method for [astClass].
   void generateVisitReference(
-      AstModel astModel, AstClass astClass, StringBuffer sb);
+    AstModel astModel,
+    AstClass astClass,
+    StringBuffer sb,
+  );
 
   /// Generates the footer of the visitor library, including the visitor class
   /// declaration end.
@@ -165,7 +172,10 @@ class $visitorName$visitorTypeParameters implements Visitor<$returnType> {''');
 
   @override
   void generateVisitReference(
-      AstModel astModel, AstClass astClass, StringBuffer sb) {
+    AstModel astModel,
+    AstClass astClass,
+    StringBuffer sb,
+  ) {
     sb.writeln('''
   @override
   ${returnType} visit${astClass.name}Reference(
@@ -176,7 +186,10 @@ class $visitorName$visitorTypeParameters implements Visitor<$returnType> {''');
 
   /// Generates the body of a `visitXReference` visitor method of [astClass].
   void handleVisitReference(
-      AstModel astModel, AstClass astClass, StringBuffer sb) {}
+    AstModel astModel,
+    AstClass astClass,
+    StringBuffer sb,
+  ) {}
 }
 
 /// Strategy for creating an empty `Visitor<void>` implementation.
@@ -247,7 +260,10 @@ class $visitorName$visitorTypeParameters
 
   @override
   void generateVisitReference(
-      AstModel astModel, AstClass astClass, StringBuffer sb) {
+    AstModel astModel,
+    AstClass astClass,
+    StringBuffer sb,
+  ) {
     sb.writeln('''
   @override
   ${returnType} visit${astClass.name}Reference(
@@ -259,7 +275,10 @@ class $visitorName$visitorTypeParameters
 
   /// Generates the body of a `visitXReference` visitor method of [astClass].
   void handleVisitReference(
-      AstModel astModel, AstClass astClass, StringBuffer sb) {}
+    AstModel astModel,
+    AstClass astClass,
+    StringBuffer sb,
+  ) {}
 }
 
 /// Strategy for creating an empty `Visitor1<void,Null>` implementation.

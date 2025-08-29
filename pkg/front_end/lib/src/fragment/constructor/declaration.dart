@@ -84,18 +84,24 @@ abstract class ConstructorDeclaration {
     required List<DelayedDefaultValueCloner> delayedDefaultValueCloners,
   });
 
-  void checkTypes(SourceLibraryBuilder libraryBuilder, NameSpace nameSpace,
-      TypeEnvironment typeEnvironment);
+  void checkTypes(
+    SourceLibraryBuilder libraryBuilder,
+    NameSpace nameSpace,
+    TypeEnvironment typeEnvironment,
+  );
 
-  int computeDefaultTypes(ComputeDefaultTypeContext context,
-      {required bool inErrorRecovery});
+  int computeDefaultTypes(
+    ComputeDefaultTypeContext context, {
+    required bool inErrorRecovery,
+  });
 
   void prepareInitializers();
 
   void prependInitializer(Initializer initializer);
 
   Substitution computeFieldTypeSubstitution(
-      DeclarationBuilder declarationBuilder);
+    DeclarationBuilder declarationBuilder,
+  );
 
   void buildBody();
 
@@ -104,16 +110,18 @@ abstract class ConstructorDeclaration {
   bool get isRedirecting;
 
   void addSuperParameterDefaultValueCloners(
-      SourceLibraryBuilder libraryBuilder,
-      DeclarationBuilder declarationBuilder,
-      List<DelayedDefaultValueCloner> delayedDefaultValueCloners);
+    SourceLibraryBuilder libraryBuilder,
+    DeclarationBuilder declarationBuilder,
+    List<DelayedDefaultValueCloner> delayedDefaultValueCloners,
+  );
 
   void inferFormalTypes(
-      SourceLibraryBuilder libraryBuilder,
-      DeclarationBuilder declarationBuilder,
-      SourceConstructorBuilder constructorBuilder,
-      ClassHierarchyBase hierarchy,
-      List<DelayedDefaultValueCloner> delayedDefaultValueCloners);
+    SourceLibraryBuilder libraryBuilder,
+    DeclarationBuilder declarationBuilder,
+    SourceConstructorBuilder constructorBuilder,
+    ClassHierarchyBase hierarchy,
+    List<DelayedDefaultValueCloner> delayedDefaultValueCloners,
+  );
 
   /// Mark the constructor as erroneous.
   ///
@@ -186,67 +194,87 @@ mixin _ConstructorDeclarationMixin
       local[formal.name] = formal.forFormalParameterInitializerScope();
     }
     return parent.createNestedFixedScope(
-        debugName: "formal parameter initializer",
-        kind: ScopeKind.initializers,
-        local: local);
+      debugName: "formal parameter initializer",
+      kind: ScopeKind.initializers,
+      local: local,
+    );
   }
 
   @override
   void inferFormalTypes(
-      SourceLibraryBuilder libraryBuilder,
-      DeclarationBuilder declarationBuilder,
-      SourceConstructorBuilder constructorBuilder,
-      ClassHierarchyBase hierarchy,
-      List<DelayedDefaultValueCloner> delayedDefaultValueCloners) {
+    SourceLibraryBuilder libraryBuilder,
+    DeclarationBuilder declarationBuilder,
+    SourceConstructorBuilder constructorBuilder,
+    ClassHierarchyBase hierarchy,
+    List<DelayedDefaultValueCloner> delayedDefaultValueCloners,
+  ) {
     if (formals != null) {
       libraryBuilder.loader.withUriForCrashReporting(fileUri, fileOffset, () {
         for (FormalParameterBuilder formal in formals!) {
           if (formal.type is InferableTypeBuilder) {
             if (formal.isInitializingFormal) {
               formal.finalizeInitializingFormal(
-                  declarationBuilder, constructorBuilder, hierarchy);
+                declarationBuilder,
+                constructorBuilder,
+                hierarchy,
+              );
             }
           }
         }
-        _inferSuperInitializingFormals(libraryBuilder, declarationBuilder,
-            constructorBuilder, hierarchy, delayedDefaultValueCloners);
+        _inferSuperInitializingFormals(
+          libraryBuilder,
+          declarationBuilder,
+          constructorBuilder,
+          hierarchy,
+          delayedDefaultValueCloners,
+        );
       });
     }
   }
 
   void _inferSuperInitializingFormals(
-      SourceLibraryBuilder libraryBuilder,
-      DeclarationBuilder declarationBuilder,
-      SourceConstructorBuilder constructorBuilder,
-      ClassHierarchyBase hierarchy,
-      List<DelayedDefaultValueCloner> delayedDefaultValueCloners) {
+    SourceLibraryBuilder libraryBuilder,
+    DeclarationBuilder declarationBuilder,
+    SourceConstructorBuilder constructorBuilder,
+    ClassHierarchyBase hierarchy,
+    List<DelayedDefaultValueCloner> delayedDefaultValueCloners,
+  ) {
     if (_hasSuperInitializingFormals) {
       List<Initializer>? initializers;
       Token? beginInitializers = this._beginInitializers;
       if (beginInitializers != null) {
         BodyBuilder bodyBuilder = libraryBuilder.loader
             .createBodyBuilderForOutlineExpression(
-                libraryBuilder,
-                createBodyBuilderContext(constructorBuilder),
-                _typeParameterScope,
-                fileUri);
+              libraryBuilder,
+              createBodyBuilderContext(constructorBuilder),
+              _typeParameterScope,
+              fileUri,
+            );
         if (isConst) {
           bodyBuilder.constantContext = ConstantContext.required;
         }
-        initializers = bodyBuilder.parseInitializers(beginInitializers,
-            doFinishConstructor: false);
+        initializers = bodyBuilder.parseInitializers(
+          beginInitializers,
+          doFinishConstructor: false,
+        );
       }
-      _finalizeSuperInitializingFormals(libraryBuilder, declarationBuilder,
-          hierarchy, delayedDefaultValueCloners, initializers);
+      _finalizeSuperInitializingFormals(
+        libraryBuilder,
+        declarationBuilder,
+        hierarchy,
+        delayedDefaultValueCloners,
+        initializers,
+      );
     }
   }
 
   void _finalizeSuperInitializingFormals(
-      SourceLibraryBuilder libraryBuilder,
-      DeclarationBuilder declarationBuilder,
-      ClassHierarchyBase hierarchy,
-      List<DelayedDefaultValueCloner> delayedDefaultValueCloners,
-      List<Initializer>? initializers) {
+    SourceLibraryBuilder libraryBuilder,
+    DeclarationBuilder declarationBuilder,
+    ClassHierarchyBase hierarchy,
+    List<DelayedDefaultValueCloner> delayedDefaultValueCloners,
+    List<Initializer>? initializers,
+  ) {
     if (formals == null) return;
     if (!_hasSuperInitializingFormals) return;
 
@@ -262,7 +290,10 @@ mixin _ConstructorDeclarationMixin
     }
 
     ConstructorBuilder? superTargetBuilder = _computeSuperTargetBuilder(
-        libraryBuilder, declarationBuilder, initializers);
+      libraryBuilder,
+      declarationBuilder,
+      initializers,
+    );
 
     if (superTargetBuilder is SourceConstructorBuilder) {
       superTargetBuilder.inferFormalTypes(hierarchy);
@@ -274,10 +305,13 @@ mixin _ConstructorDeclarationMixin
       superTarget = superTargetBuilder.invokeTarget;
       superConstructorFunction = superTargetBuilder.function;
     } else {
-      assert(libraryBuilder.loader.assertProblemReportedElsewhere(
+      assert(
+        libraryBuilder.loader.assertProblemReportedElsewhere(
           "${this.runtimeType}.finalizeSuperInitializingFormals: "
           "Can't compute super target.",
-          expectedPhase: CompilationPhaseForProblemReporting.bodyBuilding));
+          expectedPhase: CompilationPhaseForProblemReporting.bodyBuilding,
+        ),
+      );
       // Perform a simple recovery.
       return performRecoveryForErroneousCase();
     }
@@ -305,11 +339,15 @@ mixin _ConstructorDeclarationMixin
     List<String>? namedSuperParameters;
 
     Supertype? supertype = hierarchy.getClassAsInstanceOf(
-        classBuilder.cls, superTarget.enclosingClass!);
+      classBuilder.cls,
+      superTarget.enclosingClass!,
+    );
     assert(supertype != null);
     Map<TypeParameter, DartType> substitution =
         new Map<TypeParameter, DartType>.fromIterables(
-            supertype!.classNode.typeParameters, supertype.typeArguments);
+          supertype!.classNode.typeParameters,
+          supertype.typeArguments,
+        );
 
     for (int formalIndex = 0; formalIndex < formals!.length; formalIndex++) {
       FormalParameterBuilder formal = formals![formalIndex];
@@ -320,15 +358,17 @@ mixin _ConstructorDeclarationMixin
 
         DartType? correspondingSuperFormalType;
         if (formal.isPositional) {
-          assert(positionalSuperFormalHasInitializer.length ==
-              positionalSuperFormalType.length);
+          assert(
+            positionalSuperFormalHasInitializer.length ==
+                positionalSuperFormalType.length,
+          );
           if (superInitializingFormalIndex <
               positionalSuperFormalHasInitializer.length) {
             if (formal.isOptional) {
               formal.hasDeclaredInitializer =
                   hasImmediatelyDeclaredInitializer ||
-                      positionalSuperFormalHasInitializer[
-                          superInitializingFormalIndex];
+                  positionalSuperFormalHasInitializer[ // force line break
+                  superInitializingFormalIndex];
             }
             correspondingSuperFormalType =
                 positionalSuperFormalType[superInitializingFormalIndex];
@@ -339,20 +379,22 @@ mixin _ConstructorDeclarationMixin
               (positionalSuperParameters ??= <int?>[]).add(null);
             }
           } else {
-            assert(libraryBuilder.loader.assertProblemReportedElsewhere(
+            assert(
+              libraryBuilder.loader.assertProblemReportedElsewhere(
                 "${this.runtimeType}"
                 ".finalizeSuperInitializingFormals: "
                 "Super initializer count is greater than the count of "
                 "positional formals in the super constructor.",
-                expectedPhase:
-                    CompilationPhaseForProblemReporting.bodyBuilding));
+                expectedPhase: CompilationPhaseForProblemReporting.bodyBuilding,
+              ),
+            );
           }
         } else {
           if (namedSuperFormalHasInitializer[formal.name] != null) {
             if (formal.isOptional) {
               formal.hasDeclaredInitializer =
                   hasImmediatelyDeclaredInitializer ||
-                      namedSuperFormalHasInitializer[formal.name]!;
+                  namedSuperFormalHasInitializer[formal.name]!;
             }
             correspondingSuperFormalType = namedSuperFormalType[formal.name];
             if (!hasImmediatelyDeclaredInitializer && !formal.isRequiredNamed) {
@@ -376,25 +418,28 @@ mixin _ConstructorDeclarationMixin
 
     if (positionalSuperParameters != null || namedSuperParameters != null) {
       _addSuperParameterDefaultValueCloners(
-          libraryBuilder: libraryBuilder,
-          delayedDefaultValueCloners: delayedDefaultValueCloners,
-          superTarget: superTarget,
-          positionalSuperParameters: positionalSuperParameters,
-          namedSuperParameters: namedSuperParameters);
+        libraryBuilder: libraryBuilder,
+        delayedDefaultValueCloners: delayedDefaultValueCloners,
+        superTarget: superTarget,
+        positionalSuperParameters: positionalSuperParameters,
+        namedSuperParameters: namedSuperParameters,
+      );
     }
   }
 
-  void _addSuperParameterDefaultValueCloners(
-      {required List<DelayedDefaultValueCloner> delayedDefaultValueCloners,
-      required Member superTarget,
-      required List<int?>? positionalSuperParameters,
-      required List<String>? namedSuperParameters,
-      required SourceLibraryBuilder libraryBuilder});
+  void _addSuperParameterDefaultValueCloners({
+    required List<DelayedDefaultValueCloner> delayedDefaultValueCloners,
+    required Member superTarget,
+    required List<int?>? positionalSuperParameters,
+    required List<String>? namedSuperParameters,
+    required SourceLibraryBuilder libraryBuilder,
+  });
 
   ConstructorBuilder? _computeSuperTargetBuilder(
-      SourceLibraryBuilder libraryBuilder,
-      DeclarationBuilder declarationBuilder,
-      List<Initializer>? initializers) {
+    SourceLibraryBuilder libraryBuilder,
+    DeclarationBuilder declarationBuilder,
+    List<Initializer>? initializers,
+  ) {
     if (declarationBuilder is! SourceClassBuilder) {
       return null;
     }
@@ -404,15 +449,18 @@ mixin _ConstructorDeclarationMixin
     ClassBuilder superclassBuilder;
 
     TypeBuilder? supertype = classBuilder.supertypeBuilder;
-    TypeDeclarationBuilder? supertypeDeclaration =
-        supertype?.computeUnaliasedDeclaration(isUsedAsClass: false);
+    TypeDeclarationBuilder? supertypeDeclaration = supertype
+        ?.computeUnaliasedDeclaration(isUsedAsClass: false);
     if (supertypeDeclaration is ClassBuilder) {
       superclassBuilder = supertypeDeclaration;
     } else {
-      assert(libraryBuilder.loader.assertProblemReportedElsewhere(
+      assert(
+        libraryBuilder.loader.assertProblemReportedElsewhere(
           "${this.runtimeType}._computeSuperTargetBuilder: "
           "Unaliased 'declaration' isn't a ClassBuilder.",
-          expectedPhase: CompilationPhaseForProblemReporting.outline));
+          expectedPhase: CompilationPhaseForProblemReporting.outline,
+        ),
+      );
       return null;
     }
 
@@ -421,24 +469,31 @@ mixin _ConstructorDeclarationMixin
         initializers.last is SuperInitializer) {
       superTarget = (initializers.last as SuperInitializer).target;
     } else {
-      MemberLookupResult? result =
-          superclassBuilder.findConstructorOrFactory("", libraryBuilder);
+      MemberLookupResult? result = superclassBuilder.findConstructorOrFactory(
+        "",
+        libraryBuilder,
+      );
       MemberBuilder? memberBuilder = result?.getable;
       if (result != null &&
           !result.isInvalidLookup &&
           memberBuilder is ConstructorBuilder) {
         superTarget = memberBuilder.invokeTarget;
       } else {
-        assert(libraryBuilder.loader.assertProblemReportedElsewhere(
+        assert(
+          libraryBuilder.loader.assertProblemReportedElsewhere(
             "${this.runtimeType}._computeSuperTargetBuilder: "
             "Can't find the implied unnamed constructor in the superclass.",
-            expectedPhase: CompilationPhaseForProblemReporting.bodyBuilding));
+            expectedPhase: CompilationPhaseForProblemReporting.bodyBuilding,
+          ),
+        );
         return null;
       }
     }
 
     MemberLookupResult? result = superclassBuilder.findConstructorOrFactory(
-        superTarget.name.text, libraryBuilder);
+      superTarget.name.text,
+      libraryBuilder,
+    );
     MemberBuilder? constructorBuilder = result?.getable;
     if (result != null &&
         !result.isInvalidLookup &&
@@ -446,20 +501,24 @@ mixin _ConstructorDeclarationMixin
       return constructorBuilder;
     } else {
       // Coverage-ignore-block(suite): Not run.
-      assert(libraryBuilder.loader.assertProblemReportedElsewhere(
+      assert(
+        libraryBuilder.loader.assertProblemReportedElsewhere(
           "${this.runtimeType}._computeSuperTargetBuilder: "
           "Can't find a constructor with name '${superTarget.name.text}' in "
           "the superclass.",
-          expectedPhase: CompilationPhaseForProblemReporting.outline));
+          expectedPhase: CompilationPhaseForProblemReporting.outline,
+        ),
+      );
       return null;
     }
   }
 
   @override
   void addSuperParameterDefaultValueCloners(
-      SourceLibraryBuilder libraryBuilder,
-      DeclarationBuilder declarationBuilder,
-      List<DelayedDefaultValueCloner> delayedDefaultValueCloners) {
+    SourceLibraryBuilder libraryBuilder,
+    DeclarationBuilder declarationBuilder,
+    List<DelayedDefaultValueCloner> delayedDefaultValueCloners,
+  ) {
     if (_beginInitializers != null && initializers.isNotEmpty) {
       // If the initializers aren't built yet, we can't compute the super
       // target. The synthetic initializers should be excluded, since they can
@@ -473,10 +532,14 @@ mixin _ConstructorDeclarationMixin
       }
       if (!allInitializersAreSynthetic) {
         ConstructorBuilder? superTargetBuilder = _computeSuperTargetBuilder(
-            libraryBuilder, declarationBuilder, initializers);
+          libraryBuilder,
+          declarationBuilder,
+          initializers,
+        );
         if (superTargetBuilder is SourceConstructorBuilder) {
-          superTargetBuilder
-              .addSuperParameterDefaultValueCloners(delayedDefaultValueCloners);
+          superTargetBuilder.addSuperParameterDefaultValueCloners(
+            delayedDefaultValueCloners,
+          );
         }
       }
     }
@@ -498,41 +561,50 @@ mixin _ConstructorDeclarationMixin
   }
 
   void _buildConstructorForOutlineExpressions(
-      SourceLibraryBuilder libraryBuilder,
-      SourceConstructorBuilder constructorBuilder) {
+    SourceLibraryBuilder libraryBuilder,
+    SourceConstructorBuilder constructorBuilder,
+  ) {
     if (_beginInitializers != null) {
       final LocalScope? formalParameterScope;
       if (isConst) {
         // We're going to fully build the constructor so we need scopes.
         formalParameterScope = computeFormalParameterInitializerScope(
-            computeFormalParameterScope(_typeParameterScope));
+          computeFormalParameterScope(_typeParameterScope),
+        );
       } else {
         formalParameterScope = null;
       }
       BodyBuilder bodyBuilder = libraryBuilder.loader
           .createBodyBuilderForOutlineExpression(
-              libraryBuilder,
-              createBodyBuilderContext(constructorBuilder),
-              _typeParameterScope,
-              fileUri,
-              formalParameterScope: formalParameterScope);
+            libraryBuilder,
+            createBodyBuilderContext(constructorBuilder),
+            _typeParameterScope,
+            fileUri,
+            formalParameterScope: formalParameterScope,
+          );
       if (isConst) {
         bodyBuilder.constantContext = ConstantContext.required;
       }
       constructorBuilder.inferFormalTypes(bodyBuilder.hierarchy);
-      bodyBuilder.parseInitializers(_beginInitializers!,
-          doFinishConstructor: isConst);
+      bodyBuilder.parseInitializers(
+        _beginInitializers!,
+        doFinishConstructor: isConst,
+      );
       bodyBuilder.performBacklogComputations();
     }
   }
 
-  void _buildOutlineExpressions(SourceLibraryBuilder libraryBuilder,
-      SourceConstructorBuilder constructorBuilder) {
+  void _buildOutlineExpressions(
+    SourceLibraryBuilder libraryBuilder,
+    SourceConstructorBuilder constructorBuilder,
+  ) {
     if (isConst || _hasSuperInitializingFormals) {
       // For modular compilation purposes we need to include initializers
       // for const constructors into the outline.
       _buildConstructorForOutlineExpressions(
-          libraryBuilder, constructorBuilder);
+        libraryBuilder,
+        constructorBuilder,
+      );
       buildBody();
     }
   }
@@ -565,41 +637,58 @@ mixin _ConstructorDeclarationMixin
     required List<DelayedDefaultValueCloner> delayedDefaultValueCloners,
   }) {
     formals?.infer(classHierarchy);
-    BodyBuilderContext bodyBuilderContext =
-        createBodyBuilderContext(constructorBuilder);
+    BodyBuilderContext bodyBuilderContext = createBodyBuilderContext(
+      constructorBuilder,
+    );
     _buildMetadataForOutlineExpressions(
-        annotatables: annotatables,
-        annotatablesFileUri: annotatablesFileUri,
-        libraryBuilder: libraryBuilder,
-        declarationBuilder: declarationBuilder,
-        constructorBuilder: constructorBuilder,
-        bodyBuilderContext: bodyBuilderContext,
-        classHierarchy: classHierarchy);
+      annotatables: annotatables,
+      annotatablesFileUri: annotatablesFileUri,
+      libraryBuilder: libraryBuilder,
+      declarationBuilder: declarationBuilder,
+      constructorBuilder: constructorBuilder,
+      bodyBuilderContext: bodyBuilderContext,
+      classHierarchy: classHierarchy,
+    );
     _buildTypeParametersAndFormalsForOutlineExpressions(
-        libraryBuilder: libraryBuilder,
-        declarationBuilder: declarationBuilder,
-        bodyBuilderContext: bodyBuilderContext,
-        classHierarchy: classHierarchy);
+      libraryBuilder: libraryBuilder,
+      declarationBuilder: declarationBuilder,
+      bodyBuilderContext: bodyBuilderContext,
+      classHierarchy: classHierarchy,
+    );
     _buildOutlineExpressions(libraryBuilder, constructorBuilder);
     addSuperParameterDefaultValueCloners(
-        libraryBuilder, declarationBuilder, delayedDefaultValueCloners);
+      libraryBuilder,
+      declarationBuilder,
+      delayedDefaultValueCloners,
+    );
     _beginInitializers = null;
   }
 
   @override
-  void checkTypes(SourceLibraryBuilder libraryBuilder, NameSpace nameSpace,
-      TypeEnvironment typeEnvironment) {
-    libraryBuilder.checkInitializersInFormals(formals, typeEnvironment,
-        isAbstract: false, isExternal: isExternal);
+  void checkTypes(
+    SourceLibraryBuilder libraryBuilder,
+    NameSpace nameSpace,
+    TypeEnvironment typeEnvironment,
+  ) {
+    libraryBuilder.checkInitializersInFormals(
+      formals,
+      typeEnvironment,
+      isAbstract: false,
+      isExternal: isExternal,
+    );
   }
 
   @override
-  int computeDefaultTypes(ComputeDefaultTypeContext context,
-      {required bool inErrorRecovery}) {
-    int count = context.computeDefaultTypesForVariables(_typeParameters,
-        // Type parameters are inherited from the enclosing declaration, so if
-        // it has issues, so do the constructors.
-        inErrorRecovery: inErrorRecovery);
+  int computeDefaultTypes(
+    ComputeDefaultTypeContext context, {
+    required bool inErrorRecovery,
+  }) {
+    int count = context.computeDefaultTypesForVariables(
+      _typeParameters,
+      // Type parameters are inherited from the enclosing declaration, so if
+      // it has issues, so do the constructors.
+      inErrorRecovery: inErrorRecovery,
+    );
     context.reportGenericFunctionTypesForFormals(formals);
     return count;
   }
@@ -674,25 +763,30 @@ mixin _ConstructorEncodingMixin
   }
 
   @override
-  void _addSuperParameterDefaultValueCloners(
-      {required List<DelayedDefaultValueCloner> delayedDefaultValueCloners,
-      required Member superTarget,
-      required List<int?>? positionalSuperParameters,
-      required List<String>? namedSuperParameters,
-      required SourceLibraryBuilder libraryBuilder}) {
+  void _addSuperParameterDefaultValueCloners({
+    required List<DelayedDefaultValueCloner> delayedDefaultValueCloners,
+    required Member superTarget,
+    required List<int?>? positionalSuperParameters,
+    required List<String>? namedSuperParameters,
+    required SourceLibraryBuilder libraryBuilder,
+  }) {
     _encoding.addSuperParameterDefaultValueCloners(
-        delayedDefaultValueCloners: delayedDefaultValueCloners,
-        superTarget: superTarget,
-        positionalSuperParameters: positionalSuperParameters,
-        namedSuperParameters: namedSuperParameters,
-        libraryBuilder: libraryBuilder);
+      delayedDefaultValueCloners: delayedDefaultValueCloners,
+      superTarget: superTarget,
+      positionalSuperParameters: positionalSuperParameters,
+      namedSuperParameters: namedSuperParameters,
+      libraryBuilder: libraryBuilder,
+    );
   }
 
   @override
   Substitution computeFieldTypeSubstitution(
-      DeclarationBuilder declarationBuilder) {
+    DeclarationBuilder declarationBuilder,
+  ) {
     return _encoding.computeFieldTypeSubstitution(
-        declarationBuilder, _typeParameters);
+      declarationBuilder,
+      _typeParameters,
+    );
   }
 
   @override
@@ -716,7 +810,10 @@ mixin _RegularConstructorDeclarationMixin
     if (_typeParameters != null) {
       for (int i = 0; i < _typeParameters!.length; i++) {
         _typeParameters![i].buildOutlineExpressions(
-            libraryBuilder, bodyBuilderContext, classHierarchy);
+          libraryBuilder,
+          bodyBuilderContext,
+          classHierarchy,
+        );
       }
     }
 
@@ -726,15 +823,20 @@ mixin _RegularConstructorDeclarationMixin
       // buildOutlineExpressions to clear initializerToken to prevent
       // consuming too much memory.
       for (FormalParameterBuilder formal in formals!) {
-        formal.buildOutlineExpressions(libraryBuilder, declarationBuilder,
-            scope: typeParameterScope, buildDefaultValue: true);
+        formal.buildOutlineExpressions(
+          libraryBuilder,
+          declarationBuilder,
+          scope: typeParameterScope,
+          buildDefaultValue: true,
+        );
       }
     }
   }
 
   @override
   BodyBuilderContext createBodyBuilderContext(
-      SourceConstructorBuilder constructorBuilder) {
+    SourceConstructorBuilder constructorBuilder,
+  ) {
     return _encoding.createBodyBuilderContext(constructorBuilder, this);
   }
 
@@ -775,7 +877,7 @@ class RegularConstructorDeclaration
   Token? _beginInitializers;
 
   RegularConstructorDeclaration(this._fragment)
-      : _beginInitializers = _fragment.beginInitializers {
+    : _beginInitializers = _fragment.beginInitializers {
     _fragment.declaration = this;
   }
 
@@ -819,22 +921,29 @@ class RegularConstructorDeclaration
   }) {
     _fragment.builder = constructorBuilder;
     _typeParameters = encodingStrategy.createTypeParameters(
-        declarationBuilder: declarationBuilder,
-        declarationTypeParameterFragments:
-            _fragment.enclosingDeclaration.typeParameters,
-        typeParameters: typeParameterFactory
-            .createNominalParameterBuilders(_fragment.typeParameters),
-        typeParameterFactory: typeParameterFactory);
+      declarationBuilder: declarationBuilder,
+      declarationTypeParameterFragments:
+          _fragment.enclosingDeclaration.typeParameters,
+      typeParameters: typeParameterFactory.createNominalParameterBuilders(
+        _fragment.typeParameters,
+      ),
+      typeParameterFactory: typeParameterFactory,
+    );
     _fragment.typeParameterNameSpace.addTypeParameters(
-        problemReporting, _typeParameters,
-        ownerName: _fragment.name, allowNameConflict: true);
+      problemReporting,
+      _typeParameters,
+      ownerName: _fragment.name,
+      allowNameConflict: true,
+    );
     _formals = encodingStrategy.createFormals(
-        loader: loader,
-        formals: _fragment.formals,
-        fileUri: _fragment.fileUri,
-        fileOffset: _fragment.fullNameOffset);
+      loader: loader,
+      formals: _fragment.formals,
+      fileUri: _fragment.fileUri,
+      fileOffset: _fragment.fullNameOffset,
+    );
     _encoding = encodingStrategy.createEncoding(
-        isExternal: _fragment.modifiers.isExternal);
+      isExternal: _fragment.modifiers.isExternal,
+    );
     _registerInferable(constructorBuilder);
   }
 
@@ -842,65 +951,73 @@ class RegularConstructorDeclaration
   List<FormalParameterBuilder>? get formals => _formals;
 
   @override
-  void buildOutlineNodes(BuildNodesCallback f,
-      {required SourceConstructorBuilder constructorBuilder,
-      required SourceLibraryBuilder libraryBuilder,
-      required NameScheme nameScheme,
-      required ConstructorReferences? constructorReferences,
-      required List<DelayedDefaultValueCloner> delayedDefaultValueCloners}) {
-    _encoding.buildOutlineNodes(f,
-        constructorBuilder: constructorBuilder,
-        libraryBuilder: libraryBuilder,
-        declarationBuilder: constructorBuilder.declarationBuilder,
-        name: _fragment.name,
-        nameScheme: nameScheme,
-        constructorReferences: constructorReferences,
-        fileUri: _fragment.fileUri,
-        startOffset: _fragment.startOffset,
-        fileOffset: _fragment.fullNameOffset,
-        endOffset: _fragment.endOffset,
-        isSynthetic: false,
-        forAbstractClassOrEnumOrMixin: _fragment.forAbstractClassOrMixin,
-        formalsOffset: _fragment.formalsOffset,
-        isConst: _fragment.modifiers.isConst,
-        returnType: returnType,
-        typeParameters: _typeParameters,
-        formals: formals,
-        delayedDefaultValueCloners: delayedDefaultValueCloners);
+  void buildOutlineNodes(
+    BuildNodesCallback f, {
+    required SourceConstructorBuilder constructorBuilder,
+    required SourceLibraryBuilder libraryBuilder,
+    required NameScheme nameScheme,
+    required ConstructorReferences? constructorReferences,
+    required List<DelayedDefaultValueCloner> delayedDefaultValueCloners,
+  }) {
+    _encoding.buildOutlineNodes(
+      f,
+      constructorBuilder: constructorBuilder,
+      libraryBuilder: libraryBuilder,
+      declarationBuilder: constructorBuilder.declarationBuilder,
+      name: _fragment.name,
+      nameScheme: nameScheme,
+      constructorReferences: constructorReferences,
+      fileUri: _fragment.fileUri,
+      startOffset: _fragment.startOffset,
+      fileOffset: _fragment.fullNameOffset,
+      endOffset: _fragment.endOffset,
+      isSynthetic: false,
+      forAbstractClassOrEnumOrMixin: _fragment.forAbstractClassOrMixin,
+      formalsOffset: _fragment.formalsOffset,
+      isConst: _fragment.modifiers.isConst,
+      returnType: returnType,
+      typeParameters: _typeParameters,
+      formals: formals,
+      delayedDefaultValueCloners: delayedDefaultValueCloners,
+    );
   }
 
   @override
-  void _buildMetadataForOutlineExpressions(
-      {required Iterable<Annotatable> annotatables,
-      required Uri annotatablesFileUri,
-      required SourceLibraryBuilder libraryBuilder,
-      required DeclarationBuilder declarationBuilder,
-      required SourceConstructorBuilder constructorBuilder,
-      required BodyBuilderContext bodyBuilderContext,
-      required ClassHierarchy classHierarchy}) {
+  void _buildMetadataForOutlineExpressions({
+    required Iterable<Annotatable> annotatables,
+    required Uri annotatablesFileUri,
+    required SourceLibraryBuilder libraryBuilder,
+    required DeclarationBuilder declarationBuilder,
+    required SourceConstructorBuilder constructorBuilder,
+    required BodyBuilderContext bodyBuilderContext,
+    required ClassHierarchy classHierarchy,
+  }) {
     for (Annotatable annotatable in annotatables) {
       MetadataBuilder.buildAnnotations(
-          annotatable: annotatable,
-          annotatableFileUri: annotatablesFileUri,
-          metadata: _fragment.metadata,
-          bodyBuilderContext: bodyBuilderContext,
-          libraryBuilder: libraryBuilder,
-          scope: _fragment.enclosingScope);
+        annotatable: annotatable,
+        annotatableFileUri: annotatablesFileUri,
+        metadata: _fragment.metadata,
+        bodyBuilderContext: bodyBuilderContext,
+        libraryBuilder: libraryBuilder,
+        scope: _fragment.enclosingScope,
+      );
     }
   }
 
   @override
-  void _buildTypeParametersAndFormalsForOutlineExpressions(
-      {required SourceLibraryBuilder libraryBuilder,
-      required DeclarationBuilder declarationBuilder,
-      required BodyBuilderContext bodyBuilderContext,
-      required ClassHierarchy classHierarchy}) {
+  void _buildTypeParametersAndFormalsForOutlineExpressions({
+    required SourceLibraryBuilder libraryBuilder,
+    required DeclarationBuilder declarationBuilder,
+    required BodyBuilderContext bodyBuilderContext,
+    required ClassHierarchy classHierarchy,
+  }) {
     _buildTypeParametersAndFormals(
-        libraryBuilder: libraryBuilder,
-        declarationBuilder: declarationBuilder,
-        bodyBuilderContext: bodyBuilderContext,
-        classHierarchy: classHierarchy,
-        typeParameterScope: _fragment.typeParameterScope);
+      libraryBuilder: libraryBuilder,
+      declarationBuilder: declarationBuilder,
+      bodyBuilderContext: bodyBuilderContext,
+      classHierarchy: classHierarchy,
+      typeParameterScope: _fragment.typeParameterScope,
+    );
   }
 }
 
@@ -931,19 +1048,19 @@ class DefaultEnumConstructorDeclaration
   @override
   Token? _beginInitializers;
 
-  DefaultEnumConstructorDeclaration(
-      {required this.returnType,
-      required this.formals,
-      required Uri fileUri,
-      required int fileOffset,
-      required LookupScope lookupScope})
-      : fileUri = fileUri,
-        fileOffset = fileOffset,
-        _lookupScope = lookupScope,
-        // Trick the constructor to be built during the outline phase.
-        // TODO(johnniwinther): Avoid relying on [beginInitializers] to
-        // ensure building constructors creation during the outline phase.
-        _beginInitializers = new Token.eof(-1);
+  DefaultEnumConstructorDeclaration({
+    required this.returnType,
+    required this.formals,
+    required Uri fileUri,
+    required int fileOffset,
+    required LookupScope lookupScope,
+  }) : fileUri = fileUri,
+       fileOffset = fileOffset,
+       _lookupScope = lookupScope,
+       // Trick the constructor to be built during the outline phase.
+       // TODO(johnniwinther): Avoid relying on [beginInitializers] to
+       // ensure building constructors creation during the outline phase.
+       _beginInitializers = new Token.eof(-1);
 
   @override
   void createEncoding({
@@ -984,57 +1101,64 @@ class DefaultEnumConstructorDeclaration
   bool get isExternal => false;
 
   @override
-  void buildOutlineNodes(BuildNodesCallback f,
-      {required SourceConstructorBuilder constructorBuilder,
-      required SourceLibraryBuilder libraryBuilder,
-      required NameScheme nameScheme,
-      required ConstructorReferences? constructorReferences,
-      required List<DelayedDefaultValueCloner> delayedDefaultValueCloners}) {
-    _encoding.buildOutlineNodes(f,
-        constructorBuilder: constructorBuilder,
-        libraryBuilder: libraryBuilder,
-        declarationBuilder: constructorBuilder.declarationBuilder,
-        name: '',
-        nameScheme: nameScheme,
-        constructorReferences: constructorReferences,
-        fileUri: fileUri,
-        startOffset: fileOffset,
-        fileOffset: fileOffset,
-        formalsOffset: fileOffset,
-        endOffset: fileOffset,
-        isSynthetic: true,
-        forAbstractClassOrEnumOrMixin: true,
-        isConst: true,
-        returnType: returnType,
-        typeParameters: _typeParameters,
-        formals: formals,
-        delayedDefaultValueCloners: delayedDefaultValueCloners);
+  void buildOutlineNodes(
+    BuildNodesCallback f, {
+    required SourceConstructorBuilder constructorBuilder,
+    required SourceLibraryBuilder libraryBuilder,
+    required NameScheme nameScheme,
+    required ConstructorReferences? constructorReferences,
+    required List<DelayedDefaultValueCloner> delayedDefaultValueCloners,
+  }) {
+    _encoding.buildOutlineNodes(
+      f,
+      constructorBuilder: constructorBuilder,
+      libraryBuilder: libraryBuilder,
+      declarationBuilder: constructorBuilder.declarationBuilder,
+      name: '',
+      nameScheme: nameScheme,
+      constructorReferences: constructorReferences,
+      fileUri: fileUri,
+      startOffset: fileOffset,
+      fileOffset: fileOffset,
+      formalsOffset: fileOffset,
+      endOffset: fileOffset,
+      isSynthetic: true,
+      forAbstractClassOrEnumOrMixin: true,
+      isConst: true,
+      returnType: returnType,
+      typeParameters: _typeParameters,
+      formals: formals,
+      delayedDefaultValueCloners: delayedDefaultValueCloners,
+    );
   }
 
   @override
-  void _buildMetadataForOutlineExpressions(
-      {required Iterable<Annotatable> annotatables,
-      required Uri annotatablesFileUri,
-      required SourceLibraryBuilder libraryBuilder,
-      required DeclarationBuilder declarationBuilder,
-      required SourceConstructorBuilder constructorBuilder,
-      required BodyBuilderContext bodyBuilderContext,
-      required ClassHierarchy classHierarchy}) {
+  void _buildMetadataForOutlineExpressions({
+    required Iterable<Annotatable> annotatables,
+    required Uri annotatablesFileUri,
+    required SourceLibraryBuilder libraryBuilder,
+    required DeclarationBuilder declarationBuilder,
+    required SourceConstructorBuilder constructorBuilder,
+    required BodyBuilderContext bodyBuilderContext,
+    required ClassHierarchy classHierarchy,
+  }) {
     // There is no metadata on a default enum constructor.
   }
 
   @override
-  void _buildTypeParametersAndFormalsForOutlineExpressions(
-      {required SourceLibraryBuilder libraryBuilder,
-      required DeclarationBuilder declarationBuilder,
-      required BodyBuilderContext bodyBuilderContext,
-      required ClassHierarchy classHierarchy}) {
+  void _buildTypeParametersAndFormalsForOutlineExpressions({
+    required SourceLibraryBuilder libraryBuilder,
+    required DeclarationBuilder declarationBuilder,
+    required BodyBuilderContext bodyBuilderContext,
+    required ClassHierarchy classHierarchy,
+  }) {
     _buildTypeParametersAndFormals(
-        libraryBuilder: libraryBuilder,
-        declarationBuilder: declarationBuilder,
-        bodyBuilderContext: bodyBuilderContext,
-        classHierarchy: classHierarchy,
-        typeParameterScope: _lookupScope);
+      libraryBuilder: libraryBuilder,
+      declarationBuilder: declarationBuilder,
+      bodyBuilderContext: bodyBuilderContext,
+      classHierarchy: classHierarchy,
+      typeParameterScope: _lookupScope,
+    );
   }
 
   @override
@@ -1062,7 +1186,7 @@ class PrimaryConstructorDeclaration
   Token? _beginInitializers;
 
   PrimaryConstructorDeclaration(this._fragment)
-      : _beginInitializers = _fragment.beginInitializers {
+    : _beginInitializers = _fragment.beginInitializers {
     _fragment.declaration = this;
   }
 
@@ -1085,21 +1209,27 @@ class PrimaryConstructorDeclaration
   }) {
     _fragment.builder = constructorBuilder;
     _typeParameters = encodingStrategy.createTypeParameters(
-        declarationBuilder: declarationBuilder,
-        declarationTypeParameterFragments:
-            _fragment.enclosingDeclaration.typeParameters,
-        typeParameters: null,
-        typeParameterFactory: typeParameterFactory);
+      declarationBuilder: declarationBuilder,
+      declarationTypeParameterFragments:
+          _fragment.enclosingDeclaration.typeParameters,
+      typeParameters: null,
+      typeParameterFactory: typeParameterFactory,
+    );
     _fragment.typeParameterNameSpace.addTypeParameters(
-        problemReporting, _typeParameters,
-        ownerName: _fragment.name, allowNameConflict: true);
+      problemReporting,
+      _typeParameters,
+      ownerName: _fragment.name,
+      allowNameConflict: true,
+    );
     _formals = encodingStrategy.createFormals(
-        loader: loader,
-        formals: _fragment.formals,
-        fileUri: _fragment.fileUri,
-        fileOffset: _fragment.fileOffset);
+      loader: loader,
+      formals: _fragment.formals,
+      fileUri: _fragment.fileUri,
+      fileOffset: _fragment.fileOffset,
+    );
     _encoding = encodingStrategy.createEncoding(
-        isExternal: _fragment.modifiers.isExternal);
+      isExternal: _fragment.modifiers.isExternal,
+    );
     _registerInferable(constructorBuilder);
   }
 
@@ -1113,7 +1243,10 @@ class PrimaryConstructorDeclaration
     if (_typeParameters != null) {
       for (int i = 0; i < _typeParameters!.length; i++) {
         _typeParameters![i].buildOutlineExpressions(
-            libraryBuilder, bodyBuilderContext, classHierarchy);
+          libraryBuilder,
+          bodyBuilderContext,
+          classHierarchy,
+        );
       }
     }
 
@@ -1123,15 +1256,20 @@ class PrimaryConstructorDeclaration
       // buildOutlineExpressions to clear initializerToken to prevent
       // consuming too much memory.
       for (FormalParameterBuilder formal in formals!) {
-        formal.buildOutlineExpressions(libraryBuilder, declarationBuilder,
-            scope: typeParameterScope, buildDefaultValue: true);
+        formal.buildOutlineExpressions(
+          libraryBuilder,
+          declarationBuilder,
+          scope: typeParameterScope,
+          buildDefaultValue: true,
+        );
       }
     }
   }
 
   @override
   BodyBuilderContext createBodyBuilderContext(
-      SourceConstructorBuilder constructorBuilder) {
+    SourceConstructorBuilder constructorBuilder,
+  ) {
     return _encoding.createBodyBuilderContext(constructorBuilder, this);
   }
 
@@ -1173,59 +1311,67 @@ class PrimaryConstructorDeclaration
   bool get isExternal => _fragment.modifiers.isExternal;
 
   @override
-  void buildOutlineNodes(BuildNodesCallback f,
-      {required SourceConstructorBuilder constructorBuilder,
-      required SourceLibraryBuilder libraryBuilder,
-      required NameScheme nameScheme,
-      required ConstructorReferences? constructorReferences,
-      required List<DelayedDefaultValueCloner> delayedDefaultValueCloners}) {
-    _encoding.buildOutlineNodes(f,
-        constructorBuilder: constructorBuilder,
-        libraryBuilder: libraryBuilder,
-        declarationBuilder: constructorBuilder.declarationBuilder
-            as SourceExtensionTypeDeclarationBuilder,
-        name: _fragment.name,
-        nameScheme: nameScheme,
-        constructorReferences: constructorReferences,
-        fileUri: _fragment.fileUri,
-        fileOffset: _fragment.fileOffset,
-        startOffset: _fragment.startOffset,
-        formalsOffset: _fragment.formalsOffset,
-        // TODO(johnniwinther): Provide `endOffset`.
-        endOffset: _fragment.formalsOffset,
-        forAbstractClassOrEnumOrMixin: _fragment.forAbstractClassOrMixin,
-        isConst: _fragment.modifiers.isConst,
-        isSynthetic: false,
-        returnType: returnType,
-        typeParameters: _typeParameters,
-        formals: formals,
-        delayedDefaultValueCloners: delayedDefaultValueCloners);
+  void buildOutlineNodes(
+    BuildNodesCallback f, {
+    required SourceConstructorBuilder constructorBuilder,
+    required SourceLibraryBuilder libraryBuilder,
+    required NameScheme nameScheme,
+    required ConstructorReferences? constructorReferences,
+    required List<DelayedDefaultValueCloner> delayedDefaultValueCloners,
+  }) {
+    _encoding.buildOutlineNodes(
+      f,
+      constructorBuilder: constructorBuilder,
+      libraryBuilder: libraryBuilder,
+      declarationBuilder:
+          constructorBuilder.declarationBuilder
+              as SourceExtensionTypeDeclarationBuilder,
+      name: _fragment.name,
+      nameScheme: nameScheme,
+      constructorReferences: constructorReferences,
+      fileUri: _fragment.fileUri,
+      fileOffset: _fragment.fileOffset,
+      startOffset: _fragment.startOffset,
+      formalsOffset: _fragment.formalsOffset,
+      // TODO(johnniwinther): Provide `endOffset`.
+      endOffset: _fragment.formalsOffset,
+      forAbstractClassOrEnumOrMixin: _fragment.forAbstractClassOrMixin,
+      isConst: _fragment.modifiers.isConst,
+      isSynthetic: false,
+      returnType: returnType,
+      typeParameters: _typeParameters,
+      formals: formals,
+      delayedDefaultValueCloners: delayedDefaultValueCloners,
+    );
   }
 
   @override
-  void _buildMetadataForOutlineExpressions(
-      {required Iterable<Annotatable> annotatables,
-      required Uri annotatablesFileUri,
-      required SourceLibraryBuilder libraryBuilder,
-      required DeclarationBuilder declarationBuilder,
-      required SourceConstructorBuilder constructorBuilder,
-      required BodyBuilderContext bodyBuilderContext,
-      required ClassHierarchy classHierarchy}) {
+  void _buildMetadataForOutlineExpressions({
+    required Iterable<Annotatable> annotatables,
+    required Uri annotatablesFileUri,
+    required SourceLibraryBuilder libraryBuilder,
+    required DeclarationBuilder declarationBuilder,
+    required SourceConstructorBuilder constructorBuilder,
+    required BodyBuilderContext bodyBuilderContext,
+    required ClassHierarchy classHierarchy,
+  }) {
     // There is no metadata on a primary constructor.
   }
 
   @override
-  void _buildTypeParametersAndFormalsForOutlineExpressions(
-      {required SourceLibraryBuilder libraryBuilder,
-      required DeclarationBuilder declarationBuilder,
-      required BodyBuilderContext bodyBuilderContext,
-      required ClassHierarchy classHierarchy}) {
+  void _buildTypeParametersAndFormalsForOutlineExpressions({
+    required SourceLibraryBuilder libraryBuilder,
+    required DeclarationBuilder declarationBuilder,
+    required BodyBuilderContext bodyBuilderContext,
+    required ClassHierarchy classHierarchy,
+  }) {
     _buildTypeParametersAndFormals(
-        libraryBuilder: libraryBuilder,
-        declarationBuilder: declarationBuilder,
-        bodyBuilderContext: bodyBuilderContext,
-        classHierarchy: classHierarchy,
-        typeParameterScope: _fragment.typeParameterScope);
+      libraryBuilder: libraryBuilder,
+      declarationBuilder: declarationBuilder,
+      bodyBuilderContext: bodyBuilderContext,
+      classHierarchy: classHierarchy,
+      typeParameterScope: _fragment.typeParameterScope,
+    );
   }
 
   @override
@@ -1245,7 +1391,8 @@ abstract class ConstructorFragmentDeclaration {
   List<FormalParameterBuilder>? get formals;
 
   BodyBuilderContext createBodyBuilderContext(
-      SourceConstructorBuilder constructorBuilder);
+    SourceConstructorBuilder constructorBuilder,
+  );
 
   FunctionNode get function;
 
@@ -1325,13 +1472,18 @@ mixin _SyntheticConstructorDeclarationMixin implements ConstructorDeclaration {
   List<MetadataBuilder>? get metadata => null;
 
   @override
-  void checkTypes(SourceLibraryBuilder libraryBuilder, NameSpace nameSpace,
-      TypeEnvironment typeEnvironment) {}
+  void checkTypes(
+    SourceLibraryBuilder libraryBuilder,
+    NameSpace nameSpace,
+    TypeEnvironment typeEnvironment,
+  ) {}
 
   @override
   // Coverage-ignore(suite): Not run.
-  int computeDefaultTypes(ComputeDefaultTypeContext context,
-      {required bool inErrorRecovery}) {
+  int computeDefaultTypes(
+    ComputeDefaultTypeContext context, {
+    required bool inErrorRecovery,
+  }) {
     assert(false, "Unexpected call to $runtimeType.computeDefaultType");
     return 0;
   }
@@ -1340,16 +1492,19 @@ mixin _SyntheticConstructorDeclarationMixin implements ConstructorDeclaration {
   void buildBody() {}
 
   @override
-  void buildOutlineNodes(BuildNodesCallback f,
-      {required SourceConstructorBuilder constructorBuilder,
-      required SourceLibraryBuilder libraryBuilder,
-      required NameScheme nameScheme,
-      required ConstructorReferences? constructorReferences,
-      required List<DelayedDefaultValueCloner> delayedDefaultValueCloners}) {
+  void buildOutlineNodes(
+    BuildNodesCallback f, {
+    required SourceConstructorBuilder constructorBuilder,
+    required SourceLibraryBuilder libraryBuilder,
+    required NameScheme nameScheme,
+    required ConstructorReferences? constructorReferences,
+    required List<DelayedDefaultValueCloner> delayedDefaultValueCloners,
+  }) {
     f(
-        member: _constructor,
-        tearOff: _constructorTearOff,
-        kind: BuiltMemberKind.Constructor);
+      member: _constructor,
+      tearOff: _constructorTearOff,
+      kind: BuiltMemberKind.Constructor,
+    );
   }
 
   @override
@@ -1360,19 +1515,22 @@ mixin _SyntheticConstructorDeclarationMixin implements ConstructorDeclaration {
   @override
   void prepareInitializers() {
     throw new UnsupportedError(
-        "Unexpected call to $runtimeType.prepareInitializers");
+      "Unexpected call to $runtimeType.prepareInitializers",
+    );
   }
 
   @override
   void prependInitializer(Initializer initializer) {
     throw new UnsupportedError(
-        "Unexpected call to $runtimeType.prependInitializer");
+      "Unexpected call to $runtimeType.prependInitializer",
+    );
   }
 
   @override
   // Coverage-ignore(suite): Not run.
   Substitution computeFieldTypeSubstitution(
-      DeclarationBuilder declarationBuilder) {
+    DeclarationBuilder declarationBuilder,
+  ) {
     return Substitution.empty;
   }
 }
@@ -1389,8 +1547,8 @@ class DefaultConstructorDeclaration
   DefaultConstructorDeclaration({
     required Constructor constructor,
     required Procedure? constructorTearOff,
-  })  : this._constructor = constructor,
-        this._constructorTearOff = constructorTearOff;
+  }) : this._constructor = constructor,
+       this._constructorTearOff = constructorTearOff;
 
   @override
   // Coverage-ignore(suite): Not run.
@@ -1405,27 +1563,30 @@ class DefaultConstructorDeclaration
 
   @override
   void addSuperParameterDefaultValueCloners(
-      SourceLibraryBuilder libraryBuilder,
-      DeclarationBuilder declarationBuilder,
-      List<DelayedDefaultValueCloner> delayedDefaultValueCloners) {}
+    SourceLibraryBuilder libraryBuilder,
+    DeclarationBuilder declarationBuilder,
+    List<DelayedDefaultValueCloner> delayedDefaultValueCloners,
+  ) {}
 
   @override
-  void buildOutlineExpressions(
-      {required Iterable<Annotatable> annotatables,
-      required Uri annotatablesFileUri,
-      required SourceLibraryBuilder libraryBuilder,
-      required DeclarationBuilder declarationBuilder,
-      required SourceConstructorBuilder constructorBuilder,
-      required ClassHierarchy classHierarchy,
-      required List<DelayedDefaultValueCloner> delayedDefaultValueCloners}) {}
+  void buildOutlineExpressions({
+    required Iterable<Annotatable> annotatables,
+    required Uri annotatablesFileUri,
+    required SourceLibraryBuilder libraryBuilder,
+    required DeclarationBuilder declarationBuilder,
+    required SourceConstructorBuilder constructorBuilder,
+    required ClassHierarchy classHierarchy,
+    required List<DelayedDefaultValueCloner> delayedDefaultValueCloners,
+  }) {}
 
   @override
   void inferFormalTypes(
-      SourceLibraryBuilder libraryBuilder,
-      DeclarationBuilder declarationBuilder,
-      SourceConstructorBuilder constructorBuilder,
-      ClassHierarchyBase hierarchy,
-      List<DelayedDefaultValueCloner> delayedDefaultValueCloners) {}
+    SourceLibraryBuilder libraryBuilder,
+    DeclarationBuilder declarationBuilder,
+    SourceConstructorBuilder constructorBuilder,
+    ClassHierarchyBase hierarchy,
+    List<DelayedDefaultValueCloner> delayedDefaultValueCloners,
+  ) {}
 }
 
 class ForwardingConstructorDeclaration
@@ -1455,11 +1616,11 @@ class ForwardingConstructorDeclaration
     required MemberBuilder definingConstructor,
     required DelayedDefaultValueCloner delayedDefaultValueCloner,
     required TypeDependency? typeDependency,
-  })  : _constructor = constructor,
-        _constructorTearOff = constructorTearOff,
-        _immediatelyDefiningConstructor = definingConstructor,
-        _delayedDefaultValueCloner = delayedDefaultValueCloner,
-        _typeDependency = typeDependency;
+  }) : _constructor = constructor,
+       _constructorTearOff = constructorTearOff,
+       _immediatelyDefiningConstructor = definingConstructor,
+       _delayedDefaultValueCloner = delayedDefaultValueCloner,
+       _typeDependency = typeDependency;
 
   @override
   // Coverage-ignore(suite): Not run.
@@ -1474,9 +1635,10 @@ class ForwardingConstructorDeclaration
 
   @override
   void addSuperParameterDefaultValueCloners(
-      SourceLibraryBuilder libraryBuilder,
-      DeclarationBuilder declarationBuilder,
-      List<DelayedDefaultValueCloner> delayedDefaultValueCloners) {
+    SourceLibraryBuilder libraryBuilder,
+    DeclarationBuilder declarationBuilder,
+    List<DelayedDefaultValueCloner> delayedDefaultValueCloners,
+  ) {
     MemberBuilder? origin = _immediatelyDefiningConstructor;
     if (origin is SourceConstructorBuilder) {
       origin.addSuperParameterDefaultValueCloners(delayedDefaultValueCloners);
@@ -1488,8 +1650,9 @@ class ForwardingConstructorDeclaration
       //
       // For non-constant constructors default values are cloned as part of the
       // full compilation using `KernelTarget._delayedDefaultValueCloners`.
-      delayedDefaultValueCloners
-          .add(_delayedDefaultValueCloner!..isOutlineNode = true);
+      delayedDefaultValueCloners.add(
+        _delayedDefaultValueCloner!..isOutlineNode = true,
+      );
       _delayedDefaultValueCloner = null;
     }
   }
@@ -1511,21 +1674,27 @@ class ForwardingConstructorDeclaration
       MemberBuilder origin = _immediatelyDefiningConstructor!;
       if (origin is SourceConstructorBuilder) {
         origin.buildOutlineExpressions(
-            classHierarchy, delayedDefaultValueCloners);
+          classHierarchy,
+          delayedDefaultValueCloners,
+        );
       }
       addSuperParameterDefaultValueCloners(
-          libraryBuilder, declarationBuilder, delayedDefaultValueCloners);
+        libraryBuilder,
+        declarationBuilder,
+        delayedDefaultValueCloners,
+      );
       _immediatelyDefiningConstructor = null;
     }
   }
 
   @override
   void inferFormalTypes(
-      SourceLibraryBuilder libraryBuilder,
-      DeclarationBuilder declarationBuilder,
-      SourceConstructorBuilder constructorBuilder,
-      ClassHierarchyBase hierarchy,
-      List<DelayedDefaultValueCloner> delayedDefaultValueCloners) {
+    SourceLibraryBuilder libraryBuilder,
+    DeclarationBuilder declarationBuilder,
+    SourceConstructorBuilder constructorBuilder,
+    ClassHierarchyBase hierarchy,
+    List<DelayedDefaultValueCloner> delayedDefaultValueCloners,
+  ) {
     if (_immediatelyDefiningConstructor is SourceConstructorBuilder) {
       (_immediatelyDefiningConstructor as SourceConstructorBuilder)
           .inferFormalTypes(hierarchy);

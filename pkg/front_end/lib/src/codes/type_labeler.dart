@@ -59,12 +59,21 @@ class TypeLabeler implements DartTypeVisitor<void>, ConstantVisitor<void> {
   }
 
   LabeledNode nameForEntity(
-      TreeNode node, String nodeName, Uri importUri, Uri fileUri) {
+    TreeNode node,
+    String nodeName,
+    Uri importUri,
+    Uri fileUri,
+  ) {
     List<LabeledNode>? labelsForName = nameMap[nodeName];
     if (labelsForName == null) {
       // First encountered entity with this name
-      LabeledNode name =
-          new LabeledNode(node, nodeName, importUri, fileUri, this);
+      LabeledNode name = new LabeledNode(
+        node,
+        nodeName,
+        importUri,
+        fileUri,
+        this,
+      );
       names.add(name);
       nameMap[nodeName] = [name];
       return name;
@@ -76,8 +85,13 @@ class TypeLabeler implements DartTypeVisitor<void>, ConstantVisitor<void> {
         }
       }
       // New entity with name that was previously encountered
-      LabeledNode name =
-          new LabeledNode(node, nodeName, importUri, fileUri, this);
+      LabeledNode name = new LabeledNode(
+        node,
+        nodeName,
+        importUri,
+        fileUri,
+        this,
+      );
       names.add(name);
       labelsForName.add(name);
       return name;
@@ -93,11 +107,14 @@ class TypeLabeler implements DartTypeVisitor<void>, ConstantVisitor<void> {
   @override
   void visitTypedefType(TypedefType node) {
     Typedef typedefNode = node.typedefNode;
-    result.add(nameForEntity(
+    result.add(
+      nameForEntity(
         typedefNode,
         typedefNode.name,
         typedefNode.enclosingLibrary.importUri,
-        typedefNode.enclosingLibrary.fileUri));
+        typedefNode.enclosingLibrary.fileUri,
+      ),
+    );
     if (node.typeArguments.isNotEmpty) {
       result.add("<");
       bool first = true;
@@ -148,18 +165,23 @@ class TypeLabeler implements DartTypeVisitor<void>, ConstantVisitor<void> {
     // actually in the tree - then we don't know where it comes from!
     Library? enclosingLibrary = parent as Library?;
 
-    result.add(nameForEntity(
+    result.add(
+      nameForEntity(
         node.parameter,
         node.parameter.name ?? '',
         enclosingLibrary == null ? unknownUri : enclosingLibrary.importUri,
-        enclosingLibrary == null ? unknownUri : enclosingLibrary.fileUri));
+        enclosingLibrary == null ? unknownUri : enclosingLibrary.fileUri,
+      ),
+    );
     addNullability(node.declaredNullability);
   }
 
   @override
   void visitStructuralParameterType(StructuralParameterType node) {
-    result.add(node.parameter.name ?? // Coverage-ignore(suite): Not run.
-        "T#${identityHashCode(node.parameter)}");
+    result.add(
+      node.parameter.name ?? // Coverage-ignore(suite): Not run.
+          "T#${identityHashCode(node.parameter)}",
+    );
     addNullability(node.declaredNullability);
   }
 
@@ -199,9 +221,11 @@ class TypeLabeler implements DartTypeVisitor<void>, ConstantVisitor<void> {
       if (node.requiredParameterCount > 0) result.add(", ");
       result.add("[");
       first = true;
-      for (int i = node.requiredParameterCount;
-          i < node.positionalParameters.length;
-          i++) {
+      for (
+        int i = node.requiredParameterCount;
+        i < node.positionalParameters.length;
+        i++
+      ) {
         if (!first) {
           // Coverage-ignore-block(suite): Not run.
           result.add(", ");
@@ -236,11 +260,14 @@ class TypeLabeler implements DartTypeVisitor<void>, ConstantVisitor<void> {
     // TODO(johnniwinther): Ensure enclosing libraries on classes earlier
     // in the compiler to ensure types in error messages have context.
     Library? enclosingLibrary = classNode.parent as Library?;
-    result.add(nameForEntity(
+    result.add(
+      nameForEntity(
         classNode,
         classNode.name,
         enclosingLibrary?.importUri ?? unknownUri,
-        enclosingLibrary?.fileUri ?? unknownUri));
+        enclosingLibrary?.fileUri ?? unknownUri,
+      ),
+    );
     if (node.typeArguments.isNotEmpty) {
       result.add("<");
       bool first = true;
@@ -268,11 +295,14 @@ class TypeLabeler implements DartTypeVisitor<void>, ConstantVisitor<void> {
     // in the compiler to ensure types in error messages have context.
     Library? enclosingLibrary =
         node.extensionTypeDeclaration.parent as Library?;
-    result.add(nameForEntity(
+    result.add(
+      nameForEntity(
         node.extensionTypeDeclaration,
         node.extensionTypeDeclaration.name,
         enclosingLibrary?.importUri ?? unknownUri,
-        enclosingLibrary?.fileUri ?? unknownUri));
+        enclosingLibrary?.fileUri ?? unknownUri,
+      ),
+    );
     if (node.typeArguments.isNotEmpty) {
       result.add("<");
       bool first = true;
@@ -348,8 +378,10 @@ class TypeLabeler implements DartTypeVisitor<void>, ConstantVisitor<void> {
   @override
   void visitInstanceConstant(InstanceConstant node) {
     new InterfaceType(
-            node.classNode, Nullability.nonNullable, node.typeArguments)
-        .accept(this);
+      node.classNode,
+      Nullability.nonNullable,
+      node.typeArguments,
+    ).accept(this);
     result.add(" {");
     bool first = true;
     for (Field field in node.classNode.fields) {
@@ -443,11 +475,14 @@ class TypeLabeler implements DartTypeVisitor<void>, ConstantVisitor<void> {
     Procedure procedure = node.target;
     Class? classNode = procedure.enclosingClass;
     if (classNode != null) {
-      result.add(nameForEntity(
+      result.add(
+        nameForEntity(
           classNode,
           classNode.name,
           classNode.enclosingLibrary.importUri,
-          classNode.enclosingLibrary.fileUri));
+          classNode.enclosingLibrary.fileUri,
+        ),
+      );
       result.add(".");
     }
     result.add(procedure.name.text);
@@ -457,11 +492,14 @@ class TypeLabeler implements DartTypeVisitor<void>, ConstantVisitor<void> {
   void visitConstructorTearOffConstant(ConstructorTearOffConstant node) {
     Member constructor = node.target;
     Class classNode = constructor.enclosingClass!;
-    result.add(nameForEntity(
+    result.add(
+      nameForEntity(
         classNode,
         classNode.name,
         classNode.enclosingLibrary.importUri,
-        classNode.enclosingLibrary.fileUri));
+        classNode.enclosingLibrary.fileUri,
+      ),
+    );
     result.add(".");
     result.add(constructor.name.text);
   }
@@ -469,14 +507,18 @@ class TypeLabeler implements DartTypeVisitor<void>, ConstantVisitor<void> {
   @override
   // Coverage-ignore(suite): Not run.
   void visitRedirectingFactoryTearOffConstant(
-      RedirectingFactoryTearOffConstant node) {
+    RedirectingFactoryTearOffConstant node,
+  ) {
     Member constructor = node.target;
     Class classNode = constructor.enclosingClass!;
-    result.add(nameForEntity(
+    result.add(
+      nameForEntity(
         classNode,
         classNode.name,
         classNode.enclosingLibrary.importUri,
-        classNode.enclosingLibrary.fileUri));
+        classNode.enclosingLibrary.fileUri,
+      ),
+    );
     result.add(".");
     result.add(constructor.name.text);
   }
@@ -541,13 +583,15 @@ class TypeLabeler implements DartTypeVisitor<void>, ConstantVisitor<void> {
   @override
   void visitAuxiliaryConstant(AuxiliaryConstant node) {
     throw new UnsupportedError(
-        "Unsupported auxiliary constant ${node} (${node.runtimeType}).");
+      "Unsupported auxiliary constant ${node} (${node.runtimeType}).",
+    );
   }
 
   @override
   void visitAuxiliaryType(AuxiliaryType node) {
     throw new UnsupportedError(
-        "Unsupported auxiliary type ${node} (${node.runtimeType}).");
+      "Unsupported auxiliary type ${node} (${node.runtimeType}).",
+    );
   }
 }
 
@@ -561,7 +605,12 @@ class LabeledNode {
   final Uri fileUri;
 
   LabeledNode(
-      this.node, this.name, this.importUri, this.fileUri, this.typeLabeler);
+    this.node,
+    this.name,
+    this.importUri,
+    this.fileUri,
+    this.typeLabeler,
+  );
 
   @override
   String toString() {
@@ -593,8 +642,12 @@ class LabeledNode {
     Message message = (importUri == fileUri || importUri.isScheme('dart'))
         ? codeTypeOrigin.withArguments(toString(), importUri)
         :
-        // Coverage-ignore(suite): Not run.
-        codeTypeOriginWithFileUri.withArguments(toString(), importUri, fileUri);
+          // Coverage-ignore(suite): Not run.
+          codeTypeOriginWithFileUri.withArguments(
+            toString(),
+            importUri,
+            fileUri,
+          );
     return "\n - " + message.problemMessage;
   }
 }

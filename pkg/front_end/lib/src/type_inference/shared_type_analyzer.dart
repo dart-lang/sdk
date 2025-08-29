@@ -17,8 +17,15 @@ import 'inference_visitor.dart';
 /// front end's [InferenceHelper] class.
 class SharedTypeAnalyzerErrors
     implements
-        TypeAnalyzerErrors<TreeNode, Statement, Expression, VariableDeclaration,
-            SharedTypeView, Pattern, InvalidExpression> {
+        TypeAnalyzerErrors<
+          TreeNode,
+          Statement,
+          Expression,
+          VariableDeclaration,
+          SharedTypeView,
+          Pattern,
+          InvalidExpression
+        > {
   final InferenceVisitorImpl visitor;
   final InferenceHelper helper;
 
@@ -26,11 +33,12 @@ class SharedTypeAnalyzerErrors
 
   final CoreTypes coreTypes;
 
-  SharedTypeAnalyzerErrors(
-      {required this.visitor,
-      required this.helper,
-      required this.uri,
-      required this.coreTypes});
+  SharedTypeAnalyzerErrors({
+    required this.visitor,
+    required this.helper,
+    required this.uri,
+    required this.coreTypes,
+  });
 
   @override
   void assertInErrorRecovery() {
@@ -38,21 +46,27 @@ class SharedTypeAnalyzerErrors
   }
 
   @override
-  InvalidExpression caseExpressionTypeMismatch(
-      {required Expression scrutinee,
-      required Expression caseExpression,
-      required SharedTypeView caseExpressionType,
-      required SharedTypeView scrutineeType}) {
+  InvalidExpression caseExpressionTypeMismatch({
+    required Expression scrutinee,
+    required Expression caseExpression,
+    required SharedTypeView caseExpressionType,
+    required SharedTypeView scrutineeType,
+  }) {
     return helper.buildProblem(
-        codeSwitchExpressionNotSubtype.withArguments(
-            caseExpressionType.unwrapTypeView(),
-            scrutineeType.unwrapTypeView()),
-        caseExpression.fileOffset,
-        noLength,
-        context: [
-          codeSwitchExpressionNotAssignableCause.withLocation(
-              uri, scrutinee.fileOffset, noLength)
-        ]);
+      codeSwitchExpressionNotSubtype.withArguments(
+        caseExpressionType.unwrapTypeView(),
+        scrutineeType.unwrapTypeView(),
+      ),
+      caseExpression.fileOffset,
+      noLength,
+      context: [
+        codeSwitchExpressionNotAssignableCause.withLocation(
+          uri,
+          scrutinee.fileOffset,
+          noLength,
+        ),
+      ],
+    );
   }
 
   @override
@@ -62,13 +76,17 @@ class SharedTypeAnalyzerErrors
     required Pattern duplicate,
   }) {
     return helper.buildProblem(
-        codeDuplicatePatternAssignmentVariable.withArguments(variable.name!),
-        duplicate.fileOffset,
-        noLength,
-        context: [
-          codeDuplicatePatternAssignmentVariableContext.withLocation(
-              uri, original.fileOffset, noLength)
-        ]);
+      codeDuplicatePatternAssignmentVariable.withArguments(variable.name!),
+      duplicate.fileOffset,
+      noLength,
+      context: [
+        codeDuplicatePatternAssignmentVariableContext.withLocation(
+          uri,
+          original.fileOffset,
+          noLength,
+        ),
+      ],
+    );
   }
 
   @override
@@ -79,13 +97,17 @@ class SharedTypeAnalyzerErrors
     required RecordPatternField<TreeNode, Pattern> duplicate,
   }) {
     return helper.buildProblem(
-        codeDuplicateRecordPatternField.withArguments(name),
-        duplicate.pattern.fileOffset,
-        noLength,
-        context: [
-          codeDuplicateRecordPatternFieldContext.withLocation(
-              uri, original.pattern.fileOffset, noLength)
-        ]);
+      codeDuplicateRecordPatternField.withArguments(name),
+      duplicate.pattern.fileOffset,
+      noLength,
+      context: [
+        codeDuplicateRecordPatternFieldContext.withLocation(
+          uri,
+          original.pattern.fileOffset,
+          noLength,
+        ),
+      ],
+    );
   }
 
   @override
@@ -95,19 +117,26 @@ class SharedTypeAnalyzerErrors
     required TreeNode duplicate,
   }) {
     return helper.buildProblem(
-        codeDuplicateRestElementInPattern, duplicate.fileOffset, noLength,
-        context: [
-          codeDuplicateRestElementInPatternContext.withLocation(
-              uri, original.fileOffset, noLength)
-        ]);
+      codeDuplicateRestElementInPattern,
+      duplicate.fileOffset,
+      noLength,
+      context: [
+        codeDuplicateRestElementInPatternContext.withLocation(
+          uri,
+          original.fileOffset,
+          noLength,
+        ),
+      ],
+    );
   }
 
   @override
-  InvalidExpression emptyMapPattern({
-    required Pattern pattern,
-  }) {
+  InvalidExpression emptyMapPattern({required Pattern pattern}) {
     return helper.buildProblem(
-        codeEmptyMapPattern, pattern.fileOffset, noLength);
+      codeEmptyMapPattern,
+      pattern.fileOffset,
+      noLength,
+    );
   }
 
   @override
@@ -117,9 +146,12 @@ class SharedTypeAnalyzerErrors
   }) {
     // TODO(johnniwinther): How should we handle errors that are not report
     // here? Should we have a sentinel error node, allow a nullable result, or ?
-    assert(visitor.libraryBuilder.loader.assertProblemReportedElsewhere(
+    assert(
+      visitor.libraryBuilder.loader.assertProblemReportedElsewhere(
         "SharedTypeAnalyzerErrors.inconsistentJoinedPatternVariable",
-        expectedPhase: CompilationPhaseForProblemReporting.bodyBuilding));
+        expectedPhase: CompilationPhaseForProblemReporting.bodyBuilding,
+      ),
+    );
   }
 
   @override
@@ -152,31 +184,42 @@ class SharedTypeAnalyzerErrors
     required SharedTypeView expressionType,
   }) {
     return helper.buildProblem(
-        codeForInLoopTypeNotIterable.withArguments(
-            expressionType.unwrapTypeView(),
-            coreTypes.iterableNonNullableRawType),
-        expression.fileOffset,
-        noLength);
+      codeForInLoopTypeNotIterable.withArguments(
+        expressionType.unwrapTypeView(),
+        coreTypes.iterableNonNullableRawType,
+      ),
+      expression.fileOffset,
+      noLength,
+    );
   }
 
   @override
-  InvalidExpression patternTypeMismatchInIrrefutableContext(
-      {required Pattern pattern,
-      required TreeNode context,
-      required SharedTypeView matchedType,
-      required SharedTypeView requiredType}) {
+  InvalidExpression patternTypeMismatchInIrrefutableContext({
+    required Pattern pattern,
+    required TreeNode context,
+    required SharedTypeView matchedType,
+    required SharedTypeView requiredType,
+  }) {
     return helper.buildProblem(
-        codePatternTypeMismatchInIrrefutableContext.withArguments(
-            matchedType.unwrapTypeView(), requiredType.unwrapTypeView()),
-        pattern.fileOffset,
-        noLength);
+      codePatternTypeMismatchInIrrefutableContext.withArguments(
+        matchedType.unwrapTypeView(),
+        requiredType.unwrapTypeView(),
+      ),
+      pattern.fileOffset,
+      noLength,
+    );
   }
 
   @override
-  InvalidExpression refutablePatternInIrrefutableContext(
-      {required covariant Pattern pattern, required TreeNode context}) {
+  InvalidExpression refutablePatternInIrrefutableContext({
+    required covariant Pattern pattern,
+    required TreeNode context,
+  }) {
     return helper.buildProblem(
-        codeRefutablePatternInIrrefutableContext, pattern.fileOffset, noLength);
+      codeRefutablePatternInIrrefutableContext,
+      pattern.fileOffset,
+      noLength,
+    );
   }
 
   @override
@@ -186,10 +229,13 @@ class SharedTypeAnalyzerErrors
     required SharedTypeView parameterType,
   }) {
     return helper.buildProblem(
-        codeArgumentTypeNotAssignable.withArguments(
-            operandType.unwrapTypeView(), parameterType.unwrapTypeView()),
-        pattern.expression.fileOffset,
-        noLength);
+      codeArgumentTypeNotAssignable.withArguments(
+        operandType.unwrapTypeView(),
+        parameterType.unwrapTypeView(),
+      ),
+      pattern.expression.fileOffset,
+      noLength,
+    );
   }
 
   @override
@@ -198,10 +244,13 @@ class SharedTypeAnalyzerErrors
     required SharedTypeView returnType,
   }) {
     return helper.buildProblem(
-        codeInvalidAssignmentError.withArguments(
-            returnType.unwrapTypeView(), coreTypes.boolNonNullableRawType),
-        pattern.fileOffset,
-        noLength);
+      codeInvalidAssignmentError.withArguments(
+        returnType.unwrapTypeView(),
+        coreTypes.boolNonNullableRawType,
+      ),
+      pattern.fileOffset,
+      noLength,
+    );
   }
 
   @override
@@ -210,14 +259,22 @@ class SharedTypeAnalyzerErrors
     required TreeNode element,
   }) {
     return helper.buildProblem(
-        codeRestPatternInMapPattern, element.fileOffset, noLength);
+      codeRestPatternInMapPattern,
+      element.fileOffset,
+      noLength,
+    );
   }
 
   @override
-  InvalidExpression switchCaseCompletesNormally(
-      {required covariant SwitchStatement node, required int caseIndex}) {
+  InvalidExpression switchCaseCompletesNormally({
+    required covariant SwitchStatement node,
+    required int caseIndex,
+  }) {
     return helper.buildProblem(
-        codeSwitchCaseFallThrough, node.cases[caseIndex].fileOffset, noLength);
+      codeSwitchCaseFallThrough,
+      node.cases[caseIndex].fileOffset,
+      noLength,
+    );
   }
 
   @override

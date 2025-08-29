@@ -20,14 +20,24 @@ import 'type_inference_engine.dart';
 import 'type_demotion.dart';
 import 'type_schema.dart' show UnknownType;
 
-typedef GeneratedTypeConstraint
-    = shared.GeneratedTypeConstraint<VariableDeclaration>;
+typedef GeneratedTypeConstraint =
+    shared.GeneratedTypeConstraint<VariableDeclaration>;
 
-typedef MergedTypeConstraint = shared.MergedTypeConstraint<VariableDeclaration,
-    TypeDeclarationType, TypeDeclaration, TreeNode>;
+typedef MergedTypeConstraint =
+    shared.MergedTypeConstraint<
+      VariableDeclaration,
+      TypeDeclarationType,
+      TypeDeclaration,
+      TreeNode
+    >;
 
-typedef UnknownTypeConstraintOrigin = shared.UnknownTypeConstraintOrigin<
-    VariableDeclaration, TypeDeclarationType, TypeDeclaration, TreeNode>;
+typedef UnknownTypeConstraintOrigin =
+    shared.UnknownTypeConstraintOrigin<
+      VariableDeclaration,
+      TypeDeclarationType,
+      TypeDeclaration,
+      TreeNode
+    >;
 
 /// Given a [FunctionType], gets the type of the named parameter with the given
 /// [name], or `dynamic` if there is no parameter with the given name.
@@ -51,7 +61,7 @@ class TypeSchemaEnvironment extends HierarchyBasedTypeEnvironment
   final ClassHierarchy hierarchy;
 
   TypeSchemaEnvironment(CoreTypes coreTypes, this.hierarchy)
-      : super(coreTypes, hierarchy);
+    : super(coreTypes, hierarchy);
 
   // Coverage-ignore(suite): Not run.
   InterfaceType functionRawType(Nullability nullability) {
@@ -71,11 +81,14 @@ class TypeSchemaEnvironment extends HierarchyBasedTypeEnvironment
   }) {
     List<DartType> inferredTypes = typeOperations
         .chooseTypes(
-            typeParametersToInfer, constraints, previouslyInferredTypes,
-            preliminary: true,
-            inferenceUsingBoundsIsEnabled: inferenceUsingBoundsIsEnabled,
-            dataForTesting: dataForTesting,
-            treeNodeForTesting: treeNodeForTesting)
+          typeParametersToInfer,
+          constraints,
+          previouslyInferredTypes,
+          preliminary: true,
+          inferenceUsingBoundsIsEnabled: inferenceUsingBoundsIsEnabled,
+          dataForTesting: dataForTesting,
+          treeNodeForTesting: treeNodeForTesting,
+        )
         .cast();
     for (int i = 0; i < inferredTypes.length; i++) {
       inferredTypes[i] = demoteTypeInLibrary(inferredTypes[i]);
@@ -84,7 +97,10 @@ class TypeSchemaEnvironment extends HierarchyBasedTypeEnvironment
   }
 
   DartType getContextTypeOfSpecialCasedBinaryOperator(
-      DartType contextType, DartType type1, DartType type2) {
+    DartType contextType,
+    DartType type1,
+    DartType type2,
+  ) {
     if (contextType is! NeverType &&
         type1 is! NeverType &&
         isSubtypeOf(type1, coreTypes.numNonNullableRawType)) {
@@ -112,7 +128,10 @@ class TypeSchemaEnvironment extends HierarchyBasedTypeEnvironment
   }
 
   DartType getContextTypeOfSpecialCasedTernaryOperator(
-      DartType contextType, DartType receiverType, DartType operandType) {
+    DartType contextType,
+    DartType receiverType,
+    DartType operandType,
+  ) {
     if (receiverType is! NeverType &&
         isSubtypeOf(receiverType, coreTypes.numNonNullableRawType)) {
       // If e is an expression of the form e1.clamp(e2, e3) where C is the
@@ -177,14 +196,15 @@ class TypeSchemaEnvironment extends HierarchyBasedTypeEnvironment
   /// list/map literal, initializing a [TypeConstraintGatherer] using the
   /// downward context type.
   TypeConstraintGatherer setupGenericTypeInference(
-      DartType? declaredReturnType,
-      List<StructuralParameter> typeParametersToInfer,
-      DartType? returnContextType,
-      {bool isConst = false,
-      required OperationsCfe typeOperations,
-      required bool inferenceUsingBoundsIsEnabled,
-      required TypeInferenceResultForTesting? inferenceResultForTesting,
-      required TreeNode? treeNodeForTesting}) {
+    DartType? declaredReturnType,
+    List<StructuralParameter> typeParametersToInfer,
+    DartType? returnContextType, {
+    bool isConst = false,
+    required OperationsCfe typeOperations,
+    required bool inferenceUsingBoundsIsEnabled,
+    required TypeInferenceResultForTesting? inferenceResultForTesting,
+    required TreeNode? treeNodeForTesting,
+  }) {
     assert(typeParametersToInfer.isNotEmpty);
 
     // Create a TypeConstraintGatherer that will allow certain type parameters
@@ -192,19 +212,24 @@ class TypeSchemaEnvironment extends HierarchyBasedTypeEnvironment
     // be subtypes (or supertypes) as necessary, and track the constraints that
     // are implied by this.
     TypeConstraintGatherer gatherer = new TypeConstraintGatherer(
-        this, typeParametersToInfer,
-        typeOperations: typeOperations,
-        inferenceUsingBoundsIsEnabled: inferenceUsingBoundsIsEnabled,
-        inferenceResultForTesting: inferenceResultForTesting);
+      this,
+      typeParametersToInfer,
+      typeOperations: typeOperations,
+      inferenceUsingBoundsIsEnabled: inferenceUsingBoundsIsEnabled,
+      inferenceResultForTesting: inferenceResultForTesting,
+    );
 
     if (!isEmptyContext(returnContextType)) {
       if (isConst) {
-        returnContextType =
-            new FreeTypeParameterEliminator(coreTypes: coreTypes)
-                .eliminateToLeast(returnContextType!);
+        returnContextType = new FreeTypeParameterEliminator(
+          coreTypes: coreTypes,
+        ).eliminateToLeast(returnContextType!);
       }
-      gatherer.tryConstrainUpper(declaredReturnType!, returnContextType!,
-          treeNodeForTesting: treeNodeForTesting);
+      gatherer.tryConstrainUpper(
+        declaredReturnType!,
+        returnContextType!,
+        treeNodeForTesting: treeNodeForTesting,
+      );
     }
     return gatherer;
   }
@@ -229,11 +254,14 @@ class TypeSchemaEnvironment extends HierarchyBasedTypeEnvironment
   }) {
     List<DartType> inferredTypes = typeOperations
         .chooseTypes(
-            typeParametersToInfer, constraints, previouslyInferredTypes,
-            preliminary: false,
-            inferenceUsingBoundsIsEnabled: inferenceUsingBoundsIsEnabled,
-            dataForTesting: dataForTesting,
-            treeNodeForTesting: treeNodeForTesting)
+          typeParametersToInfer,
+          constraints,
+          previouslyInferredTypes,
+          preliminary: false,
+          inferenceUsingBoundsIsEnabled: inferenceUsingBoundsIsEnabled,
+          dataForTesting: dataForTesting,
+          treeNodeForTesting: treeNodeForTesting,
+        )
         .cast();
 
     assert(typeParametersToInfer.length == inferredTypes.length);
@@ -247,23 +275,31 @@ class TypeSchemaEnvironment extends HierarchyBasedTypeEnvironment
       if (inferredTypes[i] is UnknownType) {
         inferredSubstitution[helperTypeParameters[i]] =
             new TypeParameterType.withDefaultNullability(
-                helperTypeParameters[i]);
+              helperTypeParameters[i],
+            );
       } else {
-        assert(typeOperations
-            .isKnownType(new SharedTypeSchemaView(inferredTypes[i])));
+        assert(
+          typeOperations.isKnownType(
+            new SharedTypeSchemaView(inferredTypes[i]),
+          ),
+        );
         inferredSubstitution[helperTypeParameters[i]] = inferredTypes[i];
       }
     }
     for (int i = 0; i < helperTypeParameters.length; ++i) {
       if (inferredTypes[i] is UnknownType) {
-        helperTypeParameters[i].bound =
-            substitute(helperTypeParameters[i].bound, inferredSubstitution);
+        helperTypeParameters[i].bound = substitute(
+          helperTypeParameters[i].bound,
+          inferredSubstitution,
+        );
       } else {
         helperTypeParameters[i].bound = inferredTypes[i];
       }
     }
-    List<DartType> instantiatedTypes =
-        calculateBounds(helperTypeParameters, coreTypes.objectClass);
+    List<DartType> instantiatedTypes = calculateBounds(
+      helperTypeParameters,
+      coreTypes.objectClass,
+    );
     for (int i = 0; i < instantiatedTypes.length; ++i) {
       if (inferredTypes[i] is UnknownType) {
         inferredTypes[i] = instantiatedTypes[i];

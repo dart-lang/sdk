@@ -27,8 +27,11 @@ class ConstructorBodyBuilderContext extends BodyBuilderContext {
   final Member _member;
 
   ConstructorBodyBuilderContext(this._builder, this._declaration, this._member)
-      : super(_builder.libraryBuilder, _builder.declarationBuilder,
-            isDeclarationInstanceMember: false);
+    : super(
+        _builder.libraryBuilder,
+        _builder.declarationBuilder,
+        isDeclarationInstanceMember: false,
+      );
 
   @override
   int get memberNameOffset => _declaration.fileOffset;
@@ -98,15 +101,25 @@ class ConstructorBodyBuilderContext extends BodyBuilderContext {
   }
 
   @override
-  void addInitializer(Initializer initializer, ExpressionGeneratorHelper helper,
-      {required InitializerInferenceResult? inferenceResult}) {
-    _builder.addInitializer(initializer, helper,
-        inferenceResult: inferenceResult, parent: _member);
+  void addInitializer(
+    Initializer initializer,
+    ExpressionGeneratorHelper helper, {
+    required InitializerInferenceResult? inferenceResult,
+  }) {
+    _builder.addInitializer(
+      initializer,
+      helper,
+      inferenceResult: inferenceResult,
+      parent: _member,
+    );
   }
 
   @override
-  InitializerInferenceResult inferInitializer(Initializer initializer,
-      ExpressionGeneratorHelper helper, TypeInferrer typeInferrer) {
+  InitializerInferenceResult inferInitializer(
+    Initializer initializer,
+    ExpressionGeneratorHelper helper,
+    TypeInferrer typeInferrer,
+  ) {
     return typeInferrer.inferInitializer(helper, _builder, initializer);
   }
 

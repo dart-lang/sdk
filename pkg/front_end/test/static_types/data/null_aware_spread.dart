@@ -7,12 +7,12 @@ nullAwareListSpread(List<String> list) {
   list =
       /*List<String!>!*/
       [
-    /*String!*/
-    'foo',
-    ...?
-    /*List<String!>!*/
-    /*invoke: void*/ list
-  ];
+        /*String!*/
+        'foo',
+        ...?
+        /*List<String!>!*/
+        /*invoke: void*/ list,
+      ];
 }
 
 nullAwareSetSpread(Set<String> set) {
@@ -20,12 +20,12 @@ nullAwareSetSpread(Set<String> set) {
   set =
       /*Set<String!>!*/
       {
-    /*String!*/
-    'foo',
-    ...?
-    /*Set<String!>!*/
-    /*invoke: void*/ set
-  };
+        /*String!*/
+        'foo',
+        ...?
+        /*Set<String!>!*/
+        /*invoke: void*/ set,
+      };
 }
 
 nullAwareMapSpread(Map<int, String> map) {
@@ -33,12 +33,12 @@ nullAwareMapSpread(Map<int, String> map) {
   map =
       /*Map<int!,String!>!*/
       {
-    /*int!*/
-    0 /*update: void*/ :
-        /*String!*/
-        'foo',
-    ...?
-    /*Map<int!,String!>!*/
-    /*invoke: void*/ map
-  };
+        /*int!*/
+        0 /*update: void*/ :
+            /*String!*/
+            'foo',
+        ...?
+        /*Map<int!,String!>!*/
+        /*invoke: void*/ map,
+      };
 }

@@ -6,36 +6,36 @@ class Class<T> {
   var property;
 
   method(T o) {
-    if (/*T%*/ o is Class) {
+    if ( /*T%*/ o is Class) {
       /*T% & Class<dynamic>!*/
       o. /*invoke: dynamic*/ method(/*Null*/ null);
-      /*T% & Class<dynamic>!|dynamic*/ o
-          ?. /*invoke: dynamic*/ method(/*Null*/ null);
-      /*T% & Class<dynamic>!|dynamic*/ o
-          ?. /*dynamic*/ property;
+      /*T% & Class<dynamic>!|dynamic*/
+      o?. /*invoke: dynamic*/ method(/*Null*/ null);
+      /*T% & Class<dynamic>!|dynamic*/
+      o?. /*dynamic*/ property;
     }
   }
 }
 
 method<T>(T o) {
-  if (/*T%*/ o is Class) {
+  if ( /*T%*/ o is Class) {
     /*T% & Class<dynamic>!*/
     o. /*invoke: dynamic*/ method(/*Null*/ null);
-    /*T% & Class<dynamic>!|dynamic*/ o
-        ?. /*invoke: dynamic*/ method(/*Null*/ null);
-    /*T% & Class<dynamic>!|dynamic*/ o
-        ?. /*dynamic*/ property;
+    /*T% & Class<dynamic>!|dynamic*/
+    o?. /*invoke: dynamic*/ method(/*Null*/ null);
+    /*T% & Class<dynamic>!|dynamic*/
+    o?. /*dynamic*/ property;
   }
 }
 
 main() {
-  var c = new
+  var c =
+      new
       /*Class<dynamic>!*/
-      Class/*<dynamic>*/();
-  /*Class<dynamic>!*/ c
-      . /*invoke: dynamic*/ method(
-          /*Class<dynamic>!*/ c);
-  /*invoke: dynamic*/ method
-      /*<Class<dynamic>!>*/ (
-          /*Class<dynamic>!*/ c);
+      Class /*<dynamic>*/ ();
+  /*Class<dynamic>!*/
+  c. /*invoke: dynamic*/ method(/*Class<dynamic>!*/ c);
+  /*invoke: dynamic*/
+  method
+  /*<Class<dynamic>!>*/ (/*Class<dynamic>!*/ c);
 }

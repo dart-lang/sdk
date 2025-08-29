@@ -17,8 +17,9 @@ import "simple_stats.dart";
 /// directly anyway -- if you want to know if that program successfully
 /// exercises a specific part of the compiler it _does_ do that).
 
-final Uri benchmarkHelper =
-    Platform.script.resolve("compile_benchmark_helper.dart");
+final Uri benchmarkHelper = Platform.script.resolve(
+  "compile_benchmark_helper.dart",
+);
 
 void main(List<String> args) {
   List<String>? arguments;
@@ -87,10 +88,14 @@ void main(List<String> args) {
 ///   proportional to the number of times the procedure is called, so the
 ///   counting annotation is likely at least as useful).
 ///
-void doWork(Directory tmp, Uint8List dillData, List<String> arguments,
-    {bool tryToAnnotate = false,
-    bool tryToSlowDown = false,
-    bool timeInsteadOfCount = false}) {
+void doWork(
+  Directory tmp,
+  Uint8List dillData,
+  List<String> arguments, {
+  bool tryToAnnotate = false,
+  bool tryToSlowDown = false,
+  bool timeInsteadOfCount = false,
+}) {
   File f = new File.fromUri(tmp.uri.resolve("a.dill"));
   f.writeAsBytesSync(dillData);
   Uri dillOrgInTmp = f.uri;
@@ -111,19 +116,24 @@ void doWork(Directory tmp, Uint8List dillData, List<String> arguments,
     for (Procedure p in sortedProcedures) {
       print("Prefer inline $p (${p.location})");
       Uri preferredInlined = preferInlineProcedure(
-          dillData,
-          tmp.uri,
-          (lib) => lib.importUri == p.enclosingLibrary.importUri,
-          p.enclosingClass?.name,
-          p.name.text);
+        dillData,
+        tmp.uri,
+        (lib) => lib.importUri == p.enclosingLibrary.importUri,
+        p.enclosingClass?.name,
+        p.name.text,
+      );
 
       print("\nOriginal runs:");
-      List<int> runtimesA =
-          runXTimes(5, [dillOrgInTmp.toString(), ...arguments]);
+      List<int> runtimesA = runXTimes(5, [
+        dillOrgInTmp.toString(),
+        ...arguments,
+      ]);
 
       print("\nModified runs:");
-      List<int> runtimesB =
-          runXTimes(5, [preferredInlined.toString(), ...arguments]);
+      List<int> runtimesB = runXTimes(5, [
+        preferredInlined.toString(),
+        ...arguments,
+      ]);
 
       print(SimpleTTestStat.ttest(runtimesB, runtimesA));
       print("\n------------\n");
@@ -134,22 +144,27 @@ void doWork(Directory tmp, Uint8List dillData, List<String> arguments,
     didSomething = true;
     for (Procedure p in sortedProcedures) {
       Uri? busyWaiting = busyWaitProcedure(
-          dillData,
-          tmp.uri,
-          (lib) => lib.importUri == p.enclosingLibrary.importUri,
-          p.enclosingClass?.name,
-          p.name.text);
+        dillData,
+        tmp.uri,
+        (lib) => lib.importUri == p.enclosingLibrary.importUri,
+        p.enclosingClass?.name,
+        p.name.text,
+      );
       if (busyWaiting == null) continue;
 
       print("Slow down $p (${p.location})");
 
       print("\nOriginal runs:");
-      List<int> runtimesA =
-          runXTimes(2, [dillOrgInTmp.toString(), ...arguments]);
+      List<int> runtimesA = runXTimes(2, [
+        dillOrgInTmp.toString(),
+        ...arguments,
+      ]);
 
       print("\nModified runs:");
-      List<int> runtimesB =
-          runXTimes(2, [busyWaiting.toString(), ...arguments]);
+      List<int> runtimesB = runXTimes(2, [
+        busyWaiting.toString(),
+        ...arguments,
+      ]);
 
       print(SimpleTTestStat.ttest(runtimesB, runtimesA));
       print("\n------------\n");
@@ -166,15 +181,19 @@ void doWork(Directory tmp, Uint8List dillData, List<String> arguments,
 /// called for a specific run, then run it, print the result and return the
 /// procedures in sorted order (most calls first).
 List<Procedure> doCountingInstrumentation(
-    Uint8List dillData, Directory tmp, List<String> arguments) {
+  Uint8List dillData,
+  Directory tmp,
+  List<String> arguments,
+) {
   Instrumented instrumented = instrumentCallsCount(dillData, tmp.uri);
   List<dynamic> stdout = [];
   runXTimes(1, [instrumented.dill.toString(), ...arguments], stdout);
   List<int> procedureCountsTmp = new List<int>.from(jsonDecode(stdout.single));
   List<IntPair> procedureCounts = [];
   for (int i = 0; i < procedureCountsTmp.length; i += 2) {
-    procedureCounts
-        .add(new IntPair(procedureCountsTmp[i], procedureCountsTmp[i + 1]));
+    procedureCounts.add(
+      new IntPair(procedureCountsTmp[i], procedureCountsTmp[i + 1]),
+    );
   }
   // Sort highest call-count first.
   procedureCounts.sort((a, b) => b.value - a.value);
@@ -199,15 +218,19 @@ List<Procedure> doCountingInstrumentation(
 /// each procedure is on the stack for a specific run, then run it, print the
 /// result and return the procedures in sorted order (most time on stack first).
 List<Procedure> doTimingInstrumentation(
-    Uint8List dillData, Directory tmp, List<String> arguments) {
+  Uint8List dillData,
+  Directory tmp,
+  List<String> arguments,
+) {
   Instrumented instrumented = instrumentCallsTiming(dillData, tmp.uri);
   List<dynamic> stdout = [];
   runXTimes(1, [instrumented.dill.toString(), ...arguments], stdout);
   List<int> procedureTimeTmp = new List<int>.from(jsonDecode(stdout.single));
   List<IntPair> procedureTime = [];
   for (int i = 0; i < procedureTimeTmp.length; i += 2) {
-    procedureTime
-        .add(new IntPair(procedureTimeTmp[i], procedureTimeTmp[i + 1]));
+    procedureTime.add(
+      new IntPair(procedureTimeTmp[i], procedureTimeTmp[i + 1]),
+    );
   }
   // Sort highest time-on-stack first.
   procedureTime.sort((a, b) => b.value - a.value);
@@ -242,19 +265,35 @@ class IntPair {
 /// and serialize the resulting dill into `b.dill` (return uri).
 ///
 /// The annotation is copied from the [preferInlineMe] method in the helper.
-Uri preferInlineProcedure(Uint8List dillData, Uri tmp,
-    bool libraryMatcher(Library lib), String? className, String procedureName) {
+Uri preferInlineProcedure(
+  Uint8List dillData,
+  Uri tmp,
+  bool libraryMatcher(Library lib),
+  String? className,
+  String procedureName,
+) {
   Component component = new Component();
-  new BinaryBuilder(dillData, disableLazyReading: true)
-      .readComponent(component);
-  Procedure preferInlineMeProcedure = getProcedure(component,
-      (lib) => lib.fileUri == benchmarkHelper, null, "preferInlineMe");
+  new BinaryBuilder(
+    dillData,
+    disableLazyReading: true,
+  ).readComponent(component);
+  Procedure preferInlineMeProcedure = getProcedure(
+    component,
+    (lib) => lib.fileUri == benchmarkHelper,
+    null,
+    "preferInlineMe",
+  );
   ConstantExpression annotation =
       preferInlineMeProcedure.annotations.single as ConstantExpression;
-  Procedure markProcedure =
-      getProcedure(component, libraryMatcher, className, procedureName);
+  Procedure markProcedure = getProcedure(
+    component,
+    libraryMatcher,
+    className,
+    procedureName,
+  );
   markProcedure.addAnnotation(
-      new ConstantExpression(annotation.constant, annotation.type));
+    new ConstantExpression(annotation.constant, annotation.type),
+  );
 
   Uint8List newDillData = serializeComponent(component);
   File f = new File.fromUri(tmp.resolve("b.dill"));
@@ -267,25 +306,43 @@ Uri preferInlineProcedure(Uint8List dillData, Uri tmp,
 ///
 /// This will make the procedure busy-wait approximately 0.002 ms for each
 /// invocation (+ whatever overhead and imprecision).
-Uri? busyWaitProcedure(Uint8List dillData, Uri tmp,
-    bool libraryMatcher(Library lib), String? className, String procedureName) {
+Uri? busyWaitProcedure(
+  Uint8List dillData,
+  Uri tmp,
+  bool libraryMatcher(Library lib),
+  String? className,
+  String procedureName,
+) {
   Component component = new Component();
-  new BinaryBuilder(dillData, disableLazyReading: true)
-      .readComponent(component);
+  new BinaryBuilder(
+    dillData,
+    disableLazyReading: true,
+  ).readComponent(component);
   Procedure busyWaitProcedure = getProcedure(
-      component, (lib) => lib.fileUri == benchmarkHelper, null, "busyWait");
+    component,
+    (lib) => lib.fileUri == benchmarkHelper,
+    null,
+    "busyWait",
+  );
 
-  Procedure markProcedure =
-      getProcedure(component, libraryMatcher, className, procedureName);
+  Procedure markProcedure = getProcedure(
+    component,
+    libraryMatcher,
+    className,
+    procedureName,
+  );
   if (markProcedure.function.body == null) return null;
 
   Statement orgBody = markProcedure.function.body as Statement;
   markProcedure.function.body = new Block([
-    new ExpressionStatement(new StaticInvocation(
-        busyWaitProcedure, new Arguments([new IntLiteral(2 /* 0.002 ms */)]))),
-    orgBody
-  ])
-    ..parent = markProcedure.function;
+    new ExpressionStatement(
+      new StaticInvocation(
+        busyWaitProcedure,
+        new Arguments([new IntLiteral(2 /* 0.002 ms */)]),
+      ),
+    ),
+    orgBody,
+  ])..parent = markProcedure.function;
 
   Uint8List newDillData = serializeComponent(component);
   File f = new File.fromUri(tmp.resolve("c.dill"));
@@ -303,12 +360,19 @@ Uri? busyWaitProcedure(Uint8List dillData, Uri tmp,
 /// annotated with a call to `registerCall(i)`.
 Instrumented instrumentCallsCount(Uint8List dillData, Uri tmp) {
   Component component = new Component();
-  new BinaryBuilder(dillData, disableLazyReading: true)
-      .readComponent(component);
+  new BinaryBuilder(
+    dillData,
+    disableLazyReading: true,
+  ).readComponent(component);
   Procedure registerCallProcedure = getProcedure(
-      component, (lib) => lib.fileUri == benchmarkHelper, null, "registerCall");
-  RegisterCallTransformer registerCallTransformer =
-      new RegisterCallTransformer(registerCallProcedure);
+    component,
+    (lib) => lib.fileUri == benchmarkHelper,
+    null,
+    "registerCall",
+  );
+  RegisterCallTransformer registerCallTransformer = new RegisterCallTransformer(
+    registerCallProcedure,
+  );
   component.accept(registerCallTransformer);
 
   Uint8List newDillData = serializeComponent(component);
@@ -330,14 +394,26 @@ Instrumented instrumentCallsCount(Uint8List dillData, Uri tmp) {
 /// `registerCallEnd(i)`.
 Instrumented instrumentCallsTiming(Uint8List dillData, Uri tmp) {
   Component component = new Component();
-  new BinaryBuilder(dillData, disableLazyReading: true)
-      .readComponent(component);
-  Procedure registerCallStartProcedure = getProcedure(component,
-      (lib) => lib.fileUri == benchmarkHelper, null, "registerCallStart");
-  Procedure registerCallEndProcedure = getProcedure(component,
-      (lib) => lib.fileUri == benchmarkHelper, null, "registerCallEnd");
+  new BinaryBuilder(
+    dillData,
+    disableLazyReading: true,
+  ).readComponent(component);
+  Procedure registerCallStartProcedure = getProcedure(
+    component,
+    (lib) => lib.fileUri == benchmarkHelper,
+    null,
+    "registerCallStart",
+  );
+  Procedure registerCallEndProcedure = getProcedure(
+    component,
+    (lib) => lib.fileUri == benchmarkHelper,
+    null,
+    "registerCallEnd",
+  );
   RegisterTimeTransformer registerTimeTransformer = new RegisterTimeTransformer(
-      registerCallStartProcedure, registerCallEndProcedure);
+    registerCallStartProcedure,
+    registerCallEndProcedure,
+  );
   component.accept(registerTimeTransformer);
 
   Uint8List newDillData = serializeComponent(component);
@@ -376,9 +452,13 @@ class RegisterCallTransformer extends RecursiveVisitor {
     procedures.add(node);
     Statement orgBody = node.function.body as Statement;
     node.function.body = new Block([
-      new ExpressionStatement(new StaticInvocation(registerCallProcedure,
-          new Arguments([new IntLiteral(procedureNum)]))),
-      orgBody
+      new ExpressionStatement(
+        new StaticInvocation(
+          registerCallProcedure,
+          new Arguments([new IntLiteral(procedureNum)]),
+        ),
+      ),
+      orgBody,
     ]);
     node.function.body!.parent = node.function;
   }
@@ -389,7 +469,9 @@ class RegisterTimeTransformer extends RecursiveVisitor {
   final Procedure registerCallEndProcedure;
 
   RegisterTimeTransformer(
-      this.registerCallStartProcedure, this.registerCallEndProcedure);
+    this.registerCallStartProcedure,
+    this.registerCallEndProcedure,
+  );
 
   List<Procedure> procedures = [];
 
@@ -418,21 +500,33 @@ class RegisterTimeTransformer extends RecursiveVisitor {
     //    }
     // }
     Block block = new Block([
-      new ExpressionStatement(new StaticInvocation(registerCallStartProcedure,
-          new Arguments([new IntLiteral(procedureNum)]))),
+      new ExpressionStatement(
+        new StaticInvocation(
+          registerCallStartProcedure,
+          new Arguments([new IntLiteral(procedureNum)]),
+        ),
+      ),
       new TryFinally(
         orgBody,
-        new ExpressionStatement(new StaticInvocation(registerCallEndProcedure,
-            new Arguments([new IntLiteral(procedureNum)]))),
-      )
+        new ExpressionStatement(
+          new StaticInvocation(
+            registerCallEndProcedure,
+            new Arguments([new IntLiteral(procedureNum)]),
+          ),
+        ),
+      ),
     ]);
     node.function.body = block;
     node.function.body!.parent = node.function;
   }
 }
 
-Procedure getProcedure(Component component, bool libraryMatcher(Library lib),
-    String? className, String procedureName) {
+Procedure getProcedure(
+  Component component,
+  bool libraryMatcher(Library lib),
+  String? className,
+  String procedureName,
+) {
   Library lib = component.libraries.where(libraryMatcher).single;
   List<Procedure> procedures = lib.procedures;
   if (className != null) {
@@ -448,8 +542,11 @@ List<int> runXTimes(int x, List<String> arguments, [List<dynamic>? stdout]) {
   Stopwatch stopwatch = new Stopwatch()..start();
   for (int i = 0; i < x; i++) {
     stopwatch.reset();
-    ProcessResult run = Process.runSync(Platform.resolvedExecutable, arguments,
-        runInShell: true);
+    ProcessResult run = Process.runSync(
+      Platform.resolvedExecutable,
+      arguments,
+      runInShell: true,
+    );
     int ms = stopwatch.elapsedMilliseconds;
     result.add(ms);
     print(ms);

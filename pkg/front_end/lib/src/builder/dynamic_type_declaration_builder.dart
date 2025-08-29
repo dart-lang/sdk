@@ -10,13 +10,17 @@ import 'type_builder.dart';
 
 class DynamicTypeDeclarationBuilder extends BuiltinTypeDeclarationBuilder {
   DynamicTypeDeclarationBuilder(
-      DartType type, LibraryBuilder compilationUnit, int charOffset)
-      : super("dynamic", type, compilationUnit, charOffset);
+    DartType type,
+    LibraryBuilder compilationUnit,
+    int charOffset,
+  ) : super("dynamic", type, compilationUnit, charOffset);
 
   @override
-  Nullability computeNullabilityWithArguments(List<TypeBuilder>? typeArguments,
-      {required Map<TypeParameterBuilder, TraversalState>
-          typeParametersTraversalState}) {
+  Nullability computeNullabilityWithArguments(
+    List<TypeBuilder>? typeArguments, {
+    required Map<TypeParameterBuilder, TraversalState>
+    typeParametersTraversalState,
+  }) {
     return Nullability.nullable;
   }
 }

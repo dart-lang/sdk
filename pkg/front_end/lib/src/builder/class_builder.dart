@@ -57,7 +57,9 @@ abstract class ClassBuilder implements DeclarationBuilder {
   InterfaceType get thisType;
 
   Supertype buildMixedInType(
-      LibraryBuilder library, List<TypeBuilder>? arguments);
+    LibraryBuilder library,
+    List<TypeBuilder>? arguments,
+  );
 
   /// Looks up the member by [name] on the class built by this class builder.
   ///
@@ -74,8 +76,12 @@ abstract class ClassBuilder implements DeclarationBuilder {
   /// the origin class.
   ///
   /// Unused in interface; left in on purpose.
-  Member? lookupInstanceMember(ClassHierarchy hierarchy, Name name,
-      {bool isSetter = false, bool isSuper = false});
+  Member? lookupInstanceMember(
+    ClassHierarchy hierarchy,
+    Name name, {
+    bool isSetter = false,
+    bool isSuper = false,
+  });
 }
 
 abstract class ClassBuilderImpl extends DeclarationBuilderImpl
@@ -100,20 +106,27 @@ abstract class ClassBuilderImpl extends DeclarationBuilderImpl
 
   @override
   InterfaceType get thisType {
-    return _thisType ??= new InterfaceType(cls, Nullability.nonNullable,
-        getAsTypeArguments(cls.typeParameters, libraryBuilder.library));
+    return _thisType ??= new InterfaceType(
+      cls,
+      Nullability.nonNullable,
+      getAsTypeArguments(cls.typeParameters, libraryBuilder.library),
+    );
   }
 
   InterfaceType get nullableRawType {
-    return _nullableRawType ??= new InterfaceType(cls, Nullability.nullable,
-        new List<DartType>.filled(typeParametersCount, const DynamicType()));
+    return _nullableRawType ??= new InterfaceType(
+      cls,
+      Nullability.nullable,
+      new List<DartType>.filled(typeParametersCount, const DynamicType()),
+    );
   }
 
   InterfaceType get nonNullableRawType {
     return _nonNullableRawType ??= new InterfaceType(
-        cls,
-        Nullability.nonNullable,
-        new List<DartType>.filled(typeParametersCount, const DynamicType()));
+      cls,
+      Nullability.nonNullable,
+      new List<DartType>.filled(typeParametersCount, const DynamicType()),
+    );
   }
 
   InterfaceType rawType(Nullability nullability) {
@@ -144,13 +157,14 @@ abstract class ClassBuilderImpl extends DeclarationBuilderImpl
 
   @override
   DartType buildAliasedTypeWithBuiltArguments(
-      LibraryBuilder library,
-      Nullability nullability,
-      List<DartType> arguments,
-      TypeUse typeUse,
-      Uri fileUri,
-      int charOffset,
-      {required bool hasExplicitTypeArguments}) {
+    LibraryBuilder library,
+    Nullability nullability,
+    List<DartType> arguments,
+    TypeUse typeUse,
+    Uri fileUri,
+    int charOffset, {
+    required bool hasExplicitTypeArguments,
+  }) {
     assert(cls.typeParameters.length == arguments.length);
     if (isNullClass) {
       return const NullType();
@@ -166,16 +180,20 @@ abstract class ClassBuilderImpl extends DeclarationBuilderImpl
         // Coverage-ignore(suite): Not run.
         nullability == Nullability.nonNullable) {
       // Coverage-ignore-block(suite): Not run.
-      assert(aliasedTypeWithBuiltArgumentsCacheNonNullable!.classReference ==
-          cls.reference);
+      assert(
+        aliasedTypeWithBuiltArgumentsCacheNonNullable!.classReference ==
+            cls.reference,
+      );
       assert(arguments.isEmpty);
       return aliasedTypeWithBuiltArgumentsCacheNonNullable!;
     } else if (aliasedTypeWithBuiltArgumentsCacheNullable != null &&
         // Coverage-ignore(suite): Not run.
         nullability == Nullability.nullable) {
       // Coverage-ignore-block(suite): Not run.
-      assert(aliasedTypeWithBuiltArgumentsCacheNullable!.classReference ==
-          cls.reference);
+      assert(
+        aliasedTypeWithBuiltArgumentsCacheNullable!.classReference ==
+            cls.reference,
+      );
       assert(arguments.isEmpty);
       return aliasedTypeWithBuiltArgumentsCacheNullable!;
     }
@@ -191,22 +209,28 @@ abstract class ClassBuilderImpl extends DeclarationBuilderImpl
     }
 
     if (typeParametersCount != 0 && library is SourceLibraryBuilder) {
-      library.registerBoundsCheck(type, fileUri, charOffset, typeUse,
-          inferred: !hasExplicitTypeArguments);
+      library.registerBoundsCheck(
+        type,
+        fileUri,
+        charOffset,
+        typeUse,
+        inferred: !hasExplicitTypeArguments,
+      );
     }
     return type;
   }
 
   @override
   DartType buildAliasedType(
-      LibraryBuilder library,
-      NullabilityBuilder nullabilityBuilder,
-      List<TypeBuilder>? arguments,
-      TypeUse typeUse,
-      Uri fileUri,
-      int charOffset,
-      ClassHierarchyBase? hierarchy,
-      {required bool hasExplicitTypeArguments}) {
+    LibraryBuilder library,
+    NullabilityBuilder nullabilityBuilder,
+    List<TypeBuilder>? arguments,
+    TypeUse typeUse,
+    Uri fileUri,
+    int charOffset,
+    ClassHierarchyBase? hierarchy, {
+    required bool hasExplicitTypeArguments,
+  }) {
     if (name == "Record" &&
         libraryBuilder.importUri.scheme == "dart" &&
         libraryBuilder.importUri.path == "core" &&
@@ -214,33 +238,46 @@ abstract class ClassBuilderImpl extends DeclarationBuilderImpl
         !isRecordAccessAllowed(library)) {
       // Coverage-ignore-block(suite): Not run.
       library.reportFeatureNotEnabled(
-          library.libraryFeatures.records, fileUri, charOffset, name.length);
+        library.libraryFeatures.records,
+        fileUri,
+        charOffset,
+        name.length,
+      );
       return const InvalidType();
     }
     return buildAliasedTypeWithBuiltArguments(
-        library,
-        nullabilityBuilder.build(),
-        buildAliasedTypeArguments(library, arguments, hierarchy),
-        typeUse,
-        fileUri,
-        charOffset,
-        hasExplicitTypeArguments: hasExplicitTypeArguments);
+      library,
+      nullabilityBuilder.build(),
+      buildAliasedTypeArguments(library, arguments, hierarchy),
+      typeUse,
+      fileUri,
+      charOffset,
+      hasExplicitTypeArguments: hasExplicitTypeArguments,
+    );
   }
 
   @override
   Supertype buildMixedInType(
-      LibraryBuilder library, List<TypeBuilder>? arguments) {
+    LibraryBuilder library,
+    List<TypeBuilder>? arguments,
+  ) {
     if (arguments != null) {
-      List<DartType> typeArguments =
-          buildAliasedTypeArguments(library, arguments, /* hierarchy = */ null);
+      List<DartType> typeArguments = buildAliasedTypeArguments(
+        library,
+        arguments,
+        /* hierarchy = */ null,
+      );
       typeArguments = unaliasTypes(typeArguments)!;
       return new Supertype(cls, typeArguments);
     } else {
       return new Supertype(
-          cls,
-          new List<DartType>.filled(
-              cls.typeParameters.length, const UnknownType(),
-              growable: true));
+        cls,
+        new List<DartType>.filled(
+          cls.typeParameters.length,
+          const UnknownType(),
+          growable: true,
+        ),
+      );
     }
   }
 
@@ -248,13 +285,17 @@ abstract class ClassBuilderImpl extends DeclarationBuilderImpl
   String get fullNameForErrors {
     return isMixinApplication && !isNamedMixinApplication
         ? "${supertypeBuilder!.fullNameForErrors} with "
-            "${mixedInTypeBuilder!.fullNameForErrors}"
+              "${mixedInTypeBuilder!.fullNameForErrors}"
         : name;
   }
 
   @override
-  Member? lookupInstanceMember(ClassHierarchy hierarchy, Name name,
-      {bool isSetter = false, bool isSuper = false}) {
+  Member? lookupInstanceMember(
+    ClassHierarchy hierarchy,
+    Name name, {
+    bool isSetter = false,
+    bool isSuper = false,
+  }) {
     Class? instanceClass = cls;
     if (isSuper) {
       instanceClass = instanceClass.superclass;
@@ -263,27 +304,33 @@ abstract class ClassBuilderImpl extends DeclarationBuilderImpl
     Member? target = isSuper
         ? hierarchy.getDispatchTarget(instanceClass, name, setter: isSetter)
         :
-        // Coverage-ignore(suite): Not run.
-        hierarchy.getInterfaceMember(instanceClass, name, setter: isSetter);
+          // Coverage-ignore(suite): Not run.
+          hierarchy.getInterfaceMember(instanceClass, name, setter: isSetter);
     if (isSuper && target == null) {
       if (cls.isMixinDeclaration) {
-        target =
-            hierarchy.getInterfaceMember(instanceClass, name, setter: isSetter);
+        target = hierarchy.getInterfaceMember(
+          instanceClass,
+          name,
+          setter: isSetter,
+        );
       }
     }
     return target;
   }
 
   @override
-  Nullability computeNullabilityWithArguments(List<TypeBuilder>? typeArguments,
-      {required Map<TypeParameterBuilder, TraversalState>
-          typeParametersTraversalState}) {
+  Nullability computeNullabilityWithArguments(
+    List<TypeBuilder>? typeArguments, {
+    required Map<TypeParameterBuilder, TraversalState>
+    typeParametersTraversalState,
+  }) {
     if (isNullClass) {
       return Nullability.nullable;
     } else if (isFutureOr) {
       if (typeArguments != null && typeArguments.length == 1) {
         return typeArguments.single.computeNullability(
-            typeParametersTraversalState: typeParametersTraversalState);
+          typeParametersTraversalState: typeParametersTraversalState,
+        );
       } else {
         // This is `FutureOr<dynamic>`.
         return Nullability.nullable;

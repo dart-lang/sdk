@@ -16,7 +16,8 @@ import 'package:front_end/src/base/incremental_compiler.dart'
 import 'package:front_end/src/base/problems.dart';
 import 'package:front_end/src/base/processed_options.dart'
     show ProcessedOptions;
-import 'package:front_end/src/kernel/constant_evaluator.dart' as constants
+import 'package:front_end/src/kernel/constant_evaluator.dart'
+    as constants
     show transformLibraries, ErrorReporter;
 import 'package:front_end/src/kernel/kernel_target.dart';
 import 'package:front_end/src/kernel/utils.dart' show serializeComponent;
@@ -58,8 +59,11 @@ void benchmark(Component component, List<Library> libraries) {
         if (skipNonNullEnvironment && environmentDefines != null) continue;
         stopwatch.reset();
         Component component = new Component();
-        BinaryBuilder binaryBuilder = new BinaryBuilder(serializedComponent,
-            disableLazyClassReading: true, disableLazyReading: true);
+        BinaryBuilder binaryBuilder = new BinaryBuilder(
+          serializedComponent,
+          disableLazyClassReading: true,
+          disableLazyReading: true,
+        );
         binaryBuilder.readComponent(component);
         if (verbose) {
           print("Loaded component in ${stopwatch.elapsedMilliseconds} ms");
@@ -70,35 +74,41 @@ void benchmark(Component component, List<Library> libraries) {
         ClassHierarchy hierarchy = new ClassHierarchy(component, coreTypes);
         TypeEnvironment environment = new TypeEnvironment(coreTypes, hierarchy);
         if (verbose) {
-          print("Created core types and class hierarchy"
-              " in ${stopwatch.elapsedMilliseconds} ms");
+          print(
+            "Created core types and class hierarchy"
+            " in ${stopwatch.elapsedMilliseconds} ms",
+          );
         }
 
         stopwatch.reset();
         constants.transformLibraries(
-            component,
-            component.libraries,
-            target.backendTarget,
-            environmentDefines,
-            environment,
-            new SilentErrorReporter(),
-            evaluateAnnotations: true,
-            enableTripleShift: target.globalFeatures.tripleShift.isEnabled,
-            enableConstFunctions:
-                target.globalFeatures.constFunctions.isEnabled,
-            enableConstructorTearOff:
-                target.globalFeatures.constructorTearoffs.isEnabled,
-            errorOnUnevaluatedConstant:
-                incrementalCompiler.context.options.errorOnUnevaluatedConstant);
-        print("Transformed constants with $environmentDefinesDescription"
-            " in ${stopwatch.elapsedMilliseconds} ms");
+          component,
+          component.libraries,
+          target.backendTarget,
+          environmentDefines,
+          environment,
+          new SilentErrorReporter(),
+          evaluateAnnotations: true,
+          enableTripleShift: target.globalFeatures.tripleShift.isEnabled,
+          enableConstFunctions: target.globalFeatures.constFunctions.isEnabled,
+          enableConstructorTearOff:
+              target.globalFeatures.constructorTearoffs.isEnabled,
+          errorOnUnevaluatedConstant:
+              incrementalCompiler.context.options.errorOnUnevaluatedConstant,
+        );
+        print(
+          "Transformed constants with $environmentDefinesDescription"
+          " in ${stopwatch.elapsedMilliseconds} ms",
+        );
         sum += stopwatch.elapsedMilliseconds;
         iterations++;
       }
       if (verbose) {
-        print("With $environmentDefinesDescription: "
-            "Did constant evaluation $iterations iterations in $sum ms,"
-            " i.e. an average of ${sum / iterations} ms per iteration.");
+        print(
+          "With $environmentDefinesDescription: "
+          "Did constant evaluation $iterations iterations in $sum ms,"
+          " i.e. an average of ${sum / iterations} ms per iteration.",
+        );
       }
       environmentDefines = {};
       environmentDefinesDescription = "empty environment";
@@ -173,16 +183,22 @@ Future<void> main(List<String> arguments) async {
   mainUri = file.absolute.uri;
 
   incrementalCompiler = new IncrementalCompiler(
-      setupCompilerContext(targetString, false, platformUri, mainUri));
+    setupCompilerContext(targetString, false, platformUri, mainUri),
+  );
   await incrementalCompiler.computeDelta();
 }
 
-CompilerContext setupCompilerContext(String targetString,
-    bool widgetTransformation, Uri platformUri, Uri mainUri) {
+CompilerContext setupCompilerContext(
+  String targetString,
+  bool widgetTransformation,
+  Uri platformUri,
+  Uri mainUri,
+) {
   CompilerOptions options = getOptions();
 
-  TargetFlags targetFlags =
-      new TargetFlags(trackWidgetCreation: widgetTransformation);
+  TargetFlags targetFlags = new TargetFlags(
+    trackWidgetCreation: widgetTransformation,
+  );
   Target target;
   switch (targetString) {
     case "VM":
@@ -212,8 +228,10 @@ CompilerContext setupCompilerContext(String targetString,
     // don't care.
   };
 
-  ProcessedOptions processedOptions =
-      new ProcessedOptions(options: options, inputs: [mainUri]);
+  ProcessedOptions processedOptions = new ProcessedOptions(
+    options: options,
+    inputs: [mainUri],
+  );
   CompilerContext compilerContext = new CompilerContext(processedOptions);
   return compilerContext;
 }
@@ -223,15 +241,21 @@ class HookInVmTarget extends VmTarget {
 
   @override
   void performPreConstantEvaluationTransformations(
-      Component component,
-      CoreTypes coreTypes,
-      List<Library> libraries,
-      DiagnosticReporter diagnosticReporter,
-      {void Function(String msg)? logger,
-      ChangedStructureNotifier? changedStructureNotifier}) {
+    Component component,
+    CoreTypes coreTypes,
+    List<Library> libraries,
+    DiagnosticReporter diagnosticReporter, {
+    void Function(String msg)? logger,
+    ChangedStructureNotifier? changedStructureNotifier,
+  }) {
     super.performPreConstantEvaluationTransformations(
-        component, coreTypes, libraries, diagnosticReporter,
-        logger: logger, changedStructureNotifier: changedStructureNotifier);
+      component,
+      coreTypes,
+      libraries,
+      diagnosticReporter,
+      logger: logger,
+      changedStructureNotifier: changedStructureNotifier,
+    );
     benchmark(component, libraries);
   }
 }
@@ -241,15 +265,21 @@ class HookInDart2jsTarget extends Dart2jsTarget {
 
   @override
   void performPreConstantEvaluationTransformations(
-      Component component,
-      CoreTypes coreTypes,
-      List<Library> libraries,
-      DiagnosticReporter diagnosticReporter,
-      {void Function(String msg)? logger,
-      ChangedStructureNotifier? changedStructureNotifier}) {
+    Component component,
+    CoreTypes coreTypes,
+    List<Library> libraries,
+    DiagnosticReporter diagnosticReporter, {
+    void Function(String msg)? logger,
+    ChangedStructureNotifier? changedStructureNotifier,
+  }) {
     super.performPreConstantEvaluationTransformations(
-        component, coreTypes, libraries, diagnosticReporter,
-        logger: logger, changedStructureNotifier: changedStructureNotifier);
+      component,
+      coreTypes,
+      libraries,
+      diagnosticReporter,
+      logger: logger,
+      changedStructureNotifier: changedStructureNotifier,
+    );
     benchmark(component, libraries);
   }
 }
@@ -259,15 +289,21 @@ class HookInDevCompilerTarget extends DevCompilerTarget {
 
   @override
   void performPreConstantEvaluationTransformations(
-      Component component,
-      CoreTypes coreTypes,
-      List<Library> libraries,
-      DiagnosticReporter diagnosticReporter,
-      {void Function(String msg)? logger,
-      ChangedStructureNotifier? changedStructureNotifier}) {
+    Component component,
+    CoreTypes coreTypes,
+    List<Library> libraries,
+    DiagnosticReporter diagnosticReporter, {
+    void Function(String msg)? logger,
+    ChangedStructureNotifier? changedStructureNotifier,
+  }) {
     super.performPreConstantEvaluationTransformations(
-        component, coreTypes, libraries, diagnosticReporter,
-        logger: logger, changedStructureNotifier: changedStructureNotifier);
+      component,
+      coreTypes,
+      libraries,
+      diagnosticReporter,
+      logger: logger,
+      changedStructureNotifier: changedStructureNotifier,
+    );
     benchmark(component, libraries);
   }
 }
@@ -277,15 +313,21 @@ class HookInFlutterTarget extends FlutterTarget {
 
   @override
   void performPreConstantEvaluationTransformations(
-      Component component,
-      CoreTypes coreTypes,
-      List<Library> libraries,
-      DiagnosticReporter diagnosticReporter,
-      {void Function(String msg)? logger,
-      ChangedStructureNotifier? changedStructureNotifier}) {
+    Component component,
+    CoreTypes coreTypes,
+    List<Library> libraries,
+    DiagnosticReporter diagnosticReporter, {
+    void Function(String msg)? logger,
+    ChangedStructureNotifier? changedStructureNotifier,
+  }) {
     super.performPreConstantEvaluationTransformations(
-        component, coreTypes, libraries, diagnosticReporter,
-        logger: logger, changedStructureNotifier: changedStructureNotifier);
+      component,
+      coreTypes,
+      libraries,
+      diagnosticReporter,
+      logger: logger,
+      changedStructureNotifier: changedStructureNotifier,
+    );
     benchmark(component, libraries);
   }
 }

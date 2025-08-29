@@ -113,7 +113,10 @@ class DirectiveListener extends Listener {
   @override
   void handleNativeFunctionBodySkipped(Token nativeToken, Token semicolon) {
     super.handleRecoverableError(
-        codeExpectedBlockToSkip, nativeToken, nativeToken);
+      codeExpectedBlockToSkip,
+      nativeToken,
+      nativeToken,
+    );
   }
 }
 
@@ -122,12 +125,12 @@ class NamespaceCombinator {
   final Set<String> names;
 
   NamespaceCombinator.hide(List<String> names)
-      : isShow = false,
-        names = names.toSet();
+    : isShow = false,
+      names = names.toSet();
 
   NamespaceCombinator.show(List<String> names)
-      : isShow = true,
-        names = names.toSet();
+    : isShow = true,
+      names = names.toSet();
 }
 
 class NamespaceDirective {

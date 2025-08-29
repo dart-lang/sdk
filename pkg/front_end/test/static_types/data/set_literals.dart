@@ -12,27 +12,27 @@ main() {
   var a1 =
       /*Set<int!>!*/
       {
-    /*int!*/
-    0
-  };
+        /*int!*/
+        0,
+      };
 
   // ignore: unused_local_variable
   var a2 =
       /*Set<num!>!*/
       {
-    /*int!*/
-    0,
-    /*double!*/
-    0.5
-  };
+        /*int!*/
+        0,
+        /*double!*/
+        0.5,
+      };
 
   // ignore: unused_local_variable
   var a3 =
       /*Set<Object!>!*/
       {
-    /*int!*/
-    0,
-    /*String!*/
-    ''
-  };
+        /*int!*/
+        0,
+        /*String!*/
+        '',
+      };
 }

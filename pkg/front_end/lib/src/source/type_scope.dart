@@ -40,8 +40,12 @@ class TypeScope {
     int typeCount = _unresolvedNamedTypes.length;
     if (_unresolvedNamedTypes.isNotEmpty) {
       for (NamedTypeBuilder namedTypeBuilder in _unresolvedNamedTypes) {
-        namedTypeBuilder.resolveIn(lookupScope, namedTypeBuilder.charOffset!,
-            namedTypeBuilder.fileUri!, problemReporting);
+        namedTypeBuilder.resolveIn(
+          lookupScope,
+          namedTypeBuilder.charOffset!,
+          namedTypeBuilder.fileUri!,
+          problemReporting,
+        );
       }
       _unresolvedNamedTypes.clear();
     }

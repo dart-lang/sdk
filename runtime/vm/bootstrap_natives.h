@@ -303,6 +303,10 @@ namespace dart {
   V(Ffi_dl_processLibrary, 0)                                                  \
   V(Ffi_dl_executableLibrary, 0)                                               \
   V(Ffi_GetFfiNativeResolver, 0)                                               \
+  V(Ffi_loadAbiSpecificInt, 2)                                                 \
+  V(Ffi_loadAbiSpecificIntAtIndex, 3)                                          \
+  V(Ffi_storeAbiSpecificInt, 3)                                                \
+  V(Ffi_storeAbiSpecificIntAtIndex, 4)                                         \
   V(DartApiDLInitializeData, 0)                                                \
   V(DartApiDLMajorVersion, 0)                                                  \
   V(DartApiDLMinorVersion, 0)                                                  \

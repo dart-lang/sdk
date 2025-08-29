@@ -4,14 +4,21 @@
 
 method(o) {
   switch (o) {
-    case [var /*
+    case [
+          var /*
      joinedIntermediate,
      name=a
-    */a] when a > 5:
-    case [_, var /*
+    */ a,
+        ]
+        when a > 5:
+    case [
+          _,
+          var /*
      joinedIntermediate,
      name=a
-    */a] when a < 5:
+    */ a,
+        ]
+        when a < 5:
       print(a);
   }
 }

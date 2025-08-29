@@ -27,7 +27,9 @@ class Covariance {
 
   /// Applies the [covariance] mask to [parameter].
   static void covarianceToParameter(
-      int covariance, VariableDeclaration parameter) {
+    int covariance,
+    VariableDeclaration parameter,
+  ) {
     if ((covariance & Covariant) != 0) {
       parameter.isCovariantByDeclaration = true;
     }
@@ -62,14 +64,22 @@ class Covariance {
   final List<bool>? _typeParameters;
 
   Covariance.internal(
-      this._positionalParameters, this._namedParameters, this._typeParameters) {
-    assert(_positionalParameters == null ||
-        _positionalParameters.any((element) => element != 0));
-    assert(_namedParameters == null ||
-        _namedParameters.values.isNotEmpty &&
-            _namedParameters.values.every((element) => element != 0));
+    this._positionalParameters,
+    this._namedParameters,
+    this._typeParameters,
+  ) {
     assert(
-        _typeParameters == null || _typeParameters.any((element) => element));
+      _positionalParameters == null ||
+          _positionalParameters.any((element) => element != 0),
+    );
+    assert(
+      _namedParameters == null ||
+          _namedParameters.values.isNotEmpty &&
+              _namedParameters.values.every((element) => element != 0),
+    );
+    assert(
+      _typeParameters == null || _typeParameters.any((element) => element),
+    );
   }
 
   /// The empty covariance.
@@ -77,9 +87,9 @@ class Covariance {
   /// This is used for all members that do not use any covariance, regardless
   /// of parameter structure.
   const Covariance.empty()
-      : _positionalParameters = null,
-        _namedParameters = null,
-        _typeParameters = null;
+    : _positionalParameters = null,
+      _namedParameters = null,
+      _typeParameters = null;
 
   /// Computes the covariance for the setter aspect of [field].
   ///
@@ -94,8 +104,9 @@ class Covariance {
 
   /// Computes the covariance for the [setter].
   factory Covariance.fromSetter(Procedure setter) {
-    int covariance =
-        covarianceFromParameter(setter.function.positionalParameters.first);
+    int covariance = covarianceFromParameter(
+      setter.function.positionalParameters.first,
+    );
     if (covariance == 0) {
       return const Covariance.empty();
     }
@@ -107,14 +118,19 @@ class Covariance {
     FunctionNode function = procedure.function;
     List<int>? positionalParameters;
     if (function.positionalParameters.isNotEmpty) {
-      for (int index = 0;
-          index < function.positionalParameters.length;
-          index++) {
-        int covariance =
-            covarianceFromParameter(function.positionalParameters[index]);
+      for (
+        int index = 0;
+        index < function.positionalParameters.length;
+        index++
+      ) {
+        int covariance = covarianceFromParameter(
+          function.positionalParameters[index],
+        );
         if (covariance != 0) {
-          positionalParameters ??=
-              new List<int>.filled(function.positionalParameters.length, 0);
+          positionalParameters ??= new List<int>.filled(
+            function.positionalParameters.length,
+            0,
+          );
           positionalParameters[index] = covariance;
         }
       }
@@ -134,8 +150,10 @@ class Covariance {
     if (function.typeParameters.isNotEmpty) {
       for (int index = 0; index < function.typeParameters.length; index++) {
         if (function.typeParameters[index].isCovariantByClass) {
-          typeParameters ??=
-              new List<bool>.filled(function.typeParameters.length, false);
+          typeParameters ??= new List<bool>.filled(
+            function.typeParameters.length,
+            false,
+          );
           typeParameters[index] = true;
         }
       }
@@ -146,7 +164,10 @@ class Covariance {
       return const Covariance.empty();
     }
     return new Covariance.internal(
-        positionalParameters, namedParameters, typeParameters);
+      positionalParameters,
+      namedParameters,
+      typeParameters,
+    );
   }
 
   /// Computes the covariance for [member].
@@ -171,7 +192,8 @@ class Covariance {
       }
     } else {
       throw new UnsupportedError(
-          "Unexpected member $member (${member.runtimeType})");
+        "Unexpected member $member (${member.runtimeType})",
+      );
     }
   }
 
@@ -214,8 +236,9 @@ class Covariance {
       positionalParameters = _positionalParameters;
     } else {
       positionalParameters = new List<int>.filled(
-          max(_positionalParameters.length, other._positionalParameters.length),
-          0);
+        max(_positionalParameters.length, other._positionalParameters.length),
+        0,
+      );
       for (int index = 0; index < positionalParameters.length; index++) {
         positionalParameters[index] =
             getPositionalVariance(index) | other.getPositionalVariance(index);
@@ -230,7 +253,7 @@ class Covariance {
       namedParameters = {};
       Set<String> names = {
         ..._namedParameters.keys,
-        ...other._namedParameters.keys
+        ...other._namedParameters.keys,
       };
       for (String name in names) {
         namedParameters[name] =
@@ -245,9 +268,12 @@ class Covariance {
       typeParameters = _typeParameters;
     } else {
       typeParameters = new List<bool>.filled(
-          max(_typeParameters.length, other._typeParameters.length), false);
+        max(_typeParameters.length, other._typeParameters.length),
+        false,
+      );
       for (int index = 0; index < typeParameters.length; index++) {
-        typeParameters[index] = isTypeParameterGenericCovariantImpl(index) ||
+        typeParameters[index] =
+            isTypeParameterGenericCovariantImpl(index) ||
             // Coverage-ignore(suite): Not run.
             other.isTypeParameterGenericCovariantImpl(index);
       }
@@ -258,7 +284,10 @@ class Covariance {
       return const Covariance.empty();
     }
     return new Covariance.internal(
-        positionalParameters, namedParameters, typeParameters);
+      positionalParameters,
+      namedParameters,
+      typeParameters,
+    );
   }
 
   /// Update [member] to have the covariant flags set with the covariance in
@@ -273,8 +302,10 @@ class Covariance {
       if (positionalParameters != null) {
         for (int index = 0; index < positionalParameters.length; index++) {
           if (index < function.positionalParameters.length) {
-            covarianceToParameter(positionalParameters[index],
-                function.positionalParameters[index]);
+            covarianceToParameter(
+              positionalParameters[index],
+              function.positionalParameters[index],
+            );
           }
         }
       }
@@ -299,7 +330,8 @@ class Covariance {
       }
     } else {
       throw new UnsupportedError(
-          "Unexpected member $member (${member.runtimeType})");
+        "Unexpected member $member (${member.runtimeType})",
+      );
     }
   }
 
@@ -339,7 +371,9 @@ class Covariance {
           return false;
         }
         int positionalParameterCount = max(
-            _positionalParameters.length, other._positionalParameters.length);
+          _positionalParameters.length,
+          other._positionalParameters.length,
+        );
         for (int i = 0; i < positionalParameterCount; i++) {
           if (getPositionalVariance(i) != other.getPositionalVariance(i)) {
             return false;
@@ -352,7 +386,7 @@ class Covariance {
         }
         Set<String> names = {
           ..._namedParameters.keys,
-          ...other._namedParameters.keys
+          ...other._namedParameters.keys,
         };
         for (String name in names) {
           if (getNamedVariance(name) != other.getNamedVariance(name)) {
@@ -364,8 +398,10 @@ class Covariance {
         if (_typeParameters == null || other._typeParameters == null) {
           return false;
         }
-        int typeParameterCount =
-            max(_typeParameters.length, other._typeParameters.length);
+        int typeParameterCount = max(
+          _typeParameters.length,
+          other._typeParameters.length,
+        );
         for (int i = 0; i < typeParameterCount; i++) {
           if (isTypeParameterGenericCovariantImpl(i) !=
               other.isTypeParameterGenericCovariantImpl(i)) {

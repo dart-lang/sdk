@@ -603,30 +603,34 @@ DART_NOINLINE bool Interpreter::InvokeCompiled(Thread* thread,
     InterpreterSetjmpBuffer buffer(this);
     if (!DART_SETJMP(buffer.buffer_)) {
 #if defined(DART_INCLUDE_SIMULATOR)
-      // We need to beware that bouncing between the interpreter and the
-      // simulator may exhaust the C stack before exhausting either the
-      // interpreter or simulator stacks.
-      if (!thread->os_thread()->HasStackHeadroom()) {
-        thread->SetStackLimit(-1);
-      }
-      result = bit_copy<ObjectPtr, int64_t>(Simulator::Current()->Call(
-          reinterpret_cast<intptr_t>(entrypoint),
+      if (FLAG_use_simulator) {
+        // We need to beware that bouncing between the interpreter and the
+        // simulator may exhaust the C stack before exhausting either the
+        // interpreter or simulator stacks.
+        if (!thread->os_thread()->HasStackHeadroom()) {
+          thread->SetStackLimit(-1);
+        }
+        result = bit_copy<ObjectPtr, int64_t>(Simulator::Current()->Call(
+            reinterpret_cast<intptr_t>(entrypoint),
 #if defined(DART_PRECOMPILED_RUNTIME)
-          static_cast<intptr_t>(function->untag()->entry_point_),
+            static_cast<intptr_t>(function->untag()->entry_point_),
 #else
-          static_cast<intptr_t>(function->untag()->code()),
+            static_cast<intptr_t>(function->untag()->code()),
 #endif
-          static_cast<intptr_t>(argdesc_),
-          reinterpret_cast<intptr_t>(call_base),
-          reinterpret_cast<intptr_t>(thread)));
-#else
-      result = static_cast<ObjectPtr>(entrypoint(
+            static_cast<intptr_t>(argdesc_),
+            reinterpret_cast<intptr_t>(call_base),
+            reinterpret_cast<intptr_t>(thread)));
+      } else {
+#endif
+        result = static_cast<ObjectPtr>(entrypoint(
 #if defined(DART_PRECOMPILED_RUNTIME)
-          function->untag()->entry_point_,
+            function->untag()->entry_point_,
 #else
           static_cast<uword>(function->untag()->code()),
 #endif
-          static_cast<uword>(argdesc_), call_base, thread));
+            static_cast<uword>(argdesc_), call_base, thread));
+#if defined(DART_INCLUDE_SIMULATOR)
+      }
 #endif
       ASSERT(thread->vm_tag() == VMTag::kDartInterpretedTagId);
       ASSERT(thread->execution_state() == Thread::kThreadInGenerated);

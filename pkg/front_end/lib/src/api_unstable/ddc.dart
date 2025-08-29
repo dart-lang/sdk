@@ -16,7 +16,8 @@ import '../api_prototype/standard_file_system.dart' show StandardFileSystem;
 import '../base/processed_options.dart' show ProcessedOptions;
 import '../kernel_generator_impl.dart' show generateKernel;
 import 'compiler_state.dart' show InitializedCompilerState;
-import 'modular_incremental_compilation.dart' as modular
+import 'modular_incremental_compilation.dart'
+    as modular
     show initializeIncrementalCompiler;
 import 'util.dart' show equalLists, equalMaps;
 
@@ -58,8 +59,13 @@ class DdcResult {
   late final Set<Library> librariesFromDill = _computeLibrariesFromDill();
   late final Component compiledLibraries = _computeCompiledLibraries();
 
-  DdcResult(this.component, this.sdkSummary, this.additionalDills,
-      this.classHierarchy, this.neededDillLibraries);
+  DdcResult(
+    this.component,
+    this.sdkSummary,
+    this.additionalDills,
+    this.classHierarchy,
+    this.neededDillLibraries,
+  );
 
   Set<Library> _computeLibrariesFromDill() {
     Set<Library> librariesFromDill = new Set<Library>();
@@ -80,8 +86,9 @@ class DdcResult {
 
   Component _computeCompiledLibraries() {
     Component compiledLibraries = new Component(
-        nameRoot: component.root, uriToSource: component.uriToSource)
-      ..setMainMethodAndMode(null, false);
+      nameRoot: component.root,
+      uriToSource: component.uriToSource,
+    )..setMainMethodAndMode(null, false);
     for (Library lib in component.libraries) {
       if (!librariesFromDill.contains(lib)) {
         compiledLibraries.libraries.add(lib);
@@ -92,17 +99,18 @@ class DdcResult {
 }
 
 InitializedCompilerState initializeCompiler(
-    InitializedCompilerState? oldState,
-    bool compileSdk,
-    Uri? sdkRoot,
-    Uri? sdkSummary,
-    Uri? packagesFile,
-    Uri? librariesSpecificationUri,
-    List<Uri> additionalDills,
-    Target target,
-    {FileSystem? fileSystem,
-    Map<ExperimentalFlag, bool>? explicitExperimentalFlags,
-    Map<String, String>? environmentDefines}) {
+  InitializedCompilerState? oldState,
+  bool compileSdk,
+  Uri? sdkRoot,
+  Uri? sdkSummary,
+  Uri? packagesFile,
+  Uri? librariesSpecificationUri,
+  List<Uri> additionalDills,
+  Target target, {
+  FileSystem? fileSystem,
+  Map<ExperimentalFlag, bool>? explicitExperimentalFlags,
+  Map<String, String>? environmentDefines,
+}) {
   additionalDills.sort((a, b) => a.toString().compareTo(b.toString()));
 
   if (oldState != null &&
@@ -111,8 +119,10 @@ InitializedCompilerState initializeCompiler(
       oldState.options.packagesFileUri == packagesFile &&
       oldState.options.librariesSpecificationUri == librariesSpecificationUri &&
       equalLists(oldState.options.additionalDills, additionalDills) &&
-      equalMaps(oldState.options.explicitExperimentalFlags,
-          explicitExperimentalFlags) &&
+      equalMaps(
+        oldState.options.explicitExperimentalFlags,
+        explicitExperimentalFlags,
+      ) &&
       equalMaps(oldState.options.environmentDefines, environmentDefines)) {
     // Reuse old state.
     return oldState;
@@ -142,43 +152,48 @@ InitializedCompilerState initializeCompiler(
 /// Re-uses cached components from [oldState.workerInputCache], and reloads them
 /// as necessary based on [workerInputDigests].
 Future<InitializedCompilerState> initializeIncrementalCompiler(
-    InitializedCompilerState? oldState,
-    Set<String> tags,
-    List<Component> doneAdditionalDills,
-    bool compileSdk,
-    Uri? sdkRoot,
-    Uri? sdkSummary,
-    Uri? packagesFile,
-    Uri? librariesSpecificationUri,
-    List<Uri> additionalDills,
-    Map<Uri, List<int>> workerInputDigests,
-    Target target,
-    {FileSystem? fileSystem,
-    required Map<ExperimentalFlag, bool> explicitExperimentalFlags,
-    required Map<String, String> environmentDefines,
-    bool trackNeededDillLibraries = false}) {
+  InitializedCompilerState? oldState,
+  Set<String> tags,
+  List<Component> doneAdditionalDills,
+  bool compileSdk,
+  Uri? sdkRoot,
+  Uri? sdkSummary,
+  Uri? packagesFile,
+  Uri? librariesSpecificationUri,
+  List<Uri> additionalDills,
+  Map<Uri, List<int>> workerInputDigests,
+  Target target, {
+  FileSystem? fileSystem,
+  required Map<ExperimentalFlag, bool> explicitExperimentalFlags,
+  required Map<String, String> environmentDefines,
+  bool trackNeededDillLibraries = false,
+}) {
   return modular.initializeIncrementalCompiler(
-      oldState,
-      tags,
-      doneAdditionalDills,
-      sdkSummary,
-      packagesFile,
-      librariesSpecificationUri,
-      additionalDills,
-      workerInputDigests,
-      target,
-      compileSdk: compileSdk,
-      sdkRoot: sdkRoot,
-      fileSystem: fileSystem ?? StandardFileSystem.instance,
-      explicitExperimentalFlags: explicitExperimentalFlags,
-      environmentDefines: environmentDefines,
-      outlineOnly: false,
-      omitPlatform: false,
-      trackNeededDillLibraries: trackNeededDillLibraries);
+    oldState,
+    tags,
+    doneAdditionalDills,
+    sdkSummary,
+    packagesFile,
+    librariesSpecificationUri,
+    additionalDills,
+    workerInputDigests,
+    target,
+    compileSdk: compileSdk,
+    sdkRoot: sdkRoot,
+    fileSystem: fileSystem ?? StandardFileSystem.instance,
+    explicitExperimentalFlags: explicitExperimentalFlags,
+    environmentDefines: environmentDefines,
+    outlineOnly: false,
+    omitPlatform: false,
+    trackNeededDillLibraries: trackNeededDillLibraries,
+  );
 }
 
-Future<DdcResult?> compile(InitializedCompilerState compilerState,
-    List<Uri> inputs, DiagnosticMessageHandler diagnosticMessageHandler) async {
+Future<DdcResult?> compile(
+  InitializedCompilerState compilerState,
+  List<Uri> inputs,
+  DiagnosticMessageHandler diagnosticMessageHandler,
+) async {
   CompilerOptions options = compilerState.options;
   options..onDiagnostic = diagnosticMessageHandler;
 
@@ -186,8 +201,10 @@ Future<DdcResult?> compile(InitializedCompilerState compilerState,
   processedOpts.inputs.clear();
   processedOpts.inputs.addAll(inputs);
 
-  CompilerResult compilerResult =
-      await generateKernel(processedOpts, includeHierarchyAndCoreTypes: true);
+  CompilerResult compilerResult = await generateKernel(
+    processedOpts,
+    includeHierarchyAndCoreTypes: true,
+  );
 
   Component? component = compilerResult.component;
   if (component == null) return null;
@@ -196,5 +213,10 @@ Future<DdcResult?> compile(InitializedCompilerState compilerState,
   Component? sdkSummary = await processedOpts.loadSdkSummary(null);
   List<Component> summaries = await processedOpts.loadAdditionalDills(null);
   return new DdcResult(
-      component, sdkSummary, summaries, compilerResult.classHierarchy!, null);
+    component,
+    sdkSummary,
+    summaries,
+    compilerResult.classHierarchy!,
+    null,
+  );
 }

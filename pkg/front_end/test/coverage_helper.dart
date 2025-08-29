@@ -13,8 +13,10 @@ Future<Coverage?> collectCoverage({
   bool getKernelServiceCoverageToo = false,
   bool forceCompile = false,
 }) async {
-  ServiceProtocolInfo service =
-      await Service.controlWebServer(enable: true, silenceOutput: true);
+  ServiceProtocolInfo service = await Service.controlWebServer(
+    enable: true,
+    silenceOutput: true,
+  );
   if (service.serverUri == null) {
     return null;
   }
@@ -31,11 +33,12 @@ Future<Coverage?> collectCoverage({
   return result;
 }
 
-Future<Coverage?> collectCoverageWithHelper(
-    {required VMServiceHelper helper,
-    required final bool getKernelServiceCoverageToo,
-    required final String displayName,
-    bool forceCompile = false}) async {
+Future<Coverage?> collectCoverageWithHelper({
+  required VMServiceHelper helper,
+  required final bool getKernelServiceCoverageToo,
+  required final String displayName,
+  bool forceCompile = false,
+}) async {
   VM vm = await helper.serviceClient.getVM();
   final List<String> isolateIds = [];
   if (getKernelServiceCoverageToo) {
@@ -44,16 +47,20 @@ Future<Coverage?> collectCoverageWithHelper(
         .toList();
 
     if (kernelServiceIsolates.length < 1) {
-      print("Expected (at least) 1 kernel-service isolate, "
-          "got ${kernelServiceIsolates.length}");
+      print(
+        "Expected (at least) 1 kernel-service isolate, "
+        "got ${kernelServiceIsolates.length}",
+      );
       return null;
     }
 
     // TODO(jensj): I guess we should look at the isolate group; also we could
     // just iterate through them to get all coverage...
     if (kernelServiceIsolates.length != 1) {
-      print("Got ${kernelServiceIsolates.length} kernel-service isolates. "
-          "Picking the first one.");
+      print(
+        "Got ${kernelServiceIsolates.length} kernel-service isolates. "
+        "Picking the first one.",
+      );
     }
     isolateIds.add(kernelServiceIsolates.first.id!);
   }
@@ -73,9 +80,11 @@ Future<Coverage?> collectCoverageWithHelper(
   List<SourceReport> sourceReports = [];
   for (String isolateId in isolateIds) {
     final Stopwatch stopwatch = new Stopwatch()..start();
-    sourceReports.add(await helper.serviceClient.getSourceReport(
-        isolateId, [SourceReportKind.kCoverage],
-        forceCompile: forceCompile));
+    sourceReports.add(
+      await helper.serviceClient.getSourceReport(isolateId, [
+        SourceReportKind.kCoverage,
+      ], forceCompile: forceCompile),
+    );
     print("Got source report from VM in ${stopwatch.elapsedMilliseconds} ms");
   }
 
@@ -112,15 +121,17 @@ Coverage getCoverageFromSourceReport(
       Uri scriptUri = Uri.parse(script.uri!);
       if (!shouldIncludeCoverageFor(scriptUri)) continue;
 
-      final FileCoverage fileCoverage =
-          coverage.getOrAddFileCoverage(scriptUri);
+      final FileCoverage fileCoverage = coverage.getOrAddFileCoverage(
+        scriptUri,
+      );
       SourceReportCoverage? sourceReportCoverage = range.coverage;
       if (sourceReportCoverage == null) {
         // Range not compiled. Record the range if provided.
         assert(!range.compiled!);
         if (range.startPos! >= 0 || range.endPos! >= 0) {
-          fileCoverage.notCompiled
-              .add(new StartEndPair(range.startPos!, range.endPos!));
+          fileCoverage.notCompiled.add(
+            new StartEndPair(range.startPos!, range.endPos!),
+          );
         }
         continue;
       }
@@ -203,8 +214,9 @@ class FileCoverage {
 
   Map<String, Object?> toJson() {
     List<int> notCompiledRanges = [];
-    for (var pair in notCompiled.toList()
-      ..sort((a, b) => a.startPos.compareTo(b.startPos))) {
+    for (var pair
+        in notCompiled.toList()
+          ..sort((a, b) => a.startPos.compareTo(b.startPos))) {
       notCompiledRanges.add(pair.startPos);
       notCompiledRanges.add(pair.endPos);
     }
@@ -230,7 +242,8 @@ class FileCoverage {
     List notCompiledRanges = json["notCompiledRanges"] as List;
     for (int i = 0; i < notCompiledRanges.length; i += 2) {
       result.notCompiled.add(
-          new StartEndPair(notCompiledRanges[i], notCompiledRanges[i + 1]));
+        new StartEndPair(notCompiledRanges[i], notCompiledRanges[i + 1]),
+      );
     }
     return result;
   }

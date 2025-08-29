@@ -34,9 +34,10 @@ class LoadLibraryBuilder extends NamedBuilderImpl {
 
   late final LibraryDependency importDependency =
       new LibraryDependency.deferredImport(
-          _imported.libraryBuilder.library, _prefix,
-          combinators: _combinators)
-        ..fileOffset = _importCharOffset;
+        _imported.libraryBuilder.library,
+        _prefix,
+        combinators: _combinators,
+      )..fileOffset = _importCharOffset;
 
   /// Offset of the import prefix.
   @override
@@ -54,15 +55,24 @@ class LoadLibraryBuilder extends NamedBuilderImpl {
 
   final List<Combinator>? _combinators;
 
-  LoadLibraryBuilder(this.parent, this.fileOffset, this._imported, this._prefix,
-      this._importCharOffset, this._combinators);
+  LoadLibraryBuilder(
+    this.parent,
+    this.fileOffset,
+    this._imported,
+    this._prefix,
+    this._importCharOffset,
+    this._combinators,
+  );
 
   @override
   // Coverage-ignore(suite): Not run.
   Uri get fileUri => parent.fileUri;
 
   LoadLibrary createLoadLibrary(
-      int charOffset, Forest forest, Arguments? arguments) {
+    int charOffset,
+    Forest forest,
+    Arguments? arguments,
+  ) {
     return forest.createLoadLibrary(charOffset, importDependency, arguments);
   }
 
@@ -75,17 +85,24 @@ class LoadLibraryBuilder extends NamedBuilderImpl {
     String prefix = expression.import.name!;
     Name name = new Name('_#loadLibrary_$prefix', parent.library);
     Reference? reference = parent.indexedLibrary?.lookupGetterReference(name);
-    return tearoff = new Procedure(
-        name,
-        ProcedureKind.Method,
-        new FunctionNode(new ReturnStatement(expression),
-            returnType: new InterfaceType(parent.loader.coreTypes.futureClass,
-                Nullability.nonNullable, <DartType>[const DynamicType()])),
-        fileUri: parent.library.fileUri,
-        isStatic: true,
-        reference: reference)
-      ..fileStartOffset = fileOffset
-      ..fileOffset = fileOffset;
+    return tearoff =
+        new Procedure(
+            name,
+            ProcedureKind.Method,
+            new FunctionNode(
+              new ReturnStatement(expression),
+              returnType: new InterfaceType(
+                parent.loader.coreTypes.futureClass,
+                Nullability.nonNullable,
+                <DartType>[const DynamicType()],
+              ),
+            ),
+            fileUri: parent.library.fileUri,
+            isStatic: true,
+            reference: reference,
+          )
+          ..fileStartOffset = fileOffset
+          ..fileOffset = fileOffset;
   }
 
   @override

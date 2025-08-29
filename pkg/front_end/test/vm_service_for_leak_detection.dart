@@ -28,7 +28,7 @@ Future<void> main(List<String> args) async {
       // different ways, thus getting two copies of the same library.
       // "issue_49968" gets "by design" the same library twice because of
       // mixups with import urls and file urls.
-      "-DskipTests=import_package_by_file_uri,issue_49968"
+      "-DskipTests=import_package_by_file_uri,issue_49968",
     ]);
   } else if (args.length > 0 && args[0].startsWith("--connect=")) {
     // Connect to already running process.
@@ -54,8 +54,8 @@ Future<void> main(List<String> args) async {
     while (true) {
       try {
         final String uriString = new File.fromUri(
-                Directory.systemTemp.uri.resolve('./dart_leak_test_uri'))
-            .readAsStringSync();
+          Directory.systemTemp.uri.resolve('./dart_leak_test_uri'),
+        ).readAsStringSync();
         final Uri uri = Uri.parse(uriString);
         heapHelper.timeout = 30;
         heapHelper.verbose = true;
@@ -82,16 +82,15 @@ Future<void> main(List<String> args) async {
 }
 
 helper.VMServiceHeapHelperSpecificExactLeakFinder createNewLeakFinder(
-    List<helper.Interest> interests) {
+  List<helper.Interest> interests,
+) {
   return new helper.VMServiceHeapHelperSpecificExactLeakFinder(
     interests: interests,
     prettyPrints: [
-      new helper.Interest(
-        Uri.parse("package:kernel/ast.dart"),
-        "Library",
-        ["fileUri", "libraryIdForTesting"],
-        expectToAlwaysFind: true,
-      ),
+      new helper.Interest(Uri.parse("package:kernel/ast.dart"), "Library", [
+        "fileUri",
+        "libraryIdForTesting",
+      ], expectToAlwaysFind: true),
     ],
     throwOnPossibleLeak: true,
   );
@@ -99,27 +98,30 @@ helper.VMServiceHeapHelperSpecificExactLeakFinder createNewLeakFinder(
 
 List<helper.Interest> getInterests() {
   List<helper.Interest> interests = <helper.Interest>[];
-  interests.add(new helper.Interest(
-    Uri.parse("package:front_end/src/source/source_library_builder.dart"),
-    "SourceLibraryBuilder",
-    ["fileUri"],
-  ));
-  interests.add(new helper.Interest(
-    Uri.parse("package:front_end/src/source/source_extension_builder.dart"),
-    "SourceExtensionBuilder",
-    ["extension"],
-  ));
-  interests.add(new helper.Interest(
-    Uri.parse("package:kernel/ast.dart"),
-    "Library",
-    ["fileUri"],
-    expectToAlwaysFind: true,
-  ));
-  interests.add(new helper.Interest(
-    Uri.parse("package:kernel/ast.dart"),
-    "Extension",
-    ["name", "fileUri"],
-    expectToAlwaysFind: true,
-  ));
+  interests.add(
+    new helper.Interest(
+      Uri.parse("package:front_end/src/source/source_library_builder.dart"),
+      "SourceLibraryBuilder",
+      ["fileUri"],
+    ),
+  );
+  interests.add(
+    new helper.Interest(
+      Uri.parse("package:front_end/src/source/source_extension_builder.dart"),
+      "SourceExtensionBuilder",
+      ["extension"],
+    ),
+  );
+  interests.add(
+    new helper.Interest(Uri.parse("package:kernel/ast.dart"), "Library", [
+      "fileUri",
+    ], expectToAlwaysFind: true),
+  );
+  interests.add(
+    new helper.Interest(Uri.parse("package:kernel/ast.dart"), "Extension", [
+      "name",
+      "fileUri",
+    ], expectToAlwaysFind: true),
+  );
   return interests;
 }

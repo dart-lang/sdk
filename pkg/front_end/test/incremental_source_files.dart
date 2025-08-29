@@ -54,8 +54,10 @@ List expandDiff(String text) {
 List<String> expandUpdates(List updates) {
   int outputCount = updates.firstWhere((e) => e is Iterable).length;
   List<StringBuffer> result = new List<StringBuffer>.generate(
-      outputCount, (_) => new StringBuffer(),
-      growable: false);
+    outputCount,
+    (_) => new StringBuffer(),
+    growable: false,
+  );
   for (var chunk in updates) {
     if (chunk is Iterable) {
       int segmentCount = 0;
@@ -63,8 +65,10 @@ List<String> expandUpdates(List updates) {
         result[segmentCount++].write(segment);
       }
       if (segmentCount != outputCount) {
-        throw new ArgumentError("Expected ${outputCount} segments, "
-            "but found ${segmentCount} in $chunk");
+        throw new ArgumentError(
+          "Expected ${outputCount} segments, "
+          "but found ${segmentCount} in $chunk",
+        );
       }
     } else {
       for (StringBuffer buffer in result) {

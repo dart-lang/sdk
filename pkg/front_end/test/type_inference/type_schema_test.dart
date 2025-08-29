@@ -32,41 +32,71 @@ class UnknownTypeTest {
     var A = new InterfaceType(classA, Nullability.nonNullable);
     var typedefF = new Typedef('F', A, fileUri: dummyUri);
     expect(isKnown(A), isTrue);
-    expect(isKnown(new InterfaceType(classA, Nullability.nonNullable, [A])),
-        isTrue);
     expect(
-        isKnown(
-            new InterfaceType(classA, Nullability.nonNullable, [unknownType])),
-        isFalse);
+      isKnown(new InterfaceType(classA, Nullability.nonNullable, [A])),
+      isTrue,
+    );
     expect(
-        isKnown(
-            new FunctionType([], const VoidType(), Nullability.nonNullable)),
-        isTrue);
-    expect(isKnown(new FunctionType([], unknownType, Nullability.nonNullable)),
-        isFalse);
+      isKnown(
+        new InterfaceType(classA, Nullability.nonNullable, [unknownType]),
+      ),
+      isFalse,
+    );
     expect(
-        isKnown(
-            new FunctionType([A], const VoidType(), Nullability.nonNullable)),
-        isTrue);
+      isKnown(new FunctionType([], const VoidType(), Nullability.nonNullable)),
+      isTrue,
+    );
     expect(
-        isKnown(new FunctionType(
-            [unknownType], const VoidType(), Nullability.nonNullable)),
-        isFalse);
+      isKnown(new FunctionType([], unknownType, Nullability.nonNullable)),
+      isFalse,
+    );
     expect(
-        isKnown(new FunctionType([], const VoidType(), Nullability.nonNullable,
-            namedParameters: [new NamedType('x', A)])),
-        isTrue);
+      isKnown(new FunctionType([A], const VoidType(), Nullability.nonNullable)),
+      isTrue,
+    );
     expect(
-        isKnown(new FunctionType([], const VoidType(), Nullability.nonNullable,
-            namedParameters: [new NamedType('x', unknownType)])),
-        isFalse);
+      isKnown(
+        new FunctionType(
+          [unknownType],
+          const VoidType(),
+          Nullability.nonNullable,
+        ),
+      ),
+      isFalse,
+    );
+    expect(
+      isKnown(
+        new FunctionType(
+          [],
+          const VoidType(),
+          Nullability.nonNullable,
+          namedParameters: [new NamedType('x', A)],
+        ),
+      ),
+      isTrue,
+    );
+    expect(
+      isKnown(
+        new FunctionType(
+          [],
+          const VoidType(),
+          Nullability.nonNullable,
+          namedParameters: [new NamedType('x', unknownType)],
+        ),
+      ),
+      isFalse,
+    );
     expect(isKnown(new TypedefType(typedefF, Nullability.nonNullable)), isTrue);
-    expect(isKnown(new TypedefType(typedefF, Nullability.nonNullable, [A])),
-        isTrue);
     expect(
-        isKnown(
-            new TypedefType(typedefF, Nullability.nonNullable, [unknownType])),
-        isFalse);
+      isKnown(new TypedefType(typedefF, Nullability.nonNullable, [A])),
+      isTrue,
+    );
+    expect(
+      isKnown(
+        new TypedefType(typedefF, Nullability.nonNullable, [unknownType]),
+      ),
+      isFalse,
+    );
   }
 
   void test_ordinary_visitor_noOverrides() {
@@ -74,11 +104,17 @@ class UnknownTypeTest {
   }
 
   void test_ordinary_visitor_overrideDefault() {
-    expect(unknownType
-        .accept(new _OrdinaryVisitor<String>(defaultDartType: (DartType node) {
-      expect(node, same(unknownType));
-      return 'defaultDartType';
-    })), 'defaultDartType');
+    expect(
+      unknownType.accept(
+        new _OrdinaryVisitor<String>(
+          defaultDartType: (DartType node) {
+            expect(node, same(unknownType));
+            return 'defaultDartType';
+          },
+        ),
+      ),
+      'defaultDartType',
+    );
   }
 
   void test_type_schema_visitor_noOverrides() {
@@ -86,35 +122,56 @@ class UnknownTypeTest {
   }
 
   void test_type_schema_visitor_overrideDefault() {
-    expect(unknownType.accept(
-        new _TypeSchemaVisitor<String>(defaultDartType: (DartType node) {
-      expect(node, same(unknownType));
-      return 'defaultDartType';
-    })), 'defaultDartType');
+    expect(
+      unknownType.accept(
+        new _TypeSchemaVisitor<String>(
+          defaultDartType: (DartType node) {
+            expect(node, same(unknownType));
+            return 'defaultDartType';
+          },
+        ),
+      ),
+      'defaultDartType',
+    );
   }
 
   void test_type_schema_visitor_overrideVisitUnknownType() {
-    expect(unknownType.accept(
-        new _TypeSchemaVisitor<String>(visitUnknownType: (UnknownType node) {
-      expect(node, same(unknownType));
-      return 'visitUnknownType';
-    })), 'visitUnknownType');
+    expect(
+      unknownType.accept(
+        new _TypeSchemaVisitor<String>(
+          visitUnknownType: (UnknownType node) {
+            expect(node, same(unknownType));
+            return 'visitUnknownType';
+          },
+        ),
+      ),
+      'visitUnknownType',
+    );
   }
 
   void test_typeSchemaToString() {
     expect(unknownType.toString(), isNot('?'));
     expect(typeSchemaToString(unknownType), '?');
     expect(
-        typeSchemaToString(new FunctionType(
-            [unknownType, unknownType], unknownType, Nullability.nonNullable)),
-        '(?, ?) → ?');
+      typeSchemaToString(
+        new FunctionType(
+          [unknownType, unknownType],
+          unknownType,
+          Nullability.nonNullable,
+        ),
+      ),
+      '(?, ?) → ?',
+    );
   }
 
   void test_visitChildren() {
-    unknownType
-        .visitChildren(new _TypeSchemaVisitor(defaultDartType: (DartType node) {
-      fail('Should not have visited anything');
-    }));
+    unknownType.visitChildren(
+      new _TypeSchemaVisitor(
+        defaultDartType: (DartType node) {
+          fail('Should not have visited anything');
+        },
+      ),
+    );
   }
 }
 
@@ -122,7 +179,7 @@ class _OrdinaryVisitor<R> extends VisitorDefault<R?> with VisitorNullMixin<R> {
   final _UnaryFunction<DartType, R>? _defaultDartType;
 
   _OrdinaryVisitor({_UnaryFunction<DartType, R>? defaultDartType})
-      : _defaultDartType = defaultDartType;
+    : _defaultDartType = defaultDartType;
 
   @override
   R? defaultDartType(DartType node) {
@@ -139,11 +196,11 @@ class _TypeSchemaVisitor<R> extends VisitorDefault<R?>
   final _UnaryFunction<DartType, R>? _defaultDartType;
   final _UnaryFunction<UnknownType, R>? _visitUnknownType;
 
-  _TypeSchemaVisitor(
-      {_UnaryFunction<DartType, R>? defaultDartType,
-      _UnaryFunction<UnknownType, R>? visitUnknownType})
-      : _defaultDartType = defaultDartType,
-        _visitUnknownType = visitUnknownType;
+  _TypeSchemaVisitor({
+    _UnaryFunction<DartType, R>? defaultDartType,
+    _UnaryFunction<UnknownType, R>? visitUnknownType,
+  }) : _defaultDartType = defaultDartType,
+       _visitUnknownType = visitUnknownType;
 
   @override
   R? defaultDartType(DartType node) {

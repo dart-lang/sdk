@@ -22,20 +22,24 @@ class TypedefFragment implements Fragment {
   SourceTypeAliasBuilder? _builder;
 
   @override
-  late final UriOffsetLength uriOffset =
-      new UriOffsetLength(fileUri, nameOffset, name.length);
+  late final UriOffsetLength uriOffset = new UriOffsetLength(
+    fileUri,
+    nameOffset,
+    name.length,
+  );
 
-  TypedefFragment(
-      {required this.metadata,
-      required this.name,
-      required this.typeParameters,
-      required this.type,
-      required this.fileUri,
-      required this.nameOffset,
-      required this.typeParameterScope,
-      required this.nominalParameterNameSpace,
-      required this.enclosingScope,
-      required this.enclosingCompilationUnit});
+  TypedefFragment({
+    required this.metadata,
+    required this.name,
+    required this.typeParameters,
+    required this.type,
+    required this.fileUri,
+    required this.nameOffset,
+    required this.typeParameterScope,
+    required this.nominalParameterNameSpace,
+    required this.enclosingScope,
+    required this.enclosingCompilationUnit,
+  });
 
   @override
   // Coverage-ignore(suite): Not run.

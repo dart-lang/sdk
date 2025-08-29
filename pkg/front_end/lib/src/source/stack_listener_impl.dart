@@ -2,7 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:_fe_analyzer_shared/src/experiments/flags.dart' as shared
+import 'package:_fe_analyzer_shared/src/experiments/flags.dart'
+    as shared
     show ExperimentalFlag;
 import 'package:_fe_analyzer_shared/src/parser/stack_listener.dart';
 import 'package:_fe_analyzer_shared/src/scanner/scanner.dart'
@@ -32,8 +33,12 @@ abstract class StackListenerImpl extends StackListener {
         return AsyncMarker.AsyncStar;
       }
     } else {
-      return unhandled(asyncToken.lexeme, "asyncMarkerFromTokens",
-          asyncToken.charOffset, null);
+      return unhandled(
+        asyncToken.lexeme,
+        "asyncMarkerFromTokens",
+        asyncToken.charOffset,
+        null,
+      );
     }
   }
 
@@ -68,15 +73,22 @@ abstract class StackListenerImpl extends StackListener {
   ///
   /// Returns the primary message.
   Message reportFeatureNotEnabled(
-      LibraryFeature feature, int charOffset, int length);
+    LibraryFeature feature,
+    int charOffset,
+    int length,
+  );
 
   @override
-  void handleExperimentNotEnabled(shared.ExperimentalFlag experimentalFlag,
-      Token startToken, Token endToken) {
+  void handleExperimentNotEnabled(
+    shared.ExperimentalFlag experimentalFlag,
+    Token startToken,
+    Token endToken,
+  ) {
     reportIfNotEnabled(
-        libraryFeatures.fromSharedExperimentalFlags(experimentalFlag),
-        startToken.charOffset,
-        endToken.charEnd - startToken.charOffset);
+      libraryFeatures.fromSharedExperimentalFlags(experimentalFlag),
+      startToken.charOffset,
+      endToken.charEnd - startToken.charOffset,
+    );
   }
 }
 

@@ -13,11 +13,13 @@ import 'package:kernel/type_environment.dart';
 
 Future<void> main(List<String> args) async {
   Directory dataDir = new Directory.fromUri(Platform.script.resolve('data'));
-  await runTests<String>(dataDir,
-      args: args,
-      createUriForFileName: createUriForFileName,
-      onFailure: onFailure,
-      runTest: runTestFor(const StaticTypeDataComputer(), [defaultCfeConfig]));
+  await runTests<String>(
+    dataDir,
+    args: args,
+    createUriForFileName: createUriForFileName,
+    onFailure: onFailure,
+    runTest: runTestFor(const StaticTypeDataComputer(), [defaultCfeConfig]),
+  );
 }
 
 class StaticTypeDataComputer extends CfeDataComputer<String> {
@@ -27,19 +29,28 @@ class StaticTypeDataComputer extends CfeDataComputer<String> {
   ///
   /// Fills [actualMap] with the data.
   @override
-  void computeLibraryData(CfeTestResultData testResultData, Library library,
-      Map<Id, ActualData<String>> actualMap,
-      {bool? verbose}) {
-    new StaticTypeDataExtractor(testResultData.compilerResult, actualMap)
-        .computeForLibrary(library);
+  void computeLibraryData(
+    CfeTestResultData testResultData,
+    Library library,
+    Map<Id, ActualData<String>> actualMap, {
+    bool? verbose,
+  }) {
+    new StaticTypeDataExtractor(
+      testResultData.compilerResult,
+      actualMap,
+    ).computeForLibrary(library);
   }
 
   @override
-  void computeMemberData(CfeTestResultData testResultData, Member member,
-      Map<Id, ActualData<String>> actualMap,
-      {bool? verbose}) {
+  void computeMemberData(
+    CfeTestResultData testResultData,
+    Member member,
+    Map<Id, ActualData<String>> actualMap, {
+    bool? verbose,
+  }) {
     member.accept(
-        new StaticTypeDataExtractor(testResultData.compilerResult, actualMap));
+      new StaticTypeDataExtractor(testResultData.compilerResult, actualMap),
+    );
   }
 
   @override
@@ -50,11 +61,14 @@ class StaticTypeDataExtractor extends CfeDataExtractor<String> {
   final TypeEnvironment _environment;
   StaticTypeContext? _staticTypeContext;
 
-  StaticTypeDataExtractor(InternalCompilerResult compilerResult,
-      Map<Id, ActualData<String>> actualMap)
-      : _environment = new TypeEnvironment(
-            compilerResult.coreTypes!, compilerResult.classHierarchy!),
-        super(compilerResult, actualMap);
+  StaticTypeDataExtractor(
+    InternalCompilerResult compilerResult,
+    Map<Id, ActualData<String>> actualMap,
+  ) : _environment = new TypeEnvironment(
+        compilerResult.coreTypes!,
+        compilerResult.classHierarchy!,
+      ),
+      super(compilerResult, actualMap);
 
   @override
   void visitField(Field node) {
@@ -148,7 +162,9 @@ class StaticTypeDataExtractor extends CfeDataExtractor<String> {
 
   @override
   ActualData<String> mergeData(
-      ActualData<String> value1, ActualData<String> value2) {
+    ActualData<String> value1,
+    ActualData<String> value2,
+  ) {
     if (value1.object is NullLiteral && value2.object is! NullLiteral) {
       // Skip `null` literals from null-aware operations.
       return value2;
@@ -157,7 +173,12 @@ class StaticTypeDataExtractor extends CfeDataExtractor<String> {
       return value1;
     }
 
-    return new ActualData<String>(value1.id, '${value1.value}|${value2.value}',
-        value1.uri, value1.offset, value1.object);
+    return new ActualData<String>(
+      value1.id,
+      '${value1.value}|${value2.value}',
+      value1.uri,
+      value1.offset,
+      value1.object,
+    );
   }
 }

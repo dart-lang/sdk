@@ -11,7 +11,8 @@ import 'package:_fe_analyzer_shared/src/messages/severity.dart'
 import 'package:_fe_analyzer_shared/src/scanner/io.dart' show readBytesFromFile;
 import 'package:_fe_analyzer_shared/src/scanner/scanner.dart'
     show ScannerResult, Token, scan;
-import 'package:_fe_analyzer_shared/src/scanner/token.dart' as analyzer
+import 'package:_fe_analyzer_shared/src/scanner/token.dart'
+    as analyzer
     show Token;
 import 'package:front_end/src/base/compiler_context.dart' show CompilerContext;
 import 'package:front_end/src/base/instrumentation.dart'
@@ -83,12 +84,12 @@ class ValidatingInstrumentation implements Instrumentation {
       expectationsForUri.forEach((offset, expectationsAtOffset) {
         for (_Expectation expectation in expectationsAtOffset) {
           _problem(
-              uri,
-              offset,
-              'expected ${expectation.property}=${expectation.value}, '
-              'got nothing',
-              new _Fix(
-                  expectation.commentOffset, expectation.commentLength, ''));
+            uri,
+            offset,
+            'expected ${expectation.property}=${expectation.value}, '
+            'got nothing',
+            new _Fix(expectation.commentOffset, expectation.commentLength, ''),
+          );
         }
       });
     });
@@ -114,8 +115,11 @@ class ValidatingInstrumentation implements Instrumentation {
     // adjusted after each fix.
     fixes.sort((a, b) => a.offset.compareTo(b.offset));
     for (_Fix fix in fixes.reversed) {
-      bytes.replaceRange(convertOffset(fix.offset),
-          convertOffset(fix.offset + fix.length), utf8.encode(fix.replacement));
+      bytes.replaceRange(
+        convertOffset(fix.offset),
+        convertOffset(fix.offset + fix.length),
+        utf8.encode(fix.replacement),
+      );
     }
     await file.writeAsBytes(bytes);
   }
@@ -126,17 +130,19 @@ class ValidatingInstrumentation implements Instrumentation {
   Future<Null> loadExpectations(Uri uri) async {
     uri = Uri.base.resolveUri(uri);
     Uint8List bytes = await readBytesFromFile(uri);
-    Map<int, List<_Expectation>> expectations =
-        _unsatisfiedExpectations.putIfAbsent(uri, () => {});
-    Map<int, Set<String>> testedFeaturesState =
-        _testedFeaturesState.putIfAbsent(uri, () => {});
+    Map<int, List<_Expectation>> expectations = _unsatisfiedExpectations
+        .putIfAbsent(uri, () => {});
+    Map<int, Set<String>> testedFeaturesState = _testedFeaturesState
+        .putIfAbsent(uri, () => {});
     List<int> tokenOffsets = _tokenOffsets.putIfAbsent(uri, () => []);
     ScannerResult result = scan(bytes, includeComments: true);
     for (Token token = result.tokens; !token.isEof; token = token.next!) {
       tokenOffsets.add(token.offset);
-      for (analyzer.Token? commentToken = token.precedingComments;
-          commentToken != null;
-          commentToken = commentToken.next) {
+      for (
+        analyzer.Token? commentToken = token.precedingComments;
+        commentToken != null;
+        commentToken = commentToken.next
+      ) {
         String lexeme = commentToken.lexeme;
         if (lexeme.startsWith('/*@') && lexeme.endsWith('*/')) {
           String expectation = lexeme.substring(3, lexeme.length - 2);
@@ -165,10 +171,18 @@ class ValidatingInstrumentation implements Instrumentation {
             testedFeaturesState[commentToken.offset] = state;
           } else {
             int offset = token.charOffset;
-            List<_Expectation> expectationsAtOffset =
-                expectations.putIfAbsent(offset, () => []);
-            expectationsAtOffset.add(new _Expectation(
-                property, value, commentToken.offset, commentToken.length));
+            List<_Expectation> expectationsAtOffset = expectations.putIfAbsent(
+              offset,
+              () => [],
+            );
+            expectationsAtOffset.add(
+              new _Expectation(
+                property,
+                value,
+                commentToken.offset,
+                commentToken.length,
+              ),
+            );
           }
         }
       }
@@ -177,7 +191,11 @@ class ValidatingInstrumentation implements Instrumentation {
 
   @override
   void record(
-      Uri uri, int offset, String property, InstrumentationValue value) {
+    Uri uri,
+    int offset,
+    String property,
+    InstrumentationValue value,
+  ) {
     uri = Uri.base.resolveUri(uri);
     if (offset == -1) {
       throw _formatProblem(uri, 0, 'No offset for $property=$value', null);
@@ -193,12 +211,16 @@ class ValidatingInstrumentation implements Instrumentation {
         if (expectation.property == property) {
           if (!value.matches(expectation.value)) {
             _problem(
-                uri,
-                offset,
-                'expected $property=${expectation.value}, got '
-                '$property=${value.toString()}',
-                new _Fix(expectation.commentOffset, expectation.commentLength,
-                    _makeExpectationComment(property, value)));
+              uri,
+              offset,
+              'expected $property=${expectation.value}, got '
+              '$property=${value.toString()}',
+              new _Fix(
+                expectation.commentOffset,
+                expectation.commentLength,
+                _makeExpectationComment(property, value),
+              ),
+            );
           }
           expectationsAtOffset.removeAt(i);
           return;
@@ -208,10 +230,11 @@ class ValidatingInstrumentation implements Instrumentation {
     // Unexpected property/value pair.  See if we should report.
     if (_shouldCheck(property, uri, offset)) {
       _problem(
-          uri,
-          offset,
-          'expected nothing, got $property=${value.toString()}',
-          new _Fix(offset, 0, _makeExpectationComment(property, value)));
+        uri,
+        offset,
+        'expected nothing, got $property=${value.toString()}',
+        new _Fix(offset, 0, _makeExpectationComment(property, value)),
+      );
     }
   }
 
@@ -224,14 +247,20 @@ class ValidatingInstrumentation implements Instrumentation {
   }
 
   String _formatProblem(
-      Uri uri, int offset, String desc, StackTrace? stackTrace) {
+    Uri uri,
+    int offset,
+    String desc,
+    StackTrace? stackTrace,
+  ) {
     return compilerContext
         .format(
-            codeUnspecified
-                .withArguments(
-                    '$desc${stackTrace == null ? '' : '\n$stackTrace'}')
-                .withLocation(uri, offset, noLength),
-            CfeSeverity.internalProblem)
+          codeUnspecified
+              .withArguments(
+                '$desc${stackTrace == null ? '' : '\n$stackTrace'}',
+              )
+              .withLocation(uri, offset, noLength),
+          CfeSeverity.internalProblem,
+        )
         .plain;
   }
 
@@ -301,7 +330,11 @@ class _Expectation {
   final int commentLength;
 
   _Expectation(
-      this.property, this.value, this.commentOffset, this.commentLength);
+    this.property,
+    this.value,
+    this.commentOffset,
+    this.commentLength,
+  );
 }
 
 class _Fix {

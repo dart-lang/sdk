@@ -21,8 +21,11 @@ class FactoryBodyBuilderContext extends BodyBuilderContext {
   final Member _member;
 
   FactoryBodyBuilderContext(this._builder, this._declaration, this._member)
-      : super(_builder.libraryBuilder, _builder.declarationBuilder,
-            isDeclarationInstanceMember: _builder.isDeclarationInstanceMember);
+    : super(
+        _builder.libraryBuilder,
+        _builder.declarationBuilder,
+        isDeclarationInstanceMember: _builder.isDeclarationInstanceMember,
+      );
 
   @override
   VariableDeclaration getFormalParameter(int index) {

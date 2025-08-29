@@ -26,10 +26,11 @@ class CoverageHelper extends vmService.LaunchingVMServiceHelper {
   final bool printHits;
   final bool doPrint;
 
-  CoverageHelper(
-      {this.forceCompilation = false,
-      this.printHits = true,
-      this.doPrint = true});
+  CoverageHelper({
+    this.forceCompilation = false,
+    this.printHits = true,
+    this.doPrint = true,
+  });
 
   @override
   Future<void> run() async {
@@ -62,12 +63,15 @@ class CoverageHelper extends vmService.LaunchingVMServiceHelper {
     // Get and process coverage information.
     Stopwatch stopwatch = new Stopwatch()..start();
     vmService.SourceReport sourceReport = await serviceClient.getSourceReport(
-        isolateRef.id!, [vmService.SourceReportKind.kCoverage],
-        forceCompile: forceCompilation);
+      isolateRef.id!,
+      [vmService.SourceReportKind.kCoverage],
+      forceCompile: forceCompilation,
+    );
     print("Got source report from VM in ${stopwatch.elapsedMilliseconds} ms");
     stopwatch.reset();
-    Coverage coverage =
-        getCoverageFromSourceReport([sourceReport], includeCoverageFor);
+    Coverage coverage = getCoverageFromSourceReport([
+      sourceReport,
+    ], includeCoverageFor);
 
     // It's paused at exit, so resuming should allow us to exit.
     await serviceClient.resume(isolateRef.id!);

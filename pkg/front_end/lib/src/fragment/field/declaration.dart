@@ -52,31 +52,38 @@ abstract class FieldDeclaration {
   /// Builds the core AST structures for this field declaration as needed for
   /// the outline.
   void buildFieldOutlineNode(
-      SourceLibraryBuilder libraryBuilder,
-      NameScheme nameScheme,
-      BuildNodesCallback f,
-      PropertyReferences references,
-      {required List<TypeParameter>? classTypeParameters});
+    SourceLibraryBuilder libraryBuilder,
+    NameScheme nameScheme,
+    BuildNodesCallback f,
+    PropertyReferences references, {
+    required List<TypeParameter>? classTypeParameters,
+  });
 
-  void buildFieldOutlineExpressions(
-      {required ClassHierarchy classHierarchy,
-      required SourceLibraryBuilder libraryBuilder,
-      required DeclarationBuilder? declarationBuilder,
-      required List<Annotatable> annotatables,
-      required Uri annotatablesFileUri,
-      required bool isClassInstanceMember});
+  void buildFieldOutlineExpressions({
+    required ClassHierarchy classHierarchy,
+    required SourceLibraryBuilder libraryBuilder,
+    required DeclarationBuilder? declarationBuilder,
+    required List<Annotatable> annotatables,
+    required Uri annotatablesFileUri,
+    required bool isClassInstanceMember,
+  });
 
   int computeFieldDefaultTypes(ComputeDefaultTypeContext context);
 
   void createFieldEncoding(SourcePropertyBuilder builder);
 
-  void checkFieldTypes(SourceLibraryBuilder libraryBuilder,
-      TypeEnvironment typeEnvironment, SourcePropertyBuilder? setterBuilder);
+  void checkFieldTypes(
+    SourceLibraryBuilder libraryBuilder,
+    TypeEnvironment typeEnvironment,
+    SourcePropertyBuilder? setterBuilder,
+  );
 
   /// Checks the variance of type parameters [sourceClassBuilder] used in the
   /// type of this field declaration.
   void checkFieldVariance(
-      SourceClassBuilder sourceClassBuilder, TypeEnvironment typeEnvironment);
+    SourceClassBuilder sourceClassBuilder,
+    TypeEnvironment typeEnvironment,
+  );
 
   /// Return `true` if the declaration introduces a setter.
   bool get hasSetter;
@@ -106,8 +113,11 @@ abstract class FieldDeclaration {
   /// Creates the [Initializer] for the invalid initialization of this field.
   ///
   /// This is only used for instance fields.
-  Initializer buildErroneousInitializer(Expression effect, Expression value,
-      {required int fileOffset});
+  Initializer buildErroneousInitializer(
+    Expression effect,
+    Expression value, {
+    required int fileOffset,
+  });
 
   /// Creates the AST node for this field as the default initializer.
   ///
@@ -125,14 +135,18 @@ abstract class FieldDeclaration {
   /// field value.
   ///
   /// This is only used for instance fields.
-  List<Initializer> buildInitializer(int fileOffset, Expression value,
-      {required bool isSynthetic});
+  List<Initializer> buildInitializer(
+    int fileOffset,
+    Expression value, {
+    required bool isSynthetic,
+  });
 
   /// Ensures that the type of this field declaration has been computed.
   void ensureTypes(
-      ClassMembersBuilder membersBuilder,
-      Set<ClassMember>? getterOverrideDependencies,
-      Set<ClassMember>? setterOverrideDependencies);
+    ClassMembersBuilder membersBuilder,
+    Set<ClassMember>? getterOverrideDependencies,
+    Set<ClassMember>? setterOverrideDependencies,
+  );
 
   /// Infers the type of this field declaration.
   DartType inferType(ClassHierarchyBase hierarchy);
@@ -175,8 +189,8 @@ class RegularFieldDeclaration
   FieldQuality get fieldQuality => _fragment.modifiers.isAbstract
       ? FieldQuality.Abstract
       : _fragment.modifiers.isExternal
-          ? FieldQuality.External
-          : FieldQuality.Concrete;
+      ? FieldQuality.External
+      : FieldQuality.Concrete;
 
   @override
   DartType get fieldType => _encoding.type;
@@ -188,8 +202,8 @@ class RegularFieldDeclaration
   GetterQuality get getterQuality => _fragment.modifiers.isAbstract
       ? GetterQuality.ImplicitAbstract
       : _fragment.modifiers.isExternal
-          ? GetterQuality.ImplicitExternal
-          : GetterQuality.Implicit;
+      ? GetterQuality.ImplicitExternal
+      : GetterQuality.Implicit;
 
   @override
   bool get hasInitializer => _fragment.modifiers.hasInitializer;
@@ -240,10 +254,10 @@ class RegularFieldDeclaration
   SetterQuality get setterQuality => !hasSetter
       ? SetterQuality.Absent
       : _fragment.modifiers.isAbstract
-          ? SetterQuality.ImplicitAbstract
-          : _fragment.modifiers.isExternal
-              ? SetterQuality.ImplicitExternal
-              : SetterQuality.Implicit;
+      ? SetterQuality.ImplicitAbstract
+      : _fragment.modifiers.isExternal
+      ? SetterQuality.ImplicitExternal
+      : SetterQuality.Implicit;
 
   @override
   TypeBuilder get type => _fragment.type;
@@ -273,21 +287,34 @@ class RegularFieldDeclaration
         // Coverage-ignore(suite): Not run.
         !_fragment.modifiers.isFinal) {
       internalProblem(
-          codeInternalProblemAlreadyInitialized, nameOffset, fileUri);
+        codeInternalProblemAlreadyInitialized,
+        nameOffset,
+        fileUri,
+      );
     }
     _encoding.createBodies(coreTypes, initializer);
   }
 
   @override
-  Initializer buildErroneousInitializer(Expression effect, Expression value,
-      {required int fileOffset}) {
-    return _encoding.buildErroneousInitializer(effect, value,
-        fileOffset: fileOffset);
+  Initializer buildErroneousInitializer(
+    Expression effect,
+    Expression value, {
+    required int fileOffset,
+  }) {
+    return _encoding.buildErroneousInitializer(
+      effect,
+      value,
+      fileOffset: fileOffset,
+    );
   }
 
   @override
-  void buildFieldInitializer(InferenceHelper helper, TypeInferrer typeInferrer,
-      CoreTypes coreTypes, Expression? initializer) {
+  void buildFieldInitializer(
+    InferenceHelper helper,
+    TypeInferrer typeInferrer,
+    CoreTypes coreTypes,
+    Expression? initializer,
+  ) {
     if (initializer != null) {
       if (!hasBodyBeenBuilt) {
         initializer = typeInferrer
@@ -311,29 +338,37 @@ class RegularFieldDeclaration
   }
 
   @override
-  List<Initializer> buildInitializer(int fileOffset, Expression value,
-      {required bool isSynthetic}) {
-    return _encoding.createInitializer(fileOffset, value,
-        isSynthetic: isSynthetic);
+  List<Initializer> buildInitializer(
+    int fileOffset,
+    Expression value, {
+    required bool isSynthetic,
+  }) {
+    return _encoding.createInitializer(
+      fileOffset,
+      value,
+      isSynthetic: isSynthetic,
+    );
   }
 
   @override
-  void buildFieldOutlineExpressions(
-      {required ClassHierarchy classHierarchy,
-      required SourceLibraryBuilder libraryBuilder,
-      required DeclarationBuilder? declarationBuilder,
-      required List<Annotatable> annotatables,
-      required Uri annotatablesFileUri,
-      required bool isClassInstanceMember}) {
+  void buildFieldOutlineExpressions({
+    required ClassHierarchy classHierarchy,
+    required SourceLibraryBuilder libraryBuilder,
+    required DeclarationBuilder? declarationBuilder,
+    required List<Annotatable> annotatables,
+    required Uri annotatablesFileUri,
+    required bool isClassInstanceMember,
+  }) {
     BodyBuilderContext bodyBuilderContext = createBodyBuilderContext();
     for (Annotatable annotatable in annotatables) {
       buildMetadataForOutlineExpressions(
-          libraryBuilder: libraryBuilder,
-          scope: _fragment.enclosingScope,
-          bodyBuilderContext: bodyBuilderContext,
-          annotatable: annotatable,
-          annotatableFileUri: annotatablesFileUri,
-          metadata: metadata);
+        libraryBuilder: libraryBuilder,
+        scope: _fragment.enclosingScope,
+        bodyBuilderContext: bodyBuilderContext,
+        annotatable: annotatable,
+        annotatableFileUri: annotatablesFileUri,
+        metadata: metadata,
+      );
     }
     // For modular compilation we need to include initializers of all const
     // fields and all non-static final fields in classes with const constructors
@@ -348,35 +383,52 @@ class RegularFieldDeclaration
       LookupScope scope = _fragment.enclosingScope;
       BodyBuilder bodyBuilder = libraryBuilder.loader
           .createBodyBuilderForOutlineExpression(
-              libraryBuilder, createBodyBuilderContext(), scope, fileUri);
+            libraryBuilder,
+            createBodyBuilderContext(),
+            scope,
+            fileUri,
+          );
       bodyBuilder.constantContext = _fragment.modifiers.isConst
           ? ConstantContext.inferred
           : ConstantContext.required;
       Expression initializer = bodyBuilder.typeInferrer
           .inferFieldInitializer(
-              bodyBuilder, fieldType, bodyBuilder.parseFieldInitializer(token))
+            bodyBuilder,
+            fieldType,
+            bodyBuilder.parseFieldInitializer(token),
+          )
           .expression;
       buildBody(classHierarchy.coreTypes, initializer);
       bodyBuilder.performBacklogComputations();
       if (computeSharedExpressionForTesting) {
         // Coverage-ignore-block(suite): Not run.
-        _initializerExpression = parseFieldInitializer(libraryBuilder.loader,
-            token, libraryBuilder.importUri, fileUri, scope);
+        _initializerExpression = parseFieldInitializer(
+          libraryBuilder.loader,
+          token,
+          libraryBuilder.importUri,
+          fileUri,
+          scope,
+        );
       }
     }
   }
 
   @override
   void buildFieldOutlineNode(
-      SourceLibraryBuilder libraryBuilder,
-      NameScheme nameScheme,
-      BuildNodesCallback f,
-      PropertyReferences references,
-      {required List<TypeParameter>? classTypeParameters}) {
-    _encoding.buildOutlineNode(libraryBuilder, nameScheme, references,
-        isAbstractOrExternal:
-            _fragment.modifiers.isAbstract || _fragment.modifiers.isExternal,
-        classTypeParameters: classTypeParameters);
+    SourceLibraryBuilder libraryBuilder,
+    NameScheme nameScheme,
+    BuildNodesCallback f,
+    PropertyReferences references, {
+    required List<TypeParameter>? classTypeParameters,
+  }) {
+    _encoding.buildOutlineNode(
+      libraryBuilder,
+      nameScheme,
+      references,
+      isAbstractOrExternal:
+          _fragment.modifiers.isAbstract || _fragment.modifiers.isExternal,
+      classTypeParameters: classTypeParameters,
+    );
     if (type is! InferableTypeBuilder) {
       fieldType = type.build(libraryBuilder, TypeUse.fieldType);
     }
@@ -384,30 +436,39 @@ class RegularFieldDeclaration
   }
 
   @override
-  void checkFieldTypes(SourceLibraryBuilder libraryBuilder,
-      TypeEnvironment typeEnvironment, SourcePropertyBuilder? setterBuilder) {
-    libraryBuilder.checkTypesInField(typeEnvironment,
-        isInstanceMember: builder.isDeclarationInstanceMember,
-        isLate: isLate,
-        isExternal: _fragment.modifiers.isExternal,
-        hasInitializer: hasInitializer,
-        fieldType: fieldType,
-        name: _fragment.name,
-        nameLength: _fragment.name.length,
-        nameOffset: nameOffset,
-        fileUri: fileUri);
+  void checkFieldTypes(
+    SourceLibraryBuilder libraryBuilder,
+    TypeEnvironment typeEnvironment,
+    SourcePropertyBuilder? setterBuilder,
+  ) {
+    libraryBuilder.checkTypesInField(
+      typeEnvironment,
+      isInstanceMember: builder.isDeclarationInstanceMember,
+      isLate: isLate,
+      isExternal: _fragment.modifiers.isExternal,
+      hasInitializer: hasInitializer,
+      fieldType: fieldType,
+      name: _fragment.name,
+      nameLength: _fragment.name.length,
+      nameOffset: nameOffset,
+      fileUri: fileUri,
+    );
   }
 
   @override
   void checkFieldVariance(
-      SourceClassBuilder sourceClassBuilder, TypeEnvironment typeEnvironment) {
-    sourceClassBuilder.checkVarianceInField(typeEnvironment,
-        fieldType: fieldType,
-        isInstanceMember: !isStatic,
-        hasSetter: hasSetter,
-        isCovariantByDeclaration: _fragment.modifiers.isCovariant,
-        fileUri: fileUri,
-        fileOffset: nameOffset);
+    SourceClassBuilder sourceClassBuilder,
+    TypeEnvironment typeEnvironment,
+  ) {
+    sourceClassBuilder.checkVarianceInField(
+      typeEnvironment,
+      fieldType: fieldType,
+      isInstanceMember: !isStatic,
+      hasSetter: hasSetter,
+      isCovariantByDeclaration: _fragment.modifiers.isCovariant,
+      fileUri: fileUri,
+      fileOffset: nameOffset,
+    );
   }
 
   @override
@@ -421,13 +482,16 @@ class RegularFieldDeclaration
 
   @override
   BodyBuilderContext createBodyBuilderContext() {
-    return new FieldFragmentBodyBuilderContext(builder, this,
-        isLateField: _fragment.modifiers.isLate,
-        isAbstractField: _fragment.modifiers.isAbstract,
-        isExternalField: _fragment.modifiers.isExternal,
-        nameOffset: _fragment.nameOffset,
-        nameLength: _fragment.name.length,
-        isConst: _fragment.modifiers.isConst);
+    return new FieldFragmentBodyBuilderContext(
+      builder,
+      this,
+      isLateField: _fragment.modifiers.isLate,
+      isAbstractField: _fragment.modifiers.isAbstract,
+      isExternalField: _fragment.modifiers.isExternal,
+      nameOffset: _fragment.nameOffset,
+      nameLength: _fragment.name.length,
+      isConst: _fragment.modifiers.isConst,
+    );
   }
 
   @override
@@ -444,59 +508,79 @@ class RegularFieldDeclaration
 
     // If in mixed mode, late lowerings cannot use `null` as a sentinel on
     // non-nullable fields since they can be assigned from legacy code.
-    late_lowering.IsSetStrategy isSetStrategy =
-        late_lowering.computeIsSetStrategy(libraryBuilder);
+    late_lowering.IsSetStrategy isSetStrategy = late_lowering
+        .computeIsSetStrategy(libraryBuilder);
     if (isAbstract || isExternal) {
-      _encoding = new AbstractOrExternalFieldEncoding(_fragment,
-          isExtensionInstanceMember: isExtensionMember && isInstanceMember,
-          isExtensionTypeInstanceMember:
-              isExtensionTypeMember && isInstanceMember,
-          isAbstract: isAbstract,
-          isExternal: isExternal);
+      _encoding = new AbstractOrExternalFieldEncoding(
+        _fragment,
+        isExtensionInstanceMember: isExtensionMember && isInstanceMember,
+        isExtensionTypeInstanceMember:
+            isExtensionTypeMember && isInstanceMember,
+        isAbstract: isAbstract,
+        isExternal: isExternal,
+      );
     } else if (isExtensionTypeMember && isInstanceMember) {
       // Field on a extension type. Encode as abstract.
       // TODO(johnniwinther): Should we have an erroneous flag on such
       // members?
-      _encoding = new AbstractOrExternalFieldEncoding(_fragment,
-          isExtensionInstanceMember: isExtensionMember && isInstanceMember,
-          isExtensionTypeInstanceMember:
-              isExtensionTypeMember && isInstanceMember,
-          isAbstract: true,
-          isExternal: false,
-          isForcedExtension: true);
+      _encoding = new AbstractOrExternalFieldEncoding(
+        _fragment,
+        isExtensionInstanceMember: isExtensionMember && isInstanceMember,
+        isExtensionTypeInstanceMember:
+            isExtensionTypeMember && isInstanceMember,
+        isAbstract: true,
+        isExternal: false,
+        isForcedExtension: true,
+      );
     } else if (isLate &&
         libraryBuilder.loader.target.backendTarget.isLateFieldLoweringEnabled(
-            hasInitializer: hasInitializer,
-            isFinal: isFinal,
-            isStatic: !isInstanceMember)) {
+          hasInitializer: hasInitializer,
+          isFinal: isFinal,
+          isStatic: !isInstanceMember,
+        )) {
       if (hasInitializer) {
         if (isFinal) {
-          _encoding = new LateFinalFieldWithInitializerEncoding(_fragment,
-              isSetStrategy: isSetStrategy);
+          _encoding = new LateFinalFieldWithInitializerEncoding(
+            _fragment,
+            isSetStrategy: isSetStrategy,
+          );
         } else {
-          _encoding = new LateFieldWithInitializerEncoding(_fragment,
-              isSetStrategy: isSetStrategy);
+          _encoding = new LateFieldWithInitializerEncoding(
+            _fragment,
+            isSetStrategy: isSetStrategy,
+          );
         }
       } else {
         if (isFinal) {
-          _encoding = new LateFinalFieldWithoutInitializerEncoding(_fragment,
-              isSetStrategy: isSetStrategy);
+          _encoding = new LateFinalFieldWithoutInitializerEncoding(
+            _fragment,
+            isSetStrategy: isSetStrategy,
+          );
         } else {
-          _encoding = new LateFieldWithoutInitializerEncoding(_fragment,
-              isSetStrategy: isSetStrategy);
+          _encoding = new LateFieldWithoutInitializerEncoding(
+            _fragment,
+            isSetStrategy: isSetStrategy,
+          );
         }
       }
     } else if (libraryBuilder
-            .loader.target.backendTarget.useStaticFieldLowering &&
+            .loader
+            .target
+            .backendTarget
+            .useStaticFieldLowering &&
         !isInstanceMember &&
         !_fragment.modifiers.isConst &&
         hasInitializer) {
       if (isFinal) {
-        _encoding = new LateFinalFieldWithInitializerEncoding(_fragment,
-            isSetStrategy: isSetStrategy);
+        _encoding = new LateFinalFieldWithInitializerEncoding(
+          _fragment,
+          isSetStrategy: isSetStrategy,
+        );
       } else {
-        _encoding = new LateFieldWithInitializerEncoding(_fragment,
-            isSetStrategy: isSetStrategy);
+        _encoding = new LateFieldWithInitializerEncoding(
+          _fragment,
+          isSetStrategy: isSetStrategy,
+        );
       }
     } else {
       _encoding = new RegularFieldEncoding(_fragment, isEnumElement: false);
@@ -513,15 +597,16 @@ class RegularFieldDeclaration
         // A field with no type and initializer or an instance field without
         // type and initializer need to have the type inferred.
         _encoding.type = new InferredType(
-            libraryBuilder: libraryBuilder,
-            typeBuilder: type,
-            inferType: inferType,
-            computeType: _computeInferredType,
-            fileUri: fileUri,
-            name: _fragment.name,
-            nameOffset: nameOffset,
-            nameLength: _fragment.name.length,
-            token: token);
+          libraryBuilder: libraryBuilder,
+          typeBuilder: type,
+          inferType: inferType,
+          computeType: _computeInferredType,
+          fileUri: fileUri,
+          name: _fragment.name,
+          nameOffset: nameOffset,
+          nameLength: _fragment.name.length,
+          token: token,
+        );
         type.registerInferable(this);
       }
     }
@@ -529,24 +614,29 @@ class RegularFieldDeclaration
 
   @override
   void ensureTypes(
-      ClassMembersBuilder membersBuilder,
-      Set<ClassMember>? getterOverrideDependencies,
-      Set<ClassMember>? setterOverrideDependencies) {
+    ClassMembersBuilder membersBuilder,
+    Set<ClassMember>? getterOverrideDependencies,
+    Set<ClassMember>? setterOverrideDependencies,
+  ) {
     if (getterOverrideDependencies != null ||
         setterOverrideDependencies != null) {
       membersBuilder.inferFieldType(
-          builder.declarationBuilder as SourceClassBuilder,
-          type,
-          [...?getterOverrideDependencies, ...?setterOverrideDependencies],
-          name: _fragment.name,
-          fileUri: fileUri,
-          nameOffset: nameOffset,
-          nameLength: _fragment.name.length,
-          isAssignable: hasSetter);
+        builder.declarationBuilder as SourceClassBuilder,
+        type,
+        [...?getterOverrideDependencies, ...?setterOverrideDependencies],
+        name: _fragment.name,
+        fileUri: fileUri,
+        nameOffset: nameOffset,
+        nameLength: _fragment.name.length,
+        isAssignable: hasSetter,
+      );
     } else {
       // Coverage-ignore-block(suite): Not run.
-      type.build(builder.libraryBuilder, TypeUse.fieldType,
-          hierarchy: membersBuilder.hierarchyBuilder);
+      type.build(
+        builder.libraryBuilder,
+        TypeUse.fieldType,
+        hierarchy: membersBuilder.hierarchyBuilder,
+      );
     }
   }
 
@@ -556,31 +646,41 @@ class RegularFieldDeclaration
   }
 
   DartType _computeInferredType(
-      ClassHierarchyBase classHierarchy, Token? token) {
+    ClassHierarchyBase classHierarchy,
+    Token? token,
+  ) {
     DartType? inferredType;
     SourceLibraryBuilder libraryBuilder = builder.libraryBuilder;
     DeclarationBuilder? declarationBuilder = builder.declarationBuilder;
     if (token != null) {
-      InterfaceType? enclosingClassThisType = declarationBuilder
-              is SourceClassBuilder
+      InterfaceType? enclosingClassThisType =
+          declarationBuilder is SourceClassBuilder
           ? libraryBuilder.loader.typeInferenceEngine.coreTypes
-              .thisInterfaceType(
-                  declarationBuilder.cls, libraryBuilder.library.nonNullable)
+                .thisInterfaceType(
+                  declarationBuilder.cls,
+                  libraryBuilder.library.nonNullable,
+                )
           : null;
       LookupScope scope = _fragment.enclosingScope;
-      TypeInferrer typeInferrer =
-          libraryBuilder.loader.typeInferenceEngine.createTopLevelTypeInferrer(
-              fileUri,
-              enclosingClassThisType,
-              libraryBuilder,
-              scope,
-              builder
-                  .dataForTesting
-                  // Coverage-ignore(suite): Not run.
-                  ?.inferenceData);
+      TypeInferrer typeInferrer = libraryBuilder.loader.typeInferenceEngine
+          .createTopLevelTypeInferrer(
+            fileUri,
+            enclosingClassThisType,
+            libraryBuilder,
+            scope,
+            builder
+                .dataForTesting
+                // Coverage-ignore(suite): Not run.
+                ?.inferenceData,
+          );
       BodyBuilderContext bodyBuilderContext = createBodyBuilderContext();
       BodyBuilder bodyBuilder = libraryBuilder.loader.createBodyBuilderForField(
-          libraryBuilder, bodyBuilderContext, scope, typeInferrer, fileUri);
+        libraryBuilder,
+        bodyBuilderContext,
+        scope,
+        typeInferrer,
+        fileUri,
+      );
       bodyBuilder.constantContext = _fragment.modifiers.isConst
           ? ConstantContext.inferred
           : ConstantContext.none;
@@ -588,8 +688,10 @@ class RegularFieldDeclaration
       bodyBuilder.inLateFieldInitializer = _fragment.modifiers.isLate;
       Expression initializer = bodyBuilder.parseFieldInitializer(token);
 
-      inferredType =
-          typeInferrer.inferImplicitFieldType(bodyBuilder, initializer);
+      inferredType = typeInferrer.inferImplicitFieldType(
+        bodyBuilder,
+        initializer,
+      );
     } else {
       inferredType = const DynamicType();
     }
@@ -602,56 +704,69 @@ class RegularFieldDeclaration
   }
 
   @override
-  void buildGetterOutlineExpressions(
-      {required ClassHierarchy classHierarchy,
-      required SourceLibraryBuilder libraryBuilder,
-      required DeclarationBuilder? declarationBuilder,
-      required SourcePropertyBuilder propertyBuilder,
-      required Annotatable annotatable,
-      required Uri annotatableFileUri,
-      required bool isClassInstanceMember}) {}
+  void buildGetterOutlineExpressions({
+    required ClassHierarchy classHierarchy,
+    required SourceLibraryBuilder libraryBuilder,
+    required DeclarationBuilder? declarationBuilder,
+    required SourcePropertyBuilder propertyBuilder,
+    required Annotatable annotatable,
+    required Uri annotatableFileUri,
+    required bool isClassInstanceMember,
+  }) {}
 
   @override
-  void buildGetterOutlineNode(
-      {required SourceLibraryBuilder libraryBuilder,
-      required NameScheme nameScheme,
-      required BuildNodesCallback f,
-      required PropertyReferences? references,
-      required List<TypeParameter>? classTypeParameters}) {}
+  void buildGetterOutlineNode({
+    required SourceLibraryBuilder libraryBuilder,
+    required NameScheme nameScheme,
+    required BuildNodesCallback f,
+    required PropertyReferences? references,
+    required List<TypeParameter>? classTypeParameters,
+  }) {}
 
   @override
-  void buildSetterOutlineExpressions(
-      {required ClassHierarchy classHierarchy,
-      required SourceLibraryBuilder libraryBuilder,
-      required DeclarationBuilder? declarationBuilder,
-      required SourcePropertyBuilder propertyBuilder,
-      required Annotatable annotatable,
-      required Uri annotatableFileUri,
-      required bool isClassInstanceMember}) {}
+  void buildSetterOutlineExpressions({
+    required ClassHierarchy classHierarchy,
+    required SourceLibraryBuilder libraryBuilder,
+    required DeclarationBuilder? declarationBuilder,
+    required SourcePropertyBuilder propertyBuilder,
+    required Annotatable annotatable,
+    required Uri annotatableFileUri,
+    required bool isClassInstanceMember,
+  }) {}
 
   @override
-  void buildSetterOutlineNode(
-      {required SourceLibraryBuilder libraryBuilder,
-      required NameScheme nameScheme,
-      required BuildNodesCallback f,
-      required PropertyReferences? references,
-      required List<TypeParameter>? classTypeParameters}) {}
+  void buildSetterOutlineNode({
+    required SourceLibraryBuilder libraryBuilder,
+    required NameScheme nameScheme,
+    required BuildNodesCallback f,
+    required PropertyReferences? references,
+    required List<TypeParameter>? classTypeParameters,
+  }) {}
 
   @override
-  void checkGetterTypes(SourceLibraryBuilder libraryBuilder,
-      TypeEnvironment typeEnvironment, SourcePropertyBuilder? setterBuilder) {}
+  void checkGetterTypes(
+    SourceLibraryBuilder libraryBuilder,
+    TypeEnvironment typeEnvironment,
+    SourcePropertyBuilder? setterBuilder,
+  ) {}
 
   @override
   void checkGetterVariance(
-      SourceClassBuilder sourceClassBuilder, TypeEnvironment typeEnvironment) {}
+    SourceClassBuilder sourceClassBuilder,
+    TypeEnvironment typeEnvironment,
+  ) {}
 
   @override
   void checkSetterTypes(
-      SourceLibraryBuilder libraryBuilder, TypeEnvironment typeEnvironment) {}
+    SourceLibraryBuilder libraryBuilder,
+    TypeEnvironment typeEnvironment,
+  ) {}
 
   @override
   void checkSetterVariance(
-      SourceClassBuilder sourceClassBuilder, TypeEnvironment typeEnvironment) {}
+    SourceClassBuilder sourceClassBuilder,
+    TypeEnvironment typeEnvironment,
+  ) {}
 
   @override
   int computeGetterDefaultTypes(ComputeDefaultTypeContext context) {
@@ -665,41 +780,47 @@ class RegularFieldDeclaration
 
   @override
   void createGetterEncoding(
-      ProblemReporting problemReporting,
-      SourcePropertyBuilder builder,
-      PropertyEncodingStrategy encodingStrategy,
-      TypeParameterFactory typeParameterFactory) {}
+    ProblemReporting problemReporting,
+    SourcePropertyBuilder builder,
+    PropertyEncodingStrategy encodingStrategy,
+    TypeParameterFactory typeParameterFactory,
+  ) {}
 
   @override
   void createSetterEncoding(
-      ProblemReporting problemReporting,
-      SourcePropertyBuilder builder,
-      PropertyEncodingStrategy encodingStrategy,
-      TypeParameterFactory typeParameterFactory) {}
+    ProblemReporting problemReporting,
+    SourcePropertyBuilder builder,
+    PropertyEncodingStrategy encodingStrategy,
+    TypeParameterFactory typeParameterFactory,
+  ) {}
 
   @override
-  void ensureGetterTypes(
-      {required SourceLibraryBuilder libraryBuilder,
-      required DeclarationBuilder? declarationBuilder,
-      required ClassMembersBuilder membersBuilder,
-      required Set<ClassMember>? getterOverrideDependencies}) {}
+  void ensureGetterTypes({
+    required SourceLibraryBuilder libraryBuilder,
+    required DeclarationBuilder? declarationBuilder,
+    required ClassMembersBuilder membersBuilder,
+    required Set<ClassMember>? getterOverrideDependencies,
+  }) {}
 
   @override
-  void ensureSetterTypes(
-      {required SourceLibraryBuilder libraryBuilder,
-      required DeclarationBuilder? declarationBuilder,
-      required ClassMembersBuilder membersBuilder,
-      required Set<ClassMember>? setterOverrideDependencies}) {}
+  void ensureSetterTypes({
+    required SourceLibraryBuilder libraryBuilder,
+    required DeclarationBuilder? declarationBuilder,
+    required ClassMembersBuilder membersBuilder,
+    required Set<ClassMember>? setterOverrideDependencies,
+  }) {}
 
   @override
   Iterable<Reference> getExportedGetterReferences(
-      PropertyReferences references) {
+    PropertyReferences references,
+  ) {
     return [references.getterReference];
   }
 
   @override
   Iterable<Reference> getExportedSetterReferences(
-      PropertyReferences references) {
+    PropertyReferences references,
+  ) {
     return hasSetter ? [references.setterReference] : const [];
   }
 }
@@ -739,37 +860,41 @@ mixin FieldDeclarationMixin
       return fieldType;
     }
 
-    return builder.libraryBuilder.loader
-        .withUriForCrashReporting(fileUri, nameOffset, () {
-      InferredType implicitFieldType = fieldType as InferredType;
-      DartType inferredType = implicitFieldType.computeType(hierarchy);
-      if (fieldType is InferredType) {
-        // `fieldType` may have changed if a circularity was detected when
-        // [inferredType] was computed.
-        type.registerInferredType(inferredType);
+    return builder.libraryBuilder.loader.withUriForCrashReporting(
+      fileUri,
+      nameOffset,
+      () {
+        InferredType implicitFieldType = fieldType as InferredType;
+        DartType inferredType = implicitFieldType.computeType(hierarchy);
+        if (fieldType is InferredType) {
+          // `fieldType` may have changed if a circularity was detected when
+          // [inferredType] was computed.
+          type.registerInferredType(inferredType);
 
-        // TODO(johnniwinther): Isn't this handled in the [fieldType] setter?
-        IncludesTypeParametersNonCovariantly? needsCheckVisitor;
-        DeclarationBuilder? declarationBuilder = builder.declarationBuilder;
-        if (declarationBuilder is ClassBuilder) {
-          Class enclosingClass = declarationBuilder.cls;
-          if (enclosingClass.typeParameters.isNotEmpty) {
-            needsCheckVisitor = new IncludesTypeParametersNonCovariantly(
+          // TODO(johnniwinther): Isn't this handled in the [fieldType] setter?
+          IncludesTypeParametersNonCovariantly? needsCheckVisitor;
+          DeclarationBuilder? declarationBuilder = builder.declarationBuilder;
+          if (declarationBuilder is ClassBuilder) {
+            Class enclosingClass = declarationBuilder.cls;
+            if (enclosingClass.typeParameters.isNotEmpty) {
+              needsCheckVisitor = new IncludesTypeParametersNonCovariantly(
                 enclosingClass.typeParameters,
                 // We are checking the field type as if it is the type of the
                 // parameter of the implicit setter and this is a contravariant
                 // position.
-                initialVariance: Variance.contravariant);
+                initialVariance: Variance.contravariant,
+              );
+            }
+          }
+          if (needsCheckVisitor != null) {
+            if (fieldType.accept(needsCheckVisitor)) {
+              setCovariantByClassInternal();
+            }
           }
         }
-        if (needsCheckVisitor != null) {
-          if (fieldType.accept(needsCheckVisitor)) {
-            setCovariantByClassInternal();
-          }
-        }
-      }
-      return fieldType;
-    });
+        return fieldType;
+      },
+    );
   }
 
   @override
@@ -786,11 +911,12 @@ mixin FieldDeclarationMixin
       if (enclosingClass.typeParameters.isNotEmpty) {
         IncludesTypeParametersNonCovariantly needsCheckVisitor =
             new IncludesTypeParametersNonCovariantly(
-                enclosingClass.typeParameters,
-                // We are checking the field type as if it is the type of the
-                // parameter of the implicit setter and this is a contravariant
-                // position.
-                initialVariance: Variance.contravariant);
+              enclosingClass.typeParameters,
+              // We are checking the field type as if it is the type of the
+              // parameter of the implicit setter and this is a contravariant
+              // position.
+              initialVariance: Variance.contravariant,
+            );
         if (value.accept(needsCheckVisitor)) {
           setCovariantByClassInternal();
         }
@@ -802,8 +928,12 @@ mixin FieldDeclarationMixin
 abstract class FieldFragmentDeclaration {
   bool get isStatic;
 
-  void buildFieldInitializer(InferenceHelper helper, TypeInferrer typeInferrer,
-      CoreTypes coreTypes, Expression? initializer);
+  void buildFieldInitializer(
+    InferenceHelper helper,
+    TypeInferrer typeInferrer,
+    CoreTypes coreTypes,
+    Expression? initializer,
+  );
 
   BodyBuilderContext createBodyBuilderContext();
 

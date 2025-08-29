@@ -40,7 +40,8 @@ void main(List<String> args) {
     DillComparer dillComparer = new DillComparer();
     if (dillComparer.compare(a, b, binaryMdContent, message)) {
       message.writeln(
-          "Somehow the two different byte-lists compared to the same.");
+        "Somehow the two different byte-lists compared to the same.",
+      );
     }
 
     print(message);

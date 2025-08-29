@@ -45,9 +45,6 @@ extension on String {
   bool operator <=(other) => true;
 }
 
-
-/* // TODO(johnniwinther): Enable this when extension type declarations are
-       supported.
 extension type ExtensionType(int it) {
   int get getter => 42;
   void method() {}
@@ -56,44 +53,46 @@ extension type ExtensionType(int it) {
   int operator >(int i) => 0;
 }
 typedef ExtensionType_ = ExtensionType?;
-*/
 
 objectPattern(o) {
   switch (o) {
-    case Null(: var hashCode): // object member get
-    case Null(: var toString): // object member tear-off
-    case Class(: var field): // instance member get
-    case Class(: var method): // instance member tear-off
-    case Class(: var extensionGetter): // extension member get
-    case Class(: var extensionMethod): // extension member tear-off
-    case Dynamic(: var dynamicAccess): // dynamic get
-    case Function1(: var call): // function tear off
-    case Record1(: var $1): // record index get
-    case Record1(: var named): // record named get
-    case Class(: var missing): // Error: missing getter
-    case Class_(: var field): // Error: nullable member get
-    case Class_(: var method): // Error: nullable member tear-off
-    case Class_(: var extensionGetter): // Error: nullable extension member get
-    case Class_(: var extensionMethod): // Error: nullable extension tear-off
-    case Function1_(: var call): // Error: nullable function tear-off
-    case Record1_(: var $1): // Error: nullable record index get
-    case Record1_(: var named): // Error: nullable record named get
-    case Class(: var ambiguousField): // Error: ambiguous get
-    case Invalid(: field): // invalid get
-/* // TODO(johnniwinther): Enable this when extension type declarations are
-       supported.
-    case ExtensionType(: var it): // extension type representation field get
-    case ExtensionType(: var getter): // extension type member get
-    case ExtensionType(: var method): // extension type member tear-off
-*/
+    case Null(:var hashCode): // object member get
+    case Null(:var toString): // object member tear-off
+    case Class(:var field): // instance member get
+    case Class(:var method): // instance member tear-off
+    case Class(:var extensionGetter): // extension member get
+    case Class(:var extensionMethod): // extension member tear-off
+    case Dynamic(:var dynamicAccess): // dynamic get
+    case Function1(:var call): // function tear off
+    case Record1(:var $1): // record index get
+    case Record1(:var named): // record named get
+    case Class(:var missing): // Error: missing getter
+    case Class_(:var field): // Error: nullable member get
+    case Class_(:var method): // Error: nullable member tear-off
+    case Class_(:var extensionGetter): // Error: nullable extension member get
+    case Class_(:var extensionMethod): // Error: nullable extension tear-off
+    case Function1_(:var call): // Error: nullable function tear-off
+    case Record1_(:var $1): // Error: nullable record index get
+    case Record1_(:var named): // Error: nullable record named get
+    case Class(:var ambiguousField): // Error: ambiguous get
+    case Invalid(:field): // invalid get
+    case ExtensionType(:var it): // extension type representation field get
+    case ExtensionType(:var getter): // extension type member get
+    case ExtensionType(:var method): // extension type member tear-off
   }
 }
 
-relationalPattern(dynamic dyn, Never never, Class cls, Class? cls_,
-    Invalid invalid, String string, Class2 cls2, Class2? cls2_,
-    /* // TODO(johnniwinther): Enable this when extension type declarations are
-           supported.
-    , ExtensionType extensionType*/) {
+relationalPattern(
+  dynamic dyn,
+  Never never,
+  Class cls,
+  Class? cls_,
+  Invalid invalid,
+  String string,
+  Class2 cls2,
+  Class2? cls2_,
+  ExtensionType extensionType,
+) {
   if (dyn case == 0) {} // object ==
   if (dyn case != 0) {} // object == negated
   if (dyn case < 0) {} // dynamic <
@@ -129,10 +128,7 @@ relationalPattern(dynamic dyn, Never never, Class cls, Class? cls_,
   if (cls2 case < const Class2()) {} // instance <
   if (cls2 case < 0) {} // Error: invalid instance < argument
   if (cls2_ case == null) {} // instance ==
-  /* // TODO(johnniwinther): Enable this when extension type declarations are
-         supported.
   if (extensionType case < 0) {} // extension type <
   if (extensionType case < '0') {} // Error: invalid extension type < argument
   if (extensionType case > 0) {} // Error: invalid extension type >
-  */
 }

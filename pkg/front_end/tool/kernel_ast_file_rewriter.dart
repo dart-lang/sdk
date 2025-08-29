@@ -16,8 +16,11 @@ void main(List<String> args) {
   Uri uri = Platform.script;
   uri = uri.resolve("../../kernel/lib/ast.dart");
   Uint8List bytes = new File.fromUri(uri).readAsBytesSync();
-  CompilationUnitEnd ast =
-      getAST(bytes, includeBody: true, includeComments: true);
+  CompilationUnitEnd ast = getAST(
+    bytes,
+    includeBody: true,
+    includeComments: true,
+  );
   Map<String, TopLevelDeclarationEnd> classes = {};
   for (TopLevelDeclarationEnd cls in ast.getClasses()) {
     IdentifierHandle identifier = cls.getIdentifier();
@@ -41,8 +44,9 @@ void main(List<String> args) {
       String? parent = getExtends(cls);
       TopLevelDeclarationEnd? parentCls = classes[parent];
       List<String?> allParents = [parent];
-      while (
-          parent != null && parentCls != null && !goodNames.contains(parent)) {
+      while (parent != null &&
+          parentCls != null &&
+          !goodNames.contains(parent)) {
         parent = getExtends(parentCls);
         allParents.add(parent);
         parentCls = classes[parent];
@@ -55,8 +59,8 @@ void main(List<String> args) {
     }
 
     ClassDeclarationEnd classDeclaration = cls.getClassDeclaration();
-    ClassOrMixinOrExtensionBodyEnd classOrMixinBody =
-        classDeclaration.getClassOrMixinOrExtensionBody();
+    ClassOrMixinOrExtensionBodyEnd classOrMixinBody = classDeclaration
+        .getClassOrMixinOrExtensionBody();
 
     Set<String> namedClassConstructors = {};
     Set<String> namedFields = {};
@@ -86,13 +90,20 @@ void main(List<String> args) {
       Token classBraceToken = classOrMixinBody.beginToken;
       assert(classBraceToken.lexeme == "{");
       replacements[classBraceToken] = new Replacement(
-          classBraceToken, classBraceToken, "{\n  bool frozen = false;");
+        classBraceToken,
+        classBraceToken,
+        "{\n  bool frozen = false;",
+      );
     }
 
     for (MemberEnd member in classOrMixinBody.getMembers()) {
       if (member.isClassConstructor()) {
         processConstructor(
-            member, replacements, namedClassConstructors, namedFields);
+          member,
+          replacements,
+          namedClassConstructors,
+          namedFields,
+        );
       } else if (member.isClassFields()) {
         processField(member, entry, replacements);
       }
@@ -137,9 +148,10 @@ void main(List<String> args) {
 }
 
 void processField(
-    MemberEnd member,
-    MapEntry<String, TopLevelDeclarationEnd> entry,
-    Map<Token, Replacement> replacements) {
+  MemberEnd member,
+  MapEntry<String, TopLevelDeclarationEnd> entry,
+  Map<Token, Replacement> replacements,
+) {
   ClassFieldsEnd classFields = member.getClassFields();
 
   if (classFields.count != 1) {
@@ -229,8 +241,12 @@ $typeString get $identifier => _$identifier;""");
   }
 }
 
-void processConstructor(MemberEnd member, Map<Token, Replacement> replacements,
-    Set<String> namedClassConstructors, Set<String> namedFields) {
+void processConstructor(
+  MemberEnd member,
+  Map<Token, Replacement> replacements,
+  Set<String> namedClassConstructors,
+  Set<String> namedFields,
+) {
   ClassConstructorEnd constructor = member.getClassConstructor();
   FormalParametersEnd formalParameters = constructor.getFormalParameters();
   List<FormalParameterEnd> parameters = formalParameters.getFormalParameters();
@@ -245,12 +261,12 @@ void processConstructor(MemberEnd member, Map<Token, Replacement> replacements,
     replacements[afterDot] = new Replacement(afterDot, afterDot, "_$afterDot");
   }
 
-  OptionalFormalParametersEnd? optionalFormalParameters =
-      formalParameters.getOptionalFormalParameters();
+  OptionalFormalParametersEnd? optionalFormalParameters = formalParameters
+      .getOptionalFormalParameters();
   Set<String> addInitializers = {};
   if (optionalFormalParameters != null) {
-    List<FormalParameterEnd> parameters =
-        optionalFormalParameters.getFormalParameters();
+    List<FormalParameterEnd> parameters = optionalFormalParameters
+        .getFormalParameters();
 
     for (FormalParameterEnd parameter in parameters) {
       Token token = parameter.getBegin().token;
@@ -293,21 +309,26 @@ void processConstructor(MemberEnd member, Map<Token, Replacement> replacements,
       if (token.lexeme == "this") {
         // Here `this.foo` can just be replace with `this._foo`.
         assert(namedFields.contains(afterDot.lexeme));
-        replacements[afterDot] =
-            new Replacement(afterDot, afterDot, "_$afterDot");
+        replacements[afterDot] = new Replacement(
+          afterDot,
+          afterDot,
+          "_$afterDot",
+        );
       } else if (token.lexeme == "super") {
         // Don't try to patch this one.
       } else if (token.lexeme == "assert") {
-        List<IdentifierHandle> identifiers =
-            initializer.recursivelyFind<IdentifierHandle>();
+        List<IdentifierHandle> identifiers = initializer
+            .recursivelyFind<IdentifierHandle>();
         for (Token token in identifiers.map((e) => e.token)) {
           if (namedFields.contains(token.lexeme)) {
             replacements[token] = new Replacement(token, token, "_$token");
           }
         }
       } else {
-        assert(namedFields.contains(token.lexeme),
-            "${token.lexeme} isn't a known field among ${namedFields}");
+        assert(
+          namedFields.contains(token.lexeme),
+          "${token.lexeme} isn't a known field among ${namedFields}",
+        );
         replacements[token] = new Replacement(token, token, "_$token");
       }
     }
@@ -318,20 +339,28 @@ void processConstructor(MemberEnd member, Map<Token, Replacement> replacements,
     // No initializers => Fake one by inserting `:` and all `_foo = foo`
     // entries.
     Token endToken = formalParameters.endToken;
-    String initializerString =
-        addInitializers.map((e) => "this._$e = $e").join(",\n");
-    replacements[endToken] =
-        new Replacement(endToken, endToken, ") : $initializerString");
+    String initializerString = addInitializers
+        .map((e) => "this._$e = $e")
+        .join(",\n");
+    replacements[endToken] = new Replacement(
+      endToken,
+      endToken,
+      ") : $initializerString",
+    );
   } else if (addInitializers.isNotEmpty) {
     // Add to existing initializer list. We add them as the first one(s)
     // so we don't have to insert before the potential super call.
     InitializersBegin firstOne = initializers!.getBegin();
     Token colon = firstOne.token;
     assert(colon.lexeme == ":");
-    String initializerString =
-        addInitializers.map((e) => "this._$e = $e").join(", ");
-    replacements[colon] =
-        new Replacement(colon, colon, ": $initializerString,");
+    String initializerString = addInitializers
+        .map((e) => "this._$e = $e")
+        .join(", ");
+    replacements[colon] = new Replacement(
+      colon,
+      colon,
+      ": $initializerString,",
+    );
   }
 
   // If there are anything in addInitializers we need to patch
@@ -345,11 +374,11 @@ void processConstructor(MemberEnd member, Map<Token, Replacement> replacements,
   //    C(this.field1) : field2 = field1 + 1;
   //  }
   if (addInitializers.isNotEmpty) {
-    BlockFunctionBodyEnd? blockFunctionBody =
-        constructor.getBlockFunctionBody();
+    BlockFunctionBodyEnd? blockFunctionBody = constructor
+        .getBlockFunctionBody();
     if (blockFunctionBody != null) {
-      List<IdentifierHandle> identifiers =
-          blockFunctionBody.recursivelyFind<IdentifierHandle>();
+      List<IdentifierHandle> identifiers = blockFunctionBody
+          .recursivelyFind<IdentifierHandle>();
       for (IdentifierHandle identifier in identifiers) {
         Token token = identifier.token;
         IdentifierContext context = identifier.context;
@@ -388,8 +417,10 @@ String? getExtends(TopLevelDeclarationEnd cls) {
 
 void debugDumpNode(ParserAstNode node) {
   node.children!.forEach((element) {
-    print("${element.what} (${element.deprecatedArguments}) "
-        "(${element.children})");
+    print(
+      "${element.what} (${element.deprecatedArguments}) "
+      "(${element.children})",
+    );
   });
 }
 

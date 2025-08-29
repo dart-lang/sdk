@@ -22,7 +22,7 @@ class SynthesizedTypeBuilder extends FixedTypeBuilder {
   final TypeBuilder _typeBuilder;
 
   final Map<NominalParameterBuilder, NominalParameterBuilder>
-      _newToOldVariableMap;
+  _newToOldVariableMap;
 
   final Map<NominalParameterBuilder, TypeBuilder> _substitutionMap;
 
@@ -36,17 +36,23 @@ class SynthesizedTypeBuilder extends FixedTypeBuilder {
   /// corresponding is returned. Otherwise a new [SynthesizedTypeBuilder] based
   /// on [typeBuilder] with the [_substitutionMap] is created.
   static TypeBuilder createSynthesizedTypeBuilder(
-      TypeBuilder typeBuilder,
-      Map<NominalParameterBuilder, NominalParameterBuilder>
-          _newToOldVariableMap,
-      Map<NominalParameterBuilder, TypeBuilder> _substitutionMap) {
+    TypeBuilder typeBuilder,
+    Map<NominalParameterBuilder, NominalParameterBuilder> _newToOldVariableMap,
+    Map<NominalParameterBuilder, TypeBuilder> _substitutionMap,
+  ) {
     return _substitutionMap[typeBuilder.declaration] ??
         new SynthesizedTypeBuilder(
-            typeBuilder, _newToOldVariableMap, _substitutionMap);
+          typeBuilder,
+          _newToOldVariableMap,
+          _substitutionMap,
+        );
   }
 
   SynthesizedTypeBuilder(
-      this._typeBuilder, this._newToOldVariableMap, this._substitutionMap);
+    this._typeBuilder,
+    this._newToOldVariableMap,
+    this._substitutionMap,
+  );
 
   @override
   TypeDeclarationBuilder? get declaration => _typeBuilder.declaration;
@@ -55,47 +61,76 @@ class SynthesizedTypeBuilder extends FixedTypeBuilder {
   // Coverage-ignore(suite): Not run.
   List<TypeBuilder>? get typeArguments {
     return _typeBuilder.typeArguments
-        ?.map((TypeBuilder type) => createSynthesizedTypeBuilder(
-            type, _newToOldVariableMap, _substitutionMap))
+        ?.map(
+          (TypeBuilder type) => createSynthesizedTypeBuilder(
+            type,
+            _newToOldVariableMap,
+            _substitutionMap,
+          ),
+        )
         .toList();
   }
 
-  Substitution _computeSubstitution(LibraryBuilder libraryBuilder,
-      TypeUse typeUse, ClassHierarchyBase? hierarchy) {
+  Substitution _computeSubstitution(
+    LibraryBuilder libraryBuilder,
+    TypeUse typeUse,
+    ClassHierarchyBase? hierarchy,
+  ) {
     if (_substitution != null) return _substitution!;
     Map<TypeParameter, DartType> map = {};
     for (MapEntry<NominalParameterBuilder, TypeBuilder> entry
         in _substitutionMap.entries) {
-      map[entry.key.parameter] =
-          entry.value.build(libraryBuilder, typeUse, hierarchy: hierarchy);
+      map[entry.key.parameter] = entry.value.build(
+        libraryBuilder,
+        typeUse,
+        hierarchy: hierarchy,
+      );
     }
     return _substitution = Substitution.fromMap(map);
   }
 
   @override
-  DartType build(LibraryBuilder library, TypeUse typeUse,
-      {ClassHierarchyBase? hierarchy}) {
+  DartType build(
+    LibraryBuilder library,
+    TypeUse typeUse, {
+    ClassHierarchyBase? hierarchy,
+  }) {
     return _type ??= _buildInternal(library, typeUse, hierarchy);
   }
 
   @override
   DartType buildAliased(
-      LibraryBuilder library, TypeUse typeUse, ClassHierarchyBase? hierarchy) {
+    LibraryBuilder library,
+    TypeUse typeUse,
+    ClassHierarchyBase? hierarchy,
+  ) {
     return _buildAliasedInternal(library, typeUse, hierarchy);
   }
 
   DartType _buildAliasedInternal(
-      LibraryBuilder library, TypeUse typeUse, ClassHierarchyBase? hierarchy) {
+    LibraryBuilder library,
+    TypeUse typeUse,
+    ClassHierarchyBase? hierarchy,
+  ) {
     DartType type = _typeBuilder.buildAliased(library, typeUse, hierarchy);
-    Substitution substitution =
-        _computeSubstitution(library, typeUse, hierarchy);
+    Substitution substitution = _computeSubstitution(
+      library,
+      typeUse,
+      hierarchy,
+    );
     return substitution.substituteType(type);
   }
 
-  DartType _buildInternal(LibraryBuilder libraryBuilder, TypeUse typeUse,
-      ClassHierarchyBase? hierarchy) {
-    DartType aliasedType =
-        _buildAliasedInternal(libraryBuilder, typeUse, hierarchy);
+  DartType _buildInternal(
+    LibraryBuilder libraryBuilder,
+    TypeUse typeUse,
+    ClassHierarchyBase? hierarchy,
+  ) {
+    DartType aliasedType = _buildAliasedInternal(
+      libraryBuilder,
+      typeUse,
+      hierarchy,
+    );
     return unaliasing.unalias(aliasedType);
   }
 
@@ -103,17 +138,25 @@ class SynthesizedTypeBuilder extends FixedTypeBuilder {
   Supertype? buildMixedInType(LibraryBuilder libraryBuilder) {
     Supertype? mixedInType = _typeBuilder.buildMixedInType(libraryBuilder);
     if (mixedInType == null) return null;
-    return _computeSubstitution(libraryBuilder, TypeUse.classWithType, null)
-        .substituteSupertype(mixedInType);
+    return _computeSubstitution(
+      libraryBuilder,
+      TypeUse.classWithType,
+      null,
+    ).substituteSupertype(mixedInType);
   }
 
   @override
   Supertype? buildSupertype(LibraryBuilder libraryBuilder, TypeUse typeUse) {
-    Supertype? mixedInType =
-        _typeBuilder.buildSupertype(libraryBuilder, typeUse);
+    Supertype? mixedInType = _typeBuilder.buildSupertype(
+      libraryBuilder,
+      typeUse,
+    );
     if (mixedInType == null) return null;
-    return _computeSubstitution(libraryBuilder, typeUse, null)
-        .substituteSupertype(mixedInType);
+    return _computeSubstitution(
+      libraryBuilder,
+      typeUse,
+      null,
+    ).substituteSupertype(mixedInType);
   }
 
   @override
@@ -151,39 +194,51 @@ class SynthesizedTypeBuilder extends FixedTypeBuilder {
     if (type == null) return null;
     return _substitutionMap[type.declaration] ??
         new SynthesizedTypeBuilder(
-            type, _newToOldVariableMap, _substitutionMap);
+          type,
+          _newToOldVariableMap,
+          _substitutionMap,
+        );
   }
 
   @override
   TypeBuilder withNullabilityBuilder(NullabilityBuilder nullabilityBuilder) {
     return new SynthesizedTypeBuilder(
-        _typeBuilder.withNullabilityBuilder(nullabilityBuilder),
-        _newToOldVariableMap,
-        _substitutionMap);
+      _typeBuilder.withNullabilityBuilder(nullabilityBuilder),
+      _newToOldVariableMap,
+      _substitutionMap,
+    );
   }
 
   @override
   VarianceCalculationValue computeTypeParameterBuilderVariance(
-      NominalParameterBuilder variable,
-      {required SourceLoader sourceLoader}) {
+    NominalParameterBuilder variable, {
+    required SourceLoader sourceLoader,
+  }) {
     variable = _newToOldVariableMap[variable] ?? variable;
-    return _typeBuilder.computeTypeParameterBuilderVariance(variable,
-        sourceLoader: sourceLoader);
+    return _typeBuilder.computeTypeParameterBuilderVariance(
+      variable,
+      sourceLoader: sourceLoader,
+    );
   }
 
   @override
-  TypeDeclarationBuilder? computeUnaliasedDeclaration(
-      {required bool isUsedAsClass}) {
+  TypeDeclarationBuilder? computeUnaliasedDeclaration({
+    required bool isUsedAsClass,
+  }) {
     return _typeBuilder.computeUnaliasedDeclaration(
-        isUsedAsClass: isUsedAsClass);
+      isUsedAsClass: isUsedAsClass,
+    );
   }
 
   @override
   TypeName? get typeName => _typeBuilder.typeName;
 
   @override
-  void collectReferencesFrom(Map<TypeParameterBuilder, int> parameterIndices,
-      List<List<int>> edges, int index) {
+  void collectReferencesFrom(
+    Map<TypeParameterBuilder, int> parameterIndices,
+    List<List<int>> edges,
+    int index,
+  ) {
     Map<TypeParameterBuilder, int> oldParameterIndices = {};
     for (MapEntry<TypeParameterBuilder, int> entry
         in parameterIndices.entries) {
@@ -195,10 +250,11 @@ class SynthesizedTypeBuilder extends FixedTypeBuilder {
 
   @override
   TypeBuilder? substituteRange(
-      Map<TypeParameterBuilder, TypeBuilder> upperSubstitution,
-      Map<TypeParameterBuilder, TypeBuilder> lowerSubstitution,
-      TypeParameterFactory typeParameterFactory,
-      {Variance variance = Variance.covariant}) {
+    Map<TypeParameterBuilder, TypeBuilder> upperSubstitution,
+    Map<TypeParameterBuilder, TypeBuilder> lowerSubstitution,
+    TypeParameterFactory typeParameterFactory, {
+    Variance variance = Variance.covariant,
+  }) {
     Map<TypeParameterBuilder, TypeBuilder> oldUpperSubstitution = {};
     for (MapEntry<TypeParameterBuilder, TypeBuilder> entry
         in upperSubstitution.entries) {
@@ -216,8 +272,13 @@ class SynthesizedTypeBuilder extends FixedTypeBuilder {
             entry.value;
       }
     }
-    return _applySubstitution(_typeBuilder.substituteRange(
-        oldUpperSubstitution, oldLowerSubstitution, typeParameterFactory));
+    return _applySubstitution(
+      _typeBuilder.substituteRange(
+        oldUpperSubstitution,
+        oldLowerSubstitution,
+        typeParameterFactory,
+      ),
+    );
   }
 
   @override
@@ -232,11 +293,13 @@ class SynthesizedTypeBuilder extends FixedTypeBuilder {
   }
 
   @override
-  Nullability computeNullability(
-      {required Map<TypeParameterBuilder, TraversalState>
-          typeParametersTraversalState}) {
+  Nullability computeNullability({
+    required Map<TypeParameterBuilder, TraversalState>
+    typeParametersTraversalState,
+  }) {
     return _typeBuilder.computeNullability(
-        typeParametersTraversalState: typeParametersTraversalState);
+      typeParametersTraversalState: typeParametersTraversalState,
+    );
   }
 
   @override

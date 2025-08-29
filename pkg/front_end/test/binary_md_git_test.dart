@@ -11,8 +11,10 @@ void main() {
   File binaryMd = new File("$repoDir/pkg/kernel/binary.md");
   String binaryMdContent = binaryMd.readAsStringSync();
 
-  BinaryMdDillReader binaryMdDillReader =
-      new BinaryMdDillReader(binaryMdContent, const <int>[]);
+  BinaryMdDillReader binaryMdDillReader = new BinaryMdDillReader(
+    binaryMdContent,
+    const <int>[],
+  );
   binaryMdDillReader.setup();
 
   List<String> errors = [];
@@ -34,7 +36,8 @@ void main() {
 
   if (errors.isNotEmpty) {
     throw Exception(
-        'Found the following errors with binary.md: ${errors.join('\n')}');
+      'Found the following errors with binary.md: ${errors.join('\n')}',
+    );
   }
 }
 

@@ -16,7 +16,8 @@ import 'package:kernel/src/printer.dart';
 
 import '../tool/compile.dart' as compile;
 
-final String usage = '''
+final String usage =
+    '''
 Usage: kernel_binary_bench.dart [--golem|--raw] {--metadata|--onlyCold} <Benchmark> <SourceDill>
 
 Benchmark can be one of: ${benchmarks.keys.join(', ')}
@@ -70,8 +71,12 @@ void _benchmarkAstFromBinary(Uint8List bytes, {bool eager = true}) {
   final int coldRunUs = sw.elapsedMicroseconds;
   sw.reset();
   if (onlyCold) {
-    new BenchmarkResult('AstFromBinary${nameSuffix}', coldRunUs,
-        coldRunUs.toDouble(), [coldRunUs]).report();
+    new BenchmarkResult(
+      'AstFromBinary${nameSuffix}',
+      coldRunUs,
+      coldRunUs.toDouble(),
+      [coldRunUs],
+    ).report();
     return;
   }
 
@@ -80,16 +85,22 @@ void _benchmarkAstFromBinary(Uint8List bytes, {bool eager = true}) {
   }
   final double warmupUs = sw.elapsedMicroseconds / warmupIterations;
 
-  final List<int> runsUs =
-      new List<int>.filled(benchmarkIterations, /* dummy value = */ 0);
+  final List<int> runsUs = new List<int>.filled(
+    benchmarkIterations,
+    /* dummy value = */ 0,
+  );
   for (int i = 0; i < benchmarkIterations; i++) {
     sw.reset();
     _fromBinary(bytes, eager: eager, verbose: i == benchmarkIterations - 1);
     runsUs[i] = sw.elapsedMicroseconds;
   }
 
-  new BenchmarkResult('AstFromBinary${nameSuffix}', coldRunUs, warmupUs, runsUs)
-      .report();
+  new BenchmarkResult(
+    'AstFromBinary${nameSuffix}',
+    coldRunUs,
+    warmupUs,
+    runsUs,
+  ).report();
 }
 
 void _benchmarkAstToBinary(Uint8List bytes) {
@@ -104,8 +115,10 @@ void _benchmarkAstToBinary(Uint8List bytes) {
   }
   final double warmupUs = sw.elapsedMicroseconds / warmupIterations;
 
-  final List<int> runsUs =
-      new List<int>.filled(benchmarkIterations, /* dummy value = */ 0);
+  final List<int> runsUs = new List<int>.filled(
+    benchmarkIterations,
+    /* dummy value = */ 0,
+  );
   for (int i = 0; i < benchmarkIterations; i++) {
     sw.reset();
     _toBinary(p);
@@ -134,8 +147,9 @@ class BenchmarkResult {
     final double avg = sum / runsUs.length;
     final int min = runsUs.first;
     final int max = runsUs.last;
-    final double std =
-        sqrt(runsUs.map((v) => pow(v - avg, 2)).reduce(add) / runsUs.length);
+    final double std = sqrt(
+      runsUs.map((v) => pow(v - avg, 2)).reduce(add) / runsUs.length,
+    );
 
     if (forGolem) {
       print('${name}(RunTimeRaw): ${avg} us.');
@@ -196,23 +210,33 @@ bool _parseArgs(List<String> argsOrg) {
   return true;
 }
 
-Component _fromBinary(Uint8List bytes,
-    {required bool eager, bool verbose = false}) {
+Component _fromBinary(
+  Uint8List bytes, {
+  required bool eager,
+  bool verbose = false,
+}) {
   Component component = new Component();
   if (metadataAware) {
     // This is currently (October 2024) what VmTarget.configureComponent does.
     component.metadata.putIfAbsent(
-        CallSiteAttributesMetadataRepository.repositoryTag,
-        () => new CallSiteAttributesMetadataRepository());
-    BinaryBuilderWithMetadata builder = new BinaryBuilderWithMetadata(bytes,
-        filename: 'filename', disableLazyReading: eager);
+      CallSiteAttributesMetadataRepository.repositoryTag,
+      () => new CallSiteAttributesMetadataRepository(),
+    );
+    BinaryBuilderWithMetadata builder = new BinaryBuilderWithMetadata(
+      bytes,
+      filename: 'filename',
+      disableLazyReading: eager,
+    );
     builder.readComponent(component);
     if (verbose) {
       // No current verbose output.
     }
   } else {
-    new BinaryBuilder(bytes, filename: 'filename', disableLazyReading: eager)
-        .readComponent(component);
+    new BinaryBuilder(
+      bytes,
+      filename: 'filename',
+      disableLazyReading: eager,
+    ).readComponent(component);
   }
   return component;
 }
@@ -261,7 +285,10 @@ class CallSiteAttributesMetadataRepository
 
   @override
   void writeToBinary(
-      CallSiteAttributesMetadata metadata, Node node, BinarySink sink) {
+    CallSiteAttributesMetadata metadata,
+    Node node,
+    BinarySink sink,
+  ) {
     sink.writeDartType(metadata.receiverType);
   }
 

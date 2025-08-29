@@ -16,15 +16,21 @@ import 'package:front_end/src/testing/id_testing_utils.dart';
 import 'package:kernel/ast.dart';
 
 Future<void> main(List<String> args) async {
-  Directory dataDir = new Directory.fromUri(Platform.script.resolve(
+  Directory dataDir = new Directory.fromUri(
+    Platform.script.resolve(
       '../../../_fe_analyzer_shared/test/flow_analysis/assigned_variables/'
-      'data'));
-  await runTests<_Data>(dataDir,
-      args: args,
-      createUriForFileName: createUriForFileName,
-      onFailure: onFailure,
-      runTest: runTestFor<_Data>(
-          const AssignedVariablesDataComputer(), [defaultCfeConfig]));
+      'data',
+    ),
+  );
+  await runTests<_Data>(
+    dataDir,
+    args: args,
+    createUriForFileName: createUriForFileName,
+    onFailure: onFailure,
+    runTest: runTestFor<_Data>(const AssignedVariablesDataComputer(), [
+      defaultCfeConfig,
+    ]),
+  );
 }
 
 class AssignedVariablesDataComputer extends CfeDataComputer<_Data> {
@@ -38,40 +44,54 @@ class AssignedVariablesDataComputer extends CfeDataComputer<_Data> {
   ///
   /// Fills [actualMap] with the data.
   @override
-  void computeMemberData(CfeTestResultData testResultData, Member member,
-      Map<Id, ActualData<_Data>> actualMap,
-      {bool? verbose}) {
+  void computeMemberData(
+    CfeTestResultData testResultData,
+    Member member,
+    Map<Id, ActualData<_Data>> actualMap, {
+    bool? verbose,
+  }) {
     SourceMemberBuilder memberBuilder =
         lookupMemberBuilder(testResultData.compilerResult, member)
             as SourceMemberBuilder;
     AssignedVariablesForTesting<TreeNode, VariableDeclaration>?
-        assignedVariables = memberBuilder
-            .dataForTesting!.inferenceData.flowAnalysisResult.assignedVariables;
+    assignedVariables = memberBuilder
+        .dataForTesting!
+        .inferenceData
+        .flowAnalysisResult
+        .assignedVariables;
     if (assignedVariables == null) return;
-    member.accept(new AssignedVariablesDataExtractor(
-        testResultData.compilerResult, actualMap, assignedVariables));
+    member.accept(
+      new AssignedVariablesDataExtractor(
+        testResultData.compilerResult,
+        actualMap,
+        assignedVariables,
+      ),
+    );
   }
 }
 
 class AssignedVariablesDataExtractor extends CfeDataExtractor<_Data> {
   final SourceLoaderDataForTesting _sourceLoaderDataForTesting;
   final AssignedVariablesForTesting<TreeNode, VariableDeclaration>
-      _assignedVariables;
+  _assignedVariables;
 
-  AssignedVariablesDataExtractor(InternalCompilerResult compilerResult,
-      Map<Id, ActualData<_Data>> actualMap, this._assignedVariables)
-      : _sourceLoaderDataForTesting =
-            compilerResult.kernelTargetForTesting!.loader.dataForTesting!,
-        super(compilerResult, actualMap);
+  AssignedVariablesDataExtractor(
+    InternalCompilerResult compilerResult,
+    Map<Id, ActualData<_Data>> actualMap,
+    this._assignedVariables,
+  ) : _sourceLoaderDataForTesting =
+          compilerResult.kernelTargetForTesting!.loader.dataForTesting!,
+      super(compilerResult, actualMap);
 
   @override
   _Data computeMemberValue(Id id, Member member) {
     return new _Data(
-        _convertVars(_assignedVariables.declaredAtTopLevel),
-        _convertVars(_assignedVariables.readAnywhere),
-        _convertVars(_assignedVariables.readCapturedAnywhere),
-        _convertVars(_assignedVariables.writtenAnywhere),
-        _convertVars(_assignedVariables.capturedAnywhere));
+      _convertVars(_assignedVariables.declaredAtTopLevel),
+      _convertVars(_assignedVariables.readAnywhere),
+      _convertVars(_assignedVariables.readCapturedAnywhere),
+      _convertVars(_assignedVariables.writtenAnywhere),
+      _convertVars(_assignedVariables.capturedAnywhere),
+    );
   }
 
   Set<String> _convertVars(Iterable<int> x) =>
@@ -89,11 +109,12 @@ class AssignedVariablesDataExtractor extends CfeDataExtractor<_Data> {
     TreeNode alias = _sourceLoaderDataForTesting.toOriginal(node);
     if (!_assignedVariables.isTracked(alias)) return null;
     return new _Data(
-        _convertVars(_assignedVariables.declaredInNode(alias)),
-        _convertVars(_assignedVariables.readInNode(alias)),
-        _convertVars(_assignedVariables.readCapturedInNode(alias)),
-        _convertVars(_assignedVariables.writtenInNode(alias)),
-        _convertVars(_assignedVariables.capturedInNode(alias)));
+      _convertVars(_assignedVariables.declaredInNode(alias)),
+      _convertVars(_assignedVariables.readInNode(alias)),
+      _convertVars(_assignedVariables.readCapturedInNode(alias)),
+      _convertVars(_assignedVariables.writtenInNode(alias)),
+      _convertVars(_assignedVariables.capturedInNode(alias)),
+    );
   }
 }
 
@@ -153,6 +174,11 @@ class _Data {
 
   final Set<String> captured;
 
-  _Data(this.declared, this.read, this.readCaptured, this.assigned,
-      this.captured);
+  _Data(
+    this.declared,
+    this.read,
+    this.readCaptured,
+    this.assigned,
+    this.captured,
+  );
 }

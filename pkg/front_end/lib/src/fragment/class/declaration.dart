@@ -18,13 +18,14 @@ abstract class ClassDeclaration {
   List<TypeBuilder>? get mixedInTypes;
   List<TypeBuilder>? get interfaces;
 
-  void buildOutlineExpressions(
-      {required Annotatable annotatable,
-      required Uri annotatableFileUri,
-      required SourceLibraryBuilder libraryBuilder,
-      required ClassHierarchy classHierarchy,
-      required BodyBuilderContext bodyBuilderContext,
-      required bool createFileUriExpression});
+  void buildOutlineExpressions({
+    required Annotatable annotatable,
+    required Uri annotatableFileUri,
+    required SourceLibraryBuilder libraryBuilder,
+    required ClassHierarchy classHierarchy,
+    required BodyBuilderContext bodyBuilderContext,
+    required bool createFileUriExpression,
+  });
 
   int resolveConstructorReferences(SourceLibraryBuilder libraryBuilder);
 }
@@ -68,20 +69,22 @@ class RegularClassDeclaration implements ClassDeclaration {
   List<TypeBuilder>? get interfaces => _fragment.interfaces;
 
   @override
-  void buildOutlineExpressions(
-      {required Annotatable annotatable,
-      required Uri annotatableFileUri,
-      required SourceLibraryBuilder libraryBuilder,
-      required ClassHierarchy classHierarchy,
-      required BodyBuilderContext bodyBuilderContext,
-      required bool createFileUriExpression}) {
+  void buildOutlineExpressions({
+    required Annotatable annotatable,
+    required Uri annotatableFileUri,
+    required SourceLibraryBuilder libraryBuilder,
+    required ClassHierarchy classHierarchy,
+    required BodyBuilderContext bodyBuilderContext,
+    required bool createFileUriExpression,
+  }) {
     MetadataBuilder.buildAnnotations(
-        annotatable: annotatable,
-        annotatableFileUri: annotatableFileUri,
-        metadata: _fragment.metadata,
-        bodyBuilderContext: bodyBuilderContext,
-        libraryBuilder: libraryBuilder,
-        scope: _fragment.enclosingScope);
+      annotatable: annotatable,
+      annotatableFileUri: annotatableFileUri,
+      metadata: _fragment.metadata,
+      bodyBuilderContext: bodyBuilderContext,
+      libraryBuilder: libraryBuilder,
+      scope: _fragment.enclosingScope,
+    );
   }
 
   @override
@@ -132,20 +135,22 @@ class EnumDeclaration implements ClassDeclaration {
   List<TypeBuilder>? get interfaces => _fragment.interfaces;
 
   @override
-  void buildOutlineExpressions(
-      {required Annotatable annotatable,
-      required Uri annotatableFileUri,
-      required SourceLibraryBuilder libraryBuilder,
-      required ClassHierarchy classHierarchy,
-      required BodyBuilderContext bodyBuilderContext,
-      required bool createFileUriExpression}) {
+  void buildOutlineExpressions({
+    required Annotatable annotatable,
+    required Uri annotatableFileUri,
+    required SourceLibraryBuilder libraryBuilder,
+    required ClassHierarchy classHierarchy,
+    required BodyBuilderContext bodyBuilderContext,
+    required bool createFileUriExpression,
+  }) {
     MetadataBuilder.buildAnnotations(
-        annotatable: annotatable,
-        annotatableFileUri: annotatableFileUri,
-        metadata: _fragment.metadata,
-        bodyBuilderContext: bodyBuilderContext,
-        libraryBuilder: libraryBuilder,
-        scope: _fragment.enclosingScope);
+      annotatable: annotatable,
+      annotatableFileUri: annotatableFileUri,
+      metadata: _fragment.metadata,
+      bodyBuilderContext: bodyBuilderContext,
+      libraryBuilder: libraryBuilder,
+      scope: _fragment.enclosingScope,
+    );
   }
 
   @override
@@ -197,20 +202,22 @@ class NamedMixinApplication implements ClassDeclaration {
   List<TypeBuilder>? get interfaces => _fragment.interfaces;
 
   @override
-  void buildOutlineExpressions(
-      {required Annotatable annotatable,
-      required Uri annotatableFileUri,
-      required SourceLibraryBuilder libraryBuilder,
-      required ClassHierarchy classHierarchy,
-      required BodyBuilderContext bodyBuilderContext,
-      required bool createFileUriExpression}) {
+  void buildOutlineExpressions({
+    required Annotatable annotatable,
+    required Uri annotatableFileUri,
+    required SourceLibraryBuilder libraryBuilder,
+    required ClassHierarchy classHierarchy,
+    required BodyBuilderContext bodyBuilderContext,
+    required bool createFileUriExpression,
+  }) {
     MetadataBuilder.buildAnnotations(
-        annotatable: annotatable,
-        annotatableFileUri: annotatableFileUri,
-        metadata: _fragment.metadata,
-        bodyBuilderContext: bodyBuilderContext,
-        libraryBuilder: libraryBuilder,
-        scope: _fragment.enclosingScope);
+      annotatable: annotatable,
+      annotatableFileUri: annotatableFileUri,
+      metadata: _fragment.metadata,
+      bodyBuilderContext: bodyBuilderContext,
+      libraryBuilder: libraryBuilder,
+      scope: _fragment.enclosingScope,
+    );
   }
 
   @override
@@ -250,28 +257,30 @@ class AnonymousMixinApplication implements ClassDeclaration {
   @override
   final List<TypeBuilder>? interfaces;
 
-  AnonymousMixinApplication(
-      {required this.name,
-      required this.compilationUnitScope,
-      required this.fileUri,
-      required this.nameOffset,
-      required this.startOffset,
-      required this.endOffset,
-      required this.supertype,
-      required this.interfaces});
+  AnonymousMixinApplication({
+    required this.name,
+    required this.compilationUnitScope,
+    required this.fileUri,
+    required this.nameOffset,
+    required this.startOffset,
+    required this.endOffset,
+    required this.supertype,
+    required this.interfaces,
+  });
 
   @override
   // Coverage-ignore(suite): Not run.
   LookupScope get bodyScope => compilationUnitScope;
 
   @override
-  void buildOutlineExpressions(
-      {required Annotatable annotatable,
-      required Uri annotatableFileUri,
-      required SourceLibraryBuilder libraryBuilder,
-      required ClassHierarchy classHierarchy,
-      required BodyBuilderContext bodyBuilderContext,
-      required bool createFileUriExpression}) {}
+  void buildOutlineExpressions({
+    required Annotatable annotatable,
+    required Uri annotatableFileUri,
+    required SourceLibraryBuilder libraryBuilder,
+    required ClassHierarchy classHierarchy,
+    required BodyBuilderContext bodyBuilderContext,
+    required bool createFileUriExpression,
+  }) {}
 
   @override
   int resolveConstructorReferences(SourceLibraryBuilder libraryBuilder) {
@@ -319,20 +328,22 @@ class MixinDeclaration implements ClassDeclaration {
   List<TypeBuilder>? get interfaces => _fragment.interfaces;
 
   @override
-  void buildOutlineExpressions(
-      {required Annotatable annotatable,
-      required Uri annotatableFileUri,
-      required SourceLibraryBuilder libraryBuilder,
-      required ClassHierarchy classHierarchy,
-      required BodyBuilderContext bodyBuilderContext,
-      required bool createFileUriExpression}) {
+  void buildOutlineExpressions({
+    required Annotatable annotatable,
+    required Uri annotatableFileUri,
+    required SourceLibraryBuilder libraryBuilder,
+    required ClassHierarchy classHierarchy,
+    required BodyBuilderContext bodyBuilderContext,
+    required bool createFileUriExpression,
+  }) {
     MetadataBuilder.buildAnnotations(
-        annotatable: annotatable,
-        annotatableFileUri: annotatableFileUri,
-        metadata: _fragment.metadata,
-        bodyBuilderContext: bodyBuilderContext,
-        libraryBuilder: libraryBuilder,
-        scope: _fragment.enclosingScope);
+      annotatable: annotatable,
+      annotatableFileUri: annotatableFileUri,
+      metadata: _fragment.metadata,
+      bodyBuilderContext: bodyBuilderContext,
+      libraryBuilder: libraryBuilder,
+      scope: _fragment.enclosingScope,
+    );
   }
 
   @override

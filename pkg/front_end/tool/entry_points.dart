@@ -39,8 +39,10 @@ import 'additional_targets.dart' show installAdditionalTargets;
 import 'bench_maker.dart' show BenchMaker;
 import 'command_line.dart' show runProtectedFromAbort, withGlobalOptions;
 
-const bool benchmark =
-    const bool.fromEnvironment("benchmark", defaultValue: false);
+const bool benchmark = const bool.fromEnvironment(
+  "benchmark",
+  defaultValue: false,
+);
 
 const bool summary =
     const bool.fromEnvironment("summary", defaultValue: false) || benchmark;
@@ -113,7 +115,7 @@ void summarize(List<double> elapsedTimes, List<Benchmarker> benchmarkers) {
   if (summary) {
     Map<String, dynamic> map = <String, dynamic>{
       'elapsedTimes': elapsedTimes,
-      if (benchmarkers.isNotEmpty) 'benchmarkers': benchmarkers
+      if (benchmarkers.isNotEmpty) 'benchmarkers': benchmarkers,
     };
     JsonEncoder encoder = new JsonEncoder.withIndent("  ");
     String json = encoder.convert(map);
@@ -146,13 +148,15 @@ Future<void> compilePlatformEntryPoint(List<String> arguments) async {
 
 Future<void> batchEntryPoint(List<String> arguments) async {
   if (shouldCollectCoverage()) {
-    tryListenToSignal(ProcessSignal.sigterm,
-        () => possiblyCollectCoverage("batch_compiler", doExit: true));
+    tryListenToSignal(
+      ProcessSignal.sigterm,
+      () => possiblyCollectCoverage("batch_compiler", doExit: true),
+    );
   }
   installAdditionalTargets();
   await new BatchCompiler(
-          stdin.transform(utf8.decoder).transform(new LineSplitter()))
-      .run();
+    stdin.transform(utf8.decoder).transform(new LineSplitter()),
+  ).run();
 }
 
 void tryListenToSignal(ProcessSignal signal, void Function() callback) {
@@ -176,8 +180,10 @@ bool shouldCollectCoverage() {
   return false;
 }
 
-Future<void> possiblyCollectCoverage(String displayNamePrefix,
-    {required bool doExit}) async {
+Future<void> possiblyCollectCoverage(
+  String displayNamePrefix, {
+  required bool doExit,
+}) async {
   String? coverage = Platform.environment[cfeCoverageEnvironmentVariable];
 
   if (coverage != null) {
@@ -188,8 +194,10 @@ Future<void> possiblyCollectCoverage(String displayNamePrefix,
     File f = new File.fromUri(coverageUri.resolve("$displayName.coverage"));
     // Force compiling seems to add something like 1 second to the collection
     // time, but we get rid of uncompiled functions so it seems to be worth it.
-    (await collectCoverage(displayName: displayName, forceCompile: true))
-        ?.writeToFile(f);
+    (await collectCoverage(
+      displayName: displayName,
+      forceCompile: true,
+    ))?.writeToFile(f);
   }
 
   if (doExit) {
@@ -218,7 +226,8 @@ class BatchCompiler {
     await for (String line in lines!) {
       try {
         if (await batchCompileArguments(
-            new List<String>.from(jsonDecode(line)))) {
+          new List<String>.from(jsonDecode(line)),
+        )) {
           stdout.writeln(">>> TEST OK");
         } else {
           stdout.writeln(">>> TEST FAIL");
@@ -237,19 +246,25 @@ class BatchCompiler {
 
   Future<bool> batchCompileArguments(List<String> arguments) {
     return runProtectedFromAbort<bool>(
-        () => withGlobalOptions<bool>(
-            "compile",
-            [Flags.omitPlatform, ...arguments],
-            true,
-            (CompilerContext c, _) => batchCompileImpl(c)),
-        false);
+      () => withGlobalOptions<bool>(
+        "compile",
+        [Flags.omitPlatform, ...arguments],
+        true,
+        (CompilerContext c, _) => batchCompileImpl(c),
+      ),
+      false,
+    );
   }
 
   Future<bool> batchCompile(CompilerOptions options, Uri input, Uri output) {
     return CompilerContext.runWithOptions(
-        new ProcessedOptions(
-            options: options, inputs: <Uri>[input], output: output),
-        batchCompileImpl);
+      new ProcessedOptions(
+        options: options,
+        inputs: <Uri>[input],
+        output: output,
+      ),
+      batchCompileImpl,
+    );
   }
 
   void _onDiagnostic(CfeDiagnosticMessage message) {
@@ -282,8 +297,10 @@ class BatchCompiler {
 
     if (createNewCompiler) {
       platformComponent!.adoptChildren();
-      _incrementalCompiler =
-          new IncrementalCompiler.fromComponent(context, platformComponent);
+      _incrementalCompiler = new IncrementalCompiler.fromComponent(
+        context,
+        platformComponent,
+      );
     }
 
     ProcessedOptions incrementalCompilerOptions =
@@ -296,19 +313,27 @@ class BatchCompiler {
       incrementalCompilerOptions.inputs.addAll(options.inputs);
     }
 
-    _originalOnDiagnostic = options.rawOptionsForTesting.onDiagnostic ??
+    _originalOnDiagnostic =
+        options.rawOptionsForTesting.onDiagnostic ??
         options.defaultDiagnosticMessageHandler;
     incrementalCompilerOptions.rawOptionsForTesting.onDiagnostic =
         _onDiagnostic;
 
-    assert(options.omitPlatform,
-        "Platform must be omitted for the batch compiler.");
-    assert(!options.hasAdditionalDills,
-        "Additional dills are not supported for the batch compiler.");
-    IncrementalCompilerResult compilerResult =
-        await _incrementalCompiler!.computeDelta(fullComponent: true);
-    await _emitComponent(options, compilerResult.component,
-        message: "Wrote component to ");
+    assert(
+      options.omitPlatform,
+      "Platform must be omitted for the batch compiler.",
+    );
+    assert(
+      !options.hasAdditionalDills,
+      "Additional dills are not supported for the batch compiler.",
+    );
+    IncrementalCompilerResult compilerResult = await _incrementalCompiler!
+        .computeDelta(fullComponent: true);
+    await _emitComponent(
+      options,
+      compilerResult.component,
+      message: "Wrote component to ",
+    );
     for (CfeDiagnosticMessage error in _errors) {
       if (error.codeName == codeInternalProblemVerificationError.name) {
         hadVerifyError = true;
@@ -320,8 +345,10 @@ class BatchCompiler {
 
 Future<void> incrementalEntryPoint(List<String> arguments) async {
   installAdditionalTargets();
-  await withGlobalOptions("incremental", arguments, true,
-      (CompilerContext c, _) {
+  await withGlobalOptions("incremental", arguments, true, (
+    CompilerContext c,
+    _,
+  ) {
     // TODO(ahe): Extend this entry point so it can replace
     // batchEntryPoint.
     new IncrementalCompiler(c);
@@ -331,35 +358,51 @@ Future<void> incrementalEntryPoint(List<String> arguments) async {
 
 Future<void> outline(List<String> arguments, {Benchmarker? benchmarker}) async {
   return await runProtectedFromAbort<void>(() async {
-    return await withGlobalOptions("outline", arguments, true,
-        (CompilerContext c, _) async {
+    return await withGlobalOptions("outline", arguments, true, (
+      CompilerContext c,
+      _,
+    ) async {
       if (c.options.verbose) {
         print("Building outlines for ${arguments.join(' ')}");
       }
-      CompilerResult compilerResult = await generateKernelInternal(c,
-          buildSummary: true,
-          serializeIfBuildingSummary: false,
-          buildComponent: false,
-          benchmarker: benchmarker);
+      CompilerResult compilerResult = await generateKernelInternal(
+        c,
+        buildSummary: true,
+        serializeIfBuildingSummary: false,
+        buildComponent: false,
+        benchmarker: benchmarker,
+      );
       Component component = compilerResult.component!;
-      await _emitComponent(c.options, component,
-          benchmarker: benchmarker, message: "Wrote outline to ");
+      await _emitComponent(
+        c.options,
+        component,
+        benchmarker: benchmarker,
+        message: "Wrote outline to ",
+      );
     });
   });
 }
 
 Future<Uri> compile(List<String> arguments, {Benchmarker? benchmarker}) async {
   return await runProtectedFromAbort<Uri>(() async {
-    return await withGlobalOptions("compile", arguments, true,
-        (CompilerContext c, _) async {
+    return await withGlobalOptions("compile", arguments, true, (
+      CompilerContext c,
+      _,
+    ) async {
       if (c.options.verbose) {
         print("Compiling directly to Kernel: ${arguments.join(' ')}");
       }
-      CompilerResult compilerResult =
-          await generateKernelInternal(c, benchmarker: benchmarker);
+      CompilerResult compilerResult = await generateKernelInternal(
+        c,
+        benchmarker: benchmarker,
+      );
       Component component = compilerResult.component!;
-      Uri uri = await _emitComponent(c.options, component,
-          benchmarker: benchmarker, message: "Wrote component to ");
+      Uri uri = await _emitComponent(
+        c.options,
+        component,
+        benchmarker: benchmarker,
+        message: "Wrote component to ",
+      );
       _benchmarkAstVisitor(component, benchmarker);
       return uri;
     });
@@ -369,8 +412,10 @@ Future<Uri> compile(List<String> arguments, {Benchmarker? benchmarker}) async {
 Future<Uri?> deps(List<String> arguments) async {
   return await runProtectedFromAbort<Uri?>(() async {
     FileSystemDependencyTracker tracker = new FileSystemDependencyTracker();
-    return await withGlobalOptions("deps", arguments, true, tracker: tracker,
-        (CompilerContext c, _) async {
+    return await withGlobalOptions("deps", arguments, true, tracker: tracker, (
+      CompilerContext c,
+      _,
+    ) async {
       if (c.options.verbose) {
         print("Computing deps: ${arguments.join(' ')}");
       }
@@ -385,15 +430,20 @@ Future<Uri?> deps(List<String> arguments) async {
 }
 
 /// Writes the [component] to the URI specified in the compiler options.
-Future<Uri> _emitComponent(ProcessedOptions options, Component component,
-    {Benchmarker? benchmarker, required String message}) async {
+Future<Uri> _emitComponent(
+  ProcessedOptions options,
+  Component component, {
+  Benchmarker? benchmarker,
+  required String message,
+}) async {
   Uri uri = options.output!;
   if (options.omitPlatform) {
     benchmarker?.enterPhase(BenchmarkPhases.omitPlatform);
     component.computeCanonicalNames();
     Component userCode = new Component(
-        nameRoot: component.root,
-        uriToSource: new Map<Uri, Source>.from(component.uriToSource));
+      nameRoot: component.root,
+      uriToSource: new Map<Uri, Source>.from(component.uriToSource),
+    );
     userCode.setMainMethodAndMode(component.mainMethodName, true);
     for (Library library in component.libraries) {
       if (!library.importUri.isScheme("dart")) {
@@ -410,8 +460,10 @@ Future<Uri> _emitComponent(ProcessedOptions options, Component component,
   return uri;
 }
 
-Future<Uri?> _emitDeps(FileSystemDependencyTracker tracker,
-    [Uri? output]) async {
+Future<Uri?> _emitDeps(
+  FileSystemDependencyTracker tracker, [
+  Uri? output,
+]) async {
   Uri? dFile;
   if (output != null) {
     dFile = new File(new File.fromUri(output).path + ".d").uri;
@@ -436,34 +488,51 @@ class EmptyRecursiveVisitorForBenchmarking extends RecursiveVisitor {}
 
 Future<void> compilePlatform(List<String> arguments) async {
   FileSystemDependencyTracker tracker = new FileSystemDependencyTracker();
-  await withGlobalOptions("compile_platform", arguments, false,
-      tracker: tracker, (CompilerContext c, List<String> restArguments) {
-    c.compilingPlatform = true;
-    Uri hostPlatform = Uri.base.resolveUri(new Uri.file(restArguments[2]));
-    Uri outlineOutput = Uri.base.resolveUri(new Uri.file(restArguments[4]));
-    return compilePlatformInternal(
-        c, tracker, c.options.output!, outlineOutput, hostPlatform);
-  });
+  await withGlobalOptions(
+    "compile_platform",
+    arguments,
+    false,
+    tracker: tracker,
+    (CompilerContext c, List<String> restArguments) {
+      c.compilingPlatform = true;
+      Uri hostPlatform = Uri.base.resolveUri(new Uri.file(restArguments[2]));
+      Uri outlineOutput = Uri.base.resolveUri(new Uri.file(restArguments[4]));
+      return compilePlatformInternal(
+        c,
+        tracker,
+        c.options.output!,
+        outlineOutput,
+        hostPlatform,
+      );
+    },
+  );
 }
 
 Future<void> compilePlatformInternal(
-    CompilerContext c,
-    FileSystemDependencyTracker tracker,
-    Uri fullOutput,
-    Uri outlineOutput,
-    Uri hostPlatform) async {
+  CompilerContext c,
+  FileSystemDependencyTracker tracker,
+  Uri fullOutput,
+  Uri outlineOutput,
+  Uri hostPlatform,
+) async {
   if (c.options.verbose) {
     print("Generating outline of ${c.options.sdkRoot} into $outlineOutput");
     print("Compiling ${c.options.sdkRoot} to $fullOutput");
   }
 
-  CompilerResult result =
-      await generateKernelInternal(c, buildSummary: true, buildComponent: true);
+  CompilerResult result = await generateKernelInternal(
+    c,
+    buildSummary: true,
+    buildComponent: true,
+  );
   new File.fromUri(outlineOutput).writeAsBytesSync(result.summary!);
   c.options.ticker.logMs("Wrote outline to ${outlineOutput.toFilePath()}");
 
-  verifyComponent(c.options.target,
-      VerificationStage.afterModularTransformations, result.component!);
+  verifyComponent(
+    c.options.target,
+    VerificationStage.afterModularTransformations,
+    result.component!,
+  );
   await writeComponentToFile(result.component!, fullOutput);
 
   c.options.ticker.logMs("Wrote component to ${fullOutput.toFilePath()}");
@@ -478,8 +547,11 @@ Future<void> compilePlatformInternal(
         deps.add(dependency);
       }
     }
-    await writeDepsFile(fullOutput,
-        new File(new File.fromUri(fullOutput).path + ".d").uri, deps);
+    await writeDepsFile(
+      fullOutput,
+      new File(new File.fromUri(fullOutput).path + ".d").uri,
+      deps,
+    );
   }
 }
 
@@ -495,12 +567,18 @@ Future<List<Uri>> computeHostDependencies(Uri hostPlatform) {
   // self-hosting, this isn't an approximation. Regardless, strong mode
   // shouldn't affect which files are read.
   Target? hostTarget = getTarget("vm", new TargetFlags());
-  return getDependencies(Platform.script,
-      platform: hostPlatform, target: hostTarget);
+  return getDependencies(
+    Platform.script,
+    platform: hostPlatform,
+    target: hostTarget,
+  );
 }
 
 Future<void> writeDepsFile(
-    Uri output, Uri depsFile, List<Uri> allDependencies) async {
+  Uri output,
+  Uri depsFile,
+  List<Uri> allDependencies,
+) async {
   if (allDependencies.isEmpty) return;
   String toRelativeFilePath(Uri uri) {
     // Ninja expects to find file names relative to the current working
@@ -529,8 +607,10 @@ Future<void> writeDepsFile(
   sb.write(toRelativeFilePath(output));
   sb.write(":");
   List<String> paths = new List<String>.generate(
-      allDependencies.length, (int i) => toRelativeFilePath(allDependencies[i]),
-      growable: false);
+    allDependencies.length,
+    (int i) => toRelativeFilePath(allDependencies[i]),
+    growable: false,
+  );
   // Sort the relative paths to ease analyzing future changes to this code.
   paths.sort();
   String? previous;

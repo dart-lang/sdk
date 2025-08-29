@@ -69,7 +69,8 @@ Uri getPartUri(Uri parentUri, LibraryPart part) {
   on FormatException {
     // This is also done in [SourceLibraryBuilder.resolve]
     return new Uri(
-        scheme: MALFORMED_URI_SCHEME,
-        query: Uri.encodeQueryComponent(part.partUri));
+      scheme: MALFORMED_URI_SCHEME,
+      query: Uri.encodeQueryComponent(part.partUri),
+    );
   }
 }

@@ -15,14 +15,18 @@ import 'package:front_end/src/type_inference/type_inference_engine.dart';
 import 'package:kernel/ast.dart';
 
 Future<void> main(List<String> args) async {
-  Directory dataDir = new Directory.fromUri(Platform.script.resolve(
-      '../../../_fe_analyzer_shared/test/flow_analysis/reachability/data'));
-  await runTests<Set<_ReachabilityAssertion>>(dataDir,
-      args: args,
-      createUriForFileName: createUriForFileName,
-      onFailure: onFailure,
-      runTest:
-          runTestFor(const ReachabilityDataComputer(), [defaultCfeConfig]));
+  Directory dataDir = new Directory.fromUri(
+    Platform.script.resolve(
+      '../../../_fe_analyzer_shared/test/flow_analysis/reachability/data',
+    ),
+  );
+  await runTests<Set<_ReachabilityAssertion>>(
+    dataDir,
+    args: args,
+    createUriForFileName: createUriForFileName,
+    onFailure: onFailure,
+    runTest: runTestFor(const ReachabilityDataComputer(), [defaultCfeConfig]),
+  );
 }
 
 class ReachabilityDataComputer
@@ -37,16 +41,22 @@ class ReachabilityDataComputer
   ///
   /// Fills [actualMap] with the data.
   @override
-  void computeMemberData(CfeTestResultData testResultData, Member member,
-      Map<Id, ActualData<Set<_ReachabilityAssertion>>> actualMap,
-      {bool? verbose}) {
+  void computeMemberData(
+    CfeTestResultData testResultData,
+    Member member,
+    Map<Id, ActualData<Set<_ReachabilityAssertion>>> actualMap, {
+    bool? verbose,
+  }) {
     SourceMemberBuilder memberBuilder =
         lookupMemberBuilder(testResultData.compilerResult, member)
             as SourceMemberBuilder;
-    member.accept(new ReachabilityDataExtractor(
+    member.accept(
+      new ReachabilityDataExtractor(
         testResultData.compilerResult,
         actualMap,
-        memberBuilder.dataForTesting!.inferenceData.flowAnalysisResult));
+        memberBuilder.dataForTesting!.inferenceData.flowAnalysisResult,
+      ),
+    );
   }
 
   /// Errors are supported for testing erroneous code. The reported errors are
@@ -61,19 +71,20 @@ class ReachabilityDataExtractor
   final FlowAnalysisResult _flowResult;
 
   ReachabilityDataExtractor(
-      InternalCompilerResult compilerResult,
-      Map<Id, ActualData<Set<_ReachabilityAssertion>>> actualMap,
-      this._flowResult)
-      : _sourceLoaderDataForTesting =
-            compilerResult.kernelTargetForTesting!.loader.dataForTesting!,
-        super(compilerResult, actualMap);
+    InternalCompilerResult compilerResult,
+    Map<Id, ActualData<Set<_ReachabilityAssertion>>> actualMap,
+    this._flowResult,
+  ) : _sourceLoaderDataForTesting =
+          compilerResult.kernelTargetForTesting!.loader.dataForTesting!,
+      super(compilerResult, actualMap);
 
   @override
   Set<_ReachabilityAssertion>? computeMemberValue(Id id, Member member) {
     Set<_ReachabilityAssertion> result = {};
     if (member.function != null) {
-      TreeNode alias =
-          _sourceLoaderDataForTesting.toOriginal(member.function!.body!);
+      TreeNode alias = _sourceLoaderDataForTesting.toOriginal(
+        member.function!.body!,
+      );
       if (_flowResult.functionBodiesThatDontComplete.contains(alias)) {
         result.add(_ReachabilityAssertion.doesNotComplete);
       }
@@ -90,17 +101,21 @@ class ReachabilityDataExtractor
       // contains should always be the same.  We check this with an assert
       // statement, and only annotate the expression statement, to reduce the
       // amount of redundancy in the test files.
-      assert(_flowResult.unreachableNodes.contains(alias) ==
-          _flowResult.unreachableNodes
-              .contains(_sourceLoaderDataForTesting.toOriginal(node.parent!)));
+      assert(
+        _flowResult.unreachableNodes.contains(alias) ==
+            _flowResult.unreachableNodes.contains(
+              _sourceLoaderDataForTesting.toOriginal(node.parent!),
+            ),
+      );
     } else if (_flowResult.unreachableNodes.contains(alias)) {
       result.add(_ReachabilityAssertion.unreachable);
     }
     if (node is FunctionDeclaration) {
       Statement? body = node.function.body;
       if (body != null &&
-          _flowResult.functionBodiesThatDontComplete
-              .contains(_sourceLoaderDataForTesting.toOriginal(body))) {
+          _flowResult.functionBodiesThatDontComplete.contains(
+            _sourceLoaderDataForTesting.toOriginal(body),
+          )) {
         result.add(_ReachabilityAssertion.doesNotComplete);
       }
     }
@@ -108,23 +123,23 @@ class ReachabilityDataExtractor
   }
 }
 
-enum _ReachabilityAssertion {
-  doesNotComplete,
-  unreachable,
-}
+enum _ReachabilityAssertion { doesNotComplete, unreachable }
 
 class _ReachabilityDataInterpreter
     implements DataInterpreter<Set<_ReachabilityAssertion>> {
   const _ReachabilityDataInterpreter();
 
   @override
-  String getText(Set<_ReachabilityAssertion> actualData,
-          [String? indentation]) =>
-      _sortedRepresentation(_toStrings(actualData));
+  String getText(
+    Set<_ReachabilityAssertion> actualData, [
+    String? indentation,
+  ]) => _sortedRepresentation(_toStrings(actualData));
 
   @override
   String? isAsExpected(
-      Set<_ReachabilityAssertion> actualData, String? expectedData) {
+    Set<_ReachabilityAssertion> actualData,
+    String? expectedData,
+  ) {
     var actualStrings = _toStrings(actualData);
     var actualSorted = _sortedRepresentation(actualStrings);
     var expectedSorted = _sortedRepresentation(expectedData?.split(','));

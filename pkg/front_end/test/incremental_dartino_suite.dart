@@ -52,7 +52,7 @@ class Context extends ChainContext {
   final IncrementalKernelGenerator compiler;
 
   Context(this.compilerContext, this.errors)
-      : compiler = new IncrementalCompiler(compilerContext);
+    : compiler = new IncrementalCompiler(compilerContext);
 
   ProcessedOptions get options => compilerContext.options;
 
@@ -67,8 +67,9 @@ class Context extends ChainContext {
   }
 
   List<CfeDiagnosticMessage> takeErrors() {
-    List<CfeDiagnosticMessage> result =
-        new List<CfeDiagnosticMessage>.from(errors);
+    List<CfeDiagnosticMessage> result = new List<CfeDiagnosticMessage>.from(
+      errors,
+    );
     errors.clear();
     return result;
   }
@@ -82,7 +83,9 @@ class ReadTest extends Step<TestDescription, TestCase, Context> {
 
   @override
   Future<Result<TestCase>> run(
-      TestDescription description, Context context) async {
+    TestDescription description,
+    Context context,
+  ) async {
     context.reset();
     Uri uri = description.uri;
     String contents = await new File.fromUri(uri).readAsString();
@@ -117,7 +120,7 @@ class RunCompilations extends Step<TestCase, TestCase, Context> {
 
   @override
   Future<Result<TestCase>> run(TestCase test, Context context) async {
-    for (int edits = 0;; edits++) {
+    for (int edits = 0; ; edits++) {
       bool foundSources = false;
       test.sources!.forEach((String name, List<String> sources) {
         if (edits < sources.length) {
@@ -138,8 +141,9 @@ class RunCompilations extends Step<TestCase, TestCase, Context> {
         return edits == 0 ? fail(test, "No sources found") : pass(test);
       }
       var compiler = context.compiler;
-      var compilerResult =
-          await compiler.computeDelta(entryPoints: [entryPoint]);
+      var compilerResult = await compiler.computeDelta(
+        entryPoints: [entryPoint],
+      );
       Component component = compilerResult.component;
       List<CfeDiagnosticMessage> errors = context.takeErrors();
       if (test.expectations![edits].hasCompileTimeError) {
@@ -147,9 +151,9 @@ class RunCompilations extends Step<TestCase, TestCase, Context> {
           return fail(test, "Compile-time error expected, but none reported");
         }
       } else if (errors.isNotEmpty) {
-        String indentedErrors =
-            splitLines(errors.map((e) => e.ansiFormatted.join("\n")).join("\n"))
-                .join("  ");
+        String indentedErrors = splitLines(
+          errors.map((e) => e.ansiFormatted.join("\n")).join("\n"),
+        ).join("  ");
         return fail(test, "Unexpected compile-time errors:\n  $indentedErrors");
       } else if (component.libraries.length < 1) {
         return fail(test, "The compiler detected no changes");
@@ -184,9 +188,10 @@ class TestCase {
       List<String> versions = sources![name]!;
       if (versions.length != 1 && versions.length != expectations!.length) {
         return step.fail(
-            this,
-            "Found ${versions.length} versions of $name,"
-            " but expected 1 or ${expectations!.length}.");
+          this,
+          "Found ${versions.length} versions of $name,"
+          " but expected 1 or ${expectations!.length}.",
+        );
       }
     }
     return step.pass(this);
@@ -194,14 +199,16 @@ class TestCase {
 }
 
 Future<Context> createContext(
-    Chain suite, Map<String, String> environment) async {
+  Chain suite,
+  Map<String, String> environment,
+) async {
   /// The custom URI used to locate the dill file in the MemoryFileSystem.
   final Uri sdkSummary = base.resolve("vm_platform.dill");
 
   /// The actual location of the dill file.
-  final Uri sdkSummaryFile =
-      computePlatformBinariesLocation(forceBuildDir: true)
-          .resolve("vm_platform.dill");
+  final Uri sdkSummaryFile = computePlatformBinariesLocation(
+    forceBuildDir: true,
+  ).resolve("vm_platform.dill");
 
   final MemoryFileSystem fs = new MemoryFileSystem(base);
 
@@ -222,15 +229,17 @@ Future<Context> createContext(
       }
     };
 
-  final ProcessedOptions options =
-      new ProcessedOptions(options: optionBuilder, inputs: [entryPoint]);
+  final ProcessedOptions options = new ProcessedOptions(
+    options: optionBuilder,
+    inputs: [entryPoint],
+  );
 
   return new Context(new CompilerContext(options), errors);
 }
 
 void main([List<String> arguments = const []]) => internalMain(
-      createContext,
-      arguments: arguments,
-      displayName: "incremental dartino suite",
-      configurationPath: "../testing.json",
-    );
+  createContext,
+  arguments: arguments,
+  displayName: "incremental dartino suite",
+  configurationPath: "../testing.json",
+);

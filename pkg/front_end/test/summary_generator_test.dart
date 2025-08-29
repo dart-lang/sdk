@@ -39,16 +39,22 @@ void main() {
     var sourcesWithA = new Map<String, dynamic>.from(allSources);
     sourcesWithA['a.dill'] = summaryA;
 
-    var summaryBC = await summarize(['b.dart', 'c.dart'], sourcesWithA,
-        additionalDills: ['a.dill']);
+    var summaryBC = await summarize(
+      ['b.dart', 'c.dart'],
+      sourcesWithA,
+      additionalDills: ['a.dill'],
+    );
 
     var sourcesWithABC = new Map<String, dynamic>.from(sourcesWithA);
     sourcesWithABC['bc.dill'] = summaryBC;
 
     // Note: a is loaded first, bc.dill have a.dart as an external reference so
     // we want to ensure loading them here will not create a problem.
-    var summaryD = await summarize(['d.dart'], sourcesWithABC,
-        additionalDills: ['a.dill', 'bc.dill']);
+    var summaryD = await summarize(
+      ['d.dart'],
+      sourcesWithABC,
+      additionalDills: ['a.dill', 'bc.dill'],
+    );
 
     checkDSummary(summaryD!);
   });
@@ -58,8 +64,11 @@ void main() {
     var sourcesWithA = new Map<String, dynamic>.from(allSources);
     sourcesWithA['a.dill'] = summaryA;
 
-    var summaryBC = await summarize(['b.dart', 'c.dart'], sourcesWithA,
-        additionalDills: ['a.dill']);
+    var summaryBC = await summarize(
+      ['b.dart', 'c.dart'],
+      sourcesWithA,
+      additionalDills: ['a.dill'],
+    );
 
     var sourcesWithABC = new Map<String, dynamic>.from(sourcesWithA);
     sourcesWithABC['bc.dill'] = summaryBC;
@@ -68,8 +77,11 @@ void main() {
     // an external definition of library a.dart. Using this order also works
     // because we share a CanonicalName root to resolve names across multiple
     // dill files and because of how the kernel loader merges definitions.
-    var summaryD = await summarize(['d.dart'], sourcesWithABC,
-        additionalDills: ['bc.dill', 'a.dill']);
+    var summaryD = await summarize(
+      ['d.dart'],
+      sourcesWithABC,
+      additionalDills: ['bc.dill', 'a.dill'],
+    );
     checkDSummary(summaryD!);
   });
 
@@ -79,16 +91,24 @@ void main() {
     var component = loadComponentFromBytes(summaryA!);
     expect(component.libraries.length, 1);
     expect(
-        component.libraries.single.importUri.path.endsWith('a.dart'), isTrue);
+      component.libraries.single.importUri.path.endsWith('a.dart'),
+      isTrue,
+    );
 
     var sourcesWithA = new Map<String, dynamic>.from(allSources);
     sourcesWithA['a.dill'] = summaryA;
-    var summaryB = await summarize(['b.dart'], sourcesWithA,
-        additionalDills: ['a.dill'], truncate: true);
+    var summaryB = await summarize(
+      ['b.dart'],
+      sourcesWithA,
+      additionalDills: ['a.dill'],
+      truncate: true,
+    );
     component = loadComponentFromBytes(summaryB!);
     expect(component.libraries.length, 1);
     expect(
-        component.libraries.single.importUri.path.endsWith('b.dart'), isTrue);
+      component.libraries.single.importUri.path.endsWith('b.dart'),
+      isTrue,
+    );
   });
 
   test('summarization by default is not hermetic', () async {

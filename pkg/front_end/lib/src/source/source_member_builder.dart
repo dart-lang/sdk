@@ -17,12 +17,19 @@ import '../type_inference/type_inference_engine.dart'
 import 'source_class_builder.dart';
 import 'source_library_builder.dart';
 
-typedef BuildNodesCallback = void Function(
-    {required Member member, Member? tearOff, required BuiltMemberKind kind});
+typedef BuildNodesCallback =
+    void Function({
+      required Member member,
+      Member? tearOff,
+      required BuiltMemberKind kind,
+    });
 
 /// [BuildNodesCallback] that doesn't add the member nodes.
-void noAddBuildNodesCallback(
-    {required Member member, Member? tearOff, required BuiltMemberKind kind}) {}
+void noAddBuildNodesCallback({
+  required Member member,
+  Member? tearOff,
+  required BuiltMemberKind kind,
+}) {}
 
 abstract class SourceMemberBuilder implements MemberBuilder {
   MemberDataForTesting? get dataForTesting;
@@ -43,31 +50,41 @@ abstract class SourceMemberBuilder implements MemberBuilder {
   /// Builds the core AST structures for this member as needed for the outline.
   void buildOutlineNodes(BuildNodesCallback f);
 
-  void buildOutlineExpressions(ClassHierarchy classHierarchy,
-      List<DelayedDefaultValueCloner> delayedDefaultValueCloners);
+  void buildOutlineExpressions(
+    ClassHierarchy classHierarchy,
+    List<DelayedDefaultValueCloner> delayedDefaultValueCloners,
+  );
 
   /// Builds the AST nodes for this member as needed for the full compilation.
   ///
   /// This includes adding augmented bodies and augmented members.
   int buildBodyNodes(BuildNodesCallback f);
 
-  int computeDefaultTypes(ComputeDefaultTypeContext context,
-      {required bool inErrorRecovery});
+  int computeDefaultTypes(
+    ComputeDefaultTypeContext context, {
+    required bool inErrorRecovery,
+  });
 
   /// Checks the variance of type parameters [sourceClassBuilder] used in the
   /// signature of this member.
   void checkVariance(
-      SourceClassBuilder sourceClassBuilder, TypeEnvironment typeEnvironment);
+    SourceClassBuilder sourceClassBuilder,
+    TypeEnvironment typeEnvironment,
+  );
 
   /// Checks the signature types of this member.
-  void checkTypes(SourceLibraryBuilder library, NameSpace nameSpace,
-      TypeEnvironment typeEnvironment);
+  void checkTypes(
+    SourceLibraryBuilder library,
+    NameSpace nameSpace,
+    TypeEnvironment typeEnvironment,
+  );
 }
 
 mixin SourceMemberBuilderMixin implements SourceMemberBuilder {
   @override
-  MemberDataForTesting? dataForTesting =
-      retainDataForTesting ? new MemberDataForTesting() : null;
+  MemberDataForTesting? dataForTesting = retainDataForTesting
+      ? new MemberDataForTesting()
+      : null;
 
   @override
   // Coverage-ignore(suite): Not run.
@@ -88,16 +105,18 @@ abstract class SourceMemberBuilderImpl extends MemberBuilderImpl
   MemberDataForTesting? dataForTesting;
 
   SourceMemberBuilderImpl()
-      : dataForTesting = retainDataForTesting
-            ?
+    : dataForTesting = retainDataForTesting
+          ?
             // Coverage-ignore(suite): Not run.
             new MemberDataForTesting()
-            : null;
+          : null;
 
   @override
   // Coverage-ignore(suite): Not run.
-  void buildOutlineExpressions(ClassHierarchy classHierarchy,
-      List<DelayedDefaultValueCloner> delayedDefaultValueCloners) {}
+  void buildOutlineExpressions(
+    ClassHierarchy classHierarchy,
+    List<DelayedDefaultValueCloner> delayedDefaultValueCloners,
+  ) {}
 
   @override
   String toString() {
@@ -150,9 +169,10 @@ class AugmentSuperTarget {
   final Member? invokeTarget;
   final Member? writeTarget;
 
-  AugmentSuperTarget(
-      {required this.declaration,
-      required this.readTarget,
-      required this.invokeTarget,
-      required this.writeTarget});
+  AugmentSuperTarget({
+    required this.declaration,
+    required this.readTarget,
+    required this.invokeTarget,
+    required this.writeTarget,
+  });
 }

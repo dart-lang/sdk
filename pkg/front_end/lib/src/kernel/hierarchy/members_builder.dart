@@ -21,7 +21,7 @@ class ClassMembersBuilder implements ClassHierarchyMembers {
   final Map<Class, ClassMembersNode> classNodes = new Map.identity();
 
   final Map<ExtensionTypeDeclaration, ExtensionTypeMembersNode>
-      extensionTypeDeclarationNodes = {};
+  extensionTypeDeclarationNodes = {};
 
   final List<DelayedTypeComputation> _delayedTypeComputations =
       <DelayedTypeComputation>[];
@@ -44,12 +44,20 @@ class ClassMembersBuilder implements ClassHierarchyMembers {
     _delayedTypeComputations.add(computation);
   }
 
-  void registerOverrideCheck(SourceClassBuilder classBuilder,
-      ClassMember declaredMember, Set<ClassMember> overriddenMembers,
-      {required ClassMember? localMember}) {
-    _delayedChecks.add(new DelayedOverrideCheck(
-        classBuilder, declaredMember, overriddenMembers,
-        localMember: localMember));
+  void registerOverrideCheck(
+    SourceClassBuilder classBuilder,
+    ClassMember declaredMember,
+    Set<ClassMember> overriddenMembers, {
+    required ClassMember? localMember,
+  }) {
+    _delayedChecks.add(
+      new DelayedOverrideCheck(
+        classBuilder,
+        declaredMember,
+        overriddenMembers,
+        localMember: localMember,
+      ),
+    );
   }
 
   void registerGetterSetterCheck(DelayedGetterSetterCheck check) {
@@ -78,136 +86,177 @@ class ClassMembersBuilder implements ClassHierarchyMembers {
     return list;
   }
 
-  void inferFieldType(SourceClassBuilder enclosingClassBuilder,
-      TypeBuilder declaredFieldType, Iterable<ClassMember> overriddenMembers,
-      {required String name,
-      required Uri fileUri,
-      required int nameOffset,
-      required int nameLength,
-      required bool isAssignable}) {
-    ClassMembersNodeBuilder.inferFieldType(hierarchyBuilder, this,
-        enclosingClassBuilder, declaredFieldType, overriddenMembers,
-        name: name,
-        fileUri: fileUri,
-        nameOffset: nameOffset,
-        nameLength: nameLength,
-        isAssignable: isAssignable);
+  void inferFieldType(
+    SourceClassBuilder enclosingClassBuilder,
+    TypeBuilder declaredFieldType,
+    Iterable<ClassMember> overriddenMembers, {
+    required String name,
+    required Uri fileUri,
+    required int nameOffset,
+    required int nameLength,
+    required bool isAssignable,
+  }) {
+    ClassMembersNodeBuilder.inferFieldType(
+      hierarchyBuilder,
+      this,
+      enclosingClassBuilder,
+      declaredFieldType,
+      overriddenMembers,
+      name: name,
+      fileUri: fileUri,
+      nameOffset: nameOffset,
+      nameLength: nameLength,
+      isAssignable: isAssignable,
+    );
   }
 
-  void inferGetterType(SourceClassBuilder enclosingClassBuilder,
-      TypeBuilder declaredTypeBuilder, Iterable<ClassMember> overriddenMembers,
-      {required String name,
-      required Uri fileUri,
-      required int nameOffset,
-      required int nameLength}) {
-    ClassMembersNodeBuilder.inferGetterType(hierarchyBuilder, this,
-        enclosingClassBuilder, declaredTypeBuilder, overriddenMembers,
-        name: name,
-        fileUri: fileUri,
-        nameOffset: nameOffset,
-        nameLength: nameLength);
+  void inferGetterType(
+    SourceClassBuilder enclosingClassBuilder,
+    TypeBuilder declaredTypeBuilder,
+    Iterable<ClassMember> overriddenMembers, {
+    required String name,
+    required Uri fileUri,
+    required int nameOffset,
+    required int nameLength,
+  }) {
+    ClassMembersNodeBuilder.inferGetterType(
+      hierarchyBuilder,
+      this,
+      enclosingClassBuilder,
+      declaredTypeBuilder,
+      overriddenMembers,
+      name: name,
+      fileUri: fileUri,
+      nameOffset: nameOffset,
+      nameLength: nameLength,
+    );
   }
 
   void inferSetterType(
-      SourceClassBuilder enclosingClassBuilder,
-      List<FormalParameterBuilder>? formals,
-      Iterable<ClassMember> overriddenMembers,
-      {required String name,
-      required Uri fileUri,
-      required int nameOffset,
-      required int nameLength}) {
-    ClassMembersNodeBuilder.inferSetterType(hierarchyBuilder, this,
-        enclosingClassBuilder, formals, overriddenMembers,
-        name: name,
-        fileUri: fileUri,
-        nameOffset: nameOffset,
-        nameLength: nameLength);
+    SourceClassBuilder enclosingClassBuilder,
+    List<FormalParameterBuilder>? formals,
+    Iterable<ClassMember> overriddenMembers, {
+    required String name,
+    required Uri fileUri,
+    required int nameOffset,
+    required int nameLength,
+  }) {
+    ClassMembersNodeBuilder.inferSetterType(
+      hierarchyBuilder,
+      this,
+      enclosingClassBuilder,
+      formals,
+      overriddenMembers,
+      name: name,
+      fileUri: fileUri,
+      nameOffset: nameOffset,
+      nameLength: nameLength,
+    );
   }
 
   void inferMethodType(
-      SourceClassBuilder enclosingClassBuilder,
-      FunctionNode declaredFunction,
-      TypeBuilder declaredReturnType,
-      List<FormalParameterBuilder>? formals,
-      Iterable<ClassMember> overriddenMembers,
-      {required String name,
-      required Uri fileUri,
-      required int nameOffset,
-      required int nameLength}) {
+    SourceClassBuilder enclosingClassBuilder,
+    FunctionNode declaredFunction,
+    TypeBuilder declaredReturnType,
+    List<FormalParameterBuilder>? formals,
+    Iterable<ClassMember> overriddenMembers, {
+    required String name,
+    required Uri fileUri,
+    required int nameOffset,
+    required int nameLength,
+  }) {
     ClassMembersNodeBuilder.inferMethodType(
-        hierarchyBuilder,
-        this,
-        enclosingClassBuilder,
-        declaredFunction,
-        declaredReturnType,
-        formals,
-        overriddenMembers,
-        name: name,
-        fileUri: fileUri,
-        nameOffset: nameOffset,
-        nameLength: nameLength);
+      hierarchyBuilder,
+      this,
+      enclosingClassBuilder,
+      declaredFunction,
+      declaredReturnType,
+      formals,
+      overriddenMembers,
+      name: name,
+      fileUri: fileUri,
+      nameOffset: nameOffset,
+      nameLength: nameLength,
+    );
   }
 
   ClassMembersNode getNodeFromClassBuilder(ClassBuilder classBuilder) {
     return classNodes[classBuilder.cls] ??= new ClassMembersNodeBuilder(
-            this, hierarchyBuilder.getNodeFromClassBuilder(classBuilder))
-        .build();
+      this,
+      hierarchyBuilder.getNodeFromClassBuilder(classBuilder),
+    ).build();
   }
 
   ExtensionTypeMembersNode getNodeFromExtensionTypeDeclarationBuilder(
-      ExtensionTypeDeclarationBuilder extensionTypeDeclarationBuilder) {
+    ExtensionTypeDeclarationBuilder extensionTypeDeclarationBuilder,
+  ) {
     return extensionTypeDeclarationNodes[extensionTypeDeclarationBuilder
         .extensionTypeDeclaration] ??= new ExtensionTypeMembersNodeBuilder(
-            this,
-            hierarchyBuilder.getNodeFromExtensionTypeDeclarationBuilder(
-                extensionTypeDeclarationBuilder))
-        .build();
+      this,
+      hierarchyBuilder.getNodeFromExtensionTypeDeclarationBuilder(
+        extensionTypeDeclarationBuilder,
+      ),
+    ).build();
   }
 
   ClassMembersNode getNodeFromClass(Class cls) {
     return classNodes[cls] ??
         getNodeFromClassBuilder(
-            hierarchyBuilder.loader.computeClassBuilderFromTargetClass(cls));
+          hierarchyBuilder.loader.computeClassBuilderFromTargetClass(cls),
+        );
   }
 
   ExtensionTypeMembersNode getNodeFromExtensionTypeDeclaration(
-      ExtensionTypeDeclaration extensionTypeDeclaration) {
+    ExtensionTypeDeclaration extensionTypeDeclaration,
+  ) {
     return extensionTypeDeclarationNodes[extensionTypeDeclaration] ??
-        getNodeFromExtensionTypeDeclarationBuilder(hierarchyBuilder.loader
-            .computeExtensionTypeBuilderFromTargetExtensionType(
-                extensionTypeDeclaration));
+        getNodeFromExtensionTypeDeclarationBuilder(
+          hierarchyBuilder.loader
+              .computeExtensionTypeBuilderFromTargetExtensionType(
+                extensionTypeDeclaration,
+              ),
+        );
   }
 
   @override
   Member? getInterfaceMember(Class cls, Name name, {bool setter = false}) {
-    return getNodeFromClass(cls)
-        .getInterfaceMember(name, setter)
-        ?.getMember(this);
+    return getNodeFromClass(
+      cls,
+    ).getInterfaceMember(name, setter)?.getMember(this);
   }
 
   ClassMember? getExtensionTypeClassMember(
-      ExtensionTypeDeclaration extensionTypeDeclaration, Name name,
-      {bool setter = false}) {
-    return getNodeFromExtensionTypeDeclaration(extensionTypeDeclaration)
-        .getMember(name, setter);
+    ExtensionTypeDeclaration extensionTypeDeclaration,
+    Name name, {
+    bool setter = false,
+  }) {
+    return getNodeFromExtensionTypeDeclaration(
+      extensionTypeDeclaration,
+    ).getMember(name, setter);
   }
 
   ClassMember? getExtensionTypeStaticClassMember(
-      ExtensionTypeDeclaration extensionTypeDeclaration, Name name,
-      {bool setter = false}) {
-    return getNodeFromExtensionTypeDeclaration(extensionTypeDeclaration)
-        .getStaticMember(name, setter);
+    ExtensionTypeDeclaration extensionTypeDeclaration,
+    Name name, {
+    bool setter = false,
+  }) {
+    return getNodeFromExtensionTypeDeclaration(
+      extensionTypeDeclaration,
+    ).getStaticMember(name, setter);
   }
 
   @override
   Member? getDispatchTarget(Class cls, Name name, {bool setter = false}) {
-    return getNodeFromClass(cls)
-        .getDispatchTarget(name, setter)
-        ?.getMember(this);
+    return getNodeFromClass(
+      cls,
+    ).getDispatchTarget(name, setter)?.getMember(this);
   }
 
-  ClassMember? getDispatchClassMember(Class cls, Name name,
-      {bool setter = false}) {
+  ClassMember? getDispatchClassMember(
+    Class cls,
+    Name name, {
+    bool setter = false,
+  }) {
     return getNodeFromClass(cls).getDispatchTarget(name, setter);
   }
 
@@ -216,18 +265,21 @@ class ClassMembersBuilder implements ClassHierarchyMembers {
   }
 
   static ClassMembersBuilder build(
-      ClassHierarchyBuilder hierarchyBuilder,
-      List<ClassBuilder> classes,
-      List<ExtensionTypeDeclarationBuilder> extensionTypeDeclarations) {
-    ClassMembersBuilder membersBuilder =
-        new ClassMembersBuilder(hierarchyBuilder);
+    ClassHierarchyBuilder hierarchyBuilder,
+    List<ClassBuilder> classes,
+    List<ExtensionTypeDeclarationBuilder> extensionTypeDeclarations,
+  ) {
+    ClassMembersBuilder membersBuilder = new ClassMembersBuilder(
+      hierarchyBuilder,
+    );
     for (ClassBuilder classBuilder in classes) {
       membersBuilder.getNodeFromClassBuilder(classBuilder);
     }
     for (ExtensionTypeDeclarationBuilder extensionTypeDeclarationBuilder
         in extensionTypeDeclarations) {
       membersBuilder.getNodeFromExtensionTypeDeclarationBuilder(
-          extensionTypeDeclarationBuilder);
+        extensionTypeDeclarationBuilder,
+      );
     }
     return membersBuilder;
   }

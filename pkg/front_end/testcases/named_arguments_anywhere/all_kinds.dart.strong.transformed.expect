@@ -53,9 +53,9 @@ static method t(core::int value) → core::int {
 static method foo(core::int x, core::int y, {required core::int z}) → dynamic {}
 static extension-member method E|method1(lowered final core::int #this) → dynamic {
   self::reset();
-  let final core::int #t7 = #this in let final core::int #t8 = self::t(1) in self::E|method2(#t7, self::t(2), foo: #t8);
+  let final core::int #t7 = self::t(1) in self::E|method2(#this, self::t(2), foo: #t7);
   self::reset();
-  let final core::int #t9 = self::t(1) in self::E|staticMethod2(self::t(2), foo: #t9);
+  let final core::int #t8 = self::t(1) in self::E|staticMethod2(self::t(2), foo: #t8);
 }
 static extension-member method E|get#method1(lowered final core::int #this) → () → dynamic
   return () → dynamic => self::E|method1(#this);
@@ -68,73 +68,73 @@ static method test(dynamic d, core::Function f, self::A a) → dynamic {
   self::reset();
   self::foo(self::t(1), self::t(2), z: self::t(3));
   self::reset();
-  let final core::int #t10 = self::t(1) in let final core::int #t11 = self::t(2) in self::foo(#t10, self::t(3), z: #t11);
+  let final core::int #t9 = self::t(1) in let final core::int #t10 = self::t(2) in self::foo(#t9, self::t(3), z: #t10);
   self::reset();
-  let final core::int #t12 = self::t(1) in self::foo(self::t(2), self::t(3), z: #t12);
-  self::reset();
-  self::A::foo(self::t(1), self::t(2), z: self::t(3));
-  self::reset();
-  let final core::int #t13 = self::t(1) in let final core::int #t14 = self::t(2) in self::A::foo(#t13, self::t(3), z: #t14);
-  self::reset();
-  let final core::int #t15 = self::t(1) in self::A::foo(self::t(2), self::t(3), z: #t15);
+  let final core::int #t11 = self::t(1) in self::foo(self::t(2), self::t(3), z: #t11);
   self::reset();
   self::A::foo(self::t(1), self::t(2), z: self::t(3));
   self::reset();
-  let final core::int #t16 = self::t(1) in let final core::int #t17 = self::t(2) in self::A::foo(#t16, self::t(3), z: #t17);
+  let final core::int #t12 = self::t(1) in let final core::int #t13 = self::t(2) in self::A::foo(#t12, self::t(3), z: #t13);
   self::reset();
-  let final core::int #t18 = self::t(1) in self::A::foo(self::t(2), self::t(3), z: #t18);
+  let final core::int #t14 = self::t(1) in self::A::foo(self::t(2), self::t(3), z: #t14);
+  self::reset();
+  self::A::foo(self::t(1), self::t(2), z: self::t(3));
+  self::reset();
+  let final core::int #t15 = self::t(1) in let final core::int #t16 = self::t(2) in self::A::foo(#t15, self::t(3), z: #t16);
+  self::reset();
+  let final core::int #t17 = self::t(1) in self::A::foo(self::t(2), self::t(3), z: #t17);
   self::reset();
   new self::A::•(self::t(1), self::t(2), z: self::t(3));
   self::reset();
-  let final core::int #t19 = self::t(1) in let final core::int #t20 = self::t(2) in new self::A::•(#t19, self::t(3), z: #t20);
+  let final core::int #t18 = self::t(1) in let final core::int #t19 = self::t(2) in new self::A::•(#t18, self::t(3), z: #t19);
   self::reset();
-  let final core::int #t21 = self::t(1) in new self::A::•(self::t(2), self::t(3), z: #t21);
+  let final core::int #t20 = self::t(1) in new self::A::•(self::t(2), self::t(3), z: #t20);
   self::reset();
   new self::A::•(self::t(1), self::t(2), z: self::t(3));
   self::reset();
-  let final core::int #t22 = self::t(1) in let final core::int #t23 = self::t(2) in new self::A::•(#t22, self::t(3), z: #t23);
+  let final core::int #t21 = self::t(1) in let final core::int #t22 = self::t(2) in new self::A::•(#t21, self::t(3), z: #t22);
   self::reset();
-  let final core::int #t24 = self::t(1) in new self::A::•(self::t(2), self::t(3), z: #t24);
+  let final core::int #t23 = self::t(1) in new self::A::•(self::t(2), self::t(3), z: #t23);
   self::reset();
   d{dynamic}(self::t(1), self::t(2), z: self::t(3));
   self::reset();
-  let final core::int #t25 = self::t(1) in let final core::int #t26 = self::t(2) in d{dynamic}(#t25, self::t(3), z: #t26);
+  let final core::int #t24 = self::t(1) in let final core::int #t25 = self::t(2) in d{dynamic}(#t24, self::t(3), z: #t25);
   self::reset();
-  let final core::int #t27 = self::t(1) in d{dynamic}(self::t(2), self::t(3), z: #t27);
+  let final core::int #t26 = self::t(1) in d{dynamic}(self::t(2), self::t(3), z: #t26);
   self::reset();
   f(self::t(1), self::t(2), z: self::t(3));
   self::reset();
-  let final core::int #t28 = self::t(1) in let final core::int #t29 = self::t(2) in f(#t28, self::t(3), z: #t29);
+  let final core::int #t27 = self::t(1) in let final core::int #t28 = self::t(2) in f(#t27, self::t(3), z: #t28);
   self::reset();
-  let final core::int #t30 = self::t(1) in f(self::t(2), self::t(3), z: #t30);
+  let final core::int #t29 = self::t(1) in f(self::t(2), self::t(3), z: #t29);
   self::reset();
-  let final self::A #t31 = a in let final core::int #t32 = self::t(1) in let final core::int #t33 = self::t(2) in let final core::int #t34 = self::t(3) in #t31.{self::A::property}{(core::int, core::int, {required z: core::int}) → void}(#t32, #t33, z: #t34){(core::int, core::int, {required z: core::int}) → void};
+  let final self::A #t30 = a in let final core::int #t31 = self::t(1) in let final core::int #t32 = self::t(2) in let final core::int #t33 = self::t(3) in #t30.{self::A::property}{(core::int, core::int, {required z: core::int}) → void}(#t31, #t32, z: #t33){(core::int, core::int, {required z: core::int}) → void};
   self::reset();
-  let final self::A #t35 = a in let final core::int #t36 = self::t(1) in let final core::int #t37 = self::t(2) in let final core::int #t38 = self::t(3) in #t35.{self::A::property}{(core::int, core::int, {required z: core::int}) → void}(#t36, #t38, z: #t37){(core::int, core::int, {required z: core::int}) → void};
+  let final self::A #t34 = a in let final core::int #t35 = self::t(1) in let final core::int #t36 = self::t(2) in let final core::int #t37 = self::t(3) in #t34.{self::A::property}{(core::int, core::int, {required z: core::int}) → void}(#t35, #t37, z: #t36){(core::int, core::int, {required z: core::int}) → void};
   self::reset();
-  let final self::A #t39 = a in let final core::int #t40 = self::t(1) in let final core::int #t41 = self::t(2) in let final core::int #t42 = self::t(3) in #t39.{self::A::property}{(core::int, core::int, {required z: core::int}) → void}(#t41, #t42, z: #t40){(core::int, core::int, {required z: core::int}) → void};
+  let final self::A #t38 = a in let final core::int #t39 = self::t(1) in let final core::int #t40 = self::t(2) in let final core::int #t41 = self::t(3) in #t38.{self::A::property}{(core::int, core::int, {required z: core::int}) → void}(#t40, #t41, z: #t39){(core::int, core::int, {required z: core::int}) → void};
   self::reset();
   a.{self::A::bar}(self::t(1), self::t(2), z: self::t(3)){(core::int, core::int, {required z: core::int}) → void};
   self::reset();
-  let final self::A #t43 = a in let final core::int #t44 = self::t(1) in let final core::int #t45 = self::t(2) in #t43.{self::A::bar}(#t44, self::t(3), z: #t45){(core::int, core::int, {required z: core::int}) → void};
+  let final self::A #t42 = a in let final core::int #t43 = self::t(1) in let final core::int #t44 = self::t(2) in #t42.{self::A::bar}(#t43, self::t(3), z: #t44){(core::int, core::int, {required z: core::int}) → void};
   self::reset();
-  let final self::A #t46 = a in let final core::int #t47 = self::t(1) in #t46.{self::A::bar}(self::t(2), self::t(3), z: #t47){(core::int, core::int, {required z: core::int}) → void};
+  let final self::A #t45 = a in let final core::int #t46 = self::t(1) in #t45.{self::A::bar}(self::t(2), self::t(3), z: #t46){(core::int, core::int, {required z: core::int}) → void};
   self::reset();
   local(self::t(1), self::t(2), z: self::t(3)){(core::int, core::int, {required z: core::int}) → void};
   self::reset();
-  let final core::int #t48 = self::t(1) in let final core::int #t49 = self::t(2) in local(#t48, self::t(3), z: #t49){(core::int, core::int, {required z: core::int}) → void};
+  let final core::int #t47 = self::t(1) in let final core::int #t48 = self::t(2) in local(#t47, self::t(3), z: #t48){(core::int, core::int, {required z: core::int}) → void};
   self::reset();
-  let final core::int #t50 = self::t(1) in local(self::t(2), self::t(3), z: #t50){(core::int, core::int, {required z: core::int}) → void};
+  let final core::int #t49 = self::t(1) in local(self::t(2), self::t(3), z: #t49){(core::int, core::int, {required z: core::int}) → void};
   self::reset();
-  let final core::int #t51 = self::t(1) in let final core::int #t52 = self::t(2) in self::E|method2(#t51, self::t(3), foo: #t52);
-  self::reset();
-  self::E|method2(self::t(1), self::t(2), foo: self::t(3));
-  self::reset();
-  let final core::int #t53 = self::t(1) in let final core::int #t54 = self::t(2) in self::E|method2(#t53, self::t(3), foo: #t54);
+  let final core::int #t50 = self::t(1) in let final core::int #t51 = self::t(2) in self::E|method2(#t50, self::t(3), foo: #t51);
   self::reset();
   self::E|method2(self::t(1), self::t(2), foo: self::t(3));
   self::reset();
-  let final core::int #t55 = self::t(1) in self::E|staticMethod2(self::t(2), foo: #t55);
+  let final core::int #t52 = self::t(1) in let final core::int #t53 = self::t(2) in self::E|method2(#t52, self::t(3), foo: #t53);
+  self::reset();
+  self::E|method2(self::t(1), self::t(2), foo: self::t(3));
+  self::reset();
+  let final core::int #t54 = self::t(1) in self::E|staticMethod2(self::t(2), foo: #t54);
   self::reset();
   self::E|staticMethod2(self::t(1), foo: self::t(2));
 }
@@ -159,4 +159,4 @@ Extra constant evaluation status:
 Evaluated: InstanceInvocation @ org-dartlang-testcase:///all_kinds.dart:170:13 -> IntConstant(-1)
 Evaluated: InstanceInvocation @ org-dartlang-testcase:///all_kinds.dart:170:17 -> IntConstant(-1)
 Evaluated: InstanceInvocation @ org-dartlang-testcase:///all_kinds.dart:170:24 -> IntConstant(-1)
-Extra constant evaluation: evaluated: 376, effectively constant: 3
+Extra constant evaluation: evaluated: 374, effectively constant: 3

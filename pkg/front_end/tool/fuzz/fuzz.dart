@@ -29,8 +29,9 @@ Future<void> main() async {
     await helper.setup();
     AnalyzerHelper analyzerHelper = new AnalyzerHelper();
     Directory root = Directory.systemTemp.createTempSync("fuzzer");
-    File analyzerFileHelper =
-        new File.fromUri(root.uri.resolve("testfile.dart"));
+    File analyzerFileHelper = new File.fromUri(
+      root.uri.resolve("testfile.dart"),
+    );
     analyzerFileHelper.writeAsStringSync("");
     await analyzerHelper.setup(root.uri);
     gReader.initialize(repoDir.resolve("pkg/front_end/tool/fuzz/Dart.g"));
@@ -52,28 +53,36 @@ Future<void> main() async {
         _cfeCrashes++;
         var (Object e, StackTrace st) = result;
         String category = categorize(st);
-        Directory d =
-            new Directory.fromUri(repoDir.resolve("fuzzDumps/$category/"));
+        Directory d = new Directory.fromUri(
+          repoDir.resolve("fuzzDumps/$category/"),
+        );
         d.createSync(recursive: true);
         File f = new File.fromUri(
-            repoDir.resolve("fuzzDumps/$category/$_worldNum.input"));
+          repoDir.resolve("fuzzDumps/$category/$_worldNum.input"),
+        );
         f.writeAsStringSync(data);
         print("Crashed on input. Input dumped into $f");
       }
 
       _analyzerStopwatch.start();
       (Object, StackTrace)? resultAnalyzer = await compileWithAnalyzer(
-          analyzerHelper, data, analyzerFileHelper.uri, _worldNum);
+        analyzerHelper,
+        data,
+        analyzerFileHelper.uri,
+        _worldNum,
+      );
       _analyzerStopwatch.stop();
       if (resultAnalyzer != null) {
         _analyzerCrashes++;
         var (Object e, StackTrace st) = resultAnalyzer;
         String category = categorize(st);
-        Directory d =
-            new Directory.fromUri(repoDir.resolve("fuzzDumps/$category/"));
+        Directory d = new Directory.fromUri(
+          repoDir.resolve("fuzzDumps/$category/"),
+        );
         d.createSync(recursive: true);
         File f = new File.fromUri(
-            repoDir.resolve("fuzzDumps/$category/$_worldNum.analyzerinput"));
+          repoDir.resolve("fuzzDumps/$category/$_worldNum.analyzerinput"),
+        );
         f.writeAsStringSync(data);
         print("Analyzer crashed on input. Input dumped into $f");
 
@@ -93,10 +102,14 @@ void printInfo(bool addSleep) {
   int countWorlds = _worldNum - 1;
   print("Processed $countWorlds random programs in ${_stopwatch.elapsed}.");
   if (countWorlds > 0) {
-    print("CFE crashes: $_cfeCrashes "
-        "(${((_cfeCrashes * 100) / countWorlds).toStringAsFixed(2)}%)");
-    print("Analyzer crashes: $_analyzerCrashes "
-        "(${((_analyzerCrashes * 100) / countWorlds).toStringAsFixed(2)}%)");
+    print(
+      "CFE crashes: $_cfeCrashes "
+      "(${((_cfeCrashes * 100) / countWorlds).toStringAsFixed(2)}%)",
+    );
+    print(
+      "Analyzer crashes: $_analyzerCrashes "
+      "(${((_analyzerCrashes * 100) / countWorlds).toStringAsFixed(2)}%)",
+    );
   }
   print("Spend ${_createStopwatch.elapsed} creating random programs.");
   print("Spend ${_cfeStopwatch.elapsed} compiling with the CFE.");
@@ -126,8 +139,10 @@ void _setupStdin() {
     stdin.echoMode = false;
     stdin.lineMode = false;
   } catch (e) {
-    print("Trying to setup 'stdin' failed. Continuing anyway, "
-        "but 'q' and 'i' might not work.");
+    print(
+      "Trying to setup 'stdin' failed. Continuing anyway, "
+      "but 'q' and 'i' might not work.",
+    );
   }
   _stdinSubscription = stdin.listen((List<int> event) {
     if (event.length == 1 && event.single == "q".codeUnits.single) {

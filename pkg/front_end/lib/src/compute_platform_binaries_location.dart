@@ -52,7 +52,8 @@ Uri computePlatformBinariesLocation({bool forceBuildDir = false}) {
   // The directory of the Dart VM executable.
   Uri vmDirectory = Uri.base
       .resolveUri(
-          new Uri.file(resolvedExecutable ?? Platform.resolvedExecutable))
+        new Uri.file(resolvedExecutable ?? Platform.resolvedExecutable),
+      )
       .resolve(".");
   if (vmDirectory.path.endsWith("/bin/")) {
     // Looks like the VM is in a `/bin/` directory, so this is running from a
@@ -86,9 +87,10 @@ Uri translateSdk(CompilerContext context, Uri uri) {
           }
         }
         if (sdkRoot == null) {
-          sdkRoot = (options.sdkSummary ?? // Coverage-ignore(suite): Not run.
-                  computePlatformBinariesLocation())
-              .resolve("../../");
+          sdkRoot =
+              (options.sdkSummary ?? // Coverage-ignore(suite): Not run.
+                      computePlatformBinariesLocation())
+                  .resolve("../../");
           if (!isExistingFile(sdkRoot.resolve("lib/libraries.json"))) {
             if (isExistingFile(sdkRoot.resolve("sdk/lib/libraries.json"))) {
               sdkRoot = sdkRoot.resolve("sdk/");
@@ -108,10 +110,11 @@ Uri translateSdk(CompilerContext context, Uri uri) {
         if (source.source.isEmpty) {
           // Coverage-ignore-block(suite): Not run.
           uriToSource[uri] = new Source(
-              source.lineStarts,
-              new File.fromUri(candidate).readAsBytesSync(),
-              source.importUri,
-              source.fileUri);
+            source.lineStarts,
+            new File.fromUri(candidate).readAsBytesSync(),
+            source.importUri,
+            source.fileUri,
+          );
         }
       }
       return candidate;

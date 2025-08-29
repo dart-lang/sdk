@@ -26,9 +26,7 @@ Future<Context> createContext(Chain suite, Map<String, String> environment) {
 
 class Context extends ChainContext {
   @override
-  final List<Step> steps = const <Step>[
-    const RunTest(),
-  ];
+  final List<Step> steps = const <Step>[const RunTest()];
 
   IncrementalKernelGenerator? compiler;
 }
@@ -54,17 +52,22 @@ class RunTest extends Step<TestDescription, TestDescription, Context> {
 
   @override
   Future<Result<TestDescription>> run(
-      TestDescription description, Context context) async {
+    TestDescription description,
+    Context context,
+  ) async {
     Uri uri = description.uri;
 
     // "One shot compile"
     bool oneShotFailed = false;
     late List<int> oneShotSerialized;
     try {
-      IncrementalKernelGenerator compiler =
-          new IncrementalKernelGenerator(getOptions(), [uri]);
-      oneShotSerialized =
-          util.postProcess((await compiler.computeDelta()).component);
+      IncrementalKernelGenerator compiler = new IncrementalKernelGenerator(
+        getOptions(),
+        [uri],
+      );
+      oneShotSerialized = util.postProcess(
+        (await compiler.computeDelta()).component,
+      );
     } catch (e) {
       oneShotFailed = true;
     }

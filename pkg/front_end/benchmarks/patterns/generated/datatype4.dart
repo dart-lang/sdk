@@ -111,12 +111,7 @@ class Sub3 extends Base4 {
 }
 
 List<Base4> createData4() {
-  return [
-    Sub0(),
-    Sub1(),
-    Sub2(),
-    Sub3(),
-  ];
+  return [Sub0(), Sub1(), Sub2(), Sub3()];
 }
 
 void incByDynamicDispatch4(Base4 base, Counter counter) {

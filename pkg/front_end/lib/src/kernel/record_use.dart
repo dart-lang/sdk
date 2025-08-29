@@ -62,10 +62,16 @@ void validateRecordUseDeclaration(
   final bool onNonStaticMethod =
       node is! Procedure || !node.isStatic || node.kind != ProcedureKind.Method;
 
-  final bool onClassWithoutConstConstructor = node is! Class ||
+  final bool onClassWithoutConstConstructor =
+      node is! Class ||
       !node.constructors.any((constructor) => constructor.isConst);
   if (onNonStaticMethod && onClassWithoutConstConstructor) {
-    errorReporter.report(codeRecordUseCannotBePlacedHere.withLocation(
-        node.location!.file, node.fileOffset, 1));
+    errorReporter.report(
+      codeRecordUseCannotBePlacedHere.withLocation(
+        node.location!.file,
+        node.fileOffset,
+        1,
+      ),
+    );
   }
 }

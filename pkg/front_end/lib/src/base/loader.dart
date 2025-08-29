@@ -18,18 +18,23 @@ abstract class Loader {
   /// Register [message] as a problem with a severity determined by the
   /// intrinsic severity of the message.
   FormattedMessage? addProblem(
-      Message message, int charOffset, int length, Uri? fileUri,
-      {bool wasHandled = false,
-      List<LocatedMessage>? context,
-      CfeSeverity? severity,
-      bool problemOnLibrary = false,
-      List<Uri>? involvedFiles});
+    Message message,
+    int charOffset,
+    int length,
+    Uri? fileUri, {
+    bool wasHandled = false,
+    List<LocatedMessage>? context,
+    CfeSeverity? severity,
+    bool problemOnLibrary = false,
+    List<Uri>? involvedFiles,
+  });
 
   ClassBuilder computeClassBuilderFromTargetClass(Class cls);
 
   ExtensionTypeDeclarationBuilder
-      computeExtensionTypeBuilderFromTargetExtensionType(
-          ExtensionTypeDeclaration extensionType);
+  computeExtensionTypeBuilderFromTargetExtensionType(
+    ExtensionTypeDeclaration extensionType,
+  );
 
   TypeBuilder computeTypeBuilder(DartType type);
 

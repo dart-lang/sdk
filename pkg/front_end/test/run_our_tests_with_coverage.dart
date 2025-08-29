@@ -22,17 +22,18 @@ Future<void> main() async {
     "pkg/frontend_server/test/",
     "pkg/kernel/test/",
   ]) {
-    for (FileSystemEntity entry
-        in new Directory.fromUri(repoDirUri.resolve(path))
-            .listSync(recursive: true)) {
+    for (FileSystemEntity entry in new Directory.fromUri(
+      repoDirUri.resolve(path),
+    ).listSync(recursive: true)) {
       if (entry is! File) continue;
       if (!entry.path.endsWith("_test.dart")) continue;
       testPaths.add(entry.path);
     }
   }
 
-  Uri coverageRunner =
-      repoDirUri.resolve("pkg/front_end/tool/coverage_runner.dart");
+  Uri coverageRunner = repoDirUri.resolve(
+    "pkg/front_end/tool/coverage_runner.dart",
+  );
   if (!new File.fromUri(coverageRunner).existsSync()) {
     throw "The coverage runner tool doesn't exist.";
   }
@@ -55,20 +56,24 @@ Future<void> main() async {
     processesRunning++;
     String testPath = testPaths.removeLast();
     Stopwatch stopwatch = new Stopwatch()..start();
-    unawaited(Process.run(Platform.resolvedExecutable, [
-      coverageRunner.toFilePath(),
-      "--enable-asserts",
-      testPath
-    ]).then((ProcessResult value) {
-      log("$testPath ended with "
+    unawaited(
+      Process.run(Platform.resolvedExecutable, [
+        coverageRunner.toFilePath(),
+        "--enable-asserts",
+        testPath,
+      ]).then((ProcessResult value) {
+        log(
+          "$testPath ended with "
           "exit code ${value.exitCode} "
-          "in ${stopwatch.elapsed}");
-      processesRunning--;
-      processesLeft++;
-      Completer<void> oldCompleter = completer;
-      completer = new Completer();
-      oldCompleter.complete();
-    }));
+          "in ${stopwatch.elapsed}",
+        );
+        processesRunning--;
+        processesLeft++;
+        Completer<void> oldCompleter = completer;
+        completer = new Completer();
+        oldCompleter.complete();
+      }),
+    );
   }
   while (processesRunning > 0) {
     log("Awaiting $processesRunning processes");

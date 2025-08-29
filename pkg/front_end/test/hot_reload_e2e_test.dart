@@ -62,10 +62,15 @@ abstract class TestCase {
     writeFile(fs, 'a.dart', sourceA);
     writeFile(fs, 'b.dart', sourceB);
     writeFile(fs, 'c.dart', sourceC);
-    writeFile(fs, '.dart_tool/package_config.json',
-        '{"configVersion": 2, "packages": []}');
+    writeFile(
+      fs,
+      '.dart_tool/package_config.json',
+      '{"configVersion": 2, "packages": []}',
+    );
     compiler = createIncrementalCompiler(
-        'org-dartlang-test:///a.dart', new HybridFileSystem(fs));
+      'org-dartlang-test:///a.dart',
+      new HybridFileSystem(fs),
+    );
     await rebuild(compiler, outputUri); // this is a full compile.
   }
 
@@ -98,7 +103,7 @@ abstract class TestCase {
       '--disable-service-auth-codes',
       '--no-dds',
       '--disable-dart-dev',
-      outputUri.toFilePath()
+      outputUri.toFilePath(),
     ];
     vmArgs.add('$reloadCount');
     var vm = await Process.start(Platform.executable, vmArgs);
@@ -110,15 +115,23 @@ abstract class TestCase {
     ///  - a line after each hot-reload
     int i = 0;
     int expectedLines = 2 + reloadCount;
-    var completers =
-        new List.generate(expectedLines, (_) => new Completer<String>());
+    var completers = new List.generate(
+      expectedLines,
+      (_) => new Completer<String>(),
+    );
     lines = completers.map((c) => c.future).toList();
-    vm.stdout.transform(utf8.decoder).transform(splitter).listen((line) {
-      Expect.isTrue(i < expectedLines);
-      completers[i++].complete(line);
-    }, onDone: () {
-      Expect.equals(expectedLines, i);
-    });
+    vm.stdout
+        .transform(utf8.decoder)
+        .transform(splitter)
+        .listen(
+          (line) {
+            Expect.isTrue(i < expectedLines);
+            completers[i++].complete(line);
+          },
+          onDone: () {
+            Expect.equals(expectedLines, i);
+          },
+        );
 
     // ignore: unawaited_futures
     vm.stderr.transform(utf8.decoder).transform(splitter).toList().then((err) {
@@ -290,7 +303,9 @@ void main() {
 final Uri sdkRoot = computePlatformBinariesLocation(forceBuildDir: true);
 
 IncrementalKernelGenerator createIncrementalCompiler(
-    String entry, FileSystem fs) {
+  String entry,
+  FileSystem fs,
+) {
   var entryUri = Uri.base.resolve(entry);
   var options = new CompilerOptions()
     ..sdkRoot = sdkRoot
@@ -318,9 +333,10 @@ Future<Null> writeProgram(Component component, Uri outputUri) async {
   var sink = new File.fromUri(outputUri).openWrite();
   // TODO(sigmund): the incremental generator should always filter these
   // libraries instead.
-  new BinaryPrinter(sink,
-          libraryFilter: (library) => !library.importUri.isScheme('dart'))
-      .writeComponentFile(component);
+  new BinaryPrinter(
+    sink,
+    libraryFilter: (library) => !library.importUri.isScheme('dart'),
+  ).writeComponentFile(component);
   await sink.close();
 }
 
@@ -374,4 +390,5 @@ void g() {}
 ''';
 
 RegExp dartVMServicePortRegExp = new RegExp(
-    "The Dart VM service is listening on http://127.0.0.1:\([0-9]*\)/");
+  "The Dart VM service is listening on http://127.0.0.1:\([0-9]*\)/",
+);

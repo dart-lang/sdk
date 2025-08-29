@@ -70,15 +70,15 @@ set topLevelSetter(/*dynamic*/ _) {}
 topLevelMethod() {}
 
 T genericTopLevelMethod1<T>(
-        T /*normal|limited.genericTopLevelMethod1.T%*/ /*verbose.expressions::genericTopLevelMethod1.T%*/
-            t) =>
-    t;
+  T /*normal|limited.genericTopLevelMethod1.T%*/ /*verbose.expressions::genericTopLevelMethod1.T%*/
+  t,
+) => t;
 T genericTopLevelMethod2<T, S>(
-        T /*normal|limited.genericTopLevelMethod2.T%*/ /*verbose.expressions::genericTopLevelMethod2.T%*/
-            t,
-        S /*normal|limited.genericTopLevelMethod2.S%*/ /*verbose.expressions::genericTopLevelMethod2.S%*/
-            s) =>
-    t;
+  T /*normal|limited.genericTopLevelMethod2.T%*/ /*verbose.expressions::genericTopLevelMethod2.T%*/
+  t,
+  S /*normal|limited.genericTopLevelMethod2.S%*/ /*verbose.expressions::genericTopLevelMethod2.S%*/
+  s,
+) => t;
 
 /*member: exprNullLiteral:null*/
 exprNullLiteral() => null;
@@ -403,7 +403,8 @@ exprCheckLibraryIsLoaded() => prefix.max(0, 1);
 
 /*normal|limited.member: exprFunctionExpression:int (int i) => i*/
 /*verbose.member: exprFunctionExpression:dart.core::int (dart.core::int i) => i*/
-exprFunctionExpression() => (int i) => i;
+exprFunctionExpression() =>
+    (int i) => i;
 
 /*normal.member: exprFunctionExpressionBlock:int (int i) {
   return i;
@@ -413,12 +414,13 @@ exprFunctionExpression() => (int i) => i;
 }*/
 /*limited.member: exprFunctionExpressionBlock:int (int i) { return i; }*/
 exprFunctionExpressionBlock() => (int i) {
-      return i;
-    };
+  return i;
+};
 
 /*normal|limited.member: exprGenericFunctionExpression:T% <T extends Object?>(T% t) => t*/
 /*verbose.member: exprGenericFunctionExpression:T% <T extends dart.core::Object?>(T% t) => t*/
-exprGenericFunctionExpression() => <T>(T t) => t;
+exprGenericFunctionExpression() =>
+    <T>(T t) => t;
 
 /*normal.member: exprGenericFunctionExpressionBlock:T% <T extends Object?>(T% t) {
   return t;
@@ -428,8 +430,8 @@ exprGenericFunctionExpression() => <T>(T t) => t;
 }*/
 /*limited.member: exprGenericFunctionExpressionBlock:T% <T extends Object?>(T% t) { return t; }*/
 exprGenericFunctionExpressionBlock() => <T>(T t) {
-      return t;
-    };
+  return t;
+};
 
 /*normal|limited.member: exprNullAware:let final Class? #0 = variable in #0 == null ?{dynamic} null : #0{Class}.{Class.field}*/
 /*verbose.member: exprNullAware:let final expressions::Class? #0 = variable in #0 == null ?{dynamic} null : #0{expressions::Class}.{expressions::Class.field}*/
@@ -442,32 +444,32 @@ exprIfNull(int? i) => i ?? 42;
 /*normal|limited.member: exprNestedDeep:<Object>[1, <Object>[2, <Object>[3, <int>[4]]]]*/
 /*verbose.member: exprNestedDeep:<dart.core::Object>[1, <dart.core::Object>[2, <dart.core::Object>[3, <dart.core::int>[4]]]]*/
 exprNestedDeep() => [
-      1,
-      [
-        2,
-        [
-          3,
-          [4]
-        ]
-      ]
-    ];
+  1,
+  [
+    2,
+    [
+      3,
+      [4],
+    ],
+  ],
+];
 
 /*normal.member: exprNestedTooDeep:<Object>[1, <Object>[2, <Object>[3, <Object>[4, <int>[5]]]]]*/
 /*verbose.member: exprNestedTooDeep:<dart.core::Object>[1, <dart.core::Object>[2, <dart.core::Object>[3, <dart.core::Object>[4, <dart.core::int>[5]]]]]*/
 /*limited.member: exprNestedTooDeep:<Object>[1, <Object>[2, <Object>[3, <Object>[4, <int>[...]]]]]*/
 exprNestedTooDeep() => [
-      1,
+  1,
+  [
+    2,
+    [
+      3,
       [
-        2,
-        [
-          3,
-          [
-            4,
-            [5]
-          ]
-        ]
-      ]
-    ];
+        4,
+        [5],
+      ],
+    ],
+  ],
+];
 
 /*normal|limited.member: exprManySiblings:<int>[1, 2, 3, 4]*/
 /*verbose.member: exprManySiblings:<dart.core::int>[1, 2, 3, 4]*/

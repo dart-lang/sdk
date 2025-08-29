@@ -56,77 +56,146 @@ class Flags {
 }
 
 class Options {
-  static const Option<Uri?> compileSdk =
-      const Option(Flags.compileSdk, const UriValue());
-  static const Option<bool> dumpIr =
-      const Option(Flags.dumpIr, const BoolValue(false));
-  static const Option<bool> showOffsets =
-      const Option(Flags.showOffsets, const BoolValue(false));
-  static const Option<List<String>?> enableExperiment =
-      const Option(Flags.enableExperiment, const StringListValue());
-  static const Option<bool> enableUnscheduledExperiments =
-      const Option(Flags.enableUnscheduledExperiments, const BoolValue(false));
-  static const Option<bool> excludeSource =
-      const Option(Flags.excludeSource, const BoolValue(false));
-  static const Option<bool> omitPlatform =
-      const Option(Flags.omitPlatform, const BoolValue(false));
-  static const Option<List<String>?> fatal =
-      const Option(Flags.fatal, const StringListValue());
-  static const Option<String?> fatalSkip =
-      const Option(Flags.fatalSkip, const StringValue());
+  static const Option<Uri?> compileSdk = const Option(
+    Flags.compileSdk,
+    const UriValue(),
+  );
+  static const Option<bool> dumpIr = const Option(
+    Flags.dumpIr,
+    const BoolValue(false),
+  );
+  static const Option<bool> showOffsets = const Option(
+    Flags.showOffsets,
+    const BoolValue(false),
+  );
+  static const Option<List<String>?> enableExperiment = const Option(
+    Flags.enableExperiment,
+    const StringListValue(),
+  );
+  static const Option<bool> enableUnscheduledExperiments = const Option(
+    Flags.enableUnscheduledExperiments,
+    const BoolValue(false),
+  );
+  static const Option<bool> excludeSource = const Option(
+    Flags.excludeSource,
+    const BoolValue(false),
+  );
+  static const Option<bool> omitPlatform = const Option(
+    Flags.omitPlatform,
+    const BoolValue(false),
+  );
+  static const Option<List<String>?> fatal = const Option(
+    Flags.fatal,
+    const StringListValue(),
+  );
+  static const Option<String?> fatalSkip = const Option(
+    Flags.fatalSkip,
+    const StringValue(),
+  );
   static const Option<int?> forceLateLowering = const Option(
-      Flags.forceLateLowering,
-      const IntValue(defaultValue: null, noArgValue: LateLowering.all));
-  static const Option<bool?> forceLateLoweringSentinel =
-      const Option(Flags.forceLateLoweringSentinel, const BoolValue(null));
-  static const Option<bool?> forceStaticFieldLowering =
-      const Option(Flags.forceStaticFieldLowering, const BoolValue(null));
-  static const Option<bool?> forceNoExplicitGetterCalls =
-      const Option(Flags.forceNoExplicitGetterCalls, const BoolValue(null));
+    Flags.forceLateLowering,
+    const IntValue(defaultValue: null, noArgValue: LateLowering.all),
+  );
+  static const Option<bool?> forceLateLoweringSentinel = const Option(
+    Flags.forceLateLoweringSentinel,
+    const BoolValue(null),
+  );
+  static const Option<bool?> forceStaticFieldLowering = const Option(
+    Flags.forceStaticFieldLowering,
+    const BoolValue(null),
+  );
+  static const Option<bool?> forceNoExplicitGetterCalls = const Option(
+    Flags.forceNoExplicitGetterCalls,
+    const BoolValue(null),
+  );
   static const Option<int?> forceConstructorTearOffLowering = const Option(
-      Flags.forceConstructorTearOffLowering,
-      const IntValue(
-          defaultValue: null, noArgValue: ConstructorTearOffLowering.all));
+    Flags.forceConstructorTearOffLowering,
+    const IntValue(
+      defaultValue: null,
+      noArgValue: ConstructorTearOffLowering.all,
+    ),
+  );
   static const Option<bool> help = const Option(
-      Flags.help, const BoolValue(false),
-      aliases: ["-h", "/?", "/h"]);
-  static const Option<Uri?> librariesJson =
-      const Option(Flags.librariesJson, const UriValue());
-  static const Option<bool> noDefines =
-      const Option(Flags.noDefines, const BoolValue(false));
-  static const Option<Uri?> output =
-      const Option(Flags.output, const UriValue(), aliases: ["--out", "-o"]);
-  static const Option<Uri?> packages =
-      const Option(Flags.packages, const UriValue());
-  static const Option<Uri?> platform =
-      const Option(Flags.platform, const UriValue());
+    Flags.help,
+    const BoolValue(false),
+    aliases: ["-h", "/?", "/h"],
+  );
+  static const Option<Uri?> librariesJson = const Option(
+    Flags.librariesJson,
+    const UriValue(),
+  );
+  static const Option<bool> noDefines = const Option(
+    Flags.noDefines,
+    const BoolValue(false),
+  );
+  static const Option<Uri?> output = const Option(
+    Flags.output,
+    const UriValue(),
+    aliases: ["--out", "-o"],
+  );
+  static const Option<Uri?> packages = const Option(
+    Flags.packages,
+    const UriValue(),
+  );
+  static const Option<Uri?> platform = const Option(
+    Flags.platform,
+    const UriValue(),
+  );
   static const Option<Uri?> sdk = const Option(Flags.sdk, const UriValue());
-  static const Option<Uri?> singleRootBase =
-      const Option(Flags.singleRootBase, const UriValue());
-  static const Option<String?> singleRootScheme =
-      const Option(Flags.singleRootScheme, const StringValue());
-  static const Option<bool> nnbdWeakMode =
-      const Option(Flags.nnbdWeakMode, const BoolValue(false));
-  static const Option<bool> nnbdStrongMode =
-      const Option(Flags.nnbdStrongMode, const BoolValue(false));
+  static const Option<Uri?> singleRootBase = const Option(
+    Flags.singleRootBase,
+    const UriValue(),
+  );
+  static const Option<String?> singleRootScheme = const Option(
+    Flags.singleRootScheme,
+    const StringValue(),
+  );
+  static const Option<bool> nnbdWeakMode = const Option(
+    Flags.nnbdWeakMode,
+    const BoolValue(false),
+  );
+  static const Option<bool> nnbdStrongMode = const Option(
+    Flags.nnbdStrongMode,
+    const BoolValue(false),
+  );
   static const Option<String> target = const Option(
-      Flags.target, const StringValue(defaultValue: 'vm'),
-      aliases: ["-t"]);
-  static const Option<bool> verbose =
-      const Option(Flags.verbose, const BoolValue(false), aliases: ["-v"]);
+    Flags.target,
+    const StringValue(defaultValue: 'vm'),
+    aliases: ["-t"],
+  );
+  static const Option<bool> verbose = const Option(
+    Flags.verbose,
+    const BoolValue(false),
+    aliases: ["-v"],
+  );
   static const Option<String> verbosity = const Option(
-      Flags.verbosity, const StringValue(defaultValue: Verbosity.defaultValue));
-  static const Option<bool> verify =
-      const Option(Flags.verify, const BoolValue(false));
-  static const Option<bool> skipPlatformVerification =
-      const Option(Flags.skipPlatformVerification, const BoolValue(false));
-  static const Option<List<Uri>?> linkDependencies =
-      const Option(Flags.linkDependencies, const UriListValue());
-  static const Option<bool> noDeps =
-      const Option(Flags.noDeps, const BoolValue(false));
-  static const Option<String?> invocationModes =
-      const Option(Flags.invocationModes, const StringValue());
+    Flags.verbosity,
+    const StringValue(defaultValue: Verbosity.defaultValue),
+  );
+  static const Option<bool> verify = const Option(
+    Flags.verify,
+    const BoolValue(false),
+  );
+  static const Option<bool> skipPlatformVerification = const Option(
+    Flags.skipPlatformVerification,
+    const BoolValue(false),
+  );
+  static const Option<List<Uri>?> linkDependencies = const Option(
+    Flags.linkDependencies,
+    const UriListValue(),
+  );
+  static const Option<bool> noDeps = const Option(
+    Flags.noDeps,
+    const BoolValue(false),
+  );
+  static const Option<String?> invocationModes = const Option(
+    Flags.invocationModes,
+    const StringValue(),
+  );
   static const Option<Map<String, String>> defines = const Option(
-      "-D", const DefineValue(),
-      isDefines: true, aliases: ["--define"]);
+    "-D",
+    const DefineValue(),
+    isDefines: true,
+    aliases: ["--define"],
+  );
 }

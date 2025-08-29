@@ -23,12 +23,14 @@ abstract class LookupResult {
   /// scope origin.
   bool get isInvalidLookup;
 
-  static LocatedMessage createDuplicateMessage(LookupResult lookupResult,
-      {DeclarationBuilder? enclosingDeclaration,
-      required String name,
-      required Uri fileUri,
-      required int fileOffset,
-      required int length}) {
+  static LocatedMessage createDuplicateMessage(
+    LookupResult lookupResult, {
+    DeclarationBuilder? enclosingDeclaration,
+    required String name,
+    required Uri fileUri,
+    required int fileOffset,
+    required int length,
+  }) {
     if (name.isEmpty) {
       if (enclosingDeclaration != null) {
         name = enclosingDeclaration.name;
@@ -41,34 +43,43 @@ abstract class LookupResult {
     return message.withLocation(fileUri, fileOffset, length);
   }
 
-  static InvalidExpression createDuplicateExpression(LookupResult lookupResult,
-      {required CompilerContext context,
-      DeclarationBuilder? enclosingDeclaration,
-      required String name,
-      required Uri fileUri,
-      required int fileOffset,
-      required int length}) {
+  static InvalidExpression createDuplicateExpression(
+    LookupResult lookupResult, {
+    required CompilerContext context,
+    DeclarationBuilder? enclosingDeclaration,
+    required String name,
+    required Uri fileUri,
+    required int fileOffset,
+    required int length,
+  }) {
     String text = context
         .format(
-            createDuplicateMessage(lookupResult,
-                enclosingDeclaration: enclosingDeclaration,
-                name: name,
-                fileUri: fileUri,
-                fileOffset: fileOffset,
-                length: length),
-            CfeSeverity.error)
+          createDuplicateMessage(
+            lookupResult,
+            enclosingDeclaration: enclosingDeclaration,
+            name: name,
+            fileUri: fileUri,
+            fileOffset: fileOffset,
+            length: length,
+          ),
+          CfeSeverity.error,
+        )
         .plain;
     return new InvalidExpression(text)..fileOffset = fileOffset;
   }
 
   static LookupResult? createResult(
-      NamedBuilder? getable, NamedBuilder? setable) {
+    NamedBuilder? getable,
+    NamedBuilder? setable,
+  ) {
     return _fromBuilders(getable, setable, assertNoGetterSetterConflict: false);
   }
 
   static LookupResult? _fromBuilders(
-      NamedBuilder? getable, NamedBuilder? setable,
-      {required bool assertNoGetterSetterConflict}) {
+    NamedBuilder? getable,
+    NamedBuilder? setable, {
+    required bool assertNoGetterSetterConflict,
+  }) {
     if (getable is LookupResult) {
       LookupResult lookupResult = getable as LookupResult;
       if (setable == getable) {
@@ -76,14 +87,17 @@ abstract class LookupResult {
       } else if (setable == null) {
         return lookupResult;
       } else {
-        assert(getable != setable,
-            "Unexpected getable $getable and setable $setable.");
         assert(
-            !assertNoGetterSetterConflict ||
-                // Coverage-ignore(suite): Not run.
-                lookupResult.setable == null,
-            "Unexpected setable ${lookupResult.setable} from "
-            "getable $getable and setable $setable.");
+          getable != setable,
+          "Unexpected getable $getable and setable $setable.",
+        );
+        assert(
+          !assertNoGetterSetterConflict ||
+              // Coverage-ignore(suite): Not run.
+              lookupResult.setable == null,
+          "Unexpected setable ${lookupResult.setable} from "
+          "getable $getable and setable $setable.",
+        );
         return new GetableSetableResult(getable!, setable);
       }
     } else if (setable is LookupResult) {
@@ -92,12 +106,15 @@ abstract class LookupResult {
       if (getable == null) {
         return lookupResult;
       } else {
-        assert(getable != setable,
-            "Unexpected getable $getable and setable $setable.");
         assert(
-            !assertNoGetterSetterConflict || lookupResult.getable == null,
-            "Unexpected getable ${lookupResult.getable} from "
-            "setable $setable and getable $getable.");
+          getable != setable,
+          "Unexpected getable $getable and setable $setable.",
+        );
+        assert(
+          !assertNoGetterSetterConflict || lookupResult.getable == null,
+          "Unexpected getable ${lookupResult.getable} from "
+          "setable $setable and getable $getable.",
+        );
         return new GetableSetableResult(getable, setable!);
       }
     } else {
@@ -219,8 +236,11 @@ class GetableSetableMemberResult
   @override
   final bool isStatic;
 
-  GetableSetableMemberResult(this.getable, this.setable,
-      {required this.isStatic});
+  GetableSetableMemberResult(
+    this.getable,
+    this.setable, {
+    required this.isStatic,
+  });
 }
 
 mixin LookupResultMixin implements LookupResult {

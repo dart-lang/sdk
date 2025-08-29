@@ -20,16 +20,20 @@ export '../base/incremental_serializer.dart' show IncrementalSerializer;
 // Coverage-ignore(suite): Not run.
 abstract class IncrementalKernelGenerator {
   factory IncrementalKernelGenerator(
-      CompilerOptions options, List<Uri> entryPoints,
-      [Uri? initializeFromDillUri,
-      bool? outlineOnly,
-      IncrementalSerializer? incrementalSerializer]) {
+    CompilerOptions options,
+    List<Uri> entryPoints, [
+    Uri? initializeFromDillUri,
+    bool? outlineOnly,
+    IncrementalSerializer? incrementalSerializer,
+  ]) {
     return new IncrementalCompiler(
-        new CompilerContext(
-            new ProcessedOptions(options: options, inputs: entryPoints)),
-        initializeFromDillUri,
-        outlineOnly,
-        incrementalSerializer);
+      new CompilerContext(
+        new ProcessedOptions(options: options, inputs: entryPoints),
+      ),
+      initializeFromDillUri,
+      outlineOnly,
+      incrementalSerializer,
+    );
   }
 
   /// Initialize the incremental compiler from a component.
@@ -37,14 +41,20 @@ abstract class IncrementalKernelGenerator {
   /// Notice that the component has to include the platform, and that no other
   /// platform will be loaded.
   factory IncrementalKernelGenerator.fromComponent(
-      CompilerOptions options, List<Uri> entryPoints, Component? component,
-      [bool? outlineOnly, IncrementalSerializer? incrementalSerializer]) {
+    CompilerOptions options,
+    List<Uri> entryPoints,
+    Component? component, [
+    bool? outlineOnly,
+    IncrementalSerializer? incrementalSerializer,
+  ]) {
     return new IncrementalCompiler.fromComponent(
-        new CompilerContext(
-            new ProcessedOptions(options: options, inputs: entryPoints)),
-        component,
-        outlineOnly,
-        incrementalSerializer);
+      new CompilerContext(
+        new ProcessedOptions(options: options, inputs: entryPoints),
+      ),
+      component,
+      outlineOnly,
+      incrementalSerializer,
+    );
   }
 
   /// Initialize the incremental compiler specifically for expression
@@ -58,20 +68,26 @@ abstract class IncrementalKernelGenerator {
   /// Notice that the component has to include the platform, and that no other
   /// platform will be loaded.
   factory IncrementalKernelGenerator.forExpressionCompilationOnly(
-      CompilerOptions options, List<Uri> entryPoints, Component component) {
+    CompilerOptions options,
+    List<Uri> entryPoints,
+    Component component,
+  ) {
     return new IncrementalCompiler.forExpressionCompilationOnly(
-        new CompilerContext(
-            new ProcessedOptions(options: options, inputs: entryPoints)),
-        component);
+      new CompilerContext(
+        new ProcessedOptions(options: options, inputs: entryPoints),
+      ),
+      component,
+    );
   }
 
   /// Returns an [IncrementalCompilerResult] with the component whose libraries
   /// are the recompiled libraries, or - in the case of [fullComponent] - a full
   /// Component.
-  Future<IncrementalCompilerResult> computeDelta(
-      {List<Uri>? entryPoints,
-      bool fullComponent = false,
-      bool trackNeededDillLibraries = false});
+  Future<IncrementalCompilerResult> computeDelta({
+    List<Uri>? entryPoints,
+    bool fullComponent = false,
+    bool trackNeededDillLibraries = false,
+  });
 
   /// Remove the file associated with the given file [uri] from the set of
   /// valid files.  This guarantees that those files will be re-read on the
@@ -122,16 +138,17 @@ abstract class IncrementalKernelGenerator {
   /// [enclosingNode] could not be found. Otherwise, errors are reported in the
   /// normal way.
   Future<Procedure?> compileExpression(
-      String expression,
-      Map<String, DartType> definitions,
-      List<TypeParameter> typeDefinitions,
-      String syntheticProcedureName,
-      Uri libraryUri,
-      {String? className,
-      String? methodName,
-      int offset = -1,
-      String? scriptUri,
-      bool isStatic = false});
+    String expression,
+    Map<String, DartType> definitions,
+    List<TypeParameter> typeDefinitions,
+    String syntheticProcedureName,
+    Uri libraryUri, {
+    String? className,
+    String? methodName,
+    int offset = -1,
+    String? scriptUri,
+    bool isStatic = false,
+  });
 
   /// Sets experimental features.
   ///
@@ -150,8 +167,10 @@ class IncrementalCompilerResult {
   final CoreTypes coreTypes;
   final Set<Library>? neededDillLibraries;
 
-  IncrementalCompilerResult(this.component,
-      {required this.classHierarchy,
-      required this.coreTypes,
-      this.neededDillLibraries});
+  IncrementalCompilerResult(
+    this.component, {
+    required this.classHierarchy,
+    required this.coreTypes,
+    this.neededDillLibraries,
+  });
 }

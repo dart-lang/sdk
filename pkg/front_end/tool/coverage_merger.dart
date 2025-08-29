@@ -33,11 +33,13 @@ void main(List<String> arguments) {
     const String removeComments = "--remove-comments";
     const String addAndRemoveComments = "--add-and-remove-comments";
     if (argument.startsWith(coverage)) {
-      coverageUri =
-          Uri.base.resolveUri(Uri.file(argument.substring(coverage.length)));
+      coverageUri = Uri.base.resolveUri(
+        Uri.file(argument.substring(coverage.length)),
+      );
     } else if (argument.startsWith(packages)) {
-      packagesUri =
-          Uri.base.resolveUri(Uri.file(argument.substring(packages.length)));
+      packagesUri = Uri.base.resolveUri(
+        Uri.file(argument.substring(packages.length)),
+      );
     } else if (argument == comment) {
       addCommentsToFiles = true;
     } else if (argument == removeComments) {
@@ -89,7 +91,9 @@ Future<Map<Uri, CoverageInfo>?> mergeFromDirUri(
   PackageConfig packageConfig;
   try {
     packageConfig = PackageConfig.parseBytes(
-        File.fromUri(packagesUri).readAsBytesSync(), packagesUri);
+      File.fromUri(packagesUri).readAsBytesSync(),
+      packagesUri,
+    );
   } catch (e) {
     // When will we want to catch this?
     output("Error trying to read package config: $e");
@@ -118,8 +122,9 @@ Future<Map<Uri, CoverageInfo>?> mergeFromDirUri(
   Map<Uri, Hit> hits = {};
   Map<Uri, Set<int>> misses = {};
 
-  for (FileSystemEntity entry
-      in Directory.fromUri(coverageUri).listSync(recursive: true)) {
+  for (FileSystemEntity entry in Directory.fromUri(
+    coverageUri,
+  ).listSync(recursive: true)) {
     if (entry is! File) continue;
     try {
       Coverage coverage = Coverage.loadFromFile(entry);
@@ -144,8 +149,9 @@ Future<Map<Uri, CoverageInfo>?> mergeFromDirUri(
   Map<Uri, CoverageInfo> result = {};
 
   List<Uri> needsFormatting = [];
-  for (Uri uri in knownUris.toList()
-    ..sort(((a, b) => a.toString().compareTo(b.toString())))) {
+  for (Uri uri
+      in knownUris.toList()
+        ..sort(((a, b) => a.toString().compareTo(b.toString())))) {
     // Don't care about coverage for testing stuff.
     String uriString = uri.toString();
     if (uriString.startsWith("package:front_end/src/testing/")) continue;
@@ -158,8 +164,9 @@ Future<Map<Uri, CoverageInfo>?> mergeFromDirUri(
 
     Hit? hit = hits[uri];
     Set<int>? miss = misses[uri];
-    List<int> hitsSorted =
-        hit == null ? const [] : (hit._data.keys.toList()..sort());
+    List<int> hitsSorted = hit == null
+        ? const []
+        : (hit._data.keys.toList()..sort());
 
     CoverageInfo processInfo = _process(
       packageConfig,
@@ -193,23 +200,21 @@ Future<Map<Uri, CoverageInfo>?> mergeFromDirUri(
   if (needsFormatting.isNotEmpty) {
     Process p = await Process.start(Platform.resolvedExecutable, [
       "format",
-      ...needsFormatting.map((uri) => new File.fromUri(uri).path)
+      ...needsFormatting.map((uri) => new File.fromUri(uri).path),
     ]);
 
-    p.stderr
-        .transform(utf8.decoder)
-        .transform(const LineSplitter())
-        .listen((String line) {
+    p.stderr.transform(utf8.decoder).transform(const LineSplitter()).listen((
+      String line,
+    ) {
       if (stderrReceiver != null) {
         stderrReceiver(line);
       } else {
         stderr.writeln("stderr> $line");
       }
     });
-    p.stdout
-        .transform(utf8.decoder)
-        .transform(const LineSplitter())
-        .listen((String line) {
+    p.stdout.transform(utf8.decoder).transform(const LineSplitter()).listen((
+      String line,
+    ) {
       if (stdoutReceiver != null) {
         stdoutReceiver(line);
       } else {
@@ -219,8 +224,10 @@ Future<Map<Uri, CoverageInfo>?> mergeFromDirUri(
     await p.exitCode;
   }
 
-  output("Processed $filesCount files with $errorsCount error(s) and "
-      "$allCoveredCount files being covered 100%.");
+  output(
+    "Processed $filesCount files with $errorsCount error(s) and "
+    "$allCoveredCount files being covered 100%.",
+  );
   int percentHit = 0;
   if (hitsTotal > 0) {
     percentHit = (hitsTotal * 100) ~/ (hitsTotal + missesTotal);
@@ -238,17 +245,17 @@ class CoverageInfo {
   final String visualization;
 
   CoverageInfo.error(this.visualization)
-      : error = true,
-        allCovered = false,
-        missCount = 0,
-        hitCount = 0;
+    : error = true,
+      allCovered = false,
+      missCount = 0,
+      hitCount = 0;
 
-  CoverageInfo(
-      {required this.allCovered,
-      required this.missCount,
-      required this.hitCount,
-      required this.visualization})
-      : error = false;
+  CoverageInfo({
+    required this.allCovered,
+    required this.missCount,
+    required this.hitCount,
+    required this.visualization,
+  }) : error = false;
 }
 
 CoverageInfo _process(
@@ -292,8 +299,9 @@ CoverageInfo _process(
     CompilationUnitBegin unitBegin =
         ast.children!.first as CompilationUnitBegin;
     Token? token = unitBegin.token;
-    List<Token> removeComments =
-        _findTokensWithCoverageIgnoreSuiteComments(token);
+    List<Token> removeComments = _findTokensWithCoverageIgnoreSuiteComments(
+      token,
+    );
     String sourceText = source.text;
     StringBuffer sb = new StringBuffer();
     int from = 0;
@@ -308,7 +316,11 @@ CoverageInfo _process(
 
     // Return a fake result.
     return new CoverageInfo(
-        allCovered: true, missCount: -1, hitCount: -1, visualization: "fake 2");
+      allCovered: true,
+      missCount: -1,
+      hitCount: -1,
+      visualization: "fake 2",
+    );
   }
 
   List<int> allSorted = [...hitsSorted, ...untrimmedMisses]..sort();
@@ -324,22 +336,29 @@ CoverageInfo _process(
     //    proceed as if was run on the newly commented stuff, thus returning the
     //    (now) correct hit and miss count.
     astIndexer = AstIndexerAndIgnoreCollector.collect(
-        ast, extraCoverageIgnores, extraCoverageBlockIgnores,
-        ignoresToIgnore: _commentTextToRemove,
-        hitsSorted: hitsSorted,
-        allSorted: allSorted);
+      ast,
+      extraCoverageIgnores,
+      extraCoverageBlockIgnores,
+      ignoresToIgnore: _commentTextToRemove,
+      hitsSorted: hitsSorted,
+      allSorted: allSorted,
+    );
   } else {
     astIndexer = AstIndexerAndIgnoreCollector.collect(
-        ast, extraCoverageIgnores, extraCoverageBlockIgnores,
-        hitsSorted: hitsSorted, allSorted: allSorted);
+      ast,
+      extraCoverageIgnores,
+      extraCoverageBlockIgnores,
+      hitsSorted: hitsSorted,
+      allSorted: allSorted,
+    );
   }
 
   IntervalListBuilder? ignoredIntervalsBuilder;
   if (addAndRemoveCommentsInFiles) {
     ignoredIntervalsBuilder = astIndexer.ignoredStartEnd.clone();
   }
-  IntervalList ignoredIntervals =
-      astIndexer.ignoredStartEnd.buildIntervalList();
+  IntervalList ignoredIntervals = astIndexer.ignoredStartEnd
+      .buildIntervalList();
 
   if (addCommentsToFiles || addAndRemoveCommentsInFiles) {
     String sourceText = source.text;
@@ -372,8 +391,10 @@ CoverageInfo _process(
             // Though if there aren't any possible extra coverage in the
             // previous block compared to this one, we do prefer the smaller
             // one.
-            int allSortedIndex =
-                binarySearch(allSorted, commentOn.beginToken.charOffset);
+            int allSortedIndex = binarySearch(
+              allSorted,
+              commentOn.beginToken.charOffset,
+            );
             if (allSortedIndex < allSorted.length &&
                 allSorted[allSortedIndex] < commentOn.beginToken.charOffset) {
               allSortedIndex++;
@@ -407,14 +428,17 @@ CoverageInfo _process(
       CompilationUnitBegin unitBegin =
           ast.children!.first as CompilationUnitBegin;
       Token? token = unitBegin.token;
-      List<Token> removeComments =
-          _findTokensWithCoverageIgnoreSuiteComments(token);
+      List<Token> removeComments = _findTokensWithCoverageIgnoreSuiteComments(
+        token,
+      );
       for (Token token in removeComments) {
         if (removeTo.isNotEmpty && removeTo.last == token.charOffset) {
           // Not sure if this can happen, but if it does we extend the previous
           // added to (i.e. end of what has to be removed).
-          removeTo[removeTo.length - 1] =
-              _includeWhitespaceAfter(sourceText, token.charEnd);
+          removeTo[removeTo.length - 1] = _includeWhitespaceAfter(
+            sourceText,
+            token.charEnd,
+          );
         } else {
           removeFrom.add(token.charOffset);
           removeTo.add(_includeWhitespaceAfter(sourceText, token.charEnd));
@@ -530,7 +554,9 @@ CoverageInfo _process(
         sb.write("$extra// Coverage-ignore(suite): Not run.\n  ");
       }
       ignoredIntervalsBuilder?.addIntervalIncludingEnd(
-          entry.beginToken.charOffset, entry.endToken.charEnd);
+        entry.beginToken.charOffset,
+        entry.endToken.charEnd,
+      );
       from = token.charOffset;
       if (addedStartBrace) {
         addChunk(from, entry.endToken.charEnd);
@@ -547,7 +573,11 @@ CoverageInfo _process(
     } else {
       // Return a fake result.
       return new CoverageInfo(
-          allCovered: true, missCount: -1, hitCount: -1, visualization: "fake");
+        allCovered: true,
+        missCount: -1,
+        hitCount: -1,
+        visualization: "fake",
+      );
     }
   }
 
@@ -557,16 +587,24 @@ CoverageInfo _process(
 
   StringBuffer visualization = new StringBuffer();
 
-  var (:bool allCovered, :Set<int> trimmedMisses) =
-      _trimIgnoredAndPrintPercentages(
-          visualization, ignoredIntervals, untrimmedMisses, hitsSorted, uri);
+  var (
+    :bool allCovered,
+    :Set<int> trimmedMisses,
+  ) = _trimIgnoredAndPrintPercentages(
+    visualization,
+    ignoredIntervals,
+    untrimmedMisses,
+    hitsSorted,
+    uri,
+  );
 
   if (allCovered) {
     return new CoverageInfo(
-        allCovered: allCovered,
-        missCount: trimmedMisses.length,
-        hitCount: hitsSorted.length,
-        visualization: visualization.toString());
+      allCovered: allCovered,
+      missCount: trimmedMisses.length,
+      hitCount: hitsSorted.length,
+      visualization: visualization.toString(),
+    );
   }
 
   CompilationUnitBegin unitBegin = ast.children!.first as CompilationUnitBegin;
@@ -612,8 +650,10 @@ CoverageInfo _process(
       printFinishedLine();
       bool foundHit = false;
       int first = astIndexer.moveNodeIndexToFirstMetadataIfAny(thisNodeIndex)!;
-      int last = astIndexer.moveNodeIndexPastMetadata(
-              astIndexer.findNodeIndexSpanningPosition(offset)) ??
+      int last =
+          astIndexer.moveNodeIndexPastMetadata(
+            astIndexer.findNodeIndexSpanningPosition(offset),
+          ) ??
           thisNodeIndex;
       int beginOffset = astIndexer.positionStartEndIndex[first * 2 + 0];
       int endOffset = astIndexer.positionStartEndIndex[last * 2 + 1];
@@ -634,12 +674,15 @@ CoverageInfo _process(
         String? name = astIndexer.nameOfEntitySpanning(offset);
 
         if (name != null) {
-          visualization.writeln("$uri:${location.line}: "
-              "No coverage for '$name' ($offset).\n$line\n");
+          visualization.writeln(
+            "$uri:${location.line}: "
+            "No coverage for '$name' ($offset).\n$line\n",
+          );
           // TODO(jensj): Squiggly line under the identifier of the entity?
         } else {
           visualization.writeln(
-              "$uri:${location.line}: No coverage for entity.\n$line\n");
+            "$uri:${location.line}: No coverage for entity.\n$line\n",
+          );
         }
 
         // Skip the rest of the miss points inside the entity.
@@ -674,17 +717,19 @@ CoverageInfo _process(
     } catch (e) {
       visualization.writeln("Error on offset $offset --- $location: $e");
       visualization.writeln(
-          "Maybe the coverage data is not up to date with the source?");
+        "Maybe the coverage data is not up to date with the source?",
+      );
       return new CoverageInfo.error(visualization.toString());
     }
   }
   printFinishedLine();
 
   return new CoverageInfo(
-      allCovered: allCovered,
-      missCount: trimmedMisses.length,
-      hitCount: hitsSorted.length,
-      visualization: visualization.toString());
+    allCovered: allCovered,
+    missCount: trimmedMisses.length,
+    hitCount: hitsSorted.length,
+    visualization: visualization.toString(),
+  );
 }
 
 int _includeWhitespaceAfter(String sourceText, int from) {
@@ -724,11 +769,12 @@ List<Token> _findTokensWithCoverageIgnoreSuiteComments(Token? token) {
 }
 
 ({bool allCovered, Set<int> trimmedMisses}) _trimIgnoredAndPrintPercentages(
-    StringBuffer visualization,
-    IntervalList ignoredIntervals,
-    Set<int> untrimmedMisses,
-    List<int> hitsSorted,
-    Uri uri) {
+  StringBuffer visualization,
+  IntervalList ignoredIntervals,
+  Set<int> untrimmedMisses,
+  List<int> hitsSorted,
+  Uri uri,
+) {
   int missCount = untrimmedMisses.length;
   int hitCount = hitsSorted.length;
   Set<int> trimmedMisses;
@@ -752,8 +798,9 @@ List<Token> _findTokensWithCoverageIgnoreSuiteComments(Token? token) {
 
     if (missCount > 0) {
       visualization.writeln(
-          "$uri: ${(hitCount / (hitCount + missCount) * 100).round()}% "
-          "($missCount misses)");
+        "$uri: ${(hitCount / (hitCount + missCount) * 100).round()}% "
+        "($missCount misses)",
+      );
       return (allCovered: false, trimmedMisses: trimmedMisses);
     } else {
       // visualization.writeln("$uri: 100% (OK)");
@@ -763,7 +810,10 @@ List<Token> _findTokensWithCoverageIgnoreSuiteComments(Token? token) {
 }
 
 void _mergeCoverageInto(
-    Coverage coverage, Map<Uri, Set<int>> misses, Map<Uri, Hit> hits) {
+  Coverage coverage,
+  Map<Uri, Set<int>> misses,
+  Map<Uri, Hit> hits,
+) {
   for (FileCoverage fileCoverage in coverage.getAllFileCoverages()) {
     if (fileCoverage.uri.isScheme("package") &&
         fileCoverage.uri.pathSegments.first != "front_end" &&
@@ -807,10 +857,7 @@ class Hit {
 }
 
 class AstIndexerAndIgnoreCollector extends AstIndexer {
-  final Set<String> topLevelMethodNamesToIgnore = {
-    "debug",
-    "debugString",
-  };
+  final Set<String> topLevelMethodNamesToIgnore = {"debug", "debugString"};
   final Set<String> classMethodNamesToIgnore = {
     "debug",
     "debugString",
@@ -820,12 +867,8 @@ class AstIndexerAndIgnoreCollector extends AstIndexer {
     "debugName",
     "writeNullabilityOn",
   };
-  final List<String> _coverageIgnores = [
-    "coverage-ignore:",
-  ];
-  final List<String> _coverageBlockIgnores = [
-    "coverage-ignore-block:",
-  ];
+  final List<String> _coverageIgnores = ["coverage-ignore:"];
+  final List<String> _coverageBlockIgnores = ["coverage-ignore-block:"];
   final List<String> _ignoresToIgnore = [];
 
   final IntervalListBuilder ignoredStartEnd = new IntervalListBuilder();
@@ -848,25 +891,32 @@ class AstIndexerAndIgnoreCollector extends AstIndexer {
     required List<int> allSorted,
     List<String> ignoresToIgnore = const [],
   }) {
-    AstIndexerAndIgnoreCollector collector =
-        new AstIndexerAndIgnoreCollector._(hitsSorted, allSorted);
+    AstIndexerAndIgnoreCollector collector = new AstIndexerAndIgnoreCollector._(
+      hitsSorted,
+      allSorted,
+    );
     collector._coverageIgnores.addAll(extraCoverageIgnores);
     collector._coverageBlockIgnores.addAll(extraCoverageBlockIgnores);
     collector._ignoresToIgnore.addAll(ignoresToIgnore);
     ast.accept(collector);
 
-    assert(collector.positionNodeIndex.length ==
-        collector.positionNodeName.length);
-    assert(collector.positionNodeIndex.length * 2 ==
-        collector.positionStartEndIndex.length);
+    assert(
+      collector.positionNodeIndex.length == collector.positionNodeName.length,
+    );
+    assert(
+      collector.positionNodeIndex.length * 2 ==
+          collector.positionStartEndIndex.length,
+    );
 
     return collector;
   }
 
   AstIndexerAndIgnoreCollector._(this.hitsSorted, this.allSorted) {}
 
-  bool _hasIgnoreComment(Token tokenWithPossibleComment,
-      {required bool isBlock}) {
+  bool _hasIgnoreComment(
+    Token tokenWithPossibleComment, {
+    required bool isBlock,
+  }) {
     List<String> coverageIgnores = _coverageIgnores;
     if (isBlock) {
       coverageIgnores = _coverageBlockIgnores;
@@ -902,11 +952,18 @@ class AstIndexerAndIgnoreCollector extends AstIndexer {
   /// If there is not it will add a note to add one if that makes sense (in that
   /// there is possible coverage but no actual coverage).
   bool _checkCommentAndIgnoreCoverage(
-      Token tokenWithPossibleComment, BeginAndEndTokenParserAstNode ignoreRange,
-      {required bool allowReplace, bool allowToWrapInBlock = false}) {
+    Token tokenWithPossibleComment,
+    BeginAndEndTokenParserAstNode ignoreRange, {
+    required bool allowReplace,
+    bool allowToWrapInBlock = false,
+  }) {
     return _checkCommentAndIgnoreCoverageWithBeginAndEnd(
-        tokenWithPossibleComment, ignoreRange.beginToken, ignoreRange.endToken,
-        allowReplace: allowReplace, allowToWrapInBlock: allowToWrapInBlock);
+      tokenWithPossibleComment,
+      ignoreRange.beginToken,
+      ignoreRange.endToken,
+      allowReplace: allowReplace,
+      allowToWrapInBlock: allowToWrapInBlock,
+    );
   }
 
   /// Check if there is an ignore comment on [tokenWithPossibleComment] and
@@ -915,16 +972,19 @@ class AstIndexerAndIgnoreCollector extends AstIndexer {
   /// If there is not it will add a note to add one if that makes sense (in that
   /// there is possible coverage but no actual coverage).
   bool _checkCommentAndIgnoreCoverageWithBeginAndEnd(
-      final Token tokenWithPossibleComment,
-      final Token beginToken,
-      final Token endToken,
-      {required bool allowReplace,
-      bool isBlock = false,
-      bool allowOnBraceStart = false,
-      bool allowToWrapInBlock = false}) {
+    final Token tokenWithPossibleComment,
+    final Token beginToken,
+    final Token endToken, {
+    required bool allowReplace,
+    bool isBlock = false,
+    bool allowOnBraceStart = false,
+    bool allowToWrapInBlock = false,
+  }) {
     if (_hasIgnoreComment(tokenWithPossibleComment, isBlock: isBlock)) {
       ignoredStartEnd.addIntervalIncludingEnd(
-          beginToken.charOffset, endToken.charEnd);
+        beginToken.charOffset,
+        endToken.charEnd,
+      );
       return true;
     }
 
@@ -986,14 +1046,16 @@ class AstIndexerAndIgnoreCollector extends AstIndexer {
         //(which for whatever reason can a possible coverage point).
         hitsSorted[hitsSortedIndex] >= endToken.charEnd) {
       // No hits at all or next hit is after this "block".
-      potentiallyAddCommentTokens.add(new _CommentOn(
-        commentOnToken: tokenWithPossibleComment,
-        beginToken: beginToken,
-        endToken: endToken,
-        canBeReplaced: allowReplace,
-        isBlock: isBlock,
-        allowToWrapInBlock: allowToWrapInBlock,
-      ));
+      potentiallyAddCommentTokens.add(
+        new _CommentOn(
+          commentOnToken: tokenWithPossibleComment,
+          beginToken: beginToken,
+          endToken: endToken,
+          canBeReplaced: allowReplace,
+          isBlock: isBlock,
+          allowToWrapInBlock: allowToWrapInBlock,
+        ),
+      );
     }
 
     return false;
@@ -1010,25 +1072,30 @@ class AstIndexerAndIgnoreCollector extends AstIndexer {
   /// but fall back to the original range if that's not possible.
   /// Two different comments are used to distinguish these cases.
   bool _checkCommentAndIgnoreCoverageUntilEndOfBlockOrEnd(
-      Token tokenWithPossibleComment,
-      Token beginToken,
-      ParserAstNode node,
-      Token endToken,
-      {required bool allowReplace}) {
+    Token tokenWithPossibleComment,
+    Token beginToken,
+    ParserAstNode node,
+    Token endToken, {
+    required bool allowReplace,
+  }) {
     ParserAstNode? parent = node.parent;
     if ((parent is BlockFunctionBodyEnd || parent is BlockEnd)) {
       if (_checkCommentAndIgnoreCoverageWithBeginAndEnd(
-          tokenWithPossibleComment,
-          beginToken,
-          (parent as BeginAndEndTokenParserAstNode).endToken,
-          allowReplace: allowReplace,
-          isBlock: true)) {
+        tokenWithPossibleComment,
+        beginToken,
+        (parent as BeginAndEndTokenParserAstNode).endToken,
+        allowReplace: allowReplace,
+        isBlock: true,
+      )) {
         return true;
       }
     }
     return _checkCommentAndIgnoreCoverageWithBeginAndEnd(
-        tokenWithPossibleComment, beginToken, endToken,
-        allowReplace: allowReplace);
+      tokenWithPossibleComment,
+      beginToken,
+      endToken,
+      allowReplace: allowReplace,
+    );
   }
 
   bool _ignoreIfChildrenIsThrow(BeginAndEndTokenParserAstNode node) {
@@ -1039,7 +1106,9 @@ class AstIndexerAndIgnoreCollector extends AstIndexer {
         children[2] is ThrowExpressionHandle &&
         children[3] is ExpressionStatementHandle) {
       ignoredStartEnd.addIntervalIncludingEnd(
-          node.beginToken.charOffset, node.endToken.charEnd);
+        node.beginToken.charOffset,
+        node.endToken.charEnd,
+      );
       return true;
     }
     return false;
@@ -1051,8 +1120,11 @@ class AstIndexerAndIgnoreCollector extends AstIndexer {
     // up. If that turns out to be a problem we can likely just not return,
     // possible "double-ignored" coverages should still work fine because of the
     // interval list.
-    if (_checkCommentAndIgnoreCoverage(node.beginToken, node,
-        allowReplace: false)) {
+    if (_checkCommentAndIgnoreCoverage(
+      node.beginToken,
+      node,
+      allowReplace: false,
+    )) {
       return;
     }
     super.visitClassDeclarationEnd(node);
@@ -1064,8 +1136,11 @@ class AstIndexerAndIgnoreCollector extends AstIndexer {
     // up. If that turns out to be a problem we can likely just not return,
     // possible "double-ignored" coverages should still work fine because of the
     // interval list.
-    if (_checkCommentAndIgnoreCoverage(node.beginToken, node,
-        allowReplace: false)) {
+    if (_checkCommentAndIgnoreCoverage(
+      node.beginToken,
+      node,
+      allowReplace: false,
+    )) {
       return;
     }
     super.visitExtensionDeclarationEnd(node);
@@ -1077,8 +1152,11 @@ class AstIndexerAndIgnoreCollector extends AstIndexer {
     // up. If that turns out to be a problem we can likely just not return,
     // possible "double-ignored" coverages should still work fine because of the
     // interval list.
-    if (_checkCommentAndIgnoreCoverage(node.beginToken, node,
-        allowReplace: false)) {
+    if (_checkCommentAndIgnoreCoverage(
+      node.beginToken,
+      node,
+      allowReplace: false,
+    )) {
       return;
     }
     super.visitExtensionTypeDeclarationEnd(node);
@@ -1098,18 +1176,26 @@ class AstIndexerAndIgnoreCollector extends AstIndexer {
     }
 
     if (_checkCommentAndIgnoreCoverageWithBeginAndEnd(
-        node.beginToken, beginToken, node.endToken,
-        allowReplace: false)) {
+      node.beginToken,
+      beginToken,
+      node.endToken,
+      allowReplace: false,
+    )) {
       // Ignore these class fields including metadata.
       ignoredStartEnd.addIntervalIncludingEnd(
-          positionStartEndIndex[firstIndex * 2 + 0], node.endToken.charEnd);
+        positionStartEndIndex[firstIndex * 2 + 0],
+        node.endToken.charEnd,
+      );
     }
   }
 
   @override
   void visitTopLevelMethodEnd(TopLevelMethodEnd node) {
-    if (_checkCommentAndIgnoreCoverage(node.beginToken, node,
-        allowReplace: false)) {
+    if (_checkCommentAndIgnoreCoverage(
+      node.beginToken,
+      node,
+      allowReplace: false,
+    )) {
       return;
     }
     super.visitTopLevelMethodEnd(node);
@@ -1121,7 +1207,9 @@ class AstIndexerAndIgnoreCollector extends AstIndexer {
       int index = positionNodeIndex.length - 1;
       int firstIndex = moveNodeIndexToFirstMetadataIfAny(index)!;
       ignoredStartEnd.addIntervalIncludingEnd(
-          positionStartEndIndex[firstIndex * 2 + 0], node.endToken.charEnd);
+        positionStartEndIndex[firstIndex * 2 + 0],
+        node.endToken.charEnd,
+      );
     } else {
       node.accept(_collectorBody);
     }
@@ -1143,7 +1231,9 @@ class AstIndexerAndIgnoreCollector extends AstIndexer {
 
   @override
   void containerFields(
-      BeginAndEndTokenParserAstNode node, List<IdentifierHandle> names) {
+    BeginAndEndTokenParserAstNode node,
+    List<IdentifierHandle> names,
+  ) {
     super.containerFields(node, names);
     assert(positionNodeIndex.last == node);
     assert(positionStartEndIndex.last == node.endToken.charEnd);
@@ -1156,11 +1246,16 @@ class AstIndexerAndIgnoreCollector extends AstIndexer {
     }
 
     if (_checkCommentAndIgnoreCoverageWithBeginAndEnd(
-        node.beginToken, beginToken, node.endToken,
-        allowReplace: false)) {
+      node.beginToken,
+      beginToken,
+      node.endToken,
+      allowReplace: false,
+    )) {
       // Ignore these class fields including metadata.
       ignoredStartEnd.addIntervalIncludingEnd(
-          positionStartEndIndex[firstIndex * 2 + 0], node.endToken.charEnd);
+        positionStartEndIndex[firstIndex * 2 + 0],
+        node.endToken.charEnd,
+      );
     }
   }
 
@@ -1180,12 +1275,17 @@ class AstIndexerAndIgnoreCollector extends AstIndexer {
     if (_ignoreIfEntityWithThrowBody(node) ||
         classMethodNamesToIgnore.contains(name) ||
         _checkCommentAndIgnoreCoverageWithBeginAndEnd(
-            node.beginToken, beginToken, node.endToken,
-            allowReplace: false)) {
+          node.beginToken,
+          beginToken,
+          node.endToken,
+          allowReplace: false,
+        )) {
       // Ignore this class method including metadata.
 
       ignoredStartEnd.addIntervalIncludingEnd(
-          positionStartEndIndex[firstIndex * 2 + 0], node.endToken.charEnd);
+        positionStartEndIndex[firstIndex * 2 + 0],
+        node.endToken.charEnd,
+      );
     } else {
       node.accept(_collectorBody);
     }
@@ -1198,7 +1298,8 @@ class _AstIndexerAndIgnoreCollectorBody extends RecursiveParserAstVisitor {
   _AstIndexerAndIgnoreCollectorBody(this._collector);
 
   bool _recordIfIsCallToNotExpectedCoverage(
-      BeginAndEndTokenParserAstNode node) {
+    BeginAndEndTokenParserAstNode node,
+  ) {
     List<ParserAstNode>? children = node.children;
     if (children != null &&
         children.length >= 5 &&
@@ -1216,7 +1317,9 @@ class _AstIndexerAndIgnoreCollectorBody extends RecursiveParserAstVisitor {
         // inside an if block --- we don't expect these to happen
         // so we'll ignore them.
         _collector.ignoredStartEnd.addIntervalIncludingEnd(
-            node.beginToken.charOffset, node.endToken.charEnd);
+          node.beginToken.charOffset,
+          node.endToken.charEnd,
+        );
         return true;
       }
     }
@@ -1227,8 +1330,11 @@ class _AstIndexerAndIgnoreCollectorBody extends RecursiveParserAstVisitor {
   @override
   void visitReturnStatementEnd(ReturnStatementEnd node) {
     if (_recordIfIsCallToNotExpectedCoverage(node)) return;
-    if (_collector._checkCommentAndIgnoreCoverage(node.beginToken, node,
-        allowReplace: false)) {
+    if (_collector._checkCommentAndIgnoreCoverage(
+      node.beginToken,
+      node,
+      allowReplace: false,
+    )) {
       return;
     }
     super.visitReturnStatementEnd(node);
@@ -1238,8 +1344,12 @@ class _AstIndexerAndIgnoreCollectorBody extends RecursiveParserAstVisitor {
   void visitBlockEnd(BlockEnd node) {
     if (_recordIfIsCallToNotExpectedCoverage(node)) return;
     if (_collector._checkCommentAndIgnoreCoverageWithBeginAndEnd(
-        node.beginToken.next!, node.beginToken, node.endToken,
-        allowReplace: false, isBlock: true)) {
+      node.beginToken.next!,
+      node.beginToken,
+      node.endToken,
+      allowReplace: false,
+      isBlock: true,
+    )) {
       return;
     }
     super.visitBlockEnd(node);
@@ -1249,8 +1359,12 @@ class _AstIndexerAndIgnoreCollectorBody extends RecursiveParserAstVisitor {
   void visitBlockFunctionBodyEnd(BlockFunctionBodyEnd node) {
     if (_recordIfIsCallToNotExpectedCoverage(node)) return;
     if (_collector._checkCommentAndIgnoreCoverageWithBeginAndEnd(
-        node.beginToken.next!, node.beginToken, node.endToken,
-        allowReplace: false, isBlock: true)) {
+      node.beginToken.next!,
+      node.beginToken,
+      node.endToken,
+      allowReplace: false,
+      isBlock: true,
+    )) {
       return;
     }
     super.visitBlockFunctionBodyEnd(node);
@@ -1258,8 +1372,11 @@ class _AstIndexerAndIgnoreCollectorBody extends RecursiveParserAstVisitor {
 
   @override
   void visitFunctionExpressionEnd(FunctionExpressionEnd node) {
-    if (_collector._checkCommentAndIgnoreCoverage(node.beginToken, node,
-        allowReplace: true)) {
+    if (_collector._checkCommentAndIgnoreCoverage(
+      node.beginToken,
+      node,
+      allowReplace: true,
+    )) {
       return;
     }
     super.visitFunctionExpressionEnd(node);
@@ -1270,8 +1387,11 @@ class _AstIndexerAndIgnoreCollectorBody extends RecursiveParserAstVisitor {
     ParserAstNode? beginNode = node.children?.firstOrNull;
     if (beginNode is LocalFunctionDeclarationBegin) {
       if (_collector._checkCommentAndIgnoreCoverageWithBeginAndEnd(
-          beginNode.token, beginNode.token, node.endToken,
-          allowReplace: true)) {
+        beginNode.token,
+        beginNode.token,
+        node.endToken,
+        allowReplace: true,
+      )) {
         return;
       }
     }
@@ -1280,8 +1400,11 @@ class _AstIndexerAndIgnoreCollectorBody extends RecursiveParserAstVisitor {
 
   @override
   void visitSwitchCaseEnd(SwitchCaseEnd node) {
-    if (_collector._checkCommentAndIgnoreCoverage(node.beginToken, node,
-        allowReplace: false)) {
+    if (_collector._checkCommentAndIgnoreCoverage(
+      node.beginToken,
+      node,
+      allowReplace: false,
+    )) {
       return;
     }
     super.visitSwitchCaseEnd(node);
@@ -1290,8 +1413,11 @@ class _AstIndexerAndIgnoreCollectorBody extends RecursiveParserAstVisitor {
   @override
   void visitCaseExpressionEnd(CaseExpressionEnd node) {
     if (_collector._checkCommentAndIgnoreCoverageWithBeginAndEnd(
-        node.caseKeyword, node.caseKeyword, node.colon,
-        allowReplace: false)) {
+      node.caseKeyword,
+      node.caseKeyword,
+      node.colon,
+      allowReplace: false,
+    )) {
       return;
     }
     super.visitCaseExpressionEnd(node);
@@ -1300,8 +1426,12 @@ class _AstIndexerAndIgnoreCollectorBody extends RecursiveParserAstVisitor {
   @override
   void visitThrowExpressionHandle(ThrowExpressionHandle node) {
     if (_collector._checkCommentAndIgnoreCoverageUntilEndOfBlockOrEnd(
-        node.throwToken, node.throwToken, node, node.endToken,
-        allowReplace: true)) {
+      node.throwToken,
+      node.throwToken,
+      node,
+      node.endToken,
+      allowReplace: true,
+    )) {
       return;
     }
     super.visitThrowExpressionHandle(node);
@@ -1309,8 +1439,11 @@ class _AstIndexerAndIgnoreCollectorBody extends RecursiveParserAstVisitor {
 
   @override
   void visitElseStatementEnd(ElseStatementEnd node) {
-    if (_collector._checkCommentAndIgnoreCoverage(node.beginToken, node,
-        allowReplace: false)) {
+    if (_collector._checkCommentAndIgnoreCoverage(
+      node.beginToken,
+      node,
+      allowReplace: false,
+    )) {
       return;
     }
     super.visitElseStatementEnd(node);
@@ -1318,10 +1451,12 @@ class _AstIndexerAndIgnoreCollectorBody extends RecursiveParserAstVisitor {
 
   @override
   void visitThenStatementEnd(ThenStatementEnd node) {
-    if (_collector._checkCommentAndIgnoreCoverage(node.beginToken, node,
-        allowReplace: true,
-        allowToWrapInBlock:
-            !node.beginToken.isA(TokenType.OPEN_CURLY_BRACKET))) {
+    if (_collector._checkCommentAndIgnoreCoverage(
+      node.beginToken,
+      node,
+      allowReplace: true,
+      allowToWrapInBlock: !node.beginToken.isA(TokenType.OPEN_CURLY_BRACKET),
+    )) {
       return;
     }
     super.visitThenStatementEnd(node);
@@ -1330,8 +1465,12 @@ class _AstIndexerAndIgnoreCollectorBody extends RecursiveParserAstVisitor {
   @override
   void visitIfStatementEnd(IfStatementEnd node) {
     if (_collector._checkCommentAndIgnoreCoverageUntilEndOfBlockOrEnd(
-        node.ifToken, node.ifToken, node, node.endToken,
-        allowReplace: true)) {
+      node.ifToken,
+      node.ifToken,
+      node,
+      node.endToken,
+      allowReplace: true,
+    )) {
       return;
     }
     super.visitIfStatementEnd(node);
@@ -1340,8 +1479,12 @@ class _AstIndexerAndIgnoreCollectorBody extends RecursiveParserAstVisitor {
   @override
   void visitTryStatementEnd(TryStatementEnd node) {
     if (_collector._checkCommentAndIgnoreCoverageUntilEndOfBlockOrEnd(
-        node.tryKeyword, node.tryKeyword, node, node.endToken,
-        allowReplace: true)) {
+      node.tryKeyword,
+      node.tryKeyword,
+      node,
+      node.endToken,
+      allowReplace: true,
+    )) {
       return;
     }
     super.visitTryStatementEnd(node);
@@ -1350,8 +1493,11 @@ class _AstIndexerAndIgnoreCollectorBody extends RecursiveParserAstVisitor {
   @override
   void visitBinaryExpressionEnd(BinaryExpressionEnd node) {
     if (_collector._checkCommentAndIgnoreCoverageWithBeginAndEnd(
-        node.token.next!, node.token, node.endToken,
-        allowReplace: false)) {
+      node.token.next!,
+      node.token,
+      node.endToken,
+      allowReplace: false,
+    )) {
       return;
     }
     super.visitBinaryExpressionEnd(node);
@@ -1362,8 +1508,11 @@ class _AstIndexerAndIgnoreCollectorBody extends RecursiveParserAstVisitor {
     // Given `a?.b` if `a` is null `b` won't execute.
     // Having the comment before the `?.` formats prettier.
     if (_collector._checkCommentAndIgnoreCoverageWithBeginAndEnd(
-        node.token, node.token, node.endToken,
-        allowReplace: true)) {
+      node.token,
+      node.token,
+      node.endToken,
+      allowReplace: true,
+    )) {
       return;
     }
     super.visitDotAccessHandle(node);
@@ -1374,8 +1523,11 @@ class _AstIndexerAndIgnoreCollectorBody extends RecursiveParserAstVisitor {
     // Given `a?..b` if `a` is null `b` won't execute.
     // Having the comment before the `?..` formats prettier.
     if (_collector._checkCommentAndIgnoreCoverageWithBeginAndEnd(
-        node.token, node.token, node.endToken,
-        allowReplace: true)) {
+      node.token,
+      node.token,
+      node.endToken,
+      allowReplace: true,
+    )) {
       return;
     }
     super.visitCascadeAccessHandle(node);
@@ -1387,8 +1539,11 @@ class _AstIndexerAndIgnoreCollectorBody extends RecursiveParserAstVisitor {
     // Having the comment before the `?` looks better.
     if (node.question != null &&
         _collector._checkCommentAndIgnoreCoverageWithBeginAndEnd(
-            node.question!, node.openSquareBracket, node.closeSquareBracket,
-            allowReplace: true)) {
+          node.question!,
+          node.openSquareBracket,
+          node.closeSquareBracket,
+          allowReplace: true,
+        )) {
       return;
     }
     super.visitIndexedExpressionHandle(node);
@@ -1399,8 +1554,11 @@ class _AstIndexerAndIgnoreCollectorBody extends RecursiveParserAstVisitor {
     ParserAstNode? parent = node.parent;
     if (parent is IfControlFlowEnd) {
       if (_collector._checkCommentAndIgnoreCoverageWithBeginAndEnd(
-          node.token.next!, node.token.next!, parent.token,
-          allowReplace: false)) {
+        node.token.next!,
+        node.token.next!,
+        parent.token,
+        allowReplace: false,
+      )) {
         return;
       }
     }
@@ -1413,13 +1571,19 @@ class _AstIndexerAndIgnoreCollectorBody extends RecursiveParserAstVisitor {
 
     // Check the comment on the `bar` part (i.e. between ? and :).
     _collector._checkCommentAndIgnoreCoverageWithBeginAndEnd(
-        node.question.next!, node.question.next!, node.colon,
-        allowReplace: false);
+      node.question.next!,
+      node.question.next!,
+      node.colon,
+      allowReplace: false,
+    );
 
     // Check the comment on the `baz` part (i.e. between : and end).
     _collector._checkCommentAndIgnoreCoverageWithBeginAndEnd(
-        node.colon.next!, node.colon.next!, node.endToken,
-        allowReplace: false);
+      node.colon.next!,
+      node.colon.next!,
+      node.endToken,
+      allowReplace: false,
+    );
 
     super.visitConditionalExpressionEnd(node);
   }
@@ -1428,10 +1592,11 @@ class _AstIndexerAndIgnoreCollectorBody extends RecursiveParserAstVisitor {
   void visitForLoopPartsHandle(ForLoopPartsHandle node) {
     // Given `for(a; b; c)` --- the `c` part could be uncovered.
     _collector._checkCommentAndIgnoreCoverageWithBeginAndEnd(
-        node.rightSeparator.next!,
-        node.rightSeparator.next!,
-        node.leftParen.endGroup!,
-        allowReplace: false);
+      node.rightSeparator.next!,
+      node.rightSeparator.next!,
+      node.leftParen.endGroup!,
+      allowReplace: false,
+    );
     super.visitForLoopPartsHandle(node);
   }
 
@@ -1440,8 +1605,12 @@ class _AstIndexerAndIgnoreCollectorBody extends RecursiveParserAstVisitor {
     ParserAstNode? beginNode = node.children?.firstOrNull;
     if (beginNode is ForInBodyBegin) {
       if (_collector._checkCommentAndIgnoreCoverageWithBeginAndEnd(
-          beginNode.token, beginNode.token, node.endToken,
-          allowReplace: true, allowOnBraceStart: true)) {
+        beginNode.token,
+        beginNode.token,
+        node.endToken,
+        allowReplace: true,
+        allowOnBraceStart: true,
+      )) {
         return;
       }
     }
@@ -1454,8 +1623,12 @@ class _AstIndexerAndIgnoreCollectorBody extends RecursiveParserAstVisitor {
     // coverable in this statement. If there isn't it should certainly be
     // replaceable.
     if (_collector._checkCommentAndIgnoreCoverageUntilEndOfBlockOrEnd(
-        node.beginToken, node.beginToken, node, node.endToken,
-        allowReplace: false)) {
+      node.beginToken,
+      node.beginToken,
+      node,
+      node.endToken,
+      allowReplace: false,
+    )) {
       return;
     }
     super.visitExpressionStatementHandle(node);
@@ -1472,8 +1645,12 @@ class _AstIndexerAndIgnoreCollectorBody extends RecursiveParserAstVisitor {
       if (thisIndex - 1 >= 0 && parentChildren[thisIndex - 1] is TypeHandle) {
         TypeHandle type = parentChildren[thisIndex - 1] as TypeHandle;
         if (_collector._checkCommentAndIgnoreCoverageUntilEndOfBlockOrEnd(
-            type.beginToken, type.beginToken, node, node.endToken!,
-            allowReplace: false)) {
+          type.beginToken,
+          type.beginToken,
+          node,
+          node.endToken!,
+          allowReplace: false,
+        )) {
           return;
         }
       }
@@ -1484,15 +1661,21 @@ class _AstIndexerAndIgnoreCollectorBody extends RecursiveParserAstVisitor {
   @override
   void visitAssertEnd(AssertEnd node) {
     if (_collector._checkCommentAndIgnoreCoverageUntilEndOfBlockOrEnd(
-        node.assertKeyword, node.assertKeyword, node, node.endToken,
-        allowReplace: true)) {
+      node.assertKeyword,
+      node.assertKeyword,
+      node,
+      node.endToken,
+      allowReplace: true,
+    )) {
       return;
     }
 
     if (node.commaToken != null) {
       // The message in an assert should be automatically ignored.
       _collector.ignoredStartEnd.addIntervalIncludingEnd(
-          node.commaToken!.charOffset, node.endToken.charEnd);
+        node.commaToken!.charOffset,
+        node.endToken.charEnd,
+      );
     }
     super.visitAssertEnd(node);
   }
@@ -1508,8 +1691,11 @@ class _AstIndexerAndIgnoreCollectorBody extends RecursiveParserAstVisitor {
       if (thisIndex - 1 >= 0 && parentChildren[thisIndex - 1] is BlockEnd) {
         BlockEnd block = parentChildren[thisIndex - 1] as BlockEnd;
         if (_collector._checkCommentAndIgnoreCoverageWithBeginAndEnd(
-            node.onKeyword!, node.onKeyword!, block.endToken,
-            allowReplace: false)) {
+          node.onKeyword!,
+          node.onKeyword!,
+          block.endToken,
+          allowReplace: false,
+        )) {
           return;
         }
       }
@@ -1526,8 +1712,11 @@ class _AstIndexerAndIgnoreCollectorBody extends RecursiveParserAstVisitor {
         begin = begin.next!;
       }
       if (_collector._checkCommentAndIgnoreCoverageWithBeginAndEnd(
-          begin, begin, node.token,
-          allowReplace: true)) {
+        begin,
+        begin,
+        node.token,
+        allowReplace: true,
+      )) {
         return;
       }
     }
@@ -1540,22 +1729,30 @@ class _AstIndexerAndIgnoreCollectorBody extends RecursiveParserAstVisitor {
     // Sometimes the endToken is reported as being a position we can hit.
     // Ignore it!
     _collector.ignoredStartEnd.addIntervalIncludingEnd(
-        node.endToken.charOffset, node.endToken.charEnd);
+      node.endToken.charOffset,
+      node.endToken.charEnd,
+    );
   }
 
   @override
   void visitSwitchExpressionCaseEnd(SwitchExpressionCaseEnd node) {
     // The entire thing?
     if (_collector._checkCommentAndIgnoreCoverageWithBeginAndEnd(
-        node.beginToken, node.beginToken, node.endToken,
-        allowReplace: true)) {
+      node.beginToken,
+      node.beginToken,
+      node.endToken,
+      allowReplace: true,
+    )) {
       return;
     }
 
     // The if-matched part?
     _collector._checkCommentAndIgnoreCoverageWithBeginAndEnd(
-        node.arrow.next!, node.arrow.next!, node.endToken,
-        allowReplace: true);
+      node.arrow.next!,
+      node.arrow.next!,
+      node.endToken,
+      allowReplace: true,
+    );
 
     super.visitSwitchExpressionCaseEnd(node);
   }
@@ -1563,8 +1760,12 @@ class _AstIndexerAndIgnoreCollectorBody extends RecursiveParserAstVisitor {
   @override
   void visitAssignmentExpressionHandle(AssignmentExpressionHandle node) {
     _collector._checkCommentAndIgnoreCoverageWithBeginAndEnd(
-        node.token.next!, node.token.next!, node.endToken,
-        allowReplace: true, allowOnBraceStart: true);
+      node.token.next!,
+      node.token.next!,
+      node.endToken,
+      allowReplace: true,
+      allowOnBraceStart: true,
+    );
     super.visitAssignmentExpressionHandle(node);
   }
 }

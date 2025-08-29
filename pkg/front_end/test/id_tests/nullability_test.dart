@@ -10,13 +10,18 @@ import 'package:front_end/src/testing/id_testing_helper.dart';
 import 'package:kernel/ast.dart';
 
 Future<void> main(List<String> args) async {
-  Directory dataDir = new Directory.fromUri(Platform.script.resolve(
-      '../../../_fe_analyzer_shared/test/flow_analysis/nullability/data'));
-  await runTests<String>(dataDir,
-      args: args,
-      createUriForFileName: createUriForFileName,
-      onFailure: onFailure,
-      runTest: runTestFor(const NullabilityDataComputer(), [defaultCfeConfig]));
+  Directory dataDir = new Directory.fromUri(
+    Platform.script.resolve(
+      '../../../_fe_analyzer_shared/test/flow_analysis/nullability/data',
+    ),
+  );
+  await runTests<String>(
+    dataDir,
+    args: args,
+    createUriForFileName: createUriForFileName,
+    onFailure: onFailure,
+    runTest: runTestFor(const NullabilityDataComputer(), [defaultCfeConfig]),
+  );
 }
 
 class NullabilityDataComputer extends CfeDataComputer<String> {
@@ -29,18 +34,23 @@ class NullabilityDataComputer extends CfeDataComputer<String> {
   ///
   /// Fills [actualMap] with the data.
   @override
-  void computeMemberData(CfeTestResultData testResultData, Member member,
-      Map<Id, ActualData<String>> actualMap,
-      {bool? verbose}) {
+  void computeMemberData(
+    CfeTestResultData testResultData,
+    Member member,
+    Map<Id, ActualData<String>> actualMap, {
+    bool? verbose,
+  }) {
     member.accept(
-        new NullabilityDataExtractor(testResultData.compilerResult, actualMap));
+      new NullabilityDataExtractor(testResultData.compilerResult, actualMap),
+    );
   }
 }
 
 class NullabilityDataExtractor extends CfeDataExtractor<String> {
-  NullabilityDataExtractor(InternalCompilerResult compilerResult,
-      Map<Id, ActualData<String>> actualMap)
-      : super(compilerResult, actualMap);
+  NullabilityDataExtractor(
+    InternalCompilerResult compilerResult,
+    Map<Id, ActualData<String>> actualMap,
+  ) : super(compilerResult, actualMap);
 
   @override
   String? computeNodeValue(Id id, TreeNode node) {

@@ -93,21 +93,27 @@ class PrecedenceInfoTest {
     ]);
 
     assertInfo((String source, Token token) {
-      expect(token.isOperator, operatorLexemes.contains(source),
-          reason: source);
-      expect(token.type.isOperator, operatorLexemes.contains(source),
-          reason: source);
+      expect(
+        token.isOperator,
+        operatorLexemes.contains(source),
+        reason: source,
+      );
+      expect(
+        token.type.isOperator,
+        operatorLexemes.contains(source),
+        reason: source,
+      );
     });
   }
 
   void test_isAdditiveOperator() {
-    var additiveLexemes = [
-      '-',
-      '+',
-    ];
+    var additiveLexemes = ['-', '+'];
     assertInfo((String source, Token token) {
-      expect(token.type.isAdditiveOperator, additiveLexemes.contains(source),
-          reason: source);
+      expect(
+        token.type.isAdditiveOperator,
+        additiveLexemes.contains(source),
+        reason: source,
+      );
     });
   }
 
@@ -131,127 +137,109 @@ class PrecedenceInfoTest {
     ];
     assertInfo((String source, Token token) {
       expect(
-          token.type.isAssignmentOperator, assignmentLexemes.contains(source),
-          reason: source);
+        token.type.isAssignmentOperator,
+        assignmentLexemes.contains(source),
+        reason: source,
+      );
     });
   }
 
   void test_isAssociativeOperator() {
-    const associativeLexemes = const [
-      '&',
-      '&&',
-      '|',
-      '||',
-      '^',
-      '+',
-      '*',
-    ];
+    const associativeLexemes = const ['&', '&&', '|', '||', '^', '+', '*'];
     assertInfo((String source, Token token) {
       expect(
-          token.type.isAssociativeOperator, associativeLexemes.contains(source),
-          reason: source);
+        token.type.isAssociativeOperator,
+        associativeLexemes.contains(source),
+        reason: source,
+      );
     });
   }
 
   void test_isEqualityOperator() {
-    const equalityLexemes = const [
-      '!=',
-      '==',
-    ];
+    const equalityLexemes = const ['!=', '=='];
     assertInfo((String source, Token token) {
-      expect(token.type.isEqualityOperator, equalityLexemes.contains(source),
-          reason: source);
+      expect(
+        token.type.isEqualityOperator,
+        equalityLexemes.contains(source),
+        reason: source,
+      );
     });
   }
 
   void test_isIncrementOperator() {
-    const incrementLexemes = const [
-      '--',
-      '++',
-    ];
+    const incrementLexemes = const ['--', '++'];
     assertInfo((String source, Token token) {
-      expect(token.type.isIncrementOperator, incrementLexemes.contains(source),
-          reason: source);
+      expect(
+        token.type.isIncrementOperator,
+        incrementLexemes.contains(source),
+        reason: source,
+      );
     });
   }
 
   void test_isMultiplicativeOperator() {
-    const multiplicativeLexemes = const [
-      '%',
-      '/',
-      '*',
-      '~/',
-    ];
+    const multiplicativeLexemes = const ['%', '/', '*', '~/'];
     assertInfo((String source, Token token) {
-      expect(token.type.isMultiplicativeOperator,
-          multiplicativeLexemes.contains(source),
-          reason: source);
+      expect(
+        token.type.isMultiplicativeOperator,
+        multiplicativeLexemes.contains(source),
+        reason: source,
+      );
     });
   }
 
   void test_isRelationalOperator() {
-    const relationalLexemes = const [
-      '>',
-      '>=',
-      '<',
-      '<=',
-    ];
+    const relationalLexemes = const ['>', '>=', '<', '<='];
     assertInfo((String source, Token token) {
       expect(
-          token.type.isRelationalOperator, relationalLexemes.contains(source),
-          reason: source);
+        token.type.isRelationalOperator,
+        relationalLexemes.contains(source),
+        reason: source,
+      );
     });
   }
 
   void test_isShiftOperator() {
-    const shiftLexemes = const [
-      '>>',
-      '<<',
-    ];
+    const shiftLexemes = const ['>>', '<<'];
     assertInfo((String source, Token token) {
-      expect(token.type.isShiftOperator, shiftLexemes.contains(source),
-          reason: source);
+      expect(
+        token.type.isShiftOperator,
+        shiftLexemes.contains(source),
+        reason: source,
+      );
     });
   }
 
   void test_isUnaryPostfixOperator() {
-    const unaryPostfixLexemes = const [
-      '--',
-      '++',
-    ];
+    const unaryPostfixLexemes = const ['--', '++'];
     assertInfo((String source, Token token) {
-      expect(token.type.isUnaryPostfixOperator,
-          unaryPostfixLexemes.contains(source),
-          reason: source);
+      expect(
+        token.type.isUnaryPostfixOperator,
+        unaryPostfixLexemes.contains(source),
+        reason: source,
+      );
     });
   }
 
   void test_isUnaryPrefixOperator() {
-    const unaryPrefixLexemes = const [
-      '!',
-      '-',
-      '--',
-      '++',
-      '~',
-    ];
+    const unaryPrefixLexemes = const ['!', '-', '--', '++', '~'];
     assertInfo((String source, Token token) {
       expect(
-          token.type.isUnaryPrefixOperator, unaryPrefixLexemes.contains(source),
-          reason: source);
+        token.type.isUnaryPrefixOperator,
+        unaryPrefixLexemes.contains(source),
+        reason: source,
+      );
     });
   }
 
   void test_isSelectorOperator() {
-    const selectorLexemes = const [
-      '(',
-      '[',
-      '.',
-      '?.',
-      '[]',
-    ];
+    const selectorLexemes = const ['(', '[', '.', '?.', '[]'];
     assertInfo((String source, Token token) {
-      expect(token.type.isSelectorOperator, selectorLexemes.contains(source),
-          reason: source);
+      expect(
+        token.type.isSelectorOperator,
+        selectorLexemes.contains(source),
+        reason: source,
+      );
     });
   }
 
@@ -281,8 +269,11 @@ class PrecedenceInfoTest {
       var userDefinable = userDefinableOperatorLexemes.contains(source);
       expect(token.type.isUserDefinableOperator, userDefinable, reason: source);
       expect(token.isUserDefinableOperator, userDefinable, reason: source);
-      expect(isUserDefinableOperator(token.lexeme), userDefinable,
-          reason: source);
+      expect(
+        isUserDefinableOperator(token.lexeme),
+        userDefinable,
+        reason: source,
+      );
     });
   }
 
@@ -293,8 +284,11 @@ class PrecedenceInfoTest {
       while (token is ErrorToken || token.offset < offset) {
         token = token.next!;
       }
-      expect(token.type.name, name,
-          reason: 'source: $source\ntoken: ${token.lexeme}');
+      expect(
+        token.type.name,
+        name,
+        reason: 'source: $source\ntoken: ${token.lexeme}',
+      );
     }
 
     assertName('&', 'AMPERSAND');
@@ -398,8 +392,11 @@ class PrecedenceInfoTest {
   }
 
   void test_type() {
-    void assertLexeme(String source, TokenType tt,
-        {bool skipErrorTokens = false}) {
+    void assertLexeme(
+      String source,
+      TokenType tt, {
+      bool skipErrorTokens = false,
+    }) {
       var token = scanString(source, includeComments: true).tokens;
       if (skipErrorTokens) {
         while (token is ErrorToken) {
@@ -421,7 +418,10 @@ class PrecedenceInfoTest {
     assertLexeme('"foo"', TokenType.STRING);
 
     // Invalid but recovers nicely.
-    assertLexeme('1_e', TokenType.DOUBLE_WITH_SEPARATORS,
-        skipErrorTokens: true);
+    assertLexeme(
+      '1_e',
+      TokenType.DOUBLE_WITH_SEPARATORS,
+      skipErrorTokens: true,
+    );
   }
 }

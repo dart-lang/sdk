@@ -19,8 +19,11 @@ enum Dictionaries {
 
 Map<Dictionaries, Set<String>>? loadedDictionaries;
 
-SpellingResult spellcheckString(String s,
-    {List<Dictionaries>? dictionaries, bool splitAsCode = false}) {
+SpellingResult spellcheckString(
+  String s, {
+  List<Dictionaries>? dictionaries,
+  bool splitAsCode = false,
+}) {
   dictionaries ??= const [Dictionaries.common];
   ensureDictionariesLoaded(dictionaries);
 
@@ -29,8 +32,11 @@ SpellingResult spellcheckString(String s,
   List<int>? wrongWordsOffset;
   List<bool>? wrongWordDenylisted;
   List<int> wordOffsets = <int>[];
-  List<String> words =
-      splitStringIntoWords(s, wordOffsets, splitAsCode: splitAsCode);
+  List<String> words = splitStringIntoWords(
+    s,
+    wordOffsets,
+    splitAsCode: splitAsCode,
+  );
   List<Set<String>> dictionariesUnpacked = [];
   for (int j = 0; j < dictionaries.length; j++) {
     Dictionaries dictionaryType = dictionaries[j];
@@ -58,13 +64,18 @@ SpellingResult spellcheckString(String s,
       wrongWordsOffset ??= [];
       wrongWordsOffset.add(offset);
       wrongWordDenylisted ??= [];
-      wrongWordDenylisted
-          .add(loadedDictionaries![Dictionaries.denylist]!.contains(word));
+      wrongWordDenylisted.add(
+        loadedDictionaries![Dictionaries.denylist]!.contains(word),
+      );
     }
   }
 
-  return new SpellingResult(wrongWords, wrongWordsOffset, wrongWordDenylisted,
-      wrongWordsAlternatives);
+  return new SpellingResult(
+    wrongWords,
+    wrongWordsOffset,
+    wrongWordDenylisted,
+    wrongWordsAlternatives,
+  );
 }
 
 List<String>? findAlternatives(String word, List<Set<String>> dictionaries) {
@@ -121,17 +132,22 @@ class SpellingResult {
   final List<bool>? misspelledWordsDenylisted;
   final List<List<String>?>? misspelledWordsAlternatives;
 
-  SpellingResult(this.misspelledWords, this.misspelledWordsOffset,
-      this.misspelledWordsDenylisted, this.misspelledWordsAlternatives);
+  SpellingResult(
+    this.misspelledWords,
+    this.misspelledWordsOffset,
+    this.misspelledWordsDenylisted,
+    this.misspelledWordsAlternatives,
+  );
 }
 
 void ensureDictionariesLoaded(List<Dictionaries> dictionaries) {
   void addWords(Uri uri, Set<String> dictionary) {
-    for (String word in File.fromUri(uri)
-        .readAsStringSync()
-        .replaceAll("\r\n", "\n")
-        .split("\n")
-        .map((s) => s.toLowerCase())) {
+    for (String word
+        in File.fromUri(uri)
+            .readAsStringSync()
+            .replaceAll("\r\n", "\n")
+            .split("\n")
+            .map((s) => s.toLowerCase())) {
       if (word.startsWith("#")) continue;
       int indexOfHash = word.indexOf(" #");
       if (indexOfHash >= 0) {
@@ -174,24 +190,31 @@ void ensureDictionariesLoaded(List<Dictionaries> dictionaries) {
 Uri dictionaryToUri(Dictionaries dictionaryType) {
   switch (dictionaryType) {
     case Dictionaries.common:
-      return repoDir
-          .resolve("pkg/front_end/test/spell_checking_list_common.txt");
+      return repoDir.resolve(
+        "pkg/front_end/test/spell_checking_list_common.txt",
+      );
     case Dictionaries.cfeMessages:
-      return repoDir
-          .resolve("pkg/front_end/test/spell_checking_list_messages.txt");
+      return repoDir.resolve(
+        "pkg/front_end/test/spell_checking_list_messages.txt",
+      );
     case Dictionaries.cfeCode:
       return repoDir.resolve("pkg/front_end/test/spell_checking_list_code.txt");
     case Dictionaries.cfeTests:
-      return repoDir
-          .resolve("pkg/front_end/test/spell_checking_list_tests.txt");
+      return repoDir.resolve(
+        "pkg/front_end/test/spell_checking_list_tests.txt",
+      );
     case Dictionaries.denylist:
-      return repoDir
-          .resolve("pkg/front_end/test/spell_checking_list_denylist.txt");
+      return repoDir.resolve(
+        "pkg/front_end/test/spell_checking_list_denylist.txt",
+      );
   }
 }
 
-List<String> splitStringIntoWords(String s, List<int> splitOffsets,
-    {bool splitAsCode = false}) {
+List<String> splitStringIntoWords(
+  String s,
+  List<int> splitOffsets, {
+  bool splitAsCode = false,
+}) {
   List<String> result = <String>[];
   // Match whitespace and the characters "-", "=", "|", "/", ",".
   String regExpStringInner = r"\s-=\|\/,";
@@ -209,8 +232,9 @@ List<String> splitStringIntoWords(String s, List<int> splitOffsets,
     regExp = "(?:&[a-zA-Z0-9]+;|[$regExpStringInner]|\\\\n)+";
   }
 
-  Iterator<RegExpMatch> matchesIterator =
-      new RegExp(regExp).allMatches(s).iterator;
+  Iterator<RegExpMatch> matchesIterator = new RegExp(
+    regExp,
+  ).allMatches(s).iterator;
   int latestMatch = 0;
   List<String> split = <String>[];
   List<int> splitOffset = <int>[];
@@ -347,7 +371,8 @@ List<String> splitStringIntoWords(String s, List<int> splitOffsets,
       }
     } else {
       result.add(
-          (changedStart || changedEnd) ? word.substring(start, end) : word);
+        (changedStart || changedEnd) ? word.substring(start, end) : word,
+      );
       splitOffsets.add(offset + start);
     }
   }
@@ -355,11 +380,12 @@ List<String> splitStringIntoWords(String s, List<int> splitOffsets,
 }
 
 void spellSummarizeAndInteractiveMode(
-    Map<String, List<String>?> reportedWordsAndAlternatives,
-    Set<String> reportedWordsDenylisted,
-    List<Dictionaries> dictionaries,
-    bool interactive,
-    String interactiveLaunchExample) {
+  Map<String, List<String>?> reportedWordsAndAlternatives,
+  Set<String> reportedWordsDenylisted,
+  List<Dictionaries> dictionaries,
+  bool interactive,
+  String interactiveLaunchExample,
+) {
   if (reportedWordsDenylisted.isNotEmpty) {
     bool isSingular = reportedWordsDenylisted.length == 1;
     String suffix = isSingular ? "" : "s";
@@ -414,8 +440,10 @@ void spellSummarizeAndInteractiveMode(
         String answer;
         bool? add;
         while (true) {
-          stdout.write("Do you want to add the word to the dictionary "
-              "$dictionaryToUse (y/n)? ");
+          stdout.write(
+            "Do you want to add the word to the dictionary "
+            "$dictionaryToUse (y/n)? ",
+          );
           answer = stdin.readLineSync()!.trim().toLowerCase();
           switch (answer) {
             case "y":
@@ -440,8 +468,9 @@ void spellSummarizeAndInteractiveMode(
         }
       }
       if (addedWords.isNotEmpty) {
-        File dictionaryFile =
-            new File.fromUri(dictionaryToUri(dictionaryToUse));
+        File dictionaryFile = new File.fromUri(
+          dictionaryToUri(dictionaryToUse),
+        );
         List<String> lines = dictionaryFile.readAsLinesSync();
         List<String> header = <String>[];
         List<String> sortThis = <String>[];
@@ -471,15 +500,19 @@ void spellSummarizeAndInteractiveMode(
       }
       if (dictionaries.isNotEmpty) {
         print("----------------");
-        print("If the word$suffix $are correctly spelled please add "
-            "${isSingular ? "it" : "them separately"} to one of these files:");
+        print(
+          "If the word$suffix $are correctly spelled please add "
+          "${isSingular ? "it" : "them separately"} to one of these files:",
+        );
         for (Dictionaries dictionary in dictionaries) {
           print(" - ${dictionaryToUri(dictionary)}");
         }
 
         print("");
-        print("To add words easily, try to run this script in interactive "
-            "mode via the command");
+        print(
+          "To add words easily, try to run this script in interactive "
+          "mode via the command",
+        );
         print(interactiveLaunchExample);
       }
     }

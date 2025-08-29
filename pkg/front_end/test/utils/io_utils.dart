@@ -27,8 +27,11 @@ String computeRepoDir() {
   }
   String path = new File.fromUri(uri).parent.path;
   ProcessResult result = Process.runSync(
-      'git', ['rev-parse', '--show-toplevel'],
-      runInShell: true, workingDirectory: path);
+    'git',
+    ['rev-parse', '--show-toplevel'],
+    runInShell: true,
+    workingDirectory: path,
+  );
   if (result.exitCode != 0) {
     throw "Git returned non-zero error code (${result.exitCode}):\n\n"
         "stdout: ${result.stdout}\n\n"
@@ -61,10 +64,13 @@ Uri computeRepoDirUri() {
 }
 
 Package? getPackageFor(String name) {
-  Uri packageConfigUri =
-      computeRepoDirUri().resolve(".dart_tool/package_config.json");
+  Uri packageConfigUri = computeRepoDirUri().resolve(
+    ".dart_tool/package_config.json",
+  );
   PackageConfig packageConfig = PackageConfig.parseBytes(
-      new File.fromUri(packageConfigUri).readAsBytesSync(), packageConfigUri);
+    new File.fromUri(packageConfigUri).readAsBytesSync(),
+    packageConfigUri,
+  );
   for (Package package in packageConfig.packages) {
     if (package.name == name) {
       return package;

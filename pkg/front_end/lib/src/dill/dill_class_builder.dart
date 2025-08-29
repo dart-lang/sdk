@@ -62,78 +62,105 @@ class DillClassBuilder extends ClassBuilderImpl {
         case ProcedureKind.Factory:
           Procedure? factoryTearOff = tearOffs[procedure.name.text];
           DillFactoryBuilder builder = new DillFactoryBuilder(
-              procedure, factoryTearOff, libraryBuilder, this);
+            procedure,
+            factoryTearOff,
+            libraryBuilder,
+            this,
+          );
           if (!_isPrivateFromOtherLibrary(procedure)) {
             assert(
-                !constructors.containsKey(name),
-                "Unexpected existing member ${constructors[name]}, "
-                "trying to add $builder.");
+              !constructors.containsKey(name),
+              "Unexpected existing member ${constructors[name]}, "
+              "trying to add $builder.",
+            );
             constructors[name] = builder;
           }
           _constructorBuilders.add(builder);
         case ProcedureKind.Setter:
-          DillSetterBuilder builder =
-              new DillSetterBuilder(procedure, libraryBuilder, this);
+          DillSetterBuilder builder = new DillSetterBuilder(
+            procedure,
+            libraryBuilder,
+            this,
+          );
           if (!_isPrivateFromOtherLibrary(procedure)) {
             MemberLookupResult? existing = content[name];
             if (existing != null) {
               assert(
-                  existing.getable != null && existing.setable == null,
-                  "Unexpected existing member $existing, "
-                  "trying to add $builder.");
+                existing.getable != null && existing.setable == null,
+                "Unexpected existing member $existing, "
+                "trying to add $builder.",
+              );
               assert(
-                  existing.isStatic == builder.isStatic,
-                  "Static/instance conflict between existing member $existing "
-                  "and new builder $builder.");
+                existing.isStatic == builder.isStatic,
+                "Static/instance conflict between existing member $existing "
+                "and new builder $builder.",
+              );
               content[name] = new GetableSetableMemberResult(
-                  existing.getable!, builder,
-                  isStatic: existing.isStatic);
+                existing.getable!,
+                builder,
+                isStatic: existing.isStatic,
+              );
             } else {
               content[name] = builder;
             }
           }
           _memberBuilders.add(builder);
         case ProcedureKind.Getter:
-          DillGetterBuilder builder =
-              new DillGetterBuilder(procedure, libraryBuilder, this);
+          DillGetterBuilder builder = new DillGetterBuilder(
+            procedure,
+            libraryBuilder,
+            this,
+          );
           if (!_isPrivateFromOtherLibrary(procedure)) {
             MemberLookupResult? existing = content[name];
             if (existing != null) {
               assert(
-                  existing.getable == null && existing.setable != null,
-                  "Unexpected existing member $existing, "
-                  "trying to add $builder.");
+                existing.getable == null && existing.setable != null,
+                "Unexpected existing member $existing, "
+                "trying to add $builder.",
+              );
               assert(
-                  existing.isStatic == builder.isStatic,
-                  "Static/instance conflict between existing member $existing "
-                  "and new builder $builder.");
+                existing.isStatic == builder.isStatic,
+                "Static/instance conflict between existing member $existing "
+                "and new builder $builder.",
+              );
               content[name] = new GetableSetableMemberResult(
-                  builder, existing.setable!,
-                  isStatic: existing.isStatic);
+                builder,
+                existing.setable!,
+                isStatic: existing.isStatic,
+              );
             } else {
               content[name] = builder;
             }
           }
           _memberBuilders.add(builder);
         case ProcedureKind.Operator:
-          DillOperatorBuilder builder =
-              new DillOperatorBuilder(procedure, libraryBuilder, this);
+          DillOperatorBuilder builder = new DillOperatorBuilder(
+            procedure,
+            libraryBuilder,
+            this,
+          );
           if (!_isPrivateFromOtherLibrary(procedure)) {
             assert(
-                !content.containsKey(name),
-                "Unexpected existing member ${content[name]}, "
-                "trying to add $builder.");
+              !content.containsKey(name),
+              "Unexpected existing member ${content[name]}, "
+              "trying to add $builder.",
+            );
             content[name] = builder;
           }
           _memberBuilders.add(builder);
         case ProcedureKind.Method:
-          DillMethodBuilder builder =
-              new DillMethodBuilder(procedure, libraryBuilder, this);
+          DillMethodBuilder builder = new DillMethodBuilder(
+            procedure,
+            libraryBuilder,
+            this,
+          );
           if (!_isPrivateFromOtherLibrary(procedure)) {
             assert(
-                !content.containsKey(name),
-                "Unexpected existing member ${content[name]}, "
-                "trying to add $builder.");
+              !content.containsKey(name),
+              "Unexpected existing member ${content[name]}, "
+              "trying to add $builder.",
+            );
             content[name] = builder;
           }
           _memberBuilders.add(builder);
@@ -144,12 +171,17 @@ class DillClassBuilder extends ClassBuilderImpl {
       String name = constructor.name.text;
       Procedure? constructorTearOff = tearOffs[name];
       DillConstructorBuilder builder = new DillConstructorBuilder(
-          constructor, constructorTearOff, libraryBuilder, this);
+        constructor,
+        constructorTearOff,
+        libraryBuilder,
+        this,
+      );
       if (!_isPrivateFromOtherLibrary(constructor)) {
         assert(
-            !constructors.containsKey(name),
-            "Unexpected existing member ${constructors[name]}, "
-            "trying to add $builder.");
+          !constructors.containsKey(name),
+          "Unexpected existing member ${constructors[name]}, "
+          "trying to add $builder.",
+        );
         constructors[name] = builder;
       }
       _constructorBuilders.add(builder);
@@ -157,22 +189,29 @@ class DillClassBuilder extends ClassBuilderImpl {
 
     for (Field field in cls.fields) {
       String name = field.name.text;
-      DillFieldBuilder builder =
-          new DillFieldBuilder(field, libraryBuilder, this);
+      DillFieldBuilder builder = new DillFieldBuilder(
+        field,
+        libraryBuilder,
+        this,
+      );
       if (!_isPrivateFromOtherLibrary(field)) {
         MemberLookupResult? existing = content[name];
         if (existing != null) {
           assert(
-              existing.getable == null && existing.setable != null,
-              "Unexpected existing member $existing, "
-              "trying to add $builder.");
+            existing.getable == null && existing.setable != null,
+            "Unexpected existing member $existing, "
+            "trying to add $builder.",
+          );
           assert(
-              existing.isStatic == builder.isStatic,
-              "Static/instance conflict between existing member $existing "
-              "and new builder $builder.");
+            existing.isStatic == builder.isStatic,
+            "Static/instance conflict between existing member $existing "
+            "and new builder $builder.",
+          );
           content[name] = new GetableSetableMemberResult(
-              builder, existing.setable!,
-              isStatic: existing.isStatic);
+            builder,
+            existing.setable!,
+            isStatic: existing.isStatic,
+          );
         } else {
           content[name] = builder;
         }
@@ -180,7 +219,9 @@ class DillClassBuilder extends ClassBuilderImpl {
       _memberBuilders.add(builder);
     }
     _nameSpace = new DillDeclarationNameSpace(
-        constructors: constructors, content: content);
+      constructors: constructors,
+      content: content,
+    );
   }
 
   @override
@@ -232,10 +273,12 @@ class DillClassBuilder extends ClassBuilderImpl {
       _memberBuilders.iterator;
 
   @override
-  Iterator<T> filteredMembersIterator<T extends MemberBuilder>(
-          {required bool includeDuplicates}) =>
-      new FilteredIterator<T>(_memberBuilders.iterator,
-          includeDuplicates: includeDuplicates);
+  Iterator<T> filteredMembersIterator<T extends MemberBuilder>({
+    required bool includeDuplicates,
+  }) => new FilteredIterator<T>(
+    _memberBuilders.iterator,
+    includeDuplicates: includeDuplicates,
+  );
 
   @override
   // Coverage-ignore(suite): Not run.
@@ -243,17 +286,21 @@ class DillClassBuilder extends ClassBuilderImpl {
       _constructorBuilders.iterator;
 
   @override
-  Iterator<T> filteredConstructorsIterator<T extends MemberBuilder>(
-          {required bool includeDuplicates}) =>
-      new FilteredIterator<T>(_constructorBuilders.iterator,
-          includeDuplicates: includeDuplicates);
+  Iterator<T> filteredConstructorsIterator<T extends MemberBuilder>({
+    required bool includeDuplicates,
+  }) => new FilteredIterator<T>(
+    _constructorBuilders.iterator,
+    includeDuplicates: includeDuplicates,
+  );
 
   @override
   List<NominalParameterBuilder>? get typeParameters {
     List<NominalParameterBuilder>? typeParameters = _typeParameters;
     if (typeParameters == null && cls.typeParameters.isNotEmpty) {
       typeParameters = _typeParameters = computeTypeParameterBuilders(
-          cls.typeParameters, libraryBuilder.loader);
+        cls.typeParameters,
+        libraryBuilder.loader,
+      );
     }
     return typeParameters;
   }
@@ -264,8 +311,10 @@ class DillClassBuilder extends ClassBuilderImpl {
     if (supertype == null) {
       Supertype? targetSupertype = cls.supertype;
       if (targetSupertype == null) return null;
-      _supertypeBuilder =
-          supertype = computeTypeBuilder(libraryBuilder, targetSupertype);
+      _supertypeBuilder = supertype = computeTypeBuilder(
+        libraryBuilder,
+        targetSupertype,
+      );
     }
     return supertype;
   }
@@ -274,24 +323,30 @@ class DillClassBuilder extends ClassBuilderImpl {
   int get typeParametersCount => cls.typeParameters.length;
 
   @override
-  List<DartType> buildAliasedTypeArguments(LibraryBuilder library,
-      List<TypeBuilder>? arguments, ClassHierarchyBase? hierarchy) {
+  List<DartType> buildAliasedTypeArguments(
+    LibraryBuilder library,
+    List<TypeBuilder>? arguments,
+    ClassHierarchyBase? hierarchy,
+  ) {
     // For performance reasons, [typeParameters] aren't restored from [target].
     // So, if [arguments] is null, the default types should be retrieved from
     // [cls.typeParameters].
     if (arguments == null) {
       // TODO(johnniwinther): Use i2b here when needed.
-      return new List<DartType>.generate(cls.typeParameters.length,
-          (int i) => cls.typeParameters[i].defaultType,
-          growable: true);
+      return new List<DartType>.generate(
+        cls.typeParameters.length,
+        (int i) => cls.typeParameters[i].defaultType,
+        growable: true,
+      );
     }
 
     // [arguments] != null
     return new List<DartType>.generate(
-        arguments.length,
-        (int i) =>
-            arguments[i].buildAliased(library, TypeUse.typeArgument, hierarchy),
-        growable: true);
+      arguments.length,
+      (int i) =>
+          arguments[i].buildAliased(library, TypeUse.typeArgument, hierarchy),
+      growable: true,
+    );
   }
 
   /// Returns true if this class is the result of applying a mixin to its
@@ -314,10 +369,10 @@ class DillClassBuilder extends ClassBuilderImpl {
     List<TypeBuilder>? interfaceBuilders = _interfaceBuilders;
     if (interfaceBuilders == null) {
       interfaceBuilders = _interfaceBuilders = new List<TypeBuilder>.generate(
-          cls.implementedTypes.length,
-          (int i) =>
-              computeTypeBuilder(libraryBuilder, cls.implementedTypes[i])!,
-          growable: false);
+        cls.implementedTypes.length,
+        (int i) => computeTypeBuilder(libraryBuilder, cls.implementedTypes[i])!,
+        growable: false,
+      );
     }
     return interfaceBuilders;
   }
@@ -333,17 +388,21 @@ class DillClassBuilder extends ClassBuilderImpl {
 }
 
 TypeBuilder? computeTypeBuilder(
-    DillLibraryBuilder library, Supertype? supertype) {
+  DillLibraryBuilder library,
+  Supertype? supertype,
+) {
   return supertype == null
       ? null
       : library.loader.computeTypeBuilder(supertype.asInterfaceType);
 }
 
 List<DillNominalParameterBuilder>? computeTypeParameterBuilders(
-    List<TypeParameter>? typeParameters, Loader loader) {
+  List<TypeParameter>? typeParameters,
+  Loader loader,
+) {
   if (typeParameters == null || typeParameters.length == 0) return null;
   return <DillNominalParameterBuilder>[
     for (TypeParameter typeParameter in typeParameters)
-      new DillNominalParameterBuilder(typeParameter, loader: loader)
+      new DillNominalParameterBuilder(typeParameter, loader: loader),
   ];
 }

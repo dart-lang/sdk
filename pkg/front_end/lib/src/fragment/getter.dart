@@ -64,8 +64,11 @@ class GetterFragment implements Fragment, FunctionFragment {
   GetterFragmentDeclaration? _declaration;
 
   @override
-  late final UriOffsetLength uriOffset =
-      new UriOffsetLength(fileUri, nameOffset, name.length);
+  late final UriOffsetLength uriOffset = new UriOffsetLength(
+    fileUri,
+    nameOffset,
+    name.length,
+  );
 
   GetterFragment({
     required this.name,
@@ -106,8 +109,10 @@ class GetterFragment implements Fragment, FunctionFragment {
   }
 
   void set declaration(GetterFragmentDeclaration value) {
-    assert(_declaration == null,
-        "Declaration has already been computed for $this.");
+    assert(
+      _declaration == null,
+      "Declaration has already been computed for $this.",
+    );
     _declaration = value;
   }
 
@@ -136,8 +141,8 @@ class _GetterBodyBuildingContext implements FunctionBodyBuildingContext {
   MemberKind get memberKind => _fragment.isTopLevel
       ? MemberKind.TopLevelMethod
       : (_fragment.modifiers.isStatic
-          ? MemberKind.StaticMethod
-          : MemberKind.NonStaticMethod);
+            ? MemberKind.StaticMethod
+            : MemberKind.NonStaticMethod);
 
   @override
   bool get shouldBuild => true;

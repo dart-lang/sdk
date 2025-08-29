@@ -92,8 +92,11 @@ abstract class CombinedMemberSignatureBase {
   /// Creates a [CombinedMemberSignatureBase] whose canonical member is already
   /// defined.
   CombinedMemberSignatureBase.internal(
-      this.membersBuilder, this._canonicalMemberIndex, this.members,
-      {required this.forSetter});
+    this.membersBuilder,
+    this._canonicalMemberIndex,
+    this.members, {
+    required this.forSetter,
+  });
 
   /// Creates a [CombinedMemberSignatureBase] for [members] inherited into
   /// [extensionTypeDeclarationBuilder].
@@ -101,16 +104,21 @@ abstract class CombinedMemberSignatureBase {
   /// If [forSetter] is `true`, contravariance of the setter types is used to
   /// compute the most specific member type. Otherwise covariance of the getter
   /// types or function types is used.
-  CombinedMemberSignatureBase(this.membersBuilder, this.members,
-      {required this.forSetter}) {
+  CombinedMemberSignatureBase(
+    this.membersBuilder,
+    this.members, {
+    required this.forSetter,
+  }) {
     int? bestSoFarIndex;
     if (members.length == 1) {
       bestSoFarIndex = 0;
     } else {
       DartType? bestTypeSoFar;
-      for (int candidateIndex = members.length - 1;
-          candidateIndex >= 0;
-          candidateIndex--) {
+      for (
+        int candidateIndex = members.length - 1;
+        candidateIndex >= 0;
+        candidateIndex--
+      ) {
         DartType candidateType = getMemberType(candidateIndex);
         if (bestSoFarIndex == null) {
           bestTypeSoFar = candidateType;
@@ -121,7 +129,7 @@ abstract class CombinedMemberSignatureBase {
               if (_mutualSubtypes == null) {
                 _mutualSubtypes = {
                   bestTypeSoFar: bestSoFarIndex,
-                  candidateType: candidateIndex
+                  candidateType: candidateIndex,
                 };
               } else {
                 _mutualSubtypes![candidateType] = candidateIndex;
@@ -140,13 +148,16 @@ abstract class CombinedMemberSignatureBase {
         _mutualSubtypes = null;
       }
       if (bestSoFarIndex != null) {
-        for (int candidateIndex = 0;
-            candidateIndex < members.length;
-            candidateIndex++) {
+        for (
+          int candidateIndex = 0;
+          candidateIndex < members.length;
+          candidateIndex++
+        ) {
           DartType candidateType = getMemberType(candidateIndex);
           if (!_isMoreSpecific(bestTypeSoFar!, candidateType, forSetter)) {
-            int? favoredIndex =
-                getOverlookedOverrideProblemChoice(declarationBuilder);
+            int? favoredIndex = getOverlookedOverrideProblemChoice(
+              declarationBuilder,
+            );
             bestSoFarIndex = favoredIndex;
             _mutualSubtypes = null;
             break;
@@ -202,8 +213,8 @@ abstract class CombinedMemberSignatureBase {
   bool get neededLegacyErasure {
     _ensureCombinedMemberSignatureType();
     return _neededLegacyErasureIndices
-            // Coverage-ignore(suite): Not run.
-            ?.contains(canonicalMemberIndex) ??
+        // Coverage-ignore(suite): Not run.
+        ?.contains(canonicalMemberIndex) ??
         false;
   }
 
@@ -250,22 +261,26 @@ abstract class CombinedMemberSignatureBase {
       if (_canonicalMemberIndex == null) {
         return null;
       }
-      DartType canonicalMemberType =
-          _combinedMemberSignatureType = getMemberType(_canonicalMemberIndex!);
+      DartType canonicalMemberType = _combinedMemberSignatureType =
+          getMemberType(_canonicalMemberIndex!);
       if (_mutualSubtypes != null) {
-        _combinedMemberSignatureType =
-            norm(_coreTypes, _combinedMemberSignatureType!);
+        _combinedMemberSignatureType = norm(
+          _coreTypes,
+          _combinedMemberSignatureType!,
+        );
         for (int index in _mutualSubtypes!.values) {
           if (_canonicalMemberIndex != index) {
             _combinedMemberSignatureType = nnbdTopMerge(
-                _coreTypes,
-                _combinedMemberSignatureType!,
-                norm(_coreTypes, getMemberType(index)));
+              _coreTypes,
+              _combinedMemberSignatureType!,
+              norm(_coreTypes, getMemberType(index)),
+            );
             assert(
-                _combinedMemberSignatureType != null,
-                "No combined member signature found for "
-                "${_mutualSubtypes!.values.map((int i) => getMemberType(i))} "
-                "for members ${members}");
+              _combinedMemberSignatureType != null,
+              "No combined member signature found for "
+              "${_mutualSubtypes!.values.map((int i) => getMemberType(i))} "
+              "for members ${members}",
+            );
           }
         }
         _neededNnbdTopMerge =
@@ -292,16 +307,18 @@ abstract class CombinedMemberSignatureBase {
         return;
       }
       Covariance canonicalMemberCovariance =
-          _combinedMemberSignatureCovariance =
-              _getMemberCovariance(canonicalMemberIndex!);
+          _combinedMemberSignatureCovariance = _getMemberCovariance(
+            canonicalMemberIndex!,
+          );
       if (members.length == 1) {
         return;
       }
       for (int index = 0; index < members.length; index++) {
         if (index != canonicalMemberIndex) {
           _combinedMemberSignatureCovariance =
-              _combinedMemberSignatureCovariance!
-                  .merge(_getMemberCovariance(index));
+              _combinedMemberSignatureCovariance!.merge(
+                _getMemberCovariance(index),
+              );
         }
       }
       _needsCovarianceMerging =
@@ -330,7 +347,8 @@ abstract class CombinedMemberSignatureBase {
   /// This is used for inferring types on a declared member from the type of the
   /// combined member signature.
   DartType? getCombinedSignatureTypeInContext(
-      List<TypeParameter> typeParameters) {
+    List<TypeParameter> typeParameters,
+  ) {
     DartType? type = combinedMemberSignatureType;
     if (type == null) {
       return null;
@@ -346,18 +364,23 @@ abstract class CombinedMemberSignatureBase {
       }
       List<DartType> types = [
         for (TypeParameter parameter in typeParameters)
-          new TypeParameterType.withDefaultNullability(parameter)
+          new TypeParameterType.withDefaultNullability(parameter),
       ];
       FunctionTypeInstantiator instantiator =
           new FunctionTypeInstantiator.fromIterables(
-              signatureTypeParameters, types);
+            signatureTypeParameters,
+            types,
+          );
       for (int i = 0; i < typeParameterCount; i++) {
         DartType typeParameterBound = typeParameters[i].bound;
-        DartType signatureTypeParameterBound =
-            instantiator.substitute(signatureTypeParameters[i].bound);
+        DartType signatureTypeParameterBound = instantiator.substitute(
+          signatureTypeParameters[i].bound,
+        );
         if (!_types
             .performMutualSubtypesCheck(
-                typeParameterBound, signatureTypeParameterBound)
+              typeParameterBound,
+              signatureTypeParameterBound,
+            )
             .isSuccess()) {
           return null;
         }
@@ -374,8 +397,10 @@ abstract class CombinedMemberSignatureBase {
   /// Create a member signature with the [combinedMemberSignatureType] using the
   /// [canonicalMember] as member signature origin.
   Procedure? createMemberFromSignature(
-      FileUriNode declarationNode, IndexedContainer? indexedContainer,
-      {bool copyLocation = true}) {
+    FileUriNode declarationNode,
+    IndexedContainer? indexedContainer, {
+    bool copyLocation = true,
+  }) {
     if (canonicalMemberIndex == null) {
       return null;
     }
@@ -385,54 +410,67 @@ abstract class CombinedMemberSignatureBase {
       switch (member.kind) {
         case ProcedureKind.Getter:
           combinedMemberSignature = _createGetterMemberSignature(
-              declarationNode,
-              indexedContainer,
-              member,
-              combinedMemberSignatureType!,
-              copyLocation: copyLocation);
+            declarationNode,
+            indexedContainer,
+            member,
+            combinedMemberSignatureType!,
+            copyLocation: copyLocation,
+          );
           break;
         case ProcedureKind.Setter:
           VariableDeclaration parameter =
               member.function.positionalParameters.first;
           combinedMemberSignature = _createSetterMemberSignature(
-              declarationNode,
-              indexedContainer,
-              member,
-              combinedMemberSignatureType!,
-              isCovariantByClass: parameter.isCovariantByClass,
-              isCovariantByDeclaration: parameter.isCovariantByDeclaration,
-              parameter: parameter,
-              copyLocation: copyLocation);
+            declarationNode,
+            indexedContainer,
+            member,
+            combinedMemberSignatureType!,
+            isCovariantByClass: parameter.isCovariantByClass,
+            isCovariantByDeclaration: parameter.isCovariantByDeclaration,
+            parameter: parameter,
+            copyLocation: copyLocation,
+          );
           break;
         case ProcedureKind.Method:
         case ProcedureKind.Operator:
           combinedMemberSignature = _createMethodSignature(
-              declarationNode,
-              indexedContainer,
-              member,
-              combinedMemberSignatureType as FunctionType,
-              copyLocation: copyLocation);
+            declarationNode,
+            indexedContainer,
+            member,
+            combinedMemberSignatureType as FunctionType,
+            copyLocation: copyLocation,
+          );
           break;
         // Coverage-ignore(suite): Not run.
         case ProcedureKind.Factory:
           throw new UnsupportedError(
-              'Unexpected canonical member kind ${member.kind} for $member');
+            'Unexpected canonical member kind ${member.kind} for $member',
+          );
       }
     } else if (member is Field) {
       if (forSetter) {
-        combinedMemberSignature = _createSetterMemberSignature(declarationNode,
-            indexedContainer, member, combinedMemberSignatureType!,
-            isCovariantByClass: member.isCovariantByClass,
-            isCovariantByDeclaration: member.isCovariantByDeclaration,
-            copyLocation: copyLocation);
+        combinedMemberSignature = _createSetterMemberSignature(
+          declarationNode,
+          indexedContainer,
+          member,
+          combinedMemberSignatureType!,
+          isCovariantByClass: member.isCovariantByClass,
+          isCovariantByDeclaration: member.isCovariantByDeclaration,
+          copyLocation: copyLocation,
+        );
       } else {
-        combinedMemberSignature = _createGetterMemberSignature(declarationNode,
-            indexedContainer, member, combinedMemberSignatureType!,
-            copyLocation: copyLocation);
+        combinedMemberSignature = _createGetterMemberSignature(
+          declarationNode,
+          indexedContainer,
+          member,
+          combinedMemberSignatureType!,
+          copyLocation: copyLocation,
+        );
       }
     } else {
       throw new UnsupportedError(
-          'Unexpected canonical member $member (${member.runtimeType})');
+        'Unexpected canonical member $member (${member.runtimeType})',
+      );
     }
     combinedMemberSignatureCovariance!.applyCovariance(combinedMemberSignature);
     return combinedMemberSignature;
@@ -440,9 +478,13 @@ abstract class CombinedMemberSignatureBase {
 
   /// Creates a getter member signature for [member] with the given
   /// [type].
-  Procedure _createGetterMemberSignature(FileUriNode declarationNode,
-      IndexedContainer? indexedContainer, Member member, DartType type,
-      {required bool copyLocation}) {
+  Procedure _createGetterMemberSignature(
+    FileUriNode declarationNode,
+    IndexedContainer? indexedContainer,
+    Member member,
+    DartType type, {
+    required bool copyLocation,
+  }) {
     Reference? reference = indexedContainer?.lookupGetterReference(member.name);
 
     Uri fileUri;
@@ -451,24 +493,25 @@ abstract class CombinedMemberSignatureBase {
     if (copyLocation) {
       // Coverage-ignore-block(suite): Not run.
       fileUri = member.fileUri;
-      startFileOffset =
-          member is Procedure ? member.fileStartOffset : member.fileOffset;
+      startFileOffset = member is Procedure
+          ? member.fileStartOffset
+          : member.fileOffset;
       fileOffset = member.fileOffset;
     } else {
       fileUri = declarationNode.fileUri;
       fileOffset = startFileOffset = declarationNode.fileOffset;
     }
     return new Procedure(
-      member.name,
-      ProcedureKind.Getter,
-      new FunctionNode(null, returnType: type),
-      isAbstract: true,
-      fileUri: fileUri,
-      reference: reference,
-      isSynthetic: true,
-      stubKind: ProcedureStubKind.MemberSignature,
-      stubTarget: member.memberSignatureOrigin ?? member,
-    )
+        member.name,
+        ProcedureKind.Getter,
+        new FunctionNode(null, returnType: type),
+        isAbstract: true,
+        fileUri: fileUri,
+        reference: reference,
+        isSynthetic: true,
+        stubKind: ProcedureStubKind.MemberSignature,
+        stubTarget: member.memberSignatureOrigin ?? member,
+      )
       ..fileStartOffset = startFileOffset
       ..fileOffset = fileOffset
       ..parent = declarationNode;
@@ -478,12 +521,16 @@ abstract class CombinedMemberSignatureBase {
   /// [type]. The flags of parameter is set according to
   /// [isCovariantByDeclaration] and [isCovariantByClass] and the name of the
   /// [parameter] is used, if provided.
-  Procedure _createSetterMemberSignature(FileUriNode declarationNode,
-      IndexedContainer? indexedContainer, Member member, DartType type,
-      {required bool isCovariantByDeclaration,
-      required bool isCovariantByClass,
-      VariableDeclaration? parameter,
-      required bool copyLocation}) {
+  Procedure _createSetterMemberSignature(
+    FileUriNode declarationNode,
+    IndexedContainer? indexedContainer,
+    Member member,
+    DartType type, {
+    required bool isCovariantByDeclaration,
+    required bool isCovariantByClass,
+    VariableDeclaration? parameter,
+    required bool copyLocation,
+  }) {
     Reference? reference = indexedContainer?.lookupSetterReference(member.name);
     Uri fileUri;
     int startFileOffset;
@@ -491,48 +538,56 @@ abstract class CombinedMemberSignatureBase {
     if (copyLocation) {
       // Coverage-ignore-block(suite): Not run.
       fileUri = member.fileUri;
-      startFileOffset =
-          member is Procedure ? member.fileStartOffset : member.fileOffset;
+      startFileOffset = member is Procedure
+          ? member.fileStartOffset
+          : member.fileOffset;
       fileOffset = member.fileOffset;
     } else {
       fileUri = declarationNode.fileUri;
       fileOffset = startFileOffset = declarationNode.fileOffset;
     }
     return new Procedure(
-      member.name,
-      ProcedureKind.Setter,
-      new FunctionNode(null,
+        member.name,
+        ProcedureKind.Setter,
+        new FunctionNode(
+          null,
           returnType: const VoidType(),
           positionalParameters: [
-            new VariableDeclaration(parameter?.name ?? 'value',
-                type: type, isCovariantByDeclaration: isCovariantByDeclaration)
+            new VariableDeclaration(
+                parameter?.name ?? 'value',
+                type: type,
+                isCovariantByDeclaration: isCovariantByDeclaration,
+              )
               ..isCovariantByClass = isCovariantByClass
               ..fileOffset = copyLocation
                   ?
-                  // Coverage-ignore(suite): Not run.
-                  parameter?.fileOffset ?? fileOffset
-                  : fileOffset
-          ]),
-      isAbstract: true,
-      fileUri: fileUri,
-      reference: reference,
-      isSynthetic: true,
-      stubKind: ProcedureStubKind.MemberSignature,
-      stubTarget: member.memberSignatureOrigin ?? member,
-    )
+                    // Coverage-ignore(suite): Not run.
+                    parameter?.fileOffset ?? fileOffset
+                  : fileOffset,
+          ],
+        ),
+        isAbstract: true,
+        fileUri: fileUri,
+        reference: reference,
+        isSynthetic: true,
+        stubKind: ProcedureStubKind.MemberSignature,
+        stubTarget: member.memberSignatureOrigin ?? member,
+      )
       ..fileStartOffset = startFileOffset
       ..fileOffset = fileOffset
       ..parent = declarationNode;
   }
 
   Procedure _createMethodSignature(
-      FileUriNode declarationNode,
-      IndexedContainer? indexedContainer,
-      Procedure procedure,
-      FunctionType functionType,
-      {required bool copyLocation}) {
-    Reference? reference =
-        indexedContainer?.lookupGetterReference(procedure.name);
+    FileUriNode declarationNode,
+    IndexedContainer? indexedContainer,
+    Procedure procedure,
+    FunctionType functionType, {
+    required bool copyLocation,
+  }) {
+    Reference? reference = indexedContainer?.lookupGetterReference(
+      procedure.name,
+    );
     Uri fileUri;
     int startFileOffset;
     int fileOffset;
@@ -549,41 +604,51 @@ abstract class CombinedMemberSignatureBase {
     List<VariableDeclaration> positionalParameters = [];
     FreshTypeParametersFromStructuralParameters freshTypeParameters =
         getFreshTypeParametersFromStructuralParameters(
-            functionType.typeParameters);
+          functionType.typeParameters,
+        );
     CloneVisitorNotMembers cloner = new CloneVisitorNotMembers();
     for (int i = 0; i < function.positionalParameters.length; i++) {
       VariableDeclaration parameter = function.positionalParameters[i];
-      DartType parameterType =
-          freshTypeParameters.substitute(functionType.positionalParameters[i]);
-      positionalParameters.add(new VariableDeclaration(parameter.name,
-          type: parameterType,
-          isCovariantByDeclaration: parameter.isCovariantByDeclaration,
-          initializer: cloner.cloneOptional(parameter.initializer))
-        ..hasDeclaredInitializer = parameter.hasDeclaredInitializer
-        ..isCovariantByClass = parameter.isCovariantByClass
-        ..fileOffset = copyLocation
-            ?
-            // Coverage-ignore(suite): Not run.
-            parameter.fileOffset
-            : fileOffset);
+      DartType parameterType = freshTypeParameters.substitute(
+        functionType.positionalParameters[i],
+      );
+      positionalParameters.add(
+        new VariableDeclaration(
+            parameter.name,
+            type: parameterType,
+            isCovariantByDeclaration: parameter.isCovariantByDeclaration,
+            initializer: cloner.cloneOptional(parameter.initializer),
+          )
+          ..hasDeclaredInitializer = parameter.hasDeclaredInitializer
+          ..isCovariantByClass = parameter.isCovariantByClass
+          ..fileOffset = copyLocation
+              ?
+                // Coverage-ignore(suite): Not run.
+                parameter.fileOffset
+              : fileOffset,
+      );
     }
     List<VariableDeclaration> namedParameters = [];
     int namedParameterCount = function.namedParameters.length;
     if (namedParameterCount == 1) {
       NamedType namedType = functionType.namedParameters.first;
       VariableDeclaration parameter = function.namedParameters.first;
-      namedParameters.add(new VariableDeclaration(parameter.name,
-          type: freshTypeParameters.substitute(namedType.type),
-          isRequired: namedType.isRequired,
-          isCovariantByDeclaration: parameter.isCovariantByDeclaration,
-          initializer: cloner.cloneOptional(parameter.initializer))
-        ..hasDeclaredInitializer = parameter.hasDeclaredInitializer
-        ..isCovariantByClass = parameter.isCovariantByClass
-        ..fileOffset = copyLocation
-            ?
-            // Coverage-ignore(suite): Not run.
-            parameter.fileOffset
-            : fileOffset);
+      namedParameters.add(
+        new VariableDeclaration(
+            parameter.name,
+            type: freshTypeParameters.substitute(namedType.type),
+            isRequired: namedType.isRequired,
+            isCovariantByDeclaration: parameter.isCovariantByDeclaration,
+            initializer: cloner.cloneOptional(parameter.initializer),
+          )
+          ..hasDeclaredInitializer = parameter.hasDeclaredInitializer
+          ..isCovariantByClass = parameter.isCovariantByClass
+          ..fileOffset = copyLocation
+              ?
+                // Coverage-ignore(suite): Not run.
+                parameter.fileOffset
+              : fileOffset,
+      );
     } else if (namedParameterCount > 1) {
       Map<String, NamedType> namedTypes = {};
       for (NamedType namedType in functionType.namedParameters) {
@@ -592,36 +657,42 @@ abstract class CombinedMemberSignatureBase {
       for (int i = 0; i < namedParameterCount; i++) {
         VariableDeclaration parameter = function.namedParameters[i];
         NamedType namedParameterType = namedTypes[parameter.name]!;
-        namedParameters.add(new VariableDeclaration(parameter.name,
-            type: freshTypeParameters.substitute(namedParameterType.type),
-            isRequired: namedParameterType.isRequired,
-            isCovariantByDeclaration: parameter.isCovariantByDeclaration,
-            initializer: cloner.cloneOptional(parameter.initializer))
-          ..hasDeclaredInitializer = parameter.hasDeclaredInitializer
-          ..isCovariantByClass = parameter.isCovariantByClass
-          ..fileOffset = copyLocation
-              ?
-              // Coverage-ignore(suite): Not run.
-              parameter.fileOffset
-              : fileOffset);
+        namedParameters.add(
+          new VariableDeclaration(
+              parameter.name,
+              type: freshTypeParameters.substitute(namedParameterType.type),
+              isRequired: namedParameterType.isRequired,
+              isCovariantByDeclaration: parameter.isCovariantByDeclaration,
+              initializer: cloner.cloneOptional(parameter.initializer),
+            )
+            ..hasDeclaredInitializer = parameter.hasDeclaredInitializer
+            ..isCovariantByClass = parameter.isCovariantByClass
+            ..fileOffset = copyLocation
+                ?
+                  // Coverage-ignore(suite): Not run.
+                  parameter.fileOffset
+                : fileOffset,
+        );
       }
     }
     return new Procedure(
-      procedure.name,
-      procedure.kind,
-      new FunctionNode(null,
+        procedure.name,
+        procedure.kind,
+        new FunctionNode(
+          null,
           typeParameters: freshTypeParameters.freshTypeParameters,
           returnType: freshTypeParameters.substitute(functionType.returnType),
           positionalParameters: positionalParameters,
           namedParameters: namedParameters,
-          requiredParameterCount: function.requiredParameterCount),
-      isAbstract: true,
-      fileUri: fileUri,
-      reference: reference,
-      isSynthetic: true,
-      stubKind: ProcedureStubKind.MemberSignature,
-      stubTarget: procedure.memberSignatureOrigin ?? procedure,
-    )
+          requiredParameterCount: function.requiredParameterCount,
+        ),
+        isAbstract: true,
+        fileUri: fileUri,
+        reference: reference,
+        isSynthetic: true,
+        stubKind: ProcedureStubKind.MemberSignature,
+        stubTarget: procedure.memberSignatureOrigin ?? procedure,
+      )
       ..fileStartOffset = startFileOffset
       ..fileOffset = fileOffset
       ..parent = declarationNode;
@@ -637,19 +708,26 @@ abstract class CombinedMemberSignatureBase {
       } else {
         // TODO(johnniwinther): Why do we need the specific nullability here?
         type = member.getterType.withDeclaredNullability(
-            declarationBuilder.libraryBuilder.library.nonNullable);
+          declarationBuilder.libraryBuilder.library.nonNullable,
+        );
       }
     } else if (member is Field) {
       type = member.type;
     } else {
-      unhandled("${member.runtimeType}", "$member",
-          declarationBuilder.fileOffset, declarationBuilder.fileUri);
+      unhandled(
+        "${member.runtimeType}",
+        "$member",
+        declarationBuilder.fileOffset,
+        declarationBuilder.fileUri,
+      );
     }
     if (member.enclosingTypeDeclaration!.typeParameters.isEmpty) {
       return type;
     }
     TypeDeclarationType instance = hierarchy.getTypeAsInstanceOf(
-        thisType, member.enclosingTypeDeclaration!)!;
+      thisType,
+      member.enclosingTypeDeclaration!,
+    )!;
     return Substitution.fromTypeDeclarationType(instance).substituteType(type);
   }
 
@@ -670,11 +748,18 @@ class CombinedClassMemberSignature extends CombinedMemberSignatureBase {
 
   /// Creates a [CombinedClassMemberSignature] whose canonical member is already
   /// defined.
-  CombinedClassMemberSignature.internal(ClassMembersBuilder membersBuilder,
-      this.classBuilder, int? canonicalMemberIndex, List<ClassMember> members,
-      {required bool forSetter})
-      : super.internal(membersBuilder, canonicalMemberIndex, members,
-            forSetter: forSetter);
+  CombinedClassMemberSignature.internal(
+    ClassMembersBuilder membersBuilder,
+    this.classBuilder,
+    int? canonicalMemberIndex,
+    List<ClassMember> members, {
+    required bool forSetter,
+  }) : super.internal(
+         membersBuilder,
+         canonicalMemberIndex,
+         members,
+         forSetter: forSetter,
+       );
 
   /// Creates a [CombinedClassMemberSignature] for [members] inherited into
   /// [classBuilder].
@@ -682,10 +767,12 @@ class CombinedClassMemberSignature extends CombinedMemberSignatureBase {
   /// If [forSetter] is `true`, contravariance of the setter types is used to
   /// compute the most specific member type. Otherwise covariance of the getter
   /// types or function types is used.
-  CombinedClassMemberSignature(ClassMembersBuilder membersBuilder,
-      this.classBuilder, List<ClassMember> members,
-      {required bool forSetter})
-      : super(membersBuilder, members, forSetter: forSetter);
+  CombinedClassMemberSignature(
+    ClassMembersBuilder membersBuilder,
+    this.classBuilder,
+    List<ClassMember> members, {
+    required bool forSetter,
+  }) : super(membersBuilder, members, forSetter: forSetter);
 
   @override
   DeclarationBuilder get declarationBuilder => classBuilder;
@@ -693,8 +780,10 @@ class CombinedClassMemberSignature extends CombinedMemberSignatureBase {
   /// The this type of [classBuilder].
   @override
   InterfaceType get thisType {
-    return _thisType ??=
-        _coreTypes.thisInterfaceType(classBuilder.cls, Nullability.nonNullable);
+    return _thisType ??= _coreTypes.thisInterfaceType(
+      classBuilder.cls,
+      Nullability.nonNullable,
+    );
   }
 
   /// Returns `true` if the canonical member is declared in
@@ -718,10 +807,12 @@ class CombinedExtensionTypeMemberSignature extends CombinedMemberSignatureBase {
   /// If [forSetter] is `true`, contravariance of the setter types is used to
   /// compute the most specific member type. Otherwise covariance of the getter
   /// types or function types is used.
-  CombinedExtensionTypeMemberSignature(ClassMembersBuilder membersBuilder,
-      this.extensionTypeDeclarationBuilder, List<ClassMember> members,
-      {required bool forSetter})
-      : super(membersBuilder, members, forSetter: forSetter);
+  CombinedExtensionTypeMemberSignature(
+    ClassMembersBuilder membersBuilder,
+    this.extensionTypeDeclarationBuilder,
+    List<ClassMember> members, {
+    required bool forSetter,
+  }) : super(membersBuilder, members, forSetter: forSetter);
 
   @override
   DeclarationBuilder get declarationBuilder => extensionTypeDeclarationBuilder;
@@ -730,8 +821,9 @@ class CombinedExtensionTypeMemberSignature extends CombinedMemberSignatureBase {
   @override
   ExtensionType get thisType {
     return _thisType ??= _coreTypes.thisExtensionType(
-        extensionTypeDeclarationBuilder.extensionTypeDeclaration,
-        Nullability.nonNullable);
+      extensionTypeDeclarationBuilder.extensionTypeDeclaration,
+      Nullability.nonNullable,
+    );
   }
 
   @override

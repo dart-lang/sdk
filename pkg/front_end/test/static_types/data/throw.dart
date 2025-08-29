@@ -5,8 +5,8 @@
 throwing() {
   /*Never*/
   throw
-      /*String!*/
-      'foo';
+  /*String!*/
+  'foo';
 }
 
 rethrowing() {

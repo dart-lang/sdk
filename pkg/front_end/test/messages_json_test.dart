@@ -21,51 +21,62 @@ void main() {
     CfeSeverity severity = CfeSeverity.values[i];
     Code code = new Code("MyCodeName");
     Message message = new Message(code, problemMessage: '');
-    LocatedMessage locatedMessage =
-        new LocatedMessage(Uri.parse("what:ever/fun_1.dart"), 117, 2, message);
+    LocatedMessage locatedMessage = new LocatedMessage(
+      Uri.parse("what:ever/fun_1.dart"),
+      117,
+      2,
+      message,
+    );
     FormattedMessage formattedMessage2 = new FormattedMessage(
-        locatedMessage,
-        "Formatted string Plain #2",
-        "Formatted string Colorized #2",
-        13,
-        2,
-        CfeSeverity.error, []);
+      locatedMessage,
+      "Formatted string Plain #2",
+      "Formatted string Colorized #2",
+      13,
+      2,
+      CfeSeverity.error,
+      [],
+    );
     FormattedMessage formattedMessage3 = new FormattedMessage(
-        locatedMessage,
-        "Formatted string Plain #3",
-        "Formatted string Colorized #3",
-        313,
-        32,
-        CfeSeverity.error, []);
+      locatedMessage,
+      "Formatted string Plain #3",
+      "Formatted string Colorized #3",
+      313,
+      32,
+      CfeSeverity.error,
+      [],
+    );
 
     FormattedMessage formattedMessage1 = new FormattedMessage(
-        locatedMessage,
-        "Formatted string Plain",
-        "Formatted string Colorized",
-        42,
-        86,
-        severity, [
-      formattedMessage2,
-      formattedMessage3
-    ],
-        involvedFiles: [
-          Uri.parse("what:ever/foo.dart"),
-          Uri.parse("what:ever/bar.dart")
-        ]);
+      locatedMessage,
+      "Formatted string Plain",
+      "Formatted string Colorized",
+      42,
+      86,
+      severity,
+      [formattedMessage2, formattedMessage3],
+      involvedFiles: [
+        Uri.parse("what:ever/foo.dart"),
+        Uri.parse("what:ever/bar.dart"),
+      ],
+    );
     expect(formattedMessage1.codeName, "MyCodeName");
 
     DiagnosticMessageFromJson diagnosticMessageFromJson =
         new DiagnosticMessageFromJson.fromJson(
-            formattedMessage1.toJsonString());
+          formattedMessage1.toJsonString(),
+        );
     compareMessages(formattedMessage1, diagnosticMessageFromJson);
 
     DiagnosticMessageFromJson diagnosticMessageFromJson2 =
         new DiagnosticMessageFromJson.fromJson(
-            diagnosticMessageFromJson.toJsonString());
+          diagnosticMessageFromJson.toJsonString(),
+        );
     compareMessages(diagnosticMessageFromJson, diagnosticMessageFromJson2);
 
-    expect(diagnosticMessageFromJson2.toJsonString(),
-        formattedMessage1.toJsonString());
+    expect(
+      diagnosticMessageFromJson2.toJsonString(),
+      formattedMessage1.toJsonString(),
+    );
   }
 }
 

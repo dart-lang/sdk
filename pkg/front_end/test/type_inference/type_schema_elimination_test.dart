@@ -20,12 +20,14 @@ void main() {
 class TypeSchemaEliminationTest {
   final Env env = new Env("");
   final Map<String, DartType Function()> additionalTypes = {
-    "UNKNOWN": () => new UnknownType()
+    "UNKNOWN": () => new UnknownType(),
   };
 
   DartType greatestClosure(DartType schema) {
-    return typeSchemaElimination.greatestClosure(schema,
-        topType: new DynamicType());
+    return typeSchemaElimination.greatestClosure(
+      schema,
+      topType: new DynamicType(),
+    );
   }
 
   DartType leastClosure(DartType schema) {
@@ -34,13 +36,16 @@ class TypeSchemaEliminationTest {
 
   void testGreatest(String type, String expectedClosure) {
     expect(
-        greatestClosure(env.parseType(type, additionalTypes: additionalTypes)),
-        env.parseType(expectedClosure, additionalTypes: additionalTypes));
+      greatestClosure(env.parseType(type, additionalTypes: additionalTypes)),
+      env.parseType(expectedClosure, additionalTypes: additionalTypes),
+    );
   }
 
   void testLeast(String type, String expectedClosure) {
-    expect(leastClosure(env.parseType(type, additionalTypes: additionalTypes)),
-        env.parseType(expectedClosure, additionalTypes: additionalTypes));
+    expect(
+      leastClosure(env.parseType(type, additionalTypes: additionalTypes)),
+      env.parseType(expectedClosure, additionalTypes: additionalTypes),
+    );
   }
 
   void test_greatestClosure_contravariant() {
@@ -49,8 +54,10 @@ class TypeSchemaEliminationTest {
   }
 
   void test_greatestClosure_contravariant_contravariant() {
-    testGreatest("((UNKNOWN) -> dynamic) -> dynamic",
-        "((dynamic) -> dynamic) -> dynamic");
+    testGreatest(
+      "((UNKNOWN) -> dynamic) -> dynamic",
+      "((dynamic) -> dynamic) -> dynamic",
+    );
   }
 
   void test_greatestClosure_covariant() {
@@ -59,8 +66,10 @@ class TypeSchemaEliminationTest {
   }
 
   void test_greatestClosure_function_multipleUnknown() {
-    testGreatest("(UNKNOWN, UNKNOWN, {UNKNOWN a, UNKNOWN b}) -> UNKNOWN",
-        "(Never, Never, {Never a, Never b}) -> dynamic");
+    testGreatest(
+      "(UNKNOWN, UNKNOWN, {UNKNOWN a, UNKNOWN b}) -> UNKNOWN",
+      "(Never, Never, {Never a, Never b}) -> dynamic",
+    );
   }
 
   void test_greatestClosure_simple() {
@@ -74,7 +83,9 @@ class TypeSchemaEliminationTest {
 
   void test_leastClosure_contravariant_contravariant() {
     testLeast(
-        "((UNKNOWN) -> UNKNOWN) -> dynamic", "((Never) -> Object?) -> dynamic");
+      "((UNKNOWN) -> UNKNOWN) -> dynamic",
+      "((Never) -> Object?) -> dynamic",
+    );
   }
 
   void test_leastClosure_covariant() {
@@ -83,8 +94,10 @@ class TypeSchemaEliminationTest {
   }
 
   void test_leastClosure_function_multipleUnknown() {
-    testLeast("(UNKNOWN, UNKNOWN, {UNKNOWN a, UNKNOWN b}) -> UNKNOWN",
-        "(Object?, Object?, {Object? a, Object? b}) -> Never");
+    testLeast(
+      "(UNKNOWN, UNKNOWN, {UNKNOWN a, UNKNOWN b}) -> UNKNOWN",
+      "(Object?, Object?, {Object? a, Object? b}) -> Never",
+    );
   }
 
   void test_leastClosure_simple() {

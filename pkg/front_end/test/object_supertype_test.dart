@@ -28,31 +28,39 @@ Future<List<CfeDiagnosticMessage>> outline(String objectHeader) async {
 
   final Uri librariesSpecificationUri = base.resolve("sdk/libraries.json");
 
-  fs.entityForUri(librariesSpecificationUri).writeAsStringSync(json.encode({
-        "none": {
-          "libraries": {
-            "core": {
-              "uri": "lib/core/core.dart",
+  fs
+      .entityForUri(librariesSpecificationUri)
+      .writeAsStringSync(
+        json.encode({
+          "none": {
+            "libraries": {
+              "core": {"uri": "lib/core/core.dart"},
             },
           },
-        },
-      }));
+        }),
+      );
 
-  fs.entityForUri(base.resolve("sdk/lib/core/core.dart")).writeAsStringSync(
-      defaultDartCoreSource
-          .replaceAll("class Object {", "$objectHeader")
-          .replaceAll("const Object();", ""));
+  fs
+      .entityForUri(base.resolve("sdk/lib/core/core.dart"))
+      .writeAsStringSync(
+        defaultDartCoreSource
+            .replaceAll("class Object {", "$objectHeader")
+            .replaceAll("const Object();", ""),
+      );
 
   final List<CfeDiagnosticMessage> messages = <CfeDiagnosticMessage>[];
 
-  CompilerContext context = new CompilerContext(new ProcessedOptions(
+  CompilerContext context = new CompilerContext(
+    new ProcessedOptions(
       options: new CompilerOptions()
         ..onDiagnostic = messages.add
         ..sdkRoot = base.resolve("sdk/")
         ..fileSystem = fs
         ..compileSdk = true
         ..librariesSpecificationUri = librariesSpecificationUri,
-      inputs: [Uri.parse("dart:core"), Uri.parse("dart:collection")]));
+      inputs: [Uri.parse("dart:core"), Uri.parse("dart:collection")],
+    ),
+  );
 
   await context.runInContext<void>((CompilerContext c) async {
     await context.options.validateOptions(errorOnMissingInput: false);
@@ -64,27 +72,34 @@ Future<List<CfeDiagnosticMessage>> outline(String objectHeader) async {
 Future<void> test() async {
   Set<String> normalErrors = (await outline("class Object {"))
       .map(
-          (CfeDiagnosticMessage message) => getMessageCodeObject(message)!.name)
+        (CfeDiagnosticMessage message) => getMessageCodeObject(message)!.name,
+      )
       .toSet();
 
   Future<void> check(String objectHeader, List<Code> expectedCodes) async {
     List<CfeDiagnosticMessage> messages = (await outline(objectHeader))
-        .where((CfeDiagnosticMessage message) =>
-            !normalErrors.contains(getMessageCodeObject(message)!.name))
+        .where(
+          (CfeDiagnosticMessage message) =>
+              !normalErrors.contains(getMessageCodeObject(message)!.name),
+        )
         .toList();
     Expect.setEquals(
-        expectedCodes,
-        messages.map((CfeDiagnosticMessage m) => getMessageCodeObject(m)),
-        objectHeader);
+      expectedCodes,
+      messages.map((CfeDiagnosticMessage m) => getMessageCodeObject(m)),
+      objectHeader,
+    );
   }
 
   await check("class Object extends String {", <Code>[codeObjectExtends]);
 
-  await check(
-      "class Object implements String, bool {", <Code>[codeObjectImplements]);
+  await check("class Object implements String, bool {", <Code>[
+    codeObjectImplements,
+  ]);
 
-  await check("class Object = Object with bool ; class Blah {",
-      <Code>[codeObjectExtends, codeObjectMixesIn]);
+  await check("class Object = Object with bool ; class Blah {", <Code>[
+    codeObjectExtends,
+    codeObjectMixesIn,
+  ]);
 }
 
 void main() {

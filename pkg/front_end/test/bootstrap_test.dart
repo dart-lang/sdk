@@ -14,8 +14,7 @@ import 'package:testing/testing.dart' show StdioProcess;
 
 Future main() async {
   asyncStart();
-  Uri sourceCompiler =
-      Uri.base.resolve("pkg/front_end/tool/compile.dart");
+  Uri sourceCompiler = Uri.base.resolve("pkg/front_end/tool/compile.dart");
   Uri outline = Uri.base.resolve("pkg/front_end/tool/outline.dart");
   Directory tmp = await Directory.systemTemp.createTemp("cfe_bootstrap");
   Uri compiledOnceOutput = tmp.uri.resolve("cfe1.dill");
@@ -54,10 +53,16 @@ Future runCompiler(Uri compiler, Uri input, Uri output) async {
   ];
   print('Running: $executable ${arguments.join(' ')}');
   Stopwatch stopwatch = new Stopwatch()..start();
-  StdioProcess result = await StdioProcess.run(executable, arguments,
-      suppressOutput: false, timeout: const Duration(minutes: 2));
-  print("Run finished with exit code ${result.exitCode}"
-      " in ${stopwatch.elapsed}");
+  StdioProcess result = await StdioProcess.run(
+    executable,
+    arguments,
+    suppressOutput: false,
+    timeout: const Duration(minutes: 2),
+  );
+  print(
+    "Run finished with exit code ${result.exitCode}"
+    " in ${stopwatch.elapsed}",
+  );
   if (result.exitCode != 0) {
     throw "Compilation failed:\n${result.output}";
   }

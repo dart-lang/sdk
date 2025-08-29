@@ -31,24 +31,30 @@ import 'internal_ast.dart';
 class Forest {
   const Forest();
 
-  ArgumentsImpl createArguments(int fileOffset, List<Expression> positional,
-      {List<DartType>? types,
-      List<NamedExpression>? named,
-      bool hasExplicitTypeArguments = true,
-      List<Object?>? argumentsOriginalOrder}) {
+  ArgumentsImpl createArguments(
+    int fileOffset,
+    List<Expression> positional, {
+    List<DartType>? types,
+    List<NamedExpression>? named,
+    bool hasExplicitTypeArguments = true,
+    List<Object?>? argumentsOriginalOrder,
+  }) {
     if (!hasExplicitTypeArguments) {
-      ArgumentsImpl arguments = new ArgumentsImpl(positional,
-          types: <DartType>[],
-          named: named,
-          argumentsOriginalOrder: argumentsOriginalOrder);
+      ArgumentsImpl arguments = new ArgumentsImpl(
+        positional,
+        types: <DartType>[],
+        named: named,
+        argumentsOriginalOrder: argumentsOriginalOrder,
+      );
       arguments.types.addAll(types!);
       return arguments;
     } else {
-      return new ArgumentsImpl(positional,
-          types: types,
-          named: named,
-          argumentsOriginalOrder: argumentsOriginalOrder)
-        ..fileOffset = fileOffset;
+      return new ArgumentsImpl(
+        positional,
+        types: types,
+        named: named,
+        argumentsOriginalOrder: argumentsOriginalOrder,
+      )..fileOffset = fileOffset;
     }
   }
 
@@ -70,7 +76,9 @@ class Forest {
 
   void argumentsSetTypeArguments(Arguments arguments, List<DartType> types) {
     ArgumentsImpl.setNonInferrableArgumentTypes(
-        arguments as ArgumentsImpl, types);
+      arguments as ArgumentsImpl,
+      types,
+    );
   }
 
   /// Return a representation of a boolean literal at the given [fileOffset].
@@ -92,7 +100,10 @@ class Forest {
   }
 
   IntLiteral createIntLiteralLarge(
-      int fileOffset, String strippedLiteral, String literal) {
+    int fileOffset,
+    String strippedLiteral,
+    String literal,
+  ) {
     return new ShadowLargeIntLiteral(strippedLiteral, literal, fileOffset);
   }
 
@@ -104,11 +115,16 @@ class Forest {
   /// cannot be resolved. The list of [expressions] is a list of the
   /// representations of the list elements.
   ListLiteral createListLiteral(
-      int fileOffset, DartType typeArgument, List<Expression> expressions,
-      {required bool isConst}) {
-    return new ListLiteral(expressions,
-        typeArgument: typeArgument, isConst: isConst)
-      ..fileOffset = fileOffset;
+    int fileOffset,
+    DartType typeArgument,
+    List<Expression> expressions, {
+    required bool isConst,
+  }) {
+    return new ListLiteral(
+      expressions,
+      typeArgument: typeArgument,
+      isConst: isConst,
+    )..fileOffset = fileOffset;
   }
 
   /// Return a representation of a set literal at the given [fileOffset]. The
@@ -119,11 +135,16 @@ class Forest {
   /// cannot be resolved. The list of [expressions] is a list of the
   /// representations of the set elements.
   SetLiteral createSetLiteral(
-      int fileOffset, DartType typeArgument, List<Expression> expressions,
-      {required bool isConst}) {
-    return new SetLiteral(expressions,
-        typeArgument: typeArgument, isConst: isConst)
-      ..fileOffset = fileOffset;
+    int fileOffset,
+    DartType typeArgument,
+    List<Expression> expressions, {
+    required bool isConst,
+  }) {
+    return new SetLiteral(
+      expressions,
+      typeArgument: typeArgument,
+      isConst: isConst,
+    )..fileOffset = fileOffset;
   }
 
   /// Return a representation of a map literal at the given [fileOffset]. The
@@ -135,12 +156,19 @@ class Forest {
   /// the map literal, or `null` if there are not exactly two type arguments or
   /// if the second type argument cannot be resolved. The list of [entries] is a
   /// list of the representations of the map entries.
-  MapLiteral createMapLiteral(int fileOffset, DartType keyType,
-      DartType valueType, List<MapLiteralEntry> entries,
-      {required bool isConst}) {
-    return new MapLiteral(entries,
-        keyType: keyType, valueType: valueType, isConst: isConst)
-      ..fileOffset = fileOffset;
+  MapLiteral createMapLiteral(
+    int fileOffset,
+    DartType keyType,
+    DartType valueType,
+    List<MapLiteralEntry> entries, {
+    required bool isConst,
+  }) {
+    return new MapLiteral(
+      entries,
+      keyType: keyType,
+      valueType: valueType,
+      isConst: isConst,
+    )..fileOffset = fileOffset;
   }
 
   /// Return a representation of a null literal at the given [fileOffset].
@@ -170,7 +198,10 @@ class Forest {
   /// compute the key. The [value] is the representation of the expression used
   /// to compute the value.
   MapLiteralEntry createMapEntry(
-      int fileOffset, Expression key, Expression value) {
+    int fileOffset,
+    Expression key,
+    Expression value,
+  ) {
     return new MapLiteralEntry(key, value)..fileOffset = fileOffset;
   }
 
@@ -179,39 +210,52 @@ class Forest {
   /// [fileOffset]. The [key] is the representation of the expression used to
   /// compute the key. The [value] is the representation of the expression used
   /// to compute the value.
-  NullAwareMapEntry createNullAwareMapEntry(int fileOffset,
-      {required bool isKeyNullAware,
-      required Expression key,
-      required bool isValueNullAware,
-      required Expression value}) {
+  NullAwareMapEntry createNullAwareMapEntry(
+    int fileOffset, {
+    required bool isKeyNullAware,
+    required Expression key,
+    required bool isValueNullAware,
+    required Expression value,
+  }) {
     return new NullAwareMapEntry(
-        isKeyNullAware: isKeyNullAware,
-        key: key,
-        isValueNullAware: isValueNullAware,
-        value: value)
-      ..fileOffset = fileOffset;
+      isKeyNullAware: isKeyNullAware,
+      key: key,
+      isValueNullAware: isValueNullAware,
+      value: value,
+    )..fileOffset = fileOffset;
   }
 
   LoadLibrary createLoadLibrary(
-      int fileOffset, LibraryDependency dependency, Arguments? arguments) {
+    int fileOffset,
+    LibraryDependency dependency,
+    Arguments? arguments,
+  ) {
     return new LoadLibraryImpl(dependency, arguments)..fileOffset = fileOffset;
   }
 
   Expression checkLibraryIsLoaded(
-      int fileOffset, LibraryDependency dependency) {
+    int fileOffset,
+    LibraryDependency dependency,
+  ) {
     return new CheckLibraryIsLoaded(dependency)..fileOffset = fileOffset;
   }
 
   Expression createAsExpression(
-      int fileOffset, Expression expression, DartType type,
-      {bool forDynamic = false}) {
+    int fileOffset,
+    Expression expression,
+    DartType type, {
+    bool forDynamic = false,
+  }) {
     return new AsExpression(expression, type)
       ..fileOffset = fileOffset
       ..isForDynamic = forDynamic;
   }
 
-  Expression createSpreadElement(int fileOffset, Expression expression,
-      {required bool isNullAware}) {
+  Expression createSpreadElement(
+    int fileOffset,
+    Expression expression, {
+    required bool isNullAware,
+  }) {
     return new SpreadElement(expression, isNullAware: isNullAware)
       ..fileOffset = fileOffset;
   }
@@ -221,146 +265,182 @@ class Forest {
   }
 
   Expression createIfElement(
-      int fileOffset, Expression condition, Expression then,
-      [Expression? otherwise]) {
+    int fileOffset,
+    Expression condition,
+    Expression then, [
+    Expression? otherwise,
+  ]) {
     return new IfElement(condition, then, otherwise)..fileOffset = fileOffset;
   }
 
-  Expression createIfCaseElement(int fileOffset,
-      {required List<Statement> prelude,
-      required Expression expression,
-      required PatternGuard patternGuard,
-      required Expression then,
-      Expression? otherwise}) {
+  Expression createIfCaseElement(
+    int fileOffset, {
+    required List<Statement> prelude,
+    required Expression expression,
+    required PatternGuard patternGuard,
+    required Expression then,
+    Expression? otherwise,
+  }) {
     return new IfCaseElement(
-        prelude: prelude,
-        expression: expression,
-        patternGuard: patternGuard,
-        then: then,
-        otherwise: otherwise)
-      ..fileOffset = fileOffset;
+      prelude: prelude,
+      expression: expression,
+      patternGuard: patternGuard,
+      then: then,
+      otherwise: otherwise,
+    )..fileOffset = fileOffset;
   }
 
   MapLiteralEntry createIfMapEntry(
-      int fileOffset, Expression condition, MapLiteralEntry then,
-      [MapLiteralEntry? otherwise]) {
+    int fileOffset,
+    Expression condition,
+    MapLiteralEntry then, [
+    MapLiteralEntry? otherwise,
+  ]) {
     return new IfMapEntry(condition, then, otherwise)..fileOffset = fileOffset;
   }
 
-  MapLiteralEntry createIfCaseMapEntry(int fileOffset,
-      {required List<Statement> prelude,
-      required Expression expression,
-      required PatternGuard patternGuard,
-      required MapLiteralEntry then,
-      MapLiteralEntry? otherwise}) {
+  MapLiteralEntry createIfCaseMapEntry(
+    int fileOffset, {
+    required List<Statement> prelude,
+    required Expression expression,
+    required PatternGuard patternGuard,
+    required MapLiteralEntry then,
+    MapLiteralEntry? otherwise,
+  }) {
     return new IfCaseMapEntry(
-        prelude: prelude,
-        expression: expression,
-        patternGuard: patternGuard,
-        then: then,
-        otherwise: otherwise)
-      ..fileOffset = fileOffset;
+      prelude: prelude,
+      expression: expression,
+      patternGuard: patternGuard,
+      then: then,
+      otherwise: otherwise,
+    )..fileOffset = fileOffset;
   }
 
   ForElement createForElement(
-      int fileOffset,
-      List<VariableDeclaration> variables,
-      Expression? condition,
-      List<Expression> updates,
-      Expression body) {
+    int fileOffset,
+    List<VariableDeclaration> variables,
+    Expression? condition,
+    List<Expression> updates,
+    Expression body,
+  ) {
     return new ForElement(variables, condition, updates, body)
       ..fileOffset = fileOffset;
   }
 
-  PatternForElement createPatternForElement(int fileOffset,
-      {required PatternVariableDeclaration patternVariableDeclaration,
-      required List<VariableDeclaration> intermediateVariables,
-      required List<VariableDeclaration> variables,
-      required Expression? condition,
-      required List<Expression> updates,
-      required Expression body}) {
+  PatternForElement createPatternForElement(
+    int fileOffset, {
+    required PatternVariableDeclaration patternVariableDeclaration,
+    required List<VariableDeclaration> intermediateVariables,
+    required List<VariableDeclaration> variables,
+    required Expression? condition,
+    required List<Expression> updates,
+    required Expression body,
+  }) {
     return new PatternForElement(
-        patternVariableDeclaration: patternVariableDeclaration,
-        intermediateVariables: intermediateVariables,
-        variables: variables,
-        condition: condition,
-        updates: updates,
-        body: body)
-      ..fileOffset = fileOffset;
+      patternVariableDeclaration: patternVariableDeclaration,
+      intermediateVariables: intermediateVariables,
+      variables: variables,
+      condition: condition,
+      updates: updates,
+      body: body,
+    )..fileOffset = fileOffset;
   }
 
   ForMapEntry createForMapEntry(
-      int fileOffset,
-      List<VariableDeclaration> variables,
-      Expression? condition,
-      List<Expression> updates,
-      MapLiteralEntry body) {
+    int fileOffset,
+    List<VariableDeclaration> variables,
+    Expression? condition,
+    List<Expression> updates,
+    MapLiteralEntry body,
+  ) {
     return new ForMapEntry(variables, condition, updates, body)
       ..fileOffset = fileOffset;
   }
 
-  PatternForMapEntry createPatternForMapEntry(int fileOffset,
-      {required PatternVariableDeclaration patternVariableDeclaration,
-      required List<VariableDeclaration> intermediateVariables,
-      required List<VariableDeclaration> variables,
-      required Expression? condition,
-      required List<Expression> updates,
-      required MapLiteralEntry body}) {
+  PatternForMapEntry createPatternForMapEntry(
+    int fileOffset, {
+    required PatternVariableDeclaration patternVariableDeclaration,
+    required List<VariableDeclaration> intermediateVariables,
+    required List<VariableDeclaration> variables,
+    required Expression? condition,
+    required List<Expression> updates,
+    required MapLiteralEntry body,
+  }) {
     return new PatternForMapEntry(
-        patternVariableDeclaration: patternVariableDeclaration,
-        intermediateVariables: intermediateVariables,
-        variables: variables,
-        condition: condition,
-        updates: updates,
-        body: body)
-      ..fileOffset = fileOffset;
+      patternVariableDeclaration: patternVariableDeclaration,
+      intermediateVariables: intermediateVariables,
+      variables: variables,
+      condition: condition,
+      updates: updates,
+      body: body,
+    )..fileOffset = fileOffset;
   }
 
   ForInElement createForInElement(
-      int fileOffset,
-      VariableDeclaration variable,
-      Expression iterable,
-      Expression? synthesizedAssignment,
-      Statement? expressionEffects,
-      Expression body,
-      Expression? problem,
-      {bool isAsync = false}) {
-    return new ForInElement(variable, iterable, synthesizedAssignment,
-        expressionEffects, body, problem,
-        isAsync: isAsync)
-      ..fileOffset = fileOffset;
+    int fileOffset,
+    VariableDeclaration variable,
+    Expression iterable,
+    Expression? synthesizedAssignment,
+    Statement? expressionEffects,
+    Expression body,
+    Expression? problem, {
+    bool isAsync = false,
+  }) {
+    return new ForInElement(
+      variable,
+      iterable,
+      synthesizedAssignment,
+      expressionEffects,
+      body,
+      problem,
+      isAsync: isAsync,
+    )..fileOffset = fileOffset;
   }
 
   ForInMapEntry createForInMapEntry(
-      int fileOffset,
-      VariableDeclaration variable,
-      Expression iterable,
-      Expression? synthesizedAssignment,
-      Statement? expressionEffects,
-      MapLiteralEntry body,
-      Expression? problem,
-      {bool isAsync = false}) {
-    return new ForInMapEntry(variable, iterable, synthesizedAssignment,
-        expressionEffects, body, problem,
-        isAsync: isAsync)
-      ..fileOffset = fileOffset;
+    int fileOffset,
+    VariableDeclaration variable,
+    Expression iterable,
+    Expression? synthesizedAssignment,
+    Statement? expressionEffects,
+    MapLiteralEntry body,
+    Expression? problem, {
+    bool isAsync = false,
+  }) {
+    return new ForInMapEntry(
+      variable,
+      iterable,
+      synthesizedAssignment,
+      expressionEffects,
+      body,
+      problem,
+      isAsync: isAsync,
+    )..fileOffset = fileOffset;
   }
 
   /// Return a representation of an assert that appears in a constructor's
   /// initializer list.
   AssertInitializer createAssertInitializer(
-      int fileOffset, AssertStatement assertStatement) {
+    int fileOffset,
+    AssertStatement assertStatement,
+  ) {
     return new AssertInitializer(assertStatement)..fileOffset = fileOffset;
   }
 
   /// Return a representation of an assert that appears as a statement.
-  AssertStatement createAssertStatement(int fileOffset, Expression condition,
-      Expression? message, int conditionStartOffset, int conditionEndOffset) {
-    return new AssertStatement(condition,
-        conditionStartOffset: conditionStartOffset,
-        conditionEndOffset: conditionEndOffset,
-        message: message)
-      ..fileOffset = fileOffset;
+  AssertStatement createAssertStatement(
+    int fileOffset,
+    Expression condition,
+    Expression? message,
+    int conditionStartOffset,
+    int conditionEndOffset,
+  ) {
+    return new AssertStatement(
+      condition,
+      conditionStartOffset: conditionStartOffset,
+      conditionEndOffset: conditionEndOffset,
+      message: message,
+    )..fileOffset = fileOffset;
   }
 
   Expression createAwaitExpression(int fileOffset, Expression operand) {
@@ -370,7 +450,10 @@ class Forest {
   /// Return a representation of a block of [statements] at the given
   /// [fileOffset].
   Block createBlock(
-      int fileOffset, int fileEndOffset, List<Statement> statements) {
+    int fileOffset,
+    int fileEndOffset,
+    List<Statement> statements,
+  ) {
     List<Statement>? copy;
     for (int i = 0; i < statements.length; i++) {
       Statement statement = statements[i];
@@ -396,15 +479,19 @@ class Forest {
 
   /// Return a representation of a catch clause.
   Catch createCatch(
-      int fileOffset,
-      DartType exceptionType,
-      VariableDeclaration? exceptionParameter,
-      VariableDeclaration? stackTraceParameter,
-      DartType stackTraceType,
-      Statement body) {
-    return new Catch(exceptionParameter, body,
-        guard: exceptionType, stackTrace: stackTraceParameter)
-      ..fileOffset = fileOffset;
+    int fileOffset,
+    DartType exceptionType,
+    VariableDeclaration? exceptionParameter,
+    VariableDeclaration? stackTraceParameter,
+    DartType stackTraceType,
+    Statement body,
+  ) {
+    return new Catch(
+      exceptionParameter,
+      body,
+      guard: exceptionType,
+      stackTrace: stackTraceParameter,
+    )..fileOffset = fileOffset;
   }
 
   /// Return a representation of a conditional expression at the given
@@ -412,13 +499,17 @@ class Forest {
   /// mark. The [thenExpression] is the expression following the question mark.
   /// The [elseExpression] is the expression following the colon.
   ConditionalExpression createConditionalExpression(
-      int fileOffset,
-      Expression condition,
-      Expression thenExpression,
-      Expression elseExpression) {
+    int fileOffset,
+    Expression condition,
+    Expression thenExpression,
+    Expression elseExpression,
+  ) {
     return new ConditionalExpression(
-        condition, thenExpression, elseExpression, const UnknownType())
-      ..fileOffset = fileOffset;
+      condition,
+      thenExpression,
+      elseExpression,
+      const UnknownType(),
+    )..fileOffset = fileOffset;
   }
 
   /// Return a representation of a continue statement.
@@ -429,7 +520,10 @@ class Forest {
 
   /// Return a representation of a do statement.
   Statement createDoStatement(
-      int fileOffset, Statement body, Expression condition) {
+    int fileOffset,
+    Statement body,
+    Expression condition,
+  ) {
     return new DoStatement(body, condition)..fileOffset = fileOffset;
   }
 
@@ -446,23 +540,28 @@ class Forest {
 
   /// Return a representation of a for statement.
   Statement createForStatement(
-      int fileOffset,
-      List<VariableDeclaration>? variables,
-      Expression? condition,
-      List<Expression> updaters,
-      Statement body) {
+    int fileOffset,
+    List<VariableDeclaration>? variables,
+    Expression? condition,
+    List<Expression> updaters,
+    Statement body,
+  ) {
     return new ForStatement(
-        variables ?? // Coverage-ignore(suite): Not run.
-            [],
-        condition,
-        updaters,
-        body)
-      ..fileOffset = fileOffset;
+      variables ?? // Coverage-ignore(suite): Not run.
+          [],
+      condition,
+      updaters,
+      body,
+    )..fileOffset = fileOffset;
   }
 
   /// Return a representation of an `if` statement.
-  Statement createIfStatement(int fileOffset, Expression condition,
-      Statement thenStatement, Statement? elseStatement) {
+  Statement createIfStatement(
+    int fileOffset,
+    Expression condition,
+    Statement thenStatement,
+    Statement? elseStatement,
+  ) {
     return new IfStatement(condition, thenStatement, elseStatement)
       ..fileOffset = fileOffset;
   }
@@ -472,8 +571,11 @@ class Forest {
   /// representation of the type that is the right operand. If [notFileOffset]
   /// is non-null the test is negated the that file offset.
   Expression createIsExpression(
-      int fileOffset, Expression operand, DartType type,
-      {int? notFileOffset}) {
+    int fileOffset,
+    Expression operand,
+    DartType type, {
+    int? notFileOffset,
+  }) {
     Expression result = new IsExpression(operand, type)
       ..fileOffset = fileOffset;
     if (notFileOffset != null) {
@@ -485,8 +587,12 @@ class Forest {
   /// Return a representation of a logical expression at the given [fileOffset]
   /// having the [leftOperand], [rightOperand] and the [operatorString]
   /// (either `&&` or `||`).
-  Expression createLogicalExpression(int fileOffset, Expression leftOperand,
-      String operatorString, Expression rightOperand) {
+  Expression createLogicalExpression(
+    int fileOffset,
+    Expression leftOperand,
+    String operatorString,
+    Expression rightOperand,
+  ) {
     LogicalExpressionOperator operator;
     if (operatorString == '&&') {
       operator = LogicalExpressionOperator.AND;
@@ -494,7 +600,8 @@ class Forest {
       operator = LogicalExpressionOperator.OR;
     } else {
       throw new UnsupportedError(
-          "Unhandled logical operator '$operatorString'");
+        "Unhandled logical operator '$operatorString'",
+      );
     }
 
     return new LogicalExpression(leftOperand, operator, rightOperand)
@@ -508,21 +615,28 @@ class Forest {
   /// Return a representation of a rethrow statement consisting of the
   /// rethrow at [rethrowFileOffset] and the statement at [statementFileOffset].
   Statement createRethrowStatement(
-      int rethrowFileOffset, int statementFileOffset) {
+    int rethrowFileOffset,
+    int statementFileOffset,
+  ) {
     return new ExpressionStatement(
-        new Rethrow()..fileOffset = rethrowFileOffset)
-      ..fileOffset = statementFileOffset;
+      new Rethrow()..fileOffset = rethrowFileOffset,
+    )..fileOffset = statementFileOffset;
   }
 
   /// Return a representation of a return statement.
-  Statement createReturnStatement(int fileOffset, Expression? expression,
-      {bool isArrow = true}) {
+  Statement createReturnStatement(
+    int fileOffset,
+    Expression? expression, {
+    bool isArrow = true,
+  }) {
     return new ReturnStatementImpl(isArrow, expression)
       ..fileOffset = fileOffset;
   }
 
   Expression createStringConcatenation(
-      int fileOffset, List<Expression> expressions) {
+    int fileOffset,
+    List<Expression> expressions,
+  ) {
     assert(fileOffset != TreeNode.noOffset);
     return new StringConcatenation(expressions)..fileOffset = fileOffset;
   }
@@ -545,27 +659,34 @@ class Forest {
 
   bool isThrow(Object? o) => o is Throw;
 
-  Statement createTryStatement(int fileOffset, Statement tryBlock,
-      List<Catch>? catchBlocks, Statement? finallyBlock) {
+  Statement createTryStatement(
+    int fileOffset,
+    Statement tryBlock,
+    List<Catch>? catchBlocks,
+    Statement? finallyBlock,
+  ) {
     return new TryStatement(tryBlock, catchBlocks ?? <Catch>[], finallyBlock)
       ..fileOffset = fileOffset;
   }
 
   _VariablesDeclaration variablesDeclaration(
-      List<VariableDeclaration> declarations, Uri uri) {
+    List<VariableDeclaration> declarations,
+    Uri uri,
+  ) {
     return new _VariablesDeclaration(declarations, uri);
   }
 
   List<VariableDeclaration> variablesDeclarationExtractDeclarations(
-      Object? variablesDeclaration) {
+    Object? variablesDeclaration,
+  ) {
     return (variablesDeclaration as _VariablesDeclaration).declarations;
   }
 
   Statement wrapVariables(Statement statement) {
     if (statement is _VariablesDeclaration) {
       return new Block(
-          new List<Statement>.of(statement.declarations, growable: true))
-        ..fileOffset = statement.fileOffset;
+        new List<Statement>.of(statement.declarations, growable: true),
+      )..fileOffset = statement.fileOffset;
     } else if (statement is VariableDeclaration) {
       return new Block(<Statement>[statement])
         ..fileOffset = statement.fileOffset;
@@ -577,15 +698,21 @@ class Forest {
   /// Return a representation of a while statement at the given [fileOffset]
   /// consisting of the given [condition] and [body].
   Statement createWhileStatement(
-      int fileOffset, Expression condition, Statement body) {
+    int fileOffset,
+    Expression condition,
+    Statement body,
+  ) {
     return new WhileStatement(condition, body)..fileOffset = fileOffset;
   }
 
   /// Return a representation of a yield statement at the given [fileOffset]
   /// of the given [expression]. If [isYieldStar] is `true` the created
   /// statement is a yield* statement.
-  Statement createYieldStatement(int fileOffset, Expression expression,
-      {required bool isYieldStar}) {
+  Statement createYieldStatement(
+    int fileOffset,
+    Expression expression, {
+    required bool isYieldStar,
+  }) {
     return new YieldStatement(expression, isYieldStar: isYieldStar)
       ..fileOffset = fileOffset;
   }
@@ -615,59 +742,80 @@ class Forest {
 
   /// Creates [VariableDeclaration] for a variable named [name] at the given
   /// [functionNestingLevel].
-  VariableDeclaration createVariableDeclaration(int fileOffset, String? name,
-      {Expression? initializer,
-      DartType? type,
-      bool isFinal = false,
-      bool isConst = false,
-      bool isInitializingFormal = false,
-      bool isSuperInitializingFormal = false,
-      bool isCovariantByDeclaration = false,
-      bool isLocalFunction = false,
-      bool isSynthesized = false}) {
-    return new VariableDeclarationImpl(name,
-        type: type,
-        initializer: initializer,
-        isFinal: isFinal,
-        isConst: isConst,
-        isInitializingFormal: isInitializingFormal,
-        isSuperInitializingFormal: isSuperInitializingFormal,
-        isCovariantByDeclaration: isCovariantByDeclaration,
-        isLocalFunction: isLocalFunction,
-        isSynthesized: isSynthesized,
-        hasDeclaredInitializer: initializer != null)
-      ..fileOffset = fileOffset;
+  VariableDeclaration createVariableDeclaration(
+    int fileOffset,
+    String? name, {
+    Expression? initializer,
+    DartType? type,
+    bool isFinal = false,
+    bool isConst = false,
+    bool isInitializingFormal = false,
+    bool isSuperInitializingFormal = false,
+    bool isCovariantByDeclaration = false,
+    bool isLocalFunction = false,
+    bool isSynthesized = false,
+  }) {
+    return new VariableDeclarationImpl(
+      name,
+      type: type,
+      initializer: initializer,
+      isFinal: isFinal,
+      isConst: isConst,
+      isInitializingFormal: isInitializingFormal,
+      isSuperInitializingFormal: isSuperInitializingFormal,
+      isCovariantByDeclaration: isCovariantByDeclaration,
+      isLocalFunction: isLocalFunction,
+      isSynthesized: isSynthesized,
+      hasDeclaredInitializer: initializer != null,
+    )..fileOffset = fileOffset;
   }
 
   VariableDeclarationImpl createVariableDeclarationForValue(
-      Expression initializer,
-      {DartType type = const DynamicType()}) {
+    Expression initializer, {
+    DartType type = const DynamicType(),
+  }) {
     return new VariableDeclarationImpl.forValue(initializer)
       ..type = type
       ..fileOffset = initializer.fileOffset;
   }
 
   TypeParameterType createTypeParameterTypeWithDefaultNullabilityForLibrary(
-      TypeParameter typeParameter, Library library) {
+    TypeParameter typeParameter,
+    Library library,
+  ) {
     return new TypeParameterType.withDefaultNullability(typeParameter);
   }
 
   Expression createExpressionInvocation(
-      int fileOffset, Expression expression, Arguments arguments) {
+    int fileOffset,
+    Expression expression,
+    Arguments arguments,
+  ) {
     return new ExpressionInvocation(expression, arguments)
       ..fileOffset = fileOffset;
   }
 
   Expression createMethodInvocation(
-      int fileOffset, Expression expression, Name name, Arguments arguments,
-      {required bool isNullAware}) {
-    return new MethodInvocation(expression, name, arguments,
-        isNullAware: isNullAware)
-      ..fileOffset = fileOffset;
+    int fileOffset,
+    Expression expression,
+    Name name,
+    Arguments arguments, {
+    required bool isNullAware,
+  }) {
+    return new MethodInvocation(
+      expression,
+      name,
+      arguments,
+      isNullAware: isNullAware,
+    )..fileOffset = fileOffset;
   }
 
   SuperMethodInvocation createSuperMethodInvocation(
-      int fileOffset, Name name, Procedure procedure, Arguments arguments) {
+    int fileOffset,
+    Name name,
+    Procedure procedure,
+    Arguments arguments,
+  ) {
     return new SuperMethodInvocation(name, arguments, procedure)
       ..fileOffset = fileOffset;
   }
@@ -676,36 +824,60 @@ class Forest {
     return new NullCheck(expression)..fileOffset = fileOffset;
   }
 
-  Expression createPropertyGet(int fileOffset, Expression receiver, Name name,
-      {required bool isNullAware}) {
+  Expression createPropertyGet(
+    int fileOffset,
+    Expression receiver,
+    Name name, {
+    required bool isNullAware,
+  }) {
     return new PropertyGet(receiver, name, isNullAware: isNullAware)
       ..fileOffset = fileOffset;
   }
 
   Expression createPropertySet(
-      int fileOffset, Expression receiver, Name name, Expression value,
-      {required bool forEffect,
-      bool readOnlyReceiver = false,
-      required bool isNullAware}) {
-    return new PropertySet(receiver, name, value,
-        forEffect: forEffect,
-        readOnlyReceiver: readOnlyReceiver,
-        isNullAware: isNullAware)
-      ..fileOffset = fileOffset;
+    int fileOffset,
+    Expression receiver,
+    Name name,
+    Expression value, {
+    required bool forEffect,
+    bool readOnlyReceiver = false,
+    required bool isNullAware,
+  }) {
+    return new PropertySet(
+      receiver,
+      name,
+      value,
+      forEffect: forEffect,
+      readOnlyReceiver: readOnlyReceiver,
+      isNullAware: isNullAware,
+    )..fileOffset = fileOffset;
   }
 
-  IndexGet createIndexGet(int fileOffset, Expression receiver, Expression index,
-      {required bool isNullAware}) {
+  IndexGet createIndexGet(
+    int fileOffset,
+    Expression receiver,
+    Expression index, {
+    required bool isNullAware,
+  }) {
     return new IndexGet(receiver, index, isNullAware: isNullAware)
       ..fileOffset = fileOffset;
   }
 
   IndexSet createIndexSet(
-      int fileOffset, Expression receiver, Expression index, Expression value,
-      {required bool forEffect, required bool isNullAware}) {
-    return new IndexSet(receiver, index, value,
-        forEffect: forEffect, isNullAware: isNullAware)
-      ..fileOffset = fileOffset;
+    int fileOffset,
+    Expression receiver,
+    Expression index,
+    Expression value, {
+    required bool forEffect,
+    required bool isNullAware,
+  }) {
+    return new IndexSet(
+      receiver,
+      index,
+      value,
+      forEffect: forEffect,
+      isNullAware: isNullAware,
+    )..fileOffset = fileOffset;
   }
 
   VariableGet createVariableGet(int fileOffset, VariableDeclaration variable) {
@@ -713,39 +885,57 @@ class Forest {
   }
 
   EqualsExpression createEquals(
-      int fileOffset, Expression left, Expression right,
-      {required bool isNot}) {
+    int fileOffset,
+    Expression left,
+    Expression right, {
+    required bool isNot,
+  }) {
     return new EqualsExpression(left, right, isNot: isNot)
       ..fileOffset = fileOffset;
   }
 
   BinaryExpression createBinary(
-      int fileOffset, Expression left, Name binaryName, Expression right) {
+    int fileOffset,
+    Expression left,
+    Name binaryName,
+    Expression right,
+  ) {
     return new BinaryExpression(left, binaryName, right)
       ..fileOffset = fileOffset;
   }
 
   UnaryExpression createUnary(
-      int fileOffset, Name unaryName, Expression expression) {
+    int fileOffset,
+    Name unaryName,
+    Expression expression,
+  ) {
     return new UnaryExpression(unaryName, expression)..fileOffset = fileOffset;
   }
 
   ParenthesizedExpression createParenthesized(
-      int fileOffset, Expression expression) {
+    int fileOffset,
+    Expression expression,
+  ) {
     return new ParenthesizedExpression(expression)..fileOffset = fileOffset;
   }
 
   ConstructorTearOff createConstructorTearOff(int fileOffset, Member target) {
-    assert(target is Constructor || (target is Procedure && target.isFactory),
-        "Unexpected constructor tear off target: $target");
+    assert(
+      target is Constructor || (target is Procedure && target.isFactory),
+      "Unexpected constructor tear off target: $target",
+    );
     return new ConstructorTearOff(target)..fileOffset = fileOffset;
   }
 
   StaticTearOff createStaticTearOff(int fileOffset, Procedure procedure) {
-    assert(procedure.kind == ProcedureKind.Method,
-        "Unexpected static tear off target: $procedure");
-    assert(!procedure.isRedirectingFactory,
-        "Unexpected static tear off target: $procedure");
+    assert(
+      procedure.kind == ProcedureKind.Method,
+      "Unexpected static tear off target: $procedure",
+    );
+    assert(
+      !procedure.isRedirectingFactory,
+      "Unexpected static tear off target: $procedure",
+    );
     return new StaticTearOff(procedure)..fileOffset = fileOffset;
   }
 
@@ -755,22 +945,28 @@ class Forest {
   }
 
   RedirectingFactoryTearOff createRedirectingFactoryTearOff(
-      int fileOffset, Procedure procedure) {
+    int fileOffset,
+    Procedure procedure,
+  ) {
     assert(procedure.isRedirectingFactory);
     return new RedirectingFactoryTearOff(procedure)..fileOffset = fileOffset;
   }
 
   Instantiation createInstantiation(
-      int fileOffset, Expression expression, List<DartType> typeArguments) {
+    int fileOffset,
+    Expression expression,
+    List<DartType> typeArguments,
+  ) {
     return new Instantiation(expression, typeArguments)
       ..fileOffset = fileOffset;
   }
 
   TypedefTearOff createTypedefTearOff(
-      int fileOffset,
-      List<StructuralParameter> typeParameters,
-      Expression expression,
-      List<DartType> typeArguments) {
+    int fileOffset,
+    List<StructuralParameter> typeParameters,
+    Expression expression,
+    List<DartType> typeArguments,
+  ) {
     return new TypedefTearOff(typeParameters, expression, typeArguments)
       ..fileOffset = fileOffset;
   }
@@ -780,12 +976,17 @@ class Forest {
   }
 
   AssignedVariablePattern createAssignedVariablePattern(
-      int fileOffset, VariableDeclaration variable) {
+    int fileOffset,
+    VariableDeclaration variable,
+  ) {
     return new AssignedVariablePattern(variable)..fileOffset = fileOffset;
   }
 
   CastPattern createCastPattern(
-      int fileOffset, Pattern pattern, DartType type) {
+    int fileOffset,
+    Pattern pattern,
+    DartType type,
+  ) {
     return new CastPattern(pattern, type)..fileOffset = fileOffset;
   }
 
@@ -793,24 +994,36 @@ class Forest {
     return new ConstantPattern(expression)..fileOffset = expression.fileOffset;
   }
 
-  InvalidPattern createInvalidPattern(Expression expression,
-      {required List<VariableDeclaration> declaredVariables}) {
+  InvalidPattern createInvalidPattern(
+    Expression expression, {
+    required List<VariableDeclaration> declaredVariables,
+  }) {
     return new InvalidPattern(expression, declaredVariables: declaredVariables)
       ..fileOffset = expression.fileOffset;
   }
 
   ListPattern createListPattern(
-      int fileOffset, DartType? typeArgument, List<Pattern> patterns) {
+    int fileOffset,
+    DartType? typeArgument,
+    List<Pattern> patterns,
+  ) {
     return new ListPattern(typeArgument, patterns)..fileOffset = fileOffset;
   }
 
-  MapPattern createMapPattern(int fileOffset, DartType? keyType,
-      DartType? valueType, List<MapPatternEntry> entries) {
+  MapPattern createMapPattern(
+    int fileOffset,
+    DartType? keyType,
+    DartType? valueType,
+    List<MapPatternEntry> entries,
+  ) {
     return new MapPattern(keyType, valueType, entries)..fileOffset = fileOffset;
   }
 
   MapPatternEntry createMapPatternEntry(
-      int fileOffset, Expression key, Pattern value) {
+    int fileOffset,
+    Expression key,
+    Pattern value,
+  ) {
     return new MapPatternEntry(key, value)..fileOffset = fileOffset;
   }
 
@@ -819,7 +1032,10 @@ class Forest {
   }
 
   NamedPattern createNamedPattern(
-      int fileOffset, String name, Pattern pattern) {
+    int fileOffset,
+    String name,
+    Pattern pattern,
+  ) {
     return new NamedPattern(name, pattern)..fileOffset = fileOffset;
   }
 
@@ -831,11 +1047,17 @@ class Forest {
     return new NullCheckPattern(pattern)..fileOffset = fileOffset;
   }
 
-  OrPattern createOrPattern(int fileOffset, Pattern left, Pattern right,
-      {required List<VariableDeclaration> orPatternJointVariables}) {
-    return new OrPattern(left, right,
-        orPatternJointVariables: orPatternJointVariables)
-      ..fileOffset = fileOffset;
+  OrPattern createOrPattern(
+    int fileOffset,
+    Pattern left,
+    Pattern right, {
+    required List<VariableDeclaration> orPatternJointVariables,
+  }) {
+    return new OrPattern(
+      left,
+      right,
+      orPatternJointVariables: orPatternJointVariables,
+    )..fileOffset = fileOffset;
   }
 
   RecordPattern createRecordPattern(int fileOffset, List<Pattern> patterns) {
@@ -843,7 +1065,10 @@ class Forest {
   }
 
   RelationalPattern createRelationalPattern(
-      int fileOffset, RelationalPatternKind kind, Expression expression) {
+    int fileOffset,
+    RelationalPatternKind kind,
+    Expression expression,
+  ) {
     return new RelationalPattern(kind, expression)..fileOffset = fileOffset;
   }
 
@@ -852,7 +1077,10 @@ class Forest {
   }
 
   VariablePattern createVariablePattern(
-      int fileOffset, DartType? type, VariableDeclaration variable) {
+    int fileOffset,
+    DartType? type,
+    VariableDeclaration variable,
+  ) {
     return new VariablePattern(type, variable)..fileOffset = fileOffset;
   }
 
@@ -860,69 +1088,107 @@ class Forest {
     return new WildcardPattern(type)..fileOffset = fileOffset;
   }
 
-  PatternGuard createPatternGuard(int fileOffset, Pattern pattern,
-      [Expression? guard]) {
+  PatternGuard createPatternGuard(
+    int fileOffset,
+    Pattern pattern, [
+    Expression? guard,
+  ]) {
     return new PatternGuard(pattern, guard)..fileOffset = fileOffset;
   }
 
-  PatternSwitchCase createPatternSwitchCase(int fileOffset,
-      List<int> caseOffsets, List<PatternGuard> patternGuards, Statement body,
-      {required bool isDefault,
-      required bool hasLabel,
-      required List<VariableDeclaration> jointVariables,
-      required List<int>? jointVariableFirstUseOffsets}) {
-    return new PatternSwitchCase(caseOffsets, patternGuards, body,
-        isDefault: isDefault,
-        hasLabel: hasLabel,
-        jointVariables: jointVariables,
-        jointVariableFirstUseOffsets: jointVariableFirstUseOffsets)
-      ..fileOffset = fileOffset;
+  PatternSwitchCase createPatternSwitchCase(
+    int fileOffset,
+    List<int> caseOffsets,
+    List<PatternGuard> patternGuards,
+    Statement body, {
+    required bool isDefault,
+    required bool hasLabel,
+    required List<VariableDeclaration> jointVariables,
+    required List<int>? jointVariableFirstUseOffsets,
+  }) {
+    return new PatternSwitchCase(
+      caseOffsets,
+      patternGuards,
+      body,
+      isDefault: isDefault,
+      hasLabel: hasLabel,
+      jointVariables: jointVariables,
+      jointVariableFirstUseOffsets: jointVariableFirstUseOffsets,
+    )..fileOffset = fileOffset;
   }
 
   PatternSwitchStatement createPatternSwitchStatement(
-      int fileOffset, Expression expression, List<PatternSwitchCase> cases) {
+    int fileOffset,
+    Expression expression,
+    List<PatternSwitchCase> cases,
+  ) {
     return new PatternSwitchStatement(expression, cases)
       ..fileOffset = fileOffset;
   }
 
   SwitchExpressionCase createSwitchExpressionCase(
-      int fileOffset, PatternGuard patternGuard, Expression expression) {
+    int fileOffset,
+    PatternGuard patternGuard,
+    Expression expression,
+  ) {
     return new SwitchExpressionCase(patternGuard, expression)
       ..fileOffset = fileOffset;
   }
 
   SwitchExpression createSwitchExpression(
-      int fileOffset, Expression expression, List<SwitchExpressionCase> cases) {
+    int fileOffset,
+    Expression expression,
+    List<SwitchExpressionCase> cases,
+  ) {
     return new SwitchExpression(expression, cases)..fileOffset = fileOffset;
   }
 
   PatternVariableDeclaration createPatternVariableDeclaration(
-      int fileOffset, Pattern pattern, Expression initializer,
-      {required bool isFinal}) {
-    return new PatternVariableDeclaration(pattern, initializer,
-        isFinal: isFinal)
-      ..fileOffset = fileOffset;
+    int fileOffset,
+    Pattern pattern,
+    Expression initializer, {
+    required bool isFinal,
+  }) {
+    return new PatternVariableDeclaration(
+      pattern,
+      initializer,
+      isFinal: isFinal,
+    )..fileOffset = fileOffset;
   }
 
   PatternAssignment createPatternAssignment(
-      int fileOffset, Pattern pattern, Expression expression) {
+    int fileOffset,
+    Pattern pattern,
+    Expression expression,
+  ) {
     return new PatternAssignment(pattern, expression)..fileOffset = fileOffset;
   }
 
-  IfCaseStatement createIfCaseStatement(int fileOffset, Expression expression,
-      PatternGuard patternGuard, Statement then, Statement? otherwise) {
+  IfCaseStatement createIfCaseStatement(
+    int fileOffset,
+    Expression expression,
+    PatternGuard patternGuard,
+    Statement then,
+    Statement? otherwise,
+  ) {
     return new IfCaseStatement(expression, patternGuard, then, otherwise)
       ..fileOffset = fileOffset;
   }
 
   DotShorthand createDotShorthandContext(
-      int fileOffset, Expression innerExpression) {
+    int fileOffset,
+    Expression innerExpression,
+  ) {
     return new DotShorthand(innerExpression)..fileOffset = fileOffset;
   }
 
   DotShorthandInvocation createDotShorthandInvocation(
-      int fileOffset, Name name, Arguments arguments,
-      {required int nameOffset, required bool isConst}) {
+    int fileOffset,
+    Name name,
+    Arguments arguments, {
+    required int nameOffset,
+    required bool isConst,
+  }) {
     return new DotShorthandInvocation(
       name,
       arguments,
@@ -932,8 +1198,10 @@ class Forest {
   }
 
   DotShorthandPropertyGet createDotShorthandPropertyGet(
-      int fileOffset, Name name,
-      {required int nameOffset}) {
+    int fileOffset,
+    Name name, {
+    required int nameOffset,
+  }) {
     return new DotShorthandPropertyGet(name, nameOffset: nameOffset)
       ..fileOffset = fileOffset;
   }
@@ -989,8 +1257,10 @@ class _VariablesDeclaration extends AuxiliaryStatement {
       if (index > 0) {
         printer.write(', ');
       }
-      printer.writeVariableDeclaration(declarations[index],
-          includeModifiersAndType: index == 0);
+      printer.writeVariableDeclaration(
+        declarations[index],
+        includeModifiersAndType: index == 0,
+      );
     }
     printer.write(';');
   }

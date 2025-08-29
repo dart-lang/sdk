@@ -25,14 +25,16 @@ class MemoryFileSystem implements FileSystem {
   Uri currentDirectory;
 
   MemoryFileSystem(Uri currentDirectory)
-      : currentDirectory = _addTrailingSlash(currentDirectory) {
+    : currentDirectory = _addTrailingSlash(currentDirectory) {
     _directories.add(currentDirectory);
   }
 
   @override
   MemoryFileSystemEntity entityForUri(Uri uri) {
     return new MemoryFileSystemEntity._(
-        this, currentDirectory.resolveUri(uri).normalizePath());
+      this,
+      currentDirectory.resolveUri(uri).normalizePath(),
+    );
   }
 
   String get debugString {
@@ -83,8 +85,9 @@ class MemoryFileSystemEntity implements FileSystemEntity {
 
   @override
   Future<bool> exists() {
-    return new Future.value(_fileSystem._files[uri] != null ||
-        _fileSystem._directories.contains(uri));
+    return new Future.value(
+      _fileSystem._files[uri] != null || _fileSystem._directories.contains(uri),
+    );
   }
 
   @override
@@ -96,8 +99,9 @@ class MemoryFileSystemEntity implements FileSystemEntity {
     Uint8List? contents = _fileSystem._files[uri];
     if (contents == null) {
       return new Future.error(
-          new FileSystemException(uri, 'File $uri does not exist.'),
-          StackTrace.current);
+        new FileSystemException(uri, 'File $uri does not exist.'),
+        StackTrace.current,
+      );
     }
     return new Future.value(contents);
   }

@@ -39,7 +39,10 @@ class ExtensionInstanceGetterEncoding extends GetterEncoding
   final FormalParameterBuilder _thisFormal;
 
   ExtensionInstanceGetterEncoding(
-      this._fragment, this._clonedDeclarationTypeParameters, this._thisFormal);
+    this._fragment,
+    this._clonedDeclarationTypeParameters,
+    this._thisFormal,
+  );
 
   @override
   BuiltMemberKind get _builtMemberKind => BuiltMemberKind.ExtensionGetter;
@@ -80,7 +83,10 @@ class ExtensionTypeInstanceGetterEncoding extends GetterEncoding
   final FormalParameterBuilder _thisFormal;
 
   ExtensionTypeInstanceGetterEncoding(
-      this._fragment, this._clonedDeclarationTypeParameters, this._thisFormal);
+    this._fragment,
+    this._clonedDeclarationTypeParameters,
+    this._thisFormal,
+  );
 
   @override
   BuiltMemberKind get _builtMemberKind => BuiltMemberKind.ExtensionTypeGetter;
@@ -122,36 +128,46 @@ sealed class GetterEncoding implements InferredTypeListener {
 
   void becomeNative(SourceLoader loader);
 
-  void buildOutlineExpressions(
-      {required ClassHierarchy classHierarchy,
-      required SourceLibraryBuilder libraryBuilder,
-      required DeclarationBuilder? declarationBuilder,
-      required BodyBuilderContext bodyBuilderContext,
-      required Annotatable annotatable,
-      required Uri annotatableFileUri,
-      required bool isClassInstanceMember});
+  void buildOutlineExpressions({
+    required ClassHierarchy classHierarchy,
+    required SourceLibraryBuilder libraryBuilder,
+    required DeclarationBuilder? declarationBuilder,
+    required BodyBuilderContext bodyBuilderContext,
+    required Annotatable annotatable,
+    required Uri annotatableFileUri,
+    required bool isClassInstanceMember,
+  });
 
-  void buildOutlineNode(
-      {required SourceLibraryBuilder libraryBuilder,
-      required NameScheme nameScheme,
-      required BuildNodesCallback f,
-      required PropertyReferences? references,
-      required bool isAbstractOrExternal,
-      required List<TypeParameter>? classTypeParameters});
+  void buildOutlineNode({
+    required SourceLibraryBuilder libraryBuilder,
+    required NameScheme nameScheme,
+    required BuildNodesCallback f,
+    required PropertyReferences? references,
+    required bool isAbstractOrExternal,
+    required List<TypeParameter>? classTypeParameters,
+  });
 
-  void checkTypes(SourceLibraryBuilder libraryBuilder,
-      TypeEnvironment typeEnvironment, SourcePropertyBuilder? setterBuilder,
-      {required bool isAbstract, required bool isExternal});
+  void checkTypes(
+    SourceLibraryBuilder libraryBuilder,
+    TypeEnvironment typeEnvironment,
+    SourcePropertyBuilder? setterBuilder, {
+    required bool isAbstract,
+    required bool isExternal,
+  });
 
   void checkVariance(
-      SourceClassBuilder sourceClassBuilder, TypeEnvironment typeEnvironment);
+    SourceClassBuilder sourceClassBuilder,
+    TypeEnvironment typeEnvironment,
+  );
 
   int computeDefaultTypes(ComputeDefaultTypeContext context);
 
   LocalScope createFormalParameterScope(LookupScope typeParameterScope);
 
   void ensureTypes(
-      SourceLibraryBuilder libraryBuilder, ClassHierarchyBase hierarchy);
+    SourceLibraryBuilder libraryBuilder,
+    ClassHierarchyBase hierarchy,
+  );
 
   VariableDeclaration getFormalParameter(int index);
 }
@@ -212,86 +228,109 @@ mixin _DirectGetterEncodingMixin implements GetterEncoding {
   }
 
   @override
-  void buildOutlineExpressions(
-      {required ClassHierarchy classHierarchy,
-      required SourceLibraryBuilder libraryBuilder,
-      required DeclarationBuilder? declarationBuilder,
-      required BodyBuilderContext bodyBuilderContext,
-      required Annotatable annotatable,
-      required Uri annotatableFileUri,
-      required bool isClassInstanceMember}) {
+  void buildOutlineExpressions({
+    required ClassHierarchy classHierarchy,
+    required SourceLibraryBuilder libraryBuilder,
+    required DeclarationBuilder? declarationBuilder,
+    required BodyBuilderContext bodyBuilderContext,
+    required Annotatable annotatable,
+    required Uri annotatableFileUri,
+    required bool isClassInstanceMember,
+  }) {
     buildMetadataForOutlineExpressions(
-        libraryBuilder: libraryBuilder,
-        scope: _fragment.enclosingScope,
-        bodyBuilderContext: bodyBuilderContext,
-        annotatable: annotatable,
-        annotatableFileUri: annotatableFileUri,
-        metadata: _fragment.metadata);
+      libraryBuilder: libraryBuilder,
+      scope: _fragment.enclosingScope,
+      bodyBuilderContext: bodyBuilderContext,
+      annotatable: annotatable,
+      annotatableFileUri: annotatableFileUri,
+      metadata: _fragment.metadata,
+    );
     buildTypeParametersForOutlineExpressions(
-        classHierarchy,
-        libraryBuilder,
-        bodyBuilderContext,
-        _fragment
-            .declaredTypeParameters
-            // Coverage-ignore(suite): Not run.
-            ?.builders);
+      classHierarchy,
+      libraryBuilder,
+      bodyBuilderContext,
+      _fragment
+          .declaredTypeParameters
+          // Coverage-ignore(suite): Not run.
+          ?.builders,
+    );
     buildFormalsForOutlineExpressions(
-        libraryBuilder, declarationBuilder, _fragment.declaredFormals,
-        scope: _fragment.typeParameterScope,
-        isClassInstanceMember: isClassInstanceMember);
+      libraryBuilder,
+      declarationBuilder,
+      _fragment.declaredFormals,
+      scope: _fragment.typeParameterScope,
+      isClassInstanceMember: isClassInstanceMember,
+    );
   }
 
   @override
-  void buildOutlineNode(
-      {required SourceLibraryBuilder libraryBuilder,
-      required NameScheme nameScheme,
-      required BuildNodesCallback f,
-      required PropertyReferences? references,
-      required bool isAbstractOrExternal,
-      required List<TypeParameter>? classTypeParameters}) {
-    FunctionNode function = new FunctionNode(
-        isAbstractOrExternal ? null : new EmptyStatement(),
-        asyncMarker: _fragment.asyncModifier)
-      ..fileOffset = _fragment.formalsOffset
-      ..fileEndOffset = _fragment.endOffset;
+  void buildOutlineNode({
+    required SourceLibraryBuilder libraryBuilder,
+    required NameScheme nameScheme,
+    required BuildNodesCallback f,
+    required PropertyReferences? references,
+    required bool isAbstractOrExternal,
+    required List<TypeParameter>? classTypeParameters,
+  }) {
+    FunctionNode function =
+        new FunctionNode(
+            isAbstractOrExternal ? null : new EmptyStatement(),
+            asyncMarker: _fragment.asyncModifier,
+          )
+          ..fileOffset = _fragment.formalsOffset
+          ..fileEndOffset = _fragment.endOffset;
     buildTypeParametersAndFormals(
-        libraryBuilder,
-        function,
-        _fragment
-            .declaredTypeParameters
-            // Coverage-ignore(suite): Not run.
-            ?.builders,
-        _fragment.declaredFormals,
-        classTypeParameters: classTypeParameters,
-        supportsTypeParameters: true);
+      libraryBuilder,
+      function,
+      _fragment
+          .declaredTypeParameters
+          // Coverage-ignore(suite): Not run.
+          ?.builders,
+      _fragment.declaredFormals,
+      classTypeParameters: classTypeParameters,
+      supportsTypeParameters: true,
+    );
     if (_fragment.returnType is! InferableTypeBuilder) {
-      function.returnType =
-          _fragment.returnType.build(libraryBuilder, TypeUse.returnType);
+      function.returnType = _fragment.returnType.build(
+        libraryBuilder,
+        TypeUse.returnType,
+      );
     }
 
-    MemberName memberName =
-        nameScheme.getProcedureMemberName(ProcedureKind.Getter, _fragment.name);
-    Procedure procedure = _procedure = new Procedure(
-        memberName.name, ProcedureKind.Getter, function,
-        reference: references?.getterReference, fileUri: _fragment.fileUri)
-      ..fileStartOffset = _fragment.startOffset
-      ..fileOffset = _fragment.nameOffset
-      ..fileEndOffset = _fragment.endOffset
-      ..isAbstract = _fragment.modifiers.isAbstract
-      ..isExternal = _fragment.modifiers.isExternal
-      ..isConst = _fragment.modifiers.isConst
-      ..isStatic = _fragment.modifiers.isStatic
-      ..isExtensionMember = _isExtensionMember
-      ..isExtensionTypeMember = _isExtensionTypeMember;
+    MemberName memberName = nameScheme.getProcedureMemberName(
+      ProcedureKind.Getter,
+      _fragment.name,
+    );
+    Procedure procedure = _procedure =
+        new Procedure(
+            memberName.name,
+            ProcedureKind.Getter,
+            function,
+            reference: references?.getterReference,
+            fileUri: _fragment.fileUri,
+          )
+          ..fileStartOffset = _fragment.startOffset
+          ..fileOffset = _fragment.nameOffset
+          ..fileEndOffset = _fragment.endOffset
+          ..isAbstract = _fragment.modifiers.isAbstract
+          ..isExternal = _fragment.modifiers.isExternal
+          ..isConst = _fragment.modifiers.isConst
+          ..isStatic = _fragment.modifiers.isStatic
+          ..isExtensionMember = _isExtensionMember
+          ..isExtensionTypeMember = _isExtensionTypeMember;
     memberName.attachMember(procedure);
 
     f(kind: _builtMemberKind, member: procedure);
   }
 
   @override
-  void checkTypes(SourceLibraryBuilder libraryBuilder,
-      TypeEnvironment typeEnvironment, SourcePropertyBuilder? setterBuilder,
-      {required bool isAbstract, required bool isExternal}) {
+  void checkTypes(
+    SourceLibraryBuilder libraryBuilder,
+    TypeEnvironment typeEnvironment,
+    SourcePropertyBuilder? setterBuilder, {
+    required bool isAbstract,
+    required bool isExternal,
+  }) {
     List<SourceNominalParameterBuilder>? typeParameters = _fragment
         .declaredTypeParameters
         // Coverage-ignore(suite): Not run.
@@ -301,18 +340,26 @@ mixin _DirectGetterEncodingMixin implements GetterEncoding {
       checkTypeParameterDependencies(libraryBuilder, typeParameters);
     }
     libraryBuilder.checkInitializersInFormals(
-        _fragment.declaredFormals, typeEnvironment,
-        isAbstract: isAbstract, isExternal: isExternal);
+      _fragment.declaredFormals,
+      typeEnvironment,
+      isAbstract: isAbstract,
+      isExternal: isExternal,
+    );
     if (setterBuilder != null) {
       DartType getterType = function.returnType;
-      DartType setterType = SourcePropertyBuilder.getSetterType(setterBuilder,
-          getterExtensionTypeParameters: null);
+      DartType setterType = SourcePropertyBuilder.getSetterType(
+        setterBuilder,
+        getterExtensionTypeParameters: null,
+      );
       libraryBuilder.checkGetterSetterTypes(
         typeEnvironment,
         getterType: getterType,
         getterName: _fragment.name,
         getterUriOffset: new UriOffsetLength(
-            _fragment.fileUri, _fragment.nameOffset, _fragment.name.length),
+          _fragment.fileUri,
+          _fragment.nameOffset,
+          _fragment.name.length,
+        ),
         setterType: setterType,
         setterName: setterBuilder.name,
         setterUriOffset: setterBuilder.setterUriOffset!,
@@ -322,39 +369,52 @@ mixin _DirectGetterEncodingMixin implements GetterEncoding {
 
   @override
   void checkVariance(
-      SourceClassBuilder sourceClassBuilder, TypeEnvironment typeEnvironment) {
+    SourceClassBuilder sourceClassBuilder,
+    TypeEnvironment typeEnvironment,
+  ) {
     sourceClassBuilder.checkVarianceInTypeParameters(
-        typeEnvironment,
-        _fragment
-            .declaredTypeParameters
-            // Coverage-ignore(suite): Not run.
-            ?.builders);
+      typeEnvironment,
+      _fragment
+          .declaredTypeParameters
+          // Coverage-ignore(suite): Not run.
+          ?.builders,
+    );
     sourceClassBuilder.checkVarianceInFormals(
-        typeEnvironment, _fragment.declaredFormals);
+      typeEnvironment,
+      _fragment.declaredFormals,
+    );
     sourceClassBuilder.checkVarianceInReturnType(
-        typeEnvironment, function.returnType,
-        fileOffset: _fragment.nameOffset, fileUri: _fragment.fileUri);
+      typeEnvironment,
+      function.returnType,
+      fileOffset: _fragment.nameOffset,
+      fileUri: _fragment.fileUri,
+    );
   }
 
   @override
   int computeDefaultTypes(ComputeDefaultTypeContext context) {
-    bool hasErrors = context.reportSimplicityIssuesForTypeParameters(_fragment
-        .declaredTypeParameters
-        // Coverage-ignore(suite): Not run.
-        ?.builders);
+    bool hasErrors = context.reportSimplicityIssuesForTypeParameters(
+      _fragment
+          .declaredTypeParameters
+          // Coverage-ignore(suite): Not run.
+          ?.builders,
+    );
     context.reportGenericFunctionTypesForFormals(_fragment.declaredFormals);
     if (_fragment.returnType is! OmittedTypeBuilder) {
-      hasErrors |=
-          context.reportInboundReferenceIssuesForType(_fragment.returnType);
+      hasErrors |= context.reportInboundReferenceIssuesForType(
+        _fragment.returnType,
+      );
       context.recursivelyReportGenericFunctionTypesAsBoundsForType(
-          _fragment.returnType);
+        _fragment.returnType,
+      );
     }
     return context.computeDefaultTypesForVariables(
-        _fragment
-            .declaredTypeParameters
-            // Coverage-ignore(suite): Not run.
-            ?.builders,
-        inErrorRecovery: hasErrors);
+      _fragment
+          .declaredTypeParameters
+          // Coverage-ignore(suite): Not run.
+          ?.builders,
+      inErrorRecovery: hasErrors,
+    );
   }
 
   @override
@@ -364,9 +424,14 @@ mixin _DirectGetterEncodingMixin implements GetterEncoding {
 
   @override
   void ensureTypes(
-      SourceLibraryBuilder libraryBuilder, ClassHierarchyBase hierarchy) {
-    _fragment.returnType
-        .build(libraryBuilder, TypeUse.returnType, hierarchy: hierarchy);
+    SourceLibraryBuilder libraryBuilder,
+    ClassHierarchyBase hierarchy,
+  ) {
+    _fragment.returnType.build(
+      libraryBuilder,
+      TypeUse.returnType,
+      hierarchy: hierarchy,
+    );
   }
 
   @override
@@ -385,19 +450,21 @@ mixin _ExtensionInstanceGetterEncodingMixin implements GetterEncoding {
   @override
   List<SourceNominalParameterBuilder>? get clonedAndDeclaredTypeParameters =>
       _clonedDeclarationTypeParameters != null ||
-              _fragment.declaredTypeParameters != null
-          ? [
-              ...?_clonedDeclarationTypeParameters,
-              ...?_fragment
-                  .declaredTypeParameters
-                  // Coverage-ignore(suite): Not run.
-                  ?.builders
-            ]
-          : null;
+          _fragment.declaredTypeParameters != null
+      ? [
+          ...?_clonedDeclarationTypeParameters,
+          ...?_fragment
+              .declaredTypeParameters
+              // Coverage-ignore(suite): Not run.
+              ?.builders,
+        ]
+      : null;
 
   @override
-  List<FormalParameterBuilder>? get formals =>
-      [_thisFormal, ...?_fragment.declaredFormals];
+  List<FormalParameterBuilder>? get formals => [
+    _thisFormal,
+    ...?_fragment.declaredFormals,
+  ];
 
   @override
   FunctionNode get function => _procedure!.function;
@@ -431,51 +498,65 @@ mixin _ExtensionInstanceGetterEncodingMixin implements GetterEncoding {
   }
 
   @override
-  void buildOutlineExpressions(
-      {required ClassHierarchy classHierarchy,
-      required SourceLibraryBuilder libraryBuilder,
-      required DeclarationBuilder? declarationBuilder,
-      required BodyBuilderContext bodyBuilderContext,
-      required Annotatable annotatable,
-      required Uri annotatableFileUri,
-      required bool isClassInstanceMember}) {
+  void buildOutlineExpressions({
+    required ClassHierarchy classHierarchy,
+    required SourceLibraryBuilder libraryBuilder,
+    required DeclarationBuilder? declarationBuilder,
+    required BodyBuilderContext bodyBuilderContext,
+    required Annotatable annotatable,
+    required Uri annotatableFileUri,
+    required bool isClassInstanceMember,
+  }) {
     buildMetadataForOutlineExpressions(
-        libraryBuilder: libraryBuilder,
-        scope: _fragment.enclosingScope,
-        bodyBuilderContext: bodyBuilderContext,
-        annotatable: annotatable,
-        annotatableFileUri: annotatableFileUri,
-        metadata: _fragment.metadata);
+      libraryBuilder: libraryBuilder,
+      scope: _fragment.enclosingScope,
+      bodyBuilderContext: bodyBuilderContext,
+      annotatable: annotatable,
+      annotatableFileUri: annotatableFileUri,
+      metadata: _fragment.metadata,
+    );
 
     buildTypeParametersForOutlineExpressions(
-        classHierarchy,
-        libraryBuilder,
-        bodyBuilderContext,
-        _fragment
-            .declaredTypeParameters
-            // Coverage-ignore(suite): Not run.
-            ?.builders);
+      classHierarchy,
+      libraryBuilder,
+      bodyBuilderContext,
+      _fragment
+          .declaredTypeParameters
+          // Coverage-ignore(suite): Not run.
+          ?.builders,
+    );
     buildFormalsForOutlineExpressions(
-        libraryBuilder, declarationBuilder, _fragment.declaredFormals,
-        scope: _fragment.typeParameterScope,
-        isClassInstanceMember: isClassInstanceMember);
+      libraryBuilder,
+      declarationBuilder,
+      _fragment.declaredFormals,
+      scope: _fragment.typeParameterScope,
+      isClassInstanceMember: isClassInstanceMember,
+    );
 
-    buildTypeParametersForOutlineExpressions(classHierarchy, libraryBuilder,
-        bodyBuilderContext, _clonedDeclarationTypeParameters);
+    buildTypeParametersForOutlineExpressions(
+      classHierarchy,
+      libraryBuilder,
+      bodyBuilderContext,
+      _clonedDeclarationTypeParameters,
+    );
     buildFormalForOutlineExpressions(
-        libraryBuilder, declarationBuilder, _thisFormal,
-        scope: _fragment.typeParameterScope,
-        isClassInstanceMember: isClassInstanceMember);
+      libraryBuilder,
+      declarationBuilder,
+      _thisFormal,
+      scope: _fragment.typeParameterScope,
+      isClassInstanceMember: isClassInstanceMember,
+    );
   }
 
   @override
-  void buildOutlineNode(
-      {required SourceLibraryBuilder libraryBuilder,
-      required NameScheme nameScheme,
-      required BuildNodesCallback f,
-      required PropertyReferences? references,
-      required bool isAbstractOrExternal,
-      required List<TypeParameter>? classTypeParameters}) {
+  void buildOutlineNode({
+    required SourceLibraryBuilder libraryBuilder,
+    required NameScheme nameScheme,
+    required BuildNodesCallback f,
+    required PropertyReferences? references,
+    required bool isAbstractOrExternal,
+    required List<TypeParameter>? classTypeParameters,
+  }) {
     List<TypeParameter>? typeParameters;
     if (_clonedDeclarationTypeParameters != null) {
       typeParameters = [];
@@ -486,51 +567,67 @@ mixin _ExtensionInstanceGetterEncodingMixin implements GetterEncoding {
         typeParameters.add(t.parameter);
       }
     }
-    FunctionNode function = new FunctionNode(
-        isAbstractOrExternal ? null : new EmptyStatement(),
-        typeParameters: typeParameters,
-        positionalParameters: [_thisFormal.build(libraryBuilder)],
-        asyncMarker: _fragment.asyncModifier)
-      ..fileOffset = _fragment.formalsOffset
-      ..fileEndOffset = _fragment.endOffset;
+    FunctionNode function =
+        new FunctionNode(
+            isAbstractOrExternal ? null : new EmptyStatement(),
+            typeParameters: typeParameters,
+            positionalParameters: [_thisFormal.build(libraryBuilder)],
+            asyncMarker: _fragment.asyncModifier,
+          )
+          ..fileOffset = _fragment.formalsOffset
+          ..fileEndOffset = _fragment.endOffset;
     buildTypeParametersAndFormals(
-        libraryBuilder,
-        function,
-        _fragment
-            .declaredTypeParameters
-            // Coverage-ignore(suite): Not run.
-            ?.builders,
-        _fragment.declaredFormals,
-        classTypeParameters: classTypeParameters,
-        supportsTypeParameters: true);
+      libraryBuilder,
+      function,
+      _fragment
+          .declaredTypeParameters
+          // Coverage-ignore(suite): Not run.
+          ?.builders,
+      _fragment.declaredFormals,
+      classTypeParameters: classTypeParameters,
+      supportsTypeParameters: true,
+    );
     if (_fragment.returnType is! InferableTypeBuilder) {
-      function.returnType =
-          _fragment.returnType.build(libraryBuilder, TypeUse.returnType);
+      function.returnType = _fragment.returnType.build(
+        libraryBuilder,
+        TypeUse.returnType,
+      );
     }
 
-    MemberName memberName =
-        nameScheme.getProcedureMemberName(ProcedureKind.Getter, _fragment.name);
-    Procedure procedure = _procedure = new Procedure(
-        memberName.name, ProcedureKind.Method, function,
-        reference: references?.getterReference, fileUri: _fragment.fileUri)
-      ..fileStartOffset = _fragment.startOffset
-      ..fileOffset = _fragment.nameOffset
-      ..fileEndOffset = _fragment.endOffset
-      ..isAbstract = _fragment.modifiers.isAbstract
-      ..isExternal = _fragment.modifiers.isExternal
-      ..isConst = _fragment.modifiers.isConst
-      ..isStatic = true
-      ..isExtensionMember = _isExtensionMember
-      ..isExtensionTypeMember = _isExtensionTypeMember;
+    MemberName memberName = nameScheme.getProcedureMemberName(
+      ProcedureKind.Getter,
+      _fragment.name,
+    );
+    Procedure procedure = _procedure =
+        new Procedure(
+            memberName.name,
+            ProcedureKind.Method,
+            function,
+            reference: references?.getterReference,
+            fileUri: _fragment.fileUri,
+          )
+          ..fileStartOffset = _fragment.startOffset
+          ..fileOffset = _fragment.nameOffset
+          ..fileEndOffset = _fragment.endOffset
+          ..isAbstract = _fragment.modifiers.isAbstract
+          ..isExternal = _fragment.modifiers.isExternal
+          ..isConst = _fragment.modifiers.isConst
+          ..isStatic = true
+          ..isExtensionMember = _isExtensionMember
+          ..isExtensionTypeMember = _isExtensionTypeMember;
     memberName.attachMember(procedure);
 
     f(kind: _builtMemberKind, member: procedure);
   }
 
   @override
-  void checkTypes(SourceLibraryBuilder libraryBuilder,
-      TypeEnvironment typeEnvironment, SourcePropertyBuilder? setterBuilder,
-      {required bool isAbstract, required bool isExternal}) {
+  void checkTypes(
+    SourceLibraryBuilder libraryBuilder,
+    TypeEnvironment typeEnvironment,
+    SourcePropertyBuilder? setterBuilder, {
+    required bool isAbstract,
+    required bool isExternal,
+  }) {
     List<SourceNominalParameterBuilder>? typeParameters = _fragment
         .declaredTypeParameters
         // Coverage-ignore(suite): Not run.
@@ -540,48 +637,71 @@ mixin _ExtensionInstanceGetterEncodingMixin implements GetterEncoding {
       checkTypeParameterDependencies(libraryBuilder, typeParameters);
     }
     libraryBuilder.checkInitializersInFormals(
-        _fragment.declaredFormals, typeEnvironment,
-        isAbstract: isAbstract, isExternal: isExternal);
+      _fragment.declaredFormals,
+      typeEnvironment,
+      isAbstract: isAbstract,
+      isExternal: isExternal,
+    );
     if (setterBuilder != null) {
       DartType getterType = function.returnType;
-      DartType setterType = SourcePropertyBuilder.getSetterType(setterBuilder,
-          getterExtensionTypeParameters: function.typeParameters);
-      libraryBuilder.checkGetterSetterTypes(typeEnvironment,
-          getterType: getterType,
-          getterName: _fragment.name,
-          getterUriOffset: new UriOffsetLength(
-              _fragment.fileUri, _fragment.nameOffset, _fragment.name.length),
-          setterType: setterType,
-          setterName: setterBuilder.name,
-          setterUriOffset: setterBuilder.setterUriOffset!);
+      DartType setterType = SourcePropertyBuilder.getSetterType(
+        setterBuilder,
+        getterExtensionTypeParameters: function.typeParameters,
+      );
+      libraryBuilder.checkGetterSetterTypes(
+        typeEnvironment,
+        getterType: getterType,
+        getterName: _fragment.name,
+        getterUriOffset: new UriOffsetLength(
+          _fragment.fileUri,
+          _fragment.nameOffset,
+          _fragment.name.length,
+        ),
+        setterType: setterType,
+        setterName: setterBuilder.name,
+        setterUriOffset: setterBuilder.setterUriOffset!,
+      );
     }
   }
 
   @override
   // Coverage-ignore(suite): Not run.
   void checkVariance(
-      SourceClassBuilder sourceClassBuilder, TypeEnvironment typeEnvironment) {
+    SourceClassBuilder sourceClassBuilder,
+    TypeEnvironment typeEnvironment,
+  ) {
     sourceClassBuilder.checkVarianceInTypeParameters(
-        typeEnvironment, _fragment.declaredTypeParameters?.builders);
+      typeEnvironment,
+      _fragment.declaredTypeParameters?.builders,
+    );
     sourceClassBuilder.checkVarianceInFormals(
-        typeEnvironment, _fragment.declaredFormals);
+      typeEnvironment,
+      _fragment.declaredFormals,
+    );
     sourceClassBuilder.checkVarianceInReturnType(
-        typeEnvironment, function.returnType,
-        fileOffset: _fragment.nameOffset, fileUri: _fragment.fileUri);
+      typeEnvironment,
+      function.returnType,
+      fileOffset: _fragment.nameOffset,
+      fileUri: _fragment.fileUri,
+    );
   }
 
   @override
   int computeDefaultTypes(ComputeDefaultTypeContext context) {
-    bool hasErrors = context.reportSimplicityIssuesForTypeParameters(_fragment
-        .declaredTypeParameters
-        // Coverage-ignore(suite): Not run.
-        ?.builders);
+    bool hasErrors = context.reportSimplicityIssuesForTypeParameters(
+      _fragment
+          .declaredTypeParameters
+          // Coverage-ignore(suite): Not run.
+          ?.builders,
+    );
     context.reportGenericFunctionTypesForFormals(_fragment.declaredFormals);
     if (_fragment.returnType is! OmittedTypeBuilder) {
-      hasErrors |=
-          context.reportInboundReferenceIssuesForType(_fragment.returnType);
+      hasErrors |= context.reportInboundReferenceIssuesForType(
+        _fragment.returnType,
+      );
       context.recursivelyReportGenericFunctionTypesAsBoundsForType(
-          _fragment.returnType);
+        _fragment.returnType,
+      );
     }
     if (_clonedDeclarationTypeParameters != null &&
         _fragment.declaredTypeParameters != null) {
@@ -593,19 +713,21 @@ mixin _ExtensionInstanceGetterEncodingMixin implements GetterEncoding {
         //  required and unnecessary.
         // ignore: unnecessary_non_null_assertion
         ..._clonedDeclarationTypeParameters!,
-        ..._fragment.declaredTypeParameters!.builders
+        ..._fragment.declaredTypeParameters!.builders,
       ], inErrorRecovery: hasErrors);
     } else if (_clonedDeclarationTypeParameters != null) {
       return context.computeDefaultTypesForVariables(
-          _clonedDeclarationTypeParameters,
-          inErrorRecovery: hasErrors);
+        _clonedDeclarationTypeParameters,
+        inErrorRecovery: hasErrors,
+      );
     } else {
       return context.computeDefaultTypesForVariables(
-          _fragment
-              .declaredTypeParameters
-              // Coverage-ignore(suite): Not run.
-              ?.builders,
-          inErrorRecovery: hasErrors);
+        _fragment
+            .declaredTypeParameters
+            // Coverage-ignore(suite): Not run.
+            ?.builders,
+        inErrorRecovery: hasErrors,
+      );
     }
   }
 
@@ -620,11 +742,19 @@ mixin _ExtensionInstanceGetterEncodingMixin implements GetterEncoding {
   @override
   // Coverage-ignore(suite): Not run.
   void ensureTypes(
-      SourceLibraryBuilder libraryBuilder, ClassHierarchyBase hierarchy) {
-    _fragment.returnType
-        .build(libraryBuilder, TypeUse.fieldType, hierarchy: hierarchy);
-    _thisFormal.type
-        .build(libraryBuilder, TypeUse.parameterType, hierarchy: hierarchy);
+    SourceLibraryBuilder libraryBuilder,
+    ClassHierarchyBase hierarchy,
+  ) {
+    _fragment.returnType.build(
+      libraryBuilder,
+      TypeUse.fieldType,
+      hierarchy: hierarchy,
+    );
+    _thisFormal.type.build(
+      libraryBuilder,
+      TypeUse.parameterType,
+      hierarchy: hierarchy,
+    );
   }
 
   @override

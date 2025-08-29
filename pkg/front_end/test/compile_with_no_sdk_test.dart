@@ -26,7 +26,9 @@ Future<void> compile(String data) async {
     // ignored
   };
   fs.entityForUri(mainFile).writeAsStringSync(data);
-  TestIncrementalCompiler compiler =
-      new TestIncrementalCompiler(options, mainFile);
+  TestIncrementalCompiler compiler = new TestIncrementalCompiler(
+    options,
+    mainFile,
+  );
   await compiler.computeDelta();
 }

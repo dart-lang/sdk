@@ -14,13 +14,16 @@ abstract class LocalScope implements LookupScope {
   @override
   LookupResult? lookup(String name, {int fileOffset = -1});
 
-  LocalScope createNestedScope(
-      {required String debugName, required ScopeKind kind});
+  LocalScope createNestedScope({
+    required String debugName,
+    required ScopeKind kind,
+  });
 
-  LocalScope createNestedFixedScope(
-      {required String debugName,
-      required Map<String, VariableBuilder> local,
-      required ScopeKind kind});
+  LocalScope createNestedFixedScope({
+    required String debugName,
+    required Map<String, VariableBuilder> local,
+    required ScopeKind kind,
+  });
 
   Iterable<VariableBuilder> get localVariables;
 
@@ -38,18 +41,25 @@ abstract class LocalScope implements LookupScope {
 
 abstract base class BaseLocalScope implements LocalScope {
   @override
-  LocalScope createNestedScope(
-      {required String debugName, required ScopeKind kind}) {
+  LocalScope createNestedScope({
+    required String debugName,
+    required ScopeKind kind,
+  }) {
     return new LocalScopeImpl(this, kind, debugName);
   }
 
   @override
-  LocalScope createNestedFixedScope(
-      {required String debugName,
-      required Map<String, VariableBuilder> local,
-      required ScopeKind kind}) {
+  LocalScope createNestedFixedScope({
+    required String debugName,
+    required Map<String, VariableBuilder> local,
+    required ScopeKind kind,
+  }) {
     return new FixedLocalScope(
-        kind: kind, parent: this, local: local, debugName: debugName);
+      kind: kind,
+      parent: this,
+      local: local,
+      debugName: debugName,
+    );
   }
 }
 
@@ -145,14 +155,14 @@ final class LocalTypeParameterScope extends BaseLocalScope
 
   final String _debugName;
 
-  LocalTypeParameterScope(
-      {required this.kind,
-      LocalScope? parent,
-      Map<String, TypeParameterBuilder>? local,
-      required String debugName})
-      : _parent = parent,
-        _local = local,
-        _debugName = debugName;
+  LocalTypeParameterScope({
+    required this.kind,
+    LocalScope? parent,
+    Map<String, TypeParameterBuilder>? local,
+    required String debugName,
+  }) : _parent = parent,
+       _local = local,
+       _debugName = debugName;
 
   @override
   // Coverage-ignore(suite): Not run.
@@ -188,14 +198,14 @@ final class FixedLocalScope extends BaseLocalScope
 
   final String _debugName;
 
-  FixedLocalScope(
-      {required this.kind,
-      LocalScope? parent,
-      Map<String, VariableBuilder>? local,
-      required String debugName})
-      : _parent = parent,
-        _local = local,
-        _debugName = debugName;
+  FixedLocalScope({
+    required this.kind,
+    LocalScope? parent,
+    Map<String, VariableBuilder>? local,
+    required String debugName,
+  }) : _parent = parent,
+       _local = local,
+       _debugName = debugName;
 
   @override
   String toString() => "$runtimeType(${kind}, $_debugName, ${_local?.keys})";
@@ -208,10 +218,11 @@ final class FormalParameterScope extends BaseLocalScope
   @override
   final Map<String, VariableBuilder>? _local;
 
-  FormalParameterScope(
-      {required LookupScope parent, Map<String, VariableBuilder>? local})
-      : _parent = new EnclosingLocalScope(parent),
-        _local = local;
+  FormalParameterScope({
+    required LookupScope parent,
+    Map<String, VariableBuilder>? local,
+  }) : _parent = new EnclosingLocalScope(parent),
+       _local = local;
 
   @override
   ScopeKind get kind => ScopeKind.formals;

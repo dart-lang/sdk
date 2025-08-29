@@ -46,61 +46,81 @@ class TypeSchemaEnvironmentTest extends TypeSchemaEnvironmentTestBase {
 
     // GLB(() -> void, (A, B) -> void) = ([A, B]) -> void
     checkLowerBound(
-        type1: "() -> void",
-        type2: "(A, B) -> void",
-        lowerBound: "([A, B]) -> void");
+      type1: "() -> void",
+      type2: "(A, B) -> void",
+      lowerBound: "([A, B]) -> void",
+    );
     checkLowerBound(
-        type1: "(A, B) -> void",
-        type2: "() -> void",
-        lowerBound: "([A, B]) -> void");
+      type1: "(A, B) -> void",
+      type2: "() -> void",
+      lowerBound: "([A, B]) -> void",
+    );
 
     // GLB((A) -> void, (B) -> void) = (A) -> void
     checkLowerBound(
-        type1: "(A) -> void", type2: "(B) -> void", lowerBound: "(A) -> void");
+      type1: "(A) -> void",
+      type2: "(B) -> void",
+      lowerBound: "(A) -> void",
+    );
     checkLowerBound(
-        type1: "(B) -> void", type2: "(A) -> void", lowerBound: "(A) -> void");
+      type1: "(B) -> void",
+      type2: "(A) -> void",
+      lowerBound: "(A) -> void",
+    );
 
     // GLB(({a: A}) -> void, ({b: B}) -> void) = ({a: A, b: B}) -> void
     checkLowerBound(
-        type1: "({A a}) -> void",
-        type2: "({B b}) -> void",
-        lowerBound: "({A a, B b}) -> void");
+      type1: "({A a}) -> void",
+      type2: "({B b}) -> void",
+      lowerBound: "({A a, B b}) -> void",
+    );
     checkLowerBound(
-        type1: "({B b}) -> void",
-        type2: "({A a}) -> void",
-        lowerBound: "({A a, B b}) -> void");
+      type1: "({B b}) -> void",
+      type2: "({A a}) -> void",
+      lowerBound: "({A a, B b}) -> void",
+    );
 
     // GLB(({a: A, c: A}) -> void, ({b: B, d: B}) -> void)
     //     = ({a: A, b: B, c: A, d: B}) -> void
     checkLowerBound(
-        type1: "({A a, A c}) -> void",
-        type2: "({B b, B d}) -> void",
-        lowerBound: "({A a, B b, A c, B d}) -> void");
+      type1: "({A a, A c}) -> void",
+      type2: "({B b, B d}) -> void",
+      lowerBound: "({A a, B b, A c, B d}) -> void",
+    );
 
     // GLB(({a: A, b: B}) -> void, ({a: B, b: A}) -> void)
     //     = ({a: A, b: A}) -> void
     checkLowerBound(
-        type1: "({A a, B b}) -> void",
-        type2: "({B a, A b}) -> void",
-        lowerBound: "({A a, A b}) -> void");
+      type1: "({A a, B b}) -> void",
+      type2: "({B a, A b}) -> void",
+      lowerBound: "({A a, A b}) -> void",
+    );
     checkLowerBound(
-        type1: "({B a, A b}) -> void",
-        type2: "({A a, B b}) -> void",
-        lowerBound: "({A a, A b}) -> void");
+      type1: "({B a, A b}) -> void",
+      type2: "({A a, B b}) -> void",
+      lowerBound: "({A a, A b}) -> void",
+    );
 
     // GLB((B, {a: A}) -> void, (B) -> void) = (B, {a: A}) -> void
     checkLowerBound(
-        type1: "(B, {A a}) -> void",
-        type2: "(B) -> void",
-        lowerBound: "(B, {A a}) -> void");
+      type1: "(B, {A a}) -> void",
+      type2: "(B) -> void",
+      lowerBound: "(B, {A a}) -> void",
+    );
 
     // GLB(({a: A}) -> void, (B) -> void) = bottom
     checkLowerBound(
-        type1: "({A a}) -> void", type2: "(B) -> void", lowerBound: "Never");
+      type1: "({A a}) -> void",
+      type2: "(B) -> void",
+      lowerBound: "Never",
+    );
 
     // GLB(({a: A}) -> void, ([B]) -> void) = bottom
     checkLowerBound(
-        type1: "({A a}) -> void", type2: "([B]) -> void", lowerBound: "Never");
+      type1: "({A a}) -> void",
+      type2: "([B]) -> void",
+      lowerBound: "Never",
+    );
   }
 
   void test_glb_identical() {
@@ -142,36 +162,40 @@ class TypeSchemaEnvironmentTest extends TypeSchemaEnvironmentTestBase {
     // Test an instantiation of [1, 2.0] with no context.  This should infer
     // as List<?> during downwards inference.
     checkInference(
-        typeParametersToInfer: "T extends Object",
-        functionType: "() -> List<T>",
-        actualParameterTypes: null,
-        returnContextType: null,
-        expectedTypes: "UNKNOWN");
+      typeParametersToInfer: "T extends Object",
+      functionType: "() -> List<T>",
+      actualParameterTypes: null,
+      returnContextType: null,
+      expectedTypes: "UNKNOWN",
+    );
     // And upwards inference should refine it to List<num>.
     checkInference(
-        typeParametersToInfer: "T extends Object",
-        functionType: "(T, T) -> List<T>",
-        actualParameterTypes: "int, double",
-        returnContextType: null,
-        inferredTypesFromDownwardPhase: "UNKNOWN",
-        expectedTypes: "num");
+      typeParametersToInfer: "T extends Object",
+      functionType: "(T, T) -> List<T>",
+      actualParameterTypes: "int, double",
+      returnContextType: null,
+      inferredTypesFromDownwardPhase: "UNKNOWN",
+      expectedTypes: "num",
+    );
 
     // Test an instantiation of [1, 2.0] with a context of List<Object>.  This
     // should infer as List<Object> during downwards inference.
     checkInference(
-        typeParametersToInfer: "T extends Object",
-        functionType: "() -> List<T>",
-        actualParameterTypes: null,
-        returnContextType: "List<Object>",
-        expectedTypes: "Object");
+      typeParametersToInfer: "T extends Object",
+      functionType: "() -> List<T>",
+      actualParameterTypes: null,
+      returnContextType: "List<Object>",
+      expectedTypes: "Object",
+    );
     // And upwards inference should preserve the type.
     checkInference(
-        typeParametersToInfer: "T extends Object",
-        functionType: "(T, T) -> List<T>",
-        actualParameterTypes: "int, double",
-        returnContextType: "List<Object>",
-        inferredTypesFromDownwardPhase: "Object",
-        expectedTypes: "Object");
+      typeParametersToInfer: "T extends Object",
+      functionType: "(T, T) -> List<T>",
+      actualParameterTypes: "int, double",
+      returnContextType: "List<Object>",
+      inferredTypesFromDownwardPhase: "Object",
+      expectedTypes: "Object",
+    );
   }
 
   void test_inferTypeFromConstraints_applyBound() {
@@ -180,40 +204,45 @@ class TypeSchemaEnvironmentTest extends TypeSchemaEnvironmentTestBase {
     // With no constraints:
     // Downward inference should infer '?'
     checkInferenceFromConstraints(
-        typeParameter: "T extends num",
-        constraints: "",
-        downwardsInferPhase: true,
-        expected: "UNKNOWN");
+      typeParameter: "T extends num",
+      constraints: "",
+      downwardsInferPhase: true,
+      expected: "UNKNOWN",
+    );
     // Upward inference should infer num
     checkInferenceFromConstraints(
-        typeParameter: "T extends num",
-        constraints: "",
-        downwardsInferPhase: false,
-        inferredTypeFromDownwardPhase: "UNKNOWN",
-        expected: "num");
+      typeParameter: "T extends num",
+      constraints: "",
+      downwardsInferPhase: false,
+      inferredTypeFromDownwardPhase: "UNKNOWN",
+      expected: "num",
+    );
 
     // With an upper bound of Object:
     // Downward inference should infer num.
     checkInferenceFromConstraints(
-        typeParameter: "T extends num",
-        constraints: "<: Object",
-        downwardsInferPhase: true,
-        expected: "num");
+      typeParameter: "T extends num",
+      constraints: "<: Object",
+      downwardsInferPhase: true,
+      expected: "num",
+    );
     // Upward inference should infer num.
     checkInferenceFromConstraints(
-        typeParameter: "T extends num",
-        constraints: "<: Object",
-        downwardsInferPhase: false,
-        inferredTypeFromDownwardPhase: "num",
-        expected: "num");
+      typeParameter: "T extends num",
+      constraints: "<: Object",
+      downwardsInferPhase: false,
+      inferredTypeFromDownwardPhase: "num",
+      expected: "num",
+    );
     // Upward inference should still infer num even if there are more
     // constraints now, because num was finalized during downward inference.
     checkInferenceFromConstraints(
-        typeParameter: "T extends num",
-        constraints: ":> int <: int",
-        downwardsInferPhase: false,
-        inferredTypeFromDownwardPhase: "num",
-        expected: "num");
+      typeParameter: "T extends num",
+      constraints: ":> int <: int",
+      downwardsInferPhase: false,
+      inferredTypeFromDownwardPhase: "num",
+      expected: "num",
+    );
   }
 
   void test_inferTypeFromConstraints_simple() {
@@ -222,17 +251,19 @@ class TypeSchemaEnvironmentTest extends TypeSchemaEnvironmentTestBase {
     // With an upper bound of List<?>:
     // Downwards inference should infer List<List<?>>
     checkInferenceFromConstraints(
-        typeParameter: "T extends Object",
-        constraints: "<: List<UNKNOWN>",
-        downwardsInferPhase: true,
-        expected: "List<UNKNOWN>");
+      typeParameter: "T extends Object",
+      constraints: "<: List<UNKNOWN>",
+      downwardsInferPhase: true,
+      expected: "List<UNKNOWN>",
+    );
     // Upwards inference should refine that to List<List<Object?>>
     checkInferenceFromConstraints(
-        typeParameter: "T extends Object",
-        constraints: "<: List<UNKNOWN>",
-        downwardsInferPhase: false,
-        inferredTypeFromDownwardPhase: "List<UNKNOWN>",
-        expected: "List<Object?>");
+      typeParameter: "T extends Object",
+      constraints: "<: List<UNKNOWN>",
+      downwardsInferPhase: false,
+      inferredTypeFromDownwardPhase: "List<UNKNOWN>",
+      expected: "List<Object?>",
+    );
   }
 
   void test_lub_classic() {
@@ -259,7 +290,10 @@ class TypeSchemaEnvironmentTest extends TypeSchemaEnvironmentTestBase {
   void test_lub_commonClass() {
     parseTestLibrary("");
     checkUpperBound(
-        type1: "List<int>", type2: "List<double>", upperBound: "List<num>");
+      type1: "List<int>",
+      type2: "List<double>",
+      upperBound: "List<num>",
+    );
   }
 
   void test_lub_function() {
@@ -270,62 +304,87 @@ class TypeSchemaEnvironmentTest extends TypeSchemaEnvironmentTestBase {
 
     // LUB(([A]) -> void, (A) -> void) = Function
     checkUpperBound(
-        type1: "([A]) -> void", type2: "(A) -> void", upperBound: "Function");
+      type1: "([A]) -> void",
+      type2: "(A) -> void",
+      upperBound: "Function",
+    );
 
     // LUB(() -> void, (A, B) -> void) = Function
     checkUpperBound(
-        type1: "() -> void", type2: "(A, B) -> void", upperBound: "Function");
+      type1: "() -> void",
+      type2: "(A, B) -> void",
+      upperBound: "Function",
+    );
     checkUpperBound(
-        type1: "(A, B) -> void", type2: "() -> void", upperBound: "Function");
+      type1: "(A, B) -> void",
+      type2: "() -> void",
+      upperBound: "Function",
+    );
 
     // LUB((A) -> void, (B) -> void) = (B) -> void
     checkUpperBound(
-        type1: "(A) -> void", type2: "(B) -> void", upperBound: "(B) -> void");
+      type1: "(A) -> void",
+      type2: "(B) -> void",
+      upperBound: "(B) -> void",
+    );
     checkUpperBound(
-        type1: "(B) -> void", type2: "(A) -> void", upperBound: "(B) -> void");
+      type1: "(B) -> void",
+      type2: "(A) -> void",
+      upperBound: "(B) -> void",
+    );
 
     // LUB(({a: A}) -> void, ({b: B}) -> void) = () -> void
     checkUpperBound(
-        type1: "({A a}) -> void",
-        type2: "({B b}) -> void",
-        upperBound: "() -> void");
+      type1: "({A a}) -> void",
+      type2: "({B b}) -> void",
+      upperBound: "() -> void",
+    );
     checkUpperBound(
-        type1: "({B b}) -> void",
-        type2: "({A a}) -> void",
-        upperBound: "() -> void");
+      type1: "({B b}) -> void",
+      type2: "({A a}) -> void",
+      upperBound: "() -> void",
+    );
 
     // LUB(({a: A, c: A}) -> void, ({b: B, d: B}) -> void) = () -> void
     checkUpperBound(
-        type1: "({A a, A c}) -> void",
-        type2: "({B b, B d}) -> void",
-        upperBound: "() -> void");
+      type1: "({A a, A c}) -> void",
+      type2: "({B b, B d}) -> void",
+      upperBound: "() -> void",
+    );
 
     // LUB(({a: A, b: B}) -> void, ({a: B, b: A}) -> void)
     //     = ({a: B, b: B}) -> void
     checkUpperBound(
-        type1: "({A a, B b}) -> void",
-        type2: "({B a, A b}) -> void",
-        upperBound: "({B a, B b}) -> void");
+      type1: "({A a, B b}) -> void",
+      type2: "({B a, A b}) -> void",
+      upperBound: "({B a, B b}) -> void",
+    );
     checkUpperBound(
-        type1: "({B a, A b}) -> void",
-        type2: "({A a, B b}) -> void",
-        upperBound: "({B a, B b}) -> void");
+      type1: "({B a, A b}) -> void",
+      type2: "({A a, B b}) -> void",
+      upperBound: "({B a, B b}) -> void",
+    );
 
     // LUB((B, {a: A}) -> void, (B) -> void) = (B) -> void
     checkUpperBound(
-        type1: "(B, {A a}) -> void",
-        type2: "(B) -> void",
-        upperBound: "(B) -> void");
+      type1: "(B, {A a}) -> void",
+      type2: "(B) -> void",
+      upperBound: "(B) -> void",
+    );
 
     // LUB(({a: A}) -> void, (B) -> void) = Function
     checkUpperBound(
-        type1: "({A a}) -> void", type2: "(B) -> void", upperBound: "Function");
+      type1: "({A a}) -> void",
+      type2: "(B) -> void",
+      upperBound: "Function",
+    );
 
     // GLB(({a: A}) -> void, ([B]) -> void) = Function
     checkUpperBound(
-        type1: "({A a}) -> void",
-        type2: "([B]) -> void",
-        upperBound: "Function");
+      type1: "({A a}) -> void",
+      type2: "([B]) -> void",
+      upperBound: "Function",
+    );
   }
 
   void test_lub_identical() {
@@ -336,19 +395,24 @@ class TypeSchemaEnvironmentTest extends TypeSchemaEnvironmentTestBase {
   void test_lub_sameClass() {
     parseTestLibrary("class A; class B extends A; class Map<X, Y>;");
     checkUpperBound(
-        type1: "Map<A, B>", type2: "Map<B, A>", upperBound: "Map<A, A>");
+      type1: "Map<A, B>",
+      type2: "Map<B, A>",
+      upperBound: "Map<A, A>",
+    );
   }
 
   void test_lub_subtype() {
     parseTestLibrary("");
     checkUpperBound(
-        type1: "List<int>",
-        type2: "Iterable<num>",
-        upperBound: "Iterable<num>");
+      type1: "List<int>",
+      type2: "Iterable<num>",
+      upperBound: "Iterable<num>",
+    );
     checkUpperBound(
-        type1: "Iterable<num>",
-        type2: "List<int>",
-        upperBound: "Iterable<num>");
+      type1: "Iterable<num>",
+      type2: "List<int>",
+      upperBound: "Iterable<num>",
+    );
   }
 
   void test_lub_top() {
@@ -373,35 +437,40 @@ class TypeSchemaEnvironmentTest extends TypeSchemaEnvironmentTestBase {
 
     // LUB(T, T) = T
     checkUpperBound(
-        type1: "T",
-        type2: "T",
-        upperBound: "T",
-        typeParameters: "T extends List<T>");
+      type1: "T",
+      type2: "T",
+      upperBound: "T",
+      typeParameters: "T extends List<T>",
+    );
 
     // LUB(T, List<Bottom>) = LUB(List<Object>, List<Bottom>) = List<Object?>
     checkUpperBound(
-        type1: "T",
-        type2: "List<Null>",
-        upperBound: "List<Object?>",
-        typeParameters: "T extends List<T>");
+      type1: "T",
+      type2: "List<Null>",
+      upperBound: "List<Object?>",
+      typeParameters: "T extends List<T>",
+    );
     checkUpperBound(
-        type1: "List<Null>",
-        type2: "T",
-        upperBound: "List<Object?>",
-        typeParameters: "T extends List<T>");
+      type1: "List<Null>",
+      type2: "T",
+      upperBound: "List<Object?>",
+      typeParameters: "T extends List<T>",
+    );
 
     // LUB(T, U) = LUB(List<Object>, U) = LUB(List<Object?>, List<Bottom>)
     // = List<Object>
     checkUpperBound(
-        type1: "T",
-        type2: "U",
-        upperBound: "List<Object?>",
-        typeParameters: "T extends List<T>, U extends List<Null>");
+      type1: "T",
+      type2: "U",
+      upperBound: "List<Object?>",
+      typeParameters: "T extends List<T>, U extends List<Null>",
+    );
     checkUpperBound(
-        type1: "U",
-        type2: "T",
-        upperBound: "List<Object?>",
-        typeParameters: "T extends List<T>, U extends List<Null>");
+      type1: "U",
+      type2: "T",
+      upperBound: "List<Object?>",
+      typeParameters: "T extends List<T>, U extends List<Null>",
+    );
   }
 
   void test_lub_unknown() {
@@ -458,28 +527,46 @@ class TypeSchemaEnvironmentTest extends TypeSchemaEnvironmentTestBase {
     checkConstraintSolving(":> B <: A", "B", grounded: true);
 
     // Solve(B<?> <: T <: A) => A
-    checkConstraintSolving(":> D<UNKNOWN> <: C<dynamic>", "C<dynamic>",
-        grounded: false);
+    checkConstraintSolving(
+      ":> D<UNKNOWN> <: C<dynamic>",
+      "C<dynamic>",
+      grounded: false,
+    );
 
     // Solve(B<?> <: T <: A, grounded) => A
-    checkConstraintSolving(":> D<UNKNOWN> <: C<dynamic>", "C<dynamic>",
-        grounded: true);
+    checkConstraintSolving(
+      ":> D<UNKNOWN> <: C<dynamic>",
+      "C<dynamic>",
+      grounded: true,
+    );
 
     // Solve(B <: T <: A<?>) => B
-    checkConstraintSolving(":> D<Null> <: C<UNKNOWN>", "D<Null>",
-        grounded: false);
+    checkConstraintSolving(
+      ":> D<Null> <: C<UNKNOWN>",
+      "D<Null>",
+      grounded: false,
+    );
 
     // Solve(B <: T <: A<?>, grounded) => B
-    checkConstraintSolving(":> D<Null> <: C<UNKNOWN>", "D<Null>",
-        grounded: true);
+    checkConstraintSolving(
+      ":> D<Null> <: C<UNKNOWN>",
+      "D<Null>",
+      grounded: true,
+    );
 
     // Solve(B<?> <: T <: A<?>) => B<?>
-    checkConstraintSolving(":> D<UNKNOWN> <: C<UNKNOWN>", "D<UNKNOWN>",
-        grounded: false);
+    checkConstraintSolving(
+      ":> D<UNKNOWN> <: C<UNKNOWN>",
+      "D<UNKNOWN>",
+      grounded: false,
+    );
 
     // Solve(B<?> <: T <: A<?>) => B<Never>
-    checkConstraintSolving(":> D<UNKNOWN> <: C<UNKNOWN>", "D<Never>",
-        grounded: true);
+    checkConstraintSolving(
+      ":> D<UNKNOWN> <: C<UNKNOWN>",
+      "D<Never>",
+      grounded: true,
+    );
   }
 
   void test_typeConstraint_default() {
@@ -515,34 +602,43 @@ class TypeSchemaEnvironmentTest extends TypeSchemaEnvironmentTestBase {
     checkIsSubtype("Map<A, A>", "Map<UNKNOWN, UNKNOWN>");
   }
 
-  void checkUpperBound(
-      {required String type1,
-      required String type2,
-      required String upperBound,
-      String? typeParameters}) {
-    typeParserEnvironment.withTypeParameters(typeParameters,
-        (List<TypeParameter> typeParameterNodes) {
+  void checkUpperBound({
+    required String type1,
+    required String type2,
+    required String upperBound,
+    String? typeParameters,
+  }) {
+    typeParserEnvironment.withTypeParameters(typeParameters, (
+      List<TypeParameter> typeParameterNodes,
+    ) {
       expect(
-          typeSchemaEnvironment.getStandardUpperBound(
-              parseType(type1), parseType(type2)),
-          parseType(upperBound));
+        typeSchemaEnvironment.getStandardUpperBound(
+          parseType(type1),
+          parseType(type2),
+        ),
+        parseType(upperBound),
+      );
     });
   }
 
   @override
-  void checkTypeShapeCheckSufficiency(
-      {required String expressionStaticType,
-      required String checkTargetType,
-      required String typeParameters,
-      required TypeShapeCheckSufficiency sufficiency}) {
-    typeParserEnvironment.withStructuralParameters(typeParameters,
-        (List<StructuralParameter> structuralParameters) {
+  void checkTypeShapeCheckSufficiency({
+    required String expressionStaticType,
+    required String checkTargetType,
+    required String typeParameters,
+    required TypeShapeCheckSufficiency sufficiency,
+  }) {
+    typeParserEnvironment.withStructuralParameters(typeParameters, (
+      List<StructuralParameter> structuralParameters,
+    ) {
       expect(
-          typeSchemaEnvironment.computeTypeShapeCheckSufficiency(
-                  expressionStaticType: parseType(expressionStaticType),
-                  checkTargetType: parseType(checkTargetType)) ==
-              sufficiency,
-          isTrue);
+        typeSchemaEnvironment.computeTypeShapeCheckSufficiency(
+              expressionStaticType: parseType(expressionStaticType),
+              checkTargetType: parseType(checkTargetType),
+            ) ==
+            sufficiency,
+        isTrue,
+      );
     });
   }
 }

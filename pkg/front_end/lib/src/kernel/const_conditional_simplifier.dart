@@ -50,24 +50,28 @@ class ConstConditionalSimplifier extends RemovingTransformer {
 
   @override
   TreeNode defaultMember(Member node, TreeNode? removalSentinel) {
-    return constantEvaluator
-        .inStaticTypeContext(new StaticTypeContext(node, _typeEnvironment), () {
-      constantEvaluator._clearLocalCaches();
-      return super.defaultMember(node, removalSentinel);
-    });
+    return constantEvaluator.inStaticTypeContext(
+      new StaticTypeContext(node, _typeEnvironment),
+      () {
+        constantEvaluator._clearLocalCaches();
+        return super.defaultMember(node, removalSentinel);
+      },
+    );
   }
 
   @override
   TreeNode visitConditionalExpression(
-      ConditionalExpression node, TreeNode? removalSentinel) {
+    ConditionalExpression node,
+    TreeNode? removalSentinel,
+  ) {
     super.visitConditionalExpression(node, removalSentinel);
     Constant? condition = _evaluate(node.condition);
     if (condition is! BoolConstant) return node;
     return condition.value
         ? node.then
         :
-        // Coverage-ignore(suite): Not run.
-        node.otherwise;
+          // Coverage-ignore(suite): Not run.
+          node.otherwise;
   }
 
   @override
@@ -97,7 +101,9 @@ class ConstConditionalSimplifier extends RemovingTransformer {
   @override
   // Coverage-ignore(suite): Not run.
   TreeNode visitAssertInitializer(
-      AssertInitializer node, TreeNode? removalSentinel) {
+    AssertInitializer node,
+    TreeNode? removalSentinel,
+  ) {
     if (_removeAsserts) {
       // Initializers only occur in the initializer list, where they are always
       // removable.
@@ -110,7 +116,9 @@ class ConstConditionalSimplifier extends RemovingTransformer {
   @override
   // Coverage-ignore(suite): Not run.
   TreeNode visitAssertStatement(
-      AssertStatement node, TreeNode? removalSentinel) {
+    AssertStatement node,
+    TreeNode? removalSentinel,
+  ) {
     if (_removeAsserts) {
       return removalSentinel ?? new EmptyStatement();
     } else {
@@ -130,10 +138,15 @@ class _ConstantEvaluator extends TryConstantEvaluator {
   // TODO(fishythefish): Make this more granular than [TreeNode].
   final bool Function(TreeNode) _shouldNotInline;
 
-  _ConstantEvaluator(super.librarySupport, super.constantsBackend,
-      super.component, super.typeEnvironment, super.reportError,
-      {super.environmentDefines, bool Function(TreeNode)? shouldNotInline})
-      : _shouldNotInline = shouldNotInline ?? ((_) => false);
+  _ConstantEvaluator(
+    super.librarySupport,
+    super.constantsBackend,
+    super.component,
+    super.typeEnvironment,
+    super.reportError, {
+    super.environmentDefines,
+    bool Function(TreeNode)? shouldNotInline,
+  }) : _shouldNotInline = shouldNotInline ?? ((_) => false);
 
   void _clearLocalCaches() {
     _variableCache.clear();
@@ -186,7 +199,9 @@ class _ConstantEvaluator extends TryConstantEvaluator {
   }
 
   Constant? _lookupStaticFieldGet(Field field) => _staticFieldCache.putIfAbsent(
-      field, () => _evaluateStaticFieldGet(field));
+    field,
+    () => _evaluateStaticFieldGet(field),
+  );
 
   // Coverage-ignore(suite): Not run.
   Constant? _evaluateStaticGetter(Procedure getter) {
@@ -196,7 +211,9 @@ class _ConstantEvaluator extends TryConstantEvaluator {
 
   // Coverage-ignore(suite): Not run.
   Constant? _lookupStaticGetter(Procedure getter) => _functionCache.putIfAbsent(
-      getter.function, () => _evaluateStaticGetter(getter));
+    getter.function,
+    () => _evaluateStaticGetter(getter),
+  );
 
   Constant? _lookupStaticGet(Member target) {
     if (target is Field) return _lookupStaticFieldGet(target);
@@ -216,8 +233,10 @@ class _ConstantEvaluator extends TryConstantEvaluator {
 
   // Coverage-ignore(suite): Not run.
   Constant? _lookupLocalFunctionInvocation(LocalFunctionInvocation node) =>
-      _localFunctionCache.putIfAbsent(node.localFunction.function,
-          () => _evaluateLocalFunctionInvocation(node));
+      _localFunctionCache.putIfAbsent(
+        node.localFunction.function,
+        () => _evaluateLocalFunctionInvocation(node),
+      );
 
   @override
   // Coverage-ignore(suite): Not run.
@@ -242,7 +261,8 @@ class _ConstantEvaluator extends TryConstantEvaluator {
     // are lowered into top level functions.
     Map<VariableDeclaration, Constant?> oldCache = _variableCache;
     _variableCache = {};
-    Constant result = _lookupStaticInvocation(node.target) ??
+    Constant result =
+        _lookupStaticInvocation(node.target) ??
         super.visitStaticInvocation(node);
     _variableCache = oldCache;
     return result;

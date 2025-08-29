@@ -23,7 +23,9 @@ class _InvalidTypeFinder implements DartTypeVisitor1<bool, Set<TypedefType>> {
   @override
   // Coverage-ignore(suite): Not run.
   bool visitAuxiliaryType(
-      AuxiliaryType node, Set<TypedefType> visitedTypedefs) {
+    AuxiliaryType node,
+    Set<TypedefType> visitedTypedefs,
+  ) {
     if (node is UnknownType) {
       return false;
     } else {
@@ -44,7 +46,9 @@ class _InvalidTypeFinder implements DartTypeVisitor1<bool, Set<TypedefType>> {
 
   @override
   bool visitInterfaceType(
-      InterfaceType node, Set<TypedefType> visitedTypedefs) {
+    InterfaceType node,
+    Set<TypedefType> visitedTypedefs,
+  ) {
     for (int i = 0; i < node.typeArguments.length; i++) {
       DartType typeArgument = node.typeArguments[i];
       if (typeArgument.accept1(this, visitedTypedefs)) return true;
@@ -54,7 +58,9 @@ class _InvalidTypeFinder implements DartTypeVisitor1<bool, Set<TypedefType>> {
 
   @override
   bool visitExtensionType(
-      ExtensionType node, Set<TypedefType> visitedTypedefs) {
+    ExtensionType node,
+    Set<TypedefType> visitedTypedefs,
+  ) {
     for (DartType typeArgument in node.typeArguments) {
       if (typeArgument.accept1(this, visitedTypedefs)) return true;
     }
@@ -105,7 +111,9 @@ class _InvalidTypeFinder implements DartTypeVisitor1<bool, Set<TypedefType>> {
 
   @override
   bool visitTypeParameterType(
-      TypeParameterType node, Set<TypedefType> visitedTypedefs) {
+    TypeParameterType node,
+    Set<TypedefType> visitedTypedefs,
+  ) {
     // node.parameter.bound is not checked because such a bound doesn't
     // automatically means that the potential errors related to the occurrences
     // of the type-parameter type itself are reported.
@@ -114,7 +122,9 @@ class _InvalidTypeFinder implements DartTypeVisitor1<bool, Set<TypedefType>> {
 
   @override
   bool visitStructuralParameterType(
-      StructuralParameterType node, Set<TypedefType> visitedTypedefs) {
+    StructuralParameterType node,
+    Set<TypedefType> visitedTypedefs,
+  ) {
     // node.parameter.bound is not checked because such a bound doesn't
     // automatically means that the potential errors related to the occurrences
     // of the type-parameter type itself are reported.
@@ -124,7 +134,9 @@ class _InvalidTypeFinder implements DartTypeVisitor1<bool, Set<TypedefType>> {
   @override
   // Coverage-ignore(suite): Not run.
   bool visitIntersectionType(
-      IntersectionType node, Set<TypedefType> visitedTypedefs) {
+    IntersectionType node,
+    Set<TypedefType> visitedTypedefs,
+  ) {
     return node.right.accept1(this, visitedTypedefs);
   }
 

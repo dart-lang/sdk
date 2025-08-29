@@ -17,13 +17,15 @@ import '../codes/cfe_codes.dart';
 import '../compute_platform_binaries_location.dart';
 import '../kernel_generator_impl.dart';
 
-typedef PerformAnalysisFunction = void Function(
-    DiagnosticMessageHandler onDiagnostic, Component component);
+typedef PerformAnalysisFunction =
+    void Function(DiagnosticMessageHandler onDiagnostic, Component component);
 typedef UriFilter = bool Function(Uri uri);
 
 /// Analysis the [entryPoints] using [performAnalysis].
 Future<void> runAnalysis(
-    List<Uri> entryPoints, PerformAnalysisFunction performAnalysis) async {
+  List<Uri> entryPoints,
+  PerformAnalysisFunction performAnalysis,
+) async {
   CompilerOptions options = new CompilerOptions();
   options.sdkRoot = computePlatformBinariesLocation(forceBuildDir: true);
   await _runAnalysis(options, entryPoints, performAnalysis);
@@ -31,12 +33,15 @@ Future<void> runAnalysis(
 
 /// Analysis the platform libraries for [target] using [performAnalysis].
 Future<void> runPlatformAnalysis(
-    Target target, PerformAnalysisFunction performAnalysis) async {
+  Target target,
+  PerformAnalysisFunction performAnalysis,
+) async {
   CompilerOptions options = new CompilerOptions();
   options.target = target;
   options.environmentDefines = {};
-  options.librariesSpecificationUri =
-      Uri.base.resolve('sdk/lib/libraries.json');
+  options.librariesSpecificationUri = Uri.base.resolve(
+    'sdk/lib/libraries.json',
+  );
   Set<Uri> additionalSources = {};
   for (String extraRequiredLibrary in target.extraRequiredLibraries) {
     additionalSources.add(Uri.parse(extraRequiredLibrary));
@@ -44,23 +49,30 @@ Future<void> runPlatformAnalysis(
   for (String extraRequiredLibrary in target.extraRequiredLibrariesPlatform) {
     additionalSources.add(Uri.parse(extraRequiredLibrary));
   }
-  await _runAnalysis(
-      options, [Uri.parse('dart:core'), ...additionalSources], performAnalysis);
+  await _runAnalysis(options, [
+    Uri.parse('dart:core'),
+    ...additionalSources,
+  ], performAnalysis);
 }
 
-Future<void> _runAnalysis(CompilerOptions options, Iterable<Uri> entryPoints,
-    PerformAnalysisFunction performAnalysis) async {
+Future<void> _runAnalysis(
+  CompilerOptions options,
+  Iterable<Uri> entryPoints,
+  PerformAnalysisFunction performAnalysis,
+) async {
   options.packagesFileUri = Uri.base.resolve('.dart_tool/package_config.json');
   options.onDiagnostic = (CfeDiagnosticMessage message) {
     printDiagnosticMessage(message, print);
   };
-  InternalCompilerResult compilerResult = await kernelForProgramInternal(
-    entryPoints.first,
-    options,
-    retainDataForTesting: true,
-    requireMain: false,
-    additionalSources: entryPoints.skip(1).toList(),
-  ) as InternalCompilerResult;
+  InternalCompilerResult compilerResult =
+      await kernelForProgramInternal(
+            entryPoints.first,
+            options,
+            retainDataForTesting: true,
+            requireMain: false,
+            additionalSources: entryPoints.skip(1).toList(),
+          )
+          as InternalCompilerResult;
 
   performAnalysis(options.onDiagnostic!, compilerResult.component!);
 }
@@ -71,8 +83,10 @@ class StaticTypeVisitorBase extends RecursiveVisitor {
   StaticTypeContext? staticTypeContext;
 
   StaticTypeVisitorBase(Component component, ClassHierarchy classHierarchy)
-      : typeEnvironment =
-            new TypeEnvironment(new CoreTypes(component), classHierarchy);
+    : typeEnvironment = new TypeEnvironment(
+        new CoreTypes(component),
+        classHierarchy,
+      );
 
   @override
   void visitProcedure(Procedure node) {
@@ -109,8 +123,10 @@ class AnalysisVisitor extends StaticTypeVisitorBase {
   Map<String, Map<String, List<FormattedMessage>>> _messages = {};
 
   AnalysisVisitor(this.onDiagnostic, this.component, this.uriFilter)
-      : super(component,
-            new ClassHierarchy(component, new CoreTypes(component))) {
+    : super(
+        component,
+        new ClassHierarchy(component, new CoreTypes(component)),
+      ) {
     interface = new AnalysisInterface(this);
   }
 
@@ -130,28 +146,39 @@ class AnalysisVisitor extends StaticTypeVisitorBase {
     Uri uri = location.file;
     String uriString = relativizeUri(uri)!;
     Map<String, List<FormattedMessage>> actualMap = _messages.putIfAbsent(
-        uriString, () => <String, List<FormattedMessage>>{});
+      uriString,
+      () => <String, List<FormattedMessage>>{},
+    );
     if (uri.isScheme('org-dartlang-sdk')) {
-      location = new Location(Uri.base.resolve(uri.path.substring(1)),
-          location.line, location.column);
+      location = new Location(
+        Uri.base.resolve(uri.path.substring(1)),
+        location.line,
+        location.column,
+      );
     }
     LocatedMessage locatedMessage = codeUnspecified
         .withArguments(message)
         .withLocation(uri, node.fileOffset, noLength);
     FormattedMessage diagnosticMessage = locatedMessage.withFormatting(
-        formatWithLocationNoSdk(locatedMessage, CfeSeverity.warning,
-            location: location, uriToSource: component.uriToSource),
-        location.line,
-        location.column,
+      formatWithLocationNoSdk(
+        locatedMessage,
         CfeSeverity.warning,
-        []);
+        location: location,
+        uriToSource: component.uriToSource,
+      ),
+      location.line,
+      location.column,
+      CfeSeverity.warning,
+      [],
+    );
     actualMap
         .putIfAbsent(message, () => <FormattedMessage>[])
         .add(diagnosticMessage);
   }
 
   void forEachMessage(
-      void Function(String, Map<String, List<FormattedMessage>>) f) {
+    void Function(String, Map<String, List<FormattedMessage>>) f,
+  ) {
     _messages.forEach(f);
   }
 
@@ -176,24 +203,31 @@ class AnalysisInterface {
   final ComponentLookup _componentLookup;
 
   AnalysisInterface(this._visitor)
-      : _componentLookup = new ComponentLookup(_visitor.component);
+    : _componentLookup = new ComponentLookup(_visitor.component);
 
   void reportMessage(TreeNode node, String message) {
     _visitor.registerMessage(node, message);
   }
 
-  InterfaceType createInterfaceType(String className,
-      {String? uri, List<DartType>? typeArguments}) {
-    LibraryLookup libraryLookup =
-        _componentLookup.getLibrary(Uri.parse(uri ?? 'dart:core'));
+  InterfaceType createInterfaceType(
+    String className, {
+    String? uri,
+    List<DartType>? typeArguments,
+  }) {
+    LibraryLookup libraryLookup = _componentLookup.getLibrary(
+      Uri.parse(uri ?? 'dart:core'),
+    );
     ClassLookup classLookup = libraryLookup.getClass(className);
     Class cls = classLookup.cls;
     return new InterfaceType(
-        cls,
-        Nullability.nonNullable,
-        typeArguments ??
-            new List<DartType>.generate(
-                cls.typeParameters.length, (index) => const DynamicType()));
+      cls,
+      Nullability.nonNullable,
+      typeArguments ??
+          new List<DartType>.generate(
+            cls.typeParameters.length,
+            (index) => const DynamicType(),
+          ),
+    );
   }
 
   bool isSubtypeOf(DartType subtype, DartType supertype) {
@@ -201,17 +235,20 @@ class AnalysisInterface {
   }
 }
 
-typedef GeneralAnalysisFunction = void Function(
-    TreeNode node, AnalysisInterface interface);
+typedef GeneralAnalysisFunction =
+    void Function(TreeNode node, AnalysisInterface interface);
 
 /// Generalized analyzer that uses a single [GeneralAnalysisFunction] on all
 /// [TreeNode]s.
 class GeneralAnalyzer extends AnalysisVisitor {
   final GeneralAnalysisFunction analyzer;
 
-  GeneralAnalyzer(DiagnosticMessageHandler onDiagnostic, Component component,
-      bool Function(Uri uri)? analyzedUrisFilter, this.analyzer)
-      : super(onDiagnostic, component, analyzedUrisFilter);
+  GeneralAnalyzer(
+    DiagnosticMessageHandler onDiagnostic,
+    Component component,
+    bool Function(Uri uri)? analyzedUrisFilter,
+    this.analyzer,
+  ) : super(onDiagnostic, component, analyzedUrisFilter);
 
   @override
   void defaultTreeNode(TreeNode node) {
@@ -224,10 +261,16 @@ class GeneralAnalyzer extends AnalysisVisitor {
 /// in a component, using [uriFilter] to filter which libraries that will be
 /// visited.
 PerformAnalysisFunction performGeneralAnalysis(
-    UriFilter? uriFilter, GeneralAnalysisFunction analysisFunction) {
+  UriFilter? uriFilter,
+  GeneralAnalysisFunction analysisFunction,
+) {
   return (DiagnosticMessageHandler onDiagnostic, Component component) {
     GeneralAnalyzer analyzer = new GeneralAnalyzer(
-        onDiagnostic, component, uriFilter, analysisFunction);
+      onDiagnostic,
+      component,
+      uriFilter,
+      analysisFunction,
+    );
     component.accept(analyzer);
     analyzer.printMessages();
   };
@@ -243,9 +286,10 @@ class ComponentLookup {
 
   LibraryLookup getLibrary(Uri uri) {
     LibraryLookup? libraryLookup = (_libraries ??= new Map.fromIterable(
-        _component.libraries,
-        key: (library) => library.importUri,
-        value: (library) => new LibraryLookup(library)))[uri];
+      _component.libraries,
+      key: (library) => library.importUri,
+      value: (library) => new LibraryLookup(library),
+    ))[uri];
     if (libraryLookup == null) {
       throw "Couldn't find library for '$uri'.";
     }
@@ -264,9 +308,10 @@ class LibraryLookup {
 
   ClassLookup getClass(String name) {
     ClassLookup? classLookup = (_classes ??= new Map.fromIterable(
-        library.classes,
-        key: (cls) => cls.name,
-        value: (cls) => new ClassLookup(cls)))[name];
+      library.classes,
+      key: (cls) => cls.name,
+      value: (cls) => new ClassLookup(cls),
+    ))[name];
     if (classLookup == null) {
       throw "Couldn't find class '$name' in ${library.importUri}.";
     }
@@ -286,7 +331,7 @@ class ClassLookup {
 // TODO(johnniwinther): Update this to include all files in the cfe, and not
 //  only those reachable from 'compiler.dart'.
 final List<Uri> cfeOnlyEntryPoints = [
-  Uri.base.resolve('pkg/front_end/tool/compile.dart')
+  Uri.base.resolve('pkg/front_end/tool/compile.dart'),
 ];
 
 /// Filter function used to only analyze cfe source code.

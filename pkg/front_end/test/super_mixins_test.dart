@@ -74,8 +74,12 @@ Future<void> testSuperMixins() async {
   var options = new CompilerOptions()
     ..onDiagnostic = _makeDiagnosticMessageHandler(missingSuperMethodNames);
   await compileScript(testSource, options: options);
-  Expect.setEquals(
-      const <String>['bar', 'baz', 'foo', 'quux'], missingSuperMethodNames);
+  Expect.setEquals(const <String>[
+    'bar',
+    'baz',
+    'foo',
+    'quux',
+  ], missingSuperMethodNames);
 }
 
 void main() {
