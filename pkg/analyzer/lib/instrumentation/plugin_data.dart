@@ -7,10 +7,10 @@ class PluginData {
   /// The ID used to uniquely identify the plugin.
   final String pluginId;
 
-  /// The name of the plugin.
+  /// The name of the plugin, or `null` if the plugin is not running.
   final String? name;
 
-  /// The version of the plugin.
+  /// The version of the plugin, or `null` if the plugin is not running.
   final String? version;
 
   PluginData(this.pluginId, this.name, this.version);

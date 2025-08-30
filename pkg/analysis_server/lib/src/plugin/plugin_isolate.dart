@@ -29,12 +29,13 @@ class PluginIsolate {
   /// directory).
   final String _path;
 
-  /// The path to the 'plugin.dart' file that will be executed in an isolate.
-  final String executionPath;
+  /// The path to the 'plugin.dart' file that will be executed in an isolate, or
+  /// `null` if the isolate could not be started.
+  final String? executionPath;
 
   /// The path to the '.packages' file used to control the resolution of
-  /// 'package:' URIs.
-  final String packagesPath;
+  /// 'package:' URIs, or `null` if the isolate could not be started.
+  final String? packagesPath;
 
   /// The object used to manage the receiving and sending of notifications.
   final AbstractNotificationManager _notificationManager;
@@ -79,7 +80,7 @@ class PluginIsolate {
   /// For example, a plugin cannot be started if there was an error with a
   /// previous attempt to start running it or if the plugin is not correctly
   /// configured.
-  bool get _canBeStarted => executionPath.isNotEmpty;
+  bool get _canBeStarted => executionPath != null;
 
   /// Adds the given [contextRoot] to the set of context roots being analyzed by
   /// this plugin.
@@ -181,8 +182,8 @@ class PluginIsolate {
   /// Creates and returns the channel used to communicate with the server.
   ServerCommunicationChannel _createChannel() {
     return ServerIsolateChannel.discovered(
-      Uri.file(executionPath, windows: Platform.isWindows),
-      Uri.file(packagesPath, windows: Platform.isWindows),
+      Uri.file(executionPath!, windows: Platform.isWindows),
+      Uri.file(packagesPath!, windows: Platform.isWindows),
       _instrumentationService,
     );
   }
@@ -217,7 +218,7 @@ class PluginSession {
   static const Duration WAIT_FOR_SHUTDOWN_DURATION = Duration(seconds: 10);
 
   /// The information about the plugin being executed.
-  final PluginIsolate _info;
+  final PluginIsolate _isolate;
 
   /// The completer used to signal when the plugin has stopped.
   Completer<void> pluginStoppedCompleter = Completer<void>();
@@ -248,7 +249,7 @@ class PluginSession {
   /// plugin.
   String? _version;
 
-  PluginSession(this._info);
+  PluginSession(this._isolate);
 
   /// The next request ID, encoded as a string.
   ///
@@ -264,12 +265,12 @@ class PluginSession {
     if (notification.event == PLUGIN_NOTIFICATION_ERROR) {
       var params = PluginErrorParams.fromNotification(notification);
       if (params.isFatal) {
-        _info.stop();
+        _isolate.stop();
         stop();
       }
     }
-    _info._notificationManager.handlePluginNotification(
-      _info.pluginId,
+    _isolate._notificationManager.handlePluginNotification(
+      _isolate.pluginId,
       notification,
     );
   }
@@ -288,7 +289,7 @@ class PluginSession {
     if (error case [String message, String stackTraceString]) {
       var stackTrace = StackTrace.fromString(stackTraceString);
       var exception = PluginException(message);
-      _info.reportException(
+      _isolate.reportException(
         CaughtException.withMessage(message, exception, stackTrace),
       );
     } else {
@@ -307,7 +308,7 @@ class PluginSession {
     if (requestData != null) {
       var responseTime = DateTime.now().millisecondsSinceEpoch;
       var duration = responseTime - requestData.requestTime;
-      PluginManager.recordResponseTime(_info, requestData.method, duration);
+      PluginManager.recordResponseTime(_isolate, requestData.method, duration);
       var completer = requestData.completer;
       completer.complete(response);
     }
@@ -354,7 +355,7 @@ class PluginSession {
         if (error.code == RequestErrorCode.UNKNOWN_REQUEST) {
           // The plugin doesn't support this request. It may just be using an
           // older version of the `analysis_server_plugin` package.
-          _info._instrumentationService.logInfo(
+          _isolate._instrumentationService.logInfo(
             "Plugin cannot handle request '${request.method}' with parameters: "
             '$parameters.',
           );
@@ -362,7 +363,7 @@ class PluginSession {
         }
         var stackTrace = StackTrace.fromString(error.stackTrace!);
         var exception = PluginException(error.message);
-        _info.reportException(
+        _isolate.reportException(
           CaughtException.withMessage(error.message, exception, stackTrace),
         );
       }
@@ -382,7 +383,7 @@ class PluginSession {
       throw StateError('Missing byte store path');
     }
     if (!isCompatible) {
-      _info.reportException(
+      _isolate.reportException(
         CaughtException(
           PluginException('Plugin is not compatible.'),
           StackTrace.current,
@@ -390,8 +391,8 @@ class PluginSession {
       );
       return false;
     }
-    if (!_info._canBeStarted) {
-      _info.reportException(
+    if (!_isolate._canBeStarted) {
+      _isolate.reportException(
         CaughtException(
           PluginException('Plugin cannot be started.'),
           StackTrace.current,
@@ -399,7 +400,7 @@ class PluginSession {
       );
       return false;
     }
-    channel = _info._createChannel();
+    channel = _isolate._createChannel();
     // TODO(brianwilkerson): Determine if await is necessary, if so, change the
     // return type of `channel.listen` to `Future<void>`.
     await (channel!.listen(
@@ -412,7 +413,7 @@ class PluginSession {
     if (channel == null) {
       // If there is an error when starting the isolate, the channel will invoke
       // `handleOnDone`, which will cause `channel` to be set to `null`.
-      _info.reportException(
+      _isolate.reportException(
         CaughtException(
           PluginException('Unrecorded error while starting the plugin.'),
           StackTrace.current,
@@ -430,7 +431,7 @@ class PluginSession {
     _version = result.version;
     if (!isCompatible) {
       unawaited(sendRequest(PluginShutdownParams()));
-      _info.reportException(
+      _isolate.reportException(
         CaughtException(
           PluginException('Plugin is not compatible.'),
           StackTrace.current,
