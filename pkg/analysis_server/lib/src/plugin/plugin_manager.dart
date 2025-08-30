@@ -155,8 +155,8 @@ class PluginManager {
       } catch (exception, stackTrace) {
         pluginIsolate = PluginIsolate(
           path,
-          '',
-          '',
+          null,
+          null,
           _notificationManager,
           instrumentationService,
         );

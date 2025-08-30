@@ -12,6 +12,7 @@ linter:
   rules:
     - collection_methods_unrelated_type
     - curly_braces_in_flow_control_structures
+    - depend_on_referenced_packages
     - prefer_adjacent_string_concatenation
     - unawaited_futures
     - avoid_void_async
