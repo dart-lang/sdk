@@ -256,6 +256,9 @@ void f() {
     // `b` was analyzed, no more hints.
     await assertEventsText(collector, r'''
 [status] working
+[operation] reuseLinkedBundle SDK
+[operation] reuseLinkedBundle
+  package:test/a.dart
 [operation] analyzeFile
   file: /home/test/lib/b.dart
   library: /home/test/lib/b.dart
@@ -472,6 +475,8 @@ void f() {
 [operation] analyzeFile
   file: /home/test/lib/a.dart
   library: /home/test/lib/a.dart
+[operation] reuseLinkedBundle
+  package:test/a.dart
 [stream]
   ResolvedUnitResult #1
     path: /home/test/lib/a.dart
@@ -518,6 +523,9 @@ void f() {
 [operation] analyzeFile
   file: /home/test/lib/a.dart
   library: /home/test/lib/a.dart
+[operation] reuseLinkedBundle SDK
+[operation] reuseLinkedBundle
+  package:test/a.dart
 [stream]
   ResolvedUnitResult #4
     path: /home/test/lib/a.dart
@@ -991,6 +999,8 @@ import 'a.dart';
     driver.changeFile2(a);
     await assertEventsText(collector, r'''
 [status] working
+[operation] reuseLinkedBundle
+  package:test/a.dart
 [operation] analyzeFile
   file: /home/test/lib/a.dart
   library: /home/test/lib/a.dart
@@ -1012,6 +1022,8 @@ import 'a.dart';
     driver.changeFile2(a);
     await assertEventsText(collector, r'''
 [status] working
+[operation] reuseLinkedBundle
+  package:test/a.dart
 [operation] getErrorsFromBytes
   file: /home/test/lib/a.dart
   library: /home/test/lib/a.dart
@@ -1029,6 +1041,8 @@ import 'a.dart';
     driver.changeFile2(a);
     await assertEventsText(collector, r'''
 [status] working
+[operation] reuseLinkedBundle
+  package:test/a.dart
 [operation] getErrorsFromBytes
   file: /home/test/lib/a.dart
   library: /home/test/lib/a.dart
@@ -2678,6 +2692,7 @@ class B extends A {}
 [operation] analyzeFile
   file: /home/test/lib/b.dart
   library: /home/test/lib/b.dart
+[operation] reuseLinkedBundle SDK
 [stream]
   ResolvedUnitResult #2
     path: /home/test/lib/b.dart
@@ -2702,6 +2717,10 @@ class B extends A {}
 [operation] analyzeFile
   file: /home/test/lib/b.dart
   library: /home/test/lib/b.dart
+[operation] reuseLinkedBundle
+  package:test/a.dart
+[operation] reuseLinkedBundle
+  package:test/b.dart
 [stream]
   ResolvedUnitResult #3
     path: /home/test/lib/b.dart
@@ -3947,6 +3966,8 @@ final a = new A();
 [operation] analyzeFile
   file: /home/test/lib/b.dart
   library: /home/test/lib/b.dart
+[operation] reuseLinkedBundle
+  package:test/b.dart
 [stream]
   ResolvedUnitResult #0
     path: /home/test/lib/b.dart
@@ -4540,6 +4561,8 @@ final a = new A();
 [operation] analyzeFile
   file: /home/test/lib/b.dart
   library: /home/test/lib/b.dart
+[operation] reuseLinkedBundle
+  package:test/b.dart
 [stream]
   ResolvedUnitResult #0
     path: /home/test/lib/b.dart
@@ -4817,6 +4840,7 @@ class B2 {}
 [operation] analyzeFile
   file: /home/test1/lib/a.dart
   library: /home/test1/lib/a.dart
+[operation] reuseLinkedBundle SDK
 [operation] analyzeFile
   file: /home/test2/lib/c.dart
   library: /home/test2/lib/c.dart
@@ -4876,6 +4900,7 @@ class B2 {}
 [operation] analyzeFile
   file: /home/test2/lib/c.dart
   library: /home/test2/lib/c.dart
+[operation] reuseLinkedBundle SDK
 [operation] analyzeFile
   file: /home/test1/lib/b.dart
   library: /home/test1/lib/b.dart
@@ -4915,6 +4940,9 @@ class B2 {}
     // Note, no analysis.
     await assertEventsText(collector, r'''
 [status] working
+[operation] reuseLinkedBundle SDK
+[operation] reuseLinkedBundle
+  package:test/a.dart
 [operation] getErrorsFromBytes
   file: /home/test/lib/a.dart
   library: /home/test/lib/a.dart
@@ -4997,6 +5025,7 @@ final B = 1.2;
 [operation] analyzeFile
   file: /home/test/lib/a.dart
   library: /home/test/lib/a.dart
+[operation] reuseLinkedBundle SDK
 [stream]
   ResolvedUnitResult #2
     path: /home/test/lib/a.dart
@@ -5073,6 +5102,7 @@ final a = new A();
     driver.removeFile2(a);
     await assertEventsText(collector, r'''
 [status] working
+[operation] reuseLinkedBundle SDK
 [operation] analyzeFile
   file: /home/test/lib/b.dart
   library: /home/test/lib/b.dart
@@ -5422,6 +5452,9 @@ final v = 0
     driver.changeFile2(a);
     await assertEventsText(collector, r'''
 [status] working
+[operation] reuseLinkedBundle SDK
+[operation] reuseLinkedBundle
+  package:test/a.dart
 [operation] analyzeFile
   file: /home/test/lib/a.dart
   library: /home/test/lib/a.dart
@@ -5684,13 +5717,11 @@ class DriverEventCollector {
           }
         case driver_events.AnalyzeFile():
         case driver_events.AnalyzedLibrary():
-        case driver_events.CannotReuseLinkedBundle():
-        case driver_events.GetErrorsCannotReuse():
         case driver_events.GetErrorsFromBytes():
         case driver_events.LinkLibraryCycle():
-        case driver_events.ProduceErrorsCannotReuse():
         case driver_events.CheckLibraryDiagnosticsRequirements():
-        case driver_events.ReuseLinkLibraryCycleBundle():
+        case driver_events.CheckLinkedBundleRequirements():
+        case driver_events.ReuseLinkedBundle():
         case ErrorsResult():
         case ResolvedUnitResult():
           _events.add(ResultStreamEvent(object: event));
@@ -5802,7 +5833,7 @@ class A {
           map
             foo: #M5
   requirements
-[operation] readLibraryCycleBundle
+[operation] reuseLinkedBundle
   package:test/test.dart
 [operation] checkLibraryDiagnosticsRequirements
   library: /home/test/lib/test.dart
@@ -5936,11 +5967,8 @@ class A {
             bar: #M7
             foo: #M4
   requirements
-[operation] readLibraryCycleBundle
+[operation] reuseLinkedBundle
   package:test/test.dart
-[operation] checkLibraryDiagnosticsRequirements
-  library: /home/test/lib/test.dart
-  failure: null
 [operation] getErrorsFromBytes
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
@@ -6033,7 +6061,8 @@ class A {
             bar: #M8
             foo: #M2
   requirements
-[operation] cannotReuseLinkedBundle
+[operation] checkLinkedBundleRequirements
+  package:test/test.dart
   interfaceIdMismatch
     libraryUri: package:test/a.dart
     interfaceName: A
@@ -6155,7 +6184,7 @@ class A {
             bar: #M5
             foo: #M2
   requirements
-[operation] readLibraryCycleBundle
+[operation] reuseLinkedBundle
   package:test/test.dart
 [operation] checkLibraryDiagnosticsRequirements
   library: /home/test/lib/test.dart
@@ -6299,7 +6328,8 @@ class A {
             foo: #M9
             foo=: #M3
   requirements
-[operation] cannotReuseLinkedBundle
+[operation] checkLinkedBundleRequirements
+  package:test/test.dart
   interfaceIdMismatch
     libraryUri: package:test/a.dart
     interfaceName: A
@@ -6447,7 +6477,7 @@ class A {
           map
             foo: #M5
   requirements
-[operation] readLibraryCycleBundle
+[operation] reuseLinkedBundle
   package:test/test.dart
 [operation] checkLibraryDiagnosticsRequirements
   library: /home/test/lib/test.dart
@@ -6575,7 +6605,7 @@ class A {
           map
             foo: #M5
   requirements
-[operation] readLibraryCycleBundle
+[operation] reuseLinkedBundle
   package:test/test.dart
 [operation] checkLibraryDiagnosticsRequirements
   library: /home/test/lib/test.dart
@@ -6709,11 +6739,8 @@ class A {
             bar: #M7
             foo: #M4
   requirements
-[operation] readLibraryCycleBundle
+[operation] reuseLinkedBundle
   package:test/test.dart
-[operation] checkLibraryDiagnosticsRequirements
-  library: /home/test/lib/test.dart
-  failure: null
 [operation] getErrorsFromBytes
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
@@ -6816,7 +6843,7 @@ class A {
           map
             foo: #M6
   requirements
-[operation] readLibraryCycleBundle
+[operation] reuseLinkedBundle
   package:test/test.dart
 [operation] checkLibraryDiagnosticsRequirements
   library: /home/test/lib/test.dart
@@ -6957,7 +6984,7 @@ class A {
             foo: #M8
             foo=: #M3
   requirements
-[operation] readLibraryCycleBundle
+[operation] reuseLinkedBundle
   package:test/test.dart
 [operation] checkLibraryDiagnosticsRequirements
   library: /home/test/lib/test.dart
@@ -7089,11 +7116,8 @@ class A {
           map
             foo: #M4
   requirements
-[operation] readLibraryCycleBundle
+[operation] reuseLinkedBundle
   package:test/test.dart
-[operation] checkLibraryDiagnosticsRequirements
-  library: /home/test/lib/test.dart
-  failure: null
 [operation] getErrorsFromBytes
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
@@ -7202,7 +7226,8 @@ class B extends A<double> {}
           map
             foo: #M2
   requirements
-[operation] cannotReuseLinkedBundle
+[operation] checkLinkedBundleRequirements
+  package:test/test.dart
   topLevelIdMismatch
     libraryUri: package:test/a.dart
     name: B
@@ -7347,7 +7372,8 @@ class B implements A<double> {}
           map
             foo: #M2
   requirements
-[operation] cannotReuseLinkedBundle
+[operation] checkLinkedBundleRequirements
+  package:test/test.dart
   topLevelIdMismatch
     libraryUri: package:test/a.dart
     name: B
@@ -7492,7 +7518,8 @@ class B with A<double> {}
           map
             foo: #M2
   requirements
-[operation] cannotReuseLinkedBundle
+[operation] checkLinkedBundleRequirements
+  package:test/test.dart
   topLevelIdMismatch
     libraryUri: package:test/a.dart
     name: B
@@ -7713,7 +7740,8 @@ class A {
             bar: #M6
             foo: #M1
   requirements
-[operation] cannotReuseLinkedBundle
+[operation] checkLinkedBundleRequirements
+  package:test/test.dart
   interfaceIdMismatch
     libraryUri: package:test/a.dart
     interfaceName: A
@@ -7830,7 +7858,7 @@ class A {
             bar: #M3
             foo: #M1
   requirements
-[operation] readLibraryCycleBundle
+[operation] reuseLinkedBundle
   package:test/test.dart
 [operation] checkLibraryDiagnosticsRequirements
   library: /home/test/lib/test.dart
@@ -7951,7 +7979,7 @@ class A {
           map
             foo: #M3
   requirements
-[operation] readLibraryCycleBundle
+[operation] reuseLinkedBundle
   package:test/test.dart
 [operation] checkLibraryDiagnosticsRequirements
   library: /home/test/lib/test.dart
@@ -8078,7 +8106,8 @@ class A {
             bar: #M1
             foo: #M7
   requirements
-[operation] cannotReuseLinkedBundle
+[operation] checkLinkedBundleRequirements
+  package:test/test.dart
   interfaceIdMismatch
     libraryUri: package:test/a.dart
     interfaceName: A
@@ -8263,7 +8292,8 @@ class C extends A implements B {}
           combinedIds
             [#M12, #M4]: #M15
   requirements
-[operation] cannotReuseLinkedBundle
+[operation] checkLinkedBundleRequirements
+  package:test/test.dart
   interfaceIdMismatch
     libraryUri: package:test/a.dart
     interfaceName: C
@@ -8404,7 +8434,7 @@ class A {
           map
             foo: #M3
   requirements
-[operation] readLibraryCycleBundle
+[operation] reuseLinkedBundle
   package:test/test.dart
 [operation] checkLibraryDiagnosticsRequirements
   library: /home/test/lib/test.dart
@@ -8532,11 +8562,8 @@ class A {
             bar: #M4
             foo: #M2
   requirements
-[operation] readLibraryCycleBundle
+[operation] reuseLinkedBundle
   package:test/test.dart
-[operation] checkLibraryDiagnosticsRequirements
-  library: /home/test/lib/test.dart
-  failure: null
 [operation] getErrorsFromBytes
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
@@ -8631,7 +8658,7 @@ class A {
           map
             foo: #M4
   requirements
-[operation] readLibraryCycleBundle
+[operation] reuseLinkedBundle
   package:test/test.dart
 [operation] checkLibraryDiagnosticsRequirements
   library: /home/test/lib/test.dart
@@ -8749,7 +8776,7 @@ class A {
           map
             foo: #M5
   requirements
-[operation] readLibraryCycleBundle
+[operation] reuseLinkedBundle
   package:test/test.dart
 [operation] checkLibraryDiagnosticsRequirements
   library: /home/test/lib/test.dart
@@ -9088,11 +9115,8 @@ class A {
             bar: #M5
             foo: #M2
   requirements
-[operation] readLibraryCycleBundle
+[operation] reuseLinkedBundle
   package:test/test.dart
-[operation] checkLibraryDiagnosticsRequirements
-  library: /home/test/lib/test.dart
-  failure: null
 [operation] getErrorsFromBytes
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
@@ -9205,7 +9229,8 @@ class C extends B {}
           map
             foo: #M1
   requirements
-[operation] cannotReuseLinkedBundle
+[operation] checkLinkedBundleRequirements
+  package:test/test.dart
   topLevelIdMismatch
     libraryUri: package:test/a.dart
     name: C
@@ -9338,7 +9363,8 @@ class B extends A<double> {}
           map
             foo: #M1
   requirements
-[operation] cannotReuseLinkedBundle
+[operation] checkLinkedBundleRequirements
+  package:test/test.dart
   topLevelIdMismatch
     libraryUri: package:test/a.dart
     name: B
@@ -9471,7 +9497,8 @@ class B implements A<double> {}
           map
             foo: #M1
   requirements
-[operation] cannotReuseLinkedBundle
+[operation] checkLinkedBundleRequirements
+  package:test/test.dart
   topLevelIdMismatch
     libraryUri: package:test/a.dart
     name: B
@@ -9604,7 +9631,8 @@ class B with A<double> {}
           map
             foo: #M1
   requirements
-[operation] cannotReuseLinkedBundle
+[operation] checkLinkedBundleRequirements
+  package:test/test.dart
   topLevelIdMismatch
     libraryUri: package:test/a.dart
     name: B
@@ -9814,7 +9842,7 @@ class A {}
       A: #M0
         interface: #M4
   requirements
-[operation] readLibraryCycleBundle
+[operation] reuseLinkedBundle
   package:test/test.dart
 [operation] checkLibraryDiagnosticsRequirements
   library: /home/test/lib/test.dart
@@ -9947,7 +9975,7 @@ class A {
           map
             foo=: #M4
   requirements
-[operation] readLibraryCycleBundle
+[operation] reuseLinkedBundle
   package:test/test.dart
 [operation] checkLibraryDiagnosticsRequirements
   library: /home/test/lib/test.dart
@@ -10083,7 +10111,7 @@ class A {
             foo: #M2
             foo=: #M5
   requirements
-[operation] readLibraryCycleBundle
+[operation] reuseLinkedBundle
   package:test/test.dart
 [operation] checkLibraryDiagnosticsRequirements
   library: /home/test/lib/test.dart
@@ -10211,7 +10239,7 @@ class A {
           map
             foo=: #M5
   requirements
-[operation] readLibraryCycleBundle
+[operation] reuseLinkedBundle
   package:test/test.dart
 [operation] checkLibraryDiagnosticsRequirements
   library: /home/test/lib/test.dart
@@ -10345,11 +10373,8 @@ class A {
             bar=: #M7
             foo=: #M4
   requirements
-[operation] readLibraryCycleBundle
+[operation] reuseLinkedBundle
   package:test/test.dart
-[operation] checkLibraryDiagnosticsRequirements
-  library: /home/test/lib/test.dart
-  failure: null
 [operation] getErrorsFromBytes
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
@@ -10452,7 +10477,7 @@ class A {
           map
             foo=: #M6
   requirements
-[operation] readLibraryCycleBundle
+[operation] reuseLinkedBundle
   package:test/test.dart
 [operation] checkLibraryDiagnosticsRequirements
   library: /home/test/lib/test.dart
@@ -10593,7 +10618,7 @@ class A {
             foo: #M2
             foo=: #M7
   requirements
-[operation] readLibraryCycleBundle
+[operation] reuseLinkedBundle
   package:test/test.dart
 [operation] checkLibraryDiagnosticsRequirements
   library: /home/test/lib/test.dart
@@ -10729,11 +10754,8 @@ class A {
             bar=: #M8
             foo=: #M4
   requirements
-[operation] readLibraryCycleBundle
+[operation] reuseLinkedBundle
   package:test/test.dart
-[operation] checkLibraryDiagnosticsRequirements
-  library: /home/test/lib/test.dart
-  failure: null
 [operation] getErrorsFromBytes
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
@@ -10842,7 +10864,8 @@ class B extends A<double> {}
           map
             foo=: #M2
   requirements
-[operation] cannotReuseLinkedBundle
+[operation] checkLinkedBundleRequirements
+  package:test/test.dart
   topLevelIdMismatch
     libraryUri: package:test/a.dart
     name: B
@@ -10987,7 +11010,8 @@ class B implements A<double> {}
           map
             foo=: #M2
   requirements
-[operation] cannotReuseLinkedBundle
+[operation] checkLinkedBundleRequirements
+  package:test/test.dart
   topLevelIdMismatch
     libraryUri: package:test/a.dart
     name: B
@@ -11132,7 +11156,8 @@ class B with A<double> {}
           map
             foo=: #M2
   requirements
-[operation] cannotReuseLinkedBundle
+[operation] checkLinkedBundleRequirements
+  package:test/test.dart
   topLevelIdMismatch
     libraryUri: package:test/a.dart
     name: B
@@ -11360,7 +11385,7 @@ class A {}
       A: #M0
         interface: #M5
   requirements
-[operation] readLibraryCycleBundle
+[operation] reuseLinkedBundle
   package:test/test.dart
 [operation] checkLibraryDiagnosticsRequirements
   library: /home/test/lib/test.dart
@@ -11499,7 +11524,7 @@ class A {
             bar=: #M5
             foo=: #M2
   requirements
-[operation] readLibraryCycleBundle
+[operation] reuseLinkedBundle
   package:test/test.dart
 [operation] checkLibraryDiagnosticsRequirements
   library: /home/test/lib/test.dart
@@ -11601,7 +11626,8 @@ class A {}
       A: #M1
         interface: #M2
   requirements
-[operation] cannotReuseLinkedBundle
+[operation] checkLinkedBundleRequirements
+  package:test/test.dart
   topLevelIdMismatch
     libraryUri: package:test/a.dart
     name: A
@@ -11720,11 +11746,8 @@ class B {}
       B: #M3
         interface: #M4
   requirements
-[operation] readLibraryCycleBundle
+[operation] reuseLinkedBundle
   package:test/test.dart
-[operation] checkLibraryDiagnosticsRequirements
-  library: /home/test/lib/test.dart
-  failure: null
 [operation] getErrorsFromBytes
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
@@ -11811,7 +11834,8 @@ class B {}
       B: #M2
         interface: #M3
   requirements
-[operation] cannotReuseLinkedBundle
+[operation] checkLinkedBundleRequirements
+  package:test/test.dart
   topLevelIdMismatch
     libraryUri: package:test/a.dart
     name: A
@@ -11939,11 +11963,8 @@ class C {}
       C: #M4
         interface: #M5
   requirements
-[operation] readLibraryCycleBundle
+[operation] reuseLinkedBundle
   package:test/test.dart
-[operation] checkLibraryDiagnosticsRequirements
-  library: /home/test/lib/test.dart
-  failure: null
 [operation] getErrorsFromBytes
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
@@ -12015,7 +12036,8 @@ A foo() => throw 0;
 [operation] linkLibraryCycle
   package:test/a.dart
   requirements
-[operation] cannotReuseLinkedBundle
+[operation] checkLinkedBundleRequirements
+  package:test/test.dart
   topLevelIdMismatch
     libraryUri: package:test/a.dart
     name: A
@@ -12130,11 +12152,8 @@ class A {}
       A: #M0
         interface: #M1
   requirements
-[operation] readLibraryCycleBundle
+[operation] reuseLinkedBundle
   package:test/test.dart
-[operation] checkLibraryDiagnosticsRequirements
-  library: /home/test/lib/test.dart
-  failure: null
 [operation] getErrorsFromBytes
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
@@ -12225,7 +12244,7 @@ class A {
           c2: #M4
         interface: #M2
   requirements
-[operation] readLibraryCycleBundle
+[operation] reuseLinkedBundle
   package:test/test.dart
 [operation] checkLibraryDiagnosticsRequirements
   library: /home/test/lib/test.dart
@@ -12339,7 +12358,7 @@ class A {
           new: #M2
         interface: #M3
   requirements
-[operation] readLibraryCycleBundle
+[operation] reuseLinkedBundle
   package:test/test.dart
 [operation] checkLibraryDiagnosticsRequirements
   library: /home/test/lib/test.dart
@@ -12456,7 +12475,7 @@ class A {
           foo: #M3
         interface: #M2
   requirements
-[operation] readLibraryCycleBundle
+[operation] reuseLinkedBundle
   package:test/test.dart
 [operation] checkLibraryDiagnosticsRequirements
   library: /home/test/lib/test.dart
@@ -12578,11 +12597,8 @@ class A {
           foo: #M2
         interface: #M3
   requirements
-[operation] readLibraryCycleBundle
+[operation] reuseLinkedBundle
   package:test/test.dart
-[operation] checkLibraryDiagnosticsRequirements
-  library: /home/test/lib/test.dart
-  failure: null
 [operation] getErrorsFromBytes
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
@@ -12679,11 +12695,8 @@ class A {
           new: #M2
         interface: #M3
   requirements
-[operation] readLibraryCycleBundle
+[operation] reuseLinkedBundle
   package:test/test.dart
-[operation] checkLibraryDiagnosticsRequirements
-  library: /home/test/lib/test.dart
-  failure: null
 [operation] getErrorsFromBytes
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
@@ -12766,7 +12779,7 @@ class A {
           named: #M4
         interface: #M2
   requirements
-[operation] readLibraryCycleBundle
+[operation] reuseLinkedBundle
   package:test/test.dart
 [operation] checkLibraryDiagnosticsRequirements
   library: /home/test/lib/test.dart
@@ -12899,7 +12912,7 @@ class A {
             foo: #M2
             foo=: #M3
   requirements
-[operation] readLibraryCycleBundle
+[operation] reuseLinkedBundle
   package:test/test.dart
 [operation] checkLibraryDiagnosticsRequirements
   library: /home/test/lib/test.dart
@@ -13019,7 +13032,7 @@ class A {
           map
             foo: #M1
   requirements
-[operation] readLibraryCycleBundle
+[operation] reuseLinkedBundle
   package:test/test.dart
 [operation] checkLibraryDiagnosticsRequirements
   library: /home/test/lib/test.dart
@@ -13139,7 +13152,8 @@ class A {
           named: #M6
         interface: #M2
   requirements
-[operation] cannotReuseLinkedBundle
+[operation] checkLinkedBundleRequirements
+  package:test/test.dart
   interfaceConstructorIdMismatch
     libraryUri: package:test/a.dart
     interfaceName: A
@@ -13271,11 +13285,8 @@ class A {
           c2: #M5
         interface: #M3
   requirements
-[operation] readLibraryCycleBundle
+[operation] reuseLinkedBundle
   package:test/test.dart
-[operation] checkLibraryDiagnosticsRequirements
-  library: /home/test/lib/test.dart
-  failure: null
 [operation] getErrorsFromBytes
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
@@ -13358,7 +13369,7 @@ class A {
           c1: #M1
         interface: #M3
   requirements
-[operation] readLibraryCycleBundle
+[operation] reuseLinkedBundle
   package:test/test.dart
 [operation] checkLibraryDiagnosticsRequirements
   library: /home/test/lib/test.dart
@@ -13481,7 +13492,7 @@ class A {
           foo: #M2
         interface: #M3
   requirements
-[operation] readLibraryCycleBundle
+[operation] reuseLinkedBundle
   package:test/test.dart
 [operation] checkLibraryDiagnosticsRequirements
   library: /home/test/lib/test.dart
@@ -13604,7 +13615,7 @@ class A {
           foo: #M6
         interface: #M3
   requirements
-[operation] readLibraryCycleBundle
+[operation] reuseLinkedBundle
   package:test/test.dart
 [operation] checkLibraryDiagnosticsRequirements
   library: /home/test/lib/test.dart
@@ -13736,11 +13747,8 @@ class A {
           foo: #M4
         interface: #M5
   requirements
-[operation] readLibraryCycleBundle
+[operation] reuseLinkedBundle
   package:test/test.dart
-[operation] checkLibraryDiagnosticsRequirements
-  library: /home/test/lib/test.dart
-  failure: null
 [operation] getErrorsFromBytes
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
@@ -13831,7 +13839,7 @@ class A {
           foo: #M4
         interface: #M2
   requirements
-[operation] readLibraryCycleBundle
+[operation] reuseLinkedBundle
   package:test/test.dart
 [operation] checkLibraryDiagnosticsRequirements
   library: /home/test/lib/test.dart
@@ -13957,11 +13965,8 @@ class A {
           foo: #M2
         interface: #M3
   requirements
-[operation] readLibraryCycleBundle
+[operation] reuseLinkedBundle
   package:test/test.dart
-[operation] checkLibraryDiagnosticsRequirements
-  library: /home/test/lib/test.dart
-  failure: null
 [operation] getErrorsFromBytes
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
@@ -14052,7 +14057,7 @@ class A {
           foo=: #M6
         interface: #M3
   requirements
-[operation] readLibraryCycleBundle
+[operation] reuseLinkedBundle
   package:test/test.dart
 [operation] checkLibraryDiagnosticsRequirements
   library: /home/test/lib/test.dart
@@ -14176,11 +14181,8 @@ class A {
           foo=: #M4
         interface: #M5
   requirements
-[operation] readLibraryCycleBundle
+[operation] reuseLinkedBundle
   package:test/test.dart
-[operation] checkLibraryDiagnosticsRequirements
-  library: /home/test/lib/test.dart
-  failure: null
 [operation] getErrorsFromBytes
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
@@ -14274,7 +14276,7 @@ class A {
           new: #M4
         interface: #M3
   requirements
-[operation] readLibraryCycleBundle
+[operation] reuseLinkedBundle
   package:test/test.dart
 [operation] checkLibraryDiagnosticsRequirements
   library: /home/test/lib/test.dart
@@ -14385,9 +14387,9 @@ class A {
 ''',
       expectedUpdatedEvents: r'''
 [status] working
-[operation] readLibraryCycleBundle
+[operation] reuseLinkedBundle
   package:test/a.dart
-[operation] readLibraryCycleBundle
+[operation] reuseLinkedBundle
   package:test/test.dart
 [operation] getErrorsFromBytes
   file: /home/test/lib/test.dart
@@ -14473,7 +14475,7 @@ class A {
           new: #M4
         interface: #M2
   requirements
-[operation] readLibraryCycleBundle
+[operation] reuseLinkedBundle
   package:test/test.dart
 [operation] checkLibraryDiagnosticsRequirements
   library: /home/test/lib/test.dart
@@ -14580,11 +14582,8 @@ class A {
           new: #M5
         interface: #M3
   requirements
-[operation] readLibraryCycleBundle
+[operation] reuseLinkedBundle
   package:test/test.dart
-[operation] checkLibraryDiagnosticsRequirements
-  library: /home/test/lib/test.dart
-  failure: null
 [operation] getErrorsFromBytes
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
@@ -14683,7 +14682,7 @@ class B = A with M;
       M: #M5
         interface: #M6
   requirements
-[operation] readLibraryCycleBundle
+[operation] reuseLinkedBundle
   package:test/test.dart
 [operation] checkLibraryDiagnosticsRequirements
   library: /home/test/lib/test.dart
@@ -14808,7 +14807,7 @@ enum A {
           map
             index: #M6
   requirements
-[operation] readLibraryCycleBundle
+[operation] reuseLinkedBundle
   package:test/test.dart
 [operation] checkLibraryDiagnosticsRequirements
   library: /home/test/lib/test.dart
@@ -14952,7 +14951,7 @@ enum A {
             foo: #M11
             index: #M8
   requirements
-[operation] readLibraryCycleBundle
+[operation] reuseLinkedBundle
   package:test/test.dart
 [operation] checkLibraryDiagnosticsRequirements
   library: /home/test/lib/test.dart
@@ -15102,11 +15101,8 @@ enum A {
             foo: #M6
             index: #M10
   requirements
-[operation] readLibraryCycleBundle
+[operation] reuseLinkedBundle
   package:test/test.dart
-[operation] checkLibraryDiagnosticsRequirements
-  library: /home/test/lib/test.dart
-  failure: null
 [operation] getErrorsFromBytes
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
@@ -15215,7 +15211,7 @@ enum A {
             foo: #M9
             index: #M7
   requirements
-[operation] readLibraryCycleBundle
+[operation] reuseLinkedBundle
   package:test/test.dart
 [operation] checkLibraryDiagnosticsRequirements
   library: /home/test/lib/test.dart
@@ -15355,11 +15351,8 @@ enum A {
             foo: #M6
             index: #M8
   requirements
-[operation] readLibraryCycleBundle
+[operation] reuseLinkedBundle
   package:test/test.dart
-[operation] checkLibraryDiagnosticsRequirements
-  library: /home/test/lib/test.dart
-  failure: null
 [operation] getErrorsFromBytes
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
@@ -15474,7 +15467,7 @@ enum A {
             foo=: #M11
             index: #M8
   requirements
-[operation] readLibraryCycleBundle
+[operation] reuseLinkedBundle
   package:test/test.dart
 [operation] checkLibraryDiagnosticsRequirements
   library: /home/test/lib/test.dart
@@ -15626,11 +15619,8 @@ enum A {
             foo=: #M8
             index: #M10
   requirements
-[operation] readLibraryCycleBundle
+[operation] reuseLinkedBundle
   package:test/test.dart
-[operation] checkLibraryDiagnosticsRequirements
-  library: /home/test/lib/test.dart
-  failure: null
 [operation] getErrorsFromBytes
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
@@ -15739,7 +15729,7 @@ enum A {
           map
             index: #M8
   requirements
-[operation] readLibraryCycleBundle
+[operation] reuseLinkedBundle
   package:test/test.dart
 [operation] checkLibraryDiagnosticsRequirements
   library: /home/test/lib/test.dart
@@ -15885,11 +15875,8 @@ enum A {
           map
             index: #M10
   requirements
-[operation] readLibraryCycleBundle
+[operation] reuseLinkedBundle
   package:test/test.dart
-[operation] checkLibraryDiagnosticsRequirements
-  library: /home/test/lib/test.dart
-  failure: null
 [operation] getErrorsFromBytes
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
@@ -15998,7 +15985,7 @@ enum A {
           map
             index: #M7
   requirements
-[operation] readLibraryCycleBundle
+[operation] reuseLinkedBundle
   package:test/test.dart
 [operation] checkLibraryDiagnosticsRequirements
   library: /home/test/lib/test.dart
@@ -16142,11 +16129,8 @@ enum A {
           map
             index: #M8
   requirements
-[operation] readLibraryCycleBundle
+[operation] reuseLinkedBundle
   package:test/test.dart
-[operation] checkLibraryDiagnosticsRequirements
-  library: /home/test/lib/test.dart
-  failure: null
 [operation] getErrorsFromBytes
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
@@ -16253,7 +16237,7 @@ enum A {
           map
             index: #M8
   requirements
-[operation] readLibraryCycleBundle
+[operation] reuseLinkedBundle
   package:test/test.dart
 [operation] checkLibraryDiagnosticsRequirements
   library: /home/test/lib/test.dart
@@ -16393,11 +16377,8 @@ enum A {
           map
             index: #M10
   requirements
-[operation] readLibraryCycleBundle
+[operation] reuseLinkedBundle
   package:test/test.dart
-[operation] checkLibraryDiagnosticsRequirements
-  library: /home/test/lib/test.dart
-  failure: null
 [operation] getErrorsFromBytes
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
@@ -16470,7 +16451,7 @@ class _B2 {}
       _B2: #M4
         interface: #M5
   requirements
-[operation] readLibraryCycleBundle
+[operation] reuseLinkedBundle
   package:test/test.dart
 [status] idle
 [future] getLibraryByUri T2
@@ -16564,7 +16545,7 @@ class C {}
       C: #M8
         interface: #M9
   requirements
-[operation] readLibraryCycleBundle
+[operation] reuseLinkedBundle
   package:test/test.dart
 [status] idle
 [future] getLibraryByUri T2
@@ -16661,7 +16642,8 @@ class C {}
       C: #M6
         interface: #M7
   requirements
-[operation] cannotReuseLinkedBundle
+[operation] checkLinkedBundleRequirements
+  package:test/test.dart
   exportIdMismatch
     fragmentUri: package:test/test.dart
     exportedUri: package:test/a.dart
@@ -16784,9 +16766,9 @@ class A2 {}
       A2: #M4
         interface: #M5
   requirements
-[operation] readLibraryCycleBundle
+[operation] reuseLinkedBundle
   package:test/b.dart
-[operation] readLibraryCycleBundle
+[operation] reuseLinkedBundle
   package:test/test.dart
 [status] idle
 [future] getLibraryByUri T2
@@ -16892,7 +16874,7 @@ enum _E2 {v}
           map
             index: #M6
   requirements
-[operation] readLibraryCycleBundle
+[operation] reuseLinkedBundle
   package:test/test.dart
 [status] idle
 [future] getLibraryByUri T2
@@ -16963,7 +16945,7 @@ extension _E2 on int {}
       _E2: #M2
     exportedExtensions: #M0
   requirements
-[operation] readLibraryCycleBundle
+[operation] reuseLinkedBundle
   package:test/test.dart
 [status] idle
 [future] getLibraryByUri T2
@@ -17055,7 +17037,7 @@ extension E on int {
             returnType: int @ dart:core
     exportedExtensions: #M0
   requirements
-[operation] readLibraryCycleBundle
+[operation] reuseLinkedBundle
   package:test/test.dart
 [status] idle
 [future] getLibraryByUri T2
@@ -17152,7 +17134,7 @@ extension E on int {
             returnType: int @ dart:core
     exportedExtensions: #M0
   requirements
-[operation] readLibraryCycleBundle
+[operation] reuseLinkedBundle
   package:test/test.dart
 [status] idle
 [future] getLibraryByUri T2
@@ -17244,7 +17226,7 @@ extension E on int {
             returnType: int @ dart:core
     exportedExtensions: #M0
   requirements
-[operation] readLibraryCycleBundle
+[operation] reuseLinkedBundle
   package:test/test.dart
 [status] idle
 [future] getLibraryByUri T2
@@ -17318,7 +17300,8 @@ extension E2 on int {}
         extendedType: int @ dart:core
     exportedExtensions: #M0 #M1
   requirements
-[operation] cannotReuseLinkedBundle
+[operation] checkLinkedBundleRequirements
+  package:test/test.dart
   exportIdMismatch
     fragmentUri: package:test/test.dart
     exportedUri: package:test/a.dart
@@ -17416,7 +17399,8 @@ extension E1 on int {}
         extendedType: int @ dart:core
     exportedExtensions: #M0
   requirements
-[operation] cannotReuseLinkedBundle
+[operation] checkLinkedBundleRequirements
+  package:test/test.dart
   exportCountMismatch
     fragmentUri: package:test/test.dart
     exportedUri: package:test/a.dart
@@ -17518,7 +17502,7 @@ extension E on int {
               returnType: void
     exportedExtensions: #M0
   requirements
-[operation] readLibraryCycleBundle
+[operation] reuseLinkedBundle
   package:test/test.dart
 [status] idle
 [future] getLibraryByUri T2
@@ -17611,7 +17595,7 @@ extension E on int {
               returnType: void
     exportedExtensions: #M0
   requirements
-[operation] readLibraryCycleBundle
+[operation] reuseLinkedBundle
   package:test/test.dart
 [status] idle
 [future] getLibraryByUri T2
@@ -17698,7 +17682,7 @@ extension E on int {
               returnType: void
     exportedExtensions: #M0
   requirements
-[operation] readLibraryCycleBundle
+[operation] reuseLinkedBundle
   package:test/test.dart
 [status] idle
 [future] getLibraryByUri T2
@@ -17790,7 +17774,7 @@ extension E on int {
             valueType: int @ dart:core
     exportedExtensions: #M0
   requirements
-[operation] readLibraryCycleBundle
+[operation] reuseLinkedBundle
   package:test/test.dart
 [status] idle
 [future] getLibraryByUri T2
@@ -17887,7 +17871,7 @@ extension E on int {
             valueType: int @ dart:core
     exportedExtensions: #M0
   requirements
-[operation] readLibraryCycleBundle
+[operation] reuseLinkedBundle
   package:test/test.dart
 [status] idle
 [future] getLibraryByUri T2
@@ -17979,7 +17963,7 @@ extension E on int {
             valueType: int @ dart:core
     exportedExtensions: #M0
   requirements
-[operation] readLibraryCycleBundle
+[operation] reuseLinkedBundle
   package:test/test.dart
 [status] idle
 [future] getLibraryByUri T2
@@ -18075,7 +18059,7 @@ extension type _E2(int it) {}
           map
             it: #M10
   requirements
-[operation] readLibraryCycleBundle
+[operation] reuseLinkedBundle
   package:test/test.dart
 [status] idle
 [future] getLibraryByUri T2
@@ -18147,7 +18131,7 @@ mixin _M2 {}
       _M2: #M4
         interface: #M5
   requirements
-[operation] readLibraryCycleBundle
+[operation] reuseLinkedBundle
   package:test/test.dart
 [status] idle
 [future] getLibraryByUri T2
@@ -18216,7 +18200,7 @@ final a = 1;
     declaredVariables
       a: #M1
   requirements
-[operation] readLibraryCycleBundle
+[operation] reuseLinkedBundle
   package:test/test.dart
 [status] idle
 [future] getLibraryByUri T2
@@ -18287,7 +18271,8 @@ final b = 0;
       a: #M1
       b: #M3
   requirements
-[operation] cannotReuseLinkedBundle
+[operation] checkLinkedBundleRequirements
+  package:test/test.dart
   exportIdMismatch
     fragmentUri: package:test/test.dart
     exportedUri: package:test/a.dart
@@ -18379,7 +18364,7 @@ final b = 0;
       a: #M1
       b: #M3
   requirements
-[operation] readLibraryCycleBundle
+[operation] reuseLinkedBundle
   package:test/test.dart
 [status] idle
 [future] getLibraryByUri T2
@@ -18452,7 +18437,8 @@ final b = 0;
       a: #M1
       b: #M3
   requirements
-[operation] cannotReuseLinkedBundle
+[operation] checkLinkedBundleRequirements
+  package:test/test.dart
   exportIdMismatch
     fragmentUri: package:test/test.dart
     exportedUri: package:test/a.dart
@@ -18546,7 +18532,7 @@ final b = 0;
       a: #M1
       b: #M3
   requirements
-[operation] readLibraryCycleBundle
+[operation] reuseLinkedBundle
   package:test/test.dart
 [status] idle
 [future] getLibraryByUri T2
@@ -18619,7 +18605,8 @@ final b = 0;
       a: #M1
       b: #M3
   requirements
-[operation] cannotReuseLinkedBundle
+[operation] checkLinkedBundleRequirements
+  package:test/test.dart
   exportIdMismatch
     fragmentUri: package:test/test.dart
     exportedUri: package:test/a.dart
@@ -18714,7 +18701,8 @@ final b = 0;
       a: #M1
       b: #M3
   requirements
-[operation] cannotReuseLinkedBundle
+[operation] checkLinkedBundleRequirements
+  package:test/test.dart
   exportIdMismatch
     fragmentUri: package:test/test.dart
     exportedUri: package:test/a.dart
@@ -18807,7 +18795,7 @@ final _b = 0;
       _b: #M3
       a: #M1
   requirements
-[operation] readLibraryCycleBundle
+[operation] reuseLinkedBundle
   package:test/test.dart
 [status] idle
 [future] getLibraryByUri T2
@@ -18882,7 +18870,8 @@ final a = 0;
     declaredVariables
       a: #M2
   requirements
-[operation] cannotReuseLinkedBundle
+[operation] checkLinkedBundleRequirements
+  package:test/test.dart
   exportCountMismatch
     fragmentUri: package:test/test.dart
     exportedUri: package:test/a.dart
@@ -18969,7 +18958,7 @@ final a = 0;
     declaredVariables
       a: #M2
   requirements
-[operation] readLibraryCycleBundle
+[operation] reuseLinkedBundle
   package:test/test.dart
 [status] idle
 [future] getLibraryByUri T2
@@ -19047,7 +19036,8 @@ final c = 0;
       a: #M2
       c: #M5
   requirements
-[operation] cannotReuseLinkedBundle
+[operation] checkLinkedBundleRequirements
+  package:test/test.dart
   exportIdMismatch
     fragmentUri: package:test/test.dart
     exportedUri: package:test/a.dart
@@ -19156,7 +19146,8 @@ final a = 1.2;
     declaredVariables
       a: #M5
   requirements
-[operation] cannotReuseLinkedBundle
+[operation] checkLinkedBundleRequirements
+  package:test/b.dart
   exportIdMismatch
     fragmentUri: package:test/b.dart
     exportedUri: package:test/a.dart
@@ -19173,7 +19164,8 @@ final a = 1.2;
         exports
           package:test/a.dart
             a: #M4
-[operation] cannotReuseLinkedBundle
+[operation] checkLinkedBundleRequirements
+  package:test/test.dart
   topLevelIdMismatch
     libraryUri: package:test/b.dart
     name: a
@@ -19259,7 +19251,7 @@ typedef _A2 = int;
       A: #M0
       _A2: #M2
   requirements
-[operation] readLibraryCycleBundle
+[operation] reuseLinkedBundle
   package:test/test.dart
 [status] idle
 [future] getLibraryByUri T2
@@ -19335,7 +19327,7 @@ extension E2 on Object {}
       E2: #M1
     exportedExtensions: #M0 #M1
   requirements
-[operation] readLibraryCycleBundle
+[operation] reuseLinkedBundle
   package:test/test.dart
 [operation] checkLibraryDiagnosticsRequirements
   library: /home/test/lib/test.dart
@@ -19434,11 +19426,8 @@ extension _E on Object {}
       _E: #M1
     exportedExtensions: #M0
   requirements
-[operation] readLibraryCycleBundle
+[operation] reuseLinkedBundle
   package:test/test.dart
-[operation] checkLibraryDiagnosticsRequirements
-  library: /home/test/lib/test.dart
-  failure: null
 [operation] getErrorsFromBytes
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
@@ -19517,7 +19506,7 @@ extension E1 on Object {}
       E1: #M0
     exportedExtensions: #M0
   requirements
-[operation] readLibraryCycleBundle
+[operation] reuseLinkedBundle
   package:test/test.dart
 [operation] checkLibraryDiagnosticsRequirements
   library: /home/test/lib/test.dart
@@ -19645,11 +19634,8 @@ extension E on Object {
           foo=: #M5
     exportedExtensions: #M0
   requirements
-[operation] readLibraryCycleBundle
+[operation] reuseLinkedBundle
   package:test/test.dart
-[operation] checkLibraryDiagnosticsRequirements
-  library: /home/test/lib/test.dart
-  failure: null
 [operation] getErrorsFromBytes
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
@@ -19749,7 +19735,7 @@ extension E on Object {
           foo=: #M3
     exportedExtensions: #M0
   requirements
-[operation] readLibraryCycleBundle
+[operation] reuseLinkedBundle
   package:test/test.dart
 [operation] checkLibraryDiagnosticsRequirements
   library: /home/test/lib/test.dart
@@ -19887,11 +19873,8 @@ extension A on Object {
           _foo: #M8
     exportedExtensions: #M0
   requirements
-[operation] readLibraryCycleBundle
+[operation] reuseLinkedBundle
   package:test/test.dart
-[operation] checkLibraryDiagnosticsRequirements
-  library: /home/test/lib/test.dart
-  failure: null
 [operation] getErrorsFromBytes
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
@@ -19996,11 +19979,8 @@ extension E2 on Object {
           bar: #M5
     exportedExtensions: #M0 #M2
   requirements
-[operation] readLibraryCycleBundle
+[operation] reuseLinkedBundle
   package:test/test.dart
-[operation] checkLibraryDiagnosticsRequirements
-  library: /home/test/lib/test.dart
-  failure: null
 [operation] getErrorsFromBytes
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
@@ -20103,7 +20083,7 @@ extension E2 on Object {
           bar: #M3
     exportedExtensions: #M0 #M2
   requirements
-[operation] readLibraryCycleBundle
+[operation] reuseLinkedBundle
   package:test/test.dart
 [operation] checkLibraryDiagnosticsRequirements
   library: /home/test/lib/test.dart
@@ -20221,7 +20201,7 @@ extension E on Object {
           foo: #M3
     exportedExtensions: #M0
   requirements
-[operation] readLibraryCycleBundle
+[operation] reuseLinkedBundle
   package:test/test.dart
 [operation] checkLibraryDiagnosticsRequirements
   library: /home/test/lib/test.dart
@@ -20347,7 +20327,7 @@ extension E on Object {
           foo=: #M5
     exportedExtensions: #M0
   requirements
-[operation] readLibraryCycleBundle
+[operation] reuseLinkedBundle
   package:test/test.dart
 [operation] checkLibraryDiagnosticsRequirements
   library: /home/test/lib/test.dart
@@ -20469,7 +20449,7 @@ extension E2 on int {
           bar: #M4
     exportedExtensions: #M0 #M3
   requirements
-[operation] readLibraryCycleBundle
+[operation] reuseLinkedBundle
   package:test/test.dart
 [operation] checkLibraryDiagnosticsRequirements
   library: /home/test/lib/test.dart
@@ -20586,11 +20566,8 @@ extension E1 on Object {
           foo: #M1
     exportedExtensions: #M0
   requirements
-[operation] readLibraryCycleBundle
+[operation] reuseLinkedBundle
   package:test/test.dart
-[operation] checkLibraryDiagnosticsRequirements
-  library: /home/test/lib/test.dart
-  failure: null
 [operation] getErrorsFromBytes
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
@@ -20682,7 +20659,7 @@ extension E2 on int {
           foo: #M4
     exportedExtensions: #M0 #M3
   requirements
-[operation] readLibraryCycleBundle
+[operation] reuseLinkedBundle
   package:test/test.dart
 [operation] checkLibraryDiagnosticsRequirements
   library: /home/test/lib/test.dart
@@ -20799,7 +20776,7 @@ extension E on Object {
           foo: #M2
     exportedExtensions: #M0
   requirements
-[operation] readLibraryCycleBundle
+[operation] reuseLinkedBundle
   package:test/test.dart
 [operation] checkLibraryDiagnosticsRequirements
   library: /home/test/lib/test.dart
@@ -20922,7 +20899,7 @@ extension E1 on Object {
           foo: #M1
     exportedExtensions: #M0
   requirements
-[operation] readLibraryCycleBundle
+[operation] reuseLinkedBundle
   package:test/test.dart
 [operation] checkLibraryDiagnosticsRequirements
   library: /home/test/lib/test.dart
@@ -21042,7 +21019,7 @@ extension E1 on Object {
           foo: #M1
     exportedExtensions: #M0
   requirements
-[operation] readLibraryCycleBundle
+[operation] reuseLinkedBundle
   package:test/test.dart
 [operation] checkLibraryDiagnosticsRequirements
   library: /home/test/lib/test.dart
@@ -21162,7 +21139,7 @@ extension E1 on Object {
           foo: #M1
     exportedExtensions: #M0
   requirements
-[operation] readLibraryCycleBundle
+[operation] reuseLinkedBundle
   package:test/test.dart
 [operation] checkLibraryDiagnosticsRequirements
   library: /home/test/lib/test.dart
@@ -21274,7 +21251,7 @@ extension E1 on Object {
           []=: #M2
     exportedExtensions: #M0
   requirements
-[operation] readLibraryCycleBundle
+[operation] reuseLinkedBundle
   package:test/test.dart
 [operation] checkLibraryDiagnosticsRequirements
   library: /home/test/lib/test.dart
@@ -21388,7 +21365,7 @@ extension E1 on Object {
           []=: #M2
     exportedExtensions: #M0
   requirements
-[operation] readLibraryCycleBundle
+[operation] reuseLinkedBundle
   package:test/test.dart
 [operation] checkLibraryDiagnosticsRequirements
   library: /home/test/lib/test.dart
@@ -21502,7 +21479,7 @@ extension E1 on Object {
           []=: #M4
     exportedExtensions: #M0
   requirements
-[operation] readLibraryCycleBundle
+[operation] reuseLinkedBundle
   package:test/test.dart
 [operation] checkLibraryDiagnosticsRequirements
   library: /home/test/lib/test.dart
@@ -21616,7 +21593,7 @@ extension E1 on Object {
           []=: #M4
     exportedExtensions: #M0
   requirements
-[operation] readLibraryCycleBundle
+[operation] reuseLinkedBundle
   package:test/test.dart
 [operation] checkLibraryDiagnosticsRequirements
   library: /home/test/lib/test.dart
@@ -21732,7 +21709,7 @@ extension A on int {
           foo: #M5
     exportedExtensions: #M0
   requirements
-[operation] readLibraryCycleBundle
+[operation] reuseLinkedBundle
   package:test/test.dart
 [operation] checkLibraryDiagnosticsRequirements
   library: /home/test/lib/test.dart
@@ -21856,11 +21833,8 @@ extension A on int {
           foo: #M4
     exportedExtensions: #M0
   requirements
-[operation] readLibraryCycleBundle
+[operation] reuseLinkedBundle
   package:test/test.dart
-[operation] checkLibraryDiagnosticsRequirements
-  library: /home/test/lib/test.dart
-  failure: null
 [operation] getErrorsFromBytes
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
@@ -21947,7 +21921,7 @@ extension A on int {
           foo: #M3
     exportedExtensions: #M0
   requirements
-[operation] readLibraryCycleBundle
+[operation] reuseLinkedBundle
   package:test/test.dart
 [operation] checkLibraryDiagnosticsRequirements
   library: /home/test/lib/test.dart
@@ -22065,11 +22039,8 @@ extension A on int {
           foo: #M2
     exportedExtensions: #M0
   requirements
-[operation] readLibraryCycleBundle
+[operation] reuseLinkedBundle
   package:test/test.dart
-[operation] checkLibraryDiagnosticsRequirements
-  library: /home/test/lib/test.dart
-  failure: null
 [operation] getErrorsFromBytes
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
@@ -22160,7 +22131,7 @@ extension A on int {
           foo=: #M5
     exportedExtensions: #M0
   requirements
-[operation] readLibraryCycleBundle
+[operation] reuseLinkedBundle
   package:test/test.dart
 [operation] checkLibraryDiagnosticsRequirements
   library: /home/test/lib/test.dart
@@ -22284,11 +22255,8 @@ extension A on int {
           foo=: #M4
     exportedExtensions: #M0
   requirements
-[operation] readLibraryCycleBundle
+[operation] reuseLinkedBundle
   package:test/test.dart
-[operation] checkLibraryDiagnosticsRequirements
-  library: /home/test/lib/test.dart
-  failure: null
 [operation] getErrorsFromBytes
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
@@ -22395,7 +22363,7 @@ extension type A(int it) {
             foo: #M8
             it: #M4
   requirements
-[operation] readLibraryCycleBundle
+[operation] reuseLinkedBundle
   package:test/test.dart
 [operation] checkLibraryDiagnosticsRequirements
   library: /home/test/lib/test.dart
@@ -22539,11 +22507,8 @@ extension type A(int it) {
             foo: #M5
             it: #M6
   requirements
-[operation] readLibraryCycleBundle
+[operation] reuseLinkedBundle
   package:test/test.dart
-[operation] checkLibraryDiagnosticsRequirements
-  library: /home/test/lib/test.dart
-  failure: null
 [operation] getErrorsFromBytes
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
@@ -22646,7 +22611,7 @@ extension type A(int it) {
             foo: #M6
             it: #M2
   requirements
-[operation] readLibraryCycleBundle
+[operation] reuseLinkedBundle
   package:test/test.dart
 [operation] checkLibraryDiagnosticsRequirements
   library: /home/test/lib/test.dart
@@ -22780,11 +22745,8 @@ extension type A(int it) {
             foo: #M4
             it: #M2
   requirements
-[operation] readLibraryCycleBundle
+[operation] reuseLinkedBundle
   package:test/test.dart
-[operation] checkLibraryDiagnosticsRequirements
-  library: /home/test/lib/test.dart
-  failure: null
 [operation] getErrorsFromBytes
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
@@ -22893,7 +22855,7 @@ extension type A(int it) {
             foo=: #M8
             it: #M3
   requirements
-[operation] readLibraryCycleBundle
+[operation] reuseLinkedBundle
   package:test/test.dart
 [operation] checkLibraryDiagnosticsRequirements
   library: /home/test/lib/test.dart
@@ -23039,11 +23001,8 @@ extension type A(int it) {
             foo=: #M6
             it: #M4
   requirements
-[operation] readLibraryCycleBundle
+[operation] reuseLinkedBundle
   package:test/test.dart
-[operation] checkLibraryDiagnosticsRequirements
-  library: /home/test/lib/test.dart
-  failure: null
 [operation] getErrorsFromBytes
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
@@ -23147,7 +23106,7 @@ extension type A(int it) {
           map
             it: #M2
   requirements
-[operation] readLibraryCycleBundle
+[operation] reuseLinkedBundle
   package:test/test.dart
 [operation] checkLibraryDiagnosticsRequirements
   library: /home/test/lib/test.dart
@@ -23275,7 +23234,7 @@ extension type A(int it) {
           map
             it: #M2
   requirements
-[operation] readLibraryCycleBundle
+[operation] reuseLinkedBundle
   package:test/test.dart
 [operation] checkLibraryDiagnosticsRequirements
   library: /home/test/lib/test.dart
@@ -23400,11 +23359,8 @@ extension type A(int it) {
           map
             it: #M2
   requirements
-[operation] readLibraryCycleBundle
+[operation] reuseLinkedBundle
   package:test/test.dart
-[operation] checkLibraryDiagnosticsRequirements
-  library: /home/test/lib/test.dart
-  failure: null
 [operation] getErrorsFromBytes
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
@@ -23507,7 +23463,7 @@ extension type A(int it) {
           map
             it: #M4
   requirements
-[operation] readLibraryCycleBundle
+[operation] reuseLinkedBundle
   package:test/test.dart
 [operation] checkLibraryDiagnosticsRequirements
   library: /home/test/lib/test.dart
@@ -23647,11 +23603,8 @@ extension type A(int it) {
           map
             it: #M6
   requirements
-[operation] readLibraryCycleBundle
+[operation] reuseLinkedBundle
   package:test/test.dart
-[operation] checkLibraryDiagnosticsRequirements
-  library: /home/test/lib/test.dart
-  failure: null
 [operation] getErrorsFromBytes
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
@@ -23754,7 +23707,7 @@ extension type A(int it) {
           map
             it: #M2
   requirements
-[operation] readLibraryCycleBundle
+[operation] reuseLinkedBundle
   package:test/test.dart
 [operation] checkLibraryDiagnosticsRequirements
   library: /home/test/lib/test.dart
@@ -23892,11 +23845,8 @@ extension type A(int it) {
           map
             it: #M2
   requirements
-[operation] readLibraryCycleBundle
+[operation] reuseLinkedBundle
   package:test/test.dart
-[operation] checkLibraryDiagnosticsRequirements
-  library: /home/test/lib/test.dart
-  failure: null
 [operation] getErrorsFromBytes
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
@@ -23997,7 +23947,7 @@ extension type A(int it) {
           map
             it: #M3
   requirements
-[operation] readLibraryCycleBundle
+[operation] reuseLinkedBundle
   package:test/test.dart
 [operation] checkLibraryDiagnosticsRequirements
   library: /home/test/lib/test.dart
@@ -24131,11 +24081,8 @@ extension type A(int it) {
           map
             it: #M4
   requirements
-[operation] readLibraryCycleBundle
+[operation] reuseLinkedBundle
   package:test/test.dart
-[operation] checkLibraryDiagnosticsRequirements
-  library: /home/test/lib/test.dart
-  failure: null
 [operation] getErrorsFromBytes
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
@@ -24239,7 +24186,7 @@ extension type A(double it) {
           map
             it: #M7
   requirements
-[operation] readLibraryCycleBundle
+[operation] reuseLinkedBundle
   package:test/test.dart
 [operation] checkLibraryDiagnosticsRequirements
   library: /home/test/lib/test.dart
@@ -24361,7 +24308,7 @@ extension type A(double it) {}
           map
             it: #M7
   requirements
-[operation] readLibraryCycleBundle
+[operation] reuseLinkedBundle
   package:test/test.dart
 [operation] checkLibraryDiagnosticsRequirements
   library: /home/test/lib/test.dart
@@ -24486,11 +24433,8 @@ extension type A(double it) {
           map
             it: #M8
   requirements
-[operation] readLibraryCycleBundle
+[operation] reuseLinkedBundle
   package:test/test.dart
-[operation] checkLibraryDiagnosticsRequirements
-  library: /home/test/lib/test.dart
-  failure: null
 [operation] getErrorsFromBytes
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
@@ -24591,7 +24535,7 @@ mixin A {
           map
             foo: #M6
   requirements
-[operation] readLibraryCycleBundle
+[operation] reuseLinkedBundle
   package:test/test.dart
 [operation] checkLibraryDiagnosticsRequirements
   library: /home/test/lib/test.dart
@@ -24725,11 +24669,8 @@ mixin A {
           map
             foo: #M4
   requirements
-[operation] readLibraryCycleBundle
+[operation] reuseLinkedBundle
   package:test/test.dart
-[operation] checkLibraryDiagnosticsRequirements
-  library: /home/test/lib/test.dart
-  failure: null
 [operation] getErrorsFromBytes
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
@@ -24838,7 +24779,8 @@ mixin B on A<double> {}
           map
             foo: #M2
   requirements
-[operation] cannotReuseLinkedBundle
+[operation] checkLinkedBundleRequirements
+  package:test/test.dart
   topLevelIdMismatch
     libraryUri: package:test/a.dart
     name: B
@@ -24967,7 +24909,7 @@ mixin A {
           map
             foo: #M3
   requirements
-[operation] readLibraryCycleBundle
+[operation] reuseLinkedBundle
   package:test/test.dart
 [operation] checkLibraryDiagnosticsRequirements
   library: /home/test/lib/test.dart
@@ -25080,7 +25022,7 @@ mixin A {
           map
             foo: #M4
   requirements
-[operation] readLibraryCycleBundle
+[operation] reuseLinkedBundle
   package:test/test.dart
 [operation] checkLibraryDiagnosticsRequirements
   library: /home/test/lib/test.dart
@@ -25204,11 +25146,8 @@ mixin A {
             bar: #M5
             foo: #M2
   requirements
-[operation] readLibraryCycleBundle
+[operation] reuseLinkedBundle
   package:test/test.dart
-[operation] checkLibraryDiagnosticsRequirements
-  library: /home/test/lib/test.dart
-  failure: null
 [operation] getErrorsFromBytes
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
@@ -25309,7 +25248,8 @@ mixin B implements A<double> {}
           map
             foo: #M1
   requirements
-[operation] cannotReuseLinkedBundle
+[operation] checkLinkedBundleRequirements
+  package:test/test.dart
   topLevelIdMismatch
     libraryUri: package:test/a.dart
     name: B
@@ -25442,7 +25382,8 @@ mixin B on A<double> {}
           map
             foo: #M1
   requirements
-[operation] cannotReuseLinkedBundle
+[operation] checkLinkedBundleRequirements
+  package:test/test.dart
   topLevelIdMismatch
     libraryUri: package:test/a.dart
     name: B
@@ -25557,7 +25498,7 @@ mixin A {}
       A: #M0
         interface: #M4
   requirements
-[operation] readLibraryCycleBundle
+[operation] reuseLinkedBundle
   package:test/test.dart
 [operation] checkLibraryDiagnosticsRequirements
   library: /home/test/lib/test.dart
@@ -25690,7 +25631,7 @@ mixin A {
           map
             foo=: #M4
   requirements
-[operation] readLibraryCycleBundle
+[operation] reuseLinkedBundle
   package:test/test.dart
 [operation] checkLibraryDiagnosticsRequirements
   library: /home/test/lib/test.dart
@@ -25820,7 +25761,7 @@ mixin A {
           map
             foo=: #M6
   requirements
-[operation] readLibraryCycleBundle
+[operation] reuseLinkedBundle
   package:test/test.dart
 [operation] checkLibraryDiagnosticsRequirements
   library: /home/test/lib/test.dart
@@ -25958,11 +25899,8 @@ mixin A {
             bar=: #M8
             foo=: #M4
   requirements
-[operation] readLibraryCycleBundle
+[operation] reuseLinkedBundle
   package:test/test.dart
-[operation] checkLibraryDiagnosticsRequirements
-  library: /home/test/lib/test.dart
-  failure: null
 [operation] getErrorsFromBytes
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
@@ -26071,7 +26009,8 @@ mixin B on A<double> {}
           map
             foo=: #M2
   requirements
-[operation] cannotReuseLinkedBundle
+[operation] checkLinkedBundleRequirements
+  package:test/test.dart
   topLevelIdMismatch
     libraryUri: package:test/a.dart
     name: B
@@ -26200,7 +26139,7 @@ mixin A {}
       A: #M0
         interface: #M5
   requirements
-[operation] readLibraryCycleBundle
+[operation] reuseLinkedBundle
   package:test/test.dart
 [operation] checkLibraryDiagnosticsRequirements
   library: /home/test/lib/test.dart
@@ -26313,7 +26252,8 @@ mixin A {}
       A: #M1
         interface: #M2
   requirements
-[operation] cannotReuseLinkedBundle
+[operation] checkLinkedBundleRequirements
+  package:test/test.dart
   topLevelIdMismatch
     libraryUri: package:test/a.dart
     name: A
@@ -26432,11 +26372,8 @@ mixin B {}
       B: #M3
         interface: #M4
   requirements
-[operation] readLibraryCycleBundle
+[operation] reuseLinkedBundle
   package:test/test.dart
-[operation] checkLibraryDiagnosticsRequirements
-  library: /home/test/lib/test.dart
-  failure: null
 [operation] getErrorsFromBytes
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
@@ -26523,7 +26460,8 @@ mixin B {}
       B: #M2
         interface: #M3
   requirements
-[operation] cannotReuseLinkedBundle
+[operation] checkLinkedBundleRequirements
+  package:test/test.dart
   topLevelIdMismatch
     libraryUri: package:test/a.dart
     name: A
@@ -26651,11 +26589,8 @@ mixin C {}
       C: #M4
         interface: #M5
   requirements
-[operation] readLibraryCycleBundle
+[operation] reuseLinkedBundle
   package:test/test.dart
-[operation] checkLibraryDiagnosticsRequirements
-  library: /home/test/lib/test.dart
-  failure: null
 [operation] getErrorsFromBytes
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
@@ -26727,7 +26662,8 @@ A foo() => throw 0;
 [operation] linkLibraryCycle
   package:test/a.dart
   requirements
-[operation] cannotReuseLinkedBundle
+[operation] checkLinkedBundleRequirements
+  package:test/test.dart
   topLevelIdMismatch
     libraryUri: package:test/a.dart
     name: A
@@ -26842,11 +26778,8 @@ mixin A {}
       A: #M0
         interface: #M1
   requirements
-[operation] readLibraryCycleBundle
+[operation] reuseLinkedBundle
   package:test/test.dart
-[operation] checkLibraryDiagnosticsRequirements
-  library: /home/test/lib/test.dart
-  failure: null
 [operation] getErrorsFromBytes
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
@@ -26941,7 +26874,7 @@ mixin A {
           foo: #M6
         interface: #M3
   requirements
-[operation] readLibraryCycleBundle
+[operation] reuseLinkedBundle
   package:test/test.dart
 [operation] checkLibraryDiagnosticsRequirements
   library: /home/test/lib/test.dart
@@ -27073,11 +27006,8 @@ mixin A {
           foo: #M4
         interface: #M5
   requirements
-[operation] readLibraryCycleBundle
+[operation] reuseLinkedBundle
   package:test/test.dart
-[operation] checkLibraryDiagnosticsRequirements
-  library: /home/test/lib/test.dart
-  failure: null
 [operation] getErrorsFromBytes
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
@@ -27168,7 +27098,7 @@ mixin A {
           foo: #M4
         interface: #M2
   requirements
-[operation] readLibraryCycleBundle
+[operation] reuseLinkedBundle
   package:test/test.dart
 [operation] checkLibraryDiagnosticsRequirements
   library: /home/test/lib/test.dart
@@ -27294,11 +27224,8 @@ mixin A {
           foo: #M2
         interface: #M3
   requirements
-[operation] readLibraryCycleBundle
+[operation] reuseLinkedBundle
   package:test/test.dart
-[operation] checkLibraryDiagnosticsRequirements
-  library: /home/test/lib/test.dart
-  failure: null
 [operation] getErrorsFromBytes
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
@@ -27389,7 +27316,7 @@ mixin A {
           foo=: #M6
         interface: #M3
   requirements
-[operation] readLibraryCycleBundle
+[operation] reuseLinkedBundle
   package:test/test.dart
 [operation] checkLibraryDiagnosticsRequirements
   library: /home/test/lib/test.dart
@@ -27513,11 +27440,8 @@ mixin A {
           foo=: #M4
         interface: #M5
   requirements
-[operation] readLibraryCycleBundle
+[operation] reuseLinkedBundle
   package:test/test.dart
-[operation] checkLibraryDiagnosticsRequirements
-  library: /home/test/lib/test.dart
-  failure: null
 [operation] getErrorsFromBytes
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
@@ -27599,11 +27523,8 @@ class B {}
       B: #M4
         interface: #M5
   requirements
-[operation] readLibraryCycleBundle
+[operation] reuseLinkedBundle
   package:test/test.dart
-[operation] checkLibraryDiagnosticsRequirements
-  library: /home/test/lib/test.dart
-  failure: null
 [operation] getErrorsFromBytes
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
@@ -27689,7 +27610,7 @@ class B {}
       B: #M2
         interface: #M3
   requirements
-[operation] readLibraryCycleBundle
+[operation] reuseLinkedBundle
   package:test/test.dart
 [operation] checkLibraryDiagnosticsRequirements
   library: /home/test/lib/test.dart
@@ -27776,7 +27697,8 @@ double foo() {}
     declaredFunctions
       foo: #M3
   requirements
-[operation] cannotReuseLinkedBundle
+[operation] checkLinkedBundleRequirements
+  package:test/test.dart
   topLevelIdMismatch
     libraryUri: package:test/a.dart
     name: foo
@@ -27853,7 +27775,7 @@ double bar() {}
       bar: #M4
       foo: #M1
   requirements
-[operation] readLibraryCycleBundle
+[operation] reuseLinkedBundle
   package:test/test.dart
 [status] idle
 [future] getLibraryByUri T2
@@ -27915,7 +27837,8 @@ double get a => 1.2;
     declaredVariables
       a: #M5
   requirements
-[operation] cannotReuseLinkedBundle
+[operation] checkLinkedBundleRequirements
+  package:test/test.dart
   topLevelIdMismatch
     libraryUri: package:test/a.dart
     name: a
@@ -27998,7 +27921,7 @@ double get b => 1.2;
       a: #M2
       b: #M7
   requirements
-[operation] readLibraryCycleBundle
+[operation] reuseLinkedBundle
   package:test/test.dart
 [status] idle
 [future] getLibraryByUri T2
@@ -28082,7 +28005,8 @@ final a = 1.2;
     declaredVariables
       a: #M5
   requirements
-[operation] cannotReuseLinkedBundle
+[operation] checkLinkedBundleRequirements
+  package:test/b.dart
   exportIdMismatch
     fragmentUri: package:test/b.dart
     exportedUri: package:test/a.dart
@@ -28099,7 +28023,8 @@ final a = 1.2;
         exports
           package:test/a.dart
             a: #M4
-[operation] cannotReuseLinkedBundle
+[operation] checkLinkedBundleRequirements
+  package:test/test.dart
   topLevelIdMismatch
     libraryUri: package:test/b.dart
     name: a
@@ -28178,7 +28103,8 @@ final a = 1.2;
     declaredVariables
       a: #M5
   requirements
-[operation] cannotReuseLinkedBundle
+[operation] checkLinkedBundleRequirements
+  package:test/test.dart
   topLevelIdMismatch
     libraryUri: package:test/a.dart
     name: a
@@ -28268,11 +28194,8 @@ typedef B = double;
       A: #M0
       B: #M3
   requirements
-[operation] readLibraryCycleBundle
+[operation] reuseLinkedBundle
   package:test/test.dart
-[operation] checkLibraryDiagnosticsRequirements
-  library: /home/test/lib/test.dart
-  failure: null
 [operation] getErrorsFromBytes
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
@@ -28345,7 +28268,8 @@ typedef A = double;
     declaredTypeAliases
       A: #M2
   requirements
-[operation] cannotReuseLinkedBundle
+[operation] checkLinkedBundleRequirements
+  package:test/test.dart
   topLevelIdMismatch
     libraryUri: package:test/a.dart
     name: A
@@ -28469,7 +28393,7 @@ typedef B = A;
     declaredTypeAliases
       B: #M3
   requirements
-[operation] readLibraryCycleBundle
+[operation] reuseLinkedBundle
   package:test/test.dart
 [operation] checkLibraryDiagnosticsRequirements
   library: /home/test/lib/test.dart
@@ -47928,7 +47852,8 @@ class A {
           b: #M4
             returnType: int @ dart:core
         interface: #M5
-[operation] cannotReuseLinkedBundle
+[operation] checkLinkedBundleRequirements
+  package:test/test.dart
   instanceFieldIdMismatch
     libraryUri: package:test/a.dart
     interfaceName: A
@@ -49504,7 +49429,7 @@ extension A on int {
           bar: #M6
           foo: #M2
     exportedExtensions: #M0
-[operation] readLibraryCycleBundle
+[operation] reuseLinkedBundle
   package:test/test.dart
 ''',
     );
@@ -49562,7 +49487,7 @@ extension B on int {
         declaredMethods
           bar: #M4
     exportedExtensions: #M0 #M2
-[operation] readLibraryCycleBundle
+[operation] reuseLinkedBundle
   package:test/test.dart
 ''',
     );
@@ -49620,7 +49545,7 @@ extension B on int {
         declaredMethods
           bar: #M4
     exportedExtensions: #M0 #M2
-[operation] readLibraryCycleBundle
+[operation] reuseLinkedBundle
   package:test/test.dart
 ''',
     );
@@ -49689,9 +49614,9 @@ extension A on int {
           bar: #M6
           foo: #M2
     exportedExtensions: #M0
-[operation] readLibraryCycleBundle
+[operation] reuseLinkedBundle
   package:test/b.dart
-[operation] readLibraryCycleBundle
+[operation] reuseLinkedBundle
   package:test/test.dart
 ''',
     );
@@ -49756,7 +49681,7 @@ extension B on int {
         declaredMethods
           bar: #M3
     exportedExtensions: #M0 #M2
-[operation] readLibraryCycleBundle
+[operation] reuseLinkedBundle
   package:test/test.dart
 ''',
     );
@@ -54226,7 +54151,7 @@ int get a => 0;
 int get a => 1;
 ''',
       expectedUpdatedEvents: r'''
-[operation] readLibraryCycleBundle
+[operation] reuseLinkedBundle
   package:test/test.dart
 ''',
     );
@@ -54378,7 +54303,7 @@ set a(int _) { 0; }
 set a(int _) { 1; }
 ''',
       expectedUpdatedEvents: r'''
-[operation] readLibraryCycleBundle
+[operation] reuseLinkedBundle
   package:test/test.dart
 ''',
     );
@@ -56037,6 +55962,8 @@ typedef B = int;
   }
 
   test_operation_addFile_changeImported_affected() async {
+    configuration.withCheckLibraryDiagnosticsRequirements = true;
+
     var driver = driverFor(testFile);
     var collector = DriverEventCollector(driver, idProvider: idProvider);
 
@@ -56075,6 +56002,8 @@ double get a => 0;
 
     await assertEventsText(collector, r'''
 [status] working
+[operation] reuseLinkedBundle
+  package:test/test.dart
 [operation] checkLibraryDiagnosticsRequirements
   library: /home/test/lib/test.dart
   topLevelIdMismatch
@@ -56097,6 +56026,8 @@ double get a => 0;
   }
 
   test_operation_addFile_changeImported_notAffected() async {
+    configuration.withCheckLibraryDiagnosticsRequirements = true;
+
     var driver = driverFor(testFile);
     var collector = DriverEventCollector(driver, idProvider: idProvider);
 
@@ -56136,6 +56067,8 @@ int get b => 0;
 
     await assertEventsText(collector, r'''
 [status] working
+[operation] reuseLinkedBundle
+  package:test/test.dart
 [operation] checkLibraryDiagnosticsRequirements
   library: /home/test/lib/test.dart
   failure: null
@@ -56152,6 +56085,8 @@ int get b => 0;
   }
 
   test_operation_addFile_changeLibraryFile() async {
+    configuration.withCheckLibraryDiagnosticsRequirements = true;
+
     var driver = driverFor(testFile);
     var collector = DriverEventCollector(driver, idProvider: idProvider);
 
@@ -56199,6 +56134,8 @@ final y = 0;
   }
 
   test_operation_addFile_changePartFile() async {
+    configuration.withCheckLibraryDiagnosticsRequirements = true;
+
     var driver = driverFor(testFile);
     var collector = DriverEventCollector(driver, idProvider: idProvider);
 
@@ -56263,6 +56200,8 @@ final y = 0;
   }
 
   test_operation_getErrors_changeImported_affected() async {
+    configuration.withCheckLibraryDiagnosticsRequirements = true;
+
     var driver = driverFor(testFile);
     var collector = DriverEventCollector(driver, idProvider: idProvider);
 
@@ -56307,6 +56246,8 @@ double get a => 0;
 
     await assertEventsText(collector, r'''
 [status] working
+[operation] reuseLinkedBundle
+  package:test/test.dart
 [operation] checkLibraryDiagnosticsRequirements
   library: /home/test/lib/test.dart
   topLevelIdMismatch
@@ -56334,6 +56275,8 @@ double get a => 0;
   }
 
   test_operation_getErrors_changeImported_notAffected() async {
+    configuration.withCheckLibraryDiagnosticsRequirements = true;
+
     var driver = driverFor(testFile);
     var collector = DriverEventCollector(driver, idProvider: idProvider);
 
@@ -56379,6 +56322,8 @@ int get b => 0;
 
     await assertEventsText(collector, r'''
 [status] working
+[operation] reuseLinkedBundle
+  package:test/test.dart
 [operation] checkLibraryDiagnosticsRequirements
   library: /home/test/lib/test.dart
   failure: null
@@ -56395,6 +56340,8 @@ int get b => 0;
   }
 
   test_operation_getErrors_noChange() async {
+    configuration.withCheckLibraryDiagnosticsRequirements = true;
+
     var driver = driverFor(testFile);
     var collector = DriverEventCollector(driver, idProvider: idProvider);
 
@@ -56524,11 +56471,8 @@ int get b => 0;
       a: #M1
       b: #M5
   requirements
-[operation] readLibraryCycleBundle
+[operation] reuseLinkedBundle
   package:test/test.dart
-[operation] checkLibraryDiagnosticsRequirements
-  library: /home/test/lib/test.dart
-  failure: null
 [operation] getErrorsFromBytes
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
@@ -56592,7 +56536,8 @@ double get a => 1.2;
     declaredVariables
       a: #M5
   requirements
-[operation] cannotReuseLinkedBundle
+[operation] checkLinkedBundleRequirements
+  package:test/test.dart
   topLevelIdMismatch
     libraryUri: package:test/a.dart
     name: a
@@ -56617,6 +56562,60 @@ double get a => 1.2;
         type: double
 ''',
     );
+  }
+
+  test_operation_getLibraryByUri_changeBody() async {
+    configuration
+      // We don't test specific elements here.
+      ..withGetLibraryByUriElement = false
+      // We want to see all checks of requirements.
+      ..withCheckLinkedBundleRequirements = true;
+
+    var driver = driverFor(testFile);
+    var collector = DriverEventCollector(driver, idProvider: idProvider);
+
+    newFile(testFile.path, r'''
+void f() { 0; }
+''');
+
+    collector.getLibraryByUri('L1', 'package:test/test.dart');
+
+    await assertEventsText(collector, r'''
+[status] working
+[status] idle
+[future] getLibraryByUri L1
+''');
+
+    modifyFile2(testFile, r'''
+void f() { 1; }
+''');
+    driver.changeFile2(testFile);
+
+    // Note, no check for requirements operation.
+    // The transitive API signature is the same, so we shortcut.
+    collector.getLibraryByUri('L2', 'package:test/test.dart');
+    await assertEventsText(collector, r'''
+[status] working
+[operation] reuseLinkedBundle
+  package:test/test.dart
+[status] idle
+[future] getLibraryByUri L2
+''');
+
+    modifyFile2(testFile, r'''
+void f() { 2; }
+''');
+    driver.changeFile2(testFile);
+
+    // Repeating requests still uses the shortcut.
+    collector.getLibraryByUri('L3', 'package:test/test.dart');
+    await assertEventsText(collector, r'''
+[status] working
+[operation] reuseLinkedBundle
+  package:test/test.dart
+[status] idle
+[future] getLibraryByUri L3
+''');
   }
 
   test_operation_getLibraryByUri_notAffected() async {
@@ -56672,7 +56671,7 @@ int get b => 0;
       a: #M1
       b: #M5
   requirements
-[operation] readLibraryCycleBundle
+[operation] reuseLinkedBundle
   package:test/test.dart
 [status] idle
 [future] getLibraryByUri T2
@@ -56704,7 +56703,7 @@ class B {
     configuration
       ..withSchedulerStatus = false
       ..withGetLibraryByUri = false
-      ..withLinkBundleEvents = true
+      ..withLinkLibraryCycle = true
       ..withLibraryManifest = true
       ..withResultRequirements = true;
 
@@ -56761,9 +56760,9 @@ final v = B();
     // opaque API use (`firstFragment` and `fragments`).
     collector.getLibraryByUri('T1', 'package:test/test.dart');
     await assertEventsText(collector, r'''
-[operation] readLibraryCycleBundle
+[operation] reuseLinkedBundle
   package:test/a.dart
-[operation] readLibraryCycleBundle
+[operation] reuseLinkedBundle
   package:test/b.dart
 [operation] linkLibraryCycle
   package:test/test.dart
@@ -57546,7 +57545,7 @@ import 'a.dart';
     configuration
       ..withResultRequirements = true
       ..withLibraryManifest = true
-      ..withLinkBundleEvents = true;
+      ..withLinkLibraryCycle = true;
 
     var driver = driverFor(testFile);
     var collector = DriverEventCollector(driver, idProvider: idProvider);
@@ -57633,7 +57632,7 @@ import 'a.dart';
     configuration
       ..withGetLibraryByUri = false
       ..withLibraryManifest = true
-      ..withLinkBundleEvents = true
+      ..withLinkLibraryCycle = true
       ..withSchedulerStatus = false;
 
     var driver = driverFor(testFile);
@@ -57683,7 +57682,7 @@ import 'a.dart';
     configuration
       ..withAnalyzeFileEvents = false
       ..withLibraryManifest = true
-      ..withLinkBundleEvents = true
+      ..withLinkLibraryCycle = true
       ..withGetErrorsEvents = false
       ..withResultRequirements = true
       ..withStreamResolvedUnitResults = false;

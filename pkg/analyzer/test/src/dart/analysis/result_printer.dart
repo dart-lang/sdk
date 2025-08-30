@@ -287,25 +287,38 @@ class DriverEventsPrinter {
     });
   }
 
-  void _writeCannotReuseLinkedBundle(events.CannotReuseLinkedBundle event) {
-    sink.writelnWithIndent('[operation] cannotReuseLinkedBundle');
-    sink.withIndent(() {
-      _writeRequirementFailure(event.failure);
-    });
-  }
-
   void _writeCheckLibraryDiagnosticsRequirements(
     events.CheckLibraryDiagnosticsRequirements event,
   ) {
-    sink.writelnWithIndent('[operation] checkLibraryDiagnosticsRequirements');
-    sink.withIndent(() {
-      sink.writelnNamedFilePath('library', event.library.file);
-      if (event.failure case var failure?) {
-        _writeRequirementFailure(failure);
-      } else {
-        sink.writelnWithIndent('failure: null');
-      }
-    });
+    if (configuration.withCheckLibraryDiagnosticsRequirements ||
+        event.failure != null) {
+      sink.writelnWithIndent('[operation] checkLibraryDiagnosticsRequirements');
+      sink.withIndent(() {
+        sink.writelnNamedFilePath('library', event.library.file);
+        if (event.failure case var failure?) {
+          _writeRequirementFailure(failure);
+        } else {
+          sink.writelnWithIndent('failure: null');
+        }
+      });
+    }
+  }
+
+  void _writeCheckLinkedBundleRequirements(
+    events.CheckLinkedBundleRequirements event,
+  ) {
+    if (configuration.withCheckLinkedBundleRequirements ||
+        event.failure != null) {
+      sink.writelnWithIndent('[operation] checkLinkedBundleRequirements');
+      sink.withIndent(() {
+        _writeLibraryCycle(event.cycle);
+        if (event.failure case var failure?) {
+          _writeRequirementFailure(failure);
+        } else {
+          sink.writelnWithIndent('failure: null');
+        }
+      });
+    }
   }
 
   void _writeDiagnostic(Diagnostic d) {
@@ -392,13 +405,6 @@ class DriverEventsPrinter {
     });
   }
 
-  void _writeGetErrorsCannotReuse(events.GetErrorsCannotReuse event) {
-    sink.writelnWithIndent('[operation] getErrorsCannotReuse');
-    sink.withIndent(() {
-      _writeRequirementFailure(event.failure);
-    });
-  }
-
   void _writeGetEvent(GetDriverEvent event) {
     sink.writelnWithIndent('[future] ${event.methodName} ${event.name}');
   }
@@ -409,9 +415,11 @@ class DriverEventsPrinter {
     }
 
     _writeGetEvent(event);
-    sink.withIndent(() {
-      _writeLibraryElementResult(event.result);
-    });
+    if (configuration.withGetLibraryByUriElement) {
+      sink.withIndent(() {
+        _writeLibraryElementResult(event.result);
+      });
+    }
   }
 
   void _writeGetResolvedLibrary(GetResolvedLibraryEvent event) {
@@ -461,6 +469,15 @@ class DriverEventsPrinter {
     });
   }
 
+  void _writeLibraryCycle(LibraryCycle cycle) {
+    var uriStrList = cycle.libraries
+        .map((library) => library.file.uriStr)
+        .sorted();
+    for (var uriStr in uriStrList) {
+      sink.writelnWithIndent(uriStr);
+    }
+  }
+
   void _writeLibraryElementResult(SomeLibraryElementResult result) {
     switch (result) {
       case CannotResolveUriResult():
@@ -481,7 +498,7 @@ class DriverEventsPrinter {
   }
 
   void _writeLinkLibraryCycle(events.LinkLibraryCycle object) {
-    if (!configuration.withLinkBundleEvents) {
+    if (!configuration.withLinkLibraryCycle) {
       return;
     }
 
@@ -522,13 +539,6 @@ class DriverEventsPrinter {
 
     sink.withIndent(() {
       sink.writelnWithIndent('missingUri: ${result.missingUri}');
-    });
-  }
-
-  void _writeProduceErrorsCannotReuse(events.ProduceErrorsCannotReuse event) {
-    sink.writelnWithIndent('[operation] produceErrorsCannotReuse');
-    sink.withIndent(() {
-      _writeRequirementFailure(event.failure);
     });
   }
 
@@ -720,18 +730,14 @@ class DriverEventsPrinter {
           sink.writelnWithIndent('file: ${libraryFile.resource.posixPath}');
           _writeRequirements(object.requirements);
         });
-      case events.CannotReuseLinkedBundle():
-        _writeCannotReuseLinkedBundle(object);
-      case events.GetErrorsCannotReuse():
-        _writeGetErrorsCannotReuse(object);
-      case events.ProduceErrorsCannotReuse():
-        _writeProduceErrorsCannotReuse(object);
       case events.CheckLibraryDiagnosticsRequirements():
         _writeCheckLibraryDiagnosticsRequirements(object);
+      case events.CheckLinkedBundleRequirements():
+        _writeCheckLinkedBundleRequirements(object);
       case events.LinkLibraryCycle():
         _writeLinkLibraryCycle(object);
-      case events.ReuseLinkLibraryCycleBundle():
-        _writeReuseLinkLibraryCycleBundle(object);
+      case events.ReuseLinkedBundle():
+        _writeReuseLinkedBundle(object);
       case ErrorsResult():
         sink.writelnWithIndent('[stream]');
         sink.withIndent(() {
@@ -758,24 +764,15 @@ class DriverEventsPrinter {
     }
   }
 
-  void _writeReuseLinkLibraryCycleBundle(
-    events.ReuseLinkLibraryCycleBundle event,
-  ) {
-    if (configuration.withLinkBundleEvents) {
-      const printName = 'readLibraryCycleBundle';
-      if (event.cycle.isSdk) {
-        sink.writelnWithIndent('[operation] $printName SDK');
-      } else {
-        sink.writelnWithIndent('[operation] $printName');
-        sink.withIndent(() {
-          var uriStrList = event.cycle.libraries
-              .map((library) => library.file.uriStr)
-              .sorted();
-          for (var uriStr in uriStrList) {
-            sink.writelnWithIndent(uriStr);
-          }
-        });
-      }
+  void _writeReuseLinkedBundle(events.ReuseLinkedBundle event) {
+    const printName = 'reuseLinkedBundle';
+    if (event.cycle.isSdk) {
+      sink.writelnWithIndent('[operation] $printName SDK');
+    } else {
+      sink.writelnWithIndent('[operation] $printName');
+      sink.withIndent(() {
+        _writeLibraryCycle(event.cycle);
+      });
     }
   }
 
@@ -821,16 +818,20 @@ class DriverEventsPrinterConfiguration {
   var unitElementConfiguration = UnitElementPrinterConfiguration();
   var errorsConfiguration = ErrorsResultPrinterConfiguration();
   var elementTextConfiguration = ElementTextConfiguration();
+  var requirements = RequirementPrinterConfiguration();
+
   var withAnalyzeFileEvents = true;
+  var withCheckLibraryDiagnosticsRequirements = false;
+  var withCheckLinkedBundleRequirements = false;
+  var withElementManifests = false;
   var withGetErrorsEvents = true;
   var withGetLibraryByUri = true;
-  var withElementManifests = false;
+  var withGetLibraryByUriElement = true;
   var withLibraryManifest = false;
-  var withLinkBundleEvents = false;
+  var withLinkLibraryCycle = false;
   var withResultRequirements = false;
   var withSchedulerStatus = true;
   var withStreamResolvedUnitResults = true;
-  var requirements = RequirementPrinterConfiguration();
 
   var ignoredManifestInstanceMemberNames = <String>{
     '==',
