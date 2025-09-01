@@ -492,6 +492,9 @@ sealed class InstanceItem<E extends InstanceElementImpl>
 }
 
 class InstanceItemFieldItem extends InstanceItemMemberItem<FieldElementImpl> {
+  final bool isConst;
+  final bool isFinal;
+  final bool isLate;
   final ManifestType type;
   final ManifestNode? constInitializer;
 
@@ -499,6 +502,9 @@ class InstanceItemFieldItem extends InstanceItemMemberItem<FieldElementImpl> {
     required super.id,
     required super.metadata,
     required super.isStatic,
+    required this.isConst,
+    required this.isFinal,
+    required this.isLate,
     required this.type,
     required this.constInitializer,
   });
@@ -512,6 +518,9 @@ class InstanceItemFieldItem extends InstanceItemMemberItem<FieldElementImpl> {
       id: id,
       metadata: ManifestMetadata.encode(context, element.metadata),
       isStatic: element.isStatic,
+      isConst: element.isConst,
+      isFinal: element.isFinal,
+      isLate: element.isLate,
       type: element.type.encode(context),
       constInitializer: element.constantInitializer?.encode(context),
     );
@@ -522,6 +531,9 @@ class InstanceItemFieldItem extends InstanceItemMemberItem<FieldElementImpl> {
       id: ManifestItemId.read(reader),
       metadata: ManifestMetadata.read(reader),
       isStatic: reader.readBool(),
+      isConst: reader.readBool(),
+      isFinal: reader.readBool(),
+      isLate: reader.readBool(),
       type: ManifestType.read(reader),
       constInitializer: ManifestNode.readOptional(reader),
     );
@@ -530,6 +542,9 @@ class InstanceItemFieldItem extends InstanceItemMemberItem<FieldElementImpl> {
   @override
   bool match(MatchContext context, FieldElementImpl element) {
     return super.match(context, element) &&
+        isConst == element.isConst &&
+        isFinal == element.isFinal &&
+        isLate == element.isLate &&
         type.match(context, element.type) &&
         constInitializer.match(context, element.constantInitializer);
   }
@@ -537,13 +552,16 @@ class InstanceItemFieldItem extends InstanceItemMemberItem<FieldElementImpl> {
   @override
   void write(BufferedSink sink) {
     super.write(sink);
+    sink.writeBool(isConst);
+    sink.writeBool(isFinal);
+    sink.writeBool(isLate);
     type.write(sink);
     constInitializer.writeOptional(sink);
   }
 
   @override
   void writeKind(BufferedSink sink) {
-    sink.writeEnum(_InstanceItemMemberItemKind.getter);
+    sink.writeEnum(_InstanceItemMemberItemKind.field);
   }
 
   static Map<LookupName, InstanceItemFieldItem> readMap(
@@ -1323,12 +1341,18 @@ class TopLevelSetterItem extends TopLevelItem<SetterElementImpl> {
 }
 
 class TopLevelVariableItem extends TopLevelItem<TopLevelVariableElementImpl> {
+  final bool isConst;
+  final bool isFinal;
+  final bool isLate;
   final ManifestType type;
   final ManifestNode? constInitializer;
 
   TopLevelVariableItem({
     required super.id,
     required super.metadata,
+    required this.isConst,
+    required this.isFinal,
+    required this.isLate,
     required this.type,
     required this.constInitializer,
   });
@@ -1341,6 +1365,9 @@ class TopLevelVariableItem extends TopLevelItem<TopLevelVariableElementImpl> {
     return TopLevelVariableItem(
       id: id,
       metadata: ManifestMetadata.encode(context, element.metadata),
+      isConst: element.isConst,
+      isFinal: element.isFinal,
+      isLate: element.isLate,
       type: element.type.encode(context),
       constInitializer: element.constantInitializer?.encode(context),
     );
@@ -1350,6 +1377,9 @@ class TopLevelVariableItem extends TopLevelItem<TopLevelVariableElementImpl> {
     return TopLevelVariableItem(
       id: ManifestItemId.read(reader),
       metadata: ManifestMetadata.read(reader),
+      isConst: reader.readBool(),
+      isFinal: reader.readBool(),
+      isLate: reader.readBool(),
       type: ManifestType.read(reader),
       constInitializer: ManifestNode.readOptional(reader),
     );
@@ -1358,6 +1388,9 @@ class TopLevelVariableItem extends TopLevelItem<TopLevelVariableElementImpl> {
   @override
   bool match(MatchContext context, TopLevelVariableElementImpl element) {
     return super.match(context, element) &&
+        isConst == element.isConst &&
+        isFinal == element.isFinal &&
+        isLate == element.isLate &&
         type.match(context, element.type) &&
         constInitializer.match(context, element.constantInitializer);
   }
@@ -1365,6 +1398,9 @@ class TopLevelVariableItem extends TopLevelItem<TopLevelVariableElementImpl> {
   @override
   void write(BufferedSink sink) {
     super.write(sink);
+    sink.writeBool(isConst);
+    sink.writeBool(isFinal);
+    sink.writeBool(isLate);
     type.write(sink);
     constInitializer.writeOptional(sink);
   }

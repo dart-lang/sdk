@@ -40035,6 +40035,178 @@ class A {
     );
   }
 
+  test_manifest_class_field_modifier_isConst() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class C {
+  static const a = 0;
+  static const b = 0;
+  static final c = 0;
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredClasses
+      C: #M0
+        declaredFields
+          a: #M1
+          b: #M2
+          c: #M3
+        declaredGetters
+          a: #M4
+          b: #M5
+          c: #M6
+        interface: #M7
+''',
+      updatedCode: r'''
+class C {
+  static const a = 0;
+  static final b = 0;
+  static const c = 0;
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredClasses
+      C: #M0
+        declaredFields
+          a: #M1
+          b: #M8
+          c: #M9
+        declaredGetters
+          a: #M4
+          b: #M5
+          c: #M6
+        interface: #M7
+''',
+    );
+  }
+
+  test_manifest_class_field_modifier_isFinal() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class C {
+  final a = 0;
+  final b = 0;
+  var c = 0;
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredClasses
+      C: #M0
+        declaredFields
+          a: #M1
+          b: #M2
+          c: #M3
+        declaredGetters
+          a: #M4
+          b: #M5
+          c: #M6
+        declaredSetters
+          c=: #M7
+        interface: #M8
+          map
+            a: #M4
+            b: #M5
+            c: #M6
+            c=: #M7
+''',
+      updatedCode: r'''
+class C {
+  final a = 0;
+  var b = 0;
+  final c = 0;
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredClasses
+      C: #M0
+        declaredFields
+          a: #M1
+          b: #M9
+          c: #M10
+        declaredGetters
+          a: #M4
+          b: #M5
+          c: #M6
+        declaredSetters
+          b=: #M11
+        interface: #M12
+          map
+            a: #M4
+            b: #M5
+            b=: #M11
+            c: #M6
+''',
+    );
+  }
+
+  test_manifest_class_field_modifier_isLate() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class C {
+  late final a = 0;
+  late final b = 0;
+  final c = 0;
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredClasses
+      C: #M0
+        declaredFields
+          a: #M1
+          b: #M2
+          c: #M3
+        declaredGetters
+          a: #M4
+          b: #M5
+          c: #M6
+        interface: #M7
+          map
+            a: #M4
+            b: #M5
+            c: #M6
+''',
+      updatedCode: r'''
+class C {
+  late final a = 0;
+  final b = 0;
+  late final c = 0;
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredClasses
+      C: #M0
+        declaredFields
+          a: #M1
+          b: #M8
+          c: #M9
+        declaredGetters
+          a: #M4
+          b: #M5
+          c: #M6
+        interface: #M7
+          map
+            a: #M4
+            b: #M5
+            c: #M6
+''',
+    );
+  }
+
   test_manifest_class_field_private_final() async {
     await _runLibraryManifestScenario(
       initialCode: r'''
@@ -54687,6 +54859,130 @@ var b = 0;
     declaredVariables
       a: #M4
       b: #M8
+''',
+    );
+  }
+
+  test_manifest_topLevelVariable_modifier_isConst() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+const a = 0;
+const b = 0;
+final c = 0;
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredGetters
+      a: #M0
+      b: #M1
+      c: #M2
+    declaredVariables
+      a: #M3
+      b: #M4
+      c: #M5
+''',
+      updatedCode: r'''
+const a = 0;
+final b = 0;
+const c = 0;
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredGetters
+      a: #M0
+      b: #M1
+      c: #M2
+    declaredVariables
+      a: #M3
+      b: #M6
+      c: #M7
+''',
+    );
+  }
+
+  test_manifest_topLevelVariable_modifier_isFinal() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+final a = 0;
+final b = 0;
+var c = 0;
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredGetters
+      a: #M0
+      b: #M1
+      c: #M2
+    declaredSetters
+      c=: #M3
+    declaredVariables
+      a: #M4
+      b: #M5
+      c: #M6
+''',
+      updatedCode: r'''
+final a = 0;
+var b = 0;
+final c = 0;
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredGetters
+      a: #M0
+      b: #M1
+      c: #M2
+    declaredSetters
+      b=: #M7
+    declaredVariables
+      a: #M4
+      b: #M8
+      c: #M9
+''',
+    );
+  }
+
+  test_manifest_topLevelVariable_modifier_isLate() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+late final a = 0;
+late final b = 0;
+final c = 0;
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredGetters
+      a: #M0
+      b: #M1
+      c: #M2
+    declaredVariables
+      a: #M3
+      b: #M4
+      c: #M5
+''',
+      updatedCode: r'''
+late final a = 0;
+final b = 0;
+late final c = 0;
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredGetters
+      a: #M0
+      b: #M1
+      c: #M2
+    declaredVariables
+      a: #M3
+      b: #M6
+      c: #M7
 ''',
     );
   }
