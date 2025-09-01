@@ -1080,7 +1080,7 @@ class InheritanceManager3 {
           .toList();
       // TODO(scheglov): check if can type cast instead
       resultFragment.formalParameters = resultType.parameters
-          .map((e) => e.firstFragment as FormalParameterFragmentImpl)
+          .map((e) => e.firstFragment)
           .toList();
 
       var elementName = firstElement.name!;
@@ -1131,7 +1131,7 @@ class InheritanceManager3 {
       resultFragment.enclosingFragment = targetClass.firstFragment;
       // TODO(scheglov): check if can type cast instead
       resultFragment.formalParameters = resultType.parameters
-          .map((e) => e.firstFragment as FormalParameterFragmentImpl)
+          .map((e) => e.firstFragment)
           .toList();
 
       field.enclosingFragment = targetClass.firstFragment;
