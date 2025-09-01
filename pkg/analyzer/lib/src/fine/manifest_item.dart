@@ -264,6 +264,11 @@ class ExtensionItem<E extends ExtensionElementImpl> extends InstanceItem<E> {
 }
 
 class ExtensionTypeItem extends InterfaceItem<ExtensionTypeElementImpl> {
+  final bool hasImplementsSelfReference;
+  final bool hasRepresentationSelfReference;
+  final ManifestType representationType;
+  final ManifestType typeErasure;
+
   ExtensionTypeItem({
     required super.id,
     required super.metadata,
@@ -279,6 +284,10 @@ class ExtensionTypeItem extends InterfaceItem<ExtensionTypeElementImpl> {
     required super.supertype,
     required super.mixins,
     required super.interfaces,
+    required this.hasImplementsSelfReference,
+    required this.hasRepresentationSelfReference,
+    required this.representationType,
+    required this.typeErasure,
   });
 
   factory ExtensionTypeItem.fromElement({
@@ -302,6 +311,10 @@ class ExtensionTypeItem extends InterfaceItem<ExtensionTypeElementImpl> {
         supertype: element.supertype?.encode(context),
         mixins: element.mixins.encode(context),
         interfaces: element.interfaces.encode(context),
+        hasImplementsSelfReference: element.hasImplementsSelfReference,
+        hasRepresentationSelfReference: element.hasRepresentationSelfReference,
+        representationType: element.representation.type.encode(context),
+        typeErasure: element.typeErasure.encode(context),
       );
     });
   }
@@ -322,7 +335,30 @@ class ExtensionTypeItem extends InterfaceItem<ExtensionTypeElementImpl> {
       mixins: ManifestType.readList(reader),
       interfaces: ManifestType.readList(reader),
       interface: ManifestInterface.read(reader),
+      hasImplementsSelfReference: reader.readBool(),
+      hasRepresentationSelfReference: reader.readBool(),
+      representationType: ManifestType.read(reader),
+      typeErasure: ManifestType.read(reader),
     );
+  }
+
+  @override
+  bool match(MatchContext context, ExtensionTypeElementImpl element) {
+    return super.match(context, element) &&
+        hasImplementsSelfReference == element.hasImplementsSelfReference &&
+        hasRepresentationSelfReference ==
+            element.hasRepresentationSelfReference &&
+        representationType.match(context, element.representation.type) &&
+        typeErasure.match(context, element.typeErasure);
+  }
+
+  @override
+  void write(BufferedSink sink) {
+    super.write(sink);
+    sink.writeBool(hasImplementsSelfReference);
+    sink.writeBool(hasRepresentationSelfReference);
+    representationType.write(sink);
+    typeErasure.write(sink);
   }
 }
 
