@@ -1567,8 +1567,16 @@ class LibraryManifestPrinter {
   }
 
   void _writeTypeParameters(List<ManifestTypeParameter> typeParameters) {
-    sink.writeElements('typeParameters', typeParameters, (typeParameter) {
-      _writeNamedType('bound', typeParameter.bound);
+    var indexed = typeParameters.indexed.toList();
+    sink.writeElements('typeParameters', indexed, (pair) {
+      var typeParameter = pair.$2;
+      sink.writeIndentedLine(() {
+        sink.write('#${pair.$1} ');
+        sink.write(typeParameter.variance.name);
+      });
+      sink.withIndent(() {
+        _writeNamedType('bound', typeParameter.bound);
+      });
     });
   }
 }

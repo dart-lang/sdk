@@ -2,7 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/dart/element/element.dart';
+import 'package:_fe_analyzer_shared/src/types/shared_type.dart'
+    as shared
+    show Variance;
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/element.dart';
@@ -539,26 +541,34 @@ sealed class ManifestType {
 }
 
 class ManifestTypeParameter {
+  final shared.Variance variance;
   final ManifestType? bound;
 
   factory ManifestTypeParameter.encode(
     EncodeContext context,
-    TypeParameterElement element,
+    TypeParameterElementImpl element,
   ) {
-    return ManifestTypeParameter._(bound: element.bound?.encode(context));
+    return ManifestTypeParameter._(
+      variance: element.variance,
+      bound: element.bound?.encode(context),
+    );
   }
 
   factory ManifestTypeParameter.read(SummaryDataReader reader) {
-    return ManifestTypeParameter._(bound: ManifestType.readOptional(reader));
+    return ManifestTypeParameter._(
+      variance: reader.readEnum(shared.Variance.values),
+      bound: ManifestType.readOptional(reader),
+    );
   }
 
-  ManifestTypeParameter._({required this.bound});
+  ManifestTypeParameter._({required this.variance, required this.bound});
 
-  bool match(MatchContext context, TypeParameterElement element) {
-    return bound.match(context, element.bound);
+  bool match(MatchContext context, TypeParameterElementImpl element) {
+    return element.variance == variance && bound.match(context, element.bound);
   }
 
   void write(BufferedSink sink) {
+    sink.writeEnum(variance);
     bound.writeOptional(sink);
   }
 
@@ -702,7 +712,7 @@ extension ListOfManifestTypeExtension on List<ManifestType> {
 }
 
 extension ListOfManifestTypeParameterExtension on List<ManifestTypeParameter> {
-  bool match(MatchContext context, List<TypeParameterElement> elements) {
+  bool match(MatchContext context, List<TypeParameterElementImpl> elements) {
     if (elements.length != length) {
       return false;
     }

@@ -1498,6 +1498,7 @@ class TypeAliasItem extends TopLevelItem<TypeAliasElementImpl> {
   bool match(MatchContext context, TypeAliasElementImpl element) {
     context.addTypeParameters(element.typeParameters);
     return super.match(context, element) &&
+        typeParameters.match(context, element.typeParameters) &&
         aliasedType.match(context, element.aliasedType);
   }
 

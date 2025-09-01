@@ -44150,13 +44150,15 @@ class A<T> {
     declaredClasses
       A: #M0
         typeParameters
-          bound: <null>
+          #0 covariant
+            bound: <null>
         supertype: Object @ dart:core
         declaredMethods
           foo: #M1
             functionType: FunctionType
               typeParameters
-                bound: <null>
+                #0 covariant
+                  bound: <null>
               returnType: Map @ dart:core
                 typeParameter#1
                 typeParameter#0
@@ -44176,7 +44178,8 @@ class A<T> {
     declaredClasses
       A: #M0
         typeParameters
-          bound: <null>
+          #0 covariant
+            bound: <null>
         supertype: Object @ dart:core
         declaredMethods
           bar: #M3
@@ -44185,7 +44188,8 @@ class A<T> {
           foo: #M1
             functionType: FunctionType
               typeParameters
-                bound: <null>
+                #0 covariant
+                  bound: <null>
               returnType: Map @ dart:core
                 typeParameter#1
                 typeParameter#0
@@ -46003,6 +46007,82 @@ class A<T> {}
   package:test/test.dart
     declaredClasses
       A: #M2
+        interface: #M3
+''',
+    );
+  }
+
+  test_manifest_class_typeParameters_variance() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class A<in T> {}
+class B<out T> {}
+class C<in T> {}
+class D<out T> {}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredClasses
+      A: #M0
+        interface: #M1
+      B: #M2
+        interface: #M3
+      C: #M4
+        interface: #M5
+      D: #M6
+        interface: #M7
+''',
+      updatedCode: r'''
+class A<in T> {}
+class B<out T> {}
+class C<out T> {}
+class D<in T> {}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredClasses
+      A: #M0
+        interface: #M1
+      B: #M2
+        interface: #M3
+      C: #M8
+        interface: #M9
+      D: #M10
+        interface: #M11
+''',
+    );
+  }
+
+  test_manifest_class_typeParameters_variance_legacyCovariant() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class A<T> {}
+class B<out T> {}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredClasses
+      A: #M0
+        interface: #M1
+      B: #M2
+        interface: #M3
+''',
+      updatedCode: r'''
+class A<out T> {}
+class B<T> {}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredClasses
+      A: #M0
+        interface: #M1
+      B: #M2
         interface: #M3
 ''',
     );
@@ -53238,14 +53318,16 @@ mixin A<T> {
     declaredMixins
       A: #M0
         typeParameters
-          bound: <null>
+          #0 covariant
+            bound: <null>
         superclassConstraints
           Object @ dart:core
         declaredMethods
           foo: #M1
             functionType: FunctionType
               typeParameters
-                bound: <null>
+                #0 covariant
+                  bound: <null>
               returnType: Map @ dart:core
                 typeParameter#1
                 typeParameter#0
@@ -53265,7 +53347,8 @@ mixin A<T> {
     declaredMixins
       A: #M0
         typeParameters
-          bound: <null>
+          #0 covariant
+            bound: <null>
         superclassConstraints
           Object @ dart:core
         declaredMethods
@@ -53275,7 +53358,8 @@ mixin A<T> {
           foo: #M1
             functionType: FunctionType
               typeParameters
-                bound: <null>
+                #0 covariant
+                  bound: <null>
               returnType: Map @ dart:core
                 typeParameter#1
                 typeParameter#0
@@ -54178,6 +54262,50 @@ mixin A<T, U> {}
     declaredMixins
       A: #M2
         interface: #M3
+''',
+    );
+  }
+
+  test_manifest_mixin_typeParameters_variance() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+mixin A<in T> {}
+mixin B<out T> {}
+mixin C<in T> {}
+mixin D<out T> {}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredMixins
+      A: #M0
+        interface: #M1
+      B: #M2
+        interface: #M3
+      C: #M4
+        interface: #M5
+      D: #M6
+        interface: #M7
+''',
+      updatedCode: r'''
+mixin A<in T> {}
+mixin B<out T> {}
+mixin C<out T> {}
+mixin D<in T> {}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredMixins
+      A: #M0
+        interface: #M1
+      B: #M2
+        interface: #M3
+      C: #M8
+        interface: #M9
+      D: #M10
+        interface: #M11
 ''',
     );
   }
@@ -57203,6 +57331,65 @@ typedef B = int;
     declaredTypeAliases
       A: #M0
       B: #M2
+''',
+    );
+  }
+
+  test_manifest_typeAlias_typeParameters_bound() async {
+    configuration.withElementManifests = true;
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+typedef F<X extends num> = List<X>;
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredTypeAliases
+      F: #M0
+        typeParameters
+          #0 covariant
+            bound: num @ dart:core
+        aliasedType: List @ dart:core
+          typeParameter#0
+''',
+      updatedCode: r'''
+typedef F<X extends int> = List<X>;
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredTypeAliases
+      F: #M1
+        typeParameters
+          #0 covariant
+            bound: int @ dart:core
+        aliasedType: List @ dart:core
+          typeParameter#0
+''',
+    );
+  }
+
+  test_manifest_typeAlias_typeParameters_name() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+typedef F<X> = List<X>;
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredTypeAliases
+      F: #M0
+''',
+      updatedCode: r'''
+typedef F<Y> = List<Y>;
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredTypeAliases
+      F: #M0
 ''',
     );
   }
