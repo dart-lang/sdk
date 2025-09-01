@@ -28,6 +28,7 @@ import 'package:analyzer/src/summary2/types_builder.dart';
 import 'package:analyzer/src/util/performance/operation_performance.dart';
 import 'package:analyzer/src/utilities/extensions/collection.dart';
 import 'package:analyzer/src/utilities/extensions/element.dart';
+import 'package:collection/collection.dart';
 
 class DefiningLinkingUnit extends LinkingUnit {
   DefiningLinkingUnit({required super.node, required super.element});
@@ -277,7 +278,7 @@ class LibraryBuilder {
             }
           }
           var fragment = declaration.declaredFragment!;
-          fragment.superInvokedNames = names.toList();
+          fragment.superInvokedNames = names.sorted();
         }
       }
     }

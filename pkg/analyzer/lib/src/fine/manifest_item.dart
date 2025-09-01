@@ -1176,7 +1176,9 @@ class ManifestMetadata {
 }
 
 class MixinItem extends InterfaceItem<MixinElementImpl> {
+  final bool isBase;
   final List<ManifestType> superclassConstraints;
+  final List<LookupName> superInvokedNames;
 
   MixinItem({
     required super.id,
@@ -1193,7 +1195,9 @@ class MixinItem extends InterfaceItem<MixinElementImpl> {
     required super.declaredConstructors,
     required super.inheritedConstructors,
     required super.interface,
+    required this.isBase,
     required this.superclassConstraints,
+    required this.superInvokedNames,
   }) : assert(supertype == null),
        assert(mixins.isEmpty),
        assert(superclassConstraints.isNotEmpty);
@@ -1219,7 +1223,11 @@ class MixinItem extends InterfaceItem<MixinElementImpl> {
         supertype: element.supertype?.encode(context),
         mixins: element.mixins.encode(context),
         interfaces: element.interfaces.encode(context),
+        isBase: element.isBase,
         superclassConstraints: element.superclassConstraints.encode(context),
+        superInvokedNames: element.superInvokedNames
+            .map((name) => name.asLookupName)
+            .toFixedList(),
       );
     });
   }
@@ -1240,20 +1248,29 @@ class MixinItem extends InterfaceItem<MixinElementImpl> {
       mixins: ManifestType.readList(reader),
       interfaces: ManifestType.readList(reader),
       interface: ManifestInterface.read(reader),
+      isBase: reader.readBool(),
       superclassConstraints: ManifestType.readList(reader),
+      superInvokedNames: reader.readLookupNameList(),
     );
   }
 
   @override
   bool match(MatchContext context, MixinElementImpl element) {
     return super.match(context, element) &&
-        superclassConstraints.match(context, element.superclassConstraints);
+        isBase == element.isBase &&
+        superclassConstraints.match(context, element.superclassConstraints) &&
+        const IterableEquality<String>().equals(
+          superInvokedNames.map((lookupName) => lookupName.asString),
+          element.superInvokedNames,
+        );
   }
 
   @override
   void write(BufferedSink sink) {
     super.write(sink);
+    sink.writeBool(isBase);
     superclassConstraints.writeList(sink);
+    superInvokedNames.write(sink);
   }
 }
 

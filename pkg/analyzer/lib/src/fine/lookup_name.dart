@@ -163,6 +163,10 @@ extension SummaryDataReaderExtension on SummaryDataReader {
     return result;
   }
 
+  List<LookupName> readLookupNameList() {
+    return readTypedList(() => LookupName.read(this));
+  }
+
   Set<LookupName> readLookupNameSet() {
     var length = readUInt30();
     var result = <LookupName>{};

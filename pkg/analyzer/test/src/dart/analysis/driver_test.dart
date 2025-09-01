@@ -53447,6 +53447,50 @@ mixin A {
     );
   }
 
+  test_manifest_mixin_modifier_isBase() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+mixin A {}
+base mixin B {}
+mixin C {}
+base mixin D {}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredMixins
+      A: #M0
+        interface: #M1
+      B: #M2
+        interface: #M3
+      C: #M4
+        interface: #M5
+      D: #M6
+        interface: #M7
+''',
+      updatedCode: r'''
+mixin A {}
+base mixin B {}
+base mixin C {}
+mixin D {}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredMixins
+      A: #M0
+        interface: #M1
+      B: #M2
+        interface: #M3
+      C: #M8
+        interface: #M9
+      D: #M10
+        interface: #M11
+''',
+    );
+  }
+
   test_manifest_mixin_onAdd_direct() async {
     await _runLibraryManifestScenario(
       initialCode: r'''
@@ -54195,6 +54239,456 @@ mixin A {
         interface: #M6
           map
             foo=: #M5
+''',
+    );
+  }
+
+  test_manifest_mixin_superInvokedNames_invokedToInvoked_reorder() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+mixin M {
+  void f() {
+    super.foo();
+    super.bar;
+    super.baz = 0;
+  }
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredMixins
+      M: #M0
+        declaredMethods
+          f: #M1
+        interface: #M2
+          map
+            f: #M1
+''',
+      updatedCode: r'''
+class A {}
+mixin M {
+  void f() {
+    super.baz = 0;
+    super.bar;
+    super.foo();
+  }
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredClasses
+      A: #M3
+        interface: #M4
+    declaredMixins
+      M: #M0
+        declaredMethods
+          f: #M1
+        interface: #M2
+          map
+            f: #M1
+''',
+    );
+  }
+
+  test_manifest_mixin_superInvokedNames_invokedToNot_getter() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class A {
+  int get foo => 0;
+}
+
+mixin M on A {
+  void f() {
+    super.foo;
+  }
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredClasses
+      A: #M0
+        declaredFields
+          foo: #M1
+        declaredGetters
+          foo: #M2
+        interface: #M3
+          map
+            foo: #M2
+    declaredMixins
+      M: #M4
+        declaredMethods
+          f: #M5
+        interface: #M6
+          map
+            f: #M5
+            foo: #M2
+''',
+      updatedCode: r'''
+class A {
+  int get foo => 0;
+}
+
+mixin M on A {
+  void f() {}
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredClasses
+      A: #M0
+        declaredFields
+          foo: #M1
+        declaredGetters
+          foo: #M2
+        interface: #M3
+          map
+            foo: #M2
+    declaredMixins
+      M: #M7
+        declaredMethods
+          f: #M8
+        interface: #M9
+          map
+            f: #M8
+            foo: #M2
+''',
+    );
+  }
+
+  test_manifest_mixin_superInvokedNames_invokedToNot_method() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class A {
+  void foo() {}
+}
+
+mixin M on A {
+  void f() {
+    super.foo();
+  }
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredClasses
+      A: #M0
+        declaredMethods
+          foo: #M1
+        interface: #M2
+          map
+            foo: #M1
+    declaredMixins
+      M: #M3
+        declaredMethods
+          f: #M4
+        interface: #M5
+          map
+            f: #M4
+            foo: #M1
+''',
+      updatedCode: r'''
+class A {
+  void foo() {}
+}
+
+mixin M on A {
+  void f() {}
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredClasses
+      A: #M0
+        declaredMethods
+          foo: #M1
+        interface: #M2
+          map
+            foo: #M1
+    declaredMixins
+      M: #M6
+        declaredMethods
+          f: #M7
+        interface: #M8
+          map
+            f: #M7
+            foo: #M1
+''',
+    );
+  }
+
+  test_manifest_mixin_superInvokedNames_invokedToNot_setter() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class A {
+  set foo(int _) {}
+}
+
+mixin M on A {
+  void f() {
+    super.foo = 0;
+  }
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredClasses
+      A: #M0
+        declaredFields
+          foo: #M1
+        declaredSetters
+          foo=: #M2
+        interface: #M3
+          map
+            foo=: #M2
+    declaredMixins
+      M: #M4
+        declaredMethods
+          f: #M5
+        interface: #M6
+          map
+            f: #M5
+            foo=: #M2
+''',
+      updatedCode: r'''
+class A {
+  set foo(int _) {}
+}
+
+mixin M on A {
+  void f() {}
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredClasses
+      A: #M0
+        declaredFields
+          foo: #M1
+        declaredSetters
+          foo=: #M2
+        interface: #M3
+          map
+            foo=: #M2
+    declaredMixins
+      M: #M7
+        declaredMethods
+          f: #M8
+        interface: #M9
+          map
+            f: #M8
+            foo=: #M2
+''',
+    );
+  }
+
+  test_manifest_mixin_superInvokedNames_notToInvoked_getter() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class A {
+  int get foo => 0;
+}
+
+mixin M on A {
+  void f() {}
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredClasses
+      A: #M0
+        declaredFields
+          foo: #M1
+        declaredGetters
+          foo: #M2
+        interface: #M3
+          map
+            foo: #M2
+    declaredMixins
+      M: #M4
+        declaredMethods
+          f: #M5
+        interface: #M6
+          map
+            f: #M5
+            foo: #M2
+''',
+      updatedCode: r'''
+class A {
+  int get foo => 0;
+}
+
+mixin M on A {
+  void f() {
+    super.foo;
+  }
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredClasses
+      A: #M0
+        declaredFields
+          foo: #M1
+        declaredGetters
+          foo: #M2
+        interface: #M3
+          map
+            foo: #M2
+    declaredMixins
+      M: #M7
+        declaredMethods
+          f: #M8
+        interface: #M9
+          map
+            f: #M8
+            foo: #M2
+''',
+    );
+  }
+
+  test_manifest_mixin_superInvokedNames_notToInvoked_method() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class A {
+  void foo() {}
+}
+
+mixin M on A {
+  void f() {}
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredClasses
+      A: #M0
+        declaredMethods
+          foo: #M1
+        interface: #M2
+          map
+            foo: #M1
+    declaredMixins
+      M: #M3
+        declaredMethods
+          f: #M4
+        interface: #M5
+          map
+            f: #M4
+            foo: #M1
+''',
+      updatedCode: r'''
+class A {
+  void foo() {}
+}
+
+mixin M on A {
+  void f() {
+    super.foo();
+  }
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredClasses
+      A: #M0
+        declaredMethods
+          foo: #M1
+        interface: #M2
+          map
+            foo: #M1
+    declaredMixins
+      M: #M6
+        declaredMethods
+          f: #M7
+        interface: #M8
+          map
+            f: #M7
+            foo: #M1
+''',
+    );
+  }
+
+  test_manifest_mixin_superInvokedNames_notToInvoked_setter() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class A {
+  set foo(int _) {}
+}
+
+mixin M on A {
+  void f() {}
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredClasses
+      A: #M0
+        declaredFields
+          foo: #M1
+        declaredSetters
+          foo=: #M2
+        interface: #M3
+          map
+            foo=: #M2
+    declaredMixins
+      M: #M4
+        declaredMethods
+          f: #M5
+        interface: #M6
+          map
+            f: #M5
+            foo=: #M2
+''',
+      updatedCode: r'''
+class A {
+  set foo(int _) {}
+}
+
+mixin M on A {
+  void f() {
+    super.foo = 0;
+  }
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredClasses
+      A: #M0
+        declaredFields
+          foo: #M1
+        declaredSetters
+          foo=: #M2
+        interface: #M3
+          map
+            foo=: #M2
+    declaredMixins
+      M: #M7
+        declaredMethods
+          f: #M8
+        interface: #M9
+          map
+            f: #M8
+            foo=: #M2
 ''',
     );
   }
