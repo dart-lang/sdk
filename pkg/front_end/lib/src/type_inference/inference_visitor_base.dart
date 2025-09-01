@@ -2847,19 +2847,22 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
         receiverType: receiverType,
         isImplicitCall: isImplicitCall,
       );
+      libraryBuilder.checkBoundsInStaticInvocation(
+        targetName: name.text,
+        typeEnvironment: typeSchemaEnvironment,
+        fileUri: helper.uri,
+        fileOffset: fileOffset,
+        typeArgumentsInfo: getTypeArgumentsInfo(arguments),
+        typeParameters: target.getTypeParameters(),
+        typeArguments: arguments.types,
+      );
+
       ArgumentsImpl extensionInvocationArguments =
           createExtensionInvocationArgument(target, receiver, arguments);
       StaticInvocation staticInvocation = createExtensionInvocation(
         fileOffset,
         target,
         extensionInvocationArguments,
-      );
-      libraryBuilder.checkBoundsInStaticInvocation(
-        staticInvocation,
-        name,
-        typeSchemaEnvironment,
-        helper.uri,
-        getTypeArgumentsInfo(arguments),
       );
 
       Expression replacement = result.applyResult(

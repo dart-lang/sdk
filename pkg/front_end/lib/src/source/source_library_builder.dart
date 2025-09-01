@@ -1694,21 +1694,17 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     );
   }
 
-  void checkBoundsInStaticInvocation(
-    StaticInvocation node,
-    Name targetName,
-    TypeEnvironment typeEnvironment,
-    Uri fileUri,
-    TypeArgumentsInfo typeArgumentsInfo,
-  ) {
-    // TODO(johnniwinther): Handle partially inferred type arguments in
-    // extension method calls. Currently all are considered inferred in the
-    // error messages.
-    if (node.arguments.types.isEmpty) return;
-    Class? klass = node.target.enclosingClass;
-    List<TypeParameter> parameters = node.target.function.typeParameters;
-    List<DartType> arguments = node.arguments.types;
-    if (parameters.length != arguments.length) {
+  void checkBoundsInStaticInvocation({
+    required String targetName,
+    required TypeEnvironment typeEnvironment,
+    required Uri fileUri,
+    required List<TypeParameter> typeParameters,
+    required List<DartType> typeArguments,
+    required TypeArgumentsInfo typeArgumentsInfo,
+    required int fileOffset,
+  }) {
+    if (typeArguments.isEmpty) return;
+    if (typeParameters.length != typeArguments.length) {
       assert(
         loader.assertProblemReportedElsewhere(
           "SourceLibraryBuilder.checkBoundsInStaticInvocation: "
@@ -1721,28 +1717,19 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
 
     final DartType bottomType = const NeverType.nonNullable();
     List<TypeArgumentIssue> issues = findTypeArgumentIssuesForInvocation(
-      parameters,
-      arguments,
+      typeParameters,
+      typeArguments,
       typeEnvironment,
       bottomType,
       areGenericArgumentsAllowed: libraryFeatures.genericMetadata.isEnabled,
     );
     if (issues.isNotEmpty) {
-      DartType? targetReceiver;
-      if (klass != null) {
-        // Coverage-ignore-block(suite): Not run.
-        targetReceiver = new InterfaceType(
-          klass,
-          klass.enclosingLibrary.nonNullable,
-        );
-      }
       _reportTypeArgumentIssues(
         issues,
         fileUri,
-        node.fileOffset,
+        fileOffset,
         typeArgumentsInfo: typeArgumentsInfo,
-        targetReceiver: targetReceiver,
-        targetName: targetName.text,
+        targetName: targetName,
       );
     }
   }

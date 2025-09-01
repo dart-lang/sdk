@@ -41,8 +41,8 @@ void main() {
   E1<String>(s).e1;
   // ^^^^^^
   // [analyzer] COMPILE_TIME_ERROR.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS
-  //            ^
-  // [cfe] Type argument 'String' doesn't conform to the bound 'num' of the type variable 'T' on 'e1'.
+  //        ^
+  // [cfe] Type argument 'String' doesn't conform to the bound 'num' of the type variable 'T' on 'E1'.
 
   // Inferred types of int and double are ok
   i.e1;
@@ -61,12 +61,12 @@ void main() {
   // [error column 3, length 2]
   // [analyzer] COMPILE_TIME_ERROR.COULD_NOT_INFER
   //    ^
-  // [cfe] Inferred type argument 'String' doesn't conform to the bound 'S' of the type variable 'T' on 'e2'.
+  // [cfe] Inferred type argument 'String' doesn't conform to the bound 'S' of the type variable 'T' on 'E2'.
   E2<String, num>(s).e2;
   // ^^^^^^
   // [analyzer] COMPILE_TIME_ERROR.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS
-  //                 ^
-  // [cfe] Type argument 'String' doesn't conform to the bound 'S' of the type variable 'T' on 'e2'.
+  //             ^
+  // [cfe] Type argument 'String' doesn't conform to the bound 'S' of the type variable 'T' on 'E2'.
 
   // Inferred types of int and double are ok
   i.e2;
@@ -128,10 +128,10 @@ void main() {
   // [error column 3, length 2]
   // [analyzer] COMPILE_TIME_ERROR.COULD_NOT_INFER
   //           ^
-  // [cfe] Inferred type argument 'Rec<dynamic>' doesn't conform to the bound 'Rec<T>' of the type variable 'T' on 'e4'.
+  // [cfe] Inferred type argument 'Rec<dynamic>' doesn't conform to the bound 'Rec<T>' of the type variable 'T' on 'E4'.
   E4<Rec<dynamic>>(superRec).e4;
   // ^^^^^^^^^^^^
   // [analyzer] COMPILE_TIME_ERROR.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS
-  //                         ^
-  // [cfe] Type argument 'Rec<dynamic>' doesn't conform to the bound 'Rec<T>' of the type variable 'T' on 'e4'.
+  //              ^
+  // [cfe] Type argument 'Rec<dynamic>' doesn't conform to the bound 'Rec<T>' of the type variable 'T' on 'E4'.
 }

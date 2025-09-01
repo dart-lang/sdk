@@ -18,7 +18,7 @@ void test1() {
   g.m<F<int? Function()>>;
   g.m<F<int Function()>>();
   //^
-  // [cfe] Type argument 'int Function() Function(int Function())' doesn't conform to the bound 'X Function(X)' of the type variable 'Y' on 'm'.
+  // [cfe] Type argument 'int Function() Function(int Function())' doesn't conform to the bound 'int? Function() Function(int? Function())' of the type variable 'Y' on 'm'.
   //  ^^^^^^^^^^^^^^^^^
   // [analyzer] COMPILE_TIME_ERROR.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS
   g.m<F<int Function()>>;
@@ -33,7 +33,7 @@ void test2(int? h()) {
   h.m<F<int? Function()>>;
   h.m<F<int Function()>>();
   //^
-  // [cfe] Type argument 'int Function() Function(int Function())' doesn't conform to the bound 'X Function(X)' of the type variable 'Y' on 'm'.
+  // [cfe] Type argument 'int Function() Function(int Function())' doesn't conform to the bound 'int? Function() Function(int? Function())' of the type variable 'Y' on 'm'.
   //  ^^^^^^^^^^^^^^^^^
   // [analyzer] COMPILE_TIME_ERROR.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS
   h.m<F<int Function()>>;
