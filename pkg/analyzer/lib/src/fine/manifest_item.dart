@@ -16,6 +16,14 @@ import 'package:collection/collection.dart';
 import 'package:meta/meta.dart';
 
 class ClassItem extends InterfaceItem<ClassElementImpl> {
+  final bool isAbstract;
+  final bool isBase;
+  final bool isFinal;
+  final bool isInterface;
+  final bool isMixinApplication;
+  final bool isMixinClass;
+  final bool isSealed;
+
   ClassItem({
     required super.id,
     required super.metadata,
@@ -31,6 +39,13 @@ class ClassItem extends InterfaceItem<ClassElementImpl> {
     required super.mixins,
     required super.interfaces,
     required super.interface,
+    required this.isAbstract,
+    required this.isBase,
+    required this.isFinal,
+    required this.isInterface,
+    required this.isMixinApplication,
+    required this.isMixinClass,
+    required this.isSealed,
   });
 
   factory ClassItem.fromElement({
@@ -54,6 +69,13 @@ class ClassItem extends InterfaceItem<ClassElementImpl> {
         mixins: element.mixins.encode(context),
         interfaces: element.interfaces.encode(context),
         interface: ManifestInterface.empty(),
+        isAbstract: element.isAbstract,
+        isBase: element.isBase,
+        isFinal: element.isFinal,
+        isInterface: element.isInterface,
+        isMixinApplication: element.isMixinApplication,
+        isMixinClass: element.isMixinClass,
+        isSealed: element.isSealed,
       );
     });
   }
@@ -74,7 +96,38 @@ class ClassItem extends InterfaceItem<ClassElementImpl> {
       mixins: ManifestType.readList(reader),
       interfaces: ManifestType.readList(reader),
       interface: ManifestInterface.read(reader),
+      isAbstract: reader.readBool(),
+      isBase: reader.readBool(),
+      isFinal: reader.readBool(),
+      isInterface: reader.readBool(),
+      isMixinApplication: reader.readBool(),
+      isMixinClass: reader.readBool(),
+      isSealed: reader.readBool(),
     );
+  }
+
+  @override
+  bool match(MatchContext context, ClassElementImpl element) {
+    return super.match(context, element) &&
+        isAbstract == element.isAbstract &&
+        isBase == element.isBase &&
+        isFinal == element.isFinal &&
+        isInterface == element.isInterface &&
+        isMixinApplication == element.isMixinApplication &&
+        isMixinClass == element.isMixinClass &&
+        isSealed == element.isSealed;
+  }
+
+  @override
+  void write(BufferedSink sink) {
+    super.write(sink);
+    sink.writeBool(isAbstract);
+    sink.writeBool(isBase);
+    sink.writeBool(isFinal);
+    sink.writeBool(isInterface);
+    sink.writeBool(isMixinApplication);
+    sink.writeBool(isMixinClass);
+    sink.writeBool(isSealed);
   }
 }
 

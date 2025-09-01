@@ -1059,6 +1059,15 @@ class LibraryManifestPrinter {
   void _writeClassItem(ClassItem item) {
     if (configuration.withElementManifests) {
       sink.withIndent(() {
+        sink.writeFlags({
+          'isAbstract': item.isAbstract,
+          'isBase': item.isBase,
+          'isFinal': item.isFinal,
+          'isInterface': item.isInterface,
+          'isMixinApplication': item.isMixinApplication,
+          'isMixinClass': item.isMixinClass,
+          'isSealed': item.isSealed,
+        });
         _writeMetadata(item);
         _writeTypeParameters(item.typeParameters);
         _writeNamedType('supertype', item.supertype);

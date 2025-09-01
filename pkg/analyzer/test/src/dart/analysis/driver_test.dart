@@ -44273,6 +44273,322 @@ class A {
     );
   }
 
+  test_manifest_class_modifier_isAbstract() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class A {}
+abstract class B {}
+class C {}
+abstract class D {}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredClasses
+      A: #M0
+        interface: #M1
+      B: #M2
+        interface: #M3
+      C: #M4
+        interface: #M5
+      D: #M6
+        interface: #M7
+''',
+      updatedCode: r'''
+class A {}
+abstract class B {}
+abstract class C {}
+class D {}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredClasses
+      A: #M0
+        interface: #M1
+      B: #M2
+        interface: #M3
+      C: #M8
+        interface: #M9
+      D: #M10
+        interface: #M11
+''',
+    );
+  }
+
+  test_manifest_class_modifier_isBase() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class A {}
+base class B {}
+class C {}
+base class D {}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredClasses
+      A: #M0
+        interface: #M1
+      B: #M2
+        interface: #M3
+      C: #M4
+        interface: #M5
+      D: #M6
+        interface: #M7
+''',
+      updatedCode: r'''
+class A {}
+base class B {}
+base class C {}
+class D {}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredClasses
+      A: #M0
+        interface: #M1
+      B: #M2
+        interface: #M3
+      C: #M8
+        interface: #M9
+      D: #M10
+        interface: #M11
+''',
+    );
+  }
+
+  test_manifest_class_modifier_isFinal() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class A {}
+final class B {}
+class C {}
+final class D {}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredClasses
+      A: #M0
+        interface: #M1
+      B: #M2
+        interface: #M3
+      C: #M4
+        interface: #M5
+      D: #M6
+        interface: #M7
+''',
+      updatedCode: r'''
+class A {}
+final class B {}
+final class C {}
+class D {}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredClasses
+      A: #M0
+        interface: #M1
+      B: #M2
+        interface: #M3
+      C: #M8
+        interface: #M9
+      D: #M10
+        interface: #M11
+''',
+    );
+  }
+
+  test_manifest_class_modifier_isInterface() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class A {}
+interface class B {}
+class C {}
+interface class D {}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredClasses
+      A: #M0
+        interface: #M1
+      B: #M2
+        interface: #M3
+      C: #M4
+        interface: #M5
+      D: #M6
+        interface: #M7
+''',
+      updatedCode: r'''
+class A {}
+interface class B {}
+interface class C {}
+class D {}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredClasses
+      A: #M0
+        interface: #M1
+      B: #M2
+        interface: #M3
+      C: #M8
+        interface: #M9
+      D: #M10
+        interface: #M11
+''',
+    );
+  }
+
+  test_manifest_class_modifier_isMixinApplication() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class A {}
+class B = Object with M;
+class C {}
+class D = Object with M;
+mixin M {}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredClasses
+      A: #M0
+        interface: #M1
+      B: #M2
+        interface: #M3
+      C: #M4
+        interface: #M5
+      D: #M6
+        interface: #M7
+    declaredMixins
+      M: #M8
+        interface: #M9
+''',
+      updatedCode: r'''
+class A {}
+class B = Object with M;
+class C = Object with M;
+class D {}
+mixin M {}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredClasses
+      A: #M0
+        interface: #M1
+      B: #M2
+        interface: #M3
+      C: #M10
+        interface: #M11
+      D: #M12
+        interface: #M13
+    declaredMixins
+      M: #M8
+        interface: #M9
+''',
+    );
+  }
+
+  test_manifest_class_modifier_isMixinClass() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class A {}
+mixin class B {}
+class C {}
+mixin class D {}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredClasses
+      A: #M0
+        interface: #M1
+      B: #M2
+        interface: #M3
+      C: #M4
+        interface: #M5
+      D: #M6
+        interface: #M7
+''',
+      updatedCode: r'''
+class A {}
+mixin class B {}
+mixin class C {}
+class D {}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredClasses
+      A: #M0
+        interface: #M1
+      B: #M2
+        interface: #M3
+      C: #M8
+        interface: #M9
+      D: #M10
+        interface: #M11
+''',
+    );
+  }
+
+  test_manifest_class_modifier_isSealed() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class A {}
+sealed class B {}
+class C {}
+sealed class D {}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredClasses
+      A: #M0
+        interface: #M1
+      B: #M2
+        interface: #M3
+      C: #M4
+        interface: #M5
+      D: #M6
+        interface: #M7
+''',
+      updatedCode: r'''
+class A {}
+sealed class B {}
+sealed class C {}
+class D {}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredClasses
+      A: #M0
+        interface: #M1
+      B: #M2
+        interface: #M3
+      C: #M8
+        interface: #M9
+      D: #M10
+        interface: #M11
+''',
+    );
+  }
+
   test_manifest_class_private() async {
     await _runLibraryManifestScenario(
       initialCode: r'''
@@ -45427,6 +45743,7 @@ abstract class C implements A, B {}
   package:test/test.dart
     declaredClasses
       A: #M0
+        flags: isAbstract
         supertype: Object @ dart:core
         declaredFields
           foo: #M1
@@ -45440,6 +45757,7 @@ abstract class C implements A, B {}
           map
             foo=: #M2
       B: #M4
+        flags: isAbstract
         supertype: Object @ dart:core
         declaredFields
           foo: #M5
@@ -45453,6 +45771,7 @@ abstract class C implements A, B {}
           map
             foo=: #M6
       C: #M8
+        flags: isAbstract
         supertype: Object @ dart:core
         interfaces
           A @ package:test/test.dart
@@ -45479,6 +45798,7 @@ abstract class C implements A, B {}
   package:test/test.dart
     declaredClasses
       A: #M0
+        flags: isAbstract
         supertype: Object @ dart:core
         declaredFields
           foo: #M1
@@ -45492,6 +45812,7 @@ abstract class C implements A, B {}
           map
             foo=: #M2
       B: #M4
+        flags: isAbstract
         supertype: Object @ dart:core
         declaredFields
           foo: #M11
@@ -45505,6 +45826,7 @@ abstract class C implements A, B {}
           map
             foo=: #M12
       C: #M8
+        flags: isAbstract
         supertype: Object @ dart:core
         interfaces
           A @ package:test/test.dart
