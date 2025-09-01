@@ -8,6 +8,9 @@ Dart 3.10 adds [dot shorthands][dot-shorthand-spec] to the language. To use
 them, set your package's [SDK constraint][language version] lower bound to 3.10
 or greater (`sdk: '^3.10.0'`).
 
+Dart 3.10 also adjusts the inferred return type of a generator function (`sync*`
+or `async*`) to avoid introducing unneeded nullability.
+
 #### Dot shorthands
 
 Dot shorthands allow you to omit the type name when accessing a static member
@@ -39,6 +42,26 @@ To learn more about the feature, check out the
 [feature specification][dot-shorthand-spec].
 
 [dot-shorthand-spec]: https://github.com/dart-lang/language/blob/main/working/3616%20-%20enum%20value%20shorthand/proposal-simple-lrhn.md
+
+#### Eliminate spurious Null from generator return type
+
+The following local function `f` used to have return type `Iterable<int?>`.
+The question mark in this type is spurious because the returned iterable
+will never contain null (`return;` stops the iteration, it does not add null
+to the iterable). This feature makes the return type `Iterable<int>`.
+
+```dart
+void main() {
+  f() sync* {
+    yield 1;
+    return;
+  }
+}
+```
+
+This change may cause some code elements to be flagged as unnecessary. For
+example, `f().first?.isEven` is flagged, and `f().first.isEven` is recommended
+instead.
 
 ### Tools
 
