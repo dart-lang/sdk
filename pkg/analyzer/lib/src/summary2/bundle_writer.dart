@@ -1045,7 +1045,7 @@ class ResolutionSink extends _SummaryDataWriter {
         );
       }, withAnnotations: withAnnotations);
       if (withAnnotations) {
-        _writeMetadata(parameter.metadata as MetadataImpl);
+        _writeMetadata(parameter.metadata);
       }
     });
   }

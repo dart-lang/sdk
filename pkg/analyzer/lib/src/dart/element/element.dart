@@ -5284,6 +5284,9 @@ mixin InternalSetterElement on InternalPropertyAccessorElement
 
 mixin InternalVariableElement implements VariableElement {
   @override
+  MetadataImpl get metadata;
+
+  @override
   TypeImpl get type;
 }
 

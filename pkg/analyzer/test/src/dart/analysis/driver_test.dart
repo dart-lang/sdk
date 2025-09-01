@@ -42593,6 +42593,44 @@ class A {
     );
   }
 
+  test_manifest_class_method_formalParameter_optionalNamed_reorder() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class A {
+  void foo({int a, int b}) {}
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredClasses
+      A: #M0
+        declaredMethods
+          foo: #M1
+        interface: #M2
+          map
+            foo: #M1
+''',
+      updatedCode: r'''
+class A {
+  void foo({int b, int a}) {}
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredClasses
+      A: #M0
+        declaredMethods
+          foo: #M1
+        interface: #M2
+          map
+            foo: #M1
+''',
+    );
+  }
+
   test_manifest_class_method_formalParameter_optionalPositional() async {
     await _runLibraryManifestScenario(
       initialCode: r'''
@@ -42709,6 +42747,44 @@ class A {
         interface: #M4
           map
             foo: #M3
+''',
+    );
+  }
+
+  test_manifest_class_method_formalParameter_requiredNamed_reorder() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class A {
+  void foo({required int a, required int b}) {}
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredClasses
+      A: #M0
+        declaredMethods
+          foo: #M1
+        interface: #M2
+          map
+            foo: #M1
+''',
+      updatedCode: r'''
+class A {
+  void foo({required int b, required int a}) {}
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredClasses
+      A: #M0
+        declaredMethods
+          foo: #M1
+        interface: #M2
+          map
+            foo: #M1
 ''',
     );
   }
@@ -42837,6 +42913,82 @@ class A {
         interface: #M2
           map
             foo: #M1
+''',
+    );
+  }
+
+  test_manifest_class_method_formalParameter_requiredPositional_toCovariantFalse() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class A {
+  void foo(covariant int a) {}
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredClasses
+      A: #M0
+        declaredMethods
+          foo: #M1
+        interface: #M2
+          map
+            foo: #M1
+''',
+      updatedCode: r'''
+class A {
+  void foo(int a) {}
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredClasses
+      A: #M0
+        declaredMethods
+          foo: #M3
+        interface: #M4
+          map
+            foo: #M3
+''',
+    );
+  }
+
+  test_manifest_class_method_formalParameter_requiredPositional_toCovariantTrue() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class A {
+  void foo(int a) {}
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredClasses
+      A: #M0
+        declaredMethods
+          foo: #M1
+        interface: #M2
+          map
+            foo: #M1
+''',
+      updatedCode: r'''
+class A {
+  void foo(covariant int a) {}
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredClasses
+      A: #M0
+        declaredMethods
+          foo: #M3
+        interface: #M4
+          map
+            foo: #M3
 ''',
     );
   }
@@ -54818,6 +54970,54 @@ final void Function({int p1, double p2}) a;
     );
   }
 
+  test_manifest_type_functionType_named_metadata_add() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+void foo({int a}) {}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredFunctions
+      foo: #M0
+''',
+      updatedCode: r'''
+void foo({@deprecated int a}) {}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredFunctions
+      foo: #M1
+''',
+    );
+  }
+
+  test_manifest_type_functionType_named_metadata_remove() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+void foo({@deprecated int a}) {}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredFunctions
+      foo: #M0
+''',
+      updatedCode: r'''
+void foo({int a}) {}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredFunctions
+      foo: #M1
+''',
+    );
+  }
+
   test_manifest_type_functionType_named_remove() async {
     await _runLibraryManifestScenario(
       initialCode: r'''
@@ -54842,6 +55042,90 @@ final void Function({int p1}) a;
       a: #M2
     declaredVariables
       a: #M3
+''',
+    );
+  }
+
+  test_manifest_type_functionType_named_remove_hasPositional() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+final void Function(int p1, {double p2}) a;
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredGetters
+      a: #M0
+    declaredVariables
+      a: #M1
+''',
+      updatedCode: r'''
+final void Function(int p1) a;
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredGetters
+      a: #M2
+    declaredVariables
+      a: #M3
+''',
+    );
+  }
+
+  test_manifest_type_functionType_named_rename() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+final void Function({int p1}) a;
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredGetters
+      a: #M0
+    declaredVariables
+      a: #M1
+''',
+      updatedCode: r'''
+final void Function({int p2}) a;
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredGetters
+      a: #M2
+    declaredVariables
+      a: #M3
+''',
+    );
+  }
+
+  test_manifest_type_functionType_named_reorder() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+final void Function({int p1, int p2}) a;
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredGetters
+      a: #M0
+    declaredVariables
+      a: #M1
+''',
+      updatedCode: r'''
+final void Function({int p2, int p1}) a;
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredGetters
+      a: #M0
+    declaredVariables
+      a: #M1
 ''',
     );
   }
@@ -55045,6 +55329,110 @@ final void Function(int p1, double p2) a;
     );
   }
 
+  test_manifest_type_functionType_positional_metadata_add() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+void foo([int a]) {}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredFunctions
+      foo: #M0
+''',
+      updatedCode: r'''
+void foo([@deprecated int a]) {}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredFunctions
+      foo: #M1
+''',
+    );
+  }
+
+  test_manifest_type_functionType_positional_metadata_remove() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+void foo([@deprecated int a]) {}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredFunctions
+      foo: #M0
+''',
+      updatedCode: r'''
+void foo([int a]) {}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredFunctions
+      foo: #M1
+''',
+    );
+  }
+
+  test_manifest_type_functionType_positional_name_add() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+final void Function(int) a;
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredGetters
+      a: #M0
+    declaredVariables
+      a: #M1
+''',
+      updatedCode: r'''
+final void Function(int p1) a;
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredGetters
+      a: #M0
+    declaredVariables
+      a: #M1
+''',
+    );
+  }
+
+  test_manifest_type_functionType_positional_name_remove() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+final void Function(int p1) a;
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredGetters
+      a: #M0
+    declaredVariables
+      a: #M1
+''',
+      updatedCode: r'''
+final void Function(int) a;
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredGetters
+      a: #M0
+    declaredVariables
+      a: #M1
+''',
+    );
+  }
+
   test_manifest_type_functionType_positional_remove() async {
     await _runLibraryManifestScenario(
       initialCode: r'''
@@ -55061,6 +55449,146 @@ final void Function(int p1, double p2) a;
 ''',
       updatedCode: r'''
 final void Function(int p1) a;
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredGetters
+      a: #M2
+    declaredVariables
+      a: #M3
+''',
+    );
+  }
+
+  test_manifest_type_functionType_positional_remove_hasNamed() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+final void Function(int p1, {double p2}) a;
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredGetters
+      a: #M0
+    declaredVariables
+      a: #M1
+''',
+      updatedCode: r'''
+final void Function({double p2}) a;
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredGetters
+      a: #M2
+    declaredVariables
+      a: #M3
+''',
+    );
+  }
+
+  test_manifest_type_functionType_positional_rename_optional() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+final void Function([int p1]) a;
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredGetters
+      a: #M0
+    declaredVariables
+      a: #M1
+''',
+      updatedCode: r'''
+final void Function([int p2]) a;
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredGetters
+      a: #M0
+    declaredVariables
+      a: #M1
+''',
+    );
+  }
+
+  test_manifest_type_functionType_positional_rename_required() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+final void Function(int p1) a;
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredGetters
+      a: #M0
+    declaredVariables
+      a: #M1
+''',
+      updatedCode: r'''
+final void Function(int p2) a;
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredGetters
+      a: #M0
+    declaredVariables
+      a: #M1
+''',
+    );
+  }
+
+  test_manifest_type_functionType_positional_reorder_optional() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+final void Function([int p1, double p2]) a;
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredGetters
+      a: #M0
+    declaredVariables
+      a: #M1
+''',
+      updatedCode: r'''
+final void Function([double p2, int p1]) a;
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredGetters
+      a: #M2
+    declaredVariables
+      a: #M3
+''',
+    );
+  }
+
+  test_manifest_type_functionType_positional_reorder_required() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+final void Function(int p1, double p2) a;
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredGetters
+      a: #M0
+    declaredVariables
+      a: #M1
+''',
+      updatedCode: r'''
+final void Function(double p2, int p1) a;
 ''',
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
@@ -55324,6 +55852,106 @@ final void Function<E1>() a;
       a: #M2
     declaredVariables
       a: #M3
+''',
+    );
+  }
+
+  test_manifest_type_functionType_typeParameter_rename() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+final T Function<T>() a;
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredGetters
+      a: #M0
+    declaredVariables
+      a: #M1
+''',
+      updatedCode: r'''
+final T2 Function<T2>() a;
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredGetters
+      a: #M0
+    declaredVariables
+      a: #M1
+''',
+    );
+  }
+
+  test_manifest_type_functionType_typeParameter_reorder_andFormalParameters() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+typedef F = void Function<T, U>(T, U);
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredTypeAliases
+      F: #M0
+''',
+      updatedCode: r'''
+typedef F = void Function<U, T>(U, T);
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredTypeAliases
+      F: #M0
+''',
+    );
+  }
+
+  test_manifest_type_functionType_typeParameter_reorder_notFormalParameters() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+typedef F = void Function<T, U>(T, U);
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredTypeAliases
+      F: #M0
+''',
+      updatedCode: r'''
+typedef F = void Function<U, T>(T, U);
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredTypeAliases
+      F: #M1
+''',
+    );
+  }
+
+  test_manifest_type_functionType_typeParameter_reorder_withBounds() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+typedef F = void Function<T extends num, U extends int>(T, U);
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredTypeAliases
+      F: #M0
+''',
+      updatedCode: r'''
+typedef F = void Function<U extends int, T extends num>(U, T);
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredTypeAliases
+      F: #M1
 ''',
     );
   }
