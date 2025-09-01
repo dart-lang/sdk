@@ -957,18 +957,15 @@ extension on Element {
   /// `null` is returned. For [PropertyAccessorElement], the return value is
   /// returned. For all other elements, their `type` property is returned.
   DartType? get referenceType {
-    if (this is ConstructorElement) {
-      return (this as ConstructorElement).type;
-    } else if (this is TopLevelFunctionElement) {
-      return (this as TopLevelFunctionElement).type;
-    } else if (this is PropertyAccessorElement) {
-      return (this as PropertyAccessorElement).returnType;
-    } else if (this is MethodElement) {
-      return (this as MethodElement).type;
-    } else if (this is VariableElement) {
-      return (this as VariableElement).type;
-    } else {
-      return null;
-    }
+    var self = this;
+    return switch (self) {
+      ConstructorElement() => self.type,
+      TopLevelFunctionElement() => self.type,
+      LocalFunctionElement() => self.type,
+      PropertyAccessorElement() => self.returnType,
+      MethodElement() => self.type,
+      VariableElement() => self.type,
+      _ => null,
+    };
   }
 }
