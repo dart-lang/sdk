@@ -1468,6 +1468,18 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       receiverType,
       treeNodeForTesting: node,
     );
+    libraryBuilder.checkBoundsInStaticInvocation(
+      targetName: node.extension.name,
+      typeEnvironment: typeSchemaEnvironment,
+      fileUri: helper.uri,
+      fileOffset: node.extensionTypeArgumentOffset ?? node.fileOffset,
+      typeArgumentsInfo: node.knownTypeArguments != null
+          ? const NoneInferredTypeArgumentsInfo()
+          : const AllInferredTypeArgumentsInfo(),
+      typeParameters: node.extension.typeParameters,
+      typeArguments: extensionTypeArguments,
+    );
+
     DartType extensionOnType = getExtensionReceiverType(
       node.extension,
       extensionTypeArguments,
@@ -1488,16 +1500,6 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       new Arguments([receiver], types: extensionTypeArguments)
         ..fileOffset = node.fileOffset,
       fileOffset: node.fileOffset,
-    );
-
-    libraryBuilder.checkBoundsInStaticInvocation(
-      replacement,
-      node.name,
-      typeSchemaEnvironment,
-      helper.uri,
-      node.knownTypeArguments != null
-          ? const NoneInferredTypeArgumentsInfo()
-          : const AllInferredTypeArgumentsInfo(),
     );
 
     return instantiateTearOff(
@@ -1541,6 +1543,18 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       receiverType,
       treeNodeForTesting: node,
     );
+    libraryBuilder.checkBoundsInStaticInvocation(
+      targetName: node.extension.name,
+      typeEnvironment: typeSchemaEnvironment,
+      fileUri: helper.uri,
+      fileOffset: node.extensionTypeArgumentOffset ?? node.fileOffset,
+      typeArgumentsInfo: node.knownTypeArguments != null
+          ? const NoneInferredTypeArgumentsInfo()
+          : const AllInferredTypeArgumentsInfo(),
+      typeParameters: node.extension.typeParameters,
+      typeArguments: extensionTypeArguments,
+    );
+
     DartType extensionOnType = getExtensionReceiverType(
       node.extension,
       extensionTypeArguments,
@@ -1563,16 +1577,6 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       new Arguments([receiver], types: extensionTypeArguments)
         ..fileOffset = node.fileOffset,
       fileOffset: node.fileOffset,
-    );
-
-    libraryBuilder.checkBoundsInStaticInvocation(
-      replacement,
-      node.name,
-      typeSchemaEnvironment,
-      helper.uri,
-      node.knownTypeArguments != null
-          ? const NoneInferredTypeArgumentsInfo()
-          : const AllInferredTypeArgumentsInfo(),
     );
 
     return new ExpressionInferenceResult(resultType, replacement);
@@ -1612,6 +1616,18 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       receiverType,
       treeNodeForTesting: node,
     );
+    libraryBuilder.checkBoundsInStaticInvocation(
+      targetName: node.extension.name,
+      typeEnvironment: typeSchemaEnvironment,
+      fileUri: helper.uri,
+      fileOffset: node.extensionTypeArgumentOffset ?? node.fileOffset,
+      typeArgumentsInfo: node.knownTypeArguments != null
+          ? const NoneInferredTypeArgumentsInfo()
+          : const AllInferredTypeArgumentsInfo(),
+      typeParameters: node.extension.typeParameters,
+      typeArguments: extensionTypeArguments,
+    );
+
     DartType extensionOnType = getExtensionReceiverType(
       node.extension,
       extensionTypeArguments,
@@ -1658,16 +1674,6 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       new Arguments([receiver, value], types: extensionTypeArguments)
         ..fileOffset = node.fileOffset,
       fileOffset: node.fileOffset,
-    );
-
-    libraryBuilder.checkBoundsInStaticInvocation(
-      assignment,
-      node.name,
-      typeSchemaEnvironment,
-      helper.uri,
-      node.knownTypeArguments != null
-          ? const NoneInferredTypeArgumentsInfo()
-          : const AllInferredTypeArgumentsInfo(),
     );
 
     Expression replacement;
@@ -1727,6 +1733,18 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       receiverType,
       treeNodeForTesting: node,
     );
+    libraryBuilder.checkBoundsInStaticInvocation(
+      targetName: node.extension.name,
+      typeEnvironment: typeSchemaEnvironment,
+      fileUri: helper.uri,
+      fileOffset: node.extensionTypeArgumentOffset ?? node.fileOffset,
+      typeArgumentsInfo: node.knownTypeArguments != null
+          ? const NoneInferredTypeArgumentsInfo()
+          : const AllInferredTypeArgumentsInfo(),
+      typeParameters: node.extension.typeParameters,
+      typeArguments: extensionTypeArguments,
+    );
+
     DartType extensionOnType = getExtensionReceiverType(
       node.extension,
       extensionTypeArguments,
@@ -1767,16 +1785,6 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       new Arguments([readReceiver], types: extensionTypeArguments)
         ..fileOffset = node.fileOffset,
       fileOffset: node.fileOffset,
-    );
-
-    libraryBuilder.checkBoundsInStaticInvocation(
-      read,
-      node.name,
-      typeSchemaEnvironment,
-      helper.uri,
-      node.knownTypeArguments != null
-          ? const NoneInferredTypeArgumentsInfo()
-          : const AllInferredTypeArgumentsInfo(),
     );
 
     Expression value = read;
@@ -1895,6 +1903,18 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       receiverType,
       treeNodeForTesting: node,
     );
+    libraryBuilder.checkBoundsInStaticInvocation(
+      targetName: node.extension.name,
+      typeEnvironment: typeSchemaEnvironment,
+      fileUri: helper.uri,
+      fileOffset: node.extensionTypeArgumentOffset ?? node.fileOffset,
+      typeArgumentsInfo: node.knownTypeArguments != null
+          ? const NoneInferredTypeArgumentsInfo()
+          : const AllInferredTypeArgumentsInfo(),
+      typeParameters: node.extension.typeParameters,
+      typeArguments: extensionTypeArguments,
+    );
+
     DartType extensionOnType = getExtensionReceiverType(
       node.extension,
       extensionTypeArguments,
@@ -1966,6 +1986,18 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       receiverType,
       treeNodeForTesting: node,
     );
+    libraryBuilder.checkBoundsInStaticInvocation(
+      targetName: node.extension.name,
+      typeEnvironment: typeSchemaEnvironment,
+      fileUri: helper.uri,
+      fileOffset: node.extensionTypeArgumentOffset ?? node.fileOffset,
+      typeArgumentsInfo: node.knownTypeArguments != null
+          ? const NoneInferredTypeArgumentsInfo()
+          : const AllInferredTypeArgumentsInfo(),
+      typeParameters: node.extension.typeParameters,
+      typeArguments: extensionTypeArguments,
+    );
+
     DartType extensionOnType = getExtensionReceiverType(
       node.extension,
       extensionTypeArguments,
@@ -1992,23 +2024,27 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       receiverType: receiverType,
     );
 
+    TypeArgumentsInfo typeArgumentsInfo = getTypeArgumentsInfo(node.arguments);
+    String targetName = node.name.text;
+    if (!node.extension.isUnnamedExtension) {
+      targetName = '${node.extension.name}.${targetName}';
+    }
+    libraryBuilder.checkBoundsInStaticInvocation(
+      targetName: targetName,
+      typeEnvironment: typeSchemaEnvironment,
+      fileUri: helper.uri,
+      fileOffset: node.fileOffset,
+      typeArgumentsInfo: typeArgumentsInfo,
+      typeParameters: target.getTypeParameters(),
+      typeArguments: node.arguments.types,
+    );
+
     ArgumentsImpl extensionInvocationArguments =
         createExtensionInvocationArgument(target, receiver, node.arguments);
     StaticInvocation replacement = createStaticInvocation(
       node.method,
       extensionInvocationArguments,
       fileOffset: node.fileOffset,
-    );
-
-    TypeArgumentsInfo typeArgumentsInfo = getTypeArgumentsInfo(
-      extensionInvocationArguments,
-    );
-    libraryBuilder.checkBoundsInStaticInvocation(
-      replacement,
-      node.name,
-      typeSchemaEnvironment,
-      helper.uri,
-      typeArgumentsInfo,
     );
 
     return new ExpressionInferenceResult(
@@ -2050,6 +2086,17 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       node.knownTypeArguments,
       receiverType,
       treeNodeForTesting: node,
+    );
+    libraryBuilder.checkBoundsInStaticInvocation(
+      targetName: node.extension.name,
+      typeEnvironment: typeSchemaEnvironment,
+      fileUri: helper.uri,
+      fileOffset: node.extensionTypeArgumentOffset ?? node.fileOffset,
+      typeArgumentsInfo: node.knownTypeArguments != null
+          ? const NoneInferredTypeArgumentsInfo()
+          : const AllInferredTypeArgumentsInfo(),
+      typeParameters: node.extension.typeParameters,
+      typeArguments: extensionTypeArguments,
     );
 
     DartType extensionOnType = getExtensionReceiverType(
@@ -2225,6 +2272,17 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       node.knownTypeArguments,
       receiverType,
       treeNodeForTesting: node,
+    );
+    libraryBuilder.checkBoundsInStaticInvocation(
+      targetName: node.extension.name,
+      typeEnvironment: typeSchemaEnvironment,
+      fileUri: helper.uri,
+      fileOffset: node.extensionTypeArgumentOffset ?? node.fileOffset,
+      typeArgumentsInfo: node.knownTypeArguments != null
+          ? const NoneInferredTypeArgumentsInfo()
+          : const AllInferredTypeArgumentsInfo(),
+      typeParameters: node.extension.typeParameters,
+      typeArguments: extensionTypeArguments,
     );
 
     DartType extensionOnType = getExtensionReceiverType(
@@ -7827,12 +7885,18 @@ class InferenceVisitorImpl extends InferenceVisitorBase
         member,
         node.arguments,
       );
+      String targetName = member.name.text;
+      if (member.enclosingClass != null) {
+        targetName = '${member.enclosingClass!.name}.$targetName';
+      }
       libraryBuilder.checkBoundsInStaticInvocation(
-        invocation,
-        member.name,
-        typeSchemaEnvironment,
-        helper.uri,
-        typeArgumentsInfo,
+        targetName: targetName,
+        typeEnvironment: typeSchemaEnvironment,
+        fileUri: helper.uri,
+        fileOffset: node.fileOffset,
+        typeArgumentsInfo: typeArgumentsInfo,
+        typeParameters: invocation.target.typeParameters,
+        typeArguments: invocation.arguments.types,
       );
       return new ExpressionInferenceResult(
         result.inferredType,
@@ -8922,6 +8986,18 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       receiverType,
       treeNodeForTesting: node,
     );
+    libraryBuilder.checkBoundsInStaticInvocation(
+      targetName: node.extension.name,
+      typeEnvironment: typeSchemaEnvironment,
+      fileUri: helper.uri,
+      fileOffset: node.extensionTypeArgumentOffset ?? node.fileOffset,
+      typeArgumentsInfo: node.explicitTypeArguments != null
+          ? const NoneInferredTypeArgumentsInfo()
+          : const AllInferredTypeArgumentsInfo(),
+      typeParameters: node.extension.typeParameters,
+      typeArguments: extensionTypeArguments,
+    );
+
     DartType extensionOnType = getExtensionReceiverType(
       node.extension,
       extensionTypeArguments,
@@ -8958,16 +9034,6 @@ class InferenceVisitorImpl extends InferenceVisitorBase
         index,
       ], types: extensionTypeArguments)..fileOffset = node.fileOffset,
       fileOffset: node.fileOffset,
-    );
-
-    libraryBuilder.checkBoundsInStaticInvocation(
-      replacement,
-      indexSetName,
-      typeSchemaEnvironment,
-      helper.uri,
-      node.explicitTypeArguments != null
-          ? const NoneInferredTypeArgumentsInfo()
-          : const AllInferredTypeArgumentsInfo(),
     );
 
     return new ExpressionInferenceResult(resultType, replacement);
@@ -9007,6 +9073,18 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       receiverType,
       treeNodeForTesting: node,
     );
+    libraryBuilder.checkBoundsInStaticInvocation(
+      targetName: node.extension.name,
+      typeEnvironment: typeSchemaEnvironment,
+      fileUri: helper.uri,
+      fileOffset: node.extensionTypeArgumentOffset ?? node.fileOffset,
+      typeArgumentsInfo: node.explicitTypeArguments != null
+          ? const NoneInferredTypeArgumentsInfo()
+          : const AllInferredTypeArgumentsInfo(),
+      typeParameters: node.extension.typeParameters,
+      typeArguments: extensionTypeArguments,
+    );
+
     DartType extensionOnType = getExtensionReceiverType(
       node.extension,
       extensionTypeArguments,
@@ -9074,16 +9152,6 @@ class InferenceVisitorImpl extends InferenceVisitorBase
         value,
       ], types: extensionTypeArguments)..fileOffset = node.fileOffset,
       fileOffset: node.fileOffset,
-    );
-
-    libraryBuilder.checkBoundsInStaticInvocation(
-      assignment,
-      indexSetName,
-      typeSchemaEnvironment,
-      helper.uri,
-      node.explicitTypeArguments != null
-          ? const NoneInferredTypeArgumentsInfo()
-          : const AllInferredTypeArgumentsInfo(),
     );
 
     Expression replacement = assignment;
@@ -9528,6 +9596,17 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       node.knownTypeArguments,
       receiverResult.inferredType,
       treeNodeForTesting: node,
+    );
+    libraryBuilder.checkBoundsInStaticInvocation(
+      targetName: node.extension.name,
+      typeEnvironment: typeSchemaEnvironment,
+      fileUri: helper.uri,
+      fileOffset: node.extensionTypeArgumentOffset ?? node.fileOffset,
+      typeArgumentsInfo: node.knownTypeArguments != null
+          ? const NoneInferredTypeArgumentsInfo()
+          : const AllInferredTypeArgumentsInfo(),
+      typeParameters: node.extension.typeParameters,
+      typeArguments: extensionTypeArguments,
     );
 
     Expression receiver = receiverResult.expression;
@@ -11236,6 +11315,17 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       receiverType,
       treeNodeForTesting: node,
     );
+    libraryBuilder.checkBoundsInStaticInvocation(
+      targetName: node.extension.name,
+      typeEnvironment: typeSchemaEnvironment,
+      fileUri: helper.uri,
+      fileOffset: node.extensionTypeArgumentOffset ?? node.fileOffset,
+      typeArgumentsInfo: node.explicitTypeArguments != null
+          ? const NoneInferredTypeArgumentsInfo()
+          : const AllInferredTypeArgumentsInfo(),
+      typeParameters: node.extension.typeParameters,
+      typeArguments: extensionTypeArguments,
+    );
 
     DartType extensionOnType = getExtensionReceiverType(
       node.extension,
@@ -12161,12 +12251,18 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       node.arguments as ArgumentsImpl,
       staticTarget: node.target,
     );
+    String targetName = node.name.text;
+    if (node.target.enclosingClass != null) {
+      targetName = '${node.target.enclosingClass!.name}.$targetName';
+    }
     libraryBuilder.checkBoundsInStaticInvocation(
-      node,
-      node.name,
-      typeSchemaEnvironment,
-      helper.uri,
-      typeArgumentsInfo,
+      targetName: targetName,
+      typeEnvironment: typeSchemaEnvironment,
+      fileUri: helper.uri,
+      fileOffset: node.fileOffset,
+      typeArgumentsInfo: typeArgumentsInfo,
+      typeParameters: node.target.typeParameters,
+      typeArguments: node.arguments.types,
     );
     return new ExpressionInferenceResult(
       result.inferredType,

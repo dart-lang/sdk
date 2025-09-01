@@ -96,6 +96,7 @@ class NoneInferredTypeArgumentsInfo extends TypeArgumentsInfo {
   bool isInferred(int index) => false;
 }
 
+// Coverage-ignore(suite): Not run.
 class ExtensionMethodTypeArgumentsInfo implements TypeArgumentsInfo {
   final ArgumentsImpl arguments;
 
@@ -131,6 +132,7 @@ TypeArgumentsInfo getTypeArgumentsInfo(Arguments arguments) {
           ? const AllInferredTypeArgumentsInfo()
           : const NoneInferredTypeArgumentsInfo();
     } else {
+      // Coverage-ignore-block(suite): Not run.
       return new ExtensionMethodTypeArgumentsInfo(arguments);
     }
   } else {
@@ -1435,6 +1437,9 @@ class ExtensionIfNullSet extends InternalExpression {
   /// not implicit like `a ??= b` inside the extension `E`.
   final bool _isExplicit;
 
+  /// File offset of the explicit extension type arguments, if provided.
+  final int? extensionTypeArgumentOffset;
+
   ExtensionIfNullSet.explicit({
     required Extension extension,
     required List<DartType>? explicitTypeArguments,
@@ -1448,6 +1453,7 @@ class ExtensionIfNullSet extends InternalExpression {
     required int binaryOffset,
     required int writeOffset,
     required bool isNullAware,
+    required int? extensionTypeArgumentOffset,
   }) : this._(
          extension,
          explicitTypeArguments,
@@ -1462,6 +1468,7 @@ class ExtensionIfNullSet extends InternalExpression {
          writeOffset: writeOffset,
          isNullAware: isNullAware,
          isExplicit: true,
+         extensionTypeArgumentOffset: extensionTypeArgumentOffset,
        );
 
   ExtensionIfNullSet.implicit({
@@ -1490,6 +1497,7 @@ class ExtensionIfNullSet extends InternalExpression {
          writeOffset: writeOffset,
          isNullAware: false,
          isExplicit: false,
+         extensionTypeArgumentOffset: null,
        );
 
   ExtensionIfNullSet._(
@@ -1506,6 +1514,7 @@ class ExtensionIfNullSet extends InternalExpression {
     required this.writeOffset,
     required this.isNullAware,
     required bool isExplicit,
+    required this.extensionTypeArgumentOffset,
   }) : _isExplicit = isExplicit,
        assert(
          knownTypeArguments == null ||
@@ -1623,6 +1632,9 @@ class ExtensionCompoundSet extends InternalExpression {
   /// not implicit like `a += b` inside the extension `E`.
   final bool _isExplicit;
 
+  /// File offset of the explicit extension type arguments, if provided.
+  final int? extensionTypeArgumentOffset;
+
   ExtensionCompoundSet.explicit({
     required Extension extension,
     required List<DartType>? explicitTypeArguments,
@@ -1637,6 +1649,7 @@ class ExtensionCompoundSet extends InternalExpression {
     required int binaryOffset,
     required int writeOffset,
     required bool isNullAware,
+    required int? extensionTypeArgumentOffset,
   }) : this._(
          extension,
          explicitTypeArguments,
@@ -1652,6 +1665,7 @@ class ExtensionCompoundSet extends InternalExpression {
          writeOffset: writeOffset,
          isNullAware: isNullAware,
          isExplicit: true,
+         extensionTypeArgumentOffset: extensionTypeArgumentOffset,
        );
 
   ExtensionCompoundSet.implicit({
@@ -1682,6 +1696,7 @@ class ExtensionCompoundSet extends InternalExpression {
          writeOffset: writeOffset,
          isNullAware: false,
          isExplicit: false,
+         extensionTypeArgumentOffset: null,
        );
 
   ExtensionCompoundSet._(
@@ -1699,6 +1714,7 @@ class ExtensionCompoundSet extends InternalExpression {
     required this.writeOffset,
     required this.isNullAware,
     required bool isExplicit,
+    required this.extensionTypeArgumentOffset,
   }) : _isExplicit = isExplicit,
        assert(
          knownTypeArguments == null ||
@@ -1972,6 +1988,9 @@ class ExtensionIncDec extends InternalExpression {
   /// to the implicit access of `a++` occurring within the extension `E`.
   final bool _isExplicit;
 
+  /// File offset of the explicit extension type arguments, if provided.
+  final int? extensionTypeArgumentOffset;
+
   ExtensionIncDec.explicit({
     required Extension extension,
     required List<DartType>? explicitTypeArguments,
@@ -1982,7 +2001,8 @@ class ExtensionIncDec extends InternalExpression {
     required bool isPost,
     required bool isInc,
     required bool forEffect,
-    required isNullAware,
+    required bool isNullAware,
+    required int? extensionTypeArgumentOffset,
   }) : this._(
          extension,
          explicitTypeArguments,
@@ -1995,6 +2015,7 @@ class ExtensionIncDec extends InternalExpression {
          forEffect: forEffect,
          isNullAware: isNullAware,
          isExplicit: true,
+         extensionTypeArgumentOffset: extensionTypeArgumentOffset,
        );
 
   ExtensionIncDec.implicit({
@@ -2019,6 +2040,7 @@ class ExtensionIncDec extends InternalExpression {
          forEffect: forEffect,
          isNullAware: false,
          isExplicit: false,
+         extensionTypeArgumentOffset: null,
        );
 
   ExtensionIncDec._(
@@ -2033,10 +2055,10 @@ class ExtensionIncDec extends InternalExpression {
     required this.forEffect,
     required this.isNullAware,
     required bool isExplicit,
+    required this.extensionTypeArgumentOffset,
   }) : _isExplicit = isExplicit,
        assert(
          knownTypeArguments == null ||
-             // Coverage-ignore(suite): Not run.
              extension.typeParameters.isNotEmpty &&
                  knownTypeArguments.length == extension.typeParameters.length,
        ) {
@@ -2505,6 +2527,9 @@ class ExtensionIndexGet extends InternalExpression {
   /// `Extension(o)?[a]`.
   final bool isNullAware;
 
+  /// File offset of the explicit extension type arguments, if provided.
+  final int? extensionTypeArgumentOffset;
+
   ExtensionIndexGet(
     this.extension,
     this.explicitTypeArguments,
@@ -2512,6 +2537,7 @@ class ExtensionIndexGet extends InternalExpression {
     this.getter,
     this.index, {
     required this.isNullAware,
+    required this.extensionTypeArgumentOffset,
   }) : assert(
          explicitTypeArguments == null ||
              explicitTypeArguments.length == extension.typeParameters.length,
@@ -2595,6 +2621,9 @@ class ExtensionIndexSet extends InternalExpression {
   /// If `true`, the expression is only need for effect and not for its value.
   final bool forEffect;
 
+  /// File offset of the explicit extension type arguments, if provided.
+  final int? extensionTypeArgumentOffset;
+
   ExtensionIndexSet(
     this.extension,
     this.explicitTypeArguments,
@@ -2604,6 +2633,7 @@ class ExtensionIndexSet extends InternalExpression {
     this.value, {
     required this.isNullAware,
     required this.forEffect,
+    required this.extensionTypeArgumentOffset,
   }) : assert(
          explicitTypeArguments == null ||
              explicitTypeArguments.length == extension.typeParameters.length,
@@ -2854,6 +2884,9 @@ class ExtensionIfNullIndexSet extends InternalExpression {
   /// `E(o)?[a] ??= b`.
   final bool isNullAware;
 
+  /// File offset of the explicit extension type arguments, if provided.
+  final int? extensionTypeArgumentOffset;
+
   ExtensionIfNullIndexSet(
     this.extension,
     this.knownTypeArguments,
@@ -2867,6 +2900,7 @@ class ExtensionIfNullIndexSet extends InternalExpression {
     required this.writeOffset,
     required this.forEffect,
     required this.isNullAware,
+    required this.extensionTypeArgumentOffset,
   }) : assert(
          knownTypeArguments == null ||
              knownTypeArguments.length == extension.typeParameters.length,
@@ -3133,6 +3167,9 @@ class ExtensionCompoundIndexSet extends InternalExpression {
   /// `Extension(o)?[a] += b`.
   final bool isNullAware;
 
+  /// File offset of the explicit extension type arguments, if provided.
+  final int? extensionTypeArgumentOffset;
+
   ExtensionCompoundIndexSet({
     required this.extension,
     required this.explicitTypeArguments,
@@ -3148,6 +3185,7 @@ class ExtensionCompoundIndexSet extends InternalExpression {
     required this.forEffect,
     required this.forPostIncDec,
     required this.isNullAware,
+    required this.extensionTypeArgumentOffset,
   }) : assert(
          explicitTypeArguments == null ||
              explicitTypeArguments.length == extension.typeParameters.length,
@@ -3234,6 +3272,9 @@ class ExtensionGet extends InternalExpression {
   /// not implicit like `a` inside the extension `E`.
   final bool _isExplicit;
 
+  /// File offset of the explicit extension type arguments, if provided.
+  final int? extensionTypeArgumentOffset;
+
   ExtensionGet.implicit({
     required Extension extension,
     required List<DartType>? thisTypeArguments,
@@ -3248,6 +3289,7 @@ class ExtensionGet extends InternalExpression {
          getter,
          isNullAware: false,
          isExplicit: false,
+         extensionTypeArgumentOffset: null,
        );
 
   ExtensionGet.explicit({
@@ -3257,6 +3299,7 @@ class ExtensionGet extends InternalExpression {
     required Name name,
     required Procedure getter,
     required bool isNullAware,
+    required int? extensionTypeArgumentOffset,
   }) : this._(
          extension,
          explicitTypeArguments,
@@ -3265,6 +3308,7 @@ class ExtensionGet extends InternalExpression {
          getter,
          isNullAware: isNullAware,
          isExplicit: true,
+         extensionTypeArgumentOffset: extensionTypeArgumentOffset,
        );
 
   ExtensionGet._(
@@ -3275,6 +3319,7 @@ class ExtensionGet extends InternalExpression {
     this.getter, {
     required this.isNullAware,
     required bool isExplicit,
+    required this.extensionTypeArgumentOffset,
   }) : _isExplicit = isExplicit,
        assert(
          knownTypeArguments == null ||
@@ -3375,6 +3420,9 @@ class ExtensionSet extends InternalExpression {
   /// not implicit like `a = b` inside the extension `E`.
   final bool _isExplicit;
 
+  /// File offset of the explicit extension type arguments, if provided.
+  final int? extensionTypeArgumentOffset;
+
   ExtensionSet.implicit({
     required Extension extension,
     required List<DartType>? thisTypeArguments,
@@ -3393,6 +3441,7 @@ class ExtensionSet extends InternalExpression {
          forEffect: forEffect,
          isNullAware: false,
          isExplicit: false,
+         extensionTypeArgumentOffset: null,
        );
 
   ExtensionSet.explicit({
@@ -3404,6 +3453,7 @@ class ExtensionSet extends InternalExpression {
     required Expression value,
     required bool forEffect,
     required bool isNullAware,
+    required int? extensionTypeArgumentOffset,
   }) : this._(
          extension,
          explicitTypeArguments,
@@ -3414,6 +3464,7 @@ class ExtensionSet extends InternalExpression {
          forEffect: forEffect,
          isNullAware: isNullAware,
          isExplicit: true,
+         extensionTypeArgumentOffset: extensionTypeArgumentOffset,
        );
 
   ExtensionSet._(
@@ -3426,6 +3477,7 @@ class ExtensionSet extends InternalExpression {
     required this.forEffect,
     required this.isNullAware,
     required bool isExplicit,
+    required this.extensionTypeArgumentOffset,
   }) : _isExplicit = isExplicit,
        assert(
          knownTypeArguments == null ||
@@ -3511,7 +3563,8 @@ class ExtensionMethodInvocation extends InternalExpression {
   /// `Extension(o)?.a()`.
   final bool isNullAware;
 
-  final int extensionTypeArgumentOffset;
+  /// File offset of the explicit extension type arguments, if provided.
+  final int? extensionTypeArgumentOffset;
 
   ExtensionMethodInvocation.implicit({
     required Extension extension,
@@ -3528,7 +3581,7 @@ class ExtensionMethodInvocation extends InternalExpression {
          arguments,
          isExplicit: false,
          knownTypeArguments: thisTypeArguments,
-         extensionTypeArgumentOffset: -1,
+         extensionTypeArgumentOffset: null,
          isNullAware: false,
        );
 
@@ -3539,7 +3592,7 @@ class ExtensionMethodInvocation extends InternalExpression {
     required Procedure target,
     required ArgumentsImpl arguments,
     required List<DartType>? explicitTypeArguments,
-    required int extensionTypeArgumentOffset,
+    required int? extensionTypeArgumentOffset,
     required bool isNullAware,
   }) : this._(
          extension,
@@ -3648,7 +3701,8 @@ class ExtensionGetterInvocation extends InternalExpression {
   /// `Extension(o)?.a()`.
   final bool isNullAware;
 
-  final int extensionTypeArgumentOffset;
+  /// File offset of the explicit extension type arguments, if provided.
+  final int? extensionTypeArgumentOffset;
 
   ExtensionGetterInvocation.implicit({
     required Extension extension,
@@ -3665,7 +3719,7 @@ class ExtensionGetterInvocation extends InternalExpression {
          arguments,
          isExplicit: false,
          knownTypeArguments: thisTypeArguments,
-         extensionTypeArgumentOffset: -1,
+         extensionTypeArgumentOffset: null,
          isNullAware: false,
        );
 
@@ -3676,7 +3730,7 @@ class ExtensionGetterInvocation extends InternalExpression {
     required Procedure target,
     required ArgumentsImpl arguments,
     required List<DartType>? explicitTypeArguments,
-    required int extensionTypeArgumentOffset,
+    required int? extensionTypeArgumentOffset,
     required bool isNullAware,
   }) : this._(
          extension,
@@ -3782,6 +3836,9 @@ class ExtensionTearOff extends InternalExpression {
   /// not implicit like `a` inside the extension `E`.
   final bool _isExplicit;
 
+  /// File offset of the explicit extension type arguments, if provided.
+  final int? extensionTypeArgumentOffset;
+
   ExtensionTearOff.implicit({
     required Extension extension,
     required List<DartType>? thisTypeArguments,
@@ -3796,6 +3853,7 @@ class ExtensionTearOff extends InternalExpression {
          tearOff,
          isNullAware: false,
          isExplicit: false,
+         extensionTypeArgumentOffset: null,
        );
 
   ExtensionTearOff.explicit({
@@ -3805,6 +3863,7 @@ class ExtensionTearOff extends InternalExpression {
     required Name name,
     required Procedure tearOff,
     required bool isNullAware,
+    required int? extensionTypeArgumentOffset,
   }) : this._(
          extension,
          explicitTypeArguments,
@@ -3813,6 +3872,7 @@ class ExtensionTearOff extends InternalExpression {
          tearOff,
          isNullAware: isNullAware,
          isExplicit: true,
+         extensionTypeArgumentOffset: extensionTypeArgumentOffset,
        );
 
   ExtensionTearOff._(
@@ -3823,6 +3883,7 @@ class ExtensionTearOff extends InternalExpression {
     this.tearOff, {
     required this.isNullAware,
     required bool isExplicit,
+    required this.extensionTypeArgumentOffset,
   }) : _isExplicit = isExplicit,
        assert(
          knownTypeArguments == null ||

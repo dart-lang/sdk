@@ -527,21 +527,6 @@ class VariableUseGenerator extends Generator {
       forEffect: voidContext,
       isPost: true,
     );
-    /*      
-    Expression value = _forest.createIntLiteral(operatorOffset, 1);
-    if (voidContext) {
-      return buildCompoundAssignment(binaryOperator, value,
-          operatorOffset: operatorOffset,
-          voidContext: voidContext,
-          isPostIncDec: true);
-    }
-    VariableDeclarationImpl read =
-        _helper.createVariableDeclarationForValue(_createRead());
-    Expression binary = _helper.forest.createBinary(operatorOffset,
-        _helper.createVariableGet(read, fileOffset), binaryOperator, value);
-    VariableDeclarationImpl write = _helper.createVariableDeclarationForValue(
-        _createWrite(operatorOffset, binary));
-    return new LocalIncDec(read, write)..fileOffset = operatorOffset;*/
   }
 
   @override
@@ -2690,7 +2675,7 @@ class ExtensionInstanceAccessGenerator extends Generator {
 class ExplicitExtensionInstanceAccessGenerator extends Generator {
   /// The file offset used for the explicit extension application type
   /// arguments.
-  final int extensionTypeArgumentOffset;
+  final int? extensionTypeArgumentOffset;
 
   final Extension extension;
 
@@ -2752,37 +2737,37 @@ class ExplicitExtensionInstanceAccessGenerator extends Generator {
        ),
        super(helper, token);
 
-  factory ExplicitExtensionInstanceAccessGenerator.fromBuilder(
-    ExpressionGeneratorHelper helper,
-    Token token,
-    int extensionTypeArgumentOffset,
-    Extension extension,
-    Name targetName,
-    MemberBuilder? getterBuilder,
-    MemberBuilder? setterBuilder,
-    Expression receiver,
-    List<DartType>? explicitTypeArguments,
-    int extensionTypeParameterCount, {
+  factory ExplicitExtensionInstanceAccessGenerator.fromBuilder({
+    required ExpressionGeneratorHelper helper,
+    required Token token,
+    required int? extensionTypeArgumentOffset,
+    required Extension extension,
+    required Name name,
+    required MemberBuilder? getter,
+    required MemberBuilder? setter,
+    required Expression receiver,
+    required List<DartType>? explicitTypeArguments,
+    required int extensionTypeParameterCount,
     required bool isNullAware,
   }) {
-    assert(getterBuilder != null || setterBuilder != null);
+    assert(getter != null || setter != null);
     Procedure? readTarget;
     Procedure? invokeTarget;
-    if (getterBuilder != null) {
-      assert(!getterBuilder.isStatic);
-      if (getterBuilder is PropertyBuilder) {
-        assert(!getterBuilder.hasConcreteField);
-        readTarget = getterBuilder.readTarget as Procedure?;
-      } else if (getterBuilder is MethodBuilder) {
-        if (getterBuilder.isOperator) {
-          invokeTarget = getterBuilder.invokeTarget as Procedure?;
+    if (getter != null) {
+      assert(!getter.isStatic);
+      if (getter is PropertyBuilder) {
+        assert(!getter.hasConcreteField);
+        readTarget = getter.readTarget as Procedure?;
+      } else if (getter is MethodBuilder) {
+        if (getter.isOperator) {
+          invokeTarget = getter.invokeTarget as Procedure?;
         } else {
-          readTarget = getterBuilder.readTarget as Procedure?;
-          invokeTarget = getterBuilder.invokeTarget as Procedure?;
+          readTarget = getter.readTarget as Procedure?;
+          invokeTarget = getter.invokeTarget as Procedure?;
         }
       } else {
         return unhandled(
-          "$getterBuilder (${getterBuilder.runtimeType})",
+          "$getter (${getter.runtimeType})",
           "InstanceExtensionAccessGenerator.fromBuilder",
           offsetForToken(token),
           helper.uri,
@@ -2790,15 +2775,15 @@ class ExplicitExtensionInstanceAccessGenerator extends Generator {
       }
     }
     Procedure? writeTarget;
-    if (setterBuilder != null) {
-      assert(!setterBuilder.isStatic);
-      if (setterBuilder is PropertyBuilder) {
-        if (setterBuilder.hasSetter) {
-          writeTarget = setterBuilder.writeTarget as Procedure?;
+    if (setter != null) {
+      assert(!setter.isStatic);
+      if (setter is PropertyBuilder) {
+        if (setter.hasSetter) {
+          writeTarget = setter.writeTarget as Procedure?;
         }
       } else {
         return unhandled(
-          "$setterBuilder (${setterBuilder.runtimeType})",
+          "$setter (${setter.runtimeType})",
           "InstanceExtensionAccessGenerator.fromBuilder",
           offsetForToken(token),
           helper.uri,
@@ -2810,7 +2795,7 @@ class ExplicitExtensionInstanceAccessGenerator extends Generator {
       token,
       extensionTypeArgumentOffset,
       extension,
-      targetName,
+      name,
       readTarget,
       invokeTarget,
       writeTarget,
@@ -2853,6 +2838,7 @@ class ExplicitExtensionInstanceAccessGenerator extends Generator {
         name: targetName,
         tearOff: getter,
         isNullAware: isNullAware,
+        extensionTypeArgumentOffset: extensionTypeArgumentOffset,
       )..fileOffset = fileOffset;
     } else {
       return new ExtensionGet.explicit(
@@ -2862,6 +2848,7 @@ class ExplicitExtensionInstanceAccessGenerator extends Generator {
         name: targetName,
         getter: getter,
         isNullAware: isNullAware,
+        extensionTypeArgumentOffset: extensionTypeArgumentOffset,
       )..fileOffset = fileOffset;
     }
   }
@@ -2898,6 +2885,7 @@ class ExplicitExtensionInstanceAccessGenerator extends Generator {
         value: value,
         forEffect: forEffect,
         isNullAware: isNullAware,
+        extensionTypeArgumentOffset: extensionTypeArgumentOffset,
       )..fileOffset = offset;
     }
   }
@@ -2930,6 +2918,7 @@ class ExplicitExtensionInstanceAccessGenerator extends Generator {
       binaryOffset: offset,
       writeOffset: fileOffset,
       isNullAware: isNullAware,
+      extensionTypeArgumentOffset: extensionTypeArgumentOffset,
     )..fileOffset = offset;
   }
 
@@ -2964,6 +2953,7 @@ class ExplicitExtensionInstanceAccessGenerator extends Generator {
       binaryOffset: operatorOffset,
       writeOffset: fileOffset,
       isNullAware: isNullAware,
+      extensionTypeArgumentOffset: extensionTypeArgumentOffset,
     )..fileOffset = operatorOffset;
   }
 
@@ -2992,6 +2982,7 @@ class ExplicitExtensionInstanceAccessGenerator extends Generator {
       isInc: binaryOperator == plusName,
       forEffect: forEffect,
       isNullAware: isNullAware,
+      extensionTypeArgumentOffset: extensionTypeArgumentOffset,
     )..fileOffset = operatorOffset;
   }
 
@@ -3107,7 +3098,7 @@ class ExplicitExtensionInstanceAccessGenerator extends Generator {
 class ExplicitExtensionIndexedAccessGenerator extends Generator {
   /// The file offset used for the explicit extension application type
   /// arguments.
-  final int extensionTypeArgumentOffset;
+  final int? extensionTypeArgumentOffset;
 
   final Extension extension;
 
@@ -3155,7 +3146,7 @@ class ExplicitExtensionIndexedAccessGenerator extends Generator {
   factory ExplicitExtensionIndexedAccessGenerator.fromBuilder(
     ExpressionGeneratorHelper helper,
     Token token,
-    int extensionTypeArgumentOffset,
+    int? extensionTypeArgumentOffset,
     Extension extension,
     MemberBuilder? getterBuilder,
     MemberBuilder? setterBuilder,
@@ -3204,6 +3195,7 @@ class ExplicitExtensionIndexedAccessGenerator extends Generator {
       getter,
       index,
       isNullAware: isNullAware,
+      extensionTypeArgumentOffset: extensionTypeArgumentOffset,
     )..fileOffset = fileOffset;
   }
 
@@ -3223,6 +3215,7 @@ class ExplicitExtensionIndexedAccessGenerator extends Generator {
       value,
       isNullAware: isNullAware,
       forEffect: voidContext,
+      extensionTypeArgumentOffset: extensionTypeArgumentOffset,
     )..fileOffset = fileOffset;
   }
 
@@ -3255,6 +3248,7 @@ class ExplicitExtensionIndexedAccessGenerator extends Generator {
       writeOffset: fileOffset,
       forEffect: voidContext,
       isNullAware: isNullAware,
+      extensionTypeArgumentOffset: extensionTypeArgumentOffset,
     )..fileOffset = offset;
   }
 
@@ -3291,6 +3285,7 @@ class ExplicitExtensionIndexedAccessGenerator extends Generator {
       forEffect: voidContext,
       forPostIncDec: isPostIncDec,
       isNullAware: isNullAware,
+      extensionTypeArgumentOffset: extensionTypeArgumentOffset,
     );
   }
 
@@ -3380,14 +3375,16 @@ class ExplicitExtensionAccessGenerator extends Generator {
   final ExtensionBuilder extensionBuilder;
   final Expression receiver;
   final List<DartType>? explicitTypeArguments;
+  final int? extensionTypeArgumentOffset;
 
-  ExplicitExtensionAccessGenerator(
-    ExpressionGeneratorHelper helper,
-    Token token,
-    this.extensionBuilder,
-    this.receiver,
-    this.explicitTypeArguments,
-  ) : super(helper, token);
+  ExplicitExtensionAccessGenerator({
+    required ExpressionGeneratorHelper helper,
+    required Token token,
+    required this.extensionBuilder,
+    required this.receiver,
+    required this.explicitTypeArguments,
+    required this.extensionTypeArgumentOffset,
+  }) : super(helper, token);
 
   @override
   // Coverage-ignore(suite): Not run.
@@ -3471,19 +3468,16 @@ class ExplicitExtensionAccessGenerator extends Generator {
       );
     }
     return new ExplicitExtensionInstanceAccessGenerator.fromBuilder(
-      _helper,
-      token,
-      // TODO(johnniwinther): Improve this. This is the name of the extension
-      // and not the type arguments (or arguments if type arguments are
-      // omitted).
-      fileOffset,
-      extensionBuilder.extension,
-      name,
-      getter,
-      setter,
-      receiver,
-      explicitTypeArguments,
-      extensionBuilder.typeParameters?.length ?? 0,
+      helper: _helper,
+      token: token,
+      extensionTypeArgumentOffset: extensionTypeArgumentOffset,
+      extension: extensionBuilder.extension,
+      name: name,
+      getter: getter,
+      setter: setter,
+      receiver: receiver,
+      explicitTypeArguments: explicitTypeArguments,
+      extensionTypeParameterCount: extensionBuilder.typeParameters?.length ?? 0,
       isNullAware: isNullAware,
     );
   }
@@ -3609,10 +3603,7 @@ class ExplicitExtensionAccessGenerator extends Generator {
     return new ExplicitExtensionIndexedAccessGenerator.fromBuilder(
       _helper,
       token,
-      // TODO(johnniwinther): Improve this. This is the name of the extension
-      // and not the type arguments (or arguments if type arguments are
-      // omitted).
-      fileOffset,
+      extensionTypeArgumentOffset,
       extensionBuilder.extension,
       getter,
       setter,
@@ -4551,6 +4542,7 @@ class TypeUseGenerator extends AbstractReadOnlyAccessGenerator {
       List<DartType>? explicitTypeArguments = getExplicitTypeArguments(
         arguments,
       );
+      int? extensionTypeArgumentOffset;
       if (explicitTypeArguments != null) {
         int typeParameterCount = extensionBuilder.typeParameters?.length ?? 0;
         if (explicitTypeArguments.length != typeParameterCount) {
@@ -4563,14 +4555,17 @@ class TypeUseGenerator extends AbstractReadOnlyAccessGenerator {
             lengthForToken(token),
           );
         }
+        // TODO(johnniwinther): Provide the type arguments offsets.
+        extensionTypeArgumentOffset = arguments.fileOffset;
       }
       // TODO(johnniwinther): Check argument and type argument count.
       return new ExplicitExtensionAccessGenerator(
-        _helper,
-        token,
-        declaration as ExtensionBuilder,
-        arguments.positional.single,
-        explicitTypeArguments,
+        helper: _helper,
+        token: token,
+        extensionBuilder: declaration as ExtensionBuilder,
+        receiver: arguments.positional.single,
+        explicitTypeArguments: explicitTypeArguments,
+        extensionTypeArgumentOffset: extensionTypeArgumentOffset,
       );
     } else {
       return _helper.buildConstructorInvocation(

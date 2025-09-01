@@ -526,27 +526,16 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
         componentWithDill,
       );
 
-      // If we didn't get a result, go back to the previous one so expression
-      // calculation has the potential to work.
-      // ignore: unnecessary_null_comparison, dead_code
-      if (componentWithDill == null) {
-        // Coverage-ignore-block(suite): Not run.
-        currentKernelTarget.loader.clearLibraryBuilders();
-        currentKernelTarget = lastGoodKernelTarget!;
-        _dillLoadedData!.loader.currentSourceLoader =
-            currentKernelTarget.loader;
-      } else {
-        _benchmarker
-        // Coverage-ignore(suite): Not run.
-        ?.enterPhase(
-          BenchmarkPhases.incremental_convertSourceLibraryBuildersToDill,
-        );
-        _previousSourceBuilders = _convertSourceLibraryBuildersToDill(
-          currentKernelTarget,
-          experimentalInvalidation,
-          cleanedUpBuilders: cleanedUpBuilders,
-        );
-      }
+      _benchmarker
+      // Coverage-ignore(suite): Not run.
+      ?.enterPhase(
+        BenchmarkPhases.incremental_convertSourceLibraryBuildersToDill,
+      );
+      _previousSourceBuilders = _convertSourceLibraryBuildersToDill(
+        currentKernelTarget,
+        experimentalInvalidation,
+        cleanedUpBuilders: cleanedUpBuilders,
+      );
 
       _benchmarker
       // Coverage-ignore(suite): Not run.
@@ -554,14 +543,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
       experimentalInvalidation = null;
 
       // Output result.
-      // ignore: unnecessary_null_comparison
-      Procedure? mainMethod = componentWithDill == null
-          ?
-            // Coverage-ignore(suite): Not run.
-            // ignore: dead_code
-            data.component?.mainMethod
-          : componentWithDill.mainMethod;
-      // ignore: unnecessary_null_comparison
+      Procedure? mainMethod = componentWithDill.mainMethod;
       Component result =
           context.options.target.configureComponent(
               new Component(
