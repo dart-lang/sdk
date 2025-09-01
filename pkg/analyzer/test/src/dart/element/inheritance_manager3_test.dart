@@ -1216,7 +1216,27 @@ abstract class X extends A implements B {}
     );
   }
 
-  test_getMember_optIn_topMerge_method() async {
+  test_getMember_optIn_topMerge_method_existing() async {
+    await resolveTestCode('''
+class A {
+  dynamic foo() {}
+}
+
+class B {
+  Object? foo() {}
+}
+
+class X extends A implements B {}
+''');
+
+    _assertGetMember(
+      className: 'X',
+      name: 'foo',
+      expected: 'B.foo: Object? Function()',
+    );
+  }
+
+  test_getMember_optIn_topMerge_method_synthetic() async {
     await resolveTestCode('''
 class A {
   Object? foo(dynamic x) {}

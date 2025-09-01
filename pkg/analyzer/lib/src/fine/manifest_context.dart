@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/fine/lookup_name.dart';
 import 'package:analyzer/src/fine/manifest_id.dart';
 import 'package:analyzer/src/fine/manifest_item.dart';
@@ -56,7 +57,7 @@ class EncodeContext {
   }
 
   T withTypeParameters<T>(
-    List<TypeParameterElement> typeParameters,
+    List<TypeParameterElementImpl> typeParameters,
     T Function(List<ManifestTypeParameter> typeParameters) operation,
   ) {
     for (var typeParameter in typeParameters) {

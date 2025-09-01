@@ -40035,6 +40035,178 @@ class A {
     );
   }
 
+  test_manifest_class_field_modifier_isConst() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class C {
+  static const a = 0;
+  static const b = 0;
+  static final c = 0;
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredClasses
+      C: #M0
+        declaredFields
+          a: #M1
+          b: #M2
+          c: #M3
+        declaredGetters
+          a: #M4
+          b: #M5
+          c: #M6
+        interface: #M7
+''',
+      updatedCode: r'''
+class C {
+  static const a = 0;
+  static final b = 0;
+  static const c = 0;
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredClasses
+      C: #M0
+        declaredFields
+          a: #M1
+          b: #M8
+          c: #M9
+        declaredGetters
+          a: #M4
+          b: #M5
+          c: #M6
+        interface: #M7
+''',
+    );
+  }
+
+  test_manifest_class_field_modifier_isFinal() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class C {
+  final a = 0;
+  final b = 0;
+  var c = 0;
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredClasses
+      C: #M0
+        declaredFields
+          a: #M1
+          b: #M2
+          c: #M3
+        declaredGetters
+          a: #M4
+          b: #M5
+          c: #M6
+        declaredSetters
+          c=: #M7
+        interface: #M8
+          map
+            a: #M4
+            b: #M5
+            c: #M6
+            c=: #M7
+''',
+      updatedCode: r'''
+class C {
+  final a = 0;
+  var b = 0;
+  final c = 0;
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredClasses
+      C: #M0
+        declaredFields
+          a: #M1
+          b: #M9
+          c: #M10
+        declaredGetters
+          a: #M4
+          b: #M5
+          c: #M6
+        declaredSetters
+          b=: #M11
+        interface: #M12
+          map
+            a: #M4
+            b: #M5
+            b=: #M11
+            c: #M6
+''',
+    );
+  }
+
+  test_manifest_class_field_modifier_isLate() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class C {
+  late final a = 0;
+  late final b = 0;
+  final c = 0;
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredClasses
+      C: #M0
+        declaredFields
+          a: #M1
+          b: #M2
+          c: #M3
+        declaredGetters
+          a: #M4
+          b: #M5
+          c: #M6
+        interface: #M7
+          map
+            a: #M4
+            b: #M5
+            c: #M6
+''',
+      updatedCode: r'''
+class C {
+  late final a = 0;
+  final b = 0;
+  late final c = 0;
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredClasses
+      C: #M0
+        declaredFields
+          a: #M1
+          b: #M8
+          c: #M9
+        declaredGetters
+          a: #M4
+          b: #M5
+          c: #M6
+        interface: #M7
+          map
+            a: #M4
+            b: #M5
+            c: #M6
+''',
+    );
+  }
+
   test_manifest_class_field_private_final() async {
     await _runLibraryManifestScenario(
       initialCode: r'''
@@ -42593,6 +42765,44 @@ class A {
     );
   }
 
+  test_manifest_class_method_formalParameter_optionalNamed_reorder() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class A {
+  void foo({int a, int b}) {}
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredClasses
+      A: #M0
+        declaredMethods
+          foo: #M1
+        interface: #M2
+          map
+            foo: #M1
+''',
+      updatedCode: r'''
+class A {
+  void foo({int b, int a}) {}
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredClasses
+      A: #M0
+        declaredMethods
+          foo: #M1
+        interface: #M2
+          map
+            foo: #M1
+''',
+    );
+  }
+
   test_manifest_class_method_formalParameter_optionalPositional() async {
     await _runLibraryManifestScenario(
       initialCode: r'''
@@ -42709,6 +42919,44 @@ class A {
         interface: #M4
           map
             foo: #M3
+''',
+    );
+  }
+
+  test_manifest_class_method_formalParameter_requiredNamed_reorder() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class A {
+  void foo({required int a, required int b}) {}
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredClasses
+      A: #M0
+        declaredMethods
+          foo: #M1
+        interface: #M2
+          map
+            foo: #M1
+''',
+      updatedCode: r'''
+class A {
+  void foo({required int b, required int a}) {}
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredClasses
+      A: #M0
+        declaredMethods
+          foo: #M1
+        interface: #M2
+          map
+            foo: #M1
 ''',
     );
   }
@@ -42837,6 +43085,82 @@ class A {
         interface: #M2
           map
             foo: #M1
+''',
+    );
+  }
+
+  test_manifest_class_method_formalParameter_requiredPositional_toCovariantFalse() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class A {
+  void foo(covariant int a) {}
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredClasses
+      A: #M0
+        declaredMethods
+          foo: #M1
+        interface: #M2
+          map
+            foo: #M1
+''',
+      updatedCode: r'''
+class A {
+  void foo(int a) {}
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredClasses
+      A: #M0
+        declaredMethods
+          foo: #M3
+        interface: #M4
+          map
+            foo: #M3
+''',
+    );
+  }
+
+  test_manifest_class_method_formalParameter_requiredPositional_toCovariantTrue() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class A {
+  void foo(int a) {}
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredClasses
+      A: #M0
+        declaredMethods
+          foo: #M1
+        interface: #M2
+          map
+            foo: #M1
+''',
+      updatedCode: r'''
+class A {
+  void foo(covariant int a) {}
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredClasses
+      A: #M0
+        declaredMethods
+          foo: #M3
+        interface: #M4
+          map
+            foo: #M3
 ''',
     );
   }
@@ -43826,13 +44150,15 @@ class A<T> {
     declaredClasses
       A: #M0
         typeParameters
-          bound: <null>
+          #0 covariant
+            bound: <null>
         supertype: Object @ dart:core
         declaredMethods
           foo: #M1
             functionType: FunctionType
               typeParameters
-                bound: <null>
+                #0 covariant
+                  bound: <null>
               returnType: Map @ dart:core
                 typeParameter#1
                 typeParameter#0
@@ -43852,7 +44178,8 @@ class A<T> {
     declaredClasses
       A: #M0
         typeParameters
-          bound: <null>
+          #0 covariant
+            bound: <null>
         supertype: Object @ dart:core
         declaredMethods
           bar: #M3
@@ -43861,7 +44188,8 @@ class A<T> {
           foo: #M1
             functionType: FunctionType
               typeParameters
-                bound: <null>
+                #0 covariant
+                  bound: <null>
               returnType: Map @ dart:core
                 typeParameter#1
                 typeParameter#0
@@ -43945,6 +44273,322 @@ class A {
         interface: #M4
           map
             foo: #M3
+''',
+    );
+  }
+
+  test_manifest_class_modifier_isAbstract() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class A {}
+abstract class B {}
+class C {}
+abstract class D {}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredClasses
+      A: #M0
+        interface: #M1
+      B: #M2
+        interface: #M3
+      C: #M4
+        interface: #M5
+      D: #M6
+        interface: #M7
+''',
+      updatedCode: r'''
+class A {}
+abstract class B {}
+abstract class C {}
+class D {}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredClasses
+      A: #M0
+        interface: #M1
+      B: #M2
+        interface: #M3
+      C: #M8
+        interface: #M9
+      D: #M10
+        interface: #M11
+''',
+    );
+  }
+
+  test_manifest_class_modifier_isBase() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class A {}
+base class B {}
+class C {}
+base class D {}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredClasses
+      A: #M0
+        interface: #M1
+      B: #M2
+        interface: #M3
+      C: #M4
+        interface: #M5
+      D: #M6
+        interface: #M7
+''',
+      updatedCode: r'''
+class A {}
+base class B {}
+base class C {}
+class D {}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredClasses
+      A: #M0
+        interface: #M1
+      B: #M2
+        interface: #M3
+      C: #M8
+        interface: #M9
+      D: #M10
+        interface: #M11
+''',
+    );
+  }
+
+  test_manifest_class_modifier_isFinal() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class A {}
+final class B {}
+class C {}
+final class D {}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredClasses
+      A: #M0
+        interface: #M1
+      B: #M2
+        interface: #M3
+      C: #M4
+        interface: #M5
+      D: #M6
+        interface: #M7
+''',
+      updatedCode: r'''
+class A {}
+final class B {}
+final class C {}
+class D {}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredClasses
+      A: #M0
+        interface: #M1
+      B: #M2
+        interface: #M3
+      C: #M8
+        interface: #M9
+      D: #M10
+        interface: #M11
+''',
+    );
+  }
+
+  test_manifest_class_modifier_isInterface() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class A {}
+interface class B {}
+class C {}
+interface class D {}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredClasses
+      A: #M0
+        interface: #M1
+      B: #M2
+        interface: #M3
+      C: #M4
+        interface: #M5
+      D: #M6
+        interface: #M7
+''',
+      updatedCode: r'''
+class A {}
+interface class B {}
+interface class C {}
+class D {}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredClasses
+      A: #M0
+        interface: #M1
+      B: #M2
+        interface: #M3
+      C: #M8
+        interface: #M9
+      D: #M10
+        interface: #M11
+''',
+    );
+  }
+
+  test_manifest_class_modifier_isMixinApplication() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class A {}
+class B = Object with M;
+class C {}
+class D = Object with M;
+mixin M {}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredClasses
+      A: #M0
+        interface: #M1
+      B: #M2
+        interface: #M3
+      C: #M4
+        interface: #M5
+      D: #M6
+        interface: #M7
+    declaredMixins
+      M: #M8
+        interface: #M9
+''',
+      updatedCode: r'''
+class A {}
+class B = Object with M;
+class C = Object with M;
+class D {}
+mixin M {}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredClasses
+      A: #M0
+        interface: #M1
+      B: #M2
+        interface: #M3
+      C: #M10
+        interface: #M11
+      D: #M12
+        interface: #M13
+    declaredMixins
+      M: #M8
+        interface: #M9
+''',
+    );
+  }
+
+  test_manifest_class_modifier_isMixinClass() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class A {}
+mixin class B {}
+class C {}
+mixin class D {}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredClasses
+      A: #M0
+        interface: #M1
+      B: #M2
+        interface: #M3
+      C: #M4
+        interface: #M5
+      D: #M6
+        interface: #M7
+''',
+      updatedCode: r'''
+class A {}
+mixin class B {}
+mixin class C {}
+class D {}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredClasses
+      A: #M0
+        interface: #M1
+      B: #M2
+        interface: #M3
+      C: #M8
+        interface: #M9
+      D: #M10
+        interface: #M11
+''',
+    );
+  }
+
+  test_manifest_class_modifier_isSealed() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class A {}
+sealed class B {}
+class C {}
+sealed class D {}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredClasses
+      A: #M0
+        interface: #M1
+      B: #M2
+        interface: #M3
+      C: #M4
+        interface: #M5
+      D: #M6
+        interface: #M7
+''',
+      updatedCode: r'''
+class A {}
+sealed class B {}
+sealed class C {}
+class D {}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredClasses
+      A: #M0
+        interface: #M1
+      B: #M2
+        interface: #M3
+      C: #M8
+        interface: #M9
+      D: #M10
+        interface: #M11
 ''',
     );
   }
@@ -45103,6 +45747,7 @@ abstract class C implements A, B {}
   package:test/test.dart
     declaredClasses
       A: #M0
+        flags: isAbstract
         supertype: Object @ dart:core
         declaredFields
           foo: #M1
@@ -45116,6 +45761,7 @@ abstract class C implements A, B {}
           map
             foo=: #M2
       B: #M4
+        flags: isAbstract
         supertype: Object @ dart:core
         declaredFields
           foo: #M5
@@ -45129,6 +45775,7 @@ abstract class C implements A, B {}
           map
             foo=: #M6
       C: #M8
+        flags: isAbstract
         supertype: Object @ dart:core
         interfaces
           A @ package:test/test.dart
@@ -45155,6 +45802,7 @@ abstract class C implements A, B {}
   package:test/test.dart
     declaredClasses
       A: #M0
+        flags: isAbstract
         supertype: Object @ dart:core
         declaredFields
           foo: #M1
@@ -45168,6 +45816,7 @@ abstract class C implements A, B {}
           map
             foo=: #M2
       B: #M4
+        flags: isAbstract
         supertype: Object @ dart:core
         declaredFields
           foo: #M11
@@ -45181,6 +45830,7 @@ abstract class C implements A, B {}
           map
             foo=: #M12
       C: #M8
+        flags: isAbstract
         supertype: Object @ dart:core
         interfaces
           A @ package:test/test.dart
@@ -45357,6 +46007,82 @@ class A<T> {}
   package:test/test.dart
     declaredClasses
       A: #M2
+        interface: #M3
+''',
+    );
+  }
+
+  test_manifest_class_typeParameters_variance() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class A<in T> {}
+class B<out T> {}
+class C<in T> {}
+class D<out T> {}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredClasses
+      A: #M0
+        interface: #M1
+      B: #M2
+        interface: #M3
+      C: #M4
+        interface: #M5
+      D: #M6
+        interface: #M7
+''',
+      updatedCode: r'''
+class A<in T> {}
+class B<out T> {}
+class C<out T> {}
+class D<in T> {}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredClasses
+      A: #M0
+        interface: #M1
+      B: #M2
+        interface: #M3
+      C: #M8
+        interface: #M9
+      D: #M10
+        interface: #M11
+''',
+    );
+  }
+
+  test_manifest_class_typeParameters_variance_legacyCovariant() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class A<T> {}
+class B<out T> {}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredClasses
+      A: #M0
+        interface: #M1
+      B: #M2
+        interface: #M3
+''',
+      updatedCode: r'''
+class A<out T> {}
+class B<T> {}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredClasses
+      A: #M0
+        interface: #M1
+      B: #M2
         interface: #M3
 ''',
     );
@@ -52592,14 +53318,16 @@ mixin A<T> {
     declaredMixins
       A: #M0
         typeParameters
-          bound: <null>
+          #0 covariant
+            bound: <null>
         superclassConstraints
           Object @ dart:core
         declaredMethods
           foo: #M1
             functionType: FunctionType
               typeParameters
-                bound: <null>
+                #0 covariant
+                  bound: <null>
               returnType: Map @ dart:core
                 typeParameter#1
                 typeParameter#0
@@ -52619,7 +53347,8 @@ mixin A<T> {
     declaredMixins
       A: #M0
         typeParameters
-          bound: <null>
+          #0 covariant
+            bound: <null>
         superclassConstraints
           Object @ dart:core
         declaredMethods
@@ -52629,7 +53358,8 @@ mixin A<T> {
           foo: #M1
             functionType: FunctionType
               typeParameters
-                bound: <null>
+                #0 covariant
+                  bound: <null>
               returnType: Map @ dart:core
                 typeParameter#1
                 typeParameter#0
@@ -52713,6 +53443,50 @@ mixin A {
         interface: #M4
           map
             foo: #M3
+''',
+    );
+  }
+
+  test_manifest_mixin_modifier_isBase() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+mixin A {}
+base mixin B {}
+mixin C {}
+base mixin D {}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredMixins
+      A: #M0
+        interface: #M1
+      B: #M2
+        interface: #M3
+      C: #M4
+        interface: #M5
+      D: #M6
+        interface: #M7
+''',
+      updatedCode: r'''
+mixin A {}
+base mixin B {}
+base mixin C {}
+mixin D {}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredMixins
+      A: #M0
+        interface: #M1
+      B: #M2
+        interface: #M3
+      C: #M8
+        interface: #M9
+      D: #M10
+        interface: #M11
 ''',
     );
   }
@@ -53469,6 +54243,456 @@ mixin A {
     );
   }
 
+  test_manifest_mixin_superInvokedNames_invokedToInvoked_reorder() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+mixin M {
+  void f() {
+    super.foo();
+    super.bar;
+    super.baz = 0;
+  }
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredMixins
+      M: #M0
+        declaredMethods
+          f: #M1
+        interface: #M2
+          map
+            f: #M1
+''',
+      updatedCode: r'''
+class A {}
+mixin M {
+  void f() {
+    super.baz = 0;
+    super.bar;
+    super.foo();
+  }
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredClasses
+      A: #M3
+        interface: #M4
+    declaredMixins
+      M: #M0
+        declaredMethods
+          f: #M1
+        interface: #M2
+          map
+            f: #M1
+''',
+    );
+  }
+
+  test_manifest_mixin_superInvokedNames_invokedToNot_getter() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class A {
+  int get foo => 0;
+}
+
+mixin M on A {
+  void f() {
+    super.foo;
+  }
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredClasses
+      A: #M0
+        declaredFields
+          foo: #M1
+        declaredGetters
+          foo: #M2
+        interface: #M3
+          map
+            foo: #M2
+    declaredMixins
+      M: #M4
+        declaredMethods
+          f: #M5
+        interface: #M6
+          map
+            f: #M5
+            foo: #M2
+''',
+      updatedCode: r'''
+class A {
+  int get foo => 0;
+}
+
+mixin M on A {
+  void f() {}
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredClasses
+      A: #M0
+        declaredFields
+          foo: #M1
+        declaredGetters
+          foo: #M2
+        interface: #M3
+          map
+            foo: #M2
+    declaredMixins
+      M: #M7
+        declaredMethods
+          f: #M8
+        interface: #M9
+          map
+            f: #M8
+            foo: #M2
+''',
+    );
+  }
+
+  test_manifest_mixin_superInvokedNames_invokedToNot_method() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class A {
+  void foo() {}
+}
+
+mixin M on A {
+  void f() {
+    super.foo();
+  }
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredClasses
+      A: #M0
+        declaredMethods
+          foo: #M1
+        interface: #M2
+          map
+            foo: #M1
+    declaredMixins
+      M: #M3
+        declaredMethods
+          f: #M4
+        interface: #M5
+          map
+            f: #M4
+            foo: #M1
+''',
+      updatedCode: r'''
+class A {
+  void foo() {}
+}
+
+mixin M on A {
+  void f() {}
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredClasses
+      A: #M0
+        declaredMethods
+          foo: #M1
+        interface: #M2
+          map
+            foo: #M1
+    declaredMixins
+      M: #M6
+        declaredMethods
+          f: #M7
+        interface: #M8
+          map
+            f: #M7
+            foo: #M1
+''',
+    );
+  }
+
+  test_manifest_mixin_superInvokedNames_invokedToNot_setter() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class A {
+  set foo(int _) {}
+}
+
+mixin M on A {
+  void f() {
+    super.foo = 0;
+  }
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredClasses
+      A: #M0
+        declaredFields
+          foo: #M1
+        declaredSetters
+          foo=: #M2
+        interface: #M3
+          map
+            foo=: #M2
+    declaredMixins
+      M: #M4
+        declaredMethods
+          f: #M5
+        interface: #M6
+          map
+            f: #M5
+            foo=: #M2
+''',
+      updatedCode: r'''
+class A {
+  set foo(int _) {}
+}
+
+mixin M on A {
+  void f() {}
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredClasses
+      A: #M0
+        declaredFields
+          foo: #M1
+        declaredSetters
+          foo=: #M2
+        interface: #M3
+          map
+            foo=: #M2
+    declaredMixins
+      M: #M7
+        declaredMethods
+          f: #M8
+        interface: #M9
+          map
+            f: #M8
+            foo=: #M2
+''',
+    );
+  }
+
+  test_manifest_mixin_superInvokedNames_notToInvoked_getter() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class A {
+  int get foo => 0;
+}
+
+mixin M on A {
+  void f() {}
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredClasses
+      A: #M0
+        declaredFields
+          foo: #M1
+        declaredGetters
+          foo: #M2
+        interface: #M3
+          map
+            foo: #M2
+    declaredMixins
+      M: #M4
+        declaredMethods
+          f: #M5
+        interface: #M6
+          map
+            f: #M5
+            foo: #M2
+''',
+      updatedCode: r'''
+class A {
+  int get foo => 0;
+}
+
+mixin M on A {
+  void f() {
+    super.foo;
+  }
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredClasses
+      A: #M0
+        declaredFields
+          foo: #M1
+        declaredGetters
+          foo: #M2
+        interface: #M3
+          map
+            foo: #M2
+    declaredMixins
+      M: #M7
+        declaredMethods
+          f: #M8
+        interface: #M9
+          map
+            f: #M8
+            foo: #M2
+''',
+    );
+  }
+
+  test_manifest_mixin_superInvokedNames_notToInvoked_method() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class A {
+  void foo() {}
+}
+
+mixin M on A {
+  void f() {}
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredClasses
+      A: #M0
+        declaredMethods
+          foo: #M1
+        interface: #M2
+          map
+            foo: #M1
+    declaredMixins
+      M: #M3
+        declaredMethods
+          f: #M4
+        interface: #M5
+          map
+            f: #M4
+            foo: #M1
+''',
+      updatedCode: r'''
+class A {
+  void foo() {}
+}
+
+mixin M on A {
+  void f() {
+    super.foo();
+  }
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredClasses
+      A: #M0
+        declaredMethods
+          foo: #M1
+        interface: #M2
+          map
+            foo: #M1
+    declaredMixins
+      M: #M6
+        declaredMethods
+          f: #M7
+        interface: #M8
+          map
+            f: #M7
+            foo: #M1
+''',
+    );
+  }
+
+  test_manifest_mixin_superInvokedNames_notToInvoked_setter() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class A {
+  set foo(int _) {}
+}
+
+mixin M on A {
+  void f() {}
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredClasses
+      A: #M0
+        declaredFields
+          foo: #M1
+        declaredSetters
+          foo=: #M2
+        interface: #M3
+          map
+            foo=: #M2
+    declaredMixins
+      M: #M4
+        declaredMethods
+          f: #M5
+        interface: #M6
+          map
+            f: #M5
+            foo=: #M2
+''',
+      updatedCode: r'''
+class A {
+  set foo(int _) {}
+}
+
+mixin M on A {
+  void f() {
+    super.foo = 0;
+  }
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredClasses
+      A: #M0
+        declaredFields
+          foo: #M1
+        declaredSetters
+          foo=: #M2
+        interface: #M3
+          map
+            foo=: #M2
+    declaredMixins
+      M: #M7
+        declaredMethods
+          f: #M8
+        interface: #M9
+          map
+            f: #M8
+            foo=: #M2
+''',
+    );
+  }
+
   test_manifest_mixin_typeParameters() async {
     await _runLibraryManifestScenario(
       initialCode: r'''
@@ -53532,6 +54756,50 @@ mixin A<T, U> {}
     declaredMixins
       A: #M2
         interface: #M3
+''',
+    );
+  }
+
+  test_manifest_mixin_typeParameters_variance() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+mixin A<in T> {}
+mixin B<out T> {}
+mixin C<in T> {}
+mixin D<out T> {}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredMixins
+      A: #M0
+        interface: #M1
+      B: #M2
+        interface: #M3
+      C: #M4
+        interface: #M5
+      D: #M6
+        interface: #M7
+''',
+      updatedCode: r'''
+mixin A<in T> {}
+mixin B<out T> {}
+mixin C<out T> {}
+mixin D<in T> {}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredMixins
+      A: #M0
+        interface: #M1
+      B: #M2
+        interface: #M3
+      C: #M8
+        interface: #M9
+      D: #M10
+        interface: #M11
 ''',
     );
   }
@@ -54539,6 +55807,130 @@ var b = 0;
     );
   }
 
+  test_manifest_topLevelVariable_modifier_isConst() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+const a = 0;
+const b = 0;
+final c = 0;
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredGetters
+      a: #M0
+      b: #M1
+      c: #M2
+    declaredVariables
+      a: #M3
+      b: #M4
+      c: #M5
+''',
+      updatedCode: r'''
+const a = 0;
+final b = 0;
+const c = 0;
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredGetters
+      a: #M0
+      b: #M1
+      c: #M2
+    declaredVariables
+      a: #M3
+      b: #M6
+      c: #M7
+''',
+    );
+  }
+
+  test_manifest_topLevelVariable_modifier_isFinal() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+final a = 0;
+final b = 0;
+var c = 0;
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredGetters
+      a: #M0
+      b: #M1
+      c: #M2
+    declaredSetters
+      c=: #M3
+    declaredVariables
+      a: #M4
+      b: #M5
+      c: #M6
+''',
+      updatedCode: r'''
+final a = 0;
+var b = 0;
+final c = 0;
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredGetters
+      a: #M0
+      b: #M1
+      c: #M2
+    declaredSetters
+      b=: #M7
+    declaredVariables
+      a: #M4
+      b: #M8
+      c: #M9
+''',
+    );
+  }
+
+  test_manifest_topLevelVariable_modifier_isLate() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+late final a = 0;
+late final b = 0;
+final c = 0;
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredGetters
+      a: #M0
+      b: #M1
+      c: #M2
+    declaredVariables
+      a: #M3
+      b: #M4
+      c: #M5
+''',
+      updatedCode: r'''
+late final a = 0;
+final b = 0;
+late final c = 0;
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredGetters
+      a: #M0
+      b: #M1
+      c: #M2
+    declaredVariables
+      a: #M3
+      b: #M6
+      c: #M7
+''',
+    );
+  }
+
   test_manifest_topLevelVariable_private_const() async {
     await _runLibraryManifestScenario(
       initialCode: r'''
@@ -54818,6 +56210,54 @@ final void Function({int p1, double p2}) a;
     );
   }
 
+  test_manifest_type_functionType_named_metadata_add() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+void foo({int a}) {}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredFunctions
+      foo: #M0
+''',
+      updatedCode: r'''
+void foo({@deprecated int a}) {}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredFunctions
+      foo: #M1
+''',
+    );
+  }
+
+  test_manifest_type_functionType_named_metadata_remove() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+void foo({@deprecated int a}) {}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredFunctions
+      foo: #M0
+''',
+      updatedCode: r'''
+void foo({int a}) {}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredFunctions
+      foo: #M1
+''',
+    );
+  }
+
   test_manifest_type_functionType_named_remove() async {
     await _runLibraryManifestScenario(
       initialCode: r'''
@@ -54842,6 +56282,90 @@ final void Function({int p1}) a;
       a: #M2
     declaredVariables
       a: #M3
+''',
+    );
+  }
+
+  test_manifest_type_functionType_named_remove_hasPositional() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+final void Function(int p1, {double p2}) a;
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredGetters
+      a: #M0
+    declaredVariables
+      a: #M1
+''',
+      updatedCode: r'''
+final void Function(int p1) a;
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredGetters
+      a: #M2
+    declaredVariables
+      a: #M3
+''',
+    );
+  }
+
+  test_manifest_type_functionType_named_rename() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+final void Function({int p1}) a;
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredGetters
+      a: #M0
+    declaredVariables
+      a: #M1
+''',
+      updatedCode: r'''
+final void Function({int p2}) a;
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredGetters
+      a: #M2
+    declaredVariables
+      a: #M3
+''',
+    );
+  }
+
+  test_manifest_type_functionType_named_reorder() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+final void Function({int p1, int p2}) a;
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredGetters
+      a: #M0
+    declaredVariables
+      a: #M1
+''',
+      updatedCode: r'''
+final void Function({int p2, int p1}) a;
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredGetters
+      a: #M0
+    declaredVariables
+      a: #M1
 ''',
     );
   }
@@ -55045,6 +56569,110 @@ final void Function(int p1, double p2) a;
     );
   }
 
+  test_manifest_type_functionType_positional_metadata_add() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+void foo([int a]) {}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredFunctions
+      foo: #M0
+''',
+      updatedCode: r'''
+void foo([@deprecated int a]) {}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredFunctions
+      foo: #M1
+''',
+    );
+  }
+
+  test_manifest_type_functionType_positional_metadata_remove() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+void foo([@deprecated int a]) {}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredFunctions
+      foo: #M0
+''',
+      updatedCode: r'''
+void foo([int a]) {}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredFunctions
+      foo: #M1
+''',
+    );
+  }
+
+  test_manifest_type_functionType_positional_name_add() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+final void Function(int) a;
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredGetters
+      a: #M0
+    declaredVariables
+      a: #M1
+''',
+      updatedCode: r'''
+final void Function(int p1) a;
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredGetters
+      a: #M0
+    declaredVariables
+      a: #M1
+''',
+    );
+  }
+
+  test_manifest_type_functionType_positional_name_remove() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+final void Function(int p1) a;
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredGetters
+      a: #M0
+    declaredVariables
+      a: #M1
+''',
+      updatedCode: r'''
+final void Function(int) a;
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredGetters
+      a: #M0
+    declaredVariables
+      a: #M1
+''',
+    );
+  }
+
   test_manifest_type_functionType_positional_remove() async {
     await _runLibraryManifestScenario(
       initialCode: r'''
@@ -55061,6 +56689,146 @@ final void Function(int p1, double p2) a;
 ''',
       updatedCode: r'''
 final void Function(int p1) a;
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredGetters
+      a: #M2
+    declaredVariables
+      a: #M3
+''',
+    );
+  }
+
+  test_manifest_type_functionType_positional_remove_hasNamed() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+final void Function(int p1, {double p2}) a;
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredGetters
+      a: #M0
+    declaredVariables
+      a: #M1
+''',
+      updatedCode: r'''
+final void Function({double p2}) a;
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredGetters
+      a: #M2
+    declaredVariables
+      a: #M3
+''',
+    );
+  }
+
+  test_manifest_type_functionType_positional_rename_optional() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+final void Function([int p1]) a;
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredGetters
+      a: #M0
+    declaredVariables
+      a: #M1
+''',
+      updatedCode: r'''
+final void Function([int p2]) a;
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredGetters
+      a: #M0
+    declaredVariables
+      a: #M1
+''',
+    );
+  }
+
+  test_manifest_type_functionType_positional_rename_required() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+final void Function(int p1) a;
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredGetters
+      a: #M0
+    declaredVariables
+      a: #M1
+''',
+      updatedCode: r'''
+final void Function(int p2) a;
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredGetters
+      a: #M0
+    declaredVariables
+      a: #M1
+''',
+    );
+  }
+
+  test_manifest_type_functionType_positional_reorder_optional() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+final void Function([int p1, double p2]) a;
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredGetters
+      a: #M0
+    declaredVariables
+      a: #M1
+''',
+      updatedCode: r'''
+final void Function([double p2, int p1]) a;
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredGetters
+      a: #M2
+    declaredVariables
+      a: #M3
+''',
+    );
+  }
+
+  test_manifest_type_functionType_positional_reorder_required() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+final void Function(int p1, double p2) a;
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredGetters
+      a: #M0
+    declaredVariables
+      a: #M1
+''',
+      updatedCode: r'''
+final void Function(double p2, int p1) a;
 ''',
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
@@ -55324,6 +57092,106 @@ final void Function<E1>() a;
       a: #M2
     declaredVariables
       a: #M3
+''',
+    );
+  }
+
+  test_manifest_type_functionType_typeParameter_rename() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+final T Function<T>() a;
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredGetters
+      a: #M0
+    declaredVariables
+      a: #M1
+''',
+      updatedCode: r'''
+final T2 Function<T2>() a;
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredGetters
+      a: #M0
+    declaredVariables
+      a: #M1
+''',
+    );
+  }
+
+  test_manifest_type_functionType_typeParameter_reorder_andFormalParameters() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+typedef F = void Function<T, U>(T, U);
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredTypeAliases
+      F: #M0
+''',
+      updatedCode: r'''
+typedef F = void Function<U, T>(U, T);
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredTypeAliases
+      F: #M0
+''',
+    );
+  }
+
+  test_manifest_type_functionType_typeParameter_reorder_notFormalParameters() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+typedef F = void Function<T, U>(T, U);
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredTypeAliases
+      F: #M0
+''',
+      updatedCode: r'''
+typedef F = void Function<U, T>(T, U);
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredTypeAliases
+      F: #M1
+''',
+    );
+  }
+
+  test_manifest_type_functionType_typeParameter_reorder_withBounds() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+typedef F = void Function<T extends num, U extends int>(T, U);
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredTypeAliases
+      F: #M0
+''',
+      updatedCode: r'''
+typedef F = void Function<U extends int, T extends num>(U, T);
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredTypeAliases
+      F: #M1
 ''',
     );
   }
@@ -55957,6 +57825,65 @@ typedef B = int;
     declaredTypeAliases
       A: #M0
       B: #M2
+''',
+    );
+  }
+
+  test_manifest_typeAlias_typeParameters_bound() async {
+    configuration.withElementManifests = true;
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+typedef F<X extends num> = List<X>;
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredTypeAliases
+      F: #M0
+        typeParameters
+          #0 covariant
+            bound: num @ dart:core
+        aliasedType: List @ dart:core
+          typeParameter#0
+''',
+      updatedCode: r'''
+typedef F<X extends int> = List<X>;
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredTypeAliases
+      F: #M1
+        typeParameters
+          #0 covariant
+            bound: int @ dart:core
+        aliasedType: List @ dart:core
+          typeParameter#0
+''',
+    );
+  }
+
+  test_manifest_typeAlias_typeParameters_name() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+typedef F<X> = List<X>;
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredTypeAliases
+      F: #M0
+''',
+      updatedCode: r'''
+typedef F<Y> = List<Y>;
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredTypeAliases
+      F: #M0
 ''',
     );
   }

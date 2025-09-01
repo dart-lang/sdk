@@ -99,7 +99,6 @@ class _Visitor extends GeneralizingElementVisitor2<void> {
   void _detachConstVariable(Object element) {
     if (element is VariableElementImpl) {
       for (var fragment in element.fragments) {
-        fragment as VariableFragmentImpl;
         var initializer = fragment.constantInitializer;
         if (initializer is ExpressionImpl) {
           _detachNode(initializer);

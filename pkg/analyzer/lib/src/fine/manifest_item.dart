@@ -16,6 +16,14 @@ import 'package:collection/collection.dart';
 import 'package:meta/meta.dart';
 
 class ClassItem extends InterfaceItem<ClassElementImpl> {
+  final bool isAbstract;
+  final bool isBase;
+  final bool isFinal;
+  final bool isInterface;
+  final bool isMixinApplication;
+  final bool isMixinClass;
+  final bool isSealed;
+
   ClassItem({
     required super.id,
     required super.metadata,
@@ -31,6 +39,13 @@ class ClassItem extends InterfaceItem<ClassElementImpl> {
     required super.mixins,
     required super.interfaces,
     required super.interface,
+    required this.isAbstract,
+    required this.isBase,
+    required this.isFinal,
+    required this.isInterface,
+    required this.isMixinApplication,
+    required this.isMixinClass,
+    required this.isSealed,
   });
 
   factory ClassItem.fromElement({
@@ -54,6 +69,13 @@ class ClassItem extends InterfaceItem<ClassElementImpl> {
         mixins: element.mixins.encode(context),
         interfaces: element.interfaces.encode(context),
         interface: ManifestInterface.empty(),
+        isAbstract: element.isAbstract,
+        isBase: element.isBase,
+        isFinal: element.isFinal,
+        isInterface: element.isInterface,
+        isMixinApplication: element.isMixinApplication,
+        isMixinClass: element.isMixinClass,
+        isSealed: element.isSealed,
       );
     });
   }
@@ -74,7 +96,38 @@ class ClassItem extends InterfaceItem<ClassElementImpl> {
       mixins: ManifestType.readList(reader),
       interfaces: ManifestType.readList(reader),
       interface: ManifestInterface.read(reader),
+      isAbstract: reader.readBool(),
+      isBase: reader.readBool(),
+      isFinal: reader.readBool(),
+      isInterface: reader.readBool(),
+      isMixinApplication: reader.readBool(),
+      isMixinClass: reader.readBool(),
+      isSealed: reader.readBool(),
     );
+  }
+
+  @override
+  bool match(MatchContext context, ClassElementImpl element) {
+    return super.match(context, element) &&
+        isAbstract == element.isAbstract &&
+        isBase == element.isBase &&
+        isFinal == element.isFinal &&
+        isInterface == element.isInterface &&
+        isMixinApplication == element.isMixinApplication &&
+        isMixinClass == element.isMixinClass &&
+        isSealed == element.isSealed;
+  }
+
+  @override
+  void write(BufferedSink sink) {
+    super.write(sink);
+    sink.writeBool(isAbstract);
+    sink.writeBool(isBase);
+    sink.writeBool(isFinal);
+    sink.writeBool(isInterface);
+    sink.writeBool(isMixinApplication);
+    sink.writeBool(isMixinClass);
+    sink.writeBool(isSealed);
   }
 }
 
@@ -492,6 +545,9 @@ sealed class InstanceItem<E extends InstanceElementImpl>
 }
 
 class InstanceItemFieldItem extends InstanceItemMemberItem<FieldElementImpl> {
+  final bool isConst;
+  final bool isFinal;
+  final bool isLate;
   final ManifestType type;
   final ManifestNode? constInitializer;
 
@@ -499,6 +555,9 @@ class InstanceItemFieldItem extends InstanceItemMemberItem<FieldElementImpl> {
     required super.id,
     required super.metadata,
     required super.isStatic,
+    required this.isConst,
+    required this.isFinal,
+    required this.isLate,
     required this.type,
     required this.constInitializer,
   });
@@ -512,6 +571,9 @@ class InstanceItemFieldItem extends InstanceItemMemberItem<FieldElementImpl> {
       id: id,
       metadata: ManifestMetadata.encode(context, element.metadata),
       isStatic: element.isStatic,
+      isConst: element.isConst,
+      isFinal: element.isFinal,
+      isLate: element.isLate,
       type: element.type.encode(context),
       constInitializer: element.constantInitializer?.encode(context),
     );
@@ -522,6 +584,9 @@ class InstanceItemFieldItem extends InstanceItemMemberItem<FieldElementImpl> {
       id: ManifestItemId.read(reader),
       metadata: ManifestMetadata.read(reader),
       isStatic: reader.readBool(),
+      isConst: reader.readBool(),
+      isFinal: reader.readBool(),
+      isLate: reader.readBool(),
       type: ManifestType.read(reader),
       constInitializer: ManifestNode.readOptional(reader),
     );
@@ -530,6 +595,9 @@ class InstanceItemFieldItem extends InstanceItemMemberItem<FieldElementImpl> {
   @override
   bool match(MatchContext context, FieldElementImpl element) {
     return super.match(context, element) &&
+        isConst == element.isConst &&
+        isFinal == element.isFinal &&
+        isLate == element.isLate &&
         type.match(context, element.type) &&
         constInitializer.match(context, element.constantInitializer);
   }
@@ -537,13 +605,16 @@ class InstanceItemFieldItem extends InstanceItemMemberItem<FieldElementImpl> {
   @override
   void write(BufferedSink sink) {
     super.write(sink);
+    sink.writeBool(isConst);
+    sink.writeBool(isFinal);
+    sink.writeBool(isLate);
     type.write(sink);
     constInitializer.writeOptional(sink);
   }
 
   @override
   void writeKind(BufferedSink sink) {
-    sink.writeEnum(_InstanceItemMemberItemKind.getter);
+    sink.writeEnum(_InstanceItemMemberItemKind.field);
   }
 
   static Map<LookupName, InstanceItemFieldItem> readMap(
@@ -1105,7 +1176,9 @@ class ManifestMetadata {
 }
 
 class MixinItem extends InterfaceItem<MixinElementImpl> {
+  final bool isBase;
   final List<ManifestType> superclassConstraints;
+  final List<LookupName> superInvokedNames;
 
   MixinItem({
     required super.id,
@@ -1122,7 +1195,9 @@ class MixinItem extends InterfaceItem<MixinElementImpl> {
     required super.declaredConstructors,
     required super.inheritedConstructors,
     required super.interface,
+    required this.isBase,
     required this.superclassConstraints,
+    required this.superInvokedNames,
   }) : assert(supertype == null),
        assert(mixins.isEmpty),
        assert(superclassConstraints.isNotEmpty);
@@ -1148,7 +1223,11 @@ class MixinItem extends InterfaceItem<MixinElementImpl> {
         supertype: element.supertype?.encode(context),
         mixins: element.mixins.encode(context),
         interfaces: element.interfaces.encode(context),
+        isBase: element.isBase,
         superclassConstraints: element.superclassConstraints.encode(context),
+        superInvokedNames: element.superInvokedNames
+            .map((name) => name.asLookupName)
+            .toFixedList(),
       );
     });
   }
@@ -1169,20 +1248,29 @@ class MixinItem extends InterfaceItem<MixinElementImpl> {
       mixins: ManifestType.readList(reader),
       interfaces: ManifestType.readList(reader),
       interface: ManifestInterface.read(reader),
+      isBase: reader.readBool(),
       superclassConstraints: ManifestType.readList(reader),
+      superInvokedNames: reader.readLookupNameList(),
     );
   }
 
   @override
   bool match(MatchContext context, MixinElementImpl element) {
     return super.match(context, element) &&
-        superclassConstraints.match(context, element.superclassConstraints);
+        isBase == element.isBase &&
+        superclassConstraints.match(context, element.superclassConstraints) &&
+        const IterableEquality<String>().equals(
+          superInvokedNames.map((lookupName) => lookupName.asString),
+          element.superInvokedNames,
+        );
   }
 
   @override
   void write(BufferedSink sink) {
     super.write(sink);
+    sink.writeBool(isBase);
     superclassConstraints.writeList(sink);
+    superInvokedNames.write(sink);
   }
 }
 
@@ -1323,12 +1411,18 @@ class TopLevelSetterItem extends TopLevelItem<SetterElementImpl> {
 }
 
 class TopLevelVariableItem extends TopLevelItem<TopLevelVariableElementImpl> {
+  final bool isConst;
+  final bool isFinal;
+  final bool isLate;
   final ManifestType type;
   final ManifestNode? constInitializer;
 
   TopLevelVariableItem({
     required super.id,
     required super.metadata,
+    required this.isConst,
+    required this.isFinal,
+    required this.isLate,
     required this.type,
     required this.constInitializer,
   });
@@ -1341,6 +1435,9 @@ class TopLevelVariableItem extends TopLevelItem<TopLevelVariableElementImpl> {
     return TopLevelVariableItem(
       id: id,
       metadata: ManifestMetadata.encode(context, element.metadata),
+      isConst: element.isConst,
+      isFinal: element.isFinal,
+      isLate: element.isLate,
       type: element.type.encode(context),
       constInitializer: element.constantInitializer?.encode(context),
     );
@@ -1350,6 +1447,9 @@ class TopLevelVariableItem extends TopLevelItem<TopLevelVariableElementImpl> {
     return TopLevelVariableItem(
       id: ManifestItemId.read(reader),
       metadata: ManifestMetadata.read(reader),
+      isConst: reader.readBool(),
+      isFinal: reader.readBool(),
+      isLate: reader.readBool(),
       type: ManifestType.read(reader),
       constInitializer: ManifestNode.readOptional(reader),
     );
@@ -1358,6 +1458,9 @@ class TopLevelVariableItem extends TopLevelItem<TopLevelVariableElementImpl> {
   @override
   bool match(MatchContext context, TopLevelVariableElementImpl element) {
     return super.match(context, element) &&
+        isConst == element.isConst &&
+        isFinal == element.isFinal &&
+        isLate == element.isLate &&
         type.match(context, element.type) &&
         constInitializer.match(context, element.constantInitializer);
   }
@@ -1365,6 +1468,9 @@ class TopLevelVariableItem extends TopLevelItem<TopLevelVariableElementImpl> {
   @override
   void write(BufferedSink sink) {
     super.write(sink);
+    sink.writeBool(isConst);
+    sink.writeBool(isFinal);
+    sink.writeBool(isLate);
     type.write(sink);
     constInitializer.writeOptional(sink);
   }
@@ -1409,6 +1515,7 @@ class TypeAliasItem extends TopLevelItem<TypeAliasElementImpl> {
   bool match(MatchContext context, TypeAliasElementImpl element) {
     context.addTypeParameters(element.typeParameters);
     return super.match(context, element) &&
+        typeParameters.match(context, element.typeParameters) &&
         aliasedType.match(context, element.aliasedType);
   }
 

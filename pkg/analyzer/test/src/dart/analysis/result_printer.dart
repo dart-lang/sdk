@@ -1059,6 +1059,15 @@ class LibraryManifestPrinter {
   void _writeClassItem(ClassItem item) {
     if (configuration.withElementManifests) {
       sink.withIndent(() {
+        sink.writeFlags({
+          'isAbstract': item.isAbstract,
+          'isBase': item.isBase,
+          'isFinal': item.isFinal,
+          'isInterface': item.isInterface,
+          'isMixinApplication': item.isMixinApplication,
+          'isMixinClass': item.isMixinClass,
+          'isSealed': item.isSealed,
+        });
         _writeMetadata(item);
         _writeTypeParameters(item.typeParameters);
         _writeNamedType('supertype', item.supertype);
@@ -1558,8 +1567,16 @@ class LibraryManifestPrinter {
   }
 
   void _writeTypeParameters(List<ManifestTypeParameter> typeParameters) {
-    sink.writeElements('typeParameters', typeParameters, (typeParameter) {
-      _writeNamedType('bound', typeParameter.bound);
+    var indexed = typeParameters.indexed.toList();
+    sink.writeElements('typeParameters', indexed, (pair) {
+      var typeParameter = pair.$2;
+      sink.writeIndentedLine(() {
+        sink.write('#${pair.$1} ');
+        sink.write(typeParameter.variance.name);
+      });
+      sink.withIndent(() {
+        _writeNamedType('bound', typeParameter.bound);
+      });
     });
   }
 }

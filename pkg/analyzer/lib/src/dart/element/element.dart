@@ -1699,6 +1699,9 @@ abstract class ElementImpl implements Element {
     return buffer.toString();
   }
 
+  @override
+  FragmentImpl get firstFragment;
+
   /// The location of [firstFragment], without recording opaque requirement.
   @trackedIncludedInId
   FirstFragmentLocation get firstFragmentLocation {
@@ -1710,16 +1713,7 @@ abstract class ElementImpl implements Element {
   }
 
   @override
-  List<Fragment> get fragments {
-    return [
-      for (
-        Fragment? fragment = _firstFragment;
-        fragment != null;
-        fragment = fragment.nextFragment
-      )
-        fragment,
-    ];
-  }
+  List<FragmentImpl> get fragments;
 
   @override
   bool get isPrivate {
@@ -2208,7 +2202,7 @@ abstract class ExecutableElementImpl extends FunctionTypedElementImpl
 }
 
 @GenerateFragmentImpl(modifiers: _ExecutableFragmentImplModifiers.values)
-abstract class ExecutableFragmentImpl extends FragmentImpl
+abstract class ExecutableFragmentImpl extends FunctionTypedFragmentImpl
     with DeferredResolutionReadingMixin, _ExecutableFragmentImplMixin
     implements ExecutableFragment {
   List<TypeParameterFragmentImpl> _typeParameters = const [];
@@ -3514,6 +3508,12 @@ sealed class FunctionFragmentImpl extends ExecutableFragmentImpl
 abstract class FunctionTypedElementImpl extends ElementImpl
     implements FunctionTypedElement {
   @override
+  FunctionTypedFragmentImpl get firstFragment;
+
+  @override
+  List<FunctionTypedFragmentImpl> get fragments;
+
+  @override
   LibraryElementImpl get library => super.library!;
 
   @override
@@ -3527,14 +3527,17 @@ abstract class FunctionTypedElementImpl extends ElementImpl
 /// Common internal interface shared by elements whose type is a function type.
 ///
 /// Clients may not extend, implement or mix-in this class.
-abstract class FunctionTypedFragmentImpl implements FragmentImpl {
-  /// The parameters defined by this executable element.
+abstract class FunctionTypedFragmentImpl extends FragmentImpl
+    implements FunctionTypedFragment {
+  FunctionTypedFragmentImpl({super.firstTokenOffset});
+
+  @override
+  FunctionTypedElementImpl get element;
+
+  @override
   List<FormalParameterFragmentImpl> get formalParameters;
 
-  /// The type parameters declared by this element directly.
-  ///
-  /// This does not include type parameters that are declared by any enclosing
-  /// elements.
+  @override
   List<TypeParameterFragmentImpl> get typeParameters;
 }
 
@@ -3984,6 +3987,9 @@ abstract class InstanceElementImpl extends ElementImpl
 
   @override
   InstanceFragmentImpl get firstFragment;
+
+  @override
+  List<InstanceFragmentImpl> get fragments;
 
   @override
   @trackedDirectlyExpensive
@@ -5143,7 +5149,13 @@ mixin InternalExecutableElement implements ExecutableElement {
   ExecutableElementImpl get baseElement;
 
   @override
+  ExecutableFragmentImpl get firstFragment;
+
+  @override
   List<InternalFormalParameterElement> get formalParameters;
+
+  @override
+  List<ExecutableFragmentImpl> get fragments;
 
   @override
   MetadataImpl get metadata;
@@ -5174,6 +5186,12 @@ mixin InternalFormalParameterElement on InternalVariableElement
     implements FormalParameterElement, SharedNamedFunctionParameter {
   @override
   FormalParameterElementImpl get baseElement;
+
+  @override
+  FormalParameterFragmentImpl get firstFragment;
+
+  @override
+  List<FormalParameterFragmentImpl> get fragments;
 
   ParameterKind get parameterKind;
 
@@ -5250,6 +5268,12 @@ mixin InternalPropertyInducingElement on InternalVariableElement
   PropertyInducingElementImpl get baseElement;
 
   @override
+  PropertyInducingFragmentImpl get firstFragment;
+
+  @override
+  List<PropertyInducingFragmentImpl> get fragments;
+
+  @override
   InternalGetterElement? get getter;
 
   @Deprecated('Use getter instead')
@@ -5283,6 +5307,15 @@ mixin InternalSetterElement on InternalPropertyAccessorElement
 }
 
 mixin InternalVariableElement implements VariableElement {
+  @override
+  VariableFragmentImpl get firstFragment;
+
+  @override
+  List<VariableFragmentImpl> get fragments;
+
+  @override
+  MetadataImpl get metadata;
+
   @override
   TypeImpl get type;
 }
@@ -10128,7 +10161,6 @@ abstract class VariableElementImpl extends ElementImpl
     }
 
     for (var fragment in fragments.reversed) {
-      fragment as VariableFragmentImpl;
       if (fragment.initializer case ExpressionImpl expression) {
         return _constantInitializer = ConstantInitializerImpl(
           fragment: fragment,
