@@ -1069,9 +1069,10 @@ class InheritanceManager3 {
       var elementReference = targetClass.reference!
           .getChild('@method')
           .getChild(fragmentName);
-      if (elementReference.element case SetterElementImpl result) {
+      if (elementReference.element case MethodElementImpl result) {
         return result;
       }
+      assert(elementReference.element == null);
 
       var resultFragment = MethodFragmentImpl(name: fragmentName);
       resultFragment.enclosingFragment = targetClass.firstFragment;
@@ -1106,6 +1107,7 @@ class InheritanceManager3 {
         if (elementReference.element case GetterElementImpl result) {
           return result;
         }
+        assert(elementReference.element == null);
 
         var fragment = GetterFragmentImpl(name: fragmentName);
         resultFragment = fragment;
@@ -1120,6 +1122,7 @@ class InheritanceManager3 {
         if (elementReference.element case SetterElementImpl result) {
           return result;
         }
+        assert(elementReference.element == null);
 
         var fragment = SetterFragmentImpl(name: fragmentName);
         resultFragment = fragment;

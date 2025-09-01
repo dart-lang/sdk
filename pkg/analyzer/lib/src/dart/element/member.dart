@@ -61,7 +61,7 @@ class SubstitutedConstructorElementImpl extends SubstitutedExecutableElementImpl
   bool get isConst => baseElement.isConst;
 
   @override
-  bool get isDefaultConstructor => baseElement.isConst;
+  bool get isDefaultConstructor => baseElement.isDefaultConstructor;
 
   @override
   bool get isFactory => baseElement.isFactory;
