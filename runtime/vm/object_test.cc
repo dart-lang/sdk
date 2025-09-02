@@ -2664,6 +2664,7 @@ ISOLATE_UNIT_TEST_CASE(Code) {
                                 thread->isolate_group()->program_lock());
   Code& code = Code::Handle(Code::FinalizeCodeAndNotify(
       function, nullptr, &_assembler_, Code::PoolAttachment::kAttachPool));
+  code.set_owner(function);
   function.AttachCode(code);
   const Instructions& instructions = Instructions::Handle(code.instructions());
   uword payload_start = instructions.PayloadStart();
@@ -2728,6 +2729,7 @@ ISOLATE_UNIT_TEST_CASE(EmbedStringInCode) {
                                 thread->isolate_group()->program_lock());
   const Code& code = Code::Handle(Code::FinalizeCodeAndNotify(
       function, nullptr, &_assembler_, Code::PoolAttachment::kAttachPool));
+  code.set_owner(function);
   function.AttachCode(code);
   const Object& result =
       Object::Handle(DartEntry::InvokeFunction(function, Array::empty_array()));
@@ -2754,6 +2756,7 @@ ISOLATE_UNIT_TEST_CASE(EmbedSmiInCode) {
                                 thread->isolate_group()->program_lock());
   const Code& code = Code::Handle(Code::FinalizeCodeAndNotify(
       function, nullptr, &_assembler_, Code::PoolAttachment::kAttachPool));
+  code.set_owner(function);
   function.AttachCode(code);
   const Object& result =
       Object::Handle(DartEntry::InvokeFunction(function, Array::empty_array()));
@@ -2775,6 +2778,7 @@ ISOLATE_UNIT_TEST_CASE(EmbedSmiIn64BitCode) {
                                 thread->isolate_group()->program_lock());
   const Code& code = Code::Handle(Code::FinalizeCodeAndNotify(
       function, nullptr, &_assembler_, Code::PoolAttachment::kAttachPool));
+  code.set_owner(function);
   function.AttachCode(code);
   const Object& result =
       Object::Handle(DartEntry::InvokeFunction(function, Array::empty_array()));

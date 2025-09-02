@@ -29,7 +29,7 @@ class PoolPointerCall : public ValueObject {
   }
 
   void SetTarget(const Code& target) const {
-    object_pool_.SetObjectAt(pp_index(), target);
+    object_pool_.SetObjectAt<std::memory_order_release>(pp_index(), target);
     // No need to flush the instruction cache, since the code is not modified.
   }
 
