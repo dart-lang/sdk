@@ -14,6 +14,9 @@ import 'severity.dart' show CfeSeverity;
 
 import '../util/relativize.dart' as util show isWindows, relativizeUri;
 
+import 'conversions.dart' as conversions;
+import 'codes.dart' as conversions show relativizeUri;
+
 part 'codes_generated.dart';
 
 const int noLength = 1;

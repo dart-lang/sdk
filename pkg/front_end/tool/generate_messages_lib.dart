@@ -2,11 +2,51 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+/// @docImport 'package:front_end/src/codes/type_labeler.dart';
+library;
+
 import 'dart:io' show File, exitCode;
 
 import "package:_fe_analyzer_shared/src/messages/severity.dart"
     show severityEnumNames;
 import 'package:yaml/yaml.dart' show loadYaml;
+
+/// Map assigning each possible template parameter a [_TemplateParameterType].
+///
+/// TODO(paulberry): Change the format of `messages.yaml` so that the template
+/// parameters, and their types, are stated explicitly, as they are in the
+/// analyzer's `messages.yaml` file. Then this constant will not be needed.
+const _templateParameterNameToType = {
+  'character': _TemplateParameterType.character,
+  'unicode': _TemplateParameterType.unicode,
+  'name': _TemplateParameterType.name,
+  'name2': _TemplateParameterType.name,
+  'name3': _TemplateParameterType.name,
+  'name4': _TemplateParameterType.name,
+  'nameOKEmpty': _TemplateParameterType.nameOKEmpty,
+  'names': _TemplateParameterType.names,
+  'lexeme': _TemplateParameterType.lexeme,
+  'lexeme2': _TemplateParameterType.lexeme,
+  'string': _TemplateParameterType.string,
+  'string2': _TemplateParameterType.string,
+  'string3': _TemplateParameterType.string,
+  'stringOKEmpty': _TemplateParameterType.stringOKEmpty,
+  'type': _TemplateParameterType.type,
+  'type2': _TemplateParameterType.type,
+  'type3': _TemplateParameterType.type,
+  'type4': _TemplateParameterType.type,
+  'uri': _TemplateParameterType.uri,
+  'uri2': _TemplateParameterType.uri,
+  'uri3': _TemplateParameterType.uri,
+  'count': _TemplateParameterType.int,
+  'count2': _TemplateParameterType.int,
+  'count3': _TemplateParameterType.int,
+  'count4': _TemplateParameterType.int,
+  'constant': _TemplateParameterType.constant,
+  'num1': _TemplateParameterType.num,
+  'num2': _TemplateParameterType.num,
+  'num3': _TemplateParameterType.num,
+};
 
 Uri computeSharedGeneratedFile(Uri repoDir) {
   return repoDir.resolve(
@@ -108,14 +148,16 @@ part of 'cfe_codes.dart';
         }
       }
     }
-    Template template = compileTemplate(
-      name,
-      index,
-      map['problemMessage'],
-      map['correctionMessage'],
-      map['analyzerCode'],
-      map['severity'],
-    );
+    Template template;
+    try {
+      template = _TemplateCompiler(
+        name: name,
+        index: index,
+        description: description,
+      ).compile();
+    } catch (e, st) {
+      Error.throwWithStackTrace('Error while compiling $name: $e', st);
+    }
     if (template.isShared) {
       sharedMessages.writeln(template.text);
     } else {
@@ -152,6 +194,19 @@ final RegExp placeholderPattern = new RegExp(
   "#\([-a-zA-Z0-9_]+\)(?:%\([0-9]*\)\.\([0-9]+\))?",
 );
 
+/// Returns a fresh identifier that is not yet present in [usedNames], and adds
+/// it to [usedNames].
+///
+/// The name [nameHint] is used if it is available. Otherwise a new name is
+/// chosen by appending characters to it.
+String _newName({required Set<String> usedNames, required String nameHint}) {
+  if (usedNames.add(nameHint)) return nameHint;
+  for (var i = 0; ; i++) {
+    var name = "${nameHint}_$i";
+    if (usedNames.add(name)) return name;
+  }
+}
+
 class Template {
   final String text;
   final isShared;
@@ -159,326 +214,410 @@ class Template {
   Template(this.text, {this.isShared}) : assert(isShared != null);
 }
 
-Template compileTemplate(
-  String name,
-  int? index,
-  String? problemMessage,
-  String? correctionMessage,
-  Object? analyzerCode,
-  String? severity,
-) {
-  if (problemMessage == null) {
-    print('Error: missing problemMessage for message: $name');
-    exitCode = 1;
-    return new Template('', isShared: true);
-  }
-  // Remove trailing whitespace. This is necessary for templates defined with
-  // `|` (verbatim) as they always contain a trailing newline that we don't
-  // want.
-  problemMessage = problemMessage.trimRight();
-  correctionMessage = correctionMessage?.trimRight();
-  var parameters = new Set<String>();
-  var conversions = new Set<String>();
-  var arguments = new Set<String>();
-  bool hasLabeler = false;
-  bool canBeShared = true;
-  void ensureLabeler() {
-    if (hasLabeler) return;
-    conversions.add("TypeLabeler labeler = new TypeLabeler();");
-    hasLabeler = true;
-    canBeShared = false;
+/// Information about how to convert the CFE's internal representation of a
+/// template parameter to a string.
+///
+/// Instances of this class should implement [==] and [hashCode] so that they
+/// can be used as keys in a [Map].
+sealed class _Conversion {
+  /// Returns Dart code that applies the conversion to a template parameter
+  /// having the given [name] and [type].
+  ///
+  /// If no conversion is needed, returns `null`.
+  String? toCode({required String name, required _TemplateParameterType type});
+}
+
+/// A [_Conversion] that makes use of the [TypeLabeler] class.
+class _LabelerConversion implements _Conversion {
+  /// The name of the [TypeLabeler] method to call.
+  final String methodName;
+
+  const _LabelerConversion(this.methodName);
+
+  @override
+  int get hashCode => Object.hash(runtimeType, methodName.hashCode);
+
+  @override
+  bool operator ==(Object other) =>
+      other is _LabelerConversion && other.methodName == methodName;
+
+  @override
+  String toCode({required String name, required _TemplateParameterType type}) =>
+      'labeler.$methodName($name)';
+}
+
+/// A [_Conversion] that acts on [num], applying formatting parameters specified
+/// in the template.
+class _NumericConversion implements _Conversion {
+  /// If non-null, the number of digits to show after the decimal point.
+  final int? fractionDigits;
+
+  /// The minimum number of characters of output to be generated.
+  ///
+  /// If the number does not require this many characters to display, extra
+  /// padding characters are inserted to the left.
+  final int padWidth;
+
+  /// If `true`, '0' is used for padding (see [padWidth]); otherwise ' ' is
+  /// used.
+  final bool padWithZeros;
+
+  _NumericConversion({
+    required this.fractionDigits,
+    required this.padWidth,
+    required this.padWithZeros,
+  });
+
+  @override
+  int get hashCode => Object.hash(
+    runtimeType,
+    fractionDigits.hashCode,
+    padWidth.hashCode,
+    padWithZeros.hashCode,
+  );
+
+  @override
+  bool operator ==(Object other) =>
+      other is _NumericConversion &&
+      other.fractionDigits == fractionDigits &&
+      other.padWidth == padWidth &&
+      other.padWithZeros == padWithZeros;
+
+  @override
+  String? toCode({required String name, required _TemplateParameterType type}) {
+    if (type != _TemplateParameterType.num) {
+      throw 'format suffix may only be applied to parameters of type num';
+    }
+    return 'conversions.formatNumber($name, fractionDigits: $fractionDigits, '
+        'padWidth: $padWidth, padWithZeros: $padWithZeros)';
   }
 
-  for (Match match in placeholderPattern.allMatches(
-    "$problemMessage\n${correctionMessage ?? ''}",
-  )) {
-    String name = match[1]!;
+  /// Creates a [_NumericConversion] from the given regular expression [match].
+  ///
+  /// [match] should be the result of matching [placeholderPattern] to the
+  /// template string.
+  ///
+  /// Returns `null` if no special numeric conversion is needed.
+  static _NumericConversion? from(Match match) {
     String? padding = match[2];
-    String? fractionDigits = match[3];
+    String? fractionDigitsStr = match[3];
 
-    String format(String name) {
-      String conversion;
-      if (fractionDigits == null) {
-        conversion = "'\$$name'";
-      } else {
-        conversion = "$name.toStringAsFixed($fractionDigits)";
+    int? fractionDigits = fractionDigitsStr == null
+        ? null
+        : int.parse(fractionDigitsStr);
+    if (padding != null && padding.isNotEmpty) {
+      return _NumericConversion(
+        fractionDigits: fractionDigits,
+        padWidth: int.parse(padding),
+        padWithZeros: padding.startsWith('0'),
+      );
+    } else if (fractionDigits != null) {
+      return _NumericConversion(
+        fractionDigits: fractionDigits,
+        padWidth: 0,
+        padWithZeros: false,
+      );
+    } else {
+      return null;
+    }
+  }
+}
+
+/// The result of parsing a [placeholderPattern] match in a template string.
+class _ParsedPlaceholder {
+  /// The name of the template parameter.
+  ///
+  /// This is the identifier that immediately follows the `#`.
+  final String name;
+
+  /// The type of the corresponding template parameter.
+  final _TemplateParameterType templateParameterType;
+
+  /// The conversion that should be applied to the template parameter.
+  final _Conversion? conversion;
+
+  /// Builds a [_ParsedPlaceholder] from the given [match] of
+  /// [placeholderPattern].
+  factory _ParsedPlaceholder.fromMatch(Match match) {
+    String name = match[1]!;
+
+    var templateParameterType = _templateParameterNameToType[name];
+    if (templateParameterType == null) {
+      throw "Unhandled placeholder in template: '$name'";
+    }
+
+    return _ParsedPlaceholder._(
+      name: name,
+      templateParameterType: templateParameterType,
+      conversion:
+          _NumericConversion.from(match) ?? templateParameterType.conversion,
+    );
+  }
+
+  _ParsedPlaceholder._({
+    required this.name,
+    required this.templateParameterType,
+    required this.conversion,
+  });
+
+  @override
+  int get hashCode => Object.hash(name, templateParameterType, conversion);
+
+  @override
+  bool operator ==(Object other) =>
+      other is _ParsedPlaceholder &&
+      other.name == name &&
+      other.templateParameterType == templateParameterType &&
+      other.conversion == conversion;
+}
+
+/// A [_Conversion] that invokes a top level function via the `conversions`
+/// import prefix.
+class _SimpleConversion implements _Conversion {
+  /// The name of the function to be invoked.
+  final String functionName;
+
+  const _SimpleConversion(this.functionName);
+
+  @override
+  int get hashCode => Object.hash(runtimeType, functionName.hashCode);
+
+  @override
+  bool operator ==(Object other) =>
+      other is _SimpleConversion && other.functionName == functionName;
+
+  @override
+  String toCode({required String name, required _TemplateParameterType type}) =>
+      'conversions.$functionName($name)';
+}
+
+class _TemplateCompiler {
+  final String name;
+  final int? index;
+  final String problemMessage;
+  final String? correctionMessage;
+  final List<String> analyzerCodes;
+  final String? severity;
+
+  late final Set<_ParsedPlaceholder> parsedPlaceholders = placeholderPattern
+      .allMatches("$problemMessage\n${correctionMessage ?? ''}")
+      .map(_ParsedPlaceholder.fromMatch)
+      .toSet();
+  final List<String> withArgumentsStatements = [];
+
+  _TemplateCompiler({
+    required this.name,
+    required this.index,
+    required Map<Object?, Object?> description,
+  }) : problemMessage =
+           _decodeMessage(description['problemMessage']) ??
+           (throw 'Error: missing problemMessage'),
+       correctionMessage = _decodeMessage(description['correctionMessage']),
+       analyzerCodes = _decodeAnalyzerCode(description['analyzerCode']),
+       severity = _decodeSeverity(description['severity']);
+
+  Template compile() {
+    bool hasLabeler = parsedPlaceholders.any(
+      (p) => p.conversion is _LabelerConversion,
+    );
+    bool canBeShared = !hasLabeler;
+
+    var codeArguments = <String>[
+      if (index != null)
+        'index: $index'
+      else if (analyzerCodes.isNotEmpty)
+        // If "index:" is defined, then "analyzerCode:" should not be generated
+        // in the front end. See comment in messages.yaml
+        'analyzerCodes: <String>["${analyzerCodes.join('", "')}"]',
+      if (severity != null) 'severity: CfeSeverity.$severity',
+    ];
+
+    if (parsedPlaceholders.isEmpty) {
+      codeArguments.add('problemMessage: r"""$problemMessage"""');
+      if (correctionMessage != null) {
+        codeArguments.add('correctionMessage: r"""$correctionMessage"""');
       }
-      if (padding!.isNotEmpty) {
-        if (padding.startsWith("0")) {
-          conversion += ".padLeft(${int.parse(padding)}, '0')";
-        } else {
-          conversion += ".padLeft(${int.parse(padding)})";
-        }
-      }
-      return conversion;
-    }
 
-    switch (name) {
-      case "character":
-        parameters.add("String character");
-        conversions.add(
-          "if (character.runes.length != 1)"
-          "throw \"Not a character '\${character}'\";",
-        );
-        arguments.add("'$name': character");
-        break;
-
-      case "unicode":
-        // Write unicode value using at least four (but otherwise no more than
-        // necessary) hex digits, using uppercase letters.
-        // http://www.unicode.org/versions/Unicode10.0.0/appA.pdf
-        parameters.add("int codePoint");
-        conversions.add(
-          "String unicode = \"U+\${codePoint.toRadixString(16)"
-          ".toUpperCase().padLeft(4, '0')}\";",
-        );
-        arguments.add("'$name': codePoint");
-        break;
-
-      case "name":
-        parameters.add("String _name");
-        conversions.add("if (_name.isEmpty) throw 'No name provided';");
-        arguments.add("'$name': _name");
-        conversions.add("String name = demangleMixinApplicationName(_name);");
-        break;
-
-      case "name2":
-        parameters.add("String _name2");
-        conversions.add("if (_name2.isEmpty) throw 'No name provided';");
-        arguments.add("'$name': _name2");
-        conversions.add("String name2 = demangleMixinApplicationName(_name2);");
-        break;
-
-      case "name3":
-        parameters.add("String _name3");
-        conversions.add("if (_name3.isEmpty) throw 'No name provided';");
-        arguments.add("'$name': _name3");
-        conversions.add("String name3 = demangleMixinApplicationName(_name3);");
-        break;
-
-      case "name4":
-        parameters.add("String _name4");
-        conversions.add("if (_name4.isEmpty) throw 'No name provided';");
-        arguments.add("'$name': _name4");
-        conversions.add("String name4 = demangleMixinApplicationName(_name4);");
-        break;
-
-      case "nameOKEmpty":
-        parameters.add("String _nameOKEmpty");
-        conversions.add(
-          "String nameOKEmpty = _nameOKEmpty.isEmpty ? '(unnamed)' : "
-          "_nameOKEmpty;",
-        );
-        arguments.add("'nameOKEmpty': _nameOKEmpty");
-        break;
-
-      case "names":
-        parameters.add("List<String> _names");
-        conversions.add("if (_names.isEmpty) throw 'No names provided';");
-        arguments.add("'$name': _names");
-        conversions.add("String names = itemizeNames(_names);");
-        break;
-
-      case "lexeme":
-        parameters.add("Token token");
-        conversions.add("String lexeme = token.lexeme;");
-        arguments.add("'$name': token");
-        break;
-
-      case "lexeme2":
-        parameters.add("Token token2");
-        conversions.add("String lexeme2 = token2.lexeme;");
-        arguments.add("'$name': token2");
-        break;
-
-      case "string":
-        parameters.add("String string");
-        conversions.add("if (string.isEmpty) throw 'No string provided';");
-        arguments.add("'$name': string");
-        break;
-
-      case "string2":
-        parameters.add("String string2");
-        conversions.add("if (string2.isEmpty) throw 'No string provided';");
-        arguments.add("'$name': string2");
-        break;
-
-      case "string3":
-        parameters.add("String string3");
-        conversions.add("if (string3.isEmpty) throw 'No string provided';");
-        arguments.add("'$name': string3");
-        break;
-
-      case "stringOKEmpty":
-        parameters.add("String _stringOKEmpty");
-        conversions.add(
-          "String stringOKEmpty = _stringOKEmpty.isEmpty ? '(empty)' : "
-          "_stringOKEmpty;",
-        );
-        arguments.add("'$name': _stringOKEmpty");
-        break;
-
-      case "type":
-      case "type2":
-      case "type3":
-      case "type4":
-        parameters.add("DartType _${name}");
-        ensureLabeler();
-        conversions.add("LabeledString ${name} = labeler.labelType(_${name});");
-        arguments.add("'${name}': _${name}");
-        break;
-
-      case "uri":
-        parameters.add("Uri uri_");
-        conversions.add("String? uri = relativizeUri(uri_);");
-        arguments.add("'$name': uri_");
-        break;
-
-      case "uri2":
-        parameters.add("Uri uri2_");
-        conversions.add("String? uri2 = relativizeUri(uri2_);");
-        arguments.add("'$name': uri2_");
-        break;
-
-      case "uri3":
-        parameters.add("Uri uri3_");
-        conversions.add("String? uri3 = relativizeUri(uri3_);");
-        arguments.add("'$name': uri3_");
-        break;
-
-      case "count":
-        parameters.add("int count");
-        arguments.add("'$name': count");
-        break;
-
-      case "count2":
-        parameters.add("int count2");
-        arguments.add("'$name': count2");
-        break;
-
-      case "count3":
-        parameters.add("int count3");
-        arguments.add("'$name': count3");
-        break;
-
-      case "count4":
-        parameters.add("int count4");
-        arguments.add("'$name': count4");
-        break;
-
-      case "constant":
-        parameters.add("Constant _constant");
-        ensureLabeler();
-        conversions.add(
-          "LabeledString ${name} = labeler.labelConstant(_${name});",
-        );
-        arguments.add("'$name': _constant");
-        break;
-
-      case "num1":
-        parameters.add("num _num1");
-        conversions.add("String num1 = ${format('_num1')};");
-        arguments.add("'$name': _num1");
-        break;
-
-      case "num2":
-        parameters.add("num _num2");
-        conversions.add("String num2 = ${format('_num2')};");
-        arguments.add("'$name': _num2");
-        break;
-
-      case "num3":
-        parameters.add("num _num3");
-        conversions.add("String num3 = ${format('_num3')};");
-        arguments.add("'$name': _num3");
-        break;
-
-      default:
-        throw "Unhandled placeholder in template: '$name'";
-    }
-  }
-
-  String interpolate(String text) {
-    text = text
-        .replaceAll(r"$", r"\$")
-        .replaceAllMapped(placeholderPattern, (Match m) => "\${${m[1]}}");
-    return "\"\"\"$text\"\"\"";
-  }
-
-  List<String> codeArguments = <String>[];
-  if (index != null) {
-    codeArguments.add('index: $index');
-  } else if (analyzerCode != null) {
-    if (analyzerCode is String) {
-      analyzerCode = <String>[analyzerCode];
-    }
-    List<Object?> codes = analyzerCode as List<Object?>;
-    // If "index:" is defined, then "analyzerCode:" should not be generated
-    // in the front end. See comment in messages.yaml
-    codeArguments.add('analyzerCodes: <String>["${codes.join('", "')}"]');
-  }
-  if (severity != null) {
-    String? severityEnumName = severityEnumNames[severity];
-    if (severityEnumName == null) {
-      throw "Unknown severity '$severity'";
-    }
-    codeArguments.add('severity: CfeSeverity.$severityEnumName');
-  }
-
-  if (parameters.isEmpty && conversions.isEmpty && arguments.isEmpty) {
-    codeArguments.add('problemMessage: r"""$problemMessage"""');
-    if (correctionMessage != null) {
-      codeArguments.add('correctionMessage: r"""$correctionMessage"""');
-    }
-
-    return new Template("""
+      return new Template("""
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode code$name =
     const MessageCode(\"$name\", ${codeArguments.join(', ')},);
 """, isShared: canBeShared);
-  }
+    }
 
-  List<String> templateArguments = <String>[];
-  templateArguments.add('\"$name\"');
-  templateArguments.add('problemMessageTemplate: r"""$problemMessage"""');
-  if (correctionMessage != null) {
-    templateArguments.add(
-      'correctionMessageTemplate: r"""$correctionMessage"""',
-    );
-  }
+    var usedNames = {
+      'conversions',
+      'labeler',
+      ...parsedPlaceholders.map((p) => p.name),
+    };
+    if (hasLabeler) {
+      withArgumentsStatements.add("TypeLabeler labeler = new TypeLabeler();");
+    }
+    var interpolators = <_ParsedPlaceholder, String>{};
+    for (var p in parsedPlaceholders) {
+      if (p.conversion?.toCode(name: p.name, type: p.templateParameterType)
+          case var conversion?) {
+        var interpolator = interpolators[p] = _newName(
+          usedNames: usedNames,
+          nameHint: p.name,
+        );
+        withArgumentsStatements.add("var $interpolator = $conversion;");
+      } else {
+        interpolators[p] = p.name;
+      }
+    }
 
-  templateArguments.add("withArgumentsOld: _withArgumentsOld$name");
-  templateArguments.addAll(codeArguments);
+    String interpolate(String text) {
+      text = text
+          .replaceAll(r"$", r"\$")
+          .replaceAllMapped(
+            placeholderPattern,
+            (Match m) =>
+                "\${${interpolators[_ParsedPlaceholder.fromMatch(m)]}}",
+          );
+      return "\"\"\"$text\"\"\"";
+    }
 
-  List<String> messageArguments = <String>[];
-  String message = interpolate(problemMessage);
-  if (hasLabeler) {
-    message += " + labeler.originMessages";
-  }
-  messageArguments.add("problemMessage: ${message}");
-  if (correctionMessage != null) {
-    messageArguments.add(
-      "correctionMessage: ${interpolate(correctionMessage)}",
-    );
-  }
-  messageArguments.add("arguments: { ${arguments.join(', ')}, }");
+    List<String> templateArguments = <String>[];
+    templateArguments.add('\"$name\"');
+    templateArguments.add('problemMessageTemplate: r"""$problemMessage"""');
+    if (correctionMessage != null) {
+      templateArguments.add(
+        'correctionMessageTemplate: r"""$correctionMessage"""',
+      );
+    }
 
-  if (codeArguments.isNotEmpty) {
-    codeArguments.add("");
-  }
+    templateArguments.add("withArgumentsOld: _withArgumentsOld$name");
+    templateArguments.addAll(codeArguments);
 
-  return new Template("""
+    String message = interpolate(problemMessage);
+    if (hasLabeler) {
+      message += " + labeler.originMessages";
+    }
+    var arguments = parsedPlaceholders
+        .map((p) => "'${p.name}': ${p.name}")
+        .toList();
+
+    List<String> messageArguments = <String>[
+      "problemMessage: ${message}",
+      if (correctionMessage case var correctionMessage?)
+        "correctionMessage: ${interpolate(correctionMessage)}",
+      "arguments: { ${arguments.join(', ')}, }",
+    ];
+
+    if (codeArguments.isNotEmpty) {
+      codeArguments.add("");
+    }
+
+    var positionalParameters = parsedPlaceholders
+        .map((p) => '${p.templateParameterType.cfeType} ${p.name}')
+        .toList();
+    var namedParameters = parsedPlaceholders
+        .map((p) => 'required ${p.templateParameterType.cfeType} ${p.name}')
+        .toList();
+    var oldToNewArguments = parsedPlaceholders
+        .map((p) => '${p.name}: ${p.name}')
+        .toList();
+    return new Template("""
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(${parameters.join(', ')})> code$name =
-    const Template<Message Function(${parameters.join(', ')})>(
+const Template<Message Function(${positionalParameters.join(', ')})> code$name =
+    const Template<Message Function(${positionalParameters.join(', ')})>(
         ${templateArguments.join(', ')},);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOld$name(${parameters.join(', ')}) {
-  ${conversions.join('\n  ')}
+Message _withArguments$name({${namedParameters.join(', ')}}) {
+  ${withArgumentsStatements.join('\n  ')}
   return new Message(
      code$name,
      ${messageArguments.join(', ')},);
 }
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsOld$name(${positionalParameters.join(', ')}) =>
+    _withArguments$name(${oldToNewArguments.join(', ')});
 """, isShared: canBeShared);
+  }
+
+  static List<String> _decodeAnalyzerCode(Object? yamlEntry) {
+    switch (yamlEntry) {
+      case null:
+        return const [];
+      case String():
+        return [yamlEntry];
+      case List():
+        return yamlEntry.cast<String>();
+      default:
+        throw 'Bad analyzerCode type: ${yamlEntry.runtimeType}';
+    }
+  }
+
+  static String? _decodeMessage(Object? yamlEntry) {
+    switch (yamlEntry) {
+      case null:
+        return null;
+      case String():
+        // Remove trailing whitespace. This is necessary for templates defined
+        // with `|` (verbatim) as they always contain a trailing newline that we
+        // don't want.
+        return yamlEntry.trimRight();
+      default:
+        throw 'Bad message type: ${yamlEntry.runtimeType}';
+    }
+  }
+
+  static String? _decodeSeverity(Object? yamlEntry) {
+    switch (yamlEntry) {
+      case null:
+        return null;
+      case String():
+        return severityEnumNames[yamlEntry] ??
+            (throw "Unknown severity '$yamlEntry'");
+      default:
+        throw 'Bad severity type: ${yamlEntry.runtimeType}';
+    }
+  }
+}
+
+/// Enum describing the types of template parameters supported by front_end
+/// diagnostic codes.
+///
+/// Each instance of this enum carries information about the type of the CFE's
+/// internal representation of the parameter and how to convert it to a string.
+enum _TemplateParameterType {
+  character(
+    cfeType: 'String',
+    conversion: _SimpleConversion('validateCharacter'),
+  ),
+  unicode(cfeType: 'int', conversion: _SimpleConversion('codePointToUnicode')),
+  name(
+    cfeType: 'String',
+    conversion: _SimpleConversion('validateAndDemangleName'),
+  ),
+  nameOKEmpty(
+    cfeType: 'String',
+    conversion: _SimpleConversion('nameOrUnnamed'),
+  ),
+  names(
+    cfeType: 'List<String>',
+    conversion: _SimpleConversion('validateAndItemizeNames'),
+  ),
+  lexeme(cfeType: 'Token', conversion: _SimpleConversion('tokenToLexeme')),
+  string(cfeType: 'String', conversion: _SimpleConversion('validateString')),
+  stringOKEmpty(
+    cfeType: 'String',
+    conversion: _SimpleConversion('stringOrEmpty'),
+  ),
+  type(cfeType: 'DartType', conversion: _LabelerConversion('labelType')),
+  uri(cfeType: 'Uri', conversion: _SimpleConversion('relativizeUri')),
+  int(cfeType: 'int'),
+  constant(
+    cfeType: 'Constant',
+    conversion: _LabelerConversion('labelConstant'),
+  ),
+  num(cfeType: 'num', conversion: _SimpleConversion('formatNumber'));
+
+  final String cfeType;
+  final _Conversion? conversion;
+
+  const _TemplateParameterType({required this.cfeType, this.conversion});
 }

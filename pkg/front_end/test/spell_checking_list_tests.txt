@@ -18,6 +18,7 @@ ac
 aci
 acn
 acr
+acts
 adapter
 adaptor
 adequately
@@ -468,6 +469,8 @@ interactive
 interchangeable
 internet
 interpolate
+interpolator
+interpolators
 introducer
 inv
 involves
