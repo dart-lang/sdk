@@ -17724,7 +17724,10 @@ export 'a.dart';
             type: int @ dart:core
         declaredSetters
           foo=: #M2
-            valueType: int @ dart:core
+            functionType: FunctionType
+              positional
+                required int @ dart:core
+              returnType: void
     exportedExtensions: #M0
   requirements
 [operation] linkLibraryCycle
@@ -17769,9 +17772,15 @@ extension E on int {
             type: int @ dart:core
         declaredSetters
           bar=: #M4
-            valueType: int @ dart:core
+            functionType: FunctionType
+              positional
+                required int @ dart:core
+              returnType: void
           foo=: #M2
-            valueType: int @ dart:core
+            functionType: FunctionType
+              positional
+                required int @ dart:core
+              returnType: void
     exportedExtensions: #M0
   requirements
 [operation] reuseLinkedBundle
@@ -17819,9 +17828,15 @@ export 'a.dart';
             type: int @ dart:core
         declaredSetters
           bar=: #M3
-            valueType: int @ dart:core
+            functionType: FunctionType
+              positional
+                required int @ dart:core
+              returnType: void
           foo=: #M4
-            valueType: int @ dart:core
+            functionType: FunctionType
+              positional
+                required int @ dart:core
+              returnType: void
     exportedExtensions: #M0
   requirements
 [operation] linkLibraryCycle
@@ -17866,9 +17881,15 @@ extension E on int {
             type: int @ dart:core
         declaredSetters
           bar=: #M6
-            valueType: double @ dart:core
+            functionType: FunctionType
+              positional
+                required double @ dart:core
+              returnType: void
           foo=: #M4
-            valueType: int @ dart:core
+            functionType: FunctionType
+              positional
+                required int @ dart:core
+              returnType: void
     exportedExtensions: #M0
   requirements
 [operation] reuseLinkedBundle
@@ -17916,9 +17937,15 @@ export 'a.dart';
             type: int @ dart:core
         declaredSetters
           bar=: #M3
-            valueType: int @ dart:core
+            functionType: FunctionType
+              positional
+                required int @ dart:core
+              returnType: void
           foo=: #M4
-            valueType: int @ dart:core
+            functionType: FunctionType
+              positional
+                required int @ dart:core
+              returnType: void
     exportedExtensions: #M0
   requirements
 [operation] linkLibraryCycle
@@ -17960,7 +17987,10 @@ extension E on int {
             type: int @ dart:core
         declaredSetters
           foo=: #M4
-            valueType: int @ dart:core
+            functionType: FunctionType
+              positional
+                required int @ dart:core
+              returnType: void
     exportedExtensions: #M0
   requirements
 [operation] reuseLinkedBundle
@@ -43072,6 +43102,118 @@ class A {
     );
   }
 
+  test_manifest_class_method_formalParameter_requiredPositional_covariant() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class A {
+  void foo1(int a) {}
+  void foo2(covariant int a) {}
+  void foo3(int a) {}
+  void foo4(covariant int a) {}
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredClasses
+      A: #M0
+        declaredMethods
+          foo1: #M1
+          foo2: #M2
+          foo3: #M3
+          foo4: #M4
+        interface: #M5
+          map
+            foo1: #M1
+            foo2: #M2
+            foo3: #M3
+            foo4: #M4
+''',
+      updatedCode: r'''
+class A {
+  void foo1(int a) {}
+  void foo2(covariant int a) {}
+  void foo3(covariant int a) {}
+  void foo4(int a) {}
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredClasses
+      A: #M0
+        declaredMethods
+          foo1: #M1
+          foo2: #M2
+          foo3: #M6
+          foo4: #M7
+        interface: #M8
+          map
+            foo1: #M1
+            foo2: #M2
+            foo3: #M6
+            foo4: #M7
+''',
+    );
+  }
+
+  test_manifest_class_method_formalParameter_requiredPositional_metadata() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class A {
+  void foo1(int a) {}
+  void foo2(@deprecated int a) {}
+  void foo3(int a) {}
+  void foo4(@deprecated int a) {}
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredClasses
+      A: #M0
+        declaredMethods
+          foo1: #M1
+          foo2: #M2
+          foo3: #M3
+          foo4: #M4
+        interface: #M5
+          map
+            foo1: #M1
+            foo2: #M2
+            foo3: #M3
+            foo4: #M4
+''',
+      updatedCode: r'''
+class A {
+  void foo1(int a) {}
+  void foo2(@deprecated int a) {}
+  void foo3(@deprecated int a) {}
+  void foo4(int a) {}
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredClasses
+      A: #M0
+        declaredMethods
+          foo1: #M1
+          foo2: #M2
+          foo3: #M6
+          foo4: #M7
+        interface: #M8
+          map
+            foo1: #M1
+            foo2: #M2
+            foo3: #M6
+            foo4: #M7
+''',
+    );
+  }
+
   test_manifest_class_method_formalParameter_requiredPositional_name() async {
     await _runLibraryManifestScenario(
       initialCode: r'''
@@ -43106,82 +43248,6 @@ class A {
         interface: #M2
           map
             foo: #M1
-''',
-    );
-  }
-
-  test_manifest_class_method_formalParameter_requiredPositional_toCovariantFalse() async {
-    await _runLibraryManifestScenario(
-      initialCode: r'''
-class A {
-  void foo(covariant int a) {}
-}
-''',
-      expectedInitialEvents: r'''
-[operation] linkLibraryCycle SDK
-[operation] linkLibraryCycle
-  package:test/test.dart
-    declaredClasses
-      A: #M0
-        declaredMethods
-          foo: #M1
-        interface: #M2
-          map
-            foo: #M1
-''',
-      updatedCode: r'''
-class A {
-  void foo(int a) {}
-}
-''',
-      expectedUpdatedEvents: r'''
-[operation] linkLibraryCycle
-  package:test/test.dart
-    declaredClasses
-      A: #M0
-        declaredMethods
-          foo: #M3
-        interface: #M4
-          map
-            foo: #M3
-''',
-    );
-  }
-
-  test_manifest_class_method_formalParameter_requiredPositional_toCovariantTrue() async {
-    await _runLibraryManifestScenario(
-      initialCode: r'''
-class A {
-  void foo(int a) {}
-}
-''',
-      expectedInitialEvents: r'''
-[operation] linkLibraryCycle SDK
-[operation] linkLibraryCycle
-  package:test/test.dart
-    declaredClasses
-      A: #M0
-        declaredMethods
-          foo: #M1
-        interface: #M2
-          map
-            foo: #M1
-''',
-      updatedCode: r'''
-class A {
-  void foo(covariant int a) {}
-}
-''',
-      expectedUpdatedEvents: r'''
-[operation] linkLibraryCycle
-  package:test/test.dart
-    declaredClasses
-      A: #M0
-        declaredMethods
-          foo: #M3
-        interface: #M4
-          map
-            foo: #M3
 ''',
     );
   }
@@ -45205,6 +45271,138 @@ abstract class D implements C {}
     );
   }
 
+  test_manifest_class_setter_formalParameter_covariant() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class A {
+  set foo1(int a) {}
+  set foo2(covariant int a) {}
+  set foo3(int a) {}
+  set foo4(covariant int a) {}
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredClasses
+      A: #M0
+        declaredFields
+          foo1: #M1
+          foo2: #M2
+          foo3: #M3
+          foo4: #M4
+        declaredSetters
+          foo1=: #M5
+          foo2=: #M6
+          foo3=: #M7
+          foo4=: #M8
+        interface: #M9
+          map
+            foo1=: #M5
+            foo2=: #M6
+            foo3=: #M7
+            foo4=: #M8
+''',
+      updatedCode: r'''
+class A {
+  set foo1(int a) {}
+  set foo2(covariant int a) {}
+  set foo3(covariant int a) {}
+  set foo4(int a) {}
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredClasses
+      A: #M0
+        declaredFields
+          foo1: #M1
+          foo2: #M2
+          foo3: #M3
+          foo4: #M4
+        declaredSetters
+          foo1=: #M5
+          foo2=: #M6
+          foo3=: #M10
+          foo4=: #M11
+        interface: #M12
+          map
+            foo1=: #M5
+            foo2=: #M6
+            foo3=: #M10
+            foo4=: #M11
+''',
+    );
+  }
+
+  test_manifest_class_setter_formalParameter_metadata() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class A {
+  set foo1(int a) {}
+  set foo2(@deprecated int a) {}
+  set foo3(int a) {}
+  set foo4(@deprecated int a) {}
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredClasses
+      A: #M0
+        declaredFields
+          foo1: #M1
+          foo2: #M2
+          foo3: #M3
+          foo4: #M4
+        declaredSetters
+          foo1=: #M5
+          foo2=: #M6
+          foo3=: #M7
+          foo4=: #M8
+        interface: #M9
+          map
+            foo1=: #M5
+            foo2=: #M6
+            foo3=: #M7
+            foo4=: #M8
+''',
+      updatedCode: r'''
+class A {
+  set foo1(int a) {}
+  set foo2(@deprecated int a) {}
+  set foo3(@deprecated int a) {}
+  set foo4(int a) {}
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredClasses
+      A: #M0
+        declaredFields
+          foo1: #M1
+          foo2: #M2
+          foo3: #M3
+          foo4: #M4
+        declaredSetters
+          foo1=: #M5
+          foo2=: #M6
+          foo3=: #M10
+          foo4=: #M11
+        interface: #M12
+          map
+            foo1=: #M5
+            foo2=: #M6
+            foo3=: #M10
+            foo4=: #M11
+''',
+    );
+  }
+
   test_manifest_class_setter_metadata() async {
     await _runLibraryManifestScenario(
       initialCode: r'''
@@ -45776,8 +45974,11 @@ abstract class C implements A, B {}
               dynamic
         declaredSetters
           foo=: #M2
-            valueType: List @ dart:core
-              dynamic
+            functionType: FunctionType
+              positional
+                required List @ dart:core
+                  dynamic
+              returnType: void
         interface: #M3
           map
             foo=: #M2
@@ -45790,8 +45991,11 @@ abstract class C implements A, B {}
               void
         declaredSetters
           foo=: #M6
-            valueType: List @ dart:core
-              void
+            functionType: FunctionType
+              positional
+                required List @ dart:core
+                  void
+              returnType: void
         interface: #M7
           map
             foo=: #M6
@@ -45831,8 +46035,11 @@ abstract class C implements A, B {}
               dynamic
         declaredSetters
           foo=: #M2
-            valueType: List @ dart:core
-              dynamic
+            functionType: FunctionType
+              positional
+                required List @ dart:core
+                  dynamic
+              returnType: void
         interface: #M3
           map
             foo=: #M2
@@ -45845,8 +46052,11 @@ abstract class C implements A, B {}
               int @ dart:core
         declaredSetters
           foo=: #M12
-            valueType: List @ dart:core
-              int @ dart:core
+            functionType: FunctionType
+              positional
+                required List @ dart:core
+                  int @ dart:core
+              returnType: void
         interface: #M13
           map
             foo=: #M12
@@ -45885,7 +46095,10 @@ class A {
             type: int @ dart:core
         declaredSetters
           foo=: #M2
-            valueType: int @ dart:core
+            functionType: FunctionType
+              positional
+                required int @ dart:core
+              returnType: void
         interface: #M3
           map
             foo=: #M2
@@ -45906,7 +46119,10 @@ class A {
             type: double @ dart:core
         declaredSetters
           foo=: #M5
-            valueType: double @ dart:core
+            functionType: FunctionType
+              positional
+                required double @ dart:core
+              returnType: void
         interface: #M6
           map
             foo=: #M5
@@ -54348,7 +54564,10 @@ mixin A {
             type: int @ dart:core
         declaredSetters
           foo=: #M2
-            valueType: int @ dart:core
+            functionType: FunctionType
+              positional
+                required int @ dart:core
+              returnType: void
         interface: #M3
           map
             foo=: #M2
@@ -54370,7 +54589,10 @@ mixin A {
             type: double @ dart:core
         declaredSetters
           foo=: #M5
-            valueType: double @ dart:core
+            functionType: FunctionType
+              positional
+                required double @ dart:core
+              returnType: void
         interface: #M6
           map
             foo=: #M5

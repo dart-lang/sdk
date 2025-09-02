@@ -410,9 +410,6 @@ String itemizeNames(List<String> names) {
 /// For example, when compiling "class A extends S with M1, M2", the
 /// two synthetic classes will be named "_A&S&M1" and "_A&S&M1&M2".
 /// This function will return "S with M1" and "S with M1, M2", respectively.
-///
-/// This method is copied from package:kernel/ast.dart.
-// TODO(johnniwinther): Avoid the need for this method.
 String demangleMixinApplicationName(String name) {
   List<String> nameParts = name.split('&');
   if (nameParts.length < 2 || name == "&") return name;

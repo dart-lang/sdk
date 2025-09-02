@@ -6,10 +6,7 @@ import 'dart:io' show File, exitCode;
 
 import "package:_fe_analyzer_shared/src/messages/severity.dart"
     show severityEnumNames;
-import 'package:pub_semver/pub_semver.dart' show Version;
 import 'package:yaml/yaml.dart' show loadYaml;
-
-import '../test/utils/io_utils.dart';
 
 Uri computeSharedGeneratedFile(Uri repoDir) {
   return repoDir.resolve(
@@ -30,10 +27,7 @@ class Messages {
   Messages(this.sharedMessages, this.cfeMessages);
 }
 
-Messages generateMessagesFilesRaw(
-  Uri repoDir,
-  String Function(String, Version) formatter,
-) {
+Messages generateMessagesFilesRaw(Uri repoDir) {
   Uri messagesFile = repoDir.resolve("pkg/front_end/messages.yaml");
   Map<dynamic, dynamic> yaml = loadYaml(
     new File.fromUri(messagesFile).readAsStringSync(),
@@ -151,10 +145,7 @@ part of 'cfe_codes.dart';
     return new Messages('', '');
   }
 
-  return new Messages(
-    formatter("$sharedMessages", getPackageVersionFor("_fe_analyzer_shared")),
-    formatter("$cfeMessages", getPackageVersionFor("front_end")),
-  );
+  return new Messages("$sharedMessages", "$cfeMessages");
 }
 
 final RegExp placeholderPattern = new RegExp(

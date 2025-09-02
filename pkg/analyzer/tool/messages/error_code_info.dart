@@ -476,7 +476,7 @@ class CfeToAnalyzerErrorCodeTables {
         throw '''
 $frontEndCode specifies index $index but indices must be 1 or greater.
 For more information run:
-pkg/front_end/tool/fasta generate-messages
+dart pkg/front_end/tool/generate_messages.dart
 ''';
       }
       if (indexToInfo.length <= index) {

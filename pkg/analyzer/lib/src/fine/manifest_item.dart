@@ -845,13 +845,13 @@ class InstanceItemMethodItem extends InstanceItemMemberItem<MethodElementImpl> {
 }
 
 class InstanceItemSetterItem extends InstanceItemMemberItem<SetterElementImpl> {
-  final ManifestType valueType;
+  final ManifestFunctionType functionType;
 
   InstanceItemSetterItem({
     required super.id,
     required super.metadata,
     required super.isStatic,
-    required this.valueType,
+    required this.functionType,
   });
 
   factory InstanceItemSetterItem.fromElement({
@@ -866,7 +866,7 @@ class InstanceItemSetterItem extends InstanceItemMemberItem<SetterElementImpl> {
         element.thisOrVariableMetadata,
       ),
       isStatic: element.isStatic,
-      valueType: element.valueFormalParameter.type.encode(context),
+      functionType: element.type.encode(context),
     );
   }
 
@@ -875,20 +875,20 @@ class InstanceItemSetterItem extends InstanceItemMemberItem<SetterElementImpl> {
       id: ManifestItemId.read(reader),
       metadata: ManifestMetadata.read(reader),
       isStatic: reader.readBool(),
-      valueType: ManifestType.read(reader),
+      functionType: ManifestFunctionType.read(reader),
     );
   }
 
   @override
   bool match(MatchContext context, SetterElementImpl element) {
     return super.match(context, element) &&
-        valueType.match(context, element.valueFormalParameter.type);
+        functionType.match(context, element.type);
   }
 
   @override
   void write(BufferedSink sink) {
     super.write(sink);
-    valueType.write(sink);
+    functionType.writeNoTag(sink);
   }
 
   @override

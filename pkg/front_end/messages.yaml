@@ -4,14 +4,14 @@
 
 # Run
 #
-#     dart pkg/front_end/tool/cfe.dart generate-messages
+#     dart pkg/front_end/tool/generate_messages.dart
 #
 # to regenerate messages after having edited this file.
 #
 # If entries with 'analyzerCode', 'sharedName', or 'index' have been changed,
 # run both
 #
-#     dart pkg/front_end/tool/cfe.dart generate-messages
+#     dart pkg/front_end/tool/generate_messages.dart
 #     dart pkg/analyzer/tool/messages/generate.dart
 #
 # to regenerate analyzer messages.

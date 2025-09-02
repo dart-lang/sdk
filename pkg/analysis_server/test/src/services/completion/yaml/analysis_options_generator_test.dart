@@ -8,6 +8,7 @@ import 'package:analyzer/error/error.dart';
 import 'package:analyzer/src/analysis_options/analysis_options_file.dart';
 import 'package:analyzer/src/lint/linter.dart';
 import 'package:analyzer/src/test_utilities/lint_registration_mixin.dart';
+import 'package:collection/collection.dart';
 import 'package:linter/src/rules.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -77,7 +78,7 @@ analyzer:
     assertSuggestion('annotate_overrides: ');
   }
 
-  void test_analyzer_errors_nonDuplicate() {
+  void test_analyzer_errors_excludesExisting() {
     getCompletions('''
 analyzer:
   errors:
@@ -85,6 +86,20 @@ analyzer:
     ^
 ''');
     assertNoSuggestion('dead_code');
+  }
+
+  void test_analyzer_errors_noDuplicates() {
+    getCompletions('''
+analyzer:
+  errors:
+    ^
+''');
+    var duplicateCompletions =
+        groupBy(
+          results.map((result) => result.completion),
+          (result) => result,
+        ).entries.where((entry) => entry.value.length > 1).keys;
+    expect(duplicateCompletions, isEmpty);
   }
 
   void test_analyzer_errors_severity() {
