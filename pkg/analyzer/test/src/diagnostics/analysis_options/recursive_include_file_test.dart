@@ -27,7 +27,8 @@ include: analysis_options.yaml
           21,
           text:
               "The include file 'analysis_options.yaml' "
-              "in '${convertPath('/analysis_options.yaml')}' includes itself recursively.",
+              "in '${convertPath('/analysis_options.yaml')}' includes itself "
+              'recursively.',
         ),
       ],
     );
@@ -46,10 +47,23 @@ include:
           21,
           text:
               "The include file 'analysis_options.yaml' "
-              "in '${convertPath('/analysis_options.yaml')}' includes itself recursively.",
+              "in '${convertPath('/analysis_options.yaml')}' includes itself "
+              'recursively.',
         ),
       ],
     );
+  }
+
+  Future<void> test_notRecursive() async {
+    newFile('/a.yaml', '''
+include: b.yaml
+''');
+    newFile('/b.yaml', '');
+    await assertNoErrorsInCode('''
+include:
+  - a.yaml
+  - b.yaml
+''');
   }
 
   Future<void> test_recursive() async {
@@ -116,8 +130,8 @@ include:
       [
         error(
           AnalysisOptionsWarningCode.recursiveIncludeFile,
-          13,
-          10,
+          28,
+          6,
           text:
               "The include file 'analysis_options.yaml' "
               "in '${convertPath('/b.yaml')}' includes itself recursively.",

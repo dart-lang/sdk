@@ -24174,28 +24174,27 @@ extension type A(double it) {
 [operation] linkLibraryCycle
   package:test/a.dart
     declaredExtensionTypes
-      A: #M0
+      A: #M6
         declaredFields
-          it: #M6
-        declaredGetters
           it: #M7
+        declaredGetters
+          it: #M8
         declaredConstructors
-          named: #M3
-          new: #M8
-        interface: #M9
+          named: #M9
+          new: #M10
+        interface: #M11
           map
-            it: #M7
+            it: #M8
   requirements
 [operation] reuseLinkedBundle
   package:test/test.dart
 [operation] checkLibraryDiagnosticsRequirements
   library: /home/test/lib/test.dart
-  interfaceChildrenIdsMismatch
+  topLevelIdMismatch
     libraryUri: package:test/a.dart
-    interfaceName: A
-    childrenPropertyName: constructors
-    expectedIds: #M4 #M3
-    actualIds: #M8 #M3
+    name: A
+    expectedId: #M0
+    actualId: #M6
 [operation] analyzeFile
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
@@ -24212,10 +24211,10 @@ extension type A(double it) {
     libraries
       package:test/a.dart
         exportedTopLevels
-          A: #M0
+          A: #M6
         interfaces
           A
-            allConstructors: #M8 #M3
+            allConstructors: #M10 #M9
 [status] idle
 [future] getErrors T2
   ErrorsResult #3
@@ -24297,27 +24296,26 @@ extension type A(double it) {}
 [operation] linkLibraryCycle
   package:test/a.dart
     declaredExtensionTypes
-      A: #M0
+      A: #M6
         declaredFields
-          it: #M6
-        declaredGetters
           it: #M7
+        declaredGetters
+          it: #M8
         declaredConstructors
-          new: #M8
-        interface: #M9
+          new: #M9
+        interface: #M10
           map
-            it: #M7
+            it: #M8
   requirements
 [operation] reuseLinkedBundle
   package:test/test.dart
 [operation] checkLibraryDiagnosticsRequirements
   library: /home/test/lib/test.dart
-  interfaceConstructorIdMismatch
+  topLevelIdMismatch
     libraryUri: package:test/a.dart
-    interfaceName: A
-    constructorName: new
-    expectedId: #M3
-    actualId: #M8
+    name: A
+    expectedId: #M0
+    actualId: #M6
 [operation] analyzeFile
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
@@ -24332,11 +24330,11 @@ extension type A(double it) {}
     libraries
       package:test/a.dart
         exportedTopLevels
-          A: #M0
+          A: #M6
         interfaces
           A
             requestedConstructors
-              new: #M8
+              new: #M9
 [status] idle
 [future] getErrors T2
   ErrorsResult #3
@@ -24421,26 +24419,49 @@ extension type A(double it) {
 [operation] linkLibraryCycle
   package:test/a.dart
     declaredExtensionTypes
-      A: #M0
+      A: #M7
         declaredFields
-          it: #M7
-        declaredGetters
           it: #M8
+        declaredGetters
+          it: #M9
         declaredConstructors
-          named: #M3
-          new: #M9
-        interface: #M10
+          named: #M10
+          new: #M11
+        interface: #M12
           map
-            it: #M8
+            it: #M9
   requirements
 [operation] reuseLinkedBundle
   package:test/test.dart
-[operation] getErrorsFromBytes
+[operation] checkLibraryDiagnosticsRequirements
+  library: /home/test/lib/test.dart
+  topLevelIdMismatch
+    libraryUri: package:test/a.dart
+    name: A
+    expectedId: #M0
+    actualId: #M7
+[operation] analyzeFile
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
+[stream]
+  ResolvedUnitResult #2
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: exists isLibrary
+[operation] analyzedLibrary
+  file: /home/test/lib/test.dart
+  requirements
+    libraries
+      package:test/a.dart
+        exportedTopLevels
+          A: #M7
+        interfaces
+          A
+            requestedConstructors
+              named: #M10
 [status] idle
 [future] getErrors T2
-  ErrorsResult #2
+  ErrorsResult #3
     path: /home/test/lib/test.dart
     uri: package:test/test.dart
     flags: isLibrary
@@ -50881,6 +50902,82 @@ extension type A(int it) {
     );
   }
 
+  test_manifest_extensionType_hasImplementsSelfReference() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+extension type A(int it) implements Object {}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredExtensionTypes
+      A: #M0
+        declaredFields
+          it: #M1
+        declaredGetters
+          it: #M2
+        interface: #M3
+          map
+            it: #M2
+''',
+      updatedCode: r'''
+extension type A(int it) implements A {}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredExtensionTypes
+      A: #M4
+        declaredFields
+          it: #M5
+        declaredGetters
+          it: #M6
+        interface: #M7
+          map
+            it: #M6
+''',
+    );
+  }
+
+  test_manifest_extensionType_hasRepresentationSelfReference() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+extension type A(NoSuchType it) {}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredExtensionTypes
+      A: #M0
+        declaredFields
+          it: #M1
+        declaredGetters
+          it: #M2
+        interface: #M3
+          map
+            it: #M2
+''',
+      updatedCode: r'''
+extension type A(A it) {}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredExtensionTypes
+      A: #M4
+        declaredFields
+          it: #M5
+        declaredGetters
+          it: #M6
+        interface: #M7
+          map
+            it: #M6
+''',
+    );
+  }
+
   test_manifest_extensionType_implements_add() async {
     await _runLibraryManifestScenario(
       initialCode: r'''
@@ -51205,17 +51302,17 @@ extension type A(double it) {
 [operation] linkLibraryCycle
   package:test/test.dart
     declaredExtensionTypes
-      A: #M0
+      A: #M5
         declaredFields
-          it: #M5
-        declaredGetters
           it: #M6
+        declaredGetters
+          it: #M7
         declaredMethods
-          foo: #M3
-        interface: #M7
+          foo: #M8
+        interface: #M9
           map
-            foo: #M3
-            it: #M6
+            foo: #M8
+            it: #M7
 ''',
     );
   }
@@ -51274,6 +51371,44 @@ extension type A(int it) {
             bar=: #M9
             foo=: #M6
             it: #M4
+''',
+    );
+  }
+
+  test_manifest_extensionType_typeErasure() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+extension type A(num it) {}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredExtensionTypes
+      A: #M0
+        declaredFields
+          it: #M1
+        declaredGetters
+          it: #M2
+        interface: #M3
+          map
+            it: #M2
+''',
+      updatedCode: r'''
+extension type A(int it) {}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredExtensionTypes
+      A: #M4
+        declaredFields
+          it: #M5
+        declaredGetters
+          it: #M6
+        interface: #M7
+          map
+            it: #M6
 ''',
     );
   }

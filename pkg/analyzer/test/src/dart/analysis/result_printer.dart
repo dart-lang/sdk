@@ -1115,8 +1115,14 @@ class LibraryManifestPrinter {
   void _writeExtensionTypeItem(ExtensionTypeItem item) {
     if (configuration.withElementManifests) {
       sink.withIndent(() {
+        sink.writeFlags({
+          'hasImplementsSelfReference': item.hasImplementsSelfReference,
+          'hasRepresentationSelfReference': item.hasRepresentationSelfReference,
+        });
         _writeMetadata(item);
         _writeTypeParameters(item.typeParameters);
+        _writeNamedType('representationType', item.representationType);
+        _writeNamedType('typeErasure', item.typeErasure);
         _writeTypeList('interfaces', item.interfaces);
       });
     }

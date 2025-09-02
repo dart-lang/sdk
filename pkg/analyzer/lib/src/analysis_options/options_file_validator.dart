@@ -201,14 +201,18 @@ List<Diagnostic> analyzeAnalysisOptions(
       }
     }
 
-    if (includeNode is YamlScalar) {
-      validateInclude(includeNode);
-    } else if (includeNode is YamlList) {
-      for (var includeValue in includeNode.nodes) {
-        if (includeValue is YamlScalar) {
-          validateInclude(includeValue);
-        }
+    var includes = switch (includeNode) {
+      YamlScalar node => [node],
+      YamlList(:var nodes) => nodes.whereType<YamlScalar>().toList(),
+      _ => const <YamlScalar>[],
+    };
+
+    for (var includeValue in includes) {
+      if (sourceIsOptionsForContextRoot) {
+        initialIncludeSpan = null;
+        includeChain.clear();
       }
+      validateInclude(includeValue);
     }
   }
 
