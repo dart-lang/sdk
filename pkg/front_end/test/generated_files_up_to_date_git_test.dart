@@ -4,6 +4,8 @@
 
 import "dart:io" show File, exitCode;
 
+import 'package:dart_style/dart_style.dart' show DartFormatter;
+
 import "../tool/generate_experimental_flags.dart" as generateExperimentalFlags;
 import "../tool/generate_messages.dart" as generateMessages;
 import "../tool/parser_ast_helper_creator.dart" as generateParserAstHelper;
@@ -12,7 +14,7 @@ import '../tool/generate_ast_coverage.dart' as generateAstCoverage;
 import '../tool/generate_ast_equivalence.dart' as generateAstEquivalence;
 import "parser_test_listener_creator.dart" as generateParserTestListener;
 import "parser_test_parser_creator.dart" as generateParserTestParser;
-import 'utils/io_utils.dart' show computeRepoDirUri;
+import 'utils/io_utils.dart' show computeRepoDirUri, getPackageVersionFor;
 
 final Uri repoDir = computeRepoDirUri();
 
@@ -131,16 +133,20 @@ void messages() {
 
   Uri generatedFile = generateMessages.computeSharedGeneratedFile(repoDir);
   check(
-    messages.sharedMessages,
+    new DartFormatter(
+      languageVersion: getPackageVersionFor('_fe_analyzer_shared'),
+    ).format(messages.sharedMessages),
     generatedFile,
-    "dart pkg/front_end/tool/cfe.dart generate-messages",
+    "dart pkg/front_end/tool/generate_messages.dart",
   );
 
   Uri cfeGeneratedFile = generateMessages.computeCfeGeneratedFile(repoDir);
   check(
-    messages.cfeMessages,
+    new DartFormatter(
+      languageVersion: getPackageVersionFor('front_end'),
+    ).format(messages.cfeMessages),
     cfeGeneratedFile,
-    "dart pkg/front_end/tool/cfe.dart generate-messages",
+    "dart pkg/front_end/tool/generate_messages.dart",
   );
 }
 

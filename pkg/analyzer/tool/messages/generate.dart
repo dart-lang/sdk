@@ -12,7 +12,7 @@
 /// containing the error and the name of the error separated by a `.`
 /// (e.g. ParserErrorCode.EQUALITY_CANNOT_BE_EQUALITY_OPERAND).
 ///
-/// It is expected that 'pkg/front_end/tool/fasta generate-messages'
+/// It is expected that 'dart pkg/front_end/tool/generate_messages.dart'
 /// has already been successfully run.
 library;
 
