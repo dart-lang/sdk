@@ -8481,17 +8481,29 @@ class Parser {
       }
     }
 
-    bool isDotShorthand = _isDotShorthand(token.next!);
-    if (isDotShorthand) {
-      Token dot = token.next!;
+    // Handling const dot shorthands.
+    if (next.isA(TokenType.PERIOD)) {
       listener.beginConstDotShorthand(constKeyword);
-      token = parsePrimary(
-        dot,
-        IdentifierContext.expressionContinuation,
-        ConstantPatternContext.explicit,
-      );
-      listener.handleDotShorthandHead(dot);
-      listener.handleDotShorthandContext(dot);
+
+      if (_isDotShorthand(next)) {
+        token = parsePrimary(
+          next,
+          IdentifierContext.expressionContinuation,
+          ConstantPatternContext.explicit,
+        );
+      } else {
+        // Recovery.
+        // This is an incomplete dot shorthand like `C c = const .`.
+        // This allows for better code completion, assuming the user wanted to
+        // write a dot shorthand.
+        token = ensureIdentifier(
+          next,
+          IdentifierContext.expressionContinuation,
+        );
+      }
+
+      listener.handleDotShorthandHead(next);
+      listener.handleDotShorthandContext(next);
       listener.endConstDotShorthand(constKeyword);
       return token;
     }

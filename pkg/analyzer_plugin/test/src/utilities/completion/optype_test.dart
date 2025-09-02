@@ -1024,6 +1024,36 @@ main() {new core.String.from^CharCodes([]);}
         returnValue: true);
   }
 
+  Future<void> test_dotShorthandConstructorInvocation() async {
+    addTestSource('''
+class C {
+  const C.named();
+}
+void f() {
+  C c = const .n^
+}
+''');
+    await assertOpType(
+      completionLocation: 'DotShorthandConstructorInvocation_constructorName',
+      constructors: true,
+    );
+  }
+
+  Future<void> test_dotShorthandConstructorInvocation_noTarget() async {
+    addTestSource('''
+class C {
+  const C.named();
+}
+void f() {
+  C c = const .^
+}
+''');
+    await assertOpType(
+      completionLocation: 'DotShorthandConstructorInvocation_constructorName',
+      constructors: true,
+    );
+  }
+
   Future<void> test_dotShorthandInvocation() async {
     addTestSource('''
 class C {
@@ -1034,7 +1064,7 @@ void f() {
 }
 ''');
     await assertOpType(
-      completionLocation: 'DotShorthandPropertyAccess_memberName',
+      completionLocation: 'DotShorthandInvocation_memberName',
       constructors: true,
       returnValue: true,
     );

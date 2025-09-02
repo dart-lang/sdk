@@ -1569,16 +1569,28 @@ class AstBuilder extends StackListener {
       );
     }
 
-    var dotShorthand = pop() as DotShorthandInvocationImpl;
-    push(
-      DotShorthandConstructorInvocationImpl(
-        constKeyword: token,
-        period: dotShorthand.period,
-        constructorName: dotShorthand.memberName,
-        typeArguments: dotShorthand.typeArguments,
-        argumentList: dotShorthand.argumentList,
-      )..isDotShorthand = dotShorthand.isDotShorthand,
-    );
+    var dotShorthand = pop() as Expression;
+    if (dotShorthand is DotShorthandInvocationImpl) {
+      push(
+        DotShorthandConstructorInvocationImpl(
+          constKeyword: token,
+          period: dotShorthand.period,
+          constructorName: dotShorthand.memberName,
+          typeArguments: dotShorthand.typeArguments,
+          argumentList: dotShorthand.argumentList,
+        )..isDotShorthand = dotShorthand.isDotShorthand,
+      );
+    } else if (dotShorthand is DotShorthandPropertyAccessImpl) {
+      push(
+        DotShorthandConstructorInvocationImpl(
+          constKeyword: token,
+          period: dotShorthand.period,
+          constructorName: dotShorthand.propertyName,
+          typeArguments: null,
+          argumentList: _syntheticArgumentList(dotShorthand.propertyName.token),
+        )..isDotShorthand = dotShorthand.isDotShorthand,
+      );
+    }
   }
 
   @override

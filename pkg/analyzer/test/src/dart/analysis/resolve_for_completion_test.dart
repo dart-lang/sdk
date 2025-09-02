@@ -191,6 +191,40 @@ void f(C foo) {var foo.s^.self = C()}
     result.assertResolvedNodes(['void f(C foo) {var foo; .s.self = C();}']);
   }
 
+  test_dotShorthand_const_constructor() async {
+    var result = await _resolveTestCode(r'''
+class C {
+  const C.named();
+}
+void f() {
+  C c = const .^
+}
+''');
+    // TODO(kallentu): The parser shouldn't wrap the
+    // DotShorthandConstructorInvocation in a function expression. This doesn't
+    // produce anything different with code completion that requires this
+    // recovered AST, but it would be nice to avoid the extra wrapping around
+    // the constructor.
+    result.assertResolvedNodes(['void f() {C c = const .()();}']);
+  }
+
+  test_dotShorthand_const_constructor_prefix() async {
+    var result = await _resolveTestCode(r'''
+class C {
+  const C.named();
+}
+void f() {
+  C c = const .name^
+}
+''');
+    // TODO(kallentu): The parser shouldn't wrap the
+    // DotShorthandConstructorInvocation in a function expression. This doesn't
+    // produce anything different with code completion that requires this
+    // recovered AST, but it would be nice to avoid the extra wrapping around
+    // the constructor.
+    result.assertResolvedNodes(['void f() {C c = const .name()();}']);
+  }
+
   test_extension_methodDeclaration_body() async {
     var result = await _resolveTestCode(r'''
 extension E on int {
