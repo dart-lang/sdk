@@ -1215,7 +1215,7 @@ class LibraryManifestPrinter {
             if (configuration.withElementManifests) {
               sink.withIndent(() {
                 _writeMetadata(item);
-                _writeNamedType('valueType', item.valueType);
+                _writeNamedType('functionType', item.functionType);
               });
             }
           }
