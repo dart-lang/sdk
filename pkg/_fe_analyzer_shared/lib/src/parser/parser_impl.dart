@@ -4609,7 +4609,7 @@ class Parser {
   Token ensureBlock(Token token, BlockKind? missingBlockKind) {
     Token next = token.next!;
     if (next.isA(TokenType.OPEN_CURLY_BRACKET)) return next;
-    codes.Template<codes.Message Function(Token token)>? template =
+    codes.Template<codes.Message Function(Token token), Function>? template =
         missingBlockKind?.template;
     if (template == null) {
       codes.Message? message = missingBlockKind?.message;
@@ -10795,7 +10795,7 @@ class Parser {
 
   void reportRecoverableErrorWithToken(
     Token token,
-    codes.Template<_MessageWithArgument<Token>> template,
+    codes.Template<_MessageWithArgument<Token>, Function> template,
   ) {
     // Find a non-synthetic token on which to report the error.
     token = findNonZeroLengthToken(token);

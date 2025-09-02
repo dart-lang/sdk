@@ -303,9 +303,8 @@ abstract class NamedTypeBuilderImpl extends NamedTypeBuilder {
     if (member is TypeDeclarationBuilder) {
       bind(problemReporting, member);
     } else {
-      Template<Message Function(String name)> template = member == null
-          ? codeTypeNotFound
-          : codeNotAType;
+      Template<Message Function(String name), Function> template =
+          member == null ? codeTypeNotFound : codeNotAType;
       String nameText = typeName.fullName;
       int nameOffset = typeName.fullNameOffset;
       int nameLength = typeName.fullNameLength;
@@ -459,7 +458,7 @@ abstract class NamedTypeBuilderImpl extends NamedTypeBuilder {
   }
 
   Supertype? _handleInvalidSupertype(LibraryBuilder library) {
-    Template<Message Function(String name)> template =
+    Template<Message Function(String name), Function> template =
         declaration.isTypeParameter
         ? codeSupertypeIsTypeParameter
         : codeSupertypeIsIllegal;

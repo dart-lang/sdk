@@ -488,6 +488,7 @@ const MessageCode code$name =
     }
 
     templateArguments.add("withArgumentsOld: _withArgumentsOld$name");
+    templateArguments.add("withArguments: _withArguments$name");
     templateArguments.addAll(codeArguments);
 
     String message = interpolate(problemMessage);
@@ -520,9 +521,10 @@ const MessageCode code$name =
         .toList();
     return new Template("""
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(${positionalParameters.join(', ')})> code$name =
-    const Template<Message Function(${positionalParameters.join(', ')})>(
-        ${templateArguments.join(', ')},);
+const Template<
+  Message Function(${positionalParameters.join(', ')}),
+  Message Function({${namedParameters.join(', ')}})
+> code$name = const Template(${templateArguments.join(', ')},);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArguments$name({${namedParameters.join(', ')}}) {

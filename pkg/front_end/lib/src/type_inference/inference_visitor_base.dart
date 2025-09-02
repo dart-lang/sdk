@@ -385,7 +385,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
     DartType? runtimeCheckedType,
     bool isVoidAllowed = false,
     bool coerceExpression = true,
-    Template<Message Function(DartType, DartType)>? errorTemplate,
+    Template<Message Function(DartType, DartType), Function>? errorTemplate,
     Map<SharedTypeView, NonPromotionReason> Function()? whyNotPromoted,
   }) {
     return ensureAssignableResult(
@@ -421,8 +421,10 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
 
     DartType initialContextType = runtimeCheckedType ?? contextType;
 
-    Template<Message Function(DartType, DartType)>? preciseTypeErrorTemplate =
-        _getPreciseTypeErrorTemplate(inferenceResult.expression);
+    Template<Message Function(DartType, DartType), Function>?
+    preciseTypeErrorTemplate = _getPreciseTypeErrorTemplate(
+      inferenceResult.expression,
+    );
     AssignabilityResult assignabilityResult = _computeAssignabilityKind(
       contextType,
       inferenceResult.inferredType,
@@ -505,7 +507,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
     DartType? runtimeCheckedType,
     bool isVoidAllowed = false,
     bool isCoercionAllowed = true,
-    Template<Message Function(DartType, DartType)>? errorTemplate,
+    Template<Message Function(DartType, DartType), Function>? errorTemplate,
     Map<SharedTypeView, NonPromotionReason> Function()? whyNotPromoted,
   }) {
     errorTemplate ??= codeInvalidAssignmentError;
@@ -513,8 +515,10 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
     fileOffset ??= inferenceResult.expression.fileOffset;
     contextType = computeGreatestClosure(contextType);
 
-    Template<Message Function(DartType, DartType)>? preciseTypeErrorTemplate =
-        _getPreciseTypeErrorTemplate(inferenceResult.expression);
+    Template<Message Function(DartType, DartType), Function>?
+    preciseTypeErrorTemplate = _getPreciseTypeErrorTemplate(
+      inferenceResult.expression,
+    );
     AssignabilityResult assignabilityResult = _computeAssignabilityKind(
       contextType,
       inferenceResult.inferredType,
@@ -653,7 +657,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
     DartType? runtimeCheckedType,
     bool isVoidAllowed = false,
     bool coerceExpression = true,
-    Template<Message Function(DartType, DartType)>? errorTemplate,
+    Template<Message Function(DartType, DartType), Function>? errorTemplate,
     Map<SharedTypeView, NonPromotionReason> Function()? whyNotPromoted,
   }) {
     if (coerceExpression) {
@@ -690,7 +694,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
   Expression _wrapTearoffErrorExpression(
     Expression expression,
     DartType contextType,
-    Template<Message Function(String)> template,
+    Template<Message Function(String), Function> template,
   ) {
     Expression errorNode =
         new AsExpression(
@@ -1511,7 +1515,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
     DartType receiverType,
     Name name,
     int fileOffset,
-    Template<Message Function(String, DartType)> errorTemplate,
+    Template<Message Function(String, DartType), Function> errorTemplate,
   ) {
     assert(isKnown(receiverType));
     if (target.isMissing) {
@@ -4888,9 +4892,8 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
   ///
   /// If it is, an error message template is returned, which can be used by the
   /// caller to report an invalid cast.  Otherwise, `null` is returned.
-  Template<Message Function(DartType, DartType)>? _getPreciseTypeErrorTemplate(
-    Expression expression,
-  ) {
+  Template<Message Function(DartType, DartType), Function>?
+  _getPreciseTypeErrorTemplate(Expression expression) {
     if (expression is ListLiteral) {
       return codeInvalidCastLiteralList;
     }
@@ -5019,11 +5022,12 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
     Name name,
     Expression? wrappedExpression,
     List<ExtensionAccessCandidate>? extensionAccessCandidates,
-    Template<Message Function(String, DartType)> missingTemplate,
-    Template<Message Function(String, DartType)> ambiguousTemplate,
+    Template<Message Function(String, DartType), Function> missingTemplate,
+    Template<Message Function(String, DartType), Function> ambiguousTemplate,
   ) {
     List<LocatedMessage>? context;
-    Template<Message Function(String, DartType)> template = missingTemplate;
+    Template<Message Function(String, DartType), Function> template =
+        missingTemplate;
     if (extensionAccessCandidates != null) {
       context = extensionAccessCandidates
           .map(
@@ -5370,7 +5374,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
     Expression? receiver,
     List<ExtensionAccessCandidate>? extensionAccessCandidates,
   }) {
-    Template<Message Function(String, DartType)> codeMissing =
+    Template<Message Function(String, DartType), Function> codeMissing =
         codeUndefinedGetter;
     return _reportMissingOrAmbiguousMember(
       fileOffset,
@@ -5395,7 +5399,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
     required bool forEffect,
     List<ExtensionAccessCandidate>? extensionAccessCandidates,
   }) {
-    Template<Message Function(String, DartType)> codeMissing =
+    Template<Message Function(String, DartType), Function> codeMissing =
         codeUndefinedSetter;
     return _reportMissingOrAmbiguousMember(
       fileOffset,
@@ -5416,7 +5420,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
     Expression index, {
     List<ExtensionAccessCandidate>? extensionAccessCandidates,
   }) {
-    Template<Message Function(String, DartType)> codeMissing =
+    Template<Message Function(String, DartType), Function> codeMissing =
         codeUndefinedOperator;
 
     return _reportMissingOrAmbiguousMember(
@@ -5445,7 +5449,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
     required bool forEffect,
     List<ExtensionAccessCandidate>? extensionAccessCandidates,
   }) {
-    Template<Message Function(String, DartType)> codeMissing =
+    Template<Message Function(String, DartType), Function> codeMissing =
         codeUndefinedOperator;
     return _reportMissingOrAmbiguousMember(
       fileOffset,
@@ -5473,7 +5477,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
     List<ExtensionAccessCandidate>? extensionAccessCandidates,
   }) {
     assert(binaryName != equalsName);
-    Template<Message Function(String, DartType)> codeMissing =
+    Template<Message Function(String, DartType), Function> codeMissing =
         codeUndefinedOperator;
     return _reportMissingOrAmbiguousMember(
       fileOffset,
@@ -5499,7 +5503,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
     Name unaryName, {
     List<ExtensionAccessCandidate>? extensionAccessCandidates,
   }) {
-    Template<Message Function(String, DartType)> codeMissing =
+    Template<Message Function(String, DartType), Function> codeMissing =
         codeUndefinedOperator;
     return _reportMissingOrAmbiguousMember(
       fileOffset,
@@ -5764,7 +5768,7 @@ class _WhyNotPromotedVisitor
         member = stubTarget;
       }
       propertyReference = member;
-      Template<Message Function(String, String)> template =
+      Template<Message Function(String, String), Function> template =
           switch (reason.whyNotPromotable) {
             PropertyNonPromotabilityReason.isNotField =>
               codeFieldNotPromotedBecauseNotField,

@@ -851,7 +851,7 @@ class SourceLoader extends Loader {
     logSummary(codeSourceBodySummary);
   }
 
-  void logSummary(Template<SummaryTemplate> template) {
+  void logSummary(Template<SummaryTemplate, Function> template) {
     ticker.log(
       // Coverage-ignore(suite): Not run.
       (Duration elapsed, Duration sinceStart) {
@@ -1052,7 +1052,7 @@ severity: $severity
 
   ClassMembersBuilder get membersBuilder => _membersBuilder!;
 
-  Template<SummaryTemplate> get outlineSummaryTemplate =>
+  Template<SummaryTemplate, Function> get outlineSummaryTemplate =>
       codeSourceOutlineSummary;
 
   /// The [SourceCompilationUnit]s for the `dart:` libraries that are not
@@ -2314,7 +2314,7 @@ severity: $severity
               return;
             }
           }
-          final Template<Message Function(String, String)> template =
+          final Template<Message Function(String, String), Function> template =
               cls.isMixinDeclaration
               ? codeMixinSubtypeOfFinalIsNotBase
               : codeSubtypeOfFinalIsNotBaseFinalOrSealed;
@@ -2328,7 +2328,7 @@ severity: $severity
             cls.fileUri,
           );
         } else if (baseOrFinalSuperClass.isBase) {
-          final Template<Message Function(String, String)> template =
+          final Template<Message Function(String, String), Function> template =
               cls.isMixinDeclaration
               ? codeMixinSubtypeOfBaseIsNotBase
               : codeSubtypeOfBaseIsNotBaseFinalOrSealed;
@@ -2484,7 +2484,7 @@ severity: $severity
               if (checkedClass.isBase && !cls.cls.isAnonymousMixin) {
                 // Report an error for a class implementing a base class outside
                 // of its library.
-                final Template<Message Function(String)> template =
+                final Template<Message Function(String), Function> template =
                     checkedClass.isMixinDeclaration
                     ? codeBaseMixinImplementedOutsideOfLibrary
                     : codeBaseClassImplementedOutsideOfLibrary;
@@ -2502,7 +2502,7 @@ severity: $severity
               } else if (checkedClass.isFinal) {
                 // Report an error for a class implementing a final class
                 // outside of its library.
-                final Template<Message Function(String)> template =
+                final Template<Message Function(String), Function> template =
                     cls.cls.isAnonymousMixin &&
                         checkedClass == interfaceDeclaration
                     ? codeFinalClassUsedAsMixinConstraintOutsideOfLibrary
@@ -3577,7 +3577,7 @@ class _CheckSuperAccess extends RecursiveVisitor {
 
   void _checkMember(
     Name name, {
-    required Template<Message Function(String name)> template,
+    required Template<Message Function(String name), Function> template,
     required bool isSetter,
     required int accessFileOffset,
   }) {

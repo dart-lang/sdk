@@ -830,7 +830,7 @@ class BodyBuilder extends StackListenerImpl
 
   void wrapVariableInitializerInError(
     VariableDeclaration variable,
-    Template<Message Function(String name)> template,
+    Template<Message Function(String name), Function> template,
     List<LocatedMessage> context,
   ) {
     String name = variable.name!;
@@ -10654,7 +10654,7 @@ class BodyBuilder extends StackListenerImpl
     Statement problem;
     bool isBreak = keyword.isA(Keyword.BREAK);
     if (name != null) {
-      Template<Message Function(String)> template = isBreak
+      Template<Message Function(String), Function> template = isBreak
           ? cfe.codeBreakTargetOutsideFunction
           : cfe.codeContinueTargetOutsideFunction;
       problem = buildProblemStatement(

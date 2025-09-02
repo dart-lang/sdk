@@ -12,16 +12,19 @@
 part of 'cfe_codes.dart';
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(String name, DartType type)>
-codeAmbiguousExtensionMethod =
-    const Template<Message Function(String name, DartType type)>(
-      "AmbiguousExtensionMethod",
-      problemMessageTemplate:
-          r"""The method '#name' is defined in multiple extensions for '#type' and neither is more specific.""",
-      correctionMessageTemplate:
-          r"""Try using an explicit extension application of the wanted extension or hiding unwanted extensions from scope.""",
-      withArgumentsOld: _withArgumentsOldAmbiguousExtensionMethod,
-    );
+const Template<
+  Message Function(String name, DartType type),
+  Message Function({required String name, required DartType type})
+>
+codeAmbiguousExtensionMethod = const Template(
+  "AmbiguousExtensionMethod",
+  problemMessageTemplate:
+      r"""The method '#name' is defined in multiple extensions for '#type' and neither is more specific.""",
+  correctionMessageTemplate:
+      r"""Try using an explicit extension application of the wanted extension or hiding unwanted extensions from scope.""",
+  withArgumentsOld: _withArgumentsOldAmbiguousExtensionMethod,
+  withArguments: _withArgumentsAmbiguousExtensionMethod,
+);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsAmbiguousExtensionMethod({
@@ -47,16 +50,19 @@ Message _withArgumentsOldAmbiguousExtensionMethod(String name, DartType type) =>
     _withArgumentsAmbiguousExtensionMethod(name: name, type: type);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(String name, DartType type)>
-codeAmbiguousExtensionOperator =
-    const Template<Message Function(String name, DartType type)>(
-      "AmbiguousExtensionOperator",
-      problemMessageTemplate:
-          r"""The operator '#name' is defined in multiple extensions for '#type' and neither is more specific.""",
-      correctionMessageTemplate:
-          r"""Try using an explicit extension application of the wanted extension or hiding unwanted extensions from scope.""",
-      withArgumentsOld: _withArgumentsOldAmbiguousExtensionOperator,
-    );
+const Template<
+  Message Function(String name, DartType type),
+  Message Function({required String name, required DartType type})
+>
+codeAmbiguousExtensionOperator = const Template(
+  "AmbiguousExtensionOperator",
+  problemMessageTemplate:
+      r"""The operator '#name' is defined in multiple extensions for '#type' and neither is more specific.""",
+  correctionMessageTemplate:
+      r"""Try using an explicit extension application of the wanted extension or hiding unwanted extensions from scope.""",
+  withArgumentsOld: _withArgumentsOldAmbiguousExtensionOperator,
+  withArguments: _withArgumentsAmbiguousExtensionOperator,
+);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsAmbiguousExtensionOperator({
@@ -84,16 +90,19 @@ Message _withArgumentsOldAmbiguousExtensionOperator(
 ) => _withArgumentsAmbiguousExtensionOperator(name: name, type: type);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(String name, DartType type)>
-codeAmbiguousExtensionProperty =
-    const Template<Message Function(String name, DartType type)>(
-      "AmbiguousExtensionProperty",
-      problemMessageTemplate:
-          r"""The property '#name' is defined in multiple extensions for '#type' and neither is more specific.""",
-      correctionMessageTemplate:
-          r"""Try using an explicit extension application of the wanted extension or hiding unwanted extensions from scope.""",
-      withArgumentsOld: _withArgumentsOldAmbiguousExtensionProperty,
-    );
+const Template<
+  Message Function(String name, DartType type),
+  Message Function({required String name, required DartType type})
+>
+codeAmbiguousExtensionProperty = const Template(
+  "AmbiguousExtensionProperty",
+  problemMessageTemplate:
+      r"""The property '#name' is defined in multiple extensions for '#type' and neither is more specific.""",
+  correctionMessageTemplate:
+      r"""Try using an explicit extension application of the wanted extension or hiding unwanted extensions from scope.""",
+  withArgumentsOld: _withArgumentsOldAmbiguousExtensionProperty,
+  withArguments: _withArgumentsAmbiguousExtensionProperty,
+);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsAmbiguousExtensionProperty({
@@ -121,17 +130,22 @@ Message _withArgumentsOldAmbiguousExtensionProperty(
 ) => _withArgumentsAmbiguousExtensionProperty(name: name, type: type);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(String name, DartType type, DartType type2)>
-codeAmbiguousSupertypes =
-    const Template<
-      Message Function(String name, DartType type, DartType type2)
-    >(
-      "AmbiguousSupertypes",
-      problemMessageTemplate:
-          r"""'#name' can't implement both '#type' and '#type2'""",
-      withArgumentsOld: _withArgumentsOldAmbiguousSupertypes,
-      analyzerCodes: <String>["AMBIGUOUS_SUPERTYPES"],
-    );
+const Template<
+  Message Function(String name, DartType type, DartType type2),
+  Message Function({
+    required String name,
+    required DartType type,
+    required DartType type2,
+  })
+>
+codeAmbiguousSupertypes = const Template(
+  "AmbiguousSupertypes",
+  problemMessageTemplate:
+      r"""'#name' can't implement both '#type' and '#type2'""",
+  withArgumentsOld: _withArgumentsOldAmbiguousSupertypes,
+  withArguments: _withArgumentsAmbiguousSupertypes,
+  analyzerCodes: <String>["AMBIGUOUS_SUPERTYPES"],
+);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsAmbiguousSupertypes({
@@ -160,15 +174,18 @@ Message _withArgumentsOldAmbiguousSupertypes(
 ) => _withArgumentsAmbiguousSupertypes(name: name, type: type, type2: type2);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(DartType type, DartType type2)>
-codeArgumentTypeNotAssignable =
-    const Template<Message Function(DartType type, DartType type2)>(
-      "ArgumentTypeNotAssignable",
-      problemMessageTemplate:
-          r"""The argument type '#type' can't be assigned to the parameter type '#type2'.""",
-      withArgumentsOld: _withArgumentsOldArgumentTypeNotAssignable,
-      analyzerCodes: <String>["ARGUMENT_TYPE_NOT_ASSIGNABLE"],
-    );
+const Template<
+  Message Function(DartType type, DartType type2),
+  Message Function({required DartType type, required DartType type2})
+>
+codeArgumentTypeNotAssignable = const Template(
+  "ArgumentTypeNotAssignable",
+  problemMessageTemplate:
+      r"""The argument type '#type' can't be assigned to the parameter type '#type2'.""",
+  withArgumentsOld: _withArgumentsOldArgumentTypeNotAssignable,
+  withArguments: _withArgumentsArgumentTypeNotAssignable,
+  analyzerCodes: <String>["ARGUMENT_TYPE_NOT_ASSIGNABLE"],
+);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsArgumentTypeNotAssignable({
@@ -194,14 +211,17 @@ Message _withArgumentsOldArgumentTypeNotAssignable(
 ) => _withArgumentsArgumentTypeNotAssignable(type: type, type2: type2);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(Constant constant)>
-codeConstEvalCaseImplementsEqual =
-    const Template<Message Function(Constant constant)>(
-      "ConstEvalCaseImplementsEqual",
-      problemMessageTemplate:
-          r"""Case expression '#constant' does not have a primitive operator '=='.""",
-      withArgumentsOld: _withArgumentsOldConstEvalCaseImplementsEqual,
-    );
+const Template<
+  Message Function(Constant constant),
+  Message Function({required Constant constant})
+>
+codeConstEvalCaseImplementsEqual = const Template(
+  "ConstEvalCaseImplementsEqual",
+  problemMessageTemplate:
+      r"""Case expression '#constant' does not have a primitive operator '=='.""",
+  withArgumentsOld: _withArgumentsOldConstEvalCaseImplementsEqual,
+  withArguments: _withArgumentsConstEvalCaseImplementsEqual,
+);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsConstEvalCaseImplementsEqual({
@@ -223,12 +243,16 @@ Message _withArgumentsOldConstEvalCaseImplementsEqual(Constant constant) =>
     _withArgumentsConstEvalCaseImplementsEqual(constant: constant);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(Constant constant)>
-codeConstEvalDuplicateElement = const Template<Message Function(Constant constant)>(
+const Template<
+  Message Function(Constant constant),
+  Message Function({required Constant constant})
+>
+codeConstEvalDuplicateElement = const Template(
   "ConstEvalDuplicateElement",
   problemMessageTemplate:
       r"""The element '#constant' conflicts with another existing element in the set.""",
   withArgumentsOld: _withArgumentsOldConstEvalDuplicateElement,
+  withArguments: _withArgumentsConstEvalDuplicateElement,
   analyzerCodes: <String>["EQUAL_ELEMENTS_IN_CONST_SET"],
 );
 
@@ -250,12 +274,16 @@ Message _withArgumentsOldConstEvalDuplicateElement(Constant constant) =>
     _withArgumentsConstEvalDuplicateElement(constant: constant);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(Constant constant)>
-codeConstEvalDuplicateKey = const Template<Message Function(Constant constant)>(
+const Template<
+  Message Function(Constant constant),
+  Message Function({required Constant constant})
+>
+codeConstEvalDuplicateKey = const Template(
   "ConstEvalDuplicateKey",
   problemMessageTemplate:
       r"""The key '#constant' conflicts with another existing key in the map.""",
   withArgumentsOld: _withArgumentsOldConstEvalDuplicateKey,
+  withArguments: _withArgumentsConstEvalDuplicateKey,
   analyzerCodes: <String>["EQUAL_KEYS_IN_CONST_MAP"],
 );
 
@@ -277,15 +305,18 @@ Message _withArgumentsOldConstEvalDuplicateKey(Constant constant) =>
     _withArgumentsConstEvalDuplicateKey(constant: constant);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(Constant constant)>
-codeConstEvalElementImplementsEqual =
-    const Template<Message Function(Constant constant)>(
-      "ConstEvalElementImplementsEqual",
-      problemMessageTemplate:
-          r"""The element '#constant' does not have a primitive operator '=='.""",
-      withArgumentsOld: _withArgumentsOldConstEvalElementImplementsEqual,
-      analyzerCodes: <String>["CONST_SET_ELEMENT_TYPE_IMPLEMENTS_EQUALS"],
-    );
+const Template<
+  Message Function(Constant constant),
+  Message Function({required Constant constant})
+>
+codeConstEvalElementImplementsEqual = const Template(
+  "ConstEvalElementImplementsEqual",
+  problemMessageTemplate:
+      r"""The element '#constant' does not have a primitive operator '=='.""",
+  withArgumentsOld: _withArgumentsOldConstEvalElementImplementsEqual,
+  withArguments: _withArgumentsConstEvalElementImplementsEqual,
+  analyzerCodes: <String>["CONST_SET_ELEMENT_TYPE_IMPLEMENTS_EQUALS"],
+);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsConstEvalElementImplementsEqual({
@@ -307,14 +338,17 @@ Message _withArgumentsOldConstEvalElementImplementsEqual(Constant constant) =>
     _withArgumentsConstEvalElementImplementsEqual(constant: constant);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(Constant constant)>
-codeConstEvalElementNotPrimitiveEquality =
-    const Template<Message Function(Constant constant)>(
-      "ConstEvalElementNotPrimitiveEquality",
-      problemMessageTemplate:
-          r"""The element '#constant' does not have a primitive equality.""",
-      withArgumentsOld: _withArgumentsOldConstEvalElementNotPrimitiveEquality,
-    );
+const Template<
+  Message Function(Constant constant),
+  Message Function({required Constant constant})
+>
+codeConstEvalElementNotPrimitiveEquality = const Template(
+  "ConstEvalElementNotPrimitiveEquality",
+  problemMessageTemplate:
+      r"""The element '#constant' does not have a primitive equality.""",
+  withArgumentsOld: _withArgumentsOldConstEvalElementNotPrimitiveEquality,
+  withArguments: _withArgumentsConstEvalElementNotPrimitiveEquality,
+);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsConstEvalElementNotPrimitiveEquality({
@@ -337,15 +371,17 @@ Message _withArgumentsOldConstEvalElementNotPrimitiveEquality(
 ) => _withArgumentsConstEvalElementNotPrimitiveEquality(constant: constant);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(Constant constant, DartType type)>
-codeConstEvalEqualsOperandNotPrimitiveEquality =
-    const Template<Message Function(Constant constant, DartType type)>(
-      "ConstEvalEqualsOperandNotPrimitiveEquality",
-      problemMessageTemplate:
-          r"""Binary operator '==' requires receiver constant '#constant' of a type with primitive equality or type 'double', but was of type '#type'.""",
-      withArgumentsOld:
-          _withArgumentsOldConstEvalEqualsOperandNotPrimitiveEquality,
-    );
+const Template<
+  Message Function(Constant constant, DartType type),
+  Message Function({required Constant constant, required DartType type})
+>
+codeConstEvalEqualsOperandNotPrimitiveEquality = const Template(
+  "ConstEvalEqualsOperandNotPrimitiveEquality",
+  problemMessageTemplate:
+      r"""Binary operator '==' requires receiver constant '#constant' of a type with primitive equality or type 'double', but was of type '#type'.""",
+  withArgumentsOld: _withArgumentsOldConstEvalEqualsOperandNotPrimitiveEquality,
+  withArguments: _withArgumentsConstEvalEqualsOperandNotPrimitiveEquality,
+);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsConstEvalEqualsOperandNotPrimitiveEquality({
@@ -380,22 +416,21 @@ const Template<
     Constant constant,
     DartType type,
     DartType type2,
-  )
+  ),
+  Message Function({
+    required String stringOKEmpty,
+    required Constant constant,
+    required DartType type,
+    required DartType type2,
+  })
 >
-codeConstEvalInvalidBinaryOperandType =
-    const Template<
-      Message Function(
-        String stringOKEmpty,
-        Constant constant,
-        DartType type,
-        DartType type2,
-      )
-    >(
-      "ConstEvalInvalidBinaryOperandType",
-      problemMessageTemplate:
-          r"""Binary operator '#stringOKEmpty' on '#constant' requires operand of type '#type', but was of type '#type2'.""",
-      withArgumentsOld: _withArgumentsOldConstEvalInvalidBinaryOperandType,
-    );
+codeConstEvalInvalidBinaryOperandType = const Template(
+  "ConstEvalInvalidBinaryOperandType",
+  problemMessageTemplate:
+      r"""Binary operator '#stringOKEmpty' on '#constant' requires operand of type '#type', but was of type '#type2'.""",
+  withArgumentsOld: _withArgumentsOldConstEvalInvalidBinaryOperandType,
+  withArguments: _withArgumentsConstEvalInvalidBinaryOperandType,
+);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsConstEvalInvalidBinaryOperandType({
@@ -437,14 +472,17 @@ Message _withArgumentsOldConstEvalInvalidBinaryOperandType(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(Constant constant, DartType type)>
-codeConstEvalInvalidEqualsOperandType =
-    const Template<Message Function(Constant constant, DartType type)>(
-      "ConstEvalInvalidEqualsOperandType",
-      problemMessageTemplate:
-          r"""Binary operator '==' requires receiver constant '#constant' of type 'Null', 'bool', 'int', 'double', or 'String', but was of type '#type'.""",
-      withArgumentsOld: _withArgumentsOldConstEvalInvalidEqualsOperandType,
-    );
+const Template<
+  Message Function(Constant constant, DartType type),
+  Message Function({required Constant constant, required DartType type})
+>
+codeConstEvalInvalidEqualsOperandType = const Template(
+  "ConstEvalInvalidEqualsOperandType",
+  problemMessageTemplate:
+      r"""Binary operator '==' requires receiver constant '#constant' of type 'Null', 'bool', 'int', 'double', or 'String', but was of type '#type'.""",
+  withArgumentsOld: _withArgumentsOldConstEvalInvalidEqualsOperandType,
+  withArguments: _withArgumentsConstEvalInvalidEqualsOperandType,
+);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsConstEvalInvalidEqualsOperandType({
@@ -473,15 +511,18 @@ Message _withArgumentsOldConstEvalInvalidEqualsOperandType(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(String stringOKEmpty, Constant constant)>
-codeConstEvalInvalidMethodInvocation =
-    const Template<Message Function(String stringOKEmpty, Constant constant)>(
-      "ConstEvalInvalidMethodInvocation",
-      problemMessageTemplate:
-          r"""The method '#stringOKEmpty' can't be invoked on '#constant' in a constant expression.""",
-      withArgumentsOld: _withArgumentsOldConstEvalInvalidMethodInvocation,
-      analyzerCodes: <String>["UNDEFINED_OPERATOR"],
-    );
+const Template<
+  Message Function(String stringOKEmpty, Constant constant),
+  Message Function({required String stringOKEmpty, required Constant constant})
+>
+codeConstEvalInvalidMethodInvocation = const Template(
+  "ConstEvalInvalidMethodInvocation",
+  problemMessageTemplate:
+      r"""The method '#stringOKEmpty' can't be invoked on '#constant' in a constant expression.""",
+  withArgumentsOld: _withArgumentsOldConstEvalInvalidMethodInvocation,
+  withArguments: _withArgumentsConstEvalInvalidMethodInvocation,
+  analyzerCodes: <String>["UNDEFINED_OPERATOR"],
+);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsConstEvalInvalidMethodInvocation({
@@ -510,15 +551,18 @@ Message _withArgumentsOldConstEvalInvalidMethodInvocation(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(String stringOKEmpty, Constant constant)>
-codeConstEvalInvalidPropertyGet =
-    const Template<Message Function(String stringOKEmpty, Constant constant)>(
-      "ConstEvalInvalidPropertyGet",
-      problemMessageTemplate:
-          r"""The property '#stringOKEmpty' can't be accessed on '#constant' in a constant expression.""",
-      withArgumentsOld: _withArgumentsOldConstEvalInvalidPropertyGet,
-      analyzerCodes: <String>["CONST_EVAL_THROWS_EXCEPTION"],
-    );
+const Template<
+  Message Function(String stringOKEmpty, Constant constant),
+  Message Function({required String stringOKEmpty, required Constant constant})
+>
+codeConstEvalInvalidPropertyGet = const Template(
+  "ConstEvalInvalidPropertyGet",
+  problemMessageTemplate:
+      r"""The property '#stringOKEmpty' can't be accessed on '#constant' in a constant expression.""",
+  withArgumentsOld: _withArgumentsOldConstEvalInvalidPropertyGet,
+  withArguments: _withArgumentsConstEvalInvalidPropertyGet,
+  analyzerCodes: <String>["CONST_EVAL_THROWS_EXCEPTION"],
+);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsConstEvalInvalidPropertyGet({
@@ -547,15 +591,18 @@ Message _withArgumentsOldConstEvalInvalidPropertyGet(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(String stringOKEmpty, Constant constant)>
-codeConstEvalInvalidRecordIndexGet =
-    const Template<Message Function(String stringOKEmpty, Constant constant)>(
-      "ConstEvalInvalidRecordIndexGet",
-      problemMessageTemplate:
-          r"""The property '#stringOKEmpty' can't be accessed on '#constant' in a constant expression.""",
-      withArgumentsOld: _withArgumentsOldConstEvalInvalidRecordIndexGet,
-      analyzerCodes: <String>["CONST_EVAL_THROWS_EXCEPTION"],
-    );
+const Template<
+  Message Function(String stringOKEmpty, Constant constant),
+  Message Function({required String stringOKEmpty, required Constant constant})
+>
+codeConstEvalInvalidRecordIndexGet = const Template(
+  "ConstEvalInvalidRecordIndexGet",
+  problemMessageTemplate:
+      r"""The property '#stringOKEmpty' can't be accessed on '#constant' in a constant expression.""",
+  withArgumentsOld: _withArgumentsOldConstEvalInvalidRecordIndexGet,
+  withArguments: _withArgumentsConstEvalInvalidRecordIndexGet,
+  analyzerCodes: <String>["CONST_EVAL_THROWS_EXCEPTION"],
+);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsConstEvalInvalidRecordIndexGet({
@@ -584,15 +631,18 @@ Message _withArgumentsOldConstEvalInvalidRecordIndexGet(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(String stringOKEmpty, Constant constant)>
-codeConstEvalInvalidRecordNameGet =
-    const Template<Message Function(String stringOKEmpty, Constant constant)>(
-      "ConstEvalInvalidRecordNameGet",
-      problemMessageTemplate:
-          r"""The property '#stringOKEmpty' can't be accessed on '#constant' in a constant expression.""",
-      withArgumentsOld: _withArgumentsOldConstEvalInvalidRecordNameGet,
-      analyzerCodes: <String>["CONST_EVAL_THROWS_EXCEPTION"],
-    );
+const Template<
+  Message Function(String stringOKEmpty, Constant constant),
+  Message Function({required String stringOKEmpty, required Constant constant})
+>
+codeConstEvalInvalidRecordNameGet = const Template(
+  "ConstEvalInvalidRecordNameGet",
+  problemMessageTemplate:
+      r"""The property '#stringOKEmpty' can't be accessed on '#constant' in a constant expression.""",
+  withArgumentsOld: _withArgumentsOldConstEvalInvalidRecordNameGet,
+  withArguments: _withArgumentsConstEvalInvalidRecordNameGet,
+  analyzerCodes: <String>["CONST_EVAL_THROWS_EXCEPTION"],
+);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsConstEvalInvalidRecordNameGet({
@@ -621,17 +671,19 @@ Message _withArgumentsOldConstEvalInvalidRecordNameGet(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(Constant constant)>
-codeConstEvalInvalidStringInterpolationOperand =
-    const Template<Message Function(Constant constant)>(
-      "ConstEvalInvalidStringInterpolationOperand",
-      problemMessageTemplate:
-          r"""The constant value '#constant' can't be used as part of a string interpolation in a constant expression.
+const Template<
+  Message Function(Constant constant),
+  Message Function({required Constant constant})
+>
+codeConstEvalInvalidStringInterpolationOperand = const Template(
+  "ConstEvalInvalidStringInterpolationOperand",
+  problemMessageTemplate:
+      r"""The constant value '#constant' can't be used as part of a string interpolation in a constant expression.
 Only values of type 'null', 'bool', 'int', 'double', or 'String' can be used.""",
-      withArgumentsOld:
-          _withArgumentsOldConstEvalInvalidStringInterpolationOperand,
-      analyzerCodes: <String>["CONST_EVAL_TYPE_BOOL_NUM_STRING"],
-    );
+  withArgumentsOld: _withArgumentsOldConstEvalInvalidStringInterpolationOperand,
+  withArguments: _withArgumentsConstEvalInvalidStringInterpolationOperand,
+  analyzerCodes: <String>["CONST_EVAL_TYPE_BOOL_NUM_STRING"],
+);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsConstEvalInvalidStringInterpolationOperand({
@@ -657,15 +709,18 @@ Message _withArgumentsOldConstEvalInvalidStringInterpolationOperand(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(Constant constant)>
-codeConstEvalInvalidSymbolName =
-    const Template<Message Function(Constant constant)>(
-      "ConstEvalInvalidSymbolName",
-      problemMessageTemplate:
-          r"""The symbol name must be a valid public Dart member name, public constructor name, or library name, optionally qualified, but was '#constant'.""",
-      withArgumentsOld: _withArgumentsOldConstEvalInvalidSymbolName,
-      analyzerCodes: <String>["CONST_EVAL_THROWS_EXCEPTION"],
-    );
+const Template<
+  Message Function(Constant constant),
+  Message Function({required Constant constant})
+>
+codeConstEvalInvalidSymbolName = const Template(
+  "ConstEvalInvalidSymbolName",
+  problemMessageTemplate:
+      r"""The symbol name must be a valid public Dart member name, public constructor name, or library name, optionally qualified, but was '#constant'.""",
+  withArgumentsOld: _withArgumentsOldConstEvalInvalidSymbolName,
+  withArguments: _withArgumentsConstEvalInvalidSymbolName,
+  analyzerCodes: <String>["CONST_EVAL_THROWS_EXCEPTION"],
+);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsConstEvalInvalidSymbolName({required Constant constant}) {
@@ -686,17 +741,20 @@ Message _withArgumentsOldConstEvalInvalidSymbolName(Constant constant) =>
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
-  Message Function(Constant constant, DartType type, DartType type2)
+  Message Function(Constant constant, DartType type, DartType type2),
+  Message Function({
+    required Constant constant,
+    required DartType type,
+    required DartType type2,
+  })
 >
-codeConstEvalInvalidType =
-    const Template<
-      Message Function(Constant constant, DartType type, DartType type2)
-    >(
-      "ConstEvalInvalidType",
-      problemMessageTemplate:
-          r"""Expected constant '#constant' to be of type '#type', but was of type '#type2'.""",
-      withArgumentsOld: _withArgumentsOldConstEvalInvalidType,
-    );
+codeConstEvalInvalidType = const Template(
+  "ConstEvalInvalidType",
+  problemMessageTemplate:
+      r"""Expected constant '#constant' to be of type '#type', but was of type '#type2'.""",
+  withArgumentsOld: _withArgumentsOldConstEvalInvalidType,
+  withArguments: _withArgumentsConstEvalInvalidType,
+);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsConstEvalInvalidType({
@@ -729,17 +787,18 @@ Message _withArgumentsOldConstEvalInvalidType(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(Constant constant)>
-codeConstEvalKeyImplementsEqual =
-    const Template<Message Function(Constant constant)>(
-      "ConstEvalKeyImplementsEqual",
-      problemMessageTemplate:
-          r"""The key '#constant' does not have a primitive operator '=='.""",
-      withArgumentsOld: _withArgumentsOldConstEvalKeyImplementsEqual,
-      analyzerCodes: <String>[
-        "CONST_MAP_KEY_EXPRESSION_TYPE_IMPLEMENTS_EQUALS",
-      ],
-    );
+const Template<
+  Message Function(Constant constant),
+  Message Function({required Constant constant})
+>
+codeConstEvalKeyImplementsEqual = const Template(
+  "ConstEvalKeyImplementsEqual",
+  problemMessageTemplate:
+      r"""The key '#constant' does not have a primitive operator '=='.""",
+  withArgumentsOld: _withArgumentsOldConstEvalKeyImplementsEqual,
+  withArguments: _withArgumentsConstEvalKeyImplementsEqual,
+  analyzerCodes: <String>["CONST_MAP_KEY_EXPRESSION_TYPE_IMPLEMENTS_EQUALS"],
+);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsConstEvalKeyImplementsEqual({
@@ -761,14 +820,17 @@ Message _withArgumentsOldConstEvalKeyImplementsEqual(Constant constant) =>
     _withArgumentsConstEvalKeyImplementsEqual(constant: constant);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(Constant constant)>
-codeConstEvalKeyNotPrimitiveEquality =
-    const Template<Message Function(Constant constant)>(
-      "ConstEvalKeyNotPrimitiveEquality",
-      problemMessageTemplate:
-          r"""The key '#constant' does not have a primitive equality.""",
-      withArgumentsOld: _withArgumentsOldConstEvalKeyNotPrimitiveEquality,
-    );
+const Template<
+  Message Function(Constant constant),
+  Message Function({required Constant constant})
+>
+codeConstEvalKeyNotPrimitiveEquality = const Template(
+  "ConstEvalKeyNotPrimitiveEquality",
+  problemMessageTemplate:
+      r"""The key '#constant' does not have a primitive equality.""",
+  withArgumentsOld: _withArgumentsOldConstEvalKeyNotPrimitiveEquality,
+  withArguments: _withArgumentsConstEvalKeyNotPrimitiveEquality,
+);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsConstEvalKeyNotPrimitiveEquality({
@@ -790,13 +852,16 @@ Message _withArgumentsOldConstEvalKeyNotPrimitiveEquality(Constant constant) =>
     _withArgumentsConstEvalKeyNotPrimitiveEquality(constant: constant);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(Constant constant)>
-codeConstEvalUnhandledException =
-    const Template<Message Function(Constant constant)>(
-      "ConstEvalUnhandledException",
-      problemMessageTemplate: r"""Unhandled exception: #constant""",
-      withArgumentsOld: _withArgumentsOldConstEvalUnhandledException,
-    );
+const Template<
+  Message Function(Constant constant),
+  Message Function({required Constant constant})
+>
+codeConstEvalUnhandledException = const Template(
+  "ConstEvalUnhandledException",
+  problemMessageTemplate: r"""Unhandled exception: #constant""",
+  withArgumentsOld: _withArgumentsOldConstEvalUnhandledException,
+  withArguments: _withArgumentsConstEvalUnhandledException,
+);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsConstEvalUnhandledException({
@@ -817,17 +882,20 @@ Message _withArgumentsOldConstEvalUnhandledException(Constant constant) =>
     _withArgumentsConstEvalUnhandledException(constant: constant);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(DartType type, String name)>
-codeDeferredTypeAnnotation =
-    const Template<Message Function(DartType type, String name)>(
-      "DeferredTypeAnnotation",
-      problemMessageTemplate:
-          r"""The type '#type' is deferred loaded via prefix '#name' and can't be used as a type annotation.""",
-      correctionMessageTemplate:
-          r"""Try removing 'deferred' from the import of '#name' or use a supertype of '#type' that isn't deferred.""",
-      withArgumentsOld: _withArgumentsOldDeferredTypeAnnotation,
-      analyzerCodes: <String>["TYPE_ANNOTATION_DEFERRED_CLASS"],
-    );
+const Template<
+  Message Function(DartType type, String name),
+  Message Function({required DartType type, required String name})
+>
+codeDeferredTypeAnnotation = const Template(
+  "DeferredTypeAnnotation",
+  problemMessageTemplate:
+      r"""The type '#type' is deferred loaded via prefix '#name' and can't be used as a type annotation.""",
+  correctionMessageTemplate:
+      r"""Try removing 'deferred' from the import of '#name' or use a supertype of '#type' that isn't deferred.""",
+  withArgumentsOld: _withArgumentsOldDeferredTypeAnnotation,
+  withArguments: _withArgumentsDeferredTypeAnnotation,
+  analyzerCodes: <String>["TYPE_ANNOTATION_DEFERRED_CLASS"],
+);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsDeferredTypeAnnotation({
@@ -853,16 +921,19 @@ Message _withArgumentsOldDeferredTypeAnnotation(DartType type, String name) =>
     _withArgumentsDeferredTypeAnnotation(type: type, name: name);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(String name, DartType type)>
-codeDotShorthandsUndefinedGetter =
-    const Template<Message Function(String name, DartType type)>(
-      "DotShorthandsUndefinedGetter",
-      problemMessageTemplate:
-          r"""The static getter or field '#name' isn't defined for the type '#type'.""",
-      correctionMessageTemplate:
-          r"""Try correcting the name to the name of an existing static getter or field, or defining a getter or field named '#name'.""",
-      withArgumentsOld: _withArgumentsOldDotShorthandsUndefinedGetter,
-    );
+const Template<
+  Message Function(String name, DartType type),
+  Message Function({required String name, required DartType type})
+>
+codeDotShorthandsUndefinedGetter = const Template(
+  "DotShorthandsUndefinedGetter",
+  problemMessageTemplate:
+      r"""The static getter or field '#name' isn't defined for the type '#type'.""",
+  correctionMessageTemplate:
+      r"""Try correcting the name to the name of an existing static getter or field, or defining a getter or field named '#name'.""",
+  withArgumentsOld: _withArgumentsOldDotShorthandsUndefinedGetter,
+  withArguments: _withArgumentsDotShorthandsUndefinedGetter,
+);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsDotShorthandsUndefinedGetter({
@@ -890,16 +961,19 @@ Message _withArgumentsOldDotShorthandsUndefinedGetter(
 ) => _withArgumentsDotShorthandsUndefinedGetter(name: name, type: type);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(String name, DartType type)>
-codeDotShorthandsUndefinedInvocation =
-    const Template<Message Function(String name, DartType type)>(
-      "DotShorthandsUndefinedInvocation",
-      problemMessageTemplate:
-          r"""The static method or constructor '#name' isn't defined for the type '#type'.""",
-      correctionMessageTemplate:
-          r"""Try correcting the name to the name of an existing static method or constructor, or defining a static method or constructor named '#name'.""",
-      withArgumentsOld: _withArgumentsOldDotShorthandsUndefinedInvocation,
-    );
+const Template<
+  Message Function(String name, DartType type),
+  Message Function({required String name, required DartType type})
+>
+codeDotShorthandsUndefinedInvocation = const Template(
+  "DotShorthandsUndefinedInvocation",
+  problemMessageTemplate:
+      r"""The static method or constructor '#name' isn't defined for the type '#type'.""",
+  correctionMessageTemplate:
+      r"""Try correcting the name to the name of an existing static method or constructor, or defining a static method or constructor named '#name'.""",
+  withArgumentsOld: _withArgumentsOldDotShorthandsUndefinedInvocation,
+  withArguments: _withArgumentsDotShorthandsUndefinedInvocation,
+);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsDotShorthandsUndefinedInvocation({
@@ -927,14 +1001,16 @@ Message _withArgumentsOldDotShorthandsUndefinedInvocation(
 ) => _withArgumentsDotShorthandsUndefinedInvocation(name: name, type: type);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(DartType type, DartType type2)>
-codeFfiDartTypeMismatch =
-    const Template<Message Function(DartType type, DartType type2)>(
-      "FfiDartTypeMismatch",
-      problemMessageTemplate:
-          r"""Expected '#type' to be a subtype of '#type2'.""",
-      withArgumentsOld: _withArgumentsOldFfiDartTypeMismatch,
-    );
+const Template<
+  Message Function(DartType type, DartType type2),
+  Message Function({required DartType type, required DartType type2})
+>
+codeFfiDartTypeMismatch = const Template(
+  "FfiDartTypeMismatch",
+  problemMessageTemplate: r"""Expected '#type' to be a subtype of '#type2'.""",
+  withArgumentsOld: _withArgumentsOldFfiDartTypeMismatch,
+  withArguments: _withArgumentsFfiDartTypeMismatch,
+);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsFfiDartTypeMismatch({
@@ -958,12 +1034,16 @@ Message _withArgumentsOldFfiDartTypeMismatch(DartType type, DartType type2) =>
     _withArgumentsFfiDartTypeMismatch(type: type, type2: type2);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(DartType type)>
-codeFfiExpectedExceptionalReturn = const Template<Message Function(DartType type)>(
+const Template<
+  Message Function(DartType type),
+  Message Function({required DartType type})
+>
+codeFfiExpectedExceptionalReturn = const Template(
   "FfiExpectedExceptionalReturn",
   problemMessageTemplate:
       r"""Expected an exceptional return value for a native callback returning '#type'.""",
   withArgumentsOld: _withArgumentsOldFfiExpectedExceptionalReturn,
+  withArguments: _withArgumentsFfiExpectedExceptionalReturn,
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -984,14 +1064,17 @@ Message _withArgumentsOldFfiExpectedExceptionalReturn(DartType type) =>
     _withArgumentsFfiExpectedExceptionalReturn(type: type);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(DartType type)>
-codeFfiExpectedNoExceptionalReturn =
-    const Template<Message Function(DartType type)>(
-      "FfiExpectedNoExceptionalReturn",
-      problemMessageTemplate:
-          r"""Exceptional return value cannot be provided for a native callback returning '#type'.""",
-      withArgumentsOld: _withArgumentsOldFfiExpectedNoExceptionalReturn,
-    );
+const Template<
+  Message Function(DartType type),
+  Message Function({required DartType type})
+>
+codeFfiExpectedNoExceptionalReturn = const Template(
+  "FfiExpectedNoExceptionalReturn",
+  problemMessageTemplate:
+      r"""Exceptional return value cannot be provided for a native callback returning '#type'.""",
+  withArgumentsOld: _withArgumentsOldFfiExpectedNoExceptionalReturn,
+  withArguments: _withArgumentsFfiExpectedNoExceptionalReturn,
+);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsFfiExpectedNoExceptionalReturn({required DartType type}) {
@@ -1011,14 +1094,17 @@ Message _withArgumentsOldFfiExpectedNoExceptionalReturn(DartType type) =>
     _withArgumentsFfiExpectedNoExceptionalReturn(type: type);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(DartType type)>
-codeFfiNativeCallableListenerReturnVoid =
-    const Template<Message Function(DartType type)>(
-      "FfiNativeCallableListenerReturnVoid",
-      problemMessageTemplate:
-          r"""The return type of the function passed to NativeCallable.listener must be void rather than '#type'.""",
-      withArgumentsOld: _withArgumentsOldFfiNativeCallableListenerReturnVoid,
-    );
+const Template<
+  Message Function(DartType type),
+  Message Function({required DartType type})
+>
+codeFfiNativeCallableListenerReturnVoid = const Template(
+  "FfiNativeCallableListenerReturnVoid",
+  problemMessageTemplate:
+      r"""The return type of the function passed to NativeCallable.listener must be void rather than '#type'.""",
+  withArgumentsOld: _withArgumentsOldFfiNativeCallableListenerReturnVoid,
+  withArguments: _withArgumentsFfiNativeCallableListenerReturnVoid,
+);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsFfiNativeCallableListenerReturnVoid({
@@ -1040,12 +1126,16 @@ Message _withArgumentsOldFfiNativeCallableListenerReturnVoid(DartType type) =>
     _withArgumentsFfiNativeCallableListenerReturnVoid(type: type);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(DartType type)>
-codeFfiTypeInvalid = const Template<Message Function(DartType type)>(
+const Template<
+  Message Function(DartType type),
+  Message Function({required DartType type})
+>
+codeFfiTypeInvalid = const Template(
   "FfiTypeInvalid",
   problemMessageTemplate:
       r"""Expected type '#type' to be a valid and instantiated subtype of 'NativeType'.""",
   withArgumentsOld: _withArgumentsOldFfiTypeInvalid,
+  withArguments: _withArgumentsFfiTypeInvalid,
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -1066,16 +1156,21 @@ Message _withArgumentsOldFfiTypeInvalid(DartType type) =>
     _withArgumentsFfiTypeInvalid(type: type);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(DartType type, DartType type2, DartType type3)>
-codeFfiTypeMismatch =
-    const Template<
-      Message Function(DartType type, DartType type2, DartType type3)
-    >(
-      "FfiTypeMismatch",
-      problemMessageTemplate:
-          r"""Expected type '#type' to be '#type2', which is the Dart type corresponding to '#type3'.""",
-      withArgumentsOld: _withArgumentsOldFfiTypeMismatch,
-    );
+const Template<
+  Message Function(DartType type, DartType type2, DartType type3),
+  Message Function({
+    required DartType type,
+    required DartType type2,
+    required DartType type3,
+  })
+>
+codeFfiTypeMismatch = const Template(
+  "FfiTypeMismatch",
+  problemMessageTemplate:
+      r"""Expected type '#type' to be '#type2', which is the Dart type corresponding to '#type3'.""",
+  withArgumentsOld: _withArgumentsOldFfiTypeMismatch,
+  withArguments: _withArgumentsFfiTypeMismatch,
+);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsFfiTypeMismatch({
@@ -1104,15 +1199,18 @@ Message _withArgumentsOldFfiTypeMismatch(
 ) => _withArgumentsFfiTypeMismatch(type: type, type2: type2, type3: type3);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(String name, DartType type)>
-codeFieldNonNullableNotInitializedByConstructorError =
-    const Template<Message Function(String name, DartType type)>(
-      "FieldNonNullableNotInitializedByConstructorError",
-      problemMessageTemplate:
-          r"""This constructor should initialize field '#name' because its type '#type' doesn't allow null.""",
-      withArgumentsOld:
-          _withArgumentsOldFieldNonNullableNotInitializedByConstructorError,
-    );
+const Template<
+  Message Function(String name, DartType type),
+  Message Function({required String name, required DartType type})
+>
+codeFieldNonNullableNotInitializedByConstructorError = const Template(
+  "FieldNonNullableNotInitializedByConstructorError",
+  problemMessageTemplate:
+      r"""This constructor should initialize field '#name' because its type '#type' doesn't allow null.""",
+  withArgumentsOld:
+      _withArgumentsOldFieldNonNullableNotInitializedByConstructorError,
+  withArguments: _withArgumentsFieldNonNullableNotInitializedByConstructorError,
+);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsFieldNonNullableNotInitializedByConstructorError({
@@ -1141,15 +1239,17 @@ Message _withArgumentsOldFieldNonNullableNotInitializedByConstructorError(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(String name, DartType type)>
-codeFieldNonNullableWithoutInitializerError =
-    const Template<Message Function(String name, DartType type)>(
-      "FieldNonNullableWithoutInitializerError",
-      problemMessageTemplate:
-          r"""Field '#name' should be initialized because its type '#type' doesn't allow null.""",
-      withArgumentsOld:
-          _withArgumentsOldFieldNonNullableWithoutInitializerError,
-    );
+const Template<
+  Message Function(String name, DartType type),
+  Message Function({required String name, required DartType type})
+>
+codeFieldNonNullableWithoutInitializerError = const Template(
+  "FieldNonNullableWithoutInitializerError",
+  problemMessageTemplate:
+      r"""Field '#name' should be initialized because its type '#type' doesn't allow null.""",
+  withArgumentsOld: _withArgumentsOldFieldNonNullableWithoutInitializerError,
+  withArguments: _withArgumentsFieldNonNullableWithoutInitializerError,
+);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsFieldNonNullableWithoutInitializerError({
@@ -1178,16 +1278,19 @@ Message _withArgumentsOldFieldNonNullableWithoutInitializerError(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(DartType type, DartType type2)>
-codeForInLoopElementTypeNotAssignable =
-    const Template<Message Function(DartType type, DartType type2)>(
-      "ForInLoopElementTypeNotAssignable",
-      problemMessageTemplate:
-          r"""A value of type '#type' can't be assigned to a variable of type '#type2'.""",
-      correctionMessageTemplate: r"""Try changing the type of the variable.""",
-      withArgumentsOld: _withArgumentsOldForInLoopElementTypeNotAssignable,
-      analyzerCodes: <String>["FOR_IN_OF_INVALID_ELEMENT_TYPE"],
-    );
+const Template<
+  Message Function(DartType type, DartType type2),
+  Message Function({required DartType type, required DartType type2})
+>
+codeForInLoopElementTypeNotAssignable = const Template(
+  "ForInLoopElementTypeNotAssignable",
+  problemMessageTemplate:
+      r"""A value of type '#type' can't be assigned to a variable of type '#type2'.""",
+  correctionMessageTemplate: r"""Try changing the type of the variable.""",
+  withArgumentsOld: _withArgumentsOldForInLoopElementTypeNotAssignable,
+  withArguments: _withArgumentsForInLoopElementTypeNotAssignable,
+  analyzerCodes: <String>["FOR_IN_OF_INVALID_ELEMENT_TYPE"],
+);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsForInLoopElementTypeNotAssignable({
@@ -1214,15 +1317,18 @@ Message _withArgumentsOldForInLoopElementTypeNotAssignable(
 ) => _withArgumentsForInLoopElementTypeNotAssignable(type: type, type2: type2);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(DartType type, DartType type2)>
-codeForInLoopTypeNotIterable =
-    const Template<Message Function(DartType type, DartType type2)>(
-      "ForInLoopTypeNotIterable",
-      problemMessageTemplate:
-          r"""The type '#type' used in the 'for' loop must implement '#type2'.""",
-      withArgumentsOld: _withArgumentsOldForInLoopTypeNotIterable,
-      analyzerCodes: <String>["FOR_IN_OF_INVALID_TYPE"],
-    );
+const Template<
+  Message Function(DartType type, DartType type2),
+  Message Function({required DartType type, required DartType type2})
+>
+codeForInLoopTypeNotIterable = const Template(
+  "ForInLoopTypeNotIterable",
+  problemMessageTemplate:
+      r"""The type '#type' used in the 'for' loop must implement '#type2'.""",
+  withArgumentsOld: _withArgumentsOldForInLoopTypeNotIterable,
+  withArguments: _withArgumentsForInLoopTypeNotIterable,
+  analyzerCodes: <String>["FOR_IN_OF_INVALID_TYPE"],
+);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsForInLoopTypeNotIterable({
@@ -1248,18 +1354,21 @@ Message _withArgumentsOldForInLoopTypeNotIterable(
 ) => _withArgumentsForInLoopTypeNotIterable(type: type, type2: type2);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(DartType type, DartType type2)>
-codeGenericFunctionTypeAsTypeArgumentThroughTypedef =
-    const Template<Message Function(DartType type, DartType type2)>(
-      "GenericFunctionTypeAsTypeArgumentThroughTypedef",
-      problemMessageTemplate:
-          r"""Generic function type '#type' used as a type argument through typedef '#type2'.""",
-      correctionMessageTemplate:
-          r"""Try providing a non-generic function type explicitly.""",
-      withArgumentsOld:
-          _withArgumentsOldGenericFunctionTypeAsTypeArgumentThroughTypedef,
-      analyzerCodes: <String>["GENERIC_FUNCTION_CANNOT_BE_TYPE_ARGUMENT"],
-    );
+const Template<
+  Message Function(DartType type, DartType type2),
+  Message Function({required DartType type, required DartType type2})
+>
+codeGenericFunctionTypeAsTypeArgumentThroughTypedef = const Template(
+  "GenericFunctionTypeAsTypeArgumentThroughTypedef",
+  problemMessageTemplate:
+      r"""Generic function type '#type' used as a type argument through typedef '#type2'.""",
+  correctionMessageTemplate:
+      r"""Try providing a non-generic function type explicitly.""",
+  withArgumentsOld:
+      _withArgumentsOldGenericFunctionTypeAsTypeArgumentThroughTypedef,
+  withArguments: _withArgumentsGenericFunctionTypeAsTypeArgumentThroughTypedef,
+  analyzerCodes: <String>["GENERIC_FUNCTION_CANNOT_BE_TYPE_ARGUMENT"],
+);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsGenericFunctionTypeAsTypeArgumentThroughTypedef({
@@ -1290,18 +1399,21 @@ Message _withArgumentsOldGenericFunctionTypeAsTypeArgumentThroughTypedef(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(DartType type)>
-codeGenericFunctionTypeInferredAsActualTypeArgument =
-    const Template<Message Function(DartType type)>(
-      "GenericFunctionTypeInferredAsActualTypeArgument",
-      problemMessageTemplate:
-          r"""Generic function type '#type' inferred as a type argument.""",
-      correctionMessageTemplate:
-          r"""Try providing a non-generic function type explicitly.""",
-      withArgumentsOld:
-          _withArgumentsOldGenericFunctionTypeInferredAsActualTypeArgument,
-      analyzerCodes: <String>["GENERIC_FUNCTION_CANNOT_BE_TYPE_ARGUMENT"],
-    );
+const Template<
+  Message Function(DartType type),
+  Message Function({required DartType type})
+>
+codeGenericFunctionTypeInferredAsActualTypeArgument = const Template(
+  "GenericFunctionTypeInferredAsActualTypeArgument",
+  problemMessageTemplate:
+      r"""Generic function type '#type' inferred as a type argument.""",
+  correctionMessageTemplate:
+      r"""Try providing a non-generic function type explicitly.""",
+  withArgumentsOld:
+      _withArgumentsOldGenericFunctionTypeInferredAsActualTypeArgument,
+  withArguments: _withArgumentsGenericFunctionTypeInferredAsActualTypeArgument,
+  analyzerCodes: <String>["GENERIC_FUNCTION_CANNOT_BE_TYPE_ARGUMENT"],
+);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsGenericFunctionTypeInferredAsActualTypeArgument({
@@ -1326,14 +1438,18 @@ Message _withArgumentsOldGenericFunctionTypeInferredAsActualTypeArgument(
 ) => _withArgumentsGenericFunctionTypeInferredAsActualTypeArgument(type: type);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(DartType type)>
-codeImplicitCallOfNonMethod = const Template<Message Function(DartType type)>(
+const Template<
+  Message Function(DartType type),
+  Message Function({required DartType type})
+>
+codeImplicitCallOfNonMethod = const Template(
   "ImplicitCallOfNonMethod",
   problemMessageTemplate:
       r"""Cannot invoke an instance of '#type' because it declares 'call' to be something other than a method.""",
   correctionMessageTemplate:
       r"""Try changing 'call' to a method or explicitly invoke 'call'.""",
   withArgumentsOld: _withArgumentsOldImplicitCallOfNonMethod,
+  withArguments: _withArgumentsImplicitCallOfNonMethod,
   analyzerCodes: <String>["IMPLICIT_CALL_OF_NON_METHOD"],
 );
 
@@ -1357,12 +1473,16 @@ Message _withArgumentsOldImplicitCallOfNonMethod(DartType type) =>
     _withArgumentsImplicitCallOfNonMethod(type: type);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(DartType type)>
-codeImplicitReturnNull = const Template<Message Function(DartType type)>(
+const Template<
+  Message Function(DartType type),
+  Message Function({required DartType type})
+>
+codeImplicitReturnNull = const Template(
   "ImplicitReturnNull",
   problemMessageTemplate:
       r"""A non-null value must be returned since the return type '#type' doesn't allow null.""",
   withArgumentsOld: _withArgumentsOldImplicitReturnNull,
+  withArguments: _withArgumentsImplicitReturnNull,
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -1383,15 +1503,18 @@ Message _withArgumentsOldImplicitReturnNull(DartType type) =>
     _withArgumentsImplicitReturnNull(type: type);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(DartType type, DartType type2)>
-codeIncompatibleRedirecteeFunctionType =
-    const Template<Message Function(DartType type, DartType type2)>(
-      "IncompatibleRedirecteeFunctionType",
-      problemMessageTemplate:
-          r"""The constructor function type '#type' isn't a subtype of '#type2'.""",
-      withArgumentsOld: _withArgumentsOldIncompatibleRedirecteeFunctionType,
-      analyzerCodes: <String>["REDIRECT_TO_INVALID_TYPE"],
-    );
+const Template<
+  Message Function(DartType type, DartType type2),
+  Message Function({required DartType type, required DartType type2})
+>
+codeIncompatibleRedirecteeFunctionType = const Template(
+  "IncompatibleRedirecteeFunctionType",
+  problemMessageTemplate:
+      r"""The constructor function type '#type' isn't a subtype of '#type2'.""",
+  withArgumentsOld: _withArgumentsOldIncompatibleRedirecteeFunctionType,
+  withArguments: _withArgumentsIncompatibleRedirecteeFunctionType,
+  analyzerCodes: <String>["REDIRECT_TO_INVALID_TYPE"],
+);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsIncompatibleRedirecteeFunctionType({
@@ -1418,20 +1541,24 @@ Message _withArgumentsOldIncompatibleRedirecteeFunctionType(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
-  Message Function(DartType type, DartType type2, String name, String name2)
+  Message Function(DartType type, DartType type2, String name, String name2),
+  Message Function({
+    required DartType type,
+    required DartType type2,
+    required String name,
+    required String name2,
+  })
 >
-codeIncorrectTypeArgument =
-    const Template<
-      Message Function(DartType type, DartType type2, String name, String name2)
-    >(
-      "IncorrectTypeArgument",
-      problemMessageTemplate:
-          r"""Type argument '#type' doesn't conform to the bound '#type2' of the type variable '#name' on '#name2'.""",
-      correctionMessageTemplate:
-          r"""Try changing type arguments so that they conform to the bounds.""",
-      withArgumentsOld: _withArgumentsOldIncorrectTypeArgument,
-      analyzerCodes: <String>["TYPE_ARGUMENT_NOT_MATCHING_BOUNDS"],
-    );
+codeIncorrectTypeArgument = const Template(
+  "IncorrectTypeArgument",
+  problemMessageTemplate:
+      r"""Type argument '#type' doesn't conform to the bound '#type2' of the type variable '#name' on '#name2'.""",
+  correctionMessageTemplate:
+      r"""Try changing type arguments so that they conform to the bounds.""",
+  withArgumentsOld: _withArgumentsOldIncorrectTypeArgument,
+  withArguments: _withArgumentsIncorrectTypeArgument,
+  analyzerCodes: <String>["TYPE_ARGUMENT_NOT_MATCHING_BOUNDS"],
+);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsIncorrectTypeArgument({
@@ -1471,20 +1598,24 @@ Message _withArgumentsOldIncorrectTypeArgument(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
-  Message Function(DartType type, DartType type2, String name, String name2)
+  Message Function(DartType type, DartType type2, String name, String name2),
+  Message Function({
+    required DartType type,
+    required DartType type2,
+    required String name,
+    required String name2,
+  })
 >
-codeIncorrectTypeArgumentInferred =
-    const Template<
-      Message Function(DartType type, DartType type2, String name, String name2)
-    >(
-      "IncorrectTypeArgumentInferred",
-      problemMessageTemplate:
-          r"""Inferred type argument '#type' doesn't conform to the bound '#type2' of the type variable '#name' on '#name2'.""",
-      correctionMessageTemplate:
-          r"""Try specifying type arguments explicitly so that they conform to the bounds.""",
-      withArgumentsOld: _withArgumentsOldIncorrectTypeArgumentInferred,
-      analyzerCodes: <String>["TYPE_ARGUMENT_NOT_MATCHING_BOUNDS"],
-    );
+codeIncorrectTypeArgumentInferred = const Template(
+  "IncorrectTypeArgumentInferred",
+  problemMessageTemplate:
+      r"""Inferred type argument '#type' doesn't conform to the bound '#type2' of the type variable '#name' on '#name2'.""",
+  correctionMessageTemplate:
+      r"""Try specifying type arguments explicitly so that they conform to the bounds.""",
+  withArgumentsOld: _withArgumentsOldIncorrectTypeArgumentInferred,
+  withArguments: _withArgumentsIncorrectTypeArgumentInferred,
+  analyzerCodes: <String>["TYPE_ARGUMENT_NOT_MATCHING_BOUNDS"],
+);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsIncorrectTypeArgumentInferred({
@@ -1524,25 +1655,24 @@ Message _withArgumentsOldIncorrectTypeArgumentInferred(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
-  Message Function(DartType type, DartType type2, String name, DartType type3)
+  Message Function(DartType type, DartType type2, String name, DartType type3),
+  Message Function({
+    required DartType type,
+    required DartType type2,
+    required String name,
+    required DartType type3,
+  })
 >
-codeIncorrectTypeArgumentInstantiation =
-    const Template<
-      Message Function(
-        DartType type,
-        DartType type2,
-        String name,
-        DartType type3,
-      )
-    >(
-      "IncorrectTypeArgumentInstantiation",
-      problemMessageTemplate:
-          r"""Type argument '#type' doesn't conform to the bound '#type2' of the type variable '#name' on '#type3'.""",
-      correctionMessageTemplate:
-          r"""Try changing type arguments so that they conform to the bounds.""",
-      withArgumentsOld: _withArgumentsOldIncorrectTypeArgumentInstantiation,
-      analyzerCodes: <String>["TYPE_ARGUMENT_NOT_MATCHING_BOUNDS"],
-    );
+codeIncorrectTypeArgumentInstantiation = const Template(
+  "IncorrectTypeArgumentInstantiation",
+  problemMessageTemplate:
+      r"""Type argument '#type' doesn't conform to the bound '#type2' of the type variable '#name' on '#type3'.""",
+  correctionMessageTemplate:
+      r"""Try changing type arguments so that they conform to the bounds.""",
+  withArgumentsOld: _withArgumentsOldIncorrectTypeArgumentInstantiation,
+  withArguments: _withArgumentsIncorrectTypeArgumentInstantiation,
+  analyzerCodes: <String>["TYPE_ARGUMENT_NOT_MATCHING_BOUNDS"],
+);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsIncorrectTypeArgumentInstantiation({
@@ -1582,26 +1712,24 @@ Message _withArgumentsOldIncorrectTypeArgumentInstantiation(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
-  Message Function(DartType type, DartType type2, String name, DartType type3)
+  Message Function(DartType type, DartType type2, String name, DartType type3),
+  Message Function({
+    required DartType type,
+    required DartType type2,
+    required String name,
+    required DartType type3,
+  })
 >
-codeIncorrectTypeArgumentInstantiationInferred =
-    const Template<
-      Message Function(
-        DartType type,
-        DartType type2,
-        String name,
-        DartType type3,
-      )
-    >(
-      "IncorrectTypeArgumentInstantiationInferred",
-      problemMessageTemplate:
-          r"""Inferred type argument '#type' doesn't conform to the bound '#type2' of the type variable '#name' on '#type3'.""",
-      correctionMessageTemplate:
-          r"""Try specifying type arguments explicitly so that they conform to the bounds.""",
-      withArgumentsOld:
-          _withArgumentsOldIncorrectTypeArgumentInstantiationInferred,
-      analyzerCodes: <String>["TYPE_ARGUMENT_NOT_MATCHING_BOUNDS"],
-    );
+codeIncorrectTypeArgumentInstantiationInferred = const Template(
+  "IncorrectTypeArgumentInstantiationInferred",
+  problemMessageTemplate:
+      r"""Inferred type argument '#type' doesn't conform to the bound '#type2' of the type variable '#name' on '#type3'.""",
+  correctionMessageTemplate:
+      r"""Try specifying type arguments explicitly so that they conform to the bounds.""",
+  withArgumentsOld: _withArgumentsOldIncorrectTypeArgumentInstantiationInferred,
+  withArguments: _withArgumentsIncorrectTypeArgumentInstantiationInferred,
+  analyzerCodes: <String>["TYPE_ARGUMENT_NOT_MATCHING_BOUNDS"],
+);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsIncorrectTypeArgumentInstantiationInferred({
@@ -1647,26 +1775,25 @@ const Template<
     String name,
     DartType type3,
     String name2,
-  )
+  ),
+  Message Function({
+    required DartType type,
+    required DartType type2,
+    required String name,
+    required DartType type3,
+    required String name2,
+  })
 >
-codeIncorrectTypeArgumentQualified =
-    const Template<
-      Message Function(
-        DartType type,
-        DartType type2,
-        String name,
-        DartType type3,
-        String name2,
-      )
-    >(
-      "IncorrectTypeArgumentQualified",
-      problemMessageTemplate:
-          r"""Type argument '#type' doesn't conform to the bound '#type2' of the type variable '#name' on '#type3.#name2'.""",
-      correctionMessageTemplate:
-          r"""Try changing type arguments so that they conform to the bounds.""",
-      withArgumentsOld: _withArgumentsOldIncorrectTypeArgumentQualified,
-      analyzerCodes: <String>["TYPE_ARGUMENT_NOT_MATCHING_BOUNDS"],
-    );
+codeIncorrectTypeArgumentQualified = const Template(
+  "IncorrectTypeArgumentQualified",
+  problemMessageTemplate:
+      r"""Type argument '#type' doesn't conform to the bound '#type2' of the type variable '#name' on '#type3.#name2'.""",
+  correctionMessageTemplate:
+      r"""Try changing type arguments so that they conform to the bounds.""",
+  withArgumentsOld: _withArgumentsOldIncorrectTypeArgumentQualified,
+  withArguments: _withArgumentsIncorrectTypeArgumentQualified,
+  analyzerCodes: <String>["TYPE_ARGUMENT_NOT_MATCHING_BOUNDS"],
+);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsIncorrectTypeArgumentQualified({
@@ -1722,26 +1849,25 @@ const Template<
     String name,
     DartType type3,
     String name2,
-  )
+  ),
+  Message Function({
+    required DartType type,
+    required DartType type2,
+    required String name,
+    required DartType type3,
+    required String name2,
+  })
 >
-codeIncorrectTypeArgumentQualifiedInferred =
-    const Template<
-      Message Function(
-        DartType type,
-        DartType type2,
-        String name,
-        DartType type3,
-        String name2,
-      )
-    >(
-      "IncorrectTypeArgumentQualifiedInferred",
-      problemMessageTemplate:
-          r"""Inferred type argument '#type' doesn't conform to the bound '#type2' of the type variable '#name' on '#type3.#name2'.""",
-      correctionMessageTemplate:
-          r"""Try specifying type arguments explicitly so that they conform to the bounds.""",
-      withArgumentsOld: _withArgumentsOldIncorrectTypeArgumentQualifiedInferred,
-      analyzerCodes: <String>["TYPE_ARGUMENT_NOT_MATCHING_BOUNDS"],
-    );
+codeIncorrectTypeArgumentQualifiedInferred = const Template(
+  "IncorrectTypeArgumentQualifiedInferred",
+  problemMessageTemplate:
+      r"""Inferred type argument '#type' doesn't conform to the bound '#type2' of the type variable '#name' on '#type3.#name2'.""",
+  correctionMessageTemplate:
+      r"""Try specifying type arguments explicitly so that they conform to the bounds.""",
+  withArgumentsOld: _withArgumentsOldIncorrectTypeArgumentQualifiedInferred,
+  withArguments: _withArgumentsIncorrectTypeArgumentQualifiedInferred,
+  analyzerCodes: <String>["TYPE_ARGUMENT_NOT_MATCHING_BOUNDS"],
+);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsIncorrectTypeArgumentQualifiedInferred({
@@ -1790,14 +1916,21 @@ Message _withArgumentsOldIncorrectTypeArgumentQualifiedInferred(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(int count, int count2, DartType type)>
-codeIndexOutOfBoundInRecordIndexGet =
-    const Template<Message Function(int count, int count2, DartType type)>(
-      "IndexOutOfBoundInRecordIndexGet",
-      problemMessageTemplate:
-          r"""Index #count is out of range 0..#count2 of positional fields of records #type.""",
-      withArgumentsOld: _withArgumentsOldIndexOutOfBoundInRecordIndexGet,
-    );
+const Template<
+  Message Function(int count, int count2, DartType type),
+  Message Function({
+    required int count,
+    required int count2,
+    required DartType type,
+  })
+>
+codeIndexOutOfBoundInRecordIndexGet = const Template(
+  "IndexOutOfBoundInRecordIndexGet",
+  problemMessageTemplate:
+      r"""Index #count is out of range 0..#count2 of positional fields of records #type.""",
+  withArgumentsOld: _withArgumentsOldIndexOutOfBoundInRecordIndexGet,
+  withArguments: _withArgumentsIndexOutOfBoundInRecordIndexGet,
+);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsIndexOutOfBoundInRecordIndexGet({
@@ -1828,19 +1961,24 @@ Message _withArgumentsOldIndexOutOfBoundInRecordIndexGet(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(String name, DartType type, DartType type2)>
-codeInitializingFormalTypeMismatch =
-    const Template<
-      Message Function(String name, DartType type, DartType type2)
-    >(
-      "InitializingFormalTypeMismatch",
-      problemMessageTemplate:
-          r"""The type of parameter '#name', '#type' is not a subtype of the corresponding field's type, '#type2'.""",
-      correctionMessageTemplate:
-          r"""Try changing the type of parameter '#name' to a subtype of '#type2'.""",
-      withArgumentsOld: _withArgumentsOldInitializingFormalTypeMismatch,
-      analyzerCodes: <String>["INVALID_PARAMETER_DECLARATION"],
-    );
+const Template<
+  Message Function(String name, DartType type, DartType type2),
+  Message Function({
+    required String name,
+    required DartType type,
+    required DartType type2,
+  })
+>
+codeInitializingFormalTypeMismatch = const Template(
+  "InitializingFormalTypeMismatch",
+  problemMessageTemplate:
+      r"""The type of parameter '#name', '#type' is not a subtype of the corresponding field's type, '#type2'.""",
+  correctionMessageTemplate:
+      r"""Try changing the type of parameter '#name' to a subtype of '#type2'.""",
+  withArgumentsOld: _withArgumentsOldInitializingFormalTypeMismatch,
+  withArguments: _withArgumentsInitializingFormalTypeMismatch,
+  analyzerCodes: <String>["INVALID_PARAMETER_DECLARATION"],
+);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsInitializingFormalTypeMismatch({
@@ -1875,16 +2013,19 @@ Message _withArgumentsOldInitializingFormalTypeMismatch(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(DartType type)>
-codeInstantiationNonGenericFunctionType =
-    const Template<Message Function(DartType type)>(
-      "InstantiationNonGenericFunctionType",
-      problemMessageTemplate:
-          r"""The static type of the explicit instantiation operand must be a generic function type but is '#type'.""",
-      correctionMessageTemplate:
-          r"""Try changing the operand or remove the type arguments.""",
-      withArgumentsOld: _withArgumentsOldInstantiationNonGenericFunctionType,
-    );
+const Template<
+  Message Function(DartType type),
+  Message Function({required DartType type})
+>
+codeInstantiationNonGenericFunctionType = const Template(
+  "InstantiationNonGenericFunctionType",
+  problemMessageTemplate:
+      r"""The static type of the explicit instantiation operand must be a generic function type but is '#type'.""",
+  correctionMessageTemplate:
+      r"""Try changing the operand or remove the type arguments.""",
+  withArgumentsOld: _withArgumentsOldInstantiationNonGenericFunctionType,
+  withArguments: _withArgumentsInstantiationNonGenericFunctionType,
+);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsInstantiationNonGenericFunctionType({
@@ -1908,18 +2049,20 @@ Message _withArgumentsOldInstantiationNonGenericFunctionType(DartType type) =>
     _withArgumentsInstantiationNonGenericFunctionType(type: type);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(DartType type)>
-codeInstantiationNullableGenericFunctionType =
-    const Template<Message Function(DartType type)>(
-      "InstantiationNullableGenericFunctionType",
-      problemMessageTemplate:
-          r"""The static type of the explicit instantiation operand must be a non-null generic function type but is '#type'.""",
-      correctionMessageTemplate:
-          r"""Try changing the operand or remove the type arguments.""",
-      withArgumentsOld:
-          _withArgumentsOldInstantiationNullableGenericFunctionType,
-      analyzerCodes: <String>["DISALLOWED_TYPE_INSTANTIATION_EXPRESSION"],
-    );
+const Template<
+  Message Function(DartType type),
+  Message Function({required DartType type})
+>
+codeInstantiationNullableGenericFunctionType = const Template(
+  "InstantiationNullableGenericFunctionType",
+  problemMessageTemplate:
+      r"""The static type of the explicit instantiation operand must be a non-null generic function type but is '#type'.""",
+  correctionMessageTemplate:
+      r"""Try changing the operand or remove the type arguments.""",
+  withArgumentsOld: _withArgumentsOldInstantiationNullableGenericFunctionType,
+  withArguments: _withArgumentsInstantiationNullableGenericFunctionType,
+  analyzerCodes: <String>["DISALLOWED_TYPE_INSTANTIATION_EXPRESSION"],
+);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsInstantiationNullableGenericFunctionType({
@@ -1944,15 +2087,18 @@ Message _withArgumentsOldInstantiationNullableGenericFunctionType(
 ) => _withArgumentsInstantiationNullableGenericFunctionType(type: type);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(String string, DartType type)>
-codeInternalProblemUnsupportedNullability =
-    const Template<Message Function(String string, DartType type)>(
-      "InternalProblemUnsupportedNullability",
-      problemMessageTemplate:
-          r"""Unsupported nullability value '#string' on type '#type'.""",
-      withArgumentsOld: _withArgumentsOldInternalProblemUnsupportedNullability,
-      severity: CfeSeverity.internalProblem,
-    );
+const Template<
+  Message Function(String string, DartType type),
+  Message Function({required String string, required DartType type})
+>
+codeInternalProblemUnsupportedNullability = const Template(
+  "InternalProblemUnsupportedNullability",
+  problemMessageTemplate:
+      r"""Unsupported nullability value '#string' on type '#type'.""",
+  withArgumentsOld: _withArgumentsOldInternalProblemUnsupportedNullability,
+  withArguments: _withArgumentsInternalProblemUnsupportedNullability,
+  severity: CfeSeverity.internalProblem,
+);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsInternalProblemUnsupportedNullability({
@@ -1981,15 +2127,18 @@ Message _withArgumentsOldInternalProblemUnsupportedNullability(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(DartType type, DartType type2)>
-codeInvalidAssignmentError =
-    const Template<Message Function(DartType type, DartType type2)>(
-      "InvalidAssignmentError",
-      problemMessageTemplate:
-          r"""A value of type '#type' can't be assigned to a variable of type '#type2'.""",
-      withArgumentsOld: _withArgumentsOldInvalidAssignmentError,
-      analyzerCodes: <String>["INVALID_ASSIGNMENT"],
-    );
+const Template<
+  Message Function(DartType type, DartType type2),
+  Message Function({required DartType type, required DartType type2})
+>
+codeInvalidAssignmentError = const Template(
+  "InvalidAssignmentError",
+  problemMessageTemplate:
+      r"""A value of type '#type' can't be assigned to a variable of type '#type2'.""",
+  withArgumentsOld: _withArgumentsOldInvalidAssignmentError,
+  withArguments: _withArgumentsInvalidAssignmentError,
+  analyzerCodes: <String>["INVALID_ASSIGNMENT"],
+);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsInvalidAssignmentError({
@@ -2015,17 +2164,20 @@ Message _withArgumentsOldInvalidAssignmentError(
 ) => _withArgumentsInvalidAssignmentError(type: type, type2: type2);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(DartType type, DartType type2)>
-codeInvalidCastFunctionExpr =
-    const Template<Message Function(DartType type, DartType type2)>(
-      "InvalidCastFunctionExpr",
-      problemMessageTemplate:
-          r"""The function expression type '#type' isn't of expected type '#type2'.""",
-      correctionMessageTemplate:
-          r"""Change the type of the function expression or the context in which it is used.""",
-      withArgumentsOld: _withArgumentsOldInvalidCastFunctionExpr,
-      analyzerCodes: <String>["INVALID_CAST_FUNCTION_EXPR"],
-    );
+const Template<
+  Message Function(DartType type, DartType type2),
+  Message Function({required DartType type, required DartType type2})
+>
+codeInvalidCastFunctionExpr = const Template(
+  "InvalidCastFunctionExpr",
+  problemMessageTemplate:
+      r"""The function expression type '#type' isn't of expected type '#type2'.""",
+  correctionMessageTemplate:
+      r"""Change the type of the function expression or the context in which it is used.""",
+  withArgumentsOld: _withArgumentsOldInvalidCastFunctionExpr,
+  withArguments: _withArgumentsInvalidCastFunctionExpr,
+  analyzerCodes: <String>["INVALID_CAST_FUNCTION_EXPR"],
+);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsInvalidCastFunctionExpr({
@@ -2053,17 +2205,20 @@ Message _withArgumentsOldInvalidCastFunctionExpr(
 ) => _withArgumentsInvalidCastFunctionExpr(type: type, type2: type2);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(DartType type, DartType type2)>
-codeInvalidCastLiteralList =
-    const Template<Message Function(DartType type, DartType type2)>(
-      "InvalidCastLiteralList",
-      problemMessageTemplate:
-          r"""The list literal type '#type' isn't of expected type '#type2'.""",
-      correctionMessageTemplate:
-          r"""Change the type of the list literal or the context in which it is used.""",
-      withArgumentsOld: _withArgumentsOldInvalidCastLiteralList,
-      analyzerCodes: <String>["INVALID_CAST_LITERAL_LIST"],
-    );
+const Template<
+  Message Function(DartType type, DartType type2),
+  Message Function({required DartType type, required DartType type2})
+>
+codeInvalidCastLiteralList = const Template(
+  "InvalidCastLiteralList",
+  problemMessageTemplate:
+      r"""The list literal type '#type' isn't of expected type '#type2'.""",
+  correctionMessageTemplate:
+      r"""Change the type of the list literal or the context in which it is used.""",
+  withArgumentsOld: _withArgumentsOldInvalidCastLiteralList,
+  withArguments: _withArgumentsInvalidCastLiteralList,
+  analyzerCodes: <String>["INVALID_CAST_LITERAL_LIST"],
+);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsInvalidCastLiteralList({
@@ -2091,17 +2246,20 @@ Message _withArgumentsOldInvalidCastLiteralList(
 ) => _withArgumentsInvalidCastLiteralList(type: type, type2: type2);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(DartType type, DartType type2)>
-codeInvalidCastLiteralMap =
-    const Template<Message Function(DartType type, DartType type2)>(
-      "InvalidCastLiteralMap",
-      problemMessageTemplate:
-          r"""The map literal type '#type' isn't of expected type '#type2'.""",
-      correctionMessageTemplate:
-          r"""Change the type of the map literal or the context in which it is used.""",
-      withArgumentsOld: _withArgumentsOldInvalidCastLiteralMap,
-      analyzerCodes: <String>["INVALID_CAST_LITERAL_MAP"],
-    );
+const Template<
+  Message Function(DartType type, DartType type2),
+  Message Function({required DartType type, required DartType type2})
+>
+codeInvalidCastLiteralMap = const Template(
+  "InvalidCastLiteralMap",
+  problemMessageTemplate:
+      r"""The map literal type '#type' isn't of expected type '#type2'.""",
+  correctionMessageTemplate:
+      r"""Change the type of the map literal or the context in which it is used.""",
+  withArgumentsOld: _withArgumentsOldInvalidCastLiteralMap,
+  withArguments: _withArgumentsInvalidCastLiteralMap,
+  analyzerCodes: <String>["INVALID_CAST_LITERAL_MAP"],
+);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsInvalidCastLiteralMap({
@@ -2127,17 +2285,20 @@ Message _withArgumentsOldInvalidCastLiteralMap(DartType type, DartType type2) =>
     _withArgumentsInvalidCastLiteralMap(type: type, type2: type2);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(DartType type, DartType type2)>
-codeInvalidCastLiteralSet =
-    const Template<Message Function(DartType type, DartType type2)>(
-      "InvalidCastLiteralSet",
-      problemMessageTemplate:
-          r"""The set literal type '#type' isn't of expected type '#type2'.""",
-      correctionMessageTemplate:
-          r"""Change the type of the set literal or the context in which it is used.""",
-      withArgumentsOld: _withArgumentsOldInvalidCastLiteralSet,
-      analyzerCodes: <String>["INVALID_CAST_LITERAL_SET"],
-    );
+const Template<
+  Message Function(DartType type, DartType type2),
+  Message Function({required DartType type, required DartType type2})
+>
+codeInvalidCastLiteralSet = const Template(
+  "InvalidCastLiteralSet",
+  problemMessageTemplate:
+      r"""The set literal type '#type' isn't of expected type '#type2'.""",
+  correctionMessageTemplate:
+      r"""Change the type of the set literal or the context in which it is used.""",
+  withArgumentsOld: _withArgumentsOldInvalidCastLiteralSet,
+  withArguments: _withArgumentsInvalidCastLiteralSet,
+  analyzerCodes: <String>["INVALID_CAST_LITERAL_SET"],
+);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsInvalidCastLiteralSet({
@@ -2163,17 +2324,20 @@ Message _withArgumentsOldInvalidCastLiteralSet(DartType type, DartType type2) =>
     _withArgumentsInvalidCastLiteralSet(type: type, type2: type2);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(DartType type, DartType type2)>
-codeInvalidCastLocalFunction =
-    const Template<Message Function(DartType type, DartType type2)>(
-      "InvalidCastLocalFunction",
-      problemMessageTemplate:
-          r"""The local function has type '#type' that isn't of expected type '#type2'.""",
-      correctionMessageTemplate:
-          r"""Change the type of the function or the context in which it is used.""",
-      withArgumentsOld: _withArgumentsOldInvalidCastLocalFunction,
-      analyzerCodes: <String>["INVALID_CAST_FUNCTION"],
-    );
+const Template<
+  Message Function(DartType type, DartType type2),
+  Message Function({required DartType type, required DartType type2})
+>
+codeInvalidCastLocalFunction = const Template(
+  "InvalidCastLocalFunction",
+  problemMessageTemplate:
+      r"""The local function has type '#type' that isn't of expected type '#type2'.""",
+  correctionMessageTemplate:
+      r"""Change the type of the function or the context in which it is used.""",
+  withArgumentsOld: _withArgumentsOldInvalidCastLocalFunction,
+  withArguments: _withArgumentsInvalidCastLocalFunction,
+  analyzerCodes: <String>["INVALID_CAST_FUNCTION"],
+);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsInvalidCastLocalFunction({
@@ -2201,17 +2365,20 @@ Message _withArgumentsOldInvalidCastLocalFunction(
 ) => _withArgumentsInvalidCastLocalFunction(type: type, type2: type2);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(DartType type, DartType type2)>
-codeInvalidCastNewExpr =
-    const Template<Message Function(DartType type, DartType type2)>(
-      "InvalidCastNewExpr",
-      problemMessageTemplate:
-          r"""The constructor returns type '#type' that isn't of expected type '#type2'.""",
-      correctionMessageTemplate:
-          r"""Change the type of the object being constructed or the context in which it is used.""",
-      withArgumentsOld: _withArgumentsOldInvalidCastNewExpr,
-      analyzerCodes: <String>["INVALID_CAST_NEW_EXPR"],
-    );
+const Template<
+  Message Function(DartType type, DartType type2),
+  Message Function({required DartType type, required DartType type2})
+>
+codeInvalidCastNewExpr = const Template(
+  "InvalidCastNewExpr",
+  problemMessageTemplate:
+      r"""The constructor returns type '#type' that isn't of expected type '#type2'.""",
+  correctionMessageTemplate:
+      r"""Change the type of the object being constructed or the context in which it is used.""",
+  withArgumentsOld: _withArgumentsOldInvalidCastNewExpr,
+  withArguments: _withArgumentsInvalidCastNewExpr,
+  analyzerCodes: <String>["INVALID_CAST_NEW_EXPR"],
+);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsInvalidCastNewExpr({
@@ -2237,17 +2404,20 @@ Message _withArgumentsOldInvalidCastNewExpr(DartType type, DartType type2) =>
     _withArgumentsInvalidCastNewExpr(type: type, type2: type2);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(DartType type, DartType type2)>
-codeInvalidCastStaticMethod =
-    const Template<Message Function(DartType type, DartType type2)>(
-      "InvalidCastStaticMethod",
-      problemMessageTemplate:
-          r"""The static method has type '#type' that isn't of expected type '#type2'.""",
-      correctionMessageTemplate:
-          r"""Change the type of the method or the context in which it is used.""",
-      withArgumentsOld: _withArgumentsOldInvalidCastStaticMethod,
-      analyzerCodes: <String>["INVALID_CAST_METHOD"],
-    );
+const Template<
+  Message Function(DartType type, DartType type2),
+  Message Function({required DartType type, required DartType type2})
+>
+codeInvalidCastStaticMethod = const Template(
+  "InvalidCastStaticMethod",
+  problemMessageTemplate:
+      r"""The static method has type '#type' that isn't of expected type '#type2'.""",
+  correctionMessageTemplate:
+      r"""Change the type of the method or the context in which it is used.""",
+  withArgumentsOld: _withArgumentsOldInvalidCastStaticMethod,
+  withArguments: _withArgumentsInvalidCastStaticMethod,
+  analyzerCodes: <String>["INVALID_CAST_METHOD"],
+);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsInvalidCastStaticMethod({
@@ -2275,17 +2445,20 @@ Message _withArgumentsOldInvalidCastStaticMethod(
 ) => _withArgumentsInvalidCastStaticMethod(type: type, type2: type2);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(DartType type, DartType type2)>
-codeInvalidCastTopLevelFunction =
-    const Template<Message Function(DartType type, DartType type2)>(
-      "InvalidCastTopLevelFunction",
-      problemMessageTemplate:
-          r"""The top level function has type '#type' that isn't of expected type '#type2'.""",
-      correctionMessageTemplate:
-          r"""Change the type of the function or the context in which it is used.""",
-      withArgumentsOld: _withArgumentsOldInvalidCastTopLevelFunction,
-      analyzerCodes: <String>["INVALID_CAST_FUNCTION"],
-    );
+const Template<
+  Message Function(DartType type, DartType type2),
+  Message Function({required DartType type, required DartType type2})
+>
+codeInvalidCastTopLevelFunction = const Template(
+  "InvalidCastTopLevelFunction",
+  problemMessageTemplate:
+      r"""The top level function has type '#type' that isn't of expected type '#type2'.""",
+  correctionMessageTemplate:
+      r"""Change the type of the function or the context in which it is used.""",
+  withArgumentsOld: _withArgumentsOldInvalidCastTopLevelFunction,
+  withArguments: _withArgumentsInvalidCastTopLevelFunction,
+  analyzerCodes: <String>["INVALID_CAST_FUNCTION"],
+);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsInvalidCastTopLevelFunction({
@@ -2314,24 +2487,23 @@ Message _withArgumentsOldInvalidCastTopLevelFunction(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
-  Message Function(DartType type, String name, DartType type2, DartType type3)
+  Message Function(DartType type, String name, DartType type2, DartType type3),
+  Message Function({
+    required DartType type,
+    required String name,
+    required DartType type2,
+    required DartType type3,
+  })
 >
-codeInvalidExtensionTypeSuperExtensionType =
-    const Template<
-      Message Function(
-        DartType type,
-        String name,
-        DartType type2,
-        DartType type3,
-      )
-    >(
-      "InvalidExtensionTypeSuperExtensionType",
-      problemMessageTemplate:
-          r"""The representation type '#type' of extension type '#name' must be either a subtype of the representation type '#type2' of the implemented extension type '#type3' or a subtype of '#type3' itself.""",
-      correctionMessageTemplate:
-          r"""Try changing the representation type to a subtype of '#type2'.""",
-      withArgumentsOld: _withArgumentsOldInvalidExtensionTypeSuperExtensionType,
-    );
+codeInvalidExtensionTypeSuperExtensionType = const Template(
+  "InvalidExtensionTypeSuperExtensionType",
+  problemMessageTemplate:
+      r"""The representation type '#type' of extension type '#name' must be either a subtype of the representation type '#type2' of the implemented extension type '#type3' or a subtype of '#type3' itself.""",
+  correctionMessageTemplate:
+      r"""Try changing the representation type to a subtype of '#type2'.""",
+  withArgumentsOld: _withArgumentsOldInvalidExtensionTypeSuperExtensionType,
+  withArguments: _withArgumentsInvalidExtensionTypeSuperExtensionType,
+);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsInvalidExtensionTypeSuperExtensionType({
@@ -2370,18 +2542,23 @@ Message _withArgumentsOldInvalidExtensionTypeSuperExtensionType(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(DartType type, DartType type2, String name)>
-codeInvalidExtensionTypeSuperInterface =
-    const Template<
-      Message Function(DartType type, DartType type2, String name)
-    >(
-      "InvalidExtensionTypeSuperInterface",
-      problemMessageTemplate:
-          r"""The implemented interface '#type' must be a supertype of the representation type '#type2' of extension type '#name'.""",
-      correctionMessageTemplate:
-          r"""Try changing the interface type to a supertype of '#type2' or the representation type to a subtype of '#type'.""",
-      withArgumentsOld: _withArgumentsOldInvalidExtensionTypeSuperInterface,
-    );
+const Template<
+  Message Function(DartType type, DartType type2, String name),
+  Message Function({
+    required DartType type,
+    required DartType type2,
+    required String name,
+  })
+>
+codeInvalidExtensionTypeSuperInterface = const Template(
+  "InvalidExtensionTypeSuperInterface",
+  problemMessageTemplate:
+      r"""The implemented interface '#type' must be a supertype of the representation type '#type2' of extension type '#name'.""",
+  correctionMessageTemplate:
+      r"""Try changing the interface type to a supertype of '#type2' or the representation type to a subtype of '#type'.""",
+  withArgumentsOld: _withArgumentsOldInvalidExtensionTypeSuperInterface,
+  withArguments: _withArgumentsInvalidExtensionTypeSuperInterface,
+);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsInvalidExtensionTypeSuperInterface({
@@ -2417,17 +2594,21 @@ Message _withArgumentsOldInvalidExtensionTypeSuperInterface(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
-  Message Function(DartType type, String name, DartType type2, String name2)
+  Message Function(DartType type, String name, DartType type2, String name2),
+  Message Function({
+    required DartType type,
+    required String name,
+    required DartType type2,
+    required String name2,
+  })
 >
-codeInvalidGetterSetterType =
-    const Template<
-      Message Function(DartType type, String name, DartType type2, String name2)
-    >(
-      "InvalidGetterSetterType",
-      problemMessageTemplate:
-          r"""The type '#type' of the getter '#name' is not a subtype of the type '#type2' of the setter '#name2'.""",
-      withArgumentsOld: _withArgumentsOldInvalidGetterSetterType,
-    );
+codeInvalidGetterSetterType = const Template(
+  "InvalidGetterSetterType",
+  problemMessageTemplate:
+      r"""The type '#type' of the getter '#name' is not a subtype of the type '#type2' of the setter '#name2'.""",
+  withArgumentsOld: _withArgumentsOldInvalidGetterSetterType,
+  withArguments: _withArgumentsInvalidGetterSetterType,
+);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsInvalidGetterSetterType({
@@ -2465,18 +2646,21 @@ Message _withArgumentsOldInvalidGetterSetterType(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
-  Message Function(DartType type, String name, DartType type2, String name2)
+  Message Function(DartType type, String name, DartType type2, String name2),
+  Message Function({
+    required DartType type,
+    required String name,
+    required DartType type2,
+    required String name2,
+  })
 >
-codeInvalidGetterSetterTypeBothInheritedField =
-    const Template<
-      Message Function(DartType type, String name, DartType type2, String name2)
-    >(
-      "InvalidGetterSetterTypeBothInheritedField",
-      problemMessageTemplate:
-          r"""The type '#type' of the inherited field '#name' is not a subtype of the type '#type2' of the inherited setter '#name2'.""",
-      withArgumentsOld:
-          _withArgumentsOldInvalidGetterSetterTypeBothInheritedField,
-    );
+codeInvalidGetterSetterTypeBothInheritedField = const Template(
+  "InvalidGetterSetterTypeBothInheritedField",
+  problemMessageTemplate:
+      r"""The type '#type' of the inherited field '#name' is not a subtype of the type '#type2' of the inherited setter '#name2'.""",
+  withArgumentsOld: _withArgumentsOldInvalidGetterSetterTypeBothInheritedField,
+  withArguments: _withArgumentsInvalidGetterSetterTypeBothInheritedField,
+);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsInvalidGetterSetterTypeBothInheritedField({
@@ -2514,18 +2698,21 @@ Message _withArgumentsOldInvalidGetterSetterTypeBothInheritedField(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
-  Message Function(DartType type, String name, DartType type2, String name2)
+  Message Function(DartType type, String name, DartType type2, String name2),
+  Message Function({
+    required DartType type,
+    required String name,
+    required DartType type2,
+    required String name2,
+  })
 >
-codeInvalidGetterSetterTypeBothInheritedGetter =
-    const Template<
-      Message Function(DartType type, String name, DartType type2, String name2)
-    >(
-      "InvalidGetterSetterTypeBothInheritedGetter",
-      problemMessageTemplate:
-          r"""The type '#type' of the inherited getter '#name' is not a subtype of the type '#type2' of the inherited setter '#name2'.""",
-      withArgumentsOld:
-          _withArgumentsOldInvalidGetterSetterTypeBothInheritedGetter,
-    );
+codeInvalidGetterSetterTypeBothInheritedGetter = const Template(
+  "InvalidGetterSetterTypeBothInheritedGetter",
+  problemMessageTemplate:
+      r"""The type '#type' of the inherited getter '#name' is not a subtype of the type '#type2' of the inherited setter '#name2'.""",
+  withArgumentsOld: _withArgumentsOldInvalidGetterSetterTypeBothInheritedGetter,
+  withArguments: _withArgumentsInvalidGetterSetterTypeBothInheritedGetter,
+);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsInvalidGetterSetterTypeBothInheritedGetter({
@@ -2563,17 +2750,21 @@ Message _withArgumentsOldInvalidGetterSetterTypeBothInheritedGetter(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
-  Message Function(DartType type, String name, DartType type2, String name2)
+  Message Function(DartType type, String name, DartType type2, String name2),
+  Message Function({
+    required DartType type,
+    required String name,
+    required DartType type2,
+    required String name2,
+  })
 >
-codeInvalidGetterSetterTypeFieldInherited =
-    const Template<
-      Message Function(DartType type, String name, DartType type2, String name2)
-    >(
-      "InvalidGetterSetterTypeFieldInherited",
-      problemMessageTemplate:
-          r"""The type '#type' of the inherited field '#name' is not a subtype of the type '#type2' of the setter '#name2'.""",
-      withArgumentsOld: _withArgumentsOldInvalidGetterSetterTypeFieldInherited,
-    );
+codeInvalidGetterSetterTypeFieldInherited = const Template(
+  "InvalidGetterSetterTypeFieldInherited",
+  problemMessageTemplate:
+      r"""The type '#type' of the inherited field '#name' is not a subtype of the type '#type2' of the setter '#name2'.""",
+  withArgumentsOld: _withArgumentsOldInvalidGetterSetterTypeFieldInherited,
+  withArguments: _withArgumentsInvalidGetterSetterTypeFieldInherited,
+);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsInvalidGetterSetterTypeFieldInherited({
@@ -2611,17 +2802,21 @@ Message _withArgumentsOldInvalidGetterSetterTypeFieldInherited(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
-  Message Function(DartType type, String name, DartType type2, String name2)
+  Message Function(DartType type, String name, DartType type2, String name2),
+  Message Function({
+    required DartType type,
+    required String name,
+    required DartType type2,
+    required String name2,
+  })
 >
-codeInvalidGetterSetterTypeGetterInherited =
-    const Template<
-      Message Function(DartType type, String name, DartType type2, String name2)
-    >(
-      "InvalidGetterSetterTypeGetterInherited",
-      problemMessageTemplate:
-          r"""The type '#type' of the inherited getter '#name' is not a subtype of the type '#type2' of the setter '#name2'.""",
-      withArgumentsOld: _withArgumentsOldInvalidGetterSetterTypeGetterInherited,
-    );
+codeInvalidGetterSetterTypeGetterInherited = const Template(
+  "InvalidGetterSetterTypeGetterInherited",
+  problemMessageTemplate:
+      r"""The type '#type' of the inherited getter '#name' is not a subtype of the type '#type2' of the setter '#name2'.""",
+  withArgumentsOld: _withArgumentsOldInvalidGetterSetterTypeGetterInherited,
+  withArguments: _withArgumentsInvalidGetterSetterTypeGetterInherited,
+);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsInvalidGetterSetterTypeGetterInherited({
@@ -2659,18 +2854,22 @@ Message _withArgumentsOldInvalidGetterSetterTypeGetterInherited(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
-  Message Function(DartType type, String name, DartType type2, String name2)
+  Message Function(DartType type, String name, DartType type2, String name2),
+  Message Function({
+    required DartType type,
+    required String name,
+    required DartType type2,
+    required String name2,
+  })
 >
-codeInvalidGetterSetterTypeSetterInheritedField =
-    const Template<
-      Message Function(DartType type, String name, DartType type2, String name2)
-    >(
-      "InvalidGetterSetterTypeSetterInheritedField",
-      problemMessageTemplate:
-          r"""The type '#type' of the field '#name' is not a subtype of the type '#type2' of the inherited setter '#name2'.""",
-      withArgumentsOld:
-          _withArgumentsOldInvalidGetterSetterTypeSetterInheritedField,
-    );
+codeInvalidGetterSetterTypeSetterInheritedField = const Template(
+  "InvalidGetterSetterTypeSetterInheritedField",
+  problemMessageTemplate:
+      r"""The type '#type' of the field '#name' is not a subtype of the type '#type2' of the inherited setter '#name2'.""",
+  withArgumentsOld:
+      _withArgumentsOldInvalidGetterSetterTypeSetterInheritedField,
+  withArguments: _withArgumentsInvalidGetterSetterTypeSetterInheritedField,
+);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsInvalidGetterSetterTypeSetterInheritedField({
@@ -2708,18 +2907,22 @@ Message _withArgumentsOldInvalidGetterSetterTypeSetterInheritedField(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
-  Message Function(DartType type, String name, DartType type2, String name2)
+  Message Function(DartType type, String name, DartType type2, String name2),
+  Message Function({
+    required DartType type,
+    required String name,
+    required DartType type2,
+    required String name2,
+  })
 >
-codeInvalidGetterSetterTypeSetterInheritedGetter =
-    const Template<
-      Message Function(DartType type, String name, DartType type2, String name2)
-    >(
-      "InvalidGetterSetterTypeSetterInheritedGetter",
-      problemMessageTemplate:
-          r"""The type '#type' of the getter '#name' is not a subtype of the type '#type2' of the inherited setter '#name2'.""",
-      withArgumentsOld:
-          _withArgumentsOldInvalidGetterSetterTypeSetterInheritedGetter,
-    );
+codeInvalidGetterSetterTypeSetterInheritedGetter = const Template(
+  "InvalidGetterSetterTypeSetterInheritedGetter",
+  problemMessageTemplate:
+      r"""The type '#type' of the getter '#name' is not a subtype of the type '#type2' of the inherited setter '#name2'.""",
+  withArgumentsOld:
+      _withArgumentsOldInvalidGetterSetterTypeSetterInheritedGetter,
+  withArguments: _withArgumentsInvalidGetterSetterTypeSetterInheritedGetter,
+);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsInvalidGetterSetterTypeSetterInheritedGetter({
@@ -2756,12 +2959,16 @@ Message _withArgumentsOldInvalidGetterSetterTypeSetterInheritedGetter(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(DartType type, DartType type2)>
-codeInvalidReturn = const Template<Message Function(DartType type, DartType type2)>(
+const Template<
+  Message Function(DartType type, DartType type2),
+  Message Function({required DartType type, required DartType type2})
+>
+codeInvalidReturn = const Template(
   "InvalidReturn",
   problemMessageTemplate:
       r"""A value of type '#type' can't be returned from a function with return type '#type2'.""",
   withArgumentsOld: _withArgumentsOldInvalidReturn,
+  withArguments: _withArgumentsInvalidReturn,
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -2786,14 +2993,17 @@ Message _withArgumentsOldInvalidReturn(DartType type, DartType type2) =>
     _withArgumentsInvalidReturn(type: type, type2: type2);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(DartType type, DartType type2)>
-codeInvalidReturnAsync =
-    const Template<Message Function(DartType type, DartType type2)>(
-      "InvalidReturnAsync",
-      problemMessageTemplate:
-          r"""A value of type '#type' can't be returned from an async function with return type '#type2'.""",
-      withArgumentsOld: _withArgumentsOldInvalidReturnAsync,
-    );
+const Template<
+  Message Function(DartType type, DartType type2),
+  Message Function({required DartType type, required DartType type2})
+>
+codeInvalidReturnAsync = const Template(
+  "InvalidReturnAsync",
+  problemMessageTemplate:
+      r"""A value of type '#type' can't be returned from an async function with return type '#type2'.""",
+  withArgumentsOld: _withArgumentsOldInvalidReturnAsync,
+  withArguments: _withArgumentsInvalidReturnAsync,
+);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsInvalidReturnAsync({
@@ -2817,17 +3027,19 @@ Message _withArgumentsOldInvalidReturnAsync(DartType type, DartType type2) =>
     _withArgumentsInvalidReturnAsync(type: type, type2: type2);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(DartType type)>
-codeJsInteropExportInvalidInteropTypeArgument =
-    const Template<Message Function(DartType type)>(
-      "JsInteropExportInvalidInteropTypeArgument",
-      problemMessageTemplate:
-          r"""Type argument '#type' needs to be a non-JS interop type.""",
-      correctionMessageTemplate:
-          r"""Use a non-JS interop class that uses `@JSExport` instead.""",
-      withArgumentsOld:
-          _withArgumentsOldJsInteropExportInvalidInteropTypeArgument,
-    );
+const Template<
+  Message Function(DartType type),
+  Message Function({required DartType type})
+>
+codeJsInteropExportInvalidInteropTypeArgument = const Template(
+  "JsInteropExportInvalidInteropTypeArgument",
+  problemMessageTemplate:
+      r"""Type argument '#type' needs to be a non-JS interop type.""",
+  correctionMessageTemplate:
+      r"""Use a non-JS interop class that uses `@JSExport` instead.""",
+  withArgumentsOld: _withArgumentsOldJsInteropExportInvalidInteropTypeArgument,
+  withArguments: _withArgumentsJsInteropExportInvalidInteropTypeArgument,
+);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsJsInteropExportInvalidInteropTypeArgument({
@@ -2852,16 +3064,19 @@ Message _withArgumentsOldJsInteropExportInvalidInteropTypeArgument(
 ) => _withArgumentsJsInteropExportInvalidInteropTypeArgument(type: type);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(DartType type)>
-codeJsInteropExportInvalidTypeArgument =
-    const Template<Message Function(DartType type)>(
-      "JsInteropExportInvalidTypeArgument",
-      problemMessageTemplate:
-          r"""Type argument '#type' needs to be an interface type.""",
-      correctionMessageTemplate:
-          r"""Use a non-JS interop class that uses `@JSExport` instead.""",
-      withArgumentsOld: _withArgumentsOldJsInteropExportInvalidTypeArgument,
-    );
+const Template<
+  Message Function(DartType type),
+  Message Function({required DartType type})
+>
+codeJsInteropExportInvalidTypeArgument = const Template(
+  "JsInteropExportInvalidTypeArgument",
+  problemMessageTemplate:
+      r"""Type argument '#type' needs to be an interface type.""",
+  correctionMessageTemplate:
+      r"""Use a non-JS interop class that uses `@JSExport` instead.""",
+  withArgumentsOld: _withArgumentsOldJsInteropExportInvalidTypeArgument,
+  withArguments: _withArgumentsJsInteropExportInvalidTypeArgument,
+);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsJsInteropExportInvalidTypeArgument({
@@ -2885,16 +3100,19 @@ Message _withArgumentsOldJsInteropExportInvalidTypeArgument(DartType type) =>
     _withArgumentsJsInteropExportInvalidTypeArgument(type: type);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(String name, DartType type)>
-codeJsInteropExtensionTypeNotInterop =
-    const Template<Message Function(String name, DartType type)>(
-      "JsInteropExtensionTypeNotInterop",
-      problemMessageTemplate:
-          r"""Extension type '#name' is marked with a '@JS' annotation, but its representation type is not a valid JS interop type: '#type'.""",
-      correctionMessageTemplate:
-          r"""Try declaring a valid JS interop representation type, which may include 'dart:js_interop' types, '@staticInterop' types, 'dart:html' types, or other interop extension types.""",
-      withArgumentsOld: _withArgumentsOldJsInteropExtensionTypeNotInterop,
-    );
+const Template<
+  Message Function(String name, DartType type),
+  Message Function({required String name, required DartType type})
+>
+codeJsInteropExtensionTypeNotInterop = const Template(
+  "JsInteropExtensionTypeNotInterop",
+  problemMessageTemplate:
+      r"""Extension type '#name' is marked with a '@JS' annotation, but its representation type is not a valid JS interop type: '#type'.""",
+  correctionMessageTemplate:
+      r"""Try declaring a valid JS interop representation type, which may include 'dart:js_interop' types, '@staticInterop' types, 'dart:html' types, or other interop extension types.""",
+  withArgumentsOld: _withArgumentsOldJsInteropExtensionTypeNotInterop,
+  withArguments: _withArgumentsJsInteropExtensionTypeNotInterop,
+);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsJsInteropExtensionTypeNotInterop({
@@ -2922,17 +3140,19 @@ Message _withArgumentsOldJsInteropExtensionTypeNotInterop(
 ) => _withArgumentsJsInteropExtensionTypeNotInterop(name: name, type: type);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(DartType type)>
-codeJsInteropFunctionToJSRequiresStaticType =
-    const Template<Message Function(DartType type)>(
-      "JsInteropFunctionToJSRequiresStaticType",
-      problemMessageTemplate:
-          r"""`Function.toJS` requires a statically known function type, but Type '#type' is not a precise function type, e.g., `void Function()`.""",
-      correctionMessageTemplate:
-          r"""Insert an explicit cast to the expected function type.""",
-      withArgumentsOld:
-          _withArgumentsOldJsInteropFunctionToJSRequiresStaticType,
-    );
+const Template<
+  Message Function(DartType type),
+  Message Function({required DartType type})
+>
+codeJsInteropFunctionToJSRequiresStaticType = const Template(
+  "JsInteropFunctionToJSRequiresStaticType",
+  problemMessageTemplate:
+      r"""`Function.toJS` requires a statically known function type, but Type '#type' is not a precise function type, e.g., `void Function()`.""",
+  correctionMessageTemplate:
+      r"""Insert an explicit cast to the expected function type.""",
+  withArgumentsOld: _withArgumentsOldJsInteropFunctionToJSRequiresStaticType,
+  withArguments: _withArgumentsJsInteropFunctionToJSRequiresStaticType,
+);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsJsInteropFunctionToJSRequiresStaticType({
@@ -2957,14 +3177,18 @@ Message _withArgumentsOldJsInteropFunctionToJSRequiresStaticType(
 ) => _withArgumentsJsInteropFunctionToJSRequiresStaticType(type: type);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(DartType type)>
-codeJsInteropIsAInvalidTypeVariable = const Template<Message Function(DartType type)>(
+const Template<
+  Message Function(DartType type),
+  Message Function({required DartType type})
+>
+codeJsInteropIsAInvalidTypeVariable = const Template(
   "JsInteropIsAInvalidTypeVariable",
   problemMessageTemplate:
       r"""Type argument '#type' provided to 'isA' cannot be a type variable and must be an interop extension type that can be determined at compile-time.""",
   correctionMessageTemplate:
       r"""Use a valid interop extension type that can be determined at compile-time as the type argument instead.""",
   withArgumentsOld: _withArgumentsOldJsInteropIsAInvalidTypeVariable,
+  withArguments: _withArgumentsJsInteropIsAInvalidTypeVariable,
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -2989,14 +3213,18 @@ Message _withArgumentsOldJsInteropIsAInvalidTypeVariable(DartType type) =>
     _withArgumentsJsInteropIsAInvalidTypeVariable(type: type);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(DartType type)>
-codeJsInteropIsAObjectLiteralType = const Template<Message Function(DartType type)>(
+const Template<
+  Message Function(DartType type),
+  Message Function({required DartType type})
+>
+codeJsInteropIsAObjectLiteralType = const Template(
   "JsInteropIsAObjectLiteralType",
   problemMessageTemplate:
       r"""Type argument '#type' has an object literal constructor. Because 'isA' uses the type's name or '@JS()' rename, this may result in an incorrect type check.""",
   correctionMessageTemplate:
       r"""Use 'JSObject' as the type argument instead.""",
   withArgumentsOld: _withArgumentsOldJsInteropIsAObjectLiteralType,
+  withArguments: _withArgumentsJsInteropIsAObjectLiteralType,
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -3018,16 +3246,19 @@ Message _withArgumentsOldJsInteropIsAObjectLiteralType(DartType type) =>
     _withArgumentsJsInteropIsAObjectLiteralType(type: type);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(DartType type, String string)>
-codeJsInteropIsAPrimitiveExtensionType =
-    const Template<Message Function(DartType type, String string)>(
-      "JsInteropIsAPrimitiveExtensionType",
-      problemMessageTemplate:
-          r"""Type argument '#type' wraps primitive JS type '#string', which is specially handled using 'typeof'.""",
-      correctionMessageTemplate:
-          r"""Use the primitive JS type '#string' as the type argument instead.""",
-      withArgumentsOld: _withArgumentsOldJsInteropIsAPrimitiveExtensionType,
-    );
+const Template<
+  Message Function(DartType type, String string),
+  Message Function({required DartType type, required String string})
+>
+codeJsInteropIsAPrimitiveExtensionType = const Template(
+  "JsInteropIsAPrimitiveExtensionType",
+  problemMessageTemplate:
+      r"""Type argument '#type' wraps primitive JS type '#string', which is specially handled using 'typeof'.""",
+  correctionMessageTemplate:
+      r"""Use the primitive JS type '#string' as the type argument instead.""",
+  withArgumentsOld: _withArgumentsOldJsInteropIsAPrimitiveExtensionType,
+  withArguments: _withArgumentsJsInteropIsAPrimitiveExtensionType,
+);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsJsInteropIsAPrimitiveExtensionType({
@@ -3058,17 +3289,21 @@ Message _withArgumentsOldJsInteropIsAPrimitiveExtensionType(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(DartType type)>
-codeJsInteropStaticInteropExternalAccessorTypeViolation =
-    const Template<Message Function(DartType type)>(
-      "JsInteropStaticInteropExternalAccessorTypeViolation",
-      problemMessageTemplate:
-          r"""External JS interop member contains an invalid type: '#type'.""",
-      correctionMessageTemplate:
-          r"""Use one of these valid types instead: JS types from 'dart:js_interop', ExternalDartReference, void, bool, num, double, int, String, extension types that erase to one of these types, '@staticInterop' types, 'dart:html' types when compiling to JS, or a type parameter that is a subtype of a valid non-primitive type.""",
-      withArgumentsOld:
-          _withArgumentsOldJsInteropStaticInteropExternalAccessorTypeViolation,
-    );
+const Template<
+  Message Function(DartType type),
+  Message Function({required DartType type})
+>
+codeJsInteropStaticInteropExternalAccessorTypeViolation = const Template(
+  "JsInteropStaticInteropExternalAccessorTypeViolation",
+  problemMessageTemplate:
+      r"""External JS interop member contains an invalid type: '#type'.""",
+  correctionMessageTemplate:
+      r"""Use one of these valid types instead: JS types from 'dart:js_interop', ExternalDartReference, void, bool, num, double, int, String, extension types that erase to one of these types, '@staticInterop' types, 'dart:html' types when compiling to JS, or a type parameter that is a subtype of a valid non-primitive type.""",
+  withArgumentsOld:
+      _withArgumentsOldJsInteropStaticInteropExternalAccessorTypeViolation,
+  withArguments:
+      _withArgumentsJsInteropStaticInteropExternalAccessorTypeViolation,
+);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsJsInteropStaticInteropExternalAccessorTypeViolation({
@@ -3095,16 +3330,19 @@ Message _withArgumentsOldJsInteropStaticInteropExternalAccessorTypeViolation(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(DartType type)>
-codeJsInteropStaticInteropMockNotStaticInteropType =
-    const Template<Message Function(DartType type)>(
-      "JsInteropStaticInteropMockNotStaticInteropType",
-      problemMessageTemplate:
-          r"""Type argument '#type' needs to be a `@staticInterop` type.""",
-      correctionMessageTemplate: r"""Use a `@staticInterop` class instead.""",
-      withArgumentsOld:
-          _withArgumentsOldJsInteropStaticInteropMockNotStaticInteropType,
-    );
+const Template<
+  Message Function(DartType type),
+  Message Function({required DartType type})
+>
+codeJsInteropStaticInteropMockNotStaticInteropType = const Template(
+  "JsInteropStaticInteropMockNotStaticInteropType",
+  problemMessageTemplate:
+      r"""Type argument '#type' needs to be a `@staticInterop` type.""",
+  correctionMessageTemplate: r"""Use a `@staticInterop` class instead.""",
+  withArgumentsOld:
+      _withArgumentsOldJsInteropStaticInteropMockNotStaticInteropType,
+  withArguments: _withArgumentsJsInteropStaticInteropMockNotStaticInteropType,
+);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsJsInteropStaticInteropMockNotStaticInteropType({
@@ -3128,17 +3366,21 @@ Message _withArgumentsOldJsInteropStaticInteropMockNotStaticInteropType(
 ) => _withArgumentsJsInteropStaticInteropMockNotStaticInteropType(type: type);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(DartType type)>
-codeJsInteropStaticInteropMockTypeParametersNotAllowed =
-    const Template<Message Function(DartType type)>(
-      "JsInteropStaticInteropMockTypeParametersNotAllowed",
-      problemMessageTemplate:
-          r"""Type argument '#type' has type parameters that do not match their bound. createStaticInteropMock requires instantiating all type parameters to their bound to ensure mocking conformance.""",
-      correctionMessageTemplate:
-          r"""Remove the type parameter in the type argument or replace it with its bound.""",
-      withArgumentsOld:
-          _withArgumentsOldJsInteropStaticInteropMockTypeParametersNotAllowed,
-    );
+const Template<
+  Message Function(DartType type),
+  Message Function({required DartType type})
+>
+codeJsInteropStaticInteropMockTypeParametersNotAllowed = const Template(
+  "JsInteropStaticInteropMockTypeParametersNotAllowed",
+  problemMessageTemplate:
+      r"""Type argument '#type' has type parameters that do not match their bound. createStaticInteropMock requires instantiating all type parameters to their bound to ensure mocking conformance.""",
+  correctionMessageTemplate:
+      r"""Remove the type parameter in the type argument or replace it with its bound.""",
+  withArgumentsOld:
+      _withArgumentsOldJsInteropStaticInteropMockTypeParametersNotAllowed,
+  withArguments:
+      _withArgumentsJsInteropStaticInteropMockTypeParametersNotAllowed,
+);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsJsInteropStaticInteropMockTypeParametersNotAllowed({
@@ -3165,14 +3407,17 @@ Message _withArgumentsOldJsInteropStaticInteropMockTypeParametersNotAllowed(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(DartType type, DartType type2)>
-codeMainWrongParameterType =
-    const Template<Message Function(DartType type, DartType type2)>(
-      "MainWrongParameterType",
-      problemMessageTemplate:
-          r"""The type '#type' of the first parameter of the 'main' method is not a supertype of '#type2'.""",
-      withArgumentsOld: _withArgumentsOldMainWrongParameterType,
-    );
+const Template<
+  Message Function(DartType type, DartType type2),
+  Message Function({required DartType type, required DartType type2})
+>
+codeMainWrongParameterType = const Template(
+  "MainWrongParameterType",
+  problemMessageTemplate:
+      r"""The type '#type' of the first parameter of the 'main' method is not a supertype of '#type2'.""",
+  withArgumentsOld: _withArgumentsOldMainWrongParameterType,
+  withArguments: _withArgumentsMainWrongParameterType,
+);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsMainWrongParameterType({
@@ -3198,14 +3443,17 @@ Message _withArgumentsOldMainWrongParameterType(
 ) => _withArgumentsMainWrongParameterType(type: type, type2: type2);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(DartType type, DartType type2)>
-codeMainWrongParameterTypeExported =
-    const Template<Message Function(DartType type, DartType type2)>(
-      "MainWrongParameterTypeExported",
-      problemMessageTemplate:
-          r"""The type '#type' of the first parameter of the exported 'main' method is not a supertype of '#type2'.""",
-      withArgumentsOld: _withArgumentsOldMainWrongParameterTypeExported,
-    );
+const Template<
+  Message Function(DartType type, DartType type2),
+  Message Function({required DartType type, required DartType type2})
+>
+codeMainWrongParameterTypeExported = const Template(
+  "MainWrongParameterTypeExported",
+  problemMessageTemplate:
+      r"""The type '#type' of the first parameter of the exported 'main' method is not a supertype of '#type2'.""",
+  withArgumentsOld: _withArgumentsOldMainWrongParameterTypeExported,
+  withArguments: _withArgumentsMainWrongParameterTypeExported,
+);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsMainWrongParameterTypeExported({
@@ -3231,17 +3479,22 @@ Message _withArgumentsOldMainWrongParameterTypeExported(
 ) => _withArgumentsMainWrongParameterTypeExported(type: type, type2: type2);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(DartType type, DartType type2, DartType type3)>
-codeMixinApplicationIncompatibleSupertype =
-    const Template<
-      Message Function(DartType type, DartType type2, DartType type3)
-    >(
-      "MixinApplicationIncompatibleSupertype",
-      problemMessageTemplate:
-          r"""'#type' doesn't implement '#type2' so it can't be used with '#type3'.""",
-      withArgumentsOld: _withArgumentsOldMixinApplicationIncompatibleSupertype,
-      analyzerCodes: <String>["MIXIN_APPLICATION_NOT_IMPLEMENTED_INTERFACE"],
-    );
+const Template<
+  Message Function(DartType type, DartType type2, DartType type3),
+  Message Function({
+    required DartType type,
+    required DartType type2,
+    required DartType type3,
+  })
+>
+codeMixinApplicationIncompatibleSupertype = const Template(
+  "MixinApplicationIncompatibleSupertype",
+  problemMessageTemplate:
+      r"""'#type' doesn't implement '#type2' so it can't be used with '#type3'.""",
+  withArgumentsOld: _withArgumentsOldMixinApplicationIncompatibleSupertype,
+  withArguments: _withArgumentsMixinApplicationIncompatibleSupertype,
+  analyzerCodes: <String>["MIXIN_APPLICATION_NOT_IMPLEMENTED_INTERFACE"],
+);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsMixinApplicationIncompatibleSupertype({
@@ -3274,15 +3527,22 @@ Message _withArgumentsOldMixinApplicationIncompatibleSupertype(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(String name, String name2, DartType type)>
-codeMixinInferenceNoMatchingClass =
-    const Template<Message Function(String name, String name2, DartType type)>(
-      "MixinInferenceNoMatchingClass",
-      problemMessageTemplate:
-          r"""Type parameters couldn't be inferred for the mixin '#name' because '#name2' does not implement the mixin's supertype constraint '#type'.""",
-      withArgumentsOld: _withArgumentsOldMixinInferenceNoMatchingClass,
-      analyzerCodes: <String>["MIXIN_INFERENCE_NO_POSSIBLE_SUBSTITUTION"],
-    );
+const Template<
+  Message Function(String name, String name2, DartType type),
+  Message Function({
+    required String name,
+    required String name2,
+    required DartType type,
+  })
+>
+codeMixinInferenceNoMatchingClass = const Template(
+  "MixinInferenceNoMatchingClass",
+  problemMessageTemplate:
+      r"""Type parameters couldn't be inferred for the mixin '#name' because '#name2' does not implement the mixin's supertype constraint '#type'.""",
+  withArgumentsOld: _withArgumentsOldMixinInferenceNoMatchingClass,
+  withArguments: _withArgumentsMixinInferenceNoMatchingClass,
+  analyzerCodes: <String>["MIXIN_INFERENCE_NO_POSSIBLE_SUBSTITUTION"],
+);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsMixinInferenceNoMatchingClass({
@@ -3315,14 +3575,17 @@ Message _withArgumentsOldMixinInferenceNoMatchingClass(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(String string, DartType type)>
-codeNameNotFoundInRecordNameGet =
-    const Template<Message Function(String string, DartType type)>(
-      "NameNotFoundInRecordNameGet",
-      problemMessageTemplate:
-          r"""Field name #string isn't found in records of type #type.""",
-      withArgumentsOld: _withArgumentsOldNameNotFoundInRecordNameGet,
-    );
+const Template<
+  Message Function(String string, DartType type),
+  Message Function({required String string, required DartType type})
+>
+codeNameNotFoundInRecordNameGet = const Template(
+  "NameNotFoundInRecordNameGet",
+  problemMessageTemplate:
+      r"""Field name #string isn't found in records of type #type.""",
+  withArgumentsOld: _withArgumentsOldNameNotFoundInRecordNameGet,
+  withArguments: _withArgumentsNameNotFoundInRecordNameGet,
+);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsNameNotFoundInRecordNameGet({
@@ -3348,19 +3611,24 @@ Message _withArgumentsOldNameNotFoundInRecordNameGet(
 ) => _withArgumentsNameNotFoundInRecordNameGet(string: string, type: type);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(DartType type, String string, String string2)>
-codeNonExhaustiveSwitchExpression =
-    const Template<
-      Message Function(DartType type, String string, String string2)
-    >(
-      "NonExhaustiveSwitchExpression",
-      problemMessageTemplate:
-          r"""The type '#type' is not exhaustively matched by the switch cases since it doesn't match '#string'.""",
-      correctionMessageTemplate:
-          r"""Try adding a wildcard pattern or cases that match '#string2'.""",
-      withArgumentsOld: _withArgumentsOldNonExhaustiveSwitchExpression,
-      analyzerCodes: <String>["NON_EXHAUSTIVE_SWITCH_EXPRESSION"],
-    );
+const Template<
+  Message Function(DartType type, String string, String string2),
+  Message Function({
+    required DartType type,
+    required String string,
+    required String string2,
+  })
+>
+codeNonExhaustiveSwitchExpression = const Template(
+  "NonExhaustiveSwitchExpression",
+  problemMessageTemplate:
+      r"""The type '#type' is not exhaustively matched by the switch cases since it doesn't match '#string'.""",
+  correctionMessageTemplate:
+      r"""Try adding a wildcard pattern or cases that match '#string2'.""",
+  withArgumentsOld: _withArgumentsOldNonExhaustiveSwitchExpression,
+  withArguments: _withArgumentsNonExhaustiveSwitchExpression,
+  analyzerCodes: <String>["NON_EXHAUSTIVE_SWITCH_EXPRESSION"],
+);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsNonExhaustiveSwitchExpression({
@@ -3395,19 +3663,24 @@ Message _withArgumentsOldNonExhaustiveSwitchExpression(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(DartType type, String string, String string2)>
-codeNonExhaustiveSwitchStatement =
-    const Template<
-      Message Function(DartType type, String string, String string2)
-    >(
-      "NonExhaustiveSwitchStatement",
-      problemMessageTemplate:
-          r"""The type '#type' is not exhaustively matched by the switch cases since it doesn't match '#string'.""",
-      correctionMessageTemplate:
-          r"""Try adding a default case or cases that match '#string2'.""",
-      withArgumentsOld: _withArgumentsOldNonExhaustiveSwitchStatement,
-      analyzerCodes: <String>["NON_EXHAUSTIVE_SWITCH_STATEMENT"],
-    );
+const Template<
+  Message Function(DartType type, String string, String string2),
+  Message Function({
+    required DartType type,
+    required String string,
+    required String string2,
+  })
+>
+codeNonExhaustiveSwitchStatement = const Template(
+  "NonExhaustiveSwitchStatement",
+  problemMessageTemplate:
+      r"""The type '#type' is not exhaustively matched by the switch cases since it doesn't match '#string'.""",
+  correctionMessageTemplate:
+      r"""Try adding a default case or cases that match '#string2'.""",
+  withArgumentsOld: _withArgumentsOldNonExhaustiveSwitchStatement,
+  withArguments: _withArgumentsNonExhaustiveSwitchStatement,
+  analyzerCodes: <String>["NON_EXHAUSTIVE_SWITCH_STATEMENT"],
+);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsNonExhaustiveSwitchStatement({
@@ -3442,13 +3715,16 @@ Message _withArgumentsOldNonExhaustiveSwitchStatement(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(DartType type)> codeNonNullAwareSpreadIsNull =
-    const Template<Message Function(DartType type)>(
-      "NonNullAwareSpreadIsNull",
-      problemMessageTemplate:
-          r"""Can't spread a value with static type '#type'.""",
-      withArgumentsOld: _withArgumentsOldNonNullAwareSpreadIsNull,
-    );
+const Template<
+  Message Function(DartType type),
+  Message Function({required DartType type})
+>
+codeNonNullAwareSpreadIsNull = const Template(
+  "NonNullAwareSpreadIsNull",
+  problemMessageTemplate: r"""Can't spread a value with static type '#type'.""",
+  withArgumentsOld: _withArgumentsOldNonNullAwareSpreadIsNull,
+  withArguments: _withArgumentsNonNullAwareSpreadIsNull,
+);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsNonNullAwareSpreadIsNull({required DartType type}) {
@@ -3468,13 +3744,17 @@ Message _withArgumentsOldNonNullAwareSpreadIsNull(DartType type) =>
     _withArgumentsNonNullAwareSpreadIsNull(type: type);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(DartType type)>
-codeNullableExpressionCallError = const Template<Message Function(DartType type)>(
+const Template<
+  Message Function(DartType type),
+  Message Function({required DartType type})
+>
+codeNullableExpressionCallError = const Template(
   "NullableExpressionCallError",
   problemMessageTemplate:
       r"""Can't use an expression of type '#type' as a function because it's potentially null.""",
   correctionMessageTemplate: r"""Try calling using ?.call instead.""",
   withArgumentsOld: _withArgumentsOldNullableExpressionCallError,
+  withArguments: _withArgumentsNullableExpressionCallError,
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -3496,15 +3776,18 @@ Message _withArgumentsOldNullableExpressionCallError(DartType type) =>
     _withArgumentsNullableExpressionCallError(type: type);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(String name, DartType type)>
-codeNullableMethodCallError =
-    const Template<Message Function(String name, DartType type)>(
-      "NullableMethodCallError",
-      problemMessageTemplate:
-          r"""Method '#name' cannot be called on '#type' because it is potentially null.""",
-      correctionMessageTemplate: r"""Try calling using ?. instead.""",
-      withArgumentsOld: _withArgumentsOldNullableMethodCallError,
-    );
+const Template<
+  Message Function(String name, DartType type),
+  Message Function({required String name, required DartType type})
+>
+codeNullableMethodCallError = const Template(
+  "NullableMethodCallError",
+  problemMessageTemplate:
+      r"""Method '#name' cannot be called on '#type' because it is potentially null.""",
+  correctionMessageTemplate: r"""Try calling using ?. instead.""",
+  withArgumentsOld: _withArgumentsOldNullableMethodCallError,
+  withArguments: _withArgumentsNullableMethodCallError,
+);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsNullableMethodCallError({
@@ -3529,14 +3812,17 @@ Message _withArgumentsOldNullableMethodCallError(String name, DartType type) =>
     _withArgumentsNullableMethodCallError(name: name, type: type);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(String name, DartType type)>
-codeNullableOperatorCallError =
-    const Template<Message Function(String name, DartType type)>(
-      "NullableOperatorCallError",
-      problemMessageTemplate:
-          r"""Operator '#name' cannot be called on '#type' because it is potentially null.""",
-      withArgumentsOld: _withArgumentsOldNullableOperatorCallError,
-    );
+const Template<
+  Message Function(String name, DartType type),
+  Message Function({required String name, required DartType type})
+>
+codeNullableOperatorCallError = const Template(
+  "NullableOperatorCallError",
+  problemMessageTemplate:
+      r"""Operator '#name' cannot be called on '#type' because it is potentially null.""",
+  withArgumentsOld: _withArgumentsOldNullableOperatorCallError,
+  withArguments: _withArgumentsNullableOperatorCallError,
+);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsNullableOperatorCallError({
@@ -3562,15 +3848,18 @@ Message _withArgumentsOldNullableOperatorCallError(
 ) => _withArgumentsNullableOperatorCallError(name: name, type: type);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(String name, DartType type)>
-codeNullablePropertyAccessError =
-    const Template<Message Function(String name, DartType type)>(
-      "NullablePropertyAccessError",
-      problemMessageTemplate:
-          r"""Property '#name' cannot be accessed on '#type' because it is potentially null.""",
-      correctionMessageTemplate: r"""Try accessing using ?. instead.""",
-      withArgumentsOld: _withArgumentsOldNullablePropertyAccessError,
-    );
+const Template<
+  Message Function(String name, DartType type),
+  Message Function({required String name, required DartType type})
+>
+codeNullablePropertyAccessError = const Template(
+  "NullablePropertyAccessError",
+  problemMessageTemplate:
+      r"""Property '#name' cannot be accessed on '#type' because it is potentially null.""",
+  correctionMessageTemplate: r"""Try accessing using ?. instead.""",
+  withArgumentsOld: _withArgumentsOldNullablePropertyAccessError,
+  withArguments: _withArgumentsNullablePropertyAccessError,
+);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsNullablePropertyAccessError({
@@ -3597,18 +3886,20 @@ Message _withArgumentsOldNullablePropertyAccessError(
 ) => _withArgumentsNullablePropertyAccessError(name: name, type: type);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(String name, DartType type)>
-codeOptionalNonNullableWithoutInitializerError =
-    const Template<Message Function(String name, DartType type)>(
-      "OptionalNonNullableWithoutInitializerError",
-      problemMessageTemplate:
-          r"""The parameter '#name' can't have a value of 'null' because of its type '#type', but the implicit default value is 'null'.""",
-      correctionMessageTemplate:
-          r"""Try adding either an explicit non-'null' default value or the 'required' modifier.""",
-      withArgumentsOld:
-          _withArgumentsOldOptionalNonNullableWithoutInitializerError,
-      analyzerCodes: <String>["MISSING_DEFAULT_VALUE_FOR_PARAMETER"],
-    );
+const Template<
+  Message Function(String name, DartType type),
+  Message Function({required String name, required DartType type})
+>
+codeOptionalNonNullableWithoutInitializerError = const Template(
+  "OptionalNonNullableWithoutInitializerError",
+  problemMessageTemplate:
+      r"""The parameter '#name' can't have a value of 'null' because of its type '#type', but the implicit default value is 'null'.""",
+  correctionMessageTemplate:
+      r"""Try adding either an explicit non-'null' default value or the 'required' modifier.""",
+  withArgumentsOld: _withArgumentsOldOptionalNonNullableWithoutInitializerError,
+  withArguments: _withArgumentsOptionalNonNullableWithoutInitializerError,
+  analyzerCodes: <String>["MISSING_DEFAULT_VALUE_FOR_PARAMETER"],
+);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsOptionalNonNullableWithoutInitializerError({
@@ -3639,15 +3930,17 @@ Message _withArgumentsOldOptionalNonNullableWithoutInitializerError(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(DartType type, String name)>
-codeOptionalSuperParameterWithoutInitializer =
-    const Template<Message Function(DartType type, String name)>(
-      "OptionalSuperParameterWithoutInitializer",
-      problemMessageTemplate:
-          r"""Type '#type' of the optional super-initializer parameter '#name' doesn't allow 'null', but the parameter doesn't have a default value, and the default value can't be copied from the corresponding parameter of the super constructor.""",
-      withArgumentsOld:
-          _withArgumentsOldOptionalSuperParameterWithoutInitializer,
-    );
+const Template<
+  Message Function(DartType type, String name),
+  Message Function({required DartType type, required String name})
+>
+codeOptionalSuperParameterWithoutInitializer = const Template(
+  "OptionalSuperParameterWithoutInitializer",
+  problemMessageTemplate:
+      r"""Type '#type' of the optional super-initializer parameter '#name' doesn't allow 'null', but the parameter doesn't have a default value, and the default value can't be copied from the corresponding parameter of the super constructor.""",
+  withArgumentsOld: _withArgumentsOldOptionalSuperParameterWithoutInitializer,
+  withArguments: _withArgumentsOptionalSuperParameterWithoutInitializer,
+);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsOptionalSuperParameterWithoutInitializer({
@@ -3683,26 +3976,25 @@ const Template<
     DartType type,
     DartType type2,
     String name3,
-  )
+  ),
+  Message Function({
+    required String name,
+    required String name2,
+    required DartType type,
+    required DartType type2,
+    required String name3,
+  })
 >
-codeOverrideTypeMismatchParameter =
-    const Template<
-      Message Function(
-        String name,
-        String name2,
-        DartType type,
-        DartType type2,
-        String name3,
-      )
-    >(
-      "OverrideTypeMismatchParameter",
-      problemMessageTemplate:
-          r"""The parameter '#name' of the method '#name2' has type '#type', which does not match the corresponding type, '#type2', in the overridden method, '#name3'.""",
-      correctionMessageTemplate:
-          r"""Change to a supertype of '#type2', or, for a covariant parameter, a subtype.""",
-      withArgumentsOld: _withArgumentsOldOverrideTypeMismatchParameter,
-      analyzerCodes: <String>["INVALID_METHOD_OVERRIDE"],
-    );
+codeOverrideTypeMismatchParameter = const Template(
+  "OverrideTypeMismatchParameter",
+  problemMessageTemplate:
+      r"""The parameter '#name' of the method '#name2' has type '#type', which does not match the corresponding type, '#type2', in the overridden method, '#name3'.""",
+  correctionMessageTemplate:
+      r"""Change to a supertype of '#type2', or, for a covariant parameter, a subtype.""",
+  withArgumentsOld: _withArgumentsOldOverrideTypeMismatchParameter,
+  withArguments: _withArgumentsOverrideTypeMismatchParameter,
+  analyzerCodes: <String>["INVALID_METHOD_OVERRIDE"],
+);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsOverrideTypeMismatchParameter({
@@ -3752,19 +4044,23 @@ Message _withArgumentsOldOverrideTypeMismatchParameter(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
-  Message Function(String name, DartType type, DartType type2, String name2)
+  Message Function(String name, DartType type, DartType type2, String name2),
+  Message Function({
+    required String name,
+    required DartType type,
+    required DartType type2,
+    required String name2,
+  })
 >
-codeOverrideTypeMismatchReturnType =
-    const Template<
-      Message Function(String name, DartType type, DartType type2, String name2)
-    >(
-      "OverrideTypeMismatchReturnType",
-      problemMessageTemplate:
-          r"""The return type of the method '#name' is '#type', which does not match the return type, '#type2', of the overridden method, '#name2'.""",
-      correctionMessageTemplate: r"""Change to a subtype of '#type2'.""",
-      withArgumentsOld: _withArgumentsOldOverrideTypeMismatchReturnType,
-      analyzerCodes: <String>["INVALID_METHOD_OVERRIDE"],
-    );
+codeOverrideTypeMismatchReturnType = const Template(
+  "OverrideTypeMismatchReturnType",
+  problemMessageTemplate:
+      r"""The return type of the method '#name' is '#type', which does not match the return type, '#type2', of the overridden method, '#name2'.""",
+  correctionMessageTemplate: r"""Change to a subtype of '#type2'.""",
+  withArgumentsOld: _withArgumentsOldOverrideTypeMismatchReturnType,
+  withArguments: _withArgumentsOverrideTypeMismatchReturnType,
+  analyzerCodes: <String>["INVALID_METHOD_OVERRIDE"],
+);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsOverrideTypeMismatchReturnType({
@@ -3803,18 +4099,22 @@ Message _withArgumentsOldOverrideTypeMismatchReturnType(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
-  Message Function(String name, DartType type, DartType type2, String name2)
+  Message Function(String name, DartType type, DartType type2, String name2),
+  Message Function({
+    required String name,
+    required DartType type,
+    required DartType type2,
+    required String name2,
+  })
 >
-codeOverrideTypeMismatchSetter =
-    const Template<
-      Message Function(String name, DartType type, DartType type2, String name2)
-    >(
-      "OverrideTypeMismatchSetter",
-      problemMessageTemplate:
-          r"""The field '#name' has type '#type', which does not match the corresponding type, '#type2', in the overridden setter, '#name2'.""",
-      withArgumentsOld: _withArgumentsOldOverrideTypeMismatchSetter,
-      analyzerCodes: <String>["INVALID_METHOD_OVERRIDE"],
-    );
+codeOverrideTypeMismatchSetter = const Template(
+  "OverrideTypeMismatchSetter",
+  problemMessageTemplate:
+      r"""The field '#name' has type '#type', which does not match the corresponding type, '#type2', in the overridden setter, '#name2'.""",
+  withArgumentsOld: _withArgumentsOldOverrideTypeMismatchSetter,
+  withArguments: _withArgumentsOverrideTypeMismatchSetter,
+  analyzerCodes: <String>["INVALID_METHOD_OVERRIDE"],
+);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsOverrideTypeMismatchSetter({
@@ -3858,23 +4158,22 @@ const Template<
     String name2,
     DartType type2,
     String name3,
-  )
+  ),
+  Message Function({
+    required DartType type,
+    required String name,
+    required String name2,
+    required DartType type2,
+    required String name3,
+  })
 >
-codeOverrideTypeParametersBoundMismatch =
-    const Template<
-      Message Function(
-        DartType type,
-        String name,
-        String name2,
-        DartType type2,
-        String name3,
-      )
-    >(
-      "OverrideTypeParametersBoundMismatch",
-      problemMessageTemplate:
-          r"""Declared bound '#type' of type variable '#name' of '#name2' doesn't match the bound '#type2' on overridden method '#name3'.""",
-      withArgumentsOld: _withArgumentsOldOverrideTypeParametersBoundMismatch,
-    );
+codeOverrideTypeParametersBoundMismatch = const Template(
+  "OverrideTypeParametersBoundMismatch",
+  problemMessageTemplate:
+      r"""Declared bound '#type' of type variable '#name' of '#name2' doesn't match the bound '#type2' on overridden method '#name3'.""",
+  withArgumentsOld: _withArgumentsOldOverrideTypeParametersBoundMismatch,
+  withArguments: _withArgumentsOverrideTypeParametersBoundMismatch,
+);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsOverrideTypeParametersBoundMismatch({
@@ -3921,18 +4220,20 @@ Message _withArgumentsOldOverrideTypeParametersBoundMismatch(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(DartType type, DartType type2)>
-codePatternTypeMismatchInIrrefutableContext =
-    const Template<Message Function(DartType type, DartType type2)>(
-      "PatternTypeMismatchInIrrefutableContext",
-      problemMessageTemplate:
-          r"""The matched value of type '#type' isn't assignable to the required type '#type2'.""",
-      correctionMessageTemplate:
-          r"""Try changing the required type of the pattern, or the matched value type.""",
-      withArgumentsOld:
-          _withArgumentsOldPatternTypeMismatchInIrrefutableContext,
-      analyzerCodes: <String>["PATTERN_TYPE_MISMATCH_IN_IRREFUTABLE_CONTEXT"],
-    );
+const Template<
+  Message Function(DartType type, DartType type2),
+  Message Function({required DartType type, required DartType type2})
+>
+codePatternTypeMismatchInIrrefutableContext = const Template(
+  "PatternTypeMismatchInIrrefutableContext",
+  problemMessageTemplate:
+      r"""The matched value of type '#type' isn't assignable to the required type '#type2'.""",
+  correctionMessageTemplate:
+      r"""Try changing the required type of the pattern, or the matched value type.""",
+  withArgumentsOld: _withArgumentsOldPatternTypeMismatchInIrrefutableContext,
+  withArguments: _withArgumentsPatternTypeMismatchInIrrefutableContext,
+  analyzerCodes: <String>["PATTERN_TYPE_MISMATCH_IN_IRREFUTABLE_CONTEXT"],
+);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsPatternTypeMismatchInIrrefutableContext({
@@ -3963,16 +4264,18 @@ Message _withArgumentsOldPatternTypeMismatchInIrrefutableContext(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(DartType type, DartType type2)>
-codeRedirectingFactoryIncompatibleTypeArgument =
-    const Template<Message Function(DartType type, DartType type2)>(
-      "RedirectingFactoryIncompatibleTypeArgument",
-      problemMessageTemplate: r"""The type '#type' doesn't extend '#type2'.""",
-      correctionMessageTemplate: r"""Try using a different type as argument.""",
-      withArgumentsOld:
-          _withArgumentsOldRedirectingFactoryIncompatibleTypeArgument,
-      analyzerCodes: <String>["TYPE_ARGUMENT_NOT_MATCHING_BOUNDS"],
-    );
+const Template<
+  Message Function(DartType type, DartType type2),
+  Message Function({required DartType type, required DartType type2})
+>
+codeRedirectingFactoryIncompatibleTypeArgument = const Template(
+  "RedirectingFactoryIncompatibleTypeArgument",
+  problemMessageTemplate: r"""The type '#type' doesn't extend '#type2'.""",
+  correctionMessageTemplate: r"""Try using a different type as argument.""",
+  withArgumentsOld: _withArgumentsOldRedirectingFactoryIncompatibleTypeArgument,
+  withArguments: _withArgumentsRedirectingFactoryIncompatibleTypeArgument,
+  analyzerCodes: <String>["TYPE_ARGUMENT_NOT_MATCHING_BOUNDS"],
+);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsRedirectingFactoryIncompatibleTypeArgument({
@@ -4002,15 +4305,18 @@ Message _withArgumentsOldRedirectingFactoryIncompatibleTypeArgument(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(DartType type, DartType type2)>
-codeSpreadElementTypeMismatch =
-    const Template<Message Function(DartType type, DartType type2)>(
-      "SpreadElementTypeMismatch",
-      problemMessageTemplate:
-          r"""Can't assign spread elements of type '#type' to collection elements of type '#type2'.""",
-      withArgumentsOld: _withArgumentsOldSpreadElementTypeMismatch,
-      analyzerCodes: <String>["LIST_ELEMENT_TYPE_NOT_ASSIGNABLE"],
-    );
+const Template<
+  Message Function(DartType type, DartType type2),
+  Message Function({required DartType type, required DartType type2})
+>
+codeSpreadElementTypeMismatch = const Template(
+  "SpreadElementTypeMismatch",
+  problemMessageTemplate:
+      r"""Can't assign spread elements of type '#type' to collection elements of type '#type2'.""",
+  withArgumentsOld: _withArgumentsOldSpreadElementTypeMismatch,
+  withArguments: _withArgumentsSpreadElementTypeMismatch,
+  analyzerCodes: <String>["LIST_ELEMENT_TYPE_NOT_ASSIGNABLE"],
+);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsSpreadElementTypeMismatch({
@@ -4036,15 +4342,18 @@ Message _withArgumentsOldSpreadElementTypeMismatch(
 ) => _withArgumentsSpreadElementTypeMismatch(type: type, type2: type2);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(DartType type, DartType type2)>
-codeSpreadMapEntryElementKeyTypeMismatch =
-    const Template<Message Function(DartType type, DartType type2)>(
-      "SpreadMapEntryElementKeyTypeMismatch",
-      problemMessageTemplate:
-          r"""Can't assign spread entry keys of type '#type' to map entry keys of type '#type2'.""",
-      withArgumentsOld: _withArgumentsOldSpreadMapEntryElementKeyTypeMismatch,
-      analyzerCodes: <String>["MAP_KEY_TYPE_NOT_ASSIGNABLE"],
-    );
+const Template<
+  Message Function(DartType type, DartType type2),
+  Message Function({required DartType type, required DartType type2})
+>
+codeSpreadMapEntryElementKeyTypeMismatch = const Template(
+  "SpreadMapEntryElementKeyTypeMismatch",
+  problemMessageTemplate:
+      r"""Can't assign spread entry keys of type '#type' to map entry keys of type '#type2'.""",
+  withArgumentsOld: _withArgumentsOldSpreadMapEntryElementKeyTypeMismatch,
+  withArguments: _withArgumentsSpreadMapEntryElementKeyTypeMismatch,
+  analyzerCodes: <String>["MAP_KEY_TYPE_NOT_ASSIGNABLE"],
+);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsSpreadMapEntryElementKeyTypeMismatch({
@@ -4073,15 +4382,18 @@ Message _withArgumentsOldSpreadMapEntryElementKeyTypeMismatch(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(DartType type, DartType type2)>
-codeSpreadMapEntryElementValueTypeMismatch =
-    const Template<Message Function(DartType type, DartType type2)>(
-      "SpreadMapEntryElementValueTypeMismatch",
-      problemMessageTemplate:
-          r"""Can't assign spread entry values of type '#type' to map entry values of type '#type2'.""",
-      withArgumentsOld: _withArgumentsOldSpreadMapEntryElementValueTypeMismatch,
-      analyzerCodes: <String>["MAP_VALUE_TYPE_NOT_ASSIGNABLE"],
-    );
+const Template<
+  Message Function(DartType type, DartType type2),
+  Message Function({required DartType type, required DartType type2})
+>
+codeSpreadMapEntryElementValueTypeMismatch = const Template(
+  "SpreadMapEntryElementValueTypeMismatch",
+  problemMessageTemplate:
+      r"""Can't assign spread entry values of type '#type' to map entry values of type '#type2'.""",
+  withArgumentsOld: _withArgumentsOldSpreadMapEntryElementValueTypeMismatch,
+  withArguments: _withArgumentsSpreadMapEntryElementValueTypeMismatch,
+  analyzerCodes: <String>["MAP_VALUE_TYPE_NOT_ASSIGNABLE"],
+);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsSpreadMapEntryElementValueTypeMismatch({
@@ -4110,12 +4422,16 @@ Message _withArgumentsOldSpreadMapEntryElementValueTypeMismatch(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(DartType type)>
-codeSpreadMapEntryTypeMismatch = const Template<Message Function(DartType type)>(
+const Template<
+  Message Function(DartType type),
+  Message Function({required DartType type})
+>
+codeSpreadMapEntryTypeMismatch = const Template(
   "SpreadMapEntryTypeMismatch",
   problemMessageTemplate:
       r"""Unexpected type '#type' of a map spread entry.  Expected 'dynamic' or a Map.""",
   withArgumentsOld: _withArgumentsOldSpreadMapEntryTypeMismatch,
+  withArguments: _withArgumentsSpreadMapEntryTypeMismatch,
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -4136,12 +4452,16 @@ Message _withArgumentsOldSpreadMapEntryTypeMismatch(DartType type) =>
     _withArgumentsSpreadMapEntryTypeMismatch(type: type);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(DartType type)>
-codeSpreadTypeMismatch = const Template<Message Function(DartType type)>(
+const Template<
+  Message Function(DartType type),
+  Message Function({required DartType type})
+>
+codeSpreadTypeMismatch = const Template(
   "SpreadTypeMismatch",
   problemMessageTemplate:
       r"""Unexpected type '#type' of a spread.  Expected 'dynamic' or an Iterable.""",
   withArgumentsOld: _withArgumentsOldSpreadTypeMismatch,
+  withArguments: _withArgumentsSpreadTypeMismatch,
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -4162,15 +4482,18 @@ Message _withArgumentsOldSpreadTypeMismatch(DartType type) =>
     _withArgumentsSpreadTypeMismatch(type: type);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(DartType type, DartType type2)>
-codeSuperBoundedHint =
-    const Template<Message Function(DartType type, DartType type2)>(
-      "SuperBoundedHint",
-      problemMessageTemplate:
-          r"""If you want '#type' to be a super-bounded type, note that the inverted type '#type2' must then satisfy its bounds, which it does not.""",
-      withArgumentsOld: _withArgumentsOldSuperBoundedHint,
-      severity: CfeSeverity.context,
-    );
+const Template<
+  Message Function(DartType type, DartType type2),
+  Message Function({required DartType type, required DartType type2})
+>
+codeSuperBoundedHint = const Template(
+  "SuperBoundedHint",
+  problemMessageTemplate:
+      r"""If you want '#type' to be a super-bounded type, note that the inverted type '#type2' must then satisfy its bounds, which it does not.""",
+  withArgumentsOld: _withArgumentsOldSuperBoundedHint,
+  withArguments: _withArgumentsSuperBoundedHint,
+  severity: CfeSeverity.context,
+);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsSuperBoundedHint({
@@ -4194,14 +4517,17 @@ Message _withArgumentsOldSuperBoundedHint(DartType type, DartType type2) =>
     _withArgumentsSuperBoundedHint(type: type, type2: type2);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(String name, DartType type)>
-codeSuperExtensionTypeIsIllegalAliased =
-    const Template<Message Function(String name, DartType type)>(
-      "SuperExtensionTypeIsIllegalAliased",
-      problemMessageTemplate:
-          r"""The type '#name' which is an alias of '#type' can't be implemented by an extension type.""",
-      withArgumentsOld: _withArgumentsOldSuperExtensionTypeIsIllegalAliased,
-    );
+const Template<
+  Message Function(String name, DartType type),
+  Message Function({required String name, required DartType type})
+>
+codeSuperExtensionTypeIsIllegalAliased = const Template(
+  "SuperExtensionTypeIsIllegalAliased",
+  problemMessageTemplate:
+      r"""The type '#name' which is an alias of '#type' can't be implemented by an extension type.""",
+  withArgumentsOld: _withArgumentsOldSuperExtensionTypeIsIllegalAliased,
+  withArguments: _withArgumentsSuperExtensionTypeIsIllegalAliased,
+);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsSuperExtensionTypeIsIllegalAliased({
@@ -4227,14 +4553,17 @@ Message _withArgumentsOldSuperExtensionTypeIsIllegalAliased(
 ) => _withArgumentsSuperExtensionTypeIsIllegalAliased(name: name, type: type);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(String name, DartType type)>
-codeSuperExtensionTypeIsNullableAliased =
-    const Template<Message Function(String name, DartType type)>(
-      "SuperExtensionTypeIsNullableAliased",
-      problemMessageTemplate:
-          r"""The type '#name' which is an alias of '#type' can't be implemented by an extension type because it is nullable.""",
-      withArgumentsOld: _withArgumentsOldSuperExtensionTypeIsNullableAliased,
-    );
+const Template<
+  Message Function(String name, DartType type),
+  Message Function({required String name, required DartType type})
+>
+codeSuperExtensionTypeIsNullableAliased = const Template(
+  "SuperExtensionTypeIsNullableAliased",
+  problemMessageTemplate:
+      r"""The type '#name' which is an alias of '#type' can't be implemented by an extension type because it is nullable.""",
+  withArgumentsOld: _withArgumentsOldSuperExtensionTypeIsNullableAliased,
+  withArguments: _withArgumentsSuperExtensionTypeIsNullableAliased,
+);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsSuperExtensionTypeIsNullableAliased({
@@ -4260,15 +4589,18 @@ Message _withArgumentsOldSuperExtensionTypeIsNullableAliased(
 ) => _withArgumentsSuperExtensionTypeIsNullableAliased(name: name, type: type);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(String name, DartType type)>
-codeSupertypeIsIllegalAliased =
-    const Template<Message Function(String name, DartType type)>(
-      "SupertypeIsIllegalAliased",
-      problemMessageTemplate:
-          r"""The type '#name' which is an alias of '#type' can't be used as supertype.""",
-      withArgumentsOld: _withArgumentsOldSupertypeIsIllegalAliased,
-      analyzerCodes: <String>["EXTENDS_NON_CLASS"],
-    );
+const Template<
+  Message Function(String name, DartType type),
+  Message Function({required String name, required DartType type})
+>
+codeSupertypeIsIllegalAliased = const Template(
+  "SupertypeIsIllegalAliased",
+  problemMessageTemplate:
+      r"""The type '#name' which is an alias of '#type' can't be used as supertype.""",
+  withArgumentsOld: _withArgumentsOldSupertypeIsIllegalAliased,
+  withArguments: _withArgumentsSupertypeIsIllegalAliased,
+  analyzerCodes: <String>["EXTENDS_NON_CLASS"],
+);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsSupertypeIsIllegalAliased({
@@ -4294,15 +4626,18 @@ Message _withArgumentsOldSupertypeIsIllegalAliased(
 ) => _withArgumentsSupertypeIsIllegalAliased(name: name, type: type);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(String name, DartType type)>
-codeSupertypeIsNullableAliased =
-    const Template<Message Function(String name, DartType type)>(
-      "SupertypeIsNullableAliased",
-      problemMessageTemplate:
-          r"""The type '#name' which is an alias of '#type' can't be used as supertype because it is nullable.""",
-      withArgumentsOld: _withArgumentsOldSupertypeIsNullableAliased,
-      analyzerCodes: <String>["EXTENDS_NON_CLASS"],
-    );
+const Template<
+  Message Function(String name, DartType type),
+  Message Function({required String name, required DartType type})
+>
+codeSupertypeIsNullableAliased = const Template(
+  "SupertypeIsNullableAliased",
+  problemMessageTemplate:
+      r"""The type '#name' which is an alias of '#type' can't be used as supertype because it is nullable.""",
+  withArgumentsOld: _withArgumentsOldSupertypeIsNullableAliased,
+  withArguments: _withArgumentsSupertypeIsNullableAliased,
+  analyzerCodes: <String>["EXTENDS_NON_CLASS"],
+);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsSupertypeIsNullableAliased({
@@ -4328,14 +4663,17 @@ Message _withArgumentsOldSupertypeIsNullableAliased(
 ) => _withArgumentsSupertypeIsNullableAliased(name: name, type: type);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(DartType type, DartType type2)>
-codeSwitchExpressionNotSubtype =
-    const Template<Message Function(DartType type, DartType type2)>(
-      "SwitchExpressionNotSubtype",
-      problemMessageTemplate:
-          r"""Type '#type' of the case expression is not a subtype of type '#type2' of this switch expression.""",
-      withArgumentsOld: _withArgumentsOldSwitchExpressionNotSubtype,
-    );
+const Template<
+  Message Function(DartType type, DartType type2),
+  Message Function({required DartType type, required DartType type2})
+>
+codeSwitchExpressionNotSubtype = const Template(
+  "SwitchExpressionNotSubtype",
+  problemMessageTemplate:
+      r"""Type '#type' of the case expression is not a subtype of type '#type2' of this switch expression.""",
+  withArgumentsOld: _withArgumentsOldSwitchExpressionNotSubtype,
+  withArguments: _withArgumentsSwitchExpressionNotSubtype,
+);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsSwitchExpressionNotSubtype({
@@ -4361,14 +4699,17 @@ Message _withArgumentsOldSwitchExpressionNotSubtype(
 ) => _withArgumentsSwitchExpressionNotSubtype(type: type, type2: type2);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(DartType type)>
-codeThrowingNotAssignableToObjectError =
-    const Template<Message Function(DartType type)>(
-      "ThrowingNotAssignableToObjectError",
-      problemMessageTemplate:
-          r"""Can't throw a value of '#type' since it is neither dynamic nor non-nullable.""",
-      withArgumentsOld: _withArgumentsOldThrowingNotAssignableToObjectError,
-    );
+const Template<
+  Message Function(DartType type),
+  Message Function({required DartType type})
+>
+codeThrowingNotAssignableToObjectError = const Template(
+  "ThrowingNotAssignableToObjectError",
+  problemMessageTemplate:
+      r"""Can't throw a value of '#type' since it is neither dynamic nor non-nullable.""",
+  withArgumentsOld: _withArgumentsOldThrowingNotAssignableToObjectError,
+  withArguments: _withArgumentsThrowingNotAssignableToObjectError,
+);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsThrowingNotAssignableToObjectError({
@@ -4390,14 +4731,18 @@ Message _withArgumentsOldThrowingNotAssignableToObjectError(DartType type) =>
     _withArgumentsThrowingNotAssignableToObjectError(type: type);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(String name, DartType type)>
-codeUndefinedGetter = const Template<Message Function(String name, DartType type)>(
+const Template<
+  Message Function(String name, DartType type),
+  Message Function({required String name, required DartType type})
+>
+codeUndefinedGetter = const Template(
   "UndefinedGetter",
   problemMessageTemplate:
       r"""The getter '#name' isn't defined for the type '#type'.""",
   correctionMessageTemplate:
       r"""Try correcting the name to the name of an existing getter, or defining a getter or field named '#name'.""",
   withArgumentsOld: _withArgumentsOldUndefinedGetter,
+  withArguments: _withArgumentsUndefinedGetter,
   analyzerCodes: <String>["UNDEFINED_GETTER"],
 );
 
@@ -4425,14 +4770,18 @@ Message _withArgumentsOldUndefinedGetter(String name, DartType type) =>
     _withArgumentsUndefinedGetter(name: name, type: type);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(String name, DartType type)>
-codeUndefinedMethod = const Template<Message Function(String name, DartType type)>(
+const Template<
+  Message Function(String name, DartType type),
+  Message Function({required String name, required DartType type})
+>
+codeUndefinedMethod = const Template(
   "UndefinedMethod",
   problemMessageTemplate:
       r"""The method '#name' isn't defined for the type '#type'.""",
   correctionMessageTemplate:
       r"""Try correcting the name to the name of an existing method, or defining a method named '#name'.""",
   withArgumentsOld: _withArgumentsOldUndefinedMethod,
+  withArguments: _withArgumentsUndefinedMethod,
   analyzerCodes: <String>["UNDEFINED_METHOD"],
 );
 
@@ -4460,17 +4809,20 @@ Message _withArgumentsOldUndefinedMethod(String name, DartType type) =>
     _withArgumentsUndefinedMethod(name: name, type: type);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(String name, DartType type)>
-codeUndefinedOperator =
-    const Template<Message Function(String name, DartType type)>(
-      "UndefinedOperator",
-      problemMessageTemplate:
-          r"""The operator '#name' isn't defined for the type '#type'.""",
-      correctionMessageTemplate:
-          r"""Try correcting the operator to an existing operator, or defining a '#name' operator.""",
-      withArgumentsOld: _withArgumentsOldUndefinedOperator,
-      analyzerCodes: <String>["UNDEFINED_METHOD"],
-    );
+const Template<
+  Message Function(String name, DartType type),
+  Message Function({required String name, required DartType type})
+>
+codeUndefinedOperator = const Template(
+  "UndefinedOperator",
+  problemMessageTemplate:
+      r"""The operator '#name' isn't defined for the type '#type'.""",
+  correctionMessageTemplate:
+      r"""Try correcting the operator to an existing operator, or defining a '#name' operator.""",
+  withArgumentsOld: _withArgumentsOldUndefinedOperator,
+  withArguments: _withArgumentsUndefinedOperator,
+  analyzerCodes: <String>["UNDEFINED_METHOD"],
+);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsUndefinedOperator({
@@ -4496,14 +4848,18 @@ Message _withArgumentsOldUndefinedOperator(String name, DartType type) =>
     _withArgumentsUndefinedOperator(name: name, type: type);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(String name, DartType type)>
-codeUndefinedSetter = const Template<Message Function(String name, DartType type)>(
+const Template<
+  Message Function(String name, DartType type),
+  Message Function({required String name, required DartType type})
+>
+codeUndefinedSetter = const Template(
   "UndefinedSetter",
   problemMessageTemplate:
       r"""The setter '#name' isn't defined for the type '#type'.""",
   correctionMessageTemplate:
       r"""Try correcting the name to the name of an existing setter, or defining a setter or field named '#name'.""",
   withArgumentsOld: _withArgumentsOldUndefinedSetter,
+  withArguments: _withArgumentsUndefinedSetter,
   analyzerCodes: <String>["UNDEFINED_SETTER"],
 );
 
@@ -4531,18 +4887,18 @@ Message _withArgumentsOldUndefinedSetter(String name, DartType type) =>
     _withArgumentsUndefinedSetter(name: name, type: type);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(String name, DartType type)>
-codeWrongTypeParameterVarianceInSuperinterface =
-    const Template<Message Function(String name, DartType type)>(
-      "WrongTypeParameterVarianceInSuperinterface",
-      problemMessageTemplate:
-          r"""'#name' can't be used contravariantly or invariantly in '#type'.""",
-      withArgumentsOld:
-          _withArgumentsOldWrongTypeParameterVarianceInSuperinterface,
-      analyzerCodes: <String>[
-        "WRONG_TYPE_PARAMETER_VARIANCE_IN_SUPERINTERFACE",
-      ],
-    );
+const Template<
+  Message Function(String name, DartType type),
+  Message Function({required String name, required DartType type})
+>
+codeWrongTypeParameterVarianceInSuperinterface = const Template(
+  "WrongTypeParameterVarianceInSuperinterface",
+  problemMessageTemplate:
+      r"""'#name' can't be used contravariantly or invariantly in '#type'.""",
+  withArgumentsOld: _withArgumentsOldWrongTypeParameterVarianceInSuperinterface,
+  withArguments: _withArgumentsWrongTypeParameterVarianceInSuperinterface,
+  analyzerCodes: <String>["WRONG_TYPE_PARAMETER_VARIANCE_IN_SUPERINTERFACE"],
+);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsWrongTypeParameterVarianceInSuperinterface({

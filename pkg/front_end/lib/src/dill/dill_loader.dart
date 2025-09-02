@@ -180,7 +180,7 @@ class DillLoader extends Loader {
     _logSummary(outlineSummaryTemplate);
   }
 
-  void _logSummary(Template<SummaryTemplate> template) {
+  void _logSummary(Template<SummaryTemplate, Function> template) {
     ticker.log(
       // Coverage-ignore(suite): Not run.
       (Duration elapsed, Duration sinceStart) {
@@ -314,7 +314,7 @@ severity: $severity
     return formattedMessage;
   }
 
-  Template<SummaryTemplate> get outlineSummaryTemplate =>
+  Template<SummaryTemplate, Function> get outlineSummaryTemplate =>
       codeDillOutlineSummary;
 
   /// Append compiled libraries from the given [component]. If the [filter] is

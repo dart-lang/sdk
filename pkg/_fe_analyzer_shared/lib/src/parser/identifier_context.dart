@@ -289,7 +289,7 @@ abstract class IdentifierContext {
   /// expressions are required.
   final bool allowedInConstantExpression;
 
-  final Template<_MessageWithArgument<Token>> recoveryTemplate;
+  final Template<_MessageWithArgument<Token>, Function> recoveryTemplate;
 
   const IdentifierContext(
     this._name, {

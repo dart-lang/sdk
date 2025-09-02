@@ -143,7 +143,10 @@ abstract class DelayedGetterSetterCheck implements DelayedCheck {
             ],
           );
         } else if (getterIsDeclared) {
-          Template<Message Function(DartType, String, DartType, String)>
+          Template<
+            Message Function(DartType, String, DartType, String),
+            Function
+          >
           template = codeInvalidGetterSetterTypeSetterInheritedGetter;
           if (getterIsField) {
             template = codeInvalidGetterSetterTypeSetterInheritedField;
@@ -165,9 +168,12 @@ abstract class DelayedGetterSetterCheck implements DelayedCheck {
             ],
           );
         } else if (setterIsDeclared) {
-          Template<Message Function(DartType, String, DartType, String)>
+          Template<
+            Message Function(DartType, String, DartType, String),
+            Function
+          >
           template = codeInvalidGetterSetterTypeGetterInherited;
-          Template<Message Function(String)> context =
+          Template<Message Function(String), Function> context =
               codeInvalidGetterSetterTypeGetterContext;
           if (getterIsField) {
             template = codeInvalidGetterSetterTypeFieldInherited;
@@ -190,9 +196,12 @@ abstract class DelayedGetterSetterCheck implements DelayedCheck {
             ],
           );
         } else {
-          Template<Message Function(DartType, String, DartType, String)>
+          Template<
+            Message Function(DartType, String, DartType, String),
+            Function
+          >
           template = codeInvalidGetterSetterTypeBothInheritedGetter;
-          Template<Message Function(String)> context =
+          Template<Message Function(String), Function> context =
               codeInvalidGetterSetterTypeGetterContext;
           if (getterIsField) {
             template = codeInvalidGetterSetterTypeBothInheritedField;
