@@ -18,7 +18,6 @@ library;
 //  - inherit an implementation from a superclass or mixin,
 //  - mark the class as abstract, or
 //  - provide a 'noSuchMethod' implementation.
-//
 // class ClassImplements implements Class {
 //       ^^^^^^^^^^^^^^^
 // pkg/front_end/testcases/general/inject_private_patch/patch_lib1.dart:10:8: Context: 'Class._privateInjectedInstanceMember1' is defined here.

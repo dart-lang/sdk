@@ -13,7 +13,6 @@ library;
 //  - inherit an implementation from a superclass or mixin,
 //  - mark the class as abstract, or
 //  - provide a 'noSuchMethod' implementation.
-//
 // class FromSuperAbstract extends SuperAbstract implements Interface {}
 //       ^^^^^^^^^^^^^^^^^
 // pkg/front_end/testcases/general/hierarchy/no_such_method.dart:9:7: Context: 'Interface.field' is defined here.
@@ -43,7 +42,6 @@ library;
 //  - inherit an implementation from a superclass or mixin,
 //  - mark the class as abstract, or
 //  - provide a 'noSuchMethod' implementation.
-//
 // class FromMixinAbstract extends MixinAbstract implements Interface {}
 //       ^^^^^^^^^^^^^^^^^
 // pkg/front_end/testcases/general/hierarchy/no_such_method.dart:9:7: Context: 'Interface.field' is defined here.
@@ -73,7 +71,6 @@ library;
 //  - inherit an implementation from a superclass or mixin,
 //  - mark the class as abstract, or
 //  - provide a 'noSuchMethod' implementation.
-//
 // class FromInterfaceAbstract implements InterfaceAbstract, Interface {}
 //       ^^^^^^^^^^^^^^^^^^^^^
 // pkg/front_end/testcases/general/hierarchy/no_such_method.dart:9:7: Context: 'Interface.field' is defined here.
@@ -103,7 +100,6 @@ library;
 //  - inherit an implementation from a superclass or mixin,
 //  - mark the class as abstract, or
 //  - provide a 'noSuchMethod' implementation.
-//
 // class FromInterfaceConcrete implements InterfaceConcrete, Interface {}
 //       ^^^^^^^^^^^^^^^^^^^^^
 // pkg/front_end/testcases/general/hierarchy/no_such_method.dart:9:7: Context: 'Interface.field' is defined here.
@@ -133,7 +129,6 @@ library;
 //  - inherit an implementation from a superclass or mixin,
 //  - mark the class as abstract, or
 //  - provide a 'noSuchMethod' implementation.
-//
 // class DeclaredAbstract implements Interface {
 //       ^^^^^^^^^^^^^^^^
 // pkg/front_end/testcases/general/hierarchy/no_such_method.dart:9:7: Context: 'Interface.field' is defined here.

@@ -892,8 +892,7 @@ codeCantUseDeferredPrefixAsConstant = const Template<Message Function(Token toke
   problemMessageTemplate:
       r"""'#lexeme' can't be used in a constant expression because it's marked as 'deferred' which means it isn't available until loaded.""",
   correctionMessageTemplate:
-      r"""Try moving the constant from the deferred library, or removing 'deferred' from the import.
-""",
+      r"""Try moving the constant from the deferred library, or removing 'deferred' from the import.""",
   withArgumentsOld: _withArgumentsOldCantUseDeferredPrefixAsConstant,
   analyzerCodes: <String>["CONST_DEFERRED_CLASS"],
 );
@@ -906,8 +905,7 @@ Message _withArgumentsOldCantUseDeferredPrefixAsConstant(Token token) {
     problemMessage:
         """'${lexeme}' can't be used in a constant expression because it's marked as 'deferred' which means it isn't available until loaded.""",
     correctionMessage:
-        """Try moving the constant from the deferred library, or removing 'deferred' from the import.
-""",
+        """Try moving the constant from the deferred library, or removing 'deferred' from the import.""",
     arguments: {'lexeme': token},
   );
 }
@@ -1248,8 +1246,7 @@ codeConstEvalDeferredLibrary = const Template<Message Function(String _nameOKEmp
   problemMessageTemplate:
       r"""'#nameOKEmpty' can't be used in a constant expression because it's marked as 'deferred' which means it isn't available until loaded.""",
   correctionMessageTemplate:
-      r"""Try moving the constant from the deferred library, or removing 'deferred' from the import.
-""",
+      r"""Try moving the constant from the deferred library, or removing 'deferred' from the import.""",
   withArgumentsOld: _withArgumentsOldConstEvalDeferredLibrary,
   analyzerCodes: <String>[
     "INVALID_ANNOTATION_CONSTANT_VALUE_FROM_DEFERRED_LIBRARY",
@@ -1264,8 +1261,7 @@ Message _withArgumentsOldConstEvalDeferredLibrary(String _nameOKEmpty) {
     problemMessage:
         """'${nameOKEmpty}' can't be used in a constant expression because it's marked as 'deferred' which means it isn't available until loaded.""",
     correctionMessage:
-        """Try moving the constant from the deferred library, or removing 'deferred' from the import.
-""",
+        """Try moving the constant from the deferred library, or removing 'deferred' from the import.""",
     arguments: {'nameOKEmpty': _nameOKEmpty},
   );
 }
@@ -9173,8 +9169,7 @@ codeMissingImplementationNotAbstract =
  - provide an implementation,
  - inherit an implementation from a superclass or mixin,
  - mark the class as abstract, or
- - provide a 'noSuchMethod' implementation.
-""",
+ - provide a 'noSuchMethod' implementation.""",
       withArgumentsOld: _withArgumentsOldMissingImplementationNotAbstract,
       analyzerCodes: <String>["CONCRETE_CLASS_WITH_ABSTRACT_MEMBER"],
     );
@@ -9197,8 +9192,7 @@ ${names}""",
  - provide an implementation,
  - inherit an implementation from a superclass or mixin,
  - mark the class as abstract, or
- - provide a 'noSuchMethod' implementation.
-""",
+ - provide a 'noSuchMethod' implementation.""",
     arguments: {'name': _name, 'names': _names},
   );
 }

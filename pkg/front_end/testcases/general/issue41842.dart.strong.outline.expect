@@ -192,7 +192,6 @@ library;
 //  - inherit an implementation from a superclass or mixin,
 //  - mark the class as abstract, or
 //  - provide a 'noSuchMethod' implementation.
-//
 // class A<T> {
 //       ^
 // pkg/front_end/testcases/general/issue41842.dart:16:40: Context: 'A.>' is defined here.
@@ -206,7 +205,6 @@ library;
 //  - inherit an implementation from a superclass or mixin,
 //  - mark the class as abstract, or
 //  - provide a 'noSuchMethod' implementation.
-//
 // class B<T> extends A<T> {
 //       ^
 // pkg/front_end/testcases/general/issue41842.dart:16:40: Context: 'A.>' is defined here.
@@ -273,7 +271,6 @@ library;
 //  - inherit an implementation from a superclass or mixin,
 //  - mark the class as abstract, or
 //  - provide a 'noSuchMethod' implementation.
-//
 // class Foo<T> extends A<T> {
 //       ^^^
 // pkg/front_end/testcases/general/issue41842.dart:16:40: Context: 'A.>' is defined here.
@@ -287,7 +284,6 @@ library;
 //  - inherit an implementation from a superclass or mixin,
 //  - mark the class as abstract, or
 //  - provide a 'noSuchMethod' implementation.
-//
 // class Bar<T> extends A<T> {
 //       ^^^
 // pkg/front_end/testcases/general/issue41842.dart:16:40: Context: 'A.>' is defined here.

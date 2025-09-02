@@ -176,6 +176,7 @@ Template compileTemplate(
   // `|` (verbatim) as they always contain a trailing newline that we don't
   // want.
   problemMessage = problemMessage.trimRight();
+  correctionMessage = correctionMessage?.trimRight();
   var parameters = new Set<String>();
   var conversions = new Set<String>();
   var arguments = new Set<String>();

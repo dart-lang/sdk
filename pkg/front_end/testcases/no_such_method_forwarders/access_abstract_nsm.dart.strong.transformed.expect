@@ -9,7 +9,6 @@ library;
 //  - inherit an implementation from a superclass or mixin,
 //  - mark the class as abstract, or
 //  - provide a 'noSuchMethod' implementation.
-//
 // class SubClass2 implements SuperClass {
 //       ^^^^^^^^^
 // pkg/front_end/testcases/no_such_method_forwarders/access_abstract_nsm_lib.dart:9:8: Context: 'SuperClass.accessibleMethod' is defined here.
@@ -23,7 +22,6 @@ library;
 //  - inherit an implementation from a superclass or mixin,
 //  - mark the class as abstract, or
 //  - provide a 'noSuchMethod' implementation.
-//
 // class SubSubClass2 extends SubClass2 {}
 //       ^^^^^^^^^^^^
 // pkg/front_end/testcases/no_such_method_forwarders/access_abstract_nsm_lib.dart:9:8: Context: 'SuperClass.accessibleMethod' is defined here.
@@ -37,7 +35,6 @@ library;
 //  - inherit an implementation from a superclass or mixin,
 //  - mark the class as abstract, or
 //  - provide a 'noSuchMethod' implementation.
-//
 // class SubAbstractSubClass2 extends AbstractSubClass2 {}
 //       ^^^^^^^^^^^^^^^^^^^^
 // pkg/front_end/testcases/no_such_method_forwarders/access_abstract_nsm_lib.dart:9:8: Context: 'SuperClass.accessibleMethod' is defined here.
@@ -51,7 +48,6 @@ library;
 //  - inherit an implementation from a superclass or mixin,
 //  - mark the class as abstract, or
 //  - provide a 'noSuchMethod' implementation.
-//
 // class SubClassImplements2 implements SuperClass, NoSuchMethodClass {}
 //       ^^^^^^^^^^^^^^^^^^^
 // pkg/front_end/testcases/no_such_method_forwarders/access_abstract_nsm_lib.dart:9:8: Context: 'SuperClass.accessibleMethod' is defined here.
@@ -65,7 +61,6 @@ library;
 //  - inherit an implementation from a superclass or mixin,
 //  - mark the class as abstract, or
 //  - provide a 'noSuchMethod' implementation.
-//
 // class SubSubClassImplements2 extends SubClassImplements2 {}
 //       ^^^^^^^^^^^^^^^^^^^^^^
 // pkg/front_end/testcases/no_such_method_forwarders/access_abstract_nsm_lib.dart:9:8: Context: 'SuperClass.accessibleMethod' is defined here.
@@ -79,7 +74,6 @@ library;
 //  - inherit an implementation from a superclass or mixin,
 //  - mark the class as abstract, or
 //  - provide a 'noSuchMethod' implementation.
-//
 // class SubAbstractSubClassImplements2 extends AbstractSubClassImplements2 {}
 //       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 // pkg/front_end/testcases/no_such_method_forwarders/access_abstract_nsm_lib.dart:9:8: Context: 'SuperClass.accessibleMethod' is defined here.
@@ -93,7 +87,6 @@ library;
 //  - inherit an implementation from a superclass or mixin,
 //  - mark the class as abstract, or
 //  - provide a 'noSuchMethod' implementation.
-//
 // class SubClassWith2 with NoSuchMethodClass implements SuperClass {}
 //       ^^^^^^^^^^^^^
 // pkg/front_end/testcases/no_such_method_forwarders/access_abstract_nsm_lib.dart:9:8: Context: 'SuperClass.accessibleMethod' is defined here.
@@ -107,7 +100,6 @@ library;
 //  - inherit an implementation from a superclass or mixin,
 //  - mark the class as abstract, or
 //  - provide a 'noSuchMethod' implementation.
-//
 // class SubSubClassWith2 extends SubClassWith2 {}
 //       ^^^^^^^^^^^^^^^^
 // pkg/front_end/testcases/no_such_method_forwarders/access_abstract_nsm_lib.dart:9:8: Context: 'SuperClass.accessibleMethod' is defined here.
@@ -121,7 +113,6 @@ library;
 //  - inherit an implementation from a superclass or mixin,
 //  - mark the class as abstract, or
 //  - provide a 'noSuchMethod' implementation.
-//
 // class SubAbstractSubClassWith2 extends AbstractSubClassWith2 {}
 //       ^^^^^^^^^^^^^^^^^^^^^^^^
 // pkg/front_end/testcases/no_such_method_forwarders/access_abstract_nsm_lib.dart:9:8: Context: 'SuperClass.accessibleMethod' is defined here.
