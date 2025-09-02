@@ -24088,6 +24088,48 @@ WarningCode:
       #### Common fixes
 
       Follow any directions found in the `Deprecation.instantiate` annotation.
+  DEPRECATED_MIXIN:
+    parameters:
+      Object typeName: the name of the type
+    problemMessage: "Mixing in '#typeName' is deprecated."
+    correctionMessage: Try removing '#typeName' from the 'with' clause.
+    hasPublishedDocs: false
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when a mixin class annotated with
+      `@Deprecated.mixin` is used in the `with` clause of a class or enum
+      declaration. This annotation indicates that the ability for classes
+      to mixin the annotated mixin class is deprecated, and will soon be
+      removed, perhaps by removing the `mixin` class modifier.
+
+      #### Example
+
+      If the library `p` defines a class annotated with `@Deprecated.mixin`:
+
+      ```dart
+      %uri="package:p/p.dart"
+      @Deprecated.mixin()
+      mixin class C {}
+      ```
+
+      Then, the following code, when in a library other than `p`, produces this
+      diagnostic:
+
+      ```dart
+      import 'package:p/p.dart';
+
+      class D with [!C!] {}
+      ```
+
+      #### Common fixes
+
+      Follow any directions found in the `Deprecation.mixin` annotation, or
+      just remove the mixin class name from the `with` clause.
+
+      ```dart
+      class D {}
+      ```
   DEPRECATED_MIXIN_FUNCTION:
     parameters: none
     sharedName: DEPRECATED_SUBTYPE_OF_FUNCTION
@@ -25092,6 +25134,37 @@ WarningCode:
 
       ```dart
       sealed class C {}
+      ```
+  INVALID_DEPRECATED_MIXIN_ANNOTATION:
+    parameters: none
+    problemMessage: "The annotation '@Deprecated.mixin' can only be applied to classes."
+    correctionMessage: Try removing the '@Deprecated.mixin' annotation.
+    hasPublishedDocs: false
+    comment: |-
+      This warning is generated anywhere where `@Deprecated.mixin` annotates
+      something other than a mixin class.
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when anything other than a
+      mixin class is annotated with Deprecated.mixin.
+
+      #### Example
+
+      The following code produces this diagnostic because the annotation is on a
+      non-mixin class:
+
+      ```dart
+      @[!Deprecated.mixin!]()
+      class C {}
+      ```
+
+      #### Common fixes
+
+      Remove the annotation:
+
+      ```dart
+      class C {}
       ```
   INVALID_DEPRECATED_SUBCLASS_ANNOTATION:
     parameters: none

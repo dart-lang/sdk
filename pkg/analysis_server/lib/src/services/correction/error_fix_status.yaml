@@ -3485,6 +3485,8 @@ WarningCode.DEPRECATED_INSTANTIATE:
   notes: |-
     The only fix would be to delete the whole instance creation expression, or
     follow the directions in the deprecation message.
+WarningCode.DEPRECATED_MIXIN:
+  status: needsFix
 WarningCode.DEPRECATED_MIXIN_FUNCTION:
   status: needsFix
   notes: |-
@@ -3577,6 +3579,9 @@ WarningCode.INVALID_DEPRECATED_IMPLEMENT_ANNOTATION:
   status: needsFix
   notes: The fix is to remove the annotation.
 WarningCode.INVALID_DEPRECATED_INSTANTIATE_ANNOTATION:
+  status: needsFix
+  notes: The fix is to remove the annotation.
+WarningCode.INVALID_DEPRECATED_MIXIN_ANNOTATION:
   status: needsFix
   notes: The fix is to remove the annotation.
 WarningCode.INVALID_DEPRECATED_SUBCLASS_ANNOTATION:

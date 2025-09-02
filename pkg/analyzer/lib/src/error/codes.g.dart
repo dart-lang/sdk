@@ -10872,6 +10872,19 @@ class WarningCode extends DiagnosticCodeWithExpectedTypes {
     expectedTypes: [ExpectedType.object],
   );
 
+  /// Parameters:
+  /// Object typeName: the name of the type
+  static const WarningTemplate<
+    LocatableDiagnostic Function({required Object typeName})
+  >
+  deprecatedMixin = WarningTemplate(
+    'DEPRECATED_MIXIN',
+    "Mixing in '{0}' is deprecated.",
+    correctionMessage: "Try removing '{0}' from the 'with' clause.",
+    withArguments: _withArgumentsDeprecatedMixin,
+    expectedTypes: [ExpectedType.object],
+  );
+
   /// No parameters.
   static const WarningWithoutArguments deprecatedMixinFunction =
       WarningWithoutArguments(
@@ -11370,6 +11383,18 @@ class WarningCode extends DiagnosticCodeWithExpectedTypes {
     hasPublishedDocs: true,
     expectedTypes: [],
   );
+
+  /// This warning is generated anywhere where `@Deprecated.mixin` annotates
+  /// something other than a mixin class.
+  ///
+  /// No parameters.
+  static const WarningWithoutArguments invalidDeprecatedMixinAnnotation =
+      WarningWithoutArguments(
+        'INVALID_DEPRECATED_MIXIN_ANNOTATION',
+        "The annotation '@Deprecated.mixin' can only be applied to classes.",
+        correctionMessage: "Try removing the '@Deprecated.mixin' annotation.",
+        expectedTypes: [],
+      );
 
   /// No parameters.
   static const WarningWithoutArguments
@@ -12956,6 +12981,12 @@ class WarningCode extends DiagnosticCodeWithExpectedTypes {
     required Object p0,
   }) {
     return LocatableDiagnosticImpl(deprecatedInstantiate, [p0]);
+  }
+
+  static LocatableDiagnostic _withArgumentsDeprecatedMixin({
+    required Object typeName,
+  }) {
+    return LocatableDiagnosticImpl(deprecatedMixin, [typeName]);
   }
 
   static LocatableDiagnostic _withArgumentsDeprecatedSubclass({

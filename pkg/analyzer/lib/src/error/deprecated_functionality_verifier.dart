@@ -21,12 +21,14 @@ class DeprecatedFunctionalityVerifier {
   void classDeclaration(ClassDeclaration node) {
     _checkForDeprecatedExtend(node.extendsClause?.superclass);
     _checkForDeprecatedImplement(node.implementsClause?.interfaces);
+    _checkForDeprecatedMixin(node.withClause);
     _checkForDeprecatedSubclass(node.withClause?.mixinTypes);
   }
 
   void classTypeAlias(ClassTypeAlias node) {
     _checkForDeprecatedExtend(node.superclass);
     _checkForDeprecatedImplement(node.implementsClause?.interfaces);
+    _checkForDeprecatedMixin(node.withClause);
   }
 
   void constructorName(ConstructorName node) {
@@ -43,6 +45,7 @@ class DeprecatedFunctionalityVerifier {
 
   void enumDeclaration(EnumDeclaration node) {
     _checkForDeprecatedImplement(node.implementsClause?.interfaces);
+    _checkForDeprecatedMixin(node.withClause);
   }
 
   void mixinDeclaration(MixinDeclaration node) {
@@ -94,6 +97,22 @@ class DeprecatedFunctionalityVerifier {
             arguments: [element.name!],
           );
         }
+      }
+    }
+  }
+
+  void _checkForDeprecatedMixin(WithClause? node) {
+    if (node == null) return;
+    for (var mixin in node.mixinTypes) {
+      var element = mixin.type?.element;
+      if (element is! InterfaceElement) continue;
+      if (element.library == _currentLibrary) continue;
+      if (element.isDeprecatedWithKind('mixin')) {
+        _diagnosticReporter.atNode(
+          mixin,
+          WarningCode.deprecatedMixin,
+          arguments: [element.name!],
+        );
       }
     }
   }
