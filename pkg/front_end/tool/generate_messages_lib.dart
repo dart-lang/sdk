@@ -236,40 +236,40 @@ Template compileTemplate(
         break;
 
       case "name":
-        parameters.add("String name");
-        conversions.add("if (name.isEmpty) throw 'No name provided';");
-        arguments.add("'$name': name");
-        conversions.add("name = demangleMixinApplicationName(name);");
+        parameters.add("String _name");
+        conversions.add("if (_name.isEmpty) throw 'No name provided';");
+        arguments.add("'$name': _name");
+        conversions.add("String name = demangleMixinApplicationName(_name);");
         break;
 
       case "name2":
-        parameters.add("String name2");
-        conversions.add("if (name2.isEmpty) throw 'No name provided';");
-        arguments.add("'$name': name2");
-        conversions.add("name2 = demangleMixinApplicationName(name2);");
+        parameters.add("String _name2");
+        conversions.add("if (_name2.isEmpty) throw 'No name provided';");
+        arguments.add("'$name': _name2");
+        conversions.add("String name2 = demangleMixinApplicationName(_name2);");
         break;
 
       case "name3":
-        parameters.add("String name3");
-        conversions.add("if (name3.isEmpty) throw 'No name provided';");
-        arguments.add("'$name': name3");
-        conversions.add("name3 = demangleMixinApplicationName(name3);");
+        parameters.add("String _name3");
+        conversions.add("if (_name3.isEmpty) throw 'No name provided';");
+        arguments.add("'$name': _name3");
+        conversions.add("String name3 = demangleMixinApplicationName(_name3);");
         break;
 
       case "name4":
-        parameters.add("String name4");
-        conversions.add("if (name4.isEmpty) throw 'No name provided';");
-        arguments.add("'$name': name4");
-        conversions.add("name4 = demangleMixinApplicationName(name4);");
+        parameters.add("String _name4");
+        conversions.add("if (_name4.isEmpty) throw 'No name provided';");
+        arguments.add("'$name': _name4");
+        conversions.add("String name4 = demangleMixinApplicationName(_name4);");
         break;
 
       case "nameOKEmpty":
-        parameters.add("String nameOKEmpty");
+        parameters.add("String _nameOKEmpty");
         conversions.add(
-          "if (nameOKEmpty.isEmpty) "
-          "nameOKEmpty = '(unnamed)';",
+          "String nameOKEmpty = _nameOKEmpty.isEmpty ? '(unnamed)' : "
+          "_nameOKEmpty;",
         );
-        arguments.add("'nameOKEmpty': nameOKEmpty");
+        arguments.add("'nameOKEmpty': _nameOKEmpty");
         break;
 
       case "names":
@@ -310,12 +310,12 @@ Template compileTemplate(
         break;
 
       case "stringOKEmpty":
-        parameters.add("String stringOKEmpty");
+        parameters.add("String _stringOKEmpty");
         conversions.add(
-          "if (stringOKEmpty.isEmpty) "
-          "stringOKEmpty = '(empty)';",
+          "String stringOKEmpty = _stringOKEmpty.isEmpty ? '(empty)' : "
+          "_stringOKEmpty;",
         );
-        arguments.add("'$name': stringOKEmpty");
+        arguments.add("'$name': _stringOKEmpty");
         break;
 
       case "type":

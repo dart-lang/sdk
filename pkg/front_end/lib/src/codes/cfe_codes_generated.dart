@@ -12,9 +12,9 @@
 part of 'cfe_codes.dart';
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(String name, DartType _type)>
+const Template<Message Function(String _name, DartType _type)>
 codeAmbiguousExtensionMethod =
-    const Template<Message Function(String name, DartType _type)>(
+    const Template<Message Function(String _name, DartType _type)>(
       "AmbiguousExtensionMethod",
       problemMessageTemplate:
           r"""The method '#name' is defined in multiple extensions for '#type' and neither is more specific.""",
@@ -24,9 +24,12 @@ codeAmbiguousExtensionMethod =
     );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldAmbiguousExtensionMethod(String name, DartType _type) {
-  if (name.isEmpty) throw 'No name provided';
-  name = demangleMixinApplicationName(name);
+Message _withArgumentsOldAmbiguousExtensionMethod(
+  String _name,
+  DartType _type,
+) {
+  if (_name.isEmpty) throw 'No name provided';
+  String name = demangleMixinApplicationName(_name);
   TypeLabeler labeler = new TypeLabeler();
   List<Object> typeParts = labeler.labelType(_type);
   String type = typeParts.join();
@@ -37,14 +40,14 @@ Message _withArgumentsOldAmbiguousExtensionMethod(String name, DartType _type) {
         labeler.originMessages,
     correctionMessage:
         """Try using an explicit extension application of the wanted extension or hiding unwanted extensions from scope.""",
-    arguments: {'name': name, 'type': _type},
+    arguments: {'name': _name, 'type': _type},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(String name, DartType _type)>
+const Template<Message Function(String _name, DartType _type)>
 codeAmbiguousExtensionOperator =
-    const Template<Message Function(String name, DartType _type)>(
+    const Template<Message Function(String _name, DartType _type)>(
       "AmbiguousExtensionOperator",
       problemMessageTemplate:
           r"""The operator '#name' is defined in multiple extensions for '#type' and neither is more specific.""",
@@ -55,11 +58,11 @@ codeAmbiguousExtensionOperator =
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsOldAmbiguousExtensionOperator(
-  String name,
+  String _name,
   DartType _type,
 ) {
-  if (name.isEmpty) throw 'No name provided';
-  name = demangleMixinApplicationName(name);
+  if (_name.isEmpty) throw 'No name provided';
+  String name = demangleMixinApplicationName(_name);
   TypeLabeler labeler = new TypeLabeler();
   List<Object> typeParts = labeler.labelType(_type);
   String type = typeParts.join();
@@ -70,14 +73,14 @@ Message _withArgumentsOldAmbiguousExtensionOperator(
         labeler.originMessages,
     correctionMessage:
         """Try using an explicit extension application of the wanted extension or hiding unwanted extensions from scope.""",
-    arguments: {'name': name, 'type': _type},
+    arguments: {'name': _name, 'type': _type},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(String name, DartType _type)>
+const Template<Message Function(String _name, DartType _type)>
 codeAmbiguousExtensionProperty =
-    const Template<Message Function(String name, DartType _type)>(
+    const Template<Message Function(String _name, DartType _type)>(
       "AmbiguousExtensionProperty",
       problemMessageTemplate:
           r"""The property '#name' is defined in multiple extensions for '#type' and neither is more specific.""",
@@ -88,11 +91,11 @@ codeAmbiguousExtensionProperty =
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsOldAmbiguousExtensionProperty(
-  String name,
+  String _name,
   DartType _type,
 ) {
-  if (name.isEmpty) throw 'No name provided';
-  name = demangleMixinApplicationName(name);
+  if (_name.isEmpty) throw 'No name provided';
+  String name = demangleMixinApplicationName(_name);
   TypeLabeler labeler = new TypeLabeler();
   List<Object> typeParts = labeler.labelType(_type);
   String type = typeParts.join();
@@ -103,15 +106,15 @@ Message _withArgumentsOldAmbiguousExtensionProperty(
         labeler.originMessages,
     correctionMessage:
         """Try using an explicit extension application of the wanted extension or hiding unwanted extensions from scope.""",
-    arguments: {'name': name, 'type': _type},
+    arguments: {'name': _name, 'type': _type},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(String name, DartType _type, DartType _type2)>
+const Template<Message Function(String _name, DartType _type, DartType _type2)>
 codeAmbiguousSupertypes =
     const Template<
-      Message Function(String name, DartType _type, DartType _type2)
+      Message Function(String _name, DartType _type, DartType _type2)
     >(
       "AmbiguousSupertypes",
       problemMessageTemplate:
@@ -122,12 +125,12 @@ codeAmbiguousSupertypes =
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsOldAmbiguousSupertypes(
-  String name,
+  String _name,
   DartType _type,
   DartType _type2,
 ) {
-  if (name.isEmpty) throw 'No name provided';
-  name = demangleMixinApplicationName(name);
+  if (_name.isEmpty) throw 'No name provided';
+  String name = demangleMixinApplicationName(_name);
   TypeLabeler labeler = new TypeLabeler();
   List<Object> typeParts = labeler.labelType(_type);
   List<Object> type2Parts = labeler.labelType(_type2);
@@ -138,7 +141,7 @@ Message _withArgumentsOldAmbiguousSupertypes(
     problemMessage:
         """'${name}' can't implement both '${type}' and '${type2}'""" +
         labeler.originMessages,
-    arguments: {'name': name, 'type': _type, 'type2': _type2},
+    arguments: {'name': _name, 'type': _type, 'type2': _type2},
   );
 }
 
@@ -329,7 +332,7 @@ Message _withArgumentsOldConstEvalEqualsOperandNotPrimitiveEquality(
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
   Message Function(
-    String stringOKEmpty,
+    String _stringOKEmpty,
     Constant _constant,
     DartType _type,
     DartType _type2,
@@ -338,7 +341,7 @@ const Template<
 codeConstEvalInvalidBinaryOperandType =
     const Template<
       Message Function(
-        String stringOKEmpty,
+        String _stringOKEmpty,
         Constant _constant,
         DartType _type,
         DartType _type2,
@@ -352,12 +355,12 @@ codeConstEvalInvalidBinaryOperandType =
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsOldConstEvalInvalidBinaryOperandType(
-  String stringOKEmpty,
+  String _stringOKEmpty,
   Constant _constant,
   DartType _type,
   DartType _type2,
 ) {
-  if (stringOKEmpty.isEmpty) stringOKEmpty = '(empty)';
+  String stringOKEmpty = _stringOKEmpty.isEmpty ? '(empty)' : _stringOKEmpty;
   TypeLabeler labeler = new TypeLabeler();
   List<Object> constantParts = labeler.labelConstant(_constant);
   List<Object> typeParts = labeler.labelType(_type);
@@ -371,7 +374,7 @@ Message _withArgumentsOldConstEvalInvalidBinaryOperandType(
         """Binary operator '${stringOKEmpty}' on '${constant}' requires operand of type '${type}', but was of type '${type2}'.""" +
         labeler.originMessages,
     arguments: {
-      'stringOKEmpty': stringOKEmpty,
+      'stringOKEmpty': _stringOKEmpty,
       'constant': _constant,
       'type': _type,
       'type2': _type2,
@@ -409,9 +412,9 @@ Message _withArgumentsOldConstEvalInvalidEqualsOperandType(
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(String stringOKEmpty, Constant _constant)>
+const Template<Message Function(String _stringOKEmpty, Constant _constant)>
 codeConstEvalInvalidMethodInvocation =
-    const Template<Message Function(String stringOKEmpty, Constant _constant)>(
+    const Template<Message Function(String _stringOKEmpty, Constant _constant)>(
       "ConstEvalInvalidMethodInvocation",
       problemMessageTemplate:
           r"""The method '#stringOKEmpty' can't be invoked on '#constant' in a constant expression.""",
@@ -421,10 +424,10 @@ codeConstEvalInvalidMethodInvocation =
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsOldConstEvalInvalidMethodInvocation(
-  String stringOKEmpty,
+  String _stringOKEmpty,
   Constant _constant,
 ) {
-  if (stringOKEmpty.isEmpty) stringOKEmpty = '(empty)';
+  String stringOKEmpty = _stringOKEmpty.isEmpty ? '(empty)' : _stringOKEmpty;
   TypeLabeler labeler = new TypeLabeler();
   List<Object> constantParts = labeler.labelConstant(_constant);
   String constant = constantParts.join();
@@ -433,14 +436,14 @@ Message _withArgumentsOldConstEvalInvalidMethodInvocation(
     problemMessage:
         """The method '${stringOKEmpty}' can't be invoked on '${constant}' in a constant expression.""" +
         labeler.originMessages,
-    arguments: {'stringOKEmpty': stringOKEmpty, 'constant': _constant},
+    arguments: {'stringOKEmpty': _stringOKEmpty, 'constant': _constant},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(String stringOKEmpty, Constant _constant)>
+const Template<Message Function(String _stringOKEmpty, Constant _constant)>
 codeConstEvalInvalidPropertyGet =
-    const Template<Message Function(String stringOKEmpty, Constant _constant)>(
+    const Template<Message Function(String _stringOKEmpty, Constant _constant)>(
       "ConstEvalInvalidPropertyGet",
       problemMessageTemplate:
           r"""The property '#stringOKEmpty' can't be accessed on '#constant' in a constant expression.""",
@@ -450,10 +453,10 @@ codeConstEvalInvalidPropertyGet =
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsOldConstEvalInvalidPropertyGet(
-  String stringOKEmpty,
+  String _stringOKEmpty,
   Constant _constant,
 ) {
-  if (stringOKEmpty.isEmpty) stringOKEmpty = '(empty)';
+  String stringOKEmpty = _stringOKEmpty.isEmpty ? '(empty)' : _stringOKEmpty;
   TypeLabeler labeler = new TypeLabeler();
   List<Object> constantParts = labeler.labelConstant(_constant);
   String constant = constantParts.join();
@@ -462,14 +465,14 @@ Message _withArgumentsOldConstEvalInvalidPropertyGet(
     problemMessage:
         """The property '${stringOKEmpty}' can't be accessed on '${constant}' in a constant expression.""" +
         labeler.originMessages,
-    arguments: {'stringOKEmpty': stringOKEmpty, 'constant': _constant},
+    arguments: {'stringOKEmpty': _stringOKEmpty, 'constant': _constant},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(String stringOKEmpty, Constant _constant)>
+const Template<Message Function(String _stringOKEmpty, Constant _constant)>
 codeConstEvalInvalidRecordIndexGet =
-    const Template<Message Function(String stringOKEmpty, Constant _constant)>(
+    const Template<Message Function(String _stringOKEmpty, Constant _constant)>(
       "ConstEvalInvalidRecordIndexGet",
       problemMessageTemplate:
           r"""The property '#stringOKEmpty' can't be accessed on '#constant' in a constant expression.""",
@@ -479,10 +482,10 @@ codeConstEvalInvalidRecordIndexGet =
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsOldConstEvalInvalidRecordIndexGet(
-  String stringOKEmpty,
+  String _stringOKEmpty,
   Constant _constant,
 ) {
-  if (stringOKEmpty.isEmpty) stringOKEmpty = '(empty)';
+  String stringOKEmpty = _stringOKEmpty.isEmpty ? '(empty)' : _stringOKEmpty;
   TypeLabeler labeler = new TypeLabeler();
   List<Object> constantParts = labeler.labelConstant(_constant);
   String constant = constantParts.join();
@@ -491,14 +494,14 @@ Message _withArgumentsOldConstEvalInvalidRecordIndexGet(
     problemMessage:
         """The property '${stringOKEmpty}' can't be accessed on '${constant}' in a constant expression.""" +
         labeler.originMessages,
-    arguments: {'stringOKEmpty': stringOKEmpty, 'constant': _constant},
+    arguments: {'stringOKEmpty': _stringOKEmpty, 'constant': _constant},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(String stringOKEmpty, Constant _constant)>
+const Template<Message Function(String _stringOKEmpty, Constant _constant)>
 codeConstEvalInvalidRecordNameGet =
-    const Template<Message Function(String stringOKEmpty, Constant _constant)>(
+    const Template<Message Function(String _stringOKEmpty, Constant _constant)>(
       "ConstEvalInvalidRecordNameGet",
       problemMessageTemplate:
           r"""The property '#stringOKEmpty' can't be accessed on '#constant' in a constant expression.""",
@@ -508,10 +511,10 @@ codeConstEvalInvalidRecordNameGet =
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsOldConstEvalInvalidRecordNameGet(
-  String stringOKEmpty,
+  String _stringOKEmpty,
   Constant _constant,
 ) {
-  if (stringOKEmpty.isEmpty) stringOKEmpty = '(empty)';
+  String stringOKEmpty = _stringOKEmpty.isEmpty ? '(empty)' : _stringOKEmpty;
   TypeLabeler labeler = new TypeLabeler();
   List<Object> constantParts = labeler.labelConstant(_constant);
   String constant = constantParts.join();
@@ -520,7 +523,7 @@ Message _withArgumentsOldConstEvalInvalidRecordNameGet(
     problemMessage:
         """The property '${stringOKEmpty}' can't be accessed on '${constant}' in a constant expression.""" +
         labeler.originMessages,
-    arguments: {'stringOKEmpty': stringOKEmpty, 'constant': _constant},
+    arguments: {'stringOKEmpty': _stringOKEmpty, 'constant': _constant},
   );
 }
 
@@ -689,9 +692,9 @@ Message _withArgumentsOldConstEvalUnhandledException(Constant _constant) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(DartType _type, String name)>
+const Template<Message Function(DartType _type, String _name)>
 codeDeferredTypeAnnotation =
-    const Template<Message Function(DartType _type, String name)>(
+    const Template<Message Function(DartType _type, String _name)>(
       "DeferredTypeAnnotation",
       problemMessageTemplate:
           r"""The type '#type' is deferred loaded via prefix '#name' and can't be used as a type annotation.""",
@@ -702,11 +705,11 @@ codeDeferredTypeAnnotation =
     );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldDeferredTypeAnnotation(DartType _type, String name) {
+Message _withArgumentsOldDeferredTypeAnnotation(DartType _type, String _name) {
   TypeLabeler labeler = new TypeLabeler();
   List<Object> typeParts = labeler.labelType(_type);
-  if (name.isEmpty) throw 'No name provided';
-  name = demangleMixinApplicationName(name);
+  if (_name.isEmpty) throw 'No name provided';
+  String name = demangleMixinApplicationName(_name);
   String type = typeParts.join();
   return new Message(
     codeDeferredTypeAnnotation,
@@ -715,14 +718,14 @@ Message _withArgumentsOldDeferredTypeAnnotation(DartType _type, String name) {
         labeler.originMessages,
     correctionMessage:
         """Try removing 'deferred' from the import of '${name}' or use a supertype of '${type}' that isn't deferred.""",
-    arguments: {'type': _type, 'name': name},
+    arguments: {'type': _type, 'name': _name},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(String name, DartType _type)>
+const Template<Message Function(String _name, DartType _type)>
 codeDotShorthandsUndefinedGetter =
-    const Template<Message Function(String name, DartType _type)>(
+    const Template<Message Function(String _name, DartType _type)>(
       "DotShorthandsUndefinedGetter",
       problemMessageTemplate:
           r"""The static getter or field '#name' isn't defined for the type '#type'.""",
@@ -733,11 +736,11 @@ codeDotShorthandsUndefinedGetter =
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsOldDotShorthandsUndefinedGetter(
-  String name,
+  String _name,
   DartType _type,
 ) {
-  if (name.isEmpty) throw 'No name provided';
-  name = demangleMixinApplicationName(name);
+  if (_name.isEmpty) throw 'No name provided';
+  String name = demangleMixinApplicationName(_name);
   TypeLabeler labeler = new TypeLabeler();
   List<Object> typeParts = labeler.labelType(_type);
   String type = typeParts.join();
@@ -748,14 +751,14 @@ Message _withArgumentsOldDotShorthandsUndefinedGetter(
         labeler.originMessages,
     correctionMessage:
         """Try correcting the name to the name of an existing static getter or field, or defining a getter or field named '${name}'.""",
-    arguments: {'name': name, 'type': _type},
+    arguments: {'name': _name, 'type': _type},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(String name, DartType _type)>
+const Template<Message Function(String _name, DartType _type)>
 codeDotShorthandsUndefinedInvocation =
-    const Template<Message Function(String name, DartType _type)>(
+    const Template<Message Function(String _name, DartType _type)>(
       "DotShorthandsUndefinedInvocation",
       problemMessageTemplate:
           r"""The static method or constructor '#name' isn't defined for the type '#type'.""",
@@ -766,11 +769,11 @@ codeDotShorthandsUndefinedInvocation =
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsOldDotShorthandsUndefinedInvocation(
-  String name,
+  String _name,
   DartType _type,
 ) {
-  if (name.isEmpty) throw 'No name provided';
-  name = demangleMixinApplicationName(name);
+  if (_name.isEmpty) throw 'No name provided';
+  String name = demangleMixinApplicationName(_name);
   TypeLabeler labeler = new TypeLabeler();
   List<Object> typeParts = labeler.labelType(_type);
   String type = typeParts.join();
@@ -781,7 +784,7 @@ Message _withArgumentsOldDotShorthandsUndefinedInvocation(
         labeler.originMessages,
     correctionMessage:
         """Try correcting the name to the name of an existing static method or constructor, or defining a static method or constructor named '${name}'.""",
-    arguments: {'name': name, 'type': _type},
+    arguments: {'name': _name, 'type': _type},
   );
 }
 
@@ -942,9 +945,9 @@ Message _withArgumentsOldFfiTypeMismatch(
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(String name, DartType _type)>
+const Template<Message Function(String _name, DartType _type)>
 codeFieldNonNullableNotInitializedByConstructorError =
-    const Template<Message Function(String name, DartType _type)>(
+    const Template<Message Function(String _name, DartType _type)>(
       "FieldNonNullableNotInitializedByConstructorError",
       problemMessageTemplate:
           r"""This constructor should initialize field '#name' because its type '#type' doesn't allow null.""",
@@ -954,11 +957,11 @@ codeFieldNonNullableNotInitializedByConstructorError =
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsOldFieldNonNullableNotInitializedByConstructorError(
-  String name,
+  String _name,
   DartType _type,
 ) {
-  if (name.isEmpty) throw 'No name provided';
-  name = demangleMixinApplicationName(name);
+  if (_name.isEmpty) throw 'No name provided';
+  String name = demangleMixinApplicationName(_name);
   TypeLabeler labeler = new TypeLabeler();
   List<Object> typeParts = labeler.labelType(_type);
   String type = typeParts.join();
@@ -967,14 +970,14 @@ Message _withArgumentsOldFieldNonNullableNotInitializedByConstructorError(
     problemMessage:
         """This constructor should initialize field '${name}' because its type '${type}' doesn't allow null.""" +
         labeler.originMessages,
-    arguments: {'name': name, 'type': _type},
+    arguments: {'name': _name, 'type': _type},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(String name, DartType _type)>
+const Template<Message Function(String _name, DartType _type)>
 codeFieldNonNullableWithoutInitializerError =
-    const Template<Message Function(String name, DartType _type)>(
+    const Template<Message Function(String _name, DartType _type)>(
       "FieldNonNullableWithoutInitializerError",
       problemMessageTemplate:
           r"""Field '#name' should be initialized because its type '#type' doesn't allow null.""",
@@ -984,11 +987,11 @@ codeFieldNonNullableWithoutInitializerError =
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsOldFieldNonNullableWithoutInitializerError(
-  String name,
+  String _name,
   DartType _type,
 ) {
-  if (name.isEmpty) throw 'No name provided';
-  name = demangleMixinApplicationName(name);
+  if (_name.isEmpty) throw 'No name provided';
+  String name = demangleMixinApplicationName(_name);
   TypeLabeler labeler = new TypeLabeler();
   List<Object> typeParts = labeler.labelType(_type);
   String type = typeParts.join();
@@ -997,7 +1000,7 @@ Message _withArgumentsOldFieldNonNullableWithoutInitializerError(
     problemMessage:
         """Field '${name}' should be initialized because its type '${type}' doesn't allow null.""" +
         labeler.originMessages,
-    arguments: {'name': name, 'type': _type},
+    arguments: {'name': _name, 'type': _type},
   );
 }
 
@@ -1213,15 +1216,15 @@ Message _withArgumentsOldIncompatibleRedirecteeFunctionType(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
-  Message Function(DartType _type, DartType _type2, String name, String name2)
+  Message Function(DartType _type, DartType _type2, String _name, String _name2)
 >
 codeIncorrectTypeArgument =
     const Template<
       Message Function(
         DartType _type,
         DartType _type2,
-        String name,
-        String name2,
+        String _name,
+        String _name2,
       )
     >(
       "IncorrectTypeArgument",
@@ -1237,16 +1240,16 @@ codeIncorrectTypeArgument =
 Message _withArgumentsOldIncorrectTypeArgument(
   DartType _type,
   DartType _type2,
-  String name,
-  String name2,
+  String _name,
+  String _name2,
 ) {
   TypeLabeler labeler = new TypeLabeler();
   List<Object> typeParts = labeler.labelType(_type);
   List<Object> type2Parts = labeler.labelType(_type2);
-  if (name.isEmpty) throw 'No name provided';
-  name = demangleMixinApplicationName(name);
-  if (name2.isEmpty) throw 'No name provided';
-  name2 = demangleMixinApplicationName(name2);
+  if (_name.isEmpty) throw 'No name provided';
+  String name = demangleMixinApplicationName(_name);
+  if (_name2.isEmpty) throw 'No name provided';
+  String name2 = demangleMixinApplicationName(_name2);
   String type = typeParts.join();
   String type2 = type2Parts.join();
   return new Message(
@@ -1256,21 +1259,21 @@ Message _withArgumentsOldIncorrectTypeArgument(
         labeler.originMessages,
     correctionMessage:
         """Try changing type arguments so that they conform to the bounds.""",
-    arguments: {'type': _type, 'type2': _type2, 'name': name, 'name2': name2},
+    arguments: {'type': _type, 'type2': _type2, 'name': _name, 'name2': _name2},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
-  Message Function(DartType _type, DartType _type2, String name, String name2)
+  Message Function(DartType _type, DartType _type2, String _name, String _name2)
 >
 codeIncorrectTypeArgumentInferred =
     const Template<
       Message Function(
         DartType _type,
         DartType _type2,
-        String name,
-        String name2,
+        String _name,
+        String _name2,
       )
     >(
       "IncorrectTypeArgumentInferred",
@@ -1286,16 +1289,16 @@ codeIncorrectTypeArgumentInferred =
 Message _withArgumentsOldIncorrectTypeArgumentInferred(
   DartType _type,
   DartType _type2,
-  String name,
-  String name2,
+  String _name,
+  String _name2,
 ) {
   TypeLabeler labeler = new TypeLabeler();
   List<Object> typeParts = labeler.labelType(_type);
   List<Object> type2Parts = labeler.labelType(_type2);
-  if (name.isEmpty) throw 'No name provided';
-  name = demangleMixinApplicationName(name);
-  if (name2.isEmpty) throw 'No name provided';
-  name2 = demangleMixinApplicationName(name2);
+  if (_name.isEmpty) throw 'No name provided';
+  String name = demangleMixinApplicationName(_name);
+  if (_name2.isEmpty) throw 'No name provided';
+  String name2 = demangleMixinApplicationName(_name2);
   String type = typeParts.join();
   String type2 = type2Parts.join();
   return new Message(
@@ -1305,7 +1308,7 @@ Message _withArgumentsOldIncorrectTypeArgumentInferred(
         labeler.originMessages,
     correctionMessage:
         """Try specifying type arguments explicitly so that they conform to the bounds.""",
-    arguments: {'type': _type, 'type2': _type2, 'name': name, 'name2': name2},
+    arguments: {'type': _type, 'type2': _type2, 'name': _name, 'name2': _name2},
   );
 }
 
@@ -1314,7 +1317,7 @@ const Template<
   Message Function(
     DartType _type,
     DartType _type2,
-    String name,
+    String _name,
     DartType _type3,
   )
 >
@@ -1323,7 +1326,7 @@ codeIncorrectTypeArgumentInstantiation =
       Message Function(
         DartType _type,
         DartType _type2,
-        String name,
+        String _name,
         DartType _type3,
       )
     >(
@@ -1340,14 +1343,14 @@ codeIncorrectTypeArgumentInstantiation =
 Message _withArgumentsOldIncorrectTypeArgumentInstantiation(
   DartType _type,
   DartType _type2,
-  String name,
+  String _name,
   DartType _type3,
 ) {
   TypeLabeler labeler = new TypeLabeler();
   List<Object> typeParts = labeler.labelType(_type);
   List<Object> type2Parts = labeler.labelType(_type2);
-  if (name.isEmpty) throw 'No name provided';
-  name = demangleMixinApplicationName(name);
+  if (_name.isEmpty) throw 'No name provided';
+  String name = demangleMixinApplicationName(_name);
   List<Object> type3Parts = labeler.labelType(_type3);
   String type = typeParts.join();
   String type2 = type2Parts.join();
@@ -1359,7 +1362,7 @@ Message _withArgumentsOldIncorrectTypeArgumentInstantiation(
         labeler.originMessages,
     correctionMessage:
         """Try changing type arguments so that they conform to the bounds.""",
-    arguments: {'type': _type, 'type2': _type2, 'name': name, 'type3': _type3},
+    arguments: {'type': _type, 'type2': _type2, 'name': _name, 'type3': _type3},
   );
 }
 
@@ -1368,7 +1371,7 @@ const Template<
   Message Function(
     DartType _type,
     DartType _type2,
-    String name,
+    String _name,
     DartType _type3,
   )
 >
@@ -1377,7 +1380,7 @@ codeIncorrectTypeArgumentInstantiationInferred =
       Message Function(
         DartType _type,
         DartType _type2,
-        String name,
+        String _name,
         DartType _type3,
       )
     >(
@@ -1395,14 +1398,14 @@ codeIncorrectTypeArgumentInstantiationInferred =
 Message _withArgumentsOldIncorrectTypeArgumentInstantiationInferred(
   DartType _type,
   DartType _type2,
-  String name,
+  String _name,
   DartType _type3,
 ) {
   TypeLabeler labeler = new TypeLabeler();
   List<Object> typeParts = labeler.labelType(_type);
   List<Object> type2Parts = labeler.labelType(_type2);
-  if (name.isEmpty) throw 'No name provided';
-  name = demangleMixinApplicationName(name);
+  if (_name.isEmpty) throw 'No name provided';
+  String name = demangleMixinApplicationName(_name);
   List<Object> type3Parts = labeler.labelType(_type3);
   String type = typeParts.join();
   String type2 = type2Parts.join();
@@ -1414,7 +1417,7 @@ Message _withArgumentsOldIncorrectTypeArgumentInstantiationInferred(
         labeler.originMessages,
     correctionMessage:
         """Try specifying type arguments explicitly so that they conform to the bounds.""",
-    arguments: {'type': _type, 'type2': _type2, 'name': name, 'type3': _type3},
+    arguments: {'type': _type, 'type2': _type2, 'name': _name, 'type3': _type3},
   );
 }
 
@@ -1423,9 +1426,9 @@ const Template<
   Message Function(
     DartType _type,
     DartType _type2,
-    String name,
+    String _name,
     DartType _type3,
-    String name2,
+    String _name2,
   )
 >
 codeIncorrectTypeArgumentQualified =
@@ -1433,9 +1436,9 @@ codeIncorrectTypeArgumentQualified =
       Message Function(
         DartType _type,
         DartType _type2,
-        String name,
+        String _name,
         DartType _type3,
-        String name2,
+        String _name2,
       )
     >(
       "IncorrectTypeArgumentQualified",
@@ -1451,18 +1454,18 @@ codeIncorrectTypeArgumentQualified =
 Message _withArgumentsOldIncorrectTypeArgumentQualified(
   DartType _type,
   DartType _type2,
-  String name,
+  String _name,
   DartType _type3,
-  String name2,
+  String _name2,
 ) {
   TypeLabeler labeler = new TypeLabeler();
   List<Object> typeParts = labeler.labelType(_type);
   List<Object> type2Parts = labeler.labelType(_type2);
-  if (name.isEmpty) throw 'No name provided';
-  name = demangleMixinApplicationName(name);
+  if (_name.isEmpty) throw 'No name provided';
+  String name = demangleMixinApplicationName(_name);
   List<Object> type3Parts = labeler.labelType(_type3);
-  if (name2.isEmpty) throw 'No name provided';
-  name2 = demangleMixinApplicationName(name2);
+  if (_name2.isEmpty) throw 'No name provided';
+  String name2 = demangleMixinApplicationName(_name2);
   String type = typeParts.join();
   String type2 = type2Parts.join();
   String type3 = type3Parts.join();
@@ -1476,9 +1479,9 @@ Message _withArgumentsOldIncorrectTypeArgumentQualified(
     arguments: {
       'type': _type,
       'type2': _type2,
-      'name': name,
+      'name': _name,
       'type3': _type3,
-      'name2': name2,
+      'name2': _name2,
     },
   );
 }
@@ -1488,9 +1491,9 @@ const Template<
   Message Function(
     DartType _type,
     DartType _type2,
-    String name,
+    String _name,
     DartType _type3,
-    String name2,
+    String _name2,
   )
 >
 codeIncorrectTypeArgumentQualifiedInferred =
@@ -1498,9 +1501,9 @@ codeIncorrectTypeArgumentQualifiedInferred =
       Message Function(
         DartType _type,
         DartType _type2,
-        String name,
+        String _name,
         DartType _type3,
-        String name2,
+        String _name2,
       )
     >(
       "IncorrectTypeArgumentQualifiedInferred",
@@ -1516,18 +1519,18 @@ codeIncorrectTypeArgumentQualifiedInferred =
 Message _withArgumentsOldIncorrectTypeArgumentQualifiedInferred(
   DartType _type,
   DartType _type2,
-  String name,
+  String _name,
   DartType _type3,
-  String name2,
+  String _name2,
 ) {
   TypeLabeler labeler = new TypeLabeler();
   List<Object> typeParts = labeler.labelType(_type);
   List<Object> type2Parts = labeler.labelType(_type2);
-  if (name.isEmpty) throw 'No name provided';
-  name = demangleMixinApplicationName(name);
+  if (_name.isEmpty) throw 'No name provided';
+  String name = demangleMixinApplicationName(_name);
   List<Object> type3Parts = labeler.labelType(_type3);
-  if (name2.isEmpty) throw 'No name provided';
-  name2 = demangleMixinApplicationName(name2);
+  if (_name2.isEmpty) throw 'No name provided';
+  String name2 = demangleMixinApplicationName(_name2);
   String type = typeParts.join();
   String type2 = type2Parts.join();
   String type3 = type3Parts.join();
@@ -1541,9 +1544,9 @@ Message _withArgumentsOldIncorrectTypeArgumentQualifiedInferred(
     arguments: {
       'type': _type,
       'type2': _type2,
-      'name': name,
+      'name': _name,
       'type3': _type3,
-      'name2': name2,
+      'name2': _name2,
     },
   );
 }
@@ -1577,10 +1580,10 @@ Message _withArgumentsOldIndexOutOfBoundInRecordIndexGet(
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(String name, DartType _type, DartType _type2)>
+const Template<Message Function(String _name, DartType _type, DartType _type2)>
 codeInitializingFormalTypeMismatch =
     const Template<
-      Message Function(String name, DartType _type, DartType _type2)
+      Message Function(String _name, DartType _type, DartType _type2)
     >(
       "InitializingFormalTypeMismatch",
       problemMessageTemplate:
@@ -1593,12 +1596,12 @@ codeInitializingFormalTypeMismatch =
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsOldInitializingFormalTypeMismatch(
-  String name,
+  String _name,
   DartType _type,
   DartType _type2,
 ) {
-  if (name.isEmpty) throw 'No name provided';
-  name = demangleMixinApplicationName(name);
+  if (_name.isEmpty) throw 'No name provided';
+  String name = demangleMixinApplicationName(_name);
   TypeLabeler labeler = new TypeLabeler();
   List<Object> typeParts = labeler.labelType(_type);
   List<Object> type2Parts = labeler.labelType(_type2);
@@ -1611,7 +1614,7 @@ Message _withArgumentsOldInitializingFormalTypeMismatch(
         labeler.originMessages,
     correctionMessage:
         """Try changing the type of parameter '${name}' to a subtype of '${type2}'.""",
-    arguments: {'name': name, 'type': _type, 'type2': _type2},
+    arguments: {'name': _name, 'type': _type, 'type2': _type2},
   );
 }
 
@@ -2007,7 +2010,7 @@ Message _withArgumentsOldInvalidCastTopLevelFunction(
 const Template<
   Message Function(
     DartType _type,
-    String name,
+    String _name,
     DartType _type2,
     DartType _type3,
   )
@@ -2016,7 +2019,7 @@ codeInvalidExtensionTypeSuperExtensionType =
     const Template<
       Message Function(
         DartType _type,
-        String name,
+        String _name,
         DartType _type2,
         DartType _type3,
       )
@@ -2032,14 +2035,14 @@ codeInvalidExtensionTypeSuperExtensionType =
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsOldInvalidExtensionTypeSuperExtensionType(
   DartType _type,
-  String name,
+  String _name,
   DartType _type2,
   DartType _type3,
 ) {
   TypeLabeler labeler = new TypeLabeler();
   List<Object> typeParts = labeler.labelType(_type);
-  if (name.isEmpty) throw 'No name provided';
-  name = demangleMixinApplicationName(name);
+  if (_name.isEmpty) throw 'No name provided';
+  String name = demangleMixinApplicationName(_name);
   List<Object> type2Parts = labeler.labelType(_type2);
   List<Object> type3Parts = labeler.labelType(_type3);
   String type = typeParts.join();
@@ -2052,15 +2055,15 @@ Message _withArgumentsOldInvalidExtensionTypeSuperExtensionType(
         labeler.originMessages,
     correctionMessage:
         """Try changing the representation type to a subtype of '${type2}'.""",
-    arguments: {'type': _type, 'name': name, 'type2': _type2, 'type3': _type3},
+    arguments: {'type': _type, 'name': _name, 'type2': _type2, 'type3': _type3},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(DartType _type, DartType _type2, String name)>
+const Template<Message Function(DartType _type, DartType _type2, String _name)>
 codeInvalidExtensionTypeSuperInterface =
     const Template<
-      Message Function(DartType _type, DartType _type2, String name)
+      Message Function(DartType _type, DartType _type2, String _name)
     >(
       "InvalidExtensionTypeSuperInterface",
       problemMessageTemplate:
@@ -2074,13 +2077,13 @@ codeInvalidExtensionTypeSuperInterface =
 Message _withArgumentsOldInvalidExtensionTypeSuperInterface(
   DartType _type,
   DartType _type2,
-  String name,
+  String _name,
 ) {
   TypeLabeler labeler = new TypeLabeler();
   List<Object> typeParts = labeler.labelType(_type);
   List<Object> type2Parts = labeler.labelType(_type2);
-  if (name.isEmpty) throw 'No name provided';
-  name = demangleMixinApplicationName(name);
+  if (_name.isEmpty) throw 'No name provided';
+  String name = demangleMixinApplicationName(_name);
   String type = typeParts.join();
   String type2 = type2Parts.join();
   return new Message(
@@ -2090,21 +2093,21 @@ Message _withArgumentsOldInvalidExtensionTypeSuperInterface(
         labeler.originMessages,
     correctionMessage:
         """Try changing the interface type to a supertype of '${type2}' or the representation type to a subtype of '${type}'.""",
-    arguments: {'type': _type, 'type2': _type2, 'name': name},
+    arguments: {'type': _type, 'type2': _type2, 'name': _name},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
-  Message Function(DartType _type, String name, DartType _type2, String name2)
+  Message Function(DartType _type, String _name, DartType _type2, String _name2)
 >
 codeInvalidGetterSetterType =
     const Template<
       Message Function(
         DartType _type,
-        String name,
+        String _name,
         DartType _type2,
-        String name2,
+        String _name2,
       )
     >(
       "InvalidGetterSetterType",
@@ -2116,17 +2119,17 @@ codeInvalidGetterSetterType =
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsOldInvalidGetterSetterType(
   DartType _type,
-  String name,
+  String _name,
   DartType _type2,
-  String name2,
+  String _name2,
 ) {
   TypeLabeler labeler = new TypeLabeler();
   List<Object> typeParts = labeler.labelType(_type);
-  if (name.isEmpty) throw 'No name provided';
-  name = demangleMixinApplicationName(name);
+  if (_name.isEmpty) throw 'No name provided';
+  String name = demangleMixinApplicationName(_name);
   List<Object> type2Parts = labeler.labelType(_type2);
-  if (name2.isEmpty) throw 'No name provided';
-  name2 = demangleMixinApplicationName(name2);
+  if (_name2.isEmpty) throw 'No name provided';
+  String name2 = demangleMixinApplicationName(_name2);
   String type = typeParts.join();
   String type2 = type2Parts.join();
   return new Message(
@@ -2134,21 +2137,21 @@ Message _withArgumentsOldInvalidGetterSetterType(
     problemMessage:
         """The type '${type}' of the getter '${name}' is not a subtype of the type '${type2}' of the setter '${name2}'.""" +
         labeler.originMessages,
-    arguments: {'type': _type, 'name': name, 'type2': _type2, 'name2': name2},
+    arguments: {'type': _type, 'name': _name, 'type2': _type2, 'name2': _name2},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
-  Message Function(DartType _type, String name, DartType _type2, String name2)
+  Message Function(DartType _type, String _name, DartType _type2, String _name2)
 >
 codeInvalidGetterSetterTypeBothInheritedField =
     const Template<
       Message Function(
         DartType _type,
-        String name,
+        String _name,
         DartType _type2,
-        String name2,
+        String _name2,
       )
     >(
       "InvalidGetterSetterTypeBothInheritedField",
@@ -2161,17 +2164,17 @@ codeInvalidGetterSetterTypeBothInheritedField =
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsOldInvalidGetterSetterTypeBothInheritedField(
   DartType _type,
-  String name,
+  String _name,
   DartType _type2,
-  String name2,
+  String _name2,
 ) {
   TypeLabeler labeler = new TypeLabeler();
   List<Object> typeParts = labeler.labelType(_type);
-  if (name.isEmpty) throw 'No name provided';
-  name = demangleMixinApplicationName(name);
+  if (_name.isEmpty) throw 'No name provided';
+  String name = demangleMixinApplicationName(_name);
   List<Object> type2Parts = labeler.labelType(_type2);
-  if (name2.isEmpty) throw 'No name provided';
-  name2 = demangleMixinApplicationName(name2);
+  if (_name2.isEmpty) throw 'No name provided';
+  String name2 = demangleMixinApplicationName(_name2);
   String type = typeParts.join();
   String type2 = type2Parts.join();
   return new Message(
@@ -2179,21 +2182,21 @@ Message _withArgumentsOldInvalidGetterSetterTypeBothInheritedField(
     problemMessage:
         """The type '${type}' of the inherited field '${name}' is not a subtype of the type '${type2}' of the inherited setter '${name2}'.""" +
         labeler.originMessages,
-    arguments: {'type': _type, 'name': name, 'type2': _type2, 'name2': name2},
+    arguments: {'type': _type, 'name': _name, 'type2': _type2, 'name2': _name2},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
-  Message Function(DartType _type, String name, DartType _type2, String name2)
+  Message Function(DartType _type, String _name, DartType _type2, String _name2)
 >
 codeInvalidGetterSetterTypeBothInheritedGetter =
     const Template<
       Message Function(
         DartType _type,
-        String name,
+        String _name,
         DartType _type2,
-        String name2,
+        String _name2,
       )
     >(
       "InvalidGetterSetterTypeBothInheritedGetter",
@@ -2206,17 +2209,17 @@ codeInvalidGetterSetterTypeBothInheritedGetter =
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsOldInvalidGetterSetterTypeBothInheritedGetter(
   DartType _type,
-  String name,
+  String _name,
   DartType _type2,
-  String name2,
+  String _name2,
 ) {
   TypeLabeler labeler = new TypeLabeler();
   List<Object> typeParts = labeler.labelType(_type);
-  if (name.isEmpty) throw 'No name provided';
-  name = demangleMixinApplicationName(name);
+  if (_name.isEmpty) throw 'No name provided';
+  String name = demangleMixinApplicationName(_name);
   List<Object> type2Parts = labeler.labelType(_type2);
-  if (name2.isEmpty) throw 'No name provided';
-  name2 = demangleMixinApplicationName(name2);
+  if (_name2.isEmpty) throw 'No name provided';
+  String name2 = demangleMixinApplicationName(_name2);
   String type = typeParts.join();
   String type2 = type2Parts.join();
   return new Message(
@@ -2224,21 +2227,21 @@ Message _withArgumentsOldInvalidGetterSetterTypeBothInheritedGetter(
     problemMessage:
         """The type '${type}' of the inherited getter '${name}' is not a subtype of the type '${type2}' of the inherited setter '${name2}'.""" +
         labeler.originMessages,
-    arguments: {'type': _type, 'name': name, 'type2': _type2, 'name2': name2},
+    arguments: {'type': _type, 'name': _name, 'type2': _type2, 'name2': _name2},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
-  Message Function(DartType _type, String name, DartType _type2, String name2)
+  Message Function(DartType _type, String _name, DartType _type2, String _name2)
 >
 codeInvalidGetterSetterTypeFieldInherited =
     const Template<
       Message Function(
         DartType _type,
-        String name,
+        String _name,
         DartType _type2,
-        String name2,
+        String _name2,
       )
     >(
       "InvalidGetterSetterTypeFieldInherited",
@@ -2250,17 +2253,17 @@ codeInvalidGetterSetterTypeFieldInherited =
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsOldInvalidGetterSetterTypeFieldInherited(
   DartType _type,
-  String name,
+  String _name,
   DartType _type2,
-  String name2,
+  String _name2,
 ) {
   TypeLabeler labeler = new TypeLabeler();
   List<Object> typeParts = labeler.labelType(_type);
-  if (name.isEmpty) throw 'No name provided';
-  name = demangleMixinApplicationName(name);
+  if (_name.isEmpty) throw 'No name provided';
+  String name = demangleMixinApplicationName(_name);
   List<Object> type2Parts = labeler.labelType(_type2);
-  if (name2.isEmpty) throw 'No name provided';
-  name2 = demangleMixinApplicationName(name2);
+  if (_name2.isEmpty) throw 'No name provided';
+  String name2 = demangleMixinApplicationName(_name2);
   String type = typeParts.join();
   String type2 = type2Parts.join();
   return new Message(
@@ -2268,21 +2271,21 @@ Message _withArgumentsOldInvalidGetterSetterTypeFieldInherited(
     problemMessage:
         """The type '${type}' of the inherited field '${name}' is not a subtype of the type '${type2}' of the setter '${name2}'.""" +
         labeler.originMessages,
-    arguments: {'type': _type, 'name': name, 'type2': _type2, 'name2': name2},
+    arguments: {'type': _type, 'name': _name, 'type2': _type2, 'name2': _name2},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
-  Message Function(DartType _type, String name, DartType _type2, String name2)
+  Message Function(DartType _type, String _name, DartType _type2, String _name2)
 >
 codeInvalidGetterSetterTypeGetterInherited =
     const Template<
       Message Function(
         DartType _type,
-        String name,
+        String _name,
         DartType _type2,
-        String name2,
+        String _name2,
       )
     >(
       "InvalidGetterSetterTypeGetterInherited",
@@ -2294,17 +2297,17 @@ codeInvalidGetterSetterTypeGetterInherited =
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsOldInvalidGetterSetterTypeGetterInherited(
   DartType _type,
-  String name,
+  String _name,
   DartType _type2,
-  String name2,
+  String _name2,
 ) {
   TypeLabeler labeler = new TypeLabeler();
   List<Object> typeParts = labeler.labelType(_type);
-  if (name.isEmpty) throw 'No name provided';
-  name = demangleMixinApplicationName(name);
+  if (_name.isEmpty) throw 'No name provided';
+  String name = demangleMixinApplicationName(_name);
   List<Object> type2Parts = labeler.labelType(_type2);
-  if (name2.isEmpty) throw 'No name provided';
-  name2 = demangleMixinApplicationName(name2);
+  if (_name2.isEmpty) throw 'No name provided';
+  String name2 = demangleMixinApplicationName(_name2);
   String type = typeParts.join();
   String type2 = type2Parts.join();
   return new Message(
@@ -2312,21 +2315,21 @@ Message _withArgumentsOldInvalidGetterSetterTypeGetterInherited(
     problemMessage:
         """The type '${type}' of the inherited getter '${name}' is not a subtype of the type '${type2}' of the setter '${name2}'.""" +
         labeler.originMessages,
-    arguments: {'type': _type, 'name': name, 'type2': _type2, 'name2': name2},
+    arguments: {'type': _type, 'name': _name, 'type2': _type2, 'name2': _name2},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
-  Message Function(DartType _type, String name, DartType _type2, String name2)
+  Message Function(DartType _type, String _name, DartType _type2, String _name2)
 >
 codeInvalidGetterSetterTypeSetterInheritedField =
     const Template<
       Message Function(
         DartType _type,
-        String name,
+        String _name,
         DartType _type2,
-        String name2,
+        String _name2,
       )
     >(
       "InvalidGetterSetterTypeSetterInheritedField",
@@ -2339,17 +2342,17 @@ codeInvalidGetterSetterTypeSetterInheritedField =
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsOldInvalidGetterSetterTypeSetterInheritedField(
   DartType _type,
-  String name,
+  String _name,
   DartType _type2,
-  String name2,
+  String _name2,
 ) {
   TypeLabeler labeler = new TypeLabeler();
   List<Object> typeParts = labeler.labelType(_type);
-  if (name.isEmpty) throw 'No name provided';
-  name = demangleMixinApplicationName(name);
+  if (_name.isEmpty) throw 'No name provided';
+  String name = demangleMixinApplicationName(_name);
   List<Object> type2Parts = labeler.labelType(_type2);
-  if (name2.isEmpty) throw 'No name provided';
-  name2 = demangleMixinApplicationName(name2);
+  if (_name2.isEmpty) throw 'No name provided';
+  String name2 = demangleMixinApplicationName(_name2);
   String type = typeParts.join();
   String type2 = type2Parts.join();
   return new Message(
@@ -2357,21 +2360,21 @@ Message _withArgumentsOldInvalidGetterSetterTypeSetterInheritedField(
     problemMessage:
         """The type '${type}' of the field '${name}' is not a subtype of the type '${type2}' of the inherited setter '${name2}'.""" +
         labeler.originMessages,
-    arguments: {'type': _type, 'name': name, 'type2': _type2, 'name2': name2},
+    arguments: {'type': _type, 'name': _name, 'type2': _type2, 'name2': _name2},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
-  Message Function(DartType _type, String name, DartType _type2, String name2)
+  Message Function(DartType _type, String _name, DartType _type2, String _name2)
 >
 codeInvalidGetterSetterTypeSetterInheritedGetter =
     const Template<
       Message Function(
         DartType _type,
-        String name,
+        String _name,
         DartType _type2,
-        String name2,
+        String _name2,
       )
     >(
       "InvalidGetterSetterTypeSetterInheritedGetter",
@@ -2384,17 +2387,17 @@ codeInvalidGetterSetterTypeSetterInheritedGetter =
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsOldInvalidGetterSetterTypeSetterInheritedGetter(
   DartType _type,
-  String name,
+  String _name,
   DartType _type2,
-  String name2,
+  String _name2,
 ) {
   TypeLabeler labeler = new TypeLabeler();
   List<Object> typeParts = labeler.labelType(_type);
-  if (name.isEmpty) throw 'No name provided';
-  name = demangleMixinApplicationName(name);
+  if (_name.isEmpty) throw 'No name provided';
+  String name = demangleMixinApplicationName(_name);
   List<Object> type2Parts = labeler.labelType(_type2);
-  if (name2.isEmpty) throw 'No name provided';
-  name2 = demangleMixinApplicationName(name2);
+  if (_name2.isEmpty) throw 'No name provided';
+  String name2 = demangleMixinApplicationName(_name2);
   String type = typeParts.join();
   String type2 = type2Parts.join();
   return new Message(
@@ -2402,7 +2405,7 @@ Message _withArgumentsOldInvalidGetterSetterTypeSetterInheritedGetter(
     problemMessage:
         """The type '${type}' of the getter '${name}' is not a subtype of the type '${type2}' of the inherited setter '${name2}'.""" +
         labeler.originMessages,
-    arguments: {'type': _type, 'name': name, 'type2': _type2, 'name2': name2},
+    arguments: {'type': _type, 'name': _name, 'type2': _type2, 'name2': _name2},
   );
 }
 
@@ -2518,9 +2521,9 @@ Message _withArgumentsOldJsInteropExportInvalidTypeArgument(DartType _type) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(String name, DartType _type)>
+const Template<Message Function(String _name, DartType _type)>
 codeJsInteropExtensionTypeNotInterop =
-    const Template<Message Function(String name, DartType _type)>(
+    const Template<Message Function(String _name, DartType _type)>(
       "JsInteropExtensionTypeNotInterop",
       problemMessageTemplate:
           r"""Extension type '#name' is marked with a '@JS' annotation, but its representation type is not a valid JS interop type: '#type'.""",
@@ -2531,11 +2534,11 @@ codeJsInteropExtensionTypeNotInterop =
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsOldJsInteropExtensionTypeNotInterop(
-  String name,
+  String _name,
   DartType _type,
 ) {
-  if (name.isEmpty) throw 'No name provided';
-  name = demangleMixinApplicationName(name);
+  if (_name.isEmpty) throw 'No name provided';
+  String name = demangleMixinApplicationName(_name);
   TypeLabeler labeler = new TypeLabeler();
   List<Object> typeParts = labeler.labelType(_type);
   String type = typeParts.join();
@@ -2546,7 +2549,7 @@ Message _withArgumentsOldJsInteropExtensionTypeNotInterop(
         labeler.originMessages,
     correctionMessage:
         """Try declaring a valid JS interop representation type, which may include 'dart:js_interop' types, '@staticInterop' types, 'dart:html' types, or other interop extension types.""",
-    arguments: {'name': name, 'type': _type},
+    arguments: {'name': _name, 'type': _type},
   );
 }
 
@@ -2854,9 +2857,11 @@ Message _withArgumentsOldMixinApplicationIncompatibleSupertype(
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(String name, String name2, DartType _type)>
+const Template<Message Function(String _name, String _name2, DartType _type)>
 codeMixinInferenceNoMatchingClass =
-    const Template<Message Function(String name, String name2, DartType _type)>(
+    const Template<
+      Message Function(String _name, String _name2, DartType _type)
+    >(
       "MixinInferenceNoMatchingClass",
       problemMessageTemplate:
           r"""Type parameters couldn't be inferred for the mixin '#name' because '#name2' does not implement the mixin's supertype constraint '#type'.""",
@@ -2866,14 +2871,14 @@ codeMixinInferenceNoMatchingClass =
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsOldMixinInferenceNoMatchingClass(
-  String name,
-  String name2,
+  String _name,
+  String _name2,
   DartType _type,
 ) {
-  if (name.isEmpty) throw 'No name provided';
-  name = demangleMixinApplicationName(name);
-  if (name2.isEmpty) throw 'No name provided';
-  name2 = demangleMixinApplicationName(name2);
+  if (_name.isEmpty) throw 'No name provided';
+  String name = demangleMixinApplicationName(_name);
+  if (_name2.isEmpty) throw 'No name provided';
+  String name2 = demangleMixinApplicationName(_name2);
   TypeLabeler labeler = new TypeLabeler();
   List<Object> typeParts = labeler.labelType(_type);
   String type = typeParts.join();
@@ -2882,7 +2887,7 @@ Message _withArgumentsOldMixinInferenceNoMatchingClass(
     problemMessage:
         """Type parameters couldn't be inferred for the mixin '${name}' because '${name2}' does not implement the mixin's supertype constraint '${type}'.""" +
         labeler.originMessages,
-    arguments: {'name': name, 'name2': name2, 'type': _type},
+    arguments: {'name': _name, 'name2': _name2, 'type': _type},
   );
 }
 
@@ -3037,9 +3042,9 @@ Message _withArgumentsOldNullableExpressionCallError(DartType _type) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(String name, DartType _type)>
+const Template<Message Function(String _name, DartType _type)>
 codeNullableMethodCallError =
-    const Template<Message Function(String name, DartType _type)>(
+    const Template<Message Function(String _name, DartType _type)>(
       "NullableMethodCallError",
       problemMessageTemplate:
           r"""Method '#name' cannot be called on '#type' because it is potentially null.""",
@@ -3048,9 +3053,9 @@ codeNullableMethodCallError =
     );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldNullableMethodCallError(String name, DartType _type) {
-  if (name.isEmpty) throw 'No name provided';
-  name = demangleMixinApplicationName(name);
+Message _withArgumentsOldNullableMethodCallError(String _name, DartType _type) {
+  if (_name.isEmpty) throw 'No name provided';
+  String name = demangleMixinApplicationName(_name);
   TypeLabeler labeler = new TypeLabeler();
   List<Object> typeParts = labeler.labelType(_type);
   String type = typeParts.join();
@@ -3060,14 +3065,14 @@ Message _withArgumentsOldNullableMethodCallError(String name, DartType _type) {
         """Method '${name}' cannot be called on '${type}' because it is potentially null.""" +
         labeler.originMessages,
     correctionMessage: """Try calling using ?. instead.""",
-    arguments: {'name': name, 'type': _type},
+    arguments: {'name': _name, 'type': _type},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(String name, DartType _type)>
+const Template<Message Function(String _name, DartType _type)>
 codeNullableOperatorCallError =
-    const Template<Message Function(String name, DartType _type)>(
+    const Template<Message Function(String _name, DartType _type)>(
       "NullableOperatorCallError",
       problemMessageTemplate:
           r"""Operator '#name' cannot be called on '#type' because it is potentially null.""",
@@ -3076,11 +3081,11 @@ codeNullableOperatorCallError =
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsOldNullableOperatorCallError(
-  String name,
+  String _name,
   DartType _type,
 ) {
-  if (name.isEmpty) throw 'No name provided';
-  name = demangleMixinApplicationName(name);
+  if (_name.isEmpty) throw 'No name provided';
+  String name = demangleMixinApplicationName(_name);
   TypeLabeler labeler = new TypeLabeler();
   List<Object> typeParts = labeler.labelType(_type);
   String type = typeParts.join();
@@ -3089,14 +3094,14 @@ Message _withArgumentsOldNullableOperatorCallError(
     problemMessage:
         """Operator '${name}' cannot be called on '${type}' because it is potentially null.""" +
         labeler.originMessages,
-    arguments: {'name': name, 'type': _type},
+    arguments: {'name': _name, 'type': _type},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(String name, DartType _type)>
+const Template<Message Function(String _name, DartType _type)>
 codeNullablePropertyAccessError =
-    const Template<Message Function(String name, DartType _type)>(
+    const Template<Message Function(String _name, DartType _type)>(
       "NullablePropertyAccessError",
       problemMessageTemplate:
           r"""Property '#name' cannot be accessed on '#type' because it is potentially null.""",
@@ -3106,11 +3111,11 @@ codeNullablePropertyAccessError =
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsOldNullablePropertyAccessError(
-  String name,
+  String _name,
   DartType _type,
 ) {
-  if (name.isEmpty) throw 'No name provided';
-  name = demangleMixinApplicationName(name);
+  if (_name.isEmpty) throw 'No name provided';
+  String name = demangleMixinApplicationName(_name);
   TypeLabeler labeler = new TypeLabeler();
   List<Object> typeParts = labeler.labelType(_type);
   String type = typeParts.join();
@@ -3120,14 +3125,14 @@ Message _withArgumentsOldNullablePropertyAccessError(
         """Property '${name}' cannot be accessed on '${type}' because it is potentially null.""" +
         labeler.originMessages,
     correctionMessage: """Try accessing using ?. instead.""",
-    arguments: {'name': name, 'type': _type},
+    arguments: {'name': _name, 'type': _type},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(String name, DartType _type)>
+const Template<Message Function(String _name, DartType _type)>
 codeOptionalNonNullableWithoutInitializerError =
-    const Template<Message Function(String name, DartType _type)>(
+    const Template<Message Function(String _name, DartType _type)>(
       "OptionalNonNullableWithoutInitializerError",
       problemMessageTemplate:
           r"""The parameter '#name' can't have a value of 'null' because of its type '#type', but the implicit default value is 'null'.""",
@@ -3140,11 +3145,11 @@ codeOptionalNonNullableWithoutInitializerError =
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsOldOptionalNonNullableWithoutInitializerError(
-  String name,
+  String _name,
   DartType _type,
 ) {
-  if (name.isEmpty) throw 'No name provided';
-  name = demangleMixinApplicationName(name);
+  if (_name.isEmpty) throw 'No name provided';
+  String name = demangleMixinApplicationName(_name);
   TypeLabeler labeler = new TypeLabeler();
   List<Object> typeParts = labeler.labelType(_type);
   String type = typeParts.join();
@@ -3155,14 +3160,14 @@ Message _withArgumentsOldOptionalNonNullableWithoutInitializerError(
         labeler.originMessages,
     correctionMessage:
         """Try adding either an explicit non-'null' default value or the 'required' modifier.""",
-    arguments: {'name': name, 'type': _type},
+    arguments: {'name': _name, 'type': _type},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(DartType _type, String name)>
+const Template<Message Function(DartType _type, String _name)>
 codeOptionalSuperParameterWithoutInitializer =
-    const Template<Message Function(DartType _type, String name)>(
+    const Template<Message Function(DartType _type, String _name)>(
       "OptionalSuperParameterWithoutInitializer",
       problemMessageTemplate:
           r"""Type '#type' of the optional super-initializer parameter '#name' doesn't allow 'null', but the parameter doesn't have a default value, and the default value can't be copied from the corresponding parameter of the super constructor.""",
@@ -3173,40 +3178,40 @@ codeOptionalSuperParameterWithoutInitializer =
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsOldOptionalSuperParameterWithoutInitializer(
   DartType _type,
-  String name,
+  String _name,
 ) {
   TypeLabeler labeler = new TypeLabeler();
   List<Object> typeParts = labeler.labelType(_type);
-  if (name.isEmpty) throw 'No name provided';
-  name = demangleMixinApplicationName(name);
+  if (_name.isEmpty) throw 'No name provided';
+  String name = demangleMixinApplicationName(_name);
   String type = typeParts.join();
   return new Message(
     codeOptionalSuperParameterWithoutInitializer,
     problemMessage:
         """Type '${type}' of the optional super-initializer parameter '${name}' doesn't allow 'null', but the parameter doesn't have a default value, and the default value can't be copied from the corresponding parameter of the super constructor.""" +
         labeler.originMessages,
-    arguments: {'type': _type, 'name': name},
+    arguments: {'type': _type, 'name': _name},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
   Message Function(
-    String name,
-    String name2,
+    String _name,
+    String _name2,
     DartType _type,
     DartType _type2,
-    String name3,
+    String _name3,
   )
 >
 codeOverrideTypeMismatchParameter =
     const Template<
       Message Function(
-        String name,
-        String name2,
+        String _name,
+        String _name2,
         DartType _type,
         DartType _type2,
-        String name3,
+        String _name3,
       )
     >(
       "OverrideTypeMismatchParameter",
@@ -3220,21 +3225,21 @@ codeOverrideTypeMismatchParameter =
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsOldOverrideTypeMismatchParameter(
-  String name,
-  String name2,
+  String _name,
+  String _name2,
   DartType _type,
   DartType _type2,
-  String name3,
+  String _name3,
 ) {
-  if (name.isEmpty) throw 'No name provided';
-  name = demangleMixinApplicationName(name);
-  if (name2.isEmpty) throw 'No name provided';
-  name2 = demangleMixinApplicationName(name2);
+  if (_name.isEmpty) throw 'No name provided';
+  String name = demangleMixinApplicationName(_name);
+  if (_name2.isEmpty) throw 'No name provided';
+  String name2 = demangleMixinApplicationName(_name2);
   TypeLabeler labeler = new TypeLabeler();
   List<Object> typeParts = labeler.labelType(_type);
   List<Object> type2Parts = labeler.labelType(_type2);
-  if (name3.isEmpty) throw 'No name provided';
-  name3 = demangleMixinApplicationName(name3);
+  if (_name3.isEmpty) throw 'No name provided';
+  String name3 = demangleMixinApplicationName(_name3);
   String type = typeParts.join();
   String type2 = type2Parts.join();
   return new Message(
@@ -3245,26 +3250,26 @@ Message _withArgumentsOldOverrideTypeMismatchParameter(
     correctionMessage:
         """Change to a supertype of '${type2}', or, for a covariant parameter, a subtype.""",
     arguments: {
-      'name': name,
-      'name2': name2,
+      'name': _name,
+      'name2': _name2,
       'type': _type,
       'type2': _type2,
-      'name3': name3,
+      'name3': _name3,
     },
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
-  Message Function(String name, DartType _type, DartType _type2, String name2)
+  Message Function(String _name, DartType _type, DartType _type2, String _name2)
 >
 codeOverrideTypeMismatchReturnType =
     const Template<
       Message Function(
-        String name,
+        String _name,
         DartType _type,
         DartType _type2,
-        String name2,
+        String _name2,
       )
     >(
       "OverrideTypeMismatchReturnType",
@@ -3277,18 +3282,18 @@ codeOverrideTypeMismatchReturnType =
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsOldOverrideTypeMismatchReturnType(
-  String name,
+  String _name,
   DartType _type,
   DartType _type2,
-  String name2,
+  String _name2,
 ) {
-  if (name.isEmpty) throw 'No name provided';
-  name = demangleMixinApplicationName(name);
+  if (_name.isEmpty) throw 'No name provided';
+  String name = demangleMixinApplicationName(_name);
   TypeLabeler labeler = new TypeLabeler();
   List<Object> typeParts = labeler.labelType(_type);
   List<Object> type2Parts = labeler.labelType(_type2);
-  if (name2.isEmpty) throw 'No name provided';
-  name2 = demangleMixinApplicationName(name2);
+  if (_name2.isEmpty) throw 'No name provided';
+  String name2 = demangleMixinApplicationName(_name2);
   String type = typeParts.join();
   String type2 = type2Parts.join();
   return new Message(
@@ -3297,21 +3302,21 @@ Message _withArgumentsOldOverrideTypeMismatchReturnType(
         """The return type of the method '${name}' is '${type}', which does not match the return type, '${type2}', of the overridden method, '${name2}'.""" +
         labeler.originMessages,
     correctionMessage: """Change to a subtype of '${type2}'.""",
-    arguments: {'name': name, 'type': _type, 'type2': _type2, 'name2': name2},
+    arguments: {'name': _name, 'type': _type, 'type2': _type2, 'name2': _name2},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
-  Message Function(String name, DartType _type, DartType _type2, String name2)
+  Message Function(String _name, DartType _type, DartType _type2, String _name2)
 >
 codeOverrideTypeMismatchSetter =
     const Template<
       Message Function(
-        String name,
+        String _name,
         DartType _type,
         DartType _type2,
-        String name2,
+        String _name2,
       )
     >(
       "OverrideTypeMismatchSetter",
@@ -3323,18 +3328,18 @@ codeOverrideTypeMismatchSetter =
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsOldOverrideTypeMismatchSetter(
-  String name,
+  String _name,
   DartType _type,
   DartType _type2,
-  String name2,
+  String _name2,
 ) {
-  if (name.isEmpty) throw 'No name provided';
-  name = demangleMixinApplicationName(name);
+  if (_name.isEmpty) throw 'No name provided';
+  String name = demangleMixinApplicationName(_name);
   TypeLabeler labeler = new TypeLabeler();
   List<Object> typeParts = labeler.labelType(_type);
   List<Object> type2Parts = labeler.labelType(_type2);
-  if (name2.isEmpty) throw 'No name provided';
-  name2 = demangleMixinApplicationName(name2);
+  if (_name2.isEmpty) throw 'No name provided';
+  String name2 = demangleMixinApplicationName(_name2);
   String type = typeParts.join();
   String type2 = type2Parts.join();
   return new Message(
@@ -3342,7 +3347,7 @@ Message _withArgumentsOldOverrideTypeMismatchSetter(
     problemMessage:
         """The field '${name}' has type '${type}', which does not match the corresponding type, '${type2}', in the overridden setter, '${name2}'.""" +
         labeler.originMessages,
-    arguments: {'name': name, 'type': _type, 'type2': _type2, 'name2': name2},
+    arguments: {'name': _name, 'type': _type, 'type2': _type2, 'name2': _name2},
   );
 }
 
@@ -3350,20 +3355,20 @@ Message _withArgumentsOldOverrideTypeMismatchSetter(
 const Template<
   Message Function(
     DartType _type,
-    String name,
-    String name2,
+    String _name,
+    String _name2,
     DartType _type2,
-    String name3,
+    String _name3,
   )
 >
 codeOverrideTypeParametersBoundMismatch =
     const Template<
       Message Function(
         DartType _type,
-        String name,
-        String name2,
+        String _name,
+        String _name2,
         DartType _type2,
-        String name3,
+        String _name3,
       )
     >(
       "OverrideTypeParametersBoundMismatch",
@@ -3375,20 +3380,20 @@ codeOverrideTypeParametersBoundMismatch =
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsOldOverrideTypeParametersBoundMismatch(
   DartType _type,
-  String name,
-  String name2,
+  String _name,
+  String _name2,
   DartType _type2,
-  String name3,
+  String _name3,
 ) {
   TypeLabeler labeler = new TypeLabeler();
   List<Object> typeParts = labeler.labelType(_type);
-  if (name.isEmpty) throw 'No name provided';
-  name = demangleMixinApplicationName(name);
-  if (name2.isEmpty) throw 'No name provided';
-  name2 = demangleMixinApplicationName(name2);
+  if (_name.isEmpty) throw 'No name provided';
+  String name = demangleMixinApplicationName(_name);
+  if (_name2.isEmpty) throw 'No name provided';
+  String name2 = demangleMixinApplicationName(_name2);
   List<Object> type2Parts = labeler.labelType(_type2);
-  if (name3.isEmpty) throw 'No name provided';
-  name3 = demangleMixinApplicationName(name3);
+  if (_name3.isEmpty) throw 'No name provided';
+  String name3 = demangleMixinApplicationName(_name3);
   String type = typeParts.join();
   String type2 = type2Parts.join();
   return new Message(
@@ -3398,10 +3403,10 @@ Message _withArgumentsOldOverrideTypeParametersBoundMismatch(
         labeler.originMessages,
     arguments: {
       'type': _type,
-      'name': name,
-      'name2': name2,
+      'name': _name,
+      'name2': _name2,
       'type2': _type2,
-      'name3': name3,
+      'name3': _name3,
     },
   );
 }
@@ -3637,9 +3642,9 @@ Message _withArgumentsOldSuperBoundedHint(DartType _type, DartType _type2) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(String name, DartType _type)>
+const Template<Message Function(String _name, DartType _type)>
 codeSuperExtensionTypeIsIllegalAliased =
-    const Template<Message Function(String name, DartType _type)>(
+    const Template<Message Function(String _name, DartType _type)>(
       "SuperExtensionTypeIsIllegalAliased",
       problemMessageTemplate:
           r"""The type '#name' which is an alias of '#type' can't be implemented by an extension type.""",
@@ -3648,11 +3653,11 @@ codeSuperExtensionTypeIsIllegalAliased =
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsOldSuperExtensionTypeIsIllegalAliased(
-  String name,
+  String _name,
   DartType _type,
 ) {
-  if (name.isEmpty) throw 'No name provided';
-  name = demangleMixinApplicationName(name);
+  if (_name.isEmpty) throw 'No name provided';
+  String name = demangleMixinApplicationName(_name);
   TypeLabeler labeler = new TypeLabeler();
   List<Object> typeParts = labeler.labelType(_type);
   String type = typeParts.join();
@@ -3661,14 +3666,14 @@ Message _withArgumentsOldSuperExtensionTypeIsIllegalAliased(
     problemMessage:
         """The type '${name}' which is an alias of '${type}' can't be implemented by an extension type.""" +
         labeler.originMessages,
-    arguments: {'name': name, 'type': _type},
+    arguments: {'name': _name, 'type': _type},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(String name, DartType _type)>
+const Template<Message Function(String _name, DartType _type)>
 codeSuperExtensionTypeIsNullableAliased =
-    const Template<Message Function(String name, DartType _type)>(
+    const Template<Message Function(String _name, DartType _type)>(
       "SuperExtensionTypeIsNullableAliased",
       problemMessageTemplate:
           r"""The type '#name' which is an alias of '#type' can't be implemented by an extension type because it is nullable.""",
@@ -3677,11 +3682,11 @@ codeSuperExtensionTypeIsNullableAliased =
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsOldSuperExtensionTypeIsNullableAliased(
-  String name,
+  String _name,
   DartType _type,
 ) {
-  if (name.isEmpty) throw 'No name provided';
-  name = demangleMixinApplicationName(name);
+  if (_name.isEmpty) throw 'No name provided';
+  String name = demangleMixinApplicationName(_name);
   TypeLabeler labeler = new TypeLabeler();
   List<Object> typeParts = labeler.labelType(_type);
   String type = typeParts.join();
@@ -3690,14 +3695,14 @@ Message _withArgumentsOldSuperExtensionTypeIsNullableAliased(
     problemMessage:
         """The type '${name}' which is an alias of '${type}' can't be implemented by an extension type because it is nullable.""" +
         labeler.originMessages,
-    arguments: {'name': name, 'type': _type},
+    arguments: {'name': _name, 'type': _type},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(String name, DartType _type)>
+const Template<Message Function(String _name, DartType _type)>
 codeSupertypeIsIllegalAliased =
-    const Template<Message Function(String name, DartType _type)>(
+    const Template<Message Function(String _name, DartType _type)>(
       "SupertypeIsIllegalAliased",
       problemMessageTemplate:
           r"""The type '#name' which is an alias of '#type' can't be used as supertype.""",
@@ -3707,11 +3712,11 @@ codeSupertypeIsIllegalAliased =
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsOldSupertypeIsIllegalAliased(
-  String name,
+  String _name,
   DartType _type,
 ) {
-  if (name.isEmpty) throw 'No name provided';
-  name = demangleMixinApplicationName(name);
+  if (_name.isEmpty) throw 'No name provided';
+  String name = demangleMixinApplicationName(_name);
   TypeLabeler labeler = new TypeLabeler();
   List<Object> typeParts = labeler.labelType(_type);
   String type = typeParts.join();
@@ -3720,14 +3725,14 @@ Message _withArgumentsOldSupertypeIsIllegalAliased(
     problemMessage:
         """The type '${name}' which is an alias of '${type}' can't be used as supertype.""" +
         labeler.originMessages,
-    arguments: {'name': name, 'type': _type},
+    arguments: {'name': _name, 'type': _type},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(String name, DartType _type)>
+const Template<Message Function(String _name, DartType _type)>
 codeSupertypeIsNullableAliased =
-    const Template<Message Function(String name, DartType _type)>(
+    const Template<Message Function(String _name, DartType _type)>(
       "SupertypeIsNullableAliased",
       problemMessageTemplate:
           r"""The type '#name' which is an alias of '#type' can't be used as supertype because it is nullable.""",
@@ -3737,11 +3742,11 @@ codeSupertypeIsNullableAliased =
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsOldSupertypeIsNullableAliased(
-  String name,
+  String _name,
   DartType _type,
 ) {
-  if (name.isEmpty) throw 'No name provided';
-  name = demangleMixinApplicationName(name);
+  if (_name.isEmpty) throw 'No name provided';
+  String name = demangleMixinApplicationName(_name);
   TypeLabeler labeler = new TypeLabeler();
   List<Object> typeParts = labeler.labelType(_type);
   String type = typeParts.join();
@@ -3750,7 +3755,7 @@ Message _withArgumentsOldSupertypeIsNullableAliased(
     problemMessage:
         """The type '${name}' which is an alias of '${type}' can't be used as supertype because it is nullable.""" +
         labeler.originMessages,
-    arguments: {'name': name, 'type': _type},
+    arguments: {'name': _name, 'type': _type},
   );
 }
 
@@ -3808,21 +3813,22 @@ Message _withArgumentsOldThrowingNotAssignableToObjectError(DartType _type) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(String name, DartType _type)>
-codeUndefinedGetter = const Template<Message Function(String name, DartType _type)>(
-  "UndefinedGetter",
-  problemMessageTemplate:
-      r"""The getter '#name' isn't defined for the type '#type'.""",
-  correctionMessageTemplate:
-      r"""Try correcting the name to the name of an existing getter, or defining a getter or field named '#name'.""",
-  withArgumentsOld: _withArgumentsOldUndefinedGetter,
-  analyzerCodes: <String>["UNDEFINED_GETTER"],
-);
+const Template<Message Function(String _name, DartType _type)>
+codeUndefinedGetter =
+    const Template<Message Function(String _name, DartType _type)>(
+      "UndefinedGetter",
+      problemMessageTemplate:
+          r"""The getter '#name' isn't defined for the type '#type'.""",
+      correctionMessageTemplate:
+          r"""Try correcting the name to the name of an existing getter, or defining a getter or field named '#name'.""",
+      withArgumentsOld: _withArgumentsOldUndefinedGetter,
+      analyzerCodes: <String>["UNDEFINED_GETTER"],
+    );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldUndefinedGetter(String name, DartType _type) {
-  if (name.isEmpty) throw 'No name provided';
-  name = demangleMixinApplicationName(name);
+Message _withArgumentsOldUndefinedGetter(String _name, DartType _type) {
+  if (_name.isEmpty) throw 'No name provided';
+  String name = demangleMixinApplicationName(_name);
   TypeLabeler labeler = new TypeLabeler();
   List<Object> typeParts = labeler.labelType(_type);
   String type = typeParts.join();
@@ -3833,26 +3839,27 @@ Message _withArgumentsOldUndefinedGetter(String name, DartType _type) {
         labeler.originMessages,
     correctionMessage:
         """Try correcting the name to the name of an existing getter, or defining a getter or field named '${name}'.""",
-    arguments: {'name': name, 'type': _type},
+    arguments: {'name': _name, 'type': _type},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(String name, DartType _type)>
-codeUndefinedMethod = const Template<Message Function(String name, DartType _type)>(
-  "UndefinedMethod",
-  problemMessageTemplate:
-      r"""The method '#name' isn't defined for the type '#type'.""",
-  correctionMessageTemplate:
-      r"""Try correcting the name to the name of an existing method, or defining a method named '#name'.""",
-  withArgumentsOld: _withArgumentsOldUndefinedMethod,
-  analyzerCodes: <String>["UNDEFINED_METHOD"],
-);
+const Template<Message Function(String _name, DartType _type)>
+codeUndefinedMethod =
+    const Template<Message Function(String _name, DartType _type)>(
+      "UndefinedMethod",
+      problemMessageTemplate:
+          r"""The method '#name' isn't defined for the type '#type'.""",
+      correctionMessageTemplate:
+          r"""Try correcting the name to the name of an existing method, or defining a method named '#name'.""",
+      withArgumentsOld: _withArgumentsOldUndefinedMethod,
+      analyzerCodes: <String>["UNDEFINED_METHOD"],
+    );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldUndefinedMethod(String name, DartType _type) {
-  if (name.isEmpty) throw 'No name provided';
-  name = demangleMixinApplicationName(name);
+Message _withArgumentsOldUndefinedMethod(String _name, DartType _type) {
+  if (_name.isEmpty) throw 'No name provided';
+  String name = demangleMixinApplicationName(_name);
   TypeLabeler labeler = new TypeLabeler();
   List<Object> typeParts = labeler.labelType(_type);
   String type = typeParts.join();
@@ -3863,14 +3870,14 @@ Message _withArgumentsOldUndefinedMethod(String name, DartType _type) {
         labeler.originMessages,
     correctionMessage:
         """Try correcting the name to the name of an existing method, or defining a method named '${name}'.""",
-    arguments: {'name': name, 'type': _type},
+    arguments: {'name': _name, 'type': _type},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(String name, DartType _type)>
+const Template<Message Function(String _name, DartType _type)>
 codeUndefinedOperator =
-    const Template<Message Function(String name, DartType _type)>(
+    const Template<Message Function(String _name, DartType _type)>(
       "UndefinedOperator",
       problemMessageTemplate:
           r"""The operator '#name' isn't defined for the type '#type'.""",
@@ -3881,9 +3888,9 @@ codeUndefinedOperator =
     );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldUndefinedOperator(String name, DartType _type) {
-  if (name.isEmpty) throw 'No name provided';
-  name = demangleMixinApplicationName(name);
+Message _withArgumentsOldUndefinedOperator(String _name, DartType _type) {
+  if (_name.isEmpty) throw 'No name provided';
+  String name = demangleMixinApplicationName(_name);
   TypeLabeler labeler = new TypeLabeler();
   List<Object> typeParts = labeler.labelType(_type);
   String type = typeParts.join();
@@ -3894,26 +3901,27 @@ Message _withArgumentsOldUndefinedOperator(String name, DartType _type) {
         labeler.originMessages,
     correctionMessage:
         """Try correcting the operator to an existing operator, or defining a '${name}' operator.""",
-    arguments: {'name': name, 'type': _type},
+    arguments: {'name': _name, 'type': _type},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(String name, DartType _type)>
-codeUndefinedSetter = const Template<Message Function(String name, DartType _type)>(
-  "UndefinedSetter",
-  problemMessageTemplate:
-      r"""The setter '#name' isn't defined for the type '#type'.""",
-  correctionMessageTemplate:
-      r"""Try correcting the name to the name of an existing setter, or defining a setter or field named '#name'.""",
-  withArgumentsOld: _withArgumentsOldUndefinedSetter,
-  analyzerCodes: <String>["UNDEFINED_SETTER"],
-);
+const Template<Message Function(String _name, DartType _type)>
+codeUndefinedSetter =
+    const Template<Message Function(String _name, DartType _type)>(
+      "UndefinedSetter",
+      problemMessageTemplate:
+          r"""The setter '#name' isn't defined for the type '#type'.""",
+      correctionMessageTemplate:
+          r"""Try correcting the name to the name of an existing setter, or defining a setter or field named '#name'.""",
+      withArgumentsOld: _withArgumentsOldUndefinedSetter,
+      analyzerCodes: <String>["UNDEFINED_SETTER"],
+    );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldUndefinedSetter(String name, DartType _type) {
-  if (name.isEmpty) throw 'No name provided';
-  name = demangleMixinApplicationName(name);
+Message _withArgumentsOldUndefinedSetter(String _name, DartType _type) {
+  if (_name.isEmpty) throw 'No name provided';
+  String name = demangleMixinApplicationName(_name);
   TypeLabeler labeler = new TypeLabeler();
   List<Object> typeParts = labeler.labelType(_type);
   String type = typeParts.join();
@@ -3924,14 +3932,14 @@ Message _withArgumentsOldUndefinedSetter(String name, DartType _type) {
         labeler.originMessages,
     correctionMessage:
         """Try correcting the name to the name of an existing setter, or defining a setter or field named '${name}'.""",
-    arguments: {'name': name, 'type': _type},
+    arguments: {'name': _name, 'type': _type},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(String name, DartType _type)>
+const Template<Message Function(String _name, DartType _type)>
 codeWrongTypeParameterVarianceInSuperinterface =
-    const Template<Message Function(String name, DartType _type)>(
+    const Template<Message Function(String _name, DartType _type)>(
       "WrongTypeParameterVarianceInSuperinterface",
       problemMessageTemplate:
           r"""'#name' can't be used contravariantly or invariantly in '#type'.""",
@@ -3944,11 +3952,11 @@ codeWrongTypeParameterVarianceInSuperinterface =
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsOldWrongTypeParameterVarianceInSuperinterface(
-  String name,
+  String _name,
   DartType _type,
 ) {
-  if (name.isEmpty) throw 'No name provided';
-  name = demangleMixinApplicationName(name);
+  if (_name.isEmpty) throw 'No name provided';
+  String name = demangleMixinApplicationName(_name);
   TypeLabeler labeler = new TypeLabeler();
   List<Object> typeParts = labeler.labelType(_type);
   String type = typeParts.join();
@@ -3957,6 +3965,6 @@ Message _withArgumentsOldWrongTypeParameterVarianceInSuperinterface(
     problemMessage:
         """'${name}' can't be used contravariantly or invariantly in '${type}'.""" +
         labeler.originMessages,
-    arguments: {'name': name, 'type': _type},
+    arguments: {'name': _name, 'type': _type},
   );
 }

@@ -18,8 +18,8 @@ const MessageCode codeAbstractClassConstructorTearOff = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(String name)> codeAbstractClassInstantiation =
-    const Template<Message Function(String name)>(
+const Template<Message Function(String _name)> codeAbstractClassInstantiation =
+    const Template<Message Function(String _name)>(
       "AbstractClassInstantiation",
       problemMessageTemplate:
           r"""The class '#name' is abstract and can't be instantiated.""",
@@ -28,14 +28,14 @@ const Template<Message Function(String name)> codeAbstractClassInstantiation =
     );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldAbstractClassInstantiation(String name) {
-  if (name.isEmpty) throw 'No name provided';
-  name = demangleMixinApplicationName(name);
+Message _withArgumentsOldAbstractClassInstantiation(String _name) {
+  if (_name.isEmpty) throw 'No name provided';
+  String name = demangleMixinApplicationName(_name);
   return new Message(
     codeAbstractClassInstantiation,
     problemMessage:
         """The class '${name}' is abstract and can't be instantiated.""",
-    arguments: {'name': name},
+    arguments: {'name': _name},
   );
 }
 
@@ -117,9 +117,9 @@ const MessageCode codeAbstractNotSync = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(String name)>
+const Template<Message Function(String _name)>
 codeAbstractRedirectedClassInstantiation =
-    const Template<Message Function(String name)>(
+    const Template<Message Function(String _name)>(
       "AbstractRedirectedClassInstantiation",
       problemMessageTemplate:
           r"""Factory redirects to class '#name', which is abstract and can't be instantiated.""",
@@ -128,14 +128,14 @@ codeAbstractRedirectedClassInstantiation =
     );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldAbstractRedirectedClassInstantiation(String name) {
-  if (name.isEmpty) throw 'No name provided';
-  name = demangleMixinApplicationName(name);
+Message _withArgumentsOldAbstractRedirectedClassInstantiation(String _name) {
+  if (_name.isEmpty) throw 'No name provided';
+  String name = demangleMixinApplicationName(_name);
   return new Message(
     codeAbstractRedirectedClassInstantiation,
     problemMessage:
         """Factory redirects to class '${name}', which is abstract and can't be instantiated.""",
-    arguments: {'name': name},
+    arguments: {'name': _name},
   );
 }
 
@@ -264,9 +264,9 @@ const MessageCode codeAwaitOfExtensionTypeNotFuture = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(String name)>
+const Template<Message Function(String _name)>
 codeBaseClassImplementedOutsideOfLibrary =
-    const Template<Message Function(String name)>(
+    const Template<Message Function(String _name)>(
       "BaseClassImplementedOutsideOfLibrary",
       problemMessageTemplate:
           r"""The class '#name' can't be implemented outside of its library because it's a base class.""",
@@ -275,14 +275,14 @@ codeBaseClassImplementedOutsideOfLibrary =
     );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldBaseClassImplementedOutsideOfLibrary(String name) {
-  if (name.isEmpty) throw 'No name provided';
-  name = demangleMixinApplicationName(name);
+Message _withArgumentsOldBaseClassImplementedOutsideOfLibrary(String _name) {
+  if (_name.isEmpty) throw 'No name provided';
+  String name = demangleMixinApplicationName(_name);
   return new Message(
     codeBaseClassImplementedOutsideOfLibrary,
     problemMessage:
         """The class '${name}' can't be implemented outside of its library because it's a base class.""",
-    arguments: {'name': name},
+    arguments: {'name': _name},
   );
 }
 
@@ -295,9 +295,9 @@ const MessageCode codeBaseEnum = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(String name)>
+const Template<Message Function(String _name)>
 codeBaseMixinImplementedOutsideOfLibrary =
-    const Template<Message Function(String name)>(
+    const Template<Message Function(String _name)>(
       "BaseMixinImplementedOutsideOfLibrary",
       problemMessageTemplate:
           r"""The mixin '#name' can't be implemented outside of its library because it's a base mixin.""",
@@ -306,21 +306,21 @@ codeBaseMixinImplementedOutsideOfLibrary =
     );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldBaseMixinImplementedOutsideOfLibrary(String name) {
-  if (name.isEmpty) throw 'No name provided';
-  name = demangleMixinApplicationName(name);
+Message _withArgumentsOldBaseMixinImplementedOutsideOfLibrary(String _name) {
+  if (_name.isEmpty) throw 'No name provided';
+  String name = demangleMixinApplicationName(_name);
   return new Message(
     codeBaseMixinImplementedOutsideOfLibrary,
     problemMessage:
         """The mixin '${name}' can't be implemented outside of its library because it's a base mixin.""",
-    arguments: {'name': name},
+    arguments: {'name': _name},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(String name, String name2)>
+const Template<Message Function(String _name, String _name2)>
 codeBaseOrFinalClassImplementedOutsideOfLibraryCause =
-    const Template<Message Function(String name, String name2)>(
+    const Template<Message Function(String _name, String _name2)>(
       "BaseOrFinalClassImplementedOutsideOfLibraryCause",
       problemMessageTemplate:
           r"""The type '#name' is a subtype of '#name2', and '#name2' is defined here.""",
@@ -331,18 +331,18 @@ codeBaseOrFinalClassImplementedOutsideOfLibraryCause =
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsOldBaseOrFinalClassImplementedOutsideOfLibraryCause(
-  String name,
-  String name2,
+  String _name,
+  String _name2,
 ) {
-  if (name.isEmpty) throw 'No name provided';
-  name = demangleMixinApplicationName(name);
-  if (name2.isEmpty) throw 'No name provided';
-  name2 = demangleMixinApplicationName(name2);
+  if (_name.isEmpty) throw 'No name provided';
+  String name = demangleMixinApplicationName(_name);
+  if (_name2.isEmpty) throw 'No name provided';
+  String name2 = demangleMixinApplicationName(_name2);
   return new Message(
     codeBaseOrFinalClassImplementedOutsideOfLibraryCause,
     problemMessage:
         """The type '${name}' is a subtype of '${name2}', and '${name2}' is defined here.""",
-    arguments: {'name': name, 'name2': name2},
+    arguments: {'name': _name, 'name2': _name2},
   );
 }
 
@@ -376,9 +376,9 @@ Message _withArgumentsOldBinaryOperatorWrittenOut(
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(String name, String name2)>
+const Template<Message Function(String _name, String _name2)>
 codeBoundIssueViaCycleNonSimplicity =
-    const Template<Message Function(String name, String name2)>(
+    const Template<Message Function(String _name, String _name2)>(
       "BoundIssueViaCycleNonSimplicity",
       problemMessageTemplate:
           r"""Generic type '#name' can't be used without type arguments in the bounds of its own type variables. It is referenced indirectly through '#name2'.""",
@@ -390,26 +390,26 @@ codeBoundIssueViaCycleNonSimplicity =
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsOldBoundIssueViaCycleNonSimplicity(
-  String name,
-  String name2,
+  String _name,
+  String _name2,
 ) {
-  if (name.isEmpty) throw 'No name provided';
-  name = demangleMixinApplicationName(name);
-  if (name2.isEmpty) throw 'No name provided';
-  name2 = demangleMixinApplicationName(name2);
+  if (_name.isEmpty) throw 'No name provided';
+  String name = demangleMixinApplicationName(_name);
+  if (_name2.isEmpty) throw 'No name provided';
+  String name2 = demangleMixinApplicationName(_name2);
   return new Message(
     codeBoundIssueViaCycleNonSimplicity,
     problemMessage:
         """Generic type '${name}' can't be used without type arguments in the bounds of its own type variables. It is referenced indirectly through '${name2}'.""",
     correctionMessage:
         """Try providing type arguments to '${name2}' here or to some other raw types in the bounds along the reference chain.""",
-    arguments: {'name': name, 'name2': name2},
+    arguments: {'name': _name, 'name2': _name2},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(String name)>
-codeBoundIssueViaLoopNonSimplicity = const Template<Message Function(String name)>(
+const Template<Message Function(String _name)>
+codeBoundIssueViaLoopNonSimplicity = const Template<Message Function(String _name)>(
   "BoundIssueViaLoopNonSimplicity",
   problemMessageTemplate:
       r"""Generic type '#name' can't be used without type arguments in the bounds of its own type variables.""",
@@ -420,22 +420,22 @@ codeBoundIssueViaLoopNonSimplicity = const Template<Message Function(String name
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldBoundIssueViaLoopNonSimplicity(String name) {
-  if (name.isEmpty) throw 'No name provided';
-  name = demangleMixinApplicationName(name);
+Message _withArgumentsOldBoundIssueViaLoopNonSimplicity(String _name) {
+  if (_name.isEmpty) throw 'No name provided';
+  String name = demangleMixinApplicationName(_name);
   return new Message(
     codeBoundIssueViaLoopNonSimplicity,
     problemMessage:
         """Generic type '${name}' can't be used without type arguments in the bounds of its own type variables.""",
     correctionMessage: """Try providing type arguments to '${name}' here.""",
-    arguments: {'name': name},
+    arguments: {'name': _name},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(String name)>
+const Template<Message Function(String _name)>
 codeBoundIssueViaRawTypeWithNonSimpleBounds =
-    const Template<Message Function(String name)>(
+    const Template<Message Function(String _name)>(
       "BoundIssueViaRawTypeWithNonSimpleBounds",
       problemMessageTemplate:
           r"""Generic type '#name' can't be used without type arguments in a type variable bound.""",
@@ -447,15 +447,15 @@ codeBoundIssueViaRawTypeWithNonSimpleBounds =
     );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldBoundIssueViaRawTypeWithNonSimpleBounds(String name) {
-  if (name.isEmpty) throw 'No name provided';
-  name = demangleMixinApplicationName(name);
+Message _withArgumentsOldBoundIssueViaRawTypeWithNonSimpleBounds(String _name) {
+  if (_name.isEmpty) throw 'No name provided';
+  String name = demangleMixinApplicationName(_name);
   return new Message(
     codeBoundIssueViaRawTypeWithNonSimpleBounds,
     problemMessage:
         """Generic type '${name}' can't be used without type arguments in a type variable bound.""",
     correctionMessage: """Try providing type arguments to '${name}' here.""",
-    arguments: {'name': name},
+    arguments: {'name': _name},
   );
 }
 
@@ -469,8 +469,8 @@ const MessageCode codeBreakOutsideOfLoop = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(String name)> codeBreakTargetOutsideFunction =
-    const Template<Message Function(String name)>(
+const Template<Message Function(String _name)> codeBreakTargetOutsideFunction =
+    const Template<Message Function(String _name)>(
       "BreakTargetOutsideFunction",
       problemMessageTemplate:
           r"""Can't break to '#name' in a different function.""",
@@ -479,13 +479,13 @@ const Template<Message Function(String name)> codeBreakTargetOutsideFunction =
     );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldBreakTargetOutsideFunction(String name) {
-  if (name.isEmpty) throw 'No name provided';
-  name = demangleMixinApplicationName(name);
+Message _withArgumentsOldBreakTargetOutsideFunction(String _name) {
+  if (_name.isEmpty) throw 'No name provided';
+  String name = demangleMixinApplicationName(_name);
   return new Message(
     codeBreakTargetOutsideFunction,
     problemMessage: """Can't break to '${name}' in a different function.""",
-    arguments: {'name': name},
+    arguments: {'name': _name},
   );
 }
 
@@ -538,9 +538,9 @@ const MessageCode codeCandidateFound = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(String name)>
+const Template<Message Function(String _name)>
 codeCandidateFoundIsDefaultConstructor =
-    const Template<Message Function(String name)>(
+    const Template<Message Function(String _name)>(
       "CandidateFoundIsDefaultConstructor",
       problemMessageTemplate:
           r"""The class '#name' has a constructor that takes no arguments.""",
@@ -549,20 +549,20 @@ codeCandidateFoundIsDefaultConstructor =
     );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldCandidateFoundIsDefaultConstructor(String name) {
-  if (name.isEmpty) throw 'No name provided';
-  name = demangleMixinApplicationName(name);
+Message _withArgumentsOldCandidateFoundIsDefaultConstructor(String _name) {
+  if (_name.isEmpty) throw 'No name provided';
+  String name = demangleMixinApplicationName(_name);
   return new Message(
     codeCandidateFoundIsDefaultConstructor,
     problemMessage:
         """The class '${name}' has a constructor that takes no arguments.""",
-    arguments: {'name': name},
+    arguments: {'name': _name},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(String name)> codeCannotAssignToConstVariable =
-    const Template<Message Function(String name)>(
+const Template<Message Function(String _name)> codeCannotAssignToConstVariable =
+    const Template<Message Function(String _name)>(
       "CannotAssignToConstVariable",
       problemMessageTemplate:
           r"""Can't assign to the const variable '#name'.""",
@@ -570,13 +570,13 @@ const Template<Message Function(String name)> codeCannotAssignToConstVariable =
     );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldCannotAssignToConstVariable(String name) {
-  if (name.isEmpty) throw 'No name provided';
-  name = demangleMixinApplicationName(name);
+Message _withArgumentsOldCannotAssignToConstVariable(String _name) {
+  if (_name.isEmpty) throw 'No name provided';
+  String name = demangleMixinApplicationName(_name);
   return new Message(
     codeCannotAssignToConstVariable,
     problemMessage: """Can't assign to the const variable '${name}'.""",
-    arguments: {'name': name},
+    arguments: {'name': _name},
   );
 }
 
@@ -587,8 +587,8 @@ const MessageCode codeCannotAssignToExtensionThis = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(String name)> codeCannotAssignToFinalVariable =
-    const Template<Message Function(String name)>(
+const Template<Message Function(String _name)> codeCannotAssignToFinalVariable =
+    const Template<Message Function(String _name)>(
       "CannotAssignToFinalVariable",
       problemMessageTemplate:
           r"""Can't assign to the final variable '#name'.""",
@@ -596,13 +596,13 @@ const Template<Message Function(String name)> codeCannotAssignToFinalVariable =
     );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldCannotAssignToFinalVariable(String name) {
-  if (name.isEmpty) throw 'No name provided';
-  name = demangleMixinApplicationName(name);
+Message _withArgumentsOldCannotAssignToFinalVariable(String _name) {
+  if (_name.isEmpty) throw 'No name provided';
+  String name = demangleMixinApplicationName(_name);
   return new Message(
     codeCannotAssignToFinalVariable,
     problemMessage: """Can't assign to the final variable '${name}'.""",
-    arguments: {'name': name},
+    arguments: {'name': _name},
   );
 }
 
@@ -664,8 +664,8 @@ const MessageCode codeCantDisambiguateNotEnoughInformation = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(String name)> codeCantHaveNamedParameters =
-    const Template<Message Function(String name)>(
+const Template<Message Function(String _name)> codeCantHaveNamedParameters =
+    const Template<Message Function(String _name)>(
       "CantHaveNamedParameters",
       problemMessageTemplate:
           r"""'#name' can't be declared with named parameters.""",
@@ -673,19 +673,19 @@ const Template<Message Function(String name)> codeCantHaveNamedParameters =
     );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldCantHaveNamedParameters(String name) {
-  if (name.isEmpty) throw 'No name provided';
-  name = demangleMixinApplicationName(name);
+Message _withArgumentsOldCantHaveNamedParameters(String _name) {
+  if (_name.isEmpty) throw 'No name provided';
+  String name = demangleMixinApplicationName(_name);
   return new Message(
     codeCantHaveNamedParameters,
     problemMessage: """'${name}' can't be declared with named parameters.""",
-    arguments: {'name': name},
+    arguments: {'name': _name},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(String name)> codeCantHaveOptionalParameters =
-    const Template<Message Function(String name)>(
+const Template<Message Function(String _name)> codeCantHaveOptionalParameters =
+    const Template<Message Function(String _name)>(
       "CantHaveOptionalParameters",
       problemMessageTemplate:
           r"""'#name' can't be declared with optional parameters.""",
@@ -693,13 +693,13 @@ const Template<Message Function(String name)> codeCantHaveOptionalParameters =
     );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldCantHaveOptionalParameters(String name) {
-  if (name.isEmpty) throw 'No name provided';
-  name = demangleMixinApplicationName(name);
+Message _withArgumentsOldCantHaveOptionalParameters(String _name) {
+  if (_name.isEmpty) throw 'No name provided';
+  String name = demangleMixinApplicationName(_name);
   return new Message(
     codeCantHaveOptionalParameters,
     problemMessage: """'${name}' can't be declared with optional parameters.""",
-    arguments: {'name': name},
+    arguments: {'name': _name},
   );
 }
 
@@ -722,9 +722,9 @@ const MessageCode codeCantInferPackagesFromPackageUri = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(String name)>
+const Template<Message Function(String _name)>
 codeCantInferReturnTypeDueToNoCombinedSignature =
-    const Template<Message Function(String name)>(
+    const Template<Message Function(String _name)>(
       "CantInferReturnTypeDueToNoCombinedSignature",
       problemMessageTemplate:
           r"""Can't infer a return type for '#name' as the overridden members don't have a combined signature.""",
@@ -736,16 +736,16 @@ codeCantInferReturnTypeDueToNoCombinedSignature =
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsOldCantInferReturnTypeDueToNoCombinedSignature(
-  String name,
+  String _name,
 ) {
-  if (name.isEmpty) throw 'No name provided';
-  name = demangleMixinApplicationName(name);
+  if (_name.isEmpty) throw 'No name provided';
+  String name = demangleMixinApplicationName(_name);
   return new Message(
     codeCantInferReturnTypeDueToNoCombinedSignature,
     problemMessage:
         """Can't infer a return type for '${name}' as the overridden members don't have a combined signature.""",
     correctionMessage: """Try adding an explicit type.""",
-    arguments: {'name': name},
+    arguments: {'name': _name},
   );
 }
 
@@ -773,9 +773,9 @@ Message _withArgumentsOldCantInferTypeDueToCircularity(String string) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(String name)>
+const Template<Message Function(String _name)>
 codeCantInferTypeDueToNoCombinedSignature =
-    const Template<Message Function(String name)>(
+    const Template<Message Function(String _name)>(
       "CantInferTypeDueToNoCombinedSignature",
       problemMessageTemplate:
           r"""Can't infer a type for '#name' as the overridden members don't have a combined signature.""",
@@ -785,22 +785,22 @@ codeCantInferTypeDueToNoCombinedSignature =
     );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldCantInferTypeDueToNoCombinedSignature(String name) {
-  if (name.isEmpty) throw 'No name provided';
-  name = demangleMixinApplicationName(name);
+Message _withArgumentsOldCantInferTypeDueToNoCombinedSignature(String _name) {
+  if (_name.isEmpty) throw 'No name provided';
+  String name = demangleMixinApplicationName(_name);
   return new Message(
     codeCantInferTypeDueToNoCombinedSignature,
     problemMessage:
         """Can't infer a type for '${name}' as the overridden members don't have a combined signature.""",
     correctionMessage: """Try adding an explicit type.""",
-    arguments: {'name': name},
+    arguments: {'name': _name},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(String name)>
+const Template<Message Function(String _name)>
 codeCantInferTypesDueToNoCombinedSignature =
-    const Template<Message Function(String name)>(
+    const Template<Message Function(String _name)>(
       "CantInferTypesDueToNoCombinedSignature",
       problemMessageTemplate:
           r"""Can't infer types for '#name' as the overridden members don't have a combined signature.""",
@@ -810,15 +810,15 @@ codeCantInferTypesDueToNoCombinedSignature =
     );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldCantInferTypesDueToNoCombinedSignature(String name) {
-  if (name.isEmpty) throw 'No name provided';
-  name = demangleMixinApplicationName(name);
+Message _withArgumentsOldCantInferTypesDueToNoCombinedSignature(String _name) {
+  if (_name.isEmpty) throw 'No name provided';
+  String name = demangleMixinApplicationName(_name);
   return new Message(
     codeCantInferTypesDueToNoCombinedSignature,
     problemMessage:
         """Can't infer types for '${name}' as the overridden members don't have a combined signature.""",
     correctionMessage: """Try adding explicit types.""",
-    arguments: {'name': name},
+    arguments: {'name': _name},
   );
 }
 
@@ -843,8 +843,8 @@ Message _withArgumentsOldCantReadFile(Uri uri_, String string) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(String name)>
-codeCantUseClassAsMixin = const Template<Message Function(String name)>(
+const Template<Message Function(String _name)>
+codeCantUseClassAsMixin = const Template<Message Function(String _name)>(
   "CantUseClassAsMixin",
   problemMessageTemplate:
       r"""The class '#name' can't be used as a mixin because it isn't a mixin class nor a mixin.""",
@@ -853,14 +853,14 @@ codeCantUseClassAsMixin = const Template<Message Function(String name)>(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldCantUseClassAsMixin(String name) {
-  if (name.isEmpty) throw 'No name provided';
-  name = demangleMixinApplicationName(name);
+Message _withArgumentsOldCantUseClassAsMixin(String _name) {
+  if (_name.isEmpty) throw 'No name provided';
+  String name = demangleMixinApplicationName(_name);
   return new Message(
     codeCantUseClassAsMixin,
     problemMessage:
         """The class '${name}' can't be used as a mixin because it isn't a mixin class nor a mixin.""",
-    arguments: {'name': name},
+    arguments: {'name': _name},
   );
 }
 
@@ -965,9 +965,9 @@ const MessageCode codeClassInClass = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(String name)>
+const Template<Message Function(String _name)>
 codeClassShouldBeListedAsCallableInDynamicInterface =
-    const Template<Message Function(String name)>(
+    const Template<Message Function(String _name)>(
       "ClassShouldBeListedAsCallableInDynamicInterface",
       problemMessageTemplate:
           r"""Cannot use class '#name' in a dynamic module.""",
@@ -979,23 +979,23 @@ codeClassShouldBeListedAsCallableInDynamicInterface =
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsOldClassShouldBeListedAsCallableInDynamicInterface(
-  String name,
+  String _name,
 ) {
-  if (name.isEmpty) throw 'No name provided';
-  name = demangleMixinApplicationName(name);
+  if (_name.isEmpty) throw 'No name provided';
+  String name = demangleMixinApplicationName(_name);
   return new Message(
     codeClassShouldBeListedAsCallableInDynamicInterface,
     problemMessage: """Cannot use class '${name}' in a dynamic module.""",
     correctionMessage:
         """Try removing the reference to class '${name}' or update the dynamic interface to list class '${name}' as callable.""",
-    arguments: {'name': name},
+    arguments: {'name': _name},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(String name)>
+const Template<Message Function(String _name)>
 codeClassShouldBeListedAsExtendableInDynamicInterface =
-    const Template<Message Function(String name)>(
+    const Template<Message Function(String _name)>(
       "ClassShouldBeListedAsExtendableInDynamicInterface",
       problemMessageTemplate:
           r"""Cannot extend, implement or mix-in class '#name' in a dynamic module.""",
@@ -1007,17 +1007,17 @@ codeClassShouldBeListedAsExtendableInDynamicInterface =
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsOldClassShouldBeListedAsExtendableInDynamicInterface(
-  String name,
+  String _name,
 ) {
-  if (name.isEmpty) throw 'No name provided';
-  name = demangleMixinApplicationName(name);
+  if (_name.isEmpty) throw 'No name provided';
+  String name = demangleMixinApplicationName(_name);
   return new Message(
     codeClassShouldBeListedAsExtendableInDynamicInterface,
     problemMessage:
         """Cannot extend, implement or mix-in class '${name}' in a dynamic module.""",
     correctionMessage:
         """Try removing the reference to class '${name}' or update the dynamic interface to list class '${name}' as extendable.""",
-    arguments: {'name': name},
+    arguments: {'name': _name},
   );
 }
 
@@ -1030,9 +1030,9 @@ const MessageCode codeColonInPlaceOfIn = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(String name, String name2)>
+const Template<Message Function(String _name, String _name2)>
 codeCombinedMemberSignatureFailed =
-    const Template<Message Function(String name, String name2)>(
+    const Template<Message Function(String _name, String _name2)>(
       "CombinedMemberSignatureFailed",
       problemMessageTemplate:
           r"""Class '#name' inherits multiple members named '#name2' with incompatible signatures.""",
@@ -1044,20 +1044,20 @@ codeCombinedMemberSignatureFailed =
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsOldCombinedMemberSignatureFailed(
-  String name,
-  String name2,
+  String _name,
+  String _name2,
 ) {
-  if (name.isEmpty) throw 'No name provided';
-  name = demangleMixinApplicationName(name);
-  if (name2.isEmpty) throw 'No name provided';
-  name2 = demangleMixinApplicationName(name2);
+  if (_name.isEmpty) throw 'No name provided';
+  String name = demangleMixinApplicationName(_name);
+  if (_name2.isEmpty) throw 'No name provided';
+  String name2 = demangleMixinApplicationName(_name2);
   return new Message(
     codeCombinedMemberSignatureFailed,
     problemMessage:
         """Class '${name}' inherits multiple members named '${name2}' with incompatible signatures.""",
     correctionMessage:
         """Try adding a declaration of '${name2}' to '${name}'.""",
-    arguments: {'name': name, 'name2': name2},
+    arguments: {'name': _name, 'name2': _name2},
   );
 }
 
@@ -1087,8 +1087,8 @@ Message _withArgumentsOldConflictingModifiers(String string, String string2) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(String name)> codeConflictsWithImplicitSetter =
-    const Template<Message Function(String name)>(
+const Template<Message Function(String _name)> codeConflictsWithImplicitSetter =
+    const Template<Message Function(String _name)>(
       "ConflictsWithImplicitSetter",
       problemMessageTemplate:
           r"""Conflicts with the implicit setter of the field '#name'.""",
@@ -1097,21 +1097,21 @@ const Template<Message Function(String name)> codeConflictsWithImplicitSetter =
     );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldConflictsWithImplicitSetter(String name) {
-  if (name.isEmpty) throw 'No name provided';
-  name = demangleMixinApplicationName(name);
+Message _withArgumentsOldConflictsWithImplicitSetter(String _name) {
+  if (_name.isEmpty) throw 'No name provided';
+  String name = demangleMixinApplicationName(_name);
   return new Message(
     codeConflictsWithImplicitSetter,
     problemMessage:
         """Conflicts with the implicit setter of the field '${name}'.""",
-    arguments: {'name': name},
+    arguments: {'name': _name},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(String name)>
+const Template<Message Function(String _name)>
 codeConflictsWithImplicitSetterCause =
-    const Template<Message Function(String name)>(
+    const Template<Message Function(String _name)>(
       "ConflictsWithImplicitSetterCause",
       problemMessageTemplate: r"""Field '#name' with the implicit setter.""",
       withArgumentsOld: _withArgumentsOldConflictsWithImplicitSetterCause,
@@ -1119,19 +1119,19 @@ codeConflictsWithImplicitSetterCause =
     );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldConflictsWithImplicitSetterCause(String name) {
-  if (name.isEmpty) throw 'No name provided';
-  name = demangleMixinApplicationName(name);
+Message _withArgumentsOldConflictsWithImplicitSetterCause(String _name) {
+  if (_name.isEmpty) throw 'No name provided';
+  String name = demangleMixinApplicationName(_name);
   return new Message(
     codeConflictsWithImplicitSetterCause,
     problemMessage: """Field '${name}' with the implicit setter.""",
-    arguments: {'name': name},
+    arguments: {'name': _name},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(String name)> codeConflictsWithTypeParameter =
-    const Template<Message Function(String name)>(
+const Template<Message Function(String _name)> codeConflictsWithTypeParameter =
+    const Template<Message Function(String _name)>(
       "ConflictsWithTypeParameter",
       problemMessageTemplate: r"""Conflicts with type variable '#name'.""",
       withArgumentsOld: _withArgumentsOldConflictsWithTypeParameter,
@@ -1139,13 +1139,13 @@ const Template<Message Function(String name)> codeConflictsWithTypeParameter =
     );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldConflictsWithTypeParameter(String name) {
-  if (name.isEmpty) throw 'No name provided';
-  name = demangleMixinApplicationName(name);
+Message _withArgumentsOldConflictsWithTypeParameter(String _name) {
+  if (_name.isEmpty) throw 'No name provided';
+  String name = demangleMixinApplicationName(_name);
   return new Message(
     codeConflictsWithTypeParameter,
     problemMessage: """Conflicts with type variable '${name}'.""",
-    arguments: {'name': name},
+    arguments: {'name': _name},
   );
 }
 
@@ -1242,8 +1242,8 @@ const MessageCode codeConstEvalContext = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(String nameOKEmpty)>
-codeConstEvalDeferredLibrary = const Template<Message Function(String nameOKEmpty)>(
+const Template<Message Function(String _nameOKEmpty)>
+codeConstEvalDeferredLibrary = const Template<Message Function(String _nameOKEmpty)>(
   "ConstEvalDeferredLibrary",
   problemMessageTemplate:
       r"""'#nameOKEmpty' can't be used in a constant expression because it's marked as 'deferred' which means it isn't available until loaded.""",
@@ -1257,8 +1257,8 @@ codeConstEvalDeferredLibrary = const Template<Message Function(String nameOKEmpt
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldConstEvalDeferredLibrary(String nameOKEmpty) {
-  if (nameOKEmpty.isEmpty) nameOKEmpty = '(unnamed)';
+Message _withArgumentsOldConstEvalDeferredLibrary(String _nameOKEmpty) {
+  String nameOKEmpty = _nameOKEmpty.isEmpty ? '(unnamed)' : _nameOKEmpty;
   return new Message(
     codeConstEvalDeferredLibrary,
     problemMessage:
@@ -1266,7 +1266,7 @@ Message _withArgumentsOldConstEvalDeferredLibrary(String nameOKEmpty) {
     correctionMessage:
         """Try moving the constant from the deferred library, or removing 'deferred' from the import.
 """,
-    arguments: {'nameOKEmpty': nameOKEmpty},
+    arguments: {'nameOKEmpty': _nameOKEmpty},
   );
 }
 
@@ -1319,9 +1319,9 @@ const MessageCode codeConstEvalFailedAssertion = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(String stringOKEmpty)>
+const Template<Message Function(String _stringOKEmpty)>
 codeConstEvalFailedAssertionWithMessage =
-    const Template<Message Function(String stringOKEmpty)>(
+    const Template<Message Function(String _stringOKEmpty)>(
       "ConstEvalFailedAssertionWithMessage",
       problemMessageTemplate:
           r"""This assertion failed with message: #stringOKEmpty""",
@@ -1331,13 +1331,13 @@ codeConstEvalFailedAssertionWithMessage =
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsOldConstEvalFailedAssertionWithMessage(
-  String stringOKEmpty,
+  String _stringOKEmpty,
 ) {
-  if (stringOKEmpty.isEmpty) stringOKEmpty = '(empty)';
+  String stringOKEmpty = _stringOKEmpty.isEmpty ? '(empty)' : _stringOKEmpty;
   return new Message(
     codeConstEvalFailedAssertionWithMessage,
     problemMessage: """This assertion failed with message: ${stringOKEmpty}""",
-    arguments: {'stringOKEmpty': stringOKEmpty},
+    arguments: {'stringOKEmpty': _stringOKEmpty},
   );
 }
 
@@ -1350,28 +1350,28 @@ const MessageCode codeConstEvalFailedAssertionWithNonStringMessage =
     );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(String nameOKEmpty)>
+const Template<Message Function(String _nameOKEmpty)>
 codeConstEvalGetterNotFound =
-    const Template<Message Function(String nameOKEmpty)>(
+    const Template<Message Function(String _nameOKEmpty)>(
       "ConstEvalGetterNotFound",
       problemMessageTemplate: r"""Variable get not found: '#nameOKEmpty'""",
       withArgumentsOld: _withArgumentsOldConstEvalGetterNotFound,
     );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldConstEvalGetterNotFound(String nameOKEmpty) {
-  if (nameOKEmpty.isEmpty) nameOKEmpty = '(unnamed)';
+Message _withArgumentsOldConstEvalGetterNotFound(String _nameOKEmpty) {
+  String nameOKEmpty = _nameOKEmpty.isEmpty ? '(unnamed)' : _nameOKEmpty;
   return new Message(
     codeConstEvalGetterNotFound,
     problemMessage: """Variable get not found: '${nameOKEmpty}'""",
-    arguments: {'nameOKEmpty': nameOKEmpty},
+    arguments: {'nameOKEmpty': _nameOKEmpty},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(String nameOKEmpty)>
+const Template<Message Function(String _nameOKEmpty)>
 codeConstEvalInvalidStaticInvocation =
-    const Template<Message Function(String nameOKEmpty)>(
+    const Template<Message Function(String _nameOKEmpty)>(
       "ConstEvalInvalidStaticInvocation",
       problemMessageTemplate:
           r"""The invocation of '#nameOKEmpty' is not allowed in a constant expression.""",
@@ -1380,13 +1380,13 @@ codeConstEvalInvalidStaticInvocation =
     );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldConstEvalInvalidStaticInvocation(String nameOKEmpty) {
-  if (nameOKEmpty.isEmpty) nameOKEmpty = '(unnamed)';
+Message _withArgumentsOldConstEvalInvalidStaticInvocation(String _nameOKEmpty) {
+  String nameOKEmpty = _nameOKEmpty.isEmpty ? '(unnamed)' : _nameOKEmpty;
   return new Message(
     codeConstEvalInvalidStaticInvocation,
     problemMessage:
         """The invocation of '${nameOKEmpty}' is not allowed in a constant expression.""",
-    arguments: {'nameOKEmpty': nameOKEmpty},
+    arguments: {'nameOKEmpty': _nameOKEmpty},
   );
 }
 
@@ -1420,9 +1420,9 @@ Message _withArgumentsOldConstEvalNegativeShift(
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(String nameOKEmpty)>
+const Template<Message Function(String _nameOKEmpty)>
 codeConstEvalNonConstantVariableGet =
-    const Template<Message Function(String nameOKEmpty)>(
+    const Template<Message Function(String _nameOKEmpty)>(
       "ConstEvalNonConstantVariableGet",
       problemMessageTemplate:
           r"""The variable '#nameOKEmpty' is not a constant, only constant expressions are allowed.""",
@@ -1431,13 +1431,13 @@ codeConstEvalNonConstantVariableGet =
     );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldConstEvalNonConstantVariableGet(String nameOKEmpty) {
-  if (nameOKEmpty.isEmpty) nameOKEmpty = '(unnamed)';
+Message _withArgumentsOldConstEvalNonConstantVariableGet(String _nameOKEmpty) {
+  String nameOKEmpty = _nameOKEmpty.isEmpty ? '(unnamed)' : _nameOKEmpty;
   return new Message(
     codeConstEvalNonConstantVariableGet,
     problemMessage:
         """The variable '${nameOKEmpty}' is not a constant, only constant expressions are allowed.""",
-    arguments: {'nameOKEmpty': nameOKEmpty},
+    arguments: {'nameOKEmpty': _nameOKEmpty},
   );
 }
 
@@ -1504,21 +1504,23 @@ const MessageCode codeConstEvalUnevaluated = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(String stringOKEmpty)>
+const Template<Message Function(String _stringOKEmpty)>
 codeConstEvalUnhandledCoreException =
-    const Template<Message Function(String stringOKEmpty)>(
+    const Template<Message Function(String _stringOKEmpty)>(
       "ConstEvalUnhandledCoreException",
       problemMessageTemplate: r"""Unhandled core exception: #stringOKEmpty""",
       withArgumentsOld: _withArgumentsOldConstEvalUnhandledCoreException,
     );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldConstEvalUnhandledCoreException(String stringOKEmpty) {
-  if (stringOKEmpty.isEmpty) stringOKEmpty = '(empty)';
+Message _withArgumentsOldConstEvalUnhandledCoreException(
+  String _stringOKEmpty,
+) {
+  String stringOKEmpty = _stringOKEmpty.isEmpty ? '(empty)' : _stringOKEmpty;
   return new Message(
     codeConstEvalUnhandledCoreException,
     problemMessage: """Unhandled core exception: ${stringOKEmpty}""",
-    arguments: {'stringOKEmpty': stringOKEmpty},
+    arguments: {'stringOKEmpty': _stringOKEmpty},
   );
 }
 
@@ -1566,8 +1568,9 @@ const MessageCode codeConstFactoryRedirectionToNonConst = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(String name)> codeConstFieldWithoutInitializer =
-    const Template<Message Function(String name)>(
+const Template<Message Function(String _name)>
+codeConstFieldWithoutInitializer =
+    const Template<Message Function(String _name)>(
       "ConstFieldWithoutInitializer",
       problemMessageTemplate:
           r"""The const variable '#name' must be initialized.""",
@@ -1578,15 +1581,15 @@ const Template<Message Function(String name)> codeConstFieldWithoutInitializer =
     );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldConstFieldWithoutInitializer(String name) {
-  if (name.isEmpty) throw 'No name provided';
-  name = demangleMixinApplicationName(name);
+Message _withArgumentsOldConstFieldWithoutInitializer(String _name) {
+  if (_name.isEmpty) throw 'No name provided';
+  String name = demangleMixinApplicationName(_name);
   return new Message(
     codeConstFieldWithoutInitializer,
     problemMessage: """The const variable '${name}' must be initialized.""",
     correctionMessage:
         """Try adding an initializer ('= expression') to the declaration.""",
-    arguments: {'name': name},
+    arguments: {'name': _name},
   );
 }
 
@@ -1609,9 +1612,9 @@ const MessageCode codeConstMethod = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(String name)>
+const Template<Message Function(String _name)>
 codeConstructorConflictsWithMember =
-    const Template<Message Function(String name)>(
+    const Template<Message Function(String _name)>(
       "ConstructorConflictsWithMember",
       problemMessageTemplate:
           r"""The constructor conflicts with member '#name'.""",
@@ -1620,20 +1623,20 @@ codeConstructorConflictsWithMember =
     );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldConstructorConflictsWithMember(String name) {
-  if (name.isEmpty) throw 'No name provided';
-  name = demangleMixinApplicationName(name);
+Message _withArgumentsOldConstructorConflictsWithMember(String _name) {
+  if (_name.isEmpty) throw 'No name provided';
+  String name = demangleMixinApplicationName(_name);
   return new Message(
     codeConstructorConflictsWithMember,
     problemMessage: """The constructor conflicts with member '${name}'.""",
-    arguments: {'name': name},
+    arguments: {'name': _name},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(String name)>
+const Template<Message Function(String _name)>
 codeConstructorConflictsWithMemberCause =
-    const Template<Message Function(String name)>(
+    const Template<Message Function(String _name)>(
       "ConstructorConflictsWithMemberCause",
       problemMessageTemplate: r"""Conflicting member '#name'.""",
       withArgumentsOld: _withArgumentsOldConstructorConflictsWithMemberCause,
@@ -1641,13 +1644,13 @@ codeConstructorConflictsWithMemberCause =
     );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldConstructorConflictsWithMemberCause(String name) {
-  if (name.isEmpty) throw 'No name provided';
-  name = demangleMixinApplicationName(name);
+Message _withArgumentsOldConstructorConflictsWithMemberCause(String _name) {
+  if (_name.isEmpty) throw 'No name provided';
+  String name = demangleMixinApplicationName(_name);
   return new Message(
     codeConstructorConflictsWithMemberCause,
     problemMessage: """Conflicting member '${name}'.""",
-    arguments: {'name': name},
+    arguments: {'name': _name},
   );
 }
 
@@ -1661,9 +1664,9 @@ const MessageCode codeConstructorCyclic = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(String name)>
+const Template<Message Function(String _name)>
 codeConstructorInitializeSameInstanceVariableSeveralTimes =
-    const Template<Message Function(String name)>(
+    const Template<Message Function(String _name)>(
       "ConstructorInitializeSameInstanceVariableSeveralTimes",
       problemMessageTemplate:
           r"""'#name' was already initialized by this constructor.""",
@@ -1674,21 +1677,21 @@ codeConstructorInitializeSameInstanceVariableSeveralTimes =
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsOldConstructorInitializeSameInstanceVariableSeveralTimes(
-  String name,
+  String _name,
 ) {
-  if (name.isEmpty) throw 'No name provided';
-  name = demangleMixinApplicationName(name);
+  if (_name.isEmpty) throw 'No name provided';
+  String name = demangleMixinApplicationName(_name);
   return new Message(
     codeConstructorInitializeSameInstanceVariableSeveralTimes,
     problemMessage:
         """'${name}' was already initialized by this constructor.""",
-    arguments: {'name': name},
+    arguments: {'name': _name},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(String name)> codeConstructorNotFound =
-    const Template<Message Function(String name)>(
+const Template<Message Function(String _name)> codeConstructorNotFound =
+    const Template<Message Function(String _name)>(
       "ConstructorNotFound",
       problemMessageTemplate: r"""Couldn't find constructor '#name'.""",
       withArgumentsOld: _withArgumentsOldConstructorNotFound,
@@ -1696,13 +1699,13 @@ const Template<Message Function(String name)> codeConstructorNotFound =
     );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldConstructorNotFound(String name) {
-  if (name.isEmpty) throw 'No name provided';
-  name = demangleMixinApplicationName(name);
+Message _withArgumentsOldConstructorNotFound(String _name) {
+  if (_name.isEmpty) throw 'No name provided';
+  String name = demangleMixinApplicationName(_name);
   return new Message(
     codeConstructorNotFound,
     problemMessage: """Couldn't find constructor '${name}'.""",
-    arguments: {'name': name},
+    arguments: {'name': _name},
   );
 }
 
@@ -1715,9 +1718,9 @@ const MessageCode codeConstructorNotSync = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(String name)>
+const Template<Message Function(String _name)>
 codeConstructorShouldBeListedAsCallableInDynamicInterface =
-    const Template<Message Function(String name)>(
+    const Template<Message Function(String _name)>(
       "ConstructorShouldBeListedAsCallableInDynamicInterface",
       problemMessageTemplate:
           r"""Cannot invoke constructor '#name' from a dynamic module.""",
@@ -1729,17 +1732,17 @@ codeConstructorShouldBeListedAsCallableInDynamicInterface =
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsOldConstructorShouldBeListedAsCallableInDynamicInterface(
-  String name,
+  String _name,
 ) {
-  if (name.isEmpty) throw 'No name provided';
-  name = demangleMixinApplicationName(name);
+  if (_name.isEmpty) throw 'No name provided';
+  String name = demangleMixinApplicationName(_name);
   return new Message(
     codeConstructorShouldBeListedAsCallableInDynamicInterface,
     problemMessage:
         """Cannot invoke constructor '${name}' from a dynamic module.""",
     correctionMessage:
         """Try removing the call or update the dynamic interface to list constructor '${name}' as callable.""",
-    arguments: {'name': name},
+    arguments: {'name': _name},
   );
 }
 
@@ -1787,9 +1790,9 @@ const MessageCode codeConstructorWithWrongName = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(String name)>
+const Template<Message Function(String _name)>
 codeConstructorWithWrongNameContext =
-    const Template<Message Function(String name)>(
+    const Template<Message Function(String _name)>(
       "ConstructorWithWrongNameContext",
       problemMessageTemplate:
           r"""The name of the enclosing class is '#name'.""",
@@ -1798,13 +1801,13 @@ codeConstructorWithWrongNameContext =
     );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldConstructorWithWrongNameContext(String name) {
-  if (name.isEmpty) throw 'No name provided';
-  name = demangleMixinApplicationName(name);
+Message _withArgumentsOldConstructorWithWrongNameContext(String _name) {
+  if (_name.isEmpty) throw 'No name provided';
+  String name = demangleMixinApplicationName(_name);
   return new Message(
     codeConstructorWithWrongNameContext,
     problemMessage: """The name of the enclosing class is '${name}'.""",
-    arguments: {'name': name},
+    arguments: {'name': _name},
   );
 }
 
@@ -1826,9 +1829,9 @@ const MessageCode codeContinueOutsideOfLoop = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(String name)>
+const Template<Message Function(String _name)>
 codeContinueTargetOutsideFunction =
-    const Template<Message Function(String name)>(
+    const Template<Message Function(String _name)>(
       "ContinueTargetOutsideFunction",
       problemMessageTemplate:
           r"""Can't continue at '#name' in a different function.""",
@@ -1837,13 +1840,13 @@ codeContinueTargetOutsideFunction =
     );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldContinueTargetOutsideFunction(String name) {
-  if (name.isEmpty) throw 'No name provided';
-  name = demangleMixinApplicationName(name);
+Message _withArgumentsOldContinueTargetOutsideFunction(String _name) {
+  if (_name.isEmpty) throw 'No name provided';
+  String name = demangleMixinApplicationName(_name);
   return new Message(
     codeContinueTargetOutsideFunction,
     problemMessage: """Can't continue at '${name}' in a different function.""",
-    arguments: {'name': name},
+    arguments: {'name': _name},
   );
 }
 
@@ -1899,9 +1902,9 @@ const MessageCode codeCovariantMember = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(String name, String string)>
+const Template<Message Function(String _name, String string)>
 codeCycleInTypeParameters =
-    const Template<Message Function(String name, String string)>(
+    const Template<Message Function(String _name, String string)>(
       "CycleInTypeParameters",
       problemMessageTemplate:
           r"""Type '#name' is a bound of itself via '#string'.""",
@@ -1912,22 +1915,22 @@ codeCycleInTypeParameters =
     );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldCycleInTypeParameters(String name, String string) {
-  if (name.isEmpty) throw 'No name provided';
-  name = demangleMixinApplicationName(name);
+Message _withArgumentsOldCycleInTypeParameters(String _name, String string) {
+  if (_name.isEmpty) throw 'No name provided';
+  String name = demangleMixinApplicationName(_name);
   if (string.isEmpty) throw 'No string provided';
   return new Message(
     codeCycleInTypeParameters,
     problemMessage: """Type '${name}' is a bound of itself via '${string}'.""",
     correctionMessage:
         """Try breaking the cycle by removing at least one of the 'extends' clauses in the cycle.""",
-    arguments: {'name': name, 'string': string},
+    arguments: {'name': _name, 'string': string},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(String name)> codeCyclicClassHierarchy =
-    const Template<Message Function(String name)>(
+const Template<Message Function(String _name)> codeCyclicClassHierarchy =
+    const Template<Message Function(String _name)>(
       "CyclicClassHierarchy",
       problemMessageTemplate: r"""'#name' is a supertype of itself.""",
       withArgumentsOld: _withArgumentsOldCyclicClassHierarchy,
@@ -1935,20 +1938,20 @@ const Template<Message Function(String name)> codeCyclicClassHierarchy =
     );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldCyclicClassHierarchy(String name) {
-  if (name.isEmpty) throw 'No name provided';
-  name = demangleMixinApplicationName(name);
+Message _withArgumentsOldCyclicClassHierarchy(String _name) {
+  if (_name.isEmpty) throw 'No name provided';
+  String name = demangleMixinApplicationName(_name);
   return new Message(
     codeCyclicClassHierarchy,
     problemMessage: """'${name}' is a supertype of itself.""",
-    arguments: {'name': name},
+    arguments: {'name': _name},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(String name)>
+const Template<Message Function(String _name)>
 codeCyclicRedirectingFactoryConstructors =
-    const Template<Message Function(String name)>(
+    const Template<Message Function(String _name)>(
       "CyclicRedirectingFactoryConstructors",
       problemMessageTemplate: r"""Cyclic definition of factory '#name'.""",
       withArgumentsOld: _withArgumentsOldCyclicRedirectingFactoryConstructors,
@@ -1956,13 +1959,13 @@ codeCyclicRedirectingFactoryConstructors =
     );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldCyclicRedirectingFactoryConstructors(String name) {
-  if (name.isEmpty) throw 'No name provided';
-  name = demangleMixinApplicationName(name);
+Message _withArgumentsOldCyclicRedirectingFactoryConstructors(String _name) {
+  if (_name.isEmpty) throw 'No name provided';
+  String name = demangleMixinApplicationName(_name);
   return new Message(
     codeCyclicRedirectingFactoryConstructors,
     problemMessage: """Cyclic definition of factory '${name}'.""",
-    arguments: {'name': name},
+    arguments: {'name': _name},
   );
 }
 
@@ -1974,8 +1977,8 @@ const MessageCode codeCyclicRepresentationDependency = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(String name)> codeCyclicTypedef =
-    const Template<Message Function(String name)>(
+const Template<Message Function(String _name)> codeCyclicTypedef =
+    const Template<Message Function(String _name)>(
       "CyclicTypedef",
       problemMessageTemplate:
           r"""The typedef '#name' has a reference to itself.""",
@@ -1984,13 +1987,13 @@ const Template<Message Function(String name)> codeCyclicTypedef =
     );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldCyclicTypedef(String name) {
-  if (name.isEmpty) throw 'No name provided';
-  name = demangleMixinApplicationName(name);
+Message _withArgumentsOldCyclicTypedef(String _name) {
+  if (_name.isEmpty) throw 'No name provided';
+  String name = demangleMixinApplicationName(_name);
   return new Message(
     codeCyclicTypedef,
     problemMessage: """The typedef '${name}' has a reference to itself.""",
-    arguments: {'name': name},
+    arguments: {'name': _name},
   );
 }
 
@@ -2001,8 +2004,8 @@ const MessageCode codeDartFfiLibraryInDart2Wasm = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(String name, String string)> codeDebugTrace =
-    const Template<Message Function(String name, String string)>(
+const Template<Message Function(String _name, String string)> codeDebugTrace =
+    const Template<Message Function(String _name, String string)>(
       "DebugTrace",
       problemMessageTemplate: r"""Fatal '#name' at:
 #string""",
@@ -2011,22 +2014,22 @@ const Template<Message Function(String name, String string)> codeDebugTrace =
     );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldDebugTrace(String name, String string) {
-  if (name.isEmpty) throw 'No name provided';
-  name = demangleMixinApplicationName(name);
+Message _withArgumentsOldDebugTrace(String _name, String string) {
+  if (_name.isEmpty) throw 'No name provided';
+  String name = demangleMixinApplicationName(_name);
   if (string.isEmpty) throw 'No string provided';
   return new Message(
     codeDebugTrace,
     problemMessage: """Fatal '${name}' at:
 ${string}""",
-    arguments: {'name': name, 'string': string},
+    arguments: {'name': _name, 'string': string},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(String name)>
+const Template<Message Function(String _name)>
 codeDeclarationConflictsWithSetter =
-    const Template<Message Function(String name)>(
+    const Template<Message Function(String _name)>(
       "DeclarationConflictsWithSetter",
       problemMessageTemplate:
           r"""The declaration conflicts with setter '#name'.""",
@@ -2035,20 +2038,20 @@ codeDeclarationConflictsWithSetter =
     );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldDeclarationConflictsWithSetter(String name) {
-  if (name.isEmpty) throw 'No name provided';
-  name = demangleMixinApplicationName(name);
+Message _withArgumentsOldDeclarationConflictsWithSetter(String _name) {
+  if (_name.isEmpty) throw 'No name provided';
+  String name = demangleMixinApplicationName(_name);
   return new Message(
     codeDeclarationConflictsWithSetter,
     problemMessage: """The declaration conflicts with setter '${name}'.""",
-    arguments: {'name': name},
+    arguments: {'name': _name},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(String name)>
+const Template<Message Function(String _name)>
 codeDeclarationConflictsWithSetterCause =
-    const Template<Message Function(String name)>(
+    const Template<Message Function(String _name)>(
       "DeclarationConflictsWithSetterCause",
       problemMessageTemplate: r"""Conflicting setter '#name'.""",
       withArgumentsOld: _withArgumentsOldDeclarationConflictsWithSetterCause,
@@ -2056,13 +2059,13 @@ codeDeclarationConflictsWithSetterCause =
     );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldDeclarationConflictsWithSetterCause(String name) {
-  if (name.isEmpty) throw 'No name provided';
-  name = demangleMixinApplicationName(name);
+Message _withArgumentsOldDeclarationConflictsWithSetterCause(String _name) {
+  if (_name.isEmpty) throw 'No name provided';
+  String name = demangleMixinApplicationName(_name);
   return new Message(
     codeDeclarationConflictsWithSetterCause,
     problemMessage: """Conflicting setter '${name}'.""",
-    arguments: {'name': name},
+    arguments: {'name': _name},
   );
 }
 
@@ -2108,9 +2111,9 @@ const MessageCode codeDefaultInSwitchExpression = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(String name)>
+const Template<Message Function(String _name)>
 codeDefaultValueInRedirectingFactoryConstructor =
-    const Template<Message Function(String name)>(
+    const Template<Message Function(String _name)>(
       "DefaultValueInRedirectingFactoryConstructor",
       problemMessageTemplate:
           r"""Can't have a default value here because any default values of '#name' would be used instead.""",
@@ -2124,16 +2127,16 @@ codeDefaultValueInRedirectingFactoryConstructor =
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsOldDefaultValueInRedirectingFactoryConstructor(
-  String name,
+  String _name,
 ) {
-  if (name.isEmpty) throw 'No name provided';
-  name = demangleMixinApplicationName(name);
+  if (_name.isEmpty) throw 'No name provided';
+  String name = demangleMixinApplicationName(_name);
   return new Message(
     codeDefaultValueInRedirectingFactoryConstructor,
     problemMessage:
         """Can't have a default value here because any default values of '${name}' would be used instead.""",
     correctionMessage: """Try removing the default value.""",
-    arguments: {'name': name},
+    arguments: {'name': _name},
   );
 }
 
@@ -2147,8 +2150,8 @@ const MessageCode codeDeferredAfterPrefix = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(String name)>
-codeDeferredExtensionImport = const Template<Message Function(String name)>(
+const Template<Message Function(String _name)>
+codeDeferredExtensionImport = const Template<Message Function(String _name)>(
   "DeferredExtensionImport",
   problemMessageTemplate:
       r"""Extension '#name' cannot be imported through a deferred import.""",
@@ -2157,21 +2160,21 @@ codeDeferredExtensionImport = const Template<Message Function(String name)>(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldDeferredExtensionImport(String name) {
-  if (name.isEmpty) throw 'No name provided';
-  name = demangleMixinApplicationName(name);
+Message _withArgumentsOldDeferredExtensionImport(String _name) {
+  if (_name.isEmpty) throw 'No name provided';
+  String name = demangleMixinApplicationName(_name);
   return new Message(
     codeDeferredExtensionImport,
     problemMessage:
         """Extension '${name}' cannot be imported through a deferred import.""",
     correctionMessage: """Try adding the `hide ${name}` to the import.""",
-    arguments: {'name': name},
+    arguments: {'name': _name},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(String name)>
-codeDeferredPrefixDuplicated = const Template<Message Function(String name)>(
+const Template<Message Function(String _name)>
+codeDeferredPrefixDuplicated = const Template<Message Function(String _name)>(
   "DeferredPrefixDuplicated",
   problemMessageTemplate:
       r"""Can't use the name '#name' for a deferred library, as the name is used elsewhere.""",
@@ -2180,21 +2183,21 @@ codeDeferredPrefixDuplicated = const Template<Message Function(String name)>(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldDeferredPrefixDuplicated(String name) {
-  if (name.isEmpty) throw 'No name provided';
-  name = demangleMixinApplicationName(name);
+Message _withArgumentsOldDeferredPrefixDuplicated(String _name) {
+  if (_name.isEmpty) throw 'No name provided';
+  String name = demangleMixinApplicationName(_name);
   return new Message(
     codeDeferredPrefixDuplicated,
     problemMessage:
         """Can't use the name '${name}' for a deferred library, as the name is used elsewhere.""",
-    arguments: {'name': name},
+    arguments: {'name': _name},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(String name)>
+const Template<Message Function(String _name)>
 codeDeferredPrefixDuplicatedCause =
-    const Template<Message Function(String name)>(
+    const Template<Message Function(String _name)>(
       "DeferredPrefixDuplicatedCause",
       problemMessageTemplate: r"""'#name' is used here.""",
       withArgumentsOld: _withArgumentsOldDeferredPrefixDuplicatedCause,
@@ -2202,13 +2205,13 @@ codeDeferredPrefixDuplicatedCause =
     );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldDeferredPrefixDuplicatedCause(String name) {
-  if (name.isEmpty) throw 'No name provided';
-  name = demangleMixinApplicationName(name);
+Message _withArgumentsOldDeferredPrefixDuplicatedCause(String _name) {
+  if (_name.isEmpty) throw 'No name provided';
+  String name = demangleMixinApplicationName(_name);
   return new Message(
     codeDeferredPrefixDuplicatedCause,
     problemMessage: """'${name}' is used here.""",
-    arguments: {'name': name},
+    arguments: {'name': _name},
   );
 }
 
@@ -2256,8 +2259,8 @@ ${num3} ms/libraries.""",
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(String name)>
-codeDirectCycleInTypeParameters = const Template<Message Function(String name)>(
+const Template<Message Function(String _name)>
+codeDirectCycleInTypeParameters = const Template<Message Function(String _name)>(
   "DirectCycleInTypeParameters",
   problemMessageTemplate: r"""Type '#name' can't use itself as a bound.""",
   correctionMessageTemplate:
@@ -2267,15 +2270,15 @@ codeDirectCycleInTypeParameters = const Template<Message Function(String name)>(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldDirectCycleInTypeParameters(String name) {
-  if (name.isEmpty) throw 'No name provided';
-  name = demangleMixinApplicationName(name);
+Message _withArgumentsOldDirectCycleInTypeParameters(String _name) {
+  if (_name.isEmpty) throw 'No name provided';
+  String name = demangleMixinApplicationName(_name);
   return new Message(
     codeDirectCycleInTypeParameters,
     problemMessage: """Type '${name}' can't use itself as a bound.""",
     correctionMessage:
         """Try breaking the cycle by removing at least one of the 'extends' clauses in the cycle.""",
-    arguments: {'name': name},
+    arguments: {'name': _name},
   );
 }
 
@@ -2298,8 +2301,8 @@ codeDotShorthandsConstructorInvocationWithTypeArguments = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(String name)> codeDotShorthandsInvalidContext =
-    const Template<Message Function(String name)>(
+const Template<Message Function(String _name)> codeDotShorthandsInvalidContext =
+    const Template<Message Function(String _name)>(
       "DotShorthandsInvalidContext",
       problemMessageTemplate:
           r"""No type was provided to find the dot shorthand '#name'.""",
@@ -2307,14 +2310,14 @@ const Template<Message Function(String name)> codeDotShorthandsInvalidContext =
     );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldDotShorthandsInvalidContext(String name) {
-  if (name.isEmpty) throw 'No name provided';
-  name = demangleMixinApplicationName(name);
+Message _withArgumentsOldDotShorthandsInvalidContext(String _name) {
+  if (_name.isEmpty) throw 'No name provided';
+  String name = demangleMixinApplicationName(_name);
   return new Message(
     codeDotShorthandsInvalidContext,
     problemMessage:
         """No type was provided to find the dot shorthand '${name}'.""",
-    arguments: {'name': name},
+    arguments: {'name': _name},
   );
 }
 
@@ -2328,9 +2331,9 @@ const MessageCode codeDuplicateDeferred = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(String name)>
+const Template<Message Function(String _name)>
 codeDuplicateLabelInSwitchStatement =
-    const Template<Message Function(String name)>(
+    const Template<Message Function(String _name)>(
       "DuplicateLabelInSwitchStatement",
       problemMessageTemplate:
           r"""The label '#name' was already used in this switch statement.""",
@@ -2341,22 +2344,22 @@ codeDuplicateLabelInSwitchStatement =
     );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldDuplicateLabelInSwitchStatement(String name) {
-  if (name.isEmpty) throw 'No name provided';
-  name = demangleMixinApplicationName(name);
+Message _withArgumentsOldDuplicateLabelInSwitchStatement(String _name) {
+  if (_name.isEmpty) throw 'No name provided';
+  String name = demangleMixinApplicationName(_name);
   return new Message(
     codeDuplicateLabelInSwitchStatement,
     problemMessage:
         """The label '${name}' was already used in this switch statement.""",
     correctionMessage: """Try choosing a different name for this label.""",
-    arguments: {'name': name},
+    arguments: {'name': _name},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(String name)>
+const Template<Message Function(String _name)>
 codeDuplicatePatternAssignmentVariable =
-    const Template<Message Function(String name)>(
+    const Template<Message Function(String _name)>(
       "DuplicatePatternAssignmentVariable",
       problemMessageTemplate:
           r"""The variable '#name' is already assigned in this pattern.""",
@@ -2366,15 +2369,15 @@ codeDuplicatePatternAssignmentVariable =
     );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldDuplicatePatternAssignmentVariable(String name) {
-  if (name.isEmpty) throw 'No name provided';
-  name = demangleMixinApplicationName(name);
+Message _withArgumentsOldDuplicatePatternAssignmentVariable(String _name) {
+  if (_name.isEmpty) throw 'No name provided';
+  String name = demangleMixinApplicationName(_name);
   return new Message(
     codeDuplicatePatternAssignmentVariable,
     problemMessage:
         """The variable '${name}' is already assigned in this pattern.""",
     correctionMessage: """Try renaming the variable.""",
-    arguments: {'name': name},
+    arguments: {'name': _name},
   );
 }
 
@@ -2396,8 +2399,8 @@ const MessageCode codeDuplicatePrefix = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(String name)> codeDuplicateRecordPatternField =
-    const Template<Message Function(String name)>(
+const Template<Message Function(String _name)> codeDuplicateRecordPatternField =
+    const Template<Message Function(String _name)>(
       "DuplicateRecordPatternField",
       problemMessageTemplate:
           r"""The field '#name' is already matched in this pattern.""",
@@ -2407,15 +2410,15 @@ const Template<Message Function(String name)> codeDuplicateRecordPatternField =
     );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldDuplicateRecordPatternField(String name) {
-  if (name.isEmpty) throw 'No name provided';
-  name = demangleMixinApplicationName(name);
+Message _withArgumentsOldDuplicateRecordPatternField(String _name) {
+  if (_name.isEmpty) throw 'No name provided';
+  String name = demangleMixinApplicationName(_name);
   return new Message(
     codeDuplicateRecordPatternField,
     problemMessage:
         """The field '${name}' is already matched in this pattern.""",
     correctionMessage: """Try removing the duplicate field.""",
-    arguments: {'name': name},
+    arguments: {'name': _name},
   );
 }
 
@@ -2443,8 +2446,8 @@ const MessageCode codeDuplicateRestElementInPatternContext = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(String name)> codeDuplicatedDeclaration =
-    const Template<Message Function(String name)>(
+const Template<Message Function(String _name)> codeDuplicatedDeclaration =
+    const Template<Message Function(String _name)>(
       "DuplicatedDeclaration",
       problemMessageTemplate: r"""'#name' is already declared in this scope.""",
       withArgumentsOld: _withArgumentsOldDuplicatedDeclaration,
@@ -2452,19 +2455,19 @@ const Template<Message Function(String name)> codeDuplicatedDeclaration =
     );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldDuplicatedDeclaration(String name) {
-  if (name.isEmpty) throw 'No name provided';
-  name = demangleMixinApplicationName(name);
+Message _withArgumentsOldDuplicatedDeclaration(String _name) {
+  if (_name.isEmpty) throw 'No name provided';
+  String name = demangleMixinApplicationName(_name);
   return new Message(
     codeDuplicatedDeclaration,
     problemMessage: """'${name}' is already declared in this scope.""",
-    arguments: {'name': name},
+    arguments: {'name': _name},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(String name)> codeDuplicatedDeclarationCause =
-    const Template<Message Function(String name)>(
+const Template<Message Function(String _name)> codeDuplicatedDeclarationCause =
+    const Template<Message Function(String _name)>(
       "DuplicatedDeclarationCause",
       problemMessageTemplate: r"""Previous declaration of '#name'.""",
       withArgumentsOld: _withArgumentsOldDuplicatedDeclarationCause,
@@ -2472,20 +2475,20 @@ const Template<Message Function(String name)> codeDuplicatedDeclarationCause =
     );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldDuplicatedDeclarationCause(String name) {
-  if (name.isEmpty) throw 'No name provided';
-  name = demangleMixinApplicationName(name);
+Message _withArgumentsOldDuplicatedDeclarationCause(String _name) {
+  if (_name.isEmpty) throw 'No name provided';
+  String name = demangleMixinApplicationName(_name);
   return new Message(
     codeDuplicatedDeclarationCause,
     problemMessage: """Previous declaration of '${name}'.""",
-    arguments: {'name': name},
+    arguments: {'name': _name},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(String name)>
+const Template<Message Function(String _name)>
 codeDuplicatedDeclarationSyntheticCause =
-    const Template<Message Function(String name)>(
+    const Template<Message Function(String _name)>(
       "DuplicatedDeclarationSyntheticCause",
       problemMessageTemplate:
           r"""Previous declaration of '#name' is implied by this definition.""",
@@ -2494,20 +2497,20 @@ codeDuplicatedDeclarationSyntheticCause =
     );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldDuplicatedDeclarationSyntheticCause(String name) {
-  if (name.isEmpty) throw 'No name provided';
-  name = demangleMixinApplicationName(name);
+Message _withArgumentsOldDuplicatedDeclarationSyntheticCause(String _name) {
+  if (_name.isEmpty) throw 'No name provided';
+  String name = demangleMixinApplicationName(_name);
   return new Message(
     codeDuplicatedDeclarationSyntheticCause,
     problemMessage:
         """Previous declaration of '${name}' is implied by this definition.""",
-    arguments: {'name': name},
+    arguments: {'name': _name},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(String name)> codeDuplicatedDeclarationUse =
-    const Template<Message Function(String name)>(
+const Template<Message Function(String _name)> codeDuplicatedDeclarationUse =
+    const Template<Message Function(String _name)>(
       "DuplicatedDeclarationUse",
       problemMessageTemplate:
           r"""Can't use '#name' because it is declared more than once.""",
@@ -2515,21 +2518,21 @@ const Template<Message Function(String name)> codeDuplicatedDeclarationUse =
     );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldDuplicatedDeclarationUse(String name) {
-  if (name.isEmpty) throw 'No name provided';
-  name = demangleMixinApplicationName(name);
+Message _withArgumentsOldDuplicatedDeclarationUse(String _name) {
+  if (_name.isEmpty) throw 'No name provided';
+  String name = demangleMixinApplicationName(_name);
   return new Message(
     codeDuplicatedDeclarationUse,
     problemMessage:
         """Can't use '${name}' because it is declared more than once.""",
-    arguments: {'name': name},
+    arguments: {'name': _name},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(String name, Uri uri_, Uri uri2_)>
+const Template<Message Function(String _name, Uri uri_, Uri uri2_)>
 codeDuplicatedExport =
-    const Template<Message Function(String name, Uri uri_, Uri uri2_)>(
+    const Template<Message Function(String _name, Uri uri_, Uri uri2_)>(
       "DuplicatedExport",
       problemMessageTemplate:
           r"""'#name' is exported from both '#uri' and '#uri2'.""",
@@ -2538,23 +2541,23 @@ codeDuplicatedExport =
     );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldDuplicatedExport(String name, Uri uri_, Uri uri2_) {
-  if (name.isEmpty) throw 'No name provided';
-  name = demangleMixinApplicationName(name);
+Message _withArgumentsOldDuplicatedExport(String _name, Uri uri_, Uri uri2_) {
+  if (_name.isEmpty) throw 'No name provided';
+  String name = demangleMixinApplicationName(_name);
   String? uri = relativizeUri(uri_);
   String? uri2 = relativizeUri(uri2_);
   return new Message(
     codeDuplicatedExport,
     problemMessage:
         """'${name}' is exported from both '${uri}' and '${uri2}'.""",
-    arguments: {'name': name, 'uri': uri_, 'uri2': uri2_},
+    arguments: {'name': _name, 'uri': uri_, 'uri2': uri2_},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(String name, Uri uri_, Uri uri2_)>
+const Template<Message Function(String _name, Uri uri_, Uri uri2_)>
 codeDuplicatedImport =
-    const Template<Message Function(String name, Uri uri_, Uri uri2_)>(
+    const Template<Message Function(String _name, Uri uri_, Uri uri2_)>(
       "DuplicatedImport",
       problemMessageTemplate:
           r"""'#name' is imported from both '#uri' and '#uri2'.""",
@@ -2563,16 +2566,16 @@ codeDuplicatedImport =
     );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldDuplicatedImport(String name, Uri uri_, Uri uri2_) {
-  if (name.isEmpty) throw 'No name provided';
-  name = demangleMixinApplicationName(name);
+Message _withArgumentsOldDuplicatedImport(String _name, Uri uri_, Uri uri2_) {
+  if (_name.isEmpty) throw 'No name provided';
+  String name = demangleMixinApplicationName(_name);
   String? uri = relativizeUri(uri_);
   String? uri2 = relativizeUri(uri2_);
   return new Message(
     codeDuplicatedImport,
     problemMessage:
         """'${name}' is imported from both '${uri}' and '${uri2}'.""",
-    arguments: {'name': name, 'uri': uri_, 'uri2': uri2_},
+    arguments: {'name': _name, 'uri': uri_, 'uri2': uri2_},
   );
 }
 
@@ -2601,8 +2604,8 @@ Message _withArgumentsOldDuplicatedModifier(Token token) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(String name)> codeDuplicatedNamedArgument =
-    const Template<Message Function(String name)>(
+const Template<Message Function(String _name)> codeDuplicatedNamedArgument =
+    const Template<Message Function(String _name)>(
       "DuplicatedNamedArgument",
       problemMessageTemplate: r"""Duplicated named argument '#name'.""",
       withArgumentsOld: _withArgumentsOldDuplicatedNamedArgument,
@@ -2610,19 +2613,19 @@ const Template<Message Function(String name)> codeDuplicatedNamedArgument =
     );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldDuplicatedNamedArgument(String name) {
-  if (name.isEmpty) throw 'No name provided';
-  name = demangleMixinApplicationName(name);
+Message _withArgumentsOldDuplicatedNamedArgument(String _name) {
+  if (_name.isEmpty) throw 'No name provided';
+  String name = demangleMixinApplicationName(_name);
   return new Message(
     codeDuplicatedNamedArgument,
     problemMessage: """Duplicated named argument '${name}'.""",
-    arguments: {'name': name},
+    arguments: {'name': _name},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(String name)> codeDuplicatedParameterName =
-    const Template<Message Function(String name)>(
+const Template<Message Function(String _name)> codeDuplicatedParameterName =
+    const Template<Message Function(String _name)>(
       "DuplicatedParameterName",
       problemMessageTemplate: r"""Duplicated parameter name '#name'.""",
       withArgumentsOld: _withArgumentsOldDuplicatedParameterName,
@@ -2630,19 +2633,20 @@ const Template<Message Function(String name)> codeDuplicatedParameterName =
     );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldDuplicatedParameterName(String name) {
-  if (name.isEmpty) throw 'No name provided';
-  name = demangleMixinApplicationName(name);
+Message _withArgumentsOldDuplicatedParameterName(String _name) {
+  if (_name.isEmpty) throw 'No name provided';
+  String name = demangleMixinApplicationName(_name);
   return new Message(
     codeDuplicatedParameterName,
     problemMessage: """Duplicated parameter name '${name}'.""",
-    arguments: {'name': name},
+    arguments: {'name': _name},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(String name)> codeDuplicatedParameterNameCause =
-    const Template<Message Function(String name)>(
+const Template<Message Function(String _name)>
+codeDuplicatedParameterNameCause =
+    const Template<Message Function(String _name)>(
       "DuplicatedParameterNameCause",
       problemMessageTemplate: r"""Other parameter named '#name'.""",
       withArgumentsOld: _withArgumentsOldDuplicatedParameterNameCause,
@@ -2650,20 +2654,20 @@ const Template<Message Function(String name)> codeDuplicatedParameterNameCause =
     );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldDuplicatedParameterNameCause(String name) {
-  if (name.isEmpty) throw 'No name provided';
-  name = demangleMixinApplicationName(name);
+Message _withArgumentsOldDuplicatedParameterNameCause(String _name) {
+  if (_name.isEmpty) throw 'No name provided';
+  String name = demangleMixinApplicationName(_name);
   return new Message(
     codeDuplicatedParameterNameCause,
     problemMessage: """Other parameter named '${name}'.""",
-    arguments: {'name': name},
+    arguments: {'name': _name},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(String name)>
+const Template<Message Function(String _name)>
 codeDuplicatedRecordLiteralFieldName =
-    const Template<Message Function(String name)>(
+    const Template<Message Function(String _name)>(
       "DuplicatedRecordLiteralFieldName",
       problemMessageTemplate:
           r"""Duplicated record literal field name '#name'.""",
@@ -2673,22 +2677,22 @@ codeDuplicatedRecordLiteralFieldName =
     );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldDuplicatedRecordLiteralFieldName(String name) {
-  if (name.isEmpty) throw 'No name provided';
-  name = demangleMixinApplicationName(name);
+Message _withArgumentsOldDuplicatedRecordLiteralFieldName(String _name) {
+  if (_name.isEmpty) throw 'No name provided';
+  String name = demangleMixinApplicationName(_name);
   return new Message(
     codeDuplicatedRecordLiteralFieldName,
     problemMessage: """Duplicated record literal field name '${name}'.""",
     correctionMessage:
         """Try renaming or removing one of the named record literal fields.""",
-    arguments: {'name': name},
+    arguments: {'name': _name},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(String name)>
+const Template<Message Function(String _name)>
 codeDuplicatedRecordLiteralFieldNameContext =
-    const Template<Message Function(String name)>(
+    const Template<Message Function(String _name)>(
       "DuplicatedRecordLiteralFieldNameContext",
       problemMessageTemplate:
           r"""This is the existing record literal field named '#name'.""",
@@ -2698,21 +2702,21 @@ codeDuplicatedRecordLiteralFieldNameContext =
     );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldDuplicatedRecordLiteralFieldNameContext(String name) {
-  if (name.isEmpty) throw 'No name provided';
-  name = demangleMixinApplicationName(name);
+Message _withArgumentsOldDuplicatedRecordLiteralFieldNameContext(String _name) {
+  if (_name.isEmpty) throw 'No name provided';
+  String name = demangleMixinApplicationName(_name);
   return new Message(
     codeDuplicatedRecordLiteralFieldNameContext,
     problemMessage:
         """This is the existing record literal field named '${name}'.""",
-    arguments: {'name': name},
+    arguments: {'name': _name},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(String name)>
+const Template<Message Function(String _name)>
 codeDuplicatedRecordTypeFieldName =
-    const Template<Message Function(String name)>(
+    const Template<Message Function(String _name)>(
       "DuplicatedRecordTypeFieldName",
       problemMessageTemplate: r"""Duplicated record type field name '#name'.""",
       correctionMessageTemplate:
@@ -2721,22 +2725,22 @@ codeDuplicatedRecordTypeFieldName =
     );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldDuplicatedRecordTypeFieldName(String name) {
-  if (name.isEmpty) throw 'No name provided';
-  name = demangleMixinApplicationName(name);
+Message _withArgumentsOldDuplicatedRecordTypeFieldName(String _name) {
+  if (_name.isEmpty) throw 'No name provided';
+  String name = demangleMixinApplicationName(_name);
   return new Message(
     codeDuplicatedRecordTypeFieldName,
     problemMessage: """Duplicated record type field name '${name}'.""",
     correctionMessage:
         """Try renaming or removing one of the named record type fields.""",
-    arguments: {'name': name},
+    arguments: {'name': _name},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(String name)>
+const Template<Message Function(String _name)>
 codeDuplicatedRecordTypeFieldNameContext =
-    const Template<Message Function(String name)>(
+    const Template<Message Function(String _name)>(
       "DuplicatedRecordTypeFieldNameContext",
       problemMessageTemplate:
           r"""This is the existing record type field named '#name'.""",
@@ -2745,14 +2749,14 @@ codeDuplicatedRecordTypeFieldNameContext =
     );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldDuplicatedRecordTypeFieldNameContext(String name) {
-  if (name.isEmpty) throw 'No name provided';
-  name = demangleMixinApplicationName(name);
+Message _withArgumentsOldDuplicatedRecordTypeFieldNameContext(String _name) {
+  if (_name.isEmpty) throw 'No name provided';
+  String name = demangleMixinApplicationName(_name);
   return new Message(
     codeDuplicatedRecordTypeFieldNameContext,
     problemMessage:
         """This is the existing record type field named '${name}'.""",
-    arguments: {'name': name},
+    arguments: {'name': _name},
   );
 }
 
@@ -2821,9 +2825,9 @@ const MessageCode codeEnumConstructorTearoff = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(String name)>
+const Template<Message Function(String _name)>
 codeEnumContainsRestrictedInstanceDeclaration =
-    const Template<Message Function(String name)>(
+    const Template<Message Function(String _name)>(
       "EnumContainsRestrictedInstanceDeclaration",
       problemMessageTemplate:
           r"""An enum can't declare a non-abstract member named '#name'.""",
@@ -2833,15 +2837,15 @@ codeEnumContainsRestrictedInstanceDeclaration =
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsOldEnumContainsRestrictedInstanceDeclaration(
-  String name,
+  String _name,
 ) {
-  if (name.isEmpty) throw 'No name provided';
-  name = demangleMixinApplicationName(name);
+  if (_name.isEmpty) throw 'No name provided';
+  String name = demangleMixinApplicationName(_name);
   return new Message(
     codeEnumContainsRestrictedInstanceDeclaration,
     problemMessage:
         """An enum can't declare a non-abstract member named '${name}'.""",
-    arguments: {'name': name},
+    arguments: {'name': _name},
   );
 }
 
@@ -2866,9 +2870,9 @@ const MessageCode codeEnumFactoryRedirectsToConstructor = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(String name, String name2)>
+const Template<Message Function(String _name, String _name2)>
 codeEnumImplementerContainsRestrictedInstanceDeclaration =
-    const Template<Message Function(String name, String name2)>(
+    const Template<Message Function(String _name, String _name2)>(
       "EnumImplementerContainsRestrictedInstanceDeclaration",
       problemMessageTemplate:
           r"""'#name' has 'Enum' as a superinterface and can't contain non-static members with name '#name2'.""",
@@ -2878,25 +2882,25 @@ codeEnumImplementerContainsRestrictedInstanceDeclaration =
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsOldEnumImplementerContainsRestrictedInstanceDeclaration(
-  String name,
-  String name2,
+  String _name,
+  String _name2,
 ) {
-  if (name.isEmpty) throw 'No name provided';
-  name = demangleMixinApplicationName(name);
-  if (name2.isEmpty) throw 'No name provided';
-  name2 = demangleMixinApplicationName(name2);
+  if (_name.isEmpty) throw 'No name provided';
+  String name = demangleMixinApplicationName(_name);
+  if (_name2.isEmpty) throw 'No name provided';
+  String name2 = demangleMixinApplicationName(_name2);
   return new Message(
     codeEnumImplementerContainsRestrictedInstanceDeclaration,
     problemMessage:
         """'${name}' has 'Enum' as a superinterface and can't contain non-static members with name '${name2}'.""",
-    arguments: {'name': name, 'name2': name2},
+    arguments: {'name': _name, 'name2': _name2},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(String name)>
+const Template<Message Function(String _name)>
 codeEnumImplementerContainsValuesDeclaration =
-    const Template<Message Function(String name)>(
+    const Template<Message Function(String _name)>(
       "EnumImplementerContainsValuesDeclaration",
       problemMessageTemplate:
           r"""'#name' has 'Enum' as a superinterface and can't contain non-static member with name 'values'.""",
@@ -2905,14 +2909,16 @@ codeEnumImplementerContainsValuesDeclaration =
     );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldEnumImplementerContainsValuesDeclaration(String name) {
-  if (name.isEmpty) throw 'No name provided';
-  name = demangleMixinApplicationName(name);
+Message _withArgumentsOldEnumImplementerContainsValuesDeclaration(
+  String _name,
+) {
+  if (_name.isEmpty) throw 'No name provided';
+  String name = demangleMixinApplicationName(_name);
   return new Message(
     codeEnumImplementerContainsValuesDeclaration,
     problemMessage:
         """'${name}' has 'Enum' as a superinterface and can't contain non-static member with name 'values'.""",
-    arguments: {'name': name},
+    arguments: {'name': _name},
   );
 }
 
@@ -2925,8 +2931,8 @@ const MessageCode codeEnumInClass = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(String name)> codeEnumInheritsRestricted =
-    const Template<Message Function(String name)>(
+const Template<Message Function(String _name)> codeEnumInheritsRestricted =
+    const Template<Message Function(String _name)>(
       "EnumInheritsRestricted",
       problemMessageTemplate:
           r"""An enum can't inherit a member named '#name'.""",
@@ -2934,13 +2940,13 @@ const Template<Message Function(String name)> codeEnumInheritsRestricted =
     );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldEnumInheritsRestricted(String name) {
-  if (name.isEmpty) throw 'No name provided';
-  name = demangleMixinApplicationName(name);
+Message _withArgumentsOldEnumInheritsRestricted(String _name) {
+  if (_name.isEmpty) throw 'No name provided';
+  String name = demangleMixinApplicationName(_name);
   return new Message(
     codeEnumInheritsRestricted,
     problemMessage: """An enum can't inherit a member named '${name}'.""",
-    arguments: {'name': name},
+    arguments: {'name': _name},
   );
 }
 
@@ -2966,9 +2972,9 @@ const MessageCode codeEnumNonConstConstructor = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(String name)>
+const Template<Message Function(String _name)>
 codeEnumSupertypeOfNonAbstractClass =
-    const Template<Message Function(String name)>(
+    const Template<Message Function(String _name)>(
       "EnumSupertypeOfNonAbstractClass",
       problemMessageTemplate:
           r"""Non-abstract class '#name' has 'Enum' as a superinterface.""",
@@ -2976,14 +2982,14 @@ codeEnumSupertypeOfNonAbstractClass =
     );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldEnumSupertypeOfNonAbstractClass(String name) {
-  if (name.isEmpty) throw 'No name provided';
-  name = demangleMixinApplicationName(name);
+Message _withArgumentsOldEnumSupertypeOfNonAbstractClass(String _name) {
+  if (_name.isEmpty) throw 'No name provided';
+  String name = demangleMixinApplicationName(_name);
   return new Message(
     codeEnumSupertypeOfNonAbstractClass,
     problemMessage:
         """Non-abstract class '${name}' has 'Enum' as a superinterface.""",
-    arguments: {'name': name},
+    arguments: {'name': _name},
   );
 }
 
@@ -3493,8 +3499,8 @@ Message _withArgumentsOldExperimentDisabledInvalidLanguageVersion(
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(String name)> codeExperimentExpiredDisabled =
-    const Template<Message Function(String name)>(
+const Template<Message Function(String _name)> codeExperimentExpiredDisabled =
+    const Template<Message Function(String _name)>(
       "ExperimentExpiredDisabled",
       problemMessageTemplate:
           r"""The experiment '#name' has expired and can't be disabled.""",
@@ -3502,20 +3508,20 @@ const Template<Message Function(String name)> codeExperimentExpiredDisabled =
     );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldExperimentExpiredDisabled(String name) {
-  if (name.isEmpty) throw 'No name provided';
-  name = demangleMixinApplicationName(name);
+Message _withArgumentsOldExperimentExpiredDisabled(String _name) {
+  if (_name.isEmpty) throw 'No name provided';
+  String name = demangleMixinApplicationName(_name);
   return new Message(
     codeExperimentExpiredDisabled,
     problemMessage:
         """The experiment '${name}' has expired and can't be disabled.""",
-    arguments: {'name': name},
+    arguments: {'name': _name},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(String name)> codeExperimentExpiredEnabled =
-    const Template<Message Function(String name)>(
+const Template<Message Function(String _name)> codeExperimentExpiredEnabled =
+    const Template<Message Function(String _name)>(
       "ExperimentExpiredEnabled",
       problemMessageTemplate:
           r"""The experiment '#name' has expired and can't be enabled.""",
@@ -3523,14 +3529,14 @@ const Template<Message Function(String name)> codeExperimentExpiredEnabled =
     );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldExperimentExpiredEnabled(String name) {
-  if (name.isEmpty) throw 'No name provided';
-  name = demangleMixinApplicationName(name);
+Message _withArgumentsOldExperimentExpiredEnabled(String _name) {
+  if (_name.isEmpty) throw 'No name provided';
+  String name = demangleMixinApplicationName(_name);
   return new Message(
     codeExperimentExpiredEnabled,
     problemMessage:
         """The experiment '${name}' has expired and can't be enabled.""",
-    arguments: {'name': name},
+    arguments: {'name': _name},
   );
 }
 
@@ -3687,9 +3693,9 @@ const MessageCode codeExplicitExtensionAsLvalue = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(String name, int count)>
+const Template<Message Function(String _name, int count)>
 codeExplicitExtensionTypeArgumentMismatch =
-    const Template<Message Function(String name, int count)>(
+    const Template<Message Function(String _name, int count)>(
       "ExplicitExtensionTypeArgumentMismatch",
       problemMessageTemplate:
           r"""Explicit extension application of extension '#name' takes '#count' type argument(s).""",
@@ -3698,16 +3704,16 @@ codeExplicitExtensionTypeArgumentMismatch =
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsOldExplicitExtensionTypeArgumentMismatch(
-  String name,
+  String _name,
   int count,
 ) {
-  if (name.isEmpty) throw 'No name provided';
-  name = demangleMixinApplicationName(name);
+  if (_name.isEmpty) throw 'No name provided';
+  String name = demangleMixinApplicationName(_name);
   return new Message(
     codeExplicitExtensionTypeArgumentMismatch,
     problemMessage:
         """Explicit extension application of extension '${name}' takes '${count}' type argument(s).""",
-    arguments: {'name': name, 'count': count},
+    arguments: {'name': _name, 'count': count},
   );
 }
 
@@ -3728,9 +3734,9 @@ const MessageCode codeExportedMain = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(String name)>
+const Template<Message Function(String _name)>
 codeExpressionEvaluationKnownVariableUnavailable =
-    const Template<Message Function(String name)>(
+    const Template<Message Function(String _name)>(
       "ExpressionEvaluationKnownVariableUnavailable",
       problemMessageTemplate:
           r"""The variable '#name' is unavailable in this expression evaluation.""",
@@ -3740,15 +3746,15 @@ codeExpressionEvaluationKnownVariableUnavailable =
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsOldExpressionEvaluationKnownVariableUnavailable(
-  String name,
+  String _name,
 ) {
-  if (name.isEmpty) throw 'No name provided';
-  name = demangleMixinApplicationName(name);
+  if (_name.isEmpty) throw 'No name provided';
+  String name = demangleMixinApplicationName(_name);
   return new Message(
     codeExpressionEvaluationKnownVariableUnavailable,
     problemMessage:
         """The variable '${name}' is unavailable in this expression evaluation.""",
-    arguments: {'name': name},
+    arguments: {'name': _name},
   );
 }
 
@@ -3760,8 +3766,8 @@ const MessageCode codeExpressionNotMetadata = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(String name)> codeExtendingEnum =
-    const Template<Message Function(String name)>(
+const Template<Message Function(String _name)> codeExtendingEnum =
+    const Template<Message Function(String _name)>(
       "ExtendingEnum",
       problemMessageTemplate:
           r"""'#name' is an enum and can't be extended or implemented.""",
@@ -3770,20 +3776,20 @@ const Template<Message Function(String name)> codeExtendingEnum =
     );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldExtendingEnum(String name) {
-  if (name.isEmpty) throw 'No name provided';
-  name = demangleMixinApplicationName(name);
+Message _withArgumentsOldExtendingEnum(String _name) {
+  if (_name.isEmpty) throw 'No name provided';
+  String name = demangleMixinApplicationName(_name);
   return new Message(
     codeExtendingEnum,
     problemMessage:
         """'${name}' is an enum and can't be extended or implemented.""",
-    arguments: {'name': name},
+    arguments: {'name': _name},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(String name)> codeExtendingRestricted =
-    const Template<Message Function(String name)>(
+const Template<Message Function(String _name)> codeExtendingRestricted =
+    const Template<Message Function(String _name)>(
       "ExtendingRestricted",
       problemMessageTemplate:
           r"""'#name' is restricted and can't be extended or implemented.""",
@@ -3792,14 +3798,14 @@ const Template<Message Function(String name)> codeExtendingRestricted =
     );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldExtendingRestricted(String name) {
-  if (name.isEmpty) throw 'No name provided';
-  name = demangleMixinApplicationName(name);
+Message _withArgumentsOldExtendingRestricted(String _name) {
+  if (_name.isEmpty) throw 'No name provided';
+  String name = demangleMixinApplicationName(_name);
   return new Message(
     codeExtendingRestricted,
     problemMessage:
         """'${name}' is restricted and can't be extended or implemented.""",
-    arguments: {'name': name},
+    arguments: {'name': _name},
   );
 }
 
@@ -3852,9 +3858,9 @@ const MessageCode codeExtensionDeclaresInstanceField = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(String name)>
+const Template<Message Function(String _name)>
 codeExtensionMemberConflictsWithObjectMember =
-    const Template<Message Function(String name)>(
+    const Template<Message Function(String _name)>(
       "ExtensionMemberConflictsWithObjectMember",
       problemMessageTemplate:
           r"""This extension member conflicts with Object member '#name'.""",
@@ -3863,21 +3869,23 @@ codeExtensionMemberConflictsWithObjectMember =
     );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldExtensionMemberConflictsWithObjectMember(String name) {
-  if (name.isEmpty) throw 'No name provided';
-  name = demangleMixinApplicationName(name);
+Message _withArgumentsOldExtensionMemberConflictsWithObjectMember(
+  String _name,
+) {
+  if (_name.isEmpty) throw 'No name provided';
+  String name = demangleMixinApplicationName(_name);
   return new Message(
     codeExtensionMemberConflictsWithObjectMember,
     problemMessage:
         """This extension member conflicts with Object member '${name}'.""",
-    arguments: {'name': name},
+    arguments: {'name': _name},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(String name, String name2)>
+const Template<Message Function(String _name, String _name2)>
 codeExtensionTypeCombinedMemberSignatureFailed =
-    const Template<Message Function(String name, String name2)>(
+    const Template<Message Function(String _name, String _name2)>(
       "ExtensionTypeCombinedMemberSignatureFailed",
       problemMessageTemplate:
           r"""Extension type '#name' inherits multiple members named '#name2' with incompatible signatures.""",
@@ -3890,20 +3898,20 @@ codeExtensionTypeCombinedMemberSignatureFailed =
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsOldExtensionTypeCombinedMemberSignatureFailed(
-  String name,
-  String name2,
+  String _name,
+  String _name2,
 ) {
-  if (name.isEmpty) throw 'No name provided';
-  name = demangleMixinApplicationName(name);
-  if (name2.isEmpty) throw 'No name provided';
-  name2 = demangleMixinApplicationName(name2);
+  if (_name.isEmpty) throw 'No name provided';
+  String name = demangleMixinApplicationName(_name);
+  if (_name2.isEmpty) throw 'No name provided';
+  String name2 = demangleMixinApplicationName(_name2);
   return new Message(
     codeExtensionTypeCombinedMemberSignatureFailed,
     problemMessage:
         """Extension type '${name}' inherits multiple members named '${name2}' with incompatible signatures.""",
     correctionMessage:
         """Try adding a declaration of '${name2}' to '${name}'.""",
-    arguments: {'name': name, 'name2': name2},
+    arguments: {'name': _name, 'name2': _name2},
   );
 }
 
@@ -4002,9 +4010,9 @@ const MessageCode codeExtensionTypeRepresentationTypeBottom = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(String name)>
+const Template<Message Function(String _name)>
 codeExtensionTypeShouldBeListedAsCallableInDynamicInterface =
-    const Template<Message Function(String name)>(
+    const Template<Message Function(String _name)>(
       "ExtensionTypeShouldBeListedAsCallableInDynamicInterface",
       problemMessageTemplate:
           r"""Cannot use extension type '#name' in a dynamic module.""",
@@ -4017,17 +4025,17 @@ codeExtensionTypeShouldBeListedAsCallableInDynamicInterface =
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message
 _withArgumentsOldExtensionTypeShouldBeListedAsCallableInDynamicInterface(
-  String name,
+  String _name,
 ) {
-  if (name.isEmpty) throw 'No name provided';
-  name = demangleMixinApplicationName(name);
+  if (_name.isEmpty) throw 'No name provided';
+  String name = demangleMixinApplicationName(_name);
   return new Message(
     codeExtensionTypeShouldBeListedAsCallableInDynamicInterface,
     problemMessage:
         """Cannot use extension type '${name}' in a dynamic module.""",
     correctionMessage:
         """Try removing the reference to extension type '${name}' or update the dynamic interface to list extension type '${name}' as callable.""",
-    arguments: {'name': name},
+    arguments: {'name': _name},
   );
 }
 
@@ -4222,8 +4230,8 @@ Message _withArgumentsOldExtraneousModifierInPrimaryConstructor(Token token) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(String name)> codeFactoryConflictsWithMember =
-    const Template<Message Function(String name)>(
+const Template<Message Function(String _name)> codeFactoryConflictsWithMember =
+    const Template<Message Function(String _name)>(
       "FactoryConflictsWithMember",
       problemMessageTemplate: r"""The factory conflicts with member '#name'.""",
       withArgumentsOld: _withArgumentsOldFactoryConflictsWithMember,
@@ -4231,20 +4239,20 @@ const Template<Message Function(String name)> codeFactoryConflictsWithMember =
     );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldFactoryConflictsWithMember(String name) {
-  if (name.isEmpty) throw 'No name provided';
-  name = demangleMixinApplicationName(name);
+Message _withArgumentsOldFactoryConflictsWithMember(String _name) {
+  if (_name.isEmpty) throw 'No name provided';
+  String name = demangleMixinApplicationName(_name);
   return new Message(
     codeFactoryConflictsWithMember,
     problemMessage: """The factory conflicts with member '${name}'.""",
-    arguments: {'name': name},
+    arguments: {'name': _name},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(String name)>
+const Template<Message Function(String _name)>
 codeFactoryConflictsWithMemberCause =
-    const Template<Message Function(String name)>(
+    const Template<Message Function(String _name)>(
       "FactoryConflictsWithMemberCause",
       problemMessageTemplate: r"""Conflicting member '#name'.""",
       withArgumentsOld: _withArgumentsOldFactoryConflictsWithMemberCause,
@@ -4252,13 +4260,13 @@ codeFactoryConflictsWithMemberCause =
     );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldFactoryConflictsWithMemberCause(String name) {
-  if (name.isEmpty) throw 'No name provided';
-  name = demangleMixinApplicationName(name);
+Message _withArgumentsOldFactoryConflictsWithMemberCause(String _name) {
+  if (_name.isEmpty) throw 'No name provided';
+  String name = demangleMixinApplicationName(_name);
   return new Message(
     codeFactoryConflictsWithMemberCause,
     problemMessage: """Conflicting member '${name}'.""",
-    arguments: {'name': name},
+    arguments: {'name': _name},
   );
 }
 
@@ -4280,21 +4288,21 @@ const MessageCode codeFactoryTopLevelDeclaration = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(String name)> codeFastaCLIArgumentRequired =
-    const Template<Message Function(String name)>(
+const Template<Message Function(String _name)> codeFastaCLIArgumentRequired =
+    const Template<Message Function(String _name)>(
       "FastaCLIArgumentRequired",
       problemMessageTemplate: r"""Expected value after '#name'.""",
       withArgumentsOld: _withArgumentsOldFastaCLIArgumentRequired,
     );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldFastaCLIArgumentRequired(String name) {
-  if (name.isEmpty) throw 'No name provided';
-  name = demangleMixinApplicationName(name);
+Message _withArgumentsOldFastaCLIArgumentRequired(String _name) {
+  if (_name.isEmpty) throw 'No name provided';
+  String name = demangleMixinApplicationName(_name);
   return new Message(
     codeFastaCLIArgumentRequired,
     problemMessage: """Expected value after '${name}'.""",
-    arguments: {'name': name},
+    arguments: {'name': _name},
   );
 }
 
@@ -4436,9 +4444,9 @@ const MessageCode codeFfiAddressReceiver = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(String string, String name)>
+const Template<Message Function(String string, String _name)>
 codeFfiCompoundImplementsFinalizable =
-    const Template<Message Function(String string, String name)>(
+    const Template<Message Function(String string, String _name)>(
       "FfiCompoundImplementsFinalizable",
       problemMessageTemplate:
           r"""#string '#name' can't implement Finalizable.""",
@@ -4450,16 +4458,16 @@ codeFfiCompoundImplementsFinalizable =
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsOldFfiCompoundImplementsFinalizable(
   String string,
-  String name,
+  String _name,
 ) {
   if (string.isEmpty) throw 'No string provided';
-  if (name.isEmpty) throw 'No name provided';
-  name = demangleMixinApplicationName(name);
+  if (_name.isEmpty) throw 'No name provided';
+  String name = demangleMixinApplicationName(_name);
   return new Message(
     codeFfiCompoundImplementsFinalizable,
     problemMessage: """${string} '${name}' can't implement Finalizable.""",
     correctionMessage: """Try removing the implements clause from '${name}'.""",
-    arguments: {'string': string, 'name': name},
+    arguments: {'string': string, 'name': _name},
   );
 }
 
@@ -4526,8 +4534,8 @@ const MessageCode codeFfiDefaultAssetDuplicate = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(String string, String name)>
-codeFfiEmptyStruct = const Template<Message Function(String string, String name)>(
+const Template<Message Function(String string, String _name)>
+codeFfiEmptyStruct = const Template<Message Function(String string, String _name)>(
   "FfiEmptyStruct",
   problemMessageTemplate:
       r"""#string '#name' is empty. Empty structs and unions are undefined behavior.""",
@@ -4535,15 +4543,15 @@ codeFfiEmptyStruct = const Template<Message Function(String string, String name)
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldFfiEmptyStruct(String string, String name) {
+Message _withArgumentsOldFfiEmptyStruct(String string, String _name) {
   if (string.isEmpty) throw 'No string provided';
-  if (name.isEmpty) throw 'No name provided';
-  name = demangleMixinApplicationName(name);
+  if (_name.isEmpty) throw 'No name provided';
+  String name = demangleMixinApplicationName(_name);
   return new Message(
     codeFfiEmptyStruct,
     problemMessage:
         """${string} '${name}' is empty. Empty structs and unions are undefined behavior.""",
-    arguments: {'string': string, 'name': name},
+    arguments: {'string': string, 'name': _name},
   );
 }
 
@@ -4560,28 +4568,28 @@ const MessageCode codeFfiExpectedConstant = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(String name)> codeFfiExpectedConstantArg =
-    const Template<Message Function(String name)>(
+const Template<Message Function(String _name)> codeFfiExpectedConstantArg =
+    const Template<Message Function(String _name)>(
       "FfiExpectedConstantArg",
       problemMessageTemplate: r"""Argument '#name' must be a constant.""",
       withArgumentsOld: _withArgumentsOldFfiExpectedConstantArg,
     );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldFfiExpectedConstantArg(String name) {
-  if (name.isEmpty) throw 'No name provided';
-  name = demangleMixinApplicationName(name);
+Message _withArgumentsOldFfiExpectedConstantArg(String _name) {
+  if (_name.isEmpty) throw 'No name provided';
+  String name = demangleMixinApplicationName(_name);
   return new Message(
     codeFfiExpectedConstantArg,
     problemMessage: """Argument '${name}' must be a constant.""",
-    arguments: {'name': name},
+    arguments: {'name': _name},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(String name)>
+const Template<Message Function(String _name)>
 codeFfiExtendsOrImplementsSealedClass =
-    const Template<Message Function(String name)>(
+    const Template<Message Function(String _name)>(
       "FfiExtendsOrImplementsSealedClass",
       problemMessageTemplate:
           r"""Class '#name' cannot be extended or implemented.""",
@@ -4589,19 +4597,19 @@ codeFfiExtendsOrImplementsSealedClass =
     );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldFfiExtendsOrImplementsSealedClass(String name) {
-  if (name.isEmpty) throw 'No name provided';
-  name = demangleMixinApplicationName(name);
+Message _withArgumentsOldFfiExtendsOrImplementsSealedClass(String _name) {
+  if (_name.isEmpty) throw 'No name provided';
+  String name = demangleMixinApplicationName(_name);
   return new Message(
     codeFfiExtendsOrImplementsSealedClass,
     problemMessage: """Class '${name}' cannot be extended or implemented.""",
-    arguments: {'name': name},
+    arguments: {'name': _name},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(String name)>
-codeFfiFieldAnnotation = const Template<Message Function(String name)>(
+const Template<Message Function(String _name)>
+codeFfiFieldAnnotation = const Template<Message Function(String _name)>(
   "FfiFieldAnnotation",
   problemMessageTemplate:
       r"""Field '#name' requires exactly one annotation to declare its native type, which cannot be Void. dart:ffi Structs and Unions cannot have regular Dart fields.""",
@@ -4609,24 +4617,24 @@ codeFfiFieldAnnotation = const Template<Message Function(String name)>(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldFfiFieldAnnotation(String name) {
-  if (name.isEmpty) throw 'No name provided';
-  name = demangleMixinApplicationName(name);
+Message _withArgumentsOldFfiFieldAnnotation(String _name) {
+  if (_name.isEmpty) throw 'No name provided';
+  String name = demangleMixinApplicationName(_name);
   return new Message(
     codeFfiFieldAnnotation,
     problemMessage:
         """Field '${name}' requires exactly one annotation to declare its native type, which cannot be Void. dart:ffi Structs and Unions cannot have regular Dart fields.""",
-    arguments: {'name': name},
+    arguments: {'name': _name},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
-  Message Function(String string, String name, List<String> _names)
+  Message Function(String string, String _name, List<String> _names)
 >
 codeFfiFieldCyclic =
     const Template<
-      Message Function(String string, String name, List<String> _names)
+      Message Function(String string, String _name, List<String> _names)
     >(
       "FfiFieldCyclic",
       problemMessageTemplate:
@@ -4638,25 +4646,25 @@ codeFfiFieldCyclic =
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsOldFfiFieldCyclic(
   String string,
-  String name,
+  String _name,
   List<String> _names,
 ) {
   if (string.isEmpty) throw 'No string provided';
-  if (name.isEmpty) throw 'No name provided';
-  name = demangleMixinApplicationName(name);
+  if (_name.isEmpty) throw 'No name provided';
+  String name = demangleMixinApplicationName(_name);
   if (_names.isEmpty) throw 'No names provided';
   String names = itemizeNames(_names);
   return new Message(
     codeFfiFieldCyclic,
     problemMessage: """${string} '${name}' contains itself. Cycle elements:
 ${names}""",
-    arguments: {'string': string, 'name': name, 'names': _names},
+    arguments: {'string': string, 'name': _name, 'names': _names},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(String name)>
-codeFfiFieldInitializer = const Template<Message Function(String name)>(
+const Template<Message Function(String _name)>
+codeFfiFieldInitializer = const Template<Message Function(String _name)>(
   "FfiFieldInitializer",
   problemMessageTemplate:
       r"""Field '#name' is a dart:ffi Pointer to a struct field and therefore cannot be initialized before constructor execution.""",
@@ -4666,22 +4674,22 @@ codeFfiFieldInitializer = const Template<Message Function(String name)>(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldFfiFieldInitializer(String name) {
-  if (name.isEmpty) throw 'No name provided';
-  name = demangleMixinApplicationName(name);
+Message _withArgumentsOldFfiFieldInitializer(String _name) {
+  if (_name.isEmpty) throw 'No name provided';
+  String name = demangleMixinApplicationName(_name);
   return new Message(
     codeFfiFieldInitializer,
     problemMessage:
         """Field '${name}' is a dart:ffi Pointer to a struct field and therefore cannot be initialized before constructor execution.""",
     correctionMessage:
         """Mark the field as external to avoid having to initialize it.""",
-    arguments: {'name': name},
+    arguments: {'name': _name},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(String name)>
-codeFfiFieldNoAnnotation = const Template<Message Function(String name)>(
+const Template<Message Function(String _name)>
+codeFfiFieldNoAnnotation = const Template<Message Function(String _name)>(
   "FfiFieldNoAnnotation",
   problemMessageTemplate:
       r"""Field '#name' requires no annotation to declare its native type, it is a Pointer which is represented by the same type in Dart and native code.""",
@@ -4689,20 +4697,20 @@ codeFfiFieldNoAnnotation = const Template<Message Function(String name)>(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldFfiFieldNoAnnotation(String name) {
-  if (name.isEmpty) throw 'No name provided';
-  name = demangleMixinApplicationName(name);
+Message _withArgumentsOldFfiFieldNoAnnotation(String _name) {
+  if (_name.isEmpty) throw 'No name provided';
+  String name = demangleMixinApplicationName(_name);
   return new Message(
     codeFfiFieldNoAnnotation,
     problemMessage:
         """Field '${name}' requires no annotation to declare its native type, it is a Pointer which is represented by the same type in Dart and native code.""",
-    arguments: {'name': name},
+    arguments: {'name': _name},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(String name)>
-codeFfiFieldNull = const Template<Message Function(String name)>(
+const Template<Message Function(String _name)>
+codeFfiFieldNull = const Template<Message Function(String _name)>(
   "FfiFieldNull",
   problemMessageTemplate:
       r"""Field '#name' cannot be nullable or have type 'Null', it must be `int`, `double`, `Pointer`, or a subtype of `Struct` or `Union`.""",
@@ -4710,14 +4718,14 @@ codeFfiFieldNull = const Template<Message Function(String name)>(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldFfiFieldNull(String name) {
-  if (name.isEmpty) throw 'No name provided';
-  name = demangleMixinApplicationName(name);
+Message _withArgumentsOldFfiFieldNull(String _name) {
+  if (_name.isEmpty) throw 'No name provided';
+  String name = demangleMixinApplicationName(_name);
   return new Message(
     codeFfiFieldNull,
     problemMessage:
         """Field '${name}' cannot be nullable or have type 'Null', it must be `int`, `double`, `Pointer`, or a subtype of `Struct` or `Union`.""",
-    arguments: {'name': name},
+    arguments: {'name': _name},
   );
 }
 
@@ -4834,8 +4842,8 @@ Message _withArgumentsOldFfiNativeUnexpectedNumberOfParametersWithReceiver(
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(String name)>
-codeFfiNotStatic = const Template<Message Function(String name)>(
+const Template<Message Function(String _name)>
+codeFfiNotStatic = const Template<Message Function(String _name)>(
   "FfiNotStatic",
   problemMessageTemplate:
       r"""#name expects a static function as parameter. dart:ffi only supports calling static Dart functions from native code. Closures and tear-offs are not supported because they can capture context.""",
@@ -4843,20 +4851,20 @@ codeFfiNotStatic = const Template<Message Function(String name)>(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldFfiNotStatic(String name) {
-  if (name.isEmpty) throw 'No name provided';
-  name = demangleMixinApplicationName(name);
+Message _withArgumentsOldFfiNotStatic(String _name) {
+  if (_name.isEmpty) throw 'No name provided';
+  String name = demangleMixinApplicationName(_name);
   return new Message(
     codeFfiNotStatic,
     problemMessage:
         """${name} expects a static function as parameter. dart:ffi only supports calling static Dart functions from native code. Closures and tear-offs are not supported because they can capture context.""",
-    arguments: {'name': name},
+    arguments: {'name': _name},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(String name)> codeFfiPackedAnnotation =
-    const Template<Message Function(String name)>(
+const Template<Message Function(String _name)> codeFfiPackedAnnotation =
+    const Template<Message Function(String _name)>(
       "FfiPackedAnnotation",
       problemMessageTemplate:
           r"""Struct '#name' must have at most one 'Packed' annotation.""",
@@ -4864,14 +4872,14 @@ const Template<Message Function(String name)> codeFfiPackedAnnotation =
     );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldFfiPackedAnnotation(String name) {
-  if (name.isEmpty) throw 'No name provided';
-  name = demangleMixinApplicationName(name);
+Message _withArgumentsOldFfiPackedAnnotation(String _name) {
+  if (_name.isEmpty) throw 'No name provided';
+  String name = demangleMixinApplicationName(_name);
   return new Message(
     codeFfiPackedAnnotation,
     problemMessage:
         """Struct '${name}' must have at most one 'Packed' annotation.""",
-    arguments: {'name': name},
+    arguments: {'name': _name},
   );
 }
 
@@ -4882,8 +4890,8 @@ const MessageCode codeFfiPackedAnnotationAlignment = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(String name)> codeFfiSizeAnnotation =
-    const Template<Message Function(String name)>(
+const Template<Message Function(String _name)> codeFfiSizeAnnotation =
+    const Template<Message Function(String _name)>(
       "FfiSizeAnnotation",
       problemMessageTemplate:
           r"""Field '#name' must have exactly one 'Array' annotation.""",
@@ -4891,20 +4899,20 @@ const Template<Message Function(String name)> codeFfiSizeAnnotation =
     );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldFfiSizeAnnotation(String name) {
-  if (name.isEmpty) throw 'No name provided';
-  name = demangleMixinApplicationName(name);
+Message _withArgumentsOldFfiSizeAnnotation(String _name) {
+  if (_name.isEmpty) throw 'No name provided';
+  String name = demangleMixinApplicationName(_name);
   return new Message(
     codeFfiSizeAnnotation,
     problemMessage:
         """Field '${name}' must have exactly one 'Array' annotation.""",
-    arguments: {'name': name},
+    arguments: {'name': _name},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(String name)>
-codeFfiSizeAnnotationDimensions = const Template<Message Function(String name)>(
+const Template<Message Function(String _name)>
+codeFfiSizeAnnotationDimensions = const Template<Message Function(String _name)>(
   "FfiSizeAnnotationDimensions",
   problemMessageTemplate:
       r"""Field '#name' must have an 'Array' annotation that matches the dimensions.""",
@@ -4912,35 +4920,35 @@ codeFfiSizeAnnotationDimensions = const Template<Message Function(String name)>(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldFfiSizeAnnotationDimensions(String name) {
-  if (name.isEmpty) throw 'No name provided';
-  name = demangleMixinApplicationName(name);
+Message _withArgumentsOldFfiSizeAnnotationDimensions(String _name) {
+  if (_name.isEmpty) throw 'No name provided';
+  String name = demangleMixinApplicationName(_name);
   return new Message(
     codeFfiSizeAnnotationDimensions,
     problemMessage:
         """Field '${name}' must have an 'Array' annotation that matches the dimensions.""",
-    arguments: {'name': name},
+    arguments: {'name': _name},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(String string, String name)>
+const Template<Message Function(String string, String _name)>
 codeFfiStructGeneric =
-    const Template<Message Function(String string, String name)>(
+    const Template<Message Function(String string, String _name)>(
       "FfiStructGeneric",
       problemMessageTemplate: r"""#string '#name' should not be generic.""",
       withArgumentsOld: _withArgumentsOldFfiStructGeneric,
     );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldFfiStructGeneric(String string, String name) {
+Message _withArgumentsOldFfiStructGeneric(String string, String _name) {
   if (string.isEmpty) throw 'No string provided';
-  if (name.isEmpty) throw 'No name provided';
-  name = demangleMixinApplicationName(name);
+  if (_name.isEmpty) throw 'No name provided';
+  String name = demangleMixinApplicationName(_name);
   return new Message(
     codeFfiStructGeneric,
     problemMessage: """${string} '${name}' should not be generic.""",
-    arguments: {'string': string, 'name': name},
+    arguments: {'string': string, 'name': _name},
   );
 }
 
@@ -4954,9 +4962,9 @@ const MessageCode codeFfiVariableLengthArrayNotLast = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(String name)>
+const Template<Message Function(String _name)>
 codeFieldAlreadyInitializedAtDeclaration =
-    const Template<Message Function(String name)>(
+    const Template<Message Function(String _name)>(
       "FieldAlreadyInitializedAtDeclaration",
       problemMessageTemplate:
           r"""'#name' is a final instance variable that was initialized at the declaration.""",
@@ -4967,21 +4975,21 @@ codeFieldAlreadyInitializedAtDeclaration =
     );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldFieldAlreadyInitializedAtDeclaration(String name) {
-  if (name.isEmpty) throw 'No name provided';
-  name = demangleMixinApplicationName(name);
+Message _withArgumentsOldFieldAlreadyInitializedAtDeclaration(String _name) {
+  if (_name.isEmpty) throw 'No name provided';
+  String name = demangleMixinApplicationName(_name);
   return new Message(
     codeFieldAlreadyInitializedAtDeclaration,
     problemMessage:
         """'${name}' is a final instance variable that was initialized at the declaration.""",
-    arguments: {'name': name},
+    arguments: {'name': _name},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(String name)>
+const Template<Message Function(String _name)>
 codeFieldAlreadyInitializedAtDeclarationCause =
-    const Template<Message Function(String name)>(
+    const Template<Message Function(String _name)>(
       "FieldAlreadyInitializedAtDeclarationCause",
       problemMessageTemplate: r"""'#name' was initialized here.""",
       withArgumentsOld:
@@ -4991,14 +4999,14 @@ codeFieldAlreadyInitializedAtDeclarationCause =
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsOldFieldAlreadyInitializedAtDeclarationCause(
-  String name,
+  String _name,
 ) {
-  if (name.isEmpty) throw 'No name provided';
-  name = demangleMixinApplicationName(name);
+  if (_name.isEmpty) throw 'No name provided';
+  String name = demangleMixinApplicationName(_name);
   return new Message(
     codeFieldAlreadyInitializedAtDeclarationCause,
     problemMessage: """'${name}' was initialized here.""",
-    arguments: {'name': name},
+    arguments: {'name': _name},
   );
 }
 
@@ -5021,9 +5029,11 @@ const MessageCode codeFieldInitializerOutsideConstructor = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(String name, String name2, String string)>
+const Template<Message Function(String _name, String _name2, String string)>
 codeFieldNotPromotedBecauseConflictingField =
-    const Template<Message Function(String name, String name2, String string)>(
+    const Template<
+      Message Function(String _name, String _name2, String string)
+    >(
       "FieldNotPromotedBecauseConflictingField",
       problemMessageTemplate:
           r"""'#name' couldn't be promoted because there is a conflicting non-promotable field in class '#name2'.""",
@@ -5034,28 +5044,30 @@ codeFieldNotPromotedBecauseConflictingField =
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsOldFieldNotPromotedBecauseConflictingField(
-  String name,
-  String name2,
+  String _name,
+  String _name2,
   String string,
 ) {
-  if (name.isEmpty) throw 'No name provided';
-  name = demangleMixinApplicationName(name);
-  if (name2.isEmpty) throw 'No name provided';
-  name2 = demangleMixinApplicationName(name2);
+  if (_name.isEmpty) throw 'No name provided';
+  String name = demangleMixinApplicationName(_name);
+  if (_name2.isEmpty) throw 'No name provided';
+  String name2 = demangleMixinApplicationName(_name2);
   if (string.isEmpty) throw 'No string provided';
   return new Message(
     codeFieldNotPromotedBecauseConflictingField,
     problemMessage:
         """'${name}' couldn't be promoted because there is a conflicting non-promotable field in class '${name2}'.""",
     correctionMessage: """See ${string}""",
-    arguments: {'name': name, 'name2': name2, 'string': string},
+    arguments: {'name': _name, 'name2': _name2, 'string': string},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(String name, String name2, String string)>
+const Template<Message Function(String _name, String _name2, String string)>
 codeFieldNotPromotedBecauseConflictingGetter =
-    const Template<Message Function(String name, String name2, String string)>(
+    const Template<
+      Message Function(String _name, String _name2, String string)
+    >(
       "FieldNotPromotedBecauseConflictingGetter",
       problemMessageTemplate:
           r"""'#name' couldn't be promoted because there is a conflicting getter in class '#name2'.""",
@@ -5066,28 +5078,30 @@ codeFieldNotPromotedBecauseConflictingGetter =
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsOldFieldNotPromotedBecauseConflictingGetter(
-  String name,
-  String name2,
+  String _name,
+  String _name2,
   String string,
 ) {
-  if (name.isEmpty) throw 'No name provided';
-  name = demangleMixinApplicationName(name);
-  if (name2.isEmpty) throw 'No name provided';
-  name2 = demangleMixinApplicationName(name2);
+  if (_name.isEmpty) throw 'No name provided';
+  String name = demangleMixinApplicationName(_name);
+  if (_name2.isEmpty) throw 'No name provided';
+  String name2 = demangleMixinApplicationName(_name2);
   if (string.isEmpty) throw 'No string provided';
   return new Message(
     codeFieldNotPromotedBecauseConflictingGetter,
     problemMessage:
         """'${name}' couldn't be promoted because there is a conflicting getter in class '${name2}'.""",
     correctionMessage: """See ${string}""",
-    arguments: {'name': name, 'name2': name2, 'string': string},
+    arguments: {'name': _name, 'name2': _name2, 'string': string},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(String name, String name2, String string)>
+const Template<Message Function(String _name, String _name2, String string)>
 codeFieldNotPromotedBecauseConflictingNsmForwarder =
-    const Template<Message Function(String name, String name2, String string)>(
+    const Template<
+      Message Function(String _name, String _name2, String string)
+    >(
       "FieldNotPromotedBecauseConflictingNsmForwarder",
       problemMessageTemplate:
           r"""'#name' couldn't be promoted because there is a conflicting noSuchMethod forwarder in class '#name2'.""",
@@ -5098,28 +5112,28 @@ codeFieldNotPromotedBecauseConflictingNsmForwarder =
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsOldFieldNotPromotedBecauseConflictingNsmForwarder(
-  String name,
-  String name2,
+  String _name,
+  String _name2,
   String string,
 ) {
-  if (name.isEmpty) throw 'No name provided';
-  name = demangleMixinApplicationName(name);
-  if (name2.isEmpty) throw 'No name provided';
-  name2 = demangleMixinApplicationName(name2);
+  if (_name.isEmpty) throw 'No name provided';
+  String name = demangleMixinApplicationName(_name);
+  if (_name2.isEmpty) throw 'No name provided';
+  String name2 = demangleMixinApplicationName(_name2);
   if (string.isEmpty) throw 'No string provided';
   return new Message(
     codeFieldNotPromotedBecauseConflictingNsmForwarder,
     problemMessage:
         """'${name}' couldn't be promoted because there is a conflicting noSuchMethod forwarder in class '${name2}'.""",
     correctionMessage: """See ${string}""",
-    arguments: {'name': name, 'name2': name2, 'string': string},
+    arguments: {'name': _name, 'name2': _name2, 'string': string},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(String name, String string)>
+const Template<Message Function(String _name, String string)>
 codeFieldNotPromotedBecauseExternal =
-    const Template<Message Function(String name, String string)>(
+    const Template<Message Function(String _name, String string)>(
       "FieldNotPromotedBecauseExternal",
       problemMessageTemplate:
           r"""'#name' refers to an external field so it couldn't be promoted.""",
@@ -5129,25 +5143,25 @@ codeFieldNotPromotedBecauseExternal =
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsOldFieldNotPromotedBecauseExternal(
-  String name,
+  String _name,
   String string,
 ) {
-  if (name.isEmpty) throw 'No name provided';
-  name = demangleMixinApplicationName(name);
+  if (_name.isEmpty) throw 'No name provided';
+  String name = demangleMixinApplicationName(_name);
   if (string.isEmpty) throw 'No string provided';
   return new Message(
     codeFieldNotPromotedBecauseExternal,
     problemMessage:
         """'${name}' refers to an external field so it couldn't be promoted.""",
     correctionMessage: """See ${string}""",
-    arguments: {'name': name, 'string': string},
+    arguments: {'name': _name, 'string': string},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(String name, String string)>
+const Template<Message Function(String _name, String string)>
 codeFieldNotPromotedBecauseNotEnabled =
-    const Template<Message Function(String name, String string)>(
+    const Template<Message Function(String _name, String string)>(
       "FieldNotPromotedBecauseNotEnabled",
       problemMessageTemplate:
           r"""'#name' couldn't be promoted because field promotion is only available in Dart 3.2 and above.""",
@@ -5157,25 +5171,25 @@ codeFieldNotPromotedBecauseNotEnabled =
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsOldFieldNotPromotedBecauseNotEnabled(
-  String name,
+  String _name,
   String string,
 ) {
-  if (name.isEmpty) throw 'No name provided';
-  name = demangleMixinApplicationName(name);
+  if (_name.isEmpty) throw 'No name provided';
+  String name = demangleMixinApplicationName(_name);
   if (string.isEmpty) throw 'No string provided';
   return new Message(
     codeFieldNotPromotedBecauseNotEnabled,
     problemMessage:
         """'${name}' couldn't be promoted because field promotion is only available in Dart 3.2 and above.""",
     correctionMessage: """See ${string}""",
-    arguments: {'name': name, 'string': string},
+    arguments: {'name': _name, 'string': string},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(String name, String string)>
+const Template<Message Function(String _name, String string)>
 codeFieldNotPromotedBecauseNotField =
-    const Template<Message Function(String name, String string)>(
+    const Template<Message Function(String _name, String string)>(
       "FieldNotPromotedBecauseNotField",
       problemMessageTemplate:
           r"""'#name' refers to a getter so it couldn't be promoted.""",
@@ -5185,25 +5199,25 @@ codeFieldNotPromotedBecauseNotField =
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsOldFieldNotPromotedBecauseNotField(
-  String name,
+  String _name,
   String string,
 ) {
-  if (name.isEmpty) throw 'No name provided';
-  name = demangleMixinApplicationName(name);
+  if (_name.isEmpty) throw 'No name provided';
+  String name = demangleMixinApplicationName(_name);
   if (string.isEmpty) throw 'No string provided';
   return new Message(
     codeFieldNotPromotedBecauseNotField,
     problemMessage:
         """'${name}' refers to a getter so it couldn't be promoted.""",
     correctionMessage: """See ${string}""",
-    arguments: {'name': name, 'string': string},
+    arguments: {'name': _name, 'string': string},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(String name, String string)>
+const Template<Message Function(String _name, String string)>
 codeFieldNotPromotedBecauseNotFinal =
-    const Template<Message Function(String name, String string)>(
+    const Template<Message Function(String _name, String string)>(
       "FieldNotPromotedBecauseNotFinal",
       problemMessageTemplate:
           r"""'#name' refers to a non-final field so it couldn't be promoted.""",
@@ -5213,25 +5227,25 @@ codeFieldNotPromotedBecauseNotFinal =
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsOldFieldNotPromotedBecauseNotFinal(
-  String name,
+  String _name,
   String string,
 ) {
-  if (name.isEmpty) throw 'No name provided';
-  name = demangleMixinApplicationName(name);
+  if (_name.isEmpty) throw 'No name provided';
+  String name = demangleMixinApplicationName(_name);
   if (string.isEmpty) throw 'No string provided';
   return new Message(
     codeFieldNotPromotedBecauseNotFinal,
     problemMessage:
         """'${name}' refers to a non-final field so it couldn't be promoted.""",
     correctionMessage: """See ${string}""",
-    arguments: {'name': name, 'string': string},
+    arguments: {'name': _name, 'string': string},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(String name, String string)>
+const Template<Message Function(String _name, String string)>
 codeFieldNotPromotedBecauseNotPrivate =
-    const Template<Message Function(String name, String string)>(
+    const Template<Message Function(String _name, String string)>(
       "FieldNotPromotedBecauseNotPrivate",
       problemMessageTemplate:
           r"""'#name' refers to a public property so it couldn't be promoted.""",
@@ -5241,18 +5255,18 @@ codeFieldNotPromotedBecauseNotPrivate =
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsOldFieldNotPromotedBecauseNotPrivate(
-  String name,
+  String _name,
   String string,
 ) {
-  if (name.isEmpty) throw 'No name provided';
-  name = demangleMixinApplicationName(name);
+  if (_name.isEmpty) throw 'No name provided';
+  String name = demangleMixinApplicationName(_name);
   if (string.isEmpty) throw 'No string provided';
   return new Message(
     codeFieldNotPromotedBecauseNotPrivate,
     problemMessage:
         """'${name}' refers to a public property so it couldn't be promoted.""",
     correctionMessage: """See ${string}""",
-    arguments: {'name': name, 'string': string},
+    arguments: {'name': _name, 'string': string},
   );
 }
 
@@ -5286,9 +5300,9 @@ const MessageCode codeFinalAndVar = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(String name)>
+const Template<Message Function(String _name)>
 codeFinalClassExtendedOutsideOfLibrary =
-    const Template<Message Function(String name)>(
+    const Template<Message Function(String _name)>(
       "FinalClassExtendedOutsideOfLibrary",
       problemMessageTemplate:
           r"""The class '#name' can't be extended outside of its library because it's a final class.""",
@@ -5297,21 +5311,21 @@ codeFinalClassExtendedOutsideOfLibrary =
     );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldFinalClassExtendedOutsideOfLibrary(String name) {
-  if (name.isEmpty) throw 'No name provided';
-  name = demangleMixinApplicationName(name);
+Message _withArgumentsOldFinalClassExtendedOutsideOfLibrary(String _name) {
+  if (_name.isEmpty) throw 'No name provided';
+  String name = demangleMixinApplicationName(_name);
   return new Message(
     codeFinalClassExtendedOutsideOfLibrary,
     problemMessage:
         """The class '${name}' can't be extended outside of its library because it's a final class.""",
-    arguments: {'name': name},
+    arguments: {'name': _name},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(String name)>
+const Template<Message Function(String _name)>
 codeFinalClassImplementedOutsideOfLibrary =
-    const Template<Message Function(String name)>(
+    const Template<Message Function(String _name)>(
       "FinalClassImplementedOutsideOfLibrary",
       problemMessageTemplate:
           r"""The class '#name' can't be implemented outside of its library because it's a final class.""",
@@ -5320,21 +5334,21 @@ codeFinalClassImplementedOutsideOfLibrary =
     );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldFinalClassImplementedOutsideOfLibrary(String name) {
-  if (name.isEmpty) throw 'No name provided';
-  name = demangleMixinApplicationName(name);
+Message _withArgumentsOldFinalClassImplementedOutsideOfLibrary(String _name) {
+  if (_name.isEmpty) throw 'No name provided';
+  String name = demangleMixinApplicationName(_name);
   return new Message(
     codeFinalClassImplementedOutsideOfLibrary,
     problemMessage:
         """The class '${name}' can't be implemented outside of its library because it's a final class.""",
-    arguments: {'name': name},
+    arguments: {'name': _name},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(String name)>
+const Template<Message Function(String _name)>
 codeFinalClassUsedAsMixinConstraintOutsideOfLibrary =
-    const Template<Message Function(String name)>(
+    const Template<Message Function(String _name)>(
       "FinalClassUsedAsMixinConstraintOutsideOfLibrary",
       problemMessageTemplate:
           r"""The class '#name' can't be used as a mixin superclass constraint outside of its library because it's a final class.""",
@@ -5347,15 +5361,15 @@ codeFinalClassUsedAsMixinConstraintOutsideOfLibrary =
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsOldFinalClassUsedAsMixinConstraintOutsideOfLibrary(
-  String name,
+  String _name,
 ) {
-  if (name.isEmpty) throw 'No name provided';
-  name = demangleMixinApplicationName(name);
+  if (_name.isEmpty) throw 'No name provided';
+  String name = demangleMixinApplicationName(_name);
   return new Message(
     codeFinalClassUsedAsMixinConstraintOutsideOfLibrary,
     problemMessage:
         """The class '${name}' can't be used as a mixin superclass constraint outside of its library because it's a final class.""",
-    arguments: {'name': name},
+    arguments: {'name': _name},
   );
 }
 
@@ -5368,8 +5382,8 @@ const MessageCode codeFinalEnum = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(String name)>
-codeFinalFieldNotInitialized = const Template<Message Function(String name)>(
+const Template<Message Function(String _name)>
+codeFinalFieldNotInitialized = const Template<Message Function(String _name)>(
   "FinalFieldNotInitialized",
   problemMessageTemplate: r"""Final field '#name' is not initialized.""",
   correctionMessageTemplate:
@@ -5379,22 +5393,22 @@ codeFinalFieldNotInitialized = const Template<Message Function(String name)>(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldFinalFieldNotInitialized(String name) {
-  if (name.isEmpty) throw 'No name provided';
-  name = demangleMixinApplicationName(name);
+Message _withArgumentsOldFinalFieldNotInitialized(String _name) {
+  if (_name.isEmpty) throw 'No name provided';
+  String name = demangleMixinApplicationName(_name);
   return new Message(
     codeFinalFieldNotInitialized,
     problemMessage: """Final field '${name}' is not initialized.""",
     correctionMessage:
         """Try to initialize the field in the declaration or in every constructor.""",
-    arguments: {'name': name},
+    arguments: {'name': _name},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(String name)>
+const Template<Message Function(String _name)>
 codeFinalFieldNotInitializedByConstructor =
-    const Template<Message Function(String name)>(
+    const Template<Message Function(String _name)>(
       "FinalFieldNotInitializedByConstructor",
       problemMessageTemplate:
           r"""Final field '#name' is not initialized by this constructor.""",
@@ -5405,22 +5419,23 @@ codeFinalFieldNotInitializedByConstructor =
     );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldFinalFieldNotInitializedByConstructor(String name) {
-  if (name.isEmpty) throw 'No name provided';
-  name = demangleMixinApplicationName(name);
+Message _withArgumentsOldFinalFieldNotInitializedByConstructor(String _name) {
+  if (_name.isEmpty) throw 'No name provided';
+  String name = demangleMixinApplicationName(_name);
   return new Message(
     codeFinalFieldNotInitializedByConstructor,
     problemMessage:
         """Final field '${name}' is not initialized by this constructor.""",
     correctionMessage:
         """Try to initialize the field using an initializing formal or a field initializer.""",
-    arguments: {'name': name},
+    arguments: {'name': _name},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(String name)> codeFinalFieldWithoutInitializer =
-    const Template<Message Function(String name)>(
+const Template<Message Function(String _name)>
+codeFinalFieldWithoutInitializer =
+    const Template<Message Function(String _name)>(
       "FinalFieldWithoutInitializer",
       problemMessageTemplate:
           r"""The final variable '#name' must be initialized.""",
@@ -5431,15 +5446,15 @@ const Template<Message Function(String name)> codeFinalFieldWithoutInitializer =
     );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldFinalFieldWithoutInitializer(String name) {
-  if (name.isEmpty) throw 'No name provided';
-  name = demangleMixinApplicationName(name);
+Message _withArgumentsOldFinalFieldWithoutInitializer(String _name) {
+  if (_name.isEmpty) throw 'No name provided';
+  String name = demangleMixinApplicationName(_name);
   return new Message(
     codeFinalFieldWithoutInitializer,
     problemMessage: """The final variable '${name}' must be initialized.""",
     correctionMessage:
         """Try adding an initializer ('= expression') to the declaration.""",
-    arguments: {'name': name},
+    arguments: {'name': _name},
   );
 }
 
@@ -5460,8 +5475,8 @@ const MessageCode codeFinalMixinClass = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(String name)> codeFinalNotAssignedError =
-    const Template<Message Function(String name)>(
+const Template<Message Function(String _name)> codeFinalNotAssignedError =
+    const Template<Message Function(String _name)>(
       "FinalNotAssignedError",
       problemMessageTemplate:
           r"""Final variable '#name' must be assigned before it can be used.""",
@@ -5470,20 +5485,20 @@ const Template<Message Function(String name)> codeFinalNotAssignedError =
     );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldFinalNotAssignedError(String name) {
-  if (name.isEmpty) throw 'No name provided';
-  name = demangleMixinApplicationName(name);
+Message _withArgumentsOldFinalNotAssignedError(String _name) {
+  if (_name.isEmpty) throw 'No name provided';
+  String name = demangleMixinApplicationName(_name);
   return new Message(
     codeFinalNotAssignedError,
     problemMessage:
         """Final variable '${name}' must be assigned before it can be used.""",
-    arguments: {'name': name},
+    arguments: {'name': _name},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(String name)>
-codeFinalPossiblyAssignedError = const Template<Message Function(String name)>(
+const Template<Message Function(String _name)>
+codeFinalPossiblyAssignedError = const Template<Message Function(String _name)>(
   "FinalPossiblyAssignedError",
   problemMessageTemplate:
       r"""Final variable '#name' might already be assigned at this point.""",
@@ -5492,14 +5507,14 @@ codeFinalPossiblyAssignedError = const Template<Message Function(String name)>(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldFinalPossiblyAssignedError(String name) {
-  if (name.isEmpty) throw 'No name provided';
-  name = demangleMixinApplicationName(name);
+Message _withArgumentsOldFinalPossiblyAssignedError(String _name) {
+  if (_name.isEmpty) throw 'No name provided';
+  String name = demangleMixinApplicationName(_name);
   return new Message(
     codeFinalPossiblyAssignedError,
     problemMessage:
         """Final variable '${name}' might already be assigned at this point.""",
-    arguments: {'name': name},
+    arguments: {'name': _name},
   );
 }
 
@@ -5574,8 +5589,8 @@ const MessageCode codeGetterConstructor = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(String name)> codeGetterNotFound =
-    const Template<Message Function(String name)>(
+const Template<Message Function(String _name)> codeGetterNotFound =
+    const Template<Message Function(String _name)>(
       "GetterNotFound",
       problemMessageTemplate: r"""Getter not found: '#name'.""",
       withArgumentsOld: _withArgumentsOldGetterNotFound,
@@ -5583,13 +5598,13 @@ const Template<Message Function(String name)> codeGetterNotFound =
     );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldGetterNotFound(String name) {
-  if (name.isEmpty) throw 'No name provided';
-  name = demangleMixinApplicationName(name);
+Message _withArgumentsOldGetterNotFound(String _name) {
+  if (_name.isEmpty) throw 'No name provided';
+  String name = demangleMixinApplicationName(_name);
   return new Message(
     codeGetterNotFound,
     problemMessage: """Getter not found: '${name}'.""",
-    arguments: {'name': name},
+    arguments: {'name': _name},
   );
 }
 
@@ -5632,8 +5647,8 @@ const MessageCode codeIllegalAsyncReturnType = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(String name)> codeIllegalMixin =
-    const Template<Message Function(String name)>(
+const Template<Message Function(String _name)> codeIllegalMixin =
+    const Template<Message Function(String _name)>(
       "IllegalMixin",
       problemMessageTemplate: r"""The type '#name' can't be mixed in.""",
       withArgumentsOld: _withArgumentsOldIllegalMixin,
@@ -5641,20 +5656,20 @@ const Template<Message Function(String name)> codeIllegalMixin =
     );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldIllegalMixin(String name) {
-  if (name.isEmpty) throw 'No name provided';
-  name = demangleMixinApplicationName(name);
+Message _withArgumentsOldIllegalMixin(String _name) {
+  if (_name.isEmpty) throw 'No name provided';
+  String name = demangleMixinApplicationName(_name);
   return new Message(
     codeIllegalMixin,
     problemMessage: """The type '${name}' can't be mixed in.""",
-    arguments: {'name': name},
+    arguments: {'name': _name},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(String name)>
+const Template<Message Function(String _name)>
 codeIllegalMixinDueToConstructors =
-    const Template<Message Function(String name)>(
+    const Template<Message Function(String _name)>(
       "IllegalMixinDueToConstructors",
       problemMessageTemplate:
           r"""Can't use '#name' as a mixin because it has constructors.""",
@@ -5663,21 +5678,21 @@ codeIllegalMixinDueToConstructors =
     );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldIllegalMixinDueToConstructors(String name) {
-  if (name.isEmpty) throw 'No name provided';
-  name = demangleMixinApplicationName(name);
+Message _withArgumentsOldIllegalMixinDueToConstructors(String _name) {
+  if (_name.isEmpty) throw 'No name provided';
+  String name = demangleMixinApplicationName(_name);
   return new Message(
     codeIllegalMixinDueToConstructors,
     problemMessage:
         """Can't use '${name}' as a mixin because it has constructors.""",
-    arguments: {'name': name},
+    arguments: {'name': _name},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(String name)>
+const Template<Message Function(String _name)>
 codeIllegalMixinDueToConstructorsCause =
-    const Template<Message Function(String name)>(
+    const Template<Message Function(String _name)>(
       "IllegalMixinDueToConstructorsCause",
       problemMessageTemplate:
           r"""This constructor prevents using '#name' as a mixin.""",
@@ -5686,13 +5701,13 @@ codeIllegalMixinDueToConstructorsCause =
     );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldIllegalMixinDueToConstructorsCause(String name) {
-  if (name.isEmpty) throw 'No name provided';
-  name = demangleMixinApplicationName(name);
+Message _withArgumentsOldIllegalMixinDueToConstructorsCause(String _name) {
+  if (_name.isEmpty) throw 'No name provided';
+  String name = demangleMixinApplicationName(_name);
   return new Message(
     codeIllegalMixinDueToConstructorsCause,
     problemMessage: """This constructor prevents using '${name}' as a mixin.""",
-    arguments: {'name': name},
+    arguments: {'name': _name},
   );
 }
 
@@ -5782,9 +5797,9 @@ const MessageCode codeIllegalSyncGeneratorVoidReturnType = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(String name, String name2)>
+const Template<Message Function(String _name, String _name2)>
 codeImplementMultipleExtensionTypeMembers =
-    const Template<Message Function(String name, String name2)>(
+    const Template<Message Function(String _name, String _name2)>(
       "ImplementMultipleExtensionTypeMembers",
       problemMessageTemplate:
           r"""The extension type '#name' can't inherit the member '#name2' from more than one extension type.""",
@@ -5795,27 +5810,27 @@ codeImplementMultipleExtensionTypeMembers =
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsOldImplementMultipleExtensionTypeMembers(
-  String name,
-  String name2,
+  String _name,
+  String _name2,
 ) {
-  if (name.isEmpty) throw 'No name provided';
-  name = demangleMixinApplicationName(name);
-  if (name2.isEmpty) throw 'No name provided';
-  name2 = demangleMixinApplicationName(name2);
+  if (_name.isEmpty) throw 'No name provided';
+  String name = demangleMixinApplicationName(_name);
+  if (_name2.isEmpty) throw 'No name provided';
+  String name2 = demangleMixinApplicationName(_name2);
   return new Message(
     codeImplementMultipleExtensionTypeMembers,
     problemMessage:
         """The extension type '${name}' can't inherit the member '${name2}' from more than one extension type.""",
     correctionMessage:
         """Try declaring a member '${name2}' in '${name}' to resolve the conflict.""",
-    arguments: {'name': name, 'name2': name2},
+    arguments: {'name': _name, 'name2': _name2},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(String name, String name2)>
+const Template<Message Function(String _name, String _name2)>
 codeImplementNonExtensionTypeAndExtensionTypeMember =
-    const Template<Message Function(String name, String name2)>(
+    const Template<Message Function(String _name, String _name2)>(
       "ImplementNonExtensionTypeAndExtensionTypeMember",
       problemMessageTemplate:
           r"""The extension type '#name' can't inherit the member '#name2' as both an extension type member and a non-extension type member.""",
@@ -5827,20 +5842,20 @@ codeImplementNonExtensionTypeAndExtensionTypeMember =
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsOldImplementNonExtensionTypeAndExtensionTypeMember(
-  String name,
-  String name2,
+  String _name,
+  String _name2,
 ) {
-  if (name.isEmpty) throw 'No name provided';
-  name = demangleMixinApplicationName(name);
-  if (name2.isEmpty) throw 'No name provided';
-  name2 = demangleMixinApplicationName(name2);
+  if (_name.isEmpty) throw 'No name provided';
+  String name = demangleMixinApplicationName(_name);
+  if (_name2.isEmpty) throw 'No name provided';
+  String name2 = demangleMixinApplicationName(_name2);
   return new Message(
     codeImplementNonExtensionTypeAndExtensionTypeMember,
     problemMessage:
         """The extension type '${name}' can't inherit the member '${name2}' as both an extension type member and a non-extension type member.""",
     correctionMessage:
         """Try declaring a member '${name2}' in '${name}' to resolve the conflict.""",
-    arguments: {'name': name, 'name2': name2},
+    arguments: {'name': _name, 'name2': _name2},
   );
 }
 
@@ -5887,9 +5902,9 @@ const MessageCode codeImplementsNever = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(String name, int count)>
+const Template<Message Function(String _name, int count)>
 codeImplementsRepeated =
-    const Template<Message Function(String name, int count)>(
+    const Template<Message Function(String _name, int count)>(
       "ImplementsRepeated",
       problemMessageTemplate: r"""'#name' can only be implemented once.""",
       correctionMessageTemplate: r"""Try removing #count of the occurrences.""",
@@ -5898,20 +5913,20 @@ codeImplementsRepeated =
     );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldImplementsRepeated(String name, int count) {
-  if (name.isEmpty) throw 'No name provided';
-  name = demangleMixinApplicationName(name);
+Message _withArgumentsOldImplementsRepeated(String _name, int count) {
+  if (_name.isEmpty) throw 'No name provided';
+  String name = demangleMixinApplicationName(_name);
   return new Message(
     codeImplementsRepeated,
     problemMessage: """'${name}' can only be implemented once.""",
     correctionMessage: """Try removing ${count} of the occurrences.""",
-    arguments: {'name': name, 'count': count},
+    arguments: {'name': _name, 'count': count},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(String name)>
-codeImplementsSuperClass = const Template<Message Function(String name)>(
+const Template<Message Function(String _name)>
+codeImplementsSuperClass = const Template<Message Function(String _name)>(
   "ImplementsSuperClass",
   problemMessageTemplate:
       r"""'#name' can't be used in both 'extends' and 'implements' clauses.""",
@@ -5921,22 +5936,24 @@ codeImplementsSuperClass = const Template<Message Function(String name)>(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldImplementsSuperClass(String name) {
-  if (name.isEmpty) throw 'No name provided';
-  name = demangleMixinApplicationName(name);
+Message _withArgumentsOldImplementsSuperClass(String _name) {
+  if (_name.isEmpty) throw 'No name provided';
+  String name = demangleMixinApplicationName(_name);
   return new Message(
     codeImplementsSuperClass,
     problemMessage:
         """'${name}' can't be used in both 'extends' and 'implements' clauses.""",
     correctionMessage: """Try removing one of the occurrences.""",
-    arguments: {'name': name},
+    arguments: {'name': _name},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(String name, String name2, String name3)>
+const Template<Message Function(String _name, String _name2, String _name3)>
 codeImplicitMixinOverride =
-    const Template<Message Function(String name, String name2, String name3)>(
+    const Template<
+      Message Function(String _name, String _name2, String _name3)
+    >(
       "ImplicitMixinOverride",
       problemMessageTemplate:
           r"""Applying the mixin '#name' to '#name2' introduces an erroneous override of '#name3'.""",
@@ -5945,21 +5962,21 @@ codeImplicitMixinOverride =
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsOldImplicitMixinOverride(
-  String name,
-  String name2,
-  String name3,
+  String _name,
+  String _name2,
+  String _name3,
 ) {
-  if (name.isEmpty) throw 'No name provided';
-  name = demangleMixinApplicationName(name);
-  if (name2.isEmpty) throw 'No name provided';
-  name2 = demangleMixinApplicationName(name2);
-  if (name3.isEmpty) throw 'No name provided';
-  name3 = demangleMixinApplicationName(name3);
+  if (_name.isEmpty) throw 'No name provided';
+  String name = demangleMixinApplicationName(_name);
+  if (_name2.isEmpty) throw 'No name provided';
+  String name2 = demangleMixinApplicationName(_name2);
+  if (_name3.isEmpty) throw 'No name provided';
+  String name3 = demangleMixinApplicationName(_name3);
   return new Message(
     codeImplicitMixinOverride,
     problemMessage:
         """Applying the mixin '${name}' to '${name2}' introduces an erroneous override of '${name3}'.""",
-    arguments: {'name': name, 'name2': name2, 'name3': name3},
+    arguments: {'name': _name, 'name2': _name2, 'name3': _name3},
   );
 }
 
@@ -5974,9 +5991,9 @@ const MessageCode codeImplicitSuperCallOfNonMethod = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(String name)>
+const Template<Message Function(String _name)>
 codeImplicitSuperInitializerMissingArguments =
-    const Template<Message Function(String name)>(
+    const Template<Message Function(String _name)>(
       "ImplicitSuperInitializerMissingArguments",
       problemMessageTemplate:
           r"""The implicitly called unnamed constructor from '#name' has required parameters.""",
@@ -5988,16 +6005,18 @@ codeImplicitSuperInitializerMissingArguments =
     );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldImplicitSuperInitializerMissingArguments(String name) {
-  if (name.isEmpty) throw 'No name provided';
-  name = demangleMixinApplicationName(name);
+Message _withArgumentsOldImplicitSuperInitializerMissingArguments(
+  String _name,
+) {
+  if (_name.isEmpty) throw 'No name provided';
+  String name = demangleMixinApplicationName(_name);
   return new Message(
     codeImplicitSuperInitializerMissingArguments,
     problemMessage:
         """The implicitly called unnamed constructor from '${name}' has required parameters.""",
     correctionMessage:
         """Try adding an explicit super initializer with the required arguments.""",
-    arguments: {'name': name},
+    arguments: {'name': _name},
   );
 }
 
@@ -6150,9 +6169,9 @@ const MessageCode codeInheritedMembersConflictCause2 = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(String name, String name2)>
+const Template<Message Function(String _name, String _name2)>
 codeInheritedRestrictedMemberOfEnumImplementer =
-    const Template<Message Function(String name, String name2)>(
+    const Template<Message Function(String _name, String _name2)>(
       "InheritedRestrictedMemberOfEnumImplementer",
       problemMessageTemplate:
           r"""A concrete instance member named '#name' can't be inherited from '#name2' in a class that implements 'Enum'.""",
@@ -6163,18 +6182,18 @@ codeInheritedRestrictedMemberOfEnumImplementer =
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsOldInheritedRestrictedMemberOfEnumImplementer(
-  String name,
-  String name2,
+  String _name,
+  String _name2,
 ) {
-  if (name.isEmpty) throw 'No name provided';
-  name = demangleMixinApplicationName(name);
-  if (name2.isEmpty) throw 'No name provided';
-  name2 = demangleMixinApplicationName(name2);
+  if (_name.isEmpty) throw 'No name provided';
+  String name = demangleMixinApplicationName(_name);
+  if (_name2.isEmpty) throw 'No name provided';
+  String name2 = demangleMixinApplicationName(_name2);
   return new Message(
     codeInheritedRestrictedMemberOfEnumImplementer,
     problemMessage:
         """A concrete instance member named '${name}' can't be inherited from '${name2}' in a class that implements 'Enum'.""",
-    arguments: {'name': name, 'name2': name2},
+    arguments: {'name': _name, 'name2': _name2},
   );
 }
 
@@ -6345,8 +6364,8 @@ const MessageCode codeInitializedVariableInForEach = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(String name)> codeInitializerForStaticField =
-    const Template<Message Function(String name)>(
+const Template<Message Function(String _name)> codeInitializerForStaticField =
+    const Template<Message Function(String _name)>(
       "InitializerForStaticField",
       problemMessageTemplate:
           r"""'#name' isn't an instance field of this class.""",
@@ -6355,13 +6374,13 @@ const Template<Message Function(String name)> codeInitializerForStaticField =
     );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldInitializerForStaticField(String name) {
-  if (name.isEmpty) throw 'No name provided';
-  name = demangleMixinApplicationName(name);
+Message _withArgumentsOldInitializerForStaticField(String _name) {
+  if (_name.isEmpty) throw 'No name provided';
+  String name = demangleMixinApplicationName(_name);
   return new Message(
     codeInitializerForStaticField,
     problemMessage: """'${name}' isn't an instance field of this class.""",
-    arguments: {'name': name},
+    arguments: {'name': _name},
   );
 }
 
@@ -6391,9 +6410,9 @@ Message _withArgumentsOldInputFileNotFound(Uri uri_) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(String name)>
+const Template<Message Function(String _name)>
 codeInstanceAndSynthesizedStaticConflict =
-    const Template<Message Function(String name)>(
+    const Template<Message Function(String _name)>(
       "InstanceAndSynthesizedStaticConflict",
       problemMessageTemplate:
           r"""This instance member conflicts with the synthesized static member called '#name'.""",
@@ -6402,20 +6421,20 @@ codeInstanceAndSynthesizedStaticConflict =
     );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldInstanceAndSynthesizedStaticConflict(String name) {
-  if (name.isEmpty) throw 'No name provided';
-  name = demangleMixinApplicationName(name);
+Message _withArgumentsOldInstanceAndSynthesizedStaticConflict(String _name) {
+  if (_name.isEmpty) throw 'No name provided';
+  String name = demangleMixinApplicationName(_name);
   return new Message(
     codeInstanceAndSynthesizedStaticConflict,
     problemMessage:
         """This instance member conflicts with the synthesized static member called '${name}'.""",
-    arguments: {'name': name},
+    arguments: {'name': _name},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(String name)>
-codeInstanceConflictsWithStatic = const Template<Message Function(String name)>(
+const Template<Message Function(String _name)>
+codeInstanceConflictsWithStatic = const Template<Message Function(String _name)>(
   "InstanceConflictsWithStatic",
   problemMessageTemplate:
       r"""Instance property '#name' conflicts with static property of the same name.""",
@@ -6424,21 +6443,21 @@ codeInstanceConflictsWithStatic = const Template<Message Function(String name)>(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldInstanceConflictsWithStatic(String name) {
-  if (name.isEmpty) throw 'No name provided';
-  name = demangleMixinApplicationName(name);
+Message _withArgumentsOldInstanceConflictsWithStatic(String _name) {
+  if (_name.isEmpty) throw 'No name provided';
+  String name = demangleMixinApplicationName(_name);
   return new Message(
     codeInstanceConflictsWithStatic,
     problemMessage:
         """Instance property '${name}' conflicts with static property of the same name.""",
-    arguments: {'name': name},
+    arguments: {'name': _name},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(String name)>
+const Template<Message Function(String _name)>
 codeInstanceConflictsWithStaticCause =
-    const Template<Message Function(String name)>(
+    const Template<Message Function(String _name)>(
       "InstanceConflictsWithStaticCause",
       problemMessageTemplate: r"""Conflicting static property '#name'.""",
       withArgumentsOld: _withArgumentsOldInstanceConflictsWithStaticCause,
@@ -6446,13 +6465,13 @@ codeInstanceConflictsWithStaticCause =
     );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldInstanceConflictsWithStaticCause(String name) {
-  if (name.isEmpty) throw 'No name provided';
-  name = demangleMixinApplicationName(name);
+Message _withArgumentsOldInstanceConflictsWithStaticCause(String _name) {
+  if (_name.isEmpty) throw 'No name provided';
+  String name = demangleMixinApplicationName(_name);
   return new Message(
     codeInstanceConflictsWithStaticCause,
     problemMessage: """Conflicting static property '${name}'.""",
-    arguments: {'name': name},
+    arguments: {'name': _name},
   );
 }
 
@@ -6526,8 +6545,8 @@ Message _withArgumentsOldIntegerLiteralIsOutOfRange(String string) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(String name, String name2)>
-codeInterfaceCheck = const Template<Message Function(String name, String name2)>(
+const Template<Message Function(String _name, String _name2)>
+codeInterfaceCheck = const Template<Message Function(String _name, String _name2)>(
   "InterfaceCheck",
   problemMessageTemplate:
       r"""The implementation of '#name' in the non-abstract class '#name2' does not conform to its interface.""",
@@ -6535,23 +6554,23 @@ codeInterfaceCheck = const Template<Message Function(String name, String name2)>
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldInterfaceCheck(String name, String name2) {
-  if (name.isEmpty) throw 'No name provided';
-  name = demangleMixinApplicationName(name);
-  if (name2.isEmpty) throw 'No name provided';
-  name2 = demangleMixinApplicationName(name2);
+Message _withArgumentsOldInterfaceCheck(String _name, String _name2) {
+  if (_name.isEmpty) throw 'No name provided';
+  String name = demangleMixinApplicationName(_name);
+  if (_name2.isEmpty) throw 'No name provided';
+  String name2 = demangleMixinApplicationName(_name2);
   return new Message(
     codeInterfaceCheck,
     problemMessage:
         """The implementation of '${name}' in the non-abstract class '${name2}' does not conform to its interface.""",
-    arguments: {'name': name, 'name2': name2},
+    arguments: {'name': _name, 'name2': _name2},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(String name)>
+const Template<Message Function(String _name)>
 codeInterfaceClassExtendedOutsideOfLibrary =
-    const Template<Message Function(String name)>(
+    const Template<Message Function(String _name)>(
       "InterfaceClassExtendedOutsideOfLibrary",
       problemMessageTemplate:
           r"""The class '#name' can't be extended outside of its library because it's an interface class.""",
@@ -6560,14 +6579,14 @@ codeInterfaceClassExtendedOutsideOfLibrary =
     );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldInterfaceClassExtendedOutsideOfLibrary(String name) {
-  if (name.isEmpty) throw 'No name provided';
-  name = demangleMixinApplicationName(name);
+Message _withArgumentsOldInterfaceClassExtendedOutsideOfLibrary(String _name) {
+  if (_name.isEmpty) throw 'No name provided';
+  String name = demangleMixinApplicationName(_name);
   return new Message(
     codeInterfaceClassExtendedOutsideOfLibrary,
     problemMessage:
         """The class '${name}' can't be extended outside of its library because it's an interface class.""",
-    arguments: {'name': name},
+    arguments: {'name': _name},
   );
 }
 
@@ -6611,9 +6630,9 @@ const MessageCode codeInternalProblemBodyOnAbstractMethod = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(String name, Uri uri_)>
+const Template<Message Function(String _name, Uri uri_)>
 codeInternalProblemConstructorNotFound =
-    const Template<Message Function(String name, Uri uri_)>(
+    const Template<Message Function(String _name, Uri uri_)>(
       "InternalProblemConstructorNotFound",
       problemMessageTemplate: r"""No constructor named '#name' in '#uri'.""",
       withArgumentsOld: _withArgumentsOldInternalProblemConstructorNotFound,
@@ -6622,16 +6641,16 @@ codeInternalProblemConstructorNotFound =
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsOldInternalProblemConstructorNotFound(
-  String name,
+  String _name,
   Uri uri_,
 ) {
-  if (name.isEmpty) throw 'No name provided';
-  name = demangleMixinApplicationName(name);
+  if (_name.isEmpty) throw 'No name provided';
+  String name = demangleMixinApplicationName(_name);
   String? uri = relativizeUri(uri_);
   return new Message(
     codeInternalProblemConstructorNotFound,
     problemMessage: """No constructor named '${name}' in '${uri}'.""",
-    arguments: {'name': name, 'uri': uri_},
+    arguments: {'name': _name, 'uri': uri_},
   );
 }
 
@@ -6657,9 +6676,9 @@ Message _withArgumentsOldInternalProblemContextSeverity(String string) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(String name, String string)>
+const Template<Message Function(String _name, String string)>
 codeInternalProblemDebugAbort =
-    const Template<Message Function(String name, String string)>(
+    const Template<Message Function(String _name, String string)>(
       "InternalProblemDebugAbort",
       problemMessageTemplate: r"""Compilation aborted due to fatal '#name' at:
 #string""",
@@ -6668,15 +6687,18 @@ codeInternalProblemDebugAbort =
     );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldInternalProblemDebugAbort(String name, String string) {
-  if (name.isEmpty) throw 'No name provided';
-  name = demangleMixinApplicationName(name);
+Message _withArgumentsOldInternalProblemDebugAbort(
+  String _name,
+  String string,
+) {
+  if (_name.isEmpty) throw 'No name provided';
+  String name = demangleMixinApplicationName(_name);
   if (string.isEmpty) throw 'No string provided';
   return new Message(
     codeInternalProblemDebugAbort,
     problemMessage: """Compilation aborted due to fatal '${name}' at:
 ${string}""",
-    arguments: {'name': name, 'string': string},
+    arguments: {'name': _name, 'string': string},
   );
 }
 
@@ -6707,8 +6729,8 @@ const MessageCode codeInternalProblemMissingContext = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(String name)> codeInternalProblemNotFound =
-    const Template<Message Function(String name)>(
+const Template<Message Function(String _name)> codeInternalProblemNotFound =
+    const Template<Message Function(String _name)>(
       "InternalProblemNotFound",
       problemMessageTemplate: r"""Couldn't find '#name'.""",
       withArgumentsOld: _withArgumentsOldInternalProblemNotFound,
@@ -6716,20 +6738,20 @@ const Template<Message Function(String name)> codeInternalProblemNotFound =
     );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldInternalProblemNotFound(String name) {
-  if (name.isEmpty) throw 'No name provided';
-  name = demangleMixinApplicationName(name);
+Message _withArgumentsOldInternalProblemNotFound(String _name) {
+  if (_name.isEmpty) throw 'No name provided';
+  String name = demangleMixinApplicationName(_name);
   return new Message(
     codeInternalProblemNotFound,
     problemMessage: """Couldn't find '${name}'.""",
-    arguments: {'name': name},
+    arguments: {'name': _name},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(String name, String name2)>
+const Template<Message Function(String _name, String _name2)>
 codeInternalProblemNotFoundIn =
-    const Template<Message Function(String name, String name2)>(
+    const Template<Message Function(String _name, String _name2)>(
       "InternalProblemNotFoundIn",
       problemMessageTemplate: r"""Couldn't find '#name' in '#name2'.""",
       withArgumentsOld: _withArgumentsOldInternalProblemNotFoundIn,
@@ -6737,15 +6759,18 @@ codeInternalProblemNotFoundIn =
     );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldInternalProblemNotFoundIn(String name, String name2) {
-  if (name.isEmpty) throw 'No name provided';
-  name = demangleMixinApplicationName(name);
-  if (name2.isEmpty) throw 'No name provided';
-  name2 = demangleMixinApplicationName(name2);
+Message _withArgumentsOldInternalProblemNotFoundIn(
+  String _name,
+  String _name2,
+) {
+  if (_name.isEmpty) throw 'No name provided';
+  String name = demangleMixinApplicationName(_name);
+  if (_name2.isEmpty) throw 'No name provided';
+  String name2 = demangleMixinApplicationName(_name2);
   return new Message(
     codeInternalProblemNotFoundIn,
     problemMessage: """Couldn't find '${name}' in '${name2}'.""",
-    arguments: {'name': name, 'name2': name2},
+    arguments: {'name': _name, 'name2': _name2},
   );
 }
 
@@ -6766,9 +6791,9 @@ const MessageCode codeInternalProblemPreviousTokenNotFound = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(String name)>
+const Template<Message Function(String _name)>
 codeInternalProblemPrivateConstructorAccess =
-    const Template<Message Function(String name)>(
+    const Template<Message Function(String _name)>(
       "InternalProblemPrivateConstructorAccess",
       problemMessageTemplate: r"""Can't access private constructor '#name'.""",
       withArgumentsOld:
@@ -6777,13 +6802,13 @@ codeInternalProblemPrivateConstructorAccess =
     );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldInternalProblemPrivateConstructorAccess(String name) {
-  if (name.isEmpty) throw 'No name provided';
-  name = demangleMixinApplicationName(name);
+Message _withArgumentsOldInternalProblemPrivateConstructorAccess(String _name) {
+  if (_name.isEmpty) throw 'No name provided';
+  String name = demangleMixinApplicationName(_name);
   return new Message(
     codeInternalProblemPrivateConstructorAccess,
     problemMessage: """Can't access private constructor '${name}'.""",
-    arguments: {'name': name},
+    arguments: {'name': _name},
   );
 }
 
@@ -6797,9 +6822,9 @@ const MessageCode codeInternalProblemProvidedBothCompileSdkAndSdkSummary =
     );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(String name, String string)>
+const Template<Message Function(String _name, String string)>
 codeInternalProblemStackNotEmpty =
-    const Template<Message Function(String name, String string)>(
+    const Template<Message Function(String _name, String string)>(
       "InternalProblemStackNotEmpty",
       problemMessageTemplate: r"""#name.stack isn't empty:
   #string""",
@@ -6809,17 +6834,17 @@ codeInternalProblemStackNotEmpty =
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsOldInternalProblemStackNotEmpty(
-  String name,
+  String _name,
   String string,
 ) {
-  if (name.isEmpty) throw 'No name provided';
-  name = demangleMixinApplicationName(name);
+  if (_name.isEmpty) throw 'No name provided';
+  String name = demangleMixinApplicationName(_name);
   if (string.isEmpty) throw 'No string provided';
   return new Message(
     codeInternalProblemStackNotEmpty,
     problemMessage: """${name}.stack isn't empty:
   ${string}""",
-    arguments: {'name': name, 'string': string},
+    arguments: {'name': _name, 'string': string},
   );
 }
 
@@ -6892,8 +6917,8 @@ Message _withArgumentsOldInternalProblemUnimplemented(String string) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(String name)> codeInternalProblemUnsupported =
-    const Template<Message Function(String name)>(
+const Template<Message Function(String _name)> codeInternalProblemUnsupported =
+    const Template<Message Function(String _name)>(
       "InternalProblemUnsupported",
       problemMessageTemplate: r"""Unsupported operation: '#name'.""",
       withArgumentsOld: _withArgumentsOldInternalProblemUnsupported,
@@ -6901,13 +6926,13 @@ const Template<Message Function(String name)> codeInternalProblemUnsupported =
     );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldInternalProblemUnsupported(String name) {
-  if (name.isEmpty) throw 'No name provided';
-  name = demangleMixinApplicationName(name);
+Message _withArgumentsOldInternalProblemUnsupported(String _name) {
+  if (_name.isEmpty) throw 'No name provided';
+  String name = demangleMixinApplicationName(_name);
   return new Message(
     codeInternalProblemUnsupported,
     problemMessage: """Unsupported operation: '${name}'.""",
-    arguments: {'name': name},
+    arguments: {'name': _name},
   );
 }
 
@@ -6977,21 +7002,21 @@ const MessageCode codeInvalidAwaitFor = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(String name)> codeInvalidBreakTarget =
-    const Template<Message Function(String name)>(
+const Template<Message Function(String _name)> codeInvalidBreakTarget =
+    const Template<Message Function(String _name)>(
       "InvalidBreakTarget",
       problemMessageTemplate: r"""Can't break to '#name'.""",
       withArgumentsOld: _withArgumentsOldInvalidBreakTarget,
     );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldInvalidBreakTarget(String name) {
-  if (name.isEmpty) throw 'No name provided';
-  name = demangleMixinApplicationName(name);
+Message _withArgumentsOldInvalidBreakTarget(String _name) {
+  if (_name.isEmpty) throw 'No name provided';
+  String name = demangleMixinApplicationName(_name);
   return new Message(
     codeInvalidBreakTarget,
     problemMessage: """Can't break to '${name}'.""",
-    arguments: {'name': name},
+    arguments: {'name': _name},
   );
 }
 
@@ -7004,8 +7029,8 @@ const MessageCode codeInvalidCodePoint = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(String name)>
-codeInvalidConstantPatternBinary = const Template<Message Function(String name)>(
+const Template<Message Function(String _name)>
+codeInvalidConstantPatternBinary = const Template<Message Function(String _name)>(
   "InvalidConstantPatternBinary",
   problemMessageTemplate:
       r"""The binary operator #name is not supported as a constant pattern.""",
@@ -7016,15 +7041,15 @@ codeInvalidConstantPatternBinary = const Template<Message Function(String name)>
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldInvalidConstantPatternBinary(String name) {
-  if (name.isEmpty) throw 'No name provided';
-  name = demangleMixinApplicationName(name);
+Message _withArgumentsOldInvalidConstantPatternBinary(String _name) {
+  if (_name.isEmpty) throw 'No name provided';
+  String name = demangleMixinApplicationName(_name);
   return new Message(
     codeInvalidConstantPatternBinary,
     problemMessage:
         """The binary operator ${name} is not supported as a constant pattern.""",
     correctionMessage: """Try wrapping the expression in 'const ( ... )'.""",
-    arguments: {'name': name},
+    arguments: {'name': _name},
   );
 }
 
@@ -7074,8 +7099,8 @@ const MessageCode codeInvalidConstantPatternNegation = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(String name)>
-codeInvalidConstantPatternUnary = const Template<Message Function(String name)>(
+const Template<Message Function(String _name)>
+codeInvalidConstantPatternUnary = const Template<Message Function(String _name)>(
   "InvalidConstantPatternUnary",
   problemMessageTemplate:
       r"""The unary operator #name is not supported as a constant pattern.""",
@@ -7086,34 +7111,34 @@ codeInvalidConstantPatternUnary = const Template<Message Function(String name)>(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldInvalidConstantPatternUnary(String name) {
-  if (name.isEmpty) throw 'No name provided';
-  name = demangleMixinApplicationName(name);
+Message _withArgumentsOldInvalidConstantPatternUnary(String _name) {
+  if (_name.isEmpty) throw 'No name provided';
+  String name = demangleMixinApplicationName(_name);
   return new Message(
     codeInvalidConstantPatternUnary,
     problemMessage:
         """The unary operator ${name} is not supported as a constant pattern.""",
     correctionMessage: """Try wrapping the expression in 'const ( ... )'.""",
-    arguments: {'name': name},
+    arguments: {'name': _name},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(String name)> codeInvalidContinueTarget =
-    const Template<Message Function(String name)>(
+const Template<Message Function(String _name)> codeInvalidContinueTarget =
+    const Template<Message Function(String _name)>(
       "InvalidContinueTarget",
       problemMessageTemplate: r"""Can't continue at '#name'.""",
       withArgumentsOld: _withArgumentsOldInvalidContinueTarget,
     );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldInvalidContinueTarget(String name) {
-  if (name.isEmpty) throw 'No name provided';
-  name = demangleMixinApplicationName(name);
+Message _withArgumentsOldInvalidContinueTarget(String _name) {
+  if (_name.isEmpty) throw 'No name provided';
+  String name = demangleMixinApplicationName(_name);
   return new Message(
     codeInvalidContinueTarget,
     problemMessage: """Can't continue at '${name}'.""",
-    arguments: {'name': name},
+    arguments: {'name': _name},
   );
 }
 
@@ -7126,9 +7151,9 @@ const MessageCode codeInvalidEscapeStarted = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(String name)>
+const Template<Message Function(String _name)>
 codeInvalidGetterSetterTypeFieldContext =
-    const Template<Message Function(String name)>(
+    const Template<Message Function(String _name)>(
       "InvalidGetterSetterTypeFieldContext",
       problemMessageTemplate:
           r"""This is the declaration of the field '#name'.""",
@@ -7137,20 +7162,20 @@ codeInvalidGetterSetterTypeFieldContext =
     );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldInvalidGetterSetterTypeFieldContext(String name) {
-  if (name.isEmpty) throw 'No name provided';
-  name = demangleMixinApplicationName(name);
+Message _withArgumentsOldInvalidGetterSetterTypeFieldContext(String _name) {
+  if (_name.isEmpty) throw 'No name provided';
+  String name = demangleMixinApplicationName(_name);
   return new Message(
     codeInvalidGetterSetterTypeFieldContext,
     problemMessage: """This is the declaration of the field '${name}'.""",
-    arguments: {'name': name},
+    arguments: {'name': _name},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(String name)>
+const Template<Message Function(String _name)>
 codeInvalidGetterSetterTypeGetterContext =
-    const Template<Message Function(String name)>(
+    const Template<Message Function(String _name)>(
       "InvalidGetterSetterTypeGetterContext",
       problemMessageTemplate:
           r"""This is the declaration of the getter '#name'.""",
@@ -7159,20 +7184,20 @@ codeInvalidGetterSetterTypeGetterContext =
     );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldInvalidGetterSetterTypeGetterContext(String name) {
-  if (name.isEmpty) throw 'No name provided';
-  name = demangleMixinApplicationName(name);
+Message _withArgumentsOldInvalidGetterSetterTypeGetterContext(String _name) {
+  if (_name.isEmpty) throw 'No name provided';
+  String name = demangleMixinApplicationName(_name);
   return new Message(
     codeInvalidGetterSetterTypeGetterContext,
     problemMessage: """This is the declaration of the getter '${name}'.""",
-    arguments: {'name': name},
+    arguments: {'name': _name},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(String name)>
+const Template<Message Function(String _name)>
 codeInvalidGetterSetterTypeSetterContext =
-    const Template<Message Function(String name)>(
+    const Template<Message Function(String _name)>(
       "InvalidGetterSetterTypeSetterContext",
       problemMessageTemplate:
           r"""This is the declaration of the setter '#name'.""",
@@ -7181,13 +7206,13 @@ codeInvalidGetterSetterTypeSetterContext =
     );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldInvalidGetterSetterTypeSetterContext(String name) {
-  if (name.isEmpty) throw 'No name provided';
-  name = demangleMixinApplicationName(name);
+Message _withArgumentsOldInvalidGetterSetterTypeSetterContext(String _name) {
+  if (_name.isEmpty) throw 'No name provided';
+  String name = demangleMixinApplicationName(_name);
   return new Message(
     codeInvalidGetterSetterTypeSetterContext,
     problemMessage: """This is the declaration of the setter '${name}'.""",
-    arguments: {'name': name},
+    arguments: {'name': _name},
   );
 }
 
@@ -7296,9 +7321,11 @@ const MessageCode codeInvalidThisInInitializer = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(String name, String string2, String name2)>
+const Template<Message Function(String _name, String string2, String _name2)>
 codeInvalidTypeParameterInSupertype =
-    const Template<Message Function(String name, String string2, String name2)>(
+    const Template<
+      Message Function(String _name, String string2, String _name2)
+    >(
       "InvalidTypeParameterInSupertype",
       problemMessageTemplate:
           r"""Can't use implicitly 'out' variable '#name' in an '#string2' position in supertype '#name2'.""",
@@ -7307,30 +7334,35 @@ codeInvalidTypeParameterInSupertype =
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsOldInvalidTypeParameterInSupertype(
-  String name,
+  String _name,
   String string2,
-  String name2,
+  String _name2,
 ) {
-  if (name.isEmpty) throw 'No name provided';
-  name = demangleMixinApplicationName(name);
+  if (_name.isEmpty) throw 'No name provided';
+  String name = demangleMixinApplicationName(_name);
   if (string2.isEmpty) throw 'No string provided';
-  if (name2.isEmpty) throw 'No name provided';
-  name2 = demangleMixinApplicationName(name2);
+  if (_name2.isEmpty) throw 'No name provided';
+  String name2 = demangleMixinApplicationName(_name2);
   return new Message(
     codeInvalidTypeParameterInSupertype,
     problemMessage:
         """Can't use implicitly 'out' variable '${name}' in an '${string2}' position in supertype '${name2}'.""",
-    arguments: {'name': name, 'string2': string2, 'name2': name2},
+    arguments: {'name': _name, 'string2': string2, 'name2': _name2},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
-  Message Function(String string, String name, String string2, String name2)
+  Message Function(String string, String _name, String string2, String _name2)
 >
 codeInvalidTypeParameterInSupertypeWithVariance =
     const Template<
-      Message Function(String string, String name, String string2, String name2)
+      Message Function(
+        String string,
+        String _name,
+        String string2,
+        String _name2,
+      )
     >(
       "InvalidTypeParameterInSupertypeWithVariance",
       problemMessageTemplate:
@@ -7342,34 +7374,34 @@ codeInvalidTypeParameterInSupertypeWithVariance =
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsOldInvalidTypeParameterInSupertypeWithVariance(
   String string,
-  String name,
+  String _name,
   String string2,
-  String name2,
+  String _name2,
 ) {
   if (string.isEmpty) throw 'No string provided';
-  if (name.isEmpty) throw 'No name provided';
-  name = demangleMixinApplicationName(name);
+  if (_name.isEmpty) throw 'No name provided';
+  String name = demangleMixinApplicationName(_name);
   if (string2.isEmpty) throw 'No string provided';
-  if (name2.isEmpty) throw 'No name provided';
-  name2 = demangleMixinApplicationName(name2);
+  if (_name2.isEmpty) throw 'No name provided';
+  String name2 = demangleMixinApplicationName(_name2);
   return new Message(
     codeInvalidTypeParameterInSupertypeWithVariance,
     problemMessage:
         """Can't use '${string}' type variable '${name}' in an '${string2}' position in supertype '${name2}'.""",
     arguments: {
       'string': string,
-      'name': name,
+      'name': _name,
       'string2': string2,
-      'name2': name2,
+      'name2': _name2,
     },
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(String string, String name, String string2)>
+const Template<Message Function(String string, String _name, String string2)>
 codeInvalidTypeParameterVariancePosition =
     const Template<
-      Message Function(String string, String name, String string2)
+      Message Function(String string, String _name, String string2)
     >(
       "InvalidTypeParameterVariancePosition",
       problemMessageTemplate:
@@ -7380,26 +7412,26 @@ codeInvalidTypeParameterVariancePosition =
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsOldInvalidTypeParameterVariancePosition(
   String string,
-  String name,
+  String _name,
   String string2,
 ) {
   if (string.isEmpty) throw 'No string provided';
-  if (name.isEmpty) throw 'No name provided';
-  name = demangleMixinApplicationName(name);
+  if (_name.isEmpty) throw 'No name provided';
+  String name = demangleMixinApplicationName(_name);
   if (string2.isEmpty) throw 'No string provided';
   return new Message(
     codeInvalidTypeParameterVariancePosition,
     problemMessage:
         """Can't use '${string}' type variable '${name}' in an '${string2}' position.""",
-    arguments: {'string': string, 'name': name, 'string2': string2},
+    arguments: {'string': string, 'name': _name, 'string2': string2},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(String string, String name, String string2)>
+const Template<Message Function(String string, String _name, String string2)>
 codeInvalidTypeParameterVariancePositionInReturnType =
     const Template<
-      Message Function(String string, String name, String string2)
+      Message Function(String string, String _name, String string2)
     >(
       "InvalidTypeParameterVariancePositionInReturnType",
       problemMessageTemplate:
@@ -7411,18 +7443,18 @@ codeInvalidTypeParameterVariancePositionInReturnType =
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsOldInvalidTypeParameterVariancePositionInReturnType(
   String string,
-  String name,
+  String _name,
   String string2,
 ) {
   if (string.isEmpty) throw 'No string provided';
-  if (name.isEmpty) throw 'No name provided';
-  name = demangleMixinApplicationName(name);
+  if (_name.isEmpty) throw 'No name provided';
+  String name = demangleMixinApplicationName(_name);
   if (string2.isEmpty) throw 'No string provided';
   return new Message(
     codeInvalidTypeParameterVariancePositionInReturnType,
     problemMessage:
         """Can't use '${string}' type variable '${name}' in an '${string2}' position in the return type.""",
-    arguments: {'string': string, 'name': name, 'string2': string2},
+    arguments: {'string': string, 'name': _name, 'string2': string2},
   );
 }
 
@@ -7468,8 +7500,8 @@ const MessageCode codeInvalidVoid = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(String name)> codeInvokeNonFunction =
-    const Template<Message Function(String name)>(
+const Template<Message Function(String _name)> codeInvokeNonFunction =
+    const Template<Message Function(String _name)>(
       "InvokeNonFunction",
       problemMessageTemplate:
           r"""'#name' isn't a function or method and can't be invoked.""",
@@ -7478,20 +7510,20 @@ const Template<Message Function(String name)> codeInvokeNonFunction =
     );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldInvokeNonFunction(String name) {
-  if (name.isEmpty) throw 'No name provided';
-  name = demangleMixinApplicationName(name);
+Message _withArgumentsOldInvokeNonFunction(String _name) {
+  if (_name.isEmpty) throw 'No name provided';
+  String name = demangleMixinApplicationName(_name);
   return new Message(
     codeInvokeNonFunction,
     problemMessage:
         """'${name}' isn't a function or method and can't be invoked.""",
-    arguments: {'name': name},
+    arguments: {'name': _name},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(String name)>
-codeJointPatternVariableNotInAll = const Template<Message Function(String name)>(
+const Template<Message Function(String _name)>
+codeJointPatternVariableNotInAll = const Template<Message Function(String _name)>(
   "JointPatternVariableNotInAll",
   problemMessageTemplate:
       r"""The variable '#name' is available in some, but not all cases that share this body.""",
@@ -7500,21 +7532,21 @@ codeJointPatternVariableNotInAll = const Template<Message Function(String name)>
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldJointPatternVariableNotInAll(String name) {
-  if (name.isEmpty) throw 'No name provided';
-  name = demangleMixinApplicationName(name);
+Message _withArgumentsOldJointPatternVariableNotInAll(String _name) {
+  if (_name.isEmpty) throw 'No name provided';
+  String name = demangleMixinApplicationName(_name);
   return new Message(
     codeJointPatternVariableNotInAll,
     problemMessage:
         """The variable '${name}' is available in some, but not all cases that share this body.""",
-    arguments: {'name': name},
+    arguments: {'name': _name},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(String name)>
+const Template<Message Function(String _name)>
 codeJointPatternVariableWithLabelDefault =
-    const Template<Message Function(String name)>(
+    const Template<Message Function(String _name)>(
       "JointPatternVariableWithLabelDefault",
       problemMessageTemplate:
           r"""The variable '#name' is not available because there is a label or 'default' case.""",
@@ -7523,20 +7555,20 @@ codeJointPatternVariableWithLabelDefault =
     );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldJointPatternVariableWithLabelDefault(String name) {
-  if (name.isEmpty) throw 'No name provided';
-  name = demangleMixinApplicationName(name);
+Message _withArgumentsOldJointPatternVariableWithLabelDefault(String _name) {
+  if (_name.isEmpty) throw 'No name provided';
+  String name = demangleMixinApplicationName(_name);
   return new Message(
     codeJointPatternVariableWithLabelDefault,
     problemMessage:
         """The variable '${name}' is not available because there is a label or 'default' case.""",
-    arguments: {'name': name},
+    arguments: {'name': _name},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(String name)>
-codeJointPatternVariablesMismatch = const Template<Message Function(String name)>(
+const Template<Message Function(String _name)>
+codeJointPatternVariablesMismatch = const Template<Message Function(String _name)>(
   "JointPatternVariablesMismatch",
   problemMessageTemplate:
       r"""Variable pattern '#name' doesn't have the same type or finality in all cases.""",
@@ -7544,21 +7576,21 @@ codeJointPatternVariablesMismatch = const Template<Message Function(String name)
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldJointPatternVariablesMismatch(String name) {
-  if (name.isEmpty) throw 'No name provided';
-  name = demangleMixinApplicationName(name);
+Message _withArgumentsOldJointPatternVariablesMismatch(String _name) {
+  if (_name.isEmpty) throw 'No name provided';
+  String name = demangleMixinApplicationName(_name);
   return new Message(
     codeJointPatternVariablesMismatch,
     problemMessage:
         """Variable pattern '${name}' doesn't have the same type or finality in all cases.""",
-    arguments: {'name': name},
+    arguments: {'name': _name},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(String name, String name2)>
+const Template<Message Function(String _name, String _name2)>
 codeJsInteropDartClassExtendsJSClass =
-    const Template<Message Function(String name, String name2)>(
+    const Template<Message Function(String _name, String _name2)>(
       "JsInteropDartClassExtendsJSClass",
       problemMessageTemplate:
           r"""Dart class '#name' cannot extend JS interop class '#name2'.""",
@@ -7569,20 +7601,20 @@ codeJsInteropDartClassExtendsJSClass =
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsOldJsInteropDartClassExtendsJSClass(
-  String name,
-  String name2,
+  String _name,
+  String _name2,
 ) {
-  if (name.isEmpty) throw 'No name provided';
-  name = demangleMixinApplicationName(name);
-  if (name2.isEmpty) throw 'No name provided';
-  name2 = demangleMixinApplicationName(name2);
+  if (_name.isEmpty) throw 'No name provided';
+  String name = demangleMixinApplicationName(_name);
+  if (_name2.isEmpty) throw 'No name provided';
+  String name2 = demangleMixinApplicationName(_name2);
   return new Message(
     codeJsInteropDartClassExtendsJSClass,
     problemMessage:
         """Dart class '${name}' cannot extend JS interop class '${name2}'.""",
     correctionMessage:
         """Try adding the JS interop annotation or removing it from the parent class.""",
-    arguments: {'name': name, 'name2': name2},
+    arguments: {'name': _name, 'name2': _name2},
   );
 }
 
@@ -7597,9 +7629,9 @@ codeJsInteropDartJsInteropAnnotationForStaticInteropOnly = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(String name)>
+const Template<Message Function(String _name)>
 codeJsInteropDisallowedInteropLibraryInDart2Wasm =
-    const Template<Message Function(String name)>(
+    const Template<Message Function(String _name)>(
       "JsInteropDisallowedInteropLibraryInDart2Wasm",
       problemMessageTemplate:
           r"""JS interop library '#name' can't be imported when compiling to Wasm.""",
@@ -7611,17 +7643,17 @@ codeJsInteropDisallowedInteropLibraryInDart2Wasm =
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsOldJsInteropDisallowedInteropLibraryInDart2Wasm(
-  String name,
+  String _name,
 ) {
-  if (name.isEmpty) throw 'No name provided';
-  name = demangleMixinApplicationName(name);
+  if (_name.isEmpty) throw 'No name provided';
+  String name = demangleMixinApplicationName(_name);
   return new Message(
     codeJsInteropDisallowedInteropLibraryInDart2Wasm,
     problemMessage:
         """JS interop library '${name}' can't be imported when compiling to Wasm.""",
     correctionMessage:
         """Try using 'dart:js_interop' or 'dart:js_interop_unsafe' instead.""",
-    arguments: {'name': name},
+    arguments: {'name': _name},
   );
 }
 
@@ -7642,9 +7674,9 @@ const MessageCode codeJsInteropEnclosingClassJSAnnotationContext =
     );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(String name)>
+const Template<Message Function(String _name)>
 codeJsInteropExportClassNotMarkedExportable =
-    const Template<Message Function(String name)>(
+    const Template<Message Function(String _name)>(
       "JsInteropExportClassNotMarkedExportable",
       problemMessageTemplate:
           r"""Class '#name' does not have a `@JSExport` on it or any of its members.""",
@@ -7655,22 +7687,22 @@ codeJsInteropExportClassNotMarkedExportable =
     );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldJsInteropExportClassNotMarkedExportable(String name) {
-  if (name.isEmpty) throw 'No name provided';
-  name = demangleMixinApplicationName(name);
+Message _withArgumentsOldJsInteropExportClassNotMarkedExportable(String _name) {
+  if (_name.isEmpty) throw 'No name provided';
+  String name = demangleMixinApplicationName(_name);
   return new Message(
     codeJsInteropExportClassNotMarkedExportable,
     problemMessage:
         """Class '${name}' does not have a `@JSExport` on it or any of its members.""",
     correctionMessage: """Use the `@JSExport` annotation on this class.""",
-    arguments: {'name': name},
+    arguments: {'name': _name},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(String name)>
+const Template<Message Function(String _name)>
 codeJsInteropExportDartInterfaceHasNonEmptyJSExportValue =
-    const Template<Message Function(String name)>(
+    const Template<Message Function(String _name)>(
       "JsInteropExportDartInterfaceHasNonEmptyJSExportValue",
       problemMessageTemplate:
           r"""The value in the `@JSExport` annotation on the class or mixin '#name' will be ignored.""",
@@ -7682,22 +7714,22 @@ codeJsInteropExportDartInterfaceHasNonEmptyJSExportValue =
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsOldJsInteropExportDartInterfaceHasNonEmptyJSExportValue(
-  String name,
+  String _name,
 ) {
-  if (name.isEmpty) throw 'No name provided';
-  name = demangleMixinApplicationName(name);
+  if (_name.isEmpty) throw 'No name provided';
+  String name = demangleMixinApplicationName(_name);
   return new Message(
     codeJsInteropExportDartInterfaceHasNonEmptyJSExportValue,
     problemMessage:
         """The value in the `@JSExport` annotation on the class or mixin '${name}' will be ignored.""",
     correctionMessage: """Remove the value in the annotation.""",
-    arguments: {'name': name},
+    arguments: {'name': _name},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(String name)>
-codeJsInteropExportDisallowedMember = const Template<Message Function(String name)>(
+const Template<Message Function(String _name)>
+codeJsInteropExportDisallowedMember = const Template<Message Function(String _name)>(
   "JsInteropExportDisallowedMember",
   problemMessageTemplate:
       r"""Member '#name' is not a concrete instance member or declares type parameters, and therefore can't be exported.""",
@@ -7707,23 +7739,23 @@ codeJsInteropExportDisallowedMember = const Template<Message Function(String nam
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldJsInteropExportDisallowedMember(String name) {
-  if (name.isEmpty) throw 'No name provided';
-  name = demangleMixinApplicationName(name);
+Message _withArgumentsOldJsInteropExportDisallowedMember(String _name) {
+  if (_name.isEmpty) throw 'No name provided';
+  String name = demangleMixinApplicationName(_name);
   return new Message(
     codeJsInteropExportDisallowedMember,
     problemMessage:
         """Member '${name}' is not a concrete instance member or declares type parameters, and therefore can't be exported.""",
     correctionMessage:
         """Remove the `@JSExport` annotation from the member, and use an instance member to call this member instead.""",
-    arguments: {'name': name},
+    arguments: {'name': _name},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(String name, String string)>
+const Template<Message Function(String _name, String string)>
 codeJsInteropExportMemberCollision =
-    const Template<Message Function(String name, String string)>(
+    const Template<Message Function(String _name, String string)>(
       "JsInteropExportMemberCollision",
       problemMessageTemplate:
           r"""The following class members collide with the same export '#name': #string.""",
@@ -7734,11 +7766,11 @@ codeJsInteropExportMemberCollision =
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsOldJsInteropExportMemberCollision(
-  String name,
+  String _name,
   String string,
 ) {
-  if (name.isEmpty) throw 'No name provided';
-  name = demangleMixinApplicationName(name);
+  if (_name.isEmpty) throw 'No name provided';
+  String name = demangleMixinApplicationName(_name);
   if (string.isEmpty) throw 'No string provided';
   return new Message(
     codeJsInteropExportMemberCollision,
@@ -7746,13 +7778,13 @@ Message _withArgumentsOldJsInteropExportMemberCollision(
         """The following class members collide with the same export '${name}': ${string}.""",
     correctionMessage:
         """Either remove the conflicting members or use a different export name.""",
-    arguments: {'name': name, 'string': string},
+    arguments: {'name': _name, 'string': string},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(String name)>
-codeJsInteropExportNoExportableMembers = const Template<Message Function(String name)>(
+const Template<Message Function(String _name)>
+codeJsInteropExportNoExportableMembers = const Template<Message Function(String _name)>(
   "JsInteropExportNoExportableMembers",
   problemMessageTemplate:
       r"""Class '#name' has no exportable members in the class or the inheritance chain.""",
@@ -7762,16 +7794,16 @@ codeJsInteropExportNoExportableMembers = const Template<Message Function(String 
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldJsInteropExportNoExportableMembers(String name) {
-  if (name.isEmpty) throw 'No name provided';
-  name = demangleMixinApplicationName(name);
+Message _withArgumentsOldJsInteropExportNoExportableMembers(String _name) {
+  if (_name.isEmpty) throw 'No name provided';
+  String name = demangleMixinApplicationName(_name);
   return new Message(
     codeJsInteropExportNoExportableMembers,
     problemMessage:
         """Class '${name}' has no exportable members in the class or the inheritance chain.""",
     correctionMessage:
         """Using `@JSExport`, annotate at least one instance member with a body or annotate a class that has such a member in the inheritance chain.""",
-    arguments: {'name': name},
+    arguments: {'name': _name},
   );
 }
 
@@ -7856,9 +7888,9 @@ const MessageCode codeJsInteropIsATearoff = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(String name, String name2)>
+const Template<Message Function(String _name, String _name2)>
 codeJsInteropJSClassExtendsDartClass =
-    const Template<Message Function(String name, String name2)>(
+    const Template<Message Function(String _name, String _name2)>(
       "JsInteropJSClassExtendsDartClass",
       problemMessageTemplate:
           r"""JS interop class '#name' cannot extend Dart class '#name2'.""",
@@ -7869,20 +7901,20 @@ codeJsInteropJSClassExtendsDartClass =
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsOldJsInteropJSClassExtendsDartClass(
-  String name,
-  String name2,
+  String _name,
+  String _name2,
 ) {
-  if (name.isEmpty) throw 'No name provided';
-  name = demangleMixinApplicationName(name);
-  if (name2.isEmpty) throw 'No name provided';
-  name2 = demangleMixinApplicationName(name2);
+  if (_name.isEmpty) throw 'No name provided';
+  String name = demangleMixinApplicationName(_name);
+  if (_name2.isEmpty) throw 'No name provided';
+  String name2 = demangleMixinApplicationName(_name2);
   return new Message(
     codeJsInteropJSClassExtendsDartClass,
     problemMessage:
         """JS interop class '${name}' cannot extend Dart class '${name2}'.""",
     correctionMessage:
         """Try removing the JS interop annotation or adding it to the parent class.""",
-    arguments: {'name': name, 'name2': name2},
+    arguments: {'name': _name, 'name2': _name2},
   );
 }
 
@@ -7896,9 +7928,11 @@ const MessageCode codeJsInteropNamedParameters = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(String name, String name2, String string3)>
+const Template<Message Function(String _name, String _name2, String string3)>
 codeJsInteropNativeClassInAnnotation =
-    const Template<Message Function(String name, String name2, String string3)>(
+    const Template<
+      Message Function(String _name, String _name2, String string3)
+    >(
       "JsInteropNativeClassInAnnotation",
       problemMessageTemplate:
           r"""Non-static JS interop class '#name' conflicts with natively supported class '#name2' in '#string3'.""",
@@ -7909,14 +7943,14 @@ codeJsInteropNativeClassInAnnotation =
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsOldJsInteropNativeClassInAnnotation(
-  String name,
-  String name2,
+  String _name,
+  String _name2,
   String string3,
 ) {
-  if (name.isEmpty) throw 'No name provided';
-  name = demangleMixinApplicationName(name);
-  if (name2.isEmpty) throw 'No name provided';
-  name2 = demangleMixinApplicationName(name2);
+  if (_name.isEmpty) throw 'No name provided';
+  String name = demangleMixinApplicationName(_name);
+  if (_name2.isEmpty) throw 'No name provided';
+  String name2 = demangleMixinApplicationName(_name2);
   if (string3.isEmpty) throw 'No string provided';
   return new Message(
     codeJsInteropNativeClassInAnnotation,
@@ -7924,7 +7958,7 @@ Message _withArgumentsOldJsInteropNativeClassInAnnotation(
         """Non-static JS interop class '${name}' conflicts with natively supported class '${name2}' in '${string3}'.""",
     correctionMessage:
         """Try replacing it with a static JS interop class using `@staticInterop` with extension methods, or use js_util to interact with the native object of type '${name2}'.""",
-    arguments: {'name': name, 'name2': name2, 'string3': string3},
+    arguments: {'name': _name, 'name2': _name2, 'string3': string3},
   );
 }
 
@@ -7945,9 +7979,9 @@ const MessageCode codeJsInteropNonExternalMember = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(String name, String name2)>
+const Template<Message Function(String _name, String _name2)>
 codeJsInteropNonStaticWithStaticInteropSupertype =
-    const Template<Message Function(String name, String name2)>(
+    const Template<Message Function(String _name, String _name2)>(
       "JsInteropNonStaticWithStaticInteropSupertype",
       problemMessageTemplate:
           r"""Class '#name' does not have an `@staticInterop` annotation, but has supertype '#name2', which does.""",
@@ -7959,20 +7993,20 @@ codeJsInteropNonStaticWithStaticInteropSupertype =
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsOldJsInteropNonStaticWithStaticInteropSupertype(
-  String name,
-  String name2,
+  String _name,
+  String _name2,
 ) {
-  if (name.isEmpty) throw 'No name provided';
-  name = demangleMixinApplicationName(name);
-  if (name2.isEmpty) throw 'No name provided';
-  name2 = demangleMixinApplicationName(name2);
+  if (_name.isEmpty) throw 'No name provided';
+  String name = demangleMixinApplicationName(_name);
+  if (_name2.isEmpty) throw 'No name provided';
+  String name2 = demangleMixinApplicationName(_name2);
   return new Message(
     codeJsInteropNonStaticWithStaticInteropSupertype,
     problemMessage:
         """Class '${name}' does not have an `@staticInterop` annotation, but has supertype '${name2}', which does.""",
     correctionMessage:
         """Try marking '${name}' as a `@staticInterop` class, or don't inherit '${name2}'.""",
-    arguments: {'name': name, 'name2': name2},
+    arguments: {'name': _name, 'name2': _name2},
   );
 }
 
@@ -8061,20 +8095,20 @@ codeJsInteropStaticInteropGenerativeConstructor = const MessageCode(
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
   Message Function(
-    String name,
+    String _name,
     String string,
     String string2,
-    String name2,
+    String _name2,
     String string3,
   )
 >
 codeJsInteropStaticInteropMockMissingGetterOrSetter =
     const Template<
       Message Function(
-        String name,
+        String _name,
         String string,
         String string2,
-        String name2,
+        String _name2,
         String string3,
       )
     >(
@@ -8089,18 +8123,18 @@ codeJsInteropStaticInteropMockMissingGetterOrSetter =
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsOldJsInteropStaticInteropMockMissingGetterOrSetter(
-  String name,
+  String _name,
   String string,
   String string2,
-  String name2,
+  String _name2,
   String string3,
 ) {
-  if (name.isEmpty) throw 'No name provided';
-  name = demangleMixinApplicationName(name);
+  if (_name.isEmpty) throw 'No name provided';
+  String name = demangleMixinApplicationName(_name);
   if (string.isEmpty) throw 'No string provided';
   if (string2.isEmpty) throw 'No string provided';
-  if (name2.isEmpty) throw 'No name provided';
-  name2 = demangleMixinApplicationName(name2);
+  if (_name2.isEmpty) throw 'No name provided';
+  String name2 = demangleMixinApplicationName(_name2);
   if (string3.isEmpty) throw 'No string provided';
   return new Message(
     codeJsInteropStaticInteropMockMissingGetterOrSetter,
@@ -8109,19 +8143,21 @@ Message _withArgumentsOldJsInteropStaticInteropMockMissingGetterOrSetter(
     correctionMessage:
         """Declare an exportable ${string2} that implements one of these extension members.""",
     arguments: {
-      'name': name,
+      'name': _name,
       'string': string,
       'string2': string2,
-      'name2': name2,
+      'name2': _name2,
       'string3': string3,
     },
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(String name, String name2, String string)>
+const Template<Message Function(String _name, String _name2, String string)>
 codeJsInteropStaticInteropMockMissingImplements =
-    const Template<Message Function(String name, String name2, String string)>(
+    const Template<
+      Message Function(String _name, String _name2, String string)
+    >(
       "JsInteropStaticInteropMockMissingImplements",
       problemMessageTemplate:
           r"""Dart class '#name' does not have any members that implement any of the following extension member(s) with export name '#name2': #string.""",
@@ -8133,14 +8169,14 @@ codeJsInteropStaticInteropMockMissingImplements =
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsOldJsInteropStaticInteropMockMissingImplements(
-  String name,
-  String name2,
+  String _name,
+  String _name2,
   String string,
 ) {
-  if (name.isEmpty) throw 'No name provided';
-  name = demangleMixinApplicationName(name);
-  if (name2.isEmpty) throw 'No name provided';
-  name2 = demangleMixinApplicationName(name2);
+  if (_name.isEmpty) throw 'No name provided';
+  String name = demangleMixinApplicationName(_name);
+  if (_name2.isEmpty) throw 'No name provided';
+  String name2 = demangleMixinApplicationName(_name2);
   if (string.isEmpty) throw 'No string provided';
   return new Message(
     codeJsInteropStaticInteropMockMissingImplements,
@@ -8148,14 +8184,14 @@ Message _withArgumentsOldJsInteropStaticInteropMockMissingImplements(
         """Dart class '${name}' does not have any members that implement any of the following extension member(s) with export name '${name2}': ${string}.""",
     correctionMessage:
         """Declare an exportable member that implements one of these extension members.""",
-    arguments: {'name': name, 'name2': name2, 'string': string},
+    arguments: {'name': _name, 'name2': _name2, 'string': string},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(String name)>
+const Template<Message Function(String _name)>
 codeJsInteropStaticInteropNoJSAnnotation =
-    const Template<Message Function(String name)>(
+    const Template<Message Function(String _name)>(
       "JsInteropStaticInteropNoJSAnnotation",
       problemMessageTemplate:
           r"""`@staticInterop` classes should also have the `@JS` annotation.""",
@@ -8164,15 +8200,15 @@ codeJsInteropStaticInteropNoJSAnnotation =
     );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldJsInteropStaticInteropNoJSAnnotation(String name) {
-  if (name.isEmpty) throw 'No name provided';
-  name = demangleMixinApplicationName(name);
+Message _withArgumentsOldJsInteropStaticInteropNoJSAnnotation(String _name) {
+  if (_name.isEmpty) throw 'No name provided';
+  String name = demangleMixinApplicationName(_name);
   return new Message(
     codeJsInteropStaticInteropNoJSAnnotation,
     problemMessage:
         """`@staticInterop` classes should also have the `@JS` annotation.""",
     correctionMessage: """Add `@JS` to class '${name}'.""",
-    arguments: {'name': name},
+    arguments: {'name': _name},
   );
 }
 
@@ -8198,9 +8234,9 @@ codeJsInteropStaticInteropSyntheticConstructor = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(String string, String name)>
+const Template<Message Function(String string, String _name)>
 codeJsInteropStaticInteropTearOffsDisallowed =
-    const Template<Message Function(String string, String name)>(
+    const Template<Message Function(String string, String _name)>(
       "JsInteropStaticInteropTearOffsDisallowed",
       problemMessageTemplate:
           r"""Tear-offs of external #string '#name' are disallowed.""",
@@ -8213,17 +8249,17 @@ codeJsInteropStaticInteropTearOffsDisallowed =
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsOldJsInteropStaticInteropTearOffsDisallowed(
   String string,
-  String name,
+  String _name,
 ) {
   if (string.isEmpty) throw 'No string provided';
-  if (name.isEmpty) throw 'No name provided';
-  name = demangleMixinApplicationName(name);
+  if (_name.isEmpty) throw 'No name provided';
+  String name = demangleMixinApplicationName(_name);
   return new Message(
     codeJsInteropStaticInteropTearOffsDisallowed,
     problemMessage:
         """Tear-offs of external ${string} '${name}' are disallowed.""",
     correctionMessage: """Declare a closure that calls this member instead.""",
-    arguments: {'string': string, 'name': name},
+    arguments: {'string': string, 'name': _name},
   );
 }
 
@@ -8256,9 +8292,9 @@ Message _withArgumentsOldJsInteropStaticInteropToJSFunctionTypeViolation(
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(String name)>
+const Template<Message Function(String _name)>
 codeJsInteropStaticInteropTrustTypesUsageNotAllowed =
-    const Template<Message Function(String name)>(
+    const Template<Message Function(String _name)>(
       "JsInteropStaticInteropTrustTypesUsageNotAllowed",
       problemMessageTemplate:
           r"""JS interop class '#name' has an `@trustTypes` annotation, but `@trustTypes` is only supported within the sdk.""",
@@ -8270,23 +8306,23 @@ codeJsInteropStaticInteropTrustTypesUsageNotAllowed =
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsOldJsInteropStaticInteropTrustTypesUsageNotAllowed(
-  String name,
+  String _name,
 ) {
-  if (name.isEmpty) throw 'No name provided';
-  name = demangleMixinApplicationName(name);
+  if (_name.isEmpty) throw 'No name provided';
+  String name = demangleMixinApplicationName(_name);
   return new Message(
     codeJsInteropStaticInteropTrustTypesUsageNotAllowed,
     problemMessage:
         """JS interop class '${name}' has an `@trustTypes` annotation, but `@trustTypes` is only supported within the sdk.""",
     correctionMessage: """Try removing the `@trustTypes` annotation.""",
-    arguments: {'name': name},
+    arguments: {'name': _name},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(String name)>
+const Template<Message Function(String _name)>
 codeJsInteropStaticInteropTrustTypesUsedWithoutStaticInterop =
-    const Template<Message Function(String name)>(
+    const Template<Message Function(String _name)>(
       "JsInteropStaticInteropTrustTypesUsedWithoutStaticInterop",
       problemMessageTemplate:
           r"""JS interop class '#name' has an `@trustTypes` annotation, but no `@staticInterop` annotation.""",
@@ -8299,23 +8335,23 @@ codeJsInteropStaticInteropTrustTypesUsedWithoutStaticInterop =
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message
 _withArgumentsOldJsInteropStaticInteropTrustTypesUsedWithoutStaticInterop(
-  String name,
+  String _name,
 ) {
-  if (name.isEmpty) throw 'No name provided';
-  name = demangleMixinApplicationName(name);
+  if (_name.isEmpty) throw 'No name provided';
+  String name = demangleMixinApplicationName(_name);
   return new Message(
     codeJsInteropStaticInteropTrustTypesUsedWithoutStaticInterop,
     problemMessage:
         """JS interop class '${name}' has an `@trustTypes` annotation, but no `@staticInterop` annotation.""",
     correctionMessage: """Try marking the class using `@staticInterop`.""",
-    arguments: {'name': name},
+    arguments: {'name': _name},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(String name)>
+const Template<Message Function(String _name)>
 codeJsInteropStaticInteropWithInstanceMembers =
-    const Template<Message Function(String name)>(
+    const Template<Message Function(String _name)>(
       "JsInteropStaticInteropWithInstanceMembers",
       problemMessageTemplate:
           r"""JS interop class '#name' with `@staticInterop` annotation cannot declare instance members.""",
@@ -8327,24 +8363,24 @@ codeJsInteropStaticInteropWithInstanceMembers =
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsOldJsInteropStaticInteropWithInstanceMembers(
-  String name,
+  String _name,
 ) {
-  if (name.isEmpty) throw 'No name provided';
-  name = demangleMixinApplicationName(name);
+  if (_name.isEmpty) throw 'No name provided';
+  String name = demangleMixinApplicationName(_name);
   return new Message(
     codeJsInteropStaticInteropWithInstanceMembers,
     problemMessage:
         """JS interop class '${name}' with `@staticInterop` annotation cannot declare instance members.""",
     correctionMessage:
         """Try moving the instance member to a static extension.""",
-    arguments: {'name': name},
+    arguments: {'name': _name},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(String name, String name2)>
+const Template<Message Function(String _name, String _name2)>
 codeJsInteropStaticInteropWithNonStaticSupertype =
-    const Template<Message Function(String name, String name2)>(
+    const Template<Message Function(String _name, String _name2)>(
       "JsInteropStaticInteropWithNonStaticSupertype",
       problemMessageTemplate:
           r"""JS interop class '#name' has an `@staticInterop` annotation, but has supertype '#name2', which does not.""",
@@ -8356,26 +8392,26 @@ codeJsInteropStaticInteropWithNonStaticSupertype =
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsOldJsInteropStaticInteropWithNonStaticSupertype(
-  String name,
-  String name2,
+  String _name,
+  String _name2,
 ) {
-  if (name.isEmpty) throw 'No name provided';
-  name = demangleMixinApplicationName(name);
-  if (name2.isEmpty) throw 'No name provided';
-  name2 = demangleMixinApplicationName(name2);
+  if (_name.isEmpty) throw 'No name provided';
+  String name = demangleMixinApplicationName(_name);
+  if (_name2.isEmpty) throw 'No name provided';
+  String name2 = demangleMixinApplicationName(_name2);
   return new Message(
     codeJsInteropStaticInteropWithNonStaticSupertype,
     problemMessage:
         """JS interop class '${name}' has an `@staticInterop` annotation, but has supertype '${name2}', which does not.""",
     correctionMessage:
         """Try marking the supertype as a static interop class using `@staticInterop`.""",
-    arguments: {'name': name, 'name2': name2},
+    arguments: {'name': _name, 'name2': _name2},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(String name)>
-codeLabelNotFound = const Template<Message Function(String name)>(
+const Template<Message Function(String _name)>
+codeLabelNotFound = const Template<Message Function(String _name)>(
   "LabelNotFound",
   problemMessageTemplate: r"""Can't find label '#name'.""",
   correctionMessageTemplate:
@@ -8385,15 +8421,15 @@ codeLabelNotFound = const Template<Message Function(String name)>(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldLabelNotFound(String name) {
-  if (name.isEmpty) throw 'No name provided';
-  name = demangleMixinApplicationName(name);
+Message _withArgumentsOldLabelNotFound(String _name) {
+  if (_name.isEmpty) throw 'No name provided';
+  String name = demangleMixinApplicationName(_name);
   return new Message(
     codeLabelNotFound,
     problemMessage: """Can't find label '${name}'.""",
     correctionMessage:
         """Try defining the label, or correcting the name to match an existing label.""",
-    arguments: {'name': name},
+    arguments: {'name': _name},
   );
 }
 
@@ -8473,14 +8509,14 @@ Message _withArgumentsOldLanguageVersionTooHighExplicit(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
-  Message Function(int count, int count2, String name, int count3, int count4)
+  Message Function(int count, int count2, String _name, int count3, int count4)
 >
 codeLanguageVersionTooHighPackage =
     const Template<
       Message Function(
         int count,
         int count2,
-        String name,
+        String _name,
         int count3,
         int count4,
       )
@@ -8495,12 +8531,12 @@ codeLanguageVersionTooHighPackage =
 Message _withArgumentsOldLanguageVersionTooHighPackage(
   int count,
   int count2,
-  String name,
+  String _name,
   int count3,
   int count4,
 ) {
-  if (name.isEmpty) throw 'No name provided';
-  name = demangleMixinApplicationName(name);
+  if (_name.isEmpty) throw 'No name provided';
+  String name = demangleMixinApplicationName(_name);
   return new Message(
     codeLanguageVersionTooHighPackage,
     problemMessage:
@@ -8508,7 +8544,7 @@ Message _withArgumentsOldLanguageVersionTooHighPackage(
     arguments: {
       'count': count,
       'count2': count2,
-      'name': name,
+      'name': _name,
       'count3': count3,
       'count4': count4,
     },
@@ -8549,14 +8585,14 @@ Message _withArgumentsOldLanguageVersionTooLowExplicit(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
-  Message Function(int count, int count2, String name, int count3, int count4)
+  Message Function(int count, int count2, String _name, int count3, int count4)
 >
 codeLanguageVersionTooLowPackage =
     const Template<
       Message Function(
         int count,
         int count2,
-        String name,
+        String _name,
         int count3,
         int count4,
       )
@@ -8571,12 +8607,12 @@ codeLanguageVersionTooLowPackage =
 Message _withArgumentsOldLanguageVersionTooLowPackage(
   int count,
   int count2,
-  String name,
+  String _name,
   int count3,
   int count4,
 ) {
-  if (name.isEmpty) throw 'No name provided';
-  name = demangleMixinApplicationName(name);
+  if (_name.isEmpty) throw 'No name provided';
+  String name = demangleMixinApplicationName(_name);
   return new Message(
     codeLanguageVersionTooLowPackage,
     problemMessage:
@@ -8584,7 +8620,7 @@ Message _withArgumentsOldLanguageVersionTooLowPackage(
     arguments: {
       'count': count,
       'count2': count2,
-      'name': name,
+      'name': _name,
       'count3': count3,
       'count4': count4,
     },
@@ -8592,8 +8628,8 @@ Message _withArgumentsOldLanguageVersionTooLowPackage(
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(String name)> codeLateDefinitelyAssignedError =
-    const Template<Message Function(String name)>(
+const Template<Message Function(String _name)> codeLateDefinitelyAssignedError =
+    const Template<Message Function(String _name)>(
       "LateDefinitelyAssignedError",
       problemMessageTemplate:
           r"""Late final variable '#name' definitely assigned.""",
@@ -8601,19 +8637,19 @@ const Template<Message Function(String name)> codeLateDefinitelyAssignedError =
     );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldLateDefinitelyAssignedError(String name) {
-  if (name.isEmpty) throw 'No name provided';
-  name = demangleMixinApplicationName(name);
+Message _withArgumentsOldLateDefinitelyAssignedError(String _name) {
+  if (_name.isEmpty) throw 'No name provided';
+  String name = demangleMixinApplicationName(_name);
   return new Message(
     codeLateDefinitelyAssignedError,
     problemMessage: """Late final variable '${name}' definitely assigned.""",
-    arguments: {'name': name},
+    arguments: {'name': _name},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(String name)>
-codeLateDefinitelyUnassignedError = const Template<Message Function(String name)>(
+const Template<Message Function(String _name)>
+codeLateDefinitelyUnassignedError = const Template<Message Function(String _name)>(
   "LateDefinitelyUnassignedError",
   problemMessageTemplate:
       r"""Late variable '#name' without initializer is definitely unassigned.""",
@@ -8621,14 +8657,14 @@ codeLateDefinitelyUnassignedError = const Template<Message Function(String name)
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldLateDefinitelyUnassignedError(String name) {
-  if (name.isEmpty) throw 'No name provided';
-  name = demangleMixinApplicationName(name);
+Message _withArgumentsOldLateDefinitelyUnassignedError(String _name) {
+  if (_name.isEmpty) throw 'No name provided';
+  String name = demangleMixinApplicationName(_name);
   return new Message(
     codeLateDefinitelyUnassignedError,
     problemMessage:
         """Late variable '${name}' without initializer is definitely unassigned.""",
-    arguments: {'name': name},
+    arguments: {'name': _name},
   );
 }
 
@@ -8730,9 +8766,9 @@ const MessageCode codeLoadLibraryTakesNoArguments = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(String name)>
+const Template<Message Function(String _name)>
 codeLocalVariableUsedBeforeDeclared =
-    const Template<Message Function(String name)>(
+    const Template<Message Function(String _name)>(
       "LocalVariableUsedBeforeDeclared",
       problemMessageTemplate:
           r"""Local variable '#name' can't be referenced before it is declared.""",
@@ -8741,21 +8777,21 @@ codeLocalVariableUsedBeforeDeclared =
     );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldLocalVariableUsedBeforeDeclared(String name) {
-  if (name.isEmpty) throw 'No name provided';
-  name = demangleMixinApplicationName(name);
+Message _withArgumentsOldLocalVariableUsedBeforeDeclared(String _name) {
+  if (_name.isEmpty) throw 'No name provided';
+  String name = demangleMixinApplicationName(_name);
   return new Message(
     codeLocalVariableUsedBeforeDeclared,
     problemMessage:
         """Local variable '${name}' can't be referenced before it is declared.""",
-    arguments: {'name': name},
+    arguments: {'name': _name},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(String name)>
+const Template<Message Function(String _name)>
 codeLocalVariableUsedBeforeDeclaredContext =
-    const Template<Message Function(String name)>(
+    const Template<Message Function(String _name)>(
       "LocalVariableUsedBeforeDeclaredContext",
       problemMessageTemplate:
           r"""This is the declaration of the variable '#name'.""",
@@ -8764,13 +8800,13 @@ codeLocalVariableUsedBeforeDeclaredContext =
     );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldLocalVariableUsedBeforeDeclaredContext(String name) {
-  if (name.isEmpty) throw 'No name provided';
-  name = demangleMixinApplicationName(name);
+Message _withArgumentsOldLocalVariableUsedBeforeDeclaredContext(String _name) {
+  if (_name.isEmpty) throw 'No name provided';
+  String name = demangleMixinApplicationName(_name);
   return new Message(
     codeLocalVariableUsedBeforeDeclaredContext,
     problemMessage: """This is the declaration of the variable '${name}'.""",
-    arguments: {'name': name},
+    arguments: {'name': _name},
   );
 }
 
@@ -8823,9 +8859,9 @@ const MessageCode codeMapPatternTypeArgumentMismatch = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(String name)>
+const Template<Message Function(String _name)>
 codeMemberConflictsWithConstructor =
-    const Template<Message Function(String name)>(
+    const Template<Message Function(String _name)>(
       "MemberConflictsWithConstructor",
       problemMessageTemplate:
           r"""The member conflicts with constructor '#name'.""",
@@ -8834,20 +8870,20 @@ codeMemberConflictsWithConstructor =
     );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldMemberConflictsWithConstructor(String name) {
-  if (name.isEmpty) throw 'No name provided';
-  name = demangleMixinApplicationName(name);
+Message _withArgumentsOldMemberConflictsWithConstructor(String _name) {
+  if (_name.isEmpty) throw 'No name provided';
+  String name = demangleMixinApplicationName(_name);
   return new Message(
     codeMemberConflictsWithConstructor,
     problemMessage: """The member conflicts with constructor '${name}'.""",
-    arguments: {'name': name},
+    arguments: {'name': _name},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(String name)>
+const Template<Message Function(String _name)>
 codeMemberConflictsWithConstructorCause =
-    const Template<Message Function(String name)>(
+    const Template<Message Function(String _name)>(
       "MemberConflictsWithConstructorCause",
       problemMessageTemplate: r"""Conflicting constructor '#name'.""",
       withArgumentsOld: _withArgumentsOldMemberConflictsWithConstructorCause,
@@ -8855,19 +8891,19 @@ codeMemberConflictsWithConstructorCause =
     );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldMemberConflictsWithConstructorCause(String name) {
-  if (name.isEmpty) throw 'No name provided';
-  name = demangleMixinApplicationName(name);
+Message _withArgumentsOldMemberConflictsWithConstructorCause(String _name) {
+  if (_name.isEmpty) throw 'No name provided';
+  String name = demangleMixinApplicationName(_name);
   return new Message(
     codeMemberConflictsWithConstructorCause,
     problemMessage: """Conflicting constructor '${name}'.""",
-    arguments: {'name': name},
+    arguments: {'name': _name},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(String name)> codeMemberConflictsWithFactory =
-    const Template<Message Function(String name)>(
+const Template<Message Function(String _name)> codeMemberConflictsWithFactory =
+    const Template<Message Function(String _name)>(
       "MemberConflictsWithFactory",
       problemMessageTemplate: r"""The member conflicts with factory '#name'.""",
       withArgumentsOld: _withArgumentsOldMemberConflictsWithFactory,
@@ -8875,20 +8911,20 @@ const Template<Message Function(String name)> codeMemberConflictsWithFactory =
     );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldMemberConflictsWithFactory(String name) {
-  if (name.isEmpty) throw 'No name provided';
-  name = demangleMixinApplicationName(name);
+Message _withArgumentsOldMemberConflictsWithFactory(String _name) {
+  if (_name.isEmpty) throw 'No name provided';
+  String name = demangleMixinApplicationName(_name);
   return new Message(
     codeMemberConflictsWithFactory,
     problemMessage: """The member conflicts with factory '${name}'.""",
-    arguments: {'name': name},
+    arguments: {'name': _name},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(String name)>
+const Template<Message Function(String _name)>
 codeMemberConflictsWithFactoryCause =
-    const Template<Message Function(String name)>(
+    const Template<Message Function(String _name)>(
       "MemberConflictsWithFactoryCause",
       problemMessageTemplate: r"""Conflicting factory '#name'.""",
       withArgumentsOld: _withArgumentsOldMemberConflictsWithFactoryCause,
@@ -8896,19 +8932,19 @@ codeMemberConflictsWithFactoryCause =
     );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldMemberConflictsWithFactoryCause(String name) {
-  if (name.isEmpty) throw 'No name provided';
-  name = demangleMixinApplicationName(name);
+Message _withArgumentsOldMemberConflictsWithFactoryCause(String _name) {
+  if (_name.isEmpty) throw 'No name provided';
+  String name = demangleMixinApplicationName(_name);
   return new Message(
     codeMemberConflictsWithFactoryCause,
     problemMessage: """Conflicting factory '${name}'.""",
-    arguments: {'name': name},
+    arguments: {'name': _name},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(String name)> codeMemberNotFound =
-    const Template<Message Function(String name)>(
+const Template<Message Function(String _name)> codeMemberNotFound =
+    const Template<Message Function(String _name)>(
       "MemberNotFound",
       problemMessageTemplate: r"""Member not found: '#name'.""",
       withArgumentsOld: _withArgumentsOldMemberNotFound,
@@ -8916,20 +8952,20 @@ const Template<Message Function(String name)> codeMemberNotFound =
     );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldMemberNotFound(String name) {
-  if (name.isEmpty) throw 'No name provided';
-  name = demangleMixinApplicationName(name);
+Message _withArgumentsOldMemberNotFound(String _name) {
+  if (_name.isEmpty) throw 'No name provided';
+  String name = demangleMixinApplicationName(_name);
   return new Message(
     codeMemberNotFound,
     problemMessage: """Member not found: '${name}'.""",
-    arguments: {'name': name},
+    arguments: {'name': _name},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(String name)>
+const Template<Message Function(String _name)>
 codeMemberShouldBeListedAsCallableInDynamicInterface =
-    const Template<Message Function(String name)>(
+    const Template<Message Function(String _name)>(
       "MemberShouldBeListedAsCallableInDynamicInterface",
       problemMessageTemplate:
           r"""Cannot invoke member '#name' from a dynamic module.""",
@@ -8941,23 +8977,23 @@ codeMemberShouldBeListedAsCallableInDynamicInterface =
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsOldMemberShouldBeListedAsCallableInDynamicInterface(
-  String name,
+  String _name,
 ) {
-  if (name.isEmpty) throw 'No name provided';
-  name = demangleMixinApplicationName(name);
+  if (_name.isEmpty) throw 'No name provided';
+  String name = demangleMixinApplicationName(_name);
   return new Message(
     codeMemberShouldBeListedAsCallableInDynamicInterface,
     problemMessage: """Cannot invoke member '${name}' from a dynamic module.""",
     correctionMessage:
         """Try removing the call or update the dynamic interface to list member '${name}' as callable.""",
-    arguments: {'name': name},
+    arguments: {'name': _name},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(String name, String name2)>
+const Template<Message Function(String _name, String _name2)>
 codeMemberShouldBeListedAsCanBeOverriddenInDynamicInterface =
-    const Template<Message Function(String name, String name2)>(
+    const Template<Message Function(String _name, String _name2)>(
       "MemberShouldBeListedAsCanBeOverriddenInDynamicInterface",
       problemMessageTemplate:
           r"""Cannot override member '#name.#name2' in a dynamic module.""",
@@ -8970,20 +9006,20 @@ codeMemberShouldBeListedAsCanBeOverriddenInDynamicInterface =
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message
 _withArgumentsOldMemberShouldBeListedAsCanBeOverriddenInDynamicInterface(
-  String name,
-  String name2,
+  String _name,
+  String _name2,
 ) {
-  if (name.isEmpty) throw 'No name provided';
-  name = demangleMixinApplicationName(name);
-  if (name2.isEmpty) throw 'No name provided';
-  name2 = demangleMixinApplicationName(name2);
+  if (_name.isEmpty) throw 'No name provided';
+  String name = demangleMixinApplicationName(_name);
+  if (_name2.isEmpty) throw 'No name provided';
+  String name2 = demangleMixinApplicationName(_name2);
   return new Message(
     codeMemberShouldBeListedAsCanBeOverriddenInDynamicInterface,
     problemMessage:
         """Cannot override member '${name}.${name2}' in a dynamic module.""",
     correctionMessage:
         """Try removing the override or update the dynamic interface to list member '${name}.${name2}' as can-be-overridden.""",
-    arguments: {'name': name, 'name2': name2},
+    arguments: {'name': _name, 'name2': _name2},
   );
 }
 
@@ -9022,8 +9058,8 @@ const MessageCode codeMetadataTypeArgumentsUninstantiated = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(String name)> codeMethodNotFound =
-    const Template<Message Function(String name)>(
+const Template<Message Function(String _name)> codeMethodNotFound =
+    const Template<Message Function(String _name)>(
       "MethodNotFound",
       problemMessageTemplate: r"""Method not found: '#name'.""",
       withArgumentsOld: _withArgumentsOldMethodNotFound,
@@ -9031,13 +9067,13 @@ const Template<Message Function(String name)> codeMethodNotFound =
     );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldMethodNotFound(String name) {
-  if (name.isEmpty) throw 'No name provided';
-  name = demangleMixinApplicationName(name);
+Message _withArgumentsOldMethodNotFound(String _name) {
+  if (_name.isEmpty) throw 'No name provided';
+  String name = demangleMixinApplicationName(_name);
   return new Message(
     codeMethodNotFound,
     problemMessage: """Method not found: '${name}'.""",
-    arguments: {'name': name},
+    arguments: {'name': _name},
   );
 }
 
@@ -9106,8 +9142,8 @@ const MessageCode codeMissingFunctionParameters = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(String name)> codeMissingImplementationCause =
-    const Template<Message Function(String name)>(
+const Template<Message Function(String _name)> codeMissingImplementationCause =
+    const Template<Message Function(String _name)>(
       "MissingImplementationCause",
       problemMessageTemplate: r"""'#name' is defined here.""",
       withArgumentsOld: _withArgumentsOldMissingImplementationCause,
@@ -9115,20 +9151,20 @@ const Template<Message Function(String name)> codeMissingImplementationCause =
     );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldMissingImplementationCause(String name) {
-  if (name.isEmpty) throw 'No name provided';
-  name = demangleMixinApplicationName(name);
+Message _withArgumentsOldMissingImplementationCause(String _name) {
+  if (_name.isEmpty) throw 'No name provided';
+  String name = demangleMixinApplicationName(_name);
   return new Message(
     codeMissingImplementationCause,
     problemMessage: """'${name}' is defined here.""",
-    arguments: {'name': name},
+    arguments: {'name': _name},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(String name, List<String> _names)>
+const Template<Message Function(String _name, List<String> _names)>
 codeMissingImplementationNotAbstract =
-    const Template<Message Function(String name, List<String> _names)>(
+    const Template<Message Function(String _name, List<String> _names)>(
       "MissingImplementationNotAbstract",
       problemMessageTemplate:
           r"""The non-abstract class '#name' is missing implementations for these members:
@@ -9145,11 +9181,11 @@ codeMissingImplementationNotAbstract =
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsOldMissingImplementationNotAbstract(
-  String name,
+  String _name,
   List<String> _names,
 ) {
-  if (name.isEmpty) throw 'No name provided';
-  name = demangleMixinApplicationName(name);
+  if (_name.isEmpty) throw 'No name provided';
+  String name = demangleMixinApplicationName(_name);
   if (_names.isEmpty) throw 'No names provided';
   String names = itemizeNames(_names);
   return new Message(
@@ -9163,7 +9199,7 @@ ${names}""",
  - mark the class as abstract, or
  - provide a 'noSuchMethod' implementation.
 """,
-    arguments: {'name': name, 'names': _names},
+    arguments: {'name': _name, 'names': _names},
   );
 }
 
@@ -9277,8 +9313,8 @@ const MessageCode codeMissingTypedefParameters = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(String name)>
-codeMissingVariablePattern = const Template<Message Function(String name)>(
+const Template<Message Function(String _name)>
+codeMissingVariablePattern = const Template<Message Function(String _name)>(
   "MissingVariablePattern",
   problemMessageTemplate:
       r"""Variable pattern '#name' is missing in this branch of the logical-or pattern.""",
@@ -9289,22 +9325,22 @@ codeMissingVariablePattern = const Template<Message Function(String name)>(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldMissingVariablePattern(String name) {
-  if (name.isEmpty) throw 'No name provided';
-  name = demangleMixinApplicationName(name);
+Message _withArgumentsOldMissingVariablePattern(String _name) {
+  if (_name.isEmpty) throw 'No name provided';
+  String name = demangleMixinApplicationName(_name);
   return new Message(
     codeMissingVariablePattern,
     problemMessage:
         """Variable pattern '${name}' is missing in this branch of the logical-or pattern.""",
     correctionMessage: """Try declaring this variable pattern in the branch.""",
-    arguments: {'name': name},
+    arguments: {'name': _name},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(String name)>
+const Template<Message Function(String _name)>
 codeMixinApplicationNoConcreteGetter =
-    const Template<Message Function(String name)>(
+    const Template<Message Function(String _name)>(
       "MixinApplicationNoConcreteGetter",
       problemMessageTemplate:
           r"""The class doesn't have a concrete implementation of the super-accessed member '#name'.""",
@@ -9315,14 +9351,14 @@ codeMixinApplicationNoConcreteGetter =
     );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldMixinApplicationNoConcreteGetter(String name) {
-  if (name.isEmpty) throw 'No name provided';
-  name = demangleMixinApplicationName(name);
+Message _withArgumentsOldMixinApplicationNoConcreteGetter(String _name) {
+  if (_name.isEmpty) throw 'No name provided';
+  String name = demangleMixinApplicationName(_name);
   return new Message(
     codeMixinApplicationNoConcreteGetter,
     problemMessage:
         """The class doesn't have a concrete implementation of the super-accessed member '${name}'.""",
-    arguments: {'name': name},
+    arguments: {'name': _name},
   );
 }
 
@@ -9336,9 +9372,9 @@ const MessageCode codeMixinApplicationNoConcreteMemberContext =
     );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(String name)>
+const Template<Message Function(String _name)>
 codeMixinApplicationNoConcreteMethod =
-    const Template<Message Function(String name)>(
+    const Template<Message Function(String _name)>(
       "MixinApplicationNoConcreteMethod",
       problemMessageTemplate:
           r"""The class doesn't have a concrete implementation of the super-invoked member '#name'.""",
@@ -9349,21 +9385,21 @@ codeMixinApplicationNoConcreteMethod =
     );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldMixinApplicationNoConcreteMethod(String name) {
-  if (name.isEmpty) throw 'No name provided';
-  name = demangleMixinApplicationName(name);
+Message _withArgumentsOldMixinApplicationNoConcreteMethod(String _name) {
+  if (_name.isEmpty) throw 'No name provided';
+  String name = demangleMixinApplicationName(_name);
   return new Message(
     codeMixinApplicationNoConcreteMethod,
     problemMessage:
         """The class doesn't have a concrete implementation of the super-invoked member '${name}'.""",
-    arguments: {'name': name},
+    arguments: {'name': _name},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(String name)>
+const Template<Message Function(String _name)>
 codeMixinApplicationNoConcreteSetter =
-    const Template<Message Function(String name)>(
+    const Template<Message Function(String _name)>(
       "MixinApplicationNoConcreteSetter",
       problemMessageTemplate:
           r"""The class doesn't have a concrete implementation of the super-accessed setter '#name'.""",
@@ -9374,14 +9410,14 @@ codeMixinApplicationNoConcreteSetter =
     );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldMixinApplicationNoConcreteSetter(String name) {
-  if (name.isEmpty) throw 'No name provided';
-  name = demangleMixinApplicationName(name);
+Message _withArgumentsOldMixinApplicationNoConcreteSetter(String _name) {
+  if (_name.isEmpty) throw 'No name provided';
+  String name = demangleMixinApplicationName(_name);
   return new Message(
     codeMixinApplicationNoConcreteSetter,
     problemMessage:
         """The class doesn't have a concrete implementation of the super-accessed setter '${name}'.""",
-    arguments: {'name': name},
+    arguments: {'name': _name},
   );
 }
 
@@ -9401,8 +9437,8 @@ const MessageCode codeMixinDeferredMixin = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(String name)>
-codeMixinInheritsFromNotObject = const Template<Message Function(String name)>(
+const Template<Message Function(String _name)>
+codeMixinInheritsFromNotObject = const Template<Message Function(String _name)>(
   "MixinInheritsFromNotObject",
   problemMessageTemplate:
       r"""The class '#name' can't be used as a mixin because it extends a class other than 'Object'.""",
@@ -9411,21 +9447,21 @@ codeMixinInheritsFromNotObject = const Template<Message Function(String name)>(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldMixinInheritsFromNotObject(String name) {
-  if (name.isEmpty) throw 'No name provided';
-  name = demangleMixinApplicationName(name);
+Message _withArgumentsOldMixinInheritsFromNotObject(String _name) {
+  if (_name.isEmpty) throw 'No name provided';
+  String name = demangleMixinApplicationName(_name);
   return new Message(
     codeMixinInheritsFromNotObject,
     problemMessage:
         """The class '${name}' can't be used as a mixin because it extends a class other than 'Object'.""",
-    arguments: {'name': name},
+    arguments: {'name': _name},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(String name, String name2)>
+const Template<Message Function(String _name, String _name2)>
 codeMixinSubtypeOfBaseIsNotBase =
-    const Template<Message Function(String name, String name2)>(
+    const Template<Message Function(String _name, String _name2)>(
       "MixinSubtypeOfBaseIsNotBase",
       problemMessageTemplate:
           r"""The mixin '#name' must be 'base' because the supertype '#name2' is 'base'.""",
@@ -9436,26 +9472,26 @@ codeMixinSubtypeOfBaseIsNotBase =
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsOldMixinSubtypeOfBaseIsNotBase(
-  String name,
-  String name2,
+  String _name,
+  String _name2,
 ) {
-  if (name.isEmpty) throw 'No name provided';
-  name = demangleMixinApplicationName(name);
-  if (name2.isEmpty) throw 'No name provided';
-  name2 = demangleMixinApplicationName(name2);
+  if (_name.isEmpty) throw 'No name provided';
+  String name = demangleMixinApplicationName(_name);
+  if (_name2.isEmpty) throw 'No name provided';
+  String name2 = demangleMixinApplicationName(_name2);
   return new Message(
     codeMixinSubtypeOfBaseIsNotBase,
     problemMessage:
         """The mixin '${name}' must be 'base' because the supertype '${name2}' is 'base'.""",
     correctionMessage: """Try adding 'base' to the mixin.""",
-    arguments: {'name': name, 'name2': name2},
+    arguments: {'name': _name, 'name2': _name2},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(String name, String name2)>
+const Template<Message Function(String _name, String _name2)>
 codeMixinSubtypeOfFinalIsNotBase =
-    const Template<Message Function(String name, String name2)>(
+    const Template<Message Function(String _name, String _name2)>(
       "MixinSubtypeOfFinalIsNotBase",
       problemMessageTemplate:
           r"""The mixin '#name' must be 'base' because the supertype '#name2' is 'final'.""",
@@ -9466,19 +9502,19 @@ codeMixinSubtypeOfFinalIsNotBase =
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsOldMixinSubtypeOfFinalIsNotBase(
-  String name,
-  String name2,
+  String _name,
+  String _name2,
 ) {
-  if (name.isEmpty) throw 'No name provided';
-  name = demangleMixinApplicationName(name);
-  if (name2.isEmpty) throw 'No name provided';
-  name2 = demangleMixinApplicationName(name2);
+  if (_name.isEmpty) throw 'No name provided';
+  String name = demangleMixinApplicationName(_name);
+  if (_name2.isEmpty) throw 'No name provided';
+  String name2 = demangleMixinApplicationName(_name2);
   return new Message(
     codeMixinSubtypeOfFinalIsNotBase,
     problemMessage:
         """The mixin '${name}' must be 'base' because the supertype '${name2}' is 'final'.""",
     correctionMessage: """Try adding 'base' to the mixin.""",
-    arguments: {'name': name, 'name2': name2},
+    arguments: {'name': _name, 'name2': _name2},
   );
 }
 
@@ -9623,8 +9659,8 @@ const MessageCode codeMultipleWith = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(String name)> codeNameNotFound =
-    const Template<Message Function(String name)>(
+const Template<Message Function(String _name)> codeNameNotFound =
+    const Template<Message Function(String _name)>(
       "NameNotFound",
       problemMessageTemplate: r"""Undefined name '#name'.""",
       withArgumentsOld: _withArgumentsOldNameNotFound,
@@ -9632,13 +9668,13 @@ const Template<Message Function(String name)> codeNameNotFound =
     );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldNameNotFound(String name) {
-  if (name.isEmpty) throw 'No name provided';
-  name = demangleMixinApplicationName(name);
+Message _withArgumentsOldNameNotFound(String _name) {
+  if (_name.isEmpty) throw 'No name provided';
+  String name = demangleMixinApplicationName(_name);
   return new Message(
     codeNameNotFound,
     problemMessage: """Undefined name '${name}'.""",
-    arguments: {'name': name},
+    arguments: {'name': _name},
   );
 }
 
@@ -9659,9 +9695,9 @@ const MessageCode codeNamedFunctionExpression = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(String name, String name2)>
+const Template<Message Function(String _name, String _name2)>
 codeNamedMixinOverride =
-    const Template<Message Function(String name, String name2)>(
+    const Template<Message Function(String _name, String _name2)>(
       "NamedMixinOverride",
       problemMessageTemplate:
           r"""The mixin application class '#name' introduces an erroneous override of '#name2'.""",
@@ -9669,16 +9705,16 @@ codeNamedMixinOverride =
     );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldNamedMixinOverride(String name, String name2) {
-  if (name.isEmpty) throw 'No name provided';
-  name = demangleMixinApplicationName(name);
-  if (name2.isEmpty) throw 'No name provided';
-  name2 = demangleMixinApplicationName(name2);
+Message _withArgumentsOldNamedMixinOverride(String _name, String _name2) {
+  if (_name.isEmpty) throw 'No name provided';
+  String name = demangleMixinApplicationName(_name);
+  if (_name2.isEmpty) throw 'No name provided';
+  String name2 = demangleMixinApplicationName(_name2);
   return new Message(
     codeNamedMixinOverride,
     problemMessage:
         """The mixin application class '${name}' introduces an erroneous override of '${name2}'.""",
-    arguments: {'name': name, 'name2': name2},
+    arguments: {'name': _name, 'name2': _name2},
   );
 }
 
@@ -9759,8 +9795,8 @@ const MessageCode codeNoAugmentSuperWriteTarget = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(String name)> codeNoSuchNamedParameter =
-    const Template<Message Function(String name)>(
+const Template<Message Function(String _name)> codeNoSuchNamedParameter =
+    const Template<Message Function(String _name)>(
       "NoSuchNamedParameter",
       problemMessageTemplate: r"""No named parameter with the name '#name'.""",
       withArgumentsOld: _withArgumentsOldNoSuchNamedParameter,
@@ -9768,13 +9804,13 @@ const Template<Message Function(String name)> codeNoSuchNamedParameter =
     );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldNoSuchNamedParameter(String name) {
-  if (name.isEmpty) throw 'No name provided';
-  name = demangleMixinApplicationName(name);
+Message _withArgumentsOldNoSuchNamedParameter(String _name) {
+  if (_name.isEmpty) throw 'No name provided';
+  String name = demangleMixinApplicationName(_name);
   return new Message(
     codeNoSuchNamedParameter,
     problemMessage: """No named parameter with the name '${name}'.""",
-    arguments: {'name': name},
+    arguments: {'name': _name},
   );
 }
 
@@ -9901,8 +9937,8 @@ const MessageCode codeNonExtensionTypeMemberOneOfContext = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(String name)>
-codeNonNullableNotAssignedError = const Template<Message Function(String name)>(
+const Template<Message Function(String _name)>
+codeNonNullableNotAssignedError = const Template<Message Function(String _name)>(
   "NonNullableNotAssignedError",
   problemMessageTemplate:
       r"""Non-nullable variable '#name' must be assigned before it can be used.""",
@@ -9910,14 +9946,14 @@ codeNonNullableNotAssignedError = const Template<Message Function(String name)>(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldNonNullableNotAssignedError(String name) {
-  if (name.isEmpty) throw 'No name provided';
-  name = demangleMixinApplicationName(name);
+Message _withArgumentsOldNonNullableNotAssignedError(String _name) {
+  if (_name.isEmpty) throw 'No name provided';
+  String name = demangleMixinApplicationName(_name);
   return new Message(
     codeNonNullableNotAssignedError,
     problemMessage:
         """Non-nullable variable '${name}' must be assigned before it can be used.""",
-    arguments: {'name': name},
+    arguments: {'name': _name},
   );
 }
 
@@ -9938,8 +9974,8 @@ const MessageCode codeNonPositiveArrayDimensions = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(String name)> codeNonSimpleBoundViaReference =
-    const Template<Message Function(String name)>(
+const Template<Message Function(String _name)> codeNonSimpleBoundViaReference =
+    const Template<Message Function(String _name)>(
       "NonSimpleBoundViaReference",
       problemMessageTemplate:
           r"""Bound of this variable references raw type '#name'.""",
@@ -9948,19 +9984,19 @@ const Template<Message Function(String name)> codeNonSimpleBoundViaReference =
     );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldNonSimpleBoundViaReference(String name) {
-  if (name.isEmpty) throw 'No name provided';
-  name = demangleMixinApplicationName(name);
+Message _withArgumentsOldNonSimpleBoundViaReference(String _name) {
+  if (_name.isEmpty) throw 'No name provided';
+  String name = demangleMixinApplicationName(_name);
   return new Message(
     codeNonSimpleBoundViaReference,
     problemMessage: """Bound of this variable references raw type '${name}'.""",
-    arguments: {'name': name},
+    arguments: {'name': _name},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(String name)>
-codeNonSimpleBoundViaVariable = const Template<Message Function(String name)>(
+const Template<Message Function(String _name)>
+codeNonSimpleBoundViaVariable = const Template<Message Function(String _name)>(
   "NonSimpleBoundViaVariable",
   problemMessageTemplate:
       r"""Bound of this variable references variable '#name' from the same declaration.""",
@@ -9969,14 +10005,14 @@ codeNonSimpleBoundViaVariable = const Template<Message Function(String name)>(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldNonSimpleBoundViaVariable(String name) {
-  if (name.isEmpty) throw 'No name provided';
-  name = demangleMixinApplicationName(name);
+Message _withArgumentsOldNonSimpleBoundViaVariable(String _name) {
+  if (_name.isEmpty) throw 'No name provided';
+  String name = demangleMixinApplicationName(_name);
   return new Message(
     codeNonSimpleBoundViaVariable,
     problemMessage:
         """Bound of this variable references variable '${name}' from the same declaration.""",
-    arguments: {'name': name},
+    arguments: {'name': _name},
   );
 }
 
@@ -10006,9 +10042,9 @@ const MessageCode codeNotAConstantExpression = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(String name, String name2)>
+const Template<Message Function(String _name, String _name2)>
 codeNotAPrefixInTypeAnnotation =
-    const Template<Message Function(String name, String name2)>(
+    const Template<Message Function(String _name, String _name2)>(
       "NotAPrefixInTypeAnnotation",
       problemMessageTemplate:
           r"""'#name.#name2' can't be used as a type because '#name' doesn't refer to an import prefix.""",
@@ -10017,22 +10053,25 @@ codeNotAPrefixInTypeAnnotation =
     );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldNotAPrefixInTypeAnnotation(String name, String name2) {
-  if (name.isEmpty) throw 'No name provided';
-  name = demangleMixinApplicationName(name);
-  if (name2.isEmpty) throw 'No name provided';
-  name2 = demangleMixinApplicationName(name2);
+Message _withArgumentsOldNotAPrefixInTypeAnnotation(
+  String _name,
+  String _name2,
+) {
+  if (_name.isEmpty) throw 'No name provided';
+  String name = demangleMixinApplicationName(_name);
+  if (_name2.isEmpty) throw 'No name provided';
+  String name2 = demangleMixinApplicationName(_name2);
   return new Message(
     codeNotAPrefixInTypeAnnotation,
     problemMessage:
         """'${name}.${name2}' can't be used as a type because '${name}' doesn't refer to an import prefix.""",
-    arguments: {'name': name, 'name2': name2},
+    arguments: {'name': _name, 'name2': _name2},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(String name)> codeNotAType =
-    const Template<Message Function(String name)>(
+const Template<Message Function(String _name)> codeNotAType =
+    const Template<Message Function(String _name)>(
       "NotAType",
       problemMessageTemplate: r"""'#name' isn't a type.""",
       withArgumentsOld: _withArgumentsOldNotAType,
@@ -10040,13 +10079,13 @@ const Template<Message Function(String name)> codeNotAType =
     );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldNotAType(String name) {
-  if (name.isEmpty) throw 'No name provided';
-  name = demangleMixinApplicationName(name);
+Message _withArgumentsOldNotAType(String _name) {
+  if (_name.isEmpty) throw 'No name provided';
+  String name = demangleMixinApplicationName(_name);
   return new Message(
     codeNotAType,
     problemMessage: """'${name}' isn't a type.""",
-    arguments: {'name': name},
+    arguments: {'name': _name},
   );
 }
 
@@ -10112,8 +10151,8 @@ const MessageCode codeNullAwareCascadeOutOfOrder = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(String name)> codeNullableInterfaceError =
-    const Template<Message Function(String name)>(
+const Template<Message Function(String _name)> codeNullableInterfaceError =
+    const Template<Message Function(String _name)>(
       "NullableInterfaceError",
       problemMessageTemplate:
           r"""Can't implement '#name' because it's nullable.""",
@@ -10122,20 +10161,20 @@ const Template<Message Function(String name)> codeNullableInterfaceError =
     );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldNullableInterfaceError(String name) {
-  if (name.isEmpty) throw 'No name provided';
-  name = demangleMixinApplicationName(name);
+Message _withArgumentsOldNullableInterfaceError(String _name) {
+  if (_name.isEmpty) throw 'No name provided';
+  String name = demangleMixinApplicationName(_name);
   return new Message(
     codeNullableInterfaceError,
     problemMessage: """Can't implement '${name}' because it's nullable.""",
     correctionMessage: """Try removing the question mark.""",
-    arguments: {'name': name},
+    arguments: {'name': _name},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(String name)> codeNullableMixinError =
-    const Template<Message Function(String name)>(
+const Template<Message Function(String _name)> codeNullableMixinError =
+    const Template<Message Function(String _name)>(
       "NullableMixinError",
       problemMessageTemplate:
           r"""Can't mix '#name' in because it's nullable.""",
@@ -10144,14 +10183,14 @@ const Template<Message Function(String name)> codeNullableMixinError =
     );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldNullableMixinError(String name) {
-  if (name.isEmpty) throw 'No name provided';
-  name = demangleMixinApplicationName(name);
+Message _withArgumentsOldNullableMixinError(String _name) {
+  if (_name.isEmpty) throw 'No name provided';
+  String name = demangleMixinApplicationName(_name);
   return new Message(
     codeNullableMixinError,
     problemMessage: """Can't mix '${name}' in because it's nullable.""",
     correctionMessage: """Try removing the question mark.""",
-    arguments: {'name': name},
+    arguments: {'name': _name},
   );
 }
 
@@ -10163,8 +10202,8 @@ const MessageCode codeNullableSpreadError = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(String name)> codeNullableSuperclassError =
-    const Template<Message Function(String name)>(
+const Template<Message Function(String _name)> codeNullableSuperclassError =
+    const Template<Message Function(String _name)>(
       "NullableSuperclassError",
       problemMessageTemplate:
           r"""Can't extend '#name' because it's nullable.""",
@@ -10173,20 +10212,20 @@ const Template<Message Function(String name)> codeNullableSuperclassError =
     );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldNullableSuperclassError(String name) {
-  if (name.isEmpty) throw 'No name provided';
-  name = demangleMixinApplicationName(name);
+Message _withArgumentsOldNullableSuperclassError(String _name) {
+  if (_name.isEmpty) throw 'No name provided';
+  String name = demangleMixinApplicationName(_name);
   return new Message(
     codeNullableSuperclassError,
     problemMessage: """Can't extend '${name}' because it's nullable.""",
     correctionMessage: """Try removing the question mark.""",
-    arguments: {'name': name},
+    arguments: {'name': _name},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(String name)> codeNullableTearoffError =
-    const Template<Message Function(String name)>(
+const Template<Message Function(String _name)> codeNullableTearoffError =
+    const Template<Message Function(String _name)>(
       "NullableTearoffError",
       problemMessageTemplate:
           r"""Can't tear off method '#name' from a potentially null value.""",
@@ -10194,14 +10233,14 @@ const Template<Message Function(String name)> codeNullableTearoffError =
     );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldNullableTearoffError(String name) {
-  if (name.isEmpty) throw 'No name provided';
-  name = demangleMixinApplicationName(name);
+Message _withArgumentsOldNullableTearoffError(String _name) {
+  if (_name.isEmpty) throw 'No name provided';
+  String name = demangleMixinApplicationName(_name);
   return new Message(
     codeNullableTearoffError,
     problemMessage:
         """Can't tear off method '${name}' from a potentially null value.""",
-    arguments: {'name': name},
+    arguments: {'name': _name},
   );
 }
 
@@ -10249,8 +10288,8 @@ const MessageCode codeOnlyTry = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(String name)>
-codeOperatorMinusParameterMismatch = const Template<Message Function(String name)>(
+const Template<Message Function(String _name)>
+codeOperatorMinusParameterMismatch = const Template<Message Function(String _name)>(
   "OperatorMinusParameterMismatch",
   problemMessageTemplate:
       r"""Operator '#name' should have zero or one parameter.""",
@@ -10261,21 +10300,21 @@ codeOperatorMinusParameterMismatch = const Template<Message Function(String name
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldOperatorMinusParameterMismatch(String name) {
-  if (name.isEmpty) throw 'No name provided';
-  name = demangleMixinApplicationName(name);
+Message _withArgumentsOldOperatorMinusParameterMismatch(String _name) {
+  if (_name.isEmpty) throw 'No name provided';
+  String name = demangleMixinApplicationName(_name);
   return new Message(
     codeOperatorMinusParameterMismatch,
     problemMessage: """Operator '${name}' should have zero or one parameter.""",
     correctionMessage:
         """With zero parameters, it has the syntactic form '-a', formally known as 'unary-'. With one parameter, it has the syntactic form 'a - b', formally known as '-'.""",
-    arguments: {'name': name},
+    arguments: {'name': _name},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(String name)> codeOperatorParameterMismatch0 =
-    const Template<Message Function(String name)>(
+const Template<Message Function(String _name)> codeOperatorParameterMismatch0 =
+    const Template<Message Function(String _name)>(
       "OperatorParameterMismatch0",
       problemMessageTemplate:
           r"""Operator '#name' shouldn't have any parameters.""",
@@ -10283,19 +10322,19 @@ const Template<Message Function(String name)> codeOperatorParameterMismatch0 =
     );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldOperatorParameterMismatch0(String name) {
-  if (name.isEmpty) throw 'No name provided';
-  name = demangleMixinApplicationName(name);
+Message _withArgumentsOldOperatorParameterMismatch0(String _name) {
+  if (_name.isEmpty) throw 'No name provided';
+  String name = demangleMixinApplicationName(_name);
   return new Message(
     codeOperatorParameterMismatch0,
     problemMessage: """Operator '${name}' shouldn't have any parameters.""",
-    arguments: {'name': name},
+    arguments: {'name': _name},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(String name)> codeOperatorParameterMismatch1 =
-    const Template<Message Function(String name)>(
+const Template<Message Function(String _name)> codeOperatorParameterMismatch1 =
+    const Template<Message Function(String _name)>(
       "OperatorParameterMismatch1",
       problemMessageTemplate:
           r"""Operator '#name' should have exactly one parameter.""",
@@ -10304,19 +10343,19 @@ const Template<Message Function(String name)> codeOperatorParameterMismatch1 =
     );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldOperatorParameterMismatch1(String name) {
-  if (name.isEmpty) throw 'No name provided';
-  name = demangleMixinApplicationName(name);
+Message _withArgumentsOldOperatorParameterMismatch1(String _name) {
+  if (_name.isEmpty) throw 'No name provided';
+  String name = demangleMixinApplicationName(_name);
   return new Message(
     codeOperatorParameterMismatch1,
     problemMessage: """Operator '${name}' should have exactly one parameter.""",
-    arguments: {'name': name},
+    arguments: {'name': _name},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(String name)> codeOperatorParameterMismatch2 =
-    const Template<Message Function(String name)>(
+const Template<Message Function(String _name)> codeOperatorParameterMismatch2 =
+    const Template<Message Function(String _name)>(
       "OperatorParameterMismatch2",
       problemMessageTemplate:
           r"""Operator '#name' should have exactly two parameters.""",
@@ -10325,14 +10364,14 @@ const Template<Message Function(String name)> codeOperatorParameterMismatch2 =
     );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldOperatorParameterMismatch2(String name) {
-  if (name.isEmpty) throw 'No name provided';
-  name = demangleMixinApplicationName(name);
+Message _withArgumentsOldOperatorParameterMismatch2(String _name) {
+  if (_name.isEmpty) throw 'No name provided';
+  String name = demangleMixinApplicationName(_name);
   return new Message(
     codeOperatorParameterMismatch2,
     problemMessage:
         """Operator '${name}' should have exactly two parameters.""",
-    arguments: {'name': name},
+    arguments: {'name': _name},
   );
 }
 
@@ -10387,8 +10426,8 @@ Message _withArgumentsOldOutOfOrderClauses(String string, String string2) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(String name)> codeOverriddenMethodCause =
-    const Template<Message Function(String name)>(
+const Template<Message Function(String _name)> codeOverriddenMethodCause =
+    const Template<Message Function(String _name)>(
       "OverriddenMethodCause",
       problemMessageTemplate: r"""This is the overridden method ('#name').""",
       withArgumentsOld: _withArgumentsOldOverriddenMethodCause,
@@ -10396,20 +10435,20 @@ const Template<Message Function(String name)> codeOverriddenMethodCause =
     );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldOverriddenMethodCause(String name) {
-  if (name.isEmpty) throw 'No name provided';
-  name = demangleMixinApplicationName(name);
+Message _withArgumentsOldOverriddenMethodCause(String _name) {
+  if (_name.isEmpty) throw 'No name provided';
+  String name = demangleMixinApplicationName(_name);
   return new Message(
     codeOverriddenMethodCause,
     problemMessage: """This is the overridden method ('${name}').""",
-    arguments: {'name': name},
+    arguments: {'name': _name},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(String name, String name2)>
+const Template<Message Function(String _name, String _name2)>
 codeOverrideFewerNamedArguments =
-    const Template<Message Function(String name, String name2)>(
+    const Template<Message Function(String _name, String _name2)>(
       "OverrideFewerNamedArguments",
       problemMessageTemplate:
           r"""The method '#name' has fewer named arguments than those of overridden method '#name2'.""",
@@ -10419,25 +10458,25 @@ codeOverrideFewerNamedArguments =
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsOldOverrideFewerNamedArguments(
-  String name,
-  String name2,
+  String _name,
+  String _name2,
 ) {
-  if (name.isEmpty) throw 'No name provided';
-  name = demangleMixinApplicationName(name);
-  if (name2.isEmpty) throw 'No name provided';
-  name2 = demangleMixinApplicationName(name2);
+  if (_name.isEmpty) throw 'No name provided';
+  String name = demangleMixinApplicationName(_name);
+  if (_name2.isEmpty) throw 'No name provided';
+  String name2 = demangleMixinApplicationName(_name2);
   return new Message(
     codeOverrideFewerNamedArguments,
     problemMessage:
         """The method '${name}' has fewer named arguments than those of overridden method '${name2}'.""",
-    arguments: {'name': name, 'name2': name2},
+    arguments: {'name': _name, 'name2': _name2},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(String name, String name2)>
+const Template<Message Function(String _name, String _name2)>
 codeOverrideFewerPositionalArguments =
-    const Template<Message Function(String name, String name2)>(
+    const Template<Message Function(String _name, String _name2)>(
       "OverrideFewerPositionalArguments",
       problemMessageTemplate:
           r"""The method '#name' has fewer positional arguments than those of overridden method '#name2'.""",
@@ -10447,25 +10486,27 @@ codeOverrideFewerPositionalArguments =
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsOldOverrideFewerPositionalArguments(
-  String name,
-  String name2,
+  String _name,
+  String _name2,
 ) {
-  if (name.isEmpty) throw 'No name provided';
-  name = demangleMixinApplicationName(name);
-  if (name2.isEmpty) throw 'No name provided';
-  name2 = demangleMixinApplicationName(name2);
+  if (_name.isEmpty) throw 'No name provided';
+  String name = demangleMixinApplicationName(_name);
+  if (_name2.isEmpty) throw 'No name provided';
+  String name2 = demangleMixinApplicationName(_name2);
   return new Message(
     codeOverrideFewerPositionalArguments,
     problemMessage:
         """The method '${name}' has fewer positional arguments than those of overridden method '${name2}'.""",
-    arguments: {'name': name, 'name2': name2},
+    arguments: {'name': _name, 'name2': _name2},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(String name, String name2, String name3)>
+const Template<Message Function(String _name, String _name2, String _name3)>
 codeOverrideMismatchNamedParameter =
-    const Template<Message Function(String name, String name2, String name3)>(
+    const Template<
+      Message Function(String _name, String _name2, String _name3)
+    >(
       "OverrideMismatchNamedParameter",
       problemMessageTemplate:
           r"""The method '#name' doesn't have the named parameter '#name2' of overridden method '#name3'.""",
@@ -10475,28 +10516,30 @@ codeOverrideMismatchNamedParameter =
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsOldOverrideMismatchNamedParameter(
-  String name,
-  String name2,
-  String name3,
+  String _name,
+  String _name2,
+  String _name3,
 ) {
-  if (name.isEmpty) throw 'No name provided';
-  name = demangleMixinApplicationName(name);
-  if (name2.isEmpty) throw 'No name provided';
-  name2 = demangleMixinApplicationName(name2);
-  if (name3.isEmpty) throw 'No name provided';
-  name3 = demangleMixinApplicationName(name3);
+  if (_name.isEmpty) throw 'No name provided';
+  String name = demangleMixinApplicationName(_name);
+  if (_name2.isEmpty) throw 'No name provided';
+  String name2 = demangleMixinApplicationName(_name2);
+  if (_name3.isEmpty) throw 'No name provided';
+  String name3 = demangleMixinApplicationName(_name3);
   return new Message(
     codeOverrideMismatchNamedParameter,
     problemMessage:
         """The method '${name}' doesn't have the named parameter '${name2}' of overridden method '${name3}'.""",
-    arguments: {'name': name, 'name2': name2, 'name3': name3},
+    arguments: {'name': _name, 'name2': _name2, 'name3': _name3},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(String name, String name2, String name3)>
+const Template<Message Function(String _name, String _name2, String _name3)>
 codeOverrideMismatchRequiredNamedParameter =
-    const Template<Message Function(String name, String name2, String name3)>(
+    const Template<
+      Message Function(String _name, String _name2, String _name3)
+    >(
       "OverrideMismatchRequiredNamedParameter",
       problemMessageTemplate:
           r"""The required named parameter '#name' in method '#name2' is not required in overridden method '#name3'.""",
@@ -10505,28 +10548,28 @@ codeOverrideMismatchRequiredNamedParameter =
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsOldOverrideMismatchRequiredNamedParameter(
-  String name,
-  String name2,
-  String name3,
+  String _name,
+  String _name2,
+  String _name3,
 ) {
-  if (name.isEmpty) throw 'No name provided';
-  name = demangleMixinApplicationName(name);
-  if (name2.isEmpty) throw 'No name provided';
-  name2 = demangleMixinApplicationName(name2);
-  if (name3.isEmpty) throw 'No name provided';
-  name3 = demangleMixinApplicationName(name3);
+  if (_name.isEmpty) throw 'No name provided';
+  String name = demangleMixinApplicationName(_name);
+  if (_name2.isEmpty) throw 'No name provided';
+  String name2 = demangleMixinApplicationName(_name2);
+  if (_name3.isEmpty) throw 'No name provided';
+  String name3 = demangleMixinApplicationName(_name3);
   return new Message(
     codeOverrideMismatchRequiredNamedParameter,
     problemMessage:
         """The required named parameter '${name}' in method '${name2}' is not required in overridden method '${name3}'.""",
-    arguments: {'name': name, 'name2': name2, 'name3': name3},
+    arguments: {'name': _name, 'name2': _name2, 'name3': _name3},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(String name, String name2)>
+const Template<Message Function(String _name, String _name2)>
 codeOverrideMoreRequiredArguments =
-    const Template<Message Function(String name, String name2)>(
+    const Template<Message Function(String _name, String _name2)>(
       "OverrideMoreRequiredArguments",
       problemMessageTemplate:
           r"""The method '#name' has more required arguments than those of overridden method '#name2'.""",
@@ -10536,25 +10579,25 @@ codeOverrideMoreRequiredArguments =
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsOldOverrideMoreRequiredArguments(
-  String name,
-  String name2,
+  String _name,
+  String _name2,
 ) {
-  if (name.isEmpty) throw 'No name provided';
-  name = demangleMixinApplicationName(name);
-  if (name2.isEmpty) throw 'No name provided';
-  name2 = demangleMixinApplicationName(name2);
+  if (_name.isEmpty) throw 'No name provided';
+  String name = demangleMixinApplicationName(_name);
+  if (_name2.isEmpty) throw 'No name provided';
+  String name2 = demangleMixinApplicationName(_name2);
   return new Message(
     codeOverrideMoreRequiredArguments,
     problemMessage:
         """The method '${name}' has more required arguments than those of overridden method '${name2}'.""",
-    arguments: {'name': name, 'name2': name2},
+    arguments: {'name': _name, 'name2': _name2},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(String name, String name2)>
+const Template<Message Function(String _name, String _name2)>
 codeOverrideTypeParametersMismatch =
-    const Template<Message Function(String name, String name2)>(
+    const Template<Message Function(String _name, String _name2)>(
       "OverrideTypeParametersMismatch",
       problemMessageTemplate:
           r"""Declared type variables of '#name' doesn't match those on overridden method '#name2'.""",
@@ -10564,24 +10607,24 @@ codeOverrideTypeParametersMismatch =
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsOldOverrideTypeParametersMismatch(
-  String name,
-  String name2,
+  String _name,
+  String _name2,
 ) {
-  if (name.isEmpty) throw 'No name provided';
-  name = demangleMixinApplicationName(name);
-  if (name2.isEmpty) throw 'No name provided';
-  name2 = demangleMixinApplicationName(name2);
+  if (_name.isEmpty) throw 'No name provided';
+  String name = demangleMixinApplicationName(_name);
+  if (_name2.isEmpty) throw 'No name provided';
+  String name2 = demangleMixinApplicationName(_name2);
   return new Message(
     codeOverrideTypeParametersMismatch,
     problemMessage:
         """Declared type variables of '${name}' doesn't match those on overridden method '${name2}'.""",
-    arguments: {'name': name, 'name2': name2},
+    arguments: {'name': _name, 'name2': _name2},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(String name, Uri uri_)> codePackageNotFound =
-    const Template<Message Function(String name, Uri uri_)>(
+const Template<Message Function(String _name, Uri uri_)> codePackageNotFound =
+    const Template<Message Function(String _name, Uri uri_)>(
       "PackageNotFound",
       problemMessageTemplate:
           r"""Couldn't resolve the package '#name' in '#uri'.""",
@@ -10589,14 +10632,14 @@ const Template<Message Function(String name, Uri uri_)> codePackageNotFound =
     );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldPackageNotFound(String name, Uri uri_) {
-  if (name.isEmpty) throw 'No name provided';
-  name = demangleMixinApplicationName(name);
+Message _withArgumentsOldPackageNotFound(String _name, Uri uri_) {
+  if (_name.isEmpty) throw 'No name provided';
+  String name = demangleMixinApplicationName(_name);
   String? uri = relativizeUri(uri_);
   return new Message(
     codePackageNotFound,
     problemMessage: """Couldn't resolve the package '${name}' in '${uri}'.""",
-    arguments: {'name': name, 'uri': uri_},
+    arguments: {'name': _name, 'uri': uri_},
   );
 }
 
@@ -10677,9 +10720,9 @@ Message _withArgumentsOldPartOfInLibrary(Uri uri_) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(Uri uri_, String name, String name2)>
+const Template<Message Function(Uri uri_, String _name, String _name2)>
 codePartOfLibraryNameMismatch =
-    const Template<Message Function(Uri uri_, String name, String name2)>(
+    const Template<Message Function(Uri uri_, String _name, String _name2)>(
       "PartOfLibraryNameMismatch",
       problemMessageTemplate:
           r"""Using '#uri' as part of '#name' but its 'part of' declaration says '#name2'.""",
@@ -10690,19 +10733,19 @@ codePartOfLibraryNameMismatch =
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsOldPartOfLibraryNameMismatch(
   Uri uri_,
-  String name,
-  String name2,
+  String _name,
+  String _name2,
 ) {
   String? uri = relativizeUri(uri_);
-  if (name.isEmpty) throw 'No name provided';
-  name = demangleMixinApplicationName(name);
-  if (name2.isEmpty) throw 'No name provided';
-  name2 = demangleMixinApplicationName(name2);
+  if (_name.isEmpty) throw 'No name provided';
+  String name = demangleMixinApplicationName(_name);
+  if (_name2.isEmpty) throw 'No name provided';
+  String name2 = demangleMixinApplicationName(_name2);
   return new Message(
     codePartOfLibraryNameMismatch,
     problemMessage:
         """Using '${uri}' as part of '${name}' but its 'part of' declaration says '${name2}'.""",
-    arguments: {'uri': uri_, 'name': name, 'name2': name2},
+    arguments: {'uri': uri_, 'name': _name, 'name2': _name2},
   );
 }
 
@@ -10762,8 +10805,8 @@ Message _withArgumentsOldPartOfUriMismatch(Uri uri_, Uri uri2_, Uri uri3_) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(Uri uri_, Uri uri2_, String name)>
-codePartOfUseUri = const Template<Message Function(Uri uri_, Uri uri2_, String name)>(
+const Template<Message Function(Uri uri_, Uri uri2_, String _name)>
+codePartOfUseUri = const Template<Message Function(Uri uri_, Uri uri2_, String _name)>(
   "PartOfUseUri",
   problemMessageTemplate:
       r"""Using '#uri' as part of '#uri2' but its 'part of' declaration says '#name'.""",
@@ -10774,18 +10817,18 @@ codePartOfUseUri = const Template<Message Function(Uri uri_, Uri uri2_, String n
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldPartOfUseUri(Uri uri_, Uri uri2_, String name) {
+Message _withArgumentsOldPartOfUseUri(Uri uri_, Uri uri2_, String _name) {
   String? uri = relativizeUri(uri_);
   String? uri2 = relativizeUri(uri2_);
-  if (name.isEmpty) throw 'No name provided';
-  name = demangleMixinApplicationName(name);
+  if (_name.isEmpty) throw 'No name provided';
+  String name = demangleMixinApplicationName(_name);
   return new Message(
     codePartOfUseUri,
     problemMessage:
         """Using '${uri}' as part of '${uri2}' but its 'part of' declaration says '${name}'.""",
     correctionMessage:
         """Try changing the 'part of' declaration to use a relative file name.""",
-    arguments: {'uri': uri_, 'uri2': uri2_, 'name': name},
+    arguments: {'uri': uri_, 'uri2': uri2_, 'name': _name},
   );
 }
 
@@ -10851,8 +10894,8 @@ const MessageCode codePatchExtensionTypeParametersMismatch = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(String name, Uri uri_)>
-codePatchInjectionFailed = const Template<Message Function(String name, Uri uri_)>(
+const Template<Message Function(String _name, Uri uri_)>
+codePatchInjectionFailed = const Template<Message Function(String _name, Uri uri_)>(
   "PatchInjectionFailed",
   problemMessageTemplate: r"""Can't inject public '#name' into '#uri'.""",
   correctionMessageTemplate:
@@ -10861,23 +10904,23 @@ codePatchInjectionFailed = const Template<Message Function(String name, Uri uri_
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldPatchInjectionFailed(String name, Uri uri_) {
-  if (name.isEmpty) throw 'No name provided';
-  name = demangleMixinApplicationName(name);
+Message _withArgumentsOldPatchInjectionFailed(String _name, Uri uri_) {
+  if (_name.isEmpty) throw 'No name provided';
+  String name = demangleMixinApplicationName(_name);
   String? uri = relativizeUri(uri_);
   return new Message(
     codePatchInjectionFailed,
     problemMessage: """Can't inject public '${name}' into '${uri}'.""",
     correctionMessage:
         """Make '${name}' private, or make sure injected library has "dart" scheme and is private (e.g. "dart:_internal").""",
-    arguments: {'name': name, 'uri': uri_},
+    arguments: {'name': _name, 'uri': uri_},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(String name)>
+const Template<Message Function(String _name)>
 codePatternAssignmentDeclaresVariable =
-    const Template<Message Function(String name)>(
+    const Template<Message Function(String _name)>(
       "PatternAssignmentDeclaresVariable",
       problemMessageTemplate:
           r"""Variable '#name' can't be declared in a pattern assignment.""",
@@ -10888,16 +10931,16 @@ codePatternAssignmentDeclaresVariable =
     );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldPatternAssignmentDeclaresVariable(String name) {
-  if (name.isEmpty) throw 'No name provided';
-  name = demangleMixinApplicationName(name);
+Message _withArgumentsOldPatternAssignmentDeclaresVariable(String _name) {
+  if (_name.isEmpty) throw 'No name provided';
+  String name = demangleMixinApplicationName(_name);
   return new Message(
     codePatternAssignmentDeclaresVariable,
     problemMessage:
         """Variable '${name}' can't be declared in a pattern assignment.""",
     correctionMessage:
         """Try using a preexisting variable or changing the assignment to a pattern variable declaration.""",
-    arguments: {'name': name},
+    arguments: {'name': _name},
   );
 }
 
@@ -11091,8 +11134,8 @@ const MessageCode codeRedirectionInNonFactory = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(String name)> codeRedirectionTargetNotFound =
-    const Template<Message Function(String name)>(
+const Template<Message Function(String _name)> codeRedirectionTargetNotFound =
+    const Template<Message Function(String _name)>(
       "RedirectionTargetNotFound",
       problemMessageTemplate:
           r"""Redirection constructor target not found: '#name'""",
@@ -11101,13 +11144,13 @@ const Template<Message Function(String name)> codeRedirectionTargetNotFound =
     );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldRedirectionTargetNotFound(String name) {
-  if (name.isEmpty) throw 'No name provided';
-  name = demangleMixinApplicationName(name);
+Message _withArgumentsOldRedirectionTargetNotFound(String _name) {
+  if (_name.isEmpty) throw 'No name provided';
+  String name = demangleMixinApplicationName(_name);
   return new Message(
     codeRedirectionTargetNotFound,
     problemMessage: """Redirection constructor target not found: '${name}'""",
-    arguments: {'name': name},
+    arguments: {'name': _name},
   );
 }
 
@@ -11136,9 +11179,9 @@ const MessageCode codeRepresentationFieldTrailingComma = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(String name)>
+const Template<Message Function(String _name)>
 codeRequiredNamedParameterHasDefaultValueError =
-    const Template<Message Function(String name)>(
+    const Template<Message Function(String _name)>(
       "RequiredNamedParameterHasDefaultValueError",
       problemMessageTemplate:
           r"""Named parameter '#name' is required and can't have a default value.""",
@@ -11148,15 +11191,15 @@ codeRequiredNamedParameterHasDefaultValueError =
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsOldRequiredNamedParameterHasDefaultValueError(
-  String name,
+  String _name,
 ) {
-  if (name.isEmpty) throw 'No name provided';
-  name = demangleMixinApplicationName(name);
+  if (_name.isEmpty) throw 'No name provided';
+  String name = demangleMixinApplicationName(_name);
   return new Message(
     codeRequiredNamedParameterHasDefaultValueError,
     problemMessage:
         """Named parameter '${name}' is required and can't have a default value.""",
-    arguments: {'name': name},
+    arguments: {'name': _name},
   );
 }
 
@@ -11270,9 +11313,9 @@ Message _withArgumentsOldSdkSummaryNotFound(Uri uri_) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(String name)>
+const Template<Message Function(String _name)>
 codeSealedClassSubtypeOutsideOfLibrary =
-    const Template<Message Function(String name)>(
+    const Template<Message Function(String _name)>(
       "SealedClassSubtypeOutsideOfLibrary",
       problemMessageTemplate:
           r"""The class '#name' can't be extended, implemented, or mixed in outside of its library because it's a sealed class.""",
@@ -11281,14 +11324,14 @@ codeSealedClassSubtypeOutsideOfLibrary =
     );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldSealedClassSubtypeOutsideOfLibrary(String name) {
-  if (name.isEmpty) throw 'No name provided';
-  name = demangleMixinApplicationName(name);
+Message _withArgumentsOldSealedClassSubtypeOutsideOfLibrary(String _name) {
+  if (_name.isEmpty) throw 'No name provided';
+  String name = demangleMixinApplicationName(_name);
   return new Message(
     codeSealedClassSubtypeOutsideOfLibrary,
     problemMessage:
         """The class '${name}' can't be extended, implemented, or mixed in outside of its library because it's a sealed class.""",
-    arguments: {'name': name},
+    arguments: {'name': _name},
   );
 }
 
@@ -11324,9 +11367,9 @@ const MessageCode codeSetOrMapLiteralTooManyTypeArguments = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(String name)>
+const Template<Message Function(String _name)>
 codeSetterConflictsWithDeclaration =
-    const Template<Message Function(String name)>(
+    const Template<Message Function(String _name)>(
       "SetterConflictsWithDeclaration",
       problemMessageTemplate:
           r"""The setter conflicts with declaration '#name'.""",
@@ -11335,20 +11378,20 @@ codeSetterConflictsWithDeclaration =
     );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldSetterConflictsWithDeclaration(String name) {
-  if (name.isEmpty) throw 'No name provided';
-  name = demangleMixinApplicationName(name);
+Message _withArgumentsOldSetterConflictsWithDeclaration(String _name) {
+  if (_name.isEmpty) throw 'No name provided';
+  String name = demangleMixinApplicationName(_name);
   return new Message(
     codeSetterConflictsWithDeclaration,
     problemMessage: """The setter conflicts with declaration '${name}'.""",
-    arguments: {'name': name},
+    arguments: {'name': _name},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(String name)>
+const Template<Message Function(String _name)>
 codeSetterConflictsWithDeclarationCause =
-    const Template<Message Function(String name)>(
+    const Template<Message Function(String _name)>(
       "SetterConflictsWithDeclarationCause",
       problemMessageTemplate: r"""Conflicting declaration '#name'.""",
       withArgumentsOld: _withArgumentsOldSetterConflictsWithDeclarationCause,
@@ -11356,13 +11399,13 @@ codeSetterConflictsWithDeclarationCause =
     );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldSetterConflictsWithDeclarationCause(String name) {
-  if (name.isEmpty) throw 'No name provided';
-  name = demangleMixinApplicationName(name);
+Message _withArgumentsOldSetterConflictsWithDeclarationCause(String _name) {
+  if (_name.isEmpty) throw 'No name provided';
+  String name = demangleMixinApplicationName(_name);
   return new Message(
     codeSetterConflictsWithDeclarationCause,
     problemMessage: """Conflicting declaration '${name}'.""",
-    arguments: {'name': name},
+    arguments: {'name': _name},
   );
 }
 
@@ -11375,8 +11418,8 @@ const MessageCode codeSetterConstructor = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(String name)> codeSetterNotFound =
-    const Template<Message Function(String name)>(
+const Template<Message Function(String _name)> codeSetterNotFound =
+    const Template<Message Function(String _name)>(
       "SetterNotFound",
       problemMessageTemplate: r"""Setter not found: '#name'.""",
       withArgumentsOld: _withArgumentsOldSetterNotFound,
@@ -11384,13 +11427,13 @@ const Template<Message Function(String name)> codeSetterNotFound =
     );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldSetterNotFound(String name) {
-  if (name.isEmpty) throw 'No name provided';
-  name = demangleMixinApplicationName(name);
+Message _withArgumentsOldSetterNotFound(String _name) {
+  if (_name.isEmpty) throw 'No name provided';
+  String name = demangleMixinApplicationName(_name);
   return new Message(
     codeSetterNotFound,
     problemMessage: """Setter not found: '${name}'.""",
-    arguments: {'name': name},
+    arguments: {'name': _name},
   );
 }
 
@@ -11518,8 +11561,8 @@ const MessageCode codeStackOverflow = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(String name)>
-codeStaticConflictsWithInstance = const Template<Message Function(String name)>(
+const Template<Message Function(String _name)>
+codeStaticConflictsWithInstance = const Template<Message Function(String _name)>(
   "StaticConflictsWithInstance",
   problemMessageTemplate:
       r"""Static property '#name' conflicts with instance property of the same name.""",
@@ -11528,21 +11571,21 @@ codeStaticConflictsWithInstance = const Template<Message Function(String name)>(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldStaticConflictsWithInstance(String name) {
-  if (name.isEmpty) throw 'No name provided';
-  name = demangleMixinApplicationName(name);
+Message _withArgumentsOldStaticConflictsWithInstance(String _name) {
+  if (_name.isEmpty) throw 'No name provided';
+  String name = demangleMixinApplicationName(_name);
   return new Message(
     codeStaticConflictsWithInstance,
     problemMessage:
         """Static property '${name}' conflicts with instance property of the same name.""",
-    arguments: {'name': name},
+    arguments: {'name': _name},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(String name)>
+const Template<Message Function(String _name)>
 codeStaticConflictsWithInstanceCause =
-    const Template<Message Function(String name)>(
+    const Template<Message Function(String _name)>(
       "StaticConflictsWithInstanceCause",
       problemMessageTemplate: r"""Conflicting instance property '#name'.""",
       withArgumentsOld: _withArgumentsOldStaticConflictsWithInstanceCause,
@@ -11550,13 +11593,13 @@ codeStaticConflictsWithInstanceCause =
     );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldStaticConflictsWithInstanceCause(String name) {
-  if (name.isEmpty) throw 'No name provided';
-  name = demangleMixinApplicationName(name);
+Message _withArgumentsOldStaticConflictsWithInstanceCause(String _name) {
+  if (_name.isEmpty) throw 'No name provided';
+  String name = demangleMixinApplicationName(_name);
   return new Message(
     codeStaticConflictsWithInstanceCause,
     problemMessage: """Conflicting instance property '${name}'.""",
-    arguments: {'name': name},
+    arguments: {'name': _name},
   );
 }
 
@@ -11586,9 +11629,9 @@ const MessageCode codeStaticTearOffFromInstantiatedClass = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(String name, String name2)>
+const Template<Message Function(String _name, String _name2)>
 codeSubtypeOfBaseIsNotBaseFinalOrSealed =
-    const Template<Message Function(String name, String name2)>(
+    const Template<Message Function(String _name, String _name2)>(
       "SubtypeOfBaseIsNotBaseFinalOrSealed",
       problemMessageTemplate:
           r"""The type '#name' must be 'base', 'final' or 'sealed' because the supertype '#name2' is 'base'.""",
@@ -11600,27 +11643,27 @@ codeSubtypeOfBaseIsNotBaseFinalOrSealed =
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsOldSubtypeOfBaseIsNotBaseFinalOrSealed(
-  String name,
-  String name2,
+  String _name,
+  String _name2,
 ) {
-  if (name.isEmpty) throw 'No name provided';
-  name = demangleMixinApplicationName(name);
-  if (name2.isEmpty) throw 'No name provided';
-  name2 = demangleMixinApplicationName(name2);
+  if (_name.isEmpty) throw 'No name provided';
+  String name = demangleMixinApplicationName(_name);
+  if (_name2.isEmpty) throw 'No name provided';
+  String name2 = demangleMixinApplicationName(_name2);
   return new Message(
     codeSubtypeOfBaseIsNotBaseFinalOrSealed,
     problemMessage:
         """The type '${name}' must be 'base', 'final' or 'sealed' because the supertype '${name2}' is 'base'.""",
     correctionMessage:
         """Try adding 'base', 'final', or 'sealed' to the type.""",
-    arguments: {'name': name, 'name2': name2},
+    arguments: {'name': _name, 'name2': _name2},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(String name, String name2)>
+const Template<Message Function(String _name, String _name2)>
 codeSubtypeOfFinalIsNotBaseFinalOrSealed =
-    const Template<Message Function(String name, String name2)>(
+    const Template<Message Function(String _name, String _name2)>(
       "SubtypeOfFinalIsNotBaseFinalOrSealed",
       problemMessageTemplate:
           r"""The type '#name' must be 'base', 'final' or 'sealed' because the supertype '#name2' is 'final'.""",
@@ -11632,20 +11675,20 @@ codeSubtypeOfFinalIsNotBaseFinalOrSealed =
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsOldSubtypeOfFinalIsNotBaseFinalOrSealed(
-  String name,
-  String name2,
+  String _name,
+  String _name2,
 ) {
-  if (name.isEmpty) throw 'No name provided';
-  name = demangleMixinApplicationName(name);
-  if (name2.isEmpty) throw 'No name provided';
-  name2 = demangleMixinApplicationName(name2);
+  if (_name.isEmpty) throw 'No name provided';
+  String name = demangleMixinApplicationName(_name);
+  if (_name2.isEmpty) throw 'No name provided';
+  String name2 = demangleMixinApplicationName(_name2);
   return new Message(
     codeSubtypeOfFinalIsNotBaseFinalOrSealed,
     problemMessage:
         """The type '${name}' must be 'base', 'final' or 'sealed' because the supertype '${name2}' is 'final'.""",
     correctionMessage:
         """Try adding 'base', 'final', or 'sealed' to the type.""",
-    arguments: {'name': name, 'name2': name2},
+    arguments: {'name': _name, 'name2': _name2},
   );
 }
 
@@ -11666,8 +11709,8 @@ const MessageCode codeSuperAsIdentifier = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(String name)> codeSuperExtensionTypeIsIllegal =
-    const Template<Message Function(String name)>(
+const Template<Message Function(String _name)> codeSuperExtensionTypeIsIllegal =
+    const Template<Message Function(String _name)>(
       "SuperExtensionTypeIsIllegal",
       problemMessageTemplate:
           r"""The type '#name' can't be implemented by an extension type.""",
@@ -11675,21 +11718,21 @@ const Template<Message Function(String name)> codeSuperExtensionTypeIsIllegal =
     );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldSuperExtensionTypeIsIllegal(String name) {
-  if (name.isEmpty) throw 'No name provided';
-  name = demangleMixinApplicationName(name);
+Message _withArgumentsOldSuperExtensionTypeIsIllegal(String _name) {
+  if (_name.isEmpty) throw 'No name provided';
+  String name = demangleMixinApplicationName(_name);
   return new Message(
     codeSuperExtensionTypeIsIllegal,
     problemMessage:
         """The type '${name}' can't be implemented by an extension type.""",
-    arguments: {'name': name},
+    arguments: {'name': _name},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(String name)>
+const Template<Message Function(String _name)>
 codeSuperExtensionTypeIsTypeParameter =
-    const Template<Message Function(String name)>(
+    const Template<Message Function(String _name)>(
       "SuperExtensionTypeIsTypeParameter",
       problemMessageTemplate:
           r"""The type variable '#name' can't be implemented by an extension type.""",
@@ -11697,14 +11740,14 @@ codeSuperExtensionTypeIsTypeParameter =
     );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldSuperExtensionTypeIsTypeParameter(String name) {
-  if (name.isEmpty) throw 'No name provided';
-  name = demangleMixinApplicationName(name);
+Message _withArgumentsOldSuperExtensionTypeIsTypeParameter(String _name) {
+  if (_name.isEmpty) throw 'No name provided';
+  String name = demangleMixinApplicationName(_name);
   return new Message(
     codeSuperExtensionTypeIsTypeParameter,
     problemMessage:
         """The type variable '${name}' can't be implemented by an extension type.""",
-    arguments: {'name': name},
+    arguments: {'name': _name},
   );
 }
 
@@ -11741,8 +11784,8 @@ codeSuperParameterInitializerOutsideConstructor = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(String name)> codeSuperclassHasNoConstructor =
-    const Template<Message Function(String name)>(
+const Template<Message Function(String _name)> codeSuperclassHasNoConstructor =
+    const Template<Message Function(String _name)>(
       "SuperclassHasNoConstructor",
       problemMessageTemplate:
           r"""Superclass has no constructor named '#name'.""",
@@ -11754,20 +11797,20 @@ const Template<Message Function(String name)> codeSuperclassHasNoConstructor =
     );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldSuperclassHasNoConstructor(String name) {
-  if (name.isEmpty) throw 'No name provided';
-  name = demangleMixinApplicationName(name);
+Message _withArgumentsOldSuperclassHasNoConstructor(String _name) {
+  if (_name.isEmpty) throw 'No name provided';
+  String name = demangleMixinApplicationName(_name);
   return new Message(
     codeSuperclassHasNoConstructor,
     problemMessage: """Superclass has no constructor named '${name}'.""",
-    arguments: {'name': name},
+    arguments: {'name': _name},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(String name)>
+const Template<Message Function(String _name)>
 codeSuperclassHasNoDefaultConstructor =
-    const Template<Message Function(String name)>(
+    const Template<Message Function(String _name)>(
       "SuperclassHasNoDefaultConstructor",
       problemMessageTemplate:
           r"""The superclass, '#name', has no unnamed constructor that takes no arguments.""",
@@ -11776,20 +11819,20 @@ codeSuperclassHasNoDefaultConstructor =
     );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldSuperclassHasNoDefaultConstructor(String name) {
-  if (name.isEmpty) throw 'No name provided';
-  name = demangleMixinApplicationName(name);
+Message _withArgumentsOldSuperclassHasNoDefaultConstructor(String _name) {
+  if (_name.isEmpty) throw 'No name provided';
+  String name = demangleMixinApplicationName(_name);
   return new Message(
     codeSuperclassHasNoDefaultConstructor,
     problemMessage:
         """The superclass, '${name}', has no unnamed constructor that takes no arguments.""",
-    arguments: {'name': name},
+    arguments: {'name': _name},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(String name)> codeSuperclassHasNoGetter =
-    const Template<Message Function(String name)>(
+const Template<Message Function(String _name)> codeSuperclassHasNoGetter =
+    const Template<Message Function(String _name)>(
       "SuperclassHasNoGetter",
       problemMessageTemplate: r"""Superclass has no getter named '#name'.""",
       withArgumentsOld: _withArgumentsOldSuperclassHasNoGetter,
@@ -11797,19 +11840,19 @@ const Template<Message Function(String name)> codeSuperclassHasNoGetter =
     );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldSuperclassHasNoGetter(String name) {
-  if (name.isEmpty) throw 'No name provided';
-  name = demangleMixinApplicationName(name);
+Message _withArgumentsOldSuperclassHasNoGetter(String _name) {
+  if (_name.isEmpty) throw 'No name provided';
+  String name = demangleMixinApplicationName(_name);
   return new Message(
     codeSuperclassHasNoGetter,
     problemMessage: """Superclass has no getter named '${name}'.""",
-    arguments: {'name': name},
+    arguments: {'name': _name},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(String name)> codeSuperclassHasNoMember =
-    const Template<Message Function(String name)>(
+const Template<Message Function(String _name)> codeSuperclassHasNoMember =
+    const Template<Message Function(String _name)>(
       "SuperclassHasNoMember",
       problemMessageTemplate: r"""Superclass has no member named '#name'.""",
       withArgumentsOld: _withArgumentsOldSuperclassHasNoMember,
@@ -11817,19 +11860,19 @@ const Template<Message Function(String name)> codeSuperclassHasNoMember =
     );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldSuperclassHasNoMember(String name) {
-  if (name.isEmpty) throw 'No name provided';
-  name = demangleMixinApplicationName(name);
+Message _withArgumentsOldSuperclassHasNoMember(String _name) {
+  if (_name.isEmpty) throw 'No name provided';
+  String name = demangleMixinApplicationName(_name);
   return new Message(
     codeSuperclassHasNoMember,
     problemMessage: """Superclass has no member named '${name}'.""",
-    arguments: {'name': name},
+    arguments: {'name': _name},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(String name)> codeSuperclassHasNoMethod =
-    const Template<Message Function(String name)>(
+const Template<Message Function(String _name)> codeSuperclassHasNoMethod =
+    const Template<Message Function(String _name)>(
       "SuperclassHasNoMethod",
       problemMessageTemplate: r"""Superclass has no method named '#name'.""",
       withArgumentsOld: _withArgumentsOldSuperclassHasNoMethod,
@@ -11837,19 +11880,19 @@ const Template<Message Function(String name)> codeSuperclassHasNoMethod =
     );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldSuperclassHasNoMethod(String name) {
-  if (name.isEmpty) throw 'No name provided';
-  name = demangleMixinApplicationName(name);
+Message _withArgumentsOldSuperclassHasNoMethod(String _name) {
+  if (_name.isEmpty) throw 'No name provided';
+  String name = demangleMixinApplicationName(_name);
   return new Message(
     codeSuperclassHasNoMethod,
     problemMessage: """Superclass has no method named '${name}'.""",
-    arguments: {'name': name},
+    arguments: {'name': _name},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(String name)> codeSuperclassHasNoSetter =
-    const Template<Message Function(String name)>(
+const Template<Message Function(String _name)> codeSuperclassHasNoSetter =
+    const Template<Message Function(String _name)>(
       "SuperclassHasNoSetter",
       problemMessageTemplate: r"""Superclass has no setter named '#name'.""",
       withArgumentsOld: _withArgumentsOldSuperclassHasNoSetter,
@@ -11857,13 +11900,13 @@ const Template<Message Function(String name)> codeSuperclassHasNoSetter =
     );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldSuperclassHasNoSetter(String name) {
-  if (name.isEmpty) throw 'No name provided';
-  name = demangleMixinApplicationName(name);
+Message _withArgumentsOldSuperclassHasNoSetter(String _name) {
+  if (_name.isEmpty) throw 'No name provided';
+  String name = demangleMixinApplicationName(_name);
   return new Message(
     codeSuperclassHasNoSetter,
     problemMessage: """Superclass has no setter named '${name}'.""",
-    arguments: {'name': name},
+    arguments: {'name': _name},
   );
 }
 
@@ -11874,8 +11917,8 @@ const MessageCode codeSupertypeIsFunction = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(String name)> codeSupertypeIsIllegal =
-    const Template<Message Function(String name)>(
+const Template<Message Function(String _name)> codeSupertypeIsIllegal =
+    const Template<Message Function(String _name)>(
       "SupertypeIsIllegal",
       problemMessageTemplate:
           r"""The type '#name' can't be used as supertype.""",
@@ -11884,19 +11927,19 @@ const Template<Message Function(String name)> codeSupertypeIsIllegal =
     );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldSupertypeIsIllegal(String name) {
-  if (name.isEmpty) throw 'No name provided';
-  name = demangleMixinApplicationName(name);
+Message _withArgumentsOldSupertypeIsIllegal(String _name) {
+  if (_name.isEmpty) throw 'No name provided';
+  String name = demangleMixinApplicationName(_name);
   return new Message(
     codeSupertypeIsIllegal,
     problemMessage: """The type '${name}' can't be used as supertype.""",
-    arguments: {'name': name},
+    arguments: {'name': _name},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(String name)> codeSupertypeIsTypeParameter =
-    const Template<Message Function(String name)>(
+const Template<Message Function(String _name)> codeSupertypeIsTypeParameter =
+    const Template<Message Function(String _name)>(
       "SupertypeIsTypeParameter",
       problemMessageTemplate:
           r"""The type variable '#name' can't be used as supertype.""",
@@ -11905,14 +11948,14 @@ const Template<Message Function(String name)> codeSupertypeIsTypeParameter =
     );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldSupertypeIsTypeParameter(String name) {
-  if (name.isEmpty) throw 'No name provided';
-  name = demangleMixinApplicationName(name);
+Message _withArgumentsOldSupertypeIsTypeParameter(String _name) {
+  if (_name.isEmpty) throw 'No name provided';
+  String name = demangleMixinApplicationName(_name);
   return new Message(
     codeSupertypeIsTypeParameter,
     problemMessage:
         """The type variable '${name}' can't be used as supertype.""",
-    arguments: {'name': name},
+    arguments: {'name': _name},
   );
 }
 
@@ -11955,8 +11998,9 @@ const MessageCode codeSyntheticToken = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(String name)> codeThisAccessInFieldInitializer =
-    const Template<Message Function(String name)>(
+const Template<Message Function(String _name)>
+codeThisAccessInFieldInitializer =
+    const Template<Message Function(String _name)>(
       "ThisAccessInFieldInitializer",
       problemMessageTemplate:
           r"""Can't access 'this' in a field initializer to read '#name'.""",
@@ -11964,14 +12008,14 @@ const Template<Message Function(String name)> codeThisAccessInFieldInitializer =
     );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldThisAccessInFieldInitializer(String name) {
-  if (name.isEmpty) throw 'No name provided';
-  name = demangleMixinApplicationName(name);
+Message _withArgumentsOldThisAccessInFieldInitializer(String _name) {
+  if (_name.isEmpty) throw 'No name provided';
+  String name = demangleMixinApplicationName(_name);
   return new Message(
     codeThisAccessInFieldInitializer,
     problemMessage:
         """Can't access 'this' in a field initializer to read '${name}'.""",
-    arguments: {'name': name},
+    arguments: {'name': _name},
   );
 }
 
@@ -12103,8 +12147,8 @@ Message _withArgumentsOldTypeArgumentMismatch(int count) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(String name)> codeTypeArgumentsOnTypeVariable =
-    const Template<Message Function(String name)>(
+const Template<Message Function(String _name)> codeTypeArgumentsOnTypeVariable =
+    const Template<Message Function(String _name)>(
       "TypeArgumentsOnTypeVariable",
       problemMessageTemplate:
           r"""Can't use type arguments with type variable '#name'.""",
@@ -12114,15 +12158,15 @@ const Template<Message Function(String name)> codeTypeArgumentsOnTypeVariable =
     );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldTypeArgumentsOnTypeVariable(String name) {
-  if (name.isEmpty) throw 'No name provided';
-  name = demangleMixinApplicationName(name);
+Message _withArgumentsOldTypeArgumentsOnTypeVariable(String _name) {
+  if (_name.isEmpty) throw 'No name provided';
+  String name = demangleMixinApplicationName(_name);
   return new Message(
     codeTypeArgumentsOnTypeVariable,
     problemMessage:
         """Can't use type arguments with type variable '${name}'.""",
     correctionMessage: """Try removing the type arguments.""",
-    arguments: {'name': name},
+    arguments: {'name': _name},
   );
 }
 
@@ -12135,8 +12179,8 @@ const MessageCode codeTypeBeforeFactory = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(String name)> codeTypeNotFound =
-    const Template<Message Function(String name)>(
+const Template<Message Function(String _name)> codeTypeNotFound =
+    const Template<Message Function(String _name)>(
       "TypeNotFound",
       problemMessageTemplate: r"""Type '#name' not found.""",
       withArgumentsOld: _withArgumentsOldTypeNotFound,
@@ -12144,40 +12188,40 @@ const Template<Message Function(String name)> codeTypeNotFound =
     );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldTypeNotFound(String name) {
-  if (name.isEmpty) throw 'No name provided';
-  name = demangleMixinApplicationName(name);
+Message _withArgumentsOldTypeNotFound(String _name) {
+  if (_name.isEmpty) throw 'No name provided';
+  String name = demangleMixinApplicationName(_name);
   return new Message(
     codeTypeNotFound,
     problemMessage: """Type '${name}' not found.""",
-    arguments: {'name': name},
+    arguments: {'name': _name},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(String name, Uri uri_)> codeTypeOrigin =
-    const Template<Message Function(String name, Uri uri_)>(
+const Template<Message Function(String _name, Uri uri_)> codeTypeOrigin =
+    const Template<Message Function(String _name, Uri uri_)>(
       "TypeOrigin",
       problemMessageTemplate: r"""'#name' is from '#uri'.""",
       withArgumentsOld: _withArgumentsOldTypeOrigin,
     );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldTypeOrigin(String name, Uri uri_) {
-  if (name.isEmpty) throw 'No name provided';
-  name = demangleMixinApplicationName(name);
+Message _withArgumentsOldTypeOrigin(String _name, Uri uri_) {
+  if (_name.isEmpty) throw 'No name provided';
+  String name = demangleMixinApplicationName(_name);
   String? uri = relativizeUri(uri_);
   return new Message(
     codeTypeOrigin,
     problemMessage: """'${name}' is from '${uri}'.""",
-    arguments: {'name': name, 'uri': uri_},
+    arguments: {'name': _name, 'uri': uri_},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(String name, Uri uri_, Uri uri2_)>
+const Template<Message Function(String _name, Uri uri_, Uri uri2_)>
 codeTypeOriginWithFileUri =
-    const Template<Message Function(String name, Uri uri_, Uri uri2_)>(
+    const Template<Message Function(String _name, Uri uri_, Uri uri2_)>(
       "TypeOriginWithFileUri",
       problemMessageTemplate: r"""'#name' is from '#uri' ('#uri2').""",
       withArgumentsOld: _withArgumentsOldTypeOriginWithFileUri,
@@ -12185,18 +12229,18 @@ codeTypeOriginWithFileUri =
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsOldTypeOriginWithFileUri(
-  String name,
+  String _name,
   Uri uri_,
   Uri uri2_,
 ) {
-  if (name.isEmpty) throw 'No name provided';
-  name = demangleMixinApplicationName(name);
+  if (_name.isEmpty) throw 'No name provided';
+  String name = demangleMixinApplicationName(_name);
   String? uri = relativizeUri(uri_);
   String? uri2 = relativizeUri(uri2_);
   return new Message(
     codeTypeOriginWithFileUri,
     problemMessage: """'${name}' is from '${uri}' ('${uri2}').""",
-    arguments: {'name': name, 'uri': uri_, 'uri2': uri2_},
+    arguments: {'name': _name, 'uri': uri_, 'uri2': uri2_},
   );
 }
 
@@ -12208,9 +12252,9 @@ const MessageCode codeTypeParameterDuplicatedName = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(String name)>
+const Template<Message Function(String _name)>
 codeTypeParameterDuplicatedNameCause =
-    const Template<Message Function(String name)>(
+    const Template<Message Function(String _name)>(
       "TypeParameterDuplicatedNameCause",
       problemMessageTemplate: r"""The other type variable named '#name'.""",
       withArgumentsOld: _withArgumentsOldTypeParameterDuplicatedNameCause,
@@ -12218,13 +12262,13 @@ codeTypeParameterDuplicatedNameCause =
     );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldTypeParameterDuplicatedNameCause(String name) {
-  if (name.isEmpty) throw 'No name provided';
-  name = demangleMixinApplicationName(name);
+Message _withArgumentsOldTypeParameterDuplicatedNameCause(String _name) {
+  if (_name.isEmpty) throw 'No name provided';
+  String name = demangleMixinApplicationName(_name);
   return new Message(
     codeTypeParameterDuplicatedNameCause,
     problemMessage: """The other type variable named '${name}'.""",
-    arguments: {'name': name},
+    arguments: {'name': _name},
   );
 }
 
@@ -12382,8 +12426,8 @@ const MessageCode codeUnexpectedTokens = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(String name)>
-codeUnmatchedAugmentationClass = const Template<Message Function(String name)>(
+const Template<Message Function(String _name)>
+codeUnmatchedAugmentationClass = const Template<Message Function(String _name)>(
   "UnmatchedAugmentationClass",
   problemMessageTemplate:
       r"""Augmentation class '#name' doesn't match a class in the augmented library.""",
@@ -12393,22 +12437,22 @@ codeUnmatchedAugmentationClass = const Template<Message Function(String name)>(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldUnmatchedAugmentationClass(String name) {
-  if (name.isEmpty) throw 'No name provided';
-  name = demangleMixinApplicationName(name);
+Message _withArgumentsOldUnmatchedAugmentationClass(String _name) {
+  if (_name.isEmpty) throw 'No name provided';
+  String name = demangleMixinApplicationName(_name);
   return new Message(
     codeUnmatchedAugmentationClass,
     problemMessage:
         """Augmentation class '${name}' doesn't match a class in the augmented library.""",
     correctionMessage:
         """Try changing the name to an existing class or removing the 'augment' modifier.""",
-    arguments: {'name': name},
+    arguments: {'name': _name},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(String name)>
-codeUnmatchedAugmentationClassMember = const Template<Message Function(String name)>(
+const Template<Message Function(String _name)>
+codeUnmatchedAugmentationClassMember = const Template<Message Function(String _name)>(
   "UnmatchedAugmentationClassMember",
   problemMessageTemplate:
       r"""Augmentation member '#name' doesn't match a member in the augmented class.""",
@@ -12418,22 +12462,22 @@ codeUnmatchedAugmentationClassMember = const Template<Message Function(String na
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldUnmatchedAugmentationClassMember(String name) {
-  if (name.isEmpty) throw 'No name provided';
-  name = demangleMixinApplicationName(name);
+Message _withArgumentsOldUnmatchedAugmentationClassMember(String _name) {
+  if (_name.isEmpty) throw 'No name provided';
+  String name = demangleMixinApplicationName(_name);
   return new Message(
     codeUnmatchedAugmentationClassMember,
     problemMessage:
         """Augmentation member '${name}' doesn't match a member in the augmented class.""",
     correctionMessage:
         """Try changing the name to an existing member or removing the 'augment' modifier.""",
-    arguments: {'name': name},
+    arguments: {'name': _name},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(String name)>
-codeUnmatchedAugmentationConstructor = const Template<Message Function(String name)>(
+const Template<Message Function(String _name)>
+codeUnmatchedAugmentationConstructor = const Template<Message Function(String _name)>(
   "UnmatchedAugmentationConstructor",
   problemMessageTemplate:
       r"""Augmentation constructor '#name' doesn't match a constructor in the augmented class.""",
@@ -12443,22 +12487,22 @@ codeUnmatchedAugmentationConstructor = const Template<Message Function(String na
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldUnmatchedAugmentationConstructor(String name) {
-  if (name.isEmpty) throw 'No name provided';
-  name = demangleMixinApplicationName(name);
+Message _withArgumentsOldUnmatchedAugmentationConstructor(String _name) {
+  if (_name.isEmpty) throw 'No name provided';
+  String name = demangleMixinApplicationName(_name);
   return new Message(
     codeUnmatchedAugmentationConstructor,
     problemMessage:
         """Augmentation constructor '${name}' doesn't match a constructor in the augmented class.""",
     correctionMessage:
         """Try changing the name to an existing constructor or removing the 'augment' modifier.""",
-    arguments: {'name': name},
+    arguments: {'name': _name},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(String name)>
-codeUnmatchedAugmentationDeclaration = const Template<Message Function(String name)>(
+const Template<Message Function(String _name)>
+codeUnmatchedAugmentationDeclaration = const Template<Message Function(String _name)>(
   "UnmatchedAugmentationDeclaration",
   problemMessageTemplate:
       r"""Augmentation '#name' doesn't match a declaration in the augmented library.""",
@@ -12468,22 +12512,22 @@ codeUnmatchedAugmentationDeclaration = const Template<Message Function(String na
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldUnmatchedAugmentationDeclaration(String name) {
-  if (name.isEmpty) throw 'No name provided';
-  name = demangleMixinApplicationName(name);
+Message _withArgumentsOldUnmatchedAugmentationDeclaration(String _name) {
+  if (_name.isEmpty) throw 'No name provided';
+  String name = demangleMixinApplicationName(_name);
   return new Message(
     codeUnmatchedAugmentationDeclaration,
     problemMessage:
         """Augmentation '${name}' doesn't match a declaration in the augmented library.""",
     correctionMessage:
         """Try changing the name to an existing declaration or removing the 'augment' modifier.""",
-    arguments: {'name': name},
+    arguments: {'name': _name},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(String name)>
-codeUnmatchedAugmentationLibraryMember = const Template<Message Function(String name)>(
+const Template<Message Function(String _name)>
+codeUnmatchedAugmentationLibraryMember = const Template<Message Function(String _name)>(
   "UnmatchedAugmentationLibraryMember",
   problemMessageTemplate:
       r"""Augmentation member '#name' doesn't match a member in the augmented library.""",
@@ -12493,22 +12537,22 @@ codeUnmatchedAugmentationLibraryMember = const Template<Message Function(String 
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldUnmatchedAugmentationLibraryMember(String name) {
-  if (name.isEmpty) throw 'No name provided';
-  name = demangleMixinApplicationName(name);
+Message _withArgumentsOldUnmatchedAugmentationLibraryMember(String _name) {
+  if (_name.isEmpty) throw 'No name provided';
+  String name = demangleMixinApplicationName(_name);
   return new Message(
     codeUnmatchedAugmentationLibraryMember,
     problemMessage:
         """Augmentation member '${name}' doesn't match a member in the augmented library.""",
     correctionMessage:
         """Try changing the name to an existing member or removing the 'augment' modifier.""",
-    arguments: {'name': name},
+    arguments: {'name': _name},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(String name)>
-codeUnmatchedPatchClass = const Template<Message Function(String name)>(
+const Template<Message Function(String _name)>
+codeUnmatchedPatchClass = const Template<Message Function(String _name)>(
   "UnmatchedPatchClass",
   problemMessageTemplate:
       r"""Patch class '#name' doesn't match a class in the origin library.""",
@@ -12518,22 +12562,22 @@ codeUnmatchedPatchClass = const Template<Message Function(String name)>(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldUnmatchedPatchClass(String name) {
-  if (name.isEmpty) throw 'No name provided';
-  name = demangleMixinApplicationName(name);
+Message _withArgumentsOldUnmatchedPatchClass(String _name) {
+  if (_name.isEmpty) throw 'No name provided';
+  String name = demangleMixinApplicationName(_name);
   return new Message(
     codeUnmatchedPatchClass,
     problemMessage:
         """Patch class '${name}' doesn't match a class in the origin library.""",
     correctionMessage:
         """Try changing the name to an existing class or removing the '@patch' annotation.""",
-    arguments: {'name': name},
+    arguments: {'name': _name},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(String name)>
-codeUnmatchedPatchClassMember = const Template<Message Function(String name)>(
+const Template<Message Function(String _name)>
+codeUnmatchedPatchClassMember = const Template<Message Function(String _name)>(
   "UnmatchedPatchClassMember",
   problemMessageTemplate:
       r"""Patch member '#name' doesn't match a member in the origin class.""",
@@ -12543,22 +12587,22 @@ codeUnmatchedPatchClassMember = const Template<Message Function(String name)>(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldUnmatchedPatchClassMember(String name) {
-  if (name.isEmpty) throw 'No name provided';
-  name = demangleMixinApplicationName(name);
+Message _withArgumentsOldUnmatchedPatchClassMember(String _name) {
+  if (_name.isEmpty) throw 'No name provided';
+  String name = demangleMixinApplicationName(_name);
   return new Message(
     codeUnmatchedPatchClassMember,
     problemMessage:
         """Patch member '${name}' doesn't match a member in the origin class.""",
     correctionMessage:
         """Try changing the name to an existing member or removing the '@patch' annotation.""",
-    arguments: {'name': name},
+    arguments: {'name': _name},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(String name)>
-codeUnmatchedPatchDeclaration = const Template<Message Function(String name)>(
+const Template<Message Function(String _name)>
+codeUnmatchedPatchDeclaration = const Template<Message Function(String _name)>(
   "UnmatchedPatchDeclaration",
   problemMessageTemplate:
       r"""Patch '#name' doesn't match a declaration in the origin library.""",
@@ -12568,22 +12612,22 @@ codeUnmatchedPatchDeclaration = const Template<Message Function(String name)>(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldUnmatchedPatchDeclaration(String name) {
-  if (name.isEmpty) throw 'No name provided';
-  name = demangleMixinApplicationName(name);
+Message _withArgumentsOldUnmatchedPatchDeclaration(String _name) {
+  if (_name.isEmpty) throw 'No name provided';
+  String name = demangleMixinApplicationName(_name);
   return new Message(
     codeUnmatchedPatchDeclaration,
     problemMessage:
         """Patch '${name}' doesn't match a declaration in the origin library.""",
     correctionMessage:
         """Try changing the name to an existing declaration or removing the '@patch' annotation.""",
-    arguments: {'name': name},
+    arguments: {'name': _name},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(String name)>
-codeUnmatchedPatchLibraryMember = const Template<Message Function(String name)>(
+const Template<Message Function(String _name)>
+codeUnmatchedPatchLibraryMember = const Template<Message Function(String _name)>(
   "UnmatchedPatchLibraryMember",
   problemMessageTemplate:
       r"""Patch member '#name' doesn't match a member in the origin library.""",
@@ -12593,16 +12637,16 @@ codeUnmatchedPatchLibraryMember = const Template<Message Function(String name)>(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldUnmatchedPatchLibraryMember(String name) {
-  if (name.isEmpty) throw 'No name provided';
-  name = demangleMixinApplicationName(name);
+Message _withArgumentsOldUnmatchedPatchLibraryMember(String _name) {
+  if (_name.isEmpty) throw 'No name provided';
+  String name = demangleMixinApplicationName(_name);
   return new Message(
     codeUnmatchedPatchLibraryMember,
     problemMessage:
         """Patch member '${name}' doesn't match a member in the origin library.""",
     correctionMessage:
         """Try changing the name to an existing member or removing the '@patch' annotation.""",
-    arguments: {'name': name},
+    arguments: {'name': _name},
   );
 }
 
@@ -12766,9 +12810,9 @@ Message _withArgumentsOldUntranslatableUri(Uri uri_) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(String name)>
+const Template<Message Function(String _name)>
 codeValueForRequiredParameterNotProvidedError =
-    const Template<Message Function(String name)>(
+    const Template<Message Function(String _name)>(
       "ValueForRequiredParameterNotProvidedError",
       problemMessageTemplate:
           r"""Required named parameter '#name' must be provided.""",
@@ -12778,14 +12822,14 @@ codeValueForRequiredParameterNotProvidedError =
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsOldValueForRequiredParameterNotProvidedError(
-  String name,
+  String _name,
 ) {
-  if (name.isEmpty) throw 'No name provided';
-  name = demangleMixinApplicationName(name);
+  if (_name.isEmpty) throw 'No name provided';
+  String name = demangleMixinApplicationName(_name);
   return new Message(
     codeValueForRequiredParameterNotProvidedError,
     problemMessage: """Required named parameter '${name}' must be provided.""",
-    arguments: {'name': name},
+    arguments: {'name': _name},
   );
 }
 
@@ -12806,9 +12850,9 @@ const MessageCode codeVarReturnType = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(String name, String string)>
+const Template<Message Function(String _name, String string)>
 codeVariableCouldBeNullDueToWrite =
-    const Template<Message Function(String name, String string)>(
+    const Template<Message Function(String _name, String string)>(
       "VariableCouldBeNullDueToWrite",
       problemMessageTemplate:
           r"""Variable '#name' could not be promoted due to an assignment.""",
@@ -12819,11 +12863,11 @@ codeVariableCouldBeNullDueToWrite =
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsOldVariableCouldBeNullDueToWrite(
-  String name,
+  String _name,
   String string,
 ) {
-  if (name.isEmpty) throw 'No name provided';
-  name = demangleMixinApplicationName(name);
+  if (_name.isEmpty) throw 'No name provided';
+  String name = demangleMixinApplicationName(_name);
   if (string.isEmpty) throw 'No string provided';
   return new Message(
     codeVariableCouldBeNullDueToWrite,
@@ -12831,7 +12875,7 @@ Message _withArgumentsOldVariableCouldBeNullDueToWrite(
         """Variable '${name}' could not be promoted due to an assignment.""",
     correctionMessage:
         """Try null checking the variable after the assignment.  See ${string}""",
-    arguments: {'name': name, 'string': string},
+    arguments: {'name': _name, 'string': string},
   );
 }
 
