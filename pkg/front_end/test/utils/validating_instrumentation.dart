@@ -255,7 +255,7 @@ class ValidatingInstrumentation implements Instrumentation {
     return compilerContext
         .format(
           codeUnspecified
-              .withArguments(
+              .withArgumentsOld(
                 '$desc${stackTrace == null ? '' : '\n$stackTrace'}',
               )
               .withLocation(uri, offset, noLength),

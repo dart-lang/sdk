@@ -25,10 +25,10 @@ class DebugAbort {
   DebugAbort(Uri? uri, int charOffset, CfeSeverity severity, StackTrace trace)
     : message = uri != null
           ? codeInternalProblemDebugAbort
-                .withArguments(severityTexts[severity]!, "$trace")
+                .withArgumentsOld(severityTexts[severity]!, "$trace")
                 .withLocation(uri, charOffset, noLength)
           : codeInternalProblemDebugAbort
-                .withArguments(severityTexts[severity]!, "$trace")
+                .withArgumentsOld(severityTexts[severity]!, "$trace")
                 .withoutLocation();
 
   @override
@@ -66,7 +66,7 @@ Never internalProblem(Message message, int charOffset, Uri? uri) {
 // Coverage-ignore(suite): Not run.
 Never unimplemented(String what, int charOffset, Uri? uri) {
   return internalProblem(
-    codeInternalProblemUnimplemented.withArguments(what),
+    codeInternalProblemUnimplemented.withArgumentsOld(what),
     charOffset,
     uri,
   );
@@ -75,7 +75,7 @@ Never unimplemented(String what, int charOffset, Uri? uri) {
 // Coverage-ignore(suite): Not run.
 Never unhandled(String what, String where, int charOffset, Uri? uri) {
   return internalProblem(
-    codeInternalProblemUnhandled.withArguments(what, where),
+    codeInternalProblemUnhandled.withArgumentsOld(what, where),
     charOffset,
     uri,
   );
@@ -84,7 +84,7 @@ Never unhandled(String what, String where, int charOffset, Uri? uri) {
 // Coverage-ignore(suite): Not run.
 Never unexpected(String expected, String actual, int charOffset, Uri? uri) {
   return internalProblem(
-    codeInternalProblemUnexpected.withArguments(expected, actual),
+    codeInternalProblemUnexpected.withArgumentsOld(expected, actual),
     charOffset,
     uri,
   );
@@ -93,7 +93,7 @@ Never unexpected(String expected, String actual, int charOffset, Uri? uri) {
 // Coverage-ignore(suite): Not run.
 Never unsupported(String operation, int charOffset, Uri? uri) {
   return internalProblem(
-    codeInternalProblemUnsupported.withArguments(operation),
+    codeInternalProblemUnsupported.withArgumentsOld(operation),
     charOffset,
     uri,
   );

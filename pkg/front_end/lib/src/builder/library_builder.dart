@@ -196,7 +196,7 @@ abstract class LibraryBuilderImpl extends BuilderImpl
     constructorName ??= "";
     if (constructorName.startsWith("_") && !bypassLibraryPrivacy) {
       return internalProblem(
-        codeInternalProblemPrivateConstructorAccess.withArguments(
+        codeInternalProblemPrivateConstructorAccess.withArgumentsOld(
           constructorName,
         ),
         -1,
@@ -238,7 +238,7 @@ abstract class LibraryBuilderImpl extends BuilderImpl
     }
     // Coverage-ignore-block(suite): Not run.
     throw internalProblem(
-      codeInternalProblemConstructorNotFound.withArguments(
+      codeInternalProblemConstructorNotFound.withArgumentsOld(
         "$className.$constructorName",
         importUri,
       ),
@@ -257,7 +257,7 @@ abstract class LibraryBuilderImpl extends BuilderImpl
     NamedBuilder? builder = libraryNameSpace.lookup(name)?.getable;
     if (builder == null) {
       internalProblem(
-        codeInternalProblemNotFoundIn.withArguments(name, fullNameForErrors),
+        codeInternalProblemNotFoundIn.withArgumentsOld(name, fullNameForErrors),
         -1,
         null,
       );

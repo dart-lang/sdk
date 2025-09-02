@@ -1477,7 +1477,7 @@ class FfiTransformer extends Transformer {
         variableLength = sizeAnnotations.single.$2;
         if (arrayDimensions(type) != dimensions.length) {
           diagnosticReporter.report(
-            codeFfiSizeAnnotationDimensions.withArguments(node.name.text),
+            codeFfiSizeAnnotationDimensions.withArgumentsOld(node.name.text),
             node.fileOffset,
             node.name.text.length,
             node.fileUri,
@@ -1521,7 +1521,7 @@ class FfiTransformer extends Transformer {
       }
     } else {
       diagnosticReporter.report(
-        codeFfiSizeAnnotation.withArguments(node.name.text),
+        codeFfiSizeAnnotation.withArgumentsOld(node.name.text),
         node.fileOffset,
         node.name.text.length,
         node.fileUri,
@@ -1951,7 +1951,7 @@ class FfiTransformer extends Transformer {
         }
     }
     diagnosticReporter.report(
-      codeFfiTypeMismatch.withArguments(
+      codeFfiTypeMismatch.withArgumentsOld(
         dartType,
         correspondingDartType,
         nativeType,
@@ -1979,7 +1979,7 @@ class FfiTransformer extends Transformer {
       allowVoid: allowVoid,
     )) {
       diagnosticReporter.report(
-        codeFfiTypeInvalid.withArguments(nativeType),
+        codeFfiTypeInvalid.withArgumentsOld(nativeType),
         reportErrorOn.fileOffset,
         1,
         reportErrorOn.location?.file,

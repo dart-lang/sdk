@@ -63,7 +63,7 @@ class VoidTypeBuilder extends FixedTypeBuilder {
   @override
   Supertype? buildSupertype(LibraryBuilder library, TypeUse typeUse) {
     library.addProblem(
-      codeSupertypeIsIllegal.withArguments('void'),
+      codeSupertypeIsIllegal.withArgumentsOld('void'),
       charOffset!,
       noLength,
       fileUri,
@@ -74,7 +74,7 @@ class VoidTypeBuilder extends FixedTypeBuilder {
   @override
   Supertype? buildMixedInType(LibraryBuilder library) {
     library.addProblem(
-      codeSupertypeIsIllegal.withArguments('void'),
+      codeSupertypeIsIllegal.withArgumentsOld('void'),
       charOffset!,
       noLength,
       fileUri,

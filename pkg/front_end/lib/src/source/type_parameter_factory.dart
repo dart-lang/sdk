@@ -197,12 +197,12 @@ void checkTypeParameterDependencies(
       if (dependency != null) {
         Message message;
         if (dependency.viaTypeParameters != null) {
-          message = codeCycleInTypeParameters.withArguments(
+          message = codeCycleInTypeParameters.withArgumentsOld(
             dependency.typeParameterBoundOfItself.name,
             dependency.viaTypeParameters!.map((v) => v.name).join("', '"),
           );
         } else {
-          message = codeDirectCycleInTypeParameters.withArguments(
+          message = codeDirectCycleInTypeParameters.withArgumentsOld(
             dependency.typeParameterBoundOfItself.name,
           );
         }

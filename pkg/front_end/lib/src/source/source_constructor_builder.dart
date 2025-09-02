@@ -68,7 +68,7 @@ class InferableConstructor implements InferableMember {
       name += ".${_builder.name}";
     }
     _builder.libraryBuilder.addProblem(
-      codeCantInferTypeDueToCircularity.withArguments(name),
+      codeCantInferTypeDueToCircularity.withArgumentsOld(name),
       _builder.fileOffset,
       name.length,
       _builder.fileUri,

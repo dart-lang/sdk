@@ -365,7 +365,7 @@ class SourceClassBuilder extends ClassBuilderImpl
     // TODO(johnniwinther): Update the message for when a class depends on
     // a cycle but does not depend on itself.
     libraryBuilder.addProblem(
-      codeCyclicClassHierarchy.withArguments(fullNameForErrors),
+      codeCyclicClassHierarchy.withArgumentsOld(fullNameForErrors),
       fileOffset,
       noLength,
       fileUri,
@@ -478,7 +478,7 @@ class SourceClassBuilder extends ClassBuilderImpl
       // superclass constraint is encoded with the constraint as the supertype,
       // and that is allowed to be a mixin's interface.
       libraryBuilder.addProblem(
-        codeSupertypeIsIllegal.withArguments(cls.superclass!.name),
+        codeSupertypeIsIllegal.withArgumentsOld(cls.superclass!.name),
         fileOffset,
         noLength,
         fileUri,
@@ -791,7 +791,7 @@ class SourceClassBuilder extends ClassBuilderImpl
       }
       if (!cls.isAbstract && !cls.isEnum && hasEnumSuperinterface) {
         libraryBuilder.addProblem(
-          codeEnumSupertypeOfNonAbstractClass.withArguments(name),
+          codeEnumSupertypeOfNonAbstractClass.withArgumentsOld(name),
           fileOffset,
           noLength,
           fileUri,
@@ -820,7 +820,7 @@ class SourceClassBuilder extends ClassBuilderImpl
             length = uriOffset.length;
           }
           libraryBuilder.addProblem(
-            codeEnumImplementerContainsValuesDeclaration.withArguments(
+            codeEnumImplementerContainsValuesDeclaration.withArgumentsOld(
               this.name,
             ),
             fileOffset,
@@ -847,7 +847,7 @@ class SourceClassBuilder extends ClassBuilderImpl
             length = uriOffset.length;
           }
           libraryBuilder.addProblem(
-            codeEnumImplementerContainsValuesDeclaration.withArguments(
+            codeEnumImplementerContainsValuesDeclaration.withArgumentsOld(
               this.name,
             ),
             fileOffset,
@@ -857,7 +857,7 @@ class SourceClassBuilder extends ClassBuilderImpl
         }
         if (superclassDeclaringConcreteValues != null) {
           libraryBuilder.addProblem(
-            codeInheritedRestrictedMemberOfEnumImplementer.withArguments(
+            codeInheritedRestrictedMemberOfEnumImplementer.withArgumentsOld(
               "values",
               superclassDeclaringConcreteValues.name,
             ),
@@ -876,7 +876,7 @@ class SourceClassBuilder extends ClassBuilderImpl
                   member is MethodBuilder && !member.isAbstract)) {
             libraryBuilder.addProblem(
               codeEnumImplementerContainsRestrictedInstanceDeclaration
-                  .withArguments(this.name, restrictedMemberName),
+                  .withArgumentsOld(this.name, restrictedMemberName),
               member.fileOffset,
               member.fullNameForErrors.length,
               fileUri,
@@ -889,7 +889,7 @@ class SourceClassBuilder extends ClassBuilderImpl
             ClassBuilder restrictedNameMemberProvider =
                 restrictedMembersInSuperclasses[restrictedMemberName]!;
             libraryBuilder.addProblem(
-              codeInheritedRestrictedMemberOfEnumImplementer.withArguments(
+              codeInheritedRestrictedMemberOfEnumImplementer.withArgumentsOld(
                 restrictedMemberName,
                 restrictedNameMemberProvider.name,
               ),
@@ -964,7 +964,7 @@ class SourceClassBuilder extends ClassBuilderImpl
               constructor.hasParameters ||
               constructor.isEffectivelyExternal) {
             libraryBuilder.addProblem(
-              codeIllegalMixinDueToConstructors.withArguments(
+              codeIllegalMixinDueToConstructors.withArgumentsOld(
                 fullNameForErrors,
               ),
               constructor.fileOffset,
@@ -979,7 +979,7 @@ class SourceClassBuilder extends ClassBuilderImpl
           superClassType != null &&
           superClass.cls != objectClass) {
         libraryBuilder.addProblem(
-          codeMixinInheritsFromNotObject.withArguments(name),
+          codeMixinInheritsFromNotObject.withArgumentsOld(name),
           superClassType.charOffset ?? TreeNode.noOffset,
           noLength,
           superClassType.fileUri ?? // Coverage-ignore(suite): Not run.
@@ -999,7 +999,7 @@ class SourceClassBuilder extends ClassBuilderImpl
           mixinSuperClassNode.classBuilder.cls != objectClass &&
           !mixedInNode.classBuilder.cls.isMixinDeclaration) {
         libraryBuilder.addProblem(
-          codeMixinInheritsFromNotObject.withArguments(
+          codeMixinInheritsFromNotObject.withArgumentsOld(
             mixedInNode.classBuilder.name,
           ),
           _mixedInTypeBuilder!.charOffset ?? TreeNode.noOffset,
@@ -1024,7 +1024,7 @@ class SourceClassBuilder extends ClassBuilderImpl
         ClassBuilder interface = unaliasedDeclaration;
         if (superClass == interface) {
           libraryBuilder.addProblem(
-            codeImplementsSuperClass.withArguments(interface.name),
+            codeImplementsSuperClass.withArgumentsOld(interface.name),
             this.fileOffset,
             noLength,
             this.fileUri,
@@ -1059,7 +1059,7 @@ class SourceClassBuilder extends ClassBuilderImpl
     if (problems != null) {
       problems.forEach((ClassBuilder interface, int repetitions) {
         libraryBuilder.addProblem(
-          codeImplementsRepeated.withArguments(interface.name, repetitions),
+          codeImplementsRepeated.withArgumentsOld(interface.name, repetitions),
           problemsOffsets![interface]!,
           noLength,
           fileUri,
@@ -1089,7 +1089,7 @@ class SourceClassBuilder extends ClassBuilderImpl
             requiredInterface,
           )) {
         libraryBuilder.addProblem(
-          codeMixinApplicationIncompatibleSupertype.withArguments(
+          codeMixinApplicationIncompatibleSupertype.withArgumentsOld(
             supertype,
             requiredInterface,
             cls.mixedInType!.asInterfaceType,
@@ -1143,14 +1143,14 @@ class SourceClassBuilder extends ClassBuilderImpl
           .variance!;
       if (!variance.greaterThanOrEqual(typeParameters![i].variance)) {
         if (typeParameters![i].parameter.isLegacyCovariant) {
-          message = codeInvalidTypeParameterInSupertype.withArguments(
+          message = codeInvalidTypeParameterInSupertype.withArgumentsOld(
             typeParameters![i].name,
             variance.keyword,
             supertype.typeName!.name,
           );
         } else {
           message = codeInvalidTypeParameterInSupertypeWithVariance
-              .withArguments(
+              .withArgumentsOld(
                 typeParameters![i].variance.keyword,
                 typeParameters![i].name,
                 variance.keyword,
@@ -1368,13 +1368,13 @@ class SourceClassBuilder extends ClassBuilderImpl
       Message message;
       if (isReturnType) {
         message = codeInvalidTypeParameterVariancePositionInReturnType
-            .withArguments(
+            .withArgumentsOld(
               typeParameter.variance.keyword,
               typeParameter.name!,
               variance.keyword,
             );
       } else {
-        message = codeInvalidTypeParameterVariancePosition.withArguments(
+        message = codeInvalidTypeParameterVariancePosition.withArgumentsOld(
           typeParameter.variance.keyword,
           typeParameter.name!,
           variance.keyword,
@@ -1680,7 +1680,7 @@ class SourceClassBuilder extends ClassBuilderImpl
       reportInvalidOverride(
         isInterfaceCheck,
         declaredMember,
-        codeOverrideTypeParametersMismatch.withArguments(
+        codeOverrideTypeParametersMismatch.withArgumentsOld(
           "${declaredMember.enclosingClass!.name}."
               "${declaredMember.name.text}",
           "${interfaceMemberOrigin.enclosingClass!.name}."
@@ -1690,7 +1690,7 @@ class SourceClassBuilder extends ClassBuilderImpl
         noLength,
         context: [
           codeOverriddenMethodCause
-              .withArguments(interfaceMemberOrigin.name.text)
+              .withArgumentsOld(interfaceMemberOrigin.name.text)
               .withLocation(
                 _getMemberUri(interfaceMemberOrigin),
                 interfaceMemberOrigin.fileOffset,
@@ -1761,7 +1761,7 @@ class SourceClassBuilder extends ClassBuilderImpl
             reportInvalidOverride(
               isInterfaceCheck,
               declaredMember,
-              codeOverrideTypeParametersBoundMismatch.withArguments(
+              codeOverrideTypeParametersBoundMismatch.withArgumentsOld(
                 declaredBound,
                 declaredParameter.name!,
                 "${declaredMember.enclosingClass!.name}."
@@ -1774,7 +1774,7 @@ class SourceClassBuilder extends ClassBuilderImpl
               noLength,
               context: [
                 codeOverriddenMethodCause
-                    .withArguments(interfaceMemberOrigin.name.text)
+                    .withArgumentsOld(interfaceMemberOrigin.name.text)
                     .withLocation(
                       _getMemberUri(interfaceMemberOrigin),
                       interfaceMemberOrigin.fileOffset,
@@ -1864,14 +1864,14 @@ class SourceClassBuilder extends ClassBuilderImpl
       if (declaredParameter == null) {
         if (asIfDeclaredParameter) {
           // Setter overridden by field
-          message = codeOverrideTypeMismatchSetter.withArguments(
+          message = codeOverrideTypeMismatchSetter.withArgumentsOld(
             declaredMemberName,
             declaredType,
             interfaceType,
             interfaceMemberName,
           );
         } else {
-          message = codeOverrideTypeMismatchReturnType.withArguments(
+          message = codeOverrideTypeMismatchReturnType.withArgumentsOld(
             declaredMemberName,
             declaredType,
             interfaceType,
@@ -1880,7 +1880,7 @@ class SourceClassBuilder extends ClassBuilderImpl
         }
         fileOffset = declaredMember.fileOffset;
       } else {
-        message = codeOverrideTypeMismatchParameter.withArguments(
+        message = codeOverrideTypeMismatchParameter.withArgumentsOld(
           declaredParameter.name!,
           declaredMemberName,
           declaredType,
@@ -1897,7 +1897,7 @@ class SourceClassBuilder extends ClassBuilderImpl
         noLength,
         context: [
           codeOverriddenMethodCause
-              .withArguments(interfaceMemberOrigin.name.text)
+              .withArgumentsOld(interfaceMemberOrigin.name.text)
               .withLocation(
                 _getMemberUri(interfaceMemberOrigin),
                 interfaceMemberOrigin.fileOffset,
@@ -1971,7 +1971,7 @@ class SourceClassBuilder extends ClassBuilderImpl
       reportInvalidOverride(
         isInterfaceCheck,
         declaredMember,
-        codeOverrideFewerPositionalArguments.withArguments(
+        codeOverrideFewerPositionalArguments.withArgumentsOld(
           "${declaredMember.enclosingClass!.name}."
               "${declaredMember.name.text}",
           "${interfaceMemberOrigin.enclosingClass!.name}."
@@ -1981,7 +1981,7 @@ class SourceClassBuilder extends ClassBuilderImpl
         noLength,
         context: [
           codeOverriddenMethodCause
-              .withArguments(interfaceMemberOrigin.name.text)
+              .withArgumentsOld(interfaceMemberOrigin.name.text)
               .withLocation(
                 interfaceMemberOrigin.fileUri,
                 interfaceMemberOrigin.fileOffset,
@@ -1996,7 +1996,7 @@ class SourceClassBuilder extends ClassBuilderImpl
       reportInvalidOverride(
         isInterfaceCheck,
         declaredMember,
-        codeOverrideMoreRequiredArguments.withArguments(
+        codeOverrideMoreRequiredArguments.withArgumentsOld(
           "${declaredMember.enclosingClass!.name}."
               "${declaredMember.name.text}",
           "${interfaceMemberOrigin.enclosingClass!.name}."
@@ -2006,7 +2006,7 @@ class SourceClassBuilder extends ClassBuilderImpl
         noLength,
         context: [
           codeOverriddenMethodCause
-              .withArguments(interfaceMemberOrigin.name.text)
+              .withArgumentsOld(interfaceMemberOrigin.name.text)
               .withLocation(
                 interfaceMemberOrigin.fileUri,
                 interfaceMemberOrigin.fileOffset,
@@ -2071,7 +2071,7 @@ class SourceClassBuilder extends ClassBuilderImpl
       reportInvalidOverride(
         isInterfaceCheck,
         declaredMember,
-        codeOverrideFewerNamedArguments.withArguments(
+        codeOverrideFewerNamedArguments.withArgumentsOld(
           "${declaredMember.enclosingClass!.name}."
               "${declaredMember.name.text}",
           "${interfaceMemberOrigin.enclosingClass!.name}."
@@ -2081,7 +2081,7 @@ class SourceClassBuilder extends ClassBuilderImpl
         noLength,
         context: [
           codeOverriddenMethodCause
-              .withArguments(interfaceMemberOrigin.name.text)
+              .withArgumentsOld(interfaceMemberOrigin.name.text)
               .withLocation(
                 interfaceMemberOrigin.fileUri,
                 interfaceMemberOrigin.fileOffset,
@@ -2115,7 +2115,7 @@ class SourceClassBuilder extends ClassBuilderImpl
           reportInvalidOverride(
             isInterfaceCheck,
             declaredMember,
-            codeOverrideMismatchNamedParameter.withArguments(
+            codeOverrideMismatchNamedParameter.withArgumentsOld(
               "${declaredMember.enclosingClass!.name}."
                   "${declaredMember.name.text}",
               interfaceNamedParameters.current.name!,
@@ -2126,7 +2126,7 @@ class SourceClassBuilder extends ClassBuilderImpl
             noLength,
             context: [
               codeOverriddenMethodCause
-                  .withArguments(interfaceMember.name.text)
+                  .withArgumentsOld(interfaceMember.name.text)
                   .withLocation(
                     interfaceMember.fileUri,
                     interfaceMember.fileOffset,
@@ -2158,7 +2158,7 @@ class SourceClassBuilder extends ClassBuilderImpl
         reportInvalidOverride(
           isInterfaceCheck,
           declaredMember,
-          codeOverrideMismatchRequiredNamedParameter.withArguments(
+          codeOverrideMismatchRequiredNamedParameter.withArgumentsOld(
             declaredParameter.name!,
             "${declaredMember.enclosingClass!.name}."
                 "${declaredMember.name.text}",
@@ -2169,7 +2169,7 @@ class SourceClassBuilder extends ClassBuilderImpl
           noLength,
           context: [
             codeOverriddenMethodCause
-                .withArguments(interfaceMemberOrigin.name.text)
+                .withArgumentsOld(interfaceMemberOrigin.name.text)
                 .withLocation(
                   _getMemberUri(interfaceMemberOrigin),
                   interfaceMemberOrigin.fileOffset,
@@ -2341,7 +2341,10 @@ class SourceClassBuilder extends ClassBuilderImpl
       if (isInterfaceCheck) {
         // Interface check
         libraryBuilder.addProblem(
-          codeInterfaceCheck.withArguments(declaredMember.name.text, cls.name),
+          codeInterfaceCheck.withArgumentsOld(
+            declaredMember.name.text,
+            cls.name,
+          ),
           cls.fileOffset,
           cls.name.length,
           cls.fileUri,
@@ -2354,7 +2357,7 @@ class SourceClassBuilder extends ClassBuilderImpl
           String mixinName = cls.mixedInClass!.name;
           int classNameLength = cls.nameAsMixinApplicationSubclass.length;
           libraryBuilder.addProblem(
-            codeImplicitMixinOverride.withArguments(
+            codeImplicitMixinOverride.withArgumentsOld(
               mixinName,
               baseName,
               declaredMember.name.text,
@@ -2367,7 +2370,7 @@ class SourceClassBuilder extends ClassBuilderImpl
         } else {
           // Named mixin application class
           libraryBuilder.addProblem(
-            codeNamedMixinOverride.withArguments(
+            codeNamedMixinOverride.withArgumentsOld(
               cls.name,
               declaredMember.name.text,
             ),

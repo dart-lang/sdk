@@ -446,7 +446,7 @@ class EnumElementDeclaration
         String text = libraryBuilder.loader.target.context
             .format(
               codeConstructorNotFound
-                  .withArguments(fullConstructorNameForErrors)
+                  .withArgumentsOld(fullConstructorNameForErrors)
                   .withLocation(fileUri, fileOffset, noLength),
               CfeSeverity.error,
             )

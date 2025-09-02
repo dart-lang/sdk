@@ -599,7 +599,7 @@ mixin _FfiUseSiteTransformer on FfiTransformer {
         // Check return type.
         if (ffiFuncType.returnType != VoidType()) {
           diagnosticReporter.report(
-            codeFfiNativeCallableListenerReturnVoid.withArguments(
+            codeFfiNativeCallableListenerReturnVoid.withArgumentsOld(
               ffiFuncType.returnType,
             ),
             func.fileOffset,
@@ -1138,7 +1138,7 @@ mixin _FfiUseSiteTransformer on FfiTransformer {
     final isStaticFunction = _isStaticFunction(func);
     if (fromFunction && !isStaticFunction) {
       diagnosticReporter.report(
-        codeFfiNotStatic.withArguments(fromFunctionMethod.name.text),
+        codeFfiNotStatic.withArgumentsOld(fromFunctionMethod.name.text),
         func.fileOffset,
         1,
         func.location?.file,
@@ -1185,7 +1185,7 @@ mixin _FfiUseSiteTransformer on FfiTransformer {
         expectedReturnClass.superclass == unionClass) {
       if (hasExceptionalReturn) {
         diagnosticReporter.report(
-          codeFfiExpectedNoExceptionalReturn.withArguments(
+          codeFfiExpectedNoExceptionalReturn.withArgumentsOld(
             ffiFuncType.returnType,
           ),
           node.fileOffset,
@@ -1198,7 +1198,7 @@ mixin _FfiUseSiteTransformer on FfiTransformer {
       // The exceptional return value is not optional for other return types.
       if (!hasExceptionalReturn) {
         diagnosticReporter.report(
-          codeFfiExpectedExceptionalReturn.withArguments(
+          codeFfiExpectedExceptionalReturn.withArgumentsOld(
             ffiFuncType.returnType,
           ),
           node.fileOffset,
@@ -1241,7 +1241,7 @@ mixin _FfiUseSiteTransformer on FfiTransformer {
 
       if (!env.isSubtypeOf(returnType, funcType.returnType)) {
         diagnosticReporter.report(
-          codeFfiDartTypeMismatch.withArguments(
+          codeFfiDartTypeMismatch.withArgumentsOld(
             returnType,
             funcType.returnType,
           ),
@@ -1839,7 +1839,7 @@ mixin _FfiUseSiteTransformer on FfiTransformer {
     final Class? extended = _extendsOrImplementsSealedClass(klass);
     if (extended != null) {
       diagnosticReporter.report(
-        codeFfiExtendsOrImplementsSealedClass.withArguments(extended.name),
+        codeFfiExtendsOrImplementsSealedClass.withArgumentsOld(extended.name),
         klass.fileOffset,
         1,
         klass.location?.file,
@@ -1852,7 +1852,7 @@ mixin _FfiUseSiteTransformer on FfiTransformer {
     final isLeaf = getIsLeafBoolean(node);
     if (isLeaf == null) {
       diagnosticReporter.report(
-        codeFfiExpectedConstantArg.withArguments('isLeaf'),
+        codeFfiExpectedConstantArg.withArgumentsOld('isLeaf'),
         node.fileOffset,
         1,
         node.location?.file,

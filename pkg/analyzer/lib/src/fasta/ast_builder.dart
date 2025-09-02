@@ -902,7 +902,7 @@ class AstBuilder extends StackListener {
       // TODO(danrubel): Consider specializing the error message based
       // upon the type of expression. e.g. "x.this" -> codeThisAsIdentifier
       handleRecoverableError(
-        codeExpectedIdentifier.withArguments(token),
+        codeExpectedIdentifier.withArgumentsOld(token),
         token,
         token,
       );
@@ -1408,7 +1408,7 @@ class AstBuilder extends StackListener {
       body = EmptyFunctionBodyImpl(semicolon: endToken);
     } else {
       internalProblem(
-        codeInternalProblemUnhandled.withArguments(
+        codeInternalProblemUnhandled.withArgumentsOld(
           "${bodyObject.runtimeType}",
           "bodyObject",
         ),
@@ -2095,7 +2095,7 @@ class AstBuilder extends StackListener {
         );
         if (keyword is KeywordToken && keyword.keyword == Keyword.VAR) {
           handleRecoverableError(
-            codeExtraneousModifier.withArguments(keyword),
+            codeExtraneousModifier.withArgumentsOld(keyword),
             keyword,
             keyword,
           );
@@ -2448,7 +2448,7 @@ class AstBuilder extends StackListener {
       );
     } else {
       internalProblem(
-        codeInternalProblemUnhandled.withArguments(
+        codeInternalProblemUnhandled.withArgumentsOld(
           "${node.runtimeType}",
           "identifier",
         ),
@@ -2597,7 +2597,7 @@ class AstBuilder extends StackListener {
           elements.add(part);
         } else {
           internalProblem(
-            codeInternalProblemUnhandled.withArguments(
+            codeInternalProblemUnhandled.withArgumentsOld(
               "${part.runtimeType}",
               "string interpolation",
             ),
@@ -3342,7 +3342,9 @@ class AstBuilder extends StackListener {
       for (var label in member.labels) {
         if (!labels.add(label.label.name)) {
           handleRecoverableError(
-            codeDuplicateLabelInSwitchStatement.withArguments(label.label.name),
+            codeDuplicateLabelInSwitchStatement.withArgumentsOld(
+              label.label.name,
+            ),
             label.beginToken,
             label.beginToken,
           );
@@ -6099,7 +6101,7 @@ class AstBuilder extends StackListener {
       body = EmptyFunctionBodyImpl(semicolon: endToken);
     } else {
       internalProblem(
-        codeInternalProblemUnhandled.withArguments(
+        codeInternalProblemUnhandled.withArgumentsOld(
           "${bodyObject.runtimeType}",
           "bodyObject",
         ),
@@ -6193,7 +6195,7 @@ class AstBuilder extends StackListener {
       body = EmptyFunctionBodyImpl(semicolon: endToken);
     } else {
       internalProblem(
-        codeInternalProblemUnhandled.withArguments(
+        codeInternalProblemUnhandled.withArgumentsOld(
           "${bodyObject.runtimeType}",
           "bodyObject",
         ),
@@ -6377,7 +6379,7 @@ class AstBuilder extends StackListener {
     var requiredVersion =
         feature.releaseVersion ?? ExperimentStatus.currentVersion;
     handleRecoverableError(
-      codeExperimentNotEnabled.withArguments(
+      codeExperimentNotEnabled.withArgumentsOld(
         feature.enableString,
         _versionAsString(requiredVersion),
       ),

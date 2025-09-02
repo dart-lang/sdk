@@ -77,7 +77,7 @@ class ConstructorReferenceBuilder {
     }
     if (target == null) {
       accessingLibrary.addProblem(
-        codeConstructorNotFound.withArguments(fullNameForErrors),
+        codeConstructorNotFound.withArgumentsOld(fullNameForErrors),
         charOffset,
         noLength,
         fileUri,

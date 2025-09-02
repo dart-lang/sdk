@@ -27,7 +27,7 @@ main() {
       expectedExceptions: [EXCEPTION],
     );
 
-    var cantReadFile = codeCantReadFile.withArguments(entryPoint, EXCEPTION);
+    var cantReadFile = codeCantReadFile.withArgumentsOld(entryPoint, EXCEPTION);
     List<String> expectedLines = [
       "Error: ${cantReadFile.problemMessage}",
       "Error: ${codeMissingMain.problemMessage}",

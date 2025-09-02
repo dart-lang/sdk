@@ -154,7 +154,7 @@ class _ImplicitType extends InferredType {
   DartType computeType(ClassHierarchyBase hierarchy) {
     if (isStarted) {
       _libraryBuilder.addProblem(
-        codeCantInferTypeDueToCircularity.withArguments(_name),
+        codeCantInferTypeDueToCircularity.withArgumentsOld(_name),
         _nameOffset,
         _nameLength,
         _fileUri,

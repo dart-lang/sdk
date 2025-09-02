@@ -268,7 +268,7 @@ abstract class NamedTypeBuilderImpl extends NamedTypeBuilder {
         // Attempt to use a member or type parameter as a prefix.
         int nameOffset = typeName.fullNameOffset;
         int nameLength = typeName.fullNameLength;
-        Message message = codeNotAPrefixInTypeAnnotation.withArguments(
+        Message message = codeNotAPrefixInTypeAnnotation.withArgumentsOld(
           qualifier,
           typeName.name,
         );
@@ -313,7 +313,7 @@ abstract class NamedTypeBuilderImpl extends NamedTypeBuilder {
       List<LocatedMessage>? context;
       if (member == null) {
         template = codeTypeNotFound;
-        message = template.withArguments(nameText);
+        message = template.withArgumentsOld(nameText);
       } else {
         template = codeNotAType;
         context = <LocatedMessage>[
@@ -323,7 +323,7 @@ abstract class NamedTypeBuilderImpl extends NamedTypeBuilder {
             nameLength,
           ),
         ];
-        message = template.withArguments(nameText);
+        message = template.withArgumentsOld(nameText);
       }
       problemReporting.addProblem(
         message,
@@ -349,7 +349,7 @@ abstract class NamedTypeBuilderImpl extends NamedTypeBuilder {
         String nameText = typeName.name;
         int nameOffset = typeName.nameOffset;
         int nameLength = typeName.nameLength;
-        Message message = codeTypeArgumentsOnTypeVariable.withArguments(
+        Message message = codeTypeArgumentsOnTypeVariable.withArgumentsOld(
           nameText,
         );
         problemReporting.addProblem(message, nameOffset, nameLength, fileUri);
@@ -361,7 +361,7 @@ abstract class NamedTypeBuilderImpl extends NamedTypeBuilder {
       } else if (typeArguments!.length != declaration.typeParametersCount) {
         int nameOffset = typeName.nameOffset;
         int nameLength = typeName.nameLength;
-        Message message = codeTypeArgumentMismatch.withArguments(
+        Message message = codeTypeArgumentMismatch.withArgumentsOld(
           declaration.typeParametersCount,
         );
         problemReporting.addProblem(message, nameOffset, nameLength, fileUri);
@@ -377,7 +377,7 @@ abstract class NamedTypeBuilderImpl extends NamedTypeBuilder {
       int nameOffset = typeName.nameOffset;
       int nameLength = typeName.nameLength;
       // TODO(johnniwinther): Create a custom message.
-      Message message = codeNotAType.withArguments(nameText);
+      Message message = codeNotAType.withArgumentsOld(nameText);
       problemReporting.addProblem(message, nameOffset, nameLength, fileUri);
       _declaration = buildInvalidTypeDeclarationBuilder(
         message.withLocation(fileUri!, nameOffset, nameLength),
@@ -464,7 +464,7 @@ abstract class NamedTypeBuilderImpl extends NamedTypeBuilder {
         ? codeSupertypeIsTypeParameter
         : codeSupertypeIsIllegal;
     library.addProblem(
-      template.withArguments(fullNameForErrors),
+      template.withArgumentsOld(fullNameForErrors),
       charOffset!,
       noLength,
       fileUri,
@@ -484,14 +484,16 @@ abstract class NamedTypeBuilderImpl extends NamedTypeBuilder {
     Message message;
     if (declaration.isTypeParameter) {
       // Coverage-ignore-block(suite): Not run.
-      message = codeSupertypeIsTypeParameter.withArguments(fullNameForErrors);
+      message = codeSupertypeIsTypeParameter.withArgumentsOld(
+        fullNameForErrors,
+      );
     } else if (type.nullability == Nullability.nullable) {
-      message = codeSupertypeIsNullableAliased.withArguments(
+      message = codeSupertypeIsNullableAliased.withArgumentsOld(
         fullNameForErrors,
         type,
       );
     } else {
-      message = codeSupertypeIsIllegalAliased.withArguments(
+      message = codeSupertypeIsIllegalAliased.withArgumentsOld(
         fullNameForErrors,
         type,
       );
@@ -682,7 +684,7 @@ abstract class NamedTypeBuilderImpl extends NamedTypeBuilder {
           // Coverage-ignore-block(suite): Not run.
           if (!library.mayImplementRestrictedTypes) {
             library.addProblem(
-              codeExtendingRestricted.withArguments(declaration.name),
+              codeExtendingRestricted.withArgumentsOld(declaration.name),
               charOffset!,
               noLength,
               fileUri,

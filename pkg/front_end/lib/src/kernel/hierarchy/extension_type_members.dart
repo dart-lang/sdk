@@ -1043,7 +1043,7 @@ class _SanitizedMember {
           );
         }
         extensionTypeDeclarationBuilder.libraryBuilder.addProblem(
-          codeImplementNonExtensionTypeAndExtensionTypeMember.withArguments(
+          codeImplementNonExtensionTypeAndExtensionTypeMember.withArgumentsOld(
             extensionTypeDeclarationBuilder.name,
             name.text,
           ),
@@ -1062,7 +1062,7 @@ class _SanitizedMember {
           );
         }
         extensionTypeDeclarationBuilder.libraryBuilder.addProblem(
-          codeImplementMultipleExtensionTypeMembers.withArguments(
+          codeImplementMultipleExtensionTypeMembers.withArgumentsOld(
             extensionTypeDeclarationBuilder.name,
             name.text,
           ),

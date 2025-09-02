@@ -245,10 +245,8 @@ class SourceExtensionTypeDeclarationBuilder
           List<LocatedMessage>? errorContext;
           if (aliasBuilder != null) {
             // Coverage-ignore-block(suite): Not run.
-            errorMessage = codeSuperExtensionTypeIsIllegalAliased.withArguments(
-              typeBuilder.fullNameForErrors,
-              interface,
-            );
+            errorMessage = codeSuperExtensionTypeIsIllegalAliased
+                .withArgumentsOld(typeBuilder.fullNameForErrors, interface);
             errorContext = [
               codeTypedefCause.withLocation(
                 aliasBuilder.fileUri,
@@ -257,7 +255,7 @@ class SourceExtensionTypeDeclarationBuilder
               ),
             ];
           } else {
-            errorMessage = codeSuperExtensionTypeIsIllegal.withArguments(
+            errorMessage = codeSuperExtensionTypeIsIllegal.withArgumentsOld(
               typeBuilder.fullNameForErrors,
             );
           }
@@ -283,11 +281,11 @@ class SourceExtensionTypeDeclarationBuilder
               Message? errorMessage;
               if (variable.parameter.isLegacyCovariant) {
                 errorMessage = codeWrongTypeParameterVarianceInSuperinterface
-                    .withArguments(variable.name, interface);
+                    .withArgumentsOld(variable.name, interface);
               } else {
                 // Coverage-ignore-block(suite): Not run.
                 errorMessage = codeInvalidTypeParameterInSupertypeWithVariance
-                    .withArguments(
+                    .withArgumentsOld(
                       variable.variance.keyword,
                       variable.name,
                       variance.keyword,
@@ -307,7 +305,7 @@ class SourceExtensionTypeDeclarationBuilder
         if (interface is ExtensionType) {
           if (interface.nullability == Nullability.nullable) {
             Message? errorMessage = codeSuperExtensionTypeIsNullableAliased
-                .withArguments(typeBuilder.fullNameForErrors, interface);
+                .withArgumentsOld(typeBuilder.fullNameForErrors, interface);
             List<LocatedMessage>? errorContext;
             if (aliasBuilder != null) {
               errorContext = [
@@ -333,12 +331,12 @@ class SourceExtensionTypeDeclarationBuilder
             Message? errorMessage;
             List<LocatedMessage>? errorContext;
             if (typeBuilder.nullabilityBuilder.isNullable) {
-              errorMessage = codeNullableInterfaceError.withArguments(
+              errorMessage = codeNullableInterfaceError.withArgumentsOld(
                 typeBuilder.fullNameForErrors,
               );
             } else {
               errorMessage = codeSuperExtensionTypeIsNullableAliased
-                  .withArguments(typeBuilder.fullNameForErrors, interface);
+                  .withArgumentsOld(typeBuilder.fullNameForErrors, interface);
               if (aliasBuilder != null) {
                 errorContext = [
                   codeTypedefCause.withLocation(
@@ -361,7 +359,7 @@ class SourceExtensionTypeDeclarationBuilder
           }
         } else if (interface is TypeParameterType) {
           Message? errorMessage = codeSuperExtensionTypeIsTypeParameter
-              .withArguments(typeBuilder.fullNameForErrors);
+              .withArgumentsOld(typeBuilder.fullNameForErrors);
           List<LocatedMessage>? errorContext;
           if (aliasBuilder != null) {
             // Coverage-ignore-block(suite): Not run.
@@ -384,10 +382,8 @@ class SourceExtensionTypeDeclarationBuilder
           Message? errorMessage;
           List<LocatedMessage>? errorContext;
           if (aliasBuilder != null) {
-            errorMessage = codeSuperExtensionTypeIsIllegalAliased.withArguments(
-              typeBuilder.fullNameForErrors,
-              interface,
-            );
+            errorMessage = codeSuperExtensionTypeIsIllegalAliased
+                .withArgumentsOld(typeBuilder.fullNameForErrors, interface);
             errorContext = [
               codeTypedefCause.withLocation(
                 aliasBuilder.fileUri,
@@ -396,7 +392,7 @@ class SourceExtensionTypeDeclarationBuilder
               ),
             ];
           } else {
-            errorMessage = codeSuperExtensionTypeIsIllegal.withArguments(
+            errorMessage = codeSuperExtensionTypeIsIllegal.withArgumentsOld(
               typeBuilder.fullNameForErrors,
             );
           }
@@ -671,7 +667,7 @@ class SourceExtensionTypeDeclarationBuilder
             interface,
           )) {
             libraryBuilder.addProblem(
-              codeInvalidExtensionTypeSuperInterface.withArguments(
+              codeInvalidExtensionTypeSuperInterface.withArgumentsOld(
                 interface,
                 declaredRepresentationType,
                 name,
@@ -695,7 +691,7 @@ class SourceExtensionTypeDeclarationBuilder
               instantiatedImplementedRepresentationType,
             )) {
               libraryBuilder.addProblem(
-                codeInvalidExtensionTypeSuperExtensionType.withArguments(
+                codeInvalidExtensionTypeSuperExtensionType.withArgumentsOld(
                   declaredRepresentationType,
                   name,
                   instantiatedImplementedRepresentationType,
@@ -735,7 +731,10 @@ class SourceExtensionTypeDeclarationBuilder
         for (var MapEntry(key: typeDeclaration, value: (:count, :offset))
             in duplicationProblems.entries) {
           libraryBuilder.addProblem(
-            codeImplementsRepeated.withArguments(typeDeclaration.name, count),
+            codeImplementsRepeated.withArgumentsOld(
+              typeDeclaration.name,
+              count,
+            ),
             offset,
             noLength,
             fileUri,

@@ -778,7 +778,7 @@ List<Test> extractTestsFromComment(
       } else if (!identical(expectedSeparator, nextSeparator.stringValue)) {
         int position =
             commentsData.charOffset + scanOffset + nextSeparator.charOffset;
-        Message message = codes.codeExpectedButGot.withArguments(
+        Message message = codes.codeExpectedButGot.withArgumentsOld(
           expectedSeparator,
         );
         return new TestParseError(

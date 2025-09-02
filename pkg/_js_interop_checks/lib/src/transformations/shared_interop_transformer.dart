@@ -197,7 +197,7 @@ class SharedInteropTransformer extends Transformer {
         if (!_inIsATearoff) {
           assert(interopType is TypeParameterType);
           _diagnosticReporter.report(
-            codeJsInteropIsAInvalidTypeVariable.withArguments(interopType),
+            codeJsInteropIsAInvalidTypeVariable.withArgumentsOld(interopType),
             invocation.fileOffset,
             invocation.name.text.length,
             invocation.location?.file,
@@ -240,7 +240,7 @@ class SharedInteropTransformer extends Transformer {
   bool _verifyExportable(DartType dartType) {
     if (dartType is! InterfaceType) {
       _diagnosticReporter.report(
-        codeJsInteropExportInvalidTypeArgument.withArguments(dartType),
+        codeJsInteropExportInvalidTypeArgument.withArgumentsOld(dartType),
         invocation.fileOffset,
         invocation.name.text.length,
         invocation.location?.file,
@@ -252,7 +252,9 @@ class SharedInteropTransformer extends Transformer {
         js_interop.hasStaticInteropAnnotation(dartClass) ||
         js_interop.hasAnonymousAnnotation(dartClass)) {
       _diagnosticReporter.report(
-        codeJsInteropExportInvalidInteropTypeArgument.withArguments(dartType),
+        codeJsInteropExportInvalidInteropTypeArgument.withArgumentsOld(
+          dartType,
+        ),
         invocation.fileOffset,
         invocation.name.text.length,
         invocation.location?.file,
@@ -274,7 +276,7 @@ class SharedInteropTransformer extends Transformer {
     var exportStatus = _exportChecker.exportStatus[dartClass.reference];
     if (exportStatus == ExportStatus.nonExportable) {
       _diagnosticReporter.report(
-        codeJsInteropExportClassNotMarkedExportable.withArguments(
+        codeJsInteropExportClassNotMarkedExportable.withArgumentsOld(
           dartClass.name,
         ),
         invocation.fileOffset,
@@ -582,7 +584,7 @@ class SharedInteropTransformer extends Transformer {
           if (descriptorNode is Procedure &&
               _extensionIndex.isLiteralConstructor(descriptorNode)) {
             _diagnosticReporter.report(
-              codeJsInteropIsAObjectLiteralType.withArguments(interopType),
+              codeJsInteropIsAObjectLiteralType.withArgumentsOld(interopType),
               invocation.fileOffset,
               invocation.name.text.length,
               invocation.location?.file,
@@ -611,7 +613,7 @@ class SharedInteropTransformer extends Transformer {
     if (typeofString != null) {
       if (interopTypeDecl != jsType) {
         _diagnosticReporter.report(
-          codeJsInteropIsAPrimitiveExtensionType.withArguments(
+          codeJsInteropIsAPrimitiveExtensionType.withArgumentsOld(
             interopType,
             jsTypeName,
           ),

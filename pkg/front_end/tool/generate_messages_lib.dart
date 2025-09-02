@@ -453,7 +453,7 @@ const MessageCode code$name =
     );
   }
 
-  templateArguments.add("withArguments: _withArguments$name");
+  templateArguments.add("withArgumentsOld: _withArgumentsOld$name");
   templateArguments.addAll(codeArguments);
 
   List<String> messageArguments = <String>[];
@@ -480,7 +480,7 @@ const Template<Message Function(${parameters.join(', ')})> code$name =
         ${templateArguments.join(', ')},);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArguments$name(${parameters.join(', ')}) {
+Message _withArgumentsOld$name(${parameters.join(', ')}) {
   ${conversions.join('\n  ')}
   return new Message(
      code$name,

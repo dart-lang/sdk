@@ -1602,7 +1602,7 @@ class ComplexTypeParamOrArgInfo extends TypeParamOrArgInfo {
     Token next = token.next!;
     parser.reportRecoverableError(
       next,
-      codes.codeExpectedButGot.withArguments(','),
+      codes.codeExpectedButGot.withArgumentsOld(','),
     );
     return parser.rewriter.insertToken(
       token,
@@ -1619,7 +1619,7 @@ class ComplexTypeParamOrArgInfo extends TypeParamOrArgInfo {
       if (!errorReported) {
         parser.reportRecoverableError(
           token,
-          codes.codeExpectedAfterButGot.withArguments('>'),
+          codes.codeExpectedAfterButGot.withArgumentsOld('>'),
         );
         errorReported = true;
       }
@@ -1641,7 +1641,7 @@ class ComplexTypeParamOrArgInfo extends TypeParamOrArgInfo {
         if (!errorReported) {
           parser.reportRecoverableError(
             token,
-            codes.codeExpectedAfterButGot.withArguments('>'),
+            codes.codeExpectedAfterButGot.withArgumentsOld('>'),
           );
           errorReported = true;
         }
@@ -1668,7 +1668,7 @@ class ComplexTypeParamOrArgInfo extends TypeParamOrArgInfo {
       if (!errorReported) {
         parser.reportRecoverableError(
           token,
-          codes.codeExpectedAfterButGot.withArguments('>'),
+          codes.codeExpectedAfterButGot.withArgumentsOld('>'),
         );
         errorReported = true;
       }
@@ -1693,7 +1693,7 @@ class ComplexTypeParamOrArgInfo extends TypeParamOrArgInfo {
         // Only report an error if one has not already been reported.
         parser.reportRecoverableError(
           token,
-          codes.codeExpectedAfterButGot.withArguments('>'),
+          codes.codeExpectedAfterButGot.withArgumentsOld('>'),
         );
         errorReported = true;
       }
@@ -1709,7 +1709,7 @@ class ComplexTypeParamOrArgInfo extends TypeParamOrArgInfo {
       // Only report an error if one has not already been reported.
       parser.reportRecoverableError(
         token,
-        codes.codeExpectedAfterButGot.withArguments('>'),
+        codes.codeExpectedAfterButGot.withArgumentsOld('>'),
       );
     }
     if (parseCloser(next)) {

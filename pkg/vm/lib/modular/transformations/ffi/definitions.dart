@@ -213,7 +213,7 @@ class _FfiDefinitionTransformer extends FfiTransformer {
       if (report) {
         component.forEach((Class e) {
           diagnosticReporter.report(
-            codeFfiFieldCyclic.withArguments(
+            codeFfiFieldCyclic.withArgumentsOld(
               e.superclass!.name,
               e.name,
               component.map((e) => e.name).toList(),
@@ -361,7 +361,7 @@ class _FfiDefinitionTransformer extends FfiTransformer {
   int? _checkCompoundClass(Class node) {
     if (node.typeParameters.isNotEmpty) {
       diagnosticReporter.report(
-        codeFfiStructGeneric.withArguments(node.superclass!.name, node.name),
+        codeFfiStructGeneric.withArgumentsOld(node.superclass!.name, node.name),
         node.fileOffset,
         1,
         node.location!.file,
@@ -383,7 +383,7 @@ class _FfiDefinitionTransformer extends FfiTransformer {
       finalizableType,
     )) {
       diagnosticReporter.report(
-        codeFfiCompoundImplementsFinalizable.withArguments(
+        codeFfiCompoundImplementsFinalizable.withArgumentsOld(
           node.superclass!.name,
           node.name,
         ),
@@ -397,7 +397,7 @@ class _FfiDefinitionTransformer extends FfiTransformer {
       final packingAnnotations = _getPackedAnnotations(node);
       if (packingAnnotations.length > 1) {
         diagnosticReporter.report(
-          codeFfiPackedAnnotation.withArguments(node.name),
+          codeFfiPackedAnnotation.withArgumentsOld(node.name),
           node.fileOffset,
           node.name.length,
           node.location!.file,
@@ -476,7 +476,7 @@ class _FfiDefinitionTransformer extends FfiTransformer {
       if (f is Field) {
         if (f.initializer is! NullLiteral) {
           diagnosticReporter.report(
-            codeFfiFieldInitializer.withArguments(f.name.text),
+            codeFfiFieldInitializer.withArgumentsOld(f.name.text),
             f.fileOffset,
             f.name.text.length,
             f.fileUri,
@@ -492,7 +492,7 @@ class _FfiDefinitionTransformer extends FfiTransformer {
               type.declaredNullability == Nullability.nullable ||
               type.declaredNullability == Nullability.undetermined)) {
         diagnosticReporter.report(
-          codeFfiFieldNull.withArguments(f.name.text),
+          codeFfiFieldNull.withArgumentsOld(f.name.text),
           f.fileOffset,
           f.name.text.length,
           f.fileUri,
@@ -504,7 +504,7 @@ class _FfiDefinitionTransformer extends FfiTransformer {
         // a native type annotation.
         if (nativeTypeAnnos.isNotEmpty) {
           diagnosticReporter.report(
-            codeFfiFieldNoAnnotation.withArguments(f.name.text),
+            codeFfiFieldNoAnnotation.withArgumentsOld(f.name.text),
             f.fileOffset,
             f.name.text.length,
             f.fileUri,
@@ -526,7 +526,7 @@ class _FfiDefinitionTransformer extends FfiTransformer {
         }
       } else if (nativeTypeAnnos.length != 1) {
         diagnosticReporter.report(
-          codeFfiFieldAnnotation.withArguments(f.name.text),
+          codeFfiFieldAnnotation.withArgumentsOld(f.name.text),
           f.fileOffset,
           f.name.text.length,
           f.fileUri,
@@ -550,7 +550,7 @@ class _FfiDefinitionTransformer extends FfiTransformer {
             !env.isSubtypeOf(shouldBeDartType, type) ||
             !env.isSubtypeOf(type, shouldBeDartType)) {
           diagnosticReporter.report(
-            codeFfiTypeMismatch.withArguments(
+            codeFfiTypeMismatch.withArgumentsOld(
               type,
               shouldBeDartType!,
               nativeType,
@@ -577,7 +577,7 @@ class _FfiDefinitionTransformer extends FfiTransformer {
         if (i is FieldInitializer) {
           toRemove.add(i);
           diagnosticReporter.report(
-            codeFfiFieldInitializer.withArguments(i.field.name.text),
+            codeFfiFieldInitializer.withArgumentsOld(i.field.name.text),
             i.fileOffset,
             1,
             i.location!.file,
@@ -807,7 +807,7 @@ class _FfiDefinitionTransformer extends FfiTransformer {
     );
     if (compoundType.members.isEmpty) {
       diagnosticReporter.report(
-        codeFfiEmptyStruct.withArguments(node.superclass!.name, node.name),
+        codeFfiEmptyStruct.withArgumentsOld(node.superclass!.name, node.name),
         node.fileOffset,
         node.name.length,
         node.location!.file,

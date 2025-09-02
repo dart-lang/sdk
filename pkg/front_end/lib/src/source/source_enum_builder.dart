@@ -246,7 +246,7 @@ class SourceEnumBuilder extends SourceClassBuilder {
           customIndexDeclaration = customIndexDeclaration?.next;
         }
         libraryBuilder.addProblem(
-          codeEnumContainsRestrictedInstanceDeclaration.withArguments(
+          codeEnumContainsRestrictedInstanceDeclaration.withArgumentsOld(
             restrictedInstanceMemberName,
           ),
           customIndexDeclaration!.fileOffset,

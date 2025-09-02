@@ -39,7 +39,7 @@ abstract class LookupResult {
       }
       length = noLength;
     }
-    Message message = codeDuplicatedDeclarationUse.withArguments(name);
+    Message message = codeDuplicatedDeclarationUse.withArgumentsOld(name);
     return message.withLocation(fileUri, fileOffset, length);
   }
 

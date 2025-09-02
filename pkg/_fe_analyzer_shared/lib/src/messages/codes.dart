@@ -111,13 +111,13 @@ class Template<T> extends Code {
 
   final String? correctionMessageTemplate;
 
-  final T withArguments;
+  final T withArgumentsOld;
 
   const Template(
     super.name, {
     this.correctionMessageTemplate,
     required this.problemMessageTemplate,
-    required this.withArguments,
+    required this.withArgumentsOld,
     super.index = -1,
     super.analyzerCodes,
     super.severity = CfeSeverity.error,

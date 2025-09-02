@@ -127,7 +127,7 @@ abstract class DelayedGetterSetterCheck implements DelayedCheck {
       if (!isValid) {
         if (getterIsDeclared && setterIsDeclared) {
           libraryBuilder.addProblem(
-            codeInvalidGetterSetterType.withArguments(
+            codeInvalidGetterSetterType.withArgumentsOld(
               getterType,
               getterFullName,
               setterType,
@@ -138,7 +138,7 @@ abstract class DelayedGetterSetterCheck implements DelayedCheck {
             getterUri,
             context: [
               codeInvalidGetterSetterTypeSetterContext
-                  .withArguments(setterFullName)
+                  .withArgumentsOld(setterFullName)
                   .withLocation(setterUri, setterOffset, name.text.length),
             ],
           );
@@ -149,7 +149,7 @@ abstract class DelayedGetterSetterCheck implements DelayedCheck {
             template = codeInvalidGetterSetterTypeSetterInheritedField;
           }
           libraryBuilder.addProblem(
-            template.withArguments(
+            template.withArgumentsOld(
               getterType,
               getterFullName,
               setterType,
@@ -160,7 +160,7 @@ abstract class DelayedGetterSetterCheck implements DelayedCheck {
             getterUri,
             context: [
               codeInvalidGetterSetterTypeSetterContext
-                  .withArguments(setterFullName)
+                  .withArgumentsOld(setterFullName)
                   .withLocation(setterUri, setterOffset, name.text.length),
             ],
           );
@@ -174,7 +174,7 @@ abstract class DelayedGetterSetterCheck implements DelayedCheck {
             context = codeInvalidGetterSetterTypeFieldContext;
           }
           libraryBuilder.addProblem(
-            template.withArguments(
+            template.withArgumentsOld(
               getterType,
               getterFullName,
               setterType,
@@ -185,7 +185,7 @@ abstract class DelayedGetterSetterCheck implements DelayedCheck {
             setterUri,
             context: [
               context
-                  .withArguments(getterFullName)
+                  .withArgumentsOld(getterFullName)
                   .withLocation(getterUri, getterOffset, name.text.length),
             ],
           );
@@ -199,7 +199,7 @@ abstract class DelayedGetterSetterCheck implements DelayedCheck {
             context = codeInvalidGetterSetterTypeFieldContext;
           }
           libraryBuilder.addProblem(
-            template.withArguments(
+            template.withArgumentsOld(
               getterType,
               getterFullName,
               setterType,
@@ -210,10 +210,10 @@ abstract class DelayedGetterSetterCheck implements DelayedCheck {
             declarationUri,
             context: [
               context
-                  .withArguments(getterFullName)
+                  .withArgumentsOld(getterFullName)
                   .withLocation(getterUri, getterOffset, name.text.length),
               codeInvalidGetterSetterTypeSetterContext
-                  .withArguments(setterFullName)
+                  .withArgumentsOld(setterFullName)
                   .withLocation(setterUri, setterOffset, name.text.length),
             ],
           );

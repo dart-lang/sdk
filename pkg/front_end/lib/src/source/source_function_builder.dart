@@ -79,7 +79,7 @@ void buildTypeParametersAndFormals(
       // Required named parameters can't have default values.
       if (formal.isRequiredNamed && formal.initializerToken != null) {
         libraryBuilder.addProblem(
-          codeRequiredNamedParameterHasDefaultValueError.withArguments(
+          codeRequiredNamedParameterHasDefaultValueError.withArgumentsOld(
             formal.name,
           ),
           formal.fileOffset,

@@ -118,9 +118,8 @@ class ExportChecker {
 
     if (classHasJSExport && js_interop.getJSExportName(cls).isNotEmpty) {
       _diagnosticReporter.report(
-        codeJsInteropExportDartInterfaceHasNonEmptyJSExportValue.withArguments(
-          cls.name,
-        ),
+        codeJsInteropExportDartInterfaceHasNonEmptyJSExportValue
+            .withArgumentsOld(cls.name),
         cls.fileOffset,
         cls.name.length,
         cls.location?.file,
@@ -181,7 +180,7 @@ class ExportChecker {
       var sortedExistingMembers =
           existingMembers.map((member) => member.toString()).toList()..sort();
       _diagnosticReporter.report(
-        codeJsInteropExportMemberCollision.withArguments(
+        codeJsInteropExportMemberCollision.withArgumentsOld(
           exportName,
           sortedExistingMembers.join(', '),
         ),
@@ -194,7 +193,7 @@ class ExportChecker {
 
     if (exports.isEmpty) {
       _diagnosticReporter.report(
-        codeJsInteropExportNoExportableMembers.withArguments(cls.name),
+        codeJsInteropExportNoExportableMembers.withArgumentsOld(cls.name),
         cls.fileOffset,
         cls.name.length,
         cls.location?.file,
@@ -216,7 +215,7 @@ class ExportChecker {
         String name = member.name.text;
         if (name.isEmpty) name = '<unnamed>';
         _diagnosticReporter.report(
-          codeJsInteropExportDisallowedMember.withArguments(name),
+          codeJsInteropExportDisallowedMember.withArgumentsOld(name),
           member.fileOffset,
           member.name.text.length,
           member.location?.file,

@@ -117,7 +117,7 @@ abstract class MembersNodeBuilder {
         // TODO(johnniwinther): Move this to the creation of the shared
         // property builder.
         declarationBuilder.libraryBuilder.addProblem2(
-          codeInstanceAndSynthesizedStaticConflict.withArguments(
+          codeInstanceAndSynthesizedStaticConflict.withArgumentsOld(
             staticMember.name.text,
           ),
           instanceMember.uriOffset,
@@ -1162,7 +1162,7 @@ class ClassMembersNodeBuilder extends MembersNodeBuilder {
             ? "$className.$name="
             : "$className.$name";
         contextMap[displayName] = codeMissingImplementationCause
-            .withArguments(displayName)
+            .withArgumentsOld(displayName)
             .withLocation2(declaration.uriOffset);
       }
     }
@@ -1173,7 +1173,7 @@ class ClassMembersNodeBuilder extends MembersNodeBuilder {
       context.add(contextMap[names[i]]!);
     }
     classBuilder.libraryBuilder.addProblem(
-      codeMissingImplementationNotAbstract.withArguments(
+      codeMissingImplementationNotAbstract.withArgumentsOld(
         classBuilder.fullNameForErrors,
         names,
       ),
@@ -3050,7 +3050,7 @@ void reportCantInferParameterType(
       .toSet()
       .toList();
   problemReporting.addProblem(
-    codeCantInferTypeDueToNoCombinedSignature.withArguments(name),
+    codeCantInferTypeDueToNoCombinedSignature.withArgumentsOld(name),
     parameter.fileOffset,
     name.length,
     parameter.fileUri,
@@ -3077,7 +3077,7 @@ void reportCantInferTypes(
       .toSet()
       .toList();
   problemReporting.addProblem(
-    codeCantInferTypesDueToNoCombinedSignature.withArguments(name),
+    codeCantInferTypesDueToNoCombinedSignature.withArgumentsOld(name),
     nameOffset,
     nameLength,
     fileUri,
@@ -3104,7 +3104,7 @@ void reportCantInferReturnType(
       .toSet()
       .toList();
   problemReporting.addProblem(
-    codeCantInferReturnTypeDueToNoCombinedSignature.withArguments(name),
+    codeCantInferReturnTypeDueToNoCombinedSignature.withArgumentsOld(name),
     nameOffset,
     nameLength,
     fileUri,
@@ -3131,7 +3131,7 @@ void reportCantInferFieldType(
       .toSet()
       .toList();
   problemReporting.addProblem(
-    codeCantInferTypeDueToNoCombinedSignature.withArguments(name),
+    codeCantInferTypeDueToNoCombinedSignature.withArgumentsOld(name),
     nameOffset,
     nameLength,
     fileUri,

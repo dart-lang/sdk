@@ -191,7 +191,7 @@ class DillLoader extends Loader {
         }
         double ms =
             elapsed.inMicroseconds / Duration.microsecondsPerMillisecond;
-        Message message = template.withArguments(
+        Message message = template.withArgumentsOld(
           libraryCount,
           byteCount,
           ms,
@@ -273,7 +273,7 @@ severity: $severity
     if (!seenMessages.add(trace)) return null;
     if (message.code.severity == CfeSeverity.context) {
       internalProblem(
-        codeInternalProblemContextSeverity.withArguments(message.code.name),
+        codeInternalProblemContextSeverity.withArgumentsOld(message.code.name),
         charOffset,
         fileUri,
       );

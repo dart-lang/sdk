@@ -329,7 +329,7 @@ abstract class Generator {
     required bool allowPotentiallyConstantType,
     required bool performTypeCanonicalization,
   }) {
-    Message message = codeNotAType.withArguments(token.lexeme);
+    Message message = codeNotAType.withArgumentsOld(token.lexeme);
     _helper.libraryBuilder.addProblem(
       message,
       fileOffset,
@@ -597,7 +597,7 @@ class ForInLateFinalVariableUseGenerator extends VariableUseGenerator {
   @override
   Expression buildAssignment(Expression value, {bool voidContext = false}) {
     InvalidExpression error = _helper.buildProblem(
-      codeCannotAssignToFinalVariable.withArguments(variable.name!),
+      codeCannotAssignToFinalVariable.withArgumentsOld(variable.name!),
       fileOffset,
       lengthForToken(token),
     )..parent = variable;
@@ -2180,7 +2180,7 @@ class StaticAccessGenerator extends Generator {
         !_helper.isIdentical(invokeTarget) &&
         !_helper.libraryFeatures.constFunctions.isEnabled) {
       return _helper.buildProblem(
-        codeNotConstantExpression.withArguments('Method invocation'),
+        codeNotConstantExpression.withArgumentsOld('Method invocation'),
         offset,
         invokeTarget?.name.text.length ?? 0,
       );
@@ -3905,7 +3905,7 @@ class DeferredAccessGenerator extends Generator {
     } else {
       int charOffset = offsetForToken(prefixGenerator.token);
       message = codeDeferredTypeAnnotation
-          .withArguments(
+          .withArgumentsOld(
             _helper.buildDartType(
               type,
               TypeUse.deferredTypeError,
@@ -4195,7 +4195,7 @@ class TypeUseGenerator extends AbstractReadOnlyAccessGenerator {
           aliasedTypeArguments.length != aliasBuilder.typeParametersCount) {
         // Coverage-ignore-block(suite): Not run.
         _helper.libraryBuilder.addProblem(
-          codeTypeArgumentMismatch.withArguments(
+          codeTypeArgumentMismatch.withArgumentsOld(
             aliasBuilder.typeParametersCount,
           ),
           fileOffset,
@@ -4547,7 +4547,7 @@ class TypeUseGenerator extends AbstractReadOnlyAccessGenerator {
         int typeParameterCount = extensionBuilder.typeParameters?.length ?? 0;
         if (explicitTypeArguments.length != typeParameterCount) {
           return _helper.buildProblem(
-            codeExplicitExtensionTypeArgumentMismatch.withArguments(
+            codeExplicitExtensionTypeArgumentMismatch.withArgumentsOld(
               extensionBuilder.name,
               typeParameterCount,
             ),
@@ -4679,14 +4679,14 @@ abstract class AbstractReadOnlyAccessGenerator extends Generator {
     switch (kind) {
       case ReadOnlyAccessKind.ConstVariable:
         return _helper.buildProblem(
-          codeCannotAssignToConstVariable.withArguments(targetName),
+          codeCannotAssignToConstVariable.withArgumentsOld(targetName),
           fileOffset,
           lengthForToken(token),
           errorHasBeenReported: errorHasBeenReported,
         );
       case ReadOnlyAccessKind.FinalVariable:
         return _helper.buildProblem(
-          codeCannotAssignToFinalVariable.withArguments(targetName),
+          codeCannotAssignToFinalVariable.withArgumentsOld(targetName),
           fileOffset,
           lengthForToken(token),
           errorHasBeenReported: errorHasBeenReported,
@@ -5631,7 +5631,7 @@ class PrefixUseGenerator extends Generator {
   Generator qualifiedLookup(Token nameToken) {
     if (_helper.constantContext != ConstantContext.none && prefix.deferred) {
       _helper.addProblem(
-        codeCantUseDeferredPrefixAsConstant.withArguments(token),
+        codeCantUseDeferredPrefixAsConstant.withArgumentsOld(token),
         fileOffset,
         lengthForToken(token),
       );
@@ -5857,7 +5857,7 @@ class UnexpectedQualifiedUseGenerator extends Generator {
     required bool allowPotentiallyConstantType,
     required bool performTypeCanonicalization,
   }) {
-    Message message = codeNotAPrefixInTypeAnnotation.withArguments(
+    Message message = codeNotAPrefixInTypeAnnotation.withArgumentsOld(
       prefixGenerator.token.lexeme,
       token.lexeme,
     );
@@ -5890,7 +5890,7 @@ class UnexpectedQualifiedUseGenerator extends Generator {
     Constness constness, {
     required bool inImplicitCreationContext,
   }) {
-    Message message = codeConstructorNotFound.withArguments(
+    Message message = codeConstructorNotFound.withArgumentsOld(
       _helper.constructorNameForDiagnostics(name, className: _plainNameForRead),
     );
     return _helper.buildProblem(
@@ -6218,7 +6218,7 @@ class ThisAccessGenerator extends Generator {
   Expression buildFieldInitializerError(Map<String, int>? initializedFields) {
     String keyword = isSuper ? "super" : "this";
     return _helper.buildProblem(
-      codeThisOrSuperAccessInFieldInitializer.withArguments(keyword),
+      codeThisOrSuperAccessInFieldInitializer.withArgumentsOld(keyword),
       fileOffset,
       keyword.length,
     );
@@ -6414,7 +6414,7 @@ class ThisAccessGenerator extends Generator {
       if (constructor == null) {
         String fullName = _helper.superConstructorNameForDiagnostics(name.text);
         LocatedMessage message = codeSuperclassHasNoConstructor
-            .withArguments(fullName)
+            .withArgumentsOld(fullName)
             .withLocation(_uri, fileOffset, lengthForToken(token));
         return _helper.buildInvalidInitializer(
           _helper.buildUnresolvedError(

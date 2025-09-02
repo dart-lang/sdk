@@ -1995,7 +1995,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
       for (TypeParameter typeParam in typeDefinitions) {
         if (!isLegalIdentifier(typeParam.name!)) {
           lastGoodKernelTarget.loader.addProblem(
-            codeIncrementalCompilerIllegalTypeParameter.withArguments(
+            codeIncrementalCompilerIllegalTypeParameter.withArgumentsOld(
               '$typeParam',
             ),
             typeParam.fileOffset,
@@ -2014,7 +2014,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
                 index == 1 &&
                 isExtensionThisName(name)))) {
           lastGoodKernelTarget.loader.addProblem(
-            codeIncrementalCompilerIllegalParameter.withArguments(name),
+            codeIncrementalCompilerIllegalParameter.withArgumentsOld(name),
             // TODO: pass variable declarations instead of
             // parameter names for proper location detection.
             // https://github.com/dart-lang/sdk/issues/44158
@@ -2481,7 +2481,7 @@ class ExpressionEvaluationHelperImpl implements ExpressionEvaluationHelper {
       variable.type,
       helper.wrapInProblem(
         node,
-        codeExpressionEvaluationKnownVariableUnavailable.withArguments(
+        codeExpressionEvaluationKnownVariableUnavailable.withArgumentsOld(
           variable.name!,
         ),
         node.fileOffset,
@@ -2860,24 +2860,24 @@ class _InitializationFromUri extends _InitializationFromSdkSummary {
         }
         if (e is CanonicalNameError) {
           Message message = gzInitializedFrom != null
-              ? codeInitializeFromDillNotSelfContained.withArguments(
+              ? codeInitializeFromDillNotSelfContained.withArgumentsOld(
                   initializeFromDillUri.toString(),
                   gzInitializedFrom,
                 )
-              : codeInitializeFromDillNotSelfContainedNoDump.withArguments(
+              : codeInitializeFromDillNotSelfContainedNoDump.withArgumentsOld(
                   initializeFromDillUri.toString(),
                 );
           dillLoadedData.loader.addProblem(message, TreeNode.noOffset, 1, null);
         } else {
           // Unknown error: Report problem as such.
           Message message = gzInitializedFrom != null
-              ? codeInitializeFromDillUnknownProblem.withArguments(
+              ? codeInitializeFromDillUnknownProblem.withArgumentsOld(
                   initializeFromDillUri.toString(),
                   "$e",
                   "$st",
                   gzInitializedFrom,
                 )
-              : codeInitializeFromDillUnknownProblemNoDump.withArguments(
+              : codeInitializeFromDillUnknownProblemNoDump.withArgumentsOld(
                   initializeFromDillUri.toString(),
                   "$e",
                   "$st",

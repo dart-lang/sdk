@@ -1482,7 +1482,7 @@ class OutlineBuilder extends StackListenerImpl {
       if (supertype != null) {
         if (supertype.nullabilityBuilder.build() == Nullability.nullable) {
           _compilationUnit.addProblem(
-            codeNullableSuperclassError.withArguments(
+            codeNullableSuperclassError.withArgumentsOld(
               supertype.fullNameForErrors,
             ),
             identifier.nameOffset,
@@ -1495,7 +1495,7 @@ class OutlineBuilder extends StackListenerImpl {
         for (TypeBuilder mixin in mixins) {
           if (mixin.nullabilityBuilder.build() == Nullability.nullable) {
             _compilationUnit.addProblem(
-              codeNullableMixinError.withArguments(mixin.fullNameForErrors),
+              codeNullableMixinError.withArgumentsOld(mixin.fullNameForErrors),
               identifier.nameOffset,
               classNameForErrors.length,
               uri,
@@ -1507,7 +1507,7 @@ class OutlineBuilder extends StackListenerImpl {
         for (TypeBuilder interface in interfaces) {
           if (interface.nullabilityBuilder.build() == Nullability.nullable) {
             _compilationUnit.addProblem(
-              codeNullableInterfaceError.withArguments(
+              codeNullableInterfaceError.withArgumentsOld(
                 interface.fullNameForErrors,
               ),
               identifier.nameOffset,
@@ -1587,7 +1587,7 @@ class OutlineBuilder extends StackListenerImpl {
         for (TypeBuilder supertype in supertypeConstraints) {
           if (supertype.nullabilityBuilder.build() == Nullability.nullable) {
             _compilationUnit.addProblem(
-              codeNullableSuperclassError.withArguments(
+              codeNullableSuperclassError.withArgumentsOld(
                 supertype.fullNameForErrors,
               ),
               identifier.nameOffset,
@@ -1601,7 +1601,7 @@ class OutlineBuilder extends StackListenerImpl {
         for (TypeBuilder interface in interfaces) {
           if (interface.nullabilityBuilder.build() == Nullability.nullable) {
             _compilationUnit.addProblem(
-              codeNullableInterfaceError.withArguments(
+              codeNullableInterfaceError.withArgumentsOld(
                 interface.fullNameForErrors,
               ),
               identifier.nameOffset,
@@ -2480,7 +2480,7 @@ class OutlineBuilder extends StackListenerImpl {
               uri,
             );
         }
-        addProblem(template.withArguments(name), nameOffset, name.length);
+        addProblem(template.withArgumentsOld(name), nameOffset, name.length);
       } else {
         if (formals != null) {
           for (FormalParameterBuilder formal in formals) {
@@ -2715,7 +2715,7 @@ class OutlineBuilder extends StackListenerImpl {
       if (supertype is TypeBuilder) {
         if (supertype.nullabilityBuilder.build() == Nullability.nullable) {
           _compilationUnit.addProblem(
-            codeNullableSuperclassError.withArguments(
+            codeNullableSuperclassError.withArgumentsOld(
               supertype.fullNameForErrors,
             ),
             identifier.nameOffset,
@@ -2727,7 +2727,7 @@ class OutlineBuilder extends StackListenerImpl {
       for (TypeBuilder mixin in mixins) {
         if (mixin.nullabilityBuilder.build() == Nullability.nullable) {
           _compilationUnit.addProblem(
-            codeNullableMixinError.withArguments(mixin.fullNameForErrors),
+            codeNullableMixinError.withArgumentsOld(mixin.fullNameForErrors),
             identifier.nameOffset,
             classNameForErrors.length,
             uri,
@@ -2738,7 +2738,7 @@ class OutlineBuilder extends StackListenerImpl {
         for (TypeBuilder interface in interfaces) {
           if (interface.nullabilityBuilder.build() == Nullability.nullable) {
             _compilationUnit.addProblem(
-              codeNullableInterfaceError.withArguments(
+              codeNullableInterfaceError.withArgumentsOld(
                 interface.fullNameForErrors,
               ),
               identifier.nameOffset,
@@ -3085,12 +3085,12 @@ class OutlineBuilder extends StackListenerImpl {
             formals[0].name == formals[1].name &&
             !formals[0].isWildcard) {
           addProblem(
-            codeDuplicatedParameterName.withArguments(formals[1].name),
+            codeDuplicatedParameterName.withArgumentsOld(formals[1].name),
             formals[1].fileOffset,
             formals[1].name.length,
             context: [
               codeDuplicatedParameterNameCause
-                  .withArguments(formals[1].name)
+                  .withArgumentsOld(formals[1].name)
                   .withLocation(
                     uri,
                     formals[0].fileOffset,
@@ -3110,12 +3110,12 @@ class OutlineBuilder extends StackListenerImpl {
           if (seenNames.containsKey(formal.name)) {
             // Coverage-ignore-block(suite): Not run.
             addProblem(
-              codeDuplicatedParameterName.withArguments(formal.name),
+              codeDuplicatedParameterName.withArgumentsOld(formal.name),
               formal.fileOffset,
               formal.name.length,
               context: [
                 codeDuplicatedParameterNameCause
-                    .withArguments(formal.name)
+                    .withArgumentsOld(formal.name)
                     .withLocation(
                       uri,
                       seenNames[formal.name]!.fileOffset,
@@ -3360,7 +3360,7 @@ class OutlineBuilder extends StackListenerImpl {
         for (TypeBuilder interface in interfaces) {
           if (interface.nullabilityBuilder.build() == Nullability.nullable) {
             _compilationUnit.addProblem(
-              codeNullableInterfaceError.withArguments(
+              codeNullableInterfaceError.withArgumentsOld(
                 interface.fullNameForErrors,
               ),
               interface.charOffset ?? startOffset,
@@ -3429,7 +3429,7 @@ class OutlineBuilder extends StackListenerImpl {
 
     if (!libraryFeatures.records.isEnabled) {
       addProblem(
-        codeExperimentNotEnabledOffByDefault.withArguments(
+        codeExperimentNotEnabledOffByDefault.withArgumentsOld(
           ExperimentalFlag.records.name,
         ),
         leftBracket.offset,

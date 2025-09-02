@@ -292,7 +292,7 @@ mixin BodyBuilderTestMixin on BodyBuilder {
     }
     if (doReport) {
       addProblem(
-        cfe.codeUnspecified.withArguments("Should use new or const"),
+        cfe.codeUnspecified.withArgumentsOld("Should use new or const"),
         nameToken.charOffset,
         nameToken.length,
       );

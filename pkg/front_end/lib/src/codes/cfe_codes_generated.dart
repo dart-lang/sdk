@@ -20,11 +20,11 @@ codeAmbiguousExtensionMethod =
           r"""The method '#name' is defined in multiple extensions for '#type' and neither is more specific.""",
       correctionMessageTemplate:
           r"""Try using an explicit extension application of the wanted extension or hiding unwanted extensions from scope.""",
-      withArguments: _withArgumentsAmbiguousExtensionMethod,
+      withArgumentsOld: _withArgumentsOldAmbiguousExtensionMethod,
     );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsAmbiguousExtensionMethod(String name, DartType _type) {
+Message _withArgumentsOldAmbiguousExtensionMethod(String name, DartType _type) {
   if (name.isEmpty) throw 'No name provided';
   name = demangleMixinApplicationName(name);
   TypeLabeler labeler = new TypeLabeler();
@@ -50,11 +50,14 @@ codeAmbiguousExtensionOperator =
           r"""The operator '#name' is defined in multiple extensions for '#type' and neither is more specific.""",
       correctionMessageTemplate:
           r"""Try using an explicit extension application of the wanted extension or hiding unwanted extensions from scope.""",
-      withArguments: _withArgumentsAmbiguousExtensionOperator,
+      withArgumentsOld: _withArgumentsOldAmbiguousExtensionOperator,
     );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsAmbiguousExtensionOperator(String name, DartType _type) {
+Message _withArgumentsOldAmbiguousExtensionOperator(
+  String name,
+  DartType _type,
+) {
   if (name.isEmpty) throw 'No name provided';
   name = demangleMixinApplicationName(name);
   TypeLabeler labeler = new TypeLabeler();
@@ -80,11 +83,14 @@ codeAmbiguousExtensionProperty =
           r"""The property '#name' is defined in multiple extensions for '#type' and neither is more specific.""",
       correctionMessageTemplate:
           r"""Try using an explicit extension application of the wanted extension or hiding unwanted extensions from scope.""",
-      withArguments: _withArgumentsAmbiguousExtensionProperty,
+      withArgumentsOld: _withArgumentsOldAmbiguousExtensionProperty,
     );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsAmbiguousExtensionProperty(String name, DartType _type) {
+Message _withArgumentsOldAmbiguousExtensionProperty(
+  String name,
+  DartType _type,
+) {
   if (name.isEmpty) throw 'No name provided';
   name = demangleMixinApplicationName(name);
   TypeLabeler labeler = new TypeLabeler();
@@ -110,12 +116,12 @@ codeAmbiguousSupertypes =
       "AmbiguousSupertypes",
       problemMessageTemplate:
           r"""'#name' can't implement both '#type' and '#type2'""",
-      withArguments: _withArgumentsAmbiguousSupertypes,
+      withArgumentsOld: _withArgumentsOldAmbiguousSupertypes,
       analyzerCodes: <String>["AMBIGUOUS_SUPERTYPES"],
     );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsAmbiguousSupertypes(
+Message _withArgumentsOldAmbiguousSupertypes(
   String name,
   DartType _type,
   DartType _type2,
@@ -143,12 +149,12 @@ codeArgumentTypeNotAssignable =
       "ArgumentTypeNotAssignable",
       problemMessageTemplate:
           r"""The argument type '#type' can't be assigned to the parameter type '#type2'.""",
-      withArguments: _withArgumentsArgumentTypeNotAssignable,
+      withArgumentsOld: _withArgumentsOldArgumentTypeNotAssignable,
       analyzerCodes: <String>["ARGUMENT_TYPE_NOT_ASSIGNABLE"],
     );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsArgumentTypeNotAssignable(
+Message _withArgumentsOldArgumentTypeNotAssignable(
   DartType _type,
   DartType _type2,
 ) {
@@ -173,11 +179,11 @@ codeConstEvalCaseImplementsEqual =
       "ConstEvalCaseImplementsEqual",
       problemMessageTemplate:
           r"""Case expression '#constant' does not have a primitive operator '=='.""",
-      withArguments: _withArgumentsConstEvalCaseImplementsEqual,
+      withArgumentsOld: _withArgumentsOldConstEvalCaseImplementsEqual,
     );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsConstEvalCaseImplementsEqual(Constant _constant) {
+Message _withArgumentsOldConstEvalCaseImplementsEqual(Constant _constant) {
   TypeLabeler labeler = new TypeLabeler();
   List<Object> constantParts = labeler.labelConstant(_constant);
   String constant = constantParts.join();
@@ -197,12 +203,12 @@ codeConstEvalDuplicateElement =
       "ConstEvalDuplicateElement",
       problemMessageTemplate:
           r"""The element '#constant' conflicts with another existing element in the set.""",
-      withArguments: _withArgumentsConstEvalDuplicateElement,
+      withArgumentsOld: _withArgumentsOldConstEvalDuplicateElement,
       analyzerCodes: <String>["EQUAL_ELEMENTS_IN_CONST_SET"],
     );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsConstEvalDuplicateElement(Constant _constant) {
+Message _withArgumentsOldConstEvalDuplicateElement(Constant _constant) {
   TypeLabeler labeler = new TypeLabeler();
   List<Object> constantParts = labeler.labelConstant(_constant);
   String constant = constantParts.join();
@@ -221,12 +227,12 @@ codeConstEvalDuplicateKey = const Template<Message Function(Constant _constant)>
   "ConstEvalDuplicateKey",
   problemMessageTemplate:
       r"""The key '#constant' conflicts with another existing key in the map.""",
-  withArguments: _withArgumentsConstEvalDuplicateKey,
+  withArgumentsOld: _withArgumentsOldConstEvalDuplicateKey,
   analyzerCodes: <String>["EQUAL_KEYS_IN_CONST_MAP"],
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsConstEvalDuplicateKey(Constant _constant) {
+Message _withArgumentsOldConstEvalDuplicateKey(Constant _constant) {
   TypeLabeler labeler = new TypeLabeler();
   List<Object> constantParts = labeler.labelConstant(_constant);
   String constant = constantParts.join();
@@ -246,12 +252,12 @@ codeConstEvalElementImplementsEqual =
       "ConstEvalElementImplementsEqual",
       problemMessageTemplate:
           r"""The element '#constant' does not have a primitive operator '=='.""",
-      withArguments: _withArgumentsConstEvalElementImplementsEqual,
+      withArgumentsOld: _withArgumentsOldConstEvalElementImplementsEqual,
       analyzerCodes: <String>["CONST_SET_ELEMENT_TYPE_IMPLEMENTS_EQUALS"],
     );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsConstEvalElementImplementsEqual(Constant _constant) {
+Message _withArgumentsOldConstEvalElementImplementsEqual(Constant _constant) {
   TypeLabeler labeler = new TypeLabeler();
   List<Object> constantParts = labeler.labelConstant(_constant);
   String constant = constantParts.join();
@@ -271,11 +277,13 @@ codeConstEvalElementNotPrimitiveEquality =
       "ConstEvalElementNotPrimitiveEquality",
       problemMessageTemplate:
           r"""The element '#constant' does not have a primitive equality.""",
-      withArguments: _withArgumentsConstEvalElementNotPrimitiveEquality,
+      withArgumentsOld: _withArgumentsOldConstEvalElementNotPrimitiveEquality,
     );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsConstEvalElementNotPrimitiveEquality(Constant _constant) {
+Message _withArgumentsOldConstEvalElementNotPrimitiveEquality(
+  Constant _constant,
+) {
   TypeLabeler labeler = new TypeLabeler();
   List<Object> constantParts = labeler.labelConstant(_constant);
   String constant = constantParts.join();
@@ -295,11 +303,12 @@ codeConstEvalEqualsOperandNotPrimitiveEquality =
       "ConstEvalEqualsOperandNotPrimitiveEquality",
       problemMessageTemplate:
           r"""Binary operator '==' requires receiver constant '#constant' of a type with primitive equality or type 'double', but was of type '#type'.""",
-      withArguments: _withArgumentsConstEvalEqualsOperandNotPrimitiveEquality,
+      withArgumentsOld:
+          _withArgumentsOldConstEvalEqualsOperandNotPrimitiveEquality,
     );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsConstEvalEqualsOperandNotPrimitiveEquality(
+Message _withArgumentsOldConstEvalEqualsOperandNotPrimitiveEquality(
   Constant _constant,
   DartType _type,
 ) {
@@ -338,11 +347,11 @@ codeConstEvalInvalidBinaryOperandType =
       "ConstEvalInvalidBinaryOperandType",
       problemMessageTemplate:
           r"""Binary operator '#stringOKEmpty' on '#constant' requires operand of type '#type', but was of type '#type2'.""",
-      withArguments: _withArgumentsConstEvalInvalidBinaryOperandType,
+      withArgumentsOld: _withArgumentsOldConstEvalInvalidBinaryOperandType,
     );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsConstEvalInvalidBinaryOperandType(
+Message _withArgumentsOldConstEvalInvalidBinaryOperandType(
   String stringOKEmpty,
   Constant _constant,
   DartType _type,
@@ -377,11 +386,11 @@ codeConstEvalInvalidEqualsOperandType =
       "ConstEvalInvalidEqualsOperandType",
       problemMessageTemplate:
           r"""Binary operator '==' requires receiver constant '#constant' of type 'Null', 'bool', 'int', 'double', or 'String', but was of type '#type'.""",
-      withArguments: _withArgumentsConstEvalInvalidEqualsOperandType,
+      withArgumentsOld: _withArgumentsOldConstEvalInvalidEqualsOperandType,
     );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsConstEvalInvalidEqualsOperandType(
+Message _withArgumentsOldConstEvalInvalidEqualsOperandType(
   Constant _constant,
   DartType _type,
 ) {
@@ -406,12 +415,12 @@ codeConstEvalInvalidMethodInvocation =
       "ConstEvalInvalidMethodInvocation",
       problemMessageTemplate:
           r"""The method '#stringOKEmpty' can't be invoked on '#constant' in a constant expression.""",
-      withArguments: _withArgumentsConstEvalInvalidMethodInvocation,
+      withArgumentsOld: _withArgumentsOldConstEvalInvalidMethodInvocation,
       analyzerCodes: <String>["UNDEFINED_OPERATOR"],
     );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsConstEvalInvalidMethodInvocation(
+Message _withArgumentsOldConstEvalInvalidMethodInvocation(
   String stringOKEmpty,
   Constant _constant,
 ) {
@@ -435,12 +444,12 @@ codeConstEvalInvalidPropertyGet =
       "ConstEvalInvalidPropertyGet",
       problemMessageTemplate:
           r"""The property '#stringOKEmpty' can't be accessed on '#constant' in a constant expression.""",
-      withArguments: _withArgumentsConstEvalInvalidPropertyGet,
+      withArgumentsOld: _withArgumentsOldConstEvalInvalidPropertyGet,
       analyzerCodes: <String>["CONST_EVAL_THROWS_EXCEPTION"],
     );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsConstEvalInvalidPropertyGet(
+Message _withArgumentsOldConstEvalInvalidPropertyGet(
   String stringOKEmpty,
   Constant _constant,
 ) {
@@ -464,12 +473,12 @@ codeConstEvalInvalidRecordIndexGet =
       "ConstEvalInvalidRecordIndexGet",
       problemMessageTemplate:
           r"""The property '#stringOKEmpty' can't be accessed on '#constant' in a constant expression.""",
-      withArguments: _withArgumentsConstEvalInvalidRecordIndexGet,
+      withArgumentsOld: _withArgumentsOldConstEvalInvalidRecordIndexGet,
       analyzerCodes: <String>["CONST_EVAL_THROWS_EXCEPTION"],
     );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsConstEvalInvalidRecordIndexGet(
+Message _withArgumentsOldConstEvalInvalidRecordIndexGet(
   String stringOKEmpty,
   Constant _constant,
 ) {
@@ -493,12 +502,12 @@ codeConstEvalInvalidRecordNameGet =
       "ConstEvalInvalidRecordNameGet",
       problemMessageTemplate:
           r"""The property '#stringOKEmpty' can't be accessed on '#constant' in a constant expression.""",
-      withArguments: _withArgumentsConstEvalInvalidRecordNameGet,
+      withArgumentsOld: _withArgumentsOldConstEvalInvalidRecordNameGet,
       analyzerCodes: <String>["CONST_EVAL_THROWS_EXCEPTION"],
     );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsConstEvalInvalidRecordNameGet(
+Message _withArgumentsOldConstEvalInvalidRecordNameGet(
   String stringOKEmpty,
   Constant _constant,
 ) {
@@ -523,12 +532,13 @@ codeConstEvalInvalidStringInterpolationOperand =
       problemMessageTemplate:
           r"""The constant value '#constant' can't be used as part of a string interpolation in a constant expression.
 Only values of type 'null', 'bool', 'int', 'double', or 'String' can be used.""",
-      withArguments: _withArgumentsConstEvalInvalidStringInterpolationOperand,
+      withArgumentsOld:
+          _withArgumentsOldConstEvalInvalidStringInterpolationOperand,
       analyzerCodes: <String>["CONST_EVAL_TYPE_BOOL_NUM_STRING"],
     );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsConstEvalInvalidStringInterpolationOperand(
+Message _withArgumentsOldConstEvalInvalidStringInterpolationOperand(
   Constant _constant,
 ) {
   TypeLabeler labeler = new TypeLabeler();
@@ -551,12 +561,12 @@ codeConstEvalInvalidSymbolName =
       "ConstEvalInvalidSymbolName",
       problemMessageTemplate:
           r"""The symbol name must be a valid public Dart member name, public constructor name, or library name, optionally qualified, but was '#constant'.""",
-      withArguments: _withArgumentsConstEvalInvalidSymbolName,
+      withArgumentsOld: _withArgumentsOldConstEvalInvalidSymbolName,
       analyzerCodes: <String>["CONST_EVAL_THROWS_EXCEPTION"],
     );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsConstEvalInvalidSymbolName(Constant _constant) {
+Message _withArgumentsOldConstEvalInvalidSymbolName(Constant _constant) {
   TypeLabeler labeler = new TypeLabeler();
   List<Object> constantParts = labeler.labelConstant(_constant);
   String constant = constantParts.join();
@@ -580,11 +590,11 @@ codeConstEvalInvalidType =
       "ConstEvalInvalidType",
       problemMessageTemplate:
           r"""Expected constant '#constant' to be of type '#type', but was of type '#type2'.""",
-      withArguments: _withArgumentsConstEvalInvalidType,
+      withArgumentsOld: _withArgumentsOldConstEvalInvalidType,
     );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsConstEvalInvalidType(
+Message _withArgumentsOldConstEvalInvalidType(
   Constant _constant,
   DartType _type,
   DartType _type2,
@@ -612,14 +622,14 @@ codeConstEvalKeyImplementsEqual =
       "ConstEvalKeyImplementsEqual",
       problemMessageTemplate:
           r"""The key '#constant' does not have a primitive operator '=='.""",
-      withArguments: _withArgumentsConstEvalKeyImplementsEqual,
+      withArgumentsOld: _withArgumentsOldConstEvalKeyImplementsEqual,
       analyzerCodes: <String>[
         "CONST_MAP_KEY_EXPRESSION_TYPE_IMPLEMENTS_EQUALS",
       ],
     );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsConstEvalKeyImplementsEqual(Constant _constant) {
+Message _withArgumentsOldConstEvalKeyImplementsEqual(Constant _constant) {
   TypeLabeler labeler = new TypeLabeler();
   List<Object> constantParts = labeler.labelConstant(_constant);
   String constant = constantParts.join();
@@ -639,11 +649,11 @@ codeConstEvalKeyNotPrimitiveEquality =
       "ConstEvalKeyNotPrimitiveEquality",
       problemMessageTemplate:
           r"""The key '#constant' does not have a primitive equality.""",
-      withArguments: _withArgumentsConstEvalKeyNotPrimitiveEquality,
+      withArgumentsOld: _withArgumentsOldConstEvalKeyNotPrimitiveEquality,
     );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsConstEvalKeyNotPrimitiveEquality(Constant _constant) {
+Message _withArgumentsOldConstEvalKeyNotPrimitiveEquality(Constant _constant) {
   TypeLabeler labeler = new TypeLabeler();
   List<Object> constantParts = labeler.labelConstant(_constant);
   String constant = constantParts.join();
@@ -662,11 +672,11 @@ codeConstEvalUnhandledException =
     const Template<Message Function(Constant _constant)>(
       "ConstEvalUnhandledException",
       problemMessageTemplate: r"""Unhandled exception: #constant""",
-      withArguments: _withArgumentsConstEvalUnhandledException,
+      withArgumentsOld: _withArgumentsOldConstEvalUnhandledException,
     );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsConstEvalUnhandledException(Constant _constant) {
+Message _withArgumentsOldConstEvalUnhandledException(Constant _constant) {
   TypeLabeler labeler = new TypeLabeler();
   List<Object> constantParts = labeler.labelConstant(_constant);
   String constant = constantParts.join();
@@ -687,12 +697,12 @@ codeDeferredTypeAnnotation =
           r"""The type '#type' is deferred loaded via prefix '#name' and can't be used as a type annotation.""",
       correctionMessageTemplate:
           r"""Try removing 'deferred' from the import of '#name' or use a supertype of '#type' that isn't deferred.""",
-      withArguments: _withArgumentsDeferredTypeAnnotation,
+      withArgumentsOld: _withArgumentsOldDeferredTypeAnnotation,
       analyzerCodes: <String>["TYPE_ANNOTATION_DEFERRED_CLASS"],
     );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsDeferredTypeAnnotation(DartType _type, String name) {
+Message _withArgumentsOldDeferredTypeAnnotation(DartType _type, String name) {
   TypeLabeler labeler = new TypeLabeler();
   List<Object> typeParts = labeler.labelType(_type);
   if (name.isEmpty) throw 'No name provided';
@@ -718,11 +728,11 @@ codeDotShorthandsUndefinedGetter =
           r"""The static getter or field '#name' isn't defined for the type '#type'.""",
       correctionMessageTemplate:
           r"""Try correcting the name to the name of an existing static getter or field, or defining a getter or field named '#name'.""",
-      withArguments: _withArgumentsDotShorthandsUndefinedGetter,
+      withArgumentsOld: _withArgumentsOldDotShorthandsUndefinedGetter,
     );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsDotShorthandsUndefinedGetter(
+Message _withArgumentsOldDotShorthandsUndefinedGetter(
   String name,
   DartType _type,
 ) {
@@ -751,11 +761,11 @@ codeDotShorthandsUndefinedInvocation =
           r"""The static method or constructor '#name' isn't defined for the type '#type'.""",
       correctionMessageTemplate:
           r"""Try correcting the name to the name of an existing static method or constructor, or defining a static method or constructor named '#name'.""",
-      withArguments: _withArgumentsDotShorthandsUndefinedInvocation,
+      withArgumentsOld: _withArgumentsOldDotShorthandsUndefinedInvocation,
     );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsDotShorthandsUndefinedInvocation(
+Message _withArgumentsOldDotShorthandsUndefinedInvocation(
   String name,
   DartType _type,
 ) {
@@ -782,11 +792,11 @@ codeFfiDartTypeMismatch =
       "FfiDartTypeMismatch",
       problemMessageTemplate:
           r"""Expected '#type' to be a subtype of '#type2'.""",
-      withArguments: _withArgumentsFfiDartTypeMismatch,
+      withArgumentsOld: _withArgumentsOldFfiDartTypeMismatch,
     );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsFfiDartTypeMismatch(DartType _type, DartType _type2) {
+Message _withArgumentsOldFfiDartTypeMismatch(DartType _type, DartType _type2) {
   TypeLabeler labeler = new TypeLabeler();
   List<Object> typeParts = labeler.labelType(_type);
   List<Object> type2Parts = labeler.labelType(_type2);
@@ -807,11 +817,11 @@ codeFfiExpectedExceptionalReturn = const Template<Message Function(DartType _typ
   "FfiExpectedExceptionalReturn",
   problemMessageTemplate:
       r"""Expected an exceptional return value for a native callback returning '#type'.""",
-  withArguments: _withArgumentsFfiExpectedExceptionalReturn,
+  withArgumentsOld: _withArgumentsOldFfiExpectedExceptionalReturn,
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsFfiExpectedExceptionalReturn(DartType _type) {
+Message _withArgumentsOldFfiExpectedExceptionalReturn(DartType _type) {
   TypeLabeler labeler = new TypeLabeler();
   List<Object> typeParts = labeler.labelType(_type);
   String type = typeParts.join();
@@ -831,11 +841,11 @@ codeFfiExpectedNoExceptionalReturn =
       "FfiExpectedNoExceptionalReturn",
       problemMessageTemplate:
           r"""Exceptional return value cannot be provided for a native callback returning '#type'.""",
-      withArguments: _withArgumentsFfiExpectedNoExceptionalReturn,
+      withArgumentsOld: _withArgumentsOldFfiExpectedNoExceptionalReturn,
     );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsFfiExpectedNoExceptionalReturn(DartType _type) {
+Message _withArgumentsOldFfiExpectedNoExceptionalReturn(DartType _type) {
   TypeLabeler labeler = new TypeLabeler();
   List<Object> typeParts = labeler.labelType(_type);
   String type = typeParts.join();
@@ -855,11 +865,11 @@ codeFfiNativeCallableListenerReturnVoid =
       "FfiNativeCallableListenerReturnVoid",
       problemMessageTemplate:
           r"""The return type of the function passed to NativeCallable.listener must be void rather than '#type'.""",
-      withArguments: _withArgumentsFfiNativeCallableListenerReturnVoid,
+      withArgumentsOld: _withArgumentsOldFfiNativeCallableListenerReturnVoid,
     );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsFfiNativeCallableListenerReturnVoid(DartType _type) {
+Message _withArgumentsOldFfiNativeCallableListenerReturnVoid(DartType _type) {
   TypeLabeler labeler = new TypeLabeler();
   List<Object> typeParts = labeler.labelType(_type);
   String type = typeParts.join();
@@ -878,11 +888,11 @@ codeFfiTypeInvalid = const Template<Message Function(DartType _type)>(
   "FfiTypeInvalid",
   problemMessageTemplate:
       r"""Expected type '#type' to be a valid and instantiated subtype of 'NativeType'.""",
-  withArguments: _withArgumentsFfiTypeInvalid,
+  withArgumentsOld: _withArgumentsOldFfiTypeInvalid,
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsFfiTypeInvalid(DartType _type) {
+Message _withArgumentsOldFfiTypeInvalid(DartType _type) {
   TypeLabeler labeler = new TypeLabeler();
   List<Object> typeParts = labeler.labelType(_type);
   String type = typeParts.join();
@@ -906,11 +916,11 @@ codeFfiTypeMismatch =
       "FfiTypeMismatch",
       problemMessageTemplate:
           r"""Expected type '#type' to be '#type2', which is the Dart type corresponding to '#type3'.""",
-      withArguments: _withArgumentsFfiTypeMismatch,
+      withArgumentsOld: _withArgumentsOldFfiTypeMismatch,
     );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsFfiTypeMismatch(
+Message _withArgumentsOldFfiTypeMismatch(
   DartType _type,
   DartType _type2,
   DartType _type3,
@@ -938,12 +948,12 @@ codeFieldNonNullableNotInitializedByConstructorError =
       "FieldNonNullableNotInitializedByConstructorError",
       problemMessageTemplate:
           r"""This constructor should initialize field '#name' because its type '#type' doesn't allow null.""",
-      withArguments:
-          _withArgumentsFieldNonNullableNotInitializedByConstructorError,
+      withArgumentsOld:
+          _withArgumentsOldFieldNonNullableNotInitializedByConstructorError,
     );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsFieldNonNullableNotInitializedByConstructorError(
+Message _withArgumentsOldFieldNonNullableNotInitializedByConstructorError(
   String name,
   DartType _type,
 ) {
@@ -968,11 +978,12 @@ codeFieldNonNullableWithoutInitializerError =
       "FieldNonNullableWithoutInitializerError",
       problemMessageTemplate:
           r"""Field '#name' should be initialized because its type '#type' doesn't allow null.""",
-      withArguments: _withArgumentsFieldNonNullableWithoutInitializerError,
+      withArgumentsOld:
+          _withArgumentsOldFieldNonNullableWithoutInitializerError,
     );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsFieldNonNullableWithoutInitializerError(
+Message _withArgumentsOldFieldNonNullableWithoutInitializerError(
   String name,
   DartType _type,
 ) {
@@ -998,12 +1009,12 @@ codeForInLoopElementTypeNotAssignable =
       problemMessageTemplate:
           r"""A value of type '#type' can't be assigned to a variable of type '#type2'.""",
       correctionMessageTemplate: r"""Try changing the type of the variable.""",
-      withArguments: _withArgumentsForInLoopElementTypeNotAssignable,
+      withArgumentsOld: _withArgumentsOldForInLoopElementTypeNotAssignable,
       analyzerCodes: <String>["FOR_IN_OF_INVALID_ELEMENT_TYPE"],
     );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsForInLoopElementTypeNotAssignable(
+Message _withArgumentsOldForInLoopElementTypeNotAssignable(
   DartType _type,
   DartType _type2,
 ) {
@@ -1029,12 +1040,12 @@ codeForInLoopTypeNotIterable =
       "ForInLoopTypeNotIterable",
       problemMessageTemplate:
           r"""The type '#type' used in the 'for' loop must implement '#type2'.""",
-      withArguments: _withArgumentsForInLoopTypeNotIterable,
+      withArgumentsOld: _withArgumentsOldForInLoopTypeNotIterable,
       analyzerCodes: <String>["FOR_IN_OF_INVALID_TYPE"],
     );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsForInLoopTypeNotIterable(
+Message _withArgumentsOldForInLoopTypeNotIterable(
   DartType _type,
   DartType _type2,
 ) {
@@ -1061,13 +1072,13 @@ codeGenericFunctionTypeAsTypeArgumentThroughTypedef =
           r"""Generic function type '#type' used as a type argument through typedef '#type2'.""",
       correctionMessageTemplate:
           r"""Try providing a non-generic function type explicitly.""",
-      withArguments:
-          _withArgumentsGenericFunctionTypeAsTypeArgumentThroughTypedef,
+      withArgumentsOld:
+          _withArgumentsOldGenericFunctionTypeAsTypeArgumentThroughTypedef,
       analyzerCodes: <String>["GENERIC_FUNCTION_CANNOT_BE_TYPE_ARGUMENT"],
     );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsGenericFunctionTypeAsTypeArgumentThroughTypedef(
+Message _withArgumentsOldGenericFunctionTypeAsTypeArgumentThroughTypedef(
   DartType _type,
   DartType _type2,
 ) {
@@ -1096,13 +1107,13 @@ codeGenericFunctionTypeInferredAsActualTypeArgument =
           r"""Generic function type '#type' inferred as a type argument.""",
       correctionMessageTemplate:
           r"""Try providing a non-generic function type explicitly.""",
-      withArguments:
-          _withArgumentsGenericFunctionTypeInferredAsActualTypeArgument,
+      withArgumentsOld:
+          _withArgumentsOldGenericFunctionTypeInferredAsActualTypeArgument,
       analyzerCodes: <String>["GENERIC_FUNCTION_CANNOT_BE_TYPE_ARGUMENT"],
     );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsGenericFunctionTypeInferredAsActualTypeArgument(
+Message _withArgumentsOldGenericFunctionTypeInferredAsActualTypeArgument(
   DartType _type,
 ) {
   TypeLabeler labeler = new TypeLabeler();
@@ -1127,12 +1138,12 @@ codeImplicitCallOfNonMethod = const Template<Message Function(DartType _type)>(
       r"""Cannot invoke an instance of '#type' because it declares 'call' to be something other than a method.""",
   correctionMessageTemplate:
       r"""Try changing 'call' to a method or explicitly invoke 'call'.""",
-  withArguments: _withArgumentsImplicitCallOfNonMethod,
+  withArgumentsOld: _withArgumentsOldImplicitCallOfNonMethod,
   analyzerCodes: <String>["IMPLICIT_CALL_OF_NON_METHOD"],
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsImplicitCallOfNonMethod(DartType _type) {
+Message _withArgumentsOldImplicitCallOfNonMethod(DartType _type) {
   TypeLabeler labeler = new TypeLabeler();
   List<Object> typeParts = labeler.labelType(_type);
   String type = typeParts.join();
@@ -1153,11 +1164,11 @@ codeImplicitReturnNull = const Template<Message Function(DartType _type)>(
   "ImplicitReturnNull",
   problemMessageTemplate:
       r"""A non-null value must be returned since the return type '#type' doesn't allow null.""",
-  withArguments: _withArgumentsImplicitReturnNull,
+  withArgumentsOld: _withArgumentsOldImplicitReturnNull,
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsImplicitReturnNull(DartType _type) {
+Message _withArgumentsOldImplicitReturnNull(DartType _type) {
   TypeLabeler labeler = new TypeLabeler();
   List<Object> typeParts = labeler.labelType(_type);
   String type = typeParts.join();
@@ -1177,12 +1188,12 @@ codeIncompatibleRedirecteeFunctionType =
       "IncompatibleRedirecteeFunctionType",
       problemMessageTemplate:
           r"""The constructor function type '#type' isn't a subtype of '#type2'.""",
-      withArguments: _withArgumentsIncompatibleRedirecteeFunctionType,
+      withArgumentsOld: _withArgumentsOldIncompatibleRedirecteeFunctionType,
       analyzerCodes: <String>["REDIRECT_TO_INVALID_TYPE"],
     );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsIncompatibleRedirecteeFunctionType(
+Message _withArgumentsOldIncompatibleRedirecteeFunctionType(
   DartType _type,
   DartType _type2,
 ) {
@@ -1218,12 +1229,12 @@ codeIncorrectTypeArgument =
           r"""Type argument '#type' doesn't conform to the bound '#type2' of the type variable '#name' on '#name2'.""",
       correctionMessageTemplate:
           r"""Try changing type arguments so that they conform to the bounds.""",
-      withArguments: _withArgumentsIncorrectTypeArgument,
+      withArgumentsOld: _withArgumentsOldIncorrectTypeArgument,
       analyzerCodes: <String>["TYPE_ARGUMENT_NOT_MATCHING_BOUNDS"],
     );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsIncorrectTypeArgument(
+Message _withArgumentsOldIncorrectTypeArgument(
   DartType _type,
   DartType _type2,
   String name,
@@ -1267,12 +1278,12 @@ codeIncorrectTypeArgumentInferred =
           r"""Inferred type argument '#type' doesn't conform to the bound '#type2' of the type variable '#name' on '#name2'.""",
       correctionMessageTemplate:
           r"""Try specifying type arguments explicitly so that they conform to the bounds.""",
-      withArguments: _withArgumentsIncorrectTypeArgumentInferred,
+      withArgumentsOld: _withArgumentsOldIncorrectTypeArgumentInferred,
       analyzerCodes: <String>["TYPE_ARGUMENT_NOT_MATCHING_BOUNDS"],
     );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsIncorrectTypeArgumentInferred(
+Message _withArgumentsOldIncorrectTypeArgumentInferred(
   DartType _type,
   DartType _type2,
   String name,
@@ -1321,12 +1332,12 @@ codeIncorrectTypeArgumentInstantiation =
           r"""Type argument '#type' doesn't conform to the bound '#type2' of the type variable '#name' on '#type3'.""",
       correctionMessageTemplate:
           r"""Try changing type arguments so that they conform to the bounds.""",
-      withArguments: _withArgumentsIncorrectTypeArgumentInstantiation,
+      withArgumentsOld: _withArgumentsOldIncorrectTypeArgumentInstantiation,
       analyzerCodes: <String>["TYPE_ARGUMENT_NOT_MATCHING_BOUNDS"],
     );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsIncorrectTypeArgumentInstantiation(
+Message _withArgumentsOldIncorrectTypeArgumentInstantiation(
   DartType _type,
   DartType _type2,
   String name,
@@ -1375,12 +1386,13 @@ codeIncorrectTypeArgumentInstantiationInferred =
           r"""Inferred type argument '#type' doesn't conform to the bound '#type2' of the type variable '#name' on '#type3'.""",
       correctionMessageTemplate:
           r"""Try specifying type arguments explicitly so that they conform to the bounds.""",
-      withArguments: _withArgumentsIncorrectTypeArgumentInstantiationInferred,
+      withArgumentsOld:
+          _withArgumentsOldIncorrectTypeArgumentInstantiationInferred,
       analyzerCodes: <String>["TYPE_ARGUMENT_NOT_MATCHING_BOUNDS"],
     );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsIncorrectTypeArgumentInstantiationInferred(
+Message _withArgumentsOldIncorrectTypeArgumentInstantiationInferred(
   DartType _type,
   DartType _type2,
   String name,
@@ -1431,12 +1443,12 @@ codeIncorrectTypeArgumentQualified =
           r"""Type argument '#type' doesn't conform to the bound '#type2' of the type variable '#name' on '#type3.#name2'.""",
       correctionMessageTemplate:
           r"""Try changing type arguments so that they conform to the bounds.""",
-      withArguments: _withArgumentsIncorrectTypeArgumentQualified,
+      withArgumentsOld: _withArgumentsOldIncorrectTypeArgumentQualified,
       analyzerCodes: <String>["TYPE_ARGUMENT_NOT_MATCHING_BOUNDS"],
     );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsIncorrectTypeArgumentQualified(
+Message _withArgumentsOldIncorrectTypeArgumentQualified(
   DartType _type,
   DartType _type2,
   String name,
@@ -1496,12 +1508,12 @@ codeIncorrectTypeArgumentQualifiedInferred =
           r"""Inferred type argument '#type' doesn't conform to the bound '#type2' of the type variable '#name' on '#type3.#name2'.""",
       correctionMessageTemplate:
           r"""Try specifying type arguments explicitly so that they conform to the bounds.""",
-      withArguments: _withArgumentsIncorrectTypeArgumentQualifiedInferred,
+      withArgumentsOld: _withArgumentsOldIncorrectTypeArgumentQualifiedInferred,
       analyzerCodes: <String>["TYPE_ARGUMENT_NOT_MATCHING_BOUNDS"],
     );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsIncorrectTypeArgumentQualifiedInferred(
+Message _withArgumentsOldIncorrectTypeArgumentQualifiedInferred(
   DartType _type,
   DartType _type2,
   String name,
@@ -1543,11 +1555,11 @@ codeIndexOutOfBoundInRecordIndexGet =
       "IndexOutOfBoundInRecordIndexGet",
       problemMessageTemplate:
           r"""Index #count is out of range 0..#count2 of positional fields of records #type.""",
-      withArguments: _withArgumentsIndexOutOfBoundInRecordIndexGet,
+      withArgumentsOld: _withArgumentsOldIndexOutOfBoundInRecordIndexGet,
     );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsIndexOutOfBoundInRecordIndexGet(
+Message _withArgumentsOldIndexOutOfBoundInRecordIndexGet(
   int count,
   int count2,
   DartType _type,
@@ -1575,12 +1587,12 @@ codeInitializingFormalTypeMismatch =
           r"""The type of parameter '#name', '#type' is not a subtype of the corresponding field's type, '#type2'.""",
       correctionMessageTemplate:
           r"""Try changing the type of parameter '#name' to a subtype of '#type2'.""",
-      withArguments: _withArgumentsInitializingFormalTypeMismatch,
+      withArgumentsOld: _withArgumentsOldInitializingFormalTypeMismatch,
       analyzerCodes: <String>["INVALID_PARAMETER_DECLARATION"],
     );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsInitializingFormalTypeMismatch(
+Message _withArgumentsOldInitializingFormalTypeMismatch(
   String name,
   DartType _type,
   DartType _type2,
@@ -1612,11 +1624,11 @@ codeInstantiationNonGenericFunctionType =
           r"""The static type of the explicit instantiation operand must be a generic function type but is '#type'.""",
       correctionMessageTemplate:
           r"""Try changing the operand or remove the type arguments.""",
-      withArguments: _withArgumentsInstantiationNonGenericFunctionType,
+      withArgumentsOld: _withArgumentsOldInstantiationNonGenericFunctionType,
     );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsInstantiationNonGenericFunctionType(DartType _type) {
+Message _withArgumentsOldInstantiationNonGenericFunctionType(DartType _type) {
   TypeLabeler labeler = new TypeLabeler();
   List<Object> typeParts = labeler.labelType(_type);
   String type = typeParts.join();
@@ -1640,12 +1652,15 @@ codeInstantiationNullableGenericFunctionType =
           r"""The static type of the explicit instantiation operand must be a non-null generic function type but is '#type'.""",
       correctionMessageTemplate:
           r"""Try changing the operand or remove the type arguments.""",
-      withArguments: _withArgumentsInstantiationNullableGenericFunctionType,
+      withArgumentsOld:
+          _withArgumentsOldInstantiationNullableGenericFunctionType,
       analyzerCodes: <String>["DISALLOWED_TYPE_INSTANTIATION_EXPRESSION"],
     );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsInstantiationNullableGenericFunctionType(DartType _type) {
+Message _withArgumentsOldInstantiationNullableGenericFunctionType(
+  DartType _type,
+) {
   TypeLabeler labeler = new TypeLabeler();
   List<Object> typeParts = labeler.labelType(_type);
   String type = typeParts.join();
@@ -1667,12 +1682,12 @@ codeInternalProblemUnsupportedNullability =
       "InternalProblemUnsupportedNullability",
       problemMessageTemplate:
           r"""Unsupported nullability value '#string' on type '#type'.""",
-      withArguments: _withArgumentsInternalProblemUnsupportedNullability,
+      withArgumentsOld: _withArgumentsOldInternalProblemUnsupportedNullability,
       severity: CfeSeverity.internalProblem,
     );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsInternalProblemUnsupportedNullability(
+Message _withArgumentsOldInternalProblemUnsupportedNullability(
   String string,
   DartType _type,
 ) {
@@ -1696,12 +1711,15 @@ codeInvalidAssignmentError =
       "InvalidAssignmentError",
       problemMessageTemplate:
           r"""A value of type '#type' can't be assigned to a variable of type '#type2'.""",
-      withArguments: _withArgumentsInvalidAssignmentError,
+      withArgumentsOld: _withArgumentsOldInvalidAssignmentError,
       analyzerCodes: <String>["INVALID_ASSIGNMENT"],
     );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsInvalidAssignmentError(DartType _type, DartType _type2) {
+Message _withArgumentsOldInvalidAssignmentError(
+  DartType _type,
+  DartType _type2,
+) {
   TypeLabeler labeler = new TypeLabeler();
   List<Object> typeParts = labeler.labelType(_type);
   List<Object> type2Parts = labeler.labelType(_type2);
@@ -1725,12 +1743,15 @@ codeInvalidCastFunctionExpr =
           r"""The function expression type '#type' isn't of expected type '#type2'.""",
       correctionMessageTemplate:
           r"""Change the type of the function expression or the context in which it is used.""",
-      withArguments: _withArgumentsInvalidCastFunctionExpr,
+      withArgumentsOld: _withArgumentsOldInvalidCastFunctionExpr,
       analyzerCodes: <String>["INVALID_CAST_FUNCTION_EXPR"],
     );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsInvalidCastFunctionExpr(DartType _type, DartType _type2) {
+Message _withArgumentsOldInvalidCastFunctionExpr(
+  DartType _type,
+  DartType _type2,
+) {
   TypeLabeler labeler = new TypeLabeler();
   List<Object> typeParts = labeler.labelType(_type);
   List<Object> type2Parts = labeler.labelType(_type2);
@@ -1756,12 +1777,15 @@ codeInvalidCastLiteralList =
           r"""The list literal type '#type' isn't of expected type '#type2'.""",
       correctionMessageTemplate:
           r"""Change the type of the list literal or the context in which it is used.""",
-      withArguments: _withArgumentsInvalidCastLiteralList,
+      withArgumentsOld: _withArgumentsOldInvalidCastLiteralList,
       analyzerCodes: <String>["INVALID_CAST_LITERAL_LIST"],
     );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsInvalidCastLiteralList(DartType _type, DartType _type2) {
+Message _withArgumentsOldInvalidCastLiteralList(
+  DartType _type,
+  DartType _type2,
+) {
   TypeLabeler labeler = new TypeLabeler();
   List<Object> typeParts = labeler.labelType(_type);
   List<Object> type2Parts = labeler.labelType(_type2);
@@ -1787,12 +1811,15 @@ codeInvalidCastLiteralMap =
           r"""The map literal type '#type' isn't of expected type '#type2'.""",
       correctionMessageTemplate:
           r"""Change the type of the map literal or the context in which it is used.""",
-      withArguments: _withArgumentsInvalidCastLiteralMap,
+      withArgumentsOld: _withArgumentsOldInvalidCastLiteralMap,
       analyzerCodes: <String>["INVALID_CAST_LITERAL_MAP"],
     );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsInvalidCastLiteralMap(DartType _type, DartType _type2) {
+Message _withArgumentsOldInvalidCastLiteralMap(
+  DartType _type,
+  DartType _type2,
+) {
   TypeLabeler labeler = new TypeLabeler();
   List<Object> typeParts = labeler.labelType(_type);
   List<Object> type2Parts = labeler.labelType(_type2);
@@ -1818,12 +1845,15 @@ codeInvalidCastLiteralSet =
           r"""The set literal type '#type' isn't of expected type '#type2'.""",
       correctionMessageTemplate:
           r"""Change the type of the set literal or the context in which it is used.""",
-      withArguments: _withArgumentsInvalidCastLiteralSet,
+      withArgumentsOld: _withArgumentsOldInvalidCastLiteralSet,
       analyzerCodes: <String>["INVALID_CAST_LITERAL_SET"],
     );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsInvalidCastLiteralSet(DartType _type, DartType _type2) {
+Message _withArgumentsOldInvalidCastLiteralSet(
+  DartType _type,
+  DartType _type2,
+) {
   TypeLabeler labeler = new TypeLabeler();
   List<Object> typeParts = labeler.labelType(_type);
   List<Object> type2Parts = labeler.labelType(_type2);
@@ -1849,12 +1879,12 @@ codeInvalidCastLocalFunction =
           r"""The local function has type '#type' that isn't of expected type '#type2'.""",
       correctionMessageTemplate:
           r"""Change the type of the function or the context in which it is used.""",
-      withArguments: _withArgumentsInvalidCastLocalFunction,
+      withArgumentsOld: _withArgumentsOldInvalidCastLocalFunction,
       analyzerCodes: <String>["INVALID_CAST_FUNCTION"],
     );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsInvalidCastLocalFunction(
+Message _withArgumentsOldInvalidCastLocalFunction(
   DartType _type,
   DartType _type2,
 ) {
@@ -1883,12 +1913,12 @@ codeInvalidCastNewExpr =
           r"""The constructor returns type '#type' that isn't of expected type '#type2'.""",
       correctionMessageTemplate:
           r"""Change the type of the object being constructed or the context in which it is used.""",
-      withArguments: _withArgumentsInvalidCastNewExpr,
+      withArgumentsOld: _withArgumentsOldInvalidCastNewExpr,
       analyzerCodes: <String>["INVALID_CAST_NEW_EXPR"],
     );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsInvalidCastNewExpr(DartType _type, DartType _type2) {
+Message _withArgumentsOldInvalidCastNewExpr(DartType _type, DartType _type2) {
   TypeLabeler labeler = new TypeLabeler();
   List<Object> typeParts = labeler.labelType(_type);
   List<Object> type2Parts = labeler.labelType(_type2);
@@ -1914,12 +1944,15 @@ codeInvalidCastStaticMethod =
           r"""The static method has type '#type' that isn't of expected type '#type2'.""",
       correctionMessageTemplate:
           r"""Change the type of the method or the context in which it is used.""",
-      withArguments: _withArgumentsInvalidCastStaticMethod,
+      withArgumentsOld: _withArgumentsOldInvalidCastStaticMethod,
       analyzerCodes: <String>["INVALID_CAST_METHOD"],
     );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsInvalidCastStaticMethod(DartType _type, DartType _type2) {
+Message _withArgumentsOldInvalidCastStaticMethod(
+  DartType _type,
+  DartType _type2,
+) {
   TypeLabeler labeler = new TypeLabeler();
   List<Object> typeParts = labeler.labelType(_type);
   List<Object> type2Parts = labeler.labelType(_type2);
@@ -1945,12 +1978,12 @@ codeInvalidCastTopLevelFunction =
           r"""The top level function has type '#type' that isn't of expected type '#type2'.""",
       correctionMessageTemplate:
           r"""Change the type of the function or the context in which it is used.""",
-      withArguments: _withArgumentsInvalidCastTopLevelFunction,
+      withArgumentsOld: _withArgumentsOldInvalidCastTopLevelFunction,
       analyzerCodes: <String>["INVALID_CAST_FUNCTION"],
     );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsInvalidCastTopLevelFunction(
+Message _withArgumentsOldInvalidCastTopLevelFunction(
   DartType _type,
   DartType _type2,
 ) {
@@ -1993,11 +2026,11 @@ codeInvalidExtensionTypeSuperExtensionType =
           r"""The representation type '#type' of extension type '#name' must be either a subtype of the representation type '#type2' of the implemented extension type '#type3' or a subtype of '#type3' itself.""",
       correctionMessageTemplate:
           r"""Try changing the representation type to a subtype of '#type2'.""",
-      withArguments: _withArgumentsInvalidExtensionTypeSuperExtensionType,
+      withArgumentsOld: _withArgumentsOldInvalidExtensionTypeSuperExtensionType,
     );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsInvalidExtensionTypeSuperExtensionType(
+Message _withArgumentsOldInvalidExtensionTypeSuperExtensionType(
   DartType _type,
   String name,
   DartType _type2,
@@ -2034,11 +2067,11 @@ codeInvalidExtensionTypeSuperInterface =
           r"""The implemented interface '#type' must be a supertype of the representation type '#type2' of extension type '#name'.""",
       correctionMessageTemplate:
           r"""Try changing the interface type to a supertype of '#type2' or the representation type to a subtype of '#type'.""",
-      withArguments: _withArgumentsInvalidExtensionTypeSuperInterface,
+      withArgumentsOld: _withArgumentsOldInvalidExtensionTypeSuperInterface,
     );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsInvalidExtensionTypeSuperInterface(
+Message _withArgumentsOldInvalidExtensionTypeSuperInterface(
   DartType _type,
   DartType _type2,
   String name,
@@ -2077,11 +2110,11 @@ codeInvalidGetterSetterType =
       "InvalidGetterSetterType",
       problemMessageTemplate:
           r"""The type '#type' of the getter '#name' is not a subtype of the type '#type2' of the setter '#name2'.""",
-      withArguments: _withArgumentsInvalidGetterSetterType,
+      withArgumentsOld: _withArgumentsOldInvalidGetterSetterType,
     );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsInvalidGetterSetterType(
+Message _withArgumentsOldInvalidGetterSetterType(
   DartType _type,
   String name,
   DartType _type2,
@@ -2121,11 +2154,12 @@ codeInvalidGetterSetterTypeBothInheritedField =
       "InvalidGetterSetterTypeBothInheritedField",
       problemMessageTemplate:
           r"""The type '#type' of the inherited field '#name' is not a subtype of the type '#type2' of the inherited setter '#name2'.""",
-      withArguments: _withArgumentsInvalidGetterSetterTypeBothInheritedField,
+      withArgumentsOld:
+          _withArgumentsOldInvalidGetterSetterTypeBothInheritedField,
     );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsInvalidGetterSetterTypeBothInheritedField(
+Message _withArgumentsOldInvalidGetterSetterTypeBothInheritedField(
   DartType _type,
   String name,
   DartType _type2,
@@ -2165,11 +2199,12 @@ codeInvalidGetterSetterTypeBothInheritedGetter =
       "InvalidGetterSetterTypeBothInheritedGetter",
       problemMessageTemplate:
           r"""The type '#type' of the inherited getter '#name' is not a subtype of the type '#type2' of the inherited setter '#name2'.""",
-      withArguments: _withArgumentsInvalidGetterSetterTypeBothInheritedGetter,
+      withArgumentsOld:
+          _withArgumentsOldInvalidGetterSetterTypeBothInheritedGetter,
     );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsInvalidGetterSetterTypeBothInheritedGetter(
+Message _withArgumentsOldInvalidGetterSetterTypeBothInheritedGetter(
   DartType _type,
   String name,
   DartType _type2,
@@ -2209,11 +2244,11 @@ codeInvalidGetterSetterTypeFieldInherited =
       "InvalidGetterSetterTypeFieldInherited",
       problemMessageTemplate:
           r"""The type '#type' of the inherited field '#name' is not a subtype of the type '#type2' of the setter '#name2'.""",
-      withArguments: _withArgumentsInvalidGetterSetterTypeFieldInherited,
+      withArgumentsOld: _withArgumentsOldInvalidGetterSetterTypeFieldInherited,
     );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsInvalidGetterSetterTypeFieldInherited(
+Message _withArgumentsOldInvalidGetterSetterTypeFieldInherited(
   DartType _type,
   String name,
   DartType _type2,
@@ -2253,11 +2288,11 @@ codeInvalidGetterSetterTypeGetterInherited =
       "InvalidGetterSetterTypeGetterInherited",
       problemMessageTemplate:
           r"""The type '#type' of the inherited getter '#name' is not a subtype of the type '#type2' of the setter '#name2'.""",
-      withArguments: _withArgumentsInvalidGetterSetterTypeGetterInherited,
+      withArgumentsOld: _withArgumentsOldInvalidGetterSetterTypeGetterInherited,
     );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsInvalidGetterSetterTypeGetterInherited(
+Message _withArgumentsOldInvalidGetterSetterTypeGetterInherited(
   DartType _type,
   String name,
   DartType _type2,
@@ -2297,11 +2332,12 @@ codeInvalidGetterSetterTypeSetterInheritedField =
       "InvalidGetterSetterTypeSetterInheritedField",
       problemMessageTemplate:
           r"""The type '#type' of the field '#name' is not a subtype of the type '#type2' of the inherited setter '#name2'.""",
-      withArguments: _withArgumentsInvalidGetterSetterTypeSetterInheritedField,
+      withArgumentsOld:
+          _withArgumentsOldInvalidGetterSetterTypeSetterInheritedField,
     );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsInvalidGetterSetterTypeSetterInheritedField(
+Message _withArgumentsOldInvalidGetterSetterTypeSetterInheritedField(
   DartType _type,
   String name,
   DartType _type2,
@@ -2341,11 +2377,12 @@ codeInvalidGetterSetterTypeSetterInheritedGetter =
       "InvalidGetterSetterTypeSetterInheritedGetter",
       problemMessageTemplate:
           r"""The type '#type' of the getter '#name' is not a subtype of the type '#type2' of the inherited setter '#name2'.""",
-      withArguments: _withArgumentsInvalidGetterSetterTypeSetterInheritedGetter,
+      withArgumentsOld:
+          _withArgumentsOldInvalidGetterSetterTypeSetterInheritedGetter,
     );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsInvalidGetterSetterTypeSetterInheritedGetter(
+Message _withArgumentsOldInvalidGetterSetterTypeSetterInheritedGetter(
   DartType _type,
   String name,
   DartType _type2,
@@ -2376,11 +2413,11 @@ codeInvalidReturn =
       "InvalidReturn",
       problemMessageTemplate:
           r"""A value of type '#type' can't be returned from a function with return type '#type2'.""",
-      withArguments: _withArgumentsInvalidReturn,
+      withArgumentsOld: _withArgumentsOldInvalidReturn,
     );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsInvalidReturn(DartType _type, DartType _type2) {
+Message _withArgumentsOldInvalidReturn(DartType _type, DartType _type2) {
   TypeLabeler labeler = new TypeLabeler();
   List<Object> typeParts = labeler.labelType(_type);
   List<Object> type2Parts = labeler.labelType(_type2);
@@ -2402,11 +2439,11 @@ codeInvalidReturnAsync =
       "InvalidReturnAsync",
       problemMessageTemplate:
           r"""A value of type '#type' can't be returned from an async function with return type '#type2'.""",
-      withArguments: _withArgumentsInvalidReturnAsync,
+      withArgumentsOld: _withArgumentsOldInvalidReturnAsync,
     );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsInvalidReturnAsync(DartType _type, DartType _type2) {
+Message _withArgumentsOldInvalidReturnAsync(DartType _type, DartType _type2) {
   TypeLabeler labeler = new TypeLabeler();
   List<Object> typeParts = labeler.labelType(_type);
   List<Object> type2Parts = labeler.labelType(_type2);
@@ -2430,11 +2467,12 @@ codeJsInteropExportInvalidInteropTypeArgument =
           r"""Type argument '#type' needs to be a non-JS interop type.""",
       correctionMessageTemplate:
           r"""Use a non-JS interop class that uses `@JSExport` instead.""",
-      withArguments: _withArgumentsJsInteropExportInvalidInteropTypeArgument,
+      withArgumentsOld:
+          _withArgumentsOldJsInteropExportInvalidInteropTypeArgument,
     );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsJsInteropExportInvalidInteropTypeArgument(
+Message _withArgumentsOldJsInteropExportInvalidInteropTypeArgument(
   DartType _type,
 ) {
   TypeLabeler labeler = new TypeLabeler();
@@ -2460,11 +2498,11 @@ codeJsInteropExportInvalidTypeArgument =
           r"""Type argument '#type' needs to be an interface type.""",
       correctionMessageTemplate:
           r"""Use a non-JS interop class that uses `@JSExport` instead.""",
-      withArguments: _withArgumentsJsInteropExportInvalidTypeArgument,
+      withArgumentsOld: _withArgumentsOldJsInteropExportInvalidTypeArgument,
     );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsJsInteropExportInvalidTypeArgument(DartType _type) {
+Message _withArgumentsOldJsInteropExportInvalidTypeArgument(DartType _type) {
   TypeLabeler labeler = new TypeLabeler();
   List<Object> typeParts = labeler.labelType(_type);
   String type = typeParts.join();
@@ -2488,11 +2526,11 @@ codeJsInteropExtensionTypeNotInterop =
           r"""Extension type '#name' is marked with a '@JS' annotation, but its representation type is not a valid JS interop type: '#type'.""",
       correctionMessageTemplate:
           r"""Try declaring a valid JS interop representation type, which may include 'dart:js_interop' types, '@staticInterop' types, 'dart:html' types, or other interop extension types.""",
-      withArguments: _withArgumentsJsInteropExtensionTypeNotInterop,
+      withArgumentsOld: _withArgumentsOldJsInteropExtensionTypeNotInterop,
     );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsJsInteropExtensionTypeNotInterop(
+Message _withArgumentsOldJsInteropExtensionTypeNotInterop(
   String name,
   DartType _type,
 ) {
@@ -2521,11 +2559,14 @@ codeJsInteropFunctionToJSRequiresStaticType =
           r"""`Function.toJS` requires a statically known function type, but Type '#type' is not a precise function type, e.g., `void Function()`.""",
       correctionMessageTemplate:
           r"""Insert an explicit cast to the expected function type.""",
-      withArguments: _withArgumentsJsInteropFunctionToJSRequiresStaticType,
+      withArgumentsOld:
+          _withArgumentsOldJsInteropFunctionToJSRequiresStaticType,
     );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsJsInteropFunctionToJSRequiresStaticType(DartType _type) {
+Message _withArgumentsOldJsInteropFunctionToJSRequiresStaticType(
+  DartType _type,
+) {
   TypeLabeler labeler = new TypeLabeler();
   List<Object> typeParts = labeler.labelType(_type);
   String type = typeParts.join();
@@ -2548,11 +2589,11 @@ codeJsInteropIsAInvalidTypeVariable = const Template<Message Function(DartType _
       r"""Type argument '#type' provided to 'isA' cannot be a type variable and must be an interop extension type that can be determined at compile-time.""",
   correctionMessageTemplate:
       r"""Use a valid interop extension type that can be determined at compile-time as the type argument instead.""",
-  withArguments: _withArgumentsJsInteropIsAInvalidTypeVariable,
+  withArgumentsOld: _withArgumentsOldJsInteropIsAInvalidTypeVariable,
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsJsInteropIsAInvalidTypeVariable(DartType _type) {
+Message _withArgumentsOldJsInteropIsAInvalidTypeVariable(DartType _type) {
   TypeLabeler labeler = new TypeLabeler();
   List<Object> typeParts = labeler.labelType(_type);
   String type = typeParts.join();
@@ -2576,11 +2617,11 @@ codeJsInteropIsAObjectLiteralType =
           r"""Type argument '#type' has an object literal constructor. Because 'isA' uses the type's name or '@JS()' rename, this may result in an incorrect type check.""",
       correctionMessageTemplate:
           r"""Use 'JSObject' as the type argument instead.""",
-      withArguments: _withArgumentsJsInteropIsAObjectLiteralType,
+      withArgumentsOld: _withArgumentsOldJsInteropIsAObjectLiteralType,
     );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsJsInteropIsAObjectLiteralType(DartType _type) {
+Message _withArgumentsOldJsInteropIsAObjectLiteralType(DartType _type) {
   TypeLabeler labeler = new TypeLabeler();
   List<Object> typeParts = labeler.labelType(_type);
   String type = typeParts.join();
@@ -2603,11 +2644,11 @@ codeJsInteropIsAPrimitiveExtensionType =
           r"""Type argument '#type' wraps primitive JS type '#string', which is specially handled using 'typeof'.""",
       correctionMessageTemplate:
           r"""Use the primitive JS type '#string' as the type argument instead.""",
-      withArguments: _withArgumentsJsInteropIsAPrimitiveExtensionType,
+      withArgumentsOld: _withArgumentsOldJsInteropIsAPrimitiveExtensionType,
     );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsJsInteropIsAPrimitiveExtensionType(
+Message _withArgumentsOldJsInteropIsAPrimitiveExtensionType(
   DartType _type,
   String string,
 ) {
@@ -2635,12 +2676,12 @@ codeJsInteropStaticInteropExternalAccessorTypeViolation =
           r"""External JS interop member contains an invalid type: '#type'.""",
       correctionMessageTemplate:
           r"""Use one of these valid types instead: JS types from 'dart:js_interop', ExternalDartReference, void, bool, num, double, int, String, extension types that erase to one of these types, '@staticInterop' types, 'dart:html' types when compiling to JS, or a type parameter that is a subtype of a valid non-primitive type.""",
-      withArguments:
-          _withArgumentsJsInteropStaticInteropExternalAccessorTypeViolation,
+      withArgumentsOld:
+          _withArgumentsOldJsInteropStaticInteropExternalAccessorTypeViolation,
     );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsJsInteropStaticInteropExternalAccessorTypeViolation(
+Message _withArgumentsOldJsInteropStaticInteropExternalAccessorTypeViolation(
   DartType _type,
 ) {
   TypeLabeler labeler = new TypeLabeler();
@@ -2665,12 +2706,12 @@ codeJsInteropStaticInteropMockNotStaticInteropType =
       problemMessageTemplate:
           r"""Type argument '#type' needs to be a `@staticInterop` type.""",
       correctionMessageTemplate: r"""Use a `@staticInterop` class instead.""",
-      withArguments:
-          _withArgumentsJsInteropStaticInteropMockNotStaticInteropType,
+      withArgumentsOld:
+          _withArgumentsOldJsInteropStaticInteropMockNotStaticInteropType,
     );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsJsInteropStaticInteropMockNotStaticInteropType(
+Message _withArgumentsOldJsInteropStaticInteropMockNotStaticInteropType(
   DartType _type,
 ) {
   TypeLabeler labeler = new TypeLabeler();
@@ -2695,12 +2736,12 @@ codeJsInteropStaticInteropMockTypeParametersNotAllowed =
           r"""Type argument '#type' has type parameters that do not match their bound. createStaticInteropMock requires instantiating all type parameters to their bound to ensure mocking conformance.""",
       correctionMessageTemplate:
           r"""Remove the type parameter in the type argument or replace it with its bound.""",
-      withArguments:
-          _withArgumentsJsInteropStaticInteropMockTypeParametersNotAllowed,
+      withArgumentsOld:
+          _withArgumentsOldJsInteropStaticInteropMockTypeParametersNotAllowed,
     );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsJsInteropStaticInteropMockTypeParametersNotAllowed(
+Message _withArgumentsOldJsInteropStaticInteropMockTypeParametersNotAllowed(
   DartType _type,
 ) {
   TypeLabeler labeler = new TypeLabeler();
@@ -2724,11 +2765,14 @@ codeMainWrongParameterType =
       "MainWrongParameterType",
       problemMessageTemplate:
           r"""The type '#type' of the first parameter of the 'main' method is not a supertype of '#type2'.""",
-      withArguments: _withArgumentsMainWrongParameterType,
+      withArgumentsOld: _withArgumentsOldMainWrongParameterType,
     );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsMainWrongParameterType(DartType _type, DartType _type2) {
+Message _withArgumentsOldMainWrongParameterType(
+  DartType _type,
+  DartType _type2,
+) {
   TypeLabeler labeler = new TypeLabeler();
   List<Object> typeParts = labeler.labelType(_type);
   List<Object> type2Parts = labeler.labelType(_type2);
@@ -2750,11 +2794,11 @@ codeMainWrongParameterTypeExported =
       "MainWrongParameterTypeExported",
       problemMessageTemplate:
           r"""The type '#type' of the first parameter of the exported 'main' method is not a supertype of '#type2'.""",
-      withArguments: _withArgumentsMainWrongParameterTypeExported,
+      withArgumentsOld: _withArgumentsOldMainWrongParameterTypeExported,
     );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsMainWrongParameterTypeExported(
+Message _withArgumentsOldMainWrongParameterTypeExported(
   DartType _type,
   DartType _type2,
 ) {
@@ -2783,12 +2827,12 @@ codeMixinApplicationIncompatibleSupertype =
       "MixinApplicationIncompatibleSupertype",
       problemMessageTemplate:
           r"""'#type' doesn't implement '#type2' so it can't be used with '#type3'.""",
-      withArguments: _withArgumentsMixinApplicationIncompatibleSupertype,
+      withArgumentsOld: _withArgumentsOldMixinApplicationIncompatibleSupertype,
       analyzerCodes: <String>["MIXIN_APPLICATION_NOT_IMPLEMENTED_INTERFACE"],
     );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsMixinApplicationIncompatibleSupertype(
+Message _withArgumentsOldMixinApplicationIncompatibleSupertype(
   DartType _type,
   DartType _type2,
   DartType _type3,
@@ -2816,12 +2860,12 @@ codeMixinInferenceNoMatchingClass =
       "MixinInferenceNoMatchingClass",
       problemMessageTemplate:
           r"""Type parameters couldn't be inferred for the mixin '#name' because '#name2' does not implement the mixin's supertype constraint '#type'.""",
-      withArguments: _withArgumentsMixinInferenceNoMatchingClass,
+      withArgumentsOld: _withArgumentsOldMixinInferenceNoMatchingClass,
       analyzerCodes: <String>["MIXIN_INFERENCE_NO_POSSIBLE_SUBSTITUTION"],
     );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsMixinInferenceNoMatchingClass(
+Message _withArgumentsOldMixinInferenceNoMatchingClass(
   String name,
   String name2,
   DartType _type,
@@ -2849,11 +2893,11 @@ codeNameNotFoundInRecordNameGet =
       "NameNotFoundInRecordNameGet",
       problemMessageTemplate:
           r"""Field name #string isn't found in records of type #type.""",
-      withArguments: _withArgumentsNameNotFoundInRecordNameGet,
+      withArgumentsOld: _withArgumentsOldNameNotFoundInRecordNameGet,
     );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsNameNotFoundInRecordNameGet(
+Message _withArgumentsOldNameNotFoundInRecordNameGet(
   String string,
   DartType _type,
 ) {
@@ -2881,12 +2925,12 @@ codeNonExhaustiveSwitchExpression =
           r"""The type '#type' is not exhaustively matched by the switch cases since it doesn't match '#string'.""",
       correctionMessageTemplate:
           r"""Try adding a wildcard pattern or cases that match '#string2'.""",
-      withArguments: _withArgumentsNonExhaustiveSwitchExpression,
+      withArgumentsOld: _withArgumentsOldNonExhaustiveSwitchExpression,
       analyzerCodes: <String>["NON_EXHAUSTIVE_SWITCH_EXPRESSION"],
     );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsNonExhaustiveSwitchExpression(
+Message _withArgumentsOldNonExhaustiveSwitchExpression(
   DartType _type,
   String string,
   String string2,
@@ -2918,12 +2962,12 @@ codeNonExhaustiveSwitchStatement =
           r"""The type '#type' is not exhaustively matched by the switch cases since it doesn't match '#string'.""",
       correctionMessageTemplate:
           r"""Try adding a default case or cases that match '#string2'.""",
-      withArguments: _withArgumentsNonExhaustiveSwitchStatement,
+      withArgumentsOld: _withArgumentsOldNonExhaustiveSwitchStatement,
       analyzerCodes: <String>["NON_EXHAUSTIVE_SWITCH_STATEMENT"],
     );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsNonExhaustiveSwitchStatement(
+Message _withArgumentsOldNonExhaustiveSwitchStatement(
   DartType _type,
   String string,
   String string2,
@@ -2950,11 +2994,11 @@ const Template<Message Function(DartType _type)> codeNonNullAwareSpreadIsNull =
       "NonNullAwareSpreadIsNull",
       problemMessageTemplate:
           r"""Can't spread a value with static type '#type'.""",
-      withArguments: _withArgumentsNonNullAwareSpreadIsNull,
+      withArgumentsOld: _withArgumentsOldNonNullAwareSpreadIsNull,
     );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsNonNullAwareSpreadIsNull(DartType _type) {
+Message _withArgumentsOldNonNullAwareSpreadIsNull(DartType _type) {
   TypeLabeler labeler = new TypeLabeler();
   List<Object> typeParts = labeler.labelType(_type);
   String type = typeParts.join();
@@ -2974,11 +3018,11 @@ codeNullableExpressionCallError = const Template<Message Function(DartType _type
   problemMessageTemplate:
       r"""Can't use an expression of type '#type' as a function because it's potentially null.""",
   correctionMessageTemplate: r"""Try calling using ?.call instead.""",
-  withArguments: _withArgumentsNullableExpressionCallError,
+  withArgumentsOld: _withArgumentsOldNullableExpressionCallError,
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsNullableExpressionCallError(DartType _type) {
+Message _withArgumentsOldNullableExpressionCallError(DartType _type) {
   TypeLabeler labeler = new TypeLabeler();
   List<Object> typeParts = labeler.labelType(_type);
   String type = typeParts.join();
@@ -3000,11 +3044,11 @@ codeNullableMethodCallError =
       problemMessageTemplate:
           r"""Method '#name' cannot be called on '#type' because it is potentially null.""",
       correctionMessageTemplate: r"""Try calling using ?. instead.""",
-      withArguments: _withArgumentsNullableMethodCallError,
+      withArgumentsOld: _withArgumentsOldNullableMethodCallError,
     );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsNullableMethodCallError(String name, DartType _type) {
+Message _withArgumentsOldNullableMethodCallError(String name, DartType _type) {
   if (name.isEmpty) throw 'No name provided';
   name = demangleMixinApplicationName(name);
   TypeLabeler labeler = new TypeLabeler();
@@ -3027,11 +3071,14 @@ codeNullableOperatorCallError =
       "NullableOperatorCallError",
       problemMessageTemplate:
           r"""Operator '#name' cannot be called on '#type' because it is potentially null.""",
-      withArguments: _withArgumentsNullableOperatorCallError,
+      withArgumentsOld: _withArgumentsOldNullableOperatorCallError,
     );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsNullableOperatorCallError(String name, DartType _type) {
+Message _withArgumentsOldNullableOperatorCallError(
+  String name,
+  DartType _type,
+) {
   if (name.isEmpty) throw 'No name provided';
   name = demangleMixinApplicationName(name);
   TypeLabeler labeler = new TypeLabeler();
@@ -3054,11 +3101,14 @@ codeNullablePropertyAccessError =
       problemMessageTemplate:
           r"""Property '#name' cannot be accessed on '#type' because it is potentially null.""",
       correctionMessageTemplate: r"""Try accessing using ?. instead.""",
-      withArguments: _withArgumentsNullablePropertyAccessError,
+      withArgumentsOld: _withArgumentsOldNullablePropertyAccessError,
     );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsNullablePropertyAccessError(String name, DartType _type) {
+Message _withArgumentsOldNullablePropertyAccessError(
+  String name,
+  DartType _type,
+) {
   if (name.isEmpty) throw 'No name provided';
   name = demangleMixinApplicationName(name);
   TypeLabeler labeler = new TypeLabeler();
@@ -3083,12 +3133,13 @@ codeOptionalNonNullableWithoutInitializerError =
           r"""The parameter '#name' can't have a value of 'null' because of its type '#type', but the implicit default value is 'null'.""",
       correctionMessageTemplate:
           r"""Try adding either an explicit non-'null' default value or the 'required' modifier.""",
-      withArguments: _withArgumentsOptionalNonNullableWithoutInitializerError,
+      withArgumentsOld:
+          _withArgumentsOldOptionalNonNullableWithoutInitializerError,
       analyzerCodes: <String>["MISSING_DEFAULT_VALUE_FOR_PARAMETER"],
     );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOptionalNonNullableWithoutInitializerError(
+Message _withArgumentsOldOptionalNonNullableWithoutInitializerError(
   String name,
   DartType _type,
 ) {
@@ -3115,11 +3166,12 @@ codeOptionalSuperParameterWithoutInitializer =
       "OptionalSuperParameterWithoutInitializer",
       problemMessageTemplate:
           r"""Type '#type' of the optional super-initializer parameter '#name' doesn't allow 'null', but the parameter doesn't have a default value, and the default value can't be copied from the corresponding parameter of the super constructor.""",
-      withArguments: _withArgumentsOptionalSuperParameterWithoutInitializer,
+      withArgumentsOld:
+          _withArgumentsOldOptionalSuperParameterWithoutInitializer,
     );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOptionalSuperParameterWithoutInitializer(
+Message _withArgumentsOldOptionalSuperParameterWithoutInitializer(
   DartType _type,
   String name,
 ) {
@@ -3162,12 +3214,12 @@ codeOverrideTypeMismatchParameter =
           r"""The parameter '#name' of the method '#name2' has type '#type', which does not match the corresponding type, '#type2', in the overridden method, '#name3'.""",
       correctionMessageTemplate:
           r"""Change to a supertype of '#type2', or, for a covariant parameter, a subtype.""",
-      withArguments: _withArgumentsOverrideTypeMismatchParameter,
+      withArgumentsOld: _withArgumentsOldOverrideTypeMismatchParameter,
       analyzerCodes: <String>["INVALID_METHOD_OVERRIDE"],
     );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOverrideTypeMismatchParameter(
+Message _withArgumentsOldOverrideTypeMismatchParameter(
   String name,
   String name2,
   DartType _type,
@@ -3219,12 +3271,12 @@ codeOverrideTypeMismatchReturnType =
       problemMessageTemplate:
           r"""The return type of the method '#name' is '#type', which does not match the return type, '#type2', of the overridden method, '#name2'.""",
       correctionMessageTemplate: r"""Change to a subtype of '#type2'.""",
-      withArguments: _withArgumentsOverrideTypeMismatchReturnType,
+      withArgumentsOld: _withArgumentsOldOverrideTypeMismatchReturnType,
       analyzerCodes: <String>["INVALID_METHOD_OVERRIDE"],
     );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOverrideTypeMismatchReturnType(
+Message _withArgumentsOldOverrideTypeMismatchReturnType(
   String name,
   DartType _type,
   DartType _type2,
@@ -3265,12 +3317,12 @@ codeOverrideTypeMismatchSetter =
       "OverrideTypeMismatchSetter",
       problemMessageTemplate:
           r"""The field '#name' has type '#type', which does not match the corresponding type, '#type2', in the overridden setter, '#name2'.""",
-      withArguments: _withArgumentsOverrideTypeMismatchSetter,
+      withArgumentsOld: _withArgumentsOldOverrideTypeMismatchSetter,
       analyzerCodes: <String>["INVALID_METHOD_OVERRIDE"],
     );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOverrideTypeMismatchSetter(
+Message _withArgumentsOldOverrideTypeMismatchSetter(
   String name,
   DartType _type,
   DartType _type2,
@@ -3317,11 +3369,11 @@ codeOverrideTypeParametersBoundMismatch =
       "OverrideTypeParametersBoundMismatch",
       problemMessageTemplate:
           r"""Declared bound '#type' of type variable '#name' of '#name2' doesn't match the bound '#type2' on overridden method '#name3'.""",
-      withArguments: _withArgumentsOverrideTypeParametersBoundMismatch,
+      withArgumentsOld: _withArgumentsOldOverrideTypeParametersBoundMismatch,
     );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOverrideTypeParametersBoundMismatch(
+Message _withArgumentsOldOverrideTypeParametersBoundMismatch(
   DartType _type,
   String name,
   String name2,
@@ -3363,12 +3415,13 @@ codePatternTypeMismatchInIrrefutableContext =
           r"""The matched value of type '#type' isn't assignable to the required type '#type2'.""",
       correctionMessageTemplate:
           r"""Try changing the required type of the pattern, or the matched value type.""",
-      withArguments: _withArgumentsPatternTypeMismatchInIrrefutableContext,
+      withArgumentsOld:
+          _withArgumentsOldPatternTypeMismatchInIrrefutableContext,
       analyzerCodes: <String>["PATTERN_TYPE_MISMATCH_IN_IRREFUTABLE_CONTEXT"],
     );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsPatternTypeMismatchInIrrefutableContext(
+Message _withArgumentsOldPatternTypeMismatchInIrrefutableContext(
   DartType _type,
   DartType _type2,
 ) {
@@ -3395,12 +3448,13 @@ codeRedirectingFactoryIncompatibleTypeArgument =
       "RedirectingFactoryIncompatibleTypeArgument",
       problemMessageTemplate: r"""The type '#type' doesn't extend '#type2'.""",
       correctionMessageTemplate: r"""Try using a different type as argument.""",
-      withArguments: _withArgumentsRedirectingFactoryIncompatibleTypeArgument,
+      withArgumentsOld:
+          _withArgumentsOldRedirectingFactoryIncompatibleTypeArgument,
       analyzerCodes: <String>["TYPE_ARGUMENT_NOT_MATCHING_BOUNDS"],
     );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsRedirectingFactoryIncompatibleTypeArgument(
+Message _withArgumentsOldRedirectingFactoryIncompatibleTypeArgument(
   DartType _type,
   DartType _type2,
 ) {
@@ -3426,12 +3480,12 @@ codeSpreadElementTypeMismatch =
       "SpreadElementTypeMismatch",
       problemMessageTemplate:
           r"""Can't assign spread elements of type '#type' to collection elements of type '#type2'.""",
-      withArguments: _withArgumentsSpreadElementTypeMismatch,
+      withArgumentsOld: _withArgumentsOldSpreadElementTypeMismatch,
       analyzerCodes: <String>["LIST_ELEMENT_TYPE_NOT_ASSIGNABLE"],
     );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsSpreadElementTypeMismatch(
+Message _withArgumentsOldSpreadElementTypeMismatch(
   DartType _type,
   DartType _type2,
 ) {
@@ -3456,12 +3510,12 @@ codeSpreadMapEntryElementKeyTypeMismatch =
       "SpreadMapEntryElementKeyTypeMismatch",
       problemMessageTemplate:
           r"""Can't assign spread entry keys of type '#type' to map entry keys of type '#type2'.""",
-      withArguments: _withArgumentsSpreadMapEntryElementKeyTypeMismatch,
+      withArgumentsOld: _withArgumentsOldSpreadMapEntryElementKeyTypeMismatch,
       analyzerCodes: <String>["MAP_KEY_TYPE_NOT_ASSIGNABLE"],
     );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsSpreadMapEntryElementKeyTypeMismatch(
+Message _withArgumentsOldSpreadMapEntryElementKeyTypeMismatch(
   DartType _type,
   DartType _type2,
 ) {
@@ -3486,12 +3540,12 @@ codeSpreadMapEntryElementValueTypeMismatch =
       "SpreadMapEntryElementValueTypeMismatch",
       problemMessageTemplate:
           r"""Can't assign spread entry values of type '#type' to map entry values of type '#type2'.""",
-      withArguments: _withArgumentsSpreadMapEntryElementValueTypeMismatch,
+      withArgumentsOld: _withArgumentsOldSpreadMapEntryElementValueTypeMismatch,
       analyzerCodes: <String>["MAP_VALUE_TYPE_NOT_ASSIGNABLE"],
     );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsSpreadMapEntryElementValueTypeMismatch(
+Message _withArgumentsOldSpreadMapEntryElementValueTypeMismatch(
   DartType _type,
   DartType _type2,
 ) {
@@ -3515,11 +3569,11 @@ codeSpreadMapEntryTypeMismatch = const Template<Message Function(DartType _type)
   "SpreadMapEntryTypeMismatch",
   problemMessageTemplate:
       r"""Unexpected type '#type' of a map spread entry.  Expected 'dynamic' or a Map.""",
-  withArguments: _withArgumentsSpreadMapEntryTypeMismatch,
+  withArgumentsOld: _withArgumentsOldSpreadMapEntryTypeMismatch,
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsSpreadMapEntryTypeMismatch(DartType _type) {
+Message _withArgumentsOldSpreadMapEntryTypeMismatch(DartType _type) {
   TypeLabeler labeler = new TypeLabeler();
   List<Object> typeParts = labeler.labelType(_type);
   String type = typeParts.join();
@@ -3538,11 +3592,11 @@ codeSpreadTypeMismatch = const Template<Message Function(DartType _type)>(
   "SpreadTypeMismatch",
   problemMessageTemplate:
       r"""Unexpected type '#type' of a spread.  Expected 'dynamic' or an Iterable.""",
-  withArguments: _withArgumentsSpreadTypeMismatch,
+  withArgumentsOld: _withArgumentsOldSpreadTypeMismatch,
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsSpreadTypeMismatch(DartType _type) {
+Message _withArgumentsOldSpreadTypeMismatch(DartType _type) {
   TypeLabeler labeler = new TypeLabeler();
   List<Object> typeParts = labeler.labelType(_type);
   String type = typeParts.join();
@@ -3562,12 +3616,12 @@ codeSuperBoundedHint =
       "SuperBoundedHint",
       problemMessageTemplate:
           r"""If you want '#type' to be a super-bounded type, note that the inverted type '#type2' must then satisfy its bounds, which it does not.""",
-      withArguments: _withArgumentsSuperBoundedHint,
+      withArgumentsOld: _withArgumentsOldSuperBoundedHint,
       severity: CfeSeverity.context,
     );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsSuperBoundedHint(DartType _type, DartType _type2) {
+Message _withArgumentsOldSuperBoundedHint(DartType _type, DartType _type2) {
   TypeLabeler labeler = new TypeLabeler();
   List<Object> typeParts = labeler.labelType(_type);
   List<Object> type2Parts = labeler.labelType(_type2);
@@ -3589,11 +3643,11 @@ codeSuperExtensionTypeIsIllegalAliased =
       "SuperExtensionTypeIsIllegalAliased",
       problemMessageTemplate:
           r"""The type '#name' which is an alias of '#type' can't be implemented by an extension type.""",
-      withArguments: _withArgumentsSuperExtensionTypeIsIllegalAliased,
+      withArgumentsOld: _withArgumentsOldSuperExtensionTypeIsIllegalAliased,
     );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsSuperExtensionTypeIsIllegalAliased(
+Message _withArgumentsOldSuperExtensionTypeIsIllegalAliased(
   String name,
   DartType _type,
 ) {
@@ -3618,11 +3672,11 @@ codeSuperExtensionTypeIsNullableAliased =
       "SuperExtensionTypeIsNullableAliased",
       problemMessageTemplate:
           r"""The type '#name' which is an alias of '#type' can't be implemented by an extension type because it is nullable.""",
-      withArguments: _withArgumentsSuperExtensionTypeIsNullableAliased,
+      withArgumentsOld: _withArgumentsOldSuperExtensionTypeIsNullableAliased,
     );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsSuperExtensionTypeIsNullableAliased(
+Message _withArgumentsOldSuperExtensionTypeIsNullableAliased(
   String name,
   DartType _type,
 ) {
@@ -3647,12 +3701,15 @@ codeSupertypeIsIllegalAliased =
       "SupertypeIsIllegalAliased",
       problemMessageTemplate:
           r"""The type '#name' which is an alias of '#type' can't be used as supertype.""",
-      withArguments: _withArgumentsSupertypeIsIllegalAliased,
+      withArgumentsOld: _withArgumentsOldSupertypeIsIllegalAliased,
       analyzerCodes: <String>["EXTENDS_NON_CLASS"],
     );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsSupertypeIsIllegalAliased(String name, DartType _type) {
+Message _withArgumentsOldSupertypeIsIllegalAliased(
+  String name,
+  DartType _type,
+) {
   if (name.isEmpty) throw 'No name provided';
   name = demangleMixinApplicationName(name);
   TypeLabeler labeler = new TypeLabeler();
@@ -3674,12 +3731,15 @@ codeSupertypeIsNullableAliased =
       "SupertypeIsNullableAliased",
       problemMessageTemplate:
           r"""The type '#name' which is an alias of '#type' can't be used as supertype because it is nullable.""",
-      withArguments: _withArgumentsSupertypeIsNullableAliased,
+      withArgumentsOld: _withArgumentsOldSupertypeIsNullableAliased,
       analyzerCodes: <String>["EXTENDS_NON_CLASS"],
     );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsSupertypeIsNullableAliased(String name, DartType _type) {
+Message _withArgumentsOldSupertypeIsNullableAliased(
+  String name,
+  DartType _type,
+) {
   if (name.isEmpty) throw 'No name provided';
   name = demangleMixinApplicationName(name);
   TypeLabeler labeler = new TypeLabeler();
@@ -3701,11 +3761,11 @@ codeSwitchExpressionNotSubtype =
       "SwitchExpressionNotSubtype",
       problemMessageTemplate:
           r"""Type '#type' of the case expression is not a subtype of type '#type2' of this switch expression.""",
-      withArguments: _withArgumentsSwitchExpressionNotSubtype,
+      withArgumentsOld: _withArgumentsOldSwitchExpressionNotSubtype,
     );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsSwitchExpressionNotSubtype(
+Message _withArgumentsOldSwitchExpressionNotSubtype(
   DartType _type,
   DartType _type2,
 ) {
@@ -3730,11 +3790,11 @@ codeThrowingNotAssignableToObjectError =
       "ThrowingNotAssignableToObjectError",
       problemMessageTemplate:
           r"""Can't throw a value of '#type' since it is neither dynamic nor non-nullable.""",
-      withArguments: _withArgumentsThrowingNotAssignableToObjectError,
+      withArgumentsOld: _withArgumentsOldThrowingNotAssignableToObjectError,
     );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsThrowingNotAssignableToObjectError(DartType _type) {
+Message _withArgumentsOldThrowingNotAssignableToObjectError(DartType _type) {
   TypeLabeler labeler = new TypeLabeler();
   List<Object> typeParts = labeler.labelType(_type);
   String type = typeParts.join();
@@ -3755,12 +3815,12 @@ codeUndefinedGetter = const Template<Message Function(String name, DartType _typ
       r"""The getter '#name' isn't defined for the type '#type'.""",
   correctionMessageTemplate:
       r"""Try correcting the name to the name of an existing getter, or defining a getter or field named '#name'.""",
-  withArguments: _withArgumentsUndefinedGetter,
+  withArgumentsOld: _withArgumentsOldUndefinedGetter,
   analyzerCodes: <String>["UNDEFINED_GETTER"],
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsUndefinedGetter(String name, DartType _type) {
+Message _withArgumentsOldUndefinedGetter(String name, DartType _type) {
   if (name.isEmpty) throw 'No name provided';
   name = demangleMixinApplicationName(name);
   TypeLabeler labeler = new TypeLabeler();
@@ -3785,12 +3845,12 @@ codeUndefinedMethod = const Template<Message Function(String name, DartType _typ
       r"""The method '#name' isn't defined for the type '#type'.""",
   correctionMessageTemplate:
       r"""Try correcting the name to the name of an existing method, or defining a method named '#name'.""",
-  withArguments: _withArgumentsUndefinedMethod,
+  withArgumentsOld: _withArgumentsOldUndefinedMethod,
   analyzerCodes: <String>["UNDEFINED_METHOD"],
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsUndefinedMethod(String name, DartType _type) {
+Message _withArgumentsOldUndefinedMethod(String name, DartType _type) {
   if (name.isEmpty) throw 'No name provided';
   name = demangleMixinApplicationName(name);
   TypeLabeler labeler = new TypeLabeler();
@@ -3816,12 +3876,12 @@ codeUndefinedOperator =
           r"""The operator '#name' isn't defined for the type '#type'.""",
       correctionMessageTemplate:
           r"""Try correcting the operator to an existing operator, or defining a '#name' operator.""",
-      withArguments: _withArgumentsUndefinedOperator,
+      withArgumentsOld: _withArgumentsOldUndefinedOperator,
       analyzerCodes: <String>["UNDEFINED_METHOD"],
     );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsUndefinedOperator(String name, DartType _type) {
+Message _withArgumentsOldUndefinedOperator(String name, DartType _type) {
   if (name.isEmpty) throw 'No name provided';
   name = demangleMixinApplicationName(name);
   TypeLabeler labeler = new TypeLabeler();
@@ -3846,12 +3906,12 @@ codeUndefinedSetter = const Template<Message Function(String name, DartType _typ
       r"""The setter '#name' isn't defined for the type '#type'.""",
   correctionMessageTemplate:
       r"""Try correcting the name to the name of an existing setter, or defining a setter or field named '#name'.""",
-  withArguments: _withArgumentsUndefinedSetter,
+  withArgumentsOld: _withArgumentsOldUndefinedSetter,
   analyzerCodes: <String>["UNDEFINED_SETTER"],
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsUndefinedSetter(String name, DartType _type) {
+Message _withArgumentsOldUndefinedSetter(String name, DartType _type) {
   if (name.isEmpty) throw 'No name provided';
   name = demangleMixinApplicationName(name);
   TypeLabeler labeler = new TypeLabeler();
@@ -3875,14 +3935,15 @@ codeWrongTypeParameterVarianceInSuperinterface =
       "WrongTypeParameterVarianceInSuperinterface",
       problemMessageTemplate:
           r"""'#name' can't be used contravariantly or invariantly in '#type'.""",
-      withArguments: _withArgumentsWrongTypeParameterVarianceInSuperinterface,
+      withArgumentsOld:
+          _withArgumentsOldWrongTypeParameterVarianceInSuperinterface,
       analyzerCodes: <String>[
         "WRONG_TYPE_PARAMETER_VARIANCE_IN_SUPERINTERFACE",
       ],
     );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsWrongTypeParameterVarianceInSuperinterface(
+Message _withArgumentsOldWrongTypeParameterVarianceInSuperinterface(
   String name,
   DartType _type,
 ) {

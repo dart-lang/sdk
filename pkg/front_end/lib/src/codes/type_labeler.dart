@@ -640,10 +640,10 @@ class LabeledNode {
       }
     }
     Message message = (importUri == fileUri || importUri.isScheme('dart'))
-        ? codeTypeOrigin.withArguments(toString(), importUri)
+        ? codeTypeOrigin.withArgumentsOld(toString(), importUri)
         :
           // Coverage-ignore(suite): Not run.
-          codeTypeOriginWithFileUri.withArguments(
+          codeTypeOriginWithFileUri.withArgumentsOld(
             toString(),
             importUri,
             fileUri,
