@@ -188,6 +188,9 @@ dart/transferable_throws_oom_test: SkipByDesign # Allocating too much memory to 
 cc/CorelibCompilerStats: Skip
 dart/disassemble_determinism_test: Slow, Pass # Times out on slower bots.
 
+[ $system != windows ]
+dart/ctrlc_handling_test: SkipByDesign
+
 [ $qemu ]
 cc/ManyClasses: Slow, Pass # Generates 100k classes, slow on emulated architectures.
 cc/StressMallocDirectly: Skip # Queries RSS
