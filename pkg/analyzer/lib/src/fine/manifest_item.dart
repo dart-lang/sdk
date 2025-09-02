@@ -26,6 +26,7 @@ class ClassItem extends InterfaceItem<ClassElementImpl> {
 
   ClassItem({
     required super.id,
+    required super.isSynthetic,
     required super.metadata,
     required super.typeParameters,
     required super.isSimplyBounded,
@@ -57,6 +58,7 @@ class ClassItem extends InterfaceItem<ClassElementImpl> {
     return context.withTypeParameters(element.typeParameters, (typeParameters) {
       return ClassItem(
         id: id,
+        isSynthetic: element.isSynthetic,
         metadata: ManifestMetadata.encode(context, element.metadata),
         typeParameters: typeParameters,
         isSimplyBounded: element.isSimplyBounded,
@@ -85,6 +87,7 @@ class ClassItem extends InterfaceItem<ClassElementImpl> {
   factory ClassItem.read(SummaryDataReader reader) {
     return ClassItem(
       id: ManifestItemId.read(reader),
+      isSynthetic: reader.readBool(),
       metadata: ManifestMetadata.read(reader),
       typeParameters: ManifestTypeParameter.readList(reader),
       isSimplyBounded: reader.readBool(),
@@ -137,6 +140,7 @@ class ClassItem extends InterfaceItem<ClassElementImpl> {
 class EnumItem extends InterfaceItem<EnumElementImpl> {
   EnumItem({
     required super.id,
+    required super.isSynthetic,
     required super.metadata,
     required super.typeParameters,
     required super.isSimplyBounded,
@@ -161,6 +165,7 @@ class EnumItem extends InterfaceItem<EnumElementImpl> {
     return context.withTypeParameters(element.typeParameters, (typeParameters) {
       return EnumItem(
         id: id,
+        isSynthetic: element.isSynthetic,
         metadata: ManifestMetadata.encode(context, element.metadata),
         typeParameters: typeParameters,
         isSimplyBounded: element.isSimplyBounded,
@@ -182,6 +187,7 @@ class EnumItem extends InterfaceItem<EnumElementImpl> {
   factory EnumItem.read(SummaryDataReader reader) {
     return EnumItem(
       id: ManifestItemId.read(reader),
+      isSynthetic: reader.readBool(),
       metadata: ManifestMetadata.read(reader),
       typeParameters: ManifestTypeParameter.readList(reader),
       isSimplyBounded: reader.readBool(),
@@ -206,6 +212,7 @@ class ExtensionItem<E extends ExtensionElementImpl> extends InstanceItem<E> {
 
   ExtensionItem({
     required super.id,
+    required super.isSynthetic,
     required super.metadata,
     required super.typeParameters,
     required super.isSimplyBounded,
@@ -227,6 +234,7 @@ class ExtensionItem<E extends ExtensionElementImpl> extends InstanceItem<E> {
     return context.withTypeParameters(element.typeParameters, (typeParameters) {
       return ExtensionItem(
         id: id,
+        isSynthetic: element.isSynthetic,
         metadata: ManifestMetadata.encode(context, element.metadata),
         typeParameters: typeParameters,
         isSimplyBounded: element.isSimplyBounded,
@@ -245,6 +253,7 @@ class ExtensionItem<E extends ExtensionElementImpl> extends InstanceItem<E> {
   factory ExtensionItem.read(SummaryDataReader reader) {
     return ExtensionItem(
       id: ManifestItemId.read(reader),
+      isSynthetic: reader.readBool(),
       metadata: ManifestMetadata.read(reader),
       typeParameters: ManifestTypeParameter.readList(reader),
       isSimplyBounded: reader.readBool(),
@@ -280,6 +289,7 @@ class ExtensionTypeItem extends InterfaceItem<ExtensionTypeElementImpl> {
 
   ExtensionTypeItem({
     required super.id,
+    required super.isSynthetic,
     required super.metadata,
     required super.typeParameters,
     required super.isSimplyBounded,
@@ -308,6 +318,7 @@ class ExtensionTypeItem extends InterfaceItem<ExtensionTypeElementImpl> {
     return context.withTypeParameters(element.typeParameters, (typeParameters) {
       return ExtensionTypeItem(
         id: id,
+        isSynthetic: element.isSynthetic,
         metadata: ManifestMetadata.encode(context, element.metadata),
         typeParameters: typeParameters,
         isSimplyBounded: element.isSimplyBounded,
@@ -333,6 +344,7 @@ class ExtensionTypeItem extends InterfaceItem<ExtensionTypeElementImpl> {
   factory ExtensionTypeItem.read(SummaryDataReader reader) {
     return ExtensionTypeItem(
       id: ManifestItemId.read(reader),
+      isSynthetic: reader.readBool(),
       metadata: ManifestMetadata.read(reader),
       typeParameters: ManifestTypeParameter.readList(reader),
       isSimplyBounded: reader.readBool(),
@@ -393,6 +405,7 @@ sealed class InstanceItem<E extends InstanceElementImpl>
 
   InstanceItem({
     required super.id,
+    required super.isSynthetic,
     required super.metadata,
     required this.typeParameters,
     required this.isSimplyBounded,
@@ -605,6 +618,7 @@ class InstanceItemFieldItem extends InstanceItemMemberItem<FieldElementImpl> {
 
   InstanceItemFieldItem({
     required super.id,
+    required super.isSynthetic,
     required super.metadata,
     required super.isStatic,
     required this.isConst,
@@ -621,6 +635,7 @@ class InstanceItemFieldItem extends InstanceItemMemberItem<FieldElementImpl> {
   }) {
     return InstanceItemFieldItem(
       id: id,
+      isSynthetic: element.isSynthetic,
       metadata: ManifestMetadata.encode(context, element.metadata),
       isStatic: element.isStatic,
       isConst: element.isConst,
@@ -634,6 +649,7 @@ class InstanceItemFieldItem extends InstanceItemMemberItem<FieldElementImpl> {
   factory InstanceItemFieldItem.read(SummaryDataReader reader) {
     return InstanceItemFieldItem(
       id: ManifestItemId.read(reader),
+      isSynthetic: reader.readBool(),
       metadata: ManifestMetadata.read(reader),
       isStatic: reader.readBool(),
       isConst: reader.readBool(),
@@ -684,6 +700,7 @@ class InstanceItemGetterItem extends InstanceItemMemberItem<GetterElementImpl> {
 
   InstanceItemGetterItem({
     required super.id,
+    required super.isSynthetic,
     required super.metadata,
     required super.isStatic,
     required this.returnType,
@@ -696,6 +713,7 @@ class InstanceItemGetterItem extends InstanceItemMemberItem<GetterElementImpl> {
   }) {
     return InstanceItemGetterItem(
       id: id,
+      isSynthetic: element.isSynthetic,
       metadata: ManifestMetadata.encode(
         context,
         element.thisOrVariableMetadata,
@@ -708,6 +726,7 @@ class InstanceItemGetterItem extends InstanceItemMemberItem<GetterElementImpl> {
   factory InstanceItemGetterItem.read(SummaryDataReader reader) {
     return InstanceItemGetterItem(
       id: ManifestItemId.read(reader),
+      isSynthetic: reader.readBool(),
       metadata: ManifestMetadata.read(reader),
       isStatic: reader.readBool(),
       returnType: ManifestType.read(reader),
@@ -747,6 +766,7 @@ sealed class InstanceItemMemberItem<E extends ElementImpl>
 
   InstanceItemMemberItem({
     required super.id,
+    required super.isSynthetic,
     required super.metadata,
     required this.isStatic,
   });
@@ -806,6 +826,7 @@ class InstanceItemMethodItem extends InstanceItemMemberItem<MethodElementImpl> {
 
   InstanceItemMethodItem({
     required super.id,
+    required super.isSynthetic,
     required super.metadata,
     required super.isStatic,
     required this.functionType,
@@ -818,6 +839,7 @@ class InstanceItemMethodItem extends InstanceItemMemberItem<MethodElementImpl> {
   }) {
     return InstanceItemMethodItem(
       id: id,
+      isSynthetic: element.isSynthetic,
       metadata: ManifestMetadata.encode(context, element.metadata),
       isStatic: element.isStatic,
       functionType: element.type.encode(context),
@@ -827,6 +849,7 @@ class InstanceItemMethodItem extends InstanceItemMemberItem<MethodElementImpl> {
   factory InstanceItemMethodItem.read(SummaryDataReader reader) {
     return InstanceItemMethodItem(
       id: ManifestItemId.read(reader),
+      isSynthetic: reader.readBool(),
       metadata: ManifestMetadata.read(reader),
       isStatic: reader.readBool(),
       functionType: ManifestFunctionType.read(reader),
@@ -865,6 +888,7 @@ class InstanceItemSetterItem extends InstanceItemMemberItem<SetterElementImpl> {
 
   InstanceItemSetterItem({
     required super.id,
+    required super.isSynthetic,
     required super.metadata,
     required super.isStatic,
     required this.functionType,
@@ -877,6 +901,7 @@ class InstanceItemSetterItem extends InstanceItemMemberItem<SetterElementImpl> {
   }) {
     return InstanceItemSetterItem(
       id: id,
+      isSynthetic: element.isSynthetic,
       metadata: ManifestMetadata.encode(
         context,
         element.thisOrVariableMetadata,
@@ -889,6 +914,7 @@ class InstanceItemSetterItem extends InstanceItemMemberItem<SetterElementImpl> {
   factory InstanceItemSetterItem.read(SummaryDataReader reader) {
     return InstanceItemSetterItem(
       id: ManifestItemId.read(reader),
+      isSynthetic: reader.readBool(),
       metadata: ManifestMetadata.read(reader),
       isStatic: reader.readBool(),
       functionType: ManifestFunctionType.read(reader),
@@ -932,6 +958,7 @@ sealed class InterfaceItem<E extends InterfaceElementImpl>
 
   InterfaceItem({
     required super.id,
+    required super.isSynthetic,
     required super.metadata,
     required super.typeParameters,
     required super.isSimplyBounded,
@@ -979,6 +1006,7 @@ class InterfaceItemConstructorItem
 
   InterfaceItemConstructorItem({
     required super.id,
+    required super.isSynthetic,
     required super.metadata,
     required super.isStatic,
     required this.isConst,
@@ -995,6 +1023,7 @@ class InterfaceItemConstructorItem
     return context.withFormalParameters(element.formalParameters, () {
       return InterfaceItemConstructorItem(
         id: id,
+        isSynthetic: element.isSynthetic,
         metadata: ManifestMetadata.encode(context, element.metadata),
         isStatic: false,
         isConst: element.isConst,
@@ -1010,6 +1039,7 @@ class InterfaceItemConstructorItem
   factory InterfaceItemConstructorItem.read(SummaryDataReader reader) {
     return InterfaceItemConstructorItem(
       id: ManifestItemId.read(reader),
+      isSynthetic: reader.readBool(),
       metadata: ManifestMetadata.read(reader),
       isStatic: reader.readBool(),
       isConst: reader.readBool(),
@@ -1168,18 +1198,25 @@ class ManifestInterface {
 sealed class ManifestItem<E extends ElementImpl> {
   /// The unique identifier of this item.
   final ManifestItemId id;
+  final bool isSynthetic;
   final ManifestMetadata metadata;
 
-  ManifestItem({required this.id, required this.metadata});
+  ManifestItem({
+    required this.id,
+    required this.isSynthetic,
+    required this.metadata,
+  });
 
   @mustCallSuper
   bool match(MatchContext context, E element) {
-    return metadata.match(context, element.effectiveMetadata);
+    return isSynthetic == element.isSynthetic &&
+        metadata.match(context, element.effectiveMetadata);
   }
 
   @mustCallSuper
   void write(BufferedSink sink) {
     id.write(sink);
+    sink.writeBool(isSynthetic);
     metadata.write(sink);
   }
 }
@@ -1235,6 +1272,7 @@ class MixinItem extends InterfaceItem<MixinElementImpl> {
 
   MixinItem({
     required super.id,
+    required super.isSynthetic,
     required super.metadata,
     required super.typeParameters,
     required super.isSimplyBounded,
@@ -1264,6 +1302,7 @@ class MixinItem extends InterfaceItem<MixinElementImpl> {
     return context.withTypeParameters(element.typeParameters, (typeParameters) {
       return MixinItem(
         id: id,
+        isSynthetic: element.isSynthetic,
         metadata: ManifestMetadata.encode(context, element.metadata),
         typeParameters: typeParameters,
         isSimplyBounded: element.isSimplyBounded,
@@ -1290,6 +1329,7 @@ class MixinItem extends InterfaceItem<MixinElementImpl> {
   factory MixinItem.read(SummaryDataReader reader) {
     return MixinItem(
       id: ManifestItemId.read(reader),
+      isSynthetic: reader.readBool(),
       metadata: ManifestMetadata.read(reader),
       typeParameters: ManifestTypeParameter.readList(reader),
       isSimplyBounded: reader.readBool(),
@@ -1335,6 +1375,7 @@ class TopLevelFunctionItem extends TopLevelItem<TopLevelFunctionElementImpl> {
 
   TopLevelFunctionItem({
     required super.id,
+    required super.isSynthetic,
     required super.metadata,
     required this.functionType,
   });
@@ -1346,6 +1387,7 @@ class TopLevelFunctionItem extends TopLevelItem<TopLevelFunctionElementImpl> {
   }) {
     return TopLevelFunctionItem(
       id: id,
+      isSynthetic: element.isSynthetic,
       metadata: ManifestMetadata.encode(context, element.metadata),
       functionType: element.type.encode(context),
     );
@@ -1354,6 +1396,7 @@ class TopLevelFunctionItem extends TopLevelItem<TopLevelFunctionElementImpl> {
   factory TopLevelFunctionItem.read(SummaryDataReader reader) {
     return TopLevelFunctionItem(
       id: ManifestItemId.read(reader),
+      isSynthetic: reader.readBool(),
       metadata: ManifestMetadata.read(reader),
       functionType: ManifestFunctionType.read(reader),
     );
@@ -1377,6 +1420,7 @@ class TopLevelGetterItem extends TopLevelItem<GetterElementImpl> {
 
   TopLevelGetterItem({
     required super.id,
+    required super.isSynthetic,
     required super.metadata,
     required this.returnType,
   });
@@ -1388,6 +1432,7 @@ class TopLevelGetterItem extends TopLevelItem<GetterElementImpl> {
   }) {
     return TopLevelGetterItem(
       id: id,
+      isSynthetic: element.isSynthetic,
       metadata: ManifestMetadata.encode(
         context,
         element.thisOrVariableMetadata,
@@ -1399,6 +1444,7 @@ class TopLevelGetterItem extends TopLevelItem<GetterElementImpl> {
   factory TopLevelGetterItem.read(SummaryDataReader reader) {
     return TopLevelGetterItem(
       id: ManifestItemId.read(reader),
+      isSynthetic: reader.readBool(),
       metadata: ManifestMetadata.read(reader),
       returnType: ManifestType.read(reader),
     );
@@ -1418,7 +1464,11 @@ class TopLevelGetterItem extends TopLevelItem<GetterElementImpl> {
 }
 
 sealed class TopLevelItem<E extends ElementImpl> extends ManifestItem<E> {
-  TopLevelItem({required super.id, required super.metadata});
+  TopLevelItem({
+    required super.id,
+    required super.isSynthetic,
+    required super.metadata,
+  });
 }
 
 class TopLevelSetterItem extends TopLevelItem<SetterElementImpl> {
@@ -1426,6 +1476,7 @@ class TopLevelSetterItem extends TopLevelItem<SetterElementImpl> {
 
   TopLevelSetterItem({
     required super.id,
+    required super.isSynthetic,
     required super.metadata,
     required this.valueType,
   });
@@ -1437,6 +1488,7 @@ class TopLevelSetterItem extends TopLevelItem<SetterElementImpl> {
   }) {
     return TopLevelSetterItem(
       id: id,
+      isSynthetic: element.isSynthetic,
       metadata: ManifestMetadata.encode(
         context,
         element.thisOrVariableMetadata,
@@ -1448,6 +1500,7 @@ class TopLevelSetterItem extends TopLevelItem<SetterElementImpl> {
   factory TopLevelSetterItem.read(SummaryDataReader reader) {
     return TopLevelSetterItem(
       id: ManifestItemId.read(reader),
+      isSynthetic: reader.readBool(),
       metadata: ManifestMetadata.read(reader),
       valueType: ManifestType.read(reader),
     );
@@ -1475,6 +1528,7 @@ class TopLevelVariableItem extends TopLevelItem<TopLevelVariableElementImpl> {
 
   TopLevelVariableItem({
     required super.id,
+    required super.isSynthetic,
     required super.metadata,
     required this.isConst,
     required this.isFinal,
@@ -1490,6 +1544,7 @@ class TopLevelVariableItem extends TopLevelItem<TopLevelVariableElementImpl> {
   }) {
     return TopLevelVariableItem(
       id: id,
+      isSynthetic: element.isSynthetic,
       metadata: ManifestMetadata.encode(context, element.metadata),
       isConst: element.isConst,
       isFinal: element.isFinal,
@@ -1502,6 +1557,7 @@ class TopLevelVariableItem extends TopLevelItem<TopLevelVariableElementImpl> {
   factory TopLevelVariableItem.read(SummaryDataReader reader) {
     return TopLevelVariableItem(
       id: ManifestItemId.read(reader),
+      isSynthetic: reader.readBool(),
       metadata: ManifestMetadata.read(reader),
       isConst: reader.readBool(),
       isFinal: reader.readBool(),
@@ -1538,6 +1594,7 @@ class TypeAliasItem extends TopLevelItem<TypeAliasElementImpl> {
 
   TypeAliasItem({
     required super.id,
+    required super.isSynthetic,
     required super.metadata,
     required this.typeParameters,
     required this.aliasedType,
@@ -1551,6 +1608,7 @@ class TypeAliasItem extends TopLevelItem<TypeAliasElementImpl> {
     return context.withTypeParameters(element.typeParameters, (typeParameters) {
       return TypeAliasItem(
         id: id,
+        isSynthetic: element.isSynthetic,
         metadata: ManifestMetadata.encode(context, element.metadata),
         typeParameters: typeParameters,
         aliasedType: element.aliasedType.encode(context),
@@ -1561,6 +1619,7 @@ class TypeAliasItem extends TopLevelItem<TypeAliasElementImpl> {
   factory TypeAliasItem.read(SummaryDataReader reader) {
     return TypeAliasItem(
       id: ManifestItemId.read(reader),
+      isSynthetic: reader.readBool(),
       metadata: ManifestMetadata.read(reader),
       typeParameters: ManifestTypeParameter.readList(reader),
       aliasedType: ManifestType.read(reader),
