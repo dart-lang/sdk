@@ -12278,6 +12278,105 @@ class A {
     );
   }
 
+  test_dependency_class_namedConstructor_add_isValidMixin() async {
+    configuration.withStreamResolvedUnitResults = false;
+
+    _ManualRequirements.install((state) {
+      state.singleUnit.scopeClassElement('A').isValidMixin;
+    });
+
+    await _runChangeScenarioTA(
+      initialA: r'''
+class A {}
+''',
+      testCode: r'''
+import 'a.dart';
+''',
+      operation: _FineOperationTestFileGetErrors(),
+      expectedInitialEvents: r'''
+[status] working
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/a.dart
+    declaredClasses
+      A: #M0
+        interface: #M1
+  requirements
+[operation] linkLibraryCycle
+  package:test/test.dart
+  requirements
+[operation] analyzeFile
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[operation] analyzedLibrary
+  file: /home/test/lib/test.dart
+  requirements
+    libraries
+      package:test/a.dart
+        exportedTopLevels
+          A: #M0
+        interfaces
+          A
+            allConstructors: #M2
+[status] idle
+[future] getErrors T1
+  ErrorsResult #0
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
+    errors
+      7 +8 UNUSED_IMPORT
+''',
+      updatedA: r'''
+class A {
+  A.named();
+}
+''',
+      expectedUpdatedEvents: r'''
+[status] working
+[operation] linkLibraryCycle
+  package:test/a.dart
+    declaredClasses
+      A: #M0
+        declaredConstructors
+          named: #M3
+        interface: #M1
+  requirements
+[operation] reuseLinkedBundle
+  package:test/test.dart
+[operation] checkLibraryDiagnosticsRequirements
+  library: /home/test/lib/test.dart
+  interfaceChildrenIdsMismatch
+    libraryUri: package:test/a.dart
+    interfaceName: A
+    childrenPropertyName: constructors
+    expectedIds: #M2
+    actualIds: #M3
+[operation] analyzeFile
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[operation] analyzedLibrary
+  file: /home/test/lib/test.dart
+  requirements
+    libraries
+      package:test/a.dart
+        exportedTopLevels
+          A: #M0
+        interfaces
+          A
+            allConstructors: #M3
+[status] idle
+[future] getErrors T2
+  ErrorsResult #1
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
+    errors
+      7 +8 UNUSED_IMPORT
+''',
+    );
+  }
+
   test_dependency_class_namedConstructor_change_getConstructors() async {
     configuration.includeDefaultConstructors();
 
@@ -44676,6 +44775,38 @@ class D {}
         interface: #M9
       D: #M10
         interface: #M11
+''',
+    );
+  }
+
+  test_manifest_class_modifier_isSimplyBounded() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class A<T> {}
+class B<T extends List<T>> {}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredClasses
+      A: #M0
+        interface: #M1
+      B: #M2
+        interface: #M3
+''',
+      updatedCode: r'''
+class A<T extends List<T>> {}
+class B<T> {}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredClasses
+      A: #M4
+        interface: #M5
+      B: #M6
+        interface: #M7
 ''',
     );
   }

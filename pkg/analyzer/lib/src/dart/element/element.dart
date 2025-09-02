@@ -338,7 +338,7 @@ class ClassElementImpl extends InterfaceElementImpl implements ClassElement {
   }
 
   @override
-  @trackedIncludedInId
+  @trackedIndirectly
   bool get isValidMixin {
     var supertype = this.supertype;
     if (supertype != null && !supertype.isDartCoreObject) {

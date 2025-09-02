@@ -28,6 +28,7 @@ class ClassItem extends InterfaceItem<ClassElementImpl> {
     required super.id,
     required super.metadata,
     required super.typeParameters,
+    required super.isSimplyBounded,
     required super.declaredConflicts,
     required super.declaredFields,
     required super.declaredGetters,
@@ -58,6 +59,7 @@ class ClassItem extends InterfaceItem<ClassElementImpl> {
         id: id,
         metadata: ManifestMetadata.encode(context, element.metadata),
         typeParameters: typeParameters,
+        isSimplyBounded: element.isSimplyBounded,
         declaredConflicts: {},
         declaredFields: {},
         declaredGetters: {},
@@ -85,6 +87,7 @@ class ClassItem extends InterfaceItem<ClassElementImpl> {
       id: ManifestItemId.read(reader),
       metadata: ManifestMetadata.read(reader),
       typeParameters: ManifestTypeParameter.readList(reader),
+      isSimplyBounded: reader.readBool(),
       declaredConflicts: reader.readLookupNameToIdMap(),
       declaredFields: InstanceItemFieldItem.readMap(reader),
       declaredGetters: InstanceItemGetterItem.readMap(reader),
@@ -136,6 +139,7 @@ class EnumItem extends InterfaceItem<EnumElementImpl> {
     required super.id,
     required super.metadata,
     required super.typeParameters,
+    required super.isSimplyBounded,
     required super.declaredConflicts,
     required super.declaredFields,
     required super.declaredGetters,
@@ -159,6 +163,7 @@ class EnumItem extends InterfaceItem<EnumElementImpl> {
         id: id,
         metadata: ManifestMetadata.encode(context, element.metadata),
         typeParameters: typeParameters,
+        isSimplyBounded: element.isSimplyBounded,
         declaredConflicts: {},
         declaredFields: {},
         declaredGetters: {},
@@ -179,6 +184,7 @@ class EnumItem extends InterfaceItem<EnumElementImpl> {
       id: ManifestItemId.read(reader),
       metadata: ManifestMetadata.read(reader),
       typeParameters: ManifestTypeParameter.readList(reader),
+      isSimplyBounded: reader.readBool(),
       declaredConflicts: reader.readLookupNameToIdMap(),
       declaredFields: InstanceItemFieldItem.readMap(reader),
       declaredGetters: InstanceItemGetterItem.readMap(reader),
@@ -202,6 +208,7 @@ class ExtensionItem<E extends ExtensionElementImpl> extends InstanceItem<E> {
     required super.id,
     required super.metadata,
     required super.typeParameters,
+    required super.isSimplyBounded,
     required super.declaredConflicts,
     required super.declaredFields,
     required super.declaredGetters,
@@ -222,6 +229,7 @@ class ExtensionItem<E extends ExtensionElementImpl> extends InstanceItem<E> {
         id: id,
         metadata: ManifestMetadata.encode(context, element.metadata),
         typeParameters: typeParameters,
+        isSimplyBounded: element.isSimplyBounded,
         declaredConflicts: {},
         declaredFields: {},
         declaredGetters: {},
@@ -239,6 +247,7 @@ class ExtensionItem<E extends ExtensionElementImpl> extends InstanceItem<E> {
       id: ManifestItemId.read(reader),
       metadata: ManifestMetadata.read(reader),
       typeParameters: ManifestTypeParameter.readList(reader),
+      isSimplyBounded: reader.readBool(),
       declaredConflicts: reader.readLookupNameToIdMap(),
       declaredFields: InstanceItemFieldItem.readMap(reader),
       declaredGetters: InstanceItemGetterItem.readMap(reader),
@@ -273,6 +282,7 @@ class ExtensionTypeItem extends InterfaceItem<ExtensionTypeElementImpl> {
     required super.id,
     required super.metadata,
     required super.typeParameters,
+    required super.isSimplyBounded,
     required super.declaredConflicts,
     required super.declaredFields,
     required super.declaredGetters,
@@ -300,6 +310,7 @@ class ExtensionTypeItem extends InterfaceItem<ExtensionTypeElementImpl> {
         id: id,
         metadata: ManifestMetadata.encode(context, element.metadata),
         typeParameters: typeParameters,
+        isSimplyBounded: element.isSimplyBounded,
         declaredConflicts: {},
         declaredFields: {},
         declaredGetters: {},
@@ -324,6 +335,7 @@ class ExtensionTypeItem extends InterfaceItem<ExtensionTypeElementImpl> {
       id: ManifestItemId.read(reader),
       metadata: ManifestMetadata.read(reader),
       typeParameters: ManifestTypeParameter.readList(reader),
+      isSimplyBounded: reader.readBool(),
       declaredConflicts: reader.readLookupNameToIdMap(),
       declaredFields: InstanceItemFieldItem.readMap(reader),
       declaredGetters: InstanceItemGetterItem.readMap(reader),
@@ -366,6 +378,7 @@ class ExtensionTypeItem extends InterfaceItem<ExtensionTypeElementImpl> {
 sealed class InstanceItem<E extends InstanceElementImpl>
     extends TopLevelItem<E> {
   final List<ManifestTypeParameter> typeParameters;
+  final bool isSimplyBounded;
 
   /// The names of duplicate or otherwise conflicting members.
   /// Such names will not be added to `declaredXyz` maps.
@@ -382,6 +395,7 @@ sealed class InstanceItem<E extends InstanceElementImpl>
     required super.id,
     required super.metadata,
     required this.typeParameters,
+    required this.isSimplyBounded,
     required this.declaredConflicts,
     required this.declaredFields,
     required this.declaredGetters,
@@ -550,13 +564,15 @@ sealed class InstanceItem<E extends InstanceElementImpl>
   bool match(MatchContext context, E element) {
     context.addTypeParameters(element.typeParameters);
     return super.match(context, element) &&
-        typeParameters.match(context, element.typeParameters);
+        typeParameters.match(context, element.typeParameters) &&
+        isSimplyBounded == element.isSimplyBounded;
   }
 
   @override
   void write(BufferedSink sink) {
     super.write(sink);
     typeParameters.write(sink);
+    sink.writeBool(isSimplyBounded);
     declaredConflicts.write(sink);
     declaredFields.write(sink);
     declaredGetters.write(sink);
@@ -918,6 +934,7 @@ sealed class InterfaceItem<E extends InterfaceElementImpl>
     required super.id,
     required super.metadata,
     required super.typeParameters,
+    required super.isSimplyBounded,
     required super.declaredConflicts,
     required super.declaredFields,
     required super.declaredGetters,
@@ -1220,6 +1237,7 @@ class MixinItem extends InterfaceItem<MixinElementImpl> {
     required super.id,
     required super.metadata,
     required super.typeParameters,
+    required super.isSimplyBounded,
     required super.supertype,
     required super.interfaces,
     required super.mixins,
@@ -1248,6 +1266,7 @@ class MixinItem extends InterfaceItem<MixinElementImpl> {
         id: id,
         metadata: ManifestMetadata.encode(context, element.metadata),
         typeParameters: typeParameters,
+        isSimplyBounded: element.isSimplyBounded,
         declaredConflicts: {},
         declaredFields: {},
         declaredGetters: {},
@@ -1273,6 +1292,7 @@ class MixinItem extends InterfaceItem<MixinElementImpl> {
       id: ManifestItemId.read(reader),
       metadata: ManifestMetadata.read(reader),
       typeParameters: ManifestTypeParameter.readList(reader),
+      isSimplyBounded: reader.readBool(),
       declaredConflicts: reader.readLookupNameToIdMap(),
       declaredFields: InstanceItemFieldItem.readMap(reader),
       declaredGetters: InstanceItemGetterItem.readMap(reader),
