@@ -116,6 +116,15 @@ final Matcher isAnalysisService = MatchesEnum('AnalysisService',
 final Matcher isAnalysisStatus = LazyMatcher(
     () => MatchesJsonObject('AnalysisStatus', {'isAnalyzing': isBool}));
 
+/// AssistDescription
+///
+/// {
+///   "id": String
+///   "message": String
+/// }
+final Matcher isAssistDescription = LazyMatcher(() => MatchesJsonObject(
+    'AssistDescription', {'id': isString, 'message': isString}));
+
 /// ChangeContentOverlay
 ///
 /// {
@@ -328,6 +337,17 @@ final Matcher isElementKind = MatchesEnum('ElementKind', [
 ///
 /// String
 final Matcher isFilePath = isString;
+
+/// FixDescription
+///
+/// {
+///   "id": String
+///   "message": String
+///   "codes": List<String>
+/// }
+final Matcher isFixDescription = LazyMatcher(() => MatchesJsonObject(
+    'FixDescription',
+    {'id': isString, 'message': isString, 'codes': isListOf(isString)}));
 
 /// FoldingKind
 ///
@@ -703,6 +723,24 @@ final Matcher isParameterKind = MatchesEnum('ParameterKind', [
   'REQUIRED_NAMED',
   'REQUIRED_POSITIONAL'
 ]);
+
+/// PluginDetails
+///
+/// {
+///   "name": String
+///   "lintRules": List<String>
+///   "warningRules": List<String>
+///   "assists": List<AssistDescription>
+///   "fixes": List<FixDescription>
+/// }
+final Matcher isPluginDetails =
+    LazyMatcher(() => MatchesJsonObject('PluginDetails', {
+          'name': isString,
+          'lintRules': isListOf(isString),
+          'warningRules': isListOf(isString),
+          'assists': isListOf(isAssistDescription),
+          'fixes': isListOf(isFixDescription)
+        }));
 
 /// Position
 ///
@@ -1318,6 +1356,17 @@ final Matcher isMoveFileFeedback = isNull;
 /// }
 final Matcher isMoveFileOptions = LazyMatcher(
     () => MatchesJsonObject('moveFile options', {'newFile': isFilePath}));
+
+/// plugin.details params
+final Matcher isPluginDetailsParams = isNull;
+
+/// plugin.details result
+///
+/// {
+///   "plugins": List<PluginDetails>
+/// }
+final Matcher isPluginDetailsResult = LazyMatcher(() => MatchesJsonObject(
+    'plugin.details result', {'plugins': isListOf(isPluginDetails)}));
 
 /// plugin.error params
 ///

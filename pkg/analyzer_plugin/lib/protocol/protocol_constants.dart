@@ -86,11 +86,13 @@ const String PLUGIN_NOTIFICATION_ERROR_MESSAGE = 'message';
 const String PLUGIN_NOTIFICATION_ERROR_STACK_TRACE = 'stackTrace';
 const String PLUGIN_NOTIFICATION_STATUS = 'plugin.status';
 const String PLUGIN_NOTIFICATION_STATUS_ANALYSIS = 'analysis';
+const String PLUGIN_REQUEST_DETAILS = 'plugin.details';
 const String PLUGIN_REQUEST_SHUTDOWN = 'plugin.shutdown';
 const String PLUGIN_REQUEST_VERSION_CHECK = 'plugin.versionCheck';
 const String PLUGIN_REQUEST_VERSION_CHECK_BYTE_STORE_PATH = 'byteStorePath';
 const String PLUGIN_REQUEST_VERSION_CHECK_SDK_PATH = 'sdkPath';
 const String PLUGIN_REQUEST_VERSION_CHECK_VERSION = 'version';
+const String PLUGIN_RESPONSE_DETAILS_PLUGINS = 'plugins';
 const String PLUGIN_RESPONSE_VERSION_CHECK_CONTACT_INFO = 'contactInfo';
 const String PLUGIN_RESPONSE_VERSION_CHECK_INTERESTING_FILES =
     'interestingFiles';

@@ -104,6 +104,22 @@
       </field>
     </result>
   </request>
+  <request method="details">
+    <p>
+      Details regarding the registered plugins, for analytics-reporting and
+      insights-reporting purposes.
+    </p>
+    <result>
+      <field name="plugins">
+        <list>
+          <ref>PluginDetails</ref>
+        </list>
+        <p>
+          A list of the details of all registered plugins.
+        </p>
+      </field>
+    </result>
+  </request>
   <request method="shutdown">
     <p>
       Used to request that the plugin exit. The server will not send any other

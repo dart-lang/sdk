@@ -3539,6 +3539,102 @@ class MoveFileOptions extends RefactoringOptions {
   int get hashCode => newFile.hashCode;
 }
 
+/// plugin.details params
+///
+/// Clients may not extend, implement or mix-in this class.
+class PluginDetailsParams implements RequestParams {
+  @override
+  Map<String, Object> toJson({ClientUriConverter? clientUriConverter}) => {};
+
+  @override
+  Request toRequest(String id, {ClientUriConverter? clientUriConverter}) {
+    return Request(id, 'plugin.details');
+  }
+
+  @override
+  bool operator ==(other) => other is PluginDetailsParams;
+
+  @override
+  int get hashCode => 808994897;
+}
+
+/// plugin.details result
+///
+/// {
+///   "plugins": List<PluginDetails>
+/// }
+///
+/// Clients may not extend, implement or mix-in this class.
+class PluginDetailsResult implements ResponseResult {
+  /// A list of the details of all registered plugins.
+  List<PluginDetails> plugins;
+
+  PluginDetailsResult(this.plugins);
+
+  factory PluginDetailsResult.fromJson(
+      JsonDecoder jsonDecoder, String jsonPath, Object? json,
+      {ClientUriConverter? clientUriConverter}) {
+    json ??= {};
+    if (json is Map) {
+      List<PluginDetails> plugins;
+      if (json.containsKey('plugins')) {
+        plugins = jsonDecoder.decodeList(
+            '$jsonPath.plugins',
+            json['plugins'],
+            (String jsonPath, Object? json) => PluginDetails.fromJson(
+                jsonDecoder, jsonPath, json,
+                clientUriConverter: clientUriConverter));
+      } else {
+        throw jsonDecoder.mismatch(jsonPath, 'plugins', json);
+      }
+      return PluginDetailsResult(plugins);
+    } else {
+      throw jsonDecoder.mismatch(jsonPath, 'plugin.details result', json);
+    }
+  }
+
+  factory PluginDetailsResult.fromResponse(Response response,
+      {ClientUriConverter? clientUriConverter}) {
+    return PluginDetailsResult.fromJson(
+        ResponseDecoder(REQUEST_ID_REFACTORING_KINDS.remove(response.id)),
+        'result',
+        response.result,
+        clientUriConverter: clientUriConverter);
+  }
+
+  @override
+  Map<String, Object> toJson({ClientUriConverter? clientUriConverter}) {
+    var result = <String, Object>{};
+    result['plugins'] = plugins
+        .map((PluginDetails value) =>
+            value.toJson(clientUriConverter: clientUriConverter))
+        .toList();
+    return result;
+  }
+
+  @override
+  Response toResponse(String id, int requestTime,
+      {ClientUriConverter? clientUriConverter}) {
+    return Response(id, requestTime,
+        result: toJson(clientUriConverter: clientUriConverter));
+  }
+
+  @override
+  String toString() => json.encode(toJson(clientUriConverter: null));
+
+  @override
+  bool operator ==(other) {
+    if (other is PluginDetailsResult) {
+      return listEqual(
+          plugins, other.plugins, (PluginDetails a, PluginDetails b) => a == b);
+    }
+    return false;
+  }
+
+  @override
+  int get hashCode => Object.hashAll(plugins);
+}
+
 /// plugin.error params
 ///
 /// {

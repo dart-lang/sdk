@@ -137,6 +137,7 @@ package:analysis_server_plugin/edit/fix/fix_context.dart:
 package:analysis_server_plugin/plugin.dart:
   Plugin (class extends Object):
     new (constructor: Plugin Function())
+    name (getter: String)
     register (method: FutureOr<void> Function(PluginRegistry))
     shutDown (method: FutureOr<void> Function())
     start (method: FutureOr<void> Function())

@@ -101,6 +101,7 @@ void f() {
       'c',
       TestNotificationManager(),
       InstrumentationService.NULL_SERVICE,
+      isLegacy: true,
     );
     var fixes = plugin.AnalysisErrorFixes(
       AnalysisError(

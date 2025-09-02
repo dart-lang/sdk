@@ -46,15 +46,18 @@ class NoDoublesRule extends AnalysisRule {
   }
 }
 
-class NoDoublesWarningRule extends AnalysisRule {
+class NoDoublesCustomSeverityRule extends AnalysisRule {
   static const LintCode code = LintCode(
-    'no_doubles_warning',
+    'no_doubles_custom_severity',
     'No doubles message',
     severity: DiagnosticSeverity.WARNING,
   );
 
-  NoDoublesWarningRule()
-    : super(name: 'no_doubles_warning', description: 'No doubles message');
+  NoDoublesCustomSeverityRule()
+    : super(
+        name: 'no_doubles_custom_severity',
+        description: 'No doubles message',
+      );
 
   @override
   DiagnosticCode get diagnosticCode => code;

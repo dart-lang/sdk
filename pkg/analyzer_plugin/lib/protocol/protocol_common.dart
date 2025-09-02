@@ -380,6 +380,73 @@ enum AnalysisErrorType {
   String toJson({ClientUriConverter? clientUriConverter}) => name;
 }
 
+/// AssistDescription
+///
+/// {
+///   "id": String
+///   "message": String
+/// }
+///
+/// Clients may not extend, implement or mix-in this class.
+class AssistDescription implements HasToJson {
+  /// The ID.
+  String id;
+
+  /// The message that is presented to the user, to carry out this assist.
+  String message;
+
+  AssistDescription(this.id, this.message);
+
+  factory AssistDescription.fromJson(
+      JsonDecoder jsonDecoder, String jsonPath, Object? json,
+      {ClientUriConverter? clientUriConverter}) {
+    json ??= {};
+    if (json is Map) {
+      String id;
+      if (json.containsKey('id')) {
+        id = jsonDecoder.decodeString('$jsonPath.id', json['id']);
+      } else {
+        throw jsonDecoder.mismatch(jsonPath, 'id', json);
+      }
+      String message;
+      if (json.containsKey('message')) {
+        message =
+            jsonDecoder.decodeString('$jsonPath.message', json['message']);
+      } else {
+        throw jsonDecoder.mismatch(jsonPath, 'message', json);
+      }
+      return AssistDescription(id, message);
+    } else {
+      throw jsonDecoder.mismatch(jsonPath, 'AssistDescription', json);
+    }
+  }
+
+  @override
+  Map<String, Object> toJson({ClientUriConverter? clientUriConverter}) {
+    var result = <String, Object>{};
+    result['id'] = id;
+    result['message'] = message;
+    return result;
+  }
+
+  @override
+  String toString() => json.encode(toJson(clientUriConverter: null));
+
+  @override
+  bool operator ==(other) {
+    if (other is AssistDescription) {
+      return id == other.id && message == other.message;
+    }
+    return false;
+  }
+
+  @override
+  int get hashCode => Object.hash(
+        id,
+        message,
+      );
+}
+
 /// ChangeContentOverlay
 ///
 /// {
@@ -1456,6 +1523,88 @@ enum ElementKind {
   String toString() => 'ElementKind.$name';
 
   String toJson({ClientUriConverter? clientUriConverter}) => name;
+}
+
+/// FixDescription
+///
+/// {
+///   "id": String
+///   "message": String
+///   "codes": List<String>
+/// }
+///
+/// Clients may not extend, implement or mix-in this class.
+class FixDescription implements HasToJson {
+  /// The ID.
+  String id;
+
+  /// The message that is presented to the user, to carry out this fix.
+  String message;
+
+  /// The IDs of the diagnostic codes with which this fix was registered.
+  List<String> codes;
+
+  FixDescription(this.id, this.message, this.codes);
+
+  factory FixDescription.fromJson(
+      JsonDecoder jsonDecoder, String jsonPath, Object? json,
+      {ClientUriConverter? clientUriConverter}) {
+    json ??= {};
+    if (json is Map) {
+      String id;
+      if (json.containsKey('id')) {
+        id = jsonDecoder.decodeString('$jsonPath.id', json['id']);
+      } else {
+        throw jsonDecoder.mismatch(jsonPath, 'id', json);
+      }
+      String message;
+      if (json.containsKey('message')) {
+        message =
+            jsonDecoder.decodeString('$jsonPath.message', json['message']);
+      } else {
+        throw jsonDecoder.mismatch(jsonPath, 'message', json);
+      }
+      List<String> codes;
+      if (json.containsKey('codes')) {
+        codes = jsonDecoder.decodeList(
+            '$jsonPath.codes', json['codes'], jsonDecoder.decodeString);
+      } else {
+        throw jsonDecoder.mismatch(jsonPath, 'codes', json);
+      }
+      return FixDescription(id, message, codes);
+    } else {
+      throw jsonDecoder.mismatch(jsonPath, 'FixDescription', json);
+    }
+  }
+
+  @override
+  Map<String, Object> toJson({ClientUriConverter? clientUriConverter}) {
+    var result = <String, Object>{};
+    result['id'] = id;
+    result['message'] = message;
+    result['codes'] = codes;
+    return result;
+  }
+
+  @override
+  String toString() => json.encode(toJson(clientUriConverter: null));
+
+  @override
+  bool operator ==(other) {
+    if (other is FixDescription) {
+      return id == other.id &&
+          message == other.message &&
+          listEqual(codes, other.codes, (String a, String b) => a == b);
+    }
+    return false;
+  }
+
+  @override
+  int get hashCode => Object.hash(
+        id,
+        message,
+        Object.hashAll(codes),
+      );
 }
 
 /// FoldingKind
@@ -2939,6 +3088,137 @@ enum ParameterKind {
   String toString() => 'ParameterKind.$name';
 
   String toJson({ClientUriConverter? clientUriConverter}) => name;
+}
+
+/// PluginDetails
+///
+/// {
+///   "name": String
+///   "lintRules": List<String>
+///   "warningRules": List<String>
+///   "assists": List<AssistDescription>
+///   "fixes": List<FixDescription>
+/// }
+///
+/// Clients may not extend, implement or mix-in this class.
+class PluginDetails implements HasToJson {
+  /// The name of the plugin.
+  String name;
+
+  /// A list of the IDs of the analysis rules which have been registered as
+  /// lint rules.
+  List<String> lintRules;
+
+  /// A list of the IDs of the analysis rules which have been registered as
+  /// warning rules.
+  List<String> warningRules;
+
+  /// A list of the descriptions of registered assists.
+  List<AssistDescription> assists;
+
+  /// A list of the descriptions of registered fixes.
+  List<FixDescription> fixes;
+
+  PluginDetails(
+      this.name, this.lintRules, this.warningRules, this.assists, this.fixes);
+
+  factory PluginDetails.fromJson(
+      JsonDecoder jsonDecoder, String jsonPath, Object? json,
+      {ClientUriConverter? clientUriConverter}) {
+    json ??= {};
+    if (json is Map) {
+      String name;
+      if (json.containsKey('name')) {
+        name = jsonDecoder.decodeString('$jsonPath.name', json['name']);
+      } else {
+        throw jsonDecoder.mismatch(jsonPath, 'name', json);
+      }
+      List<String> lintRules;
+      if (json.containsKey('lintRules')) {
+        lintRules = jsonDecoder.decodeList(
+            '$jsonPath.lintRules', json['lintRules'], jsonDecoder.decodeString);
+      } else {
+        throw jsonDecoder.mismatch(jsonPath, 'lintRules', json);
+      }
+      List<String> warningRules;
+      if (json.containsKey('warningRules')) {
+        warningRules = jsonDecoder.decodeList('$jsonPath.warningRules',
+            json['warningRules'], jsonDecoder.decodeString);
+      } else {
+        throw jsonDecoder.mismatch(jsonPath, 'warningRules', json);
+      }
+      List<AssistDescription> assists;
+      if (json.containsKey('assists')) {
+        assists = jsonDecoder.decodeList(
+            '$jsonPath.assists',
+            json['assists'],
+            (String jsonPath, Object? json) => AssistDescription.fromJson(
+                jsonDecoder, jsonPath, json,
+                clientUriConverter: clientUriConverter));
+      } else {
+        throw jsonDecoder.mismatch(jsonPath, 'assists', json);
+      }
+      List<FixDescription> fixes;
+      if (json.containsKey('fixes')) {
+        fixes = jsonDecoder.decodeList(
+            '$jsonPath.fixes',
+            json['fixes'],
+            (String jsonPath, Object? json) => FixDescription.fromJson(
+                jsonDecoder, jsonPath, json,
+                clientUriConverter: clientUriConverter));
+      } else {
+        throw jsonDecoder.mismatch(jsonPath, 'fixes', json);
+      }
+      return PluginDetails(name, lintRules, warningRules, assists, fixes);
+    } else {
+      throw jsonDecoder.mismatch(jsonPath, 'PluginDetails', json);
+    }
+  }
+
+  @override
+  Map<String, Object> toJson({ClientUriConverter? clientUriConverter}) {
+    var result = <String, Object>{};
+    result['name'] = name;
+    result['lintRules'] = lintRules;
+    result['warningRules'] = warningRules;
+    result['assists'] = assists
+        .map((AssistDescription value) =>
+            value.toJson(clientUriConverter: clientUriConverter))
+        .toList();
+    result['fixes'] = fixes
+        .map((FixDescription value) =>
+            value.toJson(clientUriConverter: clientUriConverter))
+        .toList();
+    return result;
+  }
+
+  @override
+  String toString() => json.encode(toJson(clientUriConverter: null));
+
+  @override
+  bool operator ==(other) {
+    if (other is PluginDetails) {
+      return name == other.name &&
+          listEqual(
+              lintRules, other.lintRules, (String a, String b) => a == b) &&
+          listEqual(warningRules, other.warningRules,
+              (String a, String b) => a == b) &&
+          listEqual(assists, other.assists,
+              (AssistDescription a, AssistDescription b) => a == b) &&
+          listEqual(fixes, other.fixes,
+              (FixDescription a, FixDescription b) => a == b);
+    }
+    return false;
+  }
+
+  @override
+  int get hashCode => Object.hash(
+        name,
+        Object.hashAll(lintRules),
+        Object.hashAll(warningRules),
+        Object.hashAll(assists),
+        Object.hashAll(fixes),
+      );
 }
 
 /// Position
